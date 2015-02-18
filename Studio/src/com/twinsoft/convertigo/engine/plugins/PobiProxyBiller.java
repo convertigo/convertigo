@@ -181,6 +181,14 @@ public class PobiProxyBiller extends PobiBiller {
 		if (html.indexOf("Votre suppression a été enregistrée.") != -1)
 			return 0;
 
+		// Enquête etat civil : retour à la liste !!!
+		if (html.indexOf("<title>Object moved</title>") != -1)
+			return -1;
+
+		// Enquête etat civil : modification
+		if (html.indexOf("Votre réponse à l'enquête d'état civil a bien été prise en compte pour traitement à la Banque de France") != -1)
+			return 0;
+		
 		return -1;
 
 		//		return getApplicationCost("fcc", cleBDF, sousCle, nbp);
@@ -195,10 +203,6 @@ public class PobiProxyBiller extends PobiBiller {
 	}
 
 	private double getFicpCostProxy(String html) throws SQLException {
-		String cleBDF, sousCle = "";
-		int nbp;
-		int index1, index2, index3;
-
 		// Mise à jour "déclaration"
 		if (html.indexOf("La déclaration d'incident a bien été enregistrée") != -1)
 			return 0;
@@ -210,6 +214,18 @@ public class PobiProxyBiller extends PobiBiller {
 		// Mise à jour "annulation"
 		if (html.indexOf("L'annulation d'incident a bien été enregistrée") != -1)
 			return 0;
+
+		// Enquête etat civil : retour à la liste !!!
+		if (html.indexOf("<title>Object moved</title>") != -1)
+			return -1;
+		
+		// Enquête etat civil : modification
+		if (html.indexOf("Votre réponse à l'enquête d'état civil a bien été prise en compte pour traitement à la Banque de France") != -1)
+			return 0;
+
+		/*String cleBDF, sousCle = "";
+		int nbp;
+		int index1, index2, index3;
 
 		if ((html.indexOf("<title>Consultation FICP - Formulaire de recherche</title>") != -1) &&
 				(index1 = html.indexOf("Dossier non trouvé")) != -1) {
@@ -266,12 +282,12 @@ public class PobiProxyBiller extends PobiBiller {
 		}
 
 		if (cleBDF != "")		
-			return getApplicationCost("ficp", cleBDF, sousCle, nbp);
+			return getApplicationCost("ficp", cleBDF, sousCle, nbp);*/
 
 		return -1;
 	}
 
-	private boolean isFirstHomonyme(String cleBDF, String sousCle, String application) throws SQLException {
+	protected boolean isFirstHomonyme(String cleBDF, String sousCle, String application) throws SQLException {
 		boolean bFirstHomonyme = false;
 		Statement statement = null;
 
@@ -340,7 +356,6 @@ public class PobiProxyBiller extends PobiBiller {
 	}
 
 	private double getFnciCostProxy(String html) throws SQLException {
-		// Mise à jour "interdits bancaires / judiciaires" et "clôture de compte"
 		if (html.indexOf("Votre saisie a été enregistrée") != -1) {
 			return 0;
 		}
@@ -382,20 +397,26 @@ public class PobiProxyBiller extends PobiBiller {
 	protected String getService(Context context, Object data) {
 		String html = (String) data;
 
-		if (((html.indexOf(strFccSuppressionChequeBdFenInfraction) != -1)
+		// FCC
+		/*if (((html.indexOf(strFccSuppressionChequeBdFenInfraction) != -1)
 				&& (html.indexOf(strFccSuppressionChequesPayes) != -1))
 				|| ((html.indexOf(strFccDeclarationRemiseBDF) != -1)
 						&& (html.indexOf(strFccDeclarationChequesPayes) != -1))
 						|| (html.indexOf(strFccConsultationFichierCentralCheques) != -1)
 						|| (html.indexOf(strFccFichierCentralCheques) != -1))
+			return "FCC mise à jour";*/
+		if (html.indexOf("FCC") != -1 || html.indexOf("chèques payés") != -1)
 			return "FCC mise à jour";
 
+		// FICP
 		if (html.indexOf("FICP") != -1)
 			return "FICP mise à jour";
 
+		// FNCI
 		if (html.indexOf("FNCI") != -1)
 			return "FNCI mise à jour";
 
+		// SURVMP
 		if ((html.indexOf(strClotureChequeSurvMP) != -1)
 				|| (html.indexOf(strPreClotureDeclarationSurvMP) != -1)
 				|| (html.indexOf(strSaisieSurvMP) != -1))
@@ -427,6 +448,19 @@ public class PobiProxyBiller extends PobiBiller {
 	protected String getModule(Context context, Object data) {
 		String html = (String) data;
 
+		// FCC
+		if (html.indexOf("<title>Déclaration FCC -") !=-1)
+			return "Déclaration incident";
+		
+		if (html.indexOf("<title>Suppression FCC -") !=-1)
+			return "Suppression incident";
+		
+		if (html.indexOf("<title>Déclaration de chèques payés -") !=-1)
+			return "Déclaration de chèques payés";
+		
+		if (html.indexOf("<title>Suppression de chèques payés -") !=-1)
+			return "Suppression de chèques payés";
+		
 		if ((html.indexOf(strFccSuppressionChequeBdFenInfraction) != -1)
 				&& (html.indexOf(strFccSuppressionChequesPayes) != -1))
 			return "Suppression chèques payés";
@@ -435,6 +469,30 @@ public class PobiProxyBiller extends PobiBiller {
 				&& (html.indexOf(strFccDeclarationChequesPayes) != -1))
 			return "Déclaration chèques payés";
 
+		if (html.indexOf("<title>Gestion Etat Civil FCC</title>") !=-1)
+			return "Gestion état civil";
+		
+		
+		// FICP
+		if (html.indexOf("<title>Gestion Etat Civil du FICP</title>") !=-1)
+			return "Gestion état civil";
+
+		if (html.indexOf("<title>Déclaration au FICP -") !=-1)
+			return "Déclaration incident";
+		
+		if (html.indexOf("<title>Mise à jour du FICP -") !=-1)
+			return "Suppression incident";
+		
+		
+		// FNCI
+		if (html.indexOf("FNCI : Saisie enregistrée") !=-1)
+			return "Déclaration faux chèque(s)";
+		
+		if (html.indexOf("FNCI : suppression confirmée") !=-1)
+			return "Suppression faux chèque(s)";
+		
+		
+		// SURVMP
 		if (html.indexOf(strCartographieSurvMP) != -1)
 			return "Saisie";
 
@@ -511,6 +569,12 @@ public class PobiProxyBiller extends PobiBiller {
 			index3 = html.indexOf('<', index2);
 			cleBDF = html.substring(index2 + 1, index3);
 		}
+		else if ((index1 = html.indexOf("Numéro Enquête")) != -1) {
+			index2 = html.indexOf("<span", index1);
+			index2 = html.indexOf('>', index2);
+			index3 = html.indexOf('<', index2);
+			cleBDF = html.substring(index2 + 1, index3);
+		}
 		else {
 			Engine.logBillers.error(
 					"[PobiBiller] Unable to get the transaction BDF key; aborting billing.",
@@ -560,6 +624,13 @@ public class PobiProxyBiller extends PobiBiller {
 			sx.replaceAll(" ", "");
 			cleBDF = sx.toString();
 		}
+		else if ((index1 = html.indexOf("Numéro Enquête")) != -1) {
+			index2 = html.indexOf("<span", index1);
+			index2 = html.indexOf("<span", index2+1);
+			index2 = html.indexOf('>', index2);
+			index3 = html.indexOf('<', index2);
+			cleBDF = html.substring(index2 + 1, index3);
+		}
 		else {
 			Engine.logBillers.error(
 					"[PobiBiller] Unable to get the transaction BDF key; aborting billing.",
@@ -596,6 +667,23 @@ public class PobiProxyBiller extends PobiBiller {
 			}
 			catch(Exception e) {
 				cleBDF = "?";
+			}
+		}
+		else if (html.indexOf("Référence") != -1) {
+			if ((index1 = html.indexOf("Zone interbancaire")) != -1) {
+				index2 = html.indexOf("<span", index1);
+				index2 = html.indexOf('>', index2);
+				index3 = html.indexOf('<', index2);
+				cleBDF = html.substring(index2 + 1, index3);
+				if ((index1 = html.indexOf("Zone interne")) != -1) {
+					index2 = html.indexOf("<span", index1);
+					index2 = html.indexOf('>', index2);
+					index3 = html.indexOf('<', index2);
+					cleBDF += "/"+ html.substring(index2 + 1, index3);
+				}
+				StringEx sx = new StringEx(cleBDF);
+				sx.replaceAll(" ", "");
+				cleBDF = sx.toString();
 			}
 		}
 		else {
