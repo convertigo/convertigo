@@ -22,8 +22,9 @@
 
 package com.twinsoft.convertigo.engine.siteclipper.clientinstruction;
 
-import com.google.gson.JsonObject;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 
 public interface IClientInstruction {
-	public JsonObject getInstruction();
+	public JSONObject getInstruction() throws JSONException;
 }

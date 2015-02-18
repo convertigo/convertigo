@@ -9,12 +9,14 @@ public enum CouchKey {
 	_design("_design/"),
 	_global("_global/"),
 	id,
+	docs,
 	filters,
 	map,
 	reduce,
 	rev,
 	views,
-	c8oAcl("~c8oAcl");
+	c8oAcl("~c8oAcl"),
+	c8oHash("~c8oHash");
 	
 	String key;
 	

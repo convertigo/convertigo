@@ -23,13 +23,13 @@ import java.util.Date;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONObject;
+
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.DownloadService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.util.Json;
 
 @ServiceDefinition(
 		name = "Export", 
@@ -48,19 +48,19 @@ public class Export extends DownloadService {
 		
 		if ( symbols != null && !symbols.equals("") ) {
 			//Parse string requested parameter to JSON
-			JsonObject jsonObj = Json.newJsonObject(symbols);
-			JsonArray symbolsNames = jsonObj.get("symbols").getAsJsonArray();
+			JSONObject jsonObj = new JSONObject(symbols);
+			JSONArray symbolsNames = jsonObj.getJSONArray("symbols");
 			
 			//Write header information
 			String writedString = "#global symbols\n";
 			writedString += "#" + new Date() + "\n";
 
 			//Write symbols saved with name and value for each requested/selected symbols
-			for (int i = 0; i < symbolsNames.size(); i++) {
-				JsonObject jo = symbolsNames.get(i).getAsJsonObject();
+			for (int i = 0; i < symbolsNames.length(); i++) {
+				JSONObject jo = symbolsNames.getJSONObject(i);
 				String symbolValue = Engine.theApp.databaseObjectsManager
-						.symbolsGetValue(jo.get("name").getAsString());
-				writedString += jo.get("name").getAsString() + "=" + symbolValue + "\n";
+						.symbolsGetValue(jo.getString("name"));
+				writedString += jo.getString("name") + "=" + symbolValue + "\n";
 			}
 
 			response.setHeader("Content-Disposition",

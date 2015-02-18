@@ -37,12 +37,13 @@ import java.util.zip.ZipOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.gson.JsonArray;
-import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
-import com.twinsoft.convertigo.engine.admin.logmanager.LogManager;
+import org.codehaus.jettison.json.JSONArray;
+
 import com.twinsoft.convertigo.engine.admin.logmanager.LogServiceHelper;
+import com.twinsoft.convertigo.engine.admin.logmanager.LogManager;
 import com.twinsoft.convertigo.engine.admin.services.DownloadService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 @ServiceDefinition(
@@ -85,15 +86,15 @@ public class Download extends DownloadService {
 			
 			zop.putNextEntry(new ZipEntry(basename + ".log"));
 			while (logmanager.hasMoreResults()) {
-				JsonArray lines = logmanager.getLines();
-				for (int i = 0 ; i < lines.size() ; i++) {
-					JsonArray line = lines.get(i).getAsJsonArray();
+				JSONArray lines = logmanager.getLines();
+				for (int i = 0 ; i < lines.length() ; i++) {
+					JSONArray line = lines.getJSONArray(i);
 					StringBuffer extra = new StringBuffer();
-					for (int j = 5 ; j < line.size() ; j++) {
-						extra.append(" | $" + line.get(j).getAsString());
+					for (int j = 5 ; j < line.length() ; j++) {
+						extra.append(" | $" + line.getString(j));
 					}
-					bn.reset(line.get(4).getAsString());
-					out.write(String.format("!%-28s | %s | %-5s | %-32s%s | %s\r\n", line.get(0).getAsString(), line.get(1).getAsString(), line.get(2).getAsString(), line.get(3).getAsString(), extra.toString(), bn.replaceAll("\r\n")));			
+					bn.reset(line.getString(4));
+					out.write(String.format("!%-28s | %s | %-5s | %-32s%s | %s\r\n", line.getString(0), line.getString(1), line.getString(2), line.getString(3), extra.toString(), bn.replaceAll("\r\n")));			
 				}
 				logmanager.setContinue(true);
 			}

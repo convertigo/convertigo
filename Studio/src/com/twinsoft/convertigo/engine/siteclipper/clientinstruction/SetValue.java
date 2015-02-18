@@ -22,7 +22,8 @@
 
 package com.twinsoft.convertigo.engine.siteclipper.clientinstruction;
 
-import com.google.gson.JsonObject;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 
 public class SetValue extends AbstractClientInstructionWithPath {
 	private String value;
@@ -33,9 +34,9 @@ public class SetValue extends AbstractClientInstructionWithPath {
 	}
 
 	@Override
-	public JsonObject getInstruction() {
-		JsonObject json = super.getInstruction();
-		json.addProperty("value", value);
+	public JSONObject getInstruction() throws JSONException {
+		JSONObject json = super.getInstruction();
+		json.put("value", value);
 		return json;
 	}
 }

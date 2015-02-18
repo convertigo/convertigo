@@ -22,7 +22,8 @@
 
 package com.twinsoft.convertigo.engine.siteclipper.clientinstruction;
 
-import com.google.gson.JsonObject;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 
 public abstract class AbstractClientInstructionWithPath implements IClientInstruction {
 	private String path;
@@ -31,10 +32,10 @@ public abstract class AbstractClientInstructionWithPath implements IClientInstru
 		this.path = path;
 	}
 
-	public JsonObject getInstruction() {
-		JsonObject json = new JsonObject();
-		json.addProperty("type", getClass().getSimpleName());
-		json.addProperty("path", path);
+	public JSONObject getInstruction() throws JSONException {
+		JSONObject json = new JSONObject();
+		json.put("type", getClass().getSimpleName());
+		json.put("path", path);
 		return json;
 	}
 }

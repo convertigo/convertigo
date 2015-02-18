@@ -36,6 +36,7 @@ import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaSequence;
+import org.codehaus.jettison.json.JSONException;
 import org.mozilla.javascript.NativeArray;
 import org.mozilla.javascript.NativeJavaArray;
 import org.mozilla.javascript.NativeJavaObject;
@@ -206,7 +207,7 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		}
 	}
 	
-	protected static JsonElement toJson(Gson gson, JsonParser parser, Object object) throws JsonSyntaxException {
+	protected static JsonElement toJson(Gson gson, JsonParser parser, Object object) throws JsonSyntaxException, JSONException {
 		if (object == null) return null;
 		
 		JsonElement jsonElement = null;
@@ -270,7 +271,7 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		return jsonElement;
 	}
 	
-	private static JsonElement toJson(JsonParser parser, Element element) throws JsonSyntaxException {
+	private static JsonElement toJson(JsonParser parser, Element element) throws JsonSyntaxException, JSONException {
 		JsonElement jsonXml = parser.parse(XMLUtils.XmlToJson(element, true));
 		if (isInputDomVariable(element)) {
 			JsonObject jsonVariable = jsonXml.getAsJsonObject().getAsJsonObject("variable");

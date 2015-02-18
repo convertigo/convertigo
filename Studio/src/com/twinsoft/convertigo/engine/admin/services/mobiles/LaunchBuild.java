@@ -35,10 +35,10 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.FileRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.io.IOUtils;
+import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.google.gson.JsonObject;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.beans.mobileplatforms.Android;
@@ -54,7 +54,6 @@ import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.enums.Accessibility;
-import com.twinsoft.convertigo.engine.util.Json;
 import com.twinsoft.convertigo.engine.util.URLUtils;
 
 @ServiceDefinition(name = "LaunchBuild", roles = { Role.ANONYMOUS }, parameters = {}, returnValue = "")
@@ -179,9 +178,9 @@ public class LaunchBuild extends XmlService {
 				throw new ServiceException("Unable to build application '" + finalApplicationName + "'.\n" + sResult);
 			}
 			
-			JsonObject jsonObject = Json.newJsonObject(sResult);
+			JSONObject jsonObject = new JSONObject(sResult);
 			Element statusElement = document.createElement("application");
-			statusElement.setAttribute("id", jsonObject.get("id").getAsString());
+			statusElement.setAttribute("id", jsonObject.getString("id"));
 			document.getDocumentElement().appendChild(statusElement);
 		}
 	}

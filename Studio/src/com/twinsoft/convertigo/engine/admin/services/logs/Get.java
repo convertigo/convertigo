@@ -30,16 +30,16 @@ import javax.servlet.http.HttpSession;
 import org.apache.log4j.Appender;
 import org.apache.log4j.AppenderSkeleton;
 import org.apache.log4j.spi.LoggingEvent;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONObject;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.admin.logmanager.LogManager;
 import com.twinsoft.convertigo.engine.admin.logmanager.LogServiceHelper;
 import com.twinsoft.convertigo.engine.admin.logmanager.LogServiceHelper.LogManagerParameter;
+import com.twinsoft.convertigo.engine.admin.logmanager.LogManager;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 
 @ServiceDefinition(
@@ -52,7 +52,7 @@ public class Get extends JSonService {
 	static private final String attr_start = Get.class.getCanonicalName()+".start";
 	static private final String attr_appender = Get.class.getCanonicalName()+".appender.";
 	
-	protected void getServiceResult(HttpServletRequest request, JsonObject response) throws Exception {
+	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
         HttpSession session = request.getSession();
         LogManager logmanager = LogServiceHelper.getLogManager(request);
         Long start = System.currentTimeMillis();
@@ -103,8 +103,8 @@ public class Get extends JSonService {
 	    	        Engine.logConvertigo.addAppender(appender);
 	    	        
 	    	        boolean interrupted = false;
-	    	        JsonArray lines = logmanager.getLines();
-	    	        while (lines.size() == 0 && !interrupted && session.getAttribute(attr_start) == start) {
+	    	        JSONArray lines = logmanager.getLines();
+	    	        while (lines.length() == 0 && !interrupted && session.getAttribute(attr_start) == start) {
 	    	        	synchronized (appender) {
 							try {
 								appender.wait(2000);
@@ -114,7 +114,7 @@ public class Get extends JSonService {
 						}
 	    	        	lines = logmanager.getLines();
 	    	        }
-	    	        response.add("lines", lines);
+	    	        response.put("lines", lines);
 	            } finally {
 	            	if (appender != null) {
 	            		Engine.logConvertigo.removeAppender(appender);
@@ -124,14 +124,14 @@ public class Get extends JSonService {
 	        	LogServiceHelper.prepareLogManager(request, logmanager);
 	        	session.removeAttribute("isRealtime");
 		        
-	        	JsonArray lines = logmanager.getLines();
+	        	JSONArray lines = logmanager.getLines();
 	        	logmanager.setContinue(true);
-	        	while (lines.size() == 0 && logmanager.hasMoreResults() && session.getAttribute(attr_start) == start) {
+	        	while (lines.length() == 0 && logmanager.hasMoreResults() && session.getAttribute(attr_start) == start) {
 	        		lines = logmanager.getLines();
 	        	}
 	        	
-				response.add("lines", lines);
-				response.addProperty("hasMoreResults", logmanager.hasMoreResults());
+				response.put("lines", lines);
+				response.put("hasMoreResults", logmanager.hasMoreResults());
 	        }
 		}
 	}

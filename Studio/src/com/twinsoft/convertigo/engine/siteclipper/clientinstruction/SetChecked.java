@@ -22,7 +22,8 @@
 
 package com.twinsoft.convertigo.engine.siteclipper.clientinstruction;
 
-import com.google.gson.JsonObject;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 
 public class SetChecked extends AbstractClientInstructionWithPath {
 	private boolean checked;
@@ -33,9 +34,9 @@ public class SetChecked extends AbstractClientInstructionWithPath {
 	}
 
 	@Override
-	public JsonObject getInstruction() {
-		JsonObject json = super.getInstruction();
-		json.addProperty("checked", checked);
+	public JSONObject getInstruction() throws JSONException {
+		JSONObject json = super.getInstruction();
+		json.put("checked", checked);
 		return json;
 	}
 }

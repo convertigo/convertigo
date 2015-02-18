@@ -38,6 +38,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Appender;
 import org.apache.log4j.AppenderSkeleton;
 import org.apache.log4j.spi.LoggingEvent;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
@@ -81,7 +83,6 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.actions.RetargetAction;
 import org.eclipse.ui.part.ViewPart;
 
-import com.google.gson.JsonArray;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.EventDetailsDialog;
 import com.twinsoft.convertigo.eclipse.dialogs.EventDetailsDialogComposite;
@@ -89,7 +90,6 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.logmanager.LogManager;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
-import com.twinsoft.convertigo.engine.util.Json;
 
 public class EngineLogView extends ViewPart {
 	private Thread logViewThread;
@@ -1048,9 +1048,9 @@ public class EngineLogView extends ViewPart {
 	
 	private boolean getLogs() {
 		try {
-			JsonArray logs = logManager.getLines();
+			JSONArray logs = logManager.getLines();
 			boolean interrupted = false;
-			while (logs.size() == 0 && !interrupted && Thread.currentThread() == logViewThread) {
+			while (logs.length() == 0 && !interrupted && Thread.currentThread() == logViewThread) {
 				synchronized (appender) {
 					try {
 						appender.wait(300);
@@ -1068,10 +1068,10 @@ public class EngineLogView extends ViewPart {
 			
 			HashMap<String, String> allExtras = new HashMap<String, String>();
 			
-			for (int i = 0; i < logs.size(); i++) {
-				JsonArray logLine = logs.get(i).getAsJsonArray();
+			for (int i = 0; i < logs.length(); i++) {
+				JSONArray logLine = (JSONArray) logs.get(i);
 				
-				String dateTime = Json.toPrettyJson(logLine);
+				String dateTime = logLine.getString(1);
 				String[] dateTimeParts = dateTime.split(" ");
 				String date = dateTimeParts[0];
 				String time = dateTimeParts[1];
@@ -1099,33 +1099,35 @@ public class EngineLogView extends ViewPart {
 					deltaTime = "n/a";
 				}
 				
-				int len = logLine.size();
+				int len = logLine.length();
 				for (int j = 5; j < len; j++) {
-					String extra = logLine.get(j).getAsString();
+					String extra = logLine.getString(j);
 					int k = extra.indexOf("=");
 					allExtras.put(extra.substring(0, k), extra.substring(k + 1));
 				}
 
 				// Build the message lines
-				String message = logLine.get(4).getAsString();
+				String message = logLine.getString(4);
 				String[] messageLines = message.split("\n");
 				if (messageLines.length > 1) {
 					boolean firstLine = true;
 					for (String messageLine : messageLines) {
-						logLines.add(new LogLine(logLine.get(0).getAsString(), date, time, deltaTime, logLine
-								.get(2).getAsString(), logLine.get(3).getAsString(), messageLine, !firstLine, counter,
-								logLine.get(4).getAsString(), allExtras));
+						logLines.add(new LogLine(logLine.getString(0), date, time, deltaTime, logLine
+								.getString(2), logLine.getString(3), messageLine, !firstLine, counter,
+								logLine.getString(4), allExtras));
 						counter++;
 						firstLine = false;
 					}
 				}
 				else {
-					logLines.add(new LogLine(logLine.get(0).getAsString(), date, time, deltaTime, logLine
-							.get(2).getAsString(), logLine.get(3).getAsString(), logLine.get(4).getAsString(), false, counter,
-							logLine.get(4).getAsString(), allExtras));
+					logLines.add(new LogLine(logLine.getString(0), date, time, deltaTime, logLine
+							.getString(2), logLine.getString(3), logLine.getString(4), false, counter,
+							logLine.getString(4), allExtras));
 					counter++;
 				}
 			}
+		} catch (JSONException e) {
+			ConvertigoPlugin.logException(e, "Unable to process received Engine logs", true);
 		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "Error while loading the Engine logs", true);
 		}

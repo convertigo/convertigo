@@ -23,17 +23,16 @@
 package com.twinsoft.convertigo.engine.admin.services.logs;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.apache.log4j.Level;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONObject;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -42,7 +41,6 @@ import com.twinsoft.convertigo.engine.LogParameters;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
-import com.twinsoft.convertigo.engine.util.Json;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
 
@@ -54,12 +52,12 @@ import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
 )
 public class Add extends JSonService {
 
-	protected void getServiceResult(HttpServletRequest request, JsonObject response) throws Exception {
+	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
 		try {
-			JsonArray logs = Json.newJsonArray(request.getParameter("logs"));
-			JsonObject env = Json.newJsonObject(request.getParameter("env"));
+			JSONArray logs = new JSONArray(request.getParameter("logs"));
+			JSONObject env = new JSONObject(request.getParameter("env"));
 
-			String uid = env.get("uid").getAsString();
+			String uid = env.getString("uid");
 
 			if (uid == null) {
 				throw new IllegalArgumentException();
@@ -89,27 +87,28 @@ public class Add extends JSonService {
 				Log4jHelper.mdcPut(mdcKeys.ClientHostName, request.getRemoteHost());
 			}
 			
-			for (Entry<String, JsonElement> entry: env.entrySet()) {
-				logParameters.put(entry.getKey().toLowerCase(), entry.getValue().getAsString());
+			for (Iterator<String> iKey = GenericUtils.cast(env.keys()); iKey.hasNext();) {
+				String key = iKey.next();
+				logParameters.put(key.toLowerCase(), env.get(key));
 			}
 
 			if (httpSession.getAttribute("authenticatedUser") != null) {
 				Log4jHelper.mdcPut(mdcKeys.User, httpSession.getAttribute("authenticatedUser").toString());			
 			}
 
-			for (int i = 0; i < logs.size(); i++) {
-				JsonObject log = logs.get(i).getAsJsonObject();
-				Level level = Level.toLevel(log.get("level").getAsString(), Level.OFF);
+			for (int i = 0; i < logs.length(); i++) {
+				JSONObject log = logs.getJSONObject(i);
+				Level level = Level.toLevel(log.getString("level"), Level.OFF);
 				
 				if (Engine.logDevices.isEnabledFor(level)) {
-					String msg = log.get("msg").getAsString();
-					String time = log.get("time").getAsString();
+					String msg = log.getString("msg");
+					String time = log.getString("time");
 					msg = "(" + time + ") " + msg;
 					Engine.logDevices.log(level, msg);
 				}
 			}
 			
-			response.addProperty("remoteLogLevel", Engine.logDevices.getLevel().toString().toLowerCase());
+			response.put("remoteLogLevel", Engine.logDevices.getLevel().toString().toLowerCase());
 		} finally {
 			Log4jHelper.mdcClear();
 		}
