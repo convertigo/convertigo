@@ -35,7 +35,7 @@ import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.cdbproxy.CouchDbProxyManager;
+import com.twinsoft.convertigo.engine.cdbproxy.CouchDbManager;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.util.Json;
 
@@ -117,7 +117,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 		
 		if (CouchKey._id.has(jso)) {
 			CouchDbConnector couchDbConnector = dd.getConnector();
-			lastRev = CouchDbProxyManager.syncDocument(couchDbConnector.getCouchDbClient(), couchDbConnector.getDatabaseName(), jso.toString());
+			lastRev = CouchDbManager.syncDocument(couchDbConnector.getCouchDbClient(), couchDbConnector.getDatabaseName(), jso.toString());
 		}
 	}
 	

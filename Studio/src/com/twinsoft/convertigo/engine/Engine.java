@@ -57,7 +57,7 @@ import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.cache.CacheManager;
-import com.twinsoft.convertigo.engine.cdbproxy.CouchDbProxyManager;
+import com.twinsoft.convertigo.engine.cdbproxy.CouchDbManager;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.externalbrowser.ExternalBrowserManager;
 import com.twinsoft.convertigo.engine.plugins.AbstractBiller;
@@ -208,7 +208,7 @@ public class Engine {
 	/**
 	 * The plugins manager
 	 */
-	public CouchDbProxyManager couchDbProxyManager;
+	public CouchDbManager couchDbManager;
 	
 	/**
 	 * Loggers
@@ -464,8 +464,8 @@ public class Engine {
 				}
 				
 				try {
-					Engine.theApp.couchDbProxyManager = new CouchDbProxyManager();
-					Engine.theApp.couchDbProxyManager.init();
+					Engine.theApp.couchDbManager = new CouchDbManager();
+					Engine.theApp.couchDbManager.init();
 				} catch (Exception e) {
 					Engine.logEngine.error("Unable to run the couchDbProxy manager.", e);
 				}
@@ -829,8 +829,8 @@ public class Engine {
 					Engine.theApp.minificationManager.destroy();
 				}
 
-				if (Engine.theApp.couchDbProxyManager != null) {
-					Engine.theApp.couchDbProxyManager.destroy();
+				if (Engine.theApp.couchDbManager != null) {
+					Engine.theApp.couchDbManager.destroy();
 				}
 				
 				if (Engine.theApp.rsaManager != null) {

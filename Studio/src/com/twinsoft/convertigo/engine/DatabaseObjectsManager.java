@@ -75,7 +75,7 @@ import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.steps.XMLActionStep;
 import com.twinsoft.convertigo.beans.steps.XMLGenerateDatesStep;
 import com.twinsoft.convertigo.beans.variables.StepVariable;
-import com.twinsoft.convertigo.engine.cdbproxy.CouchDbProxyManager;
+import com.twinsoft.convertigo.engine.cdbproxy.CouchDbManager;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboBean;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboBeans;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboCategory;
@@ -236,7 +236,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			try {
 				checkForEngineMigrationProcess(projectName);
 				project = importProject(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml");
-				CouchDbProxyManager.syncDocument(project);
+				CouchDbManager.syncDocument(project);
 			} catch (ClassCastException e) {
 				throw new EngineException("The requested object \"" + projectName + "\" is not a project!", e);
 			} catch (ProjectInMigrationProcessException e) {
