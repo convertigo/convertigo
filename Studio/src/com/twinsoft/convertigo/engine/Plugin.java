@@ -20,14 +20,12 @@
  * $Date: $
  */
 
-package com.twinsoft.convertigo.engine.plugins;
+package com.twinsoft.convertigo.engine;
 
 import java.util.Enumeration;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
-
-import com.twinsoft.convertigo.engine.Context;
 
 public abstract class Plugin {
 

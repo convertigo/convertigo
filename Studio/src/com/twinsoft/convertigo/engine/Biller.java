@@ -20,7 +20,7 @@
  * $Date$
  */
 
-package com.twinsoft.convertigo.engine.plugins;
+package com.twinsoft.convertigo.engine;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,10 +36,6 @@ import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
-import com.twinsoft.convertigo.engine.CertificateManager;
-import com.twinsoft.convertigo.engine.Context;
-import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.SqlRequester;
 import com.twinsoft.util.StringEx;

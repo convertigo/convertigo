@@ -20,7 +20,7 @@
  * $Date: $
  */
 
-package com.twinsoft.convertigo.engine.plugins;
+package com.twinsoft.convertigo.engine;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -31,9 +31,6 @@ import java.util.Map;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
-
-import com.twinsoft.convertigo.engine.Context;
-import com.twinsoft.convertigo.engine.Engine;
 
 public class PluginsManager {
 	public static final String PROPERTIES_FILE_NAME = "/plugins.properties";

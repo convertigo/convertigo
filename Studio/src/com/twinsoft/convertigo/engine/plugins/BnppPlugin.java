@@ -32,9 +32,11 @@ import javax.servlet.http.HttpServletRequest;
 //import org.apache.log4j.Logger;
 //import org.apache.log4j.PatternLayout;
 
+
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.Plugin;
 import com.twinsoft.util.Log;
 
 public class BnppPlugin extends Plugin {
