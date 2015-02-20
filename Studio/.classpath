@@ -148,6 +148,7 @@
 	<classpathentry kind="lib" path="lib/internal/ibm-v35876.jar"/>
 	<classpathentry kind="lib" path="lib/httpclientAuthHelper.jar"/>
 	<classpathentry kind="lib" path="lib/engine-couchdbprovider.jar"/>
+	<classpathentry kind="lib" path="lib/engine-plugins.jar"/>
 	<classpathentry kind="lib" path="lib/gson-2.3.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
