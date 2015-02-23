@@ -1,5 +1,6 @@
 package com.twinsoft.convertigo.engine.enums;
 
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -11,7 +12,7 @@ public enum CouchKey {
 	_rev,
 	_design("_design/"),
 	_global("_global/"),
-	_c8oHttp,
+	_c8oMeta,
 	id,
 	docs,
 	filters,
@@ -56,28 +57,11 @@ public enum CouchKey {
 		json.remove(key);
 	}
 	
-	public void add(JSONObject json, Object value) {
-		try {
-			json.put(key, value);
-		} catch (JSONException e) {
-			onJSONException(e);
-		}
-	}
-	
 	public boolean has(JSONObject json) {
 		return json.has(key);
 	}
-
-	public String string(JSONObject json) {
-		try {
-			return json.getString(key);
-		} catch (JSONException e) {
-			onJSONException(e);
-			return null;
-		}
-	}
-
-	public void put(JSONObject json, String value) {
+	
+	public void put(JSONObject json, Object value) {
 		try {
 			json.put(key, value);
 		} catch (JSONException e) {
@@ -87,6 +71,33 @@ public enum CouchKey {
 	
 	public void remove(JSONObject json) {
 		json.remove(key);
+	}
+
+	public String String(JSONObject json) {
+		try {
+			return json.getString(key);
+		} catch (JSONException e) {
+			onJSONException(e);
+			return null;
+		}
+	}
+
+	public JSONObject JSONObject(JSONObject json) {
+		try {
+			return json.getJSONObject(key);
+		} catch (JSONException e) {
+			onJSONException(e);
+			return null;
+		}
+	}
+
+	public JSONArray JSONArray(JSONObject json) {
+		try {
+			return json.getJSONArray(key);
+		} catch (JSONException e) {
+			onJSONException(e);
+			return null;
+		}
 	}
 	
 	private void onJSONException(JSONException e) {

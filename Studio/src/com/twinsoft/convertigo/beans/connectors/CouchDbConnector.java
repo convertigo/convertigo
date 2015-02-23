@@ -41,8 +41,8 @@ import com.twinsoft.convertigo.beans.transactions.couchdb.AbstractDatabaseTransa
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.cdbproxy.CouchClient;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
+import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbProperties;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbProvider;
 import com.twinsoft.convertigo.engine.util.ParameterUtils;
@@ -203,7 +203,7 @@ public class CouchDbConnector extends Connector {
 		for (String jsonString : list) {
 			try {
 				JSONObject jsonDocument = new JSONObject(jsonString);
-				String _id = CouchKey._id.string(jsonDocument);
+				String _id = CouchKey._id.String(jsonDocument);
 				String docName = _id.replaceAll(CouchKey._design.key(), "");
 				
 				if (getDocumentByName(docName) == null) { // document does'nt exist locally

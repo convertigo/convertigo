@@ -35,8 +35,8 @@ import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.cdbproxy.CouchDbManager;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
+import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class DesignDocumentTreeObject extends DocumentTreeObject {
@@ -71,7 +71,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 		String propertyName = (String)id;
 		if (CouchKey._id.key().equals(propertyName)) {
 			try {
-				return CouchKey._id.string(getObject().getJSONObject());
+				return CouchKey._id.String(getObject().getJSONObject());
 			} catch (Exception e) {
 				return "";
 			}
@@ -101,7 +101,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 		try {
 			DesignDocument dd = getObject();
 			JSONObject jso = dd.getJSONObject();
-			CouchKey.views.add(jso, views);
+			CouchKey.views.put(jso, views);
 			dd.hasChanged = true;
 			hasBeenModified(true);
 			
@@ -178,13 +178,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 	
 	private void loadViews() {
 		JSONObject jsonDocument = getObject().getJSONObject();
-		JSONObject views = null;
-		
-		try {
-			views = jsonDocument.getJSONObject(CouchKey.views.key());
-		} catch (JSONException e1) {
-			// TODO Auto-generated catch block
-		}
+		JSONObject views = CouchKey.views.JSONObject(jsonDocument);
 		
 		if (views != null) {
 			if (views.length() > 0) {
@@ -239,7 +233,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 
 		protected FunctionObject getMap() {
 			if (hasMap()) {
-				return new FunctionObject(CouchKey.map.key(), CouchKey.map.string(jsonObject));
+				return new FunctionObject(CouchKey.map.key(), CouchKey.map.String(jsonObject));
 			}
 			return null;
 		}
@@ -254,7 +248,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 		
 		protected FunctionObject getReduce() {
 			if (hasReduce()) {
-				return new FunctionObject(CouchKey.reduce.key(), CouchKey.reduce.string(jsonObject));
+				return new FunctionObject(CouchKey.reduce.key(), CouchKey.reduce.String(jsonObject));
 			}
 			return null;
 		}

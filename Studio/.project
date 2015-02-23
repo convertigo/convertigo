@@ -45,11 +45,6 @@
 			<locationURI>WORKSPACE_LOC/CemsExternalBrowser_7.3.x/src/java/com/convertigo/externalbrowser/agent/stub</locationURI>
 		</link>
 		<link>
-			<name>src/com/twinsoft/convertigo/engine/cdbproxy</name>
-			<type>2</type>
-			<locationURI>WORKSPACE_LOC/CouchDBConnector_7.3.x/src/com/twinsoft/convertigo/engine/cdbproxy</locationURI>
-		</link>
-		<link>
 			<name>src/com/twinsoft/convertigo/engine/externalbrowser</name>
 			<type>2</type>
 			<locationURI>WORKSPACE_LOC/CemsExternalBrowser_7.3.x/src/java/com/twinsoft/convertigo/engine/externalbrowser</locationURI>

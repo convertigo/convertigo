@@ -208,12 +208,12 @@
     </servlet-mapping>
     
     <servlet>
-		<servlet-name>CouchDbProxyServlet</servlet-name>
-		<servlet-class>com.twinsoft.convertigo.engine.cdbproxy.CouchDbProxyServlet</servlet-class>
+		<servlet-name>FullSyncServlet</servlet-name>
+		<servlet-class>com.twinsoft.convertigo.engine.servlets.FullSyncServlet</servlet-class>
 	</servlet>
     <servlet-mapping>
-        <servlet-name>CouchDbProxyServlet</servlet-name>
-        <url-pattern>/cdb/*</url-pattern>
+        <servlet-name>FullSyncServlet</servlet-name>
+        <url-pattern>/fullsync/*</url-pattern>
     </servlet-mapping>
 	
     <!-- HTTP print entry point -->

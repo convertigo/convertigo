@@ -36,7 +36,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
-import com.twinsoft.convertigo.engine.cdbproxy.CouchClient;
+import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class UpdateDocumentTransaction extends AbstractDocumentTransaction {

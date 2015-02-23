@@ -113,7 +113,7 @@ public abstract class AbstractDocumentTransaction extends AbstractDatabaseTransa
 
 	protected void removeRevFromDoc(JSONObject jsonDocument) {
 		if (jsonDocument != null) {
-			jsonDocument.remove(CouchKey._rev.key());
+			CouchKey._rev.remove(jsonDocument);
 		}
 	}
 

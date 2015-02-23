@@ -54,7 +54,7 @@ public class DesignDocument extends JsonDocument {
 		if (jsonDocument != null) {
 			if (bNew) {
 				CouchKey._rev.remove(jsonDocument);
-				CouchKey._id.add(jsonDocument, CouchKey._design.key() + getName());
+				CouchKey._id.put(jsonDocument, CouchKey._design.key() + getName());
 			}
 		}
 		return super.toXml(document);
