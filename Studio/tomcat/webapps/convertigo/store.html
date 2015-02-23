@@ -1,0 +1,134 @@
+<!doctype html>
+<!--[if lte IE 7]> <html class="no-js ie67 ie678" lang="en"> <![endif]-->
+<!--[if IE 8]> <html class="no-js ie8 ie678" lang="en"> <![endif]-->
+<!--[if IE 9]> <html class="no-js ie9" lang="en"> <![endif]-->
+<!--[if gt IE 9]> <!--><html class="no-js" lang="en"> <!--<![endif]-->
+	<head>
+		<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+		<title>Convertigo store</title>
+		
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<!--[if lt IE 9]><script src="//scripts/html5.js"></script><![endif]-->
+		<meta name="apple-itunes-app" content="app-id=myAppStoreID, affiliate-data=myAffiliateData, app-argument=myURL">
+		
+ 		<link rel="stylesheet" href="css/robotoFont.css" type="text/css" media="all">
+ 		<link rel="stylesheet" href="css/knacss.css" type="text/css" media="all">
+		<link rel="stylesheet" href="css/styles.css" type="text/css" media="all">
+		<link rel="stylesheet" href="css/jquery.fancybox.css" type="text/css" media="all">
+		<link rel="stylesheet" href="css/jquery.m_custom_scrollbar.css" type="text/css" media="all">
+		      
+		<script src="scripts/jquery.min.js"></script>
+		<script src="scripts/c8o.core.js"></script>
+		<script src="scripts/ctf.core.js"></script>
+		<script src="scripts/store.js"></script>
+		      
+		<script src="scripts/jquery.m_custom_scrollbar.concat.min.js"></script>
+		<script src="scripts/jquery.fancybox.js"></script>
+	</head>
+	<body>
+		<div id="customHeader" data-role="header" data-position="fixed" data-tap-toggle="false">
+			<p id="user" class="vAlignRight"><span id="userValue"></span></p>
+			
+			<div id="loginform">
+				<form action="" class="navbar-search hidden">
+					<input name="username" autocapitalize="off" autocorrect="off" style="width:90px;" type="text" class="span2" placeholder="__MSG_userIdPlaceholder__">
+					<input name="password" autocapitalize="off" autocorrect="off" style="width:90px;" type="password" class="span2" placeholder="__MSG_passwordPlaceholder__">
+					<input id="login" type="submit" value="__MSG_signInButton__" class="btn">
+				</form>
+
+				<input id="logout" type="submit" value="__MSG_logOutButton__" class="btn hidden">
+			</div>
+			
+			<div class="blocLogo">
+				<img id="imgLogo" src="images/logo_store.png" alt="Store Convertigo">
+			</div>
+		</div>
+		
+		<p id="infos"><img src="images/infos.png"></p>
+		
+		<div id="main" role="main" class="grid pam">
+			<div class="fixNoApps">
+				<p id="noApps"></p>
+			</div>
+			
+			<div id="banner" class="hidden">
+				<div id="bannerContent">
+					<a href="#">
+						<div id="closeBtn">X</div>
+					</a>
+					<img id="cplayer" src="images/store_convertigo_gray.png">
+					
+					<div id="bannerText">
+						<span>
+							__MSG_textBannerPartOne__
+							<ul>
+							   <li class="infos">__MSG_textBannerPartTwo__</li>
+							   <li class="infos">__MSG_textBannerPartThree__</li>
+							</ul>
+						</span>
+					</div>
+				</div>
+			</div>
+			
+			<div class="grid3" data-c8o-listen="*" data-c8o-each="project" data-c8o-after-rendering="store.onAfterRendering">
+				<div class="mtm col" data-project="__=project>name__">
+					<div class="big">
+						<div class="imgContainer">
+							<p class="vAlign">
+								<img class="iconApp" src='__{"formatter": "store.getIconUrl"}__' alt="Application logo">
+							</p>
+						</div>
+						
+						<div class="sec">
+							<div class="blockTitle">
+								<p class="appTitle">__=application>name__</p>
+							</div>
+			              
+							<div class="blockDescr">
+								<p class="appDescr">__=application>descr__</p>
+							</div>
+							
+							<div class="blockPlatform" >
+								<!-- Web App -->
+								<div class="line">
+									<div class="webapp valignIcon"></div>
+									<div class="appLink nameApp">
+										<a href='__{"formatter": "store.getWebAppUrl"}__'>Wep app</a>
+									</div>
+									<a href='__{"formatter": "store.getLastHrefGenerated"}__'>
+										<div class="actionBtn bgIcon borderBlue">
+											<img src="images/play.png">
+										</div>
+									</a>
+								</div>
+
+								<!-- Platforms -->
+								<div data-c8o-each="platform">
+									<div class="line">
+										<div class='__{"formatter": "store.getPlatformClass", "find": "classname"}__ valignIcon'></div>
+										<div class="appLink nameApp">
+											<a class="fancybox image" href='__{"formatter": "store.getPlatformUrl", "find": "name"}__'>__=name__</a>
+										</div>
+										
+										<a class="fancybox image" href='__{"formatter": "store.getLastHrefGenerated", "find": "name"}__'>
+											<div class="actionBtn bgIcon borderGreen">
+												<img src="images/dl.png">
+											</div>
+										</a>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+	        </div>
+		</div>
+		
+		<footer id="footer">
+			<div class="platformContainer">
+				<img class="imgDlPlayer" src="images/cplayer_white.png">
+			</div>
+		</footer>
+	</body>
+</html>

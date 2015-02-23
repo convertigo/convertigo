@@ -1,0 +1,13 @@
+﻿{
+	"signInButton": "Connexion",
+	"logOutButton": "Déconnexion",
+	"userIdPlaceholder": "Login",
+	"passwordPlaceholder": "Mdp",
+	"defaultUserName": "Anonyme",
+	"installButton": "Installer",
+	"guest": "Invité",
+	"noApp": "Aucune application mobile disponible sur ce serveur.",
+	"textBannerPartOne": "Le Convertigo Store liste toutes les applications disponibles sur ce serveur. L'accès à certaines applications peut être restreint et ne sont disponibles qu'aux utilisateurs authentifiés. Dans ce cas, renseignez votre identifiant et votre mot de passe et cliquez sur Connexion. Pour installer les applications du Convertigo Store, l'application Convertigo Player est requise. Elle est disponible sur l'App Store, Google Play et Windows Phone Store. Téléchargez et installez cette application sur votre appareil mobile, puis :",
+	"textBannerPartTwo": "Si vous êtes connecté sur le Convertigo Store à partir d'un navigateur de bureau, cliquer sur une plateforme d'une application affichera un QR code qui peut être flashé avec l'application Convertigo Player. L'application sera alors téléchargée et installée sur votre appareil mobile. Vous pourrez ainsi l'exécuter à partir de l'application Convertigo Player.",
+	"textBannerPartThree": "Si vous êtes connecté sur le Convertigo Store à partir du navigateur de votre appareil mobile, les plateformes des applications seront filtrées pour afficher que les plateformes de votre appareil mobile. Cliquer sur une plateforme de l'application exécutera l'application Convertigo Player puis téléchargera et installera automatiquement l'application du Convertigo Store sur votre appareil mobile. Vous pourrez ainsi l'exécuter à partir de l'application Convertigo Player."
+}
