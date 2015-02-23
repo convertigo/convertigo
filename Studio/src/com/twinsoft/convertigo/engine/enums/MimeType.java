@@ -64,6 +64,10 @@ public enum MimeType {
 		this.extensions = extensions;
 	}
 	
+	public String value() {
+		return this.value;
+	}
+	
 	public String[] getExtensions() {
 		return this.extensions;
 	}

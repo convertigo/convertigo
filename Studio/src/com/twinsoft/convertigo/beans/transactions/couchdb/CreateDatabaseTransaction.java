@@ -47,6 +47,9 @@ public class CreateDatabaseTransaction extends AbstractDatabaseTransaction {
 
 	@Override
 	protected Object invoke() throws Exception {
+		if (getCouchClient() != null) {
+			return getCouchClient().putDatabase(getTargetDatabase());
+		}
 		return getCouchDbContext().create(getTargetDatabase());
 	}
 

@@ -24,6 +24,8 @@ package com.twinsoft.convertigo.beans.transactions.couchdb;
 import java.io.File;
 import java.net.URI;
 
+import org.codehaus.jettison.json.JSONObject;
+
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.twinsoft.convertigo.engine.Engine;
@@ -108,7 +110,13 @@ public abstract class AbstractDocumentTransaction extends AbstractDatabaseTransa
 		if (jsonDocument == null) return;
 		jsonDocument.remove(CouchKey._rev.key());
 	}
-	
+
+	protected void removeRevFromDoc(JSONObject jsonDocument) {
+		if (jsonDocument != null) {
+			jsonDocument.remove(CouchKey._rev.key());
+		}
+	}
+
 	protected URI getFileURI(String filePath) {
 		String projectName = getProject().getName();
 		File file = Engine.theApp.filePropertyManager.getFileFromProperty(filePath, projectName);

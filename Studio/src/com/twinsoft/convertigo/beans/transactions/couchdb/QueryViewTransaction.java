@@ -26,6 +26,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.codehaus.jettison.json.JSONObject;
+
 import com.twinsoft.convertigo.engine.util.ParameterUtils;
 
 public class QueryViewTransaction extends AbstractDocumentTransaction {
@@ -50,6 +52,28 @@ public class QueryViewTransaction extends AbstractDocumentTransaction {
 
 	@Override
 	protected Object invoke() throws Exception {
+		if (getCouchClient() != null) {
+			String docId = ParameterUtils.toString(getParameterValue(var_docid));
+			String viewName = ParameterUtils.toString(getParameterValue(var_viewname));
+			
+			String key = ParameterUtils.toString(getParameterValue(var_view_key));
+			String startkey = ParameterUtils.toString(getParameterValue(var_view_startkey));
+			String endkey = ParameterUtils.toString(getParameterValue(var_view_endkey));
+			String _limit = ParameterUtils.toString(getParameterValue(var_view_limit));
+			String _skip = ParameterUtils.toString(getParameterValue(var_view_skip));
+			Integer limit = (_limit == null ? null:Double.valueOf(_limit).intValue());
+			Integer skip = (_skip == null ? null:Double.valueOf(_skip).intValue());
+			
+			JSONObject options = new JSONObject();
+			options.put(var_view_key.variableName(), key);
+			options.put(var_view_startkey.variableName(), startkey);
+			options.put(var_view_endkey.variableName(), endkey);
+			options.put(var_view_limit.variableName(), limit);
+			options.put(var_view_skip.variableName(), skip);
+			
+			return getCouchClient().view(getTargetDatabase(), docId, viewName, options);
+		}
+		
 		String docId = ParameterUtils.toString(getParameterValue(var_docid));
 		String viewName = ParameterUtils.toString(getParameterValue(var_viewname));
 		

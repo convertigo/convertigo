@@ -24,16 +24,19 @@ package com.twinsoft.convertigo.beans.transactions.couchdb;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
+
+import org.codehaus.jettison.json.JSONObject;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
+import com.twinsoft.convertigo.engine.cdbproxy.CouchClient;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class UpdateDocumentTransaction extends AbstractDocumentTransaction {
@@ -57,6 +60,24 @@ public class UpdateDocumentTransaction extends AbstractDocumentTransaction {
 		
 	@Override
 	protected Object invoke() throws Exception {
+		if (getCouchClient() != null) {
+			CouchClient client = getCouchClient();
+			JSONObject jsonDocument = new JSONObject();
+			
+			// add document members from variables
+			for (RequestableVariable variable : getVariablesList()) {
+				String variableName = variable.getName();
+
+				if (!variableName.equals(var_database.variableName())) {
+					Object jsonElement = toJson(getParameterValue(variableName));
+					addJson(jsonDocument, variableName, jsonElement);
+				}
+			}
+			
+			JSONObject response = client.updateDocument(getTargetDatabase(), jsonDocument);
+			return response;
+		}
+		
 		// build input document
 		JsonObject jsonDocument = new JsonObject();
 		
@@ -77,7 +98,7 @@ public class UpdateDocumentTransaction extends AbstractDocumentTransaction {
 		String jsonString = jsonDatabaseDoc.toString();
 		return getCouchDBDocument().update(encode(jsonString));
 	}
-
+	
 	private static void merge(JsonObject jsonTarget, JsonObject jsonSource) {
 		Set<Entry<String, JsonElement>> set = jsonSource.entrySet();
 		for (Iterator<Entry<String, JsonElement>> it = GenericUtils.cast(set.iterator()); it.hasNext();) {

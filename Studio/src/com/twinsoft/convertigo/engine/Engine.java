@@ -44,6 +44,7 @@ import org.apache.commons.httpclient.auth.AuthPolicy;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.commons.httpclient.params.HttpClientParams;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.log4j.Logger;
@@ -264,7 +265,7 @@ public class Engine {
 
 	public HttpClient httpClient;
 	
-	public org.apache.http.client.HttpClient httpClient4;
+	public CloseableHttpClient httpClient4;
 	
 	public RsaManager rsaManager;
 

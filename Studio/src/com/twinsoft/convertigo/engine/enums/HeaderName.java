@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum HeaderName {
+	Accept("Accept"),
 	ContentType("Content-Type"),
 	ContentLength("Content-Length"),
 	Location("Location"),

@@ -23,7 +23,10 @@ package com.twinsoft.convertigo.beans.transactions.couchdb;
 
 import java.util.Arrays;
 import java.util.List;
+
 import javax.xml.namespace.QName;
+
+import org.codehaus.jettison.json.JSONObject;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -57,6 +60,25 @@ public class CreateDocumentTransaction extends AbstractDocumentTransaction {
 	
 	@Override
 	protected Object invoke() throws Exception {
+		if (getCouchClient() != null) {
+			JSONObject jsonDocument = new JSONObject();
+			
+			// add document members from variables
+			for (RequestableVariable variable : getVariablesList()) {
+				String variableName = variable.getName();
+
+				if (!variableName.equals(var_database.variableName())) {
+					Object jsonElement = toJson(getParameterValue(variableName));
+					addJson(jsonDocument, variableName, jsonElement);
+				}
+			}
+			
+			removeRevFromDoc(jsonDocument);
+			
+			JSONObject response = getCouchClient().putDocument(getTargetDatabase(), jsonDocument);
+			return response;
+		}
+		
 		JsonObject jsonDocument = new JsonObject();
 		
 		// add document members from variables

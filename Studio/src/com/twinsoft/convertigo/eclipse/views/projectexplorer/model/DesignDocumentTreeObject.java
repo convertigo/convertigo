@@ -22,13 +22,13 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
-import java.util.Map.Entry;
+import java.util.Iterator;
 
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
@@ -37,7 +37,7 @@ import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.cdbproxy.CouchDbManager;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
-import com.twinsoft.convertigo.engine.util.Json;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class DesignDocumentTreeObject extends DocumentTreeObject {
 	private FolderTreeObject fViews = null;
@@ -71,7 +71,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 		String propertyName = (String)id;
 		if (CouchKey._id.key().equals(propertyName)) {
 			try {
-				return CouchKey._id.string(getObject().getJsonObject());
+				return CouchKey._id.string(getObject().getJSONObject());
 			} catch (Exception e) {
 				return "";
 			}
@@ -87,16 +87,20 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 	}
 	
 	protected synchronized void hasBeenModified() {
-		JsonObject views = new JsonObject();
+		JSONObject views = new JSONObject();
 		for (TreeObject to : fViews.getChildren()) {
 			DesignDocumentViewTreeObject ddvto = (DesignDocumentViewTreeObject)to;
 			ViewObject viewObject = ddvto.getObject();
-			views.add(viewObject.name, viewObject.getJsonObject());
+			try {
+				views.put(viewObject.name, viewObject.getJSONObject());
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+			}
 		}
 		
 		try {
 			DesignDocument dd = getObject();
-			JsonObject jso = dd.getJsonObject();
+			JSONObject jso = dd.getJSONObject();
 			CouchKey.views.add(jso, views);
 			dd.hasChanged = true;
 			hasBeenModified(true);
@@ -104,7 +108,6 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 			syncDocument();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 		
         TreeViewer viewer = (TreeViewer) getAdapter(TreeViewer.class);
@@ -113,11 +116,11 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 	
 	private void syncDocument() {
 		DesignDocument dd = getObject();
-		JsonObject jso = dd.getJsonObject();
+		JSONObject jso = dd.getJSONObject();
 		
 		if (CouchKey._id.has(jso)) {
 			CouchDbConnector couchDbConnector = dd.getConnector();
-			lastRev = CouchDbManager.syncDocument(couchDbConnector.getCouchDbClient(), couchDbConnector.getDatabaseName(), jso.toString());
+			lastRev = CouchDbManager.syncDocument(couchDbConnector.getCouchClient(), couchDbConnector.getDatabaseName(), jso.toString());
 		}
 	}
 	
@@ -167,29 +170,35 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 			viewName = getDefaultViewName() + index++;
 		}
 		
-		ViewObject view = new ViewObject(viewName, new JsonObject());
+		ViewObject view = new ViewObject(viewName, new JSONObject());
 		view.createMap();
 		view.createReduce();
 		return view;
 	}
 	
 	private void loadViews() {
-		JsonObject jsonDocument = getObject().getJsonObject();
-		JsonObject views = null;
+		JSONObject jsonDocument = getObject().getJSONObject();
+		JSONObject views = null;
 		
-		views = jsonDocument.getAsJsonObject(CouchKey.views.key());
+		try {
+			views = jsonDocument.getJSONObject(CouchKey.views.key());
+		} catch (JSONException e1) {
+			// TODO Auto-generated catch block
+		}
 		
 		if (views != null) {
-			if (!Json.isEmpty(views)) {
+			if (views.length() > 0) {
 				addChild(fViews);
 			}
 			
-			for (Entry<String, JsonElement> entry: views.entrySet()) {
+			for (Iterator<String> i = GenericUtils.cast(views.keys()); i.hasNext(); ) {
+				String key = i.next();
+				
 				try {
-					ViewObject view = new ViewObject(entry.getKey(), entry.getValue().getAsJsonObject());
+					ViewObject view = new ViewObject(key, views.getJSONObject(key));
 					fViews.addChild(new DesignDocumentViewTreeObject(viewer, view));
 				} catch (Exception e) {
-					Engine.logBeans.warn("[DesignDocument] view named '" + entry.getKey() + "' is null; skipping...");
+					Engine.logBeans.warn("[DesignDocument] view named '" + key + "' is null; skipping...");
 				}
 			}
 		}
@@ -197,9 +206,9 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 	
 	public class ViewObject {		
 		private String name = null;
-		private JsonObject jsonObject = null;
+		private JSONObject jsonObject = null;
 		
-		ViewObject(String name, JsonObject jsonObject) {
+		ViewObject(String name, JSONObject jsonObject) {
 			this.name = name;
 			this.jsonObject = jsonObject;
 		}
@@ -220,11 +229,11 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 			this.name = name;
 		}
 		
-		protected JsonObject getJsonObject() {
+		protected JSONObject getJSONObject() {
 			return jsonObject;
 		}
 		
-		protected void setJsonObject(JsonObject jsonObject) {
+		protected void setJSONObject(JSONObject jsonObject) {
 			this.jsonObject = jsonObject;
 		}
 
@@ -237,7 +246,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 		
 		protected FunctionObject createMap() {
 			if (!hasMap()) {
-				jsonObject.addProperty(CouchKey.map.key(), "function (doc) {\r\n\temit(doc._id, doc._rev);\r\n}");
+				CouchKey.map.put(jsonObject, "function (doc) {\r\n\temit(doc._id, doc._rev);\r\n}");
 				return getMap();
 			}
 			return null;
@@ -252,7 +261,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 		
 		protected FunctionObject createReduce() {
 			if (!hasReduce()) {
-				jsonObject.addProperty(CouchKey.reduce.key(), "function (keys, values) {\r\n\treturn sum(values);\r\n}");
+				CouchKey.reduce.put(jsonObject, "function (keys, values) {\r\n\treturn sum(values);\r\n}");
 				return getReduce();
 			}
 			return null;

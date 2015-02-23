@@ -53,7 +53,7 @@ public class RestartServerTransaction extends AbstractServerTransaction {
 		try {
 			if (json instanceof JsonElement) {
 				boolean b = ((JsonElement)json).getAsJsonObject().get("ok").getAsString().equals("true");
-				if (b) connector.setCouchDbClient(null); 
+				if (b) getConnector().setCouchDbClient(null); 
 			}
 		}
 		catch (Exception e) {}

@@ -1,5 +1,8 @@
 package com.twinsoft.convertigo.engine.enums;
 
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
+
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -8,6 +11,7 @@ public enum CouchKey {
 	_rev,
 	_design("_design/"),
 	_global("_global/"),
+	_c8oHttp,
 	id,
 	docs,
 	filters,
@@ -50,5 +54,42 @@ public enum CouchKey {
 	
 	public void remove(JsonObject json) {
 		json.remove(key);
+	}
+	
+	public void add(JSONObject json, Object value) {
+		try {
+			json.put(key, value);
+		} catch (JSONException e) {
+			onJSONException(e);
+		}
+	}
+	
+	public boolean has(JSONObject json) {
+		return json.has(key);
+	}
+
+	public String string(JSONObject json) {
+		try {
+			return json.getString(key);
+		} catch (JSONException e) {
+			onJSONException(e);
+			return null;
+		}
+	}
+
+	public void put(JSONObject json, String value) {
+		try {
+			json.put(key, value);
+		} catch (JSONException e) {
+			onJSONException(e);
+		}
+	}
+	
+	public void remove(JSONObject json) {
+		json.remove(key);
+	}
+	
+	private void onJSONException(JSONException e) {
+		
 	}
 }

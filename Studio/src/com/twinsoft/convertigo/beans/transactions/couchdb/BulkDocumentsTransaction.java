@@ -24,7 +24,11 @@ package com.twinsoft.convertigo.beans.transactions.couchdb;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+
 import javax.xml.namespace.QName;
+
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONObject;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -69,6 +73,37 @@ public class BulkDocumentsTransaction extends AbstractDocumentTransaction {
 	
 	@Override
 	protected Object invoke() throws Exception {
+		if (getCouchClient() != null) {
+			JSONArray jsonDocuments = new JSONArray();
+			
+			// add document members from variables
+			for (RequestableVariable variable : getVariablesList()) {
+				if (variable.isMultiValued()) {
+					String variableName = variable.getName();
+					Object jsonv = toJson(getParameterValue(variableName));
+					
+					if (jsonv != null && jsonv instanceof JSONArray) {
+						JSONArray jsonArray = (JSONArray) jsonv;
+						
+						while (jsonDocuments.length() < jsonArray.length()) {
+							jsonDocuments.put(new JSONObject());
+						}
+						
+						for (int i = 0; i < jsonArray.length(); i++) {
+							JSONObject jsonDocument = jsonDocuments.getJSONObject(i);
+							addJson(jsonDocument, variableName, jsonArray.get(i));
+						}
+					}
+				}
+			}
+			
+			if (isHandleUpdate()) {
+				return getCouchClient().updateBulkDocs(getTargetDatabase(), jsonDocuments);
+			} else {
+				return getCouchClient().postBulkDocs(getTargetDatabase(), jsonDocuments);
+			}
+		}
+		
 		JsonArray jsonDocuments = new JsonArray();
 		
 		// add document members from variables

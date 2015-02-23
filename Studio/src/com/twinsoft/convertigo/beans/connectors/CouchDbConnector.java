@@ -27,6 +27,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.codehaus.jettison.json.JSONObject;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -39,10 +41,10 @@ import com.twinsoft.convertigo.beans.transactions.couchdb.AbstractDatabaseTransa
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.cdbproxy.CouchClient;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbProperties;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbProvider;
-import com.twinsoft.convertigo.engine.util.Json;
 import com.twinsoft.convertigo.engine.util.ParameterUtils;
 
 public class CouchDbConnector extends Connector {
@@ -55,6 +57,7 @@ public class CouchDbConnector extends Connector {
 	private boolean https = false;
 	
 	private transient CouchDbProvider dbClient = null;
+	private transient CouchClient couchClient = null;
 	
 	public CouchDbConnector() {
 		
@@ -64,6 +67,7 @@ public class CouchDbConnector extends Connector {
 	public Connector clone() throws CloneNotSupportedException {
 		CouchDbConnector clonedObject = (CouchDbConnector) super.clone();
 		clonedObject.dbClient = dbClient;
+		clonedObject.couchClient = null;
 		return clonedObject;
 	}
 
@@ -158,6 +162,15 @@ public class CouchDbConnector extends Connector {
 		return dbClient;
 	}
 	
+	public CouchClient getCouchClient() {
+		if (couchClient == null) {
+			String url = isHttps() ? "https" : "http";
+			url+= "://" + getServer() + ":" + getPort();
+			couchClient = new CouchClient(url);
+		}
+		return couchClient;
+	}
+	
 	public void setCouchDbClient(CouchDbProvider dbClient) {
 		this.dbClient = dbClient;
 	}
@@ -189,13 +202,14 @@ public class CouchDbConnector extends Connector {
 		List<String> list = getCouchDbDesignDocuments();
 		for (String jsonString : list) {
 			try {
-				JsonObject jsonDocument = Json.newJsonObject(jsonString);
+				JSONObject jsonDocument = new JSONObject(jsonString);
 				String _id = CouchKey._id.string(jsonDocument);
 				String docName = _id.replaceAll(CouchKey._design.key(), "");
+				
 				if (getDocumentByName(docName) == null) { // document does'nt exist locally
 					DesignDocument ddoc = new DesignDocument();
 					ddoc.setName(docName);
-					ddoc.setJsonObject(jsonDocument);
+					ddoc.setJSONObject(jsonDocument);
 					ddoc.bNew = true;
 					ddoc.hasChanged = true;
 					
@@ -234,17 +248,21 @@ public class CouchDbConnector extends Connector {
 			bContinue = false;
 			try {
 				json = provider.context().db(targetDbName).document().all(options, null);
+				
 				if (json.isJsonObject()) {
 					rows = json.getAsJsonObject().get("rows");
+					
 					if (rows.isJsonArray()) {
 						arr = rows.getAsJsonArray();
 						size = arr.size();
+						
 						if (size > 0) {
 							for (int i=0; i<size; i++) {
 								row = arr.get(i).getAsJsonObject();
 								doc = row.get("doc").getAsJsonObject();
 								docList.add(doc.toString());
 							}
+							
 							if (size == limit && row != null) {
 								startkey = "\""+row.get("key").getAsString()+"\"";
 								startkey_docid = "\""+row.get("id").getAsString()+"\"";
@@ -257,8 +275,7 @@ public class CouchDbConnector extends Connector {
 						}
 					}
 				}
-			}
-			catch (Throwable t) {
+			} catch (Throwable t) {
 				bContinue = false;
 				Engine.logBeans.error("[CouchDbConnector] Unable to retrieve design documents from database", t);
 			}

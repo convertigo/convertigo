@@ -47,6 +47,9 @@ public class GetDatabaseInfoTransaction extends AbstractDatabaseTransaction {
 
 	@Override
 	protected Object invoke() throws Exception {
+		if (getCouchClient() != null) {
+			return getCouchClient().getDatabase(getTargetDatabase());
+		}
 		return getCouchDBDatabase().info();
 	}
 
@@ -54,6 +57,4 @@ public class GetDatabaseInfoTransaction extends AbstractDatabaseTransaction {
 	public QName getComplexTypeAffectation() {
 		return new QName(COUCHDB_XSD_NAMESPACE, "dbInfoType");
 	}
-
-	
 }

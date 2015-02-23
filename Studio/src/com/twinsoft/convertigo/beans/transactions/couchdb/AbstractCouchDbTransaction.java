@@ -36,7 +36,9 @@ import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaSequence;
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 import org.mozilla.javascript.NativeArray;
 import org.mozilla.javascript.NativeJavaArray;
 import org.mozilla.javascript.NativeJavaObject;
@@ -62,6 +64,7 @@ import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
+import com.twinsoft.convertigo.engine.cdbproxy.CouchClient;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbProvider;
 import com.twinsoft.convertigo.engine.providers.couchdb.api.Context;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -77,8 +80,6 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 	
 	private XmlQName xmlComplexTypeAffectation = new XmlQName();
 	
-	protected transient CouchDbConnector connector = null;
-	
 	public AbstractCouchDbTransaction() {
 		super();
 	}
@@ -86,10 +87,14 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 	@Override
 	public AbstractCouchDbTransaction clone() throws CloneNotSupportedException {
 		AbstractCouchDbTransaction clonedObject =  (AbstractCouchDbTransaction) super.clone();
-		clonedObject.connector = null;
 		return clonedObject;
 	}
-
+	
+	@Override
+	public CouchDbConnector getConnector() {
+		return (CouchDbConnector) super.getConnector();
+	}
+	
 	@Override
 	public void setStatisticsOfRequestFromCache() {
 		// TODO Auto-generated method stub
@@ -124,7 +129,6 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 
 	@Override
 	public void runCore() throws EngineException {
-		connector = (CouchDbConnector)parent;
 		Object result = null;
 		try {
             String t = context.statistics.start(EngineStatistics.APPLY_USER_REQUEST);
@@ -141,7 +145,7 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 			// Update Studio connector's editor
 			if (Engine.isStudioMode()) {
 				try {
-					connector.setData(result.toString());
+					getConnector().setData(result.toString());
 				} catch (Exception e) {}
 			}
 			
@@ -152,7 +156,7 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 			
 		}
 		catch (Throwable t) {
-			connector.setData(null);
+			getConnector().setData(null);
 			throw new EngineException("An error occured while running the transaction", t);
 		}
 	}
@@ -160,7 +164,11 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 	protected abstract Object invoke() throws Exception;
 
 	protected CouchDbProvider getCouchDbClient() {
-		return connector.getCouchDbClient();
+		return getConnector().getCouchDbClient();
+	}
+
+	protected CouchClient getCouchClient() {
+		return getConnector().getCouchClient();
 	}
 	
 	protected Gson getGson() {
@@ -176,6 +184,12 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		Engine.logBeans.debug("(CouchDBTransaction) making document...");
 		Document doc = context.outputDocument;
 		Element root = doc.getDocumentElement();
+		if (result instanceof JSONObject) {
+			JSONObject jsonResult = (JSONObject) result;
+			Element couchdb_output = doc.createElement("couchdb_output");
+			toXml(jsonResult, couchdb_output);
+			root.appendChild(couchdb_output);
+		}
 		if (result instanceof JsonElement) {
 			JsonElement jsonResult = (JsonElement)result;
 			Element couchdb_output = doc.createElement("couchdb_output");
@@ -205,6 +219,107 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 				}
 			}
 		}
+	}
+	
+	protected static void addJson(JSONObject jsonObject, String propertyName, Object jsonElement) {
+		if (jsonElement != null) {
+			if (jsonElement instanceof JSONObject) { // comes from a complex variable
+				JSONObject json = (JSONObject) jsonElement;
+				for (Iterator<String> i = GenericUtils.cast(json.keys()); i.hasNext(); ) {
+					String key = i.next();
+					try {
+						jsonObject.put(key, json.get(key));
+					} catch (JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			} else { // comes from a simple variable
+				try {
+					jsonObject.put(propertyName, jsonElement);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	protected static Object toJson(Object object) throws JSONException {
+		if (object == null) return null;
+		
+		Object jsonElement = null;
+		
+		if (object instanceof NativeObject) {
+			JSONObject jsonChildren = new JSONObject();
+			NativeObject nativeObject = (NativeObject) object;
+			for (Iterator<Entry<Object, Object>> it = GenericUtils.cast(nativeObject.entrySet().iterator()); it.hasNext();) {
+				Entry<Object, Object> entry = it.next();
+				jsonChildren.put(entry.getKey().toString(), toJson(entry.getValue()));
+			}
+			return jsonChildren;
+		}
+		if (object instanceof NativeJavaObject) {
+			NativeJavaObject nativeJavaObject = (NativeJavaObject) object;
+			return toJson(nativeJavaObject.unwrap());
+		}
+		else if (object instanceof NativeJavaArray) {
+			Object ob = ((NativeJavaArray) object).unwrap();
+			return toJson(Arrays.asList((Object[])ob));
+		}
+		else if (object instanceof NativeArray) {
+			NativeArray array = (NativeArray) object;
+			JSONArray jsonArray = new JSONArray();
+			for (int j=0; j<array.getLength(); j++) {
+				jsonArray.put(toJson(array.get(j,array)));
+			}
+			jsonElement = jsonArray;
+		}
+		else if ((object instanceof org.mozilla.javascript.Scriptable)) {
+			org.mozilla.javascript.Scriptable jsObj = (org.mozilla.javascript.Scriptable) object;
+		    return toJson(String.valueOf(jsObj.toString()));
+		} else if (object.getClass().isArray()) {
+			return toJson(Arrays.asList((Object[])object));
+		}
+		else if (object instanceof Collection<?>) {
+			JSONArray jsonArray = new JSONArray();
+			for (Object o : (Collection<?>) object) {
+				jsonArray.put(toJson(o));
+			}
+			jsonElement = jsonArray;
+		}
+		else if (object instanceof Element) {
+			jsonElement = toJson((Element) object);
+		}
+		else {
+			jsonElement = object;
+		}
+		
+		return jsonElement;
+	}
+	
+	private static JSONObject toJson(Element element) throws JSONException {
+		JSONObject jsonXml = new JSONObject();
+		XMLUtils.handleElement(element, jsonXml, true);
+		if (isInputDomVariable(element)) {
+			JSONObject jsonVariable = jsonXml.getJSONObject("variable");
+			JSONObject jsonAttr = jsonVariable.getJSONObject("attr");
+			String jsonAttrName = jsonAttr.getString("name");
+			String jsonAttrValue = jsonAttr.getString("value");
+
+			// this is a simple variable
+			if (jsonAttrValue != null) {
+				JSONObject jsonobject = new JSONObject();
+				jsonobject.put(jsonAttrName, jsonAttrValue);
+				return jsonobject;
+			}
+			// this is a complex variable
+			else {
+				jsonVariable.remove("attr");
+				return jsonVariable;
+			}
+		}
+		return jsonXml;
 	}
 	
 	protected static JsonElement toJson(Gson gson, JsonParser parser, Object object) throws JsonSyntaxException, JSONException {
@@ -367,6 +482,60 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		else if (jsone.isJsonNull()) {
 		}
 		else {
+		}
+	}
+	
+	private static void toXml(Object object, Element parentElement) {
+		Document doc = parentElement.getOwnerDocument();
+		if (object instanceof JSONObject) {
+			JSONObject jsonObject = (JSONObject) object;
+			for (Iterator<String> i = GenericUtils.cast(jsonObject.keys()); i.hasNext(); ) {
+				String key = i.next();
+				try {
+					toXml(key, jsonObject.get(key), parentElement);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		else if (object instanceof JSONArray) {
+			JSONArray jsonArray = (JSONArray) object;
+			for (int i = 0; i < jsonArray.length(); i++) {
+				Element item = doc.createElement("item");
+				parentElement.appendChild(item);
+				try {
+					toXml(jsonArray.get(i), item);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		else if (object != null) {
+			parentElement.setTextContent(object.toString());
+		}
+	}
+	
+	private static void toXml(String key, Object value, Element parentElement) {
+		if (key == null || "".equals(key)) {
+			key = "object";
+		}
+		
+		if ("_attachments".equals(parentElement.getNodeName())) {
+			Element att = parentElement.getOwnerDocument().createElement("attachment");
+			Element att_name = parentElement.getOwnerDocument().createElement("name");
+			Text att_txt = parentElement.getOwnerDocument().createTextNode(key);
+			att_name.appendChild(att_txt);
+			att.appendChild(att_name);
+			parentElement.appendChild(att);
+			toXml(value, att);
+		}
+		else {
+			String normalisedKey = StringUtils.normalize(key);
+			Element child = parentElement.getOwnerDocument().createElement(normalisedKey);
+			parentElement.appendChild(child);
+			toXml(value, child);
 		}
 	}
 	

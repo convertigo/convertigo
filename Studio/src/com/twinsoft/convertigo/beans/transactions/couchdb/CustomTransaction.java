@@ -27,10 +27,18 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.commons.httpclient.HttpMethod;
+import org.apache.http.HttpEntityEnclosingRequest;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpHead;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.codehaus.jettison.json.JSONObject;
 import org.mozilla.javascript.EcmaError;
 import org.mozilla.javascript.EvaluatorException;
 import org.mozilla.javascript.JavaScriptException;
@@ -43,6 +51,7 @@ import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.cdbproxy.CouchClient;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbProvider;
 import com.twinsoft.convertigo.engine.providers.couchdb.util.URIBuilder;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -104,6 +113,56 @@ public class CustomTransaction extends AbstractCouchDbTransaction {
 
 	@Override
 	protected Object invoke() throws Exception {
+		if (getCouchClient() != null) {
+			CouchClient provider = getCouchClient();
+			
+			String evaluatedUrl = eUrl == null ? "" : eUrl.toString();
+			
+			if (!evaluatedUrl.startsWith("/")) {
+				evaluatedUrl = '/' + evaluatedUrl;
+			}
+			
+			URI uri = new URI(evaluatedUrl);
+			Engine.logBeans.debug("(CustomTransaction) CouchDb request uri: "+ uri.toString());
+			
+			String jsonString = null;
+			Object jsond = toJson(eData);
+			if (jsond != null) {
+				JSONObject jsonData;
+				if (jsond instanceof JSONObject) { // comes from a complex variable
+					jsonData = (JSONObject) jsond;
+				} else {
+					jsonData = new JSONObject();
+					jsonData.put("data", jsond);
+				}
+				jsonString = jsonData.toString();
+				Engine.logBeans.debug("(CustomTransaction) CouchDb request data: "+ jsonString);
+			}
+			
+			HttpUriRequest httpMethod = null;
+			switch (getHttpVerb()) {
+			case AbstractHttpTransaction.HTTP_VERB_GET:
+				httpMethod = new HttpGet(uri); break;
+			case AbstractHttpTransaction.HTTP_VERB_POST:
+				httpMethod = new HttpPost(uri); break;
+			case AbstractHttpTransaction.HTTP_VERB_PUT:
+				httpMethod = new HttpPut(uri); break;
+			case AbstractHttpTransaction.HTTP_VERB_DELETE:
+				httpMethod = new HttpDelete(uri); break;
+			case AbstractHttpTransaction.HTTP_VERB_HEAD:
+				httpMethod = new HttpHead(uri); break;
+			default:
+				throw new EngineException("Unsupported HTTP method");
+			}
+			
+			if (jsonString != null && httpMethod instanceof HttpEntityEnclosingRequest) {
+				provider.setJsonEntity((HttpEntityEnclosingRequest) httpMethod, jsonString);
+			}
+			
+			return provider.execute(httpMethod);
+			
+		}
+		
 		CouchDbProvider provider = getCouchDbClient();
 		
 		String evaluatedUrl = eUrl == null ? "":eUrl.toString();
