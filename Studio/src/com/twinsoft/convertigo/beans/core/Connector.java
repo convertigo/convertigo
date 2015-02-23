@@ -354,8 +354,13 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty{
 	
 	public com.twinsoft.convertigo.beans.core.Document getDocumentByName(String documentName) {
 		checkSubLoaded();
-		for (com.twinsoft.convertigo.beans.core.Document document : vDocuments)
-			if (document.getName().equalsIgnoreCase(documentName)) return document;
+		
+		for (com.twinsoft.convertigo.beans.core.Document document : vDocuments) {
+			if (document.getName().equalsIgnoreCase(documentName)) {
+				return document;
+			}
+		}
+		
 		return null;
 	}
 

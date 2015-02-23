@@ -24,6 +24,7 @@ package com.twinsoft.convertigo.beans.transactions.couchdb;
 import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
+import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 
 public class CustomTransactionBeanInfo extends MySimpleBeanInfo {
 
@@ -45,7 +46,7 @@ public class CustomTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[0] = new PropertyDescriptor("httpVerb", CustomTransaction.class, "getHttpVerb", "setHttpVerb");
 			properties[0].setDisplayName(getExternalizedString("property.httpVerb.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.httpVerb.short_description"));
-			properties[0].setPropertyEditorClass(getEditorClass("HttpVerbEditor"));
+			properties[0].setPropertyEditorClass(HttpMethodType.class);
 
             properties[1] = new PropertyDescriptor("subUrl", beanClass, "getSubUrl", "setSubUrl");
             properties[1].setDisplayName(getExternalizedString("property.subUrl.display_name"));

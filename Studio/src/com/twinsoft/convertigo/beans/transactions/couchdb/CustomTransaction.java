@@ -32,12 +32,7 @@ import java.util.Set;
 
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.codehaus.jettison.json.JSONObject;
 import org.mozilla.javascript.EcmaError;
 import org.mozilla.javascript.EvaluatorException;
@@ -51,6 +46,7 @@ import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbProvider;
 import com.twinsoft.convertigo.engine.providers.couchdb.util.URIBuilder;
@@ -76,13 +72,13 @@ public class CustomTransaction extends AbstractCouchDbTransaction {
 	}
 	
     /** Holds value of property httpVerb. */
-    private int httpVerb = 0;
+    private HttpMethodType httpVerb = HttpMethodType.GET;
     
-    public int getHttpVerb() {
+    public HttpMethodType getHttpVerb() {
 		return httpVerb;
 	}
 
-	public void setHttpVerb(int httpVerb) {
+	public void setHttpVerb(HttpMethodType httpVerb) {
 		this.httpVerb = httpVerb;
 	}
 	
@@ -129,6 +125,7 @@ public class CustomTransaction extends AbstractCouchDbTransaction {
 			Object jsond = toJson(eData);
 			if (jsond != null) {
 				JSONObject jsonData;
+				
 				if (jsond instanceof JSONObject) { // comes from a complex variable
 					jsonData = (JSONObject) jsond;
 				} else {
@@ -139,21 +136,13 @@ public class CustomTransaction extends AbstractCouchDbTransaction {
 				Engine.logBeans.debug("(CustomTransaction) CouchDb request data: "+ jsonString);
 			}
 			
-			HttpUriRequest httpMethod = null;
-			switch (getHttpVerb()) {
-			case AbstractHttpTransaction.HTTP_VERB_GET:
-				httpMethod = new HttpGet(uri); break;
-			case AbstractHttpTransaction.HTTP_VERB_POST:
-				httpMethod = new HttpPost(uri); break;
-			case AbstractHttpTransaction.HTTP_VERB_PUT:
-				httpMethod = new HttpPut(uri); break;
-			case AbstractHttpTransaction.HTTP_VERB_DELETE:
-				httpMethod = new HttpDelete(uri); break;
-			case AbstractHttpTransaction.HTTP_VERB_HEAD:
-				httpMethod = new HttpHead(uri); break;
-			default:
+			HttpRequestBase httpMethod = getHttpVerb().newInstance();
+			
+			if (httpMethod == null) {
 				throw new EngineException("Unsupported HTTP method");
 			}
+			
+			httpMethod.setURI(uri);
 			
 			if (jsonString != null && httpMethod instanceof HttpEntityEnclosingRequest) {
 				provider.setJsonEntity((HttpEntityEnclosingRequest) httpMethod, jsonString);
@@ -196,7 +185,7 @@ public class CustomTransaction extends AbstractCouchDbTransaction {
 		}
 		
 		HttpMethod httpMethod = null;
-		int httpVerb = getHttpVerb();
+		int httpVerb = getHttpVerb().ordinal();
 		if (httpVerb == AbstractHttpTransaction.HTTP_VERB_GET) {
 			httpMethod = provider.getMethod(uri);
 		}

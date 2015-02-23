@@ -21,12 +21,14 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.codehaus.jettison.json.JSONObject;
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 
 import com.twinsoft.convertigo.engine.util.ParameterUtils;
 
@@ -64,12 +66,13 @@ public class QueryViewTransaction extends AbstractDocumentTransaction {
 			Integer limit = (_limit == null ? null:Double.valueOf(_limit).intValue());
 			Integer skip = (_skip == null ? null:Double.valueOf(_skip).intValue());
 			
-			JSONObject options = new JSONObject();
-			options.put(var_view_key.variableName(), key);
-			options.put(var_view_startkey.variableName(), startkey);
-			options.put(var_view_endkey.variableName(), endkey);
-			options.put(var_view_limit.variableName(), limit);
-			options.put(var_view_skip.variableName(), skip);
+			
+			List<NameValuePair> options = new ArrayList<NameValuePair>(5);
+			options.add(new BasicNameValuePair(var_view_key.variableName(), key));
+			options.add(new BasicNameValuePair(var_view_startkey.variableName(), startkey));
+			options.add(new BasicNameValuePair(var_view_endkey.variableName(), endkey));
+			options.add(new BasicNameValuePair(var_view_limit.variableName(), "" + limit));
+			options.add(new BasicNameValuePair(var_view_skip.variableName(), "" + skip));
 			
 			return getCouchClient().view(getTargetDatabase(), docId, viewName, options);
 		}
