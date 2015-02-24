@@ -57,7 +57,7 @@
 		<link>
 			<name>src/com/twinsoft/convertigo/engine/plugins</name>
 			<type>2</type>
-			<location>WORKSPACE_LOC/Plugins_7.3.x/src/com/twinsoft/convertigo/engine/plugins</location>
+			<locationURI>WORKSPACE_LOC/Plugins_7.3.x/src/com/twinsoft/convertigo/engine/plugins</locationURI>
 		</link>
 		<link>
 			<name>src/com/twinsoft/convertigo/engine/providers/couchdb</name>
