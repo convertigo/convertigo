@@ -15,7 +15,7 @@ var store = {
 		convertigo_player_url_android: "https://play.google.com/store/apps/details?id=com.convertigo.mobile.ConvertigoPlayer",
 		convertigo_player_url_ios: "https://itunes.apple.com/us/app/convertigo-player/id910448988?mt=8",
 		convertigo_player_url_wp8: "http://www.windowsphone.com/en-us/store/app/convertigo-player/1c550e9f-f981-4b54-8328-8cbe26781e56",
-		admin_services: "admin/services/",
+		admin_services: "../../admin/services/",
 		requested_platform: "all",
 		android_platform: "Android",
 		ios_platform: "IOs",
@@ -121,7 +121,7 @@ var store = {
 	},
 	
 	addStoreLogo: function (imgName, url) {
-		$("footer").append('<div class="platformContainer"><a href="' + url + '"><img class="imgDl" src="images/' + imgName +'"></a></div>');
+		$("footer").append('<div class="platformContainer"><a href="' + url + '"><img class="imgDl" src="' + imgName +'"></a></div>');
 	},
 	
 	addStoreLogoAndroid: function () {
@@ -213,7 +213,7 @@ var store = {
 	},
 	
 	getStoreContent: function () {
-		store.call("projects.GetStoreContent",  {platform: store.vars.requested_platform});
+		store.call("projects.GetStoreContent", {platform: store.vars.requested_platform});
 	},
 	
 	logout: function () {
@@ -229,7 +229,7 @@ var store = {
 	},
 	
 	getWebAppUrl: function (value) {
-		return store.vars.base_url + "projects/" + store.getProjectName($(this)) + "/DisplayObjects/mobile/app.html";
+		return store.vars.base_url + "../../projects/" + store.getProjectName($(this)) + "/DisplayObjects/mobile/app.html";
 	},
 	
 	getProjectName: function ($elem) {
@@ -237,7 +237,7 @@ var store = {
 	},
 	
 	getIconUrl: function (value) {
-		return store.vars.base_url + "projects/" + store.getProjectName($(this)) + "/DisplayObjects/mobile/icon.png";
+		return store.vars.base_url + "../../projects/" + store.getProjectName($(this)) + "/DisplayObjects/mobile/icon.png";
 	},
 	
 	getPlatformClass: function (value) {
@@ -268,7 +268,7 @@ var store = {
 		
 		target_url += "#" + package_url;
 		
-		return store.vars.base_url + "qrcode?" + $.param({
+		return store.vars.base_url + "../../" + "qrcode?" + $.param({
 			o: "image/png",
 			e: "L",
 			s: 4,

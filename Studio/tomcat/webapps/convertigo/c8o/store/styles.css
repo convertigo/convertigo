@@ -181,7 +181,7 @@ form.login input {
     -webkit-background-size: cover;
     -o-background-size: cover;
     background-size: cover;
-    background-image: url('../images/apple.png');
+    background-image: url('apple.png');
     width:17px;
     height: 17px;
     padding:2px;
@@ -195,7 +195,7 @@ form.login input {
     -webkit-background-size: cover;
     -o-background-size: cover;
     background-size: cover;
-    background-image: url('../images/windows.png');
+    background-image: url('windows.png');
     width:17px;
     height: 17px;
     padding:2px;
@@ -209,7 +209,7 @@ form.login input {
     -webkit-background-size: cover;
     -o-background-size: cover;
     background-size: cover;
-    background-image: url('../images/android.png');
+    background-image: url('android.png');
     width:17px;
     height: 17px;
     padding:2px;
@@ -223,7 +223,7 @@ form.login input {
     -webkit-background-size: cover;
     -o-background-size: cover;
     background-size: cover;
-    background-image: url('../images/web.png');
+    background-image: url('web.png');
     width:17px;
     height: 17px;
     padding:0px;
@@ -353,7 +353,7 @@ form.login input {
    width: 24px;
    height: 24px;
    overflow: hidden;
-   background: url(../images/wheel.png) no-repeat right;
+   background: url('wheel.png') no-repeat right;
    border: 0px;
 /*   color: transparent;*/
 
