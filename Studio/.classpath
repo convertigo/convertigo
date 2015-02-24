@@ -56,7 +56,6 @@
 	<classpathentry kind="lib" path="lib/apache/httpcore-4.4.jar"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="lib" path="lib/jCharts-0.7.2.jar"/>
-	<classpathentry kind="lib" path="lib/directkit.jar"/>
 	<classpathentry kind="lib" path="lib/tools.jar"/>
 	<classpathentry kind="lib" path="lib/ws-commons-java5-1.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/fop.jar"/>
