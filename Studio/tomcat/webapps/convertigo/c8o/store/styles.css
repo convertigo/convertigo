@@ -11,26 +11,17 @@ a {
     line-height: 2.15;
 }
 
-.blockPlatform p:hover {
-    color: rgb(2, 70, 90);
-}
-
-
 /*header*/
 
 #customHeader {
-	border-color: #0A6980;
-	border-bottom-style: solid;
-    height: 100px;
-    background-color: #13839e;
-    text-align: left;  
-    line-height: 100px;
+	height: 100px;
+	text-align: left;
+	line-height: 100px;
 }
 
 myGrid>* {
     width: 25%
 }
-
 
 .blocLogo	{ 
   margin-left: 15px;
@@ -38,7 +29,6 @@ myGrid>* {
   display: inline-block;
   line-height: normal;
 }
-
 
 #loginform {
     position:absolute;
@@ -57,36 +47,17 @@ form.login input {
     border-radius: 2px;
 }
 
-.navbar-search .btn {
-    font-weight: bold;
-    border: 1px;
-    border-color:#fff;
+.formBtn {
     padding:  3px 10px 3px 10px;
-    color: #fff;
-    background-color: #00AFCF;
-}
-
-.navbar-search .btn:hover {
-	background-color: #00A2C0;
-	}
 }
 
 @media (min-width:768px) {
-    .navbar-search .btn {margin:0px 0 0 0;}
-    
+    .formBtn {margin:0px 0 0 0;}
 }
 
 .imgContainer {
-    border-radius: 2px;    
-    height: 185px;
+	height: 185px;
     text-align: center;
-    background-color: #e5e5e5;
-    border-bottom-style: solid;
-    border-bottom-color: #d6d6d6;
-}
-
-.imgContainerHover {
-    background-color: #f5f5f5;
 }
 
 .blockTitle {
@@ -109,50 +80,24 @@ form.login input {
     display: -webkit-inline-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
-    /* white-space: pre-line; */
     overflow: hidden;
 }
 
 .blockPlatform {
     text-align: left;
     width: 100%;
-  /*  overflow-y: scroll;*/
     height: 147px;
-    background-color: #FFF;
-    border: 1px;
-    border-color: #dfdfdf;
-    border-style: solid;
     padding: 10px;
 }
 
-.appTitle {
-    font-family: 'Roboto', sans-serif;
-    font-size:17px;
-    font-weight: 500;
-}
-
-.appDescr {
-    font-family: 'Roboto', sans-serif; 
-    font-size:14px;
-    color:#818181;
-    text-overflow :ellipsis;
-}
-
 .appLink {
-    color:rgb(12, 155, 197);
     display: inline-block;
     margin-left: 10px;
     margin-top: 2px;
 }
 
-.appLink>a {
-	text-decoration: none;
-	color: rgb(12, 155, 197);
-}
-
 .iconApp {
-    width: 150px;
-    vertical-align:middle;  
+    vertical-align: middle;  
 }
 
 
@@ -163,74 +108,17 @@ form.login input {
 }
 
 .big {
-   border-radius: 2px;    
-   box-shadow: 0 2px 4px rgba(214 , 214, 214,1);
-   background: #fafafa;
    height: 100%;
    text-decoration: none; 
-   vertical-align: top;    
+   vertical-align: top;
 }
 
-  /*  PLATFORM ICONS */
-
-.ios {
-    display: inline-block;
-    background-repeat: no-repeat;
-    background-position: center center;
-    -moz-background-size: cover;
-    -webkit-background-size: cover;
-    -o-background-size: cover;
-    background-size: cover;
-    background-image: url('apple.png');
-    width:17px;
-    height: 17px;
-    padding:2px;
+.valignIcon {	
 }
 
-.windowsphone8 {
-    display: inline-block;
-    background-repeat: no-repeat;
-    background-position: center center;
-    -moz-background-size: cover;
-    -webkit-background-size: cover;
-    -o-background-size: cover;
-    background-size: cover;
-    background-image: url('windows.png');
-    width:17px;
-    height: 17px;
-    padding:2px;
-}
-
-.android {
-    display: inline-block;
-    background-repeat: no-repeat;
-    background-position: center center;
-    -moz-background-size: cover;
-    -webkit-background-size: cover;
-    -o-background-size: cover;
-    background-size: cover;
-    background-image: url('android.png');
-    width:17px;
-    height: 17px;
-    padding:2px;
-}
-
-.webapp {
-    display: inline-block;
-    background-repeat: no-repeat;
-    background-position: center center;
-    -moz-background-size: cover;
-    -webkit-background-size: cover;
-    -o-background-size: cover;
-    background-size: cover;
-    background-image: url('web.png');
-    width:17px;
-    height: 17px;
-    padding:0px;
-}
-
-.valignIcon {
-	
+.alignIcon {
+	display: inline-block;
+    padding: 2px;
 }
 
 .line {
@@ -259,17 +147,14 @@ form.login input {
     float: right;
 }
 
-
 .sec {
-	background-color: rgb(245, 245,245);
     text-align: left;
     padding:10px;
 }
 
 
 #imgLogo {
-	width: 100px;
-    
+	width: 100px;   
 }
 
 .col {
@@ -298,11 +183,8 @@ form.login input {
   
   #user {
       margin-top: 35px !important;
-      font-size: 12px;
 	  margin-right: 20px !important;
   }
-  
- 
   
   input[name="username"], input[name="password"] {
   	width: 25% !important;
@@ -314,26 +196,9 @@ form.login input {
 }
 
 @media (min-width : 0px) and (max-width: 2015px)  {
-    
    .appLink {
-        font-size: 15px;
         margin-left: 5px;
-        height: 31px;
     }
-    
-    
-    .appTitle {
-        font-size: 17px;
-    }
-    
-    .appDescr {
-        font-size: 13px;
-    }
-    
-    .iconApp {
-        width: 125px;
-    }
-
 }
 
 
@@ -342,11 +207,7 @@ form.login input {
     width:50% !important;
     float:left;
  }
-
 }
-
-
-
 
 .styled-select 
 {
@@ -366,13 +227,8 @@ form.login input {
 #user {
 	float: right;
 	margin-top: 17px;
-	color: #FFF;
 	margin-right: 15px;
-	font-family: roboto;
-	background-color: #09677E;
 	padding: 5px;
-	border-radius: 5px;
-	font-size: 12px;
 }
 
 #infos {
@@ -388,18 +244,6 @@ form.login input {
 	margin-right: 14px;
 }
 
-#logout {
-	font-weight: bold;
-	border: 1px;
-	border-color: #fff;
-	padding: 3px 10px 3px 10px;
-	color: #fff;
-	background-color: #00AFCF;
-}
-
-#logout:hover {
-	background-color: #00A2C0;
-}
 
 
 
@@ -408,10 +252,8 @@ form.login input {
 */
 #footer {
 	width: 100%;
-	color: #fff;
     height: 125px;
     text-align: center;
-    background-color: #13839E;
     position: absolute;
     bottom: 0;
 }
@@ -436,36 +278,6 @@ html {
 	margin-right: 10px;
 }
 
-.imgDl {
-	width: 150px;	
-	border-color: #66A6B5;
-	border-style: solid;
-	border-width: 2px;
-	border-radius: 5px;
-}
-
-.bgIcon {
-	background-color: rgb(249, 249, 249);
-	padding-left: 12px;
-	padding-right: 12px;
-	padding-top: 0px;
-	border-radius: 5px;
-	border: 1px;
-	border-style: solid;
-}
-
-.bgIcon:hover {
-	background-color: #FFF;
-}
-
-.borderBlue {
-	border-color: rgb(56, 146, 168);
-}
-
-.borderGreen {
-	border-color: #629600;
-}
-
 .imgDlPlayer {
 	width: 100px;
 }
@@ -477,43 +289,29 @@ html {
 }
 
 #bannerContent {
-	background-color: #e5e5e5;
 	width: 100%;
 	height: auto;
 	padding: 10px;
 	position: relative;
-	border-bottom-style: solid;
-	border-bottom-color: #d6d6d6;
 	margin-bottom: 50px;
 }
 
 #bannerText {
-	background-color: #FAFAFA;
 	height: auto;
-	color: #737373;
 	padding: 20px;
 	text-align: left;
 }
 
 #closeBtn {
-	color: #FFFFFF;
 	position: absolute;
 	right: -10px;
 	top: -11px;
-	font-weight: bold;
-	background-color: #d6d6d6;
+	line-height: 1.65;
 	padding-left: 7px;
 	padding-right: 7px;
 	padding-top: 1px;
 	padding-bottom: 0;
-	border-radius: 90px;
-	box-shadow: 0px 2px 5px 1px rgba(160, 160, 160, 1);
-	line-height: 1.65;
 	width: 25px;
-}
-
-#closeBtn:hover  {
-	background-color: #a8a7a7;
 }
 
 .infos {

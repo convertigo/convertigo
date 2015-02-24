@@ -5,13 +5,14 @@
 <!--[if gt IE 9]> <!--><html class="no-js" lang="en"> <!--<![endif]-->
 	<head>
 		<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
-		<title>Convertigo store</title>
+		<title>Convertigo Store</title>
 		
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<!--[if lt IE 9]><script src="//html5.js"></script><![endif]-->
 		<meta name="apple-itunes-app" content="app-id=myAppStoreID, affiliate-data=myAffiliateData, app-argument=myURL">
 		
+		<link rel="stylesheet" href="theme.css" type="text/css" media="all">
  		<link rel="stylesheet" href="robotoFont.css" type="text/css" media="all">
  		<link rel="stylesheet" href="knacss.css" type="text/css" media="all">
 		<link rel="stylesheet" href="styles.css" type="text/css" media="all">
@@ -27,21 +28,23 @@
 		<script src="jquery.fancybox.js"></script>
 	</head>
 	<body>
-		<div id="customHeader" data-role="header" data-position="fixed" data-tap-toggle="false">
-			<p id="user" class="vAlignRight"><span id="userValue"></span></p>
+		<div id="customHeader" class="customHeaderCustomTheme" data-role="header" data-position="fixed" data-tap-toggle="false">
+			<p id="user" class="userCustomTheme">
+				<span id="userValue"></span>
+			</p>
 			
 			<div id="loginform">
-				<form action="" class="navbar-search hidden">
-					<input name="username" autocapitalize="off" autocorrect="off" style="width:90px;" type="text" class="span2" placeholder="__MSG_userIdPlaceholder__">
-					<input name="password" autocapitalize="off" autocorrect="off" style="width:90px;" type="password" class="span2" placeholder="__MSG_passwordPlaceholder__">
-					<input id="login" type="submit" value="__MSG_signInButton__" class="btn">
+				<form action="" class="hidden">
+					<input name="username" autocapitalize="off" autocorrect="off" style="width:90px;" type="text" placeholder="__MSG_userIdPlaceholder__">
+					<input name="password" autocapitalize="off" autocorrect="off" style="width:90px;" type="password" placeholder="__MSG_passwordPlaceholder__">
+					<input id="login" type="submit" value="__MSG_signInButton__" class="formBtn formBtnCustomTheme">
 				</form>
 
-				<input id="logout" type="submit" value="__MSG_logOutButton__" class="btn hidden">
+				<input id="logout" type="submit" value="__MSG_logOutButton__" class="formBtn formBtnCustomTheme hidden">
 			</div>
 			
 			<div class="blocLogo">
-				<img id="imgLogo" src="logo_store.png" alt="Store Convertigo">
+				<img id="imgLogo" src="logo_store.png" alt="Convertigo Store">
 			</div>
 		</div>
 		
@@ -53,13 +56,13 @@
 			</div>
 			
 			<div id="banner" class="hidden">
-				<div id="bannerContent">
+				<div id="bannerContent" class="bannerContentCustomTheme">
 					<a href="#">
-						<div id="closeBtn">X</div>
+						<div id="closeBtn" class="closeBtnCustomTheme">X</div>
 					</a>
 					<img id="cplayer" src="store_convertigo_gray.png">
 					
-					<div id="bannerText">
+					<div id="bannerText" class="bannerTextCustomTheme">
 						<span>
 							__MSG_textBannerPartOne__
 							<ul>
@@ -73,31 +76,31 @@
 			
 			<div class="grid3" data-c8o-listen="*" data-c8o-each="project" data-c8o-after-rendering="store.onAfterRendering">
 				<div class="mtm col" data-project="__=project>name__">
-					<div class="big">
-						<div class="imgContainer">
+					<div class="big bigCustomTheme">
+						<div class="imgContainer imgContainerCustomTheme">
 							<p class="vAlign">
-								<img class="iconApp" src='__{"formatter": "store.getIconUrl"}__' alt="Application logo">
+								<img class="iconApp iconAppCustomTheme" src='__{"formatter": "store.getIconUrl"}__' alt="Application logo">
 							</p>
 						</div>
 						
-						<div class="sec">
+						<div class="sec secCustomTheme">
 							<div class="blockTitle">
-								<p class="appTitle">__=application>name__</p>
+								<p class="appTitleCustomTheme">__=application>name__</p>
 							</div>
 			              
 							<div class="blockDescr">
-								<p class="appDescr">__=application>descr__</p>
+								<p class="appDescrCustomTheme">__=application>descr__</p>
 							</div>
 							
-							<div class="blockPlatform" >
+							<div class="blockPlatform blockPlatformCustomTheme" >
 								<!-- Web App -->
 								<div class="line">
-									<div class="webapp valignIcon"></div>
-									<div class="appLink nameApp">
+									<div class="valignIcon alignIcon alignIconCustomTheme webappCustomTheme"></div>
+									<div class="appLink appLinkCustomTheme nameApp">
 										<a href='__{"formatter": "store.getWebAppUrl"}__'>Wep app</a>
 									</div>
 									<a href='__{"formatter": "store.getLastHrefGenerated"}__'>
-										<div class="actionBtn bgIcon borderBlue">
+										<div class="actionBtn bgIconCustomTheme borderRunCustomTheme">
 											<img src="play.png">
 										</div>
 									</a>
@@ -106,13 +109,13 @@
 								<!-- Platforms -->
 								<div data-c8o-each="platform">
 									<div class="line">
-										<div class='__{"formatter": "store.getPlatformClass", "find": "classname"}__ valignIcon'></div>
-										<div class="appLink nameApp">
+										<div class='__{"formatter": "store.getPlatformClass", "find": "classname"}__ valignIcon alignIcon alignIconCustomTheme'></div>
+										<div class="appLink appLinkCustomTheme nameApp">
 											<a class="fancybox image" href='__{"formatter": "store.getPlatformUrl", "find": "name"}__'>__=name__</a>
 										</div>
 										
 										<a class="fancybox image" href='__{"formatter": "store.getLastHrefGenerated", "find": "name"}__'>
-											<div class="actionBtn bgIcon borderGreen">
+											<div class="actionBtn bgIconCustomTheme borderDlCustomTheme">
 												<img src="dl.png">
 											</div>
 										</a>
@@ -125,7 +128,7 @@
 	        </div>
 		</div>
 		
-		<footer id="footer">
+		<footer id="footer" class="footerCustomTheme">
 			<div class="platformContainer">
 				<img class="imgDlPlayer" src="cplayer_white.png">
 			</div>

@@ -11,11 +11,13 @@ $.extend(true, C8O, {
 var store = {
 	vars: {
 		base_url: window.location.href.replace(new RegExp("(.*/).*"), "$1"),
+		two_parent_level: "../../",
+		custom_theme: "CustomTheme",
 		c8oplayer: "c8oplayer://",
 		convertigo_player_url_android: "https://play.google.com/store/apps/details?id=com.convertigo.mobile.ConvertigoPlayer",
 		convertigo_player_url_ios: "https://itunes.apple.com/us/app/convertigo-player/id910448988?mt=8",
 		convertigo_player_url_wp8: "http://www.windowsphone.com/en-us/store/app/convertigo-player/1c550e9f-f981-4b54-8328-8cbe26781e56",
-		admin_services: "../../admin/services/",
+		admin_services: "admin/services/",
 		requested_platform: "all",
 		android_platform: "Android",
 		ios_platform: "IOs",
@@ -34,6 +36,8 @@ var store = {
 		$.ajaxSetup({
 			type : "POST"
 		});
+		
+		store.vars.admin_services = store.vars.two_parent_level + store.vars.admin_services;
 		
 		store.getRequestedPlatform();
 		store.manageLoginLogoutBtn();
@@ -121,7 +125,7 @@ var store = {
 	},
 	
 	addStoreLogo: function (imgName, url) {
-		$("footer").append('<div class="platformContainer"><a href="' + url + '"><img class="imgDl" src="' + imgName +'"></a></div>');
+		$("footer").append('<div class="platformContainer"><a href="' + url + '"><img class="imgDl' + store.vars.custom_theme + '" src="' + imgName +'"></a></div>');
 	},
 	
 	addStoreLogoAndroid: function () {
@@ -229,7 +233,7 @@ var store = {
 	},
 	
 	getWebAppUrl: function (value) {
-		return store.vars.base_url + "../../projects/" + store.getProjectName($(this)) + "/DisplayObjects/mobile/app.html";
+		return store.vars.base_url + store.vars.two_parent_level + "projects/" + store.getProjectName($(this)) + "/DisplayObjects/mobile/app.html";
 	},
 	
 	getProjectName: function ($elem) {
@@ -237,11 +241,11 @@ var store = {
 	},
 	
 	getIconUrl: function (value) {
-		return store.vars.base_url + "../../projects/" + store.getProjectName($(this)) + "/DisplayObjects/mobile/icon.png";
+		return store.vars.base_url + store.vars.two_parent_level + "projects/" + store.getProjectName($(this)) + "/DisplayObjects/mobile/icon.png";
 	},
 	
 	getPlatformClass: function (value) {
-		return value.toLowerCase();
+		return value.toLowerCase() + store.vars.custom_theme;
 	},
 	
 	getPlatformUrl: function (value) {
@@ -253,7 +257,7 @@ var store = {
 		}
 
 		// URL = QR code
-		var currentPlatform = $(this).parent().prev().attr("class").replace(/ .*/, "");
+		var currentPlatform = $(this).parent().prev().attr("class").replace(/ .*/, "").replace(new RegExp("(.*)" + store.vars.custom_theme), "$1");
 
 		var target_url;
 		if (currentPlatform === store.vars.android_platform.toLowerCase()) {
@@ -268,7 +272,7 @@ var store = {
 		
 		target_url += "#" + package_url;
 		
-		return store.vars.base_url + "../../" + "qrcode?" + $.param({
+		return store.vars.base_url + store.vars.two_parent_level + "qrcode?" + $.param({
 			o: "image/png",
 			e: "L",
 			s: 4,
@@ -309,11 +313,6 @@ var store = {
 			    $(".fancybox").fancybox();
 		    }
 			
-			// Focus effect when mouse is on the app
-			$("div.big").hover(function (){
-		        $(this).children(":first").toggleClass("imgContainerHover");
-		    });
-		    
 			// ScrollBar for platforms
 		    $(".blockPlatform").mCustomScrollbar({
 		        theme:"dark-thin"
