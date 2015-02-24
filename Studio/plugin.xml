@@ -1002,6 +1002,7 @@
                label="Decrease priority"
                menubarPath="priority"/>
       </objectContribution>
+	  
       <objectContribution
             id="convertigo.explorerContribution"
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UnloadedProjectTreeObject">
@@ -1029,6 +1030,16 @@
                menubarPath="project">
          </action>
       </objectContribution>
+      <objectContribution
+      		id="convertigo.webServiceContribution"
+      		objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ReferenceTreeObject">
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.DownloadLastReferenceAction"
+               enablesFor="1"
+               id="convertigo.action.downloadReference"
+               label="Download reference"
+               menubarPath="project"/>
+	  </objectContribution>
       <objectContribution
             id="convertigo.transactionContribution"
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TransactionTreeObject">
