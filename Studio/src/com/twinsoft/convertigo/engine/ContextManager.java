@@ -563,7 +563,7 @@ public class ContextManager extends AbstractRunnableManager {
                 removeExpiredContexts();
                 managePoolContexts();
                 Engine.logContextManager.debug("Vulture task done");
-            } catch(Exception e) {
+            } catch(Throwable e) {
                 Engine.logContextManager.error("An unexpected error has occured in the ContextManager vulture.", e);
             } finally {
             	if ((sleepTime -= System.currentTimeMillis()) > 0) {
