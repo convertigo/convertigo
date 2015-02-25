@@ -28,7 +28,6 @@ import javax.xml.namespace.QName;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.twinsoft.convertigo.engine.util.ParameterUtils;
 
 public class RemoveServerConfigTransaction extends AbstractServerTransaction {
 
@@ -51,8 +50,8 @@ public class RemoveServerConfigTransaction extends AbstractServerTransaction {
 	
 	@Override
 	protected Object invoke() throws Exception {
-		String section = ParameterUtils.toString(getParameterValue(var_section));
-		String key = ParameterUtils.toString(getParameterValue(var_key));
+		String section = getParameterStringValue(var_section);
+		String key = getParameterStringValue(var_key);
 		JsonElement json = getCouchDbContext().config().remove(section, key);
 		if (section != null && key != null) {// modify json for schema compliance
 			JsonObject s = new JsonObject();

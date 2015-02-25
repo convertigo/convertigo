@@ -26,8 +26,6 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.twinsoft.convertigo.engine.util.ParameterUtils;
-
 public class GetDocumentTransaction extends AbstractDocumentTransaction {
 
 	private static final long serialVersionUID = 110083227104023263L;
@@ -50,11 +48,11 @@ public class GetDocumentTransaction extends AbstractDocumentTransaction {
 	@Override
 	protected Object invoke() throws Exception {
 		if (getCouchClient() != null) {
-			return getCouchClient().getDocument(getTargetDatabase(), ParameterUtils.toString(getParameterValue(var_docid)), ParameterUtils.toString(getParameterValue(var_docrev)));
+			return getCouchClient().getDocument(getTargetDatabase(), getParameterStringValue(var_docid), getParameterStringValue(var_docrev));
 		}
 		
-		String docId = ParameterUtils.toString(getParameterValue(var_docid));
-		String docRev = ParameterUtils.toString(getParameterValue(var_docrev));
+		String docId = getParameterStringValue(var_docid);
+		String docRev = getParameterStringValue(var_docrev);
 		return getCouchDBDocument().get(docId, docRev);
 	}
 

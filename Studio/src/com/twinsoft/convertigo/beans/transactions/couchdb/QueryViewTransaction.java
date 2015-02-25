@@ -30,8 +30,6 @@ import java.util.Map;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 
-import com.twinsoft.convertigo.engine.util.ParameterUtils;
-
 public class QueryViewTransaction extends AbstractDocumentTransaction {
 
 	private static final long serialVersionUID = -3684374492418313635L;
@@ -55,14 +53,14 @@ public class QueryViewTransaction extends AbstractDocumentTransaction {
 	@Override
 	protected Object invoke() throws Exception {
 		if (getCouchClient() != null) {
-			String docId = ParameterUtils.toString(getParameterValue(var_docid));
-			String viewName = ParameterUtils.toString(getParameterValue(var_viewname));
+			String docId = getParameterStringValue(var_docid);
+			String viewName = getParameterStringValue(var_viewname);
 			
-			String key = ParameterUtils.toString(getParameterValue(var_view_key));
-			String startkey = ParameterUtils.toString(getParameterValue(var_view_startkey));
-			String endkey = ParameterUtils.toString(getParameterValue(var_view_endkey));
-			String _limit = ParameterUtils.toString(getParameterValue(var_view_limit));
-			String _skip = ParameterUtils.toString(getParameterValue(var_view_skip));
+			String key = getParameterStringValue(var_view_key);
+			String startkey = getParameterStringValue(var_view_startkey);
+			String endkey = getParameterStringValue(var_view_endkey);
+			String _limit = getParameterStringValue(var_view_limit);
+			String _skip = getParameterStringValue(var_view_skip);
 			Integer limit = (_limit == null ? null:Double.valueOf(_limit).intValue());
 			Integer skip = (_skip == null ? null:Double.valueOf(_skip).intValue());
 			
@@ -77,14 +75,14 @@ public class QueryViewTransaction extends AbstractDocumentTransaction {
 			return getCouchClient().view(getTargetDatabase(), docId, viewName, options);
 		}
 		
-		String docId = ParameterUtils.toString(getParameterValue(var_docid));
-		String viewName = ParameterUtils.toString(getParameterValue(var_viewname));
+		String docId = getParameterStringValue(var_docid);
+		String viewName = getParameterStringValue(var_viewname);
 		
-		String key = ParameterUtils.toString(getParameterValue(var_view_key));
-		String startkey = ParameterUtils.toString(getParameterValue(var_view_startkey));
-		String endkey = ParameterUtils.toString(getParameterValue(var_view_endkey));
-		String _limit = ParameterUtils.toString(getParameterValue(var_view_limit));
-		String _skip = ParameterUtils.toString(getParameterValue(var_view_skip));
+		String key = getParameterStringValue(var_view_key);
+		String startkey = getParameterStringValue(var_view_startkey);
+		String endkey = getParameterStringValue(var_view_endkey);
+		String _limit = getParameterStringValue(var_view_limit);
+		String _skip = getParameterStringValue(var_view_skip);
 		Integer limit = (_limit == null ? null:Double.valueOf(_limit).intValue());
 		Integer skip = (_skip == null ? null:Double.valueOf(_skip).intValue());
 		

@@ -21,10 +21,11 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-import com.twinsoft.convertigo.engine.util.ParameterUtils;
+import com.twinsoft.convertigo.engine.Engine;
 
 public class AddDocumentAttachmentTransaction extends AbstractDocumentTransaction {
 
@@ -47,8 +48,18 @@ public class AddDocumentAttachmentTransaction extends AbstractDocumentTransactio
 		
 	@Override
 	protected Object invoke() throws Exception {
-		String docId = ParameterUtils.toString(getParameterValue(var_docid));
-		String attPath = ParameterUtils.toString(getParameterValue(var_filepath));
+		if (getCouchClient() != null) {
+			String docId = getParameterStringValue(var_docid);
+			String attPath = getParameterStringValue(var_filepath);
+			
+			attPath = Engine.theApp.filePropertyManager.getFilepathFromProperty(attPath, getProject().getName());
+			
+			String contentType = context.httpServletRequest.getServletContext().getMimeType(attPath);
+			
+			return getCouchClient().putDocumentAttachment(getTargetDatabase(), docId, new File(attPath), contentType);
+		}
+		String docId = getParameterStringValue(var_docid);
+		String attPath = getParameterStringValue(var_filepath);
 		return getCouchDBDocument().addAttachment(docId, getDocLastRev(docId), getFileURI(attPath));
 	}
 }

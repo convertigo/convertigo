@@ -26,8 +26,6 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.twinsoft.convertigo.engine.util.ParameterUtils;
-
 public class GetServerStatsTransaction extends AbstractServerTransaction {
 
 	private static final long serialVersionUID = -2970765233504737256L;
@@ -49,8 +47,8 @@ public class GetServerStatsTransaction extends AbstractServerTransaction {
 
 	@Override
 	protected Object invoke() throws Exception {
-		String section = ParameterUtils.toString(getParameterValue(var_section));
-		String key = ParameterUtils.toString(getParameterValue(var_key));
+		String section = getParameterStringValue(var_section);
+		String key = getParameterStringValue(var_key);
 		return getCouchDbContext().stats(section, key);
 	}
 

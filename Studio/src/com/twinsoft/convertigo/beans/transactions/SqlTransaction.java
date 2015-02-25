@@ -922,7 +922,7 @@ public class SqlTransaction extends TransactionWithVariables {
 				if (sqlQuery.orderedParametersList != null && variables != null){
 					if (sqlQuery.orderedParametersList.size() != 0 && variables.size() != 0){
 						for (String key : sqlQuery.orderedParametersList){
-							String valueKey = ParameterUtils.toString(getParameterValue(key));
+							String valueKey = getParameterStringValue(key);
 							String valueVar = variables.get(key);
 							if( !valueKey.equals(valueVar))
 								return false;	
@@ -932,7 +932,7 @@ public class SqlTransaction extends TransactionWithVariables {
 				
 				if (sqlQuery.otherParametersList != null && sqlQuery.otherParametersList.size() != 0) {
 					for (String key : sqlQuery.otherParametersList){
-						String valueKey = ParameterUtils.toString(getParameterValue(key));
+						String valueKey = getParameterStringValue(key);
 						String valueVar = variables.get(key);
 						if( !valueKey.equals(valueVar))
 							return false;	

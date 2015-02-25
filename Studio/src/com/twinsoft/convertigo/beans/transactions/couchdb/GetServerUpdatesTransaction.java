@@ -24,8 +24,6 @@ package com.twinsoft.convertigo.beans.transactions.couchdb;
 import java.util.Arrays;
 import java.util.List;
 
-import com.twinsoft.convertigo.engine.util.ParameterUtils;
-
 public class GetServerUpdatesTransaction extends AbstractServerTransaction {
 
 	private static final long serialVersionUID = -4009927560249117525L;
@@ -47,11 +45,11 @@ public class GetServerUpdatesTransaction extends AbstractServerTransaction {
 	
 	@Override
 	protected Object invoke() throws Exception {
-		String sFeed = ParameterUtils.toString(getParameterValue(var_feed));
+		String sFeed = getParameterStringValue(var_feed);
 		String feed = (sFeed == null) ? null:String.valueOf(sFeed);
-		String sTimeout = ParameterUtils.toString(getParameterValue(var_timeout));
+		String sTimeout = getParameterStringValue(var_timeout);
 		Integer timeout = (sTimeout == null) ? null:Integer.valueOf(sTimeout);
-		String sHeartbeat = ParameterUtils.toString(getParameterValue(var_heartbeat));
+		String sHeartbeat = getParameterStringValue(var_heartbeat);
 		Boolean heartbeat = (sHeartbeat == null) ? null:Boolean.valueOf(sHeartbeat);
 		return getCouchDbContext().updates(feed, timeout, heartbeat);
 	}

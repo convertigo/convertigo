@@ -26,8 +26,6 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.twinsoft.convertigo.engine.util.ParameterUtils;
-
 public class ExistDocumentTransaction extends AbstractDocumentTransaction {
 
 	private static final long serialVersionUID = 1L;
@@ -50,9 +48,9 @@ public class ExistDocumentTransaction extends AbstractDocumentTransaction {
 	@Override
 	protected Object invoke() throws Exception {
 		if (getCouchClient() != null) {
-			return getCouchClient().headDocument(getTargetDatabase(), ParameterUtils.toString(getParameterValue(var_docid)));
+			return getCouchClient().headDocument(getTargetDatabase(), getParameterStringValue(var_docid));
 		}
-		String docId = ParameterUtils.toString(getParameterValue(var_docid));
+		String docId = getParameterStringValue(var_docid);
 		return getCouchDBDocument().exist(docId);
 	}
 

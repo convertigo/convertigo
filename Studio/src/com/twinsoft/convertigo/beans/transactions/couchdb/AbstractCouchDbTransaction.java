@@ -202,6 +202,10 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 	public Object getParameterValue(CouchDbParameter param) {
 		return super.getParameterValue(param.variableName());
 	}
+
+	public String getParameterStringValue(CouchDbParameter param) {
+		return super.getParameterStringValue(param.variableName());
+	}
 	
 	protected static void addJson(JsonObject jsonObject, String propertyName, JsonElement jsonElement) {
 		if (jsonElement != null) {

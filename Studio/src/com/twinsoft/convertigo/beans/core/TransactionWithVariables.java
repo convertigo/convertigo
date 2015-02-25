@@ -449,6 +449,10 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		return variableValue;
 	}
 	
+	public String getParameterStringValue(String parameterName) {
+		return getParameterStringValue(parameterName);
+	}
+	
 	public Object getVariableValue(String requestedVariableName) {
 		// Request parameter value (see parseInputDocument())
 		Object value = ((variables == null) ? null: variables.get(requestedVariableName));

@@ -26,8 +26,6 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.twinsoft.convertigo.engine.util.ParameterUtils;
-
 public class GetServerLogTransaction extends AbstractServerTransaction {
 
 	private static final long serialVersionUID = 3117082545323969984L;
@@ -49,9 +47,9 @@ public class GetServerLogTransaction extends AbstractServerTransaction {
 	
 	@Override
 	protected Object invoke() throws Exception {
-		String sBytes = ParameterUtils.toString(getParameterValue(var_bytes));
+		String sBytes = getParameterStringValue(var_bytes);
 		Integer bytes = (sBytes == null) ? null:Integer.valueOf(sBytes);
-		String sOffset = ParameterUtils.toString(getParameterValue(var_offset));
+		String sOffset = getParameterStringValue(var_offset);
 		Integer offset = (sOffset == null) ? null:Integer.valueOf(sOffset);
 		return getCouchDbContext().log(bytes, offset);
 	}

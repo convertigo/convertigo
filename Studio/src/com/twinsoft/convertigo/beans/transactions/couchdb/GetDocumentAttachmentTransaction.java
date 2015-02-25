@@ -21,10 +21,11 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-import com.twinsoft.convertigo.engine.util.ParameterUtils;
+import com.twinsoft.convertigo.engine.Engine;
 
 public class GetDocumentAttachmentTransaction extends AbstractDocumentTransaction {
 
@@ -47,10 +48,20 @@ public class GetDocumentAttachmentTransaction extends AbstractDocumentTransactio
 		
 	@Override
 	protected Object invoke() throws Exception {
-		String docId = ParameterUtils.toString(getParameterValue(var_docid));
-		String docRev = ParameterUtils.toString(getParameterValue(var_docrev));
-		String attName = ParameterUtils.toString(getParameterValue(var_filename));
-		String attPath = ParameterUtils.toString(getParameterValue(var_filepath));
+		if (getCouchClient() != null) {
+			String docId = getParameterStringValue(var_docid);
+			String docRev = getParameterStringValue(var_docrev);
+			String attName = getParameterStringValue(var_filename);
+			String attPath = getParameterStringValue(var_filepath);
+			
+			attPath = Engine.theApp.filePropertyManager.getFilepathFromProperty(attPath, getProject().getName());
+			
+			return getCouchClient().getDocumentAttachment(getTargetDatabase(), docId, docRev, attName, new File(attPath));
+		}
+		String docId = getParameterStringValue(var_docid);
+		String docRev = getParameterStringValue(var_docrev);
+		String attName = getParameterStringValue(var_filename);
+		String attPath = getParameterStringValue(var_filepath);
 		return getCouchDBDocument().getAttachment(docId, docRev, attName, getFileURI(attPath));
 	}
 

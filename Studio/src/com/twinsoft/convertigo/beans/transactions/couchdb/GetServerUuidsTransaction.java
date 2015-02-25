@@ -26,8 +26,6 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.twinsoft.convertigo.engine.util.ParameterUtils;
-
 public class GetServerUuidsTransaction extends AbstractServerTransaction {
 
 	private static final long serialVersionUID = -7533090778648171161L;
@@ -50,11 +48,11 @@ public class GetServerUuidsTransaction extends AbstractServerTransaction {
 	@Override
 	protected Object invoke() throws Exception {
 		if (getCouchClient() != null) {
-			String sCount = ParameterUtils.toString(getParameterValue(var_count));
+			String sCount = getParameterStringValue(var_count);
 			long count = (sCount == null || sCount.isEmpty()) ? 1L : Long.valueOf(sCount);
 			return getCouchClient().getUuids(count);			
 		}
-		String sCount = ParameterUtils.toString(getParameterValue(var_count));
+		String sCount = getParameterStringValue(var_count);
 		long count = (sCount == null || sCount.isEmpty()) ? 1L : Long.valueOf(sCount);
 		return getCouchDbContext().uuids(count);
 	}

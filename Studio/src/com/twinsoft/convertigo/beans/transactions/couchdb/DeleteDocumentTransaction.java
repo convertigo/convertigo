@@ -26,8 +26,6 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.twinsoft.convertigo.engine.util.ParameterUtils;
-
 public class DeleteDocumentTransaction extends AbstractDocumentTransaction {
 
 	private static final long serialVersionUID = 6392840891762384633L;
@@ -50,10 +48,10 @@ public class DeleteDocumentTransaction extends AbstractDocumentTransaction {
 	@Override
 	protected Object invoke() throws Exception {
 		if (getCouchClient() != null) {
-			return getCouchClient().deleteDocument(getTargetDatabase(), ParameterUtils.toString(getParameterValue(var_docid)));
+			return getCouchClient().deleteDocument(getTargetDatabase(), getParameterStringValue(var_docid));
 		}
 		
-		String docId = ParameterUtils.toString(getParameterValue(var_docid));
+		String docId = getParameterStringValue(var_docid);
 		return getCouchDBDocument().delete(docId);
 	}
 

@@ -28,7 +28,6 @@ import javax.xml.namespace.QName;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.twinsoft.convertigo.engine.util.ParameterUtils;
 
 public class SetServerConfigTransaction extends AbstractServerTransaction {
 	private static final long serialVersionUID = -3775078867489864436L;
@@ -50,9 +49,9 @@ public class SetServerConfigTransaction extends AbstractServerTransaction {
 	
 	@Override
 	protected Object invoke() throws Exception {
-		String section = ParameterUtils.toString(getParameterValue(var_section));
-		String key = ParameterUtils.toString(getParameterValue(var_key));
-		String value = ParameterUtils.toString(getParameterValue(var_value));
+		String section = getParameterStringValue(var_section);
+		String key = getParameterStringValue(var_key);
+		String value = getParameterStringValue(var_value);
 		JsonElement json = getCouchDbContext().config().set(section, key, value);
 		if (section != null && key != null) {// modify json for schema compliance
 			JsonObject s = new JsonObject();

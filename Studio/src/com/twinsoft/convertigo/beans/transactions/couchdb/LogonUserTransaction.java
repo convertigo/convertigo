@@ -26,8 +26,6 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.twinsoft.convertigo.engine.util.ParameterUtils;
-
 public class LogonUserTransaction extends AbstractServerTransaction {
 
 	private static final long serialVersionUID = -1385969696979516586L;
@@ -49,8 +47,8 @@ public class LogonUserTransaction extends AbstractServerTransaction {
 
 	@Override
 	protected Object invoke() throws Exception {
-		String uname = ParameterUtils.toString(getParameterValue(var_name));
-		String upwd = ParameterUtils.toString(getParameterValue(var_password));
+		String uname = getParameterStringValue(var_name);
+		String upwd = getParameterStringValue(var_password);
 		return getCouchDbContext().session().logon(uname, upwd);
 	}
 

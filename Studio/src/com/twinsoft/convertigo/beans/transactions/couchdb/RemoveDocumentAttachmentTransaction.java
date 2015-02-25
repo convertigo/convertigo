@@ -24,8 +24,6 @@ package com.twinsoft.convertigo.beans.transactions.couchdb;
 import java.util.Arrays;
 import java.util.List;
 
-import com.twinsoft.convertigo.engine.util.ParameterUtils;
-
 public class RemoveDocumentAttachmentTransaction extends AbstractDocumentTransaction {
 
 	private static final long serialVersionUID = 251919320155109714L;
@@ -47,8 +45,13 @@ public class RemoveDocumentAttachmentTransaction extends AbstractDocumentTransac
 		
 	@Override
 	protected Object invoke() throws Exception {
-		String docId = ParameterUtils.toString(getParameterValue(var_docid));
-		String attName = ParameterUtils.toString(getParameterValue(var_filename));
+		if (getCouchClient() != null) {
+			String docId = getParameterStringValue(var_docid);
+			String attName = getParameterStringValue(var_filename);
+			return getCouchClient().deleteDocumentAttachment(getTargetDatabase(), docId, attName);
+		}
+		String docId = getParameterStringValue(var_docid);
+		String attName = getParameterStringValue(var_filename);
 		return getCouchDBDocument().removeAttachment(docId, getDocLastRev(docId), attName);
 	}
 
