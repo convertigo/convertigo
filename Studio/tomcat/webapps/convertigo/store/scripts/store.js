@@ -218,7 +218,7 @@ var store = {
 	},
 	
 	getStoreContent: function () {
-		store.call("projects.GetStoreContent", {platform: store.vars.requested_platform});
+		store.call("store.GetStoreContent", {platform: store.vars.requested_platform});
 	},
 	
 	logout: function () {
