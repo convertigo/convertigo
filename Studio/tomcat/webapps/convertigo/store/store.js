@@ -11,7 +11,7 @@ $.extend(true, C8O, {
 var store = {
 	vars: {
 		base_url: window.location.href.replace(new RegExp("(.*/).*"), "$1"),
-		two_parent_level: "../../",
+		one_parent_level: "../",
 		custom_theme: "CustomTheme",
 		c8oplayer: "c8oplayer://",
 		convertigo_player_url_android: "https://play.google.com/store/apps/details?id=com.convertigo.mobile.ConvertigoPlayer",
@@ -37,7 +37,7 @@ var store = {
 			type : "POST"
 		});
 		
-		store.vars.admin_services = store.vars.two_parent_level + store.vars.admin_services;
+		store.vars.admin_services = store.vars.one_parent_level + store.vars.admin_services;
 		
 		store.getRequestedPlatform();
 		store.manageLoginLogoutBtn();
@@ -233,7 +233,7 @@ var store = {
 	},
 	
 	getWebAppUrl: function (value) {
-		return store.vars.base_url + store.vars.two_parent_level + "projects/" + store.getProjectName($(this)) + "/DisplayObjects/mobile/app.html";
+		return store.vars.base_url + store.vars.one_parent_level + "projects/" + store.getProjectName($(this)) + "/DisplayObjects/mobile/app.html";
 	},
 	
 	getProjectName: function ($elem) {
@@ -241,7 +241,7 @@ var store = {
 	},
 	
 	getIconUrl: function (value) {
-		return store.vars.base_url + store.vars.two_parent_level + "projects/" + store.getProjectName($(this)) + "/DisplayObjects/mobile/icon.png";
+		return store.vars.base_url + store.vars.one_parent_level + "projects/" + store.getProjectName($(this)) + "/DisplayObjects/mobile/icon.png";
 	},
 	
 	getPlatformClass: function (value) {
@@ -272,7 +272,7 @@ var store = {
 		
 		target_url += "#" + package_url;
 		
-		return store.vars.base_url + store.vars.two_parent_level + "qrcode?" + $.param({
+		return store.vars.base_url + store.vars.one_parent_level + "qrcode?" + $.param({
 			o: "image/png",
 			e: "L",
 			s: 4,
