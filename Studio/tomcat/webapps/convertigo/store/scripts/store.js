@@ -12,6 +12,7 @@ var store = {
 	vars: {
 		base_url: window.location.href.replace(new RegExp("(.*/).*"), "$1"),
 		one_parent_level: "../",
+		images_folder_path: "images/",
 		custom_theme: "CustomTheme",
 		c8oplayer: "c8oplayer://",
 		convertigo_player_url_android: "https://play.google.com/store/apps/details?id=com.convertigo.mobile.ConvertigoPlayer",
@@ -125,7 +126,7 @@ var store = {
 	},
 	
 	addStoreLogo: function (imgName, url) {
-		$("footer").append('<div class="platformContainer"><a href="' + url + '"><img class="imgDl' + store.vars.custom_theme + '" src="' + imgName +'"></a></div>');
+		$("footer").append('<div class="platformContainer"><a href="' + url + '"><img class="imgDl' + store.vars.custom_theme + '" src="' + store.vars.images_folder_path + imgName +'"></a></div>');
 	},
 	
 	addStoreLogoAndroid: function () {

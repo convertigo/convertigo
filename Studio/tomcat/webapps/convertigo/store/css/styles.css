@@ -214,7 +214,7 @@ form.login input {
    width: 24px;
    height: 24px;
    overflow: hidden;
-   background: url('wheel.png') no-repeat right;
+   background: url('../images/wheel.png') no-repeat right;
    border: 0px;
 /*   color: transparent;*/
 

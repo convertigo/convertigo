@@ -81,19 +81,19 @@
 }
 
 .webappCustomTheme {
-	background-image: url("web.png");
+	background-image: url("../images/web.png");
 }
 
 .androidCustomTheme {
-	background-image: url("android.png");
+	background-image: url("../images/android.png");
 }
 
 .iosCustomTheme {
-	background-image: url("apple.png");
+	background-image: url("../images/apple.png");
 }
 
 .windowsphone8CustomTheme {
-	background-image: url("windows.png");
+	background-image: url("../images/windows.png");
 }
 
 .appLinkCustomTheme {
