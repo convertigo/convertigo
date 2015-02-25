@@ -83,9 +83,11 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 	
 	private Label message;
 	private ToolItem autoRefresh;
+	private ToolItem autoValidate;
 	private ToolItem internalSchema;
 	
 	private boolean needRefresh;
+	private boolean needValidate;
 	private String projectName;
 
 	private Thread workingThread;
@@ -95,7 +97,6 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 		@Override
 		public void documentGenerated(final Document document) {
 			final Element documentElement = document.getDocumentElement();
-			final boolean needValidate = ConvertigoPlugin.getValidateXmlSchema();
 			if (documentElement != null) {
 				String project = documentElement.getAttribute("project");
 				if (project != null && project.equals(projectName)) {
@@ -238,6 +239,20 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 		toolItem = autoRefresh = new ToolItem(toolbar, SWT.CHECK);
 		setToolItemIcon(toolItem, "icons/studio/refresh.d.gif", "AR", "Toggle auto refresh");
 		toolItem.setSelection(true);
+		
+		toolItem = autoValidate = new ToolItem(toolbar, SWT.CHECK);
+		setToolItemIcon(toolItem, "icons/studio/validate.gif", "AV", "Toggle auto validate");
+		toolItem.setSelection(false);
+		toolItem.addSelectionListener(new SelectionListener() {
+			
+			public void widgetSelected(SelectionEvent e) {
+				needValidate = autoValidate.getSelection();
+			}
+			
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+			
+		});
 		
 		toolItem = internalSchema = new ToolItem(toolbar, SWT.CHECK);
 		setToolItemIcon(toolItem, "icons/studio/pretty_print.gif", "IS", "Toggle internal schema");
@@ -531,7 +546,6 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 	
 								});
 	
-								final boolean needValidate = ConvertigoPlugin.getValidateXmlSchema();
 								if (needValidate) {
 									final Exception[] exception = {null};
 									try {

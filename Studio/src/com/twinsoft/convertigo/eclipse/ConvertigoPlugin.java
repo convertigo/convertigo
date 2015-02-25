@@ -165,7 +165,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
     public static final String PREFERENCE_OPENED_CONSOLES = "opened.consoles";
     public static final String PREFERENCE_TRACEPLAYER_PORT = "traceplayer.port";
     public static final String PREFERENCE_IGNORE_NEWS = "news.ignore";
-    public static final String PREFERENCE_XMLSCHEMA_VALIDATE = "xmlschema.validate";
     public static final String PREFERENCE_LOCAL_BUILD_ADDITIONAL_PATH = "localBuild.additionalPath";
     
     private static Display display = null;
@@ -957,18 +956,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 
 	public static boolean getHighlightDetectedObject() {
 		return highlightDetectedObject;
-	}
-
-	private static boolean 	validateXmlSchema;
-	
-	public static void setValidateXmlSchema(boolean validate) {
-		validateXmlSchema = validate;
-	}
-
-	public static boolean getValidateXmlSchema() {
-        IPreferenceStore preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore();
-        validateXmlSchema = preferenceStore.getBoolean(ConvertigoPlugin.PREFERENCE_XMLSCHEMA_VALIDATE);
-        return validateXmlSchema;
 	}
 
 	/**
