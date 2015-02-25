@@ -68,4 +68,9 @@ public class WsdlSchemaFileWizardPage extends SchemaFileWizardPage {
 		super.setTextStatus(message);
 	}
 
+	@Override
+	protected void setNeedAuthentication(boolean needAuthentication) {
+		((WsdlSchemaReference)getDbo()).setNeedAuthentication(needAuthentication);	
+	}
+
 }

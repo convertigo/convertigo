@@ -65,4 +65,9 @@ public class XsdSchemaFileWizardPage extends SchemaFileWizardPage {
 		// TODO Auto-generated method stub
 		super.setTextStatus(message);
 	}
+
+	@Override
+	protected void setNeedAuthentication(boolean needAuthentication) {
+		((XsdSchemaReference)getDbo()).setNeedAuthentication(needAuthentication);		
+	}
 }

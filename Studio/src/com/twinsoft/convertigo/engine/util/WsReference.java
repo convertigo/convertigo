@@ -107,10 +107,10 @@ public class WsReference {
 		
 		try{
 			tryAuthentication(login, password);
+			reference.setNeedAuthentication(true);
 		} catch (Exception e) {
 			throw new Exception ("Authentication failure!", e);
 		}
-		
 		httpConnector = importInto(project);
 
 		//We clear login/password

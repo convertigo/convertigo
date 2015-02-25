@@ -28,6 +28,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Reference;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
+import com.twinsoft.convertigo.beans.references.RemoteFileReference;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.engine.Engine;
 
@@ -48,6 +49,13 @@ public class ReferenceTreeObject extends DatabaseObjectTreeObject {
 
 	@Override
 	public boolean testAttribute(Object target, String name, String value) {
+		if (name.equals("filepath")) {
+			ReferenceTreeObject refTreeObject = (ReferenceTreeObject) target;
+			if (refTreeObject.getObject() instanceof RemoteFileReference) {
+				RemoteFileReference remoteFile = (RemoteFileReference) refTreeObject.getObject();
+				return !remoteFile.getFilepath().equals(""); 
+			} 
+		} 
 		return super.testAttribute(target, name, value);
 	}
 
@@ -108,6 +116,5 @@ public class ReferenceTreeObject extends DatabaseObjectTreeObject {
 				}
 			}
 		}
-	}
-	
+	}	
 }

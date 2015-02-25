@@ -175,11 +175,13 @@ public abstract class SchemaFileWizardPage extends WizardPage implements IWsRefe
 	
 	public void dialogChanged() {
 		String message = null;
+		
 		if (!urlPath.equals("")) {
 			try {
 				new URL(urlPath);
 				try {
 					setDboUrlPath(urlPath);
+					setNeedAuthentication(useAuthentication.getSelection());
 				} catch (NullPointerException e) {
 					message = "New Bean has not been instantiated";
 				}
@@ -219,6 +221,7 @@ public abstract class SchemaFileWizardPage extends WizardPage implements IWsRefe
 									
 									try {
 										setDboFilePath(xsdFilePath);
+										setNeedAuthentication(useAuthentication.getSelection());
 									} catch (NullPointerException e) {
 										message = "New Bean has not been instantiated";
 									}
@@ -322,4 +325,5 @@ public abstract class SchemaFileWizardPage extends WizardPage implements IWsRefe
 	
 	protected abstract void setDboFilePath(String filepath);
 	protected abstract void setDboUrlPath(String urlpath);
+	protected abstract void setNeedAuthentication(boolean needAuthentication);
 }

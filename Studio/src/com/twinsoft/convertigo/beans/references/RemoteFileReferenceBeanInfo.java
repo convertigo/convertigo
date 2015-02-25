@@ -40,11 +40,16 @@ public class RemoteFileReferenceBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[1];
+			properties = new PropertyDescriptor[2];
 
             properties[0] = new PropertyDescriptor("urlpath", beanClass, "getUrlpath", "setUrlpath");
             properties[0].setDisplayName(getExternalizedString("property.urlpath.display_name"));
             properties[0].setShortDescription(getExternalizedString("property.urlpath.short_description"));
+            
+            properties[1] = new PropertyDescriptor("needAuthentication", beanClass, "needAuthentication", "setNeedAuthentication");
+            properties[1].setDisplayName(getExternalizedString("property.needAuthentication.display_name"));
+            properties[1].setShortDescription(getExternalizedString("property.needAuthentication.short_description"));
+            
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

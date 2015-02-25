@@ -33,7 +33,16 @@ public abstract class RemoteFileReference extends FileReference implements IUrlR
 	private static final long serialVersionUID = 717504231825643840L;
 
 	public String urlpath = "";
+	private boolean needAuthentication = false;
+	
+	public boolean needAuthentication() {
+		return needAuthentication;
+	}
 
+	public void setNeedAuthentication(boolean needAuthentication) {
+		this.needAuthentication = needAuthentication;
+	}
+	
 	public String getUrlpath() {
 		return urlpath;
 	}
