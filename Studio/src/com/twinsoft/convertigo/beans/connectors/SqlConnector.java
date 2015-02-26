@@ -58,7 +58,6 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
-import com.twinsoft.convertigo.engine.util.ParameterUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.util.StringEx;
@@ -324,7 +323,7 @@ public class SqlConnector extends Connector {
 		}
 
 		// Overwrites JDBC url if needed
-		String variableValue = ParameterUtils.toString(sqlTransaction.getParameterValue(Parameter.ConnectorConnectionString.getName()));
+		String variableValue = sqlTransaction.getParameterStringValue(Parameter.ConnectorConnectionString.getName());
 		if (variableValue != null && !variableValue.isEmpty()) {
 			if (!getJdbcURL().equals(variableValue)) {// Fix #2926 
 				setJdbcURL(variableValue);

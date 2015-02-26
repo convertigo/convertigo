@@ -4,9 +4,6 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-
 public enum CouchKey {
 	_id,
 	_rev,
@@ -35,26 +32,6 @@ public enum CouchKey {
 	
 	public String key() {
 		return key;
-	}
-	
-	public String string(JsonObject json) {
-		return json != null && json.has(key) ? json.get(key).getAsString() : null;
-	}
-	
-	public void add(JsonObject json, String value) {
-		json.addProperty(key, value);
-	}
-	
-	public void add(JsonObject json, JsonElement value) {
-		json.add(key, value);
-	}
-	
-	public boolean has(JsonObject json) {
-		return json.has(key);
-	}
-	
-	public void remove(JsonObject json) {
-		json.remove(key);
 	}
 	
 	public boolean has(JSONObject json) {

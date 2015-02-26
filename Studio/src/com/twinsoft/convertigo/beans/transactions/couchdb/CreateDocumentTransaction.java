@@ -28,11 +28,7 @@ import javax.xml.namespace.QName;
 
 import org.codehaus.jettison.json.JSONObject;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
-import com.twinsoft.convertigo.engine.providers.couchdb.api.Document;
 
 public class CreateDocumentTransaction extends AbstractDocumentTransaction {
 
@@ -54,46 +50,23 @@ public class CreateDocumentTransaction extends AbstractDocumentTransaction {
 	}
 	
 	@Override
-	protected String generateID() {
-		return Document.generateID(doc_base_path);
-	}
-	
-	@Override
 	protected Object invoke() throws Exception {
-		if (getCouchClient() != null) {
-			JSONObject jsonDocument = new JSONObject();
-			
-			// add document members from variables
-			for (RequestableVariable variable : getVariablesList()) {
-				String variableName = variable.getName();
-
-				if (!variableName.equals(var_database.variableName())) {
-					Object jsonElement = toJson(getParameterValue(variableName));
-					addJson(jsonDocument, variableName, jsonElement);
-				}
-			}
-			
-			removeRevFromDoc(jsonDocument);
-			
-			JSONObject response = getCouchClient().putDocument(getTargetDatabase(), jsonDocument);
-			return response;
-		}
-		
-		JsonObject jsonDocument = new JsonObject();
+		JSONObject jsonDocument = new JSONObject();
 		
 		// add document members from variables
 		for (RequestableVariable variable : getVariablesList()) {
 			String variableName = variable.getName();
-			if (variableName.equals(var_database.variableName())) continue;
-			JsonElement jsonElement = toJson(getGson(), new JsonParser(), getParameterValue(variableName));
-			addJson(jsonDocument, variableName, jsonElement);
+
+			if (!variableName.equals(var_database.variableName())) {
+				Object jsonElement = toJson(getParameterValue(variableName));
+				addJson(jsonDocument, variableName, jsonElement);
+			}
 		}
 		
-		addIdToDoc(jsonDocument);
 		removeRevFromDoc(jsonDocument);
 		
-		String jsonString = jsonDocument.toString();
-		return getCouchDBDocument().create(encode(jsonString));
+		JSONObject response = getCouchClient().putDocument(getTargetDatabase(), jsonDocument);
+		return response;
 	}
 
 	@Override

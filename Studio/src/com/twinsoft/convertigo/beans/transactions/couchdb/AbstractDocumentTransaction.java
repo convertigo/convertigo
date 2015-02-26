@@ -21,16 +21,9 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import java.io.File;
-import java.net.URI;
-
 import org.codehaus.jettison.json.JSONObject;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
-import com.twinsoft.convertigo.engine.providers.couchdb.api.Document;
 
 public abstract class AbstractDocumentTransaction extends AbstractDatabaseTransaction {
 
@@ -66,63 +59,10 @@ public abstract class AbstractDocumentTransaction extends AbstractDatabaseTransa
 		AbstractDocumentTransaction clonedObject = (AbstractDocumentTransaction) super.clone();
 		return clonedObject;
 	}
-	
-	protected Document getCouchDBDocument() {
-		return getCouchDBDatabase().document();
-	}
-
-	protected String generateID() {
-		return Document.generateID(doc_base_path);
-	}
-	
-	protected String getIdFromDoc(JsonObject jsonDocument) {
-		return CouchKey._id.string(jsonDocument);
-	}
-	
-	protected void addIdToDoc(JsonObject jsonDocument) {
-		if (jsonDocument == null) return;
-		if (getIdFromDoc(jsonDocument) == null) {
-			CouchKey._id.add(jsonDocument, generateID());
-		}
-	}
-	
-	protected void addRevToDoc(JsonObject jsonDocument) {
-		if (jsonDocument == null) return;
-		String docId = getIdFromDoc(jsonDocument);
-		if (docId != null) {
-			String docRev = getDocLastRev(docId);
-			if (docRev != null) {
-				CouchKey._rev.add(jsonDocument, docRev);
-			}
-		}
-	}
-	
-	protected String getDocLastRev(String docId) {
-		if (docId == null) return null;
-		JsonElement jsonDocRev = getCouchDBDocument().exist(docId).getAsJsonObject().get("ETag");
-		if (jsonDocRev != null) {
-			return jsonDocRev.getAsString();
-		}
-		return null;
-	}
-		
-	protected void removeRevFromDoc(JsonObject jsonDocument) {
-		if (jsonDocument == null) return;
-		jsonDocument.remove(CouchKey._rev.key());
-	}
 
 	protected void removeRevFromDoc(JSONObject jsonDocument) {
 		if (jsonDocument != null) {
 			CouchKey._rev.remove(jsonDocument);
 		}
-	}
-
-	protected URI getFileURI(String filePath) {
-		String projectName = getProject().getName();
-		File file = Engine.theApp.filePropertyManager.getFileFromProperty(filePath, projectName);
-		if (file != null) {
-			return file.toURI();
-		}
-		return null;
 	}
 }

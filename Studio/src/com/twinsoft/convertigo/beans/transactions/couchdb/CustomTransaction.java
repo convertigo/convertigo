@@ -21,16 +21,10 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import static com.twinsoft.convertigo.engine.providers.couchdb.util.URIBuilder.buildUri;
-
 import java.net.URI;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
 
-import org.apache.commons.httpclient.HttpMethod;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.codehaus.jettison.json.JSONObject;
@@ -39,18 +33,11 @@ import org.mozilla.javascript.EvaluatorException;
 import org.mozilla.javascript.JavaScriptException;
 import org.mozilla.javascript.Scriptable;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
-import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbProvider;
-import com.twinsoft.convertigo.engine.providers.couchdb.util.URIBuilder;
-import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class CustomTransaction extends AbstractCouchDbTransaction {
 
@@ -109,109 +96,45 @@ public class CustomTransaction extends AbstractCouchDbTransaction {
 
 	@Override
 	protected Object invoke() throws Exception {
-		if (getCouchClient() != null) {
-			CouchClient provider = getCouchClient();
-			
-			String evaluatedUrl = eUrl == null ? "" : eUrl.toString();
-			
-			if (!evaluatedUrl.startsWith("/")) {
-				evaluatedUrl = '/' + evaluatedUrl;
-			}
-			
-			URI uri = new URI(evaluatedUrl);
-			Engine.logBeans.debug("(CustomTransaction) CouchDb request uri: "+ uri.toString());
-			
-			String jsonString = null;
-			Object jsond = toJson(eData);
-			if (jsond != null) {
-				JSONObject jsonData;
-				
-				if (jsond instanceof JSONObject) { // comes from a complex variable
-					jsonData = (JSONObject) jsond;
-				} else {
-					jsonData = new JSONObject();
-					jsonData.put("data", jsond);
-				}
-				jsonString = jsonData.toString();
-				Engine.logBeans.debug("(CustomTransaction) CouchDb request data: "+ jsonString);
-			}
-			
-			HttpRequestBase httpMethod = getHttpVerb().newInstance();
-			
-			if (httpMethod == null) {
-				throw new EngineException("Unsupported HTTP method");
-			}
-			
-			httpMethod.setURI(uri);
-			
-			if (jsonString != null && httpMethod instanceof HttpEntityEnclosingRequest) {
-				provider.setJsonEntity((HttpEntityEnclosingRequest) httpMethod, jsonString);
-			}
-			
-			return provider.execute(httpMethod);
-			
+		CouchClient provider = getCouchClient();
+		
+		String evaluatedUrl = eUrl == null ? "" : eUrl.toString();
+		
+		if (!evaluatedUrl.startsWith("/")) {
+			evaluatedUrl = '/' + evaluatedUrl;
 		}
 		
-		CouchDbProvider provider = getCouchDbClient();
-		
-		String evaluatedUrl = eUrl == null ? "":eUrl.toString();
-		String[] parts = evaluatedUrl.split("\\?");
-		String requestPath = parts.length > 0 ? parts[0]:evaluatedUrl;
-		String requestQuery = parts.length > 1 ? parts[1]:"";
-		
-		URIBuilder builder = buildUri(getCouchDbContext().getBaseUri());
-		builder.path(requestPath);
-		builder.query(requestQuery);
-		URI uri = builder.build();
+		URI uri = new URI(evaluatedUrl);
 		Engine.logBeans.debug("(CustomTransaction) CouchDb request uri: "+ uri.toString());
 		
 		String jsonString = null;
-		JsonElement jsond = toJson(getGson(), new JsonParser(), eData);
+		Object jsond = toJson(eData);
 		if (jsond != null) {
-			JsonObject jsonData = new JsonObject();
-			if (jsond instanceof JsonObject) { // comes from a complex variable
-				JsonObject jsonObject = jsond.getAsJsonObject();
-				Set<Entry<String, JsonElement>> set = jsonObject.entrySet();
-				for (Iterator<Entry<String, JsonElement>> it = GenericUtils.cast(set.iterator()); it.hasNext();) {
-					Entry<String, JsonElement> entry = it.next();
-					jsonData.add(entry.getKey(), entry.getValue());
-				}
+			JSONObject jsonData;
+			
+			if (jsond instanceof JSONObject) { // comes from a complex variable
+				jsonData = (JSONObject) jsond;
+			} else {
+				jsonData = new JSONObject();
+				jsonData.put("data", jsond);
 			}
-			else {
-				jsonData.add("data", jsond);
-			}
-			jsonString = encode(jsonData.toString());
+			jsonString = jsonData.toString();
 			Engine.logBeans.debug("(CustomTransaction) CouchDb request data: "+ jsonString);
 		}
 		
-		HttpMethod httpMethod = null;
-		int httpVerb = getHttpVerb().ordinal();
-		if (httpVerb == AbstractHttpTransaction.HTTP_VERB_GET) {
-			httpMethod = provider.getMethod(uri);
-		}
-		else if (httpVerb == AbstractHttpTransaction.HTTP_VERB_POST) {
-			if (jsonString != null)
-				httpMethod = provider.postMethod(uri, jsonString);
-			else
-				httpMethod = provider.postMethod(uri);
-		}
-		else if (httpVerb == AbstractHttpTransaction.HTTP_VERB_PUT) {
-			if (jsonString != null)
-				httpMethod = provider.putMethod(uri, jsonString);
-			else
-				httpMethod = provider.putMethod(uri);
-		}
-		else if (httpVerb == AbstractHttpTransaction.HTTP_VERB_DELETE) {
-			httpMethod = provider.deleteMethod(uri);
-		}
-		else if (httpVerb == AbstractHttpTransaction.HTTP_VERB_HEAD) {
-			httpMethod = provider.headMethod(uri);
-		}
-		else {
+		HttpRequestBase request = getHttpVerb().newInstance();
+		
+		if (request == null) {
 			throw new EngineException("Unsupported HTTP method");
 		}
 		
-		return provider.execute(httpMethod).toJson();
+		request.setURI(uri);
+		
+		if (jsonString != null && request instanceof HttpEntityEnclosingRequest) {
+			provider.setJsonEntity((HttpEntityEnclosingRequest) request, jsonString);
+		}
+		
+		return provider.execute(request);
 	}
 	
 	@Override

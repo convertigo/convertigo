@@ -26,7 +26,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.google.gson.JsonElement;
+import org.codehaus.jettison.json.JSONObject;
 
 public class RestartServerTransaction extends AbstractServerTransaction {
 	
@@ -49,12 +49,12 @@ public class RestartServerTransaction extends AbstractServerTransaction {
 	
 	@Override
 	protected Object invoke() throws Exception {
-		Object json = getCouchDbContext().restart();
+		JSONObject json = getCouchClient().postRestart();
 		try {
-			if (json instanceof JsonElement) {
-				boolean b = ((JsonElement)json).getAsJsonObject().get("ok").getAsString().equals("true");
-				if (b) getConnector().setCouchDbClient(null); 
-			}
+				boolean b = json.getBoolean("ok");
+				if (b) {
+					//TODO: terminate client
+				}
 		}
 		catch (Exception e) {}
 		return json;

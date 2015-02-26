@@ -47,10 +47,7 @@ public class GetServerInfoTransaction extends AbstractServerTransaction {
 	
 	@Override
 	protected Object invoke() throws Exception {
-		if (getCouchClient() != null) {
-			return getCouchClient().getServer();
-		}
-		return getCouchDbContext().info();
+		return getCouchClient().getServer();
 	}
 	
 	@Override

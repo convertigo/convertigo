@@ -21,7 +21,6 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import com.twinsoft.convertigo.engine.providers.couchdb.api.Database;
 
 public abstract class AbstractDatabaseTransaction extends AbstractCouchDbTransaction {
 
@@ -40,10 +39,6 @@ public abstract class AbstractDatabaseTransaction extends AbstractCouchDbTransac
 		AbstractDatabaseTransaction clonedObject =  (AbstractDatabaseTransaction) super.clone();
 		clonedObject.targetDbName = null;
 		return clonedObject;
-	}
-	
-	protected Database getCouchDBDatabase() {
-		return getCouchDbContext().db(getTargetDatabase());
 	}
 	
 	public String getTargetDatabase() {

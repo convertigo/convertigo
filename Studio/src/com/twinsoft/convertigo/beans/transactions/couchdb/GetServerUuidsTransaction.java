@@ -47,14 +47,9 @@ public class GetServerUuidsTransaction extends AbstractServerTransaction {
 
 	@Override
 	protected Object invoke() throws Exception {
-		if (getCouchClient() != null) {
-			String sCount = getParameterStringValue(var_count);
-			long count = (sCount == null || sCount.isEmpty()) ? 1L : Long.valueOf(sCount);
-			return getCouchClient().getUuids(count);			
-		}
 		String sCount = getParameterStringValue(var_count);
 		long count = (sCount == null || sCount.isEmpty()) ? 1L : Long.valueOf(sCount);
-		return getCouchDbContext().uuids(count);
+		return getCouchClient().getUuids(count);
 	}
 
 	@Override

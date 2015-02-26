@@ -242,7 +242,7 @@ public class SqlTransaction extends TransactionWithVariables {
 				
 				while (matcher.find()) {
 					String parameterName = matcher.group(1);
-					String parameterValue = ParameterUtils.toString(sqlTransaction.getParameterValue(parameterName));
+					String parameterValue = sqlTransaction.getParameterStringValue(parameterName);
 					preparedSqlQuery = preparedSqlQuery.replace("{{"+parameterName+"}}", parameterValue);
 					
 					// Add the parameterName into the ArrayList if is looks like {{id}}.	

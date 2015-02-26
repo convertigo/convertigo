@@ -26,8 +26,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import org.codehaus.jettison.json.JSONObject;
 
 public class GetServerConfigTransaction extends AbstractServerTransaction {
 
@@ -52,16 +51,16 @@ public class GetServerConfigTransaction extends AbstractServerTransaction {
 	protected Object invoke() throws Exception {
 		String section = getParameterStringValue(var_section);
 		String key = getParameterStringValue(var_key);
-		JsonElement json = getCouchDbContext().config().get(section, key);
+		
+		JSONObject json = getCouchClient().getConfig(section, key);
 		if (section != null) {// modify json for schema compliance
-			JsonObject s = new JsonObject();
+			JSONObject s = new JSONObject();
 			if (key == null) {
-				s.add(section, json);
-			}
-			else {
-				JsonObject k = new JsonObject();
-				k.add(key, json);
-				s.add(section, k);
+				s.put(section, json);
+			} else {
+				JSONObject k = new JSONObject();
+				k.put(key, json);
+				s.put(section, k);
 			}
 			return s;
 		}

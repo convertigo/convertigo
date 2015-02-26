@@ -48,19 +48,14 @@ public class AddDocumentAttachmentTransaction extends AbstractDocumentTransactio
 		
 	@Override
 	protected Object invoke() throws Exception {
-		if (getCouchClient() != null) {
-			String docId = getParameterStringValue(var_docid);
-			String attPath = getParameterStringValue(var_filepath);
-			
-			attPath = Engine.theApp.filePropertyManager.getFilepathFromProperty(attPath, getProject().getName());
-			
-			String contentType = context.httpServletRequest.getServletContext().getMimeType(attPath);
-			
-			return getCouchClient().putDocumentAttachment(getTargetDatabase(), docId, new File(attPath), contentType);
-		}
 		String docId = getParameterStringValue(var_docid);
 		String attPath = getParameterStringValue(var_filepath);
-		return getCouchDBDocument().addAttachment(docId, getDocLastRev(docId), getFileURI(attPath));
+		
+		attPath = Engine.theApp.filePropertyManager.getFilepathFromProperty(attPath, getProject().getName());
+		
+		String contentType = context.httpServletRequest.getServletContext().getMimeType(attPath);
+		
+		return getCouchClient().putDocumentAttachment(getTargetDatabase(), docId, new File(attPath), contentType);
 	}
 }
 

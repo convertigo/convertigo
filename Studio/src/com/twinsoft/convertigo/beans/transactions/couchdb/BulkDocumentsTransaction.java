@@ -22,7 +22,6 @@
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -30,12 +29,7 @@ import javax.xml.namespace.QName;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
-import com.twinsoft.convertigo.engine.providers.couchdb.api.Document;
 
 public class BulkDocumentsTransaction extends AbstractDocumentTransaction {
 
@@ -67,82 +61,35 @@ public class BulkDocumentsTransaction extends AbstractDocumentTransaction {
 	}
 	
 	@Override
-	protected String generateID() {
-		return Document.generateID(doc_base_path);
-	}
-	
-	@Override
 	protected Object invoke() throws Exception {
-		if (getCouchClient() != null) {
-			JSONArray jsonDocuments = new JSONArray();
-			
-			// add document members from variables
-			for (RequestableVariable variable : getVariablesList()) {
-				if (variable.isMultiValued()) {
-					String variableName = variable.getName();
-					Object jsonv = toJson(getParameterValue(variableName));
-					
-					if (jsonv != null && jsonv instanceof JSONArray) {
-						JSONArray jsonArray = (JSONArray) jsonv;
-						
-						while (jsonDocuments.length() < jsonArray.length()) {
-							jsonDocuments.put(new JSONObject());
-						}
-						
-						for (int i = 0; i < jsonArray.length(); i++) {
-							JSONObject jsonDocument = jsonDocuments.getJSONObject(i);
-							addJson(jsonDocument, variableName, jsonArray.get(i));
-						}
-					}
-				}
-			}
-			
-			if (isHandleUpdate()) {
-				return getCouchClient().updateBulkDocs(getTargetDatabase(), jsonDocuments);
-			} else {
-				return getCouchClient().postBulkDocs(getTargetDatabase(), jsonDocuments);
-			}
-		}
-		
-		JsonArray jsonDocuments = new JsonArray();
+		JSONArray jsonDocuments = new JSONArray();
 		
 		// add document members from variables
 		for (RequestableVariable variable : getVariablesList()) {
 			if (variable.isMultiValued()) {
 				String variableName = variable.getName();
-				JsonElement jsonv = toJson(getGson(), new JsonParser(), getParameterValue(variableName));
-				if (jsonv != null) {
-					JsonArray jsonArray = jsonv.getAsJsonArray();
-					while (jsonDocuments.size() < jsonArray.size()) {
-						jsonDocuments.add(new JsonObject());
+				Object jsonv = toJson(getParameterValue(variableName));
+				
+				if (jsonv != null && jsonv instanceof JSONArray) {
+					JSONArray jsonArray = (JSONArray) jsonv;
+					
+					while (jsonDocuments.length() < jsonArray.length()) {
+						jsonDocuments.put(new JSONObject());
 					}
-					for (int i=0; i<jsonArray.size(); i++) {
-						JsonObject jsonDocument = jsonDocuments.get(i).getAsJsonObject();
+					
+					for (int i = 0; i < jsonArray.length(); i++) {
+						JSONObject jsonDocument = jsonDocuments.getJSONObject(i);
 						addJson(jsonDocument, variableName, jsonArray.get(i));
 					}
 				}
 			}
 		}
 		
-		Iterator<JsonElement> it = jsonDocuments.iterator();
-		while (it.hasNext()) {
-			JsonObject jsonDoc = it.next().getAsJsonObject();
-			if (getIdFromDoc(jsonDoc) == null) { // create case
-				addIdToDoc(jsonDoc);
-			}
-			else if (isHandleUpdate()) { // update case
-				try {
-					addRevToDoc(jsonDoc);
-				}
-				catch (Throwable t) {}
-			}
+		if (isHandleUpdate()) {
+			return getCouchClient().updateBulkDocs(getTargetDatabase(), jsonDocuments);
+		} else {
+			return getCouchClient().postBulkDocs(getTargetDatabase(), jsonDocuments);
 		}
-		
-		JsonObject jsonDocs = new JsonObject();
-		jsonDocs.add("docs", jsonDocuments);
-		
-		String jsonString = jsonDocs.toString();
-		return getCouchDBDocument().bulk(encode(jsonString));
 	}
 
 	@Override

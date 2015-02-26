@@ -47,7 +47,7 @@ public class GetServerTasksTransaction extends AbstractServerTransaction {
 	
 	@Override
 	protected Object invoke() throws Exception {
-		return getCouchDbContext().tasks();
+		return getCouchClient().getActiveTasks();
 	}
 	
 	@Override

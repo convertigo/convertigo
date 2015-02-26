@@ -48,10 +48,12 @@ public class GetServerLogTransaction extends AbstractServerTransaction {
 	@Override
 	protected Object invoke() throws Exception {
 		String sBytes = getParameterStringValue(var_bytes);
-		Integer bytes = (sBytes == null) ? null:Integer.valueOf(sBytes);
+		Integer bytes = (sBytes == null) ? null : Integer.valueOf(sBytes);
+		
 		String sOffset = getParameterStringValue(var_offset);
-		Integer offset = (sOffset == null) ? null:Integer.valueOf(sOffset);
-		return getCouchDbContext().log(bytes, offset);
+		Integer offset = (sOffset == null) ? null : Integer.valueOf(sOffset);
+		
+		return getCouchClient().getLog(bytes, offset);
 	}
 	
 	@Override

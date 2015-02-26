@@ -45,14 +45,9 @@ public class RemoveDocumentAttachmentTransaction extends AbstractDocumentTransac
 		
 	@Override
 	protected Object invoke() throws Exception {
-		if (getCouchClient() != null) {
-			String docId = getParameterStringValue(var_docid);
-			String attName = getParameterStringValue(var_filename);
-			return getCouchClient().deleteDocumentAttachment(getTargetDatabase(), docId, attName);
-		}
 		String docId = getParameterStringValue(var_docid);
 		String attName = getParameterStringValue(var_filename);
-		return getCouchDBDocument().removeAttachment(docId, getDocLastRev(docId), attName);
+		return getCouchClient().deleteDocumentAttachment(getTargetDatabase(), docId, attName);
 	}
 
 }

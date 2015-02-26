@@ -47,13 +47,9 @@ public class GetDocumentTransaction extends AbstractDocumentTransaction {
 
 	@Override
 	protected Object invoke() throws Exception {
-		if (getCouchClient() != null) {
-			return getCouchClient().getDocument(getTargetDatabase(), getParameterStringValue(var_docid), getParameterStringValue(var_docrev));
-		}
-		
 		String docId = getParameterStringValue(var_docid);
 		String docRev = getParameterStringValue(var_docrev);
-		return getCouchDBDocument().get(docId, docRev);
+		return getCouchClient().getDocument(getTargetDatabase(), docId, docRev);
 	}
 
 	@Override

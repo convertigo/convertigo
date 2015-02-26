@@ -21,7 +21,6 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import com.twinsoft.convertigo.engine.providers.couchdb.api.Document;
 
 public class CreateDesignDocumentTransaction extends CreateDocumentTransaction {
 
@@ -35,11 +34,6 @@ public class CreateDesignDocumentTransaction extends CreateDocumentTransaction {
 	public CreateDesignDocumentTransaction clone() throws CloneNotSupportedException {
 		CreateDesignDocumentTransaction clonedObject =  (CreateDesignDocumentTransaction) super.clone();
 		return clonedObject;
-	}
-	
-	@Override
-	protected String generateID() {
-		return Document.generateID(doc_design_path);
 	}
 	
 }

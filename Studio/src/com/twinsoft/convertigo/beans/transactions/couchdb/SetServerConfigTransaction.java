@@ -26,8 +26,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import org.codehaus.jettison.json.JSONObject;
 
 public class SetServerConfigTransaction extends AbstractServerTransaction {
 	private static final long serialVersionUID = -3775078867489864436L;
@@ -52,12 +51,13 @@ public class SetServerConfigTransaction extends AbstractServerTransaction {
 		String section = getParameterStringValue(var_section);
 		String key = getParameterStringValue(var_key);
 		String value = getParameterStringValue(var_value);
-		JsonElement json = getCouchDbContext().config().set(section, key, value);
+		
+		JSONObject json = getCouchClient().putConfig(section, key, value);
 		if (section != null && key != null) {// modify json for schema compliance
-			JsonObject s = new JsonObject();
-			JsonObject k = new JsonObject();
-			k.add(key, json);
-			s.add(section, k);
+			JSONObject s = new JSONObject();
+			JSONObject k = new JSONObject();
+			k.put(key, json);
+			s.put(section, k);
 			return s;
 		}
 		return json;

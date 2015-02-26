@@ -21,13 +21,11 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.Vector;
 
 import javax.xml.namespace.QName;
@@ -48,13 +46,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSyntaxException;
 import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -65,8 +56,6 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
-import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbProvider;
-import com.twinsoft.convertigo.engine.providers.couchdb.api.Context;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -163,20 +152,8 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 	
 	protected abstract Object invoke() throws Exception;
 
-	protected CouchDbProvider getCouchDbClient() {
-		return getConnector().getCouchDbClient();
-	}
-
 	protected CouchClient getCouchClient() {
 		return getConnector().getCouchClient();
-	}
-	
-	protected Gson getGson() {
-		return getCouchDbClient().getGson();
-	}
-	
-	protected Context getCouchDbContext() {
-		return getCouchDbClient().context();
 	}
 	
 	protected void makeDocument(Object result) throws Exception {
@@ -184,18 +161,14 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		Engine.logBeans.debug("(CouchDBTransaction) making document...");
 		Document doc = context.outputDocument;
 		Element root = doc.getDocumentElement();
+		
 		if (result instanceof JSONObject) {
 			JSONObject jsonResult = (JSONObject) result;
 			Element couchdb_output = doc.createElement("couchdb_output");
 			toXml(jsonResult, couchdb_output);
 			root.appendChild(couchdb_output);
 		}
-		if (result instanceof JsonElement) {
-			JsonElement jsonResult = (JsonElement)result;
-			Element couchdb_output = doc.createElement("couchdb_output");
-			toXml(jsonResult, couchdb_output);
-			root.appendChild(couchdb_output);
-		}
+		
 		Engine.logBeans.debug("(CouchDBTransaction) Document generated!");
 	}
 
@@ -205,24 +178,6 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 
 	public String getParameterStringValue(CouchDbParameter param) {
 		return super.getParameterStringValue(param.variableName());
-	}
-	
-	protected static void addJson(JsonObject jsonObject, String propertyName, JsonElement jsonElement) {
-		if (jsonElement != null) {
-			if (jsonElement instanceof JsonPrimitive) { // comes from a simple variable
-				jsonObject.add(propertyName, jsonElement);
-			}
-			else if (jsonElement instanceof JsonArray) {
-				jsonObject.add(propertyName, jsonElement);
-			}
-			else if (jsonElement instanceof JsonObject) { // comes from a complex variable
-				Set<Entry<String, JsonElement>> set = jsonElement.getAsJsonObject().entrySet();
-				for (Iterator<Entry<String, JsonElement>> it = GenericUtils.cast(set.iterator()); it.hasNext();) {
-					Entry<String, JsonElement> entry = it.next();
-					jsonObject.add(entry.getKey(), entry.getValue());
-				}
-			}
-		}
 	}
 	
 	protected static void addJson(JSONObject jsonObject, String propertyName, Object jsonElement) {
@@ -326,99 +281,6 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		return jsonXml;
 	}
 	
-	protected static JsonElement toJson(Gson gson, JsonParser parser, Object object) throws JsonSyntaxException, JSONException {
-		if (object == null) return null;
-		
-		JsonElement jsonElement = null;
-		
-		if (object instanceof NativeObject) {
-			JsonObject jsonChildren = new JsonObject();
-			NativeObject nativeObject = (NativeObject)object;
-			for (Iterator<Entry<Object, Object>> it = GenericUtils.cast(nativeObject.entrySet().iterator()); it.hasNext();) {
-				Entry<Object, Object> entry = it.next();
-				jsonChildren.add(entry.getKey().toString(), toJson(gson, parser, entry.getValue()));
-			}
-			return jsonChildren;
-		}
-		if (object instanceof NativeJavaObject) {
-			NativeJavaObject nativeJavaObject = (NativeJavaObject)object;
-			return toJson(gson, parser, nativeJavaObject.unwrap());
-		}
-		else if (object instanceof NativeJavaArray) {
-			Object ob = ((NativeJavaArray)object).unwrap();
-			return toJson(gson, parser, Arrays.asList((Object[])ob));
-		}
-		else if (object instanceof NativeArray) {
-			NativeArray array = (NativeArray)object;
-			JsonArray jsonArray = new JsonArray();
-			for (int j=0; j<array.getLength(); j++) {
-				jsonArray.add(toJson(gson, parser, array.get(j,array)));
-			}
-			jsonElement = jsonArray;
-		}
-		else if ((object instanceof org.mozilla.javascript.Scriptable)) {
-			org.mozilla.javascript.Scriptable jsObj = (org.mozilla.javascript.Scriptable)object;
-		    return toJson(gson, parser, String.valueOf(jsObj.toString()));
-		} else if (object.getClass().isArray()) {
-			return toJson(gson, parser, Arrays.asList((Object[])object));
-		}
-		else if (object instanceof Collection<?>) {
-			JsonArray jsonArray = new JsonArray();
-			for (Object o : (Collection<?>) object) {
-				jsonArray.add(toJson(gson, parser, o));
-			}
-			jsonElement = jsonArray;
-		}		
-		/*else if (object instanceof Vector) {
-			Vector<Object> v = GenericUtils.cast(object);
-			JsonArray jsonArray = new JsonArray();
-			for (int i = 0; i< v.size(); i++) {
-				jsonArray.add(toJson(gson, parser, v.get(i)));
-			}
-			jsonElement = jsonArray;
-		}*/
-		else if (object instanceof Element) {
-			jsonElement = toJson(parser, (Element)object);
-		}
-		/*else if (object instanceof String) {
-			jsonElement = parser.parse(object.toString());
-		}*/
-		else {
-			jsonElement = gson.toJsonTree(object);
-		}
-		
-		return jsonElement;
-	}
-	
-	private static JsonElement toJson(JsonParser parser, Element element) throws JsonSyntaxException, JSONException {
-		JsonElement jsonXml = parser.parse(XMLUtils.XmlToJson(element, true));
-		if (isInputDomVariable(element)) {
-			JsonObject jsonVariable = jsonXml.getAsJsonObject().getAsJsonObject("variable");
-			JsonObject jsonAttr = jsonVariable.getAsJsonObject("attr");
-			JsonElement jsonAttrName = jsonAttr.get("name");
-			JsonElement jsonAttrValue = jsonAttr.get("value");
-
-			// this is a simple variable
-			if (jsonAttrValue != null) {
-				JsonObject jsonobject = new JsonObject();
-				jsonobject.add(jsonAttrName.getAsString(), jsonAttrValue);
-				return jsonobject;
-			}
-			// this is a complex variable
-			else {
-				jsonVariable.remove("attr");
-				JsonObject jsonChildren = new JsonObject();
-				Set<Entry<String, JsonElement>> set = jsonVariable.entrySet();
-				for (Iterator<Entry<String, JsonElement>> it = GenericUtils.cast(set.iterator()); it.hasNext();) {
-					Entry<String, JsonElement> entry = it.next();
-					jsonChildren.add(entry.getKey(), entry.getValue());
-				}
-				return jsonChildren;
-			}
-		}
-		return jsonXml;
-	}
-	
 	private static boolean isInputDomVariable(Object object) {
 		if (object == null) return false;
 		
@@ -435,58 +297,6 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 			return isInputDomVariable(l.getLength() == 0 ? false : l.item(0));
 		}
 		return false;
-	}
-	
-	private static void toXml(Entry<String, JsonElement> entry, Element parentElement) {
-		String key = entry.getKey();
-		if (key == null || "".equals(key)) {
-			key = "object";
-		}
-		
-		if ("_attachments".equals(parentElement.getNodeName())) {
-			Element att = parentElement.getOwnerDocument().createElement("attachment");
-			Element att_name = parentElement.getOwnerDocument().createElement("name");
-			Text att_txt = parentElement.getOwnerDocument().createTextNode(key);
-			att_name.appendChild(att_txt);
-			att.appendChild(att_name);
-			parentElement.appendChild(att);
-			toXml(entry.getValue(), att);
-		}
-		else {
-			String normalisedKey = StringUtils.normalize(key);
-			Element child = parentElement.getOwnerDocument().createElement(normalisedKey);
-			parentElement.appendChild(child);
-			toXml(entry.getValue(), child);
-		}
-	}
-	
-	private static void toXml(JsonElement jsone, Element parentElement) {
-		Document doc = parentElement.getOwnerDocument();
-		if (jsone.isJsonObject()) {
-			JsonObject jsonObject = (JsonObject)jsone;
-			Set<Entry<String, JsonElement>> set = jsonObject.entrySet();
-			for (Iterator<Entry<String, JsonElement>> it = GenericUtils.cast(set.iterator()); it.hasNext();) {
-				toXml(it.next(), parentElement);
-			}
-		}
-		else if (jsone.isJsonArray()) {
-			JsonArray jsonArray = (JsonArray)jsone;
-			for (Iterator<JsonElement> i = GenericUtils.cast(jsonArray.iterator()); i.hasNext();) {
-				Element item = doc.createElement("item");
-				parentElement.appendChild(item);
-				toXml(i.next(), item);
-			}
-		}
-		else if (jsone.isJsonPrimitive()) {
-			JsonPrimitive jsonPrimitive = (JsonPrimitive)jsone;
-			String jsonString = jsonPrimitive.getAsString();
-			Text text = doc.createTextNode(decode(jsonString));
-			parentElement.appendChild(text);
-		}
-		else if (jsone.isJsonNull()) {
-		}
-		else {
-		}
 	}
 	
 	private static void toXml(Object object, Element parentElement) {
@@ -541,26 +351,6 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 			parentElement.appendChild(child);
 			toXml(value, child);
 		}
-	}
-	
-	protected static String encode(String jsonString) {
-		try {
-			return new String(jsonString.getBytes("UTF-8"));
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return jsonString;
-	}
-	
-	protected static String decode(String jsonString) {
-		try {
-			return new String(jsonString.getBytes(),"UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return jsonString;
 	}
 	
 	@Override

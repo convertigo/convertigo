@@ -47,10 +47,7 @@ public class GetDatabaseInfoTransaction extends AbstractDatabaseTransaction {
 
 	@Override
 	protected Object invoke() throws Exception {
-		if (getCouchClient() != null) {
-			return getCouchClient().getDatabase(getTargetDatabase());
-		}
-		return getCouchDBDatabase().info();
+		return getCouchClient().getDatabase(getTargetDatabase());
 	}
 
 	@Override

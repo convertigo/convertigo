@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.eclipse.property_editors;
 
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -34,7 +36,6 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
-import com.google.gson.JsonObject;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
@@ -42,7 +43,6 @@ import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Parameter;
-import com.twinsoft.convertigo.engine.util.Json;
 
 public class JavelinMashupEventEditorComposite extends AbstractDialogComposite {
 	private Project project = null;
@@ -236,27 +236,27 @@ public class JavelinMashupEventEditorComposite extends AbstractDialogComposite {
 		
 		// Handles json value
 		try {
-			JsonObject jsonob = Json.newJsonObject(value);
-			JsonObject jsonr = getJsonObject(jsonob, "requestable");
-			jsonConnectorName = getJsonString(jsonr,Parameter.Connector.getName());
-			jsonTransactionName = getJsonString(jsonr,Parameter.Transaction.getName());
-			jsonSequenceName = getJsonString(jsonr,Parameter.Sequence.getName());
-			jsonEventName = getJsonString(jsonob,"event");
-		} catch (Exception e) {
+			JSONObject jsonob = new JSONObject(value);
+			JSONObject jsonr = getJSONObject(jsonob, "requestable");
+			jsonConnectorName = getJSONString(jsonr,Parameter.Connector.getName());
+			jsonTransactionName = getJSONString(jsonr,Parameter.Transaction.getName());
+			jsonSequenceName = getJSONString(jsonr,Parameter.Sequence.getName());
+			jsonEventName = getJSONString(jsonob,"event");
+		} catch (JSONException e) {
 			ConvertigoPlugin.logException(e, "Unable to retrieve mashup event value", Boolean.TRUE);
 		}
 	}
 	
-	private JsonObject getJsonObject(JsonObject json, String key) {
+	private JSONObject getJSONObject(JSONObject json, String key) {
 		try {
-			return json.getAsJsonObject(key);
+			return json.getJSONObject(key);
 		} catch (Exception e) {}
 		return null;
 	}
 
-	private String getJsonString(JsonObject json, String key) {
+	private String getJSONString(JSONObject json, String key) {
 		try {
-			return json.get(key).getAsString();
+			return json.getString(key);
 		} catch (Exception e) {}
 		return null;
 	}
@@ -266,30 +266,25 @@ public class JavelinMashupEventEditorComposite extends AbstractDialogComposite {
 		String requestableName = getComboRequestableName();
 		String eventName = getTextEventName();
 		
-		if (connectorName.equals("") && requestableName.equals("") && eventName.equals("")) {
+		if (connectorName.equals("") && requestableName.equals("") && eventName.equals(""))
 			return "";
-		}
 		
 		try {
-			JsonObject jsonob = new JsonObject();
+			JSONObject jsonob = new JSONObject();
 			if (!connectorName.equals("") || !requestableName.equals("")) {
-				JsonObject jsonr = new JsonObject();
-				
-				if (!requestableName.equals("")) {
-					Json.accumulate(jsonr, (connectorName.equals("") ? Parameter.Sequence.getName():Parameter.Transaction.getName()), requestableName);
-				}
-				if (!connectorName.equals("")) {
-					Json.accumulate(jsonr, Parameter.Connector.getName(), connectorName);
-				}
-				Json.accumulate(jsonob, "requestable", jsonr);
+				JSONObject jsonr = new JSONObject();
+				if (!requestableName.equals(""))
+					jsonr.accumulate((connectorName.equals("") ? Parameter.Sequence.getName():Parameter.Transaction.getName()), requestableName);
+				if (!connectorName.equals(""))
+					jsonr.accumulate(Parameter.Connector.getName(), connectorName);
+				jsonob.accumulate("requestable", jsonr);
 			}
-			if (!eventName.equals("")) {
-				Json.accumulate(jsonob, "event", eventName);
-			}
+			if (!eventName.equals(""))
+				jsonob.accumulate("event", eventName);
 			
 			return jsonob.toString();
 			
-		} catch (Exception e) {
+		} catch (JSONException e) {
 			ConvertigoPlugin.logException(e, "Unable to set mashup event value", Boolean.TRUE);
 		}
 		return value;

@@ -362,7 +362,7 @@ public class HttpConnector extends Connector {
 		}
 
 		// Sets or overwrites server url
-		String httpUrl = ParameterUtils.toString(httpTransaction.getParameterValue(Parameter.ConnectorConnectionString.getName()));
+		String httpUrl = httpTransaction.getParameterStringValue(Parameter.ConnectorConnectionString.getName());
 		if (httpUrl != null)
 			setBaseUrl(httpUrl);
 		else

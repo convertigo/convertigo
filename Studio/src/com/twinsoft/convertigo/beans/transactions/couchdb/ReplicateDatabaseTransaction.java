@@ -24,6 +24,8 @@ package com.twinsoft.convertigo.beans.transactions.couchdb;
 import java.util.Arrays;
 import java.util.List;
 
+import com.twinsoft.convertigo.engine.EngineException;
+
 public class ReplicateDatabaseTransaction extends AbstractDatabaseTransaction {
 	
 	private static final long serialVersionUID = -2917791679287718055L;
@@ -45,7 +47,7 @@ public class ReplicateDatabaseTransaction extends AbstractDatabaseTransaction {
 
 	@Override
 	protected Object invoke() throws Exception {
-		return getCouchDbContext().replicate(null);
+		throw new EngineException("Not yet implemented");
 	}
 
 }

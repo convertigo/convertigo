@@ -45,12 +45,14 @@ public class GetServerUpdatesTransaction extends AbstractServerTransaction {
 	
 	@Override
 	protected Object invoke() throws Exception {
-		String sFeed = getParameterStringValue(var_feed);
-		String feed = (sFeed == null) ? null:String.valueOf(sFeed);
+		String feed = getParameterStringValue(var_feed);
+		
 		String sTimeout = getParameterStringValue(var_timeout);
-		Integer timeout = (sTimeout == null) ? null:Integer.valueOf(sTimeout);
+		Integer timeout = (sTimeout == null) ? null : Integer.valueOf(sTimeout);
+		
 		String sHeartbeat = getParameterStringValue(var_heartbeat);
-		Boolean heartbeat = (sHeartbeat == null) ? null:Boolean.valueOf(sHeartbeat);
-		return getCouchDbContext().updates(feed, timeout, heartbeat);
+		Boolean heartbeat = (sHeartbeat == null) ? null : Boolean.valueOf(sHeartbeat);
+		
+		return getCouchClient().getDbUpdates(feed, timeout, heartbeat);
 	}
 }

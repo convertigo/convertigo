@@ -23,9 +23,7 @@ package com.twinsoft.convertigo.beans.transactions.couchdb;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
@@ -52,29 +50,6 @@ public class QueryViewTransaction extends AbstractDocumentTransaction {
 
 	@Override
 	protected Object invoke() throws Exception {
-		if (getCouchClient() != null) {
-			String docId = getParameterStringValue(var_docid);
-			String viewName = getParameterStringValue(var_viewname);
-			
-			String key = getParameterStringValue(var_view_key);
-			String startkey = getParameterStringValue(var_view_startkey);
-			String endkey = getParameterStringValue(var_view_endkey);
-			String _limit = getParameterStringValue(var_view_limit);
-			String _skip = getParameterStringValue(var_view_skip);
-			Integer limit = (_limit == null ? null:Double.valueOf(_limit).intValue());
-			Integer skip = (_skip == null ? null:Double.valueOf(_skip).intValue());
-			
-			
-			List<NameValuePair> options = new ArrayList<NameValuePair>(5);
-			options.add(new BasicNameValuePair(var_view_key.variableName(), key));
-			options.add(new BasicNameValuePair(var_view_startkey.variableName(), startkey));
-			options.add(new BasicNameValuePair(var_view_endkey.variableName(), endkey));
-			options.add(new BasicNameValuePair(var_view_limit.variableName(), "" + limit));
-			options.add(new BasicNameValuePair(var_view_skip.variableName(), "" + skip));
-			
-			return getCouchClient().view(getTargetDatabase(), docId, viewName, options);
-		}
-		
 		String docId = getParameterStringValue(var_docid);
 		String viewName = getParameterStringValue(var_viewname);
 		
@@ -83,17 +58,17 @@ public class QueryViewTransaction extends AbstractDocumentTransaction {
 		String endkey = getParameterStringValue(var_view_endkey);
 		String _limit = getParameterStringValue(var_view_limit);
 		String _skip = getParameterStringValue(var_view_skip);
-		Integer limit = (_limit == null ? null:Double.valueOf(_limit).intValue());
-		Integer skip = (_skip == null ? null:Double.valueOf(_skip).intValue());
+		Integer limit = (_limit == null ? null : Double.valueOf(_limit).intValue());
+		Integer skip = (_skip == null ? null : Double.valueOf(_skip).intValue());
 		
-		Map<String,Object> options = new HashMap<String, Object>();
-		options.put(var_view_key.variableName(), key);
-		options.put(var_view_startkey.variableName(), startkey);
-		options.put(var_view_endkey.variableName(), endkey);
-		options.put(var_view_limit.variableName(), limit);
-		options.put(var_view_skip.variableName(), skip);
+		List<NameValuePair> options = new ArrayList<NameValuePair>(5);
+		options.add(new BasicNameValuePair(var_view_key.variableName(), key));
+		options.add(new BasicNameValuePair(var_view_startkey.variableName(), startkey));
+		options.add(new BasicNameValuePair(var_view_endkey.variableName(), endkey));
+		options.add(new BasicNameValuePair(var_view_limit.variableName(), "" + limit));
+		options.add(new BasicNameValuePair(var_view_skip.variableName(), "" + skip));
 		
-		return getCouchDBDocument().view(docId, viewName, options, null);
+		return getCouchClient().view(getTargetDatabase(), docId, viewName, options);
 	}
 
 }

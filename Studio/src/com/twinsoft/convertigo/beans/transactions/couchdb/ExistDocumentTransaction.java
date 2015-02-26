@@ -47,11 +47,8 @@ public class ExistDocumentTransaction extends AbstractDocumentTransaction {
 
 	@Override
 	protected Object invoke() throws Exception {
-		if (getCouchClient() != null) {
-			return getCouchClient().headDocument(getTargetDatabase(), getParameterStringValue(var_docid));
-		}
 		String docId = getParameterStringValue(var_docid);
-		return getCouchDBDocument().exist(docId);
+		return getCouchClient().headDocument(getTargetDatabase(), docId);
 	}
 
 	@Override

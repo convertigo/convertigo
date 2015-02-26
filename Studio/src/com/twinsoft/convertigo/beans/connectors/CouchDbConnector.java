@@ -22,20 +22,14 @@
 
 package com.twinsoft.convertigo.beans.connectors;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.ConnectorEvent;
 import com.twinsoft.convertigo.beans.core.Transaction;
@@ -47,9 +41,6 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
-import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbProperties;
-import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbProvider;
-import com.twinsoft.convertigo.engine.util.ParameterUtils;
 
 public class CouchDbConnector extends Connector {
 
@@ -60,7 +51,6 @@ public class CouchDbConnector extends Connector {
 	private int port = 5984;
 	private boolean https = false;
 	
-	private transient CouchDbProvider dbClient = null;
 	private transient CouchClient couchClient = null;
 	
 	public CouchDbConnector() {
@@ -70,7 +60,6 @@ public class CouchDbConnector extends Connector {
 	@Override
 	public Connector clone() throws CloneNotSupportedException {
 		CouchDbConnector clonedObject = (CouchDbConnector) super.clone();
-		clonedObject.dbClient = dbClient;
 		clonedObject.couchClient = null;
 		return clonedObject;
 	}
@@ -135,35 +124,7 @@ public class CouchDbConnector extends Connector {
 	public void release() {
 		super.release();
 
-		try {
-			if (dbClient != null) {
-				dbClient.shutdown();
-				Engine.logBeans.debug("(CouchDbConnector) Connector released");
-			}
-        } catch (Exception ee) {
-			Engine.logBeans.error("(CouchDbConnector) An error occured while releasing connector", ee);
-		}
-		finally {
-			dbClient = null;
-		}
-		
-	}
-
-	public CouchDbProvider getCouchDbClient() {
-		if (dbClient == null) {
-			String dbName = getDatabaseName();
-			
-			CouchDbProperties properties = new CouchDbProperties()
-			  .setDbName(dbName)
-			  .setCreateDbIfNotExist(dbName.isEmpty() ? false:true)
-			  .setProtocol(isHttps() ? "https":"http")
-			  .setHost(getServer())
-			  .setPort(getPort())
-			  .setMaxConnections(10);
-			
-			dbClient = new CouchDbProvider(properties);
-		}
-		return dbClient;
+		//TODO: release		
 	}
 	
 	public CouchClient getCouchClient() {
@@ -173,10 +134,6 @@ public class CouchDbConnector extends Connector {
 			couchClient = new CouchClient(url);
 		}
 		return couchClient;
-	}
-	
-	public void setCouchDbClient(CouchDbProvider dbClient) {
-		this.dbClient = dbClient;
 	}
 	
 	public void setData(Object data) {
@@ -189,7 +146,7 @@ public class CouchDbConnector extends Connector {
 		
 		// Set the target database
 		if (couchDbTransaction instanceof AbstractDatabaseTransaction) {
-			String targetDbName = ParameterUtils.toString(couchDbTransaction.getParameterValue(AbstractDatabaseTransaction.var_database));
+			String targetDbName = couchDbTransaction.getParameterStringValue(AbstractDatabaseTransaction.var_database);
 			if (targetDbName == null /*|| targetDbName.isEmpty()*/) {
 				targetDbName = getDatabaseName();
 			}
@@ -230,113 +187,52 @@ public class CouchDbConnector extends Connector {
 	}
 	
 	private List<String> getCouchDbDesignDocuments() {
-		if (getCouchClient() != null) {
-			CouchClient couchClient = getCouchClient();
-			List<String> docList = new LinkedList<String>();
+		CouchClient couchClient = getCouchClient();
+		List<String> docList = new LinkedList<String>();
 
-			int limit = 10;
+		int limit = 10;
 
-			try {
-				List<NameValuePair> options = new LinkedList<NameValuePair>();
-				options.add(new BasicNameValuePair("include_docs", "true"));
-				options.add(new BasicNameValuePair("limit", Integer.toString(limit)));
-				options.add(new BasicNameValuePair("end_key", "\"_design0\""));
-				options.add(new BasicNameValuePair("start_key", "\"_design/\""));
+		try {
+			List<NameValuePair> options = new LinkedList<NameValuePair>();
+			options.add(new BasicNameValuePair("include_docs", "true"));
+			options.add(new BasicNameValuePair("limit", Integer.toString(limit)));
+			options.add(new BasicNameValuePair("end_key", "\"_design0\""));
+			options.add(new BasicNameValuePair("start_key", "\"_design/\""));
 
-				String startkey = null, startkey_docid = null;
-				boolean bContinue;
+			String startkey = null, startkey_docid = null;
+			boolean bContinue;
 
-				do {
-					bContinue = false;
-					Object json = couchClient.allDocs(getDatabaseName(), options);
+			do {
+				bContinue = false;
+				Object json = couchClient.allDocs(getDatabaseName(), options);
 
-					if (json instanceof JSONObject) {
-						JSONArray rows = ((JSONObject) json).getJSONArray("rows");
-						int lenght = rows.length();
-						JSONObject row = null;
+				if (json instanceof JSONObject) {
+					JSONArray rows = ((JSONObject) json).getJSONArray("rows");
+					int lenght = rows.length();
+					JSONObject row = null;
 
-						for (int i = 0; i < lenght; i++) {
-							row = rows.getJSONObject(i);
-							JSONObject doc = row.getJSONObject("doc");
-							docList.add(doc.toString());
-						}
-
-						if (lenght == limit && row != null) {
-							startkey = "\"" + row.getString("key") + "\"";
-							startkey_docid = "\"" + row.getString("id") + "\"";
-
-							bContinue = true;
-							options = options.subList(0, 3);
-							options.add(new BasicNameValuePair("start_key", startkey));
-							options.add(new BasicNameValuePair("startkey_docid", startkey_docid));
-							options.add(new BasicNameValuePair("skip", "1"));
-						}
+					for (int i = 0; i < lenght; i++) {
+						row = rows.getJSONObject(i);
+						JSONObject doc = row.getJSONObject("doc");
+						docList.add(doc.toString());
 					}
-				} while (bContinue);
-			} catch (Throwable t) {
-				Engine.logBeans.error("[CouchDbConnector] Unable to retrieve design documents from database", t);
-			}
 
-			return docList;
-		}
-		
-		CouchDbProvider provider = getCouchDbClient();
-		String targetDbName = getDatabaseName();
-		
-		List<String> docList = new ArrayList<String>();
-		JsonElement json = null, rows = null;
-		JsonObject row = null, doc = null;
-		JsonArray arr = null;
-		int size;
-		
-		Integer limit = 10;
-		
-		Map<String, Object> options = new HashMap<String, Object>();
-		options.put("startkey", "\"_design/\"");
-		options.put("endkey", "\"_design0\"");
-		options.put("include_docs", "true");
-		options.put("limit", limit);
-		
-		String startkey = null, startkey_docid = null;
-		boolean bContinue;
-		
-		do {
-			bContinue = false;
-			try {
-				json = provider.context().db(targetDbName).document().all(options, null);
-				
-				if (json.isJsonObject()) {
-					rows = json.getAsJsonObject().get("rows");
-					
-					if (rows.isJsonArray()) {
-						arr = rows.getAsJsonArray();
-						size = arr.size();
-						
-						if (size > 0) {
-							for (int i=0; i<size; i++) {
-								row = arr.get(i).getAsJsonObject();
-								doc = row.get("doc").getAsJsonObject();
-								docList.add(doc.toString());
-							}
-							
-							if (size == limit && row != null) {
-								startkey = "\""+row.get("key").getAsString()+"\"";
-								startkey_docid = "\""+row.get("id").getAsString()+"\"";
-								
-								bContinue = true;
-								options.put("startkey", startkey);
-								options.put("startkey_docid", startkey_docid);
-								options.put("skip",new Integer(1));
-							}
-						}
+					if (lenght == limit && row != null) {
+						startkey = "\"" + row.getString("key") + "\"";
+						startkey_docid = "\"" + row.getString("id") + "\"";
+
+						bContinue = true;
+						options = options.subList(0, 3);
+						options.add(new BasicNameValuePair("start_key", startkey));
+						options.add(new BasicNameValuePair("startkey_docid", startkey_docid));
+						options.add(new BasicNameValuePair("skip", "1"));
 					}
 				}
-			} catch (Throwable t) {
-				bContinue = false;
-				Engine.logBeans.error("[CouchDbConnector] Unable to retrieve design documents from database", t);
-			}
-		} while (bContinue);
-		
+			} while (bContinue);
+		} catch (Throwable t) {
+			Engine.logBeans.error("[CouchDbConnector] Unable to retrieve design documents from database", t);
+		}
+
 		return docList;
 	}
 }

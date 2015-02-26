@@ -47,10 +47,7 @@ public class ExistDatabaseTransaction extends AbstractDatabaseTransaction {
 
 	@Override
 	protected Object invoke() throws Exception {
-		if (getCouchClient() != null) {
-			return getCouchClient().headDatabase(getTargetDatabase());
-		}
-		return getCouchDbContext().exist(getTargetDatabase());
+		return getCouchClient().headDatabase(getTargetDatabase());
 	}
 
 	@Override
