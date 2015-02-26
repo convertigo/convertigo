@@ -15,6 +15,16 @@ function store_init() {
 		icons : {
 			primary : "ui-icon-trash"
 		}
+	}).click(function() {
+		showConfirm("Are you sure you want to delete the custome store ?", function () {
+			startWait(50);
+			callService("store.DeleteCustomStore", function (res) {
+				setTimeout(function () {
+					endWait()
+					showInfo(res.querySelector("message").innerHTML);
+				}, 1000);
+			});
+		});
 	});
 	
 	// Upload custom store
