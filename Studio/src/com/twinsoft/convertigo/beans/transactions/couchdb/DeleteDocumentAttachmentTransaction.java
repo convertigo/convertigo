@@ -24,37 +24,33 @@ package com.twinsoft.convertigo.beans.transactions.couchdb;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.xml.namespace.QName;
+public class DeleteDocumentAttachmentTransaction extends AbstractDocumentTransaction {
 
-public class DeleteDocumentTransaction extends AbstractDocumentTransaction {
+	private static final long serialVersionUID = 251919320155109714L;
 
-	private static final long serialVersionUID = 6392840891762384633L;
-	
-	public DeleteDocumentTransaction() {
+	public DeleteDocumentAttachmentTransaction() {
 		super();
 	}
 
 	@Override
-	public DeleteDocumentTransaction clone() throws CloneNotSupportedException {
-		DeleteDocumentTransaction clonedObject =  (DeleteDocumentTransaction) super.clone();
+	public DeleteDocumentAttachmentTransaction clone() throws CloneNotSupportedException {
+		DeleteDocumentAttachmentTransaction clonedObject =  (DeleteDocumentAttachmentTransaction) super.clone();
 		return clonedObject;
 	}
 	
 	@Override
 	public List<CouchDbParameter> getDeclaredParameters() {
-		return Arrays.asList(new CouchDbParameter[] {var_database, var_docid, var_docrev});
+		return Arrays.asList(new CouchDbParameter[] {var_database, var_docid, var_docrev, var_filename});
 	}
-
+		
 	@Override
 	protected Object invoke() throws Exception {
 		String docId = getParameterStringValue(var_docid);
 		String docRev = getParameterStringValue(var_docrev);
+		String attName = getParameterStringValue(var_filename);
 		
-		return getCouchClient().deleteDocument(getTargetDatabase(), docId, docRev);
+		return getCouchClient().deleteDocumentAttachment(getTargetDatabase(), docId, docRev, attName);
 	}
 
-	@Override
-	public QName getComplexTypeAffectation() {
-		return new QName(COUCHDB_XSD_NAMESPACE, "docDeleteType");
-	}
 }
+

@@ -50,7 +50,9 @@ import java.util.regex.Pattern;
 
 import javax.swing.event.EventListenerList;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
 
+import org.apache.xpath.XPathAPI;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -1031,10 +1033,43 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 				Engine.logDatabaseObjectManager.info("Project's XML file migrated!");
 			}
+			
+			migrateCouch(projectNode, "ExistDatabaseTransaction", "HeadDatabaseTransaction");
+			migrateCouch(projectNode, "CreateDatabaseTransaction", "PutDatabaseTransaction");
+			
+			migrateCouch(projectNode, "ExistDocumentTransaction", "HeadDocumentTransaction");
+			migrateCouch(projectNode, "CreateDocumentTransaction", "PostDocumentTransaction");
+			migrateCouch(projectNode, "UpdateDocumentTransaction", "PostDocumentTransaction");
+			migrateCouch(projectNode, "BulkDocumentsTransaction", "PostBulkDocumentsTransaction");
+			
+			migrateCouch(projectNode, "AddDocumentAttachmentTransaction", "PutDocumentAttachmentTransaction");
+			migrateCouch(projectNode, "RemoveDocumentAttachmentTransaction", "DeleteDocumentAttachmentTransaction");
+			migrateCouch(projectNode, "AddDocumentAttachmentTransaction", "PutDocumentAttachmentTransaction");
+			
+			migrateCouch(projectNode, "GetUserInfoTransaction", "GetSessionTransaction");
+			migrateCouch(projectNode, "LogonUserTransaction", "PostSessionTransaction");
+			migrateCouch(projectNode, "LogoutUserTransaction", "DeleteSessionTransaction");
+			migrateCouch(projectNode, "RemoveServerConfigTransaction", "DeleteServerConfigTransaction");
+			migrateCouch(projectNode, "SetServerConfigTransaction", "PutServerConfigTransaction");
+			migrateCouch(projectNode, "QueryViewTransaction", "GetViewTransaction");
 
 			return projectNode;
 		} catch (Exception e) {
 			throw new EngineException("Unable to perform XML migration for project", e);
+		}
+	}
+	
+	//TODO: remove before 7.3 release
+	private void migrateCouch(Node projectNode, String oldClass, String newClass) {
+		try {
+			NodeList nl = XPathAPI.selectNodeList(projectNode, "//transaction[@classname='com.twinsoft.convertigo.beans.transactions.couchdb." + oldClass + "']");
+
+			for (int i = 0; i < nl.getLength(); i++) {
+				((Element) nl.item(i)).setAttribute("classname", "com.twinsoft.convertigo.beans.transactions.couchdb." + newClass);
+			}
+		} catch (TransformerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 

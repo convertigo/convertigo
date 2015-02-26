@@ -24,37 +24,30 @@ package com.twinsoft.convertigo.beans.transactions.couchdb;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.xml.namespace.QName;
+import com.twinsoft.convertigo.engine.EngineException;
 
-public class DeleteDocumentTransaction extends AbstractDocumentTransaction {
-
-	private static final long serialVersionUID = 6392840891762384633L;
+public class PostReplicateTransaction extends AbstractDatabaseTransaction {
 	
-	public DeleteDocumentTransaction() {
+	private static final long serialVersionUID = -2917791679287718055L;
+
+	public PostReplicateTransaction() {
 		super();
 	}
 
 	@Override
-	public DeleteDocumentTransaction clone() throws CloneNotSupportedException {
-		DeleteDocumentTransaction clonedObject =  (DeleteDocumentTransaction) super.clone();
+	public PostReplicateTransaction clone() throws CloneNotSupportedException {
+		PostReplicateTransaction clonedObject =  (PostReplicateTransaction) super.clone();
 		return clonedObject;
 	}
 	
 	@Override
 	public List<CouchDbParameter> getDeclaredParameters() {
-		return Arrays.asList(new CouchDbParameter[] {var_database, var_docid, var_docrev});
+		return Arrays.asList(new CouchDbParameter[] {});
 	}
 
 	@Override
 	protected Object invoke() throws Exception {
-		String docId = getParameterStringValue(var_docid);
-		String docRev = getParameterStringValue(var_docrev);
-		
-		return getCouchClient().deleteDocument(getTargetDatabase(), docId, docRev);
+		throw new EngineException("Not yet implemented");
 	}
 
-	@Override
-	public QName getComplexTypeAffectation() {
-		return new QName(COUCHDB_XSD_NAMESPACE, "docDeleteType");
-	}
 }

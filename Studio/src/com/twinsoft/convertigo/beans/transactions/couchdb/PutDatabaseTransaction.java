@@ -26,35 +26,32 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-public class DeleteDocumentTransaction extends AbstractDocumentTransaction {
+public class PutDatabaseTransaction extends AbstractDatabaseTransaction {
 
-	private static final long serialVersionUID = 6392840891762384633L;
+	private static final long serialVersionUID = 6809890813346670619L;
 	
-	public DeleteDocumentTransaction() {
+	public PutDatabaseTransaction() {
 		super();
 	}
 
 	@Override
-	public DeleteDocumentTransaction clone() throws CloneNotSupportedException {
-		DeleteDocumentTransaction clonedObject =  (DeleteDocumentTransaction) super.clone();
+	public PutDatabaseTransaction clone() throws CloneNotSupportedException {
+		PutDatabaseTransaction clonedObject =  (PutDatabaseTransaction) super.clone();
 		return clonedObject;
 	}
 	
 	@Override
 	public List<CouchDbParameter> getDeclaredParameters() {
-		return Arrays.asList(new CouchDbParameter[] {var_database, var_docid, var_docrev});
+		return Arrays.asList(new CouchDbParameter[] {var_database});
 	}
 
 	@Override
 	protected Object invoke() throws Exception {
-		String docId = getParameterStringValue(var_docid);
-		String docRev = getParameterStringValue(var_docrev);
-		
-		return getCouchClient().deleteDocument(getTargetDatabase(), docId, docRev);
+		return getCouchClient().putDatabase(getTargetDatabase());
 	}
 
 	@Override
 	public QName getComplexTypeAffectation() {
-		return new QName(COUCHDB_XSD_NAMESPACE, "docDeleteType");
+		return new QName(COUCHDB_XSD_NAMESPACE, "dbCreateType");
 	}
 }

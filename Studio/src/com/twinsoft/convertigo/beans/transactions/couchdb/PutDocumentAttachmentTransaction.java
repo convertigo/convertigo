@@ -21,40 +21,41 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.xml.namespace.QName;
+import com.twinsoft.convertigo.engine.Engine;
 
-public class DeleteDocumentTransaction extends AbstractDocumentTransaction {
+public class PutDocumentAttachmentTransaction extends AbstractDocumentTransaction {
 
-	private static final long serialVersionUID = 6392840891762384633L;
-	
-	public DeleteDocumentTransaction() {
+	private static final long serialVersionUID = -689772083455858427L;
+
+	public PutDocumentAttachmentTransaction() {
 		super();
 	}
 
 	@Override
-	public DeleteDocumentTransaction clone() throws CloneNotSupportedException {
-		DeleteDocumentTransaction clonedObject =  (DeleteDocumentTransaction) super.clone();
+	public PutDocumentAttachmentTransaction clone() throws CloneNotSupportedException {
+		PutDocumentAttachmentTransaction clonedObject =  (PutDocumentAttachmentTransaction) super.clone();
 		return clonedObject;
 	}
 	
 	@Override
 	public List<CouchDbParameter> getDeclaredParameters() {
-		return Arrays.asList(new CouchDbParameter[] {var_database, var_docid, var_docrev});
+		return Arrays.asList(new CouchDbParameter[] {var_database, var_docid, var_filepath});
 	}
-
+		
 	@Override
 	protected Object invoke() throws Exception {
 		String docId = getParameterStringValue(var_docid);
-		String docRev = getParameterStringValue(var_docrev);
+		String attPath = getParameterStringValue(var_filepath);
 		
-		return getCouchClient().deleteDocument(getTargetDatabase(), docId, docRev);
-	}
-
-	@Override
-	public QName getComplexTypeAffectation() {
-		return new QName(COUCHDB_XSD_NAMESPACE, "docDeleteType");
+		attPath = Engine.theApp.filePropertyManager.getFilepathFromProperty(attPath, getProject().getName());
+		
+		String contentType = context.httpServletRequest.getServletContext().getMimeType(attPath);
+		
+		return getCouchClient().putDocumentAttachment(getTargetDatabase(), docId, new File(attPath), contentType);
 	}
 }
+

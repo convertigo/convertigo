@@ -26,35 +26,36 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-public class DeleteDocumentTransaction extends AbstractDocumentTransaction {
+public class PostSessionTransaction extends AbstractServerTransaction {
 
-	private static final long serialVersionUID = 6392840891762384633L;
+	private static final long serialVersionUID = -1385969696979516586L;
 	
-	public DeleteDocumentTransaction() {
+	public PostSessionTransaction() {
 		super();
 	}
 
 	@Override
-	public DeleteDocumentTransaction clone() throws CloneNotSupportedException {
-		DeleteDocumentTransaction clonedObject =  (DeleteDocumentTransaction) super.clone();
+	public PostSessionTransaction clone() throws CloneNotSupportedException {
+		PostSessionTransaction clonedObject =  (PostSessionTransaction) super.clone();
 		return clonedObject;
 	}
 	
 	@Override
 	public List<CouchDbParameter> getDeclaredParameters() {
-		return Arrays.asList(new CouchDbParameter[] {var_database, var_docid, var_docrev});
+		return Arrays.asList(new CouchDbParameter[] {var_name, var_password});
 	}
 
 	@Override
 	protected Object invoke() throws Exception {
-		String docId = getParameterStringValue(var_docid);
-		String docRev = getParameterStringValue(var_docrev);
+		String name = getParameterStringValue(var_name);
+		String password = getParameterStringValue(var_password);
 		
-		return getCouchClient().deleteDocument(getTargetDatabase(), docId, docRev);
+		return getCouchClient().postSession(name, password);
 	}
 
 	@Override
 	public QName getComplexTypeAffectation() {
-		return new QName(COUCHDB_XSD_NAMESPACE, "docDeleteType");
+		return new QName(COUCHDB_XSD_NAMESPACE, "userLogonType");
 	}
+	
 }

@@ -26,35 +26,45 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-public class DeleteDocumentTransaction extends AbstractDocumentTransaction {
+import org.codehaus.jettison.json.JSONObject;
 
-	private static final long serialVersionUID = 6392840891762384633L;
+public class DeleteServerConfigTransaction extends AbstractServerTransaction {
+
+	private static final long serialVersionUID = 1267816514021649947L;
 	
-	public DeleteDocumentTransaction() {
+	public DeleteServerConfigTransaction() {
 		super();
 	}
 
 	@Override
-	public DeleteDocumentTransaction clone() throws CloneNotSupportedException {
-		DeleteDocumentTransaction clonedObject =  (DeleteDocumentTransaction) super.clone();
+	public DeleteServerConfigTransaction clone() throws CloneNotSupportedException {
+		DeleteServerConfigTransaction clonedObject =  (DeleteServerConfigTransaction) super.clone();
 		return clonedObject;
 	}
 	
 	@Override
 	public List<CouchDbParameter> getDeclaredParameters() {
-		return Arrays.asList(new CouchDbParameter[] {var_database, var_docid, var_docrev});
+		return Arrays.asList(new CouchDbParameter[] {var_section, var_key});
 	}
-
+	
 	@Override
 	protected Object invoke() throws Exception {
-		String docId = getParameterStringValue(var_docid);
-		String docRev = getParameterStringValue(var_docrev);
+		String section = getParameterStringValue(var_section);
+		String key = getParameterStringValue(var_key);
 		
-		return getCouchClient().deleteDocument(getTargetDatabase(), docId, docRev);
+		JSONObject json = getCouchClient().deleteConfig(section, key);
+		if (section != null && key != null) {// modify json for schema compliance
+			JSONObject s = new JSONObject();
+			JSONObject k = new JSONObject();
+			k.put(key, json);
+			s.put(section, k);
+			return s;
+		}
+		return json;
 	}
 
 	@Override
 	public QName getComplexTypeAffectation() {
-		return new QName(COUCHDB_XSD_NAMESPACE, "docDeleteType");
+		return new QName(COUCHDB_XSD_NAMESPACE, "svrConfigType");
 	}
 }

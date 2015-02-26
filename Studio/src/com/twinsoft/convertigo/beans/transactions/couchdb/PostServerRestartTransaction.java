@@ -26,35 +26,42 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-public class DeleteDocumentTransaction extends AbstractDocumentTransaction {
+import org.codehaus.jettison.json.JSONObject;
 
-	private static final long serialVersionUID = 6392840891762384633L;
+public class PostServerRestartTransaction extends AbstractServerTransaction {
 	
-	public DeleteDocumentTransaction() {
+	private static final long serialVersionUID = 8242007535293507090L;
+
+	public PostServerRestartTransaction() {
 		super();
 	}
 
 	@Override
-	public DeleteDocumentTransaction clone() throws CloneNotSupportedException {
-		DeleteDocumentTransaction clonedObject =  (DeleteDocumentTransaction) super.clone();
+	public PostServerRestartTransaction clone() throws CloneNotSupportedException {
+		PostServerRestartTransaction clonedObject =  (PostServerRestartTransaction) super.clone();
 		return clonedObject;
 	}
 	
 	@Override
 	public List<CouchDbParameter> getDeclaredParameters() {
-		return Arrays.asList(new CouchDbParameter[] {var_database, var_docid, var_docrev});
+		return Arrays.asList(new CouchDbParameter[] {});
 	}
-
+	
 	@Override
 	protected Object invoke() throws Exception {
-		String docId = getParameterStringValue(var_docid);
-		String docRev = getParameterStringValue(var_docrev);
-		
-		return getCouchClient().deleteDocument(getTargetDatabase(), docId, docRev);
+		JSONObject json = getCouchClient().postRestart();
+		try {
+				boolean b = json.getBoolean("ok");
+				if (b) {
+					//TODO: terminate client
+				}
+		}
+		catch (Exception e) {}
+		return json;
 	}
-
+	
 	@Override
 	public QName getComplexTypeAffectation() {
-		return new QName(COUCHDB_XSD_NAMESPACE, "docDeleteType");
+		return new QName(COUCHDB_XSD_NAMESPACE, "svrRestartType");
 	}
 }
