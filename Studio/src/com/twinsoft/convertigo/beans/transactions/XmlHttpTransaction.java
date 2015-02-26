@@ -26,6 +26,7 @@ import java.io.File;
 import java.nio.charset.Charset;
 
 import javax.xml.namespace.QName;
+import javax.xml.soap.SOAPException;
 
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
@@ -44,8 +45,12 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.core.IElementRefAffectation;
+import com.twinsoft.convertigo.engine.ConvertigoError;
+import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.enums.ErrorType;
 import com.twinsoft.convertigo.engine.util.SchemaUtils;
+import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
@@ -58,6 +63,8 @@ public class XmlHttpTransaction extends AbstractHttpTransaction implements IElem
 	private XmlQName xmlElementRefAffectation = new XmlQName();
 	
 	private boolean ignoreSoapEnveloppe = false;
+	
+	private boolean errorOnSoapFault = true;
 	
 	private static final long serialVersionUID = 1494278577299328199L;
 	
@@ -101,6 +108,40 @@ public class XmlHttpTransaction extends AbstractHttpTransaction implements IElem
 		this.ignoreSoapEnveloppe = ignoreSoapEnveloppe;
 	}
 
+	/**
+	 * @return the errorOnSoapFault
+	 */
+	public boolean isErrorOnSoapFault() {
+		return errorOnSoapFault;
+	}
+
+	/**
+	 * @param errorOnSoapFault the errorOnSoapFault to set
+	 */
+	public void setErrorOnSoapFault(boolean errorOnSoapFault) {
+		this.errorOnSoapFault = errorOnSoapFault;
+	}
+
+	
+	@Override
+	public void configure(Element element) throws Exception {
+		super.configure(element);
+		
+		String version = element.getAttribute("version");
+		
+		if (VersionUtils.compare(version, "7.3.0") < 0) {
+			NodeList properties = element.getElementsByTagName("property");
+			
+			Element propVarDom = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "errorOnSoapFault");
+			if (propVarDom == null) {
+				errorOnSoapFault = false;
+				hasChanged = true;
+				Engine.logBeans.warn("[Project] Successfully set 'errorOnSoapFault' property for project \""+ getName() +"\" (v 7.3.0)");
+			}
+		}
+		
+	}
+
 	@Override
 	public void makeDocument(byte[] httpData) throws Exception {
 		Engine.logBeans.trace("makeDocument : " + getEncodingCharSet());
@@ -114,6 +155,21 @@ public class XmlHttpTransaction extends AbstractHttpTransaction implements IElem
 		Document xmlHttpDocument = requester.parseDOM(sdata);
 		if (Engine.logBeans.isTraceEnabled())
 			Engine.logBeans.trace("makeDocument after parseDom: " + XMLUtils.prettyPrintDOM(xmlHttpDocument));
+		
+		// Replace SOAP fault by an c8o error element
+		if (isErrorOnSoapFault()) {
+			Element soapFaultElement = null;
+			soapFaultElement = getSoapFaultElement(xmlHttpDocument);
+			if (soapFaultElement != null) {
+				String sfm = getSoapFaultMessage(soapFaultElement);
+				ConvertigoException ex = new ConvertigoException("The Web Service returned a SOAP Fault",new SOAPException(sfm));
+				ConvertigoError err = ConvertigoError.initError(ErrorType.Project, ex);
+				Document errDocument = err.buildErrorDocument(getRequester(), context);
+				Node error = context.outputDocument.importNode(errDocument.getDocumentElement().getFirstChild(), true);
+				context.outputDocument.getDocumentElement().appendChild(error);
+				return;
+			}
+		}
 		
 		// Removes soap elements if needed
 		if (isIgnoreSoapEnveloppe()) {
@@ -171,6 +227,51 @@ public class XmlHttpTransaction extends AbstractHttpTransaction implements IElem
 //		return newNode;
 //	}
 	
+	private String getSoapFaultMessage(Element element) {
+		String message = "unknow reason";
+		if (element != null) {
+    		NodeList childNodes = element.getChildNodes();
+    		int len = childNodes.getLength();
+    		Node node;
+            for (int i = 0 ; i < len ; i++) {
+            	node = childNodes.item(i);
+            	if (node instanceof Element) {
+            		String ename = ((Element)node).getNodeName().toUpperCase();
+					if (ename.equals("FAULTSTRING")) { // SOAP 1.1
+						return ((Element)node).getTextContent();
+					}
+					else if (ename.equals("TEXT")) { // SOAP 1.2
+						return ((Element)node).getTextContent();
+					}
+					else if (ename.indexOf(":REASON") != -1) { // SOAP 1.2
+						return getSoapFaultMessage((Element)node);
+					}
+            	}
+            }
+		}
+		return message;
+	}
+
+	private Element getSoapFaultElement(Document document) {
+		Element soapBodyResponseElement = null;
+		soapBodyResponseElement = getSoapBodyResponseElement(document.getDocumentElement());
+        if (soapBodyResponseElement != null) {
+    		NodeList childNodes = soapBodyResponseElement.getChildNodes();
+    		int len = childNodes.getLength();
+    		Node node;
+            for (int i = 0 ; i < len ; i++) {
+            	node = childNodes.item(i);
+            	if (node instanceof Element) {
+            		String ename = ((Element)node).getNodeName().toUpperCase();
+					if (ename.indexOf(":FAULT") != -1) {
+						return ((Element)node);
+					}
+            	}
+            }
+        }
+		return null;
+	}
+
 	private Element getSoapBodyResponseElement(Element element) {
 		NodeList childNodes = element.getChildNodes();
 		int len = childNodes.getLength();
@@ -379,6 +480,10 @@ public class XmlHttpTransaction extends AbstractHttpTransaction implements IElem
 			else {
 				xmlSchemaElement.setName("");
 				xmlSchemaElement.setRefName(xmlQName.getQName());
+			}
+			
+			if (isErrorOnSoapFault()) {
+				xmlSchemaElement.setMinOccurs(0);
 			}
 			xmlSchemaSequence.getItems().add(xmlSchemaElement);
 			xmlSchemaComplexType.setParticle(xmlSchemaSequence);

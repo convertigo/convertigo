@@ -37,7 +37,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Text;
 
-import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.ErrorType;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
@@ -82,6 +81,10 @@ public class ConvertigoError {
 	}
 	
 	public Document buildErrorDocument(Requester requester, Context context) throws Exception {
+		return buildErrorDocument(requester, context, false);
+	}
+	
+	public Document buildErrorDocument(Requester requester, Context context, boolean bHide) throws Exception {
 		Document document = requester.createDOM("UTF-8");
 
 		Element doc = document.createElement("document");
@@ -92,7 +95,7 @@ public class ConvertigoError {
 		
 		Text text;
 
-		if (EnginePropertiesManager.getProperty(PropertyName.HIDING_ERROR_INFORMATION ).equals("false") ) {
+		if (!bHide) {
 			if (context != null) {
 				if (context.projectName != null)
 					error.setAttributeNS("","project",context.projectName);

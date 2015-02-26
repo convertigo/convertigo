@@ -35,7 +35,7 @@ public class XmlHttpTransactionBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/images/xmlhttptransaction_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/images/xmlhttptransaction_color_32x32.png";
 
-			properties = new PropertyDescriptor[4];
+			properties = new PropertyDescriptor[5];
 			
 			resourceBundle = getResourceBundle("res/XmlHttpTransaction");
 
@@ -64,6 +64,11 @@ public class XmlHttpTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[3].setExpert(true);
 			properties[3].setHidden(false);
 			properties[3].setPropertyEditorClass(getEditorClass("XmlQNameEditor"));
+			
+			properties[4] = new PropertyDescriptor("errorOnSoapFault", XmlHttpTransaction.class, "isErrorOnSoapFault", "setErrorOnSoapFault");
+			properties[4].setDisplayName(getExternalizedString("property.errorOnSoapFault.display_name"));
+			properties[4].setShortDescription(getExternalizedString("property.errorOnSoapFault.short_description"));
+			properties[4].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

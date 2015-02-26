@@ -1379,7 +1379,8 @@ public class Engine {
 	}
 
 	public static Document buildErrorDocument(Throwable e, Requester requester, Context context) throws Exception {
-		return ConvertigoError.get(e).buildErrorDocument(requester, context);
+		boolean bHide = EnginePropertiesManager.getProperty(PropertyName.HIDING_ERROR_INFORMATION ).equals("true");
+		return ConvertigoError.get(e).buildErrorDocument(requester, context, bHide);
 	}
 	
 	public static String getExceptionSchema() {
