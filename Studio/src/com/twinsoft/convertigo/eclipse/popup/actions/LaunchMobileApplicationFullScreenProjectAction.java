@@ -33,6 +33,7 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 
 public class LaunchMobileApplicationFullScreenProjectAction extends MyAbstractAction {
 
@@ -55,8 +56,8 @@ public class LaunchMobileApplicationFullScreenProjectAction extends MyAbstractAc
 
     			if ((databaseObject != null) && (databaseObject instanceof MobileApplication)) {
     				MobileApplication mobileApplication = (MobileApplication) databaseObject;
-    				Program.launch(
-    						EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue() 
+    				String SERVER_C8O_URL = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
+    				Program.launch( SERVER_C8O_URL
     								+ "/projects/" 
     								+ mobileApplication.getProject().getName() + "/DisplayObjects/mobile/index.html");
     			}
