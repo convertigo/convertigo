@@ -33,6 +33,7 @@ import org.eclipse.ui.IWorkbench;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class ImportWizard extends Wizard implements IImportWizard {
@@ -103,7 +104,18 @@ public class ImportWizard extends Wizard implements IImportWizard {
 	 */
 	@Override
 	public boolean canFinish() {
-		return getTargetProjectName() != null;
+		if (getTargetProjectName() != null) {
+			//No handle for project xml
+			if (!isProjectXML()) {
+				File template = new File(Engine.TEMPLATES_PATH + "/project/" + getTargetProjectName() + ".car");
+				//return getTargetProjectName() != null;
+				return !template.exists();
+			} else {
+				return true;
+			}
+		} else {
+			return false;
+		}
 	}
 
 	//Modified by julienda - 13/09/2012
@@ -140,5 +152,10 @@ public class ImportWizard extends Wizard implements IImportWizard {
 			projectName = getDefaultProjectName();
 		}
 		return projectName;
+	}
+	
+	private boolean isProjectXML(){
+		String filePath = fileChooserPage.getFilePath();
+		return filePath.toLowerCase().endsWith(".xml");
 	}
 }

@@ -103,6 +103,11 @@ public class NewProjectWizardPage1 extends WizardPage {
 			updateStatus("Project name must be normalized.\nDon't start with number and don't use non ASCII caracters.");
 			return;
 		}
+		File templateFile = new File(Engine.TEMPLATES_PATH + "/project/" + projectName + ".car"); 
+		if (templateFile.exists()) {
+			updateStatus("Project name not authorized.\n Please, choose a valid project name.");
+			return;
+		}
 		updateStatus(null);
 	}
 

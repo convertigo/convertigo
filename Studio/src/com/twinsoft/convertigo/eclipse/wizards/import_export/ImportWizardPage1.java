@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.eclipse.wizards.import_export;
 
+import java.io.File;
+
 import org.eclipse.jface.dialogs.IDialogPage;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.wizard.WizardPage;
@@ -32,6 +34,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
 import com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizardComposite1;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
 
@@ -94,6 +97,12 @@ public class ImportWizardPage1 extends WizardPage {
 		}
 		if (!StringUtils.isNormalized(projectName)) {
 			updateStatus("Project name must be normalized.\nDon't start with number and don't use non ASCII caracters.");
+			return;
+		}
+		
+		File templateFile = new File(Engine.TEMPLATES_PATH + "/project/" + projectName + ".car"); 
+		if (templateFile.exists()) {
+			updateStatus("Project name not authorized.\n Please, choose a valid project name.");
 			return;
 		}
 		updateStatus(null);
