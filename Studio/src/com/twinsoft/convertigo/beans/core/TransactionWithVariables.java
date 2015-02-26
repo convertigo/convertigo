@@ -52,6 +52,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.ParameterUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.util.StringEx;
@@ -450,7 +451,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 	}
 	
 	public String getParameterStringValue(String parameterName) {
-		return getParameterStringValue(parameterName);
+		return ParameterUtils.toString(getParameterValue(parameterName));
 	}
 	
 	public Object getVariableValue(String requestedVariableName) {
