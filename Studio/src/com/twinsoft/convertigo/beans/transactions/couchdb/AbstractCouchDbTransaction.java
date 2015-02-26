@@ -108,9 +108,10 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 	@Override
 	public void remove(DatabaseObject databaseObject) throws EngineException {
 		if (databaseObject instanceof RequestableVariable) {
-			RequestableVariable variable = (RequestableVariable)databaseObject;
-			if (CouchDbParameter.contains(getDeclaredParameters(),variable.getName())) {
-				throw new EngineException("You are not allowed to remove the variable named '"+variable.getName()+"'");
+			RequestableVariable variable = (RequestableVariable) databaseObject;
+			
+			if (CouchDbParameter.contains(getDeclaredParameters(), variable.getName())) {
+				throw new EngineException("You are not allowed to remove the variable named '" + variable.getName() + "'");
 			}
 		}
 		super.remove(databaseObject);
@@ -255,6 +256,10 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		}
 		
 		return jsonElement;
+	}
+	
+	protected List<CouchDbParameter> getDeclaredParameters(CouchDbParameter... parameters) {
+		return getConnector().filter(parameters);
 	}
 	
 	private static JSONObject toJson(Element element) throws JSONException {

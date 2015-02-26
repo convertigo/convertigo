@@ -22,7 +22,6 @@
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.List;
 
 import com.twinsoft.convertigo.engine.Engine;
@@ -43,7 +42,7 @@ public class GetDocumentAttachmentTransaction extends AbstractDocumentTransactio
 	
 	@Override
 	public List<CouchDbParameter> getDeclaredParameters() {
-		return Arrays.asList(new CouchDbParameter[] {var_database, var_docid, var_docrev, var_filename, var_filepath});
+		return getDeclaredParameters(var_database, var_docid, var_docrev, var_filename, var_filepath);
 	}
 		
 	@Override

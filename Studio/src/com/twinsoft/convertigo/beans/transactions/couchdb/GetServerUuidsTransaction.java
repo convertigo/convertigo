@@ -21,7 +21,6 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import java.util.Arrays;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -42,7 +41,7 @@ public class GetServerUuidsTransaction extends AbstractServerTransaction {
 	
 	@Override
 	public List<CouchDbParameter> getDeclaredParameters() {
-		return Arrays.asList(new CouchDbParameter[] {var_count});
+		return getDeclaredParameters(var_count);
 	}
 
 	@Override

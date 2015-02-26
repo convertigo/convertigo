@@ -28,8 +28,6 @@ public abstract class AbstractDatabaseTransaction extends AbstractCouchDbTransac
 	
 	public static final CouchDbParameter var_database = CouchDbParameter.Path_database;
 	
-	private transient String targetDbName = null;
-	
 	public AbstractDatabaseTransaction() {
 		super();
 	}
@@ -37,15 +35,10 @@ public abstract class AbstractDatabaseTransaction extends AbstractCouchDbTransac
 	@Override
 	public AbstractDatabaseTransaction clone() throws CloneNotSupportedException {
 		AbstractDatabaseTransaction clonedObject =  (AbstractDatabaseTransaction) super.clone();
-		clonedObject.targetDbName = null;
 		return clonedObject;
 	}
 	
 	public String getTargetDatabase() {
-		return targetDbName;
-	}
-	
-	public void setTargetDatabase(String databaseName) {
-		targetDbName = databaseName;
+		return getConnector().getTargetDatabase(this);
 	}
 }

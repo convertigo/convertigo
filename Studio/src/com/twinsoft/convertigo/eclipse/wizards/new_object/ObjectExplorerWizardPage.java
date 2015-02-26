@@ -38,9 +38,11 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.PlatformUI;
 import org.osgi.framework.Bundle;
 
+import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IXPathable;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.statements.XpathableStatement;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 
@@ -162,6 +164,10 @@ public class ObjectExplorerWizardPage extends WizardPage {
 					((JavelinConnector)newBean).setEmulatorTechnology(com.twinsoft.api.Session.AS400);
 					((JavelinConnector)newBean).emulatorID = ((JavelinConnector)newBean).findEmulatorId();
 					((JavelinConnector)newBean).setServiceCode(",DIR|localhost:23");
+				}
+				
+				if (newBean instanceof FullSyncConnector && parentObject instanceof Project) {
+					newBean.setName(((Project) parentObject).getName() + "FullSync");
 				}
 			} catch (Exception e) {
 				newBean = null;

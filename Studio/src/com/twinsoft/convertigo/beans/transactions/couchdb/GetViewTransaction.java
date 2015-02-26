@@ -22,7 +22,6 @@
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.http.NameValuePair;
@@ -44,8 +43,8 @@ public class GetViewTransaction extends AbstractDocumentTransaction {
 	
 	@Override
 	public List<CouchDbParameter> getDeclaredParameters() {
-		return Arrays.asList(new CouchDbParameter[] {var_database, var_docid, var_viewname, 
-				var_view_limit, var_view_skip, var_view_key, var_view_startkey, var_view_endkey});
+		return getDeclaredParameters(var_database, var_docid, var_viewname, 
+				var_view_limit, var_view_skip, var_view_key, var_view_startkey, var_view_endkey);
 	}
 
 	@Override

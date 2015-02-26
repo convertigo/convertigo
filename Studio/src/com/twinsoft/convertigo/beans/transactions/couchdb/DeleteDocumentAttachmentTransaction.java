@@ -21,7 +21,6 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class DeleteDocumentAttachmentTransaction extends AbstractDocumentTransaction {
@@ -40,7 +39,7 @@ public class DeleteDocumentAttachmentTransaction extends AbstractDocumentTransac
 	
 	@Override
 	public List<CouchDbParameter> getDeclaredParameters() {
-		return Arrays.asList(new CouchDbParameter[] {var_database, var_docid, var_docrev, var_filename});
+		return getDeclaredParameters(var_database, var_docid, var_docrev, var_filename);
 	}
 		
 	@Override

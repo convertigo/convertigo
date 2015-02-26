@@ -21,7 +21,6 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import java.util.Arrays;
 import java.util.List;
 
 import com.twinsoft.convertigo.engine.EngineException;
@@ -42,7 +41,7 @@ public class PostReplicateTransaction extends AbstractDatabaseTransaction {
 	
 	@Override
 	public List<CouchDbParameter> getDeclaredParameters() {
-		return Arrays.asList(new CouchDbParameter[] {});
+		return getDeclaredParameters();
 	}
 
 	@Override

@@ -21,7 +21,6 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class GetServerUpdatesTransaction extends AbstractServerTransaction {
@@ -40,7 +39,7 @@ public class GetServerUpdatesTransaction extends AbstractServerTransaction {
 	
 	@Override
 	public List<CouchDbParameter> getDeclaredParameters() {
-		return Arrays.asList(new CouchDbParameter[] {var_feed, var_timeout, var_heartbeat});
+		return getDeclaredParameters(var_feed, var_timeout, var_heartbeat);
 	}
 	
 	@Override

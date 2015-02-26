@@ -21,7 +21,6 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import java.util.Arrays;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -43,7 +42,7 @@ public class PutServerConfigTransaction extends AbstractServerTransaction {
 	
 	@Override
 	public List<CouchDbParameter> getDeclaredParameters() {
-		return Arrays.asList(new CouchDbParameter[] {var_section, var_key, var_value});
+		return getDeclaredParameters(var_section, var_key, var_value);
 	}
 	
 	@Override

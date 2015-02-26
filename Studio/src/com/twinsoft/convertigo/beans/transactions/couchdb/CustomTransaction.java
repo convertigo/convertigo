@@ -22,7 +22,6 @@
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
 import java.net.URI;
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -91,7 +90,7 @@ public class CustomTransaction extends AbstractCouchDbTransaction {
 	
 	@Override
 	public List<CouchDbParameter> getDeclaredParameters() {
-		return Arrays.asList(new CouchDbParameter[] {});
+		return getDeclaredParameters();
 	}
 
 	@Override

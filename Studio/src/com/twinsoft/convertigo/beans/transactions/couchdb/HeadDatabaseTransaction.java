@@ -21,7 +21,6 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import java.util.Arrays;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -42,7 +41,7 @@ public class HeadDatabaseTransaction extends AbstractDatabaseTransaction {
 	
 	@Override
 	public List<CouchDbParameter> getDeclaredParameters() {
-		return Arrays.asList(new CouchDbParameter[] {var_database});
+		return getDeclaredParameters(var_database);
 	}
 
 	@Override

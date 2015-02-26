@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.beans.connectors;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -34,8 +35,8 @@ import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.ConnectorEvent;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
-import com.twinsoft.convertigo.beans.transactions.couchdb.AbstractCouchDbTransaction;
 import com.twinsoft.convertigo.beans.transactions.couchdb.AbstractDatabaseTransaction;
+import com.twinsoft.convertigo.beans.transactions.couchdb.CouchDbParameter;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -142,16 +143,17 @@ public class CouchDbConnector extends Connector {
 	
 	@Override
 	public void prepareForTransaction(Context context) throws EngineException {
-		AbstractCouchDbTransaction couchDbTransaction = (AbstractCouchDbTransaction) context.requestedObject;
 		
-		// Set the target database
-		if (couchDbTransaction instanceof AbstractDatabaseTransaction) {
-			String targetDbName = couchDbTransaction.getParameterStringValue(AbstractDatabaseTransaction.var_database);
-			if (targetDbName == null /*|| targetDbName.isEmpty()*/) {
-				targetDbName = getDatabaseName();
-			}
-			((AbstractDatabaseTransaction)couchDbTransaction).setTargetDatabase(targetDbName);
+	}
+	
+	public String getTargetDatabase(AbstractDatabaseTransaction couchDbTransaction) {
+		String targetDbName = couchDbTransaction.getParameterStringValue(AbstractDatabaseTransaction.var_database);
+				
+		if (targetDbName == null) {
+			targetDbName = getDatabaseName();
 		}
+		
+		return targetDbName;
 	}
 
 	@Override
@@ -234,5 +236,9 @@ public class CouchDbConnector extends Connector {
 		}
 
 		return docList;
+	}
+	
+	public List<CouchDbParameter> filter(CouchDbParameter... parameters) {
+		return Arrays.asList(parameters);
 	}
 }

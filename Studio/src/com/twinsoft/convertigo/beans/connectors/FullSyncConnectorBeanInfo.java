@@ -41,24 +41,9 @@ public class FullSyncConnectorBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 
-			properties = new PropertyDescriptor[4];
-			
-			properties[0] = new PropertyDescriptor("databaseName", beanClass, "getDatabaseName", "setDatabaseName");
-			properties[0].setDisplayName(getExternalizedString("property.databaseName.display_name"));
-			properties[0].setShortDescription(getExternalizedString("property.databaseName.short_description"));
+			properties = new PropertyDescriptor[0];
 
-			properties[1] = new PropertyDescriptor("https", beanClass, "isHttps", "setHttps");
-			properties[1].setDisplayName(getExternalizedString("property.https.display_name"));
-			properties[1].setShortDescription(getExternalizedString("property.https.short_description"));
-			
-			properties[2] = new PropertyDescriptor("port", beanClass, "getPort", "setPort");
-			properties[2].setDisplayName(getExternalizedString("property.port.display_name"));
-			properties[2].setShortDescription(getExternalizedString("property.port.short_description"));
-			
-			properties[3] = new PropertyDescriptor("server", beanClass, "getServer", "setServer");
-			properties[3].setDisplayName(getExternalizedString("property.server.display_name"));
-			properties[3].setShortDescription(getExternalizedString("property.server.short_description"));
-			
+			getPropertyDescriptor("databaseName").setHidden(true);
 			getPropertyDescriptor("https").setHidden(true);
 			getPropertyDescriptor("port").setHidden(true);
 			getPropertyDescriptor("server").setHidden(true);
