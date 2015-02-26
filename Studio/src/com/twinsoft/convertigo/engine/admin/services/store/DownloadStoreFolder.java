@@ -25,7 +25,7 @@ public class DownloadStoreFolder extends DownloadService {
 	@Override
 	protected void writeResponseResult(HttpServletRequest request,HttpServletResponse response) throws Exception {
 		File storeArchiveFile = File.createTempFile("store", ".zip");
-		ZipUtils.makeZip(storeArchiveFile.getPath(), Engine.WEBAPP_PATH + "/store", null);
+		ZipUtils.makeZip(storeArchiveFile.getPath(), Engine.WEBAPP_PATH + "/WEB-INF/store", null);
 		
 		FileInputStream archiveInputStream = null;
 		try {

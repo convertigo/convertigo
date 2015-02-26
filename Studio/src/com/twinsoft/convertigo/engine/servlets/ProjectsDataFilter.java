@@ -23,9 +23,7 @@
 package com.twinsoft.convertigo.engine.servlets;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.regex.Matcher;
@@ -34,20 +32,18 @@ import java.util.regex.Pattern;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
-import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.io.IOUtils;
-
 import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.MinificationManager;
+import com.twinsoft.convertigo.engine.util.ServletUtils;
 
 public class ProjectsDataFilter implements Filter {
 	private static Pattern p_projects = Pattern.compile("/projects(/.*)");
@@ -74,9 +70,7 @@ public class ProjectsDataFilter implements Filter {
         	chain.doFilter(request, response);
         	return;
     	}
-    	
-    	ServletContext servletContext = filterConfig.getServletContext();
-    	
+    	    	
     	String requestURI = request.getRequestURI();
     	Engine.logContext.debug("requestURI=" + requestURI);
     	
@@ -162,42 +156,7 @@ public class ProjectsDataFilter implements Filter {
     		}
     	}
     	
-    	if (file.exists()) {
-        	Engine.logContext.debug("Static file");
-        	
-        	// Warning date comparison: 'If-Modified-Since' header precision is second,
-        	// although file date precision is milliseconds on Windows
-        	long clientDate = request.getDateHeader("If-Modified-Since") / 1000;
-    		Engine.logContext.debug("If-Modified-Since: " + clientDate);
-    		long fileDate = file.lastModified() / 1000;
-    		Engine.logContext.debug("File date: " + fileDate);
-        	if (clientDate == fileDate) {
-        		Engine.logContext.debug("Returned HTTP 304 Not Modified");
-        		response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
-        	} else {
-	    		// Serve static files if they exist in the projects repository.
-	    		String mimeType = servletContext.getMimeType(requestURI);
-	        	Engine.logContext.debug("Found MIME type: " + mimeType);
-	    		response.setHeader("Content-type", mimeType);
-	    		response.setHeader("Cache-Control", "public");
-	    		response.setDateHeader("Last-Modified", file.lastModified());
-	
-	    		FileInputStream fileInputStream = null;
-	    		OutputStream output = response.getOutputStream();
-	    		try {
-	        		fileInputStream = new FileInputStream(file);
-	        		IOUtils.copy(fileInputStream, output);
-	    		}
-	    		finally {
-	    			if (fileInputStream != null) {
-	    				fileInputStream.close();
-	    			}
-	    		}
-        	}
-    	} else {
-    	    Engine.logContext.debug("Convertigo request => follow the normal filter chain");
-    	    chain.doFilter(request, response);
-    	}
+    	ServletUtils.handleFileFilter(file, request, response, filterConfig, chain);
 
     	Engine.logContext.debug("Exiting projects data filter");
     }
