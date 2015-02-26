@@ -215,6 +215,15 @@
         <servlet-name>FullSyncServlet</servlet-name>
         <url-pattern>/fullsync/*</url-pattern>
     </servlet-mapping>
+    
+    <filter>
+		<filter-name>StoreDataFilter</filter-name>
+		<filter-class>com.twinsoft.convertigo.engine.servlets.StoreDataFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>StoreDataFilter</filter-name>
+        <url-pattern>/store/*</url-pattern>
+	</filter-mapping>
 	
     <!-- HTTP print entry point -->
 	<!--  Disabled in this version
