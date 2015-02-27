@@ -124,11 +124,15 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
             String t = context.statistics.start(EngineStatistics.APPLY_USER_REQUEST);
             
             try {
+            	getConnector().beforeTransactionInvoke();
+            	
     			Engine.logBeans.debug("(CouchDBTransaction) Retrieving data...");
     			result = invoke();
     			Engine.logBeans.debug("(CouchDBTransaction) Data retrieved!");			
             }
             finally {
+            	getConnector().afterTransactionInvoke();
+            	
                 context.statistics.stop(t);
             }
 

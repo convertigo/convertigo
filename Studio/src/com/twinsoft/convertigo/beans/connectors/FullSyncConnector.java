@@ -9,13 +9,14 @@ import com.twinsoft.convertigo.beans.transactions.couchdb.CouchDbParameter;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
+import com.twinsoft.convertigo.engine.providers.couchdb.FullSyncContext;
 
 public class FullSyncConnector extends CouchDbConnector {
 	private static final long serialVersionUID = 4063707392313093177L;
 	
 	@Override
 	public CouchClient getCouchClient() {
-		return Engine.theApp.couchDbManager.getCouchClient();
+		return Engine.theApp.couchDbManager.getFullSyncClient();
 	}
 	
 	@Override
@@ -44,4 +45,15 @@ public class FullSyncConnector extends CouchDbConnector {
 		}
 		super.setName(name);
 	}
+
+	@Override
+	public void beforeTransactionInvoke() {
+		FullSyncContext.set(context.getAuthenticatedUser());
+	}
+
+	@Override
+	public void afterTransactionInvoke() {
+		FullSyncContext.unset();
+	}
+		
 }

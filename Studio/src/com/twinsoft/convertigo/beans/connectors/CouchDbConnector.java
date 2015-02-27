@@ -289,4 +289,12 @@ public class CouchDbConnector extends Connector {
 		}
 		return super.isCipheredProperty(propertyName);
 	}
+	
+	public void beforeTransactionInvoke() {
+		
+	}
+	
+	public void afterTransactionInvoke() {
+		
+	}
 }
