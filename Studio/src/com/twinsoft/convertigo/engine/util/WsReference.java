@@ -85,6 +85,7 @@ import com.twinsoft.convertigo.engine.Version;
 
 public class WsReference {
 	private WebServiceReference reference = null;
+	private boolean updateMode = false;
 	
 	public WsReference(String wsdlURL) {
 	   	reference = new WebServiceReference();
@@ -99,7 +100,7 @@ public class WsReference {
 		return reference;
 	}
 	
-	protected HttpConnector importIntoAuthenticated(Project project, String login, String password) throws Exception {
+	protected HttpConnector importIntoAuthenticated(Project project, String login, String password, boolean updateMode) throws Exception {
 		HttpConnector httpConnector = null;
 		//We add login/password into the connection
 		System.setProperty("soapui.loader.username", login);
@@ -111,7 +112,7 @@ public class WsReference {
 		} catch (Exception e) {
 			throw new Exception ("Authentication failure!", e);
 		}
-		httpConnector = importInto(project);
+		httpConnector = importInto(project, updateMode);
 
 		//We clear login/password
 		System.setProperty("soapui.loader.username", "");
@@ -140,9 +141,11 @@ public class WsReference {
         }
 	}
 	
-	protected HttpConnector importInto(Project project) throws Exception {
+	protected HttpConnector importInto(Project project, boolean updateMode) throws Exception {
 		WebServiceReference webServiceReference = null;
 		HttpConnector httpConnector = null;
+		this.updateMode = updateMode;
+		
 		try{
 			if (project != null) {
 				webServiceReference = getReference();
@@ -150,7 +153,7 @@ public class WsReference {
 	   		   		project.add(webServiceReference);
 				
 				httpConnector = importWebService(webServiceReference);
-	   			if (httpConnector != null)
+	   			if (!updateMode && httpConnector != null)
 	   				project.add(httpConnector);
 			}
 		} catch (Exception e) {
@@ -277,38 +280,44 @@ public class WsReference {
 			   	
 			   	// Export WSDL file(s) to project directory and modify reference local file path
 		   		String folderName = iface.getBindingName().getLocalPart();
-		   		File filePath = new File(projectDir + "/wsdl/" + folderName);
-		   		
-		   		for (int index = 1; filePath.exists(); index++) {
-		   			filePath = new File(projectDir + "/wsdl/" + folderName + index);
-		   		}
+		   		File filePath = new File(projectDir + "/wsdl/" + folderName);;
+		   		if (!updateMode) {
+			   		for (int index = 1; filePath.exists(); index++) {
+			   			filePath = new File(projectDir + "/wsdl/" + folderName + index);
+			   		}
+		   		} 
 		   		
 			   	String wsdlPath = iface.getWsdlContext().export(filePath.getPath());
 			   	wsdlPath = new File(wsdlPath).toURI().getPath();
 			   	webServiceReference.setFilepath(".//" + wsdlPath.substring(wsdlPath.indexOf("/wsdl") + 1));
+			   		
 			   	webServiceReference.setName("Import_WS_" + filePath.getName());
 			   	
 			   	Definition definition = iface.getWsdlContext().getDefinition();
 			   	XmlSchemaCollection xmlSchemaCollection = WSDLUtils.readSchemas(definition);
 			   	XmlSchema xmlSchema = xmlSchemaCollection.schemaForNamespace(definition.getTargetNamespace());
 			   	
-		   		httpConnector = createConnector(iface);
-		   		if (httpConnector != null) {
-		   		   	hasDefaultTransaction = false;
-				   	for (int j=0; j<iface.getOperationCount(); j++) {
-				   		WsdlOperation wsdlOperation = (WsdlOperation)iface.getOperationAt(j);
-				   		List<RequestableHttpVariable> variables = new ArrayList<RequestableHttpVariable>();
-					   	XmlHttpTransaction xmlHttpTransaction = createTransaction(xmlSchemaCollection, xmlSchema, iface, wsdlOperation, variables, projectName, httpConnector);
-			   			// Adds transaction
-				   		if (xmlHttpTransaction != null) {
-				   			httpConnector.add(xmlHttpTransaction);
-				   			if (!hasDefaultTransaction) {
-				   				xmlHttpTransaction.setByDefault();
-				   				hasDefaultTransaction = true;
-				   			}
-				   		}
-				   	}
-		   		}
+			   	if (!updateMode) {
+			   		httpConnector = createConnector(iface);
+			   		if (httpConnector != null) {
+			   		   	hasDefaultTransaction = false;
+					   	for (int j=0; j<iface.getOperationCount(); j++) {
+					   		WsdlOperation wsdlOperation = (WsdlOperation)iface.getOperationAt(j);
+					   		List<RequestableHttpVariable> variables = new ArrayList<RequestableHttpVariable>();
+						   	XmlHttpTransaction xmlHttpTransaction = createTransaction(xmlSchemaCollection, xmlSchema, iface, wsdlOperation, variables, projectName, httpConnector);
+				   			// Adds transaction
+					   		if (xmlHttpTransaction != null) {
+					   			httpConnector.add(xmlHttpTransaction);
+					   			if (!hasDefaultTransaction) {
+					   				xmlHttpTransaction.setByDefault();
+					   				hasDefaultTransaction = true;
+					   			}
+					   		}
+					   	}
+			   		}
+			   	} else {
+			   		//
+			   	}
 		   	}
 	   	}
 	   	return httpConnector;

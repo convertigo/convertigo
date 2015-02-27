@@ -53,7 +53,7 @@ public class ReferenceTreeObject extends DatabaseObjectTreeObject {
 			ReferenceTreeObject refTreeObject = (ReferenceTreeObject) target;
 			if (refTreeObject.getObject() instanceof RemoteFileReference) {
 				RemoteFileReference remoteFile = (RemoteFileReference) refTreeObject.getObject();
-				return !remoteFile.getFilepath().equals(""); 
+				return !remoteFile.getFilepath().isEmpty(); 
 			} 
 		} 
 		return super.testAttribute(target, name, value);

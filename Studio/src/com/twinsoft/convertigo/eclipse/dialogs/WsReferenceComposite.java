@@ -28,8 +28,9 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Text;
+
 import com.twinsoft.convertigo.eclipse.wizards.util.FileFieldEditor;
 
 public class WsReferenceComposite extends Composite {
@@ -41,8 +42,7 @@ public class WsReferenceComposite extends Composite {
 	
 	private Combo combo = null;
 	private FileFieldEditor editor = null;
-	private Composite fileSelectionArea = null;
-	
+	private Composite fileSelectionArea = null;	
 	private GridData data = null;
 	
 	public WsReferenceComposite(Composite parent, int style, GridData gridData) {
@@ -124,6 +124,22 @@ public class WsReferenceComposite extends Composite {
 		passwordText.setEnabled(false);
 		passwordText.setLayoutData(gridData);
 		
+		Object o = getShell().getData();
+		if (o instanceof WsReferenceImportDialog) {
+			WsReferenceImportDialog ws = (WsReferenceImportDialog) o;
+			String URL = ws.getURL();
+			String filePath = ws.getFilePath();
+			if (URL != null) {
+				combo.add(URL,0);
+				combo.select(0);
+				
+				editor.setStringValue(filePath);
+				
+				label1.setEnabled(false);
+				combo.setEnabled(false);
+				editor.setEnabled(false, fileSelectionArea);
+			}
+		}		
 	}
 	
 	public void setFilterExtension(String[] filterExtension) {

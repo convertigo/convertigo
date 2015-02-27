@@ -496,10 +496,10 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 					
 					HttpConnector httpConnector = null;
 					if (!page10.useAuthentication()) {
-						httpConnector = wsr.importInto(project);
+						httpConnector = wsr.importInto(project, false);
 					} else {
 						httpConnector = wsr.importIntoAuthenticated(project, page10.getLogin(), 
-								page10.getPassword());
+								page10.getPassword(), false);
 					}
 					
 					if (httpConnector != null) {

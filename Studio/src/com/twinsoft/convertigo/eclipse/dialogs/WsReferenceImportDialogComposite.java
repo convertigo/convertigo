@@ -99,7 +99,7 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 		
 		wsRefAuthenticated = new WsReferenceComposite(this, SWT.NONE, data1);
 		
-		combo = wsRefAuthenticated.getCombo();
+		combo = wsRefAuthenticated.getCombo(); 
 		combo.addModifyListener(new ModifyListener(){
 			public void modifyText(ModifyEvent e) {
 				comboChanged();
@@ -199,7 +199,7 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 		}
 		
 		if (useAuthentication.getSelection() && 
-				(loginText.getText().equals("") || passwordText.getText().equals("")) ) {
+				(loginText.getText().isEmpty() || passwordText.getText().isEmpty()) ) {
 			message = "Please enter login and password";
 		} 
 		

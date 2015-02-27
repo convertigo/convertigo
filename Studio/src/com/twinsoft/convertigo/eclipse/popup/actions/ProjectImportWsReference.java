@@ -22,23 +22,31 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
+import java.io.IOException;
+
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.references.WebServiceReference;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.WsReferenceImportDialog;
 import com.twinsoft.convertigo.eclipse.dialogs.WsReferenceImportDialogComposite;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ReferenceTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+import com.twinsoft.convertigo.engine.EngineException;
 
 public class ProjectImportWsReference extends MyAbstractAction {
+
+	protected boolean updateMode = false;
 	
 	public ProjectImportWsReference() {
 		super();
@@ -55,24 +63,17 @@ public class ProjectImportWsReference extends MyAbstractAction {
 			ProjectExplorerView explorerView = getProjectExplorerView();
 			if (explorerView != null) {
 				TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
-				if ((treeObject != null) && (treeObject instanceof ProjectTreeObject)) {
-					ProjectTreeObject projectTreeObject = (ProjectTreeObject)treeObject;
-					Project project = projectTreeObject.getObject();
-					if (project != null) {
-						WsReferenceImportDialog wsReferenceImportDialog = new WsReferenceImportDialog(shell, WsReferenceImportDialogComposite.class, "WSDL Reference import");
-						wsReferenceImportDialog.setProject(project);
-						wsReferenceImportDialog.open();
-			    		if (wsReferenceImportDialog.getReturnCode() != Window.CANCEL) {
-			    			HttpConnector httpConnector = wsReferenceImportDialog.getHttpConnector();
-			    			if (httpConnector != null) {
-			    				// Reload sequence in tree without updating its schema for faster reload
-			    				ConvertigoPlugin.logDebug("Reload project: start");
-								explorerView.reloadTreeObject(projectTreeObject);
-								ConvertigoPlugin.logDebug("Reload project: end");
-								// Select target dbo in tree
-								explorerView.objectSelected(new CompositeEvent(httpConnector));
-			    			}
-			    		}
+				if (treeObject != null) {
+					ProjectTreeObject projectTreeObject = null;
+					if (treeObject instanceof ProjectTreeObject) {
+						projectTreeObject = (ProjectTreeObject)treeObject;
+						openWsReferenceImportDialog(shell, explorerView, projectTreeObject, null);
+					}
+					else if (treeObject instanceof ReferenceTreeObject ) {
+						ReferenceTreeObject referenceTreeObject = (ReferenceTreeObject)treeObject;
+						WebServiceReference webServiceObject = (WebServiceReference) referenceTreeObject.getObject();
+						projectTreeObject = referenceTreeObject.getProjectTreeObject();
+						openWsReferenceImportDialog(shell, explorerView, projectTreeObject, webServiceObject);
 					}
 				}
 			}
@@ -85,5 +86,37 @@ public class ProjectImportWsReference extends MyAbstractAction {
 			shell.setCursor(null);
 			waitCursor.dispose();
         }
+	}
+	
+	private void openWsReferenceImportDialog(Shell shell, ProjectExplorerView explorerView, ProjectTreeObject projectTreeObject, WebServiceReference webServiceReference) 
+			throws EngineException, IOException{
+		
+		Project project = projectTreeObject.getObject();
+		if (project != null) {
+			WsReferenceImportDialog wsReferenceImportDialog = new WsReferenceImportDialog(shell, WsReferenceImportDialogComposite.class, "Update reference");
+			wsReferenceImportDialog.setProject(project);
+			wsReferenceImportDialog.setUpdateMode(updateMode);
+			wsReferenceImportDialog.setReference(webServiceReference);
+			
+			wsReferenceImportDialog.open();
+    		if (wsReferenceImportDialog.getReturnCode() != Window.CANCEL) {
+    			HttpConnector httpConnector = wsReferenceImportDialog.getHttpConnector();
+    			if (httpConnector != null) {
+    				// Reload sequence in tree without updating its schema for faster reload
+    				ConvertigoPlugin.logDebug("Reload project: start");
+					explorerView.reloadTreeObject(projectTreeObject);
+					ConvertigoPlugin.logDebug("Reload project: end");
+					// Select target dbo in tree
+					explorerView.objectSelected(new CompositeEvent(httpConnector));
+    			}
+    			
+    			if (updateMode) {
+    			   	MessageBox dialog = new MessageBox(shell, SWT.ICON_INFORMATION | SWT.OK);
+    				dialog.setText("SUCCESS");
+    				dialog.setMessage("The reference file has been updated with success!");
+    				dialog.open();
+    			}
+    		}
+		}
 	}
 }

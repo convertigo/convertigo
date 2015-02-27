@@ -20,12 +20,12 @@ public class ImportWsReference extends WsReference {
 		}
 
 		@Override
-		public HttpConnector importInto(Project project) throws Exception {
-			return super.importInto(project);
+		public HttpConnector importInto(Project project, boolean updateMode) throws Exception {
+			return super.importInto(project, updateMode);
 		}
 		
 		@Override
-		public HttpConnector importIntoAuthenticated(Project project, String login, String password) throws Exception {
-			return super.importIntoAuthenticated(project, login, password);
+		public HttpConnector importIntoAuthenticated(Project project, String login, String password, boolean updateMode) throws Exception {
+			return super.importIntoAuthenticated(project, login, password, updateMode);
 		}
 }

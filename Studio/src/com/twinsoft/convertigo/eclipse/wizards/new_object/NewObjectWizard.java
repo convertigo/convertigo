@@ -468,10 +468,10 @@ public class NewObjectWizard extends Wizard {
 							
 							Display display = this.getShell().getDisplay();
 							if (!isAuthenticated(display)) {
-								wsr.importInto(project); 
+								wsr.importInto(project, false); 
 							} else { 
 								try {
-									wsr.importIntoAuthenticated(project, getLogin(display), getPassword(display)); 
+									wsr.importIntoAuthenticated(project, getLogin(display), getPassword(display), false); 
 								}catch (Exception e){
 									parentObject.remove(newBean);
 									throw new Exception(e.getMessage());

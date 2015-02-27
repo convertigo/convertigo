@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.references.WebServiceReference;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.util.ImportWsReference;
 
@@ -45,6 +46,9 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 	private String wsdlURL = null;
 	private Project project;
 	private HttpConnector httpConnector = null;
+
+	private WebServiceReference webServiceReference;
+	private boolean updateMode = false;
 	
 	/**
 	 * @param parentShell
@@ -122,12 +126,16 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 		Throwable ex = null;
 		try {		
 			progressBarThread.start();
-			ImportWsReference wsr = new ImportWsReference(wsdlURL);
-			
+			ImportWsReference wsr = null;
+			if (!updateMode) {
+				wsr = new ImportWsReference(wsdlURL);
+			} else {
+				wsr = new ImportWsReference(webServiceReference);
+			}
 			if (!isAuthenticated(display)) {
-				httpConnector = wsr.importInto(project); 
+				httpConnector = wsr.importInto(project, updateMode); 
 			} else { 
-				httpConnector = wsr.importIntoAuthenticated(project, getLogin(display), getPassword(display)); 
+				httpConnector = wsr.importIntoAuthenticated(project, getLogin(display), getPassword(display), updateMode); 
 			}
 		}
 		catch (Throwable e) {
@@ -199,4 +207,19 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 		return getButton(OK);
 	}
 	
+	public void setUpdateMode(boolean updateMode){
+		this.updateMode = updateMode;
+	}
+
+	public String getURL(){
+		return this.webServiceReference.getUrlpath();
+	}
+
+	public String getFilePath() {
+		return this.webServiceReference.getFilepath();
+	}
+
+	public void setReference(WebServiceReference webServiceReference) {
+		this.webServiceReference = webServiceReference;
+	}
 }
