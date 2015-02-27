@@ -100,6 +100,20 @@ public abstract class SchemaFileWizardPage extends WizardPage implements IWsRefe
 		return useAuthentication;
 	}
 	
+	public boolean needAuthentication(){
+		final boolean[] selection = new boolean[1];
+
+		getShell().getDisplay().syncExec(new Runnable() {
+
+			@Override
+			public void run() {
+				selection[0] = useAuthentication.getSelection();
+			}
+
+		});
+		return selection[0];
+	}
+	
 	public void createControl(Composite parent) {
 		Composite container = new Composite(parent, SWT.NULL);
 		GridLayout layout = new GridLayout();
@@ -118,7 +132,7 @@ public abstract class SchemaFileWizardPage extends WizardPage implements IWsRefe
 		wsRefAuthenticated.setFilterNames(filterNames);
 		wsRefAuthenticated.setFilterExtension(filterExtension);
 		
-		combo = wsRefAuthenticated.getCombo();
+		combo = wsRefAuthenticated.getCombo();		
 		combo.addModifyListener(new ModifyListener(){
 			public void modifyText(ModifyEvent e) {
 				comboChanged();
@@ -176,7 +190,7 @@ public abstract class SchemaFileWizardPage extends WizardPage implements IWsRefe
 	public void dialogChanged() {
 		String message = null;
 		
-		if (!urlPath.equals("")) {
+		if (!urlPath.isEmpty()) {
 			try {
 				new URL(urlPath);
 				try {
@@ -247,6 +261,10 @@ public abstract class SchemaFileWizardPage extends WizardPage implements IWsRefe
 				(loginText.getText().equals("") || passwordText.getText().equals("")) ) {
 			message = "Please enter login and password";
 		} 
+		
+		if (combo != null) {
+			urlPath = combo.getText();
+		}
 		
 		setTextStatus(message);
 	}

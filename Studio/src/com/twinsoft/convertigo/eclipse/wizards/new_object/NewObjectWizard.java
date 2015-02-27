@@ -72,6 +72,7 @@ import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.references.ImportXsdSchemaReference;
+import com.twinsoft.convertigo.beans.references.RemoteFileReference;
 import com.twinsoft.convertigo.beans.references.WebServiceReference;
 import com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
@@ -478,6 +479,12 @@ public class NewObjectWizard extends Wizard {
 								}
 							}
 
+						}
+						
+						if (newBean instanceof RemoteFileReference) {
+							RemoteFileReference remoteFileReference = (RemoteFileReference)newBean;
+							remoteFileReference.setUrlpath(((SchemaFileWizardPage)wsdlSchemaWizardPage).getWsdlURL());
+							remoteFileReference.setNeedAuthentication(((SchemaFileWizardPage)wsdlSchemaWizardPage).needAuthentication());
 						}
 						
 						if (newBean instanceof SqlTransaction) {
