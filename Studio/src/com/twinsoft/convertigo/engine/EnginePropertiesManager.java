@@ -234,7 +234,7 @@ public class EnginePropertiesManager {
     	Notifications ("Notifications"),
     	Minification ("Minification"),
     	MobileBuilder ("Mobile builder"),
-    	CDB ("Convertigo storage"),
+    	FULLSYNC ("Full sync"),
     	@CategoryOptions(visibility = Visibility.HIDDEN)
     	ExternalBrowser ("External browser")
     	;
@@ -573,8 +573,11 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true)
 		MOBILE_BUILDER_PLATFORM_URL ("mobile.builder.platform_url", "https://build.convertigo.net/cmb/PhoneGapBuilder", "Mobile builder platform URL", PropertyCategory.MobileBuilder),
 		
-		/** CDB */
-		CDB_URL ("cdb.url", "http://127.0.0.1:5984", "Convertigo storage URL", PropertyCategory.CDB),
+		/** FULL SYNC */
+		FULLSYNC_COUCH_URL ("fullsync.couch.url", "http://127.0.0.1:5984", "Couch DB URL for FullSync", PropertyCategory.FULLSYNC),
+		FULLSYNC_COUCH_USERNAME ("fullsync.couch.username", "", "Couch DB username for FullSync", PropertyCategory.FULLSYNC),
+		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
+		FULLSYNC_COUCH_PASSWORD ("fullsync.couch.password", "", "Couch DB password for FullSync", PropertyCategory.FULLSYNC),
 		
 		/** EXTERNAL BROWSER */
 		@PropertyOptions(propertyType = PropertyType.Array)

@@ -41,7 +41,7 @@ public class GetServerDatabasesTransaction extends AbstractServerTransaction {
 	
 	@Override
 	public List<CouchDbParameter> getDeclaredParameters() {
-		return getDeclaredParameters();
+		return getDeclaredParameters(CouchDbParameter.empty);
 	}
 
 	@Override

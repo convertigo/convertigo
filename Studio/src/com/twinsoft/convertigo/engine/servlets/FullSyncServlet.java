@@ -58,7 +58,7 @@ public class FullSyncServlet extends HttpServlet {
 			RequestParser requestParser = new RequestParser(request.getPathInfo());
 			String token = requestParser.getId();
 			URI uri = URI.create(
-					Engine.theApp.couchDbManager.getCdbUrl() + requestParser.getPath() + 
+					Engine.theApp.couchDbManager.getFullSyncUrl() + requestParser.getPath() + 
 					(request.getQueryString() == null ? "" : "?" + request.getQueryString())
 					);
 

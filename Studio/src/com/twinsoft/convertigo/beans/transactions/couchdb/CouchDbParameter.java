@@ -39,6 +39,8 @@ public enum CouchDbParameter {
 	Param_user_password("password",false,1),
 	;
 	
+	static final public CouchDbParameter[] empty = new CouchDbParameter[0];
+	
 	final int TYPE_PRIVATE = -1;
 	final int TYPE_QUERY_PATH = 0;
 	final int TYPE_QUERY_PARAMETER = 1;

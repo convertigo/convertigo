@@ -41,7 +41,7 @@ public class CouchDbConnectorBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 
-			properties = new PropertyDescriptor[4];
+			properties = new PropertyDescriptor[6];
 			
 			properties[0] = new PropertyDescriptor("databaseName", beanClass, "getDatabaseName", "setDatabaseName");
 			properties[0].setDisplayName(getExternalizedString("property.databaseName.display_name"));
@@ -58,6 +58,14 @@ public class CouchDbConnectorBeanInfo extends MySimpleBeanInfo {
 			properties[3] = new PropertyDescriptor("server", beanClass, "getServer", "setServer");
 			properties[3].setDisplayName(getExternalizedString("property.server.display_name"));
 			properties[3].setShortDescription(getExternalizedString("property.server.short_description"));
+			
+			properties[4] = new PropertyDescriptor("couchUsername", beanClass, "getCouchUsername", "setCouchUsername");
+			properties[4].setDisplayName(getExternalizedString("property.couchUsername.display_name"));
+			properties[4].setShortDescription(getExternalizedString("property.couchUsername.short_description"));
+			
+			properties[5] = new PropertyDescriptor("couchPassword", beanClass, "getCouchPassword", "setCouchPassword");
+			properties[5].setDisplayName(getExternalizedString("property.couchPassword.display_name"));
+			properties[5].setShortDescription(getExternalizedString("property.couchPassword.short_description"));
 		
 //			properties[4] = new PropertyDescriptor("trustAllServerCertificates", beanClass, "isTrustAllServerCertificates", "setTrustAllServerCertificates");
 //			properties[4].setDisplayName(getExternalizedString("property.trustAllServerCertificates.display_name"));

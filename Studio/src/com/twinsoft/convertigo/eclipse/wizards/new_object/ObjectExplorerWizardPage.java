@@ -167,7 +167,7 @@ public class ObjectExplorerWizardPage extends WizardPage {
 				}
 				
 				if (newBean instanceof FullSyncConnector && parentObject instanceof Project) {
-					newBean.setName(((Project) parentObject).getName() + "FullSync");
+					newBean.setName(((Project) parentObject).getName().toLowerCase() + "_fullsync");
 				}
 			} catch (Exception e) {
 				newBean = null;

@@ -41,6 +41,7 @@ import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
+import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
 
 public class CouchDbConnector extends Connector {
@@ -51,6 +52,8 @@ public class CouchDbConnector extends Connector {
 	private String server = "127.0.0.1";
 	private int port = 5984;
 	private boolean https = false;
+	private String couchUsername = "";
+	private String couchPassword = "";
 	
 	private transient CouchClient couchClient = null;
 	
@@ -121,24 +124,53 @@ public class CouchDbConnector extends Connector {
 		this.https = https;
 	}
 	
+	public String getCouchUsername() {
+		return couchUsername;
+	}
+
+	public void setCouchUsername(String couchUsername) {
+		this.couchUsername = couchUsername;
+	}
+
+	public String getCouchPassword() {
+		return couchPassword;
+	}
+
+	public void setCouchPassword(String couchPassword) {
+		this.couchPassword = couchPassword;
+	}
+
 	@Override
 	public void release() {
+		couchClient = null;
 		super.release();
-
-		//TODO: release		
+		//TODO: release
 	}
 	
 	public CouchClient getCouchClient() {
 		if (couchClient == null) {
-			String url = isHttps() ? "https" : "http";
-			url+= "://" + getServer() + ":" + getPort();
-			couchClient = new CouchClient(url);
+			if (!isOriginal()) {
+				couchClient = getOriginal().getCouchClient(); 
+			} else {
+				String url = isHttps() ? "https" : "http";
+				url+= "://" + getServer() + ":" + getPort();
+				couchClient = new CouchClient(url, couchUsername, couchPassword);
+			}
 		}
 		return couchClient;
 	}
 	
+	public void setCouchClient(CouchClient couchClient) {
+		this.couchClient = couchClient;
+	}
+	
 	public void setData(Object data) {
 		fireDataChanged(new ConnectorEvent(this, data));
+	}
+	
+	@Override
+	public CouchDbConnector getOriginal() {
+		return (CouchDbConnector) super.getOriginal();
 	}
 	
 	@Override
@@ -240,5 +272,21 @@ public class CouchDbConnector extends Connector {
 	
 	public List<CouchDbParameter> filter(CouchDbParameter... parameters) {
 		return Arrays.asList(parameters);
+	}
+	
+	@Override
+	public boolean isMaskedProperty(Visibility target, String propertyName) {
+		if ("couchPassword".equals(propertyName)) {
+			return true;
+		}
+		return super.isMaskedProperty(target, propertyName);
+	}
+
+	@Override
+	public boolean isCipheredProperty(String propertyName) {
+		if ("couchPassword".equals(propertyName)) {
+			return true;
+		}
+		return super.isCipheredProperty(propertyName);
 	}
 }

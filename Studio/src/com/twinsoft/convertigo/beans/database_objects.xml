@@ -873,13 +873,13 @@
             </beans>
         	<beans groupname="Session transactions">
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetSessionTransaction">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostSessionTransaction">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteSessionTransaction">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
             </beans>
         	<beans groupname="Server transactions">

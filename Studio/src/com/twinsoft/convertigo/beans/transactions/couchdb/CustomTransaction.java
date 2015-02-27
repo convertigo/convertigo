@@ -90,7 +90,7 @@ public class CustomTransaction extends AbstractCouchDbTransaction {
 	
 	@Override
 	public List<CouchDbParameter> getDeclaredParameters() {
-		return getDeclaredParameters();
+		return getDeclaredParameters(CouchDbParameter.empty);
 	}
 
 	@Override

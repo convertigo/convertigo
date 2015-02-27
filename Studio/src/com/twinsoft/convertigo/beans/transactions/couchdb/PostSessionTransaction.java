@@ -25,6 +25,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
+
 public class PostSessionTransaction extends AbstractServerTransaction {
 
 	private static final long serialVersionUID = -1385969696979516586L;
@@ -49,7 +51,9 @@ public class PostSessionTransaction extends AbstractServerTransaction {
 		String name = getParameterStringValue(var_name);
 		String password = getParameterStringValue(var_password);
 		
-		return getCouchClient().postSession(name, password);
+		getConnector().setCouchClient(new CouchClient(getCouchClient().getServerUrl(), name, password));
+		
+		return getCouchClient().getSession();
 	}
 
 	@Override
