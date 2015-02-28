@@ -273,7 +273,14 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 			JSONObject jsonVariable = jsonXml.getJSONObject("variable");
 			JSONObject jsonAttr = jsonVariable.getJSONObject("attr");
 			String jsonAttrName = jsonAttr.getString("name");
-			String jsonAttrValue = jsonAttr.getString("value");
+			String jsonAttrValue;
+			
+			// Complex variable will cause exception as they have no value... 
+			try {
+				jsonAttrValue = jsonAttr.getString("value");
+			}  catch (JSONException eValue) {
+				jsonAttrValue = null;
+			}
 
 			// this is a simple variable
 			if (jsonAttrValue != null) {
