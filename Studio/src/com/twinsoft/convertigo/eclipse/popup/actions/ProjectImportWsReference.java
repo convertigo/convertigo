@@ -42,6 +42,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ReferenceTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
 public class ProjectImportWsReference extends MyAbstractAction {
@@ -67,13 +68,13 @@ public class ProjectImportWsReference extends MyAbstractAction {
 					ProjectTreeObject projectTreeObject = null;
 					if (treeObject instanceof ProjectTreeObject) {
 						projectTreeObject = (ProjectTreeObject)treeObject;
-						openWsReferenceImportDialog(shell, explorerView, projectTreeObject, null);
+						openWsReferenceImportDialog(shell, explorerView, projectTreeObject, null, treeObject);
 					}
 					else if (treeObject instanceof ReferenceTreeObject ) {
 						ReferenceTreeObject referenceTreeObject = (ReferenceTreeObject)treeObject;
 						WebServiceReference webServiceObject = (WebServiceReference) referenceTreeObject.getObject();
 						projectTreeObject = referenceTreeObject.getProjectTreeObject();
-						openWsReferenceImportDialog(shell, explorerView, projectTreeObject, webServiceObject);
+						openWsReferenceImportDialog(shell, explorerView, projectTreeObject, webServiceObject, treeObject);
 					}
 				}
 			}
@@ -88,7 +89,7 @@ public class ProjectImportWsReference extends MyAbstractAction {
         }
 	}
 	
-	private void openWsReferenceImportDialog(Shell shell, ProjectExplorerView explorerView, ProjectTreeObject projectTreeObject, WebServiceReference webServiceReference) 
+	private void openWsReferenceImportDialog(Shell shell, ProjectExplorerView explorerView, ProjectTreeObject projectTreeObject, WebServiceReference webServiceReference, TreeObject treeObject) 
 			throws EngineException, IOException{
 		
 		Project project = projectTreeObject.getObject();
@@ -115,6 +116,10 @@ public class ProjectImportWsReference extends MyAbstractAction {
     				dialog.setText("SUCCESS");
     				dialog.setMessage("The reference file has been updated with success!");
     				dialog.open();
+    				
+    				webServiceReference.hasChanged = true;
+					explorerView.reloadTreeObject(treeObject);
+    				Engine.theApp.schemaManager.clearCache(projectTreeObject.getName());
     			}
     		}
 		}
