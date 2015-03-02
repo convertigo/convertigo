@@ -39,6 +39,7 @@ import com.twinsoft.convertigo.eclipse.dialogs.WsReferenceImportDialog;
 import com.twinsoft.convertigo.eclipse.dialogs.WsReferenceImportDialogComposite;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ReferenceTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
@@ -118,8 +119,10 @@ public class ProjectImportWsReference extends MyAbstractAction {
     				dialog.open();
     				
     				webServiceReference.hasChanged = true;
+    				Engine.theApp.schemaManager.clearCache(webServiceReference.getProject().getName());
 					explorerView.reloadTreeObject(treeObject);
-    				Engine.theApp.schemaManager.clearCache(projectTreeObject.getName());
+					explorerView.objectSelected(new CompositeEvent(webServiceReference));
+					explorerView.fireTreeObjectPropertyChanged(new TreeObjectEvent(treeObject));
     			}
     		}
 		}
