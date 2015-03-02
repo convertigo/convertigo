@@ -85,11 +85,15 @@ public class XMLUtils {
 	private static ThreadLocal<DocumentBuilderFactory> defaultDocumentBuilderFactory = new ThreadLocal<DocumentBuilderFactory>() {
 		@Override
 		protected DocumentBuilderFactory initialValue() {
-			//return DocumentBuilderFactory.newInstance();
 			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-			String s = EnginePropertiesManager.getProperty(PropertyName.DOCUMENT_NAMESPACE_AWARE);
-			if (s.equalsIgnoreCase("true"))
+			try {
+				String s = EnginePropertiesManager.getProperty(PropertyName.DOCUMENT_NAMESPACE_AWARE);
+				if (s.equalsIgnoreCase("true"))
+					documentBuilderFactory.setNamespaceAware(true);
+			}
+			catch (IllegalStateException e) {
 				documentBuilderFactory.setNamespaceAware(true);
+			}
 			return documentBuilderFactory;
 		}
 	};

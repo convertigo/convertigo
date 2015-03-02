@@ -307,7 +307,8 @@ public class XSDExtractor {
 
 			int index = name.indexOf(":");
 			String extractedName = (index == -1) ? name:name.substring(index+1);
-			String extractedType = prefixName + extractedName + "Type";
+			String extractedPrefix = prefixName + name.replace(':', '-');
+			String extractedType = extractedPrefix + "Type";//prefixName + extractedName + "Type";
 			
 			if (type == ELEMENT_COMPLEX_TYPE) {
 				Element element = xsdDom.createElement("xsd:element");
@@ -323,7 +324,7 @@ public class XSDExtractor {
 				Element complex = xsdDom.createElement("xsd:complexType");
 				complex.setAttribute("name", extractedType);
 				
-				prefixName = prefixName + extractedName + "_";
+				prefixName = extractedPrefix + "_";//prefixName = prefixName + extractedName + "_";
 				
 				/*Enumeration e;
 				e = elements.elements();
