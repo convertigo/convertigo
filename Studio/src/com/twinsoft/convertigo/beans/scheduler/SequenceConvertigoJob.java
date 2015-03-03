@@ -40,9 +40,9 @@ public class SequenceConvertigoJob extends AbstractConvertigoJob {
 	}
 		
 	@Override
-	protected void addParameters(Map<String, String> parameters) {
+	protected void addParameters(Map<String, String[]> parameters) {
 		if (sequenceName != null && sequenceName.length() > 0) {
-			parameters.put(Parameter.Sequence.getName(), sequenceName);
+			parameters.put(Parameter.Sequence.getName(), new String[]{sequenceName});
 		}
 		super.addParameters(parameters);
 	}

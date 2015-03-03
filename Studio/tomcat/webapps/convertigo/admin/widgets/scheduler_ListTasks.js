@@ -39,6 +39,8 @@ var $empty_element_xml = $("<element/>")
 	.attr("project", "");
 var setting_order = ["name", "enabled", "description", "jobName", "scheduleName", "serial", "writeOutput", "cron", "context", "project"];
 
+
+
 function scheduler_ListTasks_init () {
 	////////////////////////////////////////HELP MANAGEMENT//////////////////////////////////
 	$("#helpJobs").attr("href", "http://help.convertigo.com/" + engineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/492Jobstable.html");
@@ -93,6 +95,7 @@ function scheduler_ListTasks_init () {
 		altRows : true,	
 		rowNum: '1000000'
 	});
+
 	
 	//////////////////////////////////////////////INITIALISATION OF THE DIALOG OF CREATION/EDITION/////////////////////////// 
 	$("#schedulerDialogAddEntry").dialog({
@@ -205,25 +208,70 @@ function scheduler_ListTasks_init () {
 				
 				$requestable.find("> variable").each(function () {
 					var $variable = $(this);
-					var $row = $("#schedulerTemplate .schedulerRequestableParameterRow").clone();
-					$row.find(".schedulerRequestableParameterName").text($variable.attr("name"));
-					$row.find(".schedulerRequestableParameterDescription").text($variable.attr("description"));
-					$row.find(".schedulerRequestableParameterValue").attr("name", "requestable_parameter_" + $variable.attr("name")).val($variable.attr("value"));
-					$requestableParameters.append($row);
+					var isMasked = $variable.attr("isMasked") === "true";
+					var isMultiValued = $variable.attr("isMultivalued") === "true";
+					var isFileUpload = $variable.attr("isFileUpload") === "true";
+					
+					var $variable_div = $("#schedulerTemplate .variable").clone();
+					$variable_div.find(".variable_name").text($variable.attr("name")).attr("title", $variable.attr("comment"));	
+					$variable_div.find(".variable_desc").text($variable.attr("description"));	
+					
+					var $variable_type = $variable_div.find(".variable_type").data({
+						name : $variable.attr("name"),
+						isMultiValued : isMultiValued,
+						isMasked : isMasked,
+						isFileUpload : isFileUpload
+					});
+					
+					if (isMultiValued) {
+						var values_array = parseJSONarray($variable.attr("value"));
+						$variable_type.append($("#schedulerTemplate .multi_valued").clone());
+						
+						if ($last_element_xml !== null) {
+							$last_element_xml.find("> parameter[name='" + $variable.attr("name") + "']").each(function () {
+								var $param = $(this);								
+								$param.find("> value").each(function(){
+									var $value = $(this);
+									$variable_value_type = $("#schedulerTemplate .new_multi_valued").filter(isFileUpload ? ".value_file" : isMasked ? ".value_password" : ".value_text").clone();
+									$variable_value_type.find(".variable_value").attr("ismultivalued", "true").attr("name", "requestable_parameter_" + $variable.attr("name")).not("[type=file]").val($value.text());
+									$variable_type.append($variable_value_type);
+								});
+							});
+						}
+						
+					} else {
+						var $variable_value_type = $("#schedulerTemplate .single_valued").filter(isFileUpload ? ".value_file" : isMasked ? ".value_password" : ".value_text").clone();
+						var value = "";
+						if ($last_element_xml.find("> parameter[name='" + $variable.attr("name") + "']").has("value")) {
+							value = $last_element_xml.find("> parameter[name='" + $variable.attr("name") + "']").find("> value").text();
+						}
+						
+						$variable_value_type.find(".variable_value").attr("name", "requestable_parameter_" + $variable.attr("name")).not("[type=file]").val(value);
+						$variable_type.append($variable_value_type);
+					}
+
+					$requestableParameters.append($variable_div);
 				});
 				
-				if ($last_element_xml !== null) {
-					$requestableParameters.find("input[type=checkbox]").prop("checked", false);
-					$last_element_xml.find(">parameter").each(function () {
-						var $input = $requestableParameters.find("input[name=requestable_parameter_" + $(this).attr("name") + "]");
-						$input.val($(this).text());
-						$input.closest("tr").find("input[type=checkbox]").prop("checked", true);
-					});
-				}
-				
-				$requestableParameters.show();
+				$requestableParameters.show();	
 			}
 		}
+		$(".link_value_remove").on("click", function () {
+			var $requestable = $(this).parents(".requestable");
+			$(this).parents(".new_multi_valued").remove();
+			$requestable.find("a.requestable_link").each(setLinkForRequestable);
+			return false;
+		});
+		
+		$(".link_value_add").on("click", function(){
+			var $variable_type = $(this).parents(".variable_type");
+			var $variable_multi_new = $("#schedulerTemplate .new_multi_valued").filter($variable_type.data("isFileUpload") ? ".value_file" : $variable_type.data("isMasked") ? ".value_password" : ".value_text").clone();
+			$variable_multi_new.find(".variable_value").attr("name", "requestable_parameter_" + $variable_type.data("name")).attr("ismultivalued", "true").val("").change(function () {
+				$(this).parents(".requestable").find("a.requestable_link").each(setLinkForRequestable);
+			}).change();
+			$variable_type.append($variable_multi_new);
+			return false;
+		});
 	}).change();
 	
 	//////////////////////////////////////////////////////CRON WIZARD////////////////////////////
@@ -383,16 +431,31 @@ function saveElement () {
 		$form.find(":visible[name]").each(function () {
 			var $param = $(this);
 			var name = $param.attr("name");
+			var isMultiValued = $param.attr("ismultivalued") == "true";
 			if ($param.is("[type=checkbox]")) {
 				params[name] = $param.prop("checked");
 			} else {
 				if (name.indexOf("requestable_parameter_") === 0 && !$param.closest("tr").find("input[type=checkbox]").prop("checked")) {
 					// ignore parameter not "send"
 				} else {
-					params[name] = $param.val();
+					if (isMultiValued) {
+						var multi = [];
+						if (typeof params[name] === "object") {
+							var x = 0;
+							while (x < params[name].length) {
+								multi.push(params[name][x]);
+								x++;
+							}
+						}
+						multi.push($param.val());
+						params[name] = multi;
+					} else {
+						params[name] = $param.val();
+					}
 				}
 			}
 		});
+		
 		callService("scheduler.CreateScheduledElements", function (xml) {
 			var $xml = $(xml);
 			var $problems = $("<ul/>");
@@ -407,4 +470,29 @@ function saveElement () {
 				$("#schedulerDialogAddEntry").dialog('close');
 			}
 		}, params);
+}
+
+function setLinkForRequestable(a) {
+	var $a = $(this);
+	var params = addRequestableData({}, $a.parents(".requestable:first").find(".requestable_name:first"));
+	$a.parents(".requestable").find(".variable .variable_value:enabled").each(function () {
+		var variable_name = $(this).parents(".variable").find(".variable_name").text();
+		if ($.isArray(params[variable_name])) {
+			params[variable_name].push($(this).val());
+		} else {
+			params[variable_name] = [$(this).val()];
+		}
+	});
+	setLink($a, params);
+}
+
+function parseJSONarray(value) {
+	if (value.length) {
+		try {
+			return $.parseJSON(value);
+		} catch (e) {
+			
+		}
+	}
+	return [];
 }

@@ -143,8 +143,6 @@ public class CreateScheduledElements extends XmlService {
 					acj.setProjectName(ServiceUtils.getRequiredParameter(request, "project"));
 					acj.setWriteOutput("true".equals(ServiceUtils.getRequiredParameter(request, "writeOutput")));
 					
-					
-					
 					if (TransactionConvertigoJob.class.isAssignableFrom(type.c)) {
 						TransactionConvertigoJob tcj = (TransactionConvertigoJob) acj;
 						tcj.setConnectorName(ServiceUtils.getParameter(request, "connector", ""));
@@ -154,12 +152,17 @@ public class CreateScheduledElements extends XmlService {
 						scj.setSequenceName(ServiceUtils.getParameter(request, "sequence", ""));
 					}
 					
-					Map<String, String> parameters = new HashMap<String, String>();					
+					Map<String, String[]> parameters = new HashMap<String, String[]>();					
 					Matcher prefix = prefixPattern.matcher("");
 					for (String pname : Collections.list(GenericUtils.<Enumeration<String>>cast(request.getParameterNames()))) {
 						prefix.reset(pname);
 						if (prefix.find()) {
-							parameters.put(prefix.group(1), request.getParameter(pname));
+							String para_name = prefix.group(1);
+							String[] values = request.getParameterValues(pname);
+//							for (String value : values) {
+//								parameters.put(para_name, value);
+							parameters.put(para_name, values);
+//							}
 						}
 					}	
 					

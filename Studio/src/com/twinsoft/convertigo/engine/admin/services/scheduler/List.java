@@ -129,10 +129,18 @@ public class List extends XmlService{
 					element.setAttribute("project", acj.getProjectName());
 					element.setAttribute("context", acj.getContextName());
 					element.setAttribute("info", "URL : " + acj.getConvertigoURL());
-		            for (Map.Entry<String, String> entry : acj.getParameters().entrySet()){
+		            for (Map.Entry<String, String[]> entry : acj.getParameters().entrySet()){
 		            	Element parameter = document.createElement("parameter");
 		            	parameter.setAttribute("name", entry.getKey());
-		            	parameter.setTextContent(entry.getValue());
+		            	
+		            	for (String value : entry.getValue()) {
+		            		if (!value.isEmpty()){
+			            		Element parameter_value = document.createElement("value");
+			            		parameter_value.setTextContent(value);
+			            		parameter.appendChild(parameter_value);	            	
+			            	}
+		            	}
+		            	
 		            	element.appendChild(parameter);	              
 		            }
 		            if (acj instanceof SequenceConvertigoJob) {

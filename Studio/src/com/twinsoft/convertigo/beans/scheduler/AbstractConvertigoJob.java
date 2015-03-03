@@ -27,8 +27,8 @@ import java.net.URLEncoder;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import com.twinsoft.convertigo.engine.enums.Parameter;
 
@@ -37,7 +37,7 @@ public abstract class AbstractConvertigoJob extends AbstractJob {
 	
 	String projectName = null;
 	private String contextName = "";
-	Map<String, String> parameters = new TreeMap<String, String>();
+	Map<String, String[]> parameters = new TreeMap<String, String[]>();
 	private boolean writeOutput = false;
 	
 	public String getProjectName() {
@@ -56,12 +56,21 @@ public abstract class AbstractConvertigoJob extends AbstractJob {
 		this.contextName = contextName;
 	}
 	
-	public Map<String, String> getParameters() {
+	public Map<String, String[]> getParameters() {
 		return parameters;
 	}
 	
-	public void setParameters(Map<String, String> parameters) {
-		this.parameters = parameters;
+	public void setParameters(Map<String, String[]> parameters) {
+		Map<String, String[]> params =  new TreeMap<String, String[]>();
+		for (Entry<String, String[]> entry : parameters.entrySet()) {
+			Object val = parameters.get(entry.getKey());
+			if (val instanceof String){
+				params.put(entry.getKey(), new String[] {(String) val} );
+			} else {
+				params.put(entry.getKey(), (String[]) val );
+			}
+		}
+		this.parameters = params;
 	}
 	
 	public boolean isWriteOutput() {
@@ -72,24 +81,28 @@ public abstract class AbstractConvertigoJob extends AbstractJob {
 		this.writeOutput = writeOutput;
 	}
 	
-	protected void addParameters(Map<String, String> parameters) {
+	protected void addParameters(Map<String, String[]> parameters) {
 		if (contextName != null && contextName.length() > 0) {
-			parameters.put(Parameter.Context.getName(), contextName);
+			parameters.put(Parameter.Context.getName(), new String[]{contextName});
 		}
-		for (Map.Entry<String, String> entry : parameters.entrySet()) {
+		for (Map.Entry<String, String[]> entry : parameters.entrySet()) {
 			parameters.put(entry.getKey(), entry.getValue());
 		}
 	}
 	
 	public String getConvertigoURL() {
-		Map<String, String> parameters = new LinkedHashMap<String, String>();
+		Map<String, String[]> parameters = new LinkedHashMap<String, String[]>();
 		addParameters(parameters);
 		parameters.putAll(this.parameters);
 		StringBuffer sb = new StringBuffer();
 		sb.append("/projects/").append(projectName).append("/.xml?");
-		for (Entry<String, String> entry : parameters.entrySet()) {
+		for (Entry<String, String[]> entry : parameters.entrySet()) {
 			try {
-				sb.append(URLEncoder.encode(entry.getKey(), "UTF-8")).append('=').append(URLEncoder.encode(entry.getValue(), "UTF-8")).append('&');
+				String[] val = entry.getValue();
+				for (int i = 0; i < val.length ; ++i){
+					sb.append(URLEncoder.encode(entry.getKey(), "UTF-8")).append('=').append(URLEncoder.encode(val[i], "UTF-8")).append('&');
+				}
+				
 			} catch (UnsupportedEncodingException e) {
 				// improbable case
 			}

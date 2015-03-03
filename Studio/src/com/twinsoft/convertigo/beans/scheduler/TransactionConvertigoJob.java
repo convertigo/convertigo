@@ -51,12 +51,12 @@ public class TransactionConvertigoJob extends AbstractConvertigoJob {
 	}
 	
 	@Override
-	protected void addParameters(Map<String, String> parameters) {
+	protected void addParameters(Map<String, String[]> parameters) {
 		if (connectorName != null && connectorName.length() > 0) {
-			parameters.put(Parameter.Connector.getName(), connectorName);
+			parameters.put(Parameter.Connector.getName(), new String[]{connectorName});
 		}
 		if (transactionName != null && transactionName.length() > 0) {
-			parameters.put(Parameter.Transaction.getName(), transactionName);
+			parameters.put(Parameter.Transaction.getName(), new String[]{transactionName});
 		}
 		super.addParameters(parameters);
 	}

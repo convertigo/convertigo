@@ -201,10 +201,42 @@
 	<img class="schedulerElementDelete" src="images/convertigo-administration-picto-delete.png" title="Delete">
 	<table>
 		<tr class="schedulerRequestableParameterRow">
-			<td class="schedulerRequestableParameterName">Name</td>
-			<td><input type="text" class="schedulerRequestableParameterValue"></input></td>
-			<td class="schedulerRequestableParameterDescription">Description</td>
-			<td><input type="checkbox" checked="checked" title="Send"></input></td>
+<!-- 			<td class="schedulerRequestableParameterName">Name</td> -->
+<!-- 			<td><input type="text" class="schedulerRequestableParameterValue"></input></td> -->
+			<td>
+				<div class="single_valued value_text">
+					<input type="text" alt="" class="champ variable_value" value="..." />
+				</div>
+				<div class="single_valued value_password">
+					<input type="password" alt="" class="champ variable_value" />
+				</div>
+				<div class="single_valued value_file">
+					<input type="file" alt="" class="champ variable_value" />
+				</div>
+				<div class="multi_valued">
+					<a title="add value" class="link_value_add">+ add a new value</a>
+				</div>
+				<div class="new_multi_valued value_text">
+					<input type="text" alt="" class="champ variable_value" />
+					<a title="remove value" class="link_value_remove">x</a>
+				</div>
+				<div class="new_multi_valued value_password">
+					<input type="password" alt="" class="champ variable_value" /> 
+					<a title="remove value" class="link_value_remove">x</a>
+				</div>
+				<div class="new_multi_valued value_file">
+					<input type="file" alt="" class="champ variable_value" />
+					<a title="remove value" class="link_value_remove">x</a>
+				</div>
+			</td>
+<!-- 			<td class="schedulerRequestableParameterDescription">Description</td> -->
+<!-- 			<td><input type="checkbox" checked="checked" title="Send"></input></td> -->
+		</tr>
+		<tr class="variable">
+			<td class="variable_name">variable name</td>
+			<td class="variable_type"></td>
+			<td class="variable_desc">variable description</td>
+			<td><input title="Send value" type="checkbox" class="variable_enable" checked="checked" /></td>
 		</tr>
 	</table>
 	<select>
