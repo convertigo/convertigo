@@ -23,8 +23,6 @@ package com.twinsoft.convertigo.beans.transactions.couchdb;
 
 import java.util.List;
 
-import com.twinsoft.convertigo.engine.EngineException;
-
 public class PostReplicateTransaction extends AbstractDatabaseTransaction {
 	
 	private static final long serialVersionUID = -2917791679287718055L;
@@ -41,12 +39,35 @@ public class PostReplicateTransaction extends AbstractDatabaseTransaction {
 	
 	@Override
 	public List<CouchDbParameter> getDeclaredParameters() {
-		return getDeclaredParameters(CouchDbParameter.empty);
+		return getDeclaredParameters(
+			CouchDbParameter.Param_source, CouchDbParameter.Param_target, CouchDbParameter.Param_create_target,
+			CouchDbParameter.Param_continuous, CouchDbParameter.Param_cancel, CouchDbParameter.Param_doc_ids, CouchDbParameter.Param_proxy
+		);
 	}
 
 	@Override
 	protected Object invoke() throws Exception {
-		throw new EngineException("Not yet implemented");
+		String source = getParameterStringValue(CouchDbParameter.Param_source);
+		String target = getParameterStringValue(CouchDbParameter.Param_target);
+		
+		String _create_target = getParameterStringValue(CouchDbParameter.Param_create_target);
+		boolean create_target = _create_target != null ? Boolean.parseBoolean(_create_target) : false;
+		
+		String _continuous = getParameterStringValue(CouchDbParameter.Param_continuous);
+		boolean continuous = _continuous != null ? Boolean.parseBoolean(_continuous) : false;
+		
+		String _cancel = getParameterStringValue(CouchDbParameter.Param_cancel);
+		boolean cancel = _cancel != null ? Boolean.parseBoolean(_cancel) : false;
+		
+		String[] doc_ids = null;
+		Object _doc_ids = getParameterValue(CouchDbParameter.Param_doc_ids);
+		if (_doc_ids instanceof String[]) {
+			doc_ids = (String[]) _doc_ids;
+		}
+		
+		String proxy = getParameterStringValue(CouchDbParameter.Param_proxy);	
+		
+		return getCouchClient().postReplicate(source, target, create_target, continuous, cancel, doc_ids, proxy);
 	}
 
 }

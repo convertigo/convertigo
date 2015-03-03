@@ -29,7 +29,6 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.enums.CouchPostDocumentPolicy;
-import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
 
 public class PostDocumentTransaction extends AbstractDocumentTransaction {
 
@@ -54,7 +53,6 @@ public class PostDocumentTransaction extends AbstractDocumentTransaction {
 		
 	@Override
 	protected Object invoke() throws Exception {
-		CouchClient client = getCouchClient();
 		JSONObject jsonDocument = new JSONObject();
 		
 		// add document members from variables
@@ -67,7 +65,7 @@ public class PostDocumentTransaction extends AbstractDocumentTransaction {
 			}
 		}
 		
-		return client.postDocument(getTargetDatabase(), jsonDocument, policy);
+		return getCouchClient().postDocument(getTargetDatabase(), jsonDocument, policy);
 	}
 	
 	@Override

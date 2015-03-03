@@ -14,30 +14,36 @@ public enum CouchDbParameter {
 	
 	Path_database("dbname",false,0),
 	Path_docid("docid", false,0),
-	Path_viewname("viewname", false,0),
 	Path_filename("filename", false,0),
-	Path_section("section",false,0),
 	Path_key("key",false,0),
+	Path_section("section",false,0),
 	Path_value("value",false,0),
+	Path_viewname("viewname", false,0),
 	
-	Param_filepath("filepath", false,1),	
-	Param_datas("data", true,1),
+	Param_cancel("cancel", false,1),
+	Param_continuous("continuous", false,1),
+	Param_count("count",false,1),
+	Param_create_target("create_target", false,1),
 	Param_data("data", false,1),
+	Param_datas("data", true,1),
+	Param_doc_ids("doc_ids", true,1),
 	Param_docrev("docrev", false,1),
-	Param_view_limit("limit", false,1),
-	Param_view_skip("skip", false,1),
-	Param_view_key("key", false,1),
-	Param_view_startkey("startkey", false,1),
-	Param_view_endkey("endkey", false,1),
+	Param_feed("feed",false,1),
+	Param_filepath("filepath", false,1),
+	Param_heartbeat("heartbeat",false,1),
 	Param_log_bytes("bytes",false,1),
 	Param_log_offset("offset",false,1),
-	Param_feed("feed",false,1),
+	Param_proxy("proxy",false,1),
+	Param_source("source",false,1),
+	Param_target("target",false,1),
 	Param_timeout("timeout",false,1),
-	Param_heartbeat("heartbeat",false,1),
-	Param_count("count",false,1),
 	Param_user_name("name",false,1),
 	Param_user_password("password",false,1),
-	;
+	Param_view_endkey("endkey", false,1),
+	Param_view_key("key", false,1),
+	Param_view_limit("limit", false,1),
+	Param_view_skip("skip", false,1),
+	Param_view_startkey("startkey", false,1);
 	
 	static final public CouchDbParameter[] empty = new CouchDbParameter[0];
 	
@@ -45,13 +51,13 @@ public enum CouchDbParameter {
 	final int TYPE_QUERY_PATH = 0;
 	final int TYPE_QUERY_PARAMETER = 1;
 	
-	private int type;
+//	private int type;
 	private String variableName;
 	private boolean multiValued;
 	CouchDbParameter(String variableName, boolean multiValued, int type) {
 		this.variableName = variableName;
 		this.multiValued = multiValued;
-		this.type = type;
+//		this.type = type;
 	}
 	
 	private RequestableVariable create() throws EngineException {
