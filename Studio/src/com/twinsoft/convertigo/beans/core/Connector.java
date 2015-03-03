@@ -255,6 +255,8 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty{
 			addPool((Pool) databaseObject);
 		else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Document)
 			addDocument((com.twinsoft.convertigo.beans.core.Document) databaseObject);
+		else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Listener)
+			addListener((com.twinsoft.convertigo.beans.core.Listener) databaseObject);
 		else throw new EngineException("You cannot add to a connector a database object of type " + databaseObject.getClass().getName());
 	}
 
@@ -269,6 +271,8 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty{
 			removeTransaction((Transaction) databaseObject);
 		else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Document)
 			removeDocument((com.twinsoft.convertigo.beans.core.Document)databaseObject);
+		else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Listener)
+			removeListener((com.twinsoft.convertigo.beans.core.Listener)databaseObject);
 		else throw new EngineException("You cannot remove from a connector a database object of type " + databaseObject.getClass().getName());
 		super.remove(databaseObject);
 	}
@@ -385,6 +389,44 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty{
 		super.add(document);
 	}
 	
+	/**
+	 * The list of listeners for this connector.
+	 */
+	transient private List<com.twinsoft.convertigo.beans.core.Listener> vListeners = new Vector<com.twinsoft.convertigo.beans.core.Listener>();
+	
+	public com.twinsoft.convertigo.beans.core.Listener getListenerByName(String listenerName) {
+		checkSubLoaded();
+		
+		for (com.twinsoft.convertigo.beans.core.Listener listener : vListeners) {
+			if (listener.getName().equalsIgnoreCase(listenerName)) {
+				return listener;
+			}
+		}
+		
+		return null;
+	}
+
+	public List<com.twinsoft.convertigo.beans.core.Listener> getListenersList() {
+		checkSubLoaded();
+		return sort(vListeners);
+	}
+	
+	public void removeListener(com.twinsoft.convertigo.beans.core.Listener listener) throws EngineException {
+		checkSubLoaded();
+		vListeners.remove(listener);
+	}
+	
+	/**
+	 * Adds a Listener.
+	 */
+	protected void addListener(com.twinsoft.convertigo.beans.core.Listener listener) throws EngineException {
+		checkSubLoaded();
+		String newDatabaseObjectName = getChildBeanName(vListeners, listener.getName(), listener.bNew);
+		listener.setName(newDatabaseObjectName);
+		vListeners.add(listener);
+		super.add(listener);
+	}
+	
 	@Override
 	public Connector clone() throws CloneNotSupportedException {
 		Connector clonedObject = (Connector) super.clone();
@@ -393,6 +435,7 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty{
 		clonedObject.vTransactions = new Vector<Transaction>();
 		clonedObject.vPools = new Vector<Pool>();
 		clonedObject.vDocuments = new Vector<com.twinsoft.convertigo.beans.core.Document>();
+		clonedObject.vListeners = new Vector<com.twinsoft.convertigo.beans.core.Listener>();
 		clonedObject.debugging = false;
 		return clonedObject;
 	}

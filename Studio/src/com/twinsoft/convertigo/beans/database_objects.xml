@@ -817,6 +817,13 @@
                 </bean>
         	</beans>
         </category>
+        <category name="Listeners">
+        	<beans groupname="CouchDB listeners">
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.couchdb.FullSyncListener">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
+                </bean>
+        	</beans>
+        </category>
         <category name="Transactions">
             <beans groupname="Document transactions">
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.HeadDocumentTransaction">

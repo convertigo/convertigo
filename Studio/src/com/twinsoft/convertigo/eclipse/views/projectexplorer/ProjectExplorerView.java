@@ -176,9 +176,11 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumen
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentViewTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DocumentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ExtractionRuleTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FullSyncListenerTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.HandlersDeclarationTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IEditableTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IPropertyTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ListenerTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplicationTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobilePlatformTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject;
@@ -244,6 +246,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public static final int TREE_OBJECT_TYPE_DBO_MOBILEAPPLICATION = 0x112;
 	public static final int TREE_OBJECT_TYPE_DBO_MOBILEPLATFORM = 0x111;
 	public static final int TREE_OBJECT_TYPE_DBO_DOCUMENT = 0x113;
+	public static final int TREE_OBJECT_TYPE_DBO_LISTENER = 0x114;
 
 	public static final int TREE_OBJECT_TYPE_DBO_PROPERTY_TABLE = 0x300;
 	public static final int TREE_OBJECT_TYPE_DBO_PROPERTY_TABLE_ROW = 0x301;
@@ -266,6 +269,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public static final int TREE_OBJECT_TYPE_FOLDER_TESTCASES = 0x20B;
 	public static final int TREE_OBJECT_TYPE_FOLDER_MOBILEPLATFORMS = 0x20C;
 	public static final int TREE_OBJECT_TYPE_FOLDER_DOCUMENTS = 0x20D;
+	public static final int TREE_OBJECT_TYPE_FOLDER_LISTENERS = 0x20E;
 
 	public static final int TREE_OBJECT_TYPE_MISC = 0x8000;						// 1000 0000 0000 0000
 
@@ -1352,6 +1356,15 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							else
 								databaseObjectTreeObject = new DocumentTreeObject(viewer, document, false);
 
+						} else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Listener) {
+							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_LISTENERS;
+							com.twinsoft.convertigo.beans.core.Listener listener = (com.twinsoft.convertigo.beans.core.Listener)databaseObject;
+							String listenerRenderer = listener.getRenderer();
+							if (listenerRenderer.equals("FullSyncListenerTreeObject"))
+								databaseObjectTreeObject = new FullSyncListenerTreeObject(viewer, listener, false);
+							else
+								databaseObjectTreeObject = new ListenerTreeObject(viewer, listener, false);
+
 						} else {
 							// unknow DBO case !!!
 							databaseObjectTreeObject = new DatabaseObjectTreeObject(viewer, databaseObject, false);
@@ -2125,6 +2138,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			else if (folderType == ObjectsFolderTreeObject.FOLDER_TYPE_DOCUMENTS) {
 				return ProjectExplorerView.TREE_OBJECT_TYPE_FOLDER_DOCUMENTS;
 			}
+			else if (folderType == ObjectsFolderTreeObject.FOLDER_TYPE_LISTENERS) {
+				return ProjectExplorerView.TREE_OBJECT_TYPE_FOLDER_LISTENERS;
+			}
 		}
 		else if (treeNode instanceof HandlersDeclarationTreeObject) {
 			return ProjectExplorerView.TREE_OBJECT_TYPE_HANDLERS_DECLARATION;
@@ -2223,6 +2239,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			}
 			else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Document) {
 				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_DOCUMENT;
+			}
+			else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Listener) {
+				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_LISTENER;
 			}
 
 			if (((DatabaseObjectTreeObject)treeNode).isInherited) {

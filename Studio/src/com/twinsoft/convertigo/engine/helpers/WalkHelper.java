@@ -7,6 +7,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Document;
 import com.twinsoft.convertigo.beans.core.ExtractionRule;
 import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
+import com.twinsoft.convertigo.beans.core.Listener;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.beans.core.Pool;
@@ -130,6 +131,12 @@ public class WalkHelper {
 			if (before(databaseObject, Document.class)) {
 				for (Document document : connector.getDocumentsList()) {
 					walk(document);
+				}
+			}
+			
+			if (before(databaseObject, Listener.class)) {
+				for (Listener listener : connector.getListenersList()) {
+					walk(listener);
 				}
 			}
 		} else if (databaseObject instanceof Transaction) {

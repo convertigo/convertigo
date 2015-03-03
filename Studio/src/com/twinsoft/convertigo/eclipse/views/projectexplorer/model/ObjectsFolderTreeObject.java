@@ -45,6 +45,7 @@ public class ObjectsFolderTreeObject extends FolderTreeObject implements IAction
 	public static final int FOLDER_TYPE_TESTCASES = 13;
 	public static final int FOLDER_TYPE_REFERENCES = 14;
 	public static final int FOLDER_TYPE_DOCUMENTS = 15;
+	public static final int FOLDER_TYPE_LISTENERS = 16;
 	
 	public int folderType;
 	
@@ -102,6 +103,9 @@ public class ObjectsFolderTreeObject extends FolderTreeObject implements IAction
 				break;
 			case FOLDER_TYPE_DOCUMENTS:
 				folderName = "Documents";
+				break;
+			case FOLDER_TYPE_LISTENERS:
+				folderName = "Listeners";
 				break;
 		}
 

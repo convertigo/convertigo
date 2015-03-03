@@ -1338,6 +1338,13 @@
                label="Document"
                menubarPath="convertigo.menu.new/content"/>
          <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateListenerAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newListener"
+               label="Listener"
+               menubarPath="convertigo.menu.new/content"/>
+         <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.SetDefaultConnectorAction"
                enablesFor="1"
                id="convertigo.action.setDefaultConnector"
