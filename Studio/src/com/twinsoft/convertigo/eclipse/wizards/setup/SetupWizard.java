@@ -54,7 +54,8 @@ public class SetupWizard extends Wizard {
 	protected WorkspaceMigrationPage workspaceMigrationPage;
 	protected WorkspaceCreationPage workspaceCreationPage;
 	protected ConfigureProxyPage configureProxyPage;
-	protected AlreadyPscKeyPage alreadyPscKeyPage;
+//	protected AlreadyPscKeyPage alreadyPscKeyPage;
+	protected PscKeyValidationPage pscKeyValidationPage;
 	protected RegistrationPage registrationPage;
 	protected PscKeyPage pscKeyPage;
 	protected SummaryPage summaryPage;
@@ -125,14 +126,17 @@ public class SetupWizard extends Wizard {
 		configureProxyPage = new ConfigureProxyPage(proxyManager);
 		addPage(configureProxyPage);
 
-		alreadyPscKeyPage = new AlreadyPscKeyPage();
-		addPage(alreadyPscKeyPage);
+//		alreadyPscKeyPage = new AlreadyPscKeyPage();
+//		addPage(alreadyPscKeyPage);
 
-		registrationPage = new RegistrationPage();
-		addPage(registrationPage);
+		pscKeyValidationPage = new PscKeyValidationPage();
+		addPage(pscKeyValidationPage);
+		
+//		registrationPage = new RegistrationPage();
+//		addPage(registrationPage);
 
-		pscKeyPage = new PscKeyPage();
-		addPage(pscKeyPage);
+//		pscKeyPage = new PscKeyPage();
+//		addPage(pscKeyPage);
 
 		summaryPage = new SummaryPage();
 		addPage(summaryPage);
