@@ -1655,3 +1655,24 @@ a.start {
 #dialog-add-symbol {
 	display: none;
 }
+
+/* = Store
+---------------------------------------------------------------------- */
+#dialogDownloadStore {
+	display: none;
+	margin-left: 25px;
+}
+
+#dialogDownloadStore input {
+    width:20px;
+    position:relative;
+    vertical-align:middle;
+}
+
+#dialogDownloadStore label {  
+    width:100px;
+    text-align: left;
+    position:relative;
+    display:inline-block;
+    vertical-align:middle;
+}

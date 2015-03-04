@@ -1,12 +1,10 @@
 <br>
 <h2>Download the store to customize it</h2>
 <div>
-	<form method="post" action="services/store.DownloadStoreFolder">
-		<button id="btnDownloadStore">
-			<span></span>
-			<span>Download Store</span>
-		</button>
-	</form>
+	<button id="btnDownloadStore">
+		<span></span>
+		<span>Download Store</span>
+	</button>
 </div>
 <hr>
 
@@ -28,3 +26,41 @@
 		<span>Delete custom Store</span>
 	</button>
 </div>
+
+<!-- Download dialog box -->
+<form id="dialogDownloadStore" method="post" action="services/store.DownloadStoreFolder">
+	<p>
+		<input type="checkbox" id="cbAll">
+		<label for="cbAll">Select all</label>
+	</p>
+
+	<p>
+		<input type="checkbox" name="css" id="cbCss">
+		<label for="cbCss">CSS</label>
+	</p>
+	
+	<p>
+		<input type="checkbox" name="fonts" id="cbFonts">
+		<label for="cbFonts">Fonts</label>
+	</p>
+	
+	<p>
+		<input type="checkbox" name="i18n" id="cbI18n">
+		<label for="cbI18n">i18n</label>
+	</p>
+	
+	<p>
+		<input type="checkbox" name="images" id="cbImages">
+		<label for="cbImages">Images</label>
+	</p>
+	
+	<p>
+		<input type="checkbox" name="scripts" id="cbScripts">
+		<label for="cbScripts">Scripts</label>
+	</p>
+	
+	<p>
+		<input type="checkbox" name="index" id="cbIndex">
+		<label for="cbIndex">index.html</label>
+	</p>
+</form>
