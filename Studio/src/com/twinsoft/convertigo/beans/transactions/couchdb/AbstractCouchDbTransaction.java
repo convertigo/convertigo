@@ -44,7 +44,6 @@ import org.mozilla.javascript.NativeObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import org.w3c.dom.Text;
 
 import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
@@ -355,8 +354,7 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		if ("_attachments".equals(parentElement.getNodeName())) {
 			Element att = parentElement.getOwnerDocument().createElement("attachment");
 			Element att_name = parentElement.getOwnerDocument().createElement("name");
-			Text att_txt = parentElement.getOwnerDocument().createTextNode(key);
-			att_name.appendChild(att_txt);
+			att_name.setTextContent(key);
 			att.appendChild(att_name);
 			parentElement.appendChild(att);
 			toXml(value, att);
