@@ -56,8 +56,8 @@ public class SetupWizard extends Wizard {
 	protected ConfigureProxyPage configureProxyPage;
 //	protected AlreadyPscKeyPage alreadyPscKeyPage;
 	protected PscKeyValidationPage pscKeyValidationPage;
-	protected RegistrationPage registrationPage;
-	protected PscKeyPage pscKeyPage;
+//	protected RegistrationPage registrationPage;
+//	protected PscKeyPage pscKeyPage;
 	protected SummaryPage summaryPage;
 
 	protected ProxyManager proxyManager;
@@ -226,7 +226,8 @@ public class SetupWizard extends Wizard {
 		File pscFile = new File(Engine.USER_WORKSPACE_PATH, "studio/psc.txt");
 		try {
 			FileUtils.writeStringToFile(pscFile,
-					pscKeyPage.getCertificateKey(), "utf-8");
+//					pscKeyPage.getCertificateKey(), "utf-8");
+					pscKeyValidationPage.getCertificateKey(), "utf-8");
 		} catch (IOException e) {
 			ConvertigoPlugin.logError("Failed to write the PSC file: "
 					+ e.getMessage());
