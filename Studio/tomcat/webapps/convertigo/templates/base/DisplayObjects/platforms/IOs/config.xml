@@ -37,6 +37,8 @@
     <preference name="prerendered-icon"           value="true" />           <!-- ios: if icon is prerendered, iOS will not apply it's gloss to the app's icon on the user's home screen -->
     <preference name="detect-data-types"          value="true" />           <!-- ios: controls whether data types (such as phone no. and dates) are automatically turned into links by the system -->
     <preference name="exit-on-suspend"            value="false" />          <!-- ios: if set to true, app will terminate when home button is pressed -->
+    <preference name="webviewbounce"			  value="false" />			<!-- ios: Prevent WebView to Bounce  -->
+    
     
     <!-- To avoid app scrolling -->
 <!--    <preference name="DisallowOverscroll" value="true" /> -->
