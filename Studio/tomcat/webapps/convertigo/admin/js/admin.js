@@ -300,59 +300,54 @@ function loadWidget(widgetId, widgetOptions) {
 				$tmp.find(".widget_content_center").first().append(xml);
 				//Condition added by alexandret
 				//Get Url for each widgets to go to help informations
-				var urlHelp = "http://help.convertigo.com/" + engineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/";
-
+				var urlHelp = "http://www.convertigo.com/document/latest/operating-guide/using-convertigo-administration-console/";
 				switch (widgetId)
 				{
 					//home page
 					case "engine_GetStatus":
-						urlHelp += "412Homepage.html";
-						break;
 					case "engine_GetSystemInformation":
-						urlHelp += "412Homepage.html";
-						break;
 					case "engine_Monitor":
-						urlHelp += "412Homepage.html";
+						urlHelp += "general-presentation-of-the-administration-console/home-page/";
 						break;
 					//Configuration page
 					case "configuration_List":
-						urlHelp += "421Configurationpage.html";
+						urlHelp += "configuration/configuration-page/";
 						break;
 					//Connections page
 					case "connections_List":
-						urlHelp += "43Connections.html";
+						urlHelp += "connections/";
 						break;
 					//Projects page
 					case "projects_List":
-						urlHelp += "44Projects.html";
+						urlHelp += "projects/";
 						break;
 					//Certificates page
 					case "certificates_List":
-						urlHelp += "45Certificates.html";
+						urlHelp += "certificates/";
 						break;
 					//Logs page
 					case "logs_Show":
-						urlHelp += "46Logs.html";
+						urlHelp += "logs/";
 						break;
 					//Trace player page
 					case "trace_List":
-						urlHelp += "47TracePlayer.html";
+						urlHelp += "trace-player/";
 						break;
 					//Cache page
 					case "cache":
-						urlHelp += "48Cache.html";
+						urlHelp += "cache/";
 						break;
 					//Scheduler page
 					case "scheduler_ListTasks":
-						urlHelp += "491Schedulerpage.html";
+						urlHelp += "scheduler/scheduler-page/";
 						break;
 					//Keys page
 					case "keys_List":
-						urlHelp += "410Keys.html";
+						urlHelp += "keys/";
 						break;
 					//Symbols page
 					case "globalSymbols_List":
-						urlHelp += "411Globalsymbols.html";
+						urlHelp += "global-symbols/";
 						break;					
 				}
 				//show icon help button

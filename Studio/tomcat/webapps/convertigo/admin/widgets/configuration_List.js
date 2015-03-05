@@ -55,56 +55,56 @@ function configuration_List_init () {
 			}
 			
 			//Get Url for each widgets
-			var urlHelp = "http://help.convertigo.com/" + engineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/";
+			var urlHelp = "http://www.convertigo.com/document/latest/operating-guide/using-convertigo-administration-console/configuration/";
 			switch ($x_category.attr("name"))
 			{
 				case "Main":
-					urlHelp += "422Mainparameters.html";
+					urlHelp += "main-parameters/";
 					break;
 				case "Account":
-					urlHelp += "423Accounts.html";
+					urlHelp += "accounts/";
 					break;
 				case "Logs":
-					urlHelp += "424Logs.html";
+					urlHelp += "logs/";
 					break;
 				case "Context":
-					urlHelp += "425Realtimeactivitymonitoring.html";
+					urlHelp += "real-time-activity-monitoring/";
 					break;
 				case "XmlGeneration":
-					urlHelp += "426XMLgeneration.html";
+					urlHelp += "xml-generation/";
 					break;
 				case "XulRunner":
-					urlHelp += "427HTMLparser.html";
+					urlHelp += "html-parser/";
 					break;
 				case "HttpClient":
-					urlHelp += "428HTTPclient.html";
+					urlHelp += "http-client/";
 					break;
 				case "Network":
-					urlHelp += "429Network.html";
+					urlHelp += "network/";
 					break;
 				case "Proxy":
-					urlHelp += "4210Proxy.html";
+					urlHelp += "proxy/";
 					break;
 				case "SecurityToken":
-					urlHelp += "4211Securitytoken.html";
+					urlHelp += "security-token/";
 					break;
 				case "Ssl":
-					urlHelp += "4212SSL.html";
+					urlHelp += "ssl/";
 					break;
 				case "Cache":
-					urlHelp += "4213Cache.html";
+					urlHelp += "cache/";
 					break;
 				case "Carioca":
-					urlHelp += "4214LegacyCariocaportal.html";
+					urlHelp += "legacy-carioca-portal/";
 					break;
-				case "Billing":
-					urlHelp += "4215Analytics.html";
+				case "Analytics":
+					urlHelp += "analytics/";
 					break;
 				case "Notifications":
-					urlHelp += "4216Notifications.html";
+					urlHelp += "notifications/";
 					break;
 				case "MobileBuilder":
-					urlHelp += "4217Mobilebuilder.html";
+					urlHelp += "mobile-builder/";
 					break;
 			}
 
