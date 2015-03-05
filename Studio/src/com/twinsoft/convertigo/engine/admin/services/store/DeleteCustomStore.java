@@ -11,6 +11,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.enums.StoreFiles;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 
 @ServiceDefinition(
@@ -26,7 +27,7 @@ public class DeleteCustomStore extends XmlService {
 		Element message = document.createElement("message");
 		root.appendChild(message);
 		
-		File storeDirectory = new File(Engine.USER_WORKSPACE_PATH, "/store");
+		File storeDirectory = new File(Engine.USER_WORKSPACE_PATH, StoreFiles.STORE_DIRECTORY_NAME);
 		if (storeDirectory.exists()) {
 			FileUtils.deleteDirectory(storeDirectory);
 			message.setTextContent("The custom store has correctly been deleted.");

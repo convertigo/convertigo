@@ -1,6 +1,7 @@
 package com.twinsoft.convertigo.engine.admin.services.store;
 
 import java.io.File;
+import java.nio.file.Files;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -12,6 +13,8 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.UploadService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
+import com.twinsoft.convertigo.engine.enums.StoreFiles;
+import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 @ServiceDefinition(
@@ -39,11 +42,31 @@ public class UploadCustomStore extends UploadService {
 		super.doUpload(request, document, item);
 
 		final String STORE_ARCHIVE_PATH = getRepository() + storeArchive;
+		File tmpDir = new File(Files.createTempDirectory("tmp").toString());
+		File srcStoreDir = null;
 		try {
-			ZipUtils.expandZip(STORE_ARCHIVE_PATH, getRepository() + "store");
-		}
-		finally {
+			ZipUtils.expandZip(STORE_ARCHIVE_PATH, tmpDir.getCanonicalPath());
+			
+			try {
+				if (tmpDir.listFiles().length == 1) {
+					srcStoreDir = tmpDir.listFiles()[0];
+					String name = srcStoreDir.getName();
+
+					// Throw IllegalArgumentException if not exist
+					StoreFiles.valueOf(name.equals(StoreFiles.index.filename()) ? StoreFiles.index.name() : name);
+				}
+
+				srcStoreDir = tmpDir;
+			}
+			catch (IllegalArgumentException e) {
+				// keep srcStoreDir
+			}
+			
+			FileUtils.deleteDirectory(new File(getRepository(), StoreFiles.STORE_DIRECTORY_NAME));
+			srcStoreDir.renameTo(new File(Engine.USER_WORKSPACE_PATH, StoreFiles.STORE_DIRECTORY_NAME));
+		} finally {
 			new File(STORE_ARCHIVE_PATH).delete();
+			FileUtils.deleteDirectory(tmpDir);
 		}
 
 		String message = "The custom store has been successfully deployed.";

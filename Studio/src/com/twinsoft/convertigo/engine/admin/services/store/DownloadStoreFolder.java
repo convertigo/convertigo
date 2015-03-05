@@ -3,7 +3,6 @@ package com.twinsoft.convertigo.engine.admin.services.store;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -16,6 +15,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.DownloadService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceParameterDefinition;
+import com.twinsoft.convertigo.engine.enums.StoreFiles;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 @ServiceDefinition(
@@ -52,38 +52,34 @@ import com.twinsoft.convertigo.engine.util.ZipUtils;
 public class DownloadStoreFolder extends DownloadService {
 	@Override
 	protected void writeResponseResult(HttpServletRequest request, HttpServletResponse response) throws Exception {
-		List<String> parameters = getParameters();
-		String storePath = Engine.WEBAPP_PATH + "/WEB-INF/store/";
-		List<File> excludedFiles = getExcludedFiles(request, storePath, parameters);
+		String storePath = Engine.WEBAPP_PATH + "/WEB-INF/" + StoreFiles.STORE_DIRECTORY_NAME + "/";
+		List<File> excludedFiles = getExcludedFiles(request, storePath);
 		
 		// Check if at least one file is included
-		if (excludedFiles.size() < parameters.size()) {
-			File storeArchiveFile = File.createTempFile("store", ".zip");
+		if (excludedFiles.size() < StoreFiles.size()) {
+			File storeArchiveFile = File.createTempFile(StoreFiles.STORE_DIRECTORY_NAME, ".zip");
 			ZipUtils.makeZip(storeArchiveFile.getPath(), storePath, null, excludedFiles);
 	
 			FileInputStream archiveInputStream = null;
 			try {
 				archiveInputStream = new FileInputStream(storeArchiveFile);
 				
-				response.setHeader("Content-Disposition", "attachment; filename=" + "\"store.zip\"");
+				response.setHeader("Content-Disposition", "attachment; filename=" + "\"" + StoreFiles.STORE_DIRECTORY_NAME + ".zip\"");
 				response.setContentType("application/octet-stream");
 				IOUtils.copy(archiveInputStream, response.getOutputStream());	
 			}
 			finally {
-				storeArchiveFile.delete();
 				archiveInputStream.close();
+				storeArchiveFile.delete();
 			}
 		}
 	}
 	
-	private List<String> getParameters() {
-		return Arrays.asList("css", "fonts", "i18n", "images", "scripts", "index");
-	}
-	
-	private List<File> getExcludedFiles(HttpServletRequest request, String storePath, List<String> parameters) {
-		List<File> excludedFiles = new ArrayList<File>(parameters.size());
-		for (String parameter : parameters) {
-			String value = request.getParameter(parameter);
+	private List<File> getExcludedFiles(HttpServletRequest request, String storePath) {
+		List<File> excludedFiles = new ArrayList<File>(StoreFiles.size());
+		
+		for (StoreFiles parameter : StoreFiles.values()) {
+			String value = request.getParameter(parameter.name());
 			if (value == null || !value.equals("on")) {
 				addExcludedFile(excludedFiles, storePath, parameter);
 			}
@@ -92,7 +88,7 @@ public class DownloadStoreFolder extends DownloadService {
 		return excludedFiles;
 	}
 	
-	private void addExcludedFile(List<File> excludedFiles, String storePath, String parameter) {
-		excludedFiles.add(new File(storePath, parameter.equals("index") ? parameter + ".html" : parameter));
+	private void addExcludedFile(List<File> excludedFiles, String storePath, StoreFiles parameter) {
+		excludedFiles.add(new File(storePath, parameter.filename()));
 	}
 }
