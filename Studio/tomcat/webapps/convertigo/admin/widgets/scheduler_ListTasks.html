@@ -107,9 +107,11 @@
 			<td><label for="schedulerSequenceSelect">Sequence: </label></td>
 			<td><select name="sequence" id="schedulerSequenceSelect"></select></td>
 		</tr>   
+		
 		<tr class="schedulerNewTransactionConvertigoJob schedulerNewSequenceConvertigoJob">
 			<td>Parameters: </td>
 			<td>
+				<select id="schedulerRequestableAllParameters" style="display:none;"></select>
 				<table id="schedulerRequestableParameters">
 					<tr><th>Name</th><th>Value</th><th>Description</th><th>Send</th></tr>
 				</table>
@@ -180,7 +182,7 @@
 						<option value="?" selected="selected">any</option>
 						<option value="2">Monday</option>
 						<option value="3">Tuesday</option>
-						<option value="4">Wednsday</option>
+						<option value="4">Wednesday</option>
 						<option value="5">Thursday</option>
 						<option value="6">Friday</option>
 						<option value="7">Saturday</option>
@@ -201,11 +203,9 @@
 	<img class="schedulerElementDelete" src="images/convertigo-administration-picto-delete.png" title="Delete">
 	<table>
 		<tr class="schedulerRequestableParameterRow">
-<!-- 			<td class="schedulerRequestableParameterName">Name</td> -->
-<!-- 			<td><input type="text" class="schedulerRequestableParameterValue"></input></td> -->
 			<td>
 				<div class="single_valued value_text">
-					<input type="text" alt="" class="champ variable_value" value="..." />
+					<input type="text" alt="" class="champ variable_value" value="" />
 				</div>
 				<div class="single_valued value_password">
 					<input type="password" alt="" class="champ variable_value" />
@@ -239,7 +239,4 @@
 			<td><input title="Send value" type="checkbox" class="variable_enable" checked="checked" /></td>
 		</tr>
 	</table>
-	<select>
-		<option class="schedulerEmptyOption" value="">...</option>
-	</select>
 </div>

@@ -164,6 +164,13 @@ public class CreateScheduledElements extends XmlService {
 							parameters.put(para_name, values);
 //							}
 						}
+						
+						if (pname.equals("parameters")){
+							String value = request.getParameter(pname);
+							if (!value.equals("0")) {
+								parameters.put("__testcase", new String[]{ value });
+							}
+						}
 					}	
 					
 					acj.setParameters(parameters);

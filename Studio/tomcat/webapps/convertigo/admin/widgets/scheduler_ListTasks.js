@@ -153,12 +153,27 @@ function scheduler_ListTasks_init () {
 		if (projectName != null && projectName.length > 0) {
 			callService("projects.GetTestPlatform", function (xml) {
 				$last_project_xml = $(xml);
+
+				var project_xml = $last_project_xml.find("project");
+				var type = $("#schedulerDialogAddEntry").attr("window_type");
+				project_xml.each(function(){
+					var $elt = $(this);
+					var projName = $(this).attr("name");
+					if (type === "schedulerNewSequenceConvertigoJob") {	
+						if ($elt.find("> sequence").length == 0) {
+							$("#schedulerProjectSelect").find("option[value='" + projName + "']").remove();
+						}
+					} 
+				});
+				
 				$last_project_xml.find("project > connector").each(function () {
 					$connectorSelect.append($("<option/>").text($(this).attr("name")));			
 				});
+				
 				$last_project_xml.find("project > sequence").each(function () {
 					$sequenceSelect.append($("<option/>").text($(this).attr("name")));			
 				});
+				
 				if ($last_element_xml != null) {
 					var attr = $last_element_xml.attr("sequence");
 					if (typeof(attr) !== "undefined") {
@@ -171,15 +186,16 @@ function scheduler_ListTasks_init () {
 			},{projectName : projectName});		
 		} else {
 			$connectorSelect.change();	
+			$("#schedulerRequestableAllParameters").hide();
 		}
 	}).change();
 	
 	$("#schedulerConnectorSelect").change(function(){			
 		var connectorName = $(this).val();
-		
 		var $transactionSelect = $("#schedulerTransactionSelect");
 		
 		$transactionSelect.hide().empty().append($("#schedulerTemplate .schedulerEmptyOption").clone());
+		$("#schedulerRequestableParameters").empty();
 		
 		if (connectorName != null && connectorName.length > 0) {
 			$last_project_xml.find("project > connector[name=" + connectorName + "] > transaction").each(function () {
@@ -194,68 +210,120 @@ function scheduler_ListTasks_init () {
 	}).change();
 	
 	$("#schedulerTransactionSelect, #schedulerSequenceSelect").change(function () {
-		// test visibility in case of edition because this handler is launch for sequence and transaction select
-		if ($last_element_xml === null || $(this).is(":visible")) {
-			var requestableName = $(this).val();
-			var $requestableParameters = $("#schedulerRequestableParameters");
-			
-			$requestableParameters.hide().find("tr").has("td").remove();
-			
-			if (requestableName != null && requestableName.length > 0) {
-				var $requestable = (($(this).attr("id") === "schedulerTransactionSelect") ?
+		var elementName = $(this).val();
+		var isVisible = $(this).is(":visible");
+				
+		if ($last_project_xml !== null && $last_project_xml !== undefined && isVisible) {
+			var $requestable = (($(this).attr("id") === "schedulerTransactionSelect") ?
 					$last_project_xml.find("project > connector[name=" + $("#schedulerConnectorSelect").val() + "] > transaction") :
-					$last_project_xml.find("project > sequence")).filter("[name=" + requestableName + "]");
-				
-				$requestable.find("> variable").each(function () {
-					var $variable = $(this);
-					var isMasked = $variable.attr("isMasked") === "true";
-					var isMultiValued = $variable.attr("isMultivalued") === "true";
-					var isFileUpload = $variable.attr("isFileUpload") === "true";
-					
-					var $variable_div = $("#schedulerTemplate .variable").clone();
-					$variable_div.find(".variable_name").text($variable.attr("name")).attr("title", $variable.attr("comment"));	
-					$variable_div.find(".variable_desc").text($variable.attr("description"));	
-					
-					var $variable_type = $variable_div.find(".variable_type").data({
-						name : $variable.attr("name"),
-						isMultiValued : isMultiValued,
-						isMasked : isMasked,
-						isFileUpload : isFileUpload
-					});
-					
-					if (isMultiValued) {
-						var values_array = parseJSONarray($variable.attr("value"));
-						$variable_type.append($("#schedulerTemplate .multi_valued").clone());
-						
-						if ($last_element_xml !== null) {
-							$last_element_xml.find("> parameter[name='" + $variable.attr("name") + "']").each(function () {
-								var $param = $(this);								
-								$param.find("> value").each(function(){
-									var $value = $(this);
-									$variable_value_type = $("#schedulerTemplate .new_multi_valued").filter(isFileUpload ? ".value_file" : isMasked ? ".value_password" : ".value_text").clone();
-									$variable_value_type.find(".variable_value").attr("ismultivalued", "true").attr("name", "requestable_parameter_" + $variable.attr("name")).not("[type=file]").val($value.text());
-									$variable_type.append($variable_value_type);
-								});
-							});
-						}
-						
-					} else {
-						var $variable_value_type = $("#schedulerTemplate .single_valued").filter(isFileUpload ? ".value_file" : isMasked ? ".value_password" : ".value_text").clone();
-						var value = "";
-						if ($last_element_xml.find("> parameter[name='" + $variable.attr("name") + "']").has("value")) {
-							value = $last_element_xml.find("> parameter[name='" + $variable.attr("name") + "']").find("> value").text();
-						}
-						
-						$variable_value_type.find(".variable_value").attr("name", "requestable_parameter_" + $variable.attr("name")).not("[type=file]").val(value);
-						$variable_type.append($variable_value_type);
-					}
+					$last_project_xml.find("project > sequence")).filter("[name=" + elementName + "]");
 
-					$requestableParameters.append($variable_div);
+			$("#schedulerRequestableAllParameters").empty();
+			$("#schedulerRequestableParameters").empty();
+			
+			if ($requestable.find("> variable").length > 0) {
+				$("#schedulerRequestableAllParameters").attr("name", "parameters").show();
+				$("#schedulerRequestableAllParameters").append("<option name='custom' value='0'>Custom parameters</option>");
+			} else {
+				$("#schedulerRequestableAllParameters").hide();
+				$("#schedulerRequestableParameters").hide();
+			}
+			
+			if ($requestable.find("> testcase").length > 0) {
+				$requestable.find("> testcase").each(function () {
+					var testcase = $(this).attr('name');
+					$("#schedulerRequestableAllParameters").append("<option name='__testcase' value='" + 
+							testcase +  "'>Test case: " + testcase +  "</option>");
 				});
-				
-				$requestableParameters.show();	
+			} 
+			if ($last_element_xml !== null && $last_element_xml !== undefined) {
+				var testcase = $last_element_xml.find("parameter[name='__testcase'] > value");
+				if (testcase.length == 1 ){
+					$("#schedulerRequestableAllParameters").val(testcase.text()).change();
+				} else {
+					$("#schedulerRequestableAllParameters").val("0").change();
+				}
+			} else {
+				$("#schedulerRequestableAllParameters").val("0").change();
 			}
 		}
+	}).change();
+	
+	$("#schedulerRequestableAllParameters").change(function(){
+		var option = $(this).val();
+		var isVisible = $(this).is(":visible");
+		
+		if (option == "0" && isVisible) {
+			
+			// test visibility in case of edition because this handler is launch for sequence and transaction select
+			if ($last_element_xml === null || isVisible) {
+				
+				var $requestable = ( $("#schedulerTransactionSelect").is(":visible") ?
+						$last_project_xml.find("project > connector[name=" + $("#schedulerConnectorSelect").val() + "] > transaction[name=" + $("#schedulerTransactionSelect").val() + "]") :
+						$last_project_xml.find("project > sequence[name=" + $("#schedulerSequenceSelect").val() + "]") );
+				
+				var $requestableParameters = $("#schedulerRequestableParameters");
+				$requestableParameters.hide().find("tr").has("td").remove();
+				
+				if ($requestable.find("> variable").length > 0) {
+					
+					$requestable.find("> variable").each(function () {
+						var $variable = $(this);
+						var isMasked = $variable.attr("isMasked") === "true";
+						var isMultiValued = $variable.attr("isMultivalued") === "true";
+						var isFileUpload = $variable.attr("isFileUpload") === "true";
+						
+						var $variable_div = $("#schedulerTemplate .variable").clone();
+						$variable_div.find(".variable_name").text($variable.attr("name")).attr("title", $variable.attr("comment"));	
+						$variable_div.find(".variable_desc").text($variable.attr("description"));	
+						
+						var $variable_type = $variable_div.find(".variable_type").data({
+							name : $variable.attr("name"),
+							isMultiValued : isMultiValued,
+							isMasked : isMasked,
+							isFileUpload : isFileUpload
+						});
+						
+						if (isMultiValued) {
+							var values_array = parseJSONarray($variable.attr("value"));
+							$variable_type.append($("#schedulerTemplate .multi_valued").clone());
+							
+							if ($last_element_xml !== null) {
+								$last_element_xml.find("> parameter[name='" + $variable.attr("name") + "']").each(function () {
+									var $param = $(this);								
+									$param.find("> value").each(function(){
+										var $value = $(this);
+										$variable_value_type = $("#schedulerTemplate .new_multi_valued").filter(isFileUpload ? ".value_file" : isMasked ? ".value_password" : ".value_text").clone();
+										$variable_value_type.find(".variable_value").attr("ismultivalued", "true").attr("name", "requestable_parameter_" + $variable.attr("name")).not("[type=file]").val($value.text());
+										$variable_type.append($variable_value_type);
+									});
+								});
+							}
+							
+						} else {
+							var $variable_value_type = $("#schedulerTemplate .single_valued").filter(isFileUpload ? ".value_file" : isMasked ? ".value_password" : ".value_text").clone();
+							if ($last_element_xml !== null) {
+								var value = "";
+								if ($last_element_xml.find("> parameter[name='" + $variable.attr("name") + "']").has("value")) {
+									value = $last_element_xml.find("> parameter[name='" + $variable.attr("name") + "']").find("> value").text();
+								}
+								$variable_value_type.find(".variable_value").attr("name", "requestable_parameter_" + $variable.attr("name")).not("[type=file]").val(value);
+							}
+							
+							$variable_type.append($variable_value_type);
+						}
+
+						$requestableParameters.append($variable_div);
+					});
+				} 
+				
+				$requestableParameters.show();	
+				
+			}
+		} else {
+			$("#schedulerRequestableParameters").hide();
+		}
+		
 		$(".link_value_remove").on("click", function () {
 			var $requestable = $(this).parents(".requestable");
 			$(this).parents(".new_multi_valued").remove();
@@ -323,6 +391,7 @@ function display_editor (optTitle, id) {
 	//activate the variable part
 	$("." + id).show();	
 	$("#schedulerDialogAddEntry").data("openner", id).dialog({ title: optTitle });
+	$("#schedulerDialogAddEntry").attr("window_type", id);
 	$("#schedulerDialogAddEntry").data("openner", id).dialog("open");
 }
 
@@ -377,7 +446,7 @@ function scheduler_ListTasks_update () {
 			$("#schedulerNewScheduledJob").button("disable");
 		}
 	});
-
+	
 	var $select = $("#schedulerProjectSelect");
 	$select.empty().append($("#schedulerTemplate .schedulerEmptyOption").clone());
 	callService("projects.List", function (xml) {
