@@ -2,31 +2,14 @@ $.extend(true, C8O, {
 	init_vars: {
 		fs_server: "http://127.0.0.1:5984",
 		fs_username: null,
-		fs_password: null,
-		fullsync_localdatabases: []
+		fs_password: null
+	},
+	
+	vars: {
+		fs_default_db: null
 	},
 	
 	_define: {
-		init_wait: [function (params) {
-		    C8O.log.info("c8o.fs  : initializing FullSync");
-
-		    if (typeof PouchDB != "undefined") {
-				$.extend(true, C8O._fs, C8O._pouch);
-			}
-		    C8O._fs.server = C8O.init_vars.fs_server;
-		    C8O._fs.remote = C8O._define.convertigo_path + "/fullsync"
-		    
-		    if (C8O.init_vars.fs_username != null && C8O.init_vars.fs_password != null) {
-		    	C8O._fs.auth = {
-		    		"Authorization":
-		    		"Basic " + btoa(C8O.init_vars.fs_username + ":" + C8O.init_vars.fs_password)
-		    	};
-		    	delete C8O.init_vars.fs_username;
-		    	delete C8O.init_vars.fs_password;
-		    }
-		    
-		    C8O._init(params);
-		}],
 		re_fs_match_db: new RegExp("^fs://([^/]*)"),
 		re_fs_parse_headers: new RegExp("^\\s*(.*?): (.*)"),
 		re_fs_get_policy: new RegExp("^post(?:_(.*))?")
@@ -34,18 +17,22 @@ $.extend(true, C8O, {
 	
 	_pouch: {
 		dbs: {},
+		
 		handle: function (err, doc, callback) {
 			callback(doc);
 		},
+		
 		getDb: function (db) {
 			return C8O._pouch.dbs[db] ? C8O._pouch.dbs[db] : (C8O._pouch.dbs[db] = new PouchDB(db));
 		},
+		
 		getAllDocs: function (db, callback) {
 			var options = {};
 			C8O._pouch.getDb(db).allDocs(options, function (err, doc) {
 				C8O._pouch.handle(err, doc, callback);
 			});
 		},
+		
 		getDocument: function (db, docId, docRev, callback) {
 			var options = {};
 			if (docRev) {
@@ -55,18 +42,42 @@ $.extend(true, C8O, {
 				C8O._pouch.handle(err, doc, callback);
 			});
 		},
+		
+		getDocumentRev: function (db, docId, callback) {
+			C8O._pouch.getDb(db).get(docId, options, function (err, doc) {
+				callback(doc._rev);
+			});
+		},
+		
 		postDocument: function (db, document, policy, callback) {
 			var options = {};
 			C8O._pouch.getDb(db).post(document, options, function (err, doc) {
 				C8O._pouch.handle(err, doc, callback);
 			});
 		},
+		
+		deleteDocument: function (db, docId, docRev, callback) {
+			var options = {};
+			var addDocRev = function (docRev) {
+				C8O._pouch.getDb(db).remove(docId, docRev, options, function (err, doc) {
+					C8O._pouch.handle(err, doc, callback);
+				});
+			}
+			
+			if (!docRev) {
+				C8O._pouch.getDocumentRev(db, docId, addDocRev);
+			} else {
+				addDocRev(docRev);
+			}
+		},
+		
 		getView: function (db, docId, viewName, options, callback) {
 			var view = docId.substring(docId.indexOf("/") + 1) + "/" + viewName;
 			C8O._pouch.getDb(db).query(view, options, function (err, doc) {
 				C8O._pouch.handle(err, doc, callback);
 			});
 		},
+		
 		postReplicate: function (source, target, create_target, continuous, cancel, callback) {
 			var options = {};
 			PouchDB.replicate(C8O._pouch.getDb(source), C8O._pouch.getDb(target), options).on("complete", function (info) {
@@ -88,6 +99,12 @@ $.extend(true, C8O, {
 		
 		putDatabase: function (db, callback) {
 			var request = {type: "PUT", url: C8O._fs.getDatabaseUrl(db)};
+			
+			C8O._fs.execute(request, callback);
+		},
+		
+		getAllDocs: function (db, callback) {
+			var request = {type: "GET", url: C8O._fs.getDatabaseUrl(db) + "/_all_docs"};
 			
 			C8O._fs.execute(request, callback);
 		},
@@ -291,27 +308,53 @@ $.extend(true, C8O, {
 	},
 	
 	fs_replicate: function (db, continuous, callback) {
+		db = db || C8O.vars.fs_default_db;
 		C8O.fs_update_device(db, continuous, callback);
 		C8O.fs_update_remote(db, continuous, callback);
 	},
 	
 	fs_update_device: function (db, continuous, callback) {
+		db = db || C8O.vars.fs_default_db;
 		continous = continuous || false;
 		
 		C8O._fs.postReplicate(C8O._fs.remote + "/" + db, db + "_device", true, continuous, false, callback);
 	},
 	
 	fs_update_remote: function (db, continuous, callback) {
+		db = db || C8O.vars.fs_default_db;
 		continous = continuous || false;
 		
 		C8O._fs.postReplicate(db + "_device", C8O._fs.remote + "/" + db, false, continuous, false, callback);
 	}
 });
 
+C8O._init.locks.fullsync = true;
+C8O._init.tasks.push(function () {
+    C8O.log.info("c8o.fs  : initializing FullSync");
+
+    if (C8O.isDefined(window.PouchDB)) {
+        C8O.log.info("c8o.fs  : using PouchDB for FullSync");
+		$.extend(true, C8O._fs, C8O._pouch);
+	}
+    
+    C8O._fs.server = C8O.init_vars.fs_server;
+    C8O._fs.remote = C8O._define.convertigo_path + "/fullsync";
+    
+    if (C8O.init_vars.fs_username != null && C8O.init_vars.fs_password != null) {
+    	C8O._fs.auth = {
+    		"Authorization":
+    		"Basic " + btoa(C8O._remove(C8O.init_vars, "fs_username") + ":" + C8O._remove(C8O.init_vars, "fs_password"))
+    	};
+    }
+    
+    delete C8O._init.locks.fullsync;
+    C8O._init.check();
+});
+
 C8O.addHook("call", function (data) {
 	var db;
 	if ((db = C8O._define.re_fs_match_db.exec(data.__project)) != null) {
-		db = db[1] + "_device";
+		db = (db[1] ? db[1] : C8O.vars.fs_default_db) + "_device";
 		C8O.log.debug("c8o.fs  : database used '" + db + "'");
 		
 		var callback = function (json) {

@@ -225,26 +225,6 @@ $.extend(true, C8O, {
         return false;
     },
     
-    _desk_init: C8O._init,
-    _init: function (params) {
-        var value;
-        if (value = C8O._remove(params, "__container")) {
-            C8O.log.debug("c8o.desk: detect container " + value);
-            
-            if (value == "gatein") {
-                C8O._getScript(C8O._define.plugins_path + "gatein.js", function () {
-                    C8O._init_gatein(params);
-                });
-            } else if (value == "standalone" || value == "sharepoint") {
-                C8O._getScript(C8O._define.plugins_path + "standalone.js", function () {
-                    C8O._init_standalone(params);
-                });
-            }
-        } else {
-            C8O._desk_init(params);
-        }
-    },
-    
     _onCallSuccess: function (xml, status, jqXHR) {
         if (C8O.vars.xsl_side == "server") {
             C8O.log.debug("c8o.desk: receive xsl server response as text");
@@ -319,7 +299,7 @@ $.extend(true, C8O, {
                 testplatform = (testplatform == null) ? C8O.init_vars.testplatform : (C8O.init_vars.testplatform = testplatform);
                 
                 if ("false" == testplatform || ("auto" == testplatform && !$.isEmptyObject(params))) {
-                    C8O._init(params);
+                    C8O._init.check(params);
                 } else {
                     loc.href = base + "/project.html#" + C8O._define.project;
                 }
@@ -386,6 +366,27 @@ $.extend(true, C8O, {
         } else {
             C8O._fillBody(xml.transformNode(xsl));
         }
+    }
+});
+
+C8O._init.tasks.push(function (params) {
+    var value;
+    if (value = C8O._remove(params, "__container")) {
+        C8O.log.debug("c8o.desk: detect container " + value);
+        
+        if (value == "sharepoint") {
+        	value = "standalone";
+        }
+        
+        if (value == "standalone" || value == "gatein") {
+            C8O._getScript(C8O._define.plugins_path + value + ".js", function () {
+            	C8O._init.check(params);
+            });
+        } else {
+        	C8O._init.check(params);
+        }
+    } else {
+        C8O._init.check(params);
     }
 });
 

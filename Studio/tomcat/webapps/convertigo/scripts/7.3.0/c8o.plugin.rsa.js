@@ -19,8 +19,10 @@
  * $Revision$
  * $Date$
  */
+C8O._init.locks.rsa = true;
 
-C8O._init_rsa = function (params) {
+C8O._init.tasks.push(function () {
+	
     C8O.addHook("_call_rsa", function (data) {
         C8O.log.trace("c8o.core: make RSA encryption");
         return {__encoded: encrypt("ts=" + new Date().getTime() + "&" + $.param(data), C8O._define.publickey)};
@@ -32,11 +34,13 @@ C8O._init_rsa = function (params) {
         success: function (text) {
             var split = text.split('|');
             C8O._define.publickey = setKeyPair(split[0], split[1], split[2]);
-            C8O._init(params);
+            
+            delete C8O._init.locks.rsa;
+            C8O._init.check();
         },
         url: window.location.href.replace(new RegExp("/projects/.*"), "/rsa/publickey")
     });
-}
+});
 
 /*
 * jCryption JavaScript data encryption v1.1

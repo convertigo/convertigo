@@ -20,7 +20,7 @@
  * $Date$
  */
 
-C8O._init_gatein = function (params) {
+C8O._init.tasks.push(function (params) {
     var retryIt = function (retry, func) {
         try {
             func();
@@ -110,7 +110,7 @@ C8O._init_gatein = function (params) {
             // maybe due to cross-domain issue
         }
         
-        C8O._init(params);
+        C8O._init.check(params);
     }
     
     // fullscreen code introduced by #1734 - Zoom feature without reload for our gadgets in GateIn
@@ -147,4 +147,4 @@ C8O._init_gatein = function (params) {
     } catch (e) {
         // resize failed, maybe due to cross-domain issue
     }
-}
+});

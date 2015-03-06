@@ -37,7 +37,6 @@ $.extend(true, C8O, {
     _define: {
         re_accumulate_mode: new RegExp("^(?:(append)|(prepend)|(.*?))$"), // 1: append ; 2: preprend ; 3: replacel
         re_call_mode: new RegExp("^(?:(click)|(auto)|(?:(timer:)(.*)))$"), // 1: click ; 2: auto ; 3: timer ; 4: seconds for timer
-        re_requestable: new RegExp("^([^.]*)\\.(?:([^.]+)|(?:([^.]+)\\.([^.]+)))$"), // 1: project ; 2: sequence ; 3: connector ; 4: transaction > 1+2 | 1+3+4
         re_split_comma_trim: new RegExp("\\s*,\\s*"),
         /**
          * Reg exp selector for templating engine
@@ -323,20 +322,9 @@ $.extend(true, C8O, {
         C8O.log.trace("ctf.core: data-c8o-call " + c8oCall);
         
         if (c8oCall) {
-            var c8oCallParams = {};
-            var matches = c8oCall.match(C8O._define.re_requestable);
+            var c8oCallParams = C8O._parseRequestable(c8oCall);
             
-            if (matches != null) {
-                if (matches[1].length) {
-                    c8oCallParams["__project"] = matches[1];
-                }
-                if (C8O.isDefined(matches[2])) {
-                    c8oCallParams["__sequence"] = matches[2];
-                } else {
-                    c8oCallParams["__connector"] = matches[3];
-                    c8oCallParams["__transaction"] = matches[4];
-                }
-            } else {
+            if (c8oCallParams == null) {
                 C8O.log.error("ctf.core: data-c8o-call '" + c8oCall + "' is not valid");
                 return false;
             }

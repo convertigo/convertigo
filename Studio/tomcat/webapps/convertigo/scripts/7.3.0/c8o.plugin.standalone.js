@@ -20,7 +20,7 @@
  * $Date$
  */
 
-C8O._init_standalone = function (params) {
+C8O._init.tasks.push(function (params) {
     var $common = $(window.frameElement).closest("body");
     if (typeof(window.frameElement.ownerDocument.C8O_mashup) === "undefined") {
         window.frameElement.ownerDocument.C8O_mashup = {};
@@ -67,6 +67,6 @@ C8O._init_standalone = function (params) {
         
         C8O.ro_vars.widget_name = widget_name;
         
-        C8O._init(params);
+        C8O._init.check(params);
     }
-}
+});

@@ -80,7 +80,26 @@ C8O = {
         }
     },
     
-    call: function (data) {
+    call: function (requestable, data) {
+    	if (typeof(requestable) == "string") {
+    		 var reqData = C8O._parseRequestable(requestable);
+    		 
+    		 if (reqData == null) {
+    			 data = requestable;
+    		 }
+    		 
+    		 if (typeof(data) == "string") {
+    			 C8O.log.trace("c8o.core: call parse string data '" + data + "'");
+    			 data = C8O._parseQuery({}, data);
+    		 }
+    		 
+    		 if (reqData != null) {
+    			 data = $.extend(reqData, data);
+    		 }
+    	} else {
+    		data = requestable;
+    	}
+    	
         var key;
         if (C8O.canLog("info")) {
             C8O.log.info("c8o.core: call: " + C8O.toJSON(data));
@@ -89,10 +108,7 @@ C8O = {
         C8O.log.trace("c8o.core: call show wait div");
         C8O.waitShow();
         
-        if (typeof(data) == "string") {
-            C8O.log.trace("c8o.core: call parse string data '" + data + "'");
-            data = C8O._parseQuery({}, data);
-        } else if (C8O.isUndefined(data)) {
+        if (C8O.isUndefined(data)) {
             C8O.log.trace("c8o.core: call without data");
             data = {};
         } else if (!$.isPlainObject(data) && $(data).is("form")) {
@@ -418,8 +434,10 @@ C8O = {
         recall_params: {__context: "", __connector: ""},
         re_format_time: new RegExp(" *(\\d*?)([\\d ]{4})((?:\\.[\\d ]{3})|(?: {4})) *"), // replace by "$1$2$3"
         re_i18n: new RegExp("__MSG_(.*?)__"),
+        re_not_normalized: new RegExp("[^a-zA-Z0-9_]", "g"),
         re_plus: new RegExp("\\+", "g"),
         re_project: new RegExp("/projects/([^/]+).*"),
+        re_requestable: new RegExp("^([^.]*)\\.(?:([^.]+)|(?:([^.]+)\\.([^.]+)))$"), // 1: project ; 2: sequence ; 3: connector ; 4: transaction > 1+2 | 1+3+4
         start_time: new Date().getTime(),
         uid: Math.round((new Date().getTime() * Math.random())).toString(36)
     },
@@ -666,26 +684,30 @@ C8O = {
         return ret;
     },
     
-    _init: function (params) {
-        var value = C8O._remove(params, "__enc");
-        if (C8O.isDefined(value)) {
-            C8O.log.trace("c8o.core: switch request encryption " + value);
-            C8O.init_vars.enc = value;
-        }
-        if (C8O.init_vars.enc == "true" && C8O.isUndefined(C8O._define.publickey)) {
-            C8O.log.debug("c8o.core: request encryption enabled");
-            
-            if (C8O.isUndefined(C8O._init_rsa)) {
-                C8O._getScript(C8O._define.plugins_path + "rsa.js", function () {
-                    C8O._init_rsa(params);
-                });
-            } else {
-                C8O._init_rsa(params);
-            }
-        } else {
-            if (C8O._define.init_wait.length > 0) {
-                C8O._define.init_wait.pop().call(this, params);
-            } else {
+    _init: {
+    	tasks: [],
+    	locks: {},
+    	params: null,
+    	done: false,
+    	check: function (params) {
+    		if (C8O.isDefined(params)) {
+    			C8O._init.params = params;
+    		} else {
+    			params = C8O._init.params;
+    		}
+    		
+    		if (C8O._init.done) {
+    			C8O.log.debug("c8o.core: init already done!");
+    		} else if (C8O._init.tasks.length) {
+    			var ret;
+    			do {
+	    			var fun = C8O._init.tasks.shift();    			
+	    			if (ret = (fun.call(this, params) === true && C8O._init.tasks.length)) {
+	    				C8O._init.tasks.push(fun);
+	    			}
+    			} while(ret);
+    		} else	if ($.isEmptyObject(C8O._init.tasks.locks)) {
+    			C8O._init.done = true;
                 C8O._define.connector = params.__connector;
                 C8O._define.context = params.__context;
     
@@ -698,8 +720,10 @@ C8O = {
                     C8O.log.trace("c8o.core: hide the initial wait div");
                     C8O.waitHide();
                 }
-            }
-        }
+    		} else {
+    			C8O.log.debug("c8o.core: init not finish, remains locks: " + C8O.toJSON(C8O._init.locks));
+    		}
+    	}
     },
     
     _jsonToXml: function (key, json, parentElement) {
@@ -726,7 +750,13 @@ C8O = {
     			parentElement.appendChild(att);
     			C8O._jsonToXml(undefined, json, att);
     		} else {
-    			var child = parentElement.ownerDocument.createElement(key);
+    			var child;
+    			try {
+    				child = parentElement.ownerDocument.createElement(key);
+    			} catch (e) {
+    				key = key.replace(C8O._define.re_not_normalized, "_");
+    				child = parentElement.ownerDocument.createElement(key);
+    			}
     			parentElement.appendChild(child);
     			C8O._jsonToXml(undefined, json, child);
     		}
@@ -1055,7 +1085,7 @@ C8O = {
     
     _onDocumentReady: function (params) {
         if (C8O._hook("document_ready", params)) {
-            C8O._init(params);
+            C8O._init.check(params);
         };
     },
     
@@ -1085,6 +1115,26 @@ C8O = {
             }
         }
         return data;
+    },
+    
+    _parseRequestable: function (requestable) {
+         var matches = requestable.match(C8O._define.re_requestable);
+         
+         if (matches != null) {
+    		 var data = {};
+             if (matches[1].length) {
+            	 data.__project = matches[1];
+             }
+             if (C8O.isDefined(matches[2])) {
+            	 data.__sequence = matches[2];
+             } else {
+            	 data.__connector = matches[3];
+            	 data.__transaction = matches[4];
+             }
+             return data;
+         } else {
+             return null;
+         }
     },
     
     _remove: function (object, attribute) {
@@ -1120,6 +1170,25 @@ $.ajaxSetup({
     dataType: "xml"
 });
 C8O.addRecallParameter("__uid", C8O._define.uid);
+
+C8O._init.tasks.push(function (params) {
+	var value = C8O._remove(params, "__enc");
+	
+    if (C8O.isDefined(value)) {
+        C8O.log.trace("c8o.core: switch request encryption " + value);
+        C8O.init_vars.enc = value;
+    }
+    
+    if (C8O.init_vars.enc == "true" && !C8O._init.locks.rsa) {
+        C8O.log.debug("c8o.core: request encryption enabled");
+        
+        C8O._getScript(C8O._define.plugins_path + "rsa.js", function () {
+        	C8O._init.check(params);
+        });
+    } else {
+        C8O._init.check(params);    	
+    }
+});
 
 (function () {
     var start = function(){
