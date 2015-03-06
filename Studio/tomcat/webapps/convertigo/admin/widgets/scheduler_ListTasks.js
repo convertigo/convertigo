@@ -39,9 +39,8 @@ var $empty_element_xml = $("<element/>")
 	.attr("project", "");
 var setting_order = ["name", "enabled", "description", "jobName", "scheduleName", "serial", "writeOutput", "cron", "context", "project"];
 
-
-
 function scheduler_ListTasks_init () {
+	
 	////////////////////////////////////////HELP MANAGEMENT//////////////////////////////////
 	$("#helpJobs").attr("href", getHelpUrl("jobs-table/"));
 	$("#helpSchedules").attr("href", getHelpUrl("schedules-table/"));
@@ -82,6 +81,63 @@ function scheduler_ListTasks_init () {
 				align : "center",
 				sortable : false,
 				width : 10
+		} ],
+		ignoreCase : true,
+		autowidth : true,
+		viewrecords : true,
+		height : "auto",
+		sortable : true,
+		pgbuttons : false,
+		pginput : false,
+		toppager : false,
+		emptyrecords : "No element to display",
+		altRows : true,	
+		rowNum: '1000000'
+	});
+
+	
+	$(".scheduledTableDataCron").jqGrid({
+		datatype : "local",
+		colNames : ["Enabled", "Name", "Description", "Info", "Next", "Edit", "Delete"],
+		colModel : [ {
+				name : "enabled",
+				index : "enabled",					
+				align : "center",
+				width : 10			
+			}, {
+				name : "name",
+				index : "name",					
+				align : "left",
+				width : 20
+			}, {
+				name : "description",
+				index : "description",
+				align : "left",
+				width : 30
+			}, {
+				name : "info",
+				index : "info",
+				align : "center",
+				width : 20
+			}, {
+				name : "next",
+				classes : "nextCron",
+				index : "next",
+				align : "center",
+				sortable : false,
+				width : 20
+			}, {
+				name : "edit",
+				index : "edit",
+				align : "center",
+				sortable : false,
+				width : 8
+			}, {
+				name : "remove",
+				index : "remove",
+				align : "center",
+				sortable : false,
+				width : 8
 		} ],
 		ignoreCase : true,
 		autowidth : true,
@@ -138,7 +194,7 @@ function scheduler_ListTasks_init () {
 		$("#schedulerDialogNameField").val($("#schedulerDialogJobNameField").val()+"@"+$("#schedulerDialogScheduleNameField").val());
 	});
 	
-	
+
 
 	//////////////////////FILLING THE PROJECT/CONTEXT/SEQUENCE/TRANSACTION FIELDS//////////////////////////////////////////
 	
@@ -315,31 +371,35 @@ function scheduler_ListTasks_init () {
 
 						$requestableParameters.append($variable_div);
 					});
+					
+					$(".link_value_add").on("click", function(){
+						var $variable_type = $(this).parents(".variable_type");
+						var $variable_multi_new = $("#schedulerTemplate .new_multi_valued").filter($variable_type.data("isFileUpload") ? ".value_file" : $variable_type.data("isMasked") ? ".value_password" : ".value_text").clone();
+						$variable_multi_new.find(".variable_value").attr("name", "requestable_parameter_" + $variable_type.data("name")).attr("ismultivalued", "true").val("").change(function () {
+							$(this).parents(".requestable").find("a.requestable_link").each(setLinkForRequestable);
+						}).change();
+						
+						$variable_type.append($variable_multi_new);
+						
+						$(".link_value_remove").on("click", function () {
+							var $requestable = $(this).parents(".requestable");
+							$(this).parents(".new_multi_valued").remove();
+							$requestable.find("a.requestable_link").each(setLinkForRequestable);
+							return false;
+						});
+						
+						return false;
+					});
+					
 				} 
 				
 				$requestableParameters.show();	
-				
 			}
 		} else {
 			$("#schedulerRequestableParameters").hide();
 		}
 		
-		$(".link_value_remove").on("click", function () {
-			var $requestable = $(this).parents(".requestable");
-			$(this).parents(".new_multi_valued").remove();
-			$requestable.find("a.requestable_link").each(setLinkForRequestable);
-			return false;
-		});
-		
-		$(".link_value_add").on("click", function(){
-			var $variable_type = $(this).parents(".variable_type");
-			var $variable_multi_new = $("#schedulerTemplate .new_multi_valued").filter($variable_type.data("isFileUpload") ? ".value_file" : $variable_type.data("isMasked") ? ".value_password" : ".value_text").clone();
-			$variable_multi_new.find(".variable_value").attr("name", "requestable_parameter_" + $variable_type.data("name")).attr("ismultivalued", "true").val("").change(function () {
-				$(this).parents(".requestable").find("a.requestable_link").each(setLinkForRequestable);
-			}).change();
-			$variable_type.append($variable_multi_new);
-			return false;
-		});
+
 	}).change();
 	
 	//////////////////////////////////////////////////////CRON WIZARD////////////////////////////
@@ -396,10 +456,10 @@ function display_editor (optTitle, id) {
 }
 
 function scheduler_ListTasks_update () {
-	$(".scheduledTableData").each(function () {
+	$(".scheduledTableData, .scheduledTableDataCron").each(function () {
 		$(this).jqGrid('clearGridData');	
 	});
-	
+
 	$(".schedulerSelect").empty();
 		
 	callService("scheduler.List", function (xml) {
@@ -410,25 +470,57 @@ function scheduler_ListTasks_update () {
 			var category = $element.attr("category");
 			var name = $element.attr("name");
 			var enabled = ("true" === $element.attr("enabled"));
-			var row = {
-				enabled : htmlCode($("#schedulerTemplate .schedulerElement" + (enabled ? "Enabled" : "Disabled"))),
-				name : htmlEncode(name),
-				description : $element.attr("description"),
-				info : $element.attr("info"),
-				edit : htmlCode($("#schedulerTemplate .schedulerElementEdit")),
-				remove : htmlCode($("#schedulerTemplate .schedulerElementDelete"))
+			var row;
+			if (category === "schedules") {
+				var firstCron = "";
+				var allCrons = "";
+				callService("scheduler.CronCalculator", function (xml) {
+					var iter = 0;
+					$(xml).find("crons > nextTime").each(function () {
+						if (iter === 0) {
+							firstCron = $(this).text();
+						}
+						allCrons += ((iter+1) < 10 ? "0"+(iter+1)+" :  " : (iter+1)+" :  ") + $(this).text() + "\n";
+						iter++;
+					});
+					
+					row = {
+						enabled : htmlCode($("#schedulerTemplate .schedulerElement" + (enabled ? "Enabled" : "Disabled"))),
+						name : htmlEncode(name),
+						description : $element.attr("description"),
+						info : $element.attr("info"),
+						next : firstCron,
+						edit : htmlCode($("#schedulerTemplate .schedulerElementEdit")),
+						remove : htmlCode($("#schedulerTemplate .schedulerElementDelete"))
+					}
+					$("#scheduled_" + category).jqGrid("addRowData", cpt, row);	
+					$("#scheduled_schedules tr[id='" + (cpt++) + "'] .nextCron[title='" + firstCron + "']").attr("title", allCrons);
+					$(".schedulerSelect_" + category).append($("<option/>").text(name));
+				}, {input : $element.attr("info"), iteration : "20" });
+				
+			} else {
+				row = {
+					enabled : htmlCode($("#schedulerTemplate .schedulerElement" + (enabled ? "Enabled" : "Disabled"))),
+					name : htmlEncode(name),
+					description : $element.attr("description"),
+					info : $element.attr("info"),
+					edit : htmlCode($("#schedulerTemplate .schedulerElementEdit")),
+					remove : htmlCode($("#schedulerTemplate .schedulerElementDelete"))
+				}
+				
+				$("#scheduled_" + category).jqGrid("addRowData", cpt++, row);			
+				$(".schedulerSelect_" + category).append($("<option/>").text(name));
 			}
-			$("#scheduled_" + category).jqGrid("addRowData", cpt++, row);			
-			$(".schedulerSelect_" + category).append($("<option/>").text(name));
+			
 		});
-		$(".scheduledTableData .schedulerElementEdit").click(function () {
+		$(".scheduledTableData .schedulerElementEdit, .scheduledTableDataCron .schedulerElementEdit").click(function () {
 			$last_element_xml = retrieveElementXml(this);
 			if ($last_element_xml.length === 1) {
 				fillDialog($last_element_xml);
 				display_editor("Edit Entry", "schedulerNew" + $last_element_xml.attr("type"));
 			}
 		});
-		$(".scheduledTableData .schedulerElementDelete").click(function () {
+		$(".scheduledTableData .schedulerElementDelete, .scheduledTableDataCron .schedulerElementDelete").click(function () {
 			$last_element_xml = retrieveElementXml(this);
 			showConfirm("Are you sure you want to delete : " + $last_element_xml.attr("name"), function () {
 				callService("scheduler.CreateScheduledElements", function () {		

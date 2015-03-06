@@ -80,7 +80,7 @@
 					<xsl:value-of select="stacktrace"/>
 				</pre>
 				<hr/>
-				<p class="small center">Copyright © 2001-20112 Convertigo SA. All rights reserved.</p>
+				<p class="small center">Copyright © 2001-2015 Convertigo SA. All rights reserved.</p>
 			</div>
 		</div>
 	</xsl:template>
