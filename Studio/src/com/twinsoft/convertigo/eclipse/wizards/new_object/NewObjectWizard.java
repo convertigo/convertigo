@@ -225,6 +225,10 @@ public class NewObjectWizard extends Wizard {
 				objectExplorerPageTitle = "New Document";
 				objectExplorerPageMessage = "Please select a document template.";
 			}
+			else if (beanClass.equals(com.twinsoft.convertigo.beans.core.Listener.class)) {
+				objectExplorerPageTitle = "New Listener";
+				objectExplorerPageMessage = "Please select a listener template.";
+			}
 			
 			addBeanPages(objectExplorerPageTitle, objectExplorerPageMessage, beanClass);
 		}

@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.beans.couchdb;
 
+import java.beans.PropertyDescriptor;
+
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class FullSyncListenerBeanInfo extends MySimpleBeanInfo {
@@ -39,7 +41,13 @@ public class FullSyncListenerBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");	
 			
-			//properties = new PropertyDescriptor[2];
+			properties = new PropertyDescriptor[1];
+			
+			properties[0] = new PropertyDescriptor("targetView", beanClass, "getTargetView", "setTargetView");
+			properties[0].setDisplayName(getExternalizedString("property.targetView.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.targetView.short_description"));
+			properties[0].setPropertyEditorClass(getEditorClass("DesignDocumentViewSelectorEditor"));
+			properties[0].setExpert(true);
 			
 		}
 		catch(Exception e) {

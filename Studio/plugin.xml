@@ -1362,9 +1362,14 @@
             id="convertigo.connectorContribution"
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ConnectorTreeObject">
          <visibility>
-            <objectState
-                name="objectClassName"
-                value="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+	        <or>
+	            <objectState
+	               name="objectClassName"
+	               value="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+	            <objectState
+	               name="objectClassName"
+	               value="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
+	        </or>
          </visibility>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ImportDesignDocumentsFromDatabaseAction"
