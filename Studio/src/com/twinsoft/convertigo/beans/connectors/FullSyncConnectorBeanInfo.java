@@ -47,6 +47,8 @@ public class FullSyncConnectorBeanInfo extends MySimpleBeanInfo {
 			getPropertyDescriptor("https").setHidden(true);
 			getPropertyDescriptor("port").setHidden(true);
 			getPropertyDescriptor("server").setHidden(true);
+			getPropertyDescriptor("couchUsername").setHidden(true);
+			getPropertyDescriptor("couchPassword").setHidden(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
