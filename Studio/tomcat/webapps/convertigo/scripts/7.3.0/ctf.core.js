@@ -656,7 +656,7 @@ $.extend(true, C8O, {
                 var functionFormatter = C8O._getFunction(rule.formatter);
                 if (functionFormatter != null) {
                     try {
-                        var formatted = functionFormatter.call(elt, value); // add $data in next release
+                        var formatted = functionFormatter.call(elt, value, $elt);
                         
                         if (typeof(formatted) == "string") {
                             value = formatted;
