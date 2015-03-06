@@ -496,6 +496,14 @@ function scheduler_ListTasks_update () {
 					$("#scheduled_" + category).jqGrid("addRowData", cpt, row);	
 					$("#scheduled_schedules tr[id='" + (cpt++) + "'] .nextCron[title='" + firstCron + "']").attr("title", allCrons);
 					$(".schedulerSelect_" + category).append($("<option/>").text(name));
+					
+					$(".scheduledTableDataCron .schedulerElementEdit").click(function () {
+						editAction(this);			
+					});
+					
+					$(".scheduledTableDataCron .schedulerElementDelete").click(function () {
+						deleteAction(this);
+					});
 				}, {input : $element.attr("info"), iteration : "20" });
 				
 			} else {
@@ -513,25 +521,15 @@ function scheduler_ListTasks_update () {
 			}
 			
 		});
-		$(".scheduledTableData .schedulerElementEdit, .scheduledTableDataCron .schedulerElementEdit").click(function () {
-			$last_element_xml = retrieveElementXml(this);
-			if ($last_element_xml.length === 1) {
-				fillDialog($last_element_xml);
-				display_editor("Edit Entry", "schedulerNew" + $last_element_xml.attr("type"));
-			}
+		
+		$(".scheduledTableData .schedulerElementEdit").click(function () {
+			editAction(this);
 		});
-		$(".scheduledTableData .schedulerElementDelete, .scheduledTableDataCron .schedulerElementDelete").click(function () {
-			$last_element_xml = retrieveElementXml(this);
-			showConfirm("Are you sure you want to delete : " + $last_element_xml.attr("name"), function () {
-				callService("scheduler.CreateScheduledElements", function () {		
-					scheduler_ListTasks_update();
-				}, {
-					del : true,
-					exname : $last_element_xml.attr("name"),
-					type : "schedulerNew" + $last_element_xml.attr("type")
-				});
-			});
+		
+		$(".scheduledTableData .schedulerElementDelete").click(function () {
+			deleteAction(this);
 		});
+		
 		if(jQuery("#scheduled_jobs").getGridParam("records") >0 && jQuery("#scheduled_schedules").getGridParam("records") >0 ){
 			$("#schedulerNewScheduledJob").button("enable");
 		}else{
@@ -660,4 +658,25 @@ function parseJSONarray(value) {
 
 function getHelpUrl(help_sub_url) {
 	return "http://www.convertigo.com/document/latest/operating-guide/using-convertigo-administration-console/scheduler/" + help_sub_url;
+}
+
+function editAction(xml){
+	$last_element_xml = retrieveElementXml(xml);
+	if ($last_element_xml.length === 1) {
+		fillDialog($last_element_xml);
+		display_editor("Edit Entry", "schedulerNew" + $last_element_xml.attr("type"));
+	}
+}
+
+function deleteAction(xml){
+	$last_element_xml = retrieveElementXml(xml);
+	showConfirm("Are you sure you want to delete : " + $last_element_xml.attr("name"), function () {
+		callService("scheduler.CreateScheduledElements", function () {		
+			scheduler_ListTasks_update();
+		}, {
+			del : true,
+			exname : $last_element_xml.attr("name"),
+			type : "schedulerNew" + $last_element_xml.attr("type")
+		});
+	});
 }
