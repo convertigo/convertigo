@@ -245,6 +245,8 @@ $.extend(true, C8O, {
 			request.dataType = "text";
 			request.processData = false;
 			
+			C8O.log.debug("c8o.fs  : execute url " + request.url);
+			
 			$.ajax(request).always(function (response, status, jqXHR) {
 				if (!$.isPlainObject(response)) {
 					response = jqXHR;
@@ -389,26 +391,31 @@ C8O.addHook("call", function (data) {
 				C8O._fs.headDocument(db, data.docid, callback);
 			} else if (data.__sequence.indexOf("post") == 0) {
 				var policy = C8O._define.re_fs_get_policy.exec(data.__sequence)[1] || "none";
-				
 				policy = data._postPolicy || policy;
 				
-				C8O._fs.removeDoubleUnderscore(data);
+				var postData = $.extend({}, data);
 				
-				C8O._fs.postDocument(db, data, policy, callback);
+				C8O._fs.removeDoubleUnderscore(postData);
+				
+				C8O._fs.postDocument(db, postData, policy, callback);
 			} else if (data.__sequence == "delete") {
 				C8O._fs.deleteDocument(db, data.docid, callback);
 			} else if (data.__sequence == "view") {
 				var docid = data.docid || C8O.vars.fs_default_design;
 				var viewname = data.viewname;
 				
-				delete data.docid;
-				delete data.viewname;
+				var viewData = $.extend({}, data);
 				
-				C8O._fs.removeDoubleUnderscore(data);
+				delete viewData.docid;
+				delete viewData.viewname;
 				
-				C8O._fs.getView(db, docid, viewname, data, callback);
+				C8O._fs.removeDoubleUnderscore(viewData);
+				
+				C8O._fs.getView(db, docid, viewname, viewData, callback);
 			} else if (data.__sequence == "all") {
 				C8O._fs.getAllDocs(db, callback);
+			} else {
+				callback({error: "invalid command '" + data.__sequence + "'"});
 			}
 		}
 		return false;

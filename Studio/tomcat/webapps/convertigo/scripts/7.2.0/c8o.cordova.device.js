@@ -56,8 +56,7 @@ if ("cordova" in window) {
         _define: {
             local_cache_dir: null,
             re_download_url: new RegExp("^https?://.*?(\\.\\w*?)(?:\\?.*)?$"),
-            re_tail_url: new RegExp("([^#?]*)/.*"),
-            re_auth_url: new RegExp("(.*?://)(.*?):(.*?)@(.*)$")
+            re_tail_url: new RegExp("([^#?]*)/.*")
         },
         
         deleteAllCacheEntries: function (success, error) {
@@ -184,6 +183,53 @@ if ("cordova" in window) {
                         }, event.badge);
                   }
             }
+        },
+        
+        _init_cordova: function (params) {
+            var appBase = window.location.href.replace(C8O._define.re_tail_url, "$1");
+            
+            var url = appBase + "/env.json";
+            
+            C8O.log.debug("c8o.cdv : deviceready retrieve env from: " + url);
+            
+            var checkEnv = function () {
+                if (!C8O._define.log_remote_init_env) {
+                    C8O._define.log_remote_init_env = {};
+                }
+                
+                var uuid = C8O.getCordovaEnv("uuid");
+                if (uuid == null) {
+                	try {
+                		C8O.getCordovaEnv().uuid = uuid = device.uuid;
+                	} catch (err) {}
+                }
+                C8O._define.log_remote_init_env.cordova_uuid = uuid;
+                C8O.addRecallParameter("__uuid", uuid);
+            	
+                C8O._init(params);
+            };
+            
+            $.ajax({
+                dataType: "json",
+                url: url,
+                success: function (data) {
+                    try {
+                        $.extend(true, C8O._define.cordovaEnv, data);
+                        
+                        if (C8O.getCordovaEnv("splashRemoveMode") != "manual") {
+                            C8O.splashscreenHide();
+                        }
+                    } catch (err) {
+                        C8O.log.error("c8o.cdv : deviceready catch init env", err);
+                    }
+                    checkEnv();
+                },
+                error: function (xhr, status, err) {
+                    C8O.log.error("c8o.cdv : deviceready failed to retrieve env.json file: " + url, err);
+                    
+                    checkEnv();
+                }
+            });
         },
         
         _core_get_cache_db: C8O._get_cache_db,
@@ -541,54 +587,7 @@ if ("cordova" in window) {
         }
     });
     
-    C8O._init.locks.cordova = true;
-    
-    C8O._init.tasks.push(function () {
-        var appBase = window.location.href.replace(C8O._define.re_tail_url, "$1");
-        
-        var url = appBase + "/env.json";
-        
-        C8O.log.debug("c8o.cdv : deviceready retrieve env from: " + url);
-        
-        var checkEnv = function () {
-            if (!C8O._define.log_remote_init_env) {
-                C8O._define.log_remote_init_env = {};
-            }
-            
-            var uuid = C8O.getCordovaEnv("uuid");
-            if (uuid == null) {
-            	try {
-            		C8O.getCordovaEnv().uuid = uuid = device.uuid;
-            	} catch (err) {}
-            }
-            C8O._define.log_remote_init_env.cordova_uuid = uuid;
-            C8O.addRecallParameter("__uuid", uuid);
-        	
-            C8O._init.check();
-        };
-        
-        $.ajax({
-            dataType: "json",
-            url: url,
-            success: function (data) {
-                try {
-                    $.extend(true, C8O._define.cordovaEnv, data);
-                    
-                    if (C8O.getCordovaEnv("splashRemoveMode") != "manual") {
-                        C8O.splashscreenHide();
-                    }
-                } catch (err) {
-                    C8O.log.error("c8o.cdv : deviceready catch init env", err);
-                }
-                checkEnv();
-            },
-            error: function (xhr, status, err) {
-                C8O.log.error("c8o.cdv : deviceready failed to retrieve env.json file: " + url, err);
-                
-                checkEnv();
-            }
-        });
-    });
+    C8O._define.init_wait.push(C8O._init_cordova);
     
     $(document).on("deviceready", function() {
         C8O.log.info("c8o.cdv : cordova on deviceready");
@@ -663,53 +662,13 @@ if ("cordova" in window) {
                 }
             }
             
-            if (C8O.isUndefined(window.openDatabase) && C8O.isDefined(window.sqlitePlugin)) {
-                C8O.log.debug("c8o.cdv : use sqlitePlugin for DB");
+            if (C8O.isUndefined(window.openDatabase) && C8O.isDefined(sqlitePlugin)) {
                 window.openDatabase = sqlitePlugin.openDatabase;
             }
-            
-            if (C8O.isDefined(window.cblite) && C8O.isUndefined(window.PouchDB)) {
-                C8O._init.locks.cblite = true;
-                
-                C8O._init.tasks.push(function () {
-                	if (!C8O._init.locks.fullsync) {
-	                    C8O.log.debug("c8o.cdv : init Couchbase Lite");
-	                    
-		                window.cblite.getURL(function (err, url) {
-		                	if (err) {
-		                		C8O.log.debug("c8o.cdv : error launching Couchbase Lite: " + err);
-		                	} else {
-		                		url = url.replace(new RegExp("/$"), "");
-		                		C8O.log.debug("c8o.cdv : Couchbase Lite running at " + url);
-		                		
-		                		var auth_url = C8O._define.re_auth_url.exec(url);
-		                		if (auth_url != null) {
-		                			url = auth_url[1] + auth_url[4];
-		                			C8O._fs.auth = {
-		                		    	"Authorization":
-		                		    	"Basic " + btoa(auth_url[2] + ":" + auth_url[3])
-		                		    };
-		                		}
-		                		
-		                		C8O._fs.server = url;
-		                	}
-		                	
-		                	delete C8O._init.locks.cblite;
-		                    C8O._init.check();
-		                });
-                	} else {
-                		return true;
-                	}
-                });            
-            }
         }
-        
         C8O.log.debug("c8o.cdv : end deviceready");
-
-        delete C8O._init.locks.cordova;
-        C8O._init.check();
     });
-    
+
 } else {
     C8O.log.warn("c8o.cdv : no cordova available, ignore c8o.cordova.device.js");
     
