@@ -6,7 +6,8 @@ $.extend(true, C8O, {
 	},
 	
 	vars: {
-		fs_default_db: null
+		fs_default_db: null,
+		fs_default_design: null
 	},
 	
 	_define: {
@@ -72,7 +73,7 @@ $.extend(true, C8O, {
 		},
 		
 		getView: function (db, docId, viewName, options, callback) {
-			var view = docId.substring(docId.indexOf("/") + 1) + "/" + viewName;
+			var view = docId.replace("_design/", "") + "/" + viewName;
 			C8O._pouch.getDb(db).query(view, options, function (err, doc) {
 				C8O._pouch.handle(err, doc, callback);
 			});
@@ -168,6 +169,9 @@ $.extend(true, C8O, {
 		},
 		
 		getView: function (db, docId, viewName, options, callback) {
+			if (docId.indexOf("_design/") != 0) {
+				docId = "_design/" + docId;
+			}
 			var request = {db: db, type: "GET", url: C8O._fs.getDocumentUrl(db, docId) + "/_view/" + viewName + "?" + $.param(options)};
 						
 			C8O._fs.execute(request, callback);
@@ -316,6 +320,9 @@ $.extend(true, C8O, {
 	fs_update_device: function (db, continuous, callback) {
 		db = db || C8O.vars.fs_default_db;
 		continous = continuous || false;
+		callback = callback || function (doc) {
+			C8O.log.info("c8o.fs  : fs_update_device return " + C8O.toJSON(doc));
+		};
 		
 		C8O._fs.postReplicate(C8O._fs.remote + "/" + db, db + "_device", true, continuous, false, callback);
 	},
@@ -323,6 +330,9 @@ $.extend(true, C8O, {
 	fs_update_remote: function (db, continuous, callback) {
 		db = db || C8O.vars.fs_default_db;
 		continous = continuous || false;
+		callback = callback || function (doc) {
+			C8O.log.info("c8o.fs  : fs_update_remote return " + C8O.toJSON(doc));
+		};
 		
 		C8O._fs.postReplicate(db + "_device", C8O._fs.remote + "/" + db, false, continuous, false, callback);
 	}
@@ -388,7 +398,7 @@ C8O.addHook("call", function (data) {
 			} else if (data.__sequence == "delete") {
 				C8O._fs.deleteDocument(db, data.docid, callback);
 			} else if (data.__sequence == "view") {
-				var docid = data.docid;
+				var docid = data.docid || C8O.vars.fs_default_design;
 				var viewname = data.viewname;
 				
 				delete data.docid;
