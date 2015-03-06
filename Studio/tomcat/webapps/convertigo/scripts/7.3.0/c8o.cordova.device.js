@@ -661,10 +661,12 @@ if ("cordova" in window) {
                     StatusBar.backgroundColorByName("black");
                 }
             }
+
             
-            if (C8O.isUndefined(window.openDatabase) && C8O.isDefined(sqlitePlugin)) {
-                window.openDatabase = sqlitePlugin.openDatabase;
-            }
+            if (typeof sqlitePlugin !== "undefined")
+                if (C8O.isUndefined(window.openDatabase) && C8O.isDefined(sqlitePlugin)) {
+                    window.openDatabase = sqlitePlugin.openDatabase;
+                }
         }
         C8O.log.debug("c8o.cdv : end deviceready");
     });
