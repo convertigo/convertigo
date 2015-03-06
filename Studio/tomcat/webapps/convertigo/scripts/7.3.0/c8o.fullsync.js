@@ -7,7 +7,8 @@ $.extend(true, C8O, {
 	
 	vars: {
 		fs_default_db: null,
-		fs_default_design: null
+		fs_default_design: null,
+		fs_token: null
 	},
 	
 	_define: {
@@ -89,6 +90,10 @@ $.extend(true, C8O, {
 	_fs: {
 		server: null,
 		auth: null,
+		
+		getRemoteUrl: function (db) {
+			return C8O._fs.remote + (C8O.vars.fs_token ? "/~" + C8O.vars.fs_token : "") + "/" + db
+		},
 		
 		getDatabaseUrl: function (db) {
 			return C8O._fs.server + '/' + db;
@@ -245,7 +250,7 @@ $.extend(true, C8O, {
 			request.dataType = "text";
 			request.processData = false;
 			
-			C8O.log.debug("c8o.fs  : execute url " + request.url);
+			C8O.log.debug("c8o.fs  : execute url " + request.type + " " + request.url);
 			
 			$.ajax(request).always(function (response, status, jqXHR) {
 				if (!$.isPlainObject(response)) {
@@ -326,7 +331,7 @@ $.extend(true, C8O, {
 			C8O.log.info("c8o.fs  : fs_update_device return " + C8O.toJSON(doc));
 		};
 		
-		C8O._fs.postReplicate(C8O._fs.remote + "/" + db, db + "_device", true, continuous, false, callback);
+		C8O._fs.postReplicate(C8O._fs.getRemoteUrl(db), db + "_device", true, continuous, false, callback);
 	},
 	
 	fs_update_remote: function (db, continuous, callback) {
@@ -336,7 +341,7 @@ $.extend(true, C8O, {
 			C8O.log.info("c8o.fs  : fs_update_remote return " + C8O.toJSON(doc));
 		};
 		
-		C8O._fs.postReplicate(db + "_device", C8O._fs.remote + "/" + db, false, continuous, false, callback);
+		C8O._fs.postReplicate(db + "_device", C8O._fs.getRemoteUrl(db), false, continuous, false, callback);
 	}
 });
 
