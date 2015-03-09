@@ -103,7 +103,8 @@ public class CustomTransaction extends AbstractCouchDbTransaction {
 			evaluatedUrl = '/' + evaluatedUrl;
 		}
 		
-		URI uri = new URI(evaluatedUrl);
+		String db = getConnector().getDatabaseName();
+		URI uri = new URI(provider.getDatabaseUrl(db) + evaluatedUrl);
 		Engine.logBeans.debug("(CustomTransaction) CouchDb request uri: "+ uri.toString());
 		
 		String jsonString = null;
