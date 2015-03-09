@@ -118,13 +118,16 @@ public class FullSyncListener extends Listener {
 				List<NameValuePair> options = new LinkedList<NameValuePair>();
 				options.add(new BasicNameValuePair("include_docs", "true"));
 				options.add(new BasicNameValuePair("limit", Integer.toString(limit)));
-
+ 
+				JSONObject keys = new JSONObject();
+				keys.put("keys", new JSONArray(ids));
+				
 				String startkey = null, startkey_docid = null;
 				boolean bContinue;
 
 				do {
 					bContinue = false;
-					JSONObject json = connector.getCouchClient().getView(db, docId, viewName, options);
+					JSONObject json = connector.getCouchClient().postView(db, docId, viewName, options, keys);
 					if (json != null) {
 						JSONArray rows = json.getJSONArray("rows");
 						if (rows != null) {
