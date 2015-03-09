@@ -42,6 +42,7 @@ public enum CouchDbParameter {
 	Param_view_endkey("endkey", false,1),
 	Param_view_key("key", false,1),
 	Param_view_limit("limit", false,1),
+	Param_view_reduce("reduce", false,1),
 	Param_view_skip("skip", false,1),
 	Param_view_startkey("startkey", false,1);
 	

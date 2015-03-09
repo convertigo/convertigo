@@ -21,6 +21,8 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
+import java.beans.PropertyDescriptor;
+
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class GetViewTransactionBeanInfo extends MySimpleBeanInfo {
@@ -36,7 +38,15 @@ public class GetViewTransactionBeanInfo extends MySimpleBeanInfo {
 			shortDescription = getExternalizedString("short_description");
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/databasetransaction_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/databasetransaction_color_32x32.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/databasetransaction_color_32x32.png";	
+			
+			properties = new PropertyDescriptor[1];
+			
+			properties[0] = new PropertyDescriptor("viewname", beanClass, "getViewname", "setViewname");
+			properties[0].setDisplayName(getExternalizedString("property.viewname.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.viewname.short_description"));
+            properties[0].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+//			properties[0].setPropertyEditorClass(getEditorClass("DesignDocumentViewSelectorEditor"));
 			
 		}
 		catch(Exception e) {
