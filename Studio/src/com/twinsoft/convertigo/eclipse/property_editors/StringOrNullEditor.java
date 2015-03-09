@@ -22,7 +22,6 @@
 
 package com.twinsoft.convertigo.eclipse.property_editors;
 
-import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
@@ -32,22 +31,20 @@ import org.eclipse.swt.events.TraverseEvent;
 import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Layout;
 import org.eclipse.swt.widgets.Text;
 
 
-public class StringOrNullEditor extends TextCellEditor implements INullEditor {
+public class StringOrNullEditor extends AbstractDialogCellEditor implements INullEditor {
 
 	private Boolean isNull = false;
 	private Composite editor;
 	private Button buttonNullCtrl;
 	private Text textCtrl;
-	private Object value;
 	
 	public StringOrNullEditor(Composite parent) {
 		this(parent, SWT.NONE);
@@ -67,18 +64,21 @@ public class StringOrNullEditor extends TextCellEditor implements INullEditor {
 	
 	@Override
 	protected Control createControl(Composite parent) {
-
 		Font font = parent.getFont();
         Color bg = parent.getBackground();
  
         editor = new Composite(parent, getStyle());
         editor.setFont(font);
         editor.setBackground(bg);
-        editor.setLayout(new DialogCellLayout());
+        
+        GridLayout gl = new GridLayout(99, false);
+		gl.horizontalSpacing = gl.marginHeight = gl.marginWidth = gl.verticalSpacing = 0;
+        editor.setLayout(gl);
 
-        textCtrl = (Text)super.createControl(editor);
+        textCtrl = new Text(editor, SWT.NONE);
         textCtrl.addKeyListener(new KeyListener(){
 			public void keyPressed(KeyEvent keyEvent) {
+				keyReleaseOccured(keyEvent);
 			}
 			public void keyReleased(KeyEvent keyEvent) {
 				if (!isNull) {
@@ -103,8 +103,9 @@ public class StringOrNullEditor extends TextCellEditor implements INullEditor {
     			}
     		}
     	});
+        textCtrl.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
-    	buttonNullCtrl = new Button(editor, SWT.TOGGLE);
+    	buttonNullCtrl = new Button(editor, SWT.TOGGLE | SWT.FLAT);
         buttonNullCtrl.setToolTipText("Set/unset Null value");
         buttonNullCtrl.setText("X");
         
@@ -125,6 +126,8 @@ public class StringOrNullEditor extends TextCellEditor implements INullEditor {
 					if (isNull) fireCancelEditor();
 		        }
 			}});
+        
+        buttonNullCtrl.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, true));
         return editor;
 	}
 
@@ -138,27 +141,30 @@ public class StringOrNullEditor extends TextCellEditor implements INullEditor {
 	
 	@Override
 	protected Object doGetValue() {
-		value = super.doGetValue();
-		return value;
+		if (isNull) {
+			return null;
+		}
+		return textCtrl.getText();
 	}
 	
 	@Override
 	protected void doSetValue(Object value) {
-		this.value = value;
-		super.doSetValue(value);
+		if (value == null) {
+			isNull = true;
+			textCtrl.setText("");
+		} else {
+			isNull = false;
+			textCtrl.setText(value.toString());
+		}
 	}
 
 	@Override
 	protected void doSetFocus() {
-		if (isNull)
+		if (isNull) {
 			buttonNullCtrl.setFocus();
-		else
-			super.doSetFocus();
-	}
-
-	@Override
-	protected void focusLost() {
-		super.focusLost();
+		} else {
+			textCtrl.setFocus();
+		}
 	}
 	
 	@Override
@@ -167,29 +173,4 @@ public class StringOrNullEditor extends TextCellEditor implements INullEditor {
 	    textCtrl.setEnabled(!isNull);
 	    buttonNullCtrl.setSelection(isNull);
 	}
-
-	private class DialogCellLayout extends Layout {
-		public void layout(Composite editor, boolean force) {
-			Rectangle bounds = editor.getClientArea();
-	        Point buttonNullSize = buttonNullCtrl.computeSize(SWT.DEFAULT, SWT.DEFAULT, force);
-	        if (textCtrl != null) {
-	        	textCtrl.setBounds(0, 0, bounds.width - buttonNullSize.x, bounds.height);
-	        }
-	        buttonNullCtrl.setBounds(bounds.width - buttonNullSize.x, 0, buttonNullSize.x, bounds.height);
-		}
-	 
-        public Point computeSize(Composite editor, int wHint, int hHint, boolean force) {
-             if (wHint != SWT.DEFAULT && hHint != SWT.DEFAULT) {
-                 return new Point(wHint, hHint);
-             }
-             Point textSize = textCtrl.computeSize(SWT.DEFAULT, SWT.DEFAULT, force);
-             Point buttonNullSize = buttonNullCtrl.computeSize(SWT.DEFAULT, SWT.DEFAULT, force);
-             
-             // Just return the button width to ensure the button is not clipped if the text is long.
-             // The text will just use whatever extra width there is
-             Point result = new Point(buttonNullSize.x, Math.max(textSize.y, buttonNullSize.y));
-             return result;
-         }
-    }
-
 }
