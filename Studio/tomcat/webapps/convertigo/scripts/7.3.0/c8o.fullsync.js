@@ -53,8 +53,10 @@ $.extend(true, C8O, {
 		
 		postDocument: function (db, document, policy, callback) {
 			var options = {};
-			C8O._pouch.getDb(db).post(document, options, function (err, doc) {
-				C8O._pouch.handle(err, doc, callback);
+			C8O._fs.applyPolicy(db, document, policy, function (document) {
+				C8O._pouch.getDb(db).post(document, options, function (err, doc) {
+					C8O._pouch.handle(err, doc, callback);
+				});
 			});
 		},
 		
@@ -81,7 +83,7 @@ $.extend(true, C8O, {
 		},
 		
 		postReplicate: function (source, target, create_target, continuous, cancel, callback) {
-			var options = {};
+			var options = {"live":continuous};
 			PouchDB.replicate(C8O._pouch.getDb(source), C8O._pouch.getDb(target), options).on("complete", function (info) {
 				console.log(info);
 			});
