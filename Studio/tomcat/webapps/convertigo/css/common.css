@@ -19,9 +19,13 @@
  * $Revision$
  * $Date$
  */
+ 
+ input:-webkit-autofill {
+    color: #2a2a2a !important;
+}
 
 a {
-	color: #0A6EB1;
+	color: #00ADD;
 	text-decoration: underline;
 }
 
@@ -144,17 +148,38 @@ a img {
 #loginForm, #logout {
 	position: absolute;
 	top: 40px;
-	right: 10px;
+	right: 32px;
+	font-family: 'Open Sans', sans-serif;
+}
+
+.rounded {
+	border-radius: 5px;
+	padding: 3px;
+}
+
+.fixLogin {
+	margin-top: 4px;
+	width: 90px;
+	position: relative;
+	top: -2px;
+}
+
+.fixUser {
+	position: relative;
+	font-weight: bolder;
+}
+
+.accordion {
+	position: relative;
+	top: 2px;
 }
 
 .user {
-    font-variant: small-caps;
-    color: #A5A5A5;
-    font-style: italic;
-    font-weight: bold;
+	color: #716D6D;
+	font-family: 'Open Sans', sans-serif;
 	position: absolute;
-    top: 20px;
-    right: 10px;
+	top: -71px; 
+	right: 25px;
 }
 
 #logout {
@@ -165,8 +190,13 @@ a img {
 	text-decoration: none;
 }
 
+.fixAgain {
+	position: relative;
+	right: 0px;
+}
+
 #loginForm img, #loginBtn {
-	margin-bottom: -7px;
+	margin-bottom: -11px;
 }
 
 #wait_div_build {
@@ -184,6 +214,10 @@ a img {
 	opacity: 0.4;
 	z-index:99998;
 }
+
+
+
+
 #wait_div_build_info {
 	display: table;
  	position: fixed;

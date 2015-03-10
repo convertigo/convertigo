@@ -59,24 +59,26 @@
 				<p></p>
 			</div>
 		</div>
-		<div id="main">
+			<div id="main">
 			<div class="logo">
 				<a href="http://www.convertigo.com"><img src="images/new/logo-convertigo.png" /></a>
 			</div>
-			<form action="" id="loginForm" class="hidden">
-				<span id="loginWarn">Unlock your Test Platform</span>
-				<img src="images/new/arrow_right.gif" alt="→"/>
-				<label for="loginUsername">User ID: </label><input type="text" name="username" id="loginUsername"/>
-				<label for="loginPassword">Password: </label><input type="password" name="password" id="loginPassword"/>
-				<input type="image" src="admin/images/btn_signin.png" alt="Sign In" id="loginBtn" />
+			<form action="" id="loginForm" class="hidden" autocomplete="off">
+				<input class="rounded" type="text" name="username" id="loginUsername"/>
+				<input class="rounded" type="password" name="password" id="loginPassword"/>
+				<input type="image" src="admin/images/btn_signin.png" alt="Sign In" id="loginBtn" class="fixLogin"/>
 			</form>
-			<div class="user">User: <span id="user"></span></div>
+			
+			<div class="fixAgain">
+			
+			<div class="user">Welcome <span class="fixUser" id="user"></span></div>
+			</div>
             <a href="#logout" id="logout" class="hidden">
-				Log out &nbsp;&nbsp;<img src="admin/images/convertigo-administration-picto-close.png" alt="Log out" />
+				<img src="admin/images/convertigo-administration-picto-close.png" alt="Log out" />
 			</a>
                 <table cellpadding="0" cellspacing="0" id="global">
                     <tr>
-                        <td valign="top" width="10px"><img src="images/new/convertigo-ems-bg-gris-left.png" /></td>
+                     
                         <td class="global_bg_center">
                             <!-- Header -->
                             <table cellpadding="0" cellspacing="0" class="header">
@@ -97,7 +99,7 @@
                                             <li>
                                                 <a href="admin/index.html">
                                                     <img src="images/new/picto_admin.png" alt="Convertigo administration" title="Convertigo administration"/><br/>
-                                                    <span class="txt_menu">Admin console</span>
+                                              
                                                 </a>
                                             </li>
                                             <!--li>
@@ -109,25 +111,25 @@
                                             <li>
                                                 <a href="index.html">
                                                     <img src="images/new/picto_project_menu.png" alt="Projects" title="Projects"/><br/>
-                                                    <span class="txt_menu">Projects</span>
+                                                  
                                                 </a>
                                             </li>                                            
                                             <li>
                                                 <a href="http://www.convertigo.com/en/docs/access-documentation.html">
                                                     <img src="images/new/picto_doc.png" alt="Docs" title="Docs"/><br/>
-                                                    <span class="txt_menu">Documentation</span>
+                                                   
                                                 </a>
                                             </li>
                                             <li>
                                                 <a href="http://www.convertigo.com">
                                                     <img src="images/new/picto_site.png" alt="Convertigo website" title="Convertigo website"/><br/>
-                                                    <span class="txt_menu">Convertigo.com</span>
+                                                    
                                                 </a>
                                             </li>
                                             <li>
                                                 <a href="http://www.convertigo.com/developernetwork">
                                                     <img src="images/new/picto_itcenter.png" alt="Developer network" title="Developer network"/><br/>
-                                                    <span class="txt_menu">Developer network</span>
+                                                   
                                                 </a>
                                             </li>	
                                         </ul>                       					                       
@@ -150,9 +152,9 @@
                                                                 <!-- Content column left -->
                                                                 <!-- Menu colapse/deploy accordion -->
                                                                 <div class="accordion_options">
-                                                                    <span class="accordion_deploy"><img src="images/new/picto_deploy_accordeon.png" />&nbsp;Deploy all</span>
+                                                                    <span class="accordion_deploy"><img class="accordion" src="images/new/picto_deploy_accordeon.png" />Deploy all</span>
                                                                     <span>|</span>
-                                                                    <span class="accordion_colapse"><img src="images/new/picto_colapse_accordeon.png" />&nbsp;Collapse all</span>                                                      
+                                                                    <span class="accordion_colapse"><img class="accordion" src="images/new/picto_colapse_accordeon.png" />Collapse all</span>                                                      
                                                                 </div>
                                                                 <ul class="acc connectors" id="acc">
                                                                     <li class="mobiles hidden">
@@ -303,7 +305,7 @@
                                                             </div> 
                                                             <!-- End right column -->
                                                         </td>
-                                                        <td class="content_top_right"><img src="images/new/convertigo-ems-bg-blanc-right.png" /></td>
+                                                       
                                                     </tr>
                                                 </table>                                                  
                                             </div>
@@ -315,7 +317,7 @@
                             </table>
                             <!-- End Container -->
                         </td>
-                        <td valign="top"><img src="images/new/convertigo-ems-bg-gris-right.png" /></td>
+                       
                     </tr>
                 </table>
                 <!-- Footer -->    

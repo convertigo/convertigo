@@ -37,20 +37,25 @@
 			<div class="logo">
 				<a href="http://www.convertigo.com"><img src="images/new/logo-convertigo.png" /></a>
 			</div>
-			<form action="" id="loginForm" class="hidden">
-				<span id="loginWarn">Unlock your Test Platform</span>
-				<img src="images/new/arrow_right.gif" alt="→"/>
-				<label for="loginUsername">User ID: </label><input type="text" name="username" id="loginUsername"/>
-				<label for="loginPassword">Password: </label><input type="password" name="password" id="loginPassword"/>
-				<input type="image" src="admin/images/btn_signin.png" alt="Sign In" id="loginBtn" />
+			<form action="" id="loginForm" class="hidden" autocomplete="off">
+				<input class="rounded" type="text" name="username" id="loginUsername"/>
+				<input class="rounded" type="password" name="password" id="loginPassword"/>
+				<input type="image" src="admin/images/btn_signin.png" alt="Sign In" id="loginBtn" class="fixLogin"/>
 			</form>
-			<div class="user">User: <span id="user"></span></div>
+			
+			<div class="fixAgain">
+			
+			<div class="user">Welcome <span class="fixUser" id="user"></span></div>
+			</div>
 			<a href="#logout" id="logout" class="hidden">
-				Log out&nbsp;&nbsp;<img src="admin/images/convertigo-administration-picto-close.png" alt="Log out" />
+			
+			
+			
+		    <img src="admin/images/convertigo-administration-picto-close.png" alt="Log out" />
 			</a>
                 <table cellpadding="0" cellspacing="0"  id="global">
                     <tr>
-                        <td valign="top" width="10px"><img src="images/new/convertigo-ems-bg-gris-left.png" /></td>
+                       
                         <td class="global_bg_center">
                             <!-- Header -->
                             <table cellpadding="0" cellspacing="0" class="header">
@@ -71,7 +76,7 @@
                                             <li>
                                                 <a href="admin/index.html">
                                                     <img src="images/new/picto_admin.png" alt="Convertigo administration" title="Convertigo administration"/><br/>
-                                                    <span class="txt_menu">Admin console</span>
+                                                   
                                                 </a>
                                             </li>
                                             <!--li>
@@ -83,19 +88,19 @@
                                             <li>
                                                 <a href="http://www.convertigo.com/en/docs/access-documentation.html">
                                                     <img src="images/new/picto_doc.png" alt="Docs" title="Docs"/><br/>
-                                                    <span class="txt_menu">Documentation</span>
+                                               
                                                 </a>
                                             </li>
                                             <li>
                                                 <a href="http://www.convertigo.com?cle=valeur&truc=bidule">
                                                     <img src="images/new/picto_site.png" alt="Convertigo website" title="Convertigo website"/><br/>
-                                                    <span class="txt_menu">Convertigo.com !</span>
+                                                 
                                                 </a>
                                             </li>
                                             <li>
                                                 <a href="http://www.convertigo.com/developernetwork">
                                                     <img src="images/new/picto_itcenter.png" alt="Developer network" title="Developer network"/><br/>
-                                                    <span class="txt_menu">Developer network</span>
+                                                   
                                                 </a>
                                             </li>	
                                         </ul>                       					                       
@@ -108,7 +113,7 @@
                                             <div class="content_top">
                                                 <table cellpadding="0" cellspacing="0">
                                                     <tr>
-                                                        <td><img src="images/new/convertigo-ems-bg-blanc-left.png" /></td>
+                                                        
                                                         <td class="content_top_center" >
                                                                 <!-- Convertigo version --> 
                                                                 <div class="container_info">
@@ -186,31 +191,31 @@
 	                                                                	<th class="window_corner_topL"></th>
 	                                                                    <th class="table_title">
 	                                                                        <div class="picto2">
-	                                                                        	<img src="images/new/picto_project.png" alt="Project name" />
+	                                                                        	<img class="fixImg" src="images/new/picto_project.png" alt="Project name" />
 	                                                                        </div>
 	                                                                        <span class="title">Project name</span>
 	                                                                    </th>
 	                                                                    <th class="table_title">
 	                                                                        <div class="picto2">
-	                                                                        	<img src="images/new/picto_comment.png" alt="Comment" />
+	                                                                        	<img class="fixImg" src="images/new/picto_comment.png" alt="Comment" />
 	                                                                        </div>
 	                                                                        <span class="title">Comment</span>
 	                                                                    </th>
 	                                                                    <th class="table_title">
 	                                                                        <div class="picto2">
-	                                                                      	  <img src="images/new/picto_deploy.png" alt="Deployment date" />
+	                                                                      	  <img class="fixImg" src="images/new/picto_deploy.png" alt="Deployment date" />
 	                                                                        </div>
 	                                                                        <span class="title">Deployment date</span>
 	                                                                    </th>
 	                                                                    <th class="table_title">
 	                                                                        <div class="picto2">
-	                                                                       	 <img src="images/new/picto_test.png" alt="Test platform" />
+	                                                                       	 <img class="fixImg" src="images/new/picto_test.png" alt="Test platform" />
 	                                                                        </div>
 	                                                                        <span class="title">Test platform</span>
 	                                                                    </th>
 	                                                                    <th class="table_title">
 	                                                                        <div class="picto2">
-	                                                                       	 <img src="images/new/picto_wsdl.png" alt="Web-service definition" />
+	                                                                       	 <img class="fixImg" src="images/new/picto_wsdl.png" alt="Web-service definition" />
 	                                                                        </div>
 	                                                                        <span class="title">Web-service definition</span>
 	                                                                    </th>
@@ -286,14 +291,16 @@
                             </table>
                             <!-- End Container -->
                         </td>
-                        <td valign="top"><img src="images/new/convertigo-ems-bg-gris-right.png" /></td>
+                       
                     </tr>
                 </table> 
                 <!-- Footer -->
                 <div class="footer">
-                    <div class="hr"></div>Copyright &copy; 2001-2014 Convertigo SA. All rights reserved.
-                    <br/>
-                    <a href="licenses/index.html">EULA and third party components</a>
+                    <div class="hr"></div> <a href="http://www.convertigo.com">www.convertigo.com</a>
+            <br/>
+            Copyright &copy; 2001-2015 Convertigo SA. All rights reserved. &nbsp;
+            <br/>
+            <a href="../licenses/index.html">EULA and third party components</a>
                 </div>
                 <!-- End Footer -->
             <!-- End Global content -->                            

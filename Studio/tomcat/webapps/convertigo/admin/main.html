@@ -31,6 +31,7 @@
     <link rel="stylesheet" type="text/css" href="styles/jquery/jquery.treeview.css" />
     <link rel="stylesheet" type="text/css" href="styles/jquery/jquery.contextMenu.css" />
 	<link rel="stylesheet" type="text/css" href="styles/admin.css" />
+	<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
 	
 	<!-- jquery resources -->
 	<script type="text/javascript" src="js/jquery/jquery.min.js"></script>		
@@ -66,13 +67,12 @@
                     	<div id="logOut" >                    		
 	                        <a ><div class="main_picto_close"></div></a>
 	                        <div class="main_top">	                        	 
-	                            <div class="main_top_info"><a>Log out</a></div>		  
+	                             
 	                        </div>
-	                        <span id="mainDate"></span>
                         </div>
+                        
                         <div id="mainlogo"></div>
-                        <div class="main_separator"></div>
-                        <h1>Administration Console</h1>                       
+                        <h1 class="adminTitle">\\ Administration Console</h1>                       
                         <hr>
                     </div>
                     
@@ -85,61 +85,61 @@
                                         <tbody>
                                             <tr valign="top">
                                                 <td>
-                                                <div class="mainmenu_mb_menuV">
+                                                <div style="margin-left: -21px;" class="mainmenu_mb_menuV">
                                                     <ul class="mainmenu_ulG">
                                                         <li class="mainmenu_nolist">
                                                         	<a href="#Home"><img title="Home" alt="Home" id="widgetButtonHome" src="images/menu/01.png" class="loadWidgetsButton">
-                                                            <span class="mainmenu_text">Home</span></a>
+                                                           </a>
                                                         </li>
                                                         <li class="mainmenu_nolist">
                                                             <a href="#Connections"><img title="Connections" alt="Connections" src="images/menu/04.png" id="widgetButtonConnections" class="loadWidgetsButton">
-                                                        	<span class="mainmenu_text">Connections</span></a>
+                                                        	</a>
                                                         </li>
                                                         <li class="mainmenu_nolist">
                                                             <a href="#Certificates"><img title="Certificates" alt="Certificates" src="images/menu/09.png" id="widgetButtonCertificates" class="loadWidgetsButton">
-                                                        	<span class="mainmenu_text">Certificates</span></a>
+                                                        	</a>
                                                         </li>                                                        
                                                         <li class="mainmenu_nolist">
                                                             <a href="#TracePlayer"><img title="Trace player" alt="Trace player" src="images/menu/06.png" id="widgetButtonTracePlayer" class="loadWidgetsButton">
-                                                        	<span class="mainmenu_text">Trace player</span></a>
+                                                          </a>
                                                         </li>                                                        
                                                         <li class="mainmenu_nolist">
                                                             <a href="#Scheduler"><img title="Scheduler" alt="Scheduler" src="images/menu/05.png" id="widgetButtonScheduler" class="loadWidgetsButton">
-                                                        	<span class="mainmenu_text">Scheduler</span></a>
+                                                        	</a>
                                                         </li>
                                                         <li class="mainmenu_nolist">
                                                             <a href="#Store"><img title="Store" alt="Store" src="images/menu/15.png" id="widgetButtonStore" class="loadWidgetsButton">
-                                                        	<span class="mainmenu_text">Store</span></a>
+                                                        	</a>
                                                         </li>                                                
                                                     </ul>
                                                 </div>
                                                 </td>
                                                 <td>
-                                                <div class="mainmenu_mb_menuV">
+                                                <div style="margin-left: -34px;" class="mainmenu_mb_menuV">
                                                     <ul class="mainmenu_ulD">
                                                         <li class="mainmenu_nolist">
                                                             <a href="#Configuration"><img title="Configuration" alt="Configuration" src="images/menu/08.png" id="widgetButtonConfiguration" class="loadWidgetsButton">
-                                                            <span class="mainmenu_text">Configuration</span></a>
+                                                           </a>
                                                         </li>
                                                         <li class="mainmenu_nolist">
                                                             <a href="#Projects"><img title="Projects" alt="Projects" src="images/menu/03.png" id="widgetButtonProjects" class="loadWidgetsButton">
-                                                        	<span class="mainmenu_text">Projects</span></a>
+                                                        	</a>
                                                         </li>                                                        
                                                         <li class="mainmenu_nolist">
                                                             <a href="#Logs"><img title="Logs" alt="Logs" src="images/menu/07.png" id="widgetButtonLogs" class="loadWidgetsButton">
-                                                        	<span class="mainmenu_text">Logs</span></a>
+                                                        	</a>
                                                         </li>                                                        
                                                         <li class="mainmenu_nolist">
                                                             <a href="#Cache"><img title="Cache" alt="Cache" src="images/menu/10.png" id="widgetButtonCache" class="loadWidgetsButton">
-                                                        	<span class="mainmenu_text">Cache</span></a>
+                                                        	</a>
                                                         </li>                                                       
                                                         <li class="mainmenu_nolist main-display-none">
                                                             <a href="#Keys"><img title="Keys" alt="Keys" src="images/menu/11.png" id="widgetButtonKeys" class="loadWidgetsButton">
-                                                        	<span class="mainmenu_text">Keys</span></a>
+                                                        	</a>
                                                         </li> 
                                                         <li class="mainmenu_nolist main-display-none">
                                                             <a href="#GlobalSymbols"><img title="GlobalSymbols" alt="GlobalSymbols" src="images/menu/14.png" id="widgetButtonGlobalSymbols" class="loadWidgetsButton">
-                                                        	<span class="mainmenu_text">Symbols</span></a>
+                                                        	</a>
                                                         </li>                                                        
                                                     </ul>
                                                 </div>
@@ -152,30 +152,30 @@
                                         <tbody>
                                             <tr valign="top">
                                                 <td>
-                                                <div class="mainmenu_mb_menuV">
+                                                <div class="mainmenu_mb_menuV fix1">
                                                     <ul class="mainmenu_ulG">
                                                         <li class="mainmenu_nolist">
                                                         	<a href="../index.html"><img title="Test Platform" alt="Test Platform" src="images/navigationImages/100x100_picto_test.png">
-                                                            <span class="mainmenu_text">Test Platform</span></a>
+                                                            </a>
                                                         </li>
                                                         <li class="mainmenu_nolist">
                                                             <!-- <a href="http://www.convertigo.com/en/itcenter.html" target="_blank"> -->
                                                             <a href="http://www.convertigo.com/documentations" target="_blank"><img title="Documentation" alt="Documentation" src="images/navigationImages/100x100_picto_doc.png">
-                                                        	<span class="mainmenu_text">Documentation</span></a>
+                                                        	</a>
                                                         </li>                                                                                                            
                                                     </ul>
                                                 </div>
                                                 </td>
                                                 <td>
-                                                <div class="mainmenu_mb_menuV">
+                                                <div class="mainmenu_mb_menuV fix2">
                                                     <ul class="mainmenu_ulD">
                                                         <li class="mainmenu_nolist">
                                                             <a href="http://www.convertigo.com" target="_blank"><img title="Convertigo website" alt="Convertigo website" src="images/navigationImages/100x100_picto_site.png">
-                                                            <span class="mainmenu_text">Convertigo.com</span></a>
+                                                            </a>
                                                         </li>
                                                         <li class="mainmenu_nolist">
                                                             <a href="http://www.convertigo.com/developernetwork" target="_blank"><img title="Developer network" alt="Developer network" src="images/navigationImages/100x100_picto_itcenter.png">
-                                                        	<span class="mainmenu_text">Developer network</span></a>
+                                                        	</a>
                                                         </li>
                                                 	</ul>
                                                 </div>
@@ -215,16 +215,16 @@
                 <div class="mainfooter_bgcenter"></div>
                 <div class="mainfooter_bgright"></div>      
                 <div class="mainfooter_copyright">
-                    <a href="http://www.convertigo.com">www.convertigo.com</a>
-                    <br/>
-                    Copyright &copy; 2001-2014 Convertigo SA. All rights reserved.
-                    <br/>
-                    <a href="../licenses/index.html">EULA and third party components</a>
+                     <a href="http://www.convertigo.com">www.convertigo.com</a>
+            <br/>
+            Copyright &copy; 2001-2015 Convertigo SA. All rights reserved. &nbsp;
+            <br/>
+            <a href="../licenses/index.html">EULA and third party components</a>
                 </div>
             </div>
             
             <!-- Ajax wait div -->
-            <div id="ajax_wait" title="Current server jobs"></div>
+<!--             <div id="ajax_wait" title="Current server jobs"></div> -->
         <!-- End Content --> 
         </div>
 

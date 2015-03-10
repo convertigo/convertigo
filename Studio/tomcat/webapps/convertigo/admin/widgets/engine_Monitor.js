@@ -50,7 +50,7 @@ var graphOptions = {
 	},
 	grid : {
 		backgroundColor : {
-			colors : [ "#fff", "#eee" ]
+			colors : [ "#fff", "#fff" ]
 		}
 	}
 };
@@ -68,17 +68,17 @@ function engine_Monitor_init() {
 	currentTick = dataSize;
 	dataGraphThreads = [ {
 	    label: 'Number of threads',
-	    color: 1,
+	    color: "rgb(0, 202, 255)",
 	    data: data.slice()
 	} ];
 	dataGraphContexts = [ {
 	    label: 'Number of contexts',
-	    color: 2,
+	    color: "rgb(255, 174, 0)",
 	    data: data.slice()
 	} ];
 	dataGraphRequests = [ {
 	    label: 'Average request duration (in milliseconds)',
-	    color: 3,
+	    color: "rgb(147, 213, 13)",
 	    data: data.slice()
 	} ];
 

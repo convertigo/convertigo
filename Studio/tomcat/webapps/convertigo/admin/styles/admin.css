@@ -28,23 +28,22 @@ body {
 	font-size: 12px;
 	color: #818181;
 	text-align: center;
-	background: url(../images/bg.jpg) center top;
 	margin: 0;
 }
 
 h1 {
-	font-family: Verdana, Arial, sans-serif;
+	font-family: 'Open Sans', sans-serif;
 	font-size: 18px;
 	font-weight: normal;
-	color: #03744f;
+	color: #868686;;
 	line-height: 26px;
 	padding: 0px;
-	margin: 55px 0 4px 0;
+	margin: 54px 0 0px 0;
 	text-align: left;
 }
 
 h2 {
-	font-family: Arial, Helvetica, sans-serif;
+	font-family: 'Open Sans', sans-serif;
 	font-size: 16px;
 	font-weight: bold;
 	color: #8F8F8F;
@@ -53,16 +52,16 @@ h2 {
 }
 
 h3 {
-	font-family: Verdana, Geneva, sans-serif;
+	font-family: 'Open Sans', sans-serif;
 	color: #FFF;
 	font-size: 16px;
 	line-height: 0px;
-	margin-top: 19px;
+	margin-top: 20px;
 	font-weight: 300;
 }
 
 h4 {
-	color: #00A4C8;
+	color: #00CAFF;
 	font-weight: bold;
 	font-size: 15px;
 	margin-left: 10px;
@@ -71,7 +70,7 @@ h4 {
 }
 
 h5 {
-	color: #00A4C8;
+	color: #00C8FC;
 	font-weight: bold;
 	font-size: 15px;
 	margin: 5px 0 5px 0;
@@ -93,6 +92,18 @@ p {
 	/margin-top: 10px;
 }
 
+
+.config-update {
+	margin-top: 5px;
+}
+
+.ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button {
+	font-family: Lucida Grande,Lucida Sans,Arial,sans-serif;
+	font-size: 1em !important;
+	border-radius: 5px !important;
+	padding: 3px !important;
+}
+
 ul {
 	margin-left: 30px;
 }
@@ -104,15 +115,42 @@ li {
 	list-style-image: url(../images/dote.png);
 }
 
+.fix1 {
+	margin-left: -21px;
+}
+
+.fix2 {
+	margin-left: -35px;
+}
+
+#cacheClearEntries {
+	position: relative;
+	top: 5px;
+}
+
+#keysGenerateNewKey {
+	position: relative;
+top: 5px;
+}
+
+#logTable th {
+color: rgb(86, 85, 85) !important;
+text-align: center;
+font-weight: bold;
+background-color: #FFFFFF !important;
+padding: 3px;
+}
+
+
+
 hr {
-	width: 99%;
-	text-align: left;
-	margin: 15px 0 15px 10px !important;
-	-margin: 5px 0 15px 10px; 
-	/margin: 5px 0 15px 10px;
-	border: 0;
-	border-top: 1px dotted #aeaeae;
-	height: 1px;
+width: 99%;
+text-align: left;
+margin: 15px 0 15px 10px !important;
+-margin: 5px 0 15px 10px;
+border: 0;
+border-top: 1px solid#C8C8C8;
+height: 1px;
 }
 
 a {
@@ -128,6 +166,22 @@ a:hover {
 
 img {
 	border: 0px;
+}
+
+
+.loginimg {
+	border: 0px;
+	/* margin-top: 10px; */
+	position: relative;
+	top: 15px;
+}
+
+.loginimg2 {
+	border: 0px;
+	/* margin-top: 10px; */
+	position: relative;
+	top: 20px;
+	width: 45px;
 }
 
 table {
@@ -190,7 +244,7 @@ table {
 }
 
 .login_footer>a {
-	color: #000;
+	color: #0D9DCF;
 }
 
 .login_footer>a:hover {
@@ -212,7 +266,7 @@ table {
 }
 
 .login_box {
-	color: #FFFFFF;
+	color: #fff;
 	font-size: 14px;
 	text-align: left;
 	width: 235px;
@@ -229,36 +283,45 @@ table {
 }
 
 .login_title {
-	color: #00f5ee;
-	font-size: 24px;
+	color: #fff;
+	font-size: 18px;
 	font-weight: bold;
 	text-align: left;
 	font-family: Arial;
-	margin-top: 15px;
+	margin-top: 13px;
+	position: relative;
+	left: 37px;
+	top: -2px;
 }
 
 .login_textAlign {
-	text-align: center;
+	text-align: right;
+	margin-left: -40px;
+	position: relative;
+	right: 36px;
+	top: 2px;
 }
 
 .login_champs {
 	height: 20px;
-	width: 120px;
-	border: 2px solid #79dfdc;
-	background: #FFF;
+	width: 114px;
+	border: 2px solid #00667A;
+	background-color: #FFF !important;
 	font-family: Arial;
 	font-size: 11px;
-	color: #727272;
+	color: #000000;
 	float: right;
-	-margin-top: -16px; 
-	/margin-top: -16px;
+	-margin-top: -16px;
+	text-align: left;
+	padding: 3px;
+	border-radius: 5px;
 }
 
 .submit_button {
 	background: url(../images/btn_signin.png);
 	background-repeat: no-repeat;
-	width: 75px;
-	height: 27px;
+	width: 99px;
+	height: 38px;
 	border: 0px;
 	cursor: pointer;
 }
@@ -284,36 +347,40 @@ table {
 
 #mainlogo {
 	float: left;
-	margin: 10px 0 10px 10px;
+	margin: 11px 0 0px 10px;
 	width: 165px;
 	height: 65px;
 	background-image: url(../images/convertigo-administration-logo.png);
 	background-repeat: no-repeat;
+	background-position-y: 12px;
 }
 
 .main_picto_close {
 	float: right;
-	margin: 10px 10px 10px 0px;
-	width: 17px;
-	height: 17px;
-	background-image:url(../images/convertigo-administration-picto-close.png);
+	margin: 8px 10px 10px 0px;
+	width: 55px;
+	height: 35px;
+	background-image: url(../images/convertigo-administration-picto-close.png);
 	background-repeat: no-repeat;
 }
 
 .main_top {
-	float: right;
-	text-align: right;
-	margin: 10px 10px 0 0;
-	font-family: Arial, Helvetica, sans-serif;
-	color: #a5a5a5;
-	font-size: 12px;
-	font-weight: bold;
-	font-variant: small-caps;
+float: right;
+text-align: right;
+margin: 75px 4px 0 0;
+font-family: Arial, Helvetica, sans-serif;
+color: #a5a5a5;
+font-size: 12px;
+font-weight: bold;
+font-variant: small-caps;
 }
 
 .main_top a {
-	color: #a5a5a5;
-	text-decoration: none;
+color: #00CFFF;
+text-decoration: none;
+text-transform: uppercase;
+/* margin-top: 50px; */
+/* position: relative; */
 }
 
 .main_top a:hover {
@@ -327,11 +394,10 @@ table {
 
 .main_separator {
 	float: left;
-	margin: 45px 25px 0 25px;
-	height: 35px;
-	border-left: 2px solid #CCC;
+	margin: 57px 25px 0 25px;
+	height: 21px;
+	border-left: 2px solid #7C7979;
 }
-
 .main-display-none {
 	display: none;
 }
@@ -347,6 +413,20 @@ table {
 	font-variant: small-caps;
 }
 
+
+
+#sysinfoGetJavaSystemProperties {
+	margin-top: 5px !important;
+}
+
+#sysinfoGetEnvironmentVariables {
+	margin-top: 5px;
+}
+
+#statusRestartEngine {
+	margin-top: -7px;
+}
+
 /* = TEMPLATE MAIN
 ---------------------------------------------------------------------- */
 #mainglobal {
@@ -355,7 +435,7 @@ table {
 
 #mainmenu {
 	float: left;
-	width: 175px;
+	width: 180px;
 }
 
 #maincontainer {
@@ -376,11 +456,13 @@ table {
 }
 
 .maincontent_bgleft {
-	width: 100%;
-	float: left;
-	background-image: url(../images/convertigo-administration-bg-left.png);
-	background-repeat: repeat-y;
+width: 100%;
+float: left;
+background-image: url(../images/convertigo-administration-bg-left.png);
+background-repeat: repeat-y;
+background-position-x: -2px;
 }
+
 
 .maincontent_bgright {
 	width: 100% !important;
@@ -439,7 +521,7 @@ table {
 }
 
 .mainfooter_copyright>a {
-	color: #000;
+	color: #00CAFF;
 }
 
 .mainfooter_copyright>a:hover {
@@ -637,11 +719,10 @@ table {
 	left: -14px;
 	height: 47px;
 	width: 100%;
-	background-color: #f3f2f1;
-	border-bottom: 1px solid #dddddd;	
-	padding: 10px 12px 0 12px;;
+	background-color: #F2F2F2;
+	border-bottom: 1px solid #dddddd;
+	padding: 10px 12px 0 12px;
 }
-
 
 /* = DOCK MENU
 ---------------------------------------------------------------------- */
@@ -668,28 +749,45 @@ table {
 	display: block;
 	text-align: center;
 	margin-right: 12px !important;
-	margin-bottom: 10px !important;
+	margin-bottom: 7px !important;
 }
 
 .mainmenu_mb_menuV img {
 	display: block;
 	border: 0;
 	opacity: 1;
-	height: 55px;
-	width: 55px;
+	width: 92px;
+}
+
+.widget_content_help {
+	margin-top: 1px;
+}
+
+#statusStartedLed {
+	position: relative;
+	top: 8px;
+}
+
+#statusStoppedLed {
+	position: relative;
+	top: 8px;
+}
+
+.ui-button {
+	margin-left: 10px !important;
+
 }
 
 .mainmenu_tab, .navigatemenu_tab {
 	width: 160px;
 	vertical-align: top;
 	height: 100%;
-	background: #FFF url(../images/bg_nav.png);
+	background: #FFF;
 	background-repeat: no-repeat;
-	margin: 5px 0 0 10px !important; 
-	/margin: 5px 0 0 5px;
+	margin: -17px 0 0 10px !important;
 	-margin: 5px 0 0 5px;
-	padding-top: 10px;	
-	padding-bottom: 10px;	
+	padding-top: 10px;
+	padding-bottom: 10px;
 }
 .navigatemenu_tab {
 	background-image: none;
@@ -699,6 +797,12 @@ table {
 	width: 60%;
 	margin: auto !important;	
 	padding-top: 20px;
+}
+
+.adminTitle{
+	position: relative;
+	left: 25px;
+	top: -2px;
 }
 
 /* == for ie 
@@ -728,7 +832,9 @@ span.mainmenu_text {
 	text-align: center;
 	width: 55px;
 	height: 18px;
-	line-height: 1.4em;
+	/* line-height: 0.4em; */
+	position: relative;
+	top: 14px;
 }
 
 a:hover>span.mainmenu_text {
@@ -762,20 +868,24 @@ a:hover>span.mainmenu_text {
 }
 
 .main_odd {
-	background-color: #fff;
+	background-color: #E5E5E5;
+	color: #595252;
+	padding: 3px !important;
 }
 
 .main_even {
-	background-color: #f3f2f1;
+	background-color: #C8C8C8;
+	color: #565252;
 }
 
 .main_headerTab {
-	background-color: #959595;
+	background-color: #5A5A5A;
 	color: #fff;
 	font-size: 13px;
 	font-weight: bold;
+	border-radius: 5px;
+	padding: 5px;
 }
-
 table.ui-pg-table {
 	color: #fff;
 }
@@ -1279,12 +1389,7 @@ table.ui-pg-table {
 }
 
 /* list category bouton tabs */
-li.ui-state-default, .ui-widget-content li.ui-state-default, .ui-widget-header li.ui-state-default {
-	border: 0px solid #DDD;
-	background: #F3F2F1;
-	font-weight: bold;
-	color: #727272;
-}
+
 li.ui-state-active, .ui-widget-content li.ui-state-active, .ui-widget-header li.ui-state-active {
 	border: 0px solid #EEE;
 	background: #dfdfdf url("../images/icon_arrow_grey.png") no-repeat 14px 12px;
@@ -1377,10 +1482,15 @@ li.ui-state-hover, .ui-widget-content li.ui-state-hover, .ui-widget-header li.ui
 
 .config-accordion-main-properties {
 	width: 600px;
-	background: transparent url(../images/bg-gris-tablarge.png) top no-repeat;
+	background: rgb(234, 234, 234);
 	height: auto;
-	/*margin: 15px 0 15px 10px;*/
+	/* margin: 15px 0 15px 10px; */
+	border-radius: 5px;
 	text-align: left;
+}
+
+.config-property-name {
+	color: rgb(8, 42, 63) !important;
 }
 
 .config-accordion-mainTable,.config-accordion-advancedTable {
@@ -1388,12 +1498,78 @@ li.ui-state-hover, .ui-widget-content li.ui-state-hover, .ui-widget-header li.ui
 	margin-bottom: 10px;
 }
 
+.symbolEdit {
+	position: relative;
+	top: 1px;
+}
+
+#addSymbol, #importSymbol, #exportSymbol, #symbolsListButtonDeleteAll  {
+	position: relative;
+	top: 4px;
+}
+
+.ui-button-text {
+	position: relative;
+	top: 1px;
+}
+
+#projectsDeploy, #projectsListButtonDeleteAll {
+	position:relative;
+	top: 5px;
+} 
+
+
+#connectionsListButtonDeleteAll {
+	position: relative;
+	top: 4px;
+}
+
+.ui-jqgrid .ui-jqgrid-htable th div {
+overflow: hidden;
+position: relative;
+height: auto !important;
+}
+
+.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default {
+border: 1px solid #ddd;
+background: #FFFFFF;
+font-weight: bold;
+color: #767474;
+}
+
+.ui-widget-header {
+border: 1px solid #00B7E7;
+background: #00C8FC;
+color: white;
+font-weight: bold;
+}
+
+.ui-state-hover {
+	border: 1px solid #F2F5F5;
+	background: #f4f4f4!important;}
+
+.symbolDelete {
+	position: relative;
+    top: 1px;
+}
+
+.ui-state-highlight, .ui-widget-content .ui-state-highlight, .ui-widget-header .ui-state-highlight {
+border: 1px solid #61DEFF;
+background: #A2EAFD !important;
+color: #363636;
+border-style: none !important;
+}
+
 .config-accordion-advanced-properties {
-	width: 600px;
-	background: transparent url(../images/bg-gris-tablarge_color.png) top no-repeat;
+	width: 585px;
+	background-color: rgb(216, 226, 229);
+	/* background: transparent url(../images/bg-gris-tablarge_color.png) top no-repeat; */
 	height: auto;
-	/*margin: 0px 0 15px 10px;*/
+	border-radius: 6px;
+	/* margin: 0px 0 15px 10px; */
 	text-align: left;
+	color: rgb(61, 61, 61);
+	margin-left: 9px;
 }
 
 .config-toggle-advanced-properties {
@@ -1675,4 +1851,19 @@ a.start {
     position:relative;
     display:inline-block;
     vertical-align:middle;
+}
+
+.bleu {
+	color: #fff;
+	font-size: 14px;
+	margin-top: 5px;
+	text-align: left;
+	top: 8px;
+	position: relative;
+}
+
+textarea:-webkit-autofill, select:-webkit-autofill {
+background-color: #ffffff !important;
+background-image: none;
+color: rgb(0, 0, 0);
 }

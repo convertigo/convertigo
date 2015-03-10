@@ -37,6 +37,14 @@ p {
 .small {
 	font-size: 8pt;
 }
+
+
+
+#projectsList>img {
+	position:relative !important;
+	top:3px !important;
+}
+
 a.menu {
 	font-size: 8pt;
 }
