@@ -1,7 +1,6 @@
 package com.twinsoft.convertigo.engine.admin.services.store;
 
 import java.io.File;
-import java.nio.file.Files;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -42,7 +41,11 @@ public class UploadCustomStore extends UploadService {
 		super.doUpload(request, document, item);
 
 		final String STORE_ARCHIVE_PATH = getRepository() + storeArchive;
-		File tmpDir = new File(Files.createTempDirectory("tmp").toString());
+		
+		File tmpDir = File.createTempFile("store", null);
+		tmpDir.delete();
+		tmpDir.mkdirs();
+		
 		File srcStoreDir = null;
 		try {
 			ZipUtils.expandZip(STORE_ARCHIVE_PATH, tmpDir.getCanonicalPath());
@@ -62,8 +65,13 @@ public class UploadCustomStore extends UploadService {
 				// keep srcStoreDir
 			}
 			
-			FileUtils.deleteDirectory(new File(getRepository(), StoreFiles.STORE_DIRECTORY_NAME));
-			srcStoreDir.renameTo(new File(Engine.USER_WORKSPACE_PATH, StoreFiles.STORE_DIRECTORY_NAME));
+			File storeDir = new File(getRepository(), StoreFiles.STORE_DIRECTORY_NAME);
+			FileUtils.deleteDirectory(storeDir);
+			
+			if (!srcStoreDir.renameTo(storeDir)) {
+				FileUtils.copyDirectory(srcStoreDir, storeDir, true);
+				FileUtils.deleteDirectory(srcStoreDir);
+			}
 		} finally {
 			new File(STORE_ARCHIVE_PATH).delete();
 			FileUtils.deleteDirectory(tmpDir);
