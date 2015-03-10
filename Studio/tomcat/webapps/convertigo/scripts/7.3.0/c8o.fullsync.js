@@ -214,18 +214,19 @@ $.extend(true, C8O, {
 				
 				if (docId != null) {
 					if (policy == "override") {
-						getDocumentRev(db, docId, function (rev) {
+						C8O._fs.getDocumentRev(db, docId, function (rev) {
 							if (rev != null) {
 								document._rev = rev;
 							}
 							callback(document);
 						});
 					} else if (policy == "merge") {
-						getDocument(db, docId, function (dbDocument) {
+						C8O._fs.getDocument(db, docId, undefined, function (dbDocument) {
 							if (dbDocument._id) {
+								delete dbDocument._c8oMeta;
 								// merge documents
 								delete document._rev;
-								callback($.extend(dbDocument, document));
+								callback($.extend(true, dbDocument, document));
 							}
 						});
 					}
@@ -368,7 +369,7 @@ C8O._init.tasks.push(function () {
     C8O._init.check();
 });
 
-C8O.addHook("call", function (data) {
+C8O.addHook("_call_fs", function (data) {
 	var db;
 	if ((db = C8O._define.re_fs_match_db.exec(data.__project)) != null) {
 		db = (db[1] ? db[1] : C8O.vars.fs_default_db) + "_device";
@@ -396,7 +397,7 @@ C8O.addHook("call", function (data) {
 				C8O._fs.headDocument(db, data.docid, callback);
 			} else if (data.__sequence.indexOf("post") == 0) {
 				var policy = C8O._define.re_fs_get_policy.exec(data.__sequence)[1] || "none";
-				policy = data._postPolicy || policy;
+				policy = data.__postPolicy || policy;
 				
 				var postData = $.extend({}, data);
 				

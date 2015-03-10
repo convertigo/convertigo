@@ -663,7 +663,7 @@ if ("cordova" in window) {
                 }
             }
             
-            if (C8O.isUndefined(window.openDatabase) && C8O.isDefined(window.sqlitePlugin)) {
+            if (C8O.isDefined(window.sqlitePlugin)) {
                 C8O.log.debug("c8o.cdv : use sqlitePlugin for DB");
                 window.openDatabase = sqlitePlugin.openDatabase;
             }

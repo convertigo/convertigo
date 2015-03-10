@@ -444,7 +444,7 @@ C8O = {
 
     _call: function (data) {
         C8O._define.last_call_params = data;
-        if (C8O._hook("call", data)) {
+        if (C8O._hook("call", data) && C8O._hook("_call_fs", data)) {
             var doCall = function (doLocal) {
                 if (doLocal && C8O.isDefined(data.__localCache)) {
                     if (typeof(data.__localCache) == "string") {
