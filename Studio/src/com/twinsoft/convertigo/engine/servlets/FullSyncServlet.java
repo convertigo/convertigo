@@ -23,6 +23,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpTrace;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 
@@ -57,10 +58,20 @@ public class FullSyncServlet extends HttpServlet {
 
 			RequestParser requestParser = new RequestParser(request.getPathInfo());
 			String token = requestParser.getId();
-			URI uri = URI.create(
-					Engine.theApp.couchDbManager.getFullSyncUrl() + requestParser.getPath() + 
-					(request.getQueryString() == null ? "" : "?" + request.getQueryString())
-					);
+			URI uri;
+			
+			try {
+				uri = URI.create(
+						Engine.theApp.couchDbManager.getFullSyncUrl() + requestParser.getPath() + 
+						(request.getQueryString() == null ? "" : "?" + request.getQueryString())
+						);
+			} catch (Exception e) {
+				URIBuilder builder = new URIBuilder(Engine.theApp.couchDbManager.getFullSyncUrl() + requestParser.getPath());
+				if (request.getQueryString() != null) {
+					builder.setCustomQuery(request.getQueryString());
+				}
+				uri = builder.build();
+			}
 
 			debug.append(method.name() + " URI: " + uri.toString() + "\n");
 
@@ -80,9 +91,13 @@ public class FullSyncServlet extends HttpServlet {
 			if (token != null) {
 				String dbName = requestParser.getDbName();
 				String special = requestParser.getSpecial();
-				if (method == HttpMethodType.POST && "_bulk_docs".equals(special)) {
+				
+				if (request.getInputStream() != null) {
 					requestEntity = IOUtils.toString(request.getInputStream(), "UTF-8");
 					debug.append("request Entity:\n" + requestEntity + "\n");
+				}
+				
+				if (method == HttpMethodType.POST && "_bulk_docs".equals(special)) {
 					requestEntity = Engine.theApp.couchDbManager.handleBulkDocs(dbName, requestEntity, token);
 				} else if (method == HttpMethodType.GET && "_changes".equals(special)) {
 					uri = Engine.theApp.couchDbManager.handleChangesUri(dbName, uri, token);
@@ -90,7 +105,7 @@ public class FullSyncServlet extends HttpServlet {
 				}
 			}
 
-			if (requestEntity != null) {
+			if (requestEntity != null && newRequest instanceof HttpEntityEnclosingRequest) {
 				debug.append("request new Entity:\n" + requestEntity + "\n");
 				((HttpEntityEnclosingRequest) newRequest).setEntity(new StringEntity(requestEntity, "UTF-8"));
 			} else if (newRequest instanceof HttpEntityEnclosingRequest) {
