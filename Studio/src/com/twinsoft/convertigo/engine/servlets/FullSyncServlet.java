@@ -1,6 +1,8 @@
 package com.twinsoft.convertigo.engine.servlets;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.util.Collections;
 import java.util.regex.Matcher;
@@ -13,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpDelete;
@@ -86,7 +89,7 @@ public class FullSyncServlet extends HttpServlet {
 					debug.append("skip request Header: " + headerName + "=" + request.getHeader(headerName)+ "\n");
 				}
 			}
-
+			
 			String requestEntity = null;
 			if (token != null) {
 				String dbName = requestParser.getDbName();
@@ -115,6 +118,9 @@ public class FullSyncServlet extends HttpServlet {
 			newRequest.setURI(uri);
 
 			HttpResponse newResponse = Engine.theApp.httpClient4.execute(newRequest);
+			int code = newResponse.getStatusLine().getStatusCode();
+			debug.append("response Code: " + code + "\n");
+			response.setStatus(code);
 			
 			for (Header header: newResponse.getAllHeaders()) {
 				if (!HeaderName.TransferEncoding.value().equalsIgnoreCase(header.getName())
@@ -126,20 +132,35 @@ public class FullSyncServlet extends HttpServlet {
 				}
 			}
 			
-			ContentTypeDecoder contentType = new ContentTypeDecoder(newResponse.getEntity() == null ? "" : newResponse.getEntity().getContentType().getValue());
-
-			if (contentType.mimeType() == MimeType.Plain || contentType.mimeType() == MimeType.Json) {
+			HttpEntity responseEntity = newResponse.getEntity();
+			ContentTypeDecoder contentType = new ContentTypeDecoder(responseEntity == null ? "" : responseEntity.getContentType().getValue());
+			
+			boolean continuous = code == 200 && uri.getQuery() != null && uri.getQuery().contains("feed=continuous");
+			OutputStream os = response.getOutputStream();
+			
+			if (!continuous && (contentType.mimeType() == MimeType.Plain || contentType.mimeType() == MimeType.Json)) {
 				String charset = contentType.getCharset("UTF-8");
-				String responseEntity = IOUtils.toString(newResponse.getEntity().getContent(), charset);
+				String responseStringEntity = IOUtils.toString(newResponse.getEntity().getContent(), charset);
 
-				debug.append("response Entity:\n" + responseEntity + "\n");
+				debug.append("response Entity:\n" + responseStringEntity + "\n");
 
-				IOUtils.write(responseEntity, response.getOutputStream(), charset);
-			} else if (newResponse.getEntity() != null) {
-				IOUtils.copy(newResponse.getEntity().getContent(), response.getOutputStream());
+				IOUtils.write(responseStringEntity, os, charset);
+			} else if (responseEntity != null) {
+				InputStream is = responseEntity.getContent();
+				
+				if (continuous) {
+					Engine.logCouchDbManager.info("(FullSyncServlet) Entering in continuous loop:\n" + debug);
+					
+					int read = is.read();
+					while (read >= 0) {
+						os.write(read);
+						os.flush();
+						read = is.read();
+					}
+				} else {
+					IOUtils.copy(is, os);
+				}
 			}
-
-			response.setStatus(newResponse.getStatusLine().getStatusCode());
 
 			Engine.logCouchDbManager.info("(FullSyncServlet) Success to process request:\n" + debug);
 		} catch (Exception e) {
