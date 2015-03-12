@@ -86,7 +86,6 @@ $.extend(true, C8O, {
 			var options = {
 				live: continuous,
 				retry: continuous
-				
 			};
 			
 			source = source.indexOf("://") != -1 ? source : C8O._pouch.getDb(source);
@@ -340,7 +339,7 @@ $.extend(true, C8O, {
 	
 	fs_update_device: function (options, callback) {
 		var db = options.db || C8O.vars.fs_default_db;
-		var continous = options.continuous || false;
+		var continuous = options.continuous || false;
 		var cancel = options.cancel || false;
 		
 		callback = callback || function (doc) {
@@ -352,7 +351,7 @@ $.extend(true, C8O, {
 	
 	fs_update_remote: function (options, callback) {
 		var db = options.db || C8O.vars.fs_default_db;
-		var continous = options.continuous || false;
+		var continuous = options.continuous || false;
 		var cancel = options.cancel || false;
 		
 		callback = callback || function (doc) {
