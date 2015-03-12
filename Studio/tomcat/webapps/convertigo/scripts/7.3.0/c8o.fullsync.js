@@ -98,11 +98,21 @@ $.extend(true, C8O, {
 			if (cancel) {
 				rep.cancel();
 			}
+		},
+		
+		onChange: function (db, onChange, onComplete) {
+			C8O._pouch.getDb(db).changes({
+			  since: "now",
+			  live: true
+			}).on("change", onChange).on("complete", onComplete);
 		}
 	},
 	_fs: {
 		server: null,
 		auth: null,
+		live_ids: {},
+		live_views: {},
+		live_dbs: {},
 		
 		getRemoteUrl: function (db) {
 			return C8O._fs.remote + (C8O.vars.fs_token ? "/~" + C8O.vars.fs_token : "") + "/" + db
@@ -329,6 +339,66 @@ $.extend(true, C8O, {
 					delete data[key];
 				}
 			}
+		},
+		
+		onChange: function (db, onChange, onComplete) {
+			var since = "now";
+			var poll = function () {
+				var query = {
+					since: since,
+					heartbeat: 10000,
+					feed: "longpoll"
+				};
+				
+				var request = {type: "GET", url: C8O._fs.getDatabaseUrl(db) + "/_changes?" + $.param(query)};
+					
+				C8O._fs.execute(request, function (changes) {
+					since = changes.last_seq;
+					
+					if (onChange) {
+						for (var i in changes.results) {
+							onChange(changes.results[i]);
+						}
+					}
+					
+					if (onComplete) {
+						onComplete(changes);
+					}
+					poll();
+				});	
+			};
+			poll();
+		},
+		
+		addLiveId: function (db, data) {
+			if (data.__live) {
+				C8O._fs.addLiveDb(db);
+				C8O._fs.live_ids[data.docid] = $.extend({}, data);
+			}
+		},
+		
+		addLiveView: function (db, data) {
+			if (data.__live) {
+				C8O._fs.addLiveDb(db);
+				C8O._fs.live_views[data.docid + "/" + data.viewname] = $.extend({}, data);				
+			}
+		},
+		
+		addLiveDb: function (db) {
+			if (!C8O._fs.live_dbs[db]) {
+				C8O._fs.live_dbs[db] = true;
+				C8O._fs.onChange(db, function (change) {
+					var data = C8O._fs.live_ids[change.id];
+					if (data) {
+						C8O.call(data);
+					}
+				}, function (changes) {
+					for (var key in C8O._fs.live_views) {
+						C8O.call(C8O._fs.live_views[key]);
+					}
+				});
+				
+			}
 		}
 	},
 	
@@ -359,6 +429,11 @@ $.extend(true, C8O, {
 		};
 		
 		C8O._fs.postReplicate(db + "_device", C8O._fs.getRemoteUrl(db), false, continuous, cancel, callback);
+	},
+	
+	fs_onChange: function (options) {
+		var db = options.db || C8O.vars.fs_default_db;
+		C8O._fs.onChange(db + "_device", options.onChange, options.onComplete);
 	}
 });
 
@@ -382,6 +457,7 @@ C8O._init.tasks.push(function () {
     }
     
     delete C8O._init.locks.fullsync;
+    
     C8O._init.check();
 });
 
@@ -406,10 +482,12 @@ C8O.addHook("_call_fs", function (data) {
 			C8O._onCallSuccess(xmlData, "success", fakeXHR);
 		};
 		
-		if (data.__sequence) {		
+		if (data.__sequence) {
 			if (data.__sequence == "get") {
+				C8O._fs.addLiveId(db, data);
 				C8O._fs.getDocument(db, data.docid, data.docrev, callback);
 			} else if (data.__sequence == "head") {
+				C8O._fs.addLiveId(db, data);				
 				C8O._fs.headDocument(db, data.docid, callback);
 			} else if (data.__sequence.indexOf("post") == 0) {
 				var policy = C8O._define.re_fs_get_policy.exec(data.__sequence)[1] || "none";
@@ -423,6 +501,8 @@ C8O.addHook("_call_fs", function (data) {
 			} else if (data.__sequence == "delete") {
 				C8O._fs.deleteDocument(db, data.docid, callback);
 			} else if (data.__sequence == "view") {
+				C8O._fs.addLiveView(db, data);
+				
 				var docid = data.docid || C8O.vars.fs_default_design;
 				var viewname = data.viewname;
 				
