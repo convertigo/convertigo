@@ -321,30 +321,33 @@ $.extend(true, C8O, {
 		}
 	},
 	
-	fs_replicate: function (db, continuous, callback) {
-		db = db || C8O.vars.fs_default_db;
-		C8O.fs_update_device(db, continuous, callback);
-		C8O.fs_update_remote(db, continuous, callback);
+	fs_replicate: function (options, callback) {
+		C8O.fs_update_device(options, callback);
+		C8O.fs_update_remote(options, callback);
 	},
 	
-	fs_update_device: function (db, continuous, callback) {
-		db = db || C8O.vars.fs_default_db;
-		continous = continuous || false;
+	fs_update_device: function (options, callback) {
+		var db = options.db || C8O.vars.fs_default_db;
+		var continous = options.continuous || false;
+		var cancel = options.cancel || false;
+		
 		callback = callback || function (doc) {
 			C8O.log.info("c8o.fs  : fs_update_device return " + C8O.toJSON(doc));
 		};
 		
-		C8O._fs.postReplicate(C8O._fs.getRemoteUrl(db), db + "_device", true, continuous, false, callback);
+		C8O._fs.postReplicate(C8O._fs.getRemoteUrl(db), db + "_device", true, continuous, cancel, callback);
 	},
 	
-	fs_update_remote: function (db, continuous, callback) {
-		db = db || C8O.vars.fs_default_db;
-		continous = continuous || false;
+	fs_update_remote: function (options, callback) {
+		var db = options.db || C8O.vars.fs_default_db;
+		var continous = options.continuous || false;
+		var cancel = options.cancel || false;
+		
 		callback = callback || function (doc) {
 			C8O.log.info("c8o.fs  : fs_update_remote return " + C8O.toJSON(doc));
 		};
 		
-		C8O._fs.postReplicate(db + "_device", C8O._fs.getRemoteUrl(db), false, continuous, false, callback);
+		C8O._fs.postReplicate(db + "_device", C8O._fs.getRemoteUrl(db), false, continuous, cancel, callback);
 	}
 });
 
