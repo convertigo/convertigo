@@ -83,10 +83,22 @@ $.extend(true, C8O, {
 		},
 		
 		postReplicate: function (source, target, create_target, continuous, cancel, callback) {
-			var options = {"live":continuous};
-			PouchDB.replicate(C8O._pouch.getDb(source), C8O._pouch.getDb(target), options).on("complete", function (info) {
-				console.log(info);
+			var options = {
+				live: continuous,
+				retry: continuous
+				
+			};
+			
+			source = source.indexOf("://") != -1 ? source : C8O._pouch.getDb(source);
+			target = target.indexOf("://") != -1 ? target : C8O._pouch.getDb(target);
+			
+			var rep = PouchDB.replicate(source, target, options).on("complete", function (info) {
+				callback(info);
 			});
+			
+			if (cancel) {
+				rep.cancel();
+			}
 		}
 	},
 	_fs: {
