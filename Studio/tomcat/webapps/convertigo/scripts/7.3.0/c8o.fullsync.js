@@ -100,11 +100,11 @@ $.extend(true, C8O, {
 			}
 		},
 		
-		onChange: function (db, onChange, onComplete) {
+		onChange: function (db, onChange) {
 			C8O._pouch.getDb(db).changes({
 			  since: "now",
 			  live: true
-			}).on("change", onChange).on("complete", onComplete);
+			}).on("change", onChange);
 		}
 	},
 	_fs: {
@@ -341,7 +341,7 @@ $.extend(true, C8O, {
 			}
 		},
 		
-		onChange: function (db, onChange, onComplete) {
+		onChange: function (db, onChange) {
 			var since = "now";
 			var poll = function () {
 				var query = {
@@ -355,14 +355,8 @@ $.extend(true, C8O, {
 				C8O._fs.execute(request, function (changes) {
 					since = changes.last_seq;
 					
-					if (onChange) {
-						for (var i in changes.results) {
-							onChange(changes.results[i]);
-						}
-					}
-					
-					if (onComplete) {
-						onComplete(changes);
+					for (var i in changes.results) {
+						onChange(changes.results[i]);
 					}
 					poll();
 				});	
@@ -397,12 +391,10 @@ $.extend(true, C8O, {
 					if (data) {
 						C8O.call(data);
 					}
-				}, function (changes) {
 					for (var key in C8O._fs.live_views) {
 						C8O.call(C8O._fs.live_views[key]);
 					}
 				});
-				
 			}
 		}
 	},
@@ -438,7 +430,7 @@ $.extend(true, C8O, {
 	
 	fs_onChange: function (options) {
 		var db = options.db || C8O.vars.fs_default_db;
-		C8O._fs.onChange(db + "_device", options.onChange, options.onComplete);
+		C8O._fs.onChange(db + "_device", options.onChange);
 	}
 });
 
