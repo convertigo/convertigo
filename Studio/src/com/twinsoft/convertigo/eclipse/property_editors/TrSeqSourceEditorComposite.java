@@ -163,18 +163,23 @@ public class TrSeqSourceEditorComposite extends AbstractDialogComposite implemen
 		requestableSource = (String) cellEditor.databaseObjectTreeObject
 				.getPropertyValue(cellEditor.propertyDescriptor.getId());
 
-		StringTokenizer st = new StringTokenizer(requestableSource, RequestableStep.SOURCE_SEPARATOR);
-		requestableSourceProject = st.nextToken();
-		requestableSourceSequence = null;
-		requestableSourceConnector = null;
-		requestableSourceTransaction = null;
-		if (st.countTokens() == 1) {
+		try {
+			StringTokenizer st = new StringTokenizer(requestableSource, RequestableStep.SOURCE_SEPARATOR);
+			requestableSourceProject = st.nextToken();
+			requestableSourceSequence = null;
+			requestableSourceConnector = null;
+			requestableSourceTransaction = null;
+			if (st.countTokens() == 1) {
+				requestableType = RequestableType.SEQUENCE;
+				requestableSourceSequence = st.nextToken();
+			} else {
+				requestableType = RequestableType.TRANSACTION;
+				requestableSourceConnector = st.nextToken();
+				requestableSourceTransaction = st.nextToken();
+			}
+		}
+		catch (Exception e) {
 			requestableType = RequestableType.SEQUENCE;
-			requestableSourceSequence = st.nextToken();
-		} else {
-			requestableType = RequestableType.TRANSACTION;
-			requestableSourceConnector = st.nextToken();
-			requestableSourceTransaction = st.nextToken();
 		}
 
 		initialize();

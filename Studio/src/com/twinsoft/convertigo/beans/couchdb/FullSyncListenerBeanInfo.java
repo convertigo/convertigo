@@ -41,7 +41,7 @@ public class FullSyncListenerBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");	
 			
-			properties = new PropertyDescriptor[1];
+			properties = new PropertyDescriptor[2];
 			
 			properties[0] = new PropertyDescriptor("targetView", beanClass, "getTargetView", "setTargetView");
 			properties[0].setDisplayName(getExternalizedString("property.targetView.display_name"));
@@ -49,6 +49,11 @@ public class FullSyncListenerBeanInfo extends MySimpleBeanInfo {
 			properties[0].setPropertyEditorClass(getEditorClass("DesignDocumentViewSelectorEditor"));
 			properties[0].setExpert(true);
 			
+			properties[1] = new PropertyDescriptor("targetSequence", beanClass, "getTargetSequence", "setTargetSequence");
+			properties[1].setDisplayName(getExternalizedString("property.targetSequence.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.targetSequence.short_description"));
+			properties[1].setPropertyEditorClass(getEditorClass("TrSeqSourceEditor"));
+			properties[1].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

@@ -90,27 +90,28 @@ public class FullSyncServlet extends HttpServlet {
 				}
 			}
 			
-			String requestEntity = null;
+			String dbName = requestParser.getDbName();
+			
+			String requestStringEntity = null;
 			if (token != null) {
-				String dbName = requestParser.getDbName();
 				String special = requestParser.getSpecial();
 				
 				if (request.getInputStream() != null) {
-					requestEntity = IOUtils.toString(request.getInputStream(), "UTF-8");
-					debug.append("request Entity:\n" + requestEntity + "\n");
+					requestStringEntity = IOUtils.toString(request.getInputStream(), "UTF-8");
+					debug.append("request Entity:\n" + requestStringEntity + "\n");
 				}
 				
 				if (method == HttpMethodType.POST && "_bulk_docs".equals(special)) {
-					requestEntity = Engine.theApp.couchDbManager.handleBulkDocs(dbName, requestEntity, token);
+					requestStringEntity = Engine.theApp.couchDbManager.handleBulkDocsRequest(dbName, requestStringEntity, token);
 				} else if (method == HttpMethodType.GET && "_changes".equals(special)) {
 					uri = Engine.theApp.couchDbManager.handleChangesUri(dbName, uri, token);
 					debug.append("Changed to " + method.name() + " URI: " + uri.toString() + "\n");
 				}
 			}
 
-			if (requestEntity != null && newRequest instanceof HttpEntityEnclosingRequest) {
-				debug.append("request new Entity:\n" + requestEntity + "\n");
-				((HttpEntityEnclosingRequest) newRequest).setEntity(new StringEntity(requestEntity, "UTF-8"));
+			if (requestStringEntity != null && newRequest instanceof HttpEntityEnclosingRequest) {
+				debug.append("request new Entity:\n" + requestStringEntity + "\n");
+				((HttpEntityEnclosingRequest) newRequest).setEntity(new StringEntity(requestStringEntity, "UTF-8"));
 			} else if (newRequest instanceof HttpEntityEnclosingRequest) {
 				((HttpEntityEnclosingRequest) newRequest).setEntity(new InputStreamEntity(request.getInputStream()));
 			}
@@ -138,9 +139,10 @@ public class FullSyncServlet extends HttpServlet {
 			boolean continuous = code == 200 && uri.getQuery() != null && uri.getQuery().contains("feed=continuous");
 			OutputStream os = response.getOutputStream();
 			
+			String responseStringEntity = null;
 			if (!continuous && (contentType.mimeType() == MimeType.Plain || contentType.mimeType() == MimeType.Json)) {
 				String charset = contentType.getCharset("UTF-8");
-				String responseStringEntity = IOUtils.toString(newResponse.getEntity().getContent(), charset);
+				responseStringEntity = IOUtils.toString(newResponse.getEntity().getContent(), charset);
 
 				debug.append("response Entity:\n" + responseStringEntity + "\n");
 
@@ -163,6 +165,10 @@ public class FullSyncServlet extends HttpServlet {
 			}
 
 			Engine.logCouchDbManager.info("(FullSyncServlet) Success to process request:\n" + debug);
+			
+			if (requestStringEntity != null && responseStringEntity != null) {
+				Engine.theApp.couchDbManager.handleBulkDocsResponse(dbName, requestStringEntity, responseStringEntity);
+			}
 		} catch (Exception e) {
 			Engine.logCouchDbManager.error("(FullSyncServlet) Failed to process request:\n" + debug, e);
 		}

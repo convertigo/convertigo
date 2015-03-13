@@ -314,7 +314,7 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		return false;
 	}
 	
-	private static void toXml(Object object, Element parentElement) {
+	public static void toXml(Object object, Element parentElement) {
 		Document doc = parentElement.getOwnerDocument();
 		if (object instanceof JSONObject) {
 			JSONObject jsonObject = (JSONObject) object;

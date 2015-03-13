@@ -52,12 +52,14 @@ public class DefaultServletTranslator implements Translator {
 //			parameterNames = reparsedParameters.keys();
 //		}
 		
+		boolean isHandleComplex = "true".equals(request.getParameter("__handleComplex"));
+		
 		while (parameterNames.hasMoreElements()) {
 			String parameterName = (String) parameterNames.nextElement();
 			String[] parameterValues = request.getParameterValues(parameterName);
 
 			if (!inputDocumentBuilder.handleSpecialParameter(parameterName, parameterValues)) {
-				inputDocumentBuilder.addVariable(parameterName, parameterValues);
+				inputDocumentBuilder.addVariable(parameterName, parameterValues, isHandleComplex);
 			}
 		}
 
