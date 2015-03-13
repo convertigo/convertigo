@@ -374,13 +374,18 @@ $.extend(true, C8O, {
 			if (data.__live) {
 				C8O._fs.addLiveDb(db);
 				C8O._fs.live_ids[data.docid] = $.extend({}, data);
+				delete C8O._fs.live_ids[data.docid].__live;
+				C8O._fs.live_ids[data.docid].__fromLive = true;
 			}
 		},
 		
 		addLiveView: function (db, data) {
 			if (data.__live) {
+				var key = data.docid + "/" + data.viewname;
 				C8O._fs.addLiveDb(db);
-				C8O._fs.live_views[data.docid + "/" + data.viewname] = $.extend({}, data);				
+				C8O._fs.live_views[key] = $.extend({}, data);
+				delete C8O._fs.live_views[key].__live;
+				C8O._fs.live_views[key].__fromLive = true		
 			}
 		},
 		
@@ -471,7 +476,10 @@ C8O.addHook("_call_fs", function (data) {
 			C8O.log.debug("c8o.fs  : json response\n" + JSON.stringify(json));
 			
 			var xmlData = $.parseXML("<couchdb_output/>");
-			C8O._jsonToXml(undefined, json, xmlData.documentElement);
+			C8O._jsonToXml(undefined, json, xmlData.documentElement, function (keys, json) {
+				keys.sort();
+				return keys;
+			});
 			C8O.log.debug("c8o.fs  : xml response\n" + C8O.serializeXML(xmlData));
 			
 			var fakeXHR = {

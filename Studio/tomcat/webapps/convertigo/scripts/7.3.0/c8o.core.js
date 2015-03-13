@@ -726,17 +726,18 @@ C8O = {
     	}
     },
     
-    _jsonToXml: function (key, json, parentElement) {
+    _jsonToXml: function (key, json, parentElement, sortKeys) {
     	if (key == undefined) {
     		if ($.isPlainObject(json)) {
-    			for (var i in json) {
-    				C8O._jsonToXml(i, json[i], parentElement)
+    			var keys = C8O._sortKeys(json, sortKeys);
+    			for (var i in keys) {
+    				C8O._jsonToXml(keys[i], json[keys[i]], parentElement, sortKeys);
     			}
     		} else if ($.isArray(json)) {
-    			for (var i = 0; i < json.length; i++) {
+    			for (var i in json) {
     				var item = parentElement.ownerDocument.createElement("item");
     				parentElement.appendChild(item);
-    				C8O._jsonToXml(undefined, json[i], item);
+    				C8O._jsonToXml(undefined, json[i], item, sortKeys);
     			}
     		} else {
     			parentElement.textContent = json;
@@ -748,7 +749,7 @@ C8O = {
     			att_name.textContent = key;
     			att.appendChild(att_name);
     			parentElement.appendChild(att);
-    			C8O._jsonToXml(undefined, json, att);
+    			C8O._jsonToXml(undefined, json, att, sortKeys);
     		} else {
     			var child;
     			try {
@@ -758,7 +759,7 @@ C8O = {
     				child = parentElement.ownerDocument.createElement(key);
     			}
     			parentElement.appendChild(child);
-    			C8O._jsonToXml(undefined, json, child);
+    			C8O._jsonToXml(undefined, json, child, sortKeys);
     		}
     	}
     },
@@ -1150,6 +1151,18 @@ C8O = {
                 C8O.log.debug("c8o.core: retrieve from parameter C8O.vars." + key + "=" + C8O.vars[key]);
             }
         }
+    },
+    
+    _sortKeys: function (data, sortKeys) {
+    	var keys = $.map(data, function (v, k) {
+    		return k;
+    	});
+    	
+    	if (typeof sortKeys == "function") {
+    		keys = sortKeys(keys, data);
+    	}
+    	
+    	return keys;
     },
     
     _translate: function (str) {
