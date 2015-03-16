@@ -1769,6 +1769,20 @@
                </objectState>
             </enablement>
          </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateDocumentAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newDocument"
+               label="Document"
+               menubarPath="convertigo.menu.new/content">
+            <enablement>
+               <objectState
+                     name="folderType"
+                     value="15">
+               </objectState>
+            </enablement>
+         </action>
          <menu
                id="convertigo.menu.new"
                label="New"
@@ -2486,6 +2500,25 @@
             <objectContribution
                   id="convertigo.objectDesignDocumentView"
                   objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentViewTreeObject">
+               <menu
+                     id="convertigo.menu.document.view.new"
+                     label="New"
+                     path="new">
+                  <groupMarker
+                        name="content">
+                  </groupMarker>
+                  <separator
+                        name="additions">
+                  </separator>
+               </menu>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.CreateDesignDocumentViewReduceAction"
+                     enablesFor="1"
+                     icon="icons/studio/new.gif"
+                     id="convertigo.action.newDocumentViewReduce"
+                     label="Row"
+                     menubarPath="convertigo.menu.document.view.new/content">
+               </action>
                <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.ViewRenameAction"
                      enablesFor="1"
@@ -2528,6 +2561,18 @@
                      id="convertigo.action.cutAction"
                      label="Cut"
                      menubarPath="clipboard"/>-->
+            </objectContribution>
+            <objectContribution
+                  id="convertigo.objectDesignDocumentViewReduce"
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentFunctionTreeObject">
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.DeleteDesignDocumentViewReduceAction"
+                     enablesFor="1"
+                     icon="icons/studio/delete.gif"
+                     id="convertigo.action.deleteDocumentViewReduce"
+                     label="Delete"
+                     menubarPath="delete">
+               </action>
             </objectContribution>
             <objectContribution
                   id="convertigo.objectTableProperty"

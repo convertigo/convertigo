@@ -172,7 +172,6 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 		
 		ViewObject view = new ViewObject(viewName, new JSONObject());
 		view.createMap();
-		view.createReduce();
 		return view;
 	}
 	
@@ -255,7 +254,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 		
 		protected FunctionObject createReduce() {
 			if (!hasReduce()) {
-				CouchKey.reduce.put(jsonObject, "function (keys, values) {\r\n\treturn sum(values);\r\n}");
+				CouchKey.reduce.put(jsonObject, "function (keys, values) {\r\n\treturn values.length;\r\n}");
 				return getReduce();
 			}
 			return null;

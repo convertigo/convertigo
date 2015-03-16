@@ -49,6 +49,32 @@ public class DesignDocumentViewTreeObject extends TreeParent {
 		return getParent().getParent();
 	}
 	
+	public boolean hasMap() {
+		return getObject().hasMap();
+	}
+	
+	public boolean hasReduce() {
+		return getObject().hasReduce();
+	}
+
+	public DesignDocumentFunctionTreeObject addReduce() {
+		DesignDocumentFunctionTreeObject ddfto = null;
+		FunctionObject fo = getObject().createReduce();
+		if (fo != null) {
+			ddfto = new DesignDocumentFunctionTreeObject(viewer, fo);
+			addChild(ddfto);
+			hasBeenModified();
+		}
+		return ddfto;
+	}
+	
+	public void removeReduce(DesignDocumentFunctionTreeObject ddfto) {
+		if (ddfto != null) {
+			removeChild(ddfto);
+			hasBeenModified();
+		}
+	}
+	
 	public boolean rename(String newName, Boolean bDialog) {
 		if (getName().equals(newName))
 			return true;
