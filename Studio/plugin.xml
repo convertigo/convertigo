@@ -2528,13 +2528,13 @@
                </action>
                <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.DeleteDesignDocumentViewAction"
-                     enablesFor="1"
+                     enablesFor="+"
                      icon="icons/studio/delete.gif"
                      id="convertigo.action.deleteDocumentView"
                      label="Delete"
                      menubarPath="delete">
                </action>
-               <!--<action
+               <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardPasteAction"
                      enablesFor="1"
                      icon="icons/studio/clipboard_paste.gif"
@@ -2560,10 +2560,10 @@
                      icon="icons/studio/clipboard_cut.gif"
                      id="convertigo.action.cutAction"
                      label="Cut"
-                     menubarPath="clipboard"/>-->
+                     menubarPath="clipboard"/>
             </objectContribution>
             <objectContribution
-                  id="convertigo.objectDesignDocumentViewReduce"
+                  id="convertigo.objectDesignDocumentViewFunction"
                   objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentFunctionTreeObject">
                <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.DeleteDesignDocumentViewReduceAction"
@@ -2573,6 +2573,33 @@
                      label="Delete"
                      menubarPath="delete">
                </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardPasteAction"
+                     enablesFor="1"
+                     icon="icons/studio/clipboard_paste.gif"
+                     id="convertigo.action.pasteAction"
+                     label="Paste"
+                     menubarPath="clipboard">
+                  <enablement>
+                     <objectState
+                           name="canPaste"
+                           value="true"/>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCopyAction"
+                     enablesFor="+"
+                     icon="icons/studio/clipboard_copy.gif"
+                     id="convertigo.action.copyAction"
+                     label="Copy"
+                     menubarPath="clipboard"/>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCutAction"
+                     enablesFor="+"
+                     icon="icons/studio/clipboard_cut.gif"
+                     id="convertigo.action.cutAction"
+                     label="Cut"
+                     menubarPath="clipboard"/>
             </objectContribution>
             <objectContribution
                   id="convertigo.objectTableProperty"

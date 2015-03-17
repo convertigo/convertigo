@@ -56,6 +56,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreePath;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FolderTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IDesignTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IPropertyTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
@@ -128,7 +129,17 @@ public class ClipboardAction extends MyAbstractAction {
 			TreeObject targetTreeObject = null;
 			Object targetObject = null;
 			
+			if (selectedTreeObject instanceof FolderTreeObject) {
+				if (selectedTreeObject.getParent() instanceof IDesignTreeObject) {
+					selectedTreeObject = selectedTreeObject.getParent();
+				}
+			}
+			
 			if (selectedTreeObject instanceof IPropertyTreeObject) {
+				targetTreeObject = selectedTreeObject;
+				targetObject = selectedTreeObject;
+			}
+			else if (selectedTreeObject instanceof IDesignTreeObject) {
 				targetTreeObject = selectedTreeObject;
 				targetObject = selectedTreeObject;
 			}
@@ -212,6 +223,9 @@ public class ClipboardAction extends MyAbstractAction {
         		else if (targetTreeObject instanceof IPropertyTreeObject) {
         			targetTreeParent = ((IPropertyTreeObject)targetTreeObject).getTreeObjectOwner();
         		}
+        		else if (targetTreeObject instanceof IDesignTreeObject) {
+        			targetTreeParent = ((IDesignTreeObject)targetTreeObject).getTreeObjectOwner();
+        		}
         			
             	for (int i = 0 ; i < clipboardManager.objects.length ; i++) {
             		// Cut & paste
@@ -271,6 +285,15 @@ public class ClipboardAction extends MyAbstractAction {
             	TreeObject treeObjectToSelect = targetTreeObject;
         		if (targetTreeObject instanceof IPropertyTreeObject) {
         			treeObjectToSelect = ((IPropertyTreeObject)targetTreeObject).getTreeObjectOwner();
+        			treeObjectToReload = treeObjectToSelect;
+            		if (treeObjectToReload instanceof DatabaseObjectTreeObject) {
+            			treeObjectToReload = treeObjectToReload.getParent();
+    					if (treeObjectToReload instanceof FolderTreeObject)
+    						treeObjectToReload = treeObjectToReload.getParent();
+            		}
+        		}
+        		if (targetTreeObject instanceof IDesignTreeObject) {
+        			treeObjectToSelect = ((IDesignTreeObject)targetTreeObject).getTreeObjectOwner();
         			treeObjectToReload = treeObjectToSelect;
             		if (treeObjectToReload instanceof DatabaseObjectTreeObject) {
             			treeObjectToReload = treeObjectToReload.getParent();

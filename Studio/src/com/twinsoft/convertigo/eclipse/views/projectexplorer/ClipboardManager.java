@@ -62,6 +62,7 @@ import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.statements.ElseStatement;
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
@@ -72,6 +73,7 @@ import com.twinsoft.convertigo.beans.steps.ThenStep;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IDesignTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IPropertyTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.ConvertigoException;
@@ -132,6 +134,11 @@ public class ClipboardManager {
 				treeObjectsList.add(treeObject);
 				treeParentsList.add(((IPropertyTreeObject) treeObject).getTreeObjectOwner());
 				copyPropertyObject(propertyTreeObject);
+			} else if (treeObject instanceof IDesignTreeObject) {
+				IDesignTreeObject designTreeObject = (IDesignTreeObject) treeObject;
+				treeObjectsList.add(treeObject);
+				treeParentsList.add(((IDesignTreeObject) treeObject).getTreeObjectOwner());
+				copyDesignObject(designTreeObject);
 			} else {
 				throw new EngineException("Tree item not supported :"+ treeObject.getClass().getName());
 			}
@@ -206,6 +213,11 @@ public class ClipboardManager {
 		clipboardRootElement.appendChild(element);
 	}
 
+	private void copyDesignObject(IDesignTreeObject designTreeObject) throws EngineException {
+		Element element = designTreeObject.toXml(clipboardDocument);
+		clipboardRootElement.appendChild(element);
+	}
+	
 	private void appendDndData(Element element, DatabaseObject databaseObject) {
 		Element dnd = clipboardDocument.createElement("dnd");
 		Element e;
@@ -274,6 +286,8 @@ public class ClipboardManager {
 			if (node.getNodeType() != Node.TEXT_NODE) {
 				if (parentObject instanceof IPropertyTreeObject) {
 					object = paste(node, (IPropertyTreeObject) parentObject, bChangeName);
+				} else if (parentObject instanceof IDesignTreeObject) {
+					object = paste(node, (IDesignTreeObject) parentObject, bChangeName);
 				} else {
 					object = paste(node, (DatabaseObject) parentObject, bChangeName);
 				}
@@ -332,6 +346,21 @@ public class ClipboardManager {
 		return null;
 	}
 
+	private Object paste(Node node, IDesignTreeObject parentDesignTreeObject, boolean bChangeName) throws EngineException {
+		Object object = read(node);
+		if (object instanceof JsonData) {
+			JsonData jsonData = (JsonData)object;
+			return parentDesignTreeObject.add(jsonData, bChangeName);
+		}
+		else if (object instanceof DesignDocument) {
+			if (parentDesignTreeObject instanceof DatabaseObjectTreeObject) {
+				DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)parentDesignTreeObject;
+				return paste(node, doto.getObject().getParent(), bChangeName);
+			}
+		}
+		return null;
+	}
+	
 	public Object paste(Node node, DatabaseObject parentDatabaseObject, boolean bChangeName) throws EngineException {
 		Object object = read(node);
 		if (object instanceof DatabaseObject) {

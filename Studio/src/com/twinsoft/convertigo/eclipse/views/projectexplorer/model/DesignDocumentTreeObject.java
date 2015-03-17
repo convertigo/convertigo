@@ -28,18 +28,24 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.JsonData;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
-public class DesignDocumentTreeObject extends DocumentTreeObject {
+public class DesignDocumentTreeObject extends DocumentTreeObject implements IDesignTreeObject {
 	private FolderTreeObject fViews = null;
 	private String lastRev = "?";
 
@@ -260,6 +266,14 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 			return null;
 		}
 		
+		protected FunctionObject createFunction(String funcName, String funcValue) {
+			if (CouchKey.map.name().equals(funcName) && !hasMap())
+				return new FunctionObject(funcName, funcValue);
+			if (CouchKey.reduce.name().equals(funcName) && !hasReduce())
+				return new FunctionObject(funcName, funcValue);
+			return null;
+		}
+		
 		@Override
 		public String toString() {
 			return getName();
@@ -283,9 +297,70 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 			this.function = function;
 		}
 
+		public String getName() {
+			return this.name;
+		}
+		
 		@Override
 		public String toString() {
 			return this.name;
 		}
+
+	}
+
+	@Override
+	public TreeParent getTreeObjectOwner() {
+		return getParent().getParent();
+	}
+
+	@Override
+	public IDesignTreeObject add(Object object, boolean bChangeName) {
+		if (object instanceof JsonData) {
+			JsonData jsonData = (JsonData)object;
+			Class<? extends TreeParent> c = jsonData.getOwnerClass();
+			if (c.equals(DesignDocumentViewTreeObject.class)) {
+				JSONObject jsonView = jsonData.getData();
+				try {
+					int index = 1;
+					String viewName = jsonView.getString("name");
+					while (hasView(viewName)) {
+						viewName = jsonView.getString("name") + index++;
+					}
+					JSONObject jsonObject = jsonView.getJSONObject("value");
+					ViewObject view = new ViewObject(viewName, jsonObject);
+					return addView(newView(view));
+				} catch (Exception e) {
+				}
+			}
+		}
+		else if (object instanceof DesignDocumentViewTreeObject) {
+			return addView((DesignDocumentViewTreeObject)object);
+		}
+		return null;
+	}
+
+	public static Object read(Node node) throws EngineException {
+		return DatabaseObject.read(node);
+	}
+	
+	@Override
+	public Element toXml(Document document) {
+		try {
+			return getObject().toXml(document);
+		} catch (EngineException e) {
+			return null;
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.eclipse.ui.IActionFilter#testAttribute(java.lang.Object, java.lang.String, java.lang.String)
+	 */
+	public boolean testAttribute(Object target, String name, String value) {
+		if (name.equals("canPaste")) {
+			boolean canPaste = ((ConvertigoPlugin.clipboardManagerSystem.isCopy) || (ConvertigoPlugin.clipboardManagerSystem.isCut));
+			Boolean bool = Boolean.valueOf(value);
+			return bool.equals(Boolean.valueOf(canPaste));
+		}
+		return super.testAttribute(target, name, value);
 	}
 }
