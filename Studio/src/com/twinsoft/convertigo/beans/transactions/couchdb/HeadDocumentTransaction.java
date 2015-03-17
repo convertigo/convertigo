@@ -52,6 +52,6 @@ public class HeadDocumentTransaction extends AbstractDocumentTransaction {
 
 	@Override
 	public QName getComplexTypeAffectation() {
-		return new QName(COUCHDB_XSD_NAMESPACE, "docExistType");
+		return new QName(COUCHDB_XSD_NAMESPACE, "headDocumentType");
 	}
 }

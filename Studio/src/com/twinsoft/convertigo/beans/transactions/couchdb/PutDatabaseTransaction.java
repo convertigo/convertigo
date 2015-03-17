@@ -51,6 +51,6 @@ public class PutDatabaseTransaction extends AbstractDatabaseTransaction {
 
 	@Override
 	public QName getComplexTypeAffectation() {
-		return new QName(COUCHDB_XSD_NAMESPACE, "dbCreateType");
+		return new QName(COUCHDB_XSD_NAMESPACE, "putDatabaseType");
 	}
 }

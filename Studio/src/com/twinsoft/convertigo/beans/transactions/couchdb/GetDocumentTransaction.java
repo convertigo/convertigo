@@ -54,7 +54,7 @@ public class GetDocumentTransaction extends AbstractDocumentTransaction {
 	@Override
 	public QName getComplexTypeAffectation() {
 		if (getXmlComplexTypeAffectation().isEmpty())
-			return new QName(COUCHDB_XSD_NAMESPACE, "docGetType");
+			return new QName(COUCHDB_XSD_NAMESPACE, "getDocumentType");
 		else
 			return super.getComplexTypeAffectation();
 	}

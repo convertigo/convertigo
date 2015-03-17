@@ -52,18 +52,11 @@ public class DeleteServerConfigTransaction extends AbstractServerTransaction {
 		String key = getParameterStringValue(var_key);
 		
 		JSONObject json = getCouchClient().deleteConfig(section, key);
-		if (section != null && key != null) {// modify json for schema compliance
-			JSONObject s = new JSONObject();
-			JSONObject k = new JSONObject();
-			k.put(key, json);
-			s.put(section, k);
-			return s;
-		}
-		return json;
+		return GetServerConfigTransaction.handleConfigResponse(json, section, key);
 	}
 
 	@Override
 	public QName getComplexTypeAffectation() {
-		return new QName(COUCHDB_XSD_NAMESPACE, "svrConfigType");
+		return new QName(COUCHDB_XSD_NAMESPACE, "deleteServerConfigType");
 	}
 }

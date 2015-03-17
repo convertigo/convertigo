@@ -51,6 +51,6 @@ public class DeleteDatabaseTransaction extends AbstractDatabaseTransaction {
 
 	@Override
 	public QName getComplexTypeAffectation() {
-		return new QName(COUCHDB_XSD_NAMESPACE, "dbDeleteType");
+		return new QName(COUCHDB_XSD_NAMESPACE, "deleteDatabaseType");
 	}
 }

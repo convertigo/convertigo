@@ -23,6 +23,8 @@ package com.twinsoft.convertigo.beans.transactions.couchdb;
 
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 public class DeleteDocumentAttachmentTransaction extends AbstractDocumentTransaction {
 
 	private static final long serialVersionUID = 251919320155109714L;
@@ -51,5 +53,9 @@ public class DeleteDocumentAttachmentTransaction extends AbstractDocumentTransac
 		return getCouchClient().deleteDocumentAttachment(getTargetDatabase(), docId, docRev, attName);
 	}
 
+	@Override
+	public QName getComplexTypeAffectation() {
+		return new QName(COUCHDB_XSD_NAMESPACE, "deleteDocumentAttachmentType");
+	}
 }
 

@@ -57,6 +57,6 @@ public class GetServerLogTransaction extends AbstractServerTransaction {
 	
 	@Override
 	public QName getComplexTypeAffectation() {
-		return new QName(COUCHDB_XSD_NAMESPACE, "svrLogsType");
+		return new QName(COUCHDB_XSD_NAMESPACE, "getServerLogType");
 	}
 }

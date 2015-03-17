@@ -51,6 +51,6 @@ public class GetServerDatabasesTransaction extends AbstractServerTransaction {
 	
 	@Override
 	public QName getComplexTypeAffectation() {
-		return new QName(COUCHDB_XSD_NAMESPACE, "svrDatabasesType");
+		return new QName(COUCHDB_XSD_NAMESPACE, "getServerDatabasesType");
 	}
 }

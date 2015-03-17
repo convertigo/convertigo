@@ -41,7 +41,7 @@ public class GetServerInfoTransaction extends AbstractServerTransaction {
 	
 	@Override
 	public List<CouchDbParameter> getDeclaredParameters() {
-		return getDeclaredParameters();
+		return getDeclaredParameters(CouchDbParameter.empty);
 	}
 	
 	@Override
@@ -51,6 +51,6 @@ public class GetServerInfoTransaction extends AbstractServerTransaction {
 	
 	@Override
 	public QName getComplexTypeAffectation() {
-		return new QName(COUCHDB_XSD_NAMESPACE, "svrInfoType");
+		return new QName(COUCHDB_XSD_NAMESPACE, "getServerInfoType");
 	}
 }

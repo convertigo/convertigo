@@ -23,6 +23,8 @@ package com.twinsoft.convertigo.beans.transactions.couchdb;
 
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 public class PostReplicateTransaction extends AbstractDatabaseTransaction {
 	
 	private static final long serialVersionUID = -2917791679287718055L;
@@ -68,6 +70,11 @@ public class PostReplicateTransaction extends AbstractDatabaseTransaction {
 		String proxy = getParameterStringValue(CouchDbParameter.Param_proxy);	
 		
 		return getCouchClient().postReplicate(source, target, create_target, continuous, cancel, doc_ids, proxy);
+	}
+	
+	@Override
+	public QName getComplexTypeAffectation() {
+		return new QName(COUCHDB_XSD_NAMESPACE, "postReplicateType");
 	}
 
 }

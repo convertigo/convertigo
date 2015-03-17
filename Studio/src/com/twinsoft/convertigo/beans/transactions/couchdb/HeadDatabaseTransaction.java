@@ -51,6 +51,6 @@ public class HeadDatabaseTransaction extends AbstractDatabaseTransaction {
 
 	@Override
 	public QName getComplexTypeAffectation() {
-		return new QName(COUCHDB_XSD_NAMESPACE, "dbExistType");
+		return new QName(COUCHDB_XSD_NAMESPACE, "headDatabaseType");
 	}
 }

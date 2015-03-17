@@ -54,6 +54,6 @@ public class DeleteDocumentTransaction extends AbstractDocumentTransaction {
 
 	@Override
 	public QName getComplexTypeAffectation() {
-		return new QName(COUCHDB_XSD_NAMESPACE, "docDeleteType");
+		return new QName(COUCHDB_XSD_NAMESPACE, "deleteDocumentType");
 	}
 }

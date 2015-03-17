@@ -53,6 +53,6 @@ public class GetServerUuidsTransaction extends AbstractServerTransaction {
 
 	@Override
 	public QName getComplexTypeAffectation() {
-		return new QName(COUCHDB_XSD_NAMESPACE, "svrUuidsType");
+		return new QName(COUCHDB_XSD_NAMESPACE, "getServerUuidsType");
 	}
 }

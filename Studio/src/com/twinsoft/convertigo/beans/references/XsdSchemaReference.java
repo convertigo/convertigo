@@ -48,7 +48,7 @@ public abstract class XsdSchemaReference extends RemoteFileReference implements 
 				return xmlSchema;
 			}
 		} catch (Exception e) {
-			Engine.logBeans.error(e.getMessage());
+			Engine.logBeans.error(e.toString());
 		}
 		return null;
 	}

@@ -52,7 +52,7 @@ public class DeleteSessionTransaction extends AbstractServerTransaction {
 
 	@Override
 	public QName getComplexTypeAffectation() {
-		return new QName(COUCHDB_XSD_NAMESPACE, "userLogoutType");
+		return new QName(COUCHDB_XSD_NAMESPACE, "deleteSessionType");
 	}
 	
 }

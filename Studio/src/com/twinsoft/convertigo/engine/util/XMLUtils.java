@@ -785,8 +785,15 @@ public class XMLUtils {
 	}
 	
 	public static void saveXml(Document dom, String filePath, boolean omitXmlDeclaration) throws IOException {
+		saveXml(dom, new File(filePath), omitXmlDeclaration);
+	}
+
+	public static void saveXml(Document dom, File file) throws IOException {
+		saveXml(dom, file, false);
+	}
+	
+	public static void saveXml(Document dom, File file, boolean omitXmlDeclaration) throws IOException {
 		try {
-			File file = new File(filePath);
 			Transformer transformer = getNewTransformer();
 			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 			transformer.setOutputProperty(OutputKeys.METHOD, "xml");

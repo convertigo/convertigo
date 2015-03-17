@@ -61,6 +61,6 @@ public class PostServerRestartTransaction extends AbstractServerTransaction {
 	
 	@Override
 	public QName getComplexTypeAffectation() {
-		return new QName(COUCHDB_XSD_NAMESPACE, "svrRestartType");
+		return new QName(COUCHDB_XSD_NAMESPACE, "postServerRestartType");
 	}
 }

@@ -27,6 +27,8 @@ import javax.xml.namespace.QName;
 
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.engine.enums.CouchKey;
+
 public class GetServerConfigTransaction extends AbstractServerTransaction {
 
 	private static final long serialVersionUID = 7019930439389954999L;
@@ -52,15 +54,20 @@ public class GetServerConfigTransaction extends AbstractServerTransaction {
 		String key = getParameterStringValue(var_key);
 		
 		JSONObject json = getCouchClient().getConfig(section, key);
-		if (section != null) {// modify json for schema compliance
+		return handleConfigResponse(json, section, key);
+	}
+	
+	static JSONObject handleConfigResponse(JSONObject json, String section, String key) throws Exception {
+		if (section != null && "success".equals(CouchKey._c8oMeta.JSONObject(json).getString("status"))) {// modify json for schema compliance
 			JSONObject s = new JSONObject();
 			if (key == null) {
 				s.put(section, json);
 			} else {
 				JSONObject k = new JSONObject();
-				k.put(key, json);
+				k.put(key, json.get("data"));
 				s.put(section, k);
 			}
+			s.put(CouchKey._c8oMeta.key(), json.remove(CouchKey._c8oMeta.key()));
 			return s;
 		}
 		return json;
@@ -68,6 +75,6 @@ public class GetServerConfigTransaction extends AbstractServerTransaction {
 
 	@Override
 	public QName getComplexTypeAffectation() {
-		return new QName(COUCHDB_XSD_NAMESPACE, "svrConfigType");
+		return new QName(COUCHDB_XSD_NAMESPACE, "getServerConfigType");
 	}
 }

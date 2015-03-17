@@ -70,7 +70,7 @@ public class PostDocumentTransaction extends AbstractDocumentTransaction {
 	
 	@Override
 	public QName getComplexTypeAffectation() {
-		return new QName(COUCHDB_XSD_NAMESPACE, "docUpdateType");
+		return new QName(COUCHDB_XSD_NAMESPACE, "postDocumentType");
 	}
 	
 	public CouchPostDocumentPolicy getPolicy() {

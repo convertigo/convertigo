@@ -24,6 +24,8 @@ package com.twinsoft.convertigo.beans.transactions.couchdb;
 import java.io.File;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import com.twinsoft.convertigo.engine.Engine;
 
 public class PutDocumentAttachmentTransaction extends AbstractDocumentTransaction {
@@ -55,6 +57,11 @@ public class PutDocumentAttachmentTransaction extends AbstractDocumentTransactio
 		String contentType = context.httpServletRequest.getServletContext().getMimeType(attPath);
 		
 		return getCouchClient().putDocumentAttachment(getTargetDatabase(), docId, new File(attPath), contentType);
+	}
+
+	@Override
+	public QName getComplexTypeAffectation() {
+		return new QName(COUCHDB_XSD_NAMESPACE, "putDocumentAttachmentType");
 	}
 }
 

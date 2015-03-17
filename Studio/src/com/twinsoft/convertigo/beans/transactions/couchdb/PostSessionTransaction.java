@@ -58,7 +58,7 @@ public class PostSessionTransaction extends AbstractServerTransaction {
 
 	@Override
 	public QName getComplexTypeAffectation() {
-		return new QName(COUCHDB_XSD_NAMESPACE, "userLogonType");
+		return new QName(COUCHDB_XSD_NAMESPACE, "postSessionType");
 	}
 	
 }

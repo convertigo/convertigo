@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.xml.namespace.QName;
+
 import org.apache.http.NameValuePair;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -116,5 +118,14 @@ public class GetViewTransaction extends AbstractDocumentTransaction implements I
 			return values.toArray(new String[values.size()]);
 		}
 		return null;
+	}
+
+	@Override
+	public QName getComplexTypeAffectation() {
+		if (getXmlComplexTypeAffectation().isEmpty()) {
+			return new QName(COUCHDB_XSD_NAMESPACE, "getViewType");
+		} else {
+			return super.getComplexTypeAffectation();
+		}
 	}
 }

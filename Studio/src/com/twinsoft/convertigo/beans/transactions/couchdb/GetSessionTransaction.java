@@ -51,6 +51,6 @@ public class GetSessionTransaction extends AbstractServerTransaction {
 
 	@Override
 	public QName getComplexTypeAffectation() {
-		return new QName(COUCHDB_XSD_NAMESPACE, "userInfoType");
+		return new QName(COUCHDB_XSD_NAMESPACE, "getSessionType");
 	}
 }

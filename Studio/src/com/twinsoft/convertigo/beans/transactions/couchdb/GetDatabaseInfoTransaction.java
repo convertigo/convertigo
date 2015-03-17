@@ -51,6 +51,6 @@ public class GetDatabaseInfoTransaction extends AbstractDatabaseTransaction {
 
 	@Override
 	public QName getComplexTypeAffectation() {
-		return new QName(COUCHDB_XSD_NAMESPACE, "dbInfoType");
+		return new QName(COUCHDB_XSD_NAMESPACE, "getDatabaseInfoType");
 	}
 }

@@ -23,6 +23,8 @@ package com.twinsoft.convertigo.beans.transactions.couchdb;
 
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 public class GetServerUpdatesTransaction extends AbstractServerTransaction {
 
 	private static final long serialVersionUID = -4009927560249117525L;
@@ -53,5 +55,10 @@ public class GetServerUpdatesTransaction extends AbstractServerTransaction {
 		Boolean heartbeat = (sHeartbeat == null) ? null : Boolean.valueOf(sHeartbeat);
 		
 		return getCouchClient().getDbUpdates(feed, timeout, heartbeat);
+	}
+	
+	@Override
+	public QName getComplexTypeAffectation() {
+		return new QName(COUCHDB_XSD_NAMESPACE, "getServerUpdatesType");
 	}
 }

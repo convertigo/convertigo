@@ -82,7 +82,7 @@ public class PostBulkDocumentsTransaction extends AbstractDocumentTransaction {
 
 	@Override
 	public QName getComplexTypeAffectation() {
-		return new QName(COUCHDB_XSD_NAMESPACE, "docBulkType");
+		return new QName(COUCHDB_XSD_NAMESPACE, "postBulkDocumentsType");
 	}
 	
 	public CouchPostDocumentPolicy getPolicy() {
