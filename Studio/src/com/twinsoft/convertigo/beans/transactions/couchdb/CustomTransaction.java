@@ -24,6 +24,8 @@ package com.twinsoft.convertigo.beans.transactions.couchdb;
 import java.net.URI;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.codehaus.jettison.json.JSONObject;
@@ -135,6 +137,11 @@ public class CustomTransaction extends AbstractCouchDbTransaction {
 		}
 		
 		return provider.execute(request);
+	}
+
+	@Override
+	public QName getComplexTypeAffectation() {
+		return new QName(COUCHDB_XSD_NAMESPACE, "customType");
 	}
 	
 	@Override

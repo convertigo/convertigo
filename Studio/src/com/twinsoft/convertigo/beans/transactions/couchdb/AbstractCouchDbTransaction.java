@@ -318,8 +318,16 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		Document doc = parentElement.getOwnerDocument();
 		if (object instanceof JSONObject) {
 			JSONObject jsonObject = (JSONObject) object;
-			for (Iterator<String> i = GenericUtils.cast(jsonObject.keys()); i.hasNext(); ) {
-				String key = i.next();
+			String[] keys = new String[jsonObject.length()];
+			
+			int index = 0;
+			for (Iterator<String> i = GenericUtils.cast(jsonObject.keys()); i.hasNext();) {
+				keys[index++] = i.next();
+			}
+			
+			Arrays.sort(keys);
+			
+			for (String key: keys) {
 				try {
 					toXml(key, jsonObject.get(key), parentElement);
 				} catch (JSONException e) {
@@ -341,7 +349,7 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 				}
 			}
 		}
-		else if (object != null) {
+		else if (object != null && object != JSONObject.NULL) {
 			parentElement.setTextContent(object.toString());
 		}
 	}

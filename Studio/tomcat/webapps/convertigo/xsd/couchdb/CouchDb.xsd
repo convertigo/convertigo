@@ -1,10 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema targetNamespace="http://www.convertigo.com/convertigo/couchdb" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://www.convertigo.com/convertigo/couchdb" elementFormDefault="unqualified" attributeFormDefault="unqualified">
+	
+	<xsd:simpleType name="decimal-or-empty">
+	  <xsd:union memberTypes="xsd:decimal tns:empty-string" />
+	</xsd:simpleType>
+	
+	<xsd:simpleType name="empty-string">
+	  <xsd:restriction base="xsd:string">
+	    <xsd:enumeration value="" />
+	  </xsd:restriction>
+	</xsd:simpleType>
+	
 	<xsd:complexType name="arrayType">
 		<xsd:sequence>
 			<xsd:element name="item" minOccurs="0" maxOccurs="unbounded" type="xsd:string"/>
 		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="exceptionType">
 		<xsd:sequence>
 			<xsd:element name="name" type="xsd:string"/>
@@ -19,303 +31,355 @@
 			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="c8oMetaType">
-		<xsd:all>
-			<xsd:element name="statusCode" type="xsd:int"/>
-			<xsd:element name="status" type="xsd:string"/>
-			<xsd:element name="reasonPhrase" type="xsd:string"/>
+		<xsd:sequence>
 			<xsd:element name="headers">
 				<xsd:complexType>
-					<xsd:all minOccurs="0">
-						<xsd:element name="Server" type="xsd:string"/>
-						<xsd:element name="Location" type="xsd:string"/>
-						<xsd:element name="ETag" type="xsd:string"/>
-						<xsd:element name="Date" type="xsd:string"/>
-						<xsd:element name="Content_Type" type="xsd:string"/>
-						<xsd:element name="Content_Length" type="xsd:string"/>
-						<xsd:element name="Cache_Control" type="xsd:string"/>
-					</xsd:all>
+					<xsd:sequence>
+						<xsd:element name="Accept_Ranges" minOccurs="0" type="xsd:string"/>
+						<xsd:element name="Cache_Control" minOccurs="0" type="xsd:string"/>
+						<xsd:element name="Content_Length" minOccurs="0" type="xsd:string"/>
+						<xsd:element name="Content_MD5" minOccurs="0" type="xsd:string"/>
+						<xsd:element name="Content_Type" minOccurs="0" type="xsd:string"/>
+						<xsd:element name="Date" minOccurs="0" type="xsd:string"/>
+						<xsd:element name="ETag" minOccurs="0" type="xsd:string"/>
+						<xsd:element name="Expires" minOccurs="0" type="xsd:string"/>
+						<xsd:element name="Location" minOccurs="0" type="xsd:string"/>
+						<xsd:element name="Pragma" minOccurs="0" type="xsd:string"/>
+						<xsd:element name="Server" minOccurs="0" type="xsd:string"/>
+						<xsd:element name="Transfer_Encoding" minOccurs="0" type="xsd:string"/>
+						<xsd:element name="Set_Cookie" minOccurs="0" type="xsd:string"/>
+					</xsd:sequence>
 				</xsd:complexType>
 			</xsd:element>
-		</xsd:all>
-	</xsd:complexType>
-	<xsd:complexType name="couchTransactionType">
-		<xsd:all>
-			<xsd:element name="error" minOccurs="0" type="xsd:string"/>
-			<xsd:element name="reason" minOccurs="0" type="xsd:string" />
-			<xsd:element name="_c8oMeta" type="tns:c8oMetaType" />
-		</xsd:all>
-	</xsd:complexType>
-	<xsd:complexType name="couchDocumentTransactionType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:couchTransactionType">
-				<xsd:all minOccurs="0">
-					<xsd:element name="ok" type="xsd:boolean"/>
-					<xsd:element name="id" type="xsd:string"/>
-					<xsd:element name="rev" type="xsd:string"/>
-				</xsd:all>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-	<xsd:complexType name="couchServerConfigTransactionType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:couchTransactionType">
-				<xsd:all minOccurs="0">
-					<xsd:element name="httpd_design_handlers">
-						<xsd:complexType>
-							<xsd:all minOccurs="0">
-								<xsd:element name="_compact" type="xsd:string"/>
-								<xsd:element name="_info" type="xsd:string"/>
-								<xsd:element name="_list" type="xsd:string"/>
-								<xsd:element name="_rewrite" type="xsd:string"/>
-								<xsd:element name="_show" type="xsd:string"/>
-								<xsd:element name="_update" type="xsd:string"/>
-								<xsd:element name="_view" type="xsd:string"/>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="uuids">
-						<xsd:complexType>
-							<xsd:all minOccurs="0">
-								<xsd:element name="algorithm" type="xsd:string"/>
-								<xsd:element name="max_count" type="xsd:int"/>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="stats">
-						<xsd:complexType>
-							<xsd:all minOccurs="0">
-								<xsd:element name="rate" type="xsd:int"/>
-								<xsd:element name="samples" type="xsd:string"/>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="cors">
-						<xsd:complexType>
-							<xsd:all minOccurs="0">
-								<xsd:element name="credentials" type="xsd:boolean"/>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="httpd_global_handlers">
-						<xsd:complexType>
-							<xsd:all minOccurs="0">
-								<xsd:element name="_" type="xsd:string"/>
-								<xsd:element name="_active_tasks" type="xsd:string"/>
-								<xsd:element name="_all_dbs" type="xsd:string"/>
-								<xsd:element name="_config" type="xsd:string"/>
-								<xsd:element name="_db_updates" type="xsd:string"/>
-								<xsd:element name="_log" type="xsd:string"/>
-								<xsd:element name="_oauth" type="xsd:string"/>
-								<xsd:element name="_plugins" type="xsd:string"/>
-								<xsd:element name="_replicate" type="xsd:string"/>
-								<xsd:element name="_restart" type="xsd:string"/>
-								<xsd:element name="_session" type="xsd:string"/>
-								<xsd:element name="_stats" type="xsd:string"/>
-								<xsd:element name="_utils" type="xsd:string"/>
-								<xsd:element name="_uuids" type="xsd:string"/>
-								<xsd:element name="favicon_ico" type="xsd:string"/>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="attachments">
-						<xsd:complexType>
-							<xsd:all minOccurs="0">
-								<xsd:element name="compressible_types" type="xsd:string"/>
-								<xsd:element name="compression_level" type="xsd:byte"/>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="admins">
-						<xsd:complexType>
-							<xsd:all minOccurs="0">
-								<xsd:element name="admin" type="xsd:string"/>
-								<xsd:any/>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="query_server_config">
-						<xsd:complexType>
-							<xsd:all minOccurs="0">
-								<xsd:element name="os_process_limit" type="xsd:byte"/>
-								<xsd:element name="reduce_limit" type="xsd:boolean"/>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="vendor">
-						<xsd:complexType>
-							<xsd:all minOccurs="0">
-								<xsd:element name="name" type="xsd:string"/>
-								<xsd:element name="version" type="xsd:string"/>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="replicator">
-						<xsd:complexType>
-							<xsd:all minOccurs="0">
-								<xsd:element name="connection_timeout" type="xsd:short"/>
-								<xsd:element name="db" type="xsd:string"/>
-								<xsd:element name="http_connections" type="xsd:byte"/>
-								<xsd:element name="max_replication_retry_count" type="xsd:byte"/>
-								<xsd:element name="retries_per_request" type="xsd:byte"/>
-								<xsd:element name="socket_options" type="xsd:string"/>
-								<xsd:element name="ssl_certificate_max_depth" type="xsd:string"/>
-								<xsd:element name="verify_ssl_certificates" type="xsd:boolean"/>
-								<xsd:element name="worker_batch_size" type="xsd:short"/>
-								<xsd:element name="worker_processes" type="xsd:byte"/>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="couch_httpd_oauth">
-						<xsd:complexType>
-							<xsd:all minOccurs="0">
-								<xsd:element name="use_users_db" type="xsd:boolean"/>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="ssl">
-						<xsd:complexType>
-							<xsd:all minOccurs="0">
-								<xsd:element name="port" type="xsd:int"/>
-								<xsd:element name="ssl_certificate_max_depth" type="xsd:int"/>
-								<xsd:element name="verify_ssl_certificates" type="xsd:boolean"/>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="log">
-						<xsd:complexType>
-							<xsd:all minOccurs="0">
-								<xsd:element name="file" type="xsd:string"/>
-								<xsd:element name="include_sasl" type="xsd:boolean"/>
-								<xsd:element name="level" type="xsd:string"/>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="view_compaction">
-						<xsd:complexType>
-							<xsd:all minOccurs="0">
-								<xsd:element name="keyvalue_buffer_size" type="xsd:int"/>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="query_servers">
-						<xsd:complexType>
-							<xsd:all minOccurs="0">
-								<xsd:element name="coffeescript" type="xsd:string"/>
-								<xsd:element name="javascript" type="xsd:string"/>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="daemons">
-						<xsd:complexType>
-							<xsd:all minOccurs="0">
-								<xsd:element name="auth_cache" type="xsd:string"/>
-								<xsd:element name="compaction_daemon" type="xsd:string"/>
-								<xsd:element name="external_manager" type="xsd:string"/>
-								<xsd:element name="httpd" type="xsd:string"/>
-								<xsd:element name="index_server" type="xsd:string"/>
-								<xsd:element name="os_daemons" type="xsd:string"/>
-								<xsd:element name="query_servers" type="xsd:string"/>
-								<xsd:element name="replicator_manager" type="xsd:string"/>
-								<xsd:element name="stats_aggregator" type="xsd:string"/>
-								<xsd:element name="stats_collector" type="xsd:string"/>
-								<xsd:element name="uuids" type="xsd:string"/>
-								<xsd:element name="vhosts" type="xsd:string"/>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="httpd">
-						<xsd:complexType>
-							<xsd:all minOccurs="0">
-								<xsd:element name="allow_jsonp" type="xsd:boolean"/>
-								<xsd:element name="authentication_handlers" type="xsd:string"/>
-								<xsd:element name="bind_address" type="xsd:string"/>
-								<xsd:element name="default_handler" type="xsd:string"/>
-								<xsd:element name="enable_cors" type="xsd:boolean"/>
-								<xsd:element name="log_max_chunk_size" type="xsd:int"/>
-								<xsd:element name="port" type="xsd:int"/>
-								<xsd:element name="secure_rewrites" type="xsd:boolean"/>
-								<xsd:element name="socket_options" type="xsd:string"/>
-								<xsd:element name="vhost_global_handlers" type="xsd:string"/>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="httpd_db_handlers">
-						<xsd:complexType>
-							<xsd:all minOccurs="0">
-								<xsd:element name="_all_docs" type="xsd:string"/>
-								<xsd:element name="_changes" type="xsd:string"/>
-								<xsd:element name="_compact" type="xsd:string"/>
-								<xsd:element name="_design" type="xsd:string"/>
-								<xsd:element name="_temp_view" type="xsd:string"/>
-								<xsd:element name="_view_cleanup" type="xsd:string"/>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="database_compaction">
-						<xsd:complexType>
-							<xsd:all minOccurs="0">
-								<xsd:element name="checkpoint_after" type="xsd:int"/>
-								<xsd:element name="doc_buffer_size" type="xsd:int"/>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="couch_httpd_auth">
-						<xsd:complexType>
-							<xsd:all minOccurs="0">
-								<xsd:element name="allow_persistent_cookies" type="xsd:boolean"/>
-								<xsd:element name="auth_cache_size" type="xsd:byte"/>
-								<xsd:element name="authentication_db" type="xsd:string"/>
-								<xsd:element name="authentication_redirect" type="xsd:string"/>
-								<xsd:element name="iterations" type="xsd:byte"/>
-								<xsd:element name="require_valid_user" type="xsd:boolean"/>
-								<xsd:element name="secret" type="xsd:hexBinary"/>
-								<xsd:element name="timeout" type="xsd:short"/>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="couchdb">
-						<xsd:complexType>
-							<xsd:all minOccurs="0">
-								<xsd:element name="attachment_stream_buffer_size" type="xsd:short"/>
-								<xsd:element name="database_dir" type="xsd:string"/>
-								<xsd:element name="delayed_commits" type="xsd:boolean"/>
-								<xsd:element name="file_compression" type="xsd:string"/>
-								<xsd:element name="max_dbs_open" type="xsd:byte"/>
-								<xsd:element name="max_document_size" type="xsd:long"/>
-								<xsd:element name="os_process_timeout" type="xsd:short"/>
-								<xsd:element name="plugin_dir" type="xsd:string"/>
-								<xsd:element name="uri_file" type="xsd:string"/>
-								<xsd:element name="util_driver_dir" type="xsd:string"/>
-								<xsd:element name="uuid" type="xsd:string"/>
-								<xsd:element name="view_index_dir" type="xsd:string"/>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="compaction_daemon">
-						<xsd:complexType>
-							<xsd:all minOccurs="0">
-								<xsd:element name="check_interval" type="xsd:short"/>
-								<xsd:element name="min_file_size" type="xsd:int"/>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:any minOccurs="0"/>
-				</xsd:all>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-	<xsd:complexType name="couchServerStatType">
-		<xsd:sequence>
-			<xsd:element name="description" type="xsd:string"/>
-			<xsd:element name="current" type="xsd:decimal"/>
-			<xsd:element name="sum" type="xsd:decimal"/>
-			<xsd:element name="mean" type="xsd:decimal"/>
-			<xsd:element name="stddev" type="xsd:decimal"/>
-			<xsd:element name="min" type="xsd:decimal"/>
-			<xsd:element name="max" type="xsd:decimal"/>
+			<xsd:element name="reasonPhrase" type="xsd:string"/>
+			<xsd:element name="status" type="xsd:string"/>
+			<xsd:element name="statusCode" type="xsd:int"/>
 		</xsd:sequence>
 	</xsd:complexType>
+	
+	<xsd:group name="couchTransactionGroup">
+		<xsd:sequence>
+			<xsd:element name="_c8oMeta" type="tns:c8oMetaType" />
+			<xsd:element name="error" minOccurs="0" type="xsd:string"/>
+			<xsd:element name="reason" minOccurs="0" type="xsd:string"/>
+		</xsd:sequence>
+	</xsd:group>
+	
+	<xsd:group name="couchDocumentTransactionGroup">
+		<xsd:sequence>
+			<xsd:group ref="tns:couchTransactionGroup"/>
+			<xsd:sequence minOccurs="0">
+				<xsd:element name="id" type="xsd:string"/>
+				<xsd:element name="ok" type="xsd:boolean"/>
+				<xsd:element name="rev" type="xsd:string"/>
+			</xsd:sequence>
+		</xsd:sequence>
+	</xsd:group>
+	
+	<xsd:group name="couchSessionGroup">
+		<xsd:sequence>
+			<xsd:group ref="tns:couchTransactionGroup"/>
+			<xsd:sequence minOccurs="0">
+				<xsd:element name="info">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="authenticated" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="authentication_db" type="xsd:string"/>
+							<xsd:element name="authentication_handlers">
+								<xsd:complexType>
+									<xsd:sequence>
+										<xsd:element name="item" maxOccurs="unbounded">
+											<xsd:simpleType>
+												<xsd:restriction base="xsd:string">
+													<xsd:enumeration value="cookie"/>
+													<xsd:enumeration value="default"/>
+													<xsd:enumeration value="oauth"/>
+												</xsd:restriction>
+											</xsd:simpleType>
+										</xsd:element>
+									</xsd:sequence>
+								</xsd:complexType>
+							</xsd:element>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="ok" type="xsd:boolean"/>
+				<xsd:element name="userCtx">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="name" type="xsd:string"/>
+							<xsd:element name="roles" type="tns:arrayType"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+		</xsd:sequence>
+	</xsd:group>
+	
+	<xsd:group name="couchServerConfigTransactionGroup">
+		<xsd:sequence>
+			<xsd:group ref="tns:couchTransactionGroup"/>
+			<xsd:sequence minOccurs="0">
+				<xsd:element name="admins" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="admin" minOccurs="0" type="xsd:string"/>
+<!-- 							<xsd:any minOccurs="0"/> -->
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="attachments" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="compressible_types" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="compression_level" minOccurs="0" type="xsd:byte"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="compaction_daemon" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="check_interval" minOccurs="0" type="xsd:short"/>
+							<xsd:element name="min_file_size" minOccurs="0" type="xsd:int"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="cors" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="credentials" minOccurs="0" type="xsd:boolean"/>
+							<xsd:element name="headers" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="origins" minOccurs="0" type="xsd:string"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="couch_httpd_auth" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="allow_persistent_cookies" minOccurs="0" type="xsd:boolean"/>
+							<xsd:element name="auth_cache_size" minOccurs="0" type="xsd:byte"/>
+							<xsd:element name="authentication_db" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="authentication_redirect" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="iterations" minOccurs="0" type="xsd:byte"/>
+							<xsd:element name="require_valid_user" minOccurs="0" type="xsd:boolean"/>
+							<xsd:element name="secret" minOccurs="0" type="xsd:hexBinary"/>
+							<xsd:element name="timeout" minOccurs="0" type="xsd:short"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="couch_httpd_oauth" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="use_users_db" minOccurs="0" type="xsd:boolean"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="couchdb" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="attachment_stream_buffer_size" minOccurs="0" type="xsd:short"/>
+							<xsd:element name="database_dir" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="delayed_commits" minOccurs="0" type="xsd:boolean"/>
+							<xsd:element name="file_compression" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="max_dbs_open" minOccurs="0" type="xsd:byte"/>
+							<xsd:element name="max_document_size" minOccurs="0" type="xsd:long"/>
+							<xsd:element name="os_process_timeout" minOccurs="0" type="xsd:short"/>
+							<xsd:element name="plugin_dir" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="uri_file" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="util_driver_dir" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="uuid" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="view_index_dir" minOccurs="0" type="xsd:string"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="daemons" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="auth_cache" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="compaction_daemon" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="external_manager" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="httpd" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="index_server" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="os_daemons" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="query_servers" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="replicator_manager" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="stats_aggregator" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="stats_collector" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="uuids" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="vhosts" minOccurs="0" type="xsd:string"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="database_compaction" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="checkpoint_after" minOccurs="0" type="xsd:int"/>
+							<xsd:element name="doc_buffer_size" minOccurs="0" type="xsd:int"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="httpd" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="allow_jsonp" minOccurs="0" type="xsd:boolean"/>
+							<xsd:element name="authentication_handlers" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="bind_address" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="default_handler" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="enable_cors" minOccurs="0" type="xsd:boolean"/>
+							<xsd:element name="log_max_chunk_size" minOccurs="0" type="xsd:int"/>
+							<xsd:element name="port" minOccurs="0" type="xsd:int"/>
+							<xsd:element name="secure_rewrites" minOccurs="0" type="xsd:boolean"/>
+							<xsd:element name="socket_options" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="vhost_global_handlers" minOccurs="0" type="xsd:string"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="httpd_db_handlers" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="_all_docs" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="_changes" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="_compact" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="_design" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="_temp_view" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="_view_cleanup" minOccurs="0" type="xsd:string"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="httpd_design_handlers" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="_compact" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="_info" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="_list" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="_rewrite" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="_show" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="_update" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="_view" minOccurs="0" type="xsd:string"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="httpd_global_handlers" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="_" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="_active_tasks" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="_all_dbs" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="_config" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="_db_updates" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="_log" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="_oauth" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="_plugins" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="_replicate" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="_restart" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="_session" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="_stats" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="_utils" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="_uuids" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="favicon_ico" minOccurs="0" type="xsd:string"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="log" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="file" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="include_sasl" minOccurs="0" type="xsd:boolean"/>
+							<xsd:element name="level" minOccurs="0" type="xsd:string"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="query_server_config" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="os_process_limit" minOccurs="0" type="xsd:byte"/>
+							<xsd:element name="reduce_limit" minOccurs="0" type="xsd:boolean"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="query_servers" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="coffeescript" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="javascript" minOccurs="0" type="xsd:string"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="replicator" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="connection_timeout" minOccurs="0" type="xsd:short"/>
+							<xsd:element name="db" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="http_connections" minOccurs="0" type="xsd:byte"/>
+							<xsd:element name="max_replication_retry_count" minOccurs="0" type="xsd:byte"/>
+							<xsd:element name="retries_per_request" minOccurs="0" type="xsd:byte"/>
+							<xsd:element name="socket_options" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="ssl_certificate_max_depth" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="verify_ssl_certificates" minOccurs="0" type="xsd:boolean"/>
+							<xsd:element name="worker_batch_size" minOccurs="0" type="xsd:short"/>
+							<xsd:element name="worker_processes" minOccurs="0" type="xsd:byte"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="ssl" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="port" minOccurs="0" type="xsd:int"/>
+							<xsd:element name="ssl_certificate_max_depth" minOccurs="0" type="xsd:int"/>
+							<xsd:element name="verify_ssl_certificates" minOccurs="0" type="xsd:boolean"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="stats" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="rate" minOccurs="0" type="xsd:int"/>
+							<xsd:element name="samples" minOccurs="0" type="xsd:string"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="uuids" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="algorithm" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="max_count" minOccurs="0" type="xsd:int"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="vendor" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="name" minOccurs="0" type="xsd:string"/>
+							<xsd:element name="version" minOccurs="0" type="xsd:string"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="view_compaction" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="keyvalue_buffer_size" minOccurs="0" type="xsd:int"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+<!-- 				<xsd:any minOccurs="0"/> -->
+			</xsd:sequence>
+		</xsd:sequence>
+	</xsd:group>
+	
+	<xsd:complexType name="couchServerStatType">
+		<xsd:sequence>
+			<xsd:element name="current" minOccurs="0" type="tns:decimal-or-empty"/>
+			<xsd:element name="description" minOccurs="0" type="xsd:string"/>
+			<xsd:element name="max" minOccurs="0" type="tns:decimal-or-empty" />
+			<xsd:element name="mean" minOccurs="0" type="tns:decimal-or-empty"/>
+			<xsd:element name="min" minOccurs="0" type="tns:decimal-or-empty"/>
+			<xsd:element name="stddev" minOccurs="0" type="tns:decimal-or-empty"/>
+			<xsd:element name="sum" minOccurs="0" type="tns:decimal-or-empty"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
 	<xsd:complexType name="couchServerTaskType">
 		<xsd:sequence>
 			<xsd:element name="changes_done" minOccurs="0" type="xsd:int"/>
@@ -328,430 +392,384 @@
 			<xsd:element name="total_changes" minOccurs="0" type="xsd:int"/>
 			<xsd:element name="type" minOccurs="0" type="xsd:string"/>
 			<xsd:element name="updated_on" minOccurs="0" type="xsd:long"/>
-			<xsd:any minOccurs="0"/>
+<!-- 			<xsd:any minOccurs="0"/> -->
 		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="couchDocumentAttachmentType">
 		<xsd:sequence>
-			<xsd:element name="name" type="xsd:string"/>
 			<xsd:element name="content_type" type="xsd:string"/>
-			<xsd:element name="revpos" type="xsd:int"/>
 			<xsd:element name="digest" type="xsd:string"/>
 			<xsd:element name="length" type="xsd:int"/>
+			<xsd:element name="name" type="xsd:string"/>
+			<xsd:element name="revpos" type="xsd:int"/>
 			<xsd:element name="stub" type="xsd:boolean"/>
 		</xsd:sequence>
 	</xsd:complexType>
-	
+
+
+
+
+
+	<xsd:complexType name="customType">
+		<xsd:sequence>
+			<xsd:group ref="tns:couchTransactionGroup"/>
+		</xsd:sequence>
+	</xsd:complexType>
 	
 	<xsd:complexType name="deleteDatabaseType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:couchTransactionType">
-				<xsd:all minOccurs="0">
-					<xsd:element name="ok" type="xsd:boolean"/>
-				</xsd:all>
-			</xsd:extension>
-		</xsd:complexContent>
+		<xsd:sequence>
+			<xsd:group ref="tns:couchTransactionGroup"/>
+			<xsd:element name="ok"  minOccurs="0" type="xsd:boolean"/>
+		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="deleteDocumentAttachmentType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:couchDocumentTransactionType">
-			</xsd:extension>
-		</xsd:complexContent>
+		<xsd:sequence>
+			<xsd:group ref="tns:couchDocumentTransactionGroup"/>
+		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="deleteDocumentType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:couchDocumentTransactionType">
-			</xsd:extension>
-		</xsd:complexContent>
+		<xsd:sequence>
+			<xsd:group ref="tns:couchDocumentTransactionGroup"/>
+		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="deleteServerConfigType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:couchServerConfigTransactionType">
-			</xsd:extension>
-		</xsd:complexContent>
+		<xsd:sequence>
+			<xsd:group ref="tns:couchServerConfigTransactionGroup"/>
+		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="deleteSessionType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:couchTransactionType">
-				<xsd:all minOccurs="0">
-					<xsd:element name="ok" type="xsd:boolean"/>
-				</xsd:all>
-			</xsd:extension>
-		</xsd:complexContent>
+		<xsd:sequence>
+			<xsd:group ref="tns:couchTransactionGroup"/>
+			<xsd:element name="ok" minOccurs="0" type="xsd:boolean"/>
+		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="getDatabaseInfoType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:couchTransactionType">
-				<xsd:all minOccurs="0">
-					<xsd:element name="db_name" type="xsd:string"/>
-					<xsd:element name="doc_count" type="xsd:int"/>
-					<xsd:element name="doc_del_count" type="xsd:boolean"/>
-					<xsd:element name="update_seq" type="xsd:int"/>
-					<xsd:element name="purge_seq" type="xsd:boolean"/>
-					<xsd:element name="compact_running" type="xsd:boolean"/>
-					<xsd:element name="disk_size" type="xsd:int"/>
-					<xsd:element name="data_size" type="xsd:int"/>
-					<xsd:element name="instance_start_time" type="xsd:long"/>
-					<xsd:element name="disk_format_version" type="xsd:int"/>
-					<xsd:element name="committed_update_seq" type="xsd:int"/>
-				</xsd:all>
-			</xsd:extension>
-		</xsd:complexContent>
+		<xsd:sequence>
+			<xsd:group ref="tns:couchTransactionGroup"/>
+			<xsd:element name="committed_update_seq" minOccurs="0" type="xsd:int"/>
+			<xsd:element name="compact_running" minOccurs="0" type="xsd:boolean"/>
+			<xsd:element name="data_size" minOccurs="0" type="xsd:int"/>
+			<xsd:element name="db_name" minOccurs="0" type="xsd:string"/>
+			<xsd:element name="disk_format_version" minOccurs="0" type="xsd:int"/>
+			<xsd:element name="disk_size" minOccurs="0" type="xsd:int"/>
+			<xsd:element name="doc_count" minOccurs="0" type="xsd:int"/>
+			<xsd:element name="doc_del_count" minOccurs="0" type="xsd:boolean"/>
+			<xsd:element name="instance_start_time" minOccurs="0" type="xsd:long"/>
+			<xsd:element name="purge_seq" minOccurs="0" type="xsd:boolean"/>
+			<xsd:element name="update_seq" minOccurs="0" type="xsd:int"/>
+		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="getDocumentAttachmentType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:couchTransactionType">
-			</xsd:extension>
-		</xsd:complexContent>
+		<xsd:sequence>
+			<xsd:group ref="tns:couchTransactionGroup"/>
+		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="getDocumentType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:couchTransactionType">
-				<xsd:all minOccurs="0">
-					<xsd:element name="_id" type="xsd:boolean"/>
-					<xsd:element name="_rev" type="xsd:string"/>
-					<xsd:element name="_deleted" type="xsd:boolean"/>
-					<xsd:element name="_local_seq" type="xsd:int"/>
-					<xsd:element name="_conflicts" type="tns:arrayType"/>
-					<xsd:element name="_deleted_conflicts" type="tns:arrayType"/>
-					<xsd:element name="_revs_info">
-						<xsd:complexType>
-							<xsd:sequence>
-								<xsd:element name="item">
-								</xsd:element>
-							</xsd:sequence>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="_revisions">
-						<xsd:complexType>
-							<xsd:all>
-								<xsd:element name="start" type="xsd:int"/>
-								<xsd:element name="ids" type="tns:arrayType"/>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="_attachments">
-						<xsd:complexType>
-							<xsd:sequence>
-								<xsd:element name="attachment" minOccurs="0" maxOccurs="unbounded" type="tns:couchDocumentAttachmentType"/>
-							</xsd:sequence>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:any/>
-				</xsd:all>
-			</xsd:extension>
-		</xsd:complexContent>
+		<xsd:sequence>
+			<xsd:group ref="tns:couchTransactionGroup"/>
+			<xsd:element name="_conflicts" minOccurs="0" type="tns:arrayType"/>
+			<xsd:element name="_deleted" minOccurs="0" type="xsd:boolean"/>
+			<xsd:element name="_deleted_conflicts" minOccurs="0" type="tns:arrayType"/>
+			<xsd:element name="_id" minOccurs="0" type="xsd:string"/>
+			<xsd:element name="_local_seq" minOccurs="0" type="xsd:int"/>
+			<xsd:element name="_rev" minOccurs="0" type="xsd:string"/>
+			<xsd:element name="_revs_info" minOccurs="0">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element minOccurs="0" name="item">
+						</xsd:element>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="_revisions" minOccurs="0">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="ids" minOccurs="0" type="tns:arrayType"/>
+						<xsd:element name="start" minOccurs="0" type="xsd:int"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="_attachments" minOccurs="0">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="attachment" minOccurs="0" maxOccurs="unbounded" type="tns:couchDocumentAttachmentType"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+<!-- 			<xsd:any minOccurs="0"/> -->
+		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="getServerConfigType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:couchServerConfigTransactionType">
-			</xsd:extension>
-		</xsd:complexContent>
+		<xsd:sequence>
+			<xsd:group ref="tns:couchServerConfigTransactionGroup"/>
+		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="getServerDatabasesType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:couchTransactionType">
-				<xsd:all minOccurs="0">
-					<xsd:element name="items" type="tns:arrayType"/>
-				</xsd:all>
-			</xsd:extension>
-		</xsd:complexContent>
+		<xsd:sequence>
+			<xsd:group ref="tns:couchTransactionGroup"/>
+			<xsd:element name="items" minOccurs="0" type="tns:arrayType"/>
+		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="getServerInfoType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:couchTransactionType">
-				<xsd:all>
-					<xsd:element name="couchdb" type="xsd:string"/>
-					<xsd:element name="uuid" type="xsd:string"/>
-					<xsd:element name="version" type="xsd:string"/>
-					<xsd:element name="vendor">
-						<xsd:complexType>
-							<xsd:all>
-								<xsd:element name="version" type="xsd:string"/>
-								<xsd:element name="name" type="xsd:string"/>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-				</xsd:all>
-			</xsd:extension>
-		</xsd:complexContent>
+		<xsd:sequence>
+			<xsd:group ref="tns:couchTransactionGroup"/>
+			<xsd:sequence minOccurs="0">
+				<xsd:element name="couchdb" type="xsd:string"/>
+				<xsd:element name="uuid" type="xsd:string"/>
+				<xsd:element name="vendor">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="name" type="xsd:string"/>
+							<xsd:element name="version" type="xsd:string"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="version" type="xsd:string"/>
+			</xsd:sequence>
+		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="getServerLogType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:couchTransactionType">
-				<xsd:all minOccurs="0">
-					<xsd:element name="data" type="xsd:string"/>
-				</xsd:all>
-			</xsd:extension>
-		</xsd:complexContent>
+		<xsd:sequence>
+			<xsd:group ref="tns:couchTransactionGroup"/>
+			<xsd:element name="data" minOccurs="0" type="xsd:string"/>
+		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="getServerStatsType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:couchTransactionType">
-				<xsd:all minOccurs="0">
-					<xsd:element name="couchdb">
-						<xsd:complexType>
-							<xsd:all minOccurs="0">
-								<xsd:element name="auth_cache_misses" type="tns:couchServerStatType"/>
-								<xsd:element name="database_writes" type="tns:couchServerStatType"/>
-								<xsd:element name="open_databases" type="tns:couchServerStatType"/>
-								<xsd:element name="auth_cache_hits" type="tns:couchServerStatType"/>
-								<xsd:element name="request_time" type="tns:couchServerStatType"/>
-								<xsd:element name="database_reads" type="tns:couchServerStatType"/>
-								<xsd:element name="open_os_files" type="tns:couchServerStatType"/>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="httpd_request_methods">
-						<xsd:complexType>
-							<xsd:all minOccurs="0">
-								<xsd:element name="PUT" type="tns:couchServerStatType"/>
-								<xsd:element name="GET" type="tns:couchServerStatType"/>
-								<xsd:element name="COPY" type="tns:couchServerStatType"/>
-								<xsd:element name="DELETE" type="tns:couchServerStatType"/>
-								<xsd:element name="POST" type="tns:couchServerStatType"/>
-								<xsd:element name="HEAD" type="tns:couchServerStatType"/>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="httpd_status_codes">
-						<xsd:complexType>
-							<xsd:all minOccurs="0">
-								<xsd:element name="_403" type="tns:couchServerStatType"/>
-								<xsd:element name="_202" type="tns:couchServerStatType"/>
-								<xsd:element name="_401" type="tns:couchServerStatType"/>
-								<xsd:element name="_409" type="tns:couchServerStatType"/>
-								<xsd:element name="_200" type="tns:couchServerStatType"/>
-								<xsd:element name="_405" type="tns:couchServerStatType"/>
-								<xsd:element name="_400" type="tns:couchServerStatType"/>
-								<xsd:element name="_201" type="tns:couchServerStatType"/>
-								<xsd:element name="_404" type="tns:couchServerStatType"/>
-								<xsd:element name="_500" type="tns:couchServerStatType"/>
-								<xsd:element name="_412" type="tns:couchServerStatType"/>
-								<xsd:element name="_301" type="tns:couchServerStatType"/>
-								<xsd:element name="_304" type="tns:couchServerStatType"/>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="httpd">
-						<xsd:complexType>
-							<xsd:all minOccurs="0">
-								<xsd:element name="clients_requesting_changes" type="tns:couchServerStatType"/>
-								<xsd:element name="temporary_view_reads" type="tns:couchServerStatType"/>
-								<xsd:element name="requests" type="tns:couchServerStatType"/>
-								<xsd:element name="bulk_requests" type="tns:couchServerStatType"/>
-								<xsd:element name="view_reads" type="tns:couchServerStatType"/>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-				</xsd:all>
-			</xsd:extension>
-		</xsd:complexContent>
+		<xsd:sequence>
+			<xsd:group ref="tns:couchTransactionGroup"/>
+			<xsd:element name="couchdb" minOccurs="0">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="auth_cache_hits" minOccurs="0" type="tns:couchServerStatType"/>
+						<xsd:element name="auth_cache_misses" minOccurs="0" type="tns:couchServerStatType"/>
+						<xsd:element name="database_reads" minOccurs="0" type="tns:couchServerStatType"/>
+						<xsd:element name="database_writes" minOccurs="0" type="tns:couchServerStatType"/>
+						<xsd:element name="open_databases" minOccurs="0" type="tns:couchServerStatType"/>
+						<xsd:element name="open_os_files" minOccurs="0" type="tns:couchServerStatType"/>
+						<xsd:element name="request_time" minOccurs="0" type="tns:couchServerStatType"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="httpd" minOccurs="0">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="bulk_requests" minOccurs="0" type="tns:couchServerStatType"/>
+						<xsd:element name="clients_requesting_changes" minOccurs="0" type="tns:couchServerStatType"/>
+						<xsd:element name="requests" minOccurs="0" type="tns:couchServerStatType"/>
+						<xsd:element name="temporary_view_reads" minOccurs="0" type="tns:couchServerStatType"/>
+						<xsd:element name="view_reads" minOccurs="0" type="tns:couchServerStatType"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="httpd_request_methods" minOccurs="0">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="COPY" minOccurs="0" type="tns:couchServerStatType"/>
+						<xsd:element name="DELETE" minOccurs="0" type="tns:couchServerStatType"/>
+						<xsd:element name="GET" minOccurs="0" type="tns:couchServerStatType"/>
+						<xsd:element name="HEAD" minOccurs="0" type="tns:couchServerStatType"/>
+						<xsd:element name="POST" minOccurs="0" type="tns:couchServerStatType"/>
+						<xsd:element name="PUT" minOccurs="0" type="tns:couchServerStatType"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="httpd_status_codes" minOccurs="0">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="_200" minOccurs="0" type="tns:couchServerStatType"/>
+						<xsd:element name="_201" minOccurs="0" type="tns:couchServerStatType"/>
+						<xsd:element name="_202" minOccurs="0" type="tns:couchServerStatType"/>
+						<xsd:element name="_301" minOccurs="0" type="tns:couchServerStatType"/>
+						<xsd:element name="_304" minOccurs="0" type="tns:couchServerStatType"/>
+						<xsd:element name="_400" minOccurs="0" type="tns:couchServerStatType"/>
+						<xsd:element name="_401" minOccurs="0" type="tns:couchServerStatType"/>
+						<xsd:element name="_403" minOccurs="0" type="tns:couchServerStatType"/>
+						<xsd:element name="_404" minOccurs="0" type="tns:couchServerStatType"/>
+						<xsd:element name="_405" minOccurs="0" type="tns:couchServerStatType"/>
+						<xsd:element name="_409" minOccurs="0" type="tns:couchServerStatType"/>
+						<xsd:element name="_412" minOccurs="0" type="tns:couchServerStatType"/>
+						<xsd:element name="_500" minOccurs="0" type="tns:couchServerStatType"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="getServerTasksType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:couchTransactionType">
-				<xsd:all minOccurs="0">
-					<xsd:element name="items" type="tns:couchServerTaskType"/>
-				</xsd:all>
-			</xsd:extension>
-		</xsd:complexContent>
+		<xsd:sequence>
+			<xsd:group ref="tns:couchTransactionGroup"/>
+			<xsd:element name="items" minOccurs="0" type="tns:couchServerTaskType"/>
+		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="getServerUpdatesType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:couchTransactionType">
-				<xsd:all minOccurs="0">
-					<xsd:element name="db_name" type="xsd:string"/>
-					<xsd:element name="ok" type="xsd:boolean"/>
-					<xsd:element name="type" type="xsd:string"/>
-				</xsd:all>
-			</xsd:extension>
-		</xsd:complexContent>
+		<xsd:sequence>
+			<xsd:group ref="tns:couchTransactionGroup"/>
+			<xsd:sequence minOccurs="0">
+				<xsd:element name="db_name" type="xsd:string"/>
+				<xsd:element name="ok" type="xsd:boolean"/>
+				<xsd:element name="type" type="xsd:string"/>
+			</xsd:sequence>
+		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="getServerUuidsType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:couchTransactionType">
-				<xsd:all minOccurs="0">
-					<xsd:element name="uuids" type="tns:arrayType"/>
-				</xsd:all>
-			</xsd:extension>
-		</xsd:complexContent>
+		<xsd:sequence>
+			<xsd:group ref="tns:couchTransactionGroup"/>
+			<xsd:element name="uuids" minOccurs="0" type="tns:arrayType"/>
+		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="getSessionType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:couchTransactionType">
-				<xsd:all minOccurs="0">
-					<xsd:element name="ok" type="xsd:boolean"/>
-					<xsd:element name="userCtx">
-						<xsd:complexType>
-							<xsd:all>
-								<xsd:element name="name" type="xsd:string"/>
-								<xsd:element name="roles" type="tns:arrayType"/>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="info">
-						<xsd:complexType>
-							<xsd:all>
-								<xsd:element name="authentication_db" type="xsd:string"/>
-								<xsd:element name="authentication_handlers">
-									<xsd:complexType>
-										<xsd:all>
-											<xsd:element name="item" maxOccurs="unbounded">
-												<xsd:simpleType>
-													<xsd:restriction base="xsd:string">
-														<xsd:enumeration value="cookie"/>
-														<xsd:enumeration value="default"/>
-														<xsd:enumeration value="oauth"/>
-													</xsd:restriction>
-												</xsd:simpleType>
-											</xsd:element>
-										</xsd:all>
-									</xsd:complexType>
-								</xsd:element>
-								<xsd:element name="authenticated" type="xsd:string"/>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-				</xsd:all>
-			</xsd:extension>
-		</xsd:complexContent>
+		<xsd:sequence>
+			<xsd:group ref="tns:couchSessionGroup"/>
+		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="getViewType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:couchTransactionType">
-				<xsd:all minOccurs="0">
-					<xsd:element name="total_rows" type="xsd:int"/>
-					<xsd:element name="offset" type="xsd:int"/>
-					<xsd:element name="rows">
-						<xsd:complexType>
-							<xsd:all minOccurs="0">
-								<xsd:element name="item">
-									<xsd:complexType>
-										<xsd:all>
-											<xsd:element name="id" type="xsd:string"/>
-											<xsd:element name="key" type="xsd:string"/>
-											<xsd:element name="value" type="xsd:string"/>
-										</xsd:all>
-									</xsd:complexType>
-								</xsd:element>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-				</xsd:all>
-			</xsd:extension>
-		</xsd:complexContent>
+		<xsd:sequence>
+			<xsd:group ref="tns:couchTransactionGroup"/>
+			<xsd:sequence minOccurs="0">
+				<xsd:element name="offset" type="xsd:int"/>
+				<xsd:element name="rows">
+					<xsd:complexType>
+						<xsd:sequence minOccurs="0">
+							<xsd:element name="item" maxOccurs="unbounded">
+								<xsd:complexType>
+									<xsd:sequence>
+										<xsd:element name="id" type="xsd:string"/>
+										<xsd:element name="key" type="xsd:string"/>
+										<xsd:element name="value" type="xsd:string"/>
+									</xsd:sequence>
+								</xsd:complexType>
+							</xsd:element>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="total_rows" type="xsd:int"/>
+			</xsd:sequence>
+		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="headDatabaseType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:couchTransactionType">
-			</xsd:extension>
-		</xsd:complexContent>
+		<xsd:sequence>
+			<xsd:group ref="tns:couchTransactionGroup"/>
+		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="headDocumentType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:couchTransactionType">
-			</xsd:extension>
-		</xsd:complexContent>
+		<xsd:sequence>
+			<xsd:group ref="tns:couchTransactionGroup"/>
+		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="postBulkDocumentsType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:couchTransactionType">
-				<xsd:all minOccurs="0">
-					<xsd:element name="items">
-						<xsd:complexType>
-							<xsd:all minOccurs="0">
-								<xsd:element name="item">
-									<xsd:complexType>
-										<xsd:all minOccurs="0">
-											<xsd:element name="ok" type="xsd:boolean"/>
-											<xsd:element name="id" type="xsd:string"/>
-											<xsd:element name="rev" type="xsd:string"/>
-										</xsd:all>
-									</xsd:complexType>
-								</xsd:element>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-				</xsd:all>
-			</xsd:extension>
-		</xsd:complexContent>
+		<xsd:sequence>
+			<xsd:group ref="tns:couchTransactionGroup"/>
+			<xsd:sequence minOccurs="0">
+				<xsd:element name="items">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="item" minOccurs="0" maxOccurs="unbounded">
+								<xsd:complexType>
+									<xsd:sequence>
+										<xsd:element name="id" type="xsd:string"/>
+										<xsd:element name="ok" type="xsd:boolean"/>
+										<xsd:element name="rev" type="xsd:string"/>
+									</xsd:sequence>
+								</xsd:complexType>
+							</xsd:element>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="postDocumentType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:couchDocumentTransactionType">
-			</xsd:extension>
-		</xsd:complexContent>
+		<xsd:sequence>
+			<xsd:group ref="tns:couchDocumentTransactionGroup"/>
+		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="postReplicateType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:couchTransactionType">
-				<xsd:all minOccurs="0">
-					<xsd:element name="history">
-						<xsd:complexType>
-							<xsd:all minOccurs="0">
-								<xsd:element name="item">
-									<xsd:complexType>
-										<xsd:all minOccurs="0">
-											<xsd:element name="doc_write_failures" type="xsd:int"/>
-											<xsd:element name="docs_read" type="xsd:int"/>
-											<xsd:element name="docs_written" type="xsd:int"/>
-											<xsd:element name="end_last_seq" type="xsd:int"/>
-											<xsd:element name="end_time" type="xsd:string"/>
-											<xsd:element name="missing_checked" type="xsd:int"/>
-											<xsd:element name="missing_found" type="xsd:int"/>
-											<xsd:element name="recorded_seq" type="xsd:int"/>
-											<xsd:element name="session_id" type="xsd:string"/>
-											<xsd:element name="start_last_seq" type="xsd:int"/>
-											<xsd:element name="start_time" type="xsd:string"/>
-										</xsd:all>
-									</xsd:complexType>
-								</xsd:element>
-							</xsd:all>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="ok" type="xsd:boolean"/>
-					<xsd:element name="replication_id_version" type="xsd:int"/>
-					<xsd:element name="session_id" type="xsd:string"/>
-					<xsd:element name="source_last_seq" type="xsd:int"/>
-				</xsd:all>
-			</xsd:extension>
-		</xsd:complexContent>
+		<xsd:sequence>
+			<xsd:group ref="tns:couchTransactionGroup"/>
+			<xsd:sequence minOccurs="0">
+				<xsd:element name="history">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="item" minOccurs="0" maxOccurs="unbounded">
+								<xsd:complexType>
+									<xsd:sequence>
+										<xsd:element name="doc_write_failures" type="xsd:int"/>
+										<xsd:element name="docs_read" type="xsd:int"/>
+										<xsd:element name="docs_written" type="xsd:int"/>
+										<xsd:element name="end_last_seq" type="xsd:int"/>
+										<xsd:element name="end_time" type="xsd:string"/>
+										<xsd:element name="missing_checked" type="xsd:int"/>
+										<xsd:element name="missing_found" type="xsd:int"/>
+										<xsd:element name="recorded_seq" type="xsd:int"/>
+										<xsd:element name="session_id" type="xsd:string"/>
+										<xsd:element name="start_last_seq" type="xsd:int"/>
+										<xsd:element name="start_time" type="xsd:string"/>
+									</xsd:sequence>
+								</xsd:complexType>
+							</xsd:element>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="ok" type="xsd:boolean"/>
+				<xsd:element name="replication_id_version" type="xsd:int"/>
+				<xsd:element name="session_id" type="xsd:string"/>
+				<xsd:element name="source_last_seq" type="xsd:int"/>
+			</xsd:sequence>
+		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="postServerRestartType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:couchTransactionType">
-				<xsd:all minOccurs="0">
-					<xsd:element name="ok" type="xsd:boolean"/>
-				</xsd:all>
-			</xsd:extension>
-		</xsd:complexContent>
+		<xsd:sequence>
+			<xsd:group ref="tns:couchTransactionGroup"/>
+			<xsd:element name="ok" minOccurs="0" type="xsd:boolean"/>
+		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="postSessionType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:getSessionType">
-			</xsd:extension>
-		</xsd:complexContent>
+		<xsd:sequence>
+			<xsd:group ref="tns:couchSessionGroup"/>
+		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="putDatabaseType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:couchTransactionType">
-				<xsd:all minOccurs="0">
-					<xsd:element name="ok" type="xsd:boolean"/>
-				</xsd:all>
-			</xsd:extension>
-		</xsd:complexContent>
+		<xsd:sequence>
+			<xsd:group ref="tns:couchTransactionGroup"/>
+			<xsd:element name="ok" minOccurs="0" type="xsd:boolean"/>
+		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="putDocumentAttachmentType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:couchDocumentTransactionType">
-			</xsd:extension>
-		</xsd:complexContent>
+		<xsd:sequence>
+			<xsd:group ref="tns:couchDocumentTransactionGroup"/>
+		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="putServerConfigType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:couchServerConfigTransactionType">
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>	
+		<xsd:sequence>
+			<xsd:group ref="tns:couchServerConfigTransactionGroup"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
 </xsd:schema>
