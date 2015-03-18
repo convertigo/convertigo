@@ -838,6 +838,9 @@
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteDocumentTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.CopyDocumentTransaction">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+                </bean>
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostBulkDocumentsTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>

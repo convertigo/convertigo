@@ -411,6 +411,13 @@
 
 
 
+	
+	<xsd:complexType name="copyDocumentType">
+		<xsd:sequence>
+			<xsd:group ref="tns:couchDocumentTransactionGroup"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
 	<xsd:complexType name="customType">
 		<xsd:sequence>
 			<xsd:group ref="tns:couchTransactionGroup"/>

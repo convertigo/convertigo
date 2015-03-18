@@ -32,6 +32,7 @@ public enum HeaderName {
 	Location("Location"),
 	ContentLocation("Content-Location"),
 	ContentEncoding("Content-Encoding"),
+	Destination("Destination"),
 	TransferEncoding("Transfer-Encoding"),
 	Cookie("Cookie"),
 	SetCookie("Set-Cookie"),

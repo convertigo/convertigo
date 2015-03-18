@@ -26,6 +26,8 @@ public enum CouchDbParameter {
 	Param_create_target("create_target", false,1),
 	Param_data("data", false,1),
 	Param_datas("data", true,1),
+	Param_destination("destination", false,1),
+	Param_destination_rev("destination_rev", false,1),
 	Param_doc_ids("doc_ids", true,1),
 	Param_docrev("docrev", false,1),
 	Param_feed("feed",false,1),
