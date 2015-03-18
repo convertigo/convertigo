@@ -30,10 +30,10 @@ public class DeleteCustomStore extends XmlService {
 		File storeDirectory = new File(Engine.USER_WORKSPACE_PATH, StoreFiles.STORE_DIRECTORY_NAME);
 		if (storeDirectory.exists()) {
 			FileUtils.deleteDirectory(storeDirectory);
-			message.setTextContent("The custom store has correctly been deleted.");
+			message.setTextContent("The custom Store has correctly been deleted.");
 		}
 		else {
-			message.setTextContent("No custom store has been uploaded.");
+			message.setTextContent("No custom Store has been uploaded.");
 		}
 	}
 }

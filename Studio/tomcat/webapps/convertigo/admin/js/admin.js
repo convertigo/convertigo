@@ -348,7 +348,11 @@ function loadWidget(widgetId, widgetOptions) {
 					//Symbols page
 					case "globalSymbols_List":
 						urlHelp += "global-symbols/";
-						break;					
+						break;
+					//Store page
+					case "store":
+						urlHelp += "store/";
+						break;	
 				}
 				//show icon help button
 				$tmp.find(".widget_content_topcenter").first().html('<a href="' + urlHelp + '" class="widget_content_help" target="_blank">' + '</a>' + '<h3>' + $("#" + widgetId).attr("displayName") + '</h3>');

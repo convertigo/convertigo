@@ -33,7 +33,7 @@ public class UploadCustomStore extends UploadService {
 		String storeArchive = item.getName();
 
 		if (!storeArchive.endsWith(".zip")) {
-			ServiceUtils.addMessage(document, document.getDocumentElement(), "The upload of the custom store "
+			ServiceUtils.addMessage(document, document.getDocumentElement(), "The upload of the custom Store "
 					+ item.getName() + " has failed. The archive file is not valid (.zip required).", "error",
 					false);
 		}
@@ -77,7 +77,7 @@ public class UploadCustomStore extends UploadService {
 			FileUtils.deleteDirectory(tmpDir);
 		}
 
-		String message = "The custom store has been successfully deployed.";
+		String message = "The custom Store has been successfully deployed.";
 		Engine.logAdmin.info(message);
 		ServiceUtils.addMessage(document, document.getDocumentElement(), message, "message", false);
 	}

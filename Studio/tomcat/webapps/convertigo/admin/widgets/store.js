@@ -1,4 +1,8 @@
 function store_init() {
+	$("#helpDownload").attr("href", getHelpUrl("download-the-store/"));
+	$("#helpUpload").attr("href", getHelpUrl("upload-a-custom-store/"));
+	$("#helpDelete").attr("href", getHelpUrl("delete-the-custom-store/"));
+	
 	$("#btnDownloadStore").button({
 		icons : {
 			primary : "ui-icon-arrowthick-1-s"
@@ -18,7 +22,7 @@ function store_init() {
 			primary : "ui-icon-trash"
 		}
 	}).click(function () {
-		showConfirm("Are you sure you want to delete the custome store ?", function () {
+		showConfirm("Are you sure you want to delete the custom Store ?", function () {
 			startWait(50);
 			callService("store.DeleteCustomStore", function (res) {
 				setTimeout(function () {
@@ -36,7 +40,7 @@ function store_init() {
 			this._settings.action = "services/store.UploadCustomStore";
 			var str = ".zip";
 			if (file.match(str + "$") != str) {
-				showError("<p>The custom store '" + file + "' is not a valid archive (*.zip)</p>");
+				showError("<p>The custom Store '" + file + "' is not a valid archive (*.zip)</p>");
 				return false;
 			}
 	
@@ -66,7 +70,7 @@ function store_update() {
 function downloadStoreDialog() {
 	$("#dialogDownloadStore").dialog({
 		autoOpen : true,
-		title : "Select the elements to download",
+		title : "Select the resources to download",
 		modal : true,
         buttons: [
         {
@@ -89,4 +93,8 @@ function downloadStoreDialog() {
             }
         }]
 	});
+}
+
+function getHelpUrl(help_sub_url) {
+	return "http://www.convertigo.com/document/latest/operating-guide/using-convertigo-administration-console/store/" + help_sub_url;
 }
