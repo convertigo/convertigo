@@ -21,6 +21,7 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -62,6 +63,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 public abstract class AbstractCouchDbTransaction extends TransactionWithVariables implements IComplexTypeAffectation {
 
 	private static final long serialVersionUID = 8218411805775719448L;
+	private static final String defaultSchemaMark = "<default/>";
 	
 	public static final String COUCHDB_XSD_NAMESPACE = "http://www.convertigo.com/convertigo/couchdb";
 	public static final String COUCHDB_XSD_LOCATION = "http://localhost:18080/convertigo/xsd/couchdb/CouchDb.xsd";
@@ -376,24 +378,22 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 	}
 	
 	@Override
-	protected String extractXsdType(Document document) throws Exception {
-		return generateWsdlType(document);
+	public void writeSchemaToFile(String xsdTypes) {
+		if (defaultSchemaMark.equals(xsdTypes)) {
+			new File(getSchemaFilePath()).delete();
+		} else {
+			super.writeSchemaToFile(xsdTypes);
+		}
 	}
 
 	@Override
-	public String generateWsdlType(Document document) throws Exception {
-		String xsdType = "<xsd:complexType name=\""+ getXsdResponseElementName() +"\" />\n";
-		try {
-    		XmlSchema xmlSchema = createSchema();
-    		Document doc = xmlSchema.getSchemaDocument();
-    		Element elt = XMLUtils.findNodeByAttributeValue(doc.getDocumentElement().getChildNodes(), "name", getXsdResponseTypeName());
-   			xsdType = XMLUtils.prettyPrintElement(elt, true, true);
-		}
-		catch (Exception e) {
-			Engine.logBeans.error("Unable to generate schema for CouchDbTransaction named '"+ getName() +"'", e);
-		}
-		return xsdType;
-	}
+    public String generateXsdTypes(Document document, boolean extract) throws Exception {
+    	if (extract) {
+    		return super.generateXsdTypes(document, extract);
+    	} else {
+    		return defaultSchemaMark;
+    	}
+    }
 
 	@Override
 	protected XmlSchemaComplexType addSchemaResponseDataType(XmlSchema xmlSchema) {
