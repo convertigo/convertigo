@@ -74,6 +74,7 @@ import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.references.ImportXsdSchemaReference;
 import com.twinsoft.convertigo.beans.references.RemoteFileReference;
 import com.twinsoft.convertigo.beans.references.WebServiceReference;
+import com.twinsoft.convertigo.beans.references.XsdSchemaReference;
 import com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass;
@@ -690,10 +691,22 @@ public class NewObjectWizard extends Wizard {
 		else if (connector instanceof CouchDbConnector) {
 			CouchDbConnector couchDbConnector = (CouchDbConnector)connector;
 			
-			// TODO : check reference exist
-			ImportXsdSchemaReference reference = new ImportXsdSchemaReference();
-			reference.setUrlpath(AbstractCouchDbTransaction.COUCHDB_XSD_LOCATION);
-			couchDbConnector.getProject().add(reference);
+			String couchDbXsdPath = AbstractCouchDbTransaction.COUCHDB_XSD_LOCATION;
+			boolean existReference = false;
+			for (Reference reference : couchDbConnector.getProject().getReferenceList()) {
+				if (reference instanceof XsdSchemaReference) {
+					String urlPath = ((XsdSchemaReference)reference).getUrlpath();
+					if (urlPath.equals(couchDbXsdPath)) {
+						existReference = true;
+						break;
+					}
+				}
+			}
+			if (!existReference) {
+				ImportXsdSchemaReference reference = new ImportXsdSchemaReference();
+				reference.setUrlpath(couchDbXsdPath);
+				couchDbConnector.getProject().add(reference);
+			}
 			
 			GetServerInfoTransaction transaction = new GetServerInfoTransaction();
 			couchDbConnector.add(transaction);
