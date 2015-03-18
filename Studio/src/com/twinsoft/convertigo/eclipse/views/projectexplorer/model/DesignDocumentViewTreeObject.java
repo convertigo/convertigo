@@ -39,6 +39,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumen
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentTreeObject.ViewObject;
 import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class DesignDocumentViewTreeObject extends TreeParent implements IDesignTreeObject, IActionFilter {
@@ -76,10 +77,12 @@ public class DesignDocumentViewTreeObject extends TreeParent implements IDesignT
 		return ddfto;
 	}
 	
-	public void removeReduce(DesignDocumentFunctionTreeObject ddfto) {
+	public void removeFunction(DesignDocumentFunctionTreeObject ddfto) {
 		if (ddfto != null) {
-			removeChild(ddfto);
-			hasBeenModified();
+			if (CouchKey.reduce.name().equals(ddfto.getName())) {
+				removeChild(ddfto);
+				hasBeenModified();
+			}
 		}
 	}
 	
@@ -159,6 +162,17 @@ public class DesignDocumentViewTreeObject extends TreeParent implements IDesignT
 		return null;
 	}
 
+	@Override
+	public void remove(Object object) {
+		if (object.equals(this)) {
+			if (parent != null) {
+				((IDesignTreeObject)getTreeObjectOwner()).remove(object);
+			}
+		}
+		else if (object instanceof DesignDocumentFunctionTreeObject) {
+			removeFunction((DesignDocumentFunctionTreeObject)object);
+		}
+	}
 
 	private DesignDocumentFunctionTreeObject newFunction(FunctionObject function) {
 		return new DesignDocumentFunctionTreeObject(viewer, function);
@@ -222,4 +236,5 @@ public class DesignDocumentViewTreeObject extends TreeParent implements IDesignT
 		}
 		return super.testAttribute(target, name, value);
 	}
+
 }

@@ -143,7 +143,6 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 	
 	protected DesignDocumentViewTreeObject addView(DesignDocumentViewTreeObject view) {
 		DesignDocumentViewTreeObject ddvto = (view == null) ? newView() : view;
-		
 		if (ddvto != null) {
 			fViews.addChild(ddvto);
 			hasBeenModified();
@@ -201,6 +200,74 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 				}
 			}
 		}
+	}
+	
+	private String getAvailableViewName(String givenName) {
+		int index = 1;
+		String viewName = givenName;
+		while (hasView(viewName)) {
+			viewName = givenName + index++;
+		}
+		return viewName;
+	}
+	
+	@Override
+	public TreeParent getTreeObjectOwner() {
+		return getParent().getParent();
+	}
+
+	@Override
+	public IDesignTreeObject add(Object object, boolean bChangeName) {
+		if (object instanceof JsonData) {
+			JsonData jsonData = (JsonData)object;
+			Class<? extends TreeParent> c = jsonData.getOwnerClass();
+			if (c.equals(DesignDocumentViewTreeObject.class)) {
+				JSONObject jsonView = jsonData.getData();
+				try {
+					String viewName = getAvailableViewName(jsonView.getString("name"));
+					JSONObject jsonObject = jsonView.getJSONObject("value");
+					ViewObject view = new ViewObject(viewName, jsonObject);
+					return addView(newView(view));
+				} catch (Exception e) {
+				}
+			}
+		}
+		else if (object instanceof DesignDocumentViewTreeObject) {
+			return addView((DesignDocumentViewTreeObject)object);
+		}
+		return null;
+	}
+
+	@Override
+	public void remove(Object object) {
+		if (object instanceof DesignDocumentViewTreeObject) {
+			removeView((DesignDocumentViewTreeObject)object);
+		}
+	}
+	
+	public static Object read(Node node) throws EngineException {
+		return DatabaseObject.read(node);
+	}
+	
+	@Override
+	public Element toXml(Document document) {
+		try {
+			return getObject().toXml(document);
+		} catch (EngineException e) {
+			return null;
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.eclipse.ui.IActionFilter#testAttribute(java.lang.Object, java.lang.String, java.lang.String)
+	 */
+	public boolean testAttribute(Object target, String name, String value) {
+		if (name.equals("canPaste")) {
+			boolean canPaste = ((ConvertigoPlugin.clipboardManagerSystem.isCopy) || (ConvertigoPlugin.clipboardManagerSystem.isCut));
+			Boolean bool = Boolean.valueOf(value);
+			return bool.equals(Boolean.valueOf(canPaste));
+		}
+		return super.testAttribute(target, name, value);
 	}
 	
 	public class ViewObject {		
@@ -308,59 +375,4 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 
 	}
 
-	@Override
-	public TreeParent getTreeObjectOwner() {
-		return getParent().getParent();
-	}
-
-	@Override
-	public IDesignTreeObject add(Object object, boolean bChangeName) {
-		if (object instanceof JsonData) {
-			JsonData jsonData = (JsonData)object;
-			Class<? extends TreeParent> c = jsonData.getOwnerClass();
-			if (c.equals(DesignDocumentViewTreeObject.class)) {
-				JSONObject jsonView = jsonData.getData();
-				try {
-					int index = 1;
-					String viewName = jsonView.getString("name");
-					while (hasView(viewName)) {
-						viewName = jsonView.getString("name") + index++;
-					}
-					JSONObject jsonObject = jsonView.getJSONObject("value");
-					ViewObject view = new ViewObject(viewName, jsonObject);
-					return addView(newView(view));
-				} catch (Exception e) {
-				}
-			}
-		}
-		else if (object instanceof DesignDocumentViewTreeObject) {
-			return addView((DesignDocumentViewTreeObject)object);
-		}
-		return null;
-	}
-
-	public static Object read(Node node) throws EngineException {
-		return DatabaseObject.read(node);
-	}
-	
-	@Override
-	public Element toXml(Document document) {
-		try {
-			return getObject().toXml(document);
-		} catch (EngineException e) {
-			return null;
-		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.IActionFilter#testAttribute(java.lang.Object, java.lang.String, java.lang.String)
-	 */
-	public boolean testAttribute(Object target, String name, String value) {
-		if (name.equals("canPaste")) {
-			boolean canPaste = ((ConvertigoPlugin.clipboardManagerSystem.isCopy) || (ConvertigoPlugin.clipboardManagerSystem.isCut));
-			Boolean bool = Boolean.valueOf(value);
-			return bool.equals(Boolean.valueOf(canPaste));
-		}
-		return super.testAttribute(target, name, value);
-	}
 }

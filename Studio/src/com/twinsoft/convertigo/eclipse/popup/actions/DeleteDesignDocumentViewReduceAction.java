@@ -86,7 +86,7 @@ public class DeleteDesignDocumentViewReduceAction extends MyAbstractAction {
 					        		DesignDocumentViewTreeObject ddvto = (DesignDocumentViewTreeObject) ddfto.getParent();
 					        		if (ddvto != null) {
 					        			TreeParent owner = ddvto.getParent().getParent();
-					        			ddvto.removeReduce(ddfto);
+					        			ddvto.removeFunction(ddfto);
 		    			    			if (owner instanceof DatabaseObjectTreeObject) {
 		    			    				DatabaseObjectTreeObject databaseObjectTreeObject = (DatabaseObjectTreeObject)owner;
 		    			    				if (databaseObjectTreeObject.hasChanged()) {

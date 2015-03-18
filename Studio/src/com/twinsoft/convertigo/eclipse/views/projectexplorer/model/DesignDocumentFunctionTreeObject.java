@@ -137,6 +137,15 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 		return null;
 	}
 
+	@Override
+	public void remove(Object object) {
+		if (object.equals(this)) {
+			if (parent != null) {
+				((IDesignTreeObject)getParent()).remove(object);
+			}
+		}
+	}
+	
 	public static Object read(Node node) throws EngineException {
 		String classname = null;
         JSONObject jsondata = null;
@@ -187,4 +196,5 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 		}
 		return super.testAttribute(target, name, value);
 	}
+
 }

@@ -137,7 +137,8 @@ public class ClipboardManager {
 			} else if (treeObject instanceof IDesignTreeObject) {
 				IDesignTreeObject designTreeObject = (IDesignTreeObject) treeObject;
 				treeObjectsList.add(treeObject);
-				treeParentsList.add(((IDesignTreeObject) treeObject).getTreeObjectOwner());
+				//treeParentsList.add(((IDesignTreeObject) treeObject).getTreeObjectOwner());
+				treeParentsList.add(((DatabaseObjectTreeObject)((IDesignTreeObject) treeObject).getTreeObjectOwner()).getParentDatabaseObjectTreeObject());
 				copyDesignObject(designTreeObject);
 			} else {
 				throw new EngineException("Tree item not supported :"+ treeObject.getClass().getName());
@@ -584,13 +585,29 @@ public class ClipboardManager {
 				DatabaseObject databaseObject = (DatabaseObject) ((DatabaseObjectTreeObject) object).getObject();
 				cutAndPaste(databaseObject, (DatabaseObject) targetTreeObject.getObject());
 			}
-		} else if (object instanceof IPropertyTreeObject){
+		} else if (object instanceof IPropertyTreeObject) {
 			if (object.equals(targetTreeObject)) {
 				return;
 			}
 			if (targetTreeObject instanceof IPropertyTreeObject) {
 				IPropertyTreeObject tpo = (IPropertyTreeObject) object;
 				IPropertyTreeObject ttpo = (IPropertyTreeObject) targetTreeObject;
+				if (tpo.getParent().equals(ttpo.getParent())) {
+					return;
+				}
+				if (tpo.getParent().equals(ttpo)) {
+					return;
+				}
+				tpo.remove(object);
+				ttpo.add(object,false);
+			}
+		} else if (object instanceof IDesignTreeObject) {
+			if (object.equals(targetTreeObject)) {
+				return;
+			}
+			if (targetTreeObject instanceof IDesignTreeObject) {
+				IDesignTreeObject tpo = (IDesignTreeObject) object;
+				IDesignTreeObject ttpo = (IDesignTreeObject) targetTreeObject;
 				if (tpo.getParent().equals(ttpo.getParent())) {
 					return;
 				}
