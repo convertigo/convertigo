@@ -110,8 +110,10 @@ public class GetViewTransaction extends AbstractDocumentTransaction implements I
 			for (Document document : getConnector().getDocumentsList()) {
 				if (document instanceof DesignDocument) {
 					JSONObject views = CouchKey.views.JSONObject(((DesignDocument) document).getJSONObject());
-					for (Iterator<String> i = GenericUtils.cast(views.keys()); i.hasNext(); ) {
-						values.add(document.getName() + "/" + i.next());
+					if (views != null) {
+						for (Iterator<String> i = GenericUtils.cast(views.keys()); i.hasNext(); ) {
+							values.add(document.getName() + "/" + i.next());
+						}
 					}
 				}
 			}
