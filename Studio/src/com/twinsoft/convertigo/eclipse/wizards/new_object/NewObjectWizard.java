@@ -704,6 +704,7 @@ public class NewObjectWizard extends Wizard {
 			}
 			if (!existReference) {
 				ImportXsdSchemaReference reference = new ImportXsdSchemaReference();
+				reference.setName("CouchDb_schema");
 				reference.setUrlpath(couchDbXsdPath);
 				couchDbConnector.getProject().add(reference);
 			}
