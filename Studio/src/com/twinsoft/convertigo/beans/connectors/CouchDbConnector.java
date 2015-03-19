@@ -37,6 +37,8 @@ import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.transactions.couchdb.AbstractDatabaseTransaction;
 import com.twinsoft.convertigo.beans.transactions.couchdb.CouchDbParameter;
+import com.twinsoft.convertigo.beans.transactions.couchdb.GetViewTransaction;
+import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -191,6 +193,32 @@ public class CouchDbConnector extends Connector {
 	@Override
 	public Transaction newTransaction() {
 		return null;
+	}
+
+	public static final String internalView = "_Internal_GetView_";
+	private transient GetViewTransaction internalViewTransaction = null;
+	GetViewTransaction getInternalViewTransaction() {
+		if (internalViewTransaction == null) {
+			try {
+				internalViewTransaction = new GetViewTransaction();
+				internalViewTransaction.setName(internalView);
+				RequestableVariable var_limit = new RequestableVariable();
+				var_limit.setName(CouchDbParameter.Param_view_limit.variableName());
+				var_limit.setValueOrNull("100");
+				internalViewTransaction.add(var_limit);
+				internalViewTransaction.setParent(this);
+			} catch (EngineException e) {}
+		}
+		return internalViewTransaction;
+	}
+	
+	@Override
+	public Transaction getTransactionByName(String transactionName) {
+		Transaction Transaction = super.getTransactionByName(transactionName);
+		if (Transaction == null && internalView.equals(transactionName)) {
+			return getInternalViewTransaction();
+		}
+		return Transaction;
 	}
 
 	public void importCouchDbDesignDocuments() {

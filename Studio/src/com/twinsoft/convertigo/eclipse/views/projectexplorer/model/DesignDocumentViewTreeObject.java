@@ -66,6 +66,10 @@ public class DesignDocumentViewTreeObject extends TreeParent implements IDesignT
 		return getObject().hasReduce();
 	}
 
+	public String getDocViewName() {
+		return getDesignDocumentTreeObject().getName() + "/" + getName();
+	}
+	
 	public DesignDocumentFunctionTreeObject addReduce() {
 		DesignDocumentFunctionTreeObject ddfto = null;
 		FunctionObject fo = getObject().createReduce();

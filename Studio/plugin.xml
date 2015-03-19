@@ -2511,6 +2511,13 @@
                         name="additions">
                   </separator>
                </menu>
+	           <action
+	                 class="com.twinsoft.convertigo.eclipse.popup.actions.ViewExecuteSelectedAction"
+	                 icon="icons/studio/transaction_execute_selected.gif"
+	                 id="convertigo.action.executeSelectedView"
+	                 label="Execute"
+	                 menubarPath="execute">
+	           </action>
                <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.CreateDesignDocumentViewReduceAction"
                      enablesFor="1"
