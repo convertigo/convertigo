@@ -258,7 +258,7 @@ public class FullSyncListener extends Listener {
 		    		Object result = internalRequester.processRequest(request);
 		        	if (result != null) {
 		        		Document xmlHttpDocument = (Document) result;
-		        		String contents = XMLUtils.prettyPrintDOM(xmlHttpDocument);
+		        		String contents = XMLUtils.prettyPrintDOMWithEncoding(xmlHttpDocument, "UTF-8");
 		        		Engine.logBeans.debug("(FullSyncListener) Listener \""+ getName() +"\" : sequence successfully executed with following result\n"+ contents + "\n");
 		        	}
 				}
@@ -278,7 +278,7 @@ public class FullSyncListener extends Listener {
 					HttpState httpState = new HttpState();
 					
 					postMethod = new PostMethod(targetUrl);
-					postMethod.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+					postMethod.setRequestHeader("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
 					postMethod.addParameter(Parameter.Sequence.getName(), sequenceName);
 					postMethod.addParameter("__handleComplex", "true");
 					//postMethod.addParameter("docs", XMLUtils.prettyPrintElement(itemsElement, true, false));
