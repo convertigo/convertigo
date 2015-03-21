@@ -495,6 +495,8 @@ C8O = {
                                 C8O.log.debug("c8o.core: _call priority-server, do a network call");
                                 
                                 doCall(false);
+                            } else {
+                            	C8O.log.error("c8o.core: Cache options policy is undefined. policy must be priority-server or priority-local");
                             }
                         }
                     }, function () {
