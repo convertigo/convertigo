@@ -180,6 +180,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DocumentTreeO
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ExtractionRuleTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FullSyncListenerTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.HandlersDeclarationTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IDesignTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IEditableTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IPropertyTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ListenerTreeObject;
@@ -945,6 +946,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 											DesignDocumentViewTreeObject ddvto = (DesignDocumentViewTreeObject)theTreeObject;
 											if (ddvto.rename(newName, Boolean.TRUE)) {
 												item.setText(newName);
+												needRefresh = true;
 											}
 										} else if (theTreeObject instanceof DesignDocumentFunctionTreeObject) {
 											DesignDocumentFunctionTreeObject ddfto = (DesignDocumentFunctionTreeObject)theTreeObject;
@@ -965,8 +967,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							boolean updateDlg = false;
 							boolean updateReferences = false;
 							int update = 0;
-							// Updates references in SequenceStep/TransactionStep if needed
-							if ((theTreeObject instanceof ProjectTreeObject) || (theTreeObject instanceof SequenceTreeObject) || (theTreeObject instanceof ConnectorTreeObject) || (theTreeObject instanceof TransactionTreeObject) || (theTreeObject instanceof VariableTreeObject2)) {
+							// Updates references to object if needed
+							if ((theTreeObject instanceof ProjectTreeObject) || (theTreeObject instanceof SequenceTreeObject) || (theTreeObject instanceof ConnectorTreeObject) || (theTreeObject instanceof TransactionTreeObject) || (theTreeObject instanceof VariableTreeObject2) || (theTreeObject instanceof IDesignTreeObject)) {
 								String objectType = "";
 								if (theTreeObject instanceof ProjectTreeObject) {
 									objectType = "project";
@@ -983,6 +985,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 								} else if (theTreeObject instanceof VariableTreeObject2) {
 									objectType = "variable";
 									updateDlg = ((DatabaseObject)theTreeObject.getObject()) instanceof RequestableVariable ? true:false;
+								} else if (theTreeObject instanceof DesignDocumentViewTreeObject) {
+									objectType = "view";
+									updateDlg = true;
 								}
 								
 								if (updateDlg) {
