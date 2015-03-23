@@ -27,6 +27,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
+import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 
 public class AbstractHttpTransactionBeanInfo extends MySimpleBeanInfo {
     
@@ -37,7 +38,7 @@ public class AbstractHttpTransactionBeanInfo extends MySimpleBeanInfo {
 
 			resourceBundle = getResourceBundle("res/AbstractHttpTransaction");
 
-			properties = new PropertyDescriptor[8];
+			properties = new PropertyDescriptor[9];
 			
 			properties[0] = new PropertyDescriptor("subDir", AbstractHttpTransaction.class, "getSubDir", "setSubDir");
 			properties[0].setDisplayName(getExternalizedString("property.subDir.display_name"));
@@ -62,7 +63,7 @@ public class AbstractHttpTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[4] = new PropertyDescriptor("httpVerb", AbstractHttpTransaction.class, "getHttpVerb", "setHttpVerb");
 			properties[4].setDisplayName(getExternalizedString("property.httpVerb.display_name"));
 			properties[4].setShortDescription(getExternalizedString("property.httpVerb.short_description"));
-			properties[4].setPropertyEditorClass(getEditorClass("HttpVerbEditor"));
+			properties[4].setPropertyEditorClass(HttpMethodType.class);
 			
 			properties[5] = new PropertyDescriptor("httpInfo", AbstractHttpTransaction.class, "getHttpInfo", "setHttpInfo");
 			properties[5].setDisplayName(getExternalizedString("property.httpInfo.display_name"));
@@ -79,6 +80,11 @@ public class AbstractHttpTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[7].setDisplayName(getExternalizedString("property.urlEncodingCharset.display_name"));
 			properties[7].setShortDescription(getExternalizedString("property.urlEncodingCharset.short_description"));
 			properties[7].setExpert(true);
+			
+			properties[8] = new PropertyDescriptor("customHttpVerb", beanClass, "getCustomHttpVerb", "setCustomHttpVerb");
+			properties[8].setDisplayName(getExternalizedString("property.customHttpVerb.display_name"));
+			properties[8].setShortDescription(getExternalizedString("property.customHttpVerb.short_description"));
+			properties[8].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

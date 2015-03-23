@@ -99,6 +99,7 @@ import com.twinsoft.convertigo.engine.HttpStateEvent;
 import com.twinsoft.convertigo.engine.HttpStateListener;
 import com.twinsoft.convertigo.engine.MySSLSocketFactory;
 import com.twinsoft.convertigo.engine.Version;
+import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.oauth.HttpOAuthConsumer;
@@ -885,25 +886,85 @@ public class HttpConnector extends Connector {
 			AbstractHttpTransaction httpTransaction = (AbstractHttpTransaction) context.transaction;
 			
 			// Retrieve HTTP method
-			int httpVerb = httpTransaction.getHttpVerb();
-			String sHttpVerb = AbstractHttpTransaction.HTTP_VERBS[httpVerb];
-			Engine.logBeans.debug("(HttpConnector) HTTP verb: " + sHttpVerb);
-			if (httpVerb == AbstractHttpTransaction.HTTP_VERB_GET) {
-				method = new GetMethod(sUrl);
-			} else if (httpVerb == AbstractHttpTransaction.HTTP_VERB_POST) {
-				method = new PostMethod(sUrl);
-			} else if (httpVerb == AbstractHttpTransaction.HTTP_VERB_PUT) {
-				method = new PutMethod(sUrl);
-			} else if (httpVerb == AbstractHttpTransaction.HTTP_VERB_DELETE) {
-				method = new DeleteMethod(sUrl);
-			} else if (httpVerb == AbstractHttpTransaction.HTTP_VERB_HEAD) {
-				method = new HeadMethod(sUrl);
-			} else if (httpVerb == AbstractHttpTransaction.HTTP_VERB_OPTIONS) {
-				method = new OptionsMethod(sUrl);
-			} else if (httpVerb == AbstractHttpTransaction.HTTP_VERB_TRACE) {
-				method = new TraceMethod(sUrl);
+			HttpMethodType httpVerb = httpTransaction.getHttpVerb();
+			String sHttpVerb = httpVerb.name();
+			final String sCustomHttpVerb = httpTransaction.getCustomHttpVerb();
+			
+			if (sCustomHttpVerb.length() > 0) {
+				Engine.logBeans.debug("(HttpConnector) HTTP verb: " + sHttpVerb + " overridden to '" + sCustomHttpVerb + "'");
+				
+				switch (httpVerb) {
+				case GET:
+					method = new GetMethod(sUrl) {
+						@Override
+						public String getName() {
+							return sCustomHttpVerb;
+						}
+					};
+					break;
+				case POST:
+					method = new PostMethod(sUrl) {
+						@Override
+						public String getName() {
+							return sCustomHttpVerb;
+						}
+					};
+					break;
+				case PUT:
+					method = new PutMethod(sUrl) {
+						@Override
+						public String getName() {
+							return sCustomHttpVerb;
+						}
+					};
+					break;
+				case DELETE:
+					method = new DeleteMethod(sUrl) {
+						@Override
+						public String getName() {
+							return sCustomHttpVerb;
+						}
+					};
+					break;
+				case HEAD:
+					method = new HeadMethod(sUrl) {
+						@Override
+						public String getName() {
+							return sCustomHttpVerb;
+						}
+					};
+					break;
+				case OPTIONS:
+					method = new OptionsMethod(sUrl) {
+						@Override
+						public String getName() {
+							return sCustomHttpVerb;
+						}
+					};
+					break;
+				case TRACE:
+					method = new TraceMethod(sUrl) {
+						@Override
+						public String getName() {
+							return sCustomHttpVerb;
+						}
+					};
+					break;
+				}
+			} else {
+				Engine.logBeans.debug("(HttpConnector) HTTP verb: " + sHttpVerb);
+				
+				switch (httpVerb) {
+				case GET: method = new GetMethod(sUrl); break;
+				case POST: method = new PostMethod(sUrl); break;
+				case PUT: method = new PutMethod(sUrl); break;
+				case DELETE: method = new DeleteMethod(sUrl); break;
+				case HEAD: method = new HeadMethod(sUrl); break;
+				case OPTIONS: method = new OptionsMethod(sUrl); break;
+				case TRACE: method = new TraceMethod(sUrl); break;
+				}
 			}
-
+			
 			// Setting HTTP parameters
 			boolean hasUserAgent = false;
 			String content_type = "application/x-www-form-urlencoded";

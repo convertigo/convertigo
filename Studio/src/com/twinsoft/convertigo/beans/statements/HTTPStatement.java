@@ -30,6 +30,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Vector;
 
+import org.apache.xpath.XPathAPI;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.NativeArray;
 import org.mozilla.javascript.NativeJavaArray;
@@ -46,12 +47,12 @@ import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.IVariableContainer;
 import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.beans.core.Variable;
-import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.beans.variables.HttpStatementMultiValuedVariable;
 import com.twinsoft.convertigo.beans.variables.HttpStatementVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.parsers.triggers.DocumentCompletedTrigger;
@@ -69,20 +70,7 @@ import com.twinsoft.util.StringEx;
 public class HTTPStatement extends Statement implements IVariableContainer, ITriggerOwner, IContainerOrdered {
 
 	private static final long serialVersionUID = 6762922098877290999L;
-	
-//	public static final int HTTP_NONE		= 0;
-//	public static final int HTTP_GET		= 1;
-//	public static final int HTTP_POST 		= 2;
-//	public static final int HTTP_HEAD 		= 3;
-//	public static final int HTTP_PUT 		= 4;
-//	public static final int HTTP_TRACE 		= 5;
-//	public static final int HTTP_OPTIONS 	= 6;
-//	public static final int HTTP_CONNECT 	= 7;
-//	public static final int HTTP_DELETE 	= 8;
-	
-	/** Holds value of property method. */
-//	private int methodType = 0;
-	
+		
 	/** Holds value of property https. */
 	private boolean https = false;
 	
@@ -108,12 +96,10 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 	transient private String formName = "";
 	
     /** Holds value of property httpVerb. */
-    private int httpVerb = 0;
+    private HttpMethodType httpVerb = HttpMethodType.GET;
 	
     /** The result of statement execution. */
     private transient byte[] result = new byte[]{};
-    
-//    public transient Hashtable variables = new Hashtable(16);
     
     protected transient Context javascriptContext = null;
     
@@ -125,6 +111,8 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
     transient private List<HttpStatementVariable> vAllVariables = null;
 
 	private String urlEncodingCharset = "";
+	
+	private String customHttpVerb = "";
     
 	/**
      * Constructs a new empty HTTPStatement object.
@@ -563,6 +551,14 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 			}
 		}
 		
+		try {
+			Node node = XPathAPI.selectSingleNode(element, "property[@name='httpVerb']/java.lang.Integer/@value");
+			if (node != null) {
+				httpVerb = HttpMethodType.values()[Integer.parseInt(node.getNodeValue())];
+			}
+		} catch (Throwable t) {
+			// ignore migration errors
+		}		
 	}
 	
 	/* (non-Javadoc)
@@ -848,11 +844,13 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 				this.scope = scope;
 				
 				HtmlTransaction htmlTransaction = getParentTransaction();
-				int exVerb = htmlTransaction.getHttpVerb();
+				HttpMethodType exVerb = htmlTransaction.getHttpVerb();
+				String exCustomVerb = htmlTransaction.getCustomHttpVerb();
 				long exTimeout = htmlTransaction.getResponseTimeout();
 				
 				try {
 					htmlTransaction.setHttpVerb(getHttpVerb());
+					htmlTransaction.setCustomHttpVerb(getCustomHttpVerb());
 					try {
 						htmlTransaction.setResponseTimeout(getTrigger().getTrigger().getTimeout() / 1000);
 					} finally {}
@@ -861,6 +859,7 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 					return true;
 				} finally {
 					htmlTransaction.setHttpVerb(exVerb);
+					htmlTransaction.setCustomHttpVerb(exCustomVerb);
 					htmlTransaction.setResponseTimeout(exTimeout);
 				}
 			}
@@ -876,25 +875,20 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 		this.trigger = trigger;
 	}
 	
-    public int getHttpVerb() {
+    public HttpMethodType getHttpVerb() {
 		return httpVerb;
 	}
 
-	public void setHttpVerb(int httpVerb) {
+	public void setHttpVerb(HttpMethodType httpVerb) {
 		this.httpVerb = httpVerb;
 	}
 	
 	public String getMethod() {
-		return AbstractHttpTransaction.HTTP_VERBS[httpVerb];
+		return httpVerb.name();
 	}
 	
 	public void setMethod(String method) {
-		for (int i = 0 ; i < AbstractHttpTransaction.HTTP_VERBS.length ; i++) {
-			if (method.toUpperCase().equals(AbstractHttpTransaction.HTTP_VERBS[i])) {
-				httpVerb = i;
-				return;
-			}
-		}
+		httpVerb = HttpMethodType.valueOf(method);
 	}
 
 	public String getUrlEncodingCharset() {
@@ -903,5 +897,13 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 
 	public void setUrlEncodingCharset(String urlEncodingCharset) {
 		this.urlEncodingCharset = urlEncodingCharset;
+	}
+
+	public String getCustomHttpVerb() {
+		return customHttpVerb;
+	}
+
+	public void setCustomHttpVerb(String customHttpVerb) {
+		this.customHttpVerb = customHttpVerb;
 	}
 }

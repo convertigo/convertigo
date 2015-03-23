@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.beans.statements;
 import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
+import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 
 
 public class HTTPStatementBeanInfo extends MySimpleBeanInfo {
@@ -37,22 +38,17 @@ public class HTTPStatementBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/statements/images/http_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/statements/images/http_32x32.png";
 			
-			properties = new PropertyDescriptor[10];
+			properties = new PropertyDescriptor[11];
 			
 			resourceBundle = getResourceBundle("res/HTTPStatement");
 			
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 			
-//			properties[0] = new PropertyDescriptor("methodType", beanClass, "getMethodType", "setMethodType");
-//			properties[0].setDisplayName(getExternalizedString("property.methodType.display_name"));
-//			properties[0].setShortDescription(getExternalizedString("property.methodType.short_description"));
-//			//properties[0].setPropertyEditorClass(getEditorClass("HttpMethodEditor")); //since #169 Bug with http statement
-//			properties[0].setHidden(true);
 			properties[0] = new PropertyDescriptor("httpVerb", beanClass, "getHttpVerb", "setHttpVerb");
 			properties[0].setDisplayName(getExternalizedString("property.httpVerb.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.httpVerb.short_description"));
-			properties[0].setPropertyEditorClass(getEditorClass("HttpVerbEditor"));
+			properties[0].setPropertyEditorClass(HttpMethodType.class);
 
 			properties[1] = new PropertyDescriptor("https", beanClass, "isHttps", "setHttps");
 			properties[1].setDisplayName(getExternalizedString("property.https.display_name"));
@@ -99,6 +95,11 @@ public class HTTPStatementBeanInfo extends MySimpleBeanInfo {
 			properties[9].setDisplayName(getExternalizedString("property.urlEncodingCharset.display_name"));
 			properties[9].setShortDescription(getExternalizedString("property.urlEncodingCharset.short_description"));
 			properties[9].setExpert(true);
+			
+			properties[10] = new PropertyDescriptor("customHttpVerb", beanClass, "getCustomHttpVerb", "setCustomHttpVerb");
+			properties[10].setDisplayName(getExternalizedString("property.customHttpVerb.display_name"));
+			properties[10].setShortDescription(getExternalizedString("property.customHttpVerb.short_description"));
+			properties[10].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.beans.transactions;
 import java.io.IOException;
 import java.net.MalformedURLException;
 
+import org.apache.xpath.XPathAPI;
 import org.mozilla.javascript.EcmaError;
 import org.mozilla.javascript.EvaluatorException;
 import org.mozilla.javascript.JavaScriptException;
@@ -44,6 +45,7 @@ import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
+import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -67,23 +69,15 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
     private boolean httpInfo = false;
     private String httpInfoTagName = "HttpInfo";
     
-	public static final String[] HTTP_VERBS = { "GET", "POST", "PUT", "DELETE", "HEAD", "TRACE", "OPTIONS"};
-    public static final int HTTP_VERB_GET = 0;
-    public static final int HTTP_VERB_POST = 1;
-    public static final int HTTP_VERB_PUT = 2;
-    public static final int HTTP_VERB_DELETE = 3;
-    public static final int HTTP_VERB_HEAD = 4;
-	public static final int HTTP_VERB_TRACE = 5;
-	public static final int HTTP_VERB_OPTIONS = 6;
-    
     /** Holds value of property httpVerb. */
-    private int httpVerb = 0;
+    private HttpMethodType httpVerb = HttpMethodType.GET;
+    private String customHttpVerb = "";
     
-    public int getHttpVerb() {
+    public HttpMethodType getHttpVerb() {
 		return httpVerb;
 	}
 
-	public void setHttpVerb(int httpVerb) {
+	public void setHttpVerb(HttpMethodType httpVerb) {
 		this.httpVerb = httpVerb;
 	}
 
@@ -464,5 +458,27 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 	@Override
 	public HttpConnector getConnector() {
 		return (HttpConnector) super.getConnector();
+	}
+
+	public String getCustomHttpVerb() {
+		return customHttpVerb;
+	}
+
+	public void setCustomHttpVerb(String customHttpVerb) {
+		this.customHttpVerb = customHttpVerb;
+	}
+	
+	@Override
+	public void preconfigure(Element element) throws Exception {
+		try {
+			Node node = XPathAPI.selectSingleNode(element, "property[@name='httpVerb']/java.lang.Integer/@value");
+			if (node != null) {
+				httpVerb = HttpMethodType.values()[Integer.parseInt(node.getNodeValue())];
+			}
+		} catch (Throwable t) {
+			// ignore migration errors
+		} finally {
+			super.preconfigure(element);			
+		}
 	}
 }

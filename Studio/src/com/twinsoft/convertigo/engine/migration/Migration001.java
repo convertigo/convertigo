@@ -26,8 +26,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class Migration001 {
@@ -92,7 +92,7 @@ public class Migration001 {
 							httpVerbPropertyElement.setAttribute("name", "httpVerb");
 							Element httpVerbPropertyValueElement = document.createElement("java.lang.Integer");
 							httpVerbPropertyElement.appendChild(httpVerbPropertyValueElement);
-							httpVerbPropertyValueElement.setAttribute("value", "" + AbstractHttpTransaction.HTTP_VERB_POST);
+							httpVerbPropertyValueElement.setAttribute("value", HttpMethodType.POST.name());
 							
 							Engine.logDatabaseObjectManager.info("[Migration m001] Found at least one POST variable => parent transaction's HTTP verb property set to POST");
 							break;
