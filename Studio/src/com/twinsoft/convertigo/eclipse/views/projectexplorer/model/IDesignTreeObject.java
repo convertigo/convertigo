@@ -29,8 +29,10 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 
 public interface IDesignTreeObject {
 	public TreeParent getTreeObjectOwner();
+	public IDesignTreeObject getParentDesignTreeObject();
 	public IDesignTreeObject add(Object object, boolean bChangeName);
 	public void remove(Object object);
 	public Element toXml(Document document);
 	public TreeParent getParent();
+	public void hasBeenModified();
 }

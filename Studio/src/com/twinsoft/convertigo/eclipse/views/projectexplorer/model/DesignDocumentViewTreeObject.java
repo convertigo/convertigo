@@ -54,8 +54,14 @@ public class DesignDocumentViewTreeObject extends TreeParent implements IDesignT
 		return (ViewObject)super.getObject();
 	}
 
+	@Override
 	public TreeParent getTreeObjectOwner() {
 		return getParent().getParent();
+	}
+	
+	@Override
+	public DesignDocumentTreeObject getParentDesignTreeObject() {
+		return (DesignDocumentTreeObject) getParent().getParent();
 	}
 	
 	public boolean hasMap() {
@@ -67,7 +73,7 @@ public class DesignDocumentViewTreeObject extends TreeParent implements IDesignT
 	}
 
 	public String getDocViewName() {
-		return getDesignDocumentTreeObject().getName() + "/" + getName();
+		return getParentDesignTreeObject().getName() + "/" + getName();
 	}
 	
 	public DesignDocumentFunctionTreeObject addReduce() {
@@ -93,7 +99,7 @@ public class DesignDocumentViewTreeObject extends TreeParent implements IDesignT
 	public boolean rename(String newName, Boolean bDialog) {
 		if (getName().equals(newName))
 			return true;
-		if (getDesignDocumentTreeObject().hasView(newName)) {
+		if (getParentDesignTreeObject().hasView(newName)) {
 			ConvertigoPlugin.logException(new ConvertigoException("The view named \"" + newName + "\" already exists."), "Unable to change the object name.", bDialog);
 			return false;
 		}
@@ -115,11 +121,8 @@ public class DesignDocumentViewTreeObject extends TreeParent implements IDesignT
 			addChild(new DesignDocumentFunctionTreeObject(viewer, view.getReduce()));
 	}
 
-	private DesignDocumentTreeObject getDesignDocumentTreeObject() {
-		return (DesignDocumentTreeObject) getTreeObjectOwner();
-	}
-	
-	protected void hasBeenModified() {
+	@Override
+	public void hasBeenModified() {
 		JSONObject functions = new JSONObject();
 		for (TreeObject to : getChildren()) {
 			DesignDocumentFunctionTreeObject ddfto = (DesignDocumentFunctionTreeObject)to;
@@ -133,7 +136,7 @@ public class DesignDocumentViewTreeObject extends TreeParent implements IDesignT
 		
 		getObject().setJSONObject(functions);
 		
-		DesignDocumentTreeObject ddto = getDesignDocumentTreeObject();
+		DesignDocumentTreeObject ddto = getParentDesignTreeObject();
 		if (ddto != null) {
 			ddto.hasBeenModified();
 		}
@@ -157,7 +160,7 @@ public class DesignDocumentViewTreeObject extends TreeParent implements IDesignT
 				}
 			}
 			else if (c.equals(DesignDocumentViewTreeObject.class)) {
-				return ((IDesignTreeObject)getTreeObjectOwner()).add(object, bChangeName);
+				return getParentDesignTreeObject().add(object, bChangeName);
 			}
 		}
 		else if (object instanceof DesignDocumentFunctionTreeObject) {
@@ -170,7 +173,7 @@ public class DesignDocumentViewTreeObject extends TreeParent implements IDesignT
 	public void remove(Object object) {
 		if (object.equals(this)) {
 			if (parent != null) {
-				((IDesignTreeObject)getTreeObjectOwner()).remove(object);
+				getParentDesignTreeObject().remove(object);
 			}
 		}
 		else if (object instanceof DesignDocumentFunctionTreeObject) {

@@ -37,15 +37,16 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentFilterTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentFunctionTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentViewTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FolderTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IDesignTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
 
-public class DeleteDesignDocumentViewReduceAction extends MyAbstractAction {
+public class DeleteDesignDocumentFunctionAction extends MyAbstractAction {
 
-	public DeleteDesignDocumentViewReduceAction() {
+	public DeleteDesignDocumentFunctionAction() {
 		super();
 	}
 
@@ -55,7 +56,14 @@ public class DeleteDesignDocumentViewReduceAction extends MyAbstractAction {
 		TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
 		if (treeObject instanceof DesignDocumentFunctionTreeObject) {
 			DesignDocumentFunctionTreeObject ddfto = (DesignDocumentFunctionTreeObject)treeObject;
-			action.setEnabled(ddfto.getName().equals(CouchKey.reduce.key()));
+			// filter function
+			if (treeObject instanceof DesignDocumentFilterTreeObject) {
+				action.setEnabled(true);
+			}
+			// view function
+			else {
+				action.setEnabled(ddfto.getName().equals(CouchKey.reduce.key()));
+			}
 		}
 	}
 	
@@ -83,10 +91,14 @@ public class DeleteDesignDocumentViewReduceAction extends MyAbstractAction {
 								String message = java.text.MessageFormat.format("Do you really want to delete the object \"{0}\" and all its sub-objects?", new Object[] {ddfto.getName()});
 					        	messageBox.setMessage(message);
 					        	if (messageBox.open() == SWT.YES) {
-					        		DesignDocumentViewTreeObject ddvto = (DesignDocumentViewTreeObject) ddfto.getParent();
-					        		if (ddvto != null) {
-					        			TreeParent owner = ddvto.getParent().getParent();
-					        			ddvto.removeFunction(ddfto);
+				        			TreeParent owner = ddfto.getTreeObjectOwner();
+				        			
+					        		IDesignTreeObject dto = ddfto.getParentDesignTreeObject();
+					        		if (dto != null) {
+					        			dto.remove(ddfto);
+					        		}
+					        		
+				        			if (owner != null) {
 		    			    			if (owner instanceof DatabaseObjectTreeObject) {
 		    			    				DatabaseObjectTreeObject databaseObjectTreeObject = (DatabaseObjectTreeObject)owner;
 		    			    				if (databaseObjectTreeObject.hasChanged()) {
@@ -98,7 +110,7 @@ public class DeleteDesignDocumentViewReduceAction extends MyAbstractAction {
 		    			    			}
 		    			    			else
 		    			    				treeParentToRefresh.add(owner);
-					        		}
+				        			}
 					        	}
 			    			}
     					}
@@ -115,7 +127,7 @@ public class DeleteDesignDocumentViewReduceAction extends MyAbstractAction {
     		}
         }
         catch (Throwable e) {
-        	ConvertigoPlugin.logException(e, "Unable to delete reduce function!");
+        	ConvertigoPlugin.logException(e, "Unable to delete function!");
         }
         finally {
 			shell.setCursor(null);

@@ -51,8 +51,14 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 		super(viewer, object);
 	}
 
+	@Override
 	public TreeParent getTreeObjectOwner() {
 		return getParent().getParent().getParent();
+	}
+	
+	@Override
+	public IDesignTreeObject getParentDesignTreeObject() {
+		return (DesignDocumentViewTreeObject) getParent();
 	}
 	
 	@Override
@@ -60,8 +66,9 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 		return (FunctionObject)super.getObject();
 	}
 
-	protected void hasBeenModified() {
-		DesignDocumentViewTreeObject ddvto = (DesignDocumentViewTreeObject) getParent();
+	@Override
+	public void hasBeenModified() {
+		IDesignTreeObject ddvto = getParentDesignTreeObject();
 		if (ddvto != null) {
 			ddvto.hasBeenModified();
 		}
@@ -98,7 +105,7 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 		}
 	}
 
-	public void openJscriptHandlerEditor(IProject project) {
+	protected String getTempFileName(IProject project) {
 		TreeObject object = getTreeObjectOwner();
 		
 		Document document = (Document)object.getObject();
@@ -107,7 +114,13 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 				"__"+getConnectorTreeObject().getName()+
 				"__"+document.getName()+
 				"__views."+getParent().getName()+"."+getName();
-
+		
+		return tempFileName;
+	}
+	
+	public void openJscriptHandlerEditor(IProject project) {
+		String tempFileName = getTempFileName(project);
+		
 		IFile file = project.getFile(tempFileName);
 		
 		IWorkbenchPage activePage = PlatformUI
@@ -120,7 +133,7 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 				activePage.openEditor(new JscriptTreeFunctionEditorInput(file,this),
 										"com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTreeFunctionEditor");
 			} catch(PartInitException e) {
-				ConvertigoPlugin.logException(e, "Error while loading the document editor '" + document.getName() + "'");
+				ConvertigoPlugin.logException(e, "Error while loading the document editor '" + tempFileName + "'");
 			} 
 		}
 	}
@@ -130,8 +143,8 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 		if (object instanceof JsonData) {
 			JsonData jsonData = (JsonData)object;
 			Class<? extends TreeParent> c = jsonData.getOwnerClass();
-			if (c.equals(DesignDocumentFunctionTreeObject.class)) {
-				return ((IDesignTreeObject)getParent()).add(object, bChangeName);
+			if (c.isAssignableFrom(DesignDocumentFunctionTreeObject.class)) {
+				return getParentDesignTreeObject().add(object, bChangeName);
 			}
 		}
 		return null;
@@ -141,9 +154,17 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 	public void remove(Object object) {
 		if (object.equals(this)) {
 			if (parent != null) {
-				((IDesignTreeObject)getParent()).remove(object);
+				getParentDesignTreeObject().remove(object);
 			}
 		}
+	}
+	
+	public boolean rename(String newName, Boolean bDialog) {
+		return false;
+	}
+	
+	protected static Class<? extends TreeParent> getDesignTreeClass() {
+		return DesignDocumentFunctionTreeObject.class;
 	}
 	
 	public static Object read(Node node) throws EngineException {
@@ -166,7 +187,7 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 	        throw ee;
 		}
 		if (jsondata != null) {
-			return new JsonData(DesignDocumentFunctionTreeObject.class, jsondata);
+			return new JsonData(getDesignTreeClass(), jsondata);
 		}
 		return null;
 	}

@@ -2493,7 +2493,15 @@
                      enablesFor="1"
                      icon="icons/studio/new.gif"
                      id="convertigo.action.newDocumentView"
-                     label="Row"
+                     label="View"
+                     menubarPath="convertigo.menu.document.new/content">
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.CreateDesignDocumentFilterAction"
+                     enablesFor="1"
+                     icon="icons/studio/new.gif"
+                     id="convertigo.action.newDocumentFilter"
+                     label="Filter"
                      menubarPath="convertigo.menu.document.new/content">
                </action>
             </objectContribution>
@@ -2570,15 +2578,22 @@
                      menubarPath="clipboard"/>
             </objectContribution>
             <objectContribution
-                  id="convertigo.objectDesignDocumentViewFunction"
+                  id="convertigo.objectDesignDocumentFunction"
                   objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentFunctionTreeObject">
                <action
-                     class="com.twinsoft.convertigo.eclipse.popup.actions.DeleteDesignDocumentViewReduceAction"
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.DeleteDesignDocumentFunctionAction"
                      enablesFor="1"
                      icon="icons/studio/delete.gif"
-                     id="convertigo.action.deleteDocumentViewReduce"
+                     id="convertigo.action.deleteDocumentFunction"
                      label="Delete"
                      menubarPath="delete">
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.FunctionRenameAction"
+                     enablesFor="1"
+                     id="convertigo.action.renameFunction"
+                     label="Rename"
+                     menubarPath="main">
                </action>
                <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardPasteAction"
