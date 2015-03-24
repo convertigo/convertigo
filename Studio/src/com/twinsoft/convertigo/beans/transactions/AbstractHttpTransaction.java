@@ -149,6 +149,18 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 			hasChanged = true;
 			Engine.logBeans.warn("[HttpTransaction] The object \"" + getName() + "\" has been updated to version 3.1.8");
 		}
+		
+
+		try {
+			Node node = XPathAPI.selectSingleNode(element, "property[@name='httpVerb']/java.lang.Integer/@value");
+			if (node != null) {
+				httpVerb = HttpMethodType.values()[Integer.parseInt(node.getNodeValue())];
+				hasChanged = true;
+				Engine.logBeans.warn("[HttpTransaction] The object \"" + getName() + "\" has been updated to use the new 'httpVerb' format");
+			}
+		} catch (Throwable t) {
+			// ignore migration errors
+		}
     }
     
     /** Compatibility for version older than 4.6.0 **/
@@ -466,19 +478,5 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 
 	public void setCustomHttpVerb(String customHttpVerb) {
 		this.customHttpVerb = customHttpVerb;
-	}
-	
-	@Override
-	public void preconfigure(Element element) throws Exception {
-		try {
-			Node node = XPathAPI.selectSingleNode(element, "property[@name='httpVerb']/java.lang.Integer/@value");
-			if (node != null) {
-				httpVerb = HttpMethodType.values()[Integer.parseInt(node.getNodeValue())];
-			}
-		} catch (Throwable t) {
-			// ignore migration errors
-		} finally {
-			super.preconfigure(element);			
-		}
 	}
 }

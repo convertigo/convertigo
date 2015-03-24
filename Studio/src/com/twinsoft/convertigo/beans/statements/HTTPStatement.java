@@ -550,15 +550,6 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 				Engine.logBeans.warn("[HTTPStatement] The object \""+objectName+"\" has been updated to version 4.6.0 (property \"variablesDefinition\" changed to \"orderedVariables\")");
 			}
 		}
-		
-		try {
-			Node node = XPathAPI.selectSingleNode(element, "property[@name='httpVerb']/java.lang.Integer/@value");
-			if (node != null) {
-				httpVerb = HttpMethodType.values()[Integer.parseInt(node.getNodeValue())];
-			}
-		} catch (Throwable t) {
-			// ignore migration errors
-		}		
 	}
 	
 	/* (non-Javadoc)
@@ -598,6 +589,17 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 			
 			hasChanged = true;
 			Engine.logBeans.warn("[HTTPStatement] The object \"" + getName() + "\" has been updated to version 4.2.0");
+		}
+		
+		try {
+			Node node = XPathAPI.selectSingleNode(element, "property[@name='httpVerb']/java.lang.Integer/@value");
+			if (node != null) {
+				httpVerb = HttpMethodType.values()[Integer.parseInt(node.getNodeValue())];
+				hasChanged = true;
+				Engine.logBeans.warn("[HttpStatement] The object \"" + getName() + "\" has been updated to use the new 'httpVerb' format");
+			}
+		} catch (Throwable t) {
+			// ignore migration errors
 		}
 	}
 
