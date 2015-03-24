@@ -29,12 +29,12 @@ import org.eclipse.jface.viewers.Viewer;
 import com.twinsoft.convertigo.beans.core.Document;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentTreeObject.FilterObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentTreeObject.UpdateObject;
 import com.twinsoft.convertigo.engine.ConvertigoException;
 
-public class DesignDocumentFilterTreeObject extends DesignDocumentFunctionTreeObject {
+public class DesignDocumentUpdateTreeObject extends DesignDocumentFunctionTreeObject {
 
-	public DesignDocumentFilterTreeObject(Viewer viewer, Object object) {
+	public DesignDocumentUpdateTreeObject(Viewer viewer, Object object) {
 		super(viewer, object);
 	}
 
@@ -49,8 +49,8 @@ public class DesignDocumentFilterTreeObject extends DesignDocumentFunctionTreeOb
 	}
 	
 	@Override
-	public FilterObject getObject() {
-		return (FilterObject) super.getObject();
+	public UpdateObject getObject() {
+		return (UpdateObject) super.getObject();
 	}
 
 	@Override
@@ -62,7 +62,7 @@ public class DesignDocumentFilterTreeObject extends DesignDocumentFunctionTreeOb
 		String tempFileName = 	"_private/"+project.getName()+
 				"__"+getConnectorTreeObject().getName()+
 				"__"+document.getName()+
-				"__filters."+getName();
+				"__updates."+getName();
 		
 		return tempFileName;
 	}
@@ -73,7 +73,7 @@ public class DesignDocumentFilterTreeObject extends DesignDocumentFunctionTreeOb
 			return true;
 		
 		IDesignTreeObject dto = getParentDesignTreeObject();
-		if (((DesignDocumentTreeObject)dto).hasFilter(newName)) {
+		if (((DesignDocumentTreeObject)dto).hasUpdate(newName)) {
 			ConvertigoPlugin.logException(new ConvertigoException("The function named \"" + newName + "\" already exists."), "Unable to change the object name.", bDialog);
 			return false;
 		}

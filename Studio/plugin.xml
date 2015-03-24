@@ -2497,6 +2497,14 @@
                      menubarPath="convertigo.menu.document.new/content">
                </action>
                <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.CreateDesignDocumentUpdateAction"
+                     enablesFor="1"
+                     icon="icons/studio/new.gif"
+                     id="convertigo.action.newDocumentUpdate"
+                     label="Filter"
+                     menubarPath="convertigo.menu.document.new/content">
+               </action>
+               <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.CreateDesignDocumentFilterAction"
                      enablesFor="1"
                      icon="icons/studio/new.gif"

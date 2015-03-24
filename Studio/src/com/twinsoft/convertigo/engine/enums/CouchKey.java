@@ -16,6 +16,7 @@ public enum CouchKey {
 	map,
 	reduce,
 	rev,
+	updates,
 	views,
 	c8oAcl("~c8oAcl"),
 	c8oHash("~c8oHash");

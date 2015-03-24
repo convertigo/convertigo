@@ -27,6 +27,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentFilterTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentUpdateTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
 public class FunctionRenameAction extends TreeObjectRenameAction {
@@ -40,7 +41,8 @@ public class FunctionRenameAction extends TreeObjectRenameAction {
 		super.selectionChanged(action, selection);
 		IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 		TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
-		action.setEnabled(treeObject instanceof DesignDocumentFilterTreeObject);
+		action.setEnabled(treeObject instanceof DesignDocumentFilterTreeObject ||
+				treeObject instanceof DesignDocumentUpdateTreeObject);
 	}
 		
 }

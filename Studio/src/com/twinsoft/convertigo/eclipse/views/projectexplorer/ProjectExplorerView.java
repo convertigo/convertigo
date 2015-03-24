@@ -175,6 +175,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjec
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentFilterTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentFunctionTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentUpdateTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentViewTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DocumentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ExtractionRuleTreeObject;
@@ -2029,7 +2030,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			((treeObject instanceof DatabaseObjectTreeObject) || 
 			(treeObject instanceof TraceTreeObject) ||
 			(treeObject instanceof DesignDocumentViewTreeObject) ||
-			(treeObject instanceof DesignDocumentFilterTreeObject)
+			(treeObject instanceof DesignDocumentFilterTreeObject) ||
+			(treeObject instanceof DesignDocumentUpdateTreeObject)
 			)) {
 				edit(treeObject);
 		}

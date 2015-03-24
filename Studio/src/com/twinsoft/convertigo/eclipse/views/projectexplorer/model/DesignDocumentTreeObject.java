@@ -47,14 +47,17 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class DesignDocumentTreeObject extends DocumentTreeObject implements IDesignTreeObject {
 	private FolderTreeObject fFilters = null;
+	private FolderTreeObject fUpdates = null;
 	private FolderTreeObject fViews = null;
 	private String lastRev = "?";
 
 	public DesignDocumentTreeObject(Viewer viewer, DatabaseObject object, boolean inherited) {
 		super(viewer, object, inherited);
 		fFilters = new FolderTreeObject(viewer, "Filters");
+		fUpdates = new FolderTreeObject(viewer, "Updates");
 		fViews = new FolderTreeObject(viewer, "Views");
 		loadFilters();
+		loadUpdates();
 		loadViews();
 		syncDocument();
 	}
@@ -99,6 +102,10 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		return "filter";
 	}
 
+	public String getDefaultUpdateName() {
+		return "update";
+	}
+
 	@Override
 	public synchronized void hasBeenModified() {
 		JSONObject filters = new JSONObject();
@@ -107,6 +114,17 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 			FilterObject filterObject = ddfto.getObject();
 			try {
 				filters.put(filterObject.name, filterObject.function);
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+			}
+		}
+
+		JSONObject updates = new JSONObject();
+		for (TreeObject to : fUpdates.getChildren()) {
+			DesignDocumentUpdateTreeObject dduto = (DesignDocumentUpdateTreeObject)to;
+			UpdateObject updateObject = dduto.getObject();
+			try {
+				updates.put(updateObject.name, updateObject.function);
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 			}
@@ -127,6 +145,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 			DesignDocument dd = getObject();
 			JSONObject jso = dd.getJSONObject();
 			CouchKey.filters.put(jso, filters);
+			CouchKey.updates.put(jso, updates);
 			CouchKey.views.put(jso, views);
 			dd.hasChanged = true;
 			hasBeenModified(true);
@@ -158,6 +177,10 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		return addFilter(null);
 	}
 
+	public DesignDocumentUpdateTreeObject addNewUpdate() {
+		return addUpdate(null);
+	}
+
 	public void removeView(DesignDocumentViewTreeObject view) {
 		if (view != null) {
 			fViews.removeChild(view);
@@ -168,6 +191,13 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 	public void removeFilter(DesignDocumentFilterTreeObject filter) {
 		if (filter != null) {
 			fFilters.removeChild(filter);
+			hasBeenModified();
+		}
+	}
+
+	public void removeUpdate(DesignDocumentUpdateTreeObject update) {
+		if (update != null) {
+			fUpdates.removeChild(update);
 			hasBeenModified();
 		}
 	}
@@ -190,6 +220,15 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		return ddfto;
 	}
 
+	protected DesignDocumentUpdateTreeObject addUpdate(DesignDocumentUpdateTreeObject update) {
+		DesignDocumentUpdateTreeObject dduto = (update == null) ? newUpdate() : update;
+		if (dduto != null) {
+			fUpdates.addChild(dduto);
+			hasBeenModified();
+		}
+		return dduto;
+	}
+
 	protected boolean hasView(String viewName) {
 		for (TreeObject to : fViews.getChildren()) {
 			if (to.getName().equals(viewName)) {
@@ -208,6 +247,15 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		return false;
 	}
 
+	protected boolean hasUpdate(String updateName) {
+		for (TreeObject to : fUpdates.getChildren()) {
+			if (to.getName().equals(updateName)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	protected DesignDocumentViewTreeObject newView() {
 		return newView(createViewObject());
 	}
@@ -216,12 +264,20 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		return newFilter(createFilterObject());
 	}
 
+	protected DesignDocumentUpdateTreeObject newUpdate() {
+		return newUpdate(createUpdateObject());
+	}
+
 	protected DesignDocumentViewTreeObject newView(ViewObject view) {
 		return new DesignDocumentViewTreeObject(viewer, view);
 	}
 	
 	protected DesignDocumentFilterTreeObject newFilter(FilterObject filter) {
 		return new DesignDocumentFilterTreeObject(viewer, filter);
+	}
+
+	protected DesignDocumentUpdateTreeObject newUpdate(UpdateObject update) {
+		return new DesignDocumentUpdateTreeObject(viewer, update);
 	}
 
 	protected ViewObject createViewObject() {
@@ -249,6 +305,18 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		return filter;
 	}
 	
+	protected UpdateObject createUpdateObject() {
+		int index = 1;
+		String updateName = getDefaultUpdateName();
+		
+		while (hasUpdate(updateName)) {
+			updateName = getDefaultUpdateName() + index++;
+		}
+		
+		UpdateObject update = new UpdateObject(updateName, "function (doc, req) {\r\n\treturn [doc,'nothing done'];\r\n}");
+		return update;
+	}
+
 	private void loadViews() {
 		JSONObject jsonDocument = getObject().getJSONObject();
 		JSONObject views = CouchKey.views.JSONObject(jsonDocument);
@@ -293,6 +361,28 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		}
 	}
 	
+	private void loadUpdates() {
+		JSONObject jsonDocument = getObject().getJSONObject();
+		JSONObject updates = CouchKey.updates.JSONObject(jsonDocument);
+		
+		if (updates != null) {
+			if (updates.length() > 0) {
+				addChild(fUpdates);
+			}
+			
+			for (Iterator<String> i = GenericUtils.cast(updates.keys()); i.hasNext(); ) {
+				String key = i.next();
+				
+				try {
+					UpdateObject update = new UpdateObject(key, updates.getString(key));
+					fUpdates.addChild(new DesignDocumentUpdateTreeObject(viewer, update));
+				} catch (Exception e) {
+					Engine.logBeans.warn("[DesignDocument] update named '" + key + "' is null; skipping...");
+				}
+			}
+		}
+	}
+	
 	private String getAvailableViewName(String givenName) {
 		int index = 1;
 		String viewName = givenName;
@@ -309,6 +399,15 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 			filterName = givenName + index++;
 		}
 		return filterName;
+	}
+
+	private String getAvailableUpdateName(String givenName) {
+		int index = 1;
+		String updateName = givenName;
+		while (hasUpdate(updateName)) {
+			updateName = givenName + index++;
+		}
+		return updateName;
 	}
 
 	@Override
@@ -336,7 +435,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 				} catch (Exception e) {
 				}
 			}
-			else if (c.isAssignableFrom(DesignDocumentFilterTreeObject.class)) {
+			else if (c.equals(DesignDocumentFilterTreeObject.class)) {
 				JSONObject jsonFilter = jsonData.getData();
 				try {
 					String filterName = getAvailableFilterName(jsonFilter.getString("name"));
@@ -346,12 +445,25 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 				} catch (Exception e) {
 				}
 			}
+			else if (c.equals(DesignDocumentUpdateTreeObject.class)) {
+				JSONObject jsonUpdate = jsonData.getData();
+				try {
+					String updateName = getAvailableUpdateName(jsonUpdate.getString("name"));
+					String updateValue = jsonUpdate.getString("value");
+					UpdateObject update = new UpdateObject(updateName, updateValue);
+					return addUpdate(newUpdate(update));
+				} catch (Exception e) {
+				}
+			}
 		}
 		else if (object instanceof DesignDocumentViewTreeObject) {
 			return addView((DesignDocumentViewTreeObject)object);
 		}
 		else if (object instanceof DesignDocumentFilterTreeObject) {
 			return addFilter((DesignDocumentFilterTreeObject)object);
+		}
+		else if (object instanceof DesignDocumentUpdateTreeObject) {
+			return addUpdate((DesignDocumentUpdateTreeObject)object);
 		}
 		return null;
 	}
@@ -363,6 +475,9 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		}
 		else if (object instanceof DesignDocumentFilterTreeObject) {
 			removeFilter((DesignDocumentFilterTreeObject)object);
+		}
+		else if (object instanceof DesignDocumentUpdateTreeObject) {
+			removeUpdate((DesignDocumentUpdateTreeObject)object);
 		}
 	}
 	
@@ -507,4 +622,10 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		
 	}
 
+	public class UpdateObject extends FunctionObject {
+		UpdateObject(String name, String function) {
+			super(name, function);
+		}
+		
+	}
 }

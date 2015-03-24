@@ -143,7 +143,7 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 		if (object instanceof JsonData) {
 			JsonData jsonData = (JsonData)object;
 			Class<? extends TreeParent> c = jsonData.getOwnerClass();
-			if (c.isAssignableFrom(DesignDocumentFunctionTreeObject.class)) {
+			if (DesignDocumentFunctionTreeObject.class.isAssignableFrom(c)) {
 				return getParentDesignTreeObject().add(object, bChangeName);
 			}
 		}
@@ -163,7 +163,11 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 		return false;
 	}
 	
-	protected static Class<? extends TreeParent> getDesignTreeClass() {
+	private static Class<? extends TreeParent> getDesignTreeClass(String classname) {
+		if (classname.equals(DesignDocumentFilterTreeObject.class.getName()))
+			return DesignDocumentFilterTreeObject.class;
+		else if (classname.equals(DesignDocumentUpdateTreeObject.class.getName()))
+			return DesignDocumentUpdateTreeObject.class;
 		return DesignDocumentFunctionTreeObject.class;
 	}
 	
@@ -187,7 +191,7 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 	        throw ee;
 		}
 		if (jsondata != null) {
-			return new JsonData(getDesignTreeClass(), jsondata);
+			return new JsonData(getDesignTreeClass(classname), jsondata);
 		}
 		return null;
 	}

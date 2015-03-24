@@ -39,6 +39,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentFilterTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentFunctionTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentUpdateTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FolderTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IDesignTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
@@ -58,6 +59,10 @@ public class DeleteDesignDocumentFunctionAction extends MyAbstractAction {
 			DesignDocumentFunctionTreeObject ddfto = (DesignDocumentFunctionTreeObject)treeObject;
 			// filter function
 			if (treeObject instanceof DesignDocumentFilterTreeObject) {
+				action.setEnabled(true);
+			}
+			// update function
+			else if (treeObject instanceof DesignDocumentUpdateTreeObject) {
 				action.setEnabled(true);
 			}
 			// view function
