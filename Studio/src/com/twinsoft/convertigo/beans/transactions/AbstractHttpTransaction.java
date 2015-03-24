@@ -295,7 +295,7 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 		NodeList headerNodes = context.inputDocument.getElementsByTagName("header");
 		int len = headerNodes.getLength();
 		if (len > 0) {
-			XMLVector<XMLVector<String>> headers = new XMLVector<XMLVector<String>>();
+			XMLVector<XMLVector<String>> headers = getHttpParameters();
 			for (int i=0; i<len; i++) {
 				Element headerNode = (Element) headerNodes.item(i);
 				XMLVector<String> header = new XMLVector<String>();
