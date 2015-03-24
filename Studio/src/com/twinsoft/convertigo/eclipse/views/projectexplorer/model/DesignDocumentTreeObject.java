@@ -242,7 +242,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		String filterName = getDefaultFilterName();
 		
 		while (hasFilter(filterName)) {
-			filterName = getDefaultViewName() + index++;
+			filterName = getDefaultFilterName() + index++;
 		}
 		
 		FilterObject filter = new FilterObject(filterName, "function (doc, req) {\r\n\treturn true;\r\n}");
