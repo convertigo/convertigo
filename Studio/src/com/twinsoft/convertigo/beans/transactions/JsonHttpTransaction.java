@@ -86,6 +86,11 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 		String jsonEncoding = getJsonEncoding();
 		Engine.logBeans.trace("JSON encoding : " + jsonEncoding);
 
+		if (httpData == null) {
+			Engine.logBeans.debug("No JSON response data, do nothing");
+			return;
+		}
+			
 		String jsonData = new String(httpData, jsonEncoding);
 		Engine.logBeans.debug("JSON text: " + jsonData);
 		
