@@ -29,6 +29,7 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.statements.ContinueWithSiteClipperStatement;
+import com.twinsoft.convertigo.beans.statements.FunctionStatement;
 import com.twinsoft.convertigo.beans.statements.HandlerStatement;
 import com.twinsoft.convertigo.beans.statements.ScHandlerStatement;
 import com.twinsoft.convertigo.beans.steps.BlockStep;
@@ -368,8 +369,9 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 								requiresNode.addChild(new ScreenClassNode(requiresNode, screenClassName, screenClass));
 							}
 						}
-					} 
-					List<Statement> statementList = ((HandlerStatement)statement).getStatements();
+					}
+					
+					List<Statement> statementList = ((FunctionStatement) statement).getStatements();
 					for (Statement st : statementList) {
 						if (st instanceof ContinueWithSiteClipperStatement) {
 							ContinueWithSiteClipperStatement continueWithSiteClipperStatement = (ContinueWithSiteClipperStatement) st;
