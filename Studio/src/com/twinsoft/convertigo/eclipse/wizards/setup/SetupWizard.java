@@ -54,9 +54,10 @@ public class SetupWizard extends Wizard {
 	protected WorkspaceMigrationPage workspaceMigrationPage;
 	protected WorkspaceCreationPage workspaceCreationPage;
 	protected ConfigureProxyPage configureProxyPage;
-	protected AlreadyPscKeyPage alreadyPscKeyPage;
-	protected RegistrationPage registrationPage;
-	protected PscKeyPage pscKeyPage;
+//	protected AlreadyPscKeyPage alreadyPscKeyPage;
+	protected PscKeyValidationPage pscKeyValidationPage;
+//	protected RegistrationPage registrationPage;
+//	protected PscKeyPage pscKeyPage;
 	protected SummaryPage summaryPage;
 
 	protected ProxyManager proxyManager;
@@ -125,14 +126,17 @@ public class SetupWizard extends Wizard {
 		configureProxyPage = new ConfigureProxyPage(proxyManager);
 		addPage(configureProxyPage);
 
-		alreadyPscKeyPage = new AlreadyPscKeyPage();
-		addPage(alreadyPscKeyPage);
+//		alreadyPscKeyPage = new AlreadyPscKeyPage();
+//		addPage(alreadyPscKeyPage);
 
-		registrationPage = new RegistrationPage();
-		addPage(registrationPage);
+		pscKeyValidationPage = new PscKeyValidationPage();
+		addPage(pscKeyValidationPage);
+		
+//		registrationPage = new RegistrationPage();
+//		addPage(registrationPage);
 
-		pscKeyPage = new PscKeyPage();
-		addPage(pscKeyPage);
+//		pscKeyPage = new PscKeyPage();
+//		addPage(pscKeyPage);
 
 		summaryPage = new SummaryPage();
 		addPage(summaryPage);
@@ -222,7 +226,8 @@ public class SetupWizard extends Wizard {
 		File pscFile = new File(Engine.USER_WORKSPACE_PATH, "studio/psc.txt");
 		try {
 			FileUtils.writeStringToFile(pscFile,
-					pscKeyPage.getCertificateKey(), "utf-8");
+//					pscKeyPage.getCertificateKey(), "utf-8");
+					pscKeyValidationPage.getCertificateKey(), "utf-8");
 		} catch (IOException e) {
 			ConvertigoPlugin.logError("Failed to write the PSC file: "
 					+ e.getMessage());
