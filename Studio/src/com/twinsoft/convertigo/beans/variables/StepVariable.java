@@ -57,7 +57,7 @@ public class StepVariable extends Variable implements IStepSourceContainer {
 		Object value = null;
 		if (sourceDefinition.size() != 0 && parent != null) {
 			StepSource source = new StepSource((Step)parent, sourceDefinition);
-			value = source.getContextValues();
+			value = source.getContextOutputNodes();			
 		}
 		return value;
 	}
