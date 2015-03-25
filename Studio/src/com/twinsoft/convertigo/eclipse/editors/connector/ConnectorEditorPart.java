@@ -52,7 +52,6 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
-import org.eclipse.ui.IEditorPart;
 import org.eclipse.wst.sse.ui.internal.StructuredTextViewer;
 
 import com.twinsoft.convertigo.beans.connectors.CicsConnector;
@@ -82,13 +81,14 @@ import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineListener;
 import com.twinsoft.convertigo.engine.KeyExpiredException;
 import com.twinsoft.convertigo.engine.MaxCvsExceededException;
+import com.twinsoft.convertigo.engine.RequestableEngineEvent;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 @SuppressWarnings("restriction")
 public class ConnectorEditorPart extends Composite implements Runnable, EngineListener {
 
-	protected IEditorPart editor = null;
+	protected ConnectorEditor editor = null;
 	private SashForm sashForm = null;
 	private Composite compositeOutput = null;
 	protected AbstractConnectorComposite compositeConnector = null;
@@ -172,7 +172,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 	private Canvas canvas = null;
 	private AnimatedGif animatedWait;
 
-	public ConnectorEditorPart(IEditorPart editor, Connector connector, Composite parent, int style) {
+	public ConnectorEditorPart(ConnectorEditor editor, Connector connector, Composite parent, int style) {
 		super(parent, style);
 		this.editor = editor;
 		this.connector = connector;
@@ -1158,6 +1158,8 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 	public void getDocument(String transactionName, String testcaseName, boolean isStubRequested) {
 		final Map<String, String[]> parameters = new HashMap<String, String[]>();
 		
+		editor.setDirty(true);
+		
 		parameters.put(Parameter.Connector.getName(), new String[]{connector.getName()});
 		
 		if (transactionName != null) {
@@ -1201,7 +1203,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 		if (!checkEventSource(engineEvent))
 			return;
 
-		getDisplay().syncExec(new Runnable() {
+		getDisplay().asyncExec(new Runnable() {
 			public void run() {
 				animatedWait.stop();
 
@@ -1230,18 +1232,14 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 
 	private boolean checkEventSource(EventObject event) {
 		boolean isSourceFromConnector = false;
-		Object source = event.getSource();
-		if (event instanceof EngineEvent) {
-			if (source instanceof DatabaseObject) {
-				Connector connector = ((DatabaseObject) source).getConnector();
-				if ((connector != null) && (connector.equals(this.connector)))
+		if (event instanceof RequestableEngineEvent) {
+			RequestableEngineEvent requestableEvent = (RequestableEngineEvent) event;
+			
+			String connectorName = requestableEvent.getConnectorName();
+			if (connectorName != null) {
+				if (connectorName.equals(connector.getName()) && requestableEvent.getProjectName().equals(connector.getProject().getName())) {
 					isSourceFromConnector = true;
-			}
-			if (source instanceof org.w3c.dom.Document) {
-				org.w3c.dom.Document document = (org.w3c.dom.Document) event.getSource();
-				String connectorName = document.getDocumentElement().getAttribute("connector");
-				if (connectorName.equals(connector.getName()))
-					isSourceFromConnector = true;
+				}
 			}
 		}
 		return isSourceFromConnector;
@@ -1259,14 +1257,13 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 			}
 		}
 		lastGeneratedDocument = (org.w3c.dom.Document) engineEvent.getSource();
-		if (lastGeneratedDocument.getDocumentElement().getAttribute("project").equals(projectName)) {
-			final String strXML = XMLUtils.prettyPrintDOMWithEncoding(lastGeneratedDocument);
-			getDisplay().asyncExec(new Runnable() {
-				public void run() {
-					xmlView.getDocument().set(strXML);
-				}
-			});
-		}
+		final String strXML = XMLUtils.prettyPrintDOMWithEncoding(lastGeneratedDocument);
+		getDisplay().asyncExec(new Runnable() {
+			public void run() {
+				xmlView.getDocument().set(strXML);
+				editor.setDirty(false);
+			}
+		});
 	}
 
 	public void clearEditor(EngineEvent engineEvent) {

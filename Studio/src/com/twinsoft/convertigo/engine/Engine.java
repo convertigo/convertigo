@@ -1221,7 +1221,7 @@ public class Engine {
 				documentElement.setAttribute("userReference", context.userReference);
 			}
 
-			fireDocumentGenerated(new EngineEvent(outputDom));
+			fireDocumentGenerated(new RequestableEngineEvent(outputDom, context.projectName, context.sequenceName, context.connectorName));
 		} catch (EngineException e) {
 			String message = "[Engine.getDocument()] Context ID#" + context.contextID
 					+ " - Unable to build the XML document.";
@@ -1345,12 +1345,14 @@ public class Engine {
 
 		return "Wrong Carioca session key format";
 	}
-
+	
 	public Document getErrorDocument(Throwable e, Requester requester, Context context) throws Exception {
 		// Generate the XML document for error
 		Document document = buildErrorDocument(e, requester, context);
 		context.outputDocument = document;
-		fireDocumentGenerated(new EngineEvent(context.outputDocument));
+		fireDocumentGenerated(new RequestableEngineEvent(context.outputDocument, context.projectName, 
+														 context.sequenceName, context.connectorName));
+		
 		return document;
 	}
 
