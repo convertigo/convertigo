@@ -19,6 +19,7 @@ public enum CouchDbParameter {
 	Path_section("section",false,0),
 	Path_value("value",false,0),
 	Path_viewname("viewname", false,0),
+	Path_updatename("updatename", false,0),
 	
 	Param_cancel("cancel", false,1),
 	Param_continuous("continuous", false,1),

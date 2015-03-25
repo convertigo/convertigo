@@ -844,6 +844,12 @@
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostBulkDocumentsTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostUpdateTransaction">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+                </bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutUpdateTransaction">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+                </bean>
             </beans>
             <beans groupname="Attachment transactions">
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetDocumentAttachmentTransaction">

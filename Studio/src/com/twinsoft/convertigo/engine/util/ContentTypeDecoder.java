@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 
 public class ContentTypeDecoder {
-	private final static Pattern pattern = Pattern.compile("(.*?)(?: ?; ?charset=(.*)|$)", Pattern.CASE_INSENSITIVE);
+	private final static Pattern pattern = Pattern.compile("(?:.*, ?)?(.*?)(?: ?; ?charset=(.*)|$)", Pattern.CASE_INSENSITIVE);
 	
 	String mimeType;
 	String charset = null;

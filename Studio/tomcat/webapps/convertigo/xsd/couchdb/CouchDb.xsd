@@ -48,8 +48,10 @@
 						<xsd:element name="Location" minOccurs="0" type="xsd:string"/>
 						<xsd:element name="Pragma" minOccurs="0" type="xsd:string"/>
 						<xsd:element name="Server" minOccurs="0" type="xsd:string"/>
-						<xsd:element name="Transfer_Encoding" minOccurs="0" type="xsd:string"/>
 						<xsd:element name="Set_Cookie" minOccurs="0" type="xsd:string"/>
+						<xsd:element name="Transfer_Encoding" minOccurs="0" type="xsd:string"/>
+						<xsd:element name="X_Couch_Id" minOccurs="0" type="xsd:string"/>
+						<xsd:element name="X_Couch_Update_NewRev" minOccurs="0" type="xsd:string"/>
 					</xsd:sequence>
 				</xsd:complexType>
 			</xsd:element>
@@ -760,6 +762,12 @@
 		</xsd:sequence>
 	</xsd:complexType>
 	
+	<xsd:complexType name="postUpdateType">
+		<xsd:sequence>
+			<xsd:group ref="tns:couchTransactionGroup"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
 	<xsd:complexType name="putDatabaseType">
 		<xsd:sequence>
 			<xsd:group ref="tns:couchTransactionGroup"/>
@@ -776,6 +784,12 @@
 	<xsd:complexType name="putServerConfigType">
 		<xsd:sequence>
 			<xsd:group ref="tns:couchServerConfigTransactionGroup"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="putUpdateType">
+		<xsd:sequence>
+			<xsd:group ref="tns:couchTransactionGroup"/>
 		</xsd:sequence>
 	</xsd:complexType>
 	

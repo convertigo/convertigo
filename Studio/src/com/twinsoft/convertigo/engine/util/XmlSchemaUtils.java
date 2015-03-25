@@ -2,6 +2,7 @@ package com.twinsoft.convertigo.engine.util;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -425,9 +426,13 @@ public class XmlSchemaUtils {
 			Source[] sources = new Source[schemas.length];
 			for (int i = 0; i < schemas.length; i++) {
 				Document doc = schemas[i].getSchemaDocument();
+				File tmp = File.createTempFile("c8oSchema", "xml");
+				tmp.deleteOnExit();
+				XMLUtils.saveXml(doc, tmp);
 				//doc.getDocumentElement().setAttribute("elementFormDefault", Project.XSD_FORM_UNQUALIFIED);
 				//doc.getDocumentElement().setAttribute("attributeFormDefault", Project.XSD_FORM_UNQUALIFIED);
-				sources[i] = new DOMSource(doc, collectionBaseURI);
+//				sources[i] = new DOMSource(doc, collectionBaseURI);
+				sources[i] = new StreamSource(tmp);
 			}
 			
 			factory.setResourceResolver(new LSResourceResolver() {

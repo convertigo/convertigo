@@ -21,24 +21,19 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.xml.namespace.QName;
 
 import org.apache.http.NameValuePair;
-import org.codehaus.jettison.json.JSONObject;
 
-import com.twinsoft.convertigo.beans.core.Document;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
-import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class GetViewTransaction extends AbstractDocumentTransaction implements ITagsProperty {
 
@@ -66,8 +61,7 @@ public class GetViewTransaction extends AbstractDocumentTransaction implements I
 	protected Object invoke() throws Exception {
 		String docId, viewname;
 		
-		Pattern splitViewname = Pattern.compile("(.+?)/(.+)");
-		Matcher mSplitViewname = splitViewname.matcher(this.viewname);
+		Matcher mSplitViewname = DesignDocument.splitFunctionName.matcher(this.viewname);
 		
 		if (mSplitViewname.matches()) {
 			docId = mSplitViewname.group(1);
@@ -104,20 +98,7 @@ public class GetViewTransaction extends AbstractDocumentTransaction implements I
 	@Override
 	public String[] getTagsForProperty(String propertyName) {
 		if ("viewname".equals(propertyName)) {
-			List<String> values = new LinkedList<String>();
-			values.add("");
-			
-			for (Document document : getConnector().getDocumentsList()) {
-				if (document instanceof DesignDocument) {
-					JSONObject views = CouchKey.views.JSONObject(((DesignDocument) document).getJSONObject());
-					if (views != null) {
-						for (Iterator<String> i = GenericUtils.cast(views.keys()); i.hasNext(); ) {
-							values.add(document.getName() + "/" + i.next());
-						}
-					}
-				}
-			}
-			return values.toArray(new String[values.size()]);
+			return DesignDocument.getTags(this, CouchKey.views);
 		}
 		return null;
 	}

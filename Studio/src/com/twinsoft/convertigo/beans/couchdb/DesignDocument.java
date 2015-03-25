@@ -22,17 +22,27 @@
 
 package com.twinsoft.convertigo.beans.couchdb;
 
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.regex.Pattern;
+
+import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
 import com.twinsoft.convertigo.beans.core.JsonDocument;
+import com.twinsoft.convertigo.beans.transactions.couchdb.AbstractCouchDbTransaction;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class DesignDocument extends JsonDocument {
 
 	private static final long serialVersionUID = -1523783503757936794L;
+	
+	public static final Pattern splitFunctionName = Pattern.compile("(.+?)/(.+)");
 	
 	public DesignDocument() {
 		super();
@@ -84,5 +94,22 @@ public class DesignDocument extends JsonDocument {
 	@Override
 	public CouchDbConnector getConnector() {
 		return (CouchDbConnector) super.getConnector();
+	}
+	
+	static public String[] getTags(AbstractCouchDbTransaction couchDbTransaction, CouchKey key) {
+		List<String> values = new LinkedList<String>();
+		values.add("");
+		
+		for (com.twinsoft.convertigo.beans.core.Document document : couchDbTransaction.getConnector().getDocumentsList()) {
+			if (document instanceof DesignDocument) {
+				JSONObject views = key.JSONObject(((DesignDocument) document).getJSONObject());
+				if (views != null) {
+					for (Iterator<String> i = GenericUtils.cast(views.keys()); i.hasNext(); ) {
+						values.add(document.getName() + "/" + i.next());
+					}
+				}
+			}
+		}
+		return values.toArray(new String[values.size()]);
 	}
 }

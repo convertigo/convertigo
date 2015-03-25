@@ -33,6 +33,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
+import javax.xml.transform.stream.StreamSource;
 
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
@@ -99,9 +100,17 @@ public class SchemaUtils {
 			
 			// add soap-encoding import if needed (for validation)
 			addSoapEncSchemaImport(xsdDocument.getDocumentElement());
-			
-			XmlSchema xmlSchema = xmlSchemaCollection.read(xsdDocument, xsdUrl.toString(), null);
-			return xmlSchema;
+
+			File tmp = File.createTempFile("c8oSchema", "xml");
+			try {
+				XMLUtils.saveXml(xsdDocument, tmp);
+				
+//				XmlSchema xmlSchema = xmlSchemaCollection.read(xsdDocument, xsdUrl.toString(), null);
+				XmlSchema xmlSchema = xmlSchemaCollection.read(new StreamSource(tmp), null);
+				return xmlSchema;
+			} finally {
+				tmp.delete();
+			}
 		}
 		return null;
 	}

@@ -313,7 +313,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 			updateName = getDefaultUpdateName() + index++;
 		}
 		
-		UpdateObject update = new UpdateObject(updateName, "function (doc, req) {\r\n\treturn [doc,'nothing done'];\r\n}");
+		UpdateObject update = new UpdateObject(updateName, "function (doc, req) {\r\n\tvar json = JSON.parse(req.body);\r\n\treturn [doc, json: {result: 'nothing done'}];\r\n}");
 		return update;
 	}
 
