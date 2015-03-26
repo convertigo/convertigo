@@ -65,10 +65,10 @@ import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.beans.variables.TestCaseVariable;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.RequestableEngineEvent;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.enums.Visibility;
@@ -988,11 +988,12 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 
 	@Override
 	public void fireRequestableEvent(String eventType) {
+		RequestableEngineEvent engine = new RequestableEngineEvent(this, context.projectName, context.sequenceName, context.connectorName);
     	if (eventType.equalsIgnoreCase(RequestableObject.EVENT_REQUESTABLE_STARTED)) {
-    		Engine.theApp.fireSequenceStarted(new EngineEvent(this));
+    		Engine.theApp.fireSequenceStarted(engine);
     	}
     	else if (eventType.equalsIgnoreCase(RequestableObject.EVENT_REQUESTABLE_FINISHED)) {
-    		Engine.theApp.fireSequenceFinished(new EngineEvent(this));
+    		Engine.theApp.fireSequenceFinished(engine);
     	}
 	}
 
