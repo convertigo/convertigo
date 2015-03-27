@@ -30,7 +30,6 @@ import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.statements.ContinueWithSiteClipperStatement;
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
-import com.twinsoft.convertigo.beans.statements.HandlerStatement;
 import com.twinsoft.convertigo.beans.statements.ScHandlerStatement;
 import com.twinsoft.convertigo.beans.steps.BlockStep;
 import com.twinsoft.convertigo.beans.steps.BranchStep;
@@ -60,9 +59,9 @@ import com.twinsoft.convertigo.eclipse.views.references.model.CicsConnectorNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.ConnectorNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.EntryHandlerNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.ExitHandlerNode;
-import com.twinsoft.convertigo.eclipse.views.references.model.InformationNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.HtmlConnectorNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.HttpConnectorNode;
+import com.twinsoft.convertigo.eclipse.views.references.model.InformationNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.IsUsedByNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.JavelinConnectorNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.ProjectNode;
@@ -550,10 +549,10 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 			if (connectorSelected instanceof HtmlConnector) {
 				ProjectNode projectNode = new ProjectNode(requiresNode, connectorProjectName, projectConnectorSelected);
 				for (Transaction transaction : transactions) {
-					List<Statement> statements = ((HtmlTransaction)transaction).getStatements();
+					List<Statement> statements = ((HtmlTransaction) transaction).getStatements();
 					List<String> siteClipperConnectorNames = new ArrayList<String>();
 					for (Statement statement : statements) {
-						List<Statement> statementList = ((HandlerStatement)statement).getStatements();
+						List<Statement> statementList = ((FunctionStatement) statement).getStatements();
 						for (Statement st : statementList) {
 							if (st instanceof ContinueWithSiteClipperStatement) {
 								ContinueWithSiteClipperStatement continueWithSiteClipperStatement = (ContinueWithSiteClipperStatement) st;
@@ -582,7 +581,7 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 						for (Transaction transaction : transactionList) {
 							List<Statement> statements = ((HtmlTransaction)transaction).getStatements();
 							for (Statement statement : statements) {			
-								List<Statement> statementList = ((HandlerStatement)statement).getStatements();
+								List<Statement> statementList = ((FunctionStatement)statement).getStatements();
 								for (Statement st : statementList) {
 									if (st instanceof ContinueWithSiteClipperStatement) {
 										String sourceSiteClipperConnectorName = ((ContinueWithSiteClipperStatement)st).getSiteClipperConnectorName();
