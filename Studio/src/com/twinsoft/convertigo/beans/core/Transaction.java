@@ -59,8 +59,8 @@ import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.ConvertigoError;
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.RequestableEngineEvent;
 import com.twinsoft.convertigo.engine.util.SchemaUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -210,10 +210,10 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
     
     public void fireRequestableEvent(String eventType) {
     	if (eventType.equalsIgnoreCase(RequestableObject.EVENT_REQUESTABLE_STARTED)) {
-    		Engine.theApp.fireTransactionStarted(new EngineEvent(this));
+    		Engine.theApp.fireTransactionStarted(new RequestableEngineEvent(this, context.projectName, context.sequenceName, context.connectorName));
     	}
     	else if (eventType.equalsIgnoreCase(RequestableObject.EVENT_REQUESTABLE_FINISHED)) {
-    		Engine.theApp.fireTransactionFinished(new EngineEvent(this));
+    		Engine.theApp.fireTransactionFinished(new RequestableEngineEvent(this, context.projectName, context.sequenceName, context.connectorName));
     	}
     }
     
