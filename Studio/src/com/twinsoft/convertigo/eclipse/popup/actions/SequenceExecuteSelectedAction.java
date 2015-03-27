@@ -22,7 +22,9 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
@@ -92,50 +94,59 @@ public class SequenceExecuteSelectedAction extends MyAbstractAction {
 	}
 	
 	protected void openEditors(ProjectExplorerView explorerView, TreeObject treeObject) {
+		openEditors(explorerView, treeObject, new HashSet<SequenceStep>());
+	}
+	
+	private void openEditors(ProjectExplorerView explorerView, TreeObject treeObject, Set<SequenceStep> alreadyOpened) {
 		if (treeObject instanceof SequenceTreeObject) {
 			SequenceTreeObject sequenceTreeObject = (SequenceTreeObject)treeObject;
-			openEditors(explorerView, sequenceTreeObject.getObject().getSteps());
-			sequenceTreeObject.openSequenceEditor(); // open sequence editor
+			openEditors(explorerView, sequenceTreeObject.getObject().getSteps(), alreadyOpened);
+			sequenceTreeObject.openSequenceEditor();
 		}
 	}
 	
-	private void openEditors(ProjectExplorerView explorerView, List<Step> steps) {
+	private void openEditors(ProjectExplorerView explorerView, List<Step> steps, Set<SequenceStep> alreadyOpened) {
 		for (Step step: steps) {
-			if (step instanceof SequenceStep) {
-				SequenceStep sequenceStep = (SequenceStep)step;
-				String projectName = sequenceStep.getProjectName();
-				// load project if necessary
-				if (!step.getSequence().getProject().getName().equals(projectName))
-					loadProject(explorerView, projectName);
-				if (step.getSequence().equals(sequenceStep.getSequenceName()))
-					return; // avoid sequence recursion
-				
-				try {
-					ProjectTreeObject projectTreeObject = (ProjectTreeObject)explorerView.getProjectRootObject(projectName);
-					Sequence subSequence = projectTreeObject.getObject().getSequenceByName(sequenceStep.getSequenceName());
-					SequenceTreeObject subSequenceTreeObject = (SequenceTreeObject)explorerView.findTreeObjectByUserObject(subSequence);
-					openEditors(explorerView, subSequenceTreeObject); // recurse on sequence
-				} catch (EngineException e) {
-					e.printStackTrace();
+			if (step.isEnable()) {
+				if (step instanceof SequenceStep) {
+					SequenceStep sequenceStep = (SequenceStep)step;
+					String projectName = sequenceStep.getProjectName();
+					// load project if necessary
+					if (!step.getSequence().getProject().getName().equals(projectName))
+						loadProject(explorerView, projectName);
+					
+					if (alreadyOpened.contains(sequenceStep)) {
+						return; // avoid sequence recursion
+					}
+					alreadyOpened.add(sequenceStep);
+					
+					try {
+						ProjectTreeObject projectTreeObject = (ProjectTreeObject)explorerView.getProjectRootObject(projectName);
+						Sequence subSequence = projectTreeObject.getObject().getSequenceByName(sequenceStep.getSequenceName());
+						SequenceTreeObject subSequenceTreeObject = (SequenceTreeObject)explorerView.findTreeObjectByUserObject(subSequence);
+						openEditors(explorerView, subSequenceTreeObject, alreadyOpened); // recurse on sequence
+					} catch (EngineException e) {
+						e.printStackTrace();
+					}
 				}
-			}
-			else if (step instanceof TransactionStep) {
-				TransactionStep transactionStep = (TransactionStep)step;
-				String projectName = transactionStep.getProjectName();
-				if (!step.getSequence().getProject().getName().equals(projectName))
-					loadProject(explorerView, projectName); // load project if necessary
-				
-				try {
-					ProjectTreeObject projectTreeObject = (ProjectTreeObject)explorerView.getProjectRootObject(projectName);
-					Connector connector = projectTreeObject.getObject().getConnectorByName(transactionStep.getConnectorName());
-					ConnectorTreeObject connectorTreeObject = (ConnectorTreeObject)explorerView.findTreeObjectByUserObject(connector);
-					connectorTreeObject.openConnectorEditor(); // open connector editor
-				} catch (EngineException e) {
-					e.printStackTrace();
+				else if (step instanceof TransactionStep) {
+					TransactionStep transactionStep = (TransactionStep)step;
+					String projectName = transactionStep.getProjectName();
+					if (!step.getSequence().getProject().getName().equals(projectName))
+						loadProject(explorerView, projectName); // load project if necessary
+					
+					try {
+						ProjectTreeObject projectTreeObject = (ProjectTreeObject)explorerView.getProjectRootObject(projectName);
+						Connector connector = projectTreeObject.getObject().getConnectorByName(transactionStep.getConnectorName());
+						ConnectorTreeObject connectorTreeObject = (ConnectorTreeObject)explorerView.findTreeObjectByUserObject(connector);
+						connectorTreeObject.openConnectorEditor(); // open connector editor
+					} catch (EngineException e) {
+						e.printStackTrace();
+					}
 				}
-			}
-			else if (step instanceof StepWithExpressions) {
-				openEditors(explorerView, ((StepWithExpressions)step).getSteps());
+				else if (step instanceof StepWithExpressions) {
+					openEditors(explorerView, ((StepWithExpressions)step).getSteps(), alreadyOpened);
+				}
 			}
 		}
 	}
