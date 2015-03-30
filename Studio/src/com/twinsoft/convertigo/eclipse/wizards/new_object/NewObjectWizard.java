@@ -72,6 +72,7 @@ import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.references.ImportXsdSchemaReference;
+import com.twinsoft.convertigo.beans.references.IncludeXsdSchemaReference;
 import com.twinsoft.convertigo.beans.references.RemoteFileReference;
 import com.twinsoft.convertigo.beans.references.WebServiceReference;
 import com.twinsoft.convertigo.beans.references.XsdSchemaReference;
@@ -128,6 +129,7 @@ public class NewObjectWizard extends Wizard {
     private ObjectInfoWizardPage objectInfoPage = null;
     private SQLQueriesWizardPage sqlQueriesWizardPage = null;
     private WsdlSchemaFileWizardPage wsdlSchemaWizardPage = null;
+    private XsdSchemaFileWizardPage xsdSchemaFileWizardPage = null;
     
 	public Button useAuthentication = null;
 	public Text loginText = null, passwordText = null;
@@ -273,8 +275,8 @@ public class NewObjectWizard extends Wizard {
 			ProjectSchemaWizardPage projectSchemaWizardPage = new ProjectSchemaWizardPage(parentObject);
 			this.addPage(projectSchemaWizardPage);
 			
-			XsdSchemaFileWizardPage xsdSchemaWizardPage = new XsdSchemaFileWizardPage(parentObject);
-			this.addPage(xsdSchemaWizardPage);
+			xsdSchemaFileWizardPage = new XsdSchemaFileWizardPage(parentObject);
+			this.addPage(xsdSchemaFileWizardPage);
 			
 			wsdlSchemaWizardPage = new WsdlSchemaFileWizardPage(parentObject);
 			this.addPage(wsdlSchemaWizardPage);
@@ -490,6 +492,18 @@ public class NewObjectWizard extends Wizard {
 							RemoteFileReference remoteFileReference = (RemoteFileReference)newBean;
 							remoteFileReference.setUrlpath(((SchemaFileWizardPage)wsdlSchemaWizardPage).getWsdlURL());
 							remoteFileReference.setNeedAuthentication(((SchemaFileWizardPage)wsdlSchemaWizardPage).needAuthentication());
+						}
+						
+						if (newBean instanceof IncludeXsdSchemaReference) {
+							IncludeXsdSchemaReference includeXsdSchemaReference = (IncludeXsdSchemaReference) newBean;
+							includeXsdSchemaReference.setUrlpath(xsdSchemaFileWizardPage.getWsdlURL());
+							includeXsdSchemaReference.setNeedAuthentication(xsdSchemaFileWizardPage.needAuthentication());
+						}
+						
+						if (newBean instanceof ImportXsdSchemaReference) {
+							ImportXsdSchemaReference importXsdSchemaReference = (ImportXsdSchemaReference) newBean;
+							importXsdSchemaReference.setUrlpath(xsdSchemaFileWizardPage.getWsdlURL());
+							importXsdSchemaReference.setNeedAuthentication(xsdSchemaFileWizardPage.needAuthentication());
 						}
 						
 						if (newBean instanceof SqlTransaction) {
