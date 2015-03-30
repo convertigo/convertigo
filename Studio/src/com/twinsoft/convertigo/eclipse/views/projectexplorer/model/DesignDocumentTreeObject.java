@@ -73,7 +73,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 			return super.rename(newName, bDialog);
 		}
 		else {
-			ConvertigoPlugin.logException(new ConvertigoException("The document named \"" + newName + "\" can't be renamed anymore."), "Unable to change the object name.", bDialog);
+			ConvertigoPlugin.logException(new ConvertigoException("The document named \"" + getName() + "\" can't be renamed anymore."), "Unable to change the object name.", bDialog);
 			return false;
 		}
 	}
