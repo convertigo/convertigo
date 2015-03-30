@@ -22,9 +22,9 @@
 
 package com.twinsoft.convertigo.eclipse.editors.jscript;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
+import org.apache.commons.io.IOUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -79,10 +79,7 @@ public class JscriptStepEditor extends EditorPart implements IPropertyListener {
 		jsEditor.doSave(monitor);
 		try {
 			// Get the jsEditor content and transfer it to the step object
-			InputStream is = file.getContents();
-			byte[] array = new byte[is.available()];
-			is.read(array);
-			step.setExpression(new String (array));
+			step.setExpression(IOUtils.toString(file.getContents(), "UTF-8"));
 		} catch (Exception e) {
 			ConvertigoPlugin.logWarning("Error writing step jscript code '" + eInput.getName() + "' : "+e.getMessage());
 		}
@@ -157,32 +154,43 @@ public class JscriptStepEditor extends EditorPart implements IPropertyListener {
 		file = ((FileEditorInput) input).getFile();
 		step = (SimpleStep) ((JscriptStepEditorInput) input).getStep();
 		
-		// Create a temp  file to hold step jscript code
-		InputStream sbisHandlersStream = new ByteArrayInputStream(step.getExpression().getBytes());
-		
-		// Overrides temp file with step jscript code
-		if (file.exists()) {
-			try {
-				file.setContents(sbisHandlersStream, true, false, null);
-			} catch (CoreException e) {
-				ConvertigoPlugin.logException(e, "Error while editing step jscript code");
-			}
-		}
-		// Create a temp file to hold step jscript code
-		else {
-			try {
-				file.create(sbisHandlersStream, true, null);
-			} catch (CoreException e) {
-				ConvertigoPlugin.logException(e, "Error while editing the step jscript code");
-			}
+		try {
+			file.setCharset("UTF-8", null);
+		} catch (CoreException e1) {
+			ConvertigoPlugin.logDebug("Failed to set UTF-8 charset for editor file: " + e1);
 		}
 		
-		setSite(site);
-		setInput(input);
-		eSite = site;
-		eInput = input;
-		String[] splits = file.getName().split(" ");
-		setPartName(splits[splits.length - 1]);
+		try {
+			// Create a temp  file to hold step jscript code
+			
+			InputStream sbisHandlersStream = IOUtils.toInputStream(step.getExpression(), "UTF-8");
+			
+			// Overrides temp file with step jscript code
+			if (file.exists()) {
+				try {
+					file.setContents(sbisHandlersStream, true, false, null);
+				} catch (CoreException e) {
+					ConvertigoPlugin.logException(e, "Error while editing step jscript code");
+				}
+			}
+			// Create a temp file to hold step jscript code
+			else {
+				try {
+					file.create(sbisHandlersStream, true, null);
+				} catch (CoreException e) {
+					ConvertigoPlugin.logException(e, "Error while editing the step jscript code");
+				}
+			}
+			
+			setSite(site);
+			setInput(input);
+			eSite = site;
+			eInput = input;
+			String[] splits = file.getName().split(" ");
+			setPartName(splits[splits.length - 1]);
+		} catch (Exception e) {
+			throw new PartInitException("Unable to create JS editor", e);
+		}
 	}
 
 	@Override
