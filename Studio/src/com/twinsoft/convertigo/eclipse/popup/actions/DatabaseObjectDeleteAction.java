@@ -35,6 +35,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
+import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
@@ -285,6 +286,19 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 		}
 		else {
 			databaseObject.delete();
+		}
+		
+		if (databaseObject instanceof CouchDbConnector) {
+			CouchDbConnector couchDbConnector = (CouchDbConnector)databaseObject;
+			String db = couchDbConnector.getDatabaseName();
+			if (!db.isEmpty()) {
+				MessageBox messageBox = new MessageBox(getParentShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO);
+				messageBox.setMessage("Do you want to delete the \""+db+"\" database from the CouchDb server?"); 
+				messageBox.setText("Delete the database?");
+				if (messageBox.open() == SWT.YES) {
+					couchDbConnector.getCouchClient().deleteDatabase(db);
+				}
+			}
 		}
 		
 		ConvertigoPlugin.logDebug("The object \"" + databaseObject.getQName() + "\" has been deleted from the database repository!");
