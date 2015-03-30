@@ -2528,6 +2528,13 @@
                   </separator>
                </menu>
 	           <action
+	                 class="com.twinsoft.convertigo.eclipse.popup.actions.ViewExecuteNoReduceAction"
+	                 icon="icons/studio/transaction_execute_selected.gif"
+	                 id="convertigo.action.executeNoReduceView"
+	                 label="Execute no reduce"
+	                 menubarPath="execute">
+	           </action>
+	           <action
 	                 class="com.twinsoft.convertigo.eclipse.popup.actions.ViewExecuteSelectedAction"
 	                 icon="icons/studio/transaction_execute_selected.gif"
 	                 id="convertigo.action.executeSelectedView"

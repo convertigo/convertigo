@@ -206,6 +206,10 @@ public class CouchDbConnector extends Connector {
 				var_limit.setName(CouchDbParameter.Param_view_limit.variableName());
 				var_limit.setValueOrNull("100");
 				internalViewTransaction.add(var_limit);
+				RequestableVariable var_reduce = new RequestableVariable();
+				var_reduce.setName(CouchDbParameter.Param_view_reduce.variableName());
+				var_reduce.setValueOrNull("true");
+				internalViewTransaction.add(var_reduce);
 				internalViewTransaction.setParent(this);
 			} catch (EngineException e) {}
 		}

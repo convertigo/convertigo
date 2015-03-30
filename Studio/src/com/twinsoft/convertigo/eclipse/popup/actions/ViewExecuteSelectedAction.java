@@ -29,6 +29,8 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.beans.transactions.couchdb.CouchDbParameter;
 import com.twinsoft.convertigo.beans.transactions.couchdb.GetViewTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
@@ -74,6 +76,9 @@ public class ViewExecuteSelectedAction extends MyAbstractAction {
     					Transaction transaction = connector.getTransactionByName(CouchDbConnector.internalView);
     					((GetViewTransaction)transaction).setViewname(viewTreeObject.getDocViewName());
     					
+    					Variable view_reduce = ((GetViewTransaction)transaction).getVariable(CouchDbParameter.Param_view_reduce.variableName());
+   						view_reduce.setValueOrNull(viewTreeObject.hasReduce() ? isReduceRequested():false);
+    					
     					// execute view transaction
     					connectorEditor.getDocument(CouchDbConnector.internalView, isStubRequested());
     				}
@@ -91,5 +96,9 @@ public class ViewExecuteSelectedAction extends MyAbstractAction {
 
 	protected boolean isStubRequested() {
 		return false;
+	}
+	
+	protected boolean isReduceRequested() {
+		return true;
 	}
 }
