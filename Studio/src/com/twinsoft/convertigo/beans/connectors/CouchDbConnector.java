@@ -33,6 +33,8 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.ConnectorEvent;
+import com.twinsoft.convertigo.beans.core.Document;
+import com.twinsoft.convertigo.beans.core.JsonDocument;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.transactions.couchdb.AbstractDatabaseTransaction;
@@ -225,6 +227,18 @@ public class CouchDbConnector extends Connector {
 		return Transaction;
 	}
 
+	@Override
+	public void removeDocument(Document document) throws EngineException {
+		super.removeDocument(document);
+		
+		JSONObject jsonDocument = ((JsonDocument)document).getJSONObject();
+		String docId = CouchKey._id.String(jsonDocument);
+		if (docId != null) {
+			String docRev = CouchKey._rev.String(jsonDocument);
+			getCouchClient().deleteDocument(getDatabaseName(), docId, docRev);
+		}
+	}
+
 	public void importCouchDbDesignDocuments() {
 		List<String> list = getCouchDbDesignDocuments();
 		
@@ -270,29 +284,27 @@ public class CouchDbConnector extends Connector {
 
 			do {
 				bContinue = false;
-				Object json = couchClient.allDocs(getDatabaseName(), options);
+				JSONObject json = couchClient.allDocs(getDatabaseName(), options);
 
-				if (json instanceof JSONObject) {
-					JSONArray rows = ((JSONObject) json).getJSONArray("rows");
-					int lenght = rows.length();
-					JSONObject row = null;
+				JSONArray rows = json.getJSONArray("rows");
+				int lenght = rows.length();
+				
+				JSONObject row = null;
+				for (int i = 0; i < lenght; i++) {
+					row = rows.getJSONObject(i);
+					JSONObject doc = row.getJSONObject("doc");
+					docList.add(doc.toString());
+				}
 
-					for (int i = 0; i < lenght; i++) {
-						row = rows.getJSONObject(i);
-						JSONObject doc = row.getJSONObject("doc");
-						docList.add(doc.toString());
-					}
+				if (lenght == limit && row != null) {
+					startkey = "\"" + row.getString("key") + "\"";
+					startkey_docid = "\"" + row.getString("id") + "\"";
 
-					if (lenght == limit && row != null) {
-						startkey = "\"" + row.getString("key") + "\"";
-						startkey_docid = "\"" + row.getString("id") + "\"";
-
-						bContinue = true;
-						options = options.subList(0, 3);
-						options.add(new BasicNameValuePair("start_key", startkey));
-						options.add(new BasicNameValuePair("startkey_docid", startkey_docid));
-						options.add(new BasicNameValuePair("skip", "1"));
-					}
+					bContinue = true;
+					options = options.subList(0, 3);
+					options.add(new BasicNameValuePair("start_key", startkey));
+					options.add(new BasicNameValuePair("startkey_docid", startkey_docid));
+					options.add(new BasicNameValuePair("skip", "1"));
 				}
 			} while (bContinue);
 		} catch (Throwable t) {
