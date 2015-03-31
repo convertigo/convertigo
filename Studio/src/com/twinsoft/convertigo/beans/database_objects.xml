@@ -826,112 +826,112 @@
         </category>
         <category name="Transactions">
             <beans groupname="Document transactions">
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.HeadDocumentTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.HeadDocumentTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetDocumentTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetDocumentTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostDocumentTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostDocumentTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteDocumentTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteDocumentTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.CopyDocumentTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.CopyDocumentTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostBulkDocumentsTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostBulkDocumentsTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostUpdateTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostUpdateTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutUpdateTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutUpdateTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
             </beans>
             <beans groupname="Attachment transactions">
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetDocumentAttachmentTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetDocumentAttachmentTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutDocumentAttachmentTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutDocumentAttachmentTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteDocumentAttachmentTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteDocumentAttachmentTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
             </beans>
             <beans groupname="Database transactions">
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.HeadDatabaseTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.HeadDatabaseTransaction">
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetDatabaseInfoTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetDatabaseInfoTransaction">
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutDatabaseTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutDatabaseTransaction">
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteDatabaseTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteDatabaseTransaction">
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostReplicateTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostReplicateTransaction">
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
             </beans>
             <beans groupname="Other transactions">
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetViewTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetViewTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.CustomTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.CustomTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
             </beans>
         	<beans groupname="Session transactions">
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetSessionTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetSessionTransaction">
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostSessionTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostSessionTransaction">
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteSessionTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteSessionTransaction">
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
             </beans>
         	<beans groupname="Server transactions">
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerInfoTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerInfoTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerDatabasesTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerDatabasesTransaction">
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerTasksTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerTasksTransaction">
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerUpdatesTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerUpdatesTransaction">
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerLogTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerLogTransaction">
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerUuidsTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerUuidsTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostServerRestartTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostServerRestartTransaction">
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerStatsTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerStatsTransaction">
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
             </beans>
         	<beans groupname="Server config transactions">
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerConfigTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerConfigTransaction">
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutServerConfigTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutServerConfigTransaction">
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteServerConfigTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteServerConfigTransaction">
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
             </beans>

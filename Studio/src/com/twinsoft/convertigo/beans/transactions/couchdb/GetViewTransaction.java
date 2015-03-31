@@ -40,6 +40,28 @@ public class GetViewTransaction extends AbstractDocumentTransaction implements I
 	private static final long serialVersionUID = -3684374492418313635L;
 	
 	private String viewname = "";
+	
+	private String u_db = "";
+	private String u_ddoc = "";
+	private String u_view = "";
+	private String q_conflicts = "";
+	private String q_descending = "";
+	private String q_endkey = "";
+	private String q_endkey_docid = "";
+	private String q_group = "";
+	private String q_group_level = "";
+	private String q_include_docs = "";
+	private String q_attachments = "";
+	private String q_att_encoding_info = "";
+	private String q_inclusive_end = "";
+	private String q_key = "";
+	private String q_limit = "";
+	private String q_reduce = "";
+	private String q_skip = "";
+	private String q_stale = "";
+	private String q_startkey = "";
+	private String q_startkey_docid = "";
+	private String q_update_seq = "";
 
 	public GetViewTransaction() {
 		super();
@@ -110,5 +132,173 @@ public class GetViewTransaction extends AbstractDocumentTransaction implements I
 		} else {
 			return super.getComplexTypeAffectation();
 		}
+	}
+
+	public String getU_db() {
+		return u_db;
+	}
+
+	public void setU_db(String u_db) {
+		this.u_db = u_db;
+	}
+
+	public String getU_ddoc() {
+		return u_ddoc;
+	}
+
+	public void setU_ddoc(String u_ddoc) {
+		this.u_ddoc = u_ddoc;
+	}
+
+	public String getU_view() {
+		return u_view;
+	}
+
+	public void setU_view(String u_view) {
+		this.u_view = u_view;
+	}
+
+	public String getQ_conflicts() {
+		return q_conflicts;
+	}
+
+	public void setQ_conflicts(String q_conflicts) {
+		this.q_conflicts = q_conflicts;
+	}
+
+	public String getQ_descending() {
+		return q_descending;
+	}
+
+	public void setQ_descending(String q_descending) {
+		this.q_descending = q_descending;
+	}
+
+	public String getQ_endkey() {
+		return q_endkey;
+	}
+
+	public void setQ_endkey(String q_endkey) {
+		this.q_endkey = q_endkey;
+	}
+
+	public String getQ_endkey_docid() {
+		return q_endkey_docid;
+	}
+
+	public void setQ_endkey_docid(String q_endkey_docid) {
+		this.q_endkey_docid = q_endkey_docid;
+	}
+
+	public String getQ_group() {
+		return q_group;
+	}
+
+	public void setQ_group(String q_group) {
+		this.q_group = q_group;
+	}
+
+	public String getQ_group_level() {
+		return q_group_level;
+	}
+
+	public void setQ_group_level(String q_group_level) {
+		this.q_group_level = q_group_level;
+	}
+
+	public String getQ_include_docs() {
+		return q_include_docs;
+	}
+
+	public void setQ_include_docs(String q_include_docs) {
+		this.q_include_docs = q_include_docs;
+	}
+
+	public String getQ_attachments() {
+		return q_attachments;
+	}
+
+	public void setQ_attachments(String q_attachments) {
+		this.q_attachments = q_attachments;
+	}
+
+	public String getQ_att_encoding_info() {
+		return q_att_encoding_info;
+	}
+
+	public void setQ_att_encoding_info(String q_att_encoding_info) {
+		this.q_att_encoding_info = q_att_encoding_info;
+	}
+
+	public String getQ_inclusive_end() {
+		return q_inclusive_end;
+	}
+
+	public void setQ_inclusive_end(String q_inclusive_end) {
+		this.q_inclusive_end = q_inclusive_end;
+	}
+
+	public String getQ_key() {
+		return q_key;
+	}
+
+	public void setQ_key(String q_key) {
+		this.q_key = q_key;
+	}
+
+	public String getQ_limit() {
+		return q_limit;
+	}
+
+	public void setQ_limit(String q_limit) {
+		this.q_limit = q_limit;
+	}
+
+	public String getQ_reduce() {
+		return q_reduce;
+	}
+
+	public void setQ_reduce(String q_reduce) {
+		this.q_reduce = q_reduce;
+	}
+
+	public String getQ_skip() {
+		return q_skip;
+	}
+
+	public void setQ_skip(String q_skip) {
+		this.q_skip = q_skip;
+	}
+
+	public String getQ_stale() {
+		return q_stale;
+	}
+
+	public void setQ_stale(String q_stale) {
+		this.q_stale = q_stale;
+	}
+
+	public String getQ_startkey() {
+		return q_startkey;
+	}
+
+	public void setQ_startkey(String q_startkey) {
+		this.q_startkey = q_startkey;
+	}
+
+	public String getQ_startkey_docid() {
+		return q_startkey_docid;
+	}
+
+	public void setQ_startkey_docid(String q_startkey_docid) {
+		this.q_startkey_docid = q_startkey_docid;
+	}
+
+	public String getQ_update_seq() {
+		return q_update_seq;
+	}
+
+	public void setQ_update_seq(String q_update_seq) {
+		this.q_update_seq = q_update_seq;
 	}
 }
