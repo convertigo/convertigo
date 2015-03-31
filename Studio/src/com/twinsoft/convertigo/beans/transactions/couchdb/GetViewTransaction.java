@@ -41,7 +41,6 @@ public class GetViewTransaction extends AbstractDocumentTransaction implements I
 	
 	private String viewname = "";
 	
-	private String u_db = "";
 	private String u_ddoc = "";
 	private String u_view = "";
 	private String q_conflicts = "";
@@ -132,14 +131,6 @@ public class GetViewTransaction extends AbstractDocumentTransaction implements I
 		} else {
 			return super.getComplexTypeAffectation();
 		}
-	}
-
-	public String getU_db() {
-		return u_db;
-	}
-
-	public void setU_db(String u_db) {
-		this.u_db = u_db;
 	}
 
 	public String getU_ddoc() {

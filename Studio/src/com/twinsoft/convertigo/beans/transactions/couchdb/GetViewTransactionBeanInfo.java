@@ -40,17 +40,17 @@ public class GetViewTransactionBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/databasetransaction_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/databasetransaction_color_32x32.png";	
 			
-			properties = new PropertyDescriptor[22];
+			properties = new PropertyDescriptor[21];
 			
 			properties[0] = new PropertyDescriptor("viewname", beanClass, "getViewname", "setViewname");
 			properties[0].setDisplayName(getExternalizedString("property.viewname.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.viewname.short_description"));
             properties[0].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
 //			properties[0].setPropertyEditorClass(getEditorClass("DesignDocumentViewSelectorEditor"));
-            
-			properties[1] = new PropertyDescriptor("u_db", beanClass, "getU_db", "setU_db");
-			properties[1].setDisplayName(getExternalizedString("property.u_db.display_name"));
-			properties[1].setShortDescription(getExternalizedString("property.u_db.short_description"));
+			
+			properties[1] = new PropertyDescriptor("q_update_seq", beanClass, "getQ_update_seq", "setQ_update_seq");
+			properties[1].setDisplayName(getExternalizedString("property.q_update_seq.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.q_update_seq.short_description"));
 			
 			properties[2] = new PropertyDescriptor("u_ddoc", beanClass, "getU_ddoc", "setU_ddoc");
 			properties[2].setDisplayName(getExternalizedString("property.u_ddoc.display_name"));
@@ -127,10 +127,6 @@ public class GetViewTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[20] = new PropertyDescriptor("q_startkey_docid", beanClass, "getQ_startkey_docid", "setQ_startkey_docid");
 			properties[20].setDisplayName(getExternalizedString("property.q_startkey_docid.display_name"));
 			properties[20].setShortDescription(getExternalizedString("property.q_startkey_docid.short_description"));
-			
-			properties[21] = new PropertyDescriptor("q_update_seq", beanClass, "getQ_update_seq", "setQ_update_seq");
-			properties[21].setDisplayName(getExternalizedString("property.q_update_seq.display_name"));
-			properties[21].setShortDescription(getExternalizedString("property.q_update_seq.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

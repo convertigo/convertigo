@@ -29,9 +29,6 @@ public class HeadDocumentTransaction extends AbstractDocumentTransaction {
 
 	private static final long serialVersionUID = 1L;
 	
-	private String u_db = "";
-	private String u_docid = "";
-	
 	public HeadDocumentTransaction() {
 		super();
 	}
@@ -56,21 +53,5 @@ public class HeadDocumentTransaction extends AbstractDocumentTransaction {
 	@Override
 	public QName getComplexTypeAffectation() {
 		return new QName(COUCHDB_XSD_NAMESPACE, "headDocumentType");
-	}
-
-	public String getU_db() {
-		return u_db;
-	}
-
-	public void setU_db(String u_db) {
-		this.u_db = u_db;
-	}
-
-	public String getU_docid() {
-		return u_docid;
-	}
-
-	public void setU_docid(String u_docid) {
-		this.u_docid = u_docid;
 	}
 }

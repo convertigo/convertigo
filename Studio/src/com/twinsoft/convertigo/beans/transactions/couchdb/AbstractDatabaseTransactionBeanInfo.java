@@ -21,6 +21,8 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
+import java.beans.PropertyDescriptor;
+
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class AbstractDatabaseTransactionBeanInfo extends MySimpleBeanInfo {
@@ -34,7 +36,12 @@ public class AbstractDatabaseTransactionBeanInfo extends MySimpleBeanInfo {
 			
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
+            
+			properties = new PropertyDescriptor[1];
 			
+			properties[0] = new PropertyDescriptor("u_db", beanClass, "getU_db", "setU_db");
+			properties[0].setDisplayName(getExternalizedString("property.u_db.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.u_db.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
