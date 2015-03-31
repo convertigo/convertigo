@@ -22,9 +22,9 @@
 
 package com.twinsoft.convertigo.eclipse.editors.jscript;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
+import org.apache.commons.io.IOUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -78,10 +78,7 @@ public class JscriptTreeFunctionEditor extends EditorPart implements IPropertyLi
 		jsEditor.doSave(monitor);
 		try {
 			// Get the jsEditor content and transfer it to the transaction object
-			InputStream is = file.getContents();
-			byte[] array = new byte[is.available()];
-			is.read(array);
-			treeObject.setFunction(new String (array));
+			treeObject.setFunction(IOUtils.toString(file.getContents(), "UTF-8"));
 		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "Error writing function '" + eInput.getName() + "'");
 		}
@@ -148,31 +145,41 @@ public class JscriptTreeFunctionEditor extends EditorPart implements IPropertyLi
 		file = ((FileEditorInput) input).getFile();
 		treeObject = ((JscriptTreeFunctionEditorInput) input).getFunctionTreeObject();
 		
-		// Create a temp  file to hold data
-		InputStream sbisHandlersStream = new ByteArrayInputStream(treeObject.getFunction().getBytes());
-		
-		// Overrides temp file with data
-		if (file.exists()) {
-			try {
-				file.setContents(sbisHandlersStream, true, false, null);
-			} catch (CoreException e) {
-				ConvertigoPlugin.logException(e, "Error while editing the function");
-			}
-		}
-		// Create a temp file to hold data
-		else {
-			try {
-				file.create(sbisHandlersStream, true, null);
-			} catch (CoreException e) {
-				ConvertigoPlugin.logException(e, "Error while editing the function");
-			}
+		try {
+			file.setCharset("UTF-8", null);
+		} catch (CoreException e1) {
+			ConvertigoPlugin.logDebug("Failed to set UTF-8 charset for editor file: " + e1);
 		}
 		
-		setSite(site);
-		setInput(input);
-		eSite = site;
-		eInput = input;
-		setPartName(file.getName());
+		try {
+			// Create a temp  file to hold data
+			InputStream sbisHandlersStream = IOUtils.toInputStream(treeObject.getFunction(), "UTF-8");
+			
+			// Overrides temp file with data
+			if (file.exists()) {
+				try {
+					file.setContents(sbisHandlersStream, true, false, null);
+				} catch (CoreException e) {
+					ConvertigoPlugin.logException(e, "Error while editing the function");
+				}
+			}
+			// Create a temp file to hold data
+			else {
+				try {
+					file.create(sbisHandlersStream, true, null);
+				} catch (CoreException e) {
+					ConvertigoPlugin.logException(e, "Error while editing the function");
+				}
+			}
+			
+			setSite(site);
+			setInput(input);
+			eSite = site;
+			eInput = input;
+			setPartName(file.getName());
+		} catch (Exception e) {
+			throw new PartInitException("Unable to create JS editor", e);
+		}
 	}
 	
 	public MyJScriptEditor getEditor() {
