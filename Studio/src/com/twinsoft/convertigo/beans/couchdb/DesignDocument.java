@@ -61,12 +61,12 @@ public class DesignDocument extends JsonDocument {
 
 	@Override
 	public Element toXml(Document document) throws EngineException {
-		if (jsonDocument != null) {
+		/*if (jsonDocument != null) {
 			if (bNew) {
 				CouchKey._rev.remove(jsonDocument);
 				CouchKey._id.put(jsonDocument, CouchKey._design.key() + getName());
 			}
-		}
+		}*/
 		return super.toXml(document);
 	}
 

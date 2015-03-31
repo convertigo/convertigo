@@ -59,6 +59,13 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		loadFilters();
 		loadUpdates();
 		loadViews();
+		
+		if (object.bNew) {
+			JSONObject json = getObject().getJSONObject();
+			CouchKey._id.put(json, CouchKey._design.key() + getObject().getName());
+			CouchKey._rev.remove(json);
+		}
+		
 		syncDocument();
 	}
 
@@ -74,12 +81,29 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 			return true;
 		
 		if (super.rename(newName, bDialog)) {
-			renameDocument(oldName);
+			renameDocument(oldName, newName);
 			return true;
 		}
 		return false;
 	}
 
+	private void renameDocument(String oldName, String newName) {
+		if (oldName != null && newName != null) {
+			CouchDbConnector couchDbConnector = getObject().getConnector();
+			CouchClient couchClient = couchDbConnector.getCouchClient();
+			String db = couchDbConnector.getDatabaseName();
+			
+			// delete old document
+			couchClient.deleteDocument(db, CouchKey._design.key() + oldName, null);
+			
+			// create new document
+			JSONObject jso = getObject().getJSONObject();
+			CouchKey._id.put(jso, CouchKey._design.key() + newName);
+			CouchKey._rev.remove(jso);
+			lastRev = CouchDbManager.syncDocument(couchClient, db, jso.toString());
+		}
+	}
+		
 	@Override
 	public Object getPropertyValue(Object id) {
 		String propertyName = (String)id;
@@ -168,23 +192,6 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		if (CouchKey._id.has(jso)) {
 			CouchDbConnector couchDbConnector = dd.getConnector();
 			lastRev = CouchDbManager.syncDocument(couchDbConnector.getCouchClient(), couchDbConnector.getDatabaseName(), jso.toString());
-		}
-	}
-	
-	private void renameDocument(String oldName) {
-		if (oldName != null) {
-			CouchDbConnector couchDbConnector = getObject().getConnector();
-			CouchClient couchClient = couchDbConnector.getCouchClient();
-			String db = couchDbConnector.getDatabaseName();
-			
-			// delete old document
-			couchClient.deleteDocument(db, CouchKey._design.key() + oldName, null);
-			
-			// create new document
-			JSONObject jsonDocument = getObject().getJSONObject();
-			CouchKey._rev.remove(jsonDocument);
-			CouchKey._id.put(jsonDocument, CouchKey._design.key() + getName());
-			lastRev = CouchDbManager.syncDocument(couchClient, db, jsonDocument.toString());
 		}
 	}
 	

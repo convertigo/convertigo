@@ -142,6 +142,10 @@ public class ClipboardAction extends MyAbstractAction {
 			else if (selectedTreeObject instanceof IDesignTreeObject) {
 				targetTreeObject = selectedTreeObject;
 				targetObject = selectedTreeObject;
+				if (clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_DOCUMENT) {
+					targetTreeObject = ((IDesignTreeObject)selectedTreeObject).getTreeObjectOwner();
+					targetObject = (DatabaseObject)targetTreeObject.getObject();
+				}
 			}
 			else {
     			targetTreeObject = explorerView.getFirstSelectedDatabaseObjectTreeObject(selectedTreeObject); // case of folder, retrieve owner object

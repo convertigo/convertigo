@@ -62,7 +62,6 @@ import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.core.Variable;
-import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.statements.ElseStatement;
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
@@ -352,12 +351,6 @@ public class ClipboardManager {
 		if (object instanceof JsonData) {
 			JsonData jsonData = (JsonData)object;
 			return parentDesignTreeObject.add(jsonData, bChangeName);
-		}
-		else if (object instanceof DesignDocument) {
-			if (parentDesignTreeObject instanceof DatabaseObjectTreeObject) {
-				DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)parentDesignTreeObject;
-				return paste(node, doto.getObject().getParent(), bChangeName);
-			}
 		}
 		return null;
 	}
