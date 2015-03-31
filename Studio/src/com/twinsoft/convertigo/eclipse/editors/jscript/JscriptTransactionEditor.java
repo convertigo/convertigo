@@ -22,9 +22,9 @@
 
 package com.twinsoft.convertigo.eclipse.editors.jscript;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
+import org.apache.commons.io.IOUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -79,10 +79,7 @@ public class JscriptTransactionEditor extends EditorPart implements IPropertyLis
 		jsEditor.doSave(monitor);
 		try {
 			// Get the jsEditor content and transfer it to the transaction object
-			InputStream is = file.getContents();
-			byte[] array = new byte[is.available()];
-			is.read(array);
-			transaction.handlers = new String (array);
+			transaction.handlers = IOUtils.toString(file.getContents(), "UTF-8");
 		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "Error writing transaction handlers '" + eInput.getName() + "'");
 		}
@@ -157,31 +154,41 @@ public class JscriptTransactionEditor extends EditorPart implements IPropertyLis
 		file = ((FileEditorInput) input).getFile();
 		transaction = (Transaction) ((JscriptTransactionEditorInput) input).getTransaction();
 		
-		// Create a temp  file to hold transaction's data
-		InputStream sbisHandlersStream = new ByteArrayInputStream(transaction.handlers.getBytes());
-		
-		// Overrides temp file with transaction's handler data
-		if (file.exists()) {
-			try {
-				file.setContents(sbisHandlersStream, true, false, null);
-			} catch (CoreException e) {
-				ConvertigoPlugin.logException(e, "Error while editing the transaction handlers");
-			}
-		}
-		// Create a temp file to hold transaction's handler data
-		else {
-			try {
-				file.create(sbisHandlersStream, true, null);
-			} catch (CoreException e) {
-				ConvertigoPlugin.logException(e, "Error while editing the transaction handlers");
-			}
+		try {
+			file.setCharset("UTF-8", null);
+		} catch (CoreException e1) {
+			ConvertigoPlugin.logDebug("Failed to set UTF-8 charset for editor file: " + e1);
 		}
 		
-		setSite(site);
-		setInput(input);
-		eSite = site;
-		eInput = input;
-		setPartName(file.getName());
+		try {
+			// Create a temp  file to hold transaction's data
+			InputStream sbisHandlersStream = IOUtils.toInputStream(transaction.handlers);
+			
+			// Overrides temp file with transaction's handler data
+			if (file.exists()) {
+				try {
+					file.setContents(sbisHandlersStream, true, false, null);
+				} catch (CoreException e) {
+					ConvertigoPlugin.logException(e, "Error while editing the transaction handlers");
+				}
+			}
+			// Create a temp file to hold transaction's handler data
+			else {
+				try {
+					file.create(sbisHandlersStream, true, null);
+				} catch (CoreException e) {
+					ConvertigoPlugin.logException(e, "Error while editing the transaction handlers");
+				}
+			}
+			
+			setSite(site);
+			setInput(input);
+			eSite = site;
+			eInput = input;
+			setPartName(file.getName());
+		} catch (Exception e) {
+			throw new PartInitException("Unable to create JS editor", e);
+		}
 	}
 	
 	public MyJScriptEditor getEditor() {

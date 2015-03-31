@@ -162,7 +162,6 @@ public class JscriptStepEditor extends EditorPart implements IPropertyListener {
 		
 		try {
 			// Create a temp  file to hold step jscript code
-			
 			InputStream sbisHandlersStream = IOUtils.toInputStream(step.getExpression(), "UTF-8");
 			
 			// Overrides temp file with step jscript code

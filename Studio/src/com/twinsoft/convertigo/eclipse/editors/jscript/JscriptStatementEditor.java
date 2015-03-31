@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.eclipse.editors.jscript;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
+import org.apache.commons.io.IOUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -80,10 +81,7 @@ public class JscriptStatementEditor extends EditorPart implements IPropertyListe
 		jsEditor.doSave(monitor);
 		try {
 			// Get the jsEditor content and transfer it to the statement object
-			InputStream is = file.getContents();
-			byte[] array = new byte[is.available()];
-			is.read(array);
-			statement.setExpression(new String (array));
+			statement.setExpression(IOUtils.toString(file.getContents(), "UTF-8")); 
 		} catch (Exception e) {
 			ConvertigoPlugin.logWarning("Error writing statement jscript code '" + eInput.getName() + "' : " + e.getMessage());
 		}
@@ -157,34 +155,44 @@ public class JscriptStatementEditor extends EditorPart implements IPropertyListe
 		// Get from the input the necessary objects as the temp IFile to create to hold the jscript code itself.
 		file = ((FileEditorInput) input).getFile();
 		statement = (SimpleStatement) ((JscriptStatementEditorInput) input).getStatement();
-		
-		// Create a temp  file to hold statement jscript code
-		InputStream sbisHandlersStream = new ByteArrayInputStream(statement.getExpression().getBytes());
-		
-		// Overrides temp file with statement jscript code
-		if (file.exists()) {
-			try {
-				file.setContents(sbisHandlersStream, true, false, null);
-			} catch (CoreException e) {
-				ConvertigoPlugin.logException(e, "Error while editing statement jscript code");
-			}
+
+		try {
+			file.setCharset("UTF-8", null);
+		} catch (CoreException e1) {
+			ConvertigoPlugin.logDebug("Failed to set UTF-8 charset for editor file: " + e1);
 		}
-		// Create a temp file to hold statement jscript code
-		else {
-			try {
-				file.getParent().refreshLocal(IResource.DEPTH_ONE, null);
-				file.create(sbisHandlersStream, true, null);
-			} catch (CoreException e) {
-				ConvertigoPlugin.logException(e, "Error while editing the statement jscript code");
+
+		try {
+			// Create a temp  file to hold statement jscript code
+			InputStream sbisHandlersStream = IOUtils.toInputStream(statement.getExpression(), "UTF-8");
+			
+			// Overrides temp file with statement jscript code
+			if (file.exists()) {
+				try {
+					file.setContents(sbisHandlersStream, true, false, null);
+				} catch (CoreException e) {
+					ConvertigoPlugin.logException(e, "Error while editing statement jscript code");
+				}
 			}
+			// Create a temp file to hold statement jscript code
+			else {
+				try {
+					file.getParent().refreshLocal(IResource.DEPTH_ONE, null);
+					file.create(sbisHandlersStream, true, null);
+				} catch (CoreException e) {
+					ConvertigoPlugin.logException(e, "Error while editing the statement jscript code");
+				}
+			}
+			
+			setSite(site);
+			setInput(input);
+			eSite = site;
+			eInput = input;
+			String[] splits = file.getName().split(" ");
+			setPartName(splits[splits.length - 1]);
+		} catch (Exception e) {
+			throw new PartInitException("Unable to create JS editor", e);
 		}
-		
-		setSite(site);
-		setInput(input);
-		eSite = site;
-		eInput = input;
-		String[] splits = file.getName().split(" ");
-		setPartName(splits[splits.length - 1]);
 	}
 
 	@Override
