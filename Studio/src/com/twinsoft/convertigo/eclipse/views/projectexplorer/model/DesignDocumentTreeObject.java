@@ -327,7 +327,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 			filterName = getDefaultFilterName() + index++;
 		}
 		
-		FilterObject filter = new FilterObject(filterName, "function (doc, req) {\r\n\treturn true;\r\n}");
+		FilterObject filter = new FilterObject(filterName, "function (doc, req) {\r\n\ttry {\r\n\t\treturn true;\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}");
 		return filter;
 	}
 	
@@ -339,7 +339,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 			updateName = getDefaultUpdateName() + index++;
 		}
 		
-		UpdateObject update = new UpdateObject(updateName, "function (doc, req) {\r\n\tvar json = JSON.parse(req.body);\r\n\treturn [doc, json: {result: 'nothing done'}];\r\n}");
+		UpdateObject update = new UpdateObject(updateName, "function (doc, req) {\r\n\ttry {\r\n\t\tvar json = JSON.parse(req.body);\r\n\t\treturn [doc, json: {result: 'nothing done'}];\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}");
 		return update;
 	}
 
@@ -574,7 +574,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		
 		protected FunctionObject createMap() {
 			if (!hasMap()) {
-				CouchKey.map.put(jsonObject, "function (doc) {\r\n\temit(doc._id, doc._rev);\r\n}");
+				CouchKey.map.put(jsonObject, "function (doc) {\r\n\ttry {\r\n\t\temit(doc._id, doc._rev);\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}");
 				return getMap();
 			}
 			return null;
@@ -589,7 +589,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		
 		protected FunctionObject createReduce() {
 			if (!hasReduce()) {
-				CouchKey.reduce.put(jsonObject, "function (keys, values) {\r\n\treturn values.length;\r\n}");
+				CouchKey.reduce.put(jsonObject, "function (keys, values) {\r\n\ttry {\r\n\t\treturn values.length;\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}");
 				return getReduce();
 			}
 			return null;
