@@ -86,7 +86,6 @@ import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
 import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
 
 
@@ -319,12 +318,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 			if (databaseObject instanceof FullSyncConnector) {
 				FullSyncConnector fullSyncConnector = (FullSyncConnector)databaseObject;
 				if (fullSyncConnector.bNew) {
-					CouchClient couchClient = fullSyncConnector.getCouchClient();
-					String db = fullSyncConnector.getName();
-					// create database
-					couchClient.putDatabase(db);
-					// synchronize
-					CouchDbManager.syncDocument(couchClient, db);
+					CouchDbManager.createCouchDbAndSync(fullSyncConnector);
 				}
 			}
 		}

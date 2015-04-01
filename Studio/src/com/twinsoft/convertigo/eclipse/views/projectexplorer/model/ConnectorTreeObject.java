@@ -49,7 +49,6 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.Replacement;
@@ -223,15 +222,21 @@ public class ConnectorTreeObject extends DatabaseObjectTreeObject {
 							propertyName.equals("couchUsername") ||
 							propertyName.equals("couchPassword"))
 						{
-							// release couch client
 							((CouchDbConnector)connector).release();
+							CouchDbManager.createCouchDbAndSync(connector);
+		    		    	try {
+		    					ConvertigoPlugin.getDefault().getProjectExplorerView().reloadTreeObject(this);
+		    				} catch (Exception e) {
+		    					ConvertigoPlugin.logWarning(e, "Could not reload connector \""+connector.getName()+"\" in tree !");
+		    				}
 						}
 						else if (propertyName.equals("databaseName")) {
-							String db = treeObjectEvent.newValue.toString();
-							if (!db.isEmpty()) {
-								// create database if needed
-								((CouchDbConnector)connector).getCouchClient().putDatabase(db);
-							}
+							CouchDbManager.createCouchDbAndSync(connector);
+		    		    	try {
+		    					ConvertigoPlugin.getDefault().getProjectExplorerView().reloadTreeObject(this);
+		    				} catch (Exception e) {
+		    					ConvertigoPlugin.logWarning(e, "Could not reload connector \""+connector.getName()+"\" in tree !");
+		    				}
 						}
 					}
 				}
@@ -303,13 +308,12 @@ public class ConnectorTreeObject extends DatabaseObjectTreeObject {
 			}
 			
 			if (connector instanceof FullSyncConnector) {
-				FullSyncConnector fullSyncConnector = (FullSyncConnector)connector;
-				CouchClient couchClient = fullSyncConnector.getCouchClient();
-				String db = fullSyncConnector.getName();
-				// create database
-				couchClient.putDatabase(db);
-				// synchronize
-				CouchDbManager.syncDocument(couchClient, db);
+				CouchDbManager.createCouchDbAndSync(connector);
+		    	try {
+					ConvertigoPlugin.getDefault().getProjectExplorerView().reloadTreeObject(this);
+				} catch (Exception e) {
+					ConvertigoPlugin.logWarning(e, "Could not reload connector \""+connector.getName()+"\" in tree !");
+				}
 			}
 		}
 	}
