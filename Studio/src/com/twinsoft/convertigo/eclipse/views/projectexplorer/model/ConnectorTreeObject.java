@@ -39,6 +39,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 
 import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
+import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.connectors.SapJcoConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -48,6 +49,8 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
+import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.Replacement;
 
@@ -214,7 +217,22 @@ public class ConnectorTreeObject extends DatabaseObjectTreeObject {
 						}
 					}
 					else if (connector instanceof CouchDbConnector) {
-						((CouchDbConnector)connector).release();
+						if (propertyName.equals("https") ||
+							propertyName.equals("port") ||
+							propertyName.equals("server") ||
+							propertyName.equals("couchUsername") ||
+							propertyName.equals("couchPassword"))
+						{
+							// release couch client
+							((CouchDbConnector)connector).release();
+						}
+						else if (propertyName.equals("databaseName")) {
+							String db = treeObjectEvent.newValue.toString();
+							if (!db.isEmpty()) {
+								// create database if needed
+								((CouchDbConnector)connector).getCouchClient().putDatabase(db);
+							}
+						}
 					}
 				}
 			}
@@ -282,6 +300,16 @@ public class ConnectorTreeObject extends DatabaseObjectTreeObject {
 				} catch (Exception e) {
 					ConvertigoPlugin.logWarning(e, "Could not rename folder from \""+oldPath+"\" to \""+newPath+"\" !");
 				}
+			}
+			
+			if (connector instanceof FullSyncConnector) {
+				FullSyncConnector fullSyncConnector = (FullSyncConnector)connector;
+				CouchClient couchClient = fullSyncConnector.getCouchClient();
+				String db = fullSyncConnector.getName();
+				// create database
+				couchClient.putDatabase(db);
+				// synchronize
+				CouchDbManager.syncDocument(couchClient, db);
 			}
 		}
 	}
