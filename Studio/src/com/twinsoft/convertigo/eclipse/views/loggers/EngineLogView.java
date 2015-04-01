@@ -84,6 +84,7 @@ import org.eclipse.ui.actions.RetargetAction;
 import org.eclipse.ui.part.ViewPart;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.dialogs.EnginePreferenceDialog;
 import com.twinsoft.convertigo.eclipse.dialogs.EventDetailsDialog;
 import com.twinsoft.convertigo.eclipse.dialogs.EventDetailsDialogComposite;
 import com.twinsoft.convertigo.engine.Engine;
@@ -108,7 +109,7 @@ public class EngineLogView extends ViewPart {
 	private static final int MAX_LOG_LINES = 2000;
 	private static final int MAX_BUFFER_LINES = 50;
 	
-	private Action activateOnNewEventsAction, clearLogsAction, restoreDefaultsAction, selectColumnsAction;
+	private Action activateOnNewEventsAction, clearLogsAction, restoreDefaultsAction, selectColumnsAction, settingsEngine;
 	private RetargetAction scrollLockAction, optionsAction, searchAction, limitLogLinesAction;
 
 	private EngineLogViewLabelProvider labelProvider;
@@ -654,6 +655,16 @@ public class EngineLogView extends ViewPart {
 		limitLogLinesAction.setChecked(true);
 		limitLogLinesAction.setEnabled(true);
 
+		settingsEngine = new Action("Configure Log level"){
+			public void run(){
+				EnginePreferenceDialog dialog = new EnginePreferenceDialog(Display.getDefault().getActiveShell());
+				dialog.open();
+			}
+		};
+		settingsEngine.setImageDescriptor(ImageDescriptor.createFromImage(new Image(Display
+				.getDefault(), getClass().getResourceAsStream("images/configure_log_level.png"))));
+		settingsEngine.setEnabled(true);
+		
 		restoreDefaultsAction = new Action("Restore to default parameters") {
 			public void run() {
 				// Stop the current log thread
@@ -753,6 +764,7 @@ public class EngineLogView extends ViewPart {
 
 	private void createToolbar() {
 		IToolBarManager manager = getViewSite().getActionBars().getToolBarManager();
+		manager.add(settingsEngine);
 		manager.add(optionsAction);
 		manager.add(searchAction);
 		manager.add(clearLogsAction);
