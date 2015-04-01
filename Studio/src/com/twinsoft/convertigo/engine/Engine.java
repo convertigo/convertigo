@@ -1198,7 +1198,9 @@ public class Engine {
 			requester.checkSecuredConnection();
 			
 			// Check authenticated context requirement 
-		 	requester.checkAuthenticatedContext(); 
+		 	requester.checkAuthenticatedContext();
+		 	
+		 	requester.checkParentContext();
 			
 		 	RequestableObject requestedObject = context.requestedObject;
 			

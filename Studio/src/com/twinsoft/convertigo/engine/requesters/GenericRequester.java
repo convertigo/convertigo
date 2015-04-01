@@ -965,4 +965,10 @@ public abstract class GenericRequester extends Requester {
 		}
 		return "_" + Long.toHexString(computedNumber) + Integer.toHexString(originalName.hashCode());
 	}
+	
+	public void checkParentContext() throws EngineException {
+    	if (context.parentContext != null && context.parentContext.requestedObject != null && !((Sequence) context.parentContext.requestedObject).isRunning()) {
+    		throw new EngineException("Parent context stopped");
+    	}
+	}
 }

@@ -65,10 +65,10 @@ import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.beans.variables.TestCaseVariable;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.RequestableEngineEvent;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.enums.Visibility;
@@ -989,10 +989,10 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	@Override
 	public void fireRequestableEvent(String eventType) {
     	if (eventType.equalsIgnoreCase(RequestableObject.EVENT_REQUESTABLE_STARTED)) {
-    		Engine.theApp.fireSequenceStarted(new EngineEvent(this));
+    		Engine.theApp.fireSequenceStarted(new RequestableEngineEvent(this, context.projectName, context.sequenceName, context.connectorName));
     	}
     	else if (eventType.equalsIgnoreCase(RequestableObject.EVENT_REQUESTABLE_FINISHED)) {
-    		Engine.theApp.fireSequenceFinished(new EngineEvent(this));
+    		Engine.theApp.fireSequenceFinished(new RequestableEngineEvent(this, context.projectName, context.sequenceName, context.connectorName));
     	}
 	}
 
@@ -1161,7 +1161,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	// javascript under parallel steps
 	@Override
 	public void abort() {
-		if (runningThread.bContinue && !arborting) {
+		if (isRunning()) {
 			Engine.logBeans.debug("Sequence '"+ getName() + "' is aborting...");
 			
 			// Sets abort flag
@@ -1171,12 +1171,15 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 			if (this.useSameJSessionForSteps()) {
 				try {
 					Collection<Context> contexts = Engine.theApp.contextManager.getContexts();
-					for (Context ctx : contexts){
-						if (!this.context.equals(ctx)) {
-							if (ctx.contextID.startsWith(getSessionId())) {
-								ctx.abortRequestable();
-							}
+					for (Context ctx : contexts) {
+						if (ctx.parentContext == context) {
+							ctx.abortRequestable();
 						}
+//						if (!this.context.equals(ctx)) {
+//							if (ctx.contextID.startsWith(getSessionId())) {
+//								ctx.abortRequestable();
+//							}
+//						}
 					}
 				}
 				catch(Exception e) {}
