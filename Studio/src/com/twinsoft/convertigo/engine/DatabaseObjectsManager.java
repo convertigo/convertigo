@@ -1052,10 +1052,27 @@ public class DatabaseObjectsManager implements AbstractManager {
 			migrateCouch(projectNode, "RemoveServerConfigTransaction", "DeleteServerConfigTransaction");
 			migrateCouch(projectNode, "SetServerConfigTransaction", "PutServerConfigTransaction");
 			migrateCouch(projectNode, "QueryViewTransaction", "GetViewTransaction");
-
+			
+			migrateFS(projectNode, "GetViewTransaction", "HeadDocumentTransaction");
+			
 			return projectNode;
 		} catch (Exception e) {
 			throw new EngineException("Unable to perform XML migration for project", e);
+		}
+	}
+	
+	private void migrateFS(Node projectNode, String... transactions) {
+		for (String transaction : transactions) {
+			try {
+				NodeList nl = XPathAPI.selectNodeList(projectNode, "//connector[@classname='com.twinsoft.convertigo.beans.connectors.FullSyncConnector']/transaction[@classname='com.twinsoft.convertigo.beans.transactions.couchdb." + transaction + "']");
+
+				for (int i = 0; i < nl.getLength(); i++) {
+					((Element) nl.item(i)).setAttribute("classname", "com.twinsoft.convertigo.beans.transactions.fullsync." + transaction);
+				}
+			} catch (TransformerException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 	

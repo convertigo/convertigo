@@ -827,7 +827,7 @@
         <category name="Transactions">
             <beans groupname="Document transactions">
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.HeadDocumentTransaction">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetDocumentTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
@@ -849,6 +849,10 @@
                 </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutUpdateTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+                </bean>
+                
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.fullsync.HeadDocumentTransaction">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
                 </bean>
             </beans>
             <beans groupname="Attachment transactions">
@@ -881,10 +885,14 @@
             </beans>
             <beans groupname="Other transactions">
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetViewTransaction">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.CustomTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+                </bean>
+                
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.fullsync.GetViewTransaction">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
                 </bean>
             </beans>
         	<beans groupname="Session transactions">
