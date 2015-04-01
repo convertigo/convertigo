@@ -32,6 +32,9 @@ public class GetDocumentAttachmentTransaction extends AbstractDocumentTransactio
 
 	private static final long serialVersionUID = -1731027540919633324L;
 
+	private String u_attname = "";
+	private String q_rev = "";
+	
 	public GetDocumentAttachmentTransaction() {
 		super();
 	}
@@ -62,6 +65,22 @@ public class GetDocumentAttachmentTransaction extends AbstractDocumentTransactio
 	@Override
 	public QName getComplexTypeAffectation() {
 		return new QName(COUCHDB_XSD_NAMESPACE, "getDocumentAttachmentType");
+	}
+
+	public String getU_attname() {
+		return u_attname;
+	}
+
+	public void setU_attname(String u_attname) {
+		this.u_attname = u_attname;
+	}
+
+	public String getQ_rev() {
+		return q_rev;
+	}
+
+	public void setQ_rev(String q_rev) {
+		this.q_rev = q_rev;
 	}
 }
 

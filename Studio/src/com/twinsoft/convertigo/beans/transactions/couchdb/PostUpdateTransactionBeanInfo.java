@@ -40,12 +40,16 @@ public class PostUpdateTransactionBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/databasetransaction_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/databasetransaction_color_32x32.png";
 			
-			properties = new PropertyDescriptor[1];
+			properties = new PropertyDescriptor[2];
 
             properties[0] = new PropertyDescriptor("updatename", beanClass, "getUpdatename", "setUpdatename");
             properties[0].setDisplayName(getExternalizedString("property.updatename.display_name"));
             properties[0].setShortDescription(getExternalizedString("property.updatename.short_description")); 
             properties[0].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+            
+			properties[1] = new PropertyDescriptor("u_func", beanClass, "getU_func", "setU_func");
+			properties[1].setDisplayName(getExternalizedString("property.u_func.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.u_func.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

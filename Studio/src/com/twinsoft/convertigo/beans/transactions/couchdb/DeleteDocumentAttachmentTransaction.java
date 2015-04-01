@@ -29,6 +29,9 @@ public class DeleteDocumentAttachmentTransaction extends AbstractDocumentTransac
 
 	private static final long serialVersionUID = 251919320155109714L;
 
+	private String q_rev = "";
+	private String q_batch = "";
+	
 	public DeleteDocumentAttachmentTransaction() {
 		super();
 	}
@@ -57,5 +60,20 @@ public class DeleteDocumentAttachmentTransaction extends AbstractDocumentTransac
 	public QName getComplexTypeAffectation() {
 		return new QName(COUCHDB_XSD_NAMESPACE, "deleteDocumentAttachmentType");
 	}
-}
+	
+	public String getQ_rev() {
+		return q_rev;
+	}
 
+	public void setQ_rev(String q_rev) {
+		this.q_rev = q_rev;
+	}
+
+	public String getQ_batch() {
+		return q_batch;
+	}
+
+	public void setQ_batch(String q_batch) {
+		this.q_batch = q_batch;
+	}
+}

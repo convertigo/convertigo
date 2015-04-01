@@ -21,6 +21,8 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
+import java.beans.PropertyDescriptor;
+
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class PutDocumentAttachmentTransactionBeanInfo extends MySimpleBeanInfo {
@@ -38,6 +40,15 @@ public class PutDocumentAttachmentTransactionBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/databasetransaction_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/databasetransaction_color_32x32.png";
 			
+			properties = new PropertyDescriptor[2];
+			
+			properties[0] = new PropertyDescriptor("u_attname", beanClass, "getU_attname", "setU_attname");
+			properties[0].setDisplayName(getExternalizedString("property.u_attname.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.u_attname.short_description"));
+			
+			properties[1] = new PropertyDescriptor("q_rev", beanClass, "getQ_rev", "setQ_rev");
+			properties[1].setDisplayName(getExternalizedString("property.q_rev.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.q_rev.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

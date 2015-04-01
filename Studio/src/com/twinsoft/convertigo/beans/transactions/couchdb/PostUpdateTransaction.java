@@ -38,6 +38,8 @@ public class PostUpdateTransaction extends AbstractDocumentTransaction implement
 	private static final long serialVersionUID = -7606732916561433615L;
 
 	private String updatename = "";
+	
+	private String u_func = "";
 
 	public PostUpdateTransaction() {
 		super();
@@ -104,5 +106,13 @@ public class PostUpdateTransaction extends AbstractDocumentTransaction implement
 			return DesignDocument.getTags(this, CouchKey.updates);
 		}
 		return null;
+	}
+
+	public String getU_func() {
+		return u_func;
+	}
+
+	public void setU_func(String u_func) {
+		this.u_func = u_func;
 	}
 }
