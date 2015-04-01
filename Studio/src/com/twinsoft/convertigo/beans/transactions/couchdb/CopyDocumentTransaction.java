@@ -29,6 +29,9 @@ public class CopyDocumentTransaction extends AbstractDocumentTransaction {
 
 	private static final long serialVersionUID = 110083227104023263L;
 	
+	private String q_rev = "";
+	private String q_batch = "";
+	
 	public CopyDocumentTransaction() {
 		super();
 	}
@@ -59,6 +62,22 @@ public class CopyDocumentTransaction extends AbstractDocumentTransaction {
 			return new QName(COUCHDB_XSD_NAMESPACE, "copyDocumentType");
 		else
 			return super.getComplexTypeAffectation();
+	}
+	
+	public String getQ_rev() {
+		return q_rev;
+	}
+
+	public void setQ_rev(String q_rev) {
+		this.q_rev = q_rev;
+	}
+
+	public String getQ_batch() {
+		return q_batch;
+	}
+
+	public void setQ_batch(String q_batch) {
+		this.q_batch = q_batch;
 	}
 	
 }
