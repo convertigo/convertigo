@@ -38,6 +38,9 @@ public class PutUpdateTransaction extends AbstractDocumentTransaction implements
 	private static final long serialVersionUID = -7606732916561433615L;
 
 	private String updatename = "";
+	
+	private String u_ddoc = "";
+	private String u_func = "";
 
 	public PutUpdateTransaction() {
 		super();
@@ -107,4 +110,23 @@ public class PutUpdateTransaction extends AbstractDocumentTransaction implements
 		}
 		return null;
 	}
+	
+	/** Getters/Setters **/
+	
+	public String getU_ddoc() {
+		return u_ddoc;
+	}
+	
+	public void setU_ddoc(String u_ddoc) {
+		this.u_ddoc = u_ddoc;
+	}
+
+	public String getU_func() {
+		return u_func;
+	}
+
+	public void setU_func(String u_func) {
+		this.u_func = u_func;
+	}
+
 }

@@ -31,6 +31,8 @@ public class PostSessionTransaction extends AbstractServerTransaction {
 
 	private static final long serialVersionUID = -1385969696979516586L;
 	
+	private String q_next = "";
+	
 	public PostSessionTransaction() {
 		super();
 	}
@@ -59,6 +61,14 @@ public class PostSessionTransaction extends AbstractServerTransaction {
 	@Override
 	public QName getComplexTypeAffectation() {
 		return new QName(COUCHDB_XSD_NAMESPACE, "postSessionType");
+	}
+
+	public String getQ_next() {
+		return q_next;
+	}
+
+	public void setQ_next(String q_next) {
+		this.q_next = q_next;
 	}
 	
 }

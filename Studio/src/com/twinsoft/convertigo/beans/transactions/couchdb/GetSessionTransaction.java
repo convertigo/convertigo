@@ -29,6 +29,9 @@ public class GetSessionTransaction extends AbstractServerTransaction {
 
 	private static final long serialVersionUID = -4535060854117693921L;
 
+	private String q_basic = "";
+	
+	
 	public GetSessionTransaction() {
 		super();
 	}
@@ -52,5 +55,13 @@ public class GetSessionTransaction extends AbstractServerTransaction {
 	@Override
 	public QName getComplexTypeAffectation() {
 		return new QName(COUCHDB_XSD_NAMESPACE, "getSessionType");
+	}
+
+	public String getQ_basic() {
+		return q_basic;
+	}
+
+	public void setQ_basic(String q_basic) {
+		this.q_basic = q_basic;
 	}
 }
