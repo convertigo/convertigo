@@ -1023,17 +1023,19 @@ public class EngineLogView extends ViewPart {
 						
 							public void run() {
 								try {
-									while (true) {
+									while (true && !tableViewer.getTable().isDisposed()) {
 										tableViewer.add(logLines.remove());
 									}
 								} catch (NoSuchElementException e) {}
-								
-								while (limitLogLines > 0 && tableViewer.getTable().getItemCount() > limitLogLines) {
-									tableViewer.getTable().remove(0);
-								}
-								
-								if (!scrollLock) {
-									tableViewer.getTable().setTopIndex(tableViewer.getTable().getItemCount() - 1);
+
+								if (!tableViewer.getTable().isDisposed()) {
+									while (limitLogLines > 0 && !tableViewer.getTable().isDisposed() && tableViewer.getTable().getItemCount() > limitLogLines) {
+										tableViewer.getTable().remove(0);
+									}
+									
+									if (!scrollLock && !tableViewer.getTable().isDisposed()) {
+										tableViewer.getTable().setTopIndex(tableViewer.getTable().getItemCount() - 1);
+									}
 								}
 								
 								if (activateOnNewEvents) {
