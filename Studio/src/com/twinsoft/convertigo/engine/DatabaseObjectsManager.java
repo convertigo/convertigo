@@ -691,12 +691,15 @@ public class DatabaseObjectsManager implements AbstractManager {
 					List<Replacement> replacements = new ArrayList<Replacement>();
 					replacements.add(new Replacement("/"+archiveProjectName, "/"+projectName));
 					replacements.add(new Replacement(archiveProjectName+"_ns", projectName+"_ns"));
-					for (File schema : CarUtils.deepListFiles(Engine.PROJECTS_PATH + "/" + projectName + "/xsd/internal", ".xsd")) {
-						try {
-							ProjectUtils.makeReplacementsInFile(replacements, schema.getAbsolutePath().toString());
-							Engine.logDatabaseObjectManager.debug("Successfully updated schema file \""+ schema.getAbsolutePath() +"\"");
-						} catch (Exception e) {
-							Engine.logDatabaseObjectManager.warn("Unable to update schema file \""+ schema.getAbsolutePath() +"\"");
+					ArrayList<File> deep = CarUtils.deepListFiles(Engine.PROJECTS_PATH + "/" + projectName + "/xsd/internal", ".xsd");
+					if (deep != null) {
+						for (File schema : deep) {
+							try {
+								ProjectUtils.makeReplacementsInFile(replacements, schema.getAbsolutePath().toString());
+								Engine.logDatabaseObjectManager.debug("Successfully updated schema file \""+ schema.getAbsolutePath() +"\"");
+							} catch (Exception e) {
+								Engine.logDatabaseObjectManager.warn("Unable to update schema file \""+ schema.getAbsolutePath() +"\"");
+							}
 						}
 					}
 				}

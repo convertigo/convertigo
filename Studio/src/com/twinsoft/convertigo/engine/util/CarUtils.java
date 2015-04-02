@@ -91,7 +91,9 @@ public class CarUtils {
 		undeployedFiles.add(carFile);
 		
 		List<File> svnFiles = CarUtils.deepListFiles(Engine.PROJECTS_PATH + "/" + projectName, ".svn");
-		undeployedFiles.addAll(svnFiles);
+		if (svnFiles != null) {
+			undeployedFiles.addAll(svnFiles);
+		}
 		
 		return undeployedFiles;
 	}
