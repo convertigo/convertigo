@@ -29,6 +29,10 @@ public class GetServerUpdatesTransaction extends AbstractServerTransaction {
 
 	private static final long serialVersionUID = -4009927560249117525L;
 	
+	private String q_feed = "";
+	private String q_timeout = "";
+	private String q_heartbeat = "";
+	
 	public GetServerUpdatesTransaction() {
 		super();
 	}
@@ -60,5 +64,29 @@ public class GetServerUpdatesTransaction extends AbstractServerTransaction {
 	@Override
 	public QName getComplexTypeAffectation() {
 		return new QName(COUCHDB_XSD_NAMESPACE, "getServerUpdatesType");
+	}
+
+	public String getQ_feed() {
+		return q_feed;
+	}
+
+	public void setQ_feed(String q_feed) {
+		this.q_feed = q_feed;
+	}
+
+	public String getQ_timeout() {
+		return q_timeout;
+	}
+
+	public void setQ_timeout(String q_timeout) {
+		this.q_timeout = q_timeout;
+	}
+
+	public String getQ_heartbeat() {
+		return q_heartbeat;
+	}
+
+	public void setQ_heartbeat(String q_heartbeat) {
+		this.q_heartbeat = q_heartbeat;
 	}
 }

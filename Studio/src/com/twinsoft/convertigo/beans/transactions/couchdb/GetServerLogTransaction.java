@@ -29,6 +29,9 @@ public class GetServerLogTransaction extends AbstractServerTransaction {
 
 	private static final long serialVersionUID = 3117082545323969984L;
 	
+	private String q_bytes = "";
+	private String q_offset = "";
+	
 	public GetServerLogTransaction() {
 		super();
 	}
@@ -58,5 +61,21 @@ public class GetServerLogTransaction extends AbstractServerTransaction {
 	@Override
 	public QName getComplexTypeAffectation() {
 		return new QName(COUCHDB_XSD_NAMESPACE, "getServerLogType");
+	}
+
+	public String getQ_bytes() {
+		return q_bytes;
+	}
+
+	public void setQ_bytes(String q_bytes) {
+		this.q_bytes = q_bytes;
+	}
+
+	public String getQ_offset() {
+		return q_offset;
+	}
+
+	public void setQ_offset(String q_offset) {
+		this.q_offset = q_offset;
 	}
 }

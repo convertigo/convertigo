@@ -29,6 +29,8 @@ public class GetServerUuidsTransaction extends AbstractServerTransaction {
 
 	private static final long serialVersionUID = -7533090778648171161L;
 	
+	private String q_count = "";
+	
 	public GetServerUuidsTransaction() {
 		super();
 	}
@@ -54,5 +56,13 @@ public class GetServerUuidsTransaction extends AbstractServerTransaction {
 	@Override
 	public QName getComplexTypeAffectation() {
 		return new QName(COUCHDB_XSD_NAMESPACE, "getServerUuidsType");
+	}
+
+	public String getQ_count() {
+		return q_count;
+	}
+
+	public void setQ_count(String q_count) {
+		this.q_count = q_count;
 	}
 }

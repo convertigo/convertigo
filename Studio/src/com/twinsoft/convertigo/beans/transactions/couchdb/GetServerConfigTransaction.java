@@ -33,6 +33,9 @@ public class GetServerConfigTransaction extends AbstractServerTransaction {
 
 	private static final long serialVersionUID = 7019930439389954999L;
 	
+	private String u_section = "";
+	private String u_key = "";
+	
 	public GetServerConfigTransaction() {
 		super();
 	}
@@ -76,5 +79,21 @@ public class GetServerConfigTransaction extends AbstractServerTransaction {
 	@Override
 	public QName getComplexTypeAffectation() {
 		return new QName(COUCHDB_XSD_NAMESPACE, "getServerConfigType");
+	}
+
+	public String getU_section() {
+		return u_section;
+	}
+
+	public void setU_section(String u_section) {
+		this.u_section = u_section;
+	}
+
+	public String getU_key() {
+		return u_key;
+	}
+
+	public void setU_key(String u_key) {
+		this.u_key = u_key;
 	}
 }

@@ -21,6 +21,8 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
+import java.beans.PropertyDescriptor;
+
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class DeleteServerConfigTransactionBeanInfo extends MySimpleBeanInfo {
@@ -38,6 +40,15 @@ public class DeleteServerConfigTransactionBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/servertransaction_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/servertransaction_color_32x32.png";
 			
+			properties = new PropertyDescriptor[2];
+			
+			properties[0] = new PropertyDescriptor("u_section", beanClass, "getU_section", "setU_section");
+			properties[0].setDisplayName(getExternalizedString("property.u_section.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.u_section.short_description"));
+			
+			properties[1] = new PropertyDescriptor("u_key", beanClass, "getU_key", "setU_key");
+			properties[1].setDisplayName(getExternalizedString("property.u_key.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.u_key.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

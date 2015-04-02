@@ -31,6 +31,9 @@ public class DeleteServerConfigTransaction extends AbstractServerTransaction {
 
 	private static final long serialVersionUID = 1267816514021649947L;
 	
+	private String u_section = "";
+	private String u_key = "";
+	
 	public DeleteServerConfigTransaction() {
 		super();
 	}
@@ -58,5 +61,21 @@ public class DeleteServerConfigTransaction extends AbstractServerTransaction {
 	@Override
 	public QName getComplexTypeAffectation() {
 		return new QName(COUCHDB_XSD_NAMESPACE, "deleteServerConfigType");
+	}
+
+	public String getU_section() {
+		return u_section;
+	}
+
+	public void setU_section(String u_section) {
+		this.u_section = u_section;
+	}
+
+	public String getU_key() {
+		return u_key;
+	}
+
+	public void setU_key(String u_key) {
+		this.u_key = u_key;
 	}
 }

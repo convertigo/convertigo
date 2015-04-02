@@ -35,7 +35,9 @@ public class PostDocumentTransaction extends AbstractDocumentTransaction {
 	private static final long serialVersionUID = -7606732916561433014L;
 	
 	private CouchPostDocumentPolicy policy = CouchPostDocumentPolicy.none;
-
+	
+	private String q_batch = "";
+	
 	public PostDocumentTransaction() {
 		super();
 	}
@@ -79,5 +81,13 @@ public class PostDocumentTransaction extends AbstractDocumentTransaction {
 
 	public void setPolicy(CouchPostDocumentPolicy policy) {
 		this.policy = policy;
+	}
+
+	public String getQ_batch() {
+		return q_batch;
+	}
+
+	public void setQ_batch(String q_batch) {
+		this.q_batch = q_batch;
 	}
 }

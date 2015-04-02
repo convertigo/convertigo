@@ -21,6 +21,8 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
+import java.beans.PropertyDescriptor;
+
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class GetServerUpdatesTransactionBeanInfo extends MySimpleBeanInfo {
@@ -38,6 +40,20 @@ public class GetServerUpdatesTransactionBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/servertransaction_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/servertransaction_color_32x32.png";
 			
+			properties = new PropertyDescriptor[3];
+			
+			properties[0] = new PropertyDescriptor("q_feed", beanClass, "getQ_feed", "setQ_feed");
+			properties[0].setDisplayName(getExternalizedString("property.q_feed.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.q_feed.short_description"));
+			
+			properties[1] = new PropertyDescriptor("q_timeout", beanClass, "getQ_timeout", "setQ_timeout");
+			properties[1].setDisplayName(getExternalizedString("property.q_timeout.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.q_timeout.short_description"));
+			
+			properties[2] = new PropertyDescriptor("q_heartbeat", beanClass, "getQ_heartbeat", "setQ_heartbeat");
+			properties[2].setDisplayName(getExternalizedString("property.q_heartbeat.display_name"));
+			properties[2].setShortDescription(getExternalizedString("property.q_heartbeat.short_description"));
+
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
