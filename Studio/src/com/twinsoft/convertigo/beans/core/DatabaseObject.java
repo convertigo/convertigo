@@ -489,6 +489,10 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 			if (getter == null) {
 				continue;
 			}
+			
+			if (checkBlackListParentClass(propertyDescriptor)) {
+				continue;
+			}
 
 			try {
 				// Storing the database object bean properties
@@ -1102,6 +1106,11 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	
 	public synchronized boolean isSymbolError() {
 		return symbolsErrors != null;		
+	}
+	
+	public boolean checkBlackListParentClass(PropertyDescriptor propertyDescriptor) {
+		return parent != null && parent.getClass().getCanonicalName()
+				.equals(propertyDescriptor.getValue(MySimpleBeanInfo.BLACK_LIST_PARENT_CLASS));
 	}
 	
 	public synchronized Map<String, Set<String>> getSymbolsErrors() {

@@ -1067,10 +1067,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 	private void migrateFS(Node projectNode, String... transactions) {
 		for (String transaction : transactions) {
 			try {
-				NodeList nl = XPathAPI.selectNodeList(projectNode, "//connector[@classname='com.twinsoft.convertigo.beans.connectors.FullSyncConnector']/transaction[@classname='com.twinsoft.convertigo.beans.transactions.couchdb." + transaction + "']");
+				NodeList nl = XPathAPI.selectNodeList(projectNode, "//connector[@classname='com.twinsoft.convertigo.beans.connectors.FullSyncConnector']/transaction[@classname='com.twinsoft.convertigo.beans.transactions.fullsync." + transaction + "']");
 
 				for (int i = 0; i < nl.getLength(); i++) {
-					((Element) nl.item(i)).setAttribute("classname", "com.twinsoft.convertigo.beans.transactions.fullsync." + transaction);
+					((Element) nl.item(i)).setAttribute("classname", "com.twinsoft.convertigo.beans.transactions.couchdb." + transaction);
 				}
 			} catch (TransformerException e) {
 				// TODO Auto-generated catch block

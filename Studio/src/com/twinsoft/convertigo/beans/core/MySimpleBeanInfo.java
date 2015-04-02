@@ -41,6 +41,7 @@ import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 
 public class MySimpleBeanInfo extends SimpleBeanInfo {
 	public static final String BLACK_LIST_NAME = "blackListedFromAdmin";
+	public static final String BLACK_LIST_PARENT_CLASS = "blackListedForParentClass";
 	
 	protected Class<? extends DatabaseObject> beanClass = null;
 	protected Class<? extends DatabaseObject> additionalBeanClass = null;

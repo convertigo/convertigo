@@ -798,72 +798,131 @@
             </beans>
 		</category>
 	</group>
-		
-	<group name="COUCHDB">
+	
+	<group name="FullSync">
 		<category>
 			<beans>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector">
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
-                </bean>
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
                 </bean>
-            </beans>
-        </category>
-        <category name="Documents">
-        	<beans groupname="CouchDB documents">
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.couchdb.DesignDocument">
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
                 </bean>
-        	</beans>
-        </category>
-        <category name="Listeners">
-        	<beans groupname="CouchDB listeners">
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.couchdb.FullSyncListener">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
                 </bean>
-        	</beans>
-        </category>
-        <category name="Transactions">
+            </beans>
             <beans groupname="Document transactions">
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.HeadDocumentTransaction">
-					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
                 </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetDocumentTransaction">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
                 </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostDocumentTransaction">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
                 </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteDocumentTransaction">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
                 </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.CopyDocumentTransaction">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
                 </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostBulkDocumentsTransaction">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
                 </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostUpdateTransaction">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
                 </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutUpdateTransaction">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
-                </bean>
-                
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.fullsync.HeadDocumentTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
                 </bean>
             </beans>
             <beans groupname="Attachment transactions">
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetDocumentAttachmentTransaction">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
                 </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutDocumentAttachmentTransaction">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
                 </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteDocumentAttachmentTransaction">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
+                </bean>
+            </beans>
+            <beans groupname="Other transactions">                
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetViewTransaction">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
+                </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.CustomTransaction">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
+                </bean>
+            </beans>
+        	<beans groupname="Server transactions">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerInfoTransaction">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
+                </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerUuidsTransaction">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
+                </bean>
+            </beans>
+		</category>
+	</group>
+	
+	<group name="Databases">
+		<category name="SQL">
+			<beans>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.connectors.SqlConnector">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
+                </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.SqlTransaction">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.SqlConnector"/>
+				</bean>
+			</beans>
+		</category>
+		<category name="CouchDB">
+			<beans>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
+                </bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.couchdb.DesignDocument">
+                    <parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+                </bean>
+            </beans>
+            <beans groupname="Document transactions">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.HeadDocumentTransaction">
+					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+                </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetDocumentTransaction">
+					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+                </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostDocumentTransaction">
+					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+                </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteDocumentTransaction">
+					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+                </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.CopyDocumentTransaction">
+					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+                </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostBulkDocumentsTransaction">
+					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+                </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostUpdateTransaction">
+					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+                </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutUpdateTransaction">
+					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+                </bean>
+            </beans>
+            <beans groupname="Attachment transactions">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetDocumentAttachmentTransaction">
+					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+                </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutDocumentAttachmentTransaction">
+					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+                </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteDocumentAttachmentTransaction">
+					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
             </beans>
             <beans groupname="Database transactions">
@@ -888,11 +947,7 @@
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.CustomTransaction">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
-                </bean>
-                
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.fullsync.GetViewTransaction">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
+					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
             </beans>
         	<beans groupname="Session transactions">
@@ -908,7 +963,7 @@
             </beans>
         	<beans groupname="Server transactions">
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerInfoTransaction">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerDatabasesTransaction">
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
@@ -923,7 +978,7 @@
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerUuidsTransaction">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostServerRestartTransaction">
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
@@ -943,19 +998,6 @@
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
             </beans>
-		</category>
-	</group>
-		
-	<group name="SQL">
-		<category>
-			<beans>
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.connectors.SqlConnector">
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
-                </bean>
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.SqlTransaction">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.SqlConnector"/>
-				</bean>
-			</beans>
 		</category>
 	</group>
 	

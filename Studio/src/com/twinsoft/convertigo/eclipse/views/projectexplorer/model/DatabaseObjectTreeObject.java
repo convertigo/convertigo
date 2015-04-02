@@ -277,13 +277,17 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
         // Get properties
         boolean isExtractionRule = ( databaseObject instanceof com.twinsoft.convertigo.beans.core.ExtractionRule) ;
         boolean isMaskedProperty = false;
+        
         for (int i = 0 ; i < len ; i++) {
-            
             databaseObjectPropertyDescriptor = databaseObjectPropertyDescriptors[i];
             
             // Don't display hidden or expert propertyDescriptors.
             if (databaseObjectPropertyDescriptor.isHidden()) {
                 continue;
+            }
+            
+            if (databaseObject.checkBlackListParentClass(databaseObjectPropertyDescriptor)) {
+            	continue;
             }
             
             String name = databaseObjectPropertyDescriptor.getName();

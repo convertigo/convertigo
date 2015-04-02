@@ -237,6 +237,8 @@ public class BeansDoc {
 				} else if (databaseObjectPropertyDescriptor.isExpert()) {
 					category = "expert";
 				}
+				
+				//TODO: parent
 	
 				description = databaseObjectPropertyDescriptor
 						.getShortDescription();
