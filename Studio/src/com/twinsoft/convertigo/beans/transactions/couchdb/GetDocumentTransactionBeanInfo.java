@@ -39,9 +39,7 @@ public class GetDocumentTransactionBeanInfo extends MySimpleBeanInfo {
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/databasetransaction_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/databasetransaction_color_32x32.png";
-			
-			getPropertyDescriptor("xmlComplexTypeAffectation").setHidden(false);
-			
+						
 			properties = new PropertyDescriptor[12];
 			
 			properties[0] = new PropertyDescriptor("q_attachments", beanClass, "getQ_attachments", "setQ_attachments");
@@ -91,6 +89,8 @@ public class GetDocumentTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[11] = new PropertyDescriptor("q_revs_info", beanClass, "getQ_revs_info", "setQ_revs_info");
 			properties[11].setDisplayName(getExternalizedString("property.q_revs_info.display_name"));
 			properties[11].setShortDescription(getExternalizedString("property.q_revs_info.short_description"));
+			
+			getPropertyDescriptor("xmlComplexTypeAffectation").setHidden(false);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
