@@ -144,7 +144,7 @@ public class WriteCSVStep extends WriteFileStep {
 
 				// Determines direction
 				boolean verticalDirection = false;
-				if (titlesY.size() > 0) {
+				if (titlesY.size() > 1) {
 					verticalDirection = !titlesY.get(0).equals(titlesY.get(1));
 				}
 
