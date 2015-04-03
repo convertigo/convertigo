@@ -125,8 +125,18 @@ public class ProjectUtils {
 			if (!newFile.exists()) {
 				if (oldFile.renameTo(newFile)) {
 					List<Replacement> replacements = new ArrayList<Replacement>();
-					replacements.add(new Replacement("value=\""+sourceProjectName+"\"", "value=\""+targetProjectName+"\""));
-					makeReplacementsInFile(replacements, newPath, "<!--<Project");
+					if (isPreviousXmlFileFormat(newPath)) {
+						// replace project's bean name
+						replacements.add(new Replacement("value=\""+sourceProjectName+"\"", "value=\""+targetProjectName+"\""));
+						makeReplacementsInFile(replacements, newPath);
+					}
+					else {
+						// replace project's bean name
+						replacements.add(new Replacement("<!--<Project : " + sourceProjectName + ">", "<!--<Project : " + targetProjectName + ">"));
+						replacements.add(new Replacement("value=\""+sourceProjectName+"\"", "value=\""+targetProjectName+"\"", "<!--<Project"));
+						replacements.add(new Replacement("<!--</Project : " + sourceProjectName + ">", "<!--</Project : " + targetProjectName + ">"));
+						makeReplacementsInFile(replacements, newPath);
+					}
 				}
 				else {
 					throw new Exception("Unable to rename \""+oldPath+"\" to \""+newPath+"\"");
@@ -141,6 +151,20 @@ public class ProjectUtils {
 		}
 	}
 
+	public static boolean isPreviousXmlFileFormat(String filePath) throws Exception { 
+		boolean isPreviousFormat = false;
+		String line= null;
+		BufferedReader br = new BufferedReader(new FileReader(filePath));
+		while ((line = br.readLine()) != null) {
+			if (line.indexOf("<project classname=\"com.twinsoft.convertigo.beans.core.Project\"")!=-1) {
+				isPreviousFormat = !line.trim().startsWith("<!--<Project");
+				break;
+			}
+		}
+		br.close();
+		return isPreviousFormat;
+	}
+	
 	public static void renameXmlProject(String projectsDir, String sourceProjectName, String targetProjectName) throws Exception {
 		String oldPath = projectsDir + "/" + targetProjectName + "/" + sourceProjectName + ".xml";
 		File oldFile = new File(oldPath);
@@ -150,22 +174,22 @@ public class ProjectUtils {
 			if (!newFile.exists()) {
 				if (oldFile.renameTo(newFile)) {
 					List<Replacement> replacements = new ArrayList<Replacement>();
-					replacements.add(new Replacement("<!--<Project : " + sourceProjectName + ">", "<!--<Project : " + targetProjectName + ">"));
-					replacements.add(new Replacement("<!--</Project : " + sourceProjectName + ">", "<!--</Project : " + targetProjectName + ">"));
-					
-					// For call sequence
-					replacements.add(new Replacement("<property name=\"sourceSequence\"><java.lang.String value=\"" + sourceProjectName,
-													 "<property name=\"sourceSequence\"><java.lang.String value=\"" + targetProjectName));
-					
-					// For call transaction
-					replacements.add(new Replacement("<property name=\"sourceTransaction\"><java.lang.String value=\"" + sourceProjectName,
-													 "<property name=\"sourceTransaction\"><java.lang.String value=\"" + targetProjectName));
-					makeReplacementsInFile(replacements, newPath);
-					replacements.clear();
-					
-					replacements.add(new Replacement("value=\""+sourceProjectName+"\"", "value=\""+targetProjectName+"\""));
-					replacements.add(new Replacement("value=\""+sourceProjectName+"\\.", "value=\""+targetProjectName+"\\.")); // for call steps
-					makeReplacementsInFile(replacements, newPath, "<!--<Project");
+					if (isPreviousXmlFileFormat(newPath)) {
+						// replace project's bean name
+						replacements.add(new Replacement("value=\""+sourceProjectName+"\"", "value=\""+targetProjectName+"\""));
+						// replace project's name references
+						replacements.add(new Replacement("value=\""+sourceProjectName+"\\.", "value=\""+targetProjectName+"\\."));
+						makeReplacementsInFile(replacements, newPath);
+					}
+					else {
+						// replace project's bean name
+						replacements.add(new Replacement("<!--<Project : " + sourceProjectName + ">", "<!--<Project : " + targetProjectName + ">"));
+						replacements.add(new Replacement("value=\""+sourceProjectName+"\"", "value=\""+targetProjectName+"\"", "<!--<Project"));
+						replacements.add(new Replacement("<!--</Project : " + sourceProjectName + ">", "<!--</Project : " + targetProjectName + ">"));
+						// replace project's name references
+						replacements.add(new Replacement("value=\""+sourceProjectName+"\\.", "value=\""+targetProjectName+"\\."));
+						makeReplacementsInFile(replacements, newPath);
+					}
 				}
 				else {
 					throw new Exception("Unable to rename \""+oldPath+"\" to \""+newPath+"\"");
@@ -243,10 +267,6 @@ public class ProjectUtils {
 	}
 	
 	public static void makeReplacementsInFile(List<Replacement> replacements, String filePath) throws Exception {
-		makeReplacementsInFile(replacements, filePath, null);
-	}
-	
-	public static void makeReplacementsInFile(List<Replacement> replacements, String filePath, String lineBegin) throws Exception {
 		File file = new File(filePath);
 		if (file.exists()) {
 			String line;
@@ -255,7 +275,8 @@ public class ProjectUtils {
 			BufferedReader br = new BufferedReader(new FileReader(filePath));
 			while((line = br.readLine()) != null) {
 				for (Replacement replacement: replacements) {
-					if ((lineBegin == null) || (line.startsWith(lineBegin))) {
+					String lineBegin = replacement.getStartsWith();
+					if ((lineBegin == null) || (line.trim().startsWith(lineBegin))) {
 						line = line.replaceAll(replacement.getSource(), replacement.getTarget());
 					}
 				}

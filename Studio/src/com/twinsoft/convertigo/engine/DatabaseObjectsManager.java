@@ -580,22 +580,17 @@ public class DatabaseObjectsManager implements AbstractManager {
 		String deployDirPath, projectDirPath;
 
 		try {
-			//Added by julienda - 10/09/2012
-			Engine.logDatabaseObjectManager.trace("DatabaseObjectsManager.deployProject() 6.1.x(trunk) - projectArchiveFilename: "+projectArchiveFilename);
-			Engine.logDatabaseObjectManager.trace("DatabaseObjectsManager.deployProject() 6.1.x(trunk) - targetProjectName: "+targetProjectName);
+			archiveProjectName = ZipUtils.getProjectName(projectArchiveFilename);
 			
-				archiveProjectName = ZipUtils.getProjectName(projectArchiveFilename);
-				Engine.logDatabaseObjectManager.trace("DatabaseObjectsManager.deployProject() 6.1.x(trunk) - archiveProjectName: "+archiveProjectName);
+			Engine.logDatabaseObjectManager.trace("Deploying project from \""+projectArchiveFilename+"\"");
+			Engine.logDatabaseObjectManager.trace("- archiveProjectName: "+archiveProjectName);
+			Engine.logDatabaseObjectManager.trace("- targetProjectName: "+targetProjectName);
+			
+			if (targetProjectName == null && projectArchiveFilename != null){
+				targetProjectName = archiveProjectName;
+			}
 				
-				if(targetProjectName==null && projectArchiveFilename!=null){
-					targetProjectName = archiveProjectName;
-				}
-				
-					
 			File f = new File(projectArchiveFilename);
-			// Modified by julienda - 08/09/2012
-				//String fName = f.getName();
-				//archiveProjectName = fName.substring(0, fName.indexOf(".car"));
 
 			if ((targetProjectName.equals(archiveProjectName))) {
 				projectName = archiveProjectName;
@@ -608,18 +603,16 @@ public class DatabaseObjectsManager implements AbstractManager {
 				deployDirPath = deployDir.getCanonicalPath();
 			}
 
-			Engine.logDatabaseObjectManager.trace("DatabaseObjectsManager.deployProject() 6.1.x(trunk) - projectName: "+projectName);
 			projectDirPath = deployDirPath + "/" + archiveProjectName;
 
-			Engine.logDatabaseObjectManager.info("Deploying the project \"" + archiveProjectName + "\" ...");
+			Engine.logDatabaseObjectManager.info("Deploying the project \"" + archiveProjectName + "\" to \""+projectDirPath+"\"");
 			try {
 				if (existsProject(projectName)) {
 					if (bForce) {
 						// Deleting existing project if any
 						deleteProject(projectName);
 					} else {
-						Engine.logDatabaseObjectManager.info("Project \"" + projectName
-								+ "\" has already been deployed.");
+						Engine.logDatabaseObjectManager.info("Project \"" + projectName + "\" has already been deployed.");
 						return null;
 					}
 				}
@@ -705,15 +698,13 @@ public class DatabaseObjectsManager implements AbstractManager {
 				}
 			}
 			
-			if (getProjectLoadingData().projectName==null) {
+			if (getProjectLoadingData().projectName == null) {
 				getProjectLoadingData().projectName = projectName;
 			}
 			
 			// Import project (will perform the migration)
-			Project project = importProject(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName
-					+ ".xml");
+			Project project = importProject(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml");
 
-			
 			// Rename connector's directory under traces directory if needed
 			// (name should be normalized since 4.6)
 			File tracesDir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/Traces");
@@ -1325,13 +1316,18 @@ public class DatabaseObjectsManager implements AbstractManager {
 			String xmlFilePath = Engine.PROJECTS_PATH + "/" + newName + "/" + newName + ".xml";
 			if (new File(xmlFilePath).exists()) {
 				replacements = new ArrayList<Replacement>();
-				replacements.add(new Replacement("value=\""+oldName+"\"", "value=\""+newName+"\""));
-				replacements.add(new Replacement("value=\""+oldName+"\\.", "value=\""+newName+"\\.")); // for call steps
 				try {
-					if (keepOldReferences)
-						ProjectUtils.makeReplacementsInFile(replacements, xmlFilePath, "<!--<Project");
-					else
-						ProjectUtils.makeReplacementsInFile(replacements, xmlFilePath);
+					// replace project's bean name
+					replacements.add(new Replacement("<!--<Project : " + oldName + ">", "<!--<Project : " + newName + ">"));
+					replacements.add(new Replacement("value=\""+oldName+"\"", "value=\""+newName+"\"", "<!--<Project"));
+					replacements.add(new Replacement("<!--</Project : " + oldName + ">", "<!--</Project : " + newName + ">"));
+					
+					// replace project's name references
+					if (!keepOldReferences) {
+						replacements.add(new Replacement("value=\""+oldName+"\\.", "value=\""+newName+"\\."));
+					}
+					
+					ProjectUtils.makeReplacementsInFile(replacements, xmlFilePath);
 				} catch (Exception e) {
 				}
 			}
