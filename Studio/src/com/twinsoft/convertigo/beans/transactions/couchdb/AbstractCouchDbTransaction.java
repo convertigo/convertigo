@@ -22,10 +22,13 @@
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
 
@@ -184,6 +187,54 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 
 	public String getParameterStringValue(CouchDbParameter param) {
 		return super.getParameterStringValue(param.variableName());
+	}
+	
+	public String getUrlVariableValue(CouchDbParameter param) {
+		String value = super.getParameterStringValue("__" + param.variableName());
+		if (value == null) {
+			try {
+				value = (String) getClass().getMethod("getU_" + param.variableName()).invoke(this);
+			} catch (Exception e) {
+				//TODO: handle error
+				e.printStackTrace();
+			}
+		}
+		return value;
+	}
+	
+	public Map<String, String> getQueryVariableValues() {
+		Map<String, String> map = new HashMap<String, String>();
+		
+		try {
+			for (Method method: getClass().getMethods()) {
+				if (method.getName().startsWith("getQ_")) {
+					String name = method.getName().substring(5);
+					String value = (String) method.invoke(this);
+					if (!value.isEmpty()) {
+						map.put(name, value);
+					}
+				}
+			}
+			
+			for (RequestableVariable variable: getAllVariables()) {
+				if (variable.getName().startsWith("__")) {
+					String name = variable.getName().substring(2);
+					try {
+						getClass().getMethod("getU_" + name);
+					} catch (Throwable t) {
+						String value = getParameterStringValue(name);
+						if (!value.isEmpty()) {
+							map.put(name, value);
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			//TODO: handle error
+			e.printStackTrace();
+		}
+		
+		return map;
 	}
 	
 	protected static void addJson(JSONObject jsonObject, String propertyName, Object jsonElement) {
