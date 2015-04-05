@@ -21,8 +21,6 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import java.util.List;
-
 import javax.xml.namespace.QName;
 
 import org.codehaus.jettison.json.JSONObject;
@@ -39,11 +37,6 @@ public class PostServerRestartTransaction extends AbstractServerTransaction {
 	public PostServerRestartTransaction clone() throws CloneNotSupportedException {
 		PostServerRestartTransaction clonedObject =  (PostServerRestartTransaction) super.clone();
 		return clonedObject;
-	}
-	
-	@Override
-	public List<CouchDbParameter> getDeclaredParameters() {
-		return getDeclaredParameters(CouchDbParameter.empty);
 	}
 	
 	@Override

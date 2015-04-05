@@ -23,6 +23,7 @@
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
 import java.util.Iterator;
+import java.util.Map;
 
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -42,6 +43,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
+import com.twinsoft.convertigo.engine.providers.couchdb.CouchClientException;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
@@ -89,18 +91,22 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 
 	private void renameDocument(String oldName, String newName) {
 		if (oldName != null && newName != null) {
-			CouchDbConnector couchDbConnector = getObject().getConnector();
-			CouchClient couchClient = couchDbConnector.getCouchClient();
-			String db = couchDbConnector.getDatabaseName();
-			
-			// delete old document
-			couchClient.deleteDocument(db, CouchKey._design.key() + oldName, null);
-			
-			// create new document
-			JSONObject jso = getObject().getJSONObject();
-			CouchKey._id.put(jso, CouchKey._design.key() + newName);
-			CouchKey._rev.remove(jso);
-			lastRev = CouchDbManager.syncDocument(couchClient, db, jso.toString());
+			try {
+				CouchDbConnector couchDbConnector = getObject().getConnector();
+				CouchClient couchClient = couchDbConnector.getCouchClient();
+				String db = couchDbConnector.getDatabaseName();
+				
+				// delete old document
+				couchClient.deleteDocument(db, CouchKey._design.key() + oldName, (Map<String, String>) null);
+				
+				// create new document
+				JSONObject jso = getObject().getJSONObject();
+				CouchKey._id.put(jso, CouchKey._design.key() + newName);
+				CouchKey._rev.remove(jso);
+				lastRev = CouchDbManager.syncDocument(couchClient, db, jso.toString());
+			} catch (CouchClientException e) {
+				//TODO: handle e
+			}
 		}
 	}
 		

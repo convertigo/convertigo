@@ -22,17 +22,20 @@
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
 import java.io.File;
-import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
-import com.twinsoft.convertigo.engine.Engine;
+import org.codehaus.jettison.json.JSONObject;
+
+import com.twinsoft.convertigo.engine.enums.CouchParam;
 
 public class GetDocumentAttachmentTransaction extends AbstractDocumentTransaction {
 
 	private static final long serialVersionUID = -1731027540919633324L;
 
-	private String u_attname = "";
+	private String p_attname = "";
+	private String p_attpath = "";
 	private String q_rev = "";
 	
 	public GetDocumentAttachmentTransaction() {
@@ -44,22 +47,18 @@ public class GetDocumentAttachmentTransaction extends AbstractDocumentTransactio
 		GetDocumentAttachmentTransaction clonedObject =  (GetDocumentAttachmentTransaction) super.clone();
 		return clonedObject;
 	}
-	
-	@Override
-	public List<CouchDbParameter> getDeclaredParameters() {
-		return getDeclaredParameters(var_database, var_docid, var_docrev, var_filename, var_filepath);
-	}
 		
 	@Override
 	protected Object invoke() throws Exception {
-		String docId = getParameterStringValue(var_docid);
-		String docRev = getParameterStringValue(var_docrev);
-		String attName = getParameterStringValue(var_filename);
-		String attPath = getParameterStringValue(var_filepath);
+		String db = getTargetDatabase();
+		String docid = getParameterStringValue(CouchParam.docid);
+		String attname = getParameterStringValue(CouchParam.attname);
+		String attpath = getParameterStringValue(CouchParam.attpath);
+		Map<String, String> query = getQueryVariableValues();
 		
-		attPath = Engine.theApp.filePropertyManager.getFilepathFromProperty(attPath, getProject().getName());
+		JSONObject response = getCouchClient().getDocumentAttachment(db, docid, attname, query, new File(attpath));
 		
-		return getCouchClient().getDocumentAttachment(getTargetDatabase(), docId, docRev, attName, new File(attPath));
+		return response;
 	}
 
 	@Override
@@ -67,12 +66,20 @@ public class GetDocumentAttachmentTransaction extends AbstractDocumentTransactio
 		return new QName(COUCHDB_XSD_NAMESPACE, "getDocumentAttachmentType");
 	}
 
-	public String getU_attname() {
-		return u_attname;
+	public String getP_attname() {
+		return p_attname;
 	}
 
-	public void setU_attname(String u_attname) {
-		this.u_attname = u_attname;
+	public void setP_attname(String p_attname) {
+		this.p_attname = p_attname;
+	}
+
+	public String getP_attpath() {
+		return p_attpath;
+	}
+
+	public void setP_attpath(String p_attpath) {
+		this.p_attpath = p_attpath;
 	}
 
 	public String getQ_rev() {

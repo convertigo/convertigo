@@ -21,17 +21,18 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import java.util.List;
-
 import javax.xml.namespace.QName;
 
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.engine.enums.CouchParam;
+
 public class PutServerConfigTransaction extends AbstractServerTransaction {
 	private static final long serialVersionUID = -3775078867489864436L;
 	
-	private String u_section = "";
-	private String u_key = "";
+	private String p_section = "";
+	private String p_key = "";
+	private String p_value = "";
 	
 	public PutServerConfigTransaction() {
 		super();
@@ -44,18 +45,15 @@ public class PutServerConfigTransaction extends AbstractServerTransaction {
 	}
 	
 	@Override
-	public List<CouchDbParameter> getDeclaredParameters() {
-		return getDeclaredParameters(var_section, var_key, var_value);
-	}
-	
-	@Override
 	protected Object invoke() throws Exception {
-		String section = getParameterStringValue(var_section);
-		String key = getParameterStringValue(var_key);
-		String value = getParameterStringValue(var_value);
+		String section = getParameterStringValue(CouchParam.section);
+		String key = getParameterStringValue(CouchParam.key);
+		String value = getParameterStringValue(CouchParam.value);
 		
-		JSONObject json = getCouchClient().putConfig(section, key, value);
-		return GetServerConfigTransaction.handleConfigResponse(json, section, key);
+		JSONObject response = getCouchClient().putConfig(section, key, value);
+		response = GetServerConfigTransaction.handleConfigResponse(response, section, key);
+		
+		return response;
 	}
 
 	@Override
@@ -63,19 +61,27 @@ public class PutServerConfigTransaction extends AbstractServerTransaction {
 		return new QName(COUCHDB_XSD_NAMESPACE, "putServerConfigType");
 	}
 
-	public String getU_section() {
-		return u_section;
+	public String getP_section() {
+		return p_section;
 	}
 
-	public void setU_section(String u_section) {
-		this.u_section = u_section;
+	public void setP_section(String p_section) {
+		this.p_section = p_section;
 	}
 
-	public String getU_key() {
-		return u_key;
+	public String getP_key() {
+		return p_key;
 	}
 
-	public void setU_key(String u_key) {
-		this.u_key = u_key;
+	public void setP_key(String p_key) {
+		this.p_key = p_key;
+	}
+
+	public String getP_value() {
+		return p_value;
+	}
+
+	public void setP_value(String p_value) {
+		this.p_value = p_value;
 	}
 }

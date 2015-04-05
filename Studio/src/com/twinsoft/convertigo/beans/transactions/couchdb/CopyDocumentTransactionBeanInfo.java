@@ -40,17 +40,23 @@ public class CopyDocumentTransactionBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/databasetransaction_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/databasetransaction_color_32x32.png";
 			
-			properties = new PropertyDescriptor[2];
+			properties = new PropertyDescriptor[4];
+
+			properties[0] = new PropertyDescriptor("p_destination", beanClass, "getP_destination", "setP_destination");
+			properties[0].setDisplayName(getExternalizedString("property.p_destination.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.p_destination.short_description"));
 			
-			properties[0] = new PropertyDescriptor("q_rev", beanClass, "getQ_rev", "setQ_rev");
-			properties[0].setDisplayName(getExternalizedString("property.q_rev.display_name"));
-			properties[0].setShortDescription(getExternalizedString("property.q_rev.short_description"));
+			properties[1] = new PropertyDescriptor("p_destination_rev", beanClass, "getP_destination_rev", "setP_destination_rev");
+			properties[1].setDisplayName(getExternalizedString("property.p_destination_rev.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.p_destination_rev.short_description"));
 			
-			properties[1] = new PropertyDescriptor("q_batch", beanClass, "getQ_batch", "setQ_batch");
-			properties[1].setDisplayName(getExternalizedString("property.q_batch.display_name"));
-			properties[1].setShortDescription(getExternalizedString("property.q_batch.short_description"));
+			properties[2] = new PropertyDescriptor("q_rev", beanClass, "getQ_rev", "setQ_rev");
+			properties[2].setDisplayName(getExternalizedString("property.q_rev.display_name"));
+			properties[2].setShortDescription(getExternalizedString("property.q_rev.short_description"));
 			
-			getPropertyDescriptor("xmlComplexTypeAffectation").setHidden(false);
+			properties[3] = new PropertyDescriptor("q_batch", beanClass, "getQ_batch", "setQ_batch");
+			properties[3].setDisplayName(getExternalizedString("property.q_batch.display_name"));
+			properties[3].setShortDescription(getExternalizedString("property.q_batch.short_description"));
 			
 		}
 		catch(Exception e) {

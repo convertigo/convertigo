@@ -21,7 +21,6 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import java.util.List;
 import java.util.regex.Matcher;
 
 import javax.xml.namespace.QName;
@@ -30,16 +29,17 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
-import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
+import com.twinsoft.convertigo.engine.enums.CouchParam;
 
-public class PostUpdateTransaction extends AbstractDocumentTransaction implements ITagsProperty {
+public class PostUpdateTransaction extends AbstractDatabaseTransaction implements ITagsProperty {
 
 	private static final long serialVersionUID = -7606732916561433615L;
 
 	private String updatename = "";
-	
-	private String u_func = "";
+
+	private String p_ddoc = "";
+	private String p_func = "";
 
 	public PostUpdateTransaction() {
 		super();
@@ -50,41 +50,28 @@ public class PostUpdateTransaction extends AbstractDocumentTransaction implement
 		PostUpdateTransaction clonedObject =  (PostUpdateTransaction) super.clone();
 		return clonedObject;
 	}
-	
-	@Override
-	public List<CouchDbParameter> getDeclaredParameters() {
-		return getDeclaredParameters(var_database, var_docid, var_updatename, var_data);
-	}
 		
 	@Override
 	protected Object invoke() throws Exception {
-		JSONObject jsonDocument = new JSONObject();
-		String docId, updatename;
+		String db = getTargetDatabase();
+		String ddoc;
+		String func;
 		
-		Matcher mSplitUpdatename = DesignDocument.splitFunctionName.matcher(this.updatename);
+		Matcher mSplitUpdatename = DesignDocument.splitFunctionName.matcher(updatename);
 		
 		if (mSplitUpdatename.matches()) {
-			docId = mSplitUpdatename.group(1);
-			updatename = mSplitUpdatename.group(2);
+			ddoc = mSplitUpdatename.group(1);
+			func = mSplitUpdatename.group(2);
 		} else {
-			docId = getParameterStringValue(var_docid);
-			updatename = getParameterStringValue(var_updatename);
+			ddoc = getParameterStringValue(CouchParam.ddoc);
+			func = getParameterStringValue(CouchParam.func);
 		}
 		
-		// add document members from variables
-		for (RequestableVariable variable : getVariablesList()) {
-			String variableName = variable.getName();
-
-			if (!(variableName.equals(var_database.variableName()) ||
-					variableName.equals(var_docid.variableName()) ||
-					variableName.equals(var_updatename.variableName()))) {
-				
-				Object jsonElement = toJson(getParameterValue(variableName));
-				addJson(jsonDocument, variableName, jsonElement);
-			}
-		}
+		JSONObject jsonDocument = getJsonBody();
 		
-		return getCouchClient().postUpdate(getTargetDatabase(), docId, updatename, jsonDocument);
+		JSONObject response = getCouchClient().postUpdate(db, ddoc, func, jsonDocument);
+		
+		return response;
 	}
 	
 	@Override
@@ -108,11 +95,19 @@ public class PostUpdateTransaction extends AbstractDocumentTransaction implement
 		return null;
 	}
 
-	public String getU_func() {
-		return u_func;
+	public String getP_ddoc() {
+		return p_ddoc;
 	}
 
-	public void setU_func(String u_func) {
-		this.u_func = u_func;
+	public void setP_ddoc(String p_ddoc) {
+		this.p_ddoc = p_ddoc;
+	}
+
+	public String getP_func() {
+		return p_func;
+	}
+
+	public void setP_func(String p_func) {
+		this.p_func = p_func;
 	}
 }

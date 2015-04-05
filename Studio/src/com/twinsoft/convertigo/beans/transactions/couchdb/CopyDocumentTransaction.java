@@ -21,14 +21,20 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
+
+import org.codehaus.jettison.json.JSONObject;
+
+import com.twinsoft.convertigo.engine.enums.CouchParam;
 
 public class CopyDocumentTransaction extends AbstractDocumentTransaction {
 
 	private static final long serialVersionUID = 110083227104023263L;
 	
+	private String p_destination = "";
+	private String p_destination_rev = "";
 	private String q_rev = "";
 	private String q_batch = "";
 	
@@ -41,27 +47,39 @@ public class CopyDocumentTransaction extends AbstractDocumentTransaction {
 		CopyDocumentTransaction clonedObject =  (CopyDocumentTransaction) super.clone();
 		return clonedObject;
 	}
-	
-	@Override
-	public List<CouchDbParameter> getDeclaredParameters() {
-		return getDeclaredParameters(var_database, var_docid, var_docrev, var_dest, var_destrev);
-	}
 
 	@Override
 	protected Object invoke() throws Exception {
-		String docId = getParameterStringValue(var_docid);
-		String docRev = getParameterStringValue(var_docrev);
-		String dest = getParameterStringValue(var_dest);
-		String destRev = getParameterStringValue(var_destrev);
-		return getCouchClient().copyDocument(getTargetDatabase(), docId, docRev, dest, destRev);
+		String db = getTargetDatabase();
+		String docid = getParameterStringValue(CouchParam.docid);
+		String destination = getParameterStringValue(CouchParam.destination);
+		String destination_rev = getParameterStringValue(CouchParam.destination);
+		Map<String, String> query = getQueryVariableValues();
+		
+		JSONObject response = getCouchClient().copyDocument(db, docid, destination, destination_rev, query);
+		
+		return response;
 	}
 
 	@Override
 	public QName getComplexTypeAffectation() {
-		if (getXmlComplexTypeAffectation().isEmpty())
-			return new QName(COUCHDB_XSD_NAMESPACE, "copyDocumentType");
-		else
-			return super.getComplexTypeAffectation();
+		return new QName(COUCHDB_XSD_NAMESPACE, "copyDocumentType");
+	}
+
+	public String getP_destination() {
+		return p_destination;
+	}
+
+	public void setP_destination(String p_destination) {
+		this.p_destination = p_destination;
+	}
+
+	public String getP_destination_rev() {
+		return p_destination_rev;
+	}
+
+	public void setP_destination_rev(String p_destination_rev) {
+		this.p_destination_rev = p_destination_rev;
 	}
 	
 	public String getQ_rev() {
@@ -79,5 +97,4 @@ public class CopyDocumentTransaction extends AbstractDocumentTransaction {
 	public void setQ_batch(String q_batch) {
 		this.q_batch = q_batch;
 	}
-	
 }

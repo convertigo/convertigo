@@ -40,11 +40,15 @@ public class PostSessionTransactionBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/servertransaction_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/servertransaction_color_32x32.png";
 			
-			properties = new PropertyDescriptor[1];
+			properties = new PropertyDescriptor[2];
 			
-			properties[0] = new PropertyDescriptor("q_next", beanClass, "getQ_next", "setQ_next");
-			properties[0].setDisplayName(getExternalizedString("property.q_next.display_name"));
-			properties[0].setShortDescription(getExternalizedString("property.q_next.short_description"));
+			properties[0] = new PropertyDescriptor("p_name", beanClass, "getP_name", "setP_name");
+			properties[0].setDisplayName(getExternalizedString("property.p_name.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.p_name.short_description"));
+			
+			properties[1] = new PropertyDescriptor("p_password", beanClass, "getP_password", "setP_password");
+			properties[1].setDisplayName(getExternalizedString("property.p_password.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.p_password.short_description"));
 			
 		}
 		catch(Exception e) {

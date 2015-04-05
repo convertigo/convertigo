@@ -21,9 +21,13 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
+
+import org.codehaus.jettison.json.JSONObject;
+
+import com.twinsoft.convertigo.engine.enums.CouchParam;
 
 public class DeleteDocumentTransaction extends AbstractDocumentTransaction {
 
@@ -41,18 +45,16 @@ public class DeleteDocumentTransaction extends AbstractDocumentTransaction {
 		DeleteDocumentTransaction clonedObject =  (DeleteDocumentTransaction) super.clone();
 		return clonedObject;
 	}
-	
-	@Override
-	public List<CouchDbParameter> getDeclaredParameters() {
-		return getDeclaredParameters(var_database, var_docid, var_docrev);
-	}
 
 	@Override
 	protected Object invoke() throws Exception {
-		String docId = getParameterStringValue(var_docid);
-		String docRev = getParameterStringValue(var_docrev);
+		String db = getTargetDatabase();
+		String docid = getParameterStringValue(CouchParam.docid);
+		Map<String, String> query = getQueryVariableValues();
 		
-		return getCouchClient().deleteDocument(getTargetDatabase(), docId, docRev);
+		JSONObject response = getCouchClient().deleteDocument(db, docid, query);
+		
+		return response;
 	}
 
 	@Override

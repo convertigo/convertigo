@@ -21,9 +21,13 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
+
+import org.codehaus.jettison.json.JSONObject;
+
+import com.twinsoft.convertigo.engine.enums.CouchParam;
 
 public class GetDocumentTransaction extends AbstractDocumentTransaction {
 
@@ -51,17 +55,16 @@ public class GetDocumentTransaction extends AbstractDocumentTransaction {
 		GetDocumentTransaction clonedObject =  (GetDocumentTransaction) super.clone();
 		return clonedObject;
 	}
-	
-	@Override
-	public List<CouchDbParameter> getDeclaredParameters() {
-		return getDeclaredParameters(var_database, var_docid, var_docrev);
-	}
 
 	@Override
 	protected Object invoke() throws Exception {
-		String docId = getParameterStringValue(var_docid);
-		String docRev = getParameterStringValue(var_docrev);
-		return getCouchClient().getDocument(getTargetDatabase(), docId, docRev);
+		String db = getTargetDatabase();
+		String docid = getParameterStringValue(CouchParam.docid);
+		Map<String, String> query = getQueryVariableValues();
+		
+		JSONObject response = getCouchClient().getDocument(db, docid, query);
+		
+		return response;
 	}
 
 	@Override
@@ -167,5 +170,4 @@ public class GetDocumentTransaction extends AbstractDocumentTransaction {
 	public void setQ_revs_info(String q_revs_info) {
 		this.q_revs_info = q_revs_info;
 	}
-	
 }

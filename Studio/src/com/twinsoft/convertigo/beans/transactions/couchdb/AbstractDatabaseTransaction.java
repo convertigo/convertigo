@@ -32,7 +32,7 @@ public abstract class AbstractDatabaseTransaction extends AbstractCouchDbTransac
 		super();
 	}
 	
-	private String u_db = "";
+	private String p_db = "";
 
 	@Override
 	public AbstractDatabaseTransaction clone() throws CloneNotSupportedException {
@@ -44,11 +44,11 @@ public abstract class AbstractDatabaseTransaction extends AbstractCouchDbTransac
 		return getConnector().getTargetDatabase(this);
 	}
 
-	public String getU_db() {
-		return u_db;
+	public String getP_db() {
+		return p_db;
 	}
 
-	public void setU_db(String u_db) {
-		this.u_db = u_db;
+	public void setP_db(String p_db) {
+		this.p_db = p_db;
 	}
 }

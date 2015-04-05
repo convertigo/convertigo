@@ -21,13 +21,12 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
 import org.codehaus.jettison.json.JSONObject;
 
-import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.enums.CouchPostDocumentPolicy;
 
 public class PostDocumentTransaction extends AbstractDocumentTransaction {
@@ -47,27 +46,17 @@ public class PostDocumentTransaction extends AbstractDocumentTransaction {
 		PostDocumentTransaction clonedObject =  (PostDocumentTransaction) super.clone();
 		return clonedObject;
 	}
-	
-	@Override
-	public List<CouchDbParameter> getDeclaredParameters() {
-		return getDeclaredParameters(var_database, var_id, var_data);
-	}
 		
 	@Override
 	protected Object invoke() throws Exception {
-		JSONObject jsonDocument = new JSONObject();
+		String db = getTargetDatabase();
+		Map<String, String> query = getQueryVariableValues();
 		
-		// add document members from variables
-		for (RequestableVariable variable : getVariablesList()) {
-			String variableName = variable.getName();
-
-			if (!variableName.equals(var_database.variableName())) {
-				Object jsonElement = toJson(getParameterValue(variableName));
-				addJson(jsonDocument, variableName, jsonElement);
-			}
-		}
+		JSONObject jsonDocument = getJsonBody();
 		
-		return getCouchClient().postDocument(getTargetDatabase(), jsonDocument, policy);
+		JSONObject response = getCouchClient().postDocument(db, jsonDocument, query, policy);
+		
+		return response;
 	}
 	
 	@Override

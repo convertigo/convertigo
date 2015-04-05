@@ -21,9 +21,13 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
+
+import org.codehaus.jettison.json.JSONObject;
+
+import com.twinsoft.convertigo.engine.providers.couchdb.CouchClientException;
 
 public class GetServerUuidsTransaction extends AbstractServerTransaction {
 
@@ -40,17 +44,14 @@ public class GetServerUuidsTransaction extends AbstractServerTransaction {
 		GetServerUuidsTransaction clonedObject =  (GetServerUuidsTransaction) super.clone();
 		return clonedObject;
 	}
-	
-	@Override
-	public List<CouchDbParameter> getDeclaredParameters() {
-		return getDeclaredParameters(var_count);
-	}
 
 	@Override
-	protected Object invoke() throws Exception {
-		String sCount = getParameterStringValue(var_count);
-		long count = (sCount == null || sCount.isEmpty()) ? 1L : Long.valueOf(sCount);
-		return getCouchClient().getUuids(count);
+	protected Object invoke() throws CouchClientException {
+		Map<String, String> query = getQueryVariableValues();
+		
+		JSONObject response = (JSONObject) getCouchClient().getUuids(query);
+		
+		return response;
 	}
 
 	@Override

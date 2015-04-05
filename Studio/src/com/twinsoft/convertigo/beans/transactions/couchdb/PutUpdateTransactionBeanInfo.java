@@ -47,13 +47,13 @@ public class PutUpdateTransactionBeanInfo extends MySimpleBeanInfo {
             properties[0].setShortDescription(getExternalizedString("property.updatename.short_description")); 
             properties[0].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
             
-            properties[1] = new PropertyDescriptor("u_ddoc", beanClass, "getU_ddoc", "setU_ddoc");
-            properties[1].setDisplayName(getExternalizedString("property.u_ddoc.display_name"));
-            properties[1].setShortDescription(getExternalizedString("property.u_ddoc.short_description")); 
+            properties[1] = new PropertyDescriptor("p_ddoc", beanClass, "getP_ddoc", "setP_ddoc");
+            properties[1].setDisplayName(getExternalizedString("property.p_ddoc.display_name"));
+            properties[1].setShortDescription(getExternalizedString("property.p_ddoc.short_description")); 
             
-            properties[2] = new PropertyDescriptor("u_func", beanClass, "getU_func", "setU_func");
-            properties[2].setDisplayName(getExternalizedString("property.u_func.display_name"));
-            properties[2].setShortDescription(getExternalizedString("property.u_func.short_description")); 
+            properties[2] = new PropertyDescriptor("p_func", beanClass, "getP_func", "setP_func");
+            properties[2].setDisplayName(getExternalizedString("property.p_func.display_name"));
+            properties[2].setShortDescription(getExternalizedString("property.p_func.short_description")); 
             
 		}
 		catch(Exception e) {

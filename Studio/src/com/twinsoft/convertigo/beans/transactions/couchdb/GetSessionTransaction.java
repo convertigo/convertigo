@@ -21,16 +21,11 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import java.util.List;
-
 import javax.xml.namespace.QName;
 
 public class GetSessionTransaction extends AbstractServerTransaction {
 
-	private static final long serialVersionUID = -4535060854117693921L;
-
-	private String q_basic = "";
-	
+	private static final long serialVersionUID = -4535060854117693921L;	
 	
 	public GetSessionTransaction() {
 		super();
@@ -41,11 +36,6 @@ public class GetSessionTransaction extends AbstractServerTransaction {
 		GetSessionTransaction clonedObject =  (GetSessionTransaction) super.clone();
 		return clonedObject;
 	}
-	
-	@Override
-	public List<CouchDbParameter> getDeclaredParameters() {
-		return getDeclaredParameters(CouchDbParameter.empty);
-	}
 
 	@Override
 	protected Object invoke() throws Exception {
@@ -55,13 +45,5 @@ public class GetSessionTransaction extends AbstractServerTransaction {
 	@Override
 	public QName getComplexTypeAffectation() {
 		return new QName(COUCHDB_XSD_NAMESPACE, "getSessionType");
-	}
-
-	public String getQ_basic() {
-		return q_basic;
-	}
-
-	public void setQ_basic(String q_basic) {
-		this.q_basic = q_basic;
 	}
 }

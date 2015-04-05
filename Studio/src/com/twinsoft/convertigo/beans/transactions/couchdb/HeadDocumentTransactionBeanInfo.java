@@ -30,7 +30,7 @@ public class HeadDocumentTransactionBeanInfo extends MySimpleBeanInfo {
 	public HeadDocumentTransactionBeanInfo() {
 		try {
 			beanClass = HeadDocumentTransaction.class;
-			additionalBeanClass = AbstractDocumentTransaction.class;
+			additionalBeanClass = GetDocumentTransaction.class;
 
 			resourceBundle = getResourceBundle("res/HeadDocumentTransaction");
 			

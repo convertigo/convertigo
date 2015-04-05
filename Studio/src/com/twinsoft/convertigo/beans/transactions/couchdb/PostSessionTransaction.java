@@ -21,17 +21,17 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import java.util.List;
-
 import javax.xml.namespace.QName;
 
+import com.twinsoft.convertigo.engine.enums.CouchParam;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
 
 public class PostSessionTransaction extends AbstractServerTransaction {
 
 	private static final long serialVersionUID = -1385969696979516586L;
 	
-	private String q_next = "";
+	private String p_name = "";
+	private String p_password = "";
 	
 	public PostSessionTransaction() {
 		super();
@@ -42,16 +42,11 @@ public class PostSessionTransaction extends AbstractServerTransaction {
 		PostSessionTransaction clonedObject =  (PostSessionTransaction) super.clone();
 		return clonedObject;
 	}
-	
-	@Override
-	public List<CouchDbParameter> getDeclaredParameters() {
-		return getDeclaredParameters(var_name, var_password);
-	}
 
 	@Override
 	protected Object invoke() throws Exception {
-		String name = getParameterStringValue(var_name);
-		String password = getParameterStringValue(var_password);
+		String name = getParameterStringValue(CouchParam.name);
+		String password = getParameterStringValue(CouchParam.password);
 		
 		getConnector().setCouchClient(new CouchClient(getCouchClient().getServerUrl(), name, password));
 		
@@ -63,12 +58,19 @@ public class PostSessionTransaction extends AbstractServerTransaction {
 		return new QName(COUCHDB_XSD_NAMESPACE, "postSessionType");
 	}
 
-	public String getQ_next() {
-		return q_next;
+	public String getP_name() {
+		return p_name;
 	}
 
-	public void setQ_next(String q_next) {
-		this.q_next = q_next;
+	public void setP_name(String p_name) {
+		this.p_name = p_name;
 	}
-	
+
+	public String getP_password() {
+		return p_password;
+	}
+
+	public void setP_password(String p_password) {
+		this.p_password = p_password;
+	}
 }

@@ -22,8 +22,11 @@
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
+
+import org.codehaus.jettison.json.JSONObject;
 
 public class GetServerUpdatesTransaction extends AbstractServerTransaction {
 
@@ -50,15 +53,11 @@ public class GetServerUpdatesTransaction extends AbstractServerTransaction {
 	
 	@Override
 	protected Object invoke() throws Exception {
-		String feed = getParameterStringValue(var_feed);
+		Map<String, String> query = getQueryVariableValues();
 		
-		String sTimeout = getParameterStringValue(var_timeout);
-		Integer timeout = (sTimeout == null) ? null : Integer.valueOf(sTimeout);
+		JSONObject response = (JSONObject) getCouchClient().getDbUpdates(query);
 		
-		String sHeartbeat = getParameterStringValue(var_heartbeat);
-		Boolean heartbeat = (sHeartbeat == null) ? null : Boolean.valueOf(sHeartbeat);
-		
-		return getCouchClient().getDbUpdates(feed, timeout, heartbeat);
+		return response;
 	}
 	
 	@Override

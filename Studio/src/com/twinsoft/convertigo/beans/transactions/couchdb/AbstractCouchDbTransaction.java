@@ -58,6 +58,7 @@ import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
+import com.twinsoft.convertigo.engine.enums.CouchParam;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
@@ -92,8 +93,10 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 	public void setStatisticsOfRequestFromCache() {
 		// TODO Auto-generated method stub
 	}
-
-	public abstract List<CouchDbParameter> getDeclaredParameters();
+	
+	public List<CouchDbParameter> getDeclaredParameters() {
+		return getDeclaredParameters(CouchDbParameter.empty);
+	}
 	
 	public void createVariables() {
 		try {
@@ -189,11 +192,11 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		return super.getParameterStringValue(param.variableName());
 	}
 	
-	public String getUrlVariableValue(CouchDbParameter param) {
-		String value = super.getParameterStringValue("__" + param.variableName());
+	public String getParameterStringValue(CouchParam param) {
+		String value = getParameterStringValue("__" + param.param());
 		if (value == null) {
 			try {
-				value = (String) getClass().getMethod("getU_" + param.variableName()).invoke(this);
+				value = (String) getClass().getMethod("getP_" + param.name()).invoke(this);
 			} catch (Exception e) {
 				//TODO: handle error
 				e.printStackTrace();
@@ -210,6 +213,7 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 				if (method.getName().startsWith("getQ_")) {
 					String name = method.getName().substring(5);
 					String value = (String) method.invoke(this);
+					
 					if (!value.isEmpty()) {
 						map.put(name, value);
 					}
@@ -220,9 +224,10 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 				if (variable.getName().startsWith("__")) {
 					String name = variable.getName().substring(2);
 					try {
-						getClass().getMethod("getU_" + name);
+						getClass().getMethod("getP_" + name);
 					} catch (Throwable t) {
 						String value = getParameterStringValue(name);
+						
 						if (!value.isEmpty()) {
 							map.put(name, value);
 						}
@@ -235,6 +240,21 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		}
 		
 		return map;
+	}
+	
+	public JSONObject getJsonBody() throws JSONException {
+		JSONObject jsonDocument = new JSONObject();
+
+		// add document members from variables
+		for (RequestableVariable variable: getAllVariables()) {
+			String name = variable.getName();
+			if (!name.startsWith("__")) {
+				Object jsonElement = toJson(getParameterValue(name));
+				addJson(jsonDocument, name, jsonElement);
+			}
+		}
+
+		return jsonDocument;
 	}
 	
 	protected static void addJson(JSONObject jsonObject, String propertyName, Object jsonElement) {

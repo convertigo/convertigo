@@ -42,9 +42,9 @@ public class PutDocumentAttachmentTransactionBeanInfo extends MySimpleBeanInfo {
 			
 			properties = new PropertyDescriptor[2];
 			
-			properties[0] = new PropertyDescriptor("u_attname", beanClass, "getU_attname", "setU_attname");
-			properties[0].setDisplayName(getExternalizedString("property.u_attname.display_name"));
-			properties[0].setShortDescription(getExternalizedString("property.u_attname.short_description"));
+			properties[0] = new PropertyDescriptor("p_attname", beanClass, "getP_attname", "setP_attname");
+			properties[0].setDisplayName(getExternalizedString("property.p_attname.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.p_attname.short_description"));
 			
 			properties[1] = new PropertyDescriptor("q_rev", beanClass, "getQ_rev", "setQ_rev");
 			properties[1].setDisplayName(getExternalizedString("property.q_rev.display_name"));

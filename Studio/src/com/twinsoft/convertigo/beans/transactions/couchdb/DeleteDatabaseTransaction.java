@@ -21,9 +21,9 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import java.util.List;
-
 import javax.xml.namespace.QName;
+
+import org.codehaus.jettison.json.JSONObject;
 
 public class DeleteDatabaseTransaction extends AbstractDatabaseTransaction {
 
@@ -40,13 +40,12 @@ public class DeleteDatabaseTransaction extends AbstractDatabaseTransaction {
 	}
 	
 	@Override
-	public List<CouchDbParameter> getDeclaredParameters() {
-		return getDeclaredParameters(var_database);
-	}
-	
-	@Override
 	protected Object invoke() throws Exception {
-		return getCouchClient().deleteDatabase(getTargetDatabase());
+		String db = getTargetDatabase();
+		
+		JSONObject response = getCouchClient().deleteDatabase(db);
+		
+		return response;
 	}
 
 	@Override

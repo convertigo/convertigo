@@ -54,7 +54,7 @@ public abstract class AbstractDocumentTransaction extends AbstractDatabaseTransa
 	protected static final String doc_design_path 	= CouchKey._design.key();
 	protected static final String doc_global_path 	= CouchKey._global.key();
 	
-	private String u_docid = "";
+	private String p_docid = "";
 	
 	public AbstractDocumentTransaction() {
 		super();
@@ -72,11 +72,11 @@ public abstract class AbstractDocumentTransaction extends AbstractDatabaseTransa
 		}
 	}
 
-	public String getU_docid() {
-		return u_docid;
+	public String getP_docid() {
+		return p_docid;
 	}
 
-	public void setU_docid(String u_docid) {
-		this.u_docid = u_docid;
+	public void setP_docid(String p_docid) {
+		this.p_docid = p_docid;
 	}
 }

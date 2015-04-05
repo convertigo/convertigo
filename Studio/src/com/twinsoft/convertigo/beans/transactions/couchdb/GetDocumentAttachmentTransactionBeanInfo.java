@@ -40,15 +40,19 @@ public class GetDocumentAttachmentTransactionBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/databasetransaction_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/databasetransaction_color_32x32.png";
 			
-			properties = new PropertyDescriptor[2];
+			properties = new PropertyDescriptor[3];
 			
-			properties[0] = new PropertyDescriptor("u_attname", beanClass, "getU_attname", "setU_attname");
-			properties[0].setDisplayName(getExternalizedString("property.u_attname.display_name"));
-			properties[0].setShortDescription(getExternalizedString("property.u_attname.short_description"));
+			properties[0] = new PropertyDescriptor("p_attname", beanClass, "getP_attname", "setP_attname");
+			properties[0].setDisplayName(getExternalizedString("property.p_attname.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.p_attname.short_description"));
 			
-			properties[1] = new PropertyDescriptor("q_rev", beanClass, "getQ_rev", "setQ_rev");
-			properties[1].setDisplayName(getExternalizedString("property.q_rev.display_name"));
-			properties[1].setShortDescription(getExternalizedString("property.q_rev.short_description"));
+			properties[1] = new PropertyDescriptor("p_attname", beanClass, "getP_attname", "setP_attname");
+			properties[1].setDisplayName(getExternalizedString("property.p_attname.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.p_attname.short_description"));
+			
+			properties[2] = new PropertyDescriptor("q_rev", beanClass, "getQ_rev", "setQ_rev");
+			properties[2].setDisplayName(getExternalizedString("property.q_rev.display_name"));
+			properties[2].setShortDescription(getExternalizedString("property.q_rev.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

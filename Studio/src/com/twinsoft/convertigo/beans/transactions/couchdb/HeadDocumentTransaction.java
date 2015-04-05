@@ -21,11 +21,15 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
-public class HeadDocumentTransaction extends AbstractDocumentTransaction {
+import org.codehaus.jettison.json.JSONObject;
+
+import com.twinsoft.convertigo.engine.enums.CouchParam;
+
+public class HeadDocumentTransaction extends GetDocumentTransaction {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -38,16 +42,16 @@ public class HeadDocumentTransaction extends AbstractDocumentTransaction {
 		HeadDocumentTransaction clonedObject =  (HeadDocumentTransaction) super.clone();
 		return clonedObject;
 	}
-	
-	@Override
-	public List<CouchDbParameter> getDeclaredParameters() {
-		return getDeclaredParameters(var_database, var_docid);
-	}
 
 	@Override
 	protected Object invoke() throws Exception {
-		String docId = getParameterStringValue(var_docid);
-		return getCouchClient().headDocument(getTargetDatabase(), docId);
+		String db = getTargetDatabase();
+		String docid = getParameterStringValue(CouchParam.docid);
+		Map<String, String> query = getQueryVariableValues();
+		
+		JSONObject response = getCouchClient().headDocument(db, docid, query);
+		
+		return response;
 	}
 
 	@Override

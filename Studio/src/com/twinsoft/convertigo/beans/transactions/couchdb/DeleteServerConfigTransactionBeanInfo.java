@@ -42,13 +42,13 @@ public class DeleteServerConfigTransactionBeanInfo extends MySimpleBeanInfo {
 			
 			properties = new PropertyDescriptor[2];
 			
-			properties[0] = new PropertyDescriptor("u_section", beanClass, "getU_section", "setU_section");
-			properties[0].setDisplayName(getExternalizedString("property.u_section.display_name"));
-			properties[0].setShortDescription(getExternalizedString("property.u_section.short_description"));
+			properties[0] = new PropertyDescriptor("p_section", beanClass, "getP_section", "setP_section");
+			properties[0].setDisplayName(getExternalizedString("property.p_section.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.p_section.short_description"));
 			
-			properties[1] = new PropertyDescriptor("u_key", beanClass, "getU_key", "setU_key");
-			properties[1].setDisplayName(getExternalizedString("property.u_key.display_name"));
-			properties[1].setShortDescription(getExternalizedString("property.u_key.short_description"));
+			properties[1] = new PropertyDescriptor("p_key", beanClass, "getP_key", "setP_key");
+			properties[1].setDisplayName(getExternalizedString("property.p_key.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.p_key.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

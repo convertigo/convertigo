@@ -39,9 +39,9 @@ public class AbstractDatabaseTransactionBeanInfo extends MySimpleBeanInfo {
             
 			properties = new PropertyDescriptor[1];
 			
-			properties[0] = new PropertyDescriptor("u_db", beanClass, "getU_db", "setU_db");
-			properties[0].setDisplayName(getExternalizedString("property.u_db.display_name"));
-			properties[0].setShortDescription(getExternalizedString("property.u_db.short_description"));
+			properties[0] = new PropertyDescriptor("p_db", beanClass, "getP_db", "setP_db");
+			properties[0].setDisplayName(getExternalizedString("property.p_db.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.p_db.short_description"));
 			properties[0].setValue(BLACK_LIST_PARENT_CLASS, "com.twinsoft.convertigo.beans.connectors.FullSyncConnector");
 		}
 		catch(Exception e) {

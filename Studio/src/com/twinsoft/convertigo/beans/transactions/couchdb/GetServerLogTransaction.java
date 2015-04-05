@@ -21,9 +21,11 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
+
+import org.codehaus.jettison.json.JSONObject;
 
 public class GetServerLogTransaction extends AbstractServerTransaction {
 
@@ -43,19 +45,12 @@ public class GetServerLogTransaction extends AbstractServerTransaction {
 	}
 	
 	@Override
-	public List<CouchDbParameter> getDeclaredParameters() {
-		return getDeclaredParameters(var_bytes, var_offset);
-	}
-	
-	@Override
 	protected Object invoke() throws Exception {
-		String sBytes = getParameterStringValue(var_bytes);
-		Integer bytes = (sBytes == null) ? null : Integer.valueOf(sBytes);
+		Map<String, String> query = getQueryVariableValues();
 		
-		String sOffset = getParameterStringValue(var_offset);
-		Integer offset = (sOffset == null) ? null : Integer.valueOf(sOffset);
+		JSONObject response = getCouchClient().getLog(query);
 		
-		return getCouchClient().getLog(bytes, offset);
+		return response;
 	}
 	
 	@Override

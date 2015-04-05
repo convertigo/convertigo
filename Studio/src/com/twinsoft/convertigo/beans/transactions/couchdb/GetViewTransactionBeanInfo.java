@@ -52,13 +52,13 @@ public class GetViewTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[1].setDisplayName(getExternalizedString("property.q_update_seq.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.q_update_seq.short_description"));
 			
-			properties[2] = new PropertyDescriptor("u_ddoc", beanClass, "getU_ddoc", "setU_ddoc");
-			properties[2].setDisplayName(getExternalizedString("property.u_ddoc.display_name"));
-			properties[2].setShortDescription(getExternalizedString("property.u_ddoc.short_description"));
+			properties[2] = new PropertyDescriptor("p_ddoc", beanClass, "getP_ddoc", "setP_ddoc");
+			properties[2].setDisplayName(getExternalizedString("property.p_ddoc.display_name"));
+			properties[2].setShortDescription(getExternalizedString("property.p_ddoc.short_description"));
 			
-			properties[3] = new PropertyDescriptor("u_view", beanClass, "getU_view", "setU_view");
-			properties[3].setDisplayName(getExternalizedString("property.u_view.display_name"));
-			properties[3].setShortDescription(getExternalizedString("property.u_view.short_description"));
+			properties[3] = new PropertyDescriptor("p_view", beanClass, "getP_view", "setP_view");
+			properties[3].setDisplayName(getExternalizedString("property.p_view.display_name"));
+			properties[3].setShortDescription(getExternalizedString("property.p_view.short_description"));
 			
 			properties[4] = new PropertyDescriptor("q_conflicts", beanClass, "getQ_conflicts", "setQ_conflicts");
 			properties[4].setDisplayName(getExternalizedString("property.q_conflicts.display_name"));

@@ -21,9 +21,13 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import java.util.List;
-
 import javax.xml.namespace.QName;
+
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
+
+import com.twinsoft.convertigo.engine.enums.CouchParam;
 
 public class PostReplicateTransaction extends AbstractDatabaseTransaction {
 	
@@ -32,44 +36,48 @@ public class PostReplicateTransaction extends AbstractDatabaseTransaction {
 	public PostReplicateTransaction() {
 		super();
 	}
+	
+	private String p_cancel = "";
+	private String p_continuous = "";
+	private String p_create_target = "";
+	private String p_doc_ids = "";
+	private String p_proxy = "";
+	private String p_source = "";
+	private String p_target = "";
 
 	@Override
 	public PostReplicateTransaction clone() throws CloneNotSupportedException {
 		PostReplicateTransaction clonedObject =  (PostReplicateTransaction) super.clone();
 		return clonedObject;
 	}
-	
-	@Override
-	public List<CouchDbParameter> getDeclaredParameters() {
-		return getDeclaredParameters(
-			CouchDbParameter.Param_source, CouchDbParameter.Param_target, CouchDbParameter.Param_create_target,
-			CouchDbParameter.Param_continuous, CouchDbParameter.Param_cancel, CouchDbParameter.Param_doc_ids, CouchDbParameter.Param_proxy
-		);
-	}
 
 	@Override
 	protected Object invoke() throws Exception {
-		String source = getParameterStringValue(CouchDbParameter.Param_source);
-		String target = getParameterStringValue(CouchDbParameter.Param_target);
+		String source = getParameterStringValue(CouchParam.source);
+		String target = getParameterStringValue(CouchParam.target);
 		
-		String _create_target = getParameterStringValue(CouchDbParameter.Param_create_target);
+		String _create_target = getParameterStringValue(CouchParam.create_target);
 		boolean create_target = _create_target != null ? Boolean.parseBoolean(_create_target) : false;
 		
-		String _continuous = getParameterStringValue(CouchDbParameter.Param_continuous);
+		String _continuous = getParameterStringValue(CouchParam.continuous);
 		boolean continuous = _continuous != null ? Boolean.parseBoolean(_continuous) : false;
 		
-		String _cancel = getParameterStringValue(CouchDbParameter.Param_cancel);
+		String _cancel = getParameterStringValue(CouchParam.cancel);
 		boolean cancel = _cancel != null ? Boolean.parseBoolean(_cancel) : false;
 		
-		String[] doc_ids = null;
-		Object _doc_ids = getParameterValue(CouchDbParameter.Param_doc_ids);
-		if (_doc_ids instanceof String[]) {
-			doc_ids = (String[]) _doc_ids;
+		JSONArray doc_ids = null;
+		String _doc_ids = getParameterStringValue(CouchParam.doc_ids);
+		try {
+			doc_ids = new JSONArray(_doc_ids);
+		} catch (JSONException e) {
+			//TODO: log
 		}
 		
-		String proxy = getParameterStringValue(CouchDbParameter.Param_proxy);	
+		String proxy = getParameterStringValue(CouchParam.proxy);
 		
-		return getCouchClient().postReplicate(source, target, create_target, continuous, cancel, doc_ids, proxy);
+		JSONObject response = getCouchClient().postReplicate(source, target, create_target, continuous, cancel, doc_ids, proxy);
+		
+		return response;
 	}
 	
 	@Override
@@ -77,4 +85,59 @@ public class PostReplicateTransaction extends AbstractDatabaseTransaction {
 		return new QName(COUCHDB_XSD_NAMESPACE, "postReplicateType");
 	}
 
+	public String getP_cancel() {
+		return p_cancel;
+	}
+
+	public void setP_cancel(String p_cancel) {
+		this.p_cancel = p_cancel;
+	}
+
+	public String getP_continuous() {
+		return p_continuous;
+	}
+
+	public void setP_continuous(String p_continuous) {
+		this.p_continuous = p_continuous;
+	}
+
+	public String getP_create_target() {
+		return p_create_target;
+	}
+
+	public void setP_create_target(String p_create_target) {
+		this.p_create_target = p_create_target;
+	}
+
+	public String getP_doc_ids() {
+		return p_doc_ids;
+	}
+
+	public void setP_doc_ids(String p_doc_ids) {
+		this.p_doc_ids = p_doc_ids;
+	}
+
+	public String getP_proxy() {
+		return p_proxy;
+	}
+
+	public void setP_proxy(String p_proxy) {
+		this.p_proxy = p_proxy;
+	}
+
+	public String getP_source() {
+		return p_source;
+	}
+
+	public void setP_source(String p_source) {
+		this.p_source = p_source;
+	}
+
+	public String getP_target() {
+		return p_target;
+	}
+
+	public void setP_target(String p_target) {
+		this.p_target = p_target;
+	}
 }

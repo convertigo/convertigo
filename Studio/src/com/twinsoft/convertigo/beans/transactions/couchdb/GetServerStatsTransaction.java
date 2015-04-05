@@ -21,13 +21,18 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import java.util.List;
-
 import javax.xml.namespace.QName;
+
+import org.codehaus.jettison.json.JSONObject;
+
+import com.twinsoft.convertigo.engine.enums.CouchParam;
 
 public class GetServerStatsTransaction extends AbstractServerTransaction {
 
 	private static final long serialVersionUID = -2970765233504737256L;
+
+	private String p_section = "";
+	private String p_key = "";
 	
 	public GetServerStatsTransaction() {
 		super();
@@ -38,22 +43,35 @@ public class GetServerStatsTransaction extends AbstractServerTransaction {
 		GetServerStatsTransaction clonedObject =  (GetServerStatsTransaction) super.clone();
 		return clonedObject;
 	}
-	
-	@Override
-	public List<CouchDbParameter> getDeclaredParameters() {
-		return getDeclaredParameters(var_section, var_key);
-	}
 
 	@Override
 	protected Object invoke() throws Exception {
-		String section = getParameterStringValue(var_section);
-		String key = getParameterStringValue(var_key);
+		String section = getParameterStringValue(CouchParam.section);
+		String key = getParameterStringValue(CouchParam.key);
 		
-		return getCouchClient().getStats(section, key);
+		JSONObject response = getCouchClient().getStats(section, key);
+		
+		return response;
 	}
 
 	@Override
 	public QName getComplexTypeAffectation() {
 		return new QName(COUCHDB_XSD_NAMESPACE, "getServerStatsType");
+	}
+
+	public String getP_section() {
+		return p_section;
+	}
+
+	public void setP_section(String p_section) {
+		this.p_section = p_section;
+	}
+
+	public String getP_key() {
+		return p_key;
+	}
+
+	public void setP_key(String p_key) {
+		this.p_key = p_key;
 	}
 }

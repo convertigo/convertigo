@@ -21,9 +21,9 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import java.util.List;
-
 import javax.xml.namespace.QName;
+
+import org.codehaus.jettison.json.JSONObject;
 
 public class HeadDatabaseTransaction extends AbstractDatabaseTransaction {
 
@@ -38,15 +38,14 @@ public class HeadDatabaseTransaction extends AbstractDatabaseTransaction {
 		HeadDatabaseTransaction clonedObject =  (HeadDatabaseTransaction) super.clone();
 		return clonedObject;
 	}
-	
-	@Override
-	public List<CouchDbParameter> getDeclaredParameters() {
-		return getDeclaredParameters(var_database);
-	}
 
 	@Override
 	protected Object invoke() throws Exception {
-		return getCouchClient().headDatabase(getTargetDatabase());
+		String db = getTargetDatabase();
+		
+		JSONObject response = getCouchClient().headDatabase(db);
+		
+		return response;
 	}
 
 	@Override

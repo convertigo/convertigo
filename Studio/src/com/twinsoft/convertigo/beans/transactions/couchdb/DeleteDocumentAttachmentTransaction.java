@@ -21,9 +21,13 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
+
+import org.codehaus.jettison.json.JSONObject;
+
+import com.twinsoft.convertigo.engine.enums.CouchParam;
 
 public class DeleteDocumentAttachmentTransaction extends AbstractDocumentTransaction {
 
@@ -41,19 +45,17 @@ public class DeleteDocumentAttachmentTransaction extends AbstractDocumentTransac
 		DeleteDocumentAttachmentTransaction clonedObject =  (DeleteDocumentAttachmentTransaction) super.clone();
 		return clonedObject;
 	}
-	
-	@Override
-	public List<CouchDbParameter> getDeclaredParameters() {
-		return getDeclaredParameters(var_database, var_docid, var_docrev, var_filename);
-	}
 		
 	@Override
 	protected Object invoke() throws Exception {
-		String docId = getParameterStringValue(var_docid);
-		String docRev = getParameterStringValue(var_docrev);
-		String attName = getParameterStringValue(var_filename);
+		String db = getTargetDatabase();
+		String docid = getParameterStringValue(CouchParam.docid);
+		String attname = getParameterStringValue(CouchParam.attname);
+		Map<String, String> query = getQueryVariableValues();
 		
-		return getCouchClient().deleteDocumentAttachment(getTargetDatabase(), docId, docRev, attName);
+		JSONObject response = getCouchClient().deleteDocumentAttachment(db, docid, attname, query);
+		
+		return response;
 	}
 
 	@Override

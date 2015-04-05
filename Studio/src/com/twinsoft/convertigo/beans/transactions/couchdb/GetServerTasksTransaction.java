@@ -21,8 +21,6 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import java.util.List;
-
 import javax.xml.namespace.QName;
 
 public class GetServerTasksTransaction extends AbstractServerTransaction {
@@ -37,11 +35,6 @@ public class GetServerTasksTransaction extends AbstractServerTransaction {
 	public GetServerTasksTransaction clone() throws CloneNotSupportedException {
 		GetServerTasksTransaction clonedObject =  (GetServerTasksTransaction) super.clone();
 		return clonedObject;
-	}
-	
-	@Override
-	public List<CouchDbParameter> getDeclaredParameters() {
-		return getDeclaredParameters(CouchDbParameter.empty);
 	}
 	
 	@Override

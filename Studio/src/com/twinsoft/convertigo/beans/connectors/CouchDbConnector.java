@@ -232,10 +232,10 @@ public class CouchDbConnector extends Connector {
 		super.removeDocument(document);
 		
 		JSONObject jsonDocument = ((JsonDocument)document).getJSONObject();
-		String docId = CouchKey._id.String(jsonDocument);
-		if (docId != null) {
-			String docRev = CouchKey._rev.String(jsonDocument);
-			getCouchClient().deleteDocument(getDatabaseName(), docId, docRev);
+		String docid = CouchKey._id.String(jsonDocument);
+		if (docid != null) {
+			String rev = CouchKey._rev.String(jsonDocument);
+			getCouchClient().deleteDocument(getDatabaseName(), docid, rev);
 		}
 	}
 

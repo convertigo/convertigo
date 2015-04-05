@@ -21,19 +21,17 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 
 import javax.xml.namespace.QName;
 
-import org.apache.http.NameValuePair;
+import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
-import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
-import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
+import com.twinsoft.convertigo.engine.enums.CouchParam;
 
 public class GetViewTransaction extends AbstractDocumentTransaction implements ITagsProperty {
 
@@ -41,8 +39,8 @@ public class GetViewTransaction extends AbstractDocumentTransaction implements I
 	
 	private String viewname = "";
 	
-	private String u_ddoc = "";
-	private String u_view = "";
+	private String p_ddoc = "";
+	private String p_view = "";
 	private String q_conflicts = "";
 	private String q_descending = "";
 	private String q_endkey = "";
@@ -71,41 +69,27 @@ public class GetViewTransaction extends AbstractDocumentTransaction implements I
 		GetViewTransaction clonedObject = (GetViewTransaction) super.clone();
 		return clonedObject;
 	}
-	
-	@Override
-	public List<CouchDbParameter> getDeclaredParameters() {
-		return getDeclaredParameters(var_database, var_docid, var_viewname, 
-				var_view_limit, var_view_skip, var_view_key, var_view_startkey, var_view_endkey, var_view_reduce);
-	}
 
 	@Override
 	protected Object invoke() throws Exception {
-		String docId, viewname;
+		String db = getTargetDatabase();
+		String ddoc;
+		String view;
+		Map<String, String> query = getQueryVariableValues();
 		
-		Matcher mSplitViewname = DesignDocument.splitFunctionName.matcher(this.viewname);
+		Matcher mSplitViewname = DesignDocument.splitFunctionName.matcher(viewname);
 		
 		if (mSplitViewname.matches()) {
-			docId = mSplitViewname.group(1);
-			viewname = mSplitViewname.group(2);
+			ddoc = mSplitViewname.group(1);
+			view = mSplitViewname.group(2);
 		} else {
-			docId = getParameterStringValue(var_docid);
-			viewname = getParameterStringValue(var_viewname);
+			ddoc = getParameterStringValue(CouchParam.ddoc);
+			view = getParameterStringValue(CouchParam.view);
 		}
 		
-		List<NameValuePair> options = new LinkedList<NameValuePair>();
+		JSONObject response = getCouchClient().getView(db, ddoc, view, query);
 		
-		for (RequestableVariable variable : getVariablesList()) {
-			String variableName = variable.getName();
-
-			if (!variableName.equals(var_database.variableName()) &&
-					!variableName.equals(var_docid.variableName()) &&
-					!variableName.equals(var_viewname.variableName())) {
-				String value = getParameterStringValue(variableName);
-				CouchClient.addParameter(options, variableName, value);
-			}
-		}
-		
-		return getCouchClient().getView(getTargetDatabase(), docId, viewname, options);
+		return response;
 	}
 
 	public String getViewname() {
@@ -133,20 +117,20 @@ public class GetViewTransaction extends AbstractDocumentTransaction implements I
 		}
 	}
 
-	public String getU_ddoc() {
-		return u_ddoc;
+	public String getP_ddoc() {
+		return p_ddoc;
 	}
 
-	public void setU_ddoc(String u_ddoc) {
-		this.u_ddoc = u_ddoc;
+	public void setP_ddoc(String p_ddoc) {
+		this.p_ddoc = p_ddoc;
 	}
 
-	public String getU_view() {
-		return u_view;
+	public String getP_view() {
+		return p_view;
 	}
 
-	public void setU_view(String u_view) {
-		this.u_view = u_view;
+	public void setP_view(String p_view) {
+		this.p_view = p_view;
 	}
 
 	public String getQ_conflicts() {

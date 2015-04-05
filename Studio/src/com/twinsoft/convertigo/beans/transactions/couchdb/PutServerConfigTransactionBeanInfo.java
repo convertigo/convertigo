@@ -40,15 +40,19 @@ public class PutServerConfigTransactionBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/servertransaction_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/servertransaction_color_32x32.png";
 			
-			properties = new PropertyDescriptor[2];
+			properties = new PropertyDescriptor[3];
 			
-			properties[0] = new PropertyDescriptor("u_section", beanClass, "getU_section", "setU_section");
-			properties[0].setDisplayName(getExternalizedString("property.u_section.display_name"));
-			properties[0].setShortDescription(getExternalizedString("property.u_section.short_description"));
+			properties[0] = new PropertyDescriptor("p_section", beanClass, "getP_section", "setP_section");
+			properties[0].setDisplayName(getExternalizedString("property.p_section.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.p_section.short_description"));
 			
-			properties[1] = new PropertyDescriptor("u_key", beanClass, "getU_key", "setU_key");
-			properties[1].setDisplayName(getExternalizedString("property.u_key.display_name"));
-			properties[1].setShortDescription(getExternalizedString("property.u_key.short_description"));
+			properties[1] = new PropertyDescriptor("p_key", beanClass, "getP_key", "setP_key");
+			properties[1].setDisplayName(getExternalizedString("property.p_key.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.p_key.short_description"));
+			
+			properties[2] = new PropertyDescriptor("p_value", beanClass, "getP_value", "setP_value");
+			properties[2].setDisplayName(getExternalizedString("property.p_value.display_name"));
+			properties[2].setShortDescription(getExternalizedString("property.p_value.short_description"));
 
 		}
 		catch(Exception e) {

@@ -21,8 +21,6 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import java.util.List;
-
 import javax.xml.namespace.QName;
 
 import org.codehaus.jettison.json.JSONArray;
@@ -45,11 +43,6 @@ public class PostBulkDocumentsTransaction extends AbstractDocumentTransaction {
 	public PostBulkDocumentsTransaction clone() throws CloneNotSupportedException {
 		PostBulkDocumentsTransaction clonedObject =  (PostBulkDocumentsTransaction) super.clone();
 		return clonedObject;
-	}
-	
-	@Override
-	public List<CouchDbParameter> getDeclaredParameters() {
-		return getDeclaredParameters(var_database, var_ids, var_datas);
 	}
 	
 	@Override
