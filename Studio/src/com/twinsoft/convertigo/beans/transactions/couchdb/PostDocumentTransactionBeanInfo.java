@@ -31,7 +31,7 @@ public class PostDocumentTransactionBeanInfo extends MySimpleBeanInfo {
 	public PostDocumentTransactionBeanInfo() {
 		try {
 			beanClass = PostDocumentTransaction.class;
-			additionalBeanClass = AbstractDocumentTransaction.class;
+			additionalBeanClass = AbstractDatabaseTransaction.class;
 
 			resourceBundle = getResourceBundle("res/PostDocumentTransaction");
 			
