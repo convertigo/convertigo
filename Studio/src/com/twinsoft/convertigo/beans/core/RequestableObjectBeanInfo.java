@@ -43,6 +43,7 @@ public class RequestableObjectBeanInfo extends MySimpleBeanInfo {
 			properties[0].setPropertyEditorClass(Accessibility.class);
 			
 			properties[1] = new PropertyDescriptor("sheetLocation", beanClass, "getSheetLocation", "setSheetLocation");
+			properties[1].setExpert(true);
 			properties[1].setDisplayName(getExternalizedString("property.sheetLocation.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.sheetLocation.short_description"));
 			properties[1].setPropertyEditorClass(getEditorClass("SheetLocationEditor"));

@@ -29,7 +29,7 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.enums.CouchPostDocumentPolicy;
 
-public class PostDocumentTransaction extends AbstractDocumentTransaction {
+public class PostDocumentTransaction extends AbstractDatabaseTransaction {
 
 	private static final long serialVersionUID = -7606732916561433014L;
 	
