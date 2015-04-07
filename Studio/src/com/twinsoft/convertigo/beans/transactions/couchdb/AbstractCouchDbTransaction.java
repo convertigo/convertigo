@@ -221,12 +221,12 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 			}
 			
 			for (RequestableVariable variable: getAllVariables()) {
-				if (variable.getName().startsWith("__")) {
-					String name = variable.getName().substring(2);
+				if (variable.getName().startsWith(CouchParam.prefix)) {
+					String name = variable.getName().substring(CouchParam.prefix.length());
 					try {
 						getClass().getMethod("getP_" + name);
 					} catch (Throwable t) {
-						String value = getParameterStringValue(name);
+						String value = getParameterStringValue(variable.getName());
 						
 						if (!value.isEmpty()) {
 							map.put(name, value);
