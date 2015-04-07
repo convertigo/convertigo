@@ -31,14 +31,11 @@ import java.io.FileWriter;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import javax.xml.transform.TransformerException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
-import org.apache.xpath.XPathAPI;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.ProcessingInstruction;
@@ -57,7 +54,8 @@ import com.twinsoft.convertigo.engine.dbo_explorer.DboGroup;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class BeansDoc {
-	private static Map<String, Element> collision = new HashMap<String, Element>();
+	//private static Map<String, Element> collision = new HashMap<String, Element>();
+	private static final Pattern pDescription = Pattern.compile("(.*?)(?:\\|(.*))?");
 
 	public static void main(String[] args) throws Exception {
 
@@ -150,11 +148,19 @@ public class BeansDoc {
 		PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
 		
 		Arrays.sort(propertyDescriptors, new Comparator<PropertyDescriptor>() {
+//			@Override
+//			public int compare(PropertyDescriptor o1, PropertyDescriptor o2) {
+//			return o1.getDisplayName().compareTo(o2.getDisplayName());
+				
 			@Override
 			public int compare(PropertyDescriptor o1, PropertyDescriptor o2) {
-				return o1.getDisplayName().compareTo(o2.getDisplayName());
-			}
-			
+				if(o1.isExpert() == o2.isExpert())
+					return o1.getDisplayName().compareTo(o2.getDisplayName());
+				else if(o1.isExpert())
+					return 1;
+				else 
+					return -1;
+			}				
 		} );
 		
 		Element elementBean = document.createElement("bean");
@@ -180,27 +186,45 @@ public class BeansDoc {
 		elementBean.appendChild(elementSub);
 		
 		// Name collision detection
-		if (collision.containsKey(displayName)) {
-			Element otherBean = collision.get(displayName);
-			if (otherBean != null) {
-				changeName(otherBean);
-			}
-			changeName(elementBean);
-			collision.put(displayName, null);
-		} else {
-			collision.put(displayName, elementBean);
-		}
+//		if (collision.containsKey(displayName)) {
+//			Element otherBean = collision.get(displayName);
+//			if (otherBean != null) {
+//				changeName(otherBean);
+//			}
+//			changeName(elementBean);
+//			collision.put(displayName, null);
+//		} else {
+//			collision.put(displayName, elementBean);
+//		}
 		
 
 		String description = databaseObjectBeanDescriptor.getShortDescription();
-		int idx = description.indexOf(" | ");
-		String shortDescpription = description;
-		String longDescpription = "";
 
-		if (idx != -1) {
-			shortDescpription = description.substring(0, idx);
-			longDescpription = description.substring(idx + 3);
+		//String test = databaseObjectBeanDescriptor.getDisplayName();//yina Server config transactions
+		//if(test.equals("GetServerConfig"))
+			//System.out.println(description+"\n");
+		
+//		String shortDescpription = description;
+//		String longDescpription = "";
+//
+//		if (idx != -1) {
+//			shortDescpription = description.substring(0, idx);
+//			longDescpription = description.substring(idx + 3);
+//		}
+		
+		
+		String shortDescpription = description;
+		
+		String longDescpription = "";
+		
+		Matcher mDescription = pDescription.matcher(description);
+		if (mDescription.matches()) {
+			shortDescpription = mDescription.group(1);
+			if (mDescription.group(2) != null) {
+				longDescpription = mDescription.group(2);
+			}
 		}
+		
 		if (bEnable) {
 			elementSub = document.createElement("short_description");
 			elementText = document.createTextNode(shortDescpription);
@@ -242,14 +266,16 @@ public class BeansDoc {
 	
 				description = databaseObjectPropertyDescriptor
 						.getShortDescription();
-				idx = description.indexOf(" | ");
-				shortDescpription = description;
-				longDescpription = "";
-	
-				if (idx != -1) {
-					shortDescpription = description.substring(0, idx);
-					longDescpription = description.substring(idx + 3);
+				
+				mDescription = pDescription.matcher(description);
+				
+				if (mDescription.matches()) {
+					shortDescpription = mDescription.group(1).trim();
+					if (mDescription.group(2) != null) {
+						longDescpription = mDescription.group(2).trim();
+					}
 				}
+				
 	
 				Element elementProperty = document.createElement("property");
 				elementBean.appendChild(elementProperty);
@@ -304,18 +330,18 @@ public class BeansDoc {
 		}
 	}
 	
-	private static void changeName(Element bean) {
-		try {
-			Element nameElement = (Element) XPathAPI.selectSingleNode(bean, "display_name");
-			String name = nameElement.getTextContent();
-			String groupName = (XPathAPI.selectSingleNode(bean, "ancestor::category/name[text()='Variables']") != null) ?
-				XPathAPI.selectSingleNode(bean, "ancestor::beans/name/text()").getNodeValue() : // case of Variables
-				XPathAPI.selectSingleNode(bean, "ancestor::group/name/text()").getNodeValue(); // default case
-			
-			nameElement.setTextContent(name + " (" + groupName + ")");
-		} catch (TransformerException e) {
-			System.err.println("Unexpected exception in changeName of BeansDoc");
-			e.printStackTrace(System.err);
-		}
-	}
+//	private static void changeName(Element bean) {
+//		try {
+//			Element nameElement = (Element) XPathAPI.selectSingleNode(bean, "display_name");
+//			String name = nameElement.getTextContent();
+//			String groupName = (XPathAPI.selectSingleNode(bean, "ancestor::category/name[text()='Variables']") != null) ?
+//				XPathAPI.selectSingleNode(bean, "ancestor::beans/name/text()").getNodeValue() : // case of Variables
+//				XPathAPI.selectSingleNode(bean, "ancestor::group/name/text()").getNodeValue(); // default case
+//			
+//			nameElement.setTextContent(name + " (" + groupName + ")");
+//		} catch (TransformerException e) {
+//			System.err.println("Unexpected exception in changeName of BeansDoc");
+//			e.printStackTrace(System.err);
+//		}
+//	}
 }
