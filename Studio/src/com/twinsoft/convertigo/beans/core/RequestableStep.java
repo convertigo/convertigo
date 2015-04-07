@@ -24,7 +24,6 @@ package com.twinsoft.convertigo.beans.core;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.MalformedURLException;
@@ -38,14 +37,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.TransformerFactoryConfigurationError;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.URIException;
@@ -292,15 +284,12 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 		Document document = documentBuilder.parse(new InputSource(new StringReader(sDom)));
 		
 		String wsdlBackupDir = getWsdlBackupDir(element);
-        Source source = new DOMSource(document);
         File dir = new File(wsdlBackupDir);
 		if (!dir.exists())
 			dir.mkdirs();
 
 		File file = new File(wsdlBackupDir + "/step-" + priority + ".xml");
-        Result result = new StreamResult(new FileOutputStream(file));
-        Transformer xformer = TransformerFactory.newInstance().newTransformer();
-        xformer.transform(source, result);
+		XMLUtils.saveXml(document, file);
     }
 	
 	public XMLVector<XMLVector<Long>> getOrderedVariables() {

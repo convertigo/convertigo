@@ -23,7 +23,6 @@
 package com.twinsoft.convertigo.engine.util;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URL;
@@ -35,13 +34,6 @@ import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
@@ -524,11 +516,7 @@ public class WsReference {
 	private void saveTemplate(Document doc, String templateDir) throws EngineException {
 		setTaskLabel("Creating template \""+templateDir+"\"...");
 		try {
-            Source source = new DOMSource(doc);
-            File file = new File(templateDir);
-            Result result = new StreamResult(new FileOutputStream(file));
-            Transformer xformer = TransformerFactory.newInstance().newTransformer();
-            xformer.transform(source, result);
+			XMLUtils.saveXml(doc, templateDir);
         } catch (Exception e) {
         	throw new EngineException("Unable to create template file \""+templateDir+"\"", e);
         }

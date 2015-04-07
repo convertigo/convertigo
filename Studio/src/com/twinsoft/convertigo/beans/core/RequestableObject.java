@@ -23,7 +23,6 @@
 package com.twinsoft.convertigo.beans.core;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.StringReader;
 import java.util.Calendar;
 import java.util.LinkedList;
@@ -34,14 +33,7 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.TransformerFactoryConfigurationError;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
@@ -197,15 +189,12 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 		Document document = documentBuilder.parse(new InputSource(new StringReader(sDom)));
 		
 		String wsdlBackupDir = getWsdlBackupDir(element);
-        Source source = new DOMSource(document);
         File dir = new File(wsdlBackupDir);
 		if (!dir.exists())
 			dir.mkdirs();
 
 		File file = new File(wsdlBackupDir + "/" + getName() + ".xml");
-        Result result = new StreamResult(new FileOutputStream(file));
-        Transformer xformer = TransformerFactory.newInstance().newTransformer();
-        xformer.transform(source, result);
+        XMLUtils.saveXml(document, file);
     }
     
     public abstract String generateXsdArrayOfData() throws Exception;
