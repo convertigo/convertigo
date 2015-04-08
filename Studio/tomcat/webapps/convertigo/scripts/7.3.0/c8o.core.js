@@ -599,7 +599,7 @@ C8O = {
                 C8O.log.info("c8o.core: local cache database created/opened");
                 
                 C8O._define.local_cache_db.transaction(function (tx) {
-                    tx.executeSql("CREATE TABLE IF NOT EXISTS cacheIndex (key unique, data, expirydate)", [], function () {
+                    tx.executeSql("CREATE TABLE IF NOT EXISTS cacheIndex (key unique, data, expirydate INTEGER)", [], function () {
                         C8O.log.debug("c8o.core: _get_cache_db created if not exists the 'cacheIndex' table");
                         
                         success(C8O._define.local_cache_db);
