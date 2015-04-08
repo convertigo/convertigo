@@ -199,11 +199,13 @@
                		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IfExistThenElseStep"/>
                		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IfThenElseStep"/>       
                		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IsInThenElseStep"/>
+               		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IfFileExistThenElseStep"/>
                 </bean>
                 <bean enable="true" documented="ignore" classname="com.twinsoft.convertigo.beans.steps.ElseStep">               		
                 	<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IfExistThenElseStep"/>
                		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IfThenElseStep"/>
                		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IsInThenElseStep"/>
+               		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IfFileExistThenElseStep"/>
                 </bean>       
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.IsInStep">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
