@@ -35,7 +35,7 @@ public class Container extends JavelinMashupEventExtractionRule {
     public static final long serialVersionUID = 4350644982787619412L;
     
     /* Properties */
-    private 	String 			tagName 		= "";
+    private 	String 			tagName 		= "container";
     private 	XMLRectangle	containerDesc 	= new XMLRectangle(-1, -1, -1, -1);
     
     /* Working variables */

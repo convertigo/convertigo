@@ -64,7 +64,7 @@ public class TagName extends JavelinMashupEventExtractionRule {
     transient private XMLVector<FieldDesc> fieldList = new XMLVector<FieldDesc>();
     
     /** Holds value of property tagName. */
-    private String tagName = "";
+    private String tagName = "tagname";
     
     public static final int LABEL_POLICY_EXPLICIT = 0;
     public static final int LABEL_POLICY_FROM_PREVIOUS_BLOCK = 1;

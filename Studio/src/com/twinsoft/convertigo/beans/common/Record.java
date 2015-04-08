@@ -67,7 +67,7 @@ public class Record extends ComplexExtractionRule {
     private String eor = "";
     
     // The tag name of the record
-    private String tagName = "";
+    private String tagName = "record";
     
     // Indicates if there is one record per page
     private boolean perPage = false;
