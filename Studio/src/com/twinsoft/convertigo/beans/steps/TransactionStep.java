@@ -54,6 +54,8 @@ import com.twinsoft.convertigo.beans.core.IContextMaintainer;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableStep;
+import com.twinsoft.convertigo.beans.core.Step;
+import com.twinsoft.convertigo.beans.core.StepEvent;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
@@ -649,4 +651,14 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 		return connectorName + "__" + transactionName;
 	}
 
+	@Override
+	public void stepMoved(StepEvent stepEvent) {
+		super.stepMoved(stepEvent);
+		
+		StepSource source = new StepSource(this, connectionStringDefinition);
+		if (source != null && !source.isEmpty()) {
+			source.updateTargetStep((Step)stepEvent.getSource(), (String)stepEvent.data);
+		}
+	}
+	
 }
