@@ -599,7 +599,7 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 								else {
 									// Check for connection string
 									StepSource source = new StepSource(this, connectionStringDefinition);
-									if (source != null) {
+									if (source != null && !source.isEmpty()) {
 										String csl = source.getLabel();
 										if (csl.equals("! broken source !")) {
 											label = " (! broken source in Connection string !)";
@@ -648,4 +648,5 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 	protected String getRequestableName() {
 		return connectorName + "__" + transactionName;
 	}
+
 }
