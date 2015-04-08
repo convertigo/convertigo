@@ -82,11 +82,13 @@ import org.apache.ws.commons.schema.XmlSchemaGroup;
 import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaType;
 import org.apache.ws.commons.schema.constants.Constants;
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
 import com.ibm.wsdl.DefinitionImpl;
 import com.ibm.wsdl.extensions.PopulatedExtensionRegistry;
 import com.ibm.wsdl.extensions.schema.SchemaConstants;
@@ -352,6 +354,32 @@ public class WebServiceServlet extends GenericServlet {
 				if (xmlSchema.getTargetNamespace().equals(SchemaUtils.URI_SOAP_ENC)) continue;
 				
 				String tns = xmlSchema.getTargetNamespace();
+				
+				if (!targetNamespace.equals(tns)) {
+					new XmlSchemaWalker.XmlSchemaWalkerWatcher() {
+						
+						@Override
+						protected void walkAttribute(XmlSchema xmlSchema, XmlSchemaAttribute obj) {
+							try {
+								// Fixed issue for soap-enc arrayType attribute (rpc mode)
+								Attr[] attrs = obj.getUnhandledAttributes();
+								List<Attr> list = new ArrayList<Attr>();
+								if (attrs != null) {
+									for (Attr attribute : attrs) {
+										if (attribute.getNodeName().startsWith("xmlns") && attribute.getNodeValue().equals(""))
+											;// remove empty namespace
+										else
+											list.add(attribute);
+									}
+									obj.setUnhandledAttributes(list.toArray(new Attr[list.size()]));
+								}
+								super.walkAttribute(xmlSchema, obj);
+							}
+							catch (Exception e) {}
+						}
+		
+					}.init(xmlSchema);
+				}
 				
 				// Reduce schema to needed objects
 				reduceSchema(xmlSchema, map.keySet());
