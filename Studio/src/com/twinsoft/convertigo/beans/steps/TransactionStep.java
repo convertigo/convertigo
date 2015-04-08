@@ -590,10 +590,21 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 							if (connector == null) {
 								label = "! broken connector !";
 							} else {
+								// Check for transaction
 								Transaction transaction = (transactionName.equals("") ? connector
 										.getDefaultTransaction() : connector.getTransactionByName(transactionName));
 								if (transaction == null) {
 									label = "! broken transaction !";
+								}
+								else {
+									// Check for connection string
+									StepSource source = new StepSource(this, connectionStringDefinition);
+									if (source != null) {
+										String csl = source.getLabel();
+										if (csl.equals("! broken source !")) {
+											label = " (! broken source in Connection string !)";
+										}
+									}
 								}
 							}
 						}
