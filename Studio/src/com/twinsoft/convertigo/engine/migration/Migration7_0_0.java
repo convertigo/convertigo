@@ -171,7 +171,7 @@ public class Migration7_0_0 {
 		return projectNode;
 	}
 
-	public static void migrate(String projectName) {
+	public static void migrate(final String projectName) {
 		try {
 			Map<String, Reference> referenceMap = new HashMap<String, Reference>();
 			XmlSchema projectSchema = null;
@@ -217,7 +217,9 @@ public class Migration7_0_0 {
 								return null;
 							}
 						}
-
+						else if (schemaLocation.indexOf("://") == -1 && schemaLocation.endsWith(".xsd")) {
+							return super.resolveEntity(targetNamespace, schemaLocation, Engine.PROJECTS_PATH + "/" + projectName);
+						}
 						return super.resolveEntity(targetNamespace, schemaLocation, baseUri);
 					}
 					

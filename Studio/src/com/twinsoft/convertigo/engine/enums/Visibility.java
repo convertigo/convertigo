@@ -256,7 +256,7 @@ public enum Visibility {
 												node = valueNodeList.item(j);
 												if (node.getNodeType() == Node.ELEMENT_NODE && 
 													((Element)node).getNodeName().equals("value")) {
-														((Element)node).setNodeValue(STRING_MASK);
+														((Element)node).setTextContent(STRING_MASK);
 												}
 											}
 										}										
