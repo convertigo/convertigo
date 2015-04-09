@@ -27,13 +27,17 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
+import com.twinsoft.convertigo.engine.enums.CouchParam;
 import com.twinsoft.convertigo.engine.enums.CouchPostDocumentPolicy;
 
-public class PostBulkDocumentsTransaction extends AbstractDocumentTransaction {
+public class PostBulkDocumentsTransaction extends AbstractDatabaseTransaction {
 
 	private static final long serialVersionUID = -7182426831481176387L;
 
 	private CouchPostDocumentPolicy policy = CouchPostDocumentPolicy.none;
+	
+	private String p_all_or_nothing = "";
+	private String p_new_edits = "";
 	
 	public PostBulkDocumentsTransaction() {
 		super();
@@ -70,7 +74,10 @@ public class PostBulkDocumentsTransaction extends AbstractDocumentTransaction {
 			}
 		}
 		
-		return getCouchClient().postBulkDocs(getTargetDatabase(), jsonDocuments, policy);
+		boolean all_or_nothing = getParameterBooleanValue(CouchParam.all_or_nothing, false);
+		boolean new_edits = getParameterBooleanValue(CouchParam.new_edits, true);
+		
+		return getCouchClient().postBulkDocs(getTargetDatabase(), jsonDocuments, all_or_nothing, new_edits, policy);
 	}
 
 	@Override
@@ -85,5 +92,20 @@ public class PostBulkDocumentsTransaction extends AbstractDocumentTransaction {
 	public void setPolicy(CouchPostDocumentPolicy policy) {
 		this.policy = policy;
 	}
-}
 
+	public String getP_all_or_nothing() {
+		return p_all_or_nothing;
+	}
+
+	public void setP_all_or_nothing(String p_all_or_nothing) {
+		this.p_all_or_nothing = p_all_or_nothing;
+	}
+
+	public String getP_new_edits() {
+		return p_new_edits;
+	}
+
+	public void setP_new_edits(String p_new_edits) {
+		this.p_new_edits = p_new_edits;
+	}
+}

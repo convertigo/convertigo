@@ -56,14 +56,9 @@ public class PostReplicateTransaction extends AbstractDatabaseTransaction {
 		String source = getParameterStringValue(CouchParam.source);
 		String target = getParameterStringValue(CouchParam.target);
 		
-		String _create_target = getParameterStringValue(CouchParam.create_target);
-		boolean create_target = _create_target != null ? Boolean.parseBoolean(_create_target) : false;
-		
-		String _continuous = getParameterStringValue(CouchParam.continuous);
-		boolean continuous = _continuous != null ? Boolean.parseBoolean(_continuous) : false;
-		
-		String _cancel = getParameterStringValue(CouchParam.cancel);
-		boolean cancel = _cancel != null ? Boolean.parseBoolean(_cancel) : false;
+		boolean create_target = getParameterBooleanValue(CouchParam.create_target, false);
+		boolean continuous = getParameterBooleanValue(CouchParam.continuous, false);
+		boolean cancel = getParameterBooleanValue(CouchParam.cancel, false);
 		
 		JSONArray doc_ids = null;
 		String _doc_ids = getParameterStringValue(CouchParam.doc_ids);

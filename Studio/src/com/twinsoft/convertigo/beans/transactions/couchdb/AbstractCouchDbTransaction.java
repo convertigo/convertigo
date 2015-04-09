@@ -205,6 +205,14 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		return value;
 	}
 	
+	public boolean getParameterBooleanValue(CouchParam param, boolean def) {
+		try {
+			return Boolean.parseBoolean(getParameterStringValue(param));
+		} catch (Throwable t) {
+			return def; 
+		}
+	}
+	
 	public Map<String, String> getQueryVariableValues() {
 		Map<String, String> map = new HashMap<String, String>();
 		

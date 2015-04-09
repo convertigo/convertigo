@@ -31,7 +31,7 @@ public class PostBulkDocumentsTransactionBeanInfo extends MySimpleBeanInfo {
 	public PostBulkDocumentsTransactionBeanInfo() {
 		try {
 			beanClass = PostBulkDocumentsTransaction.class;
-			additionalBeanClass = AbstractDocumentTransaction.class;
+			additionalBeanClass = AbstractDatabaseTransaction.class;
 
 			resourceBundle = getResourceBundle("res/PostBulkDocumentsTransaction");
 			
@@ -41,12 +41,20 @@ public class PostBulkDocumentsTransactionBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/databasetransaction_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/databasetransaction_color_32x32.png";
 			
-			properties = new PropertyDescriptor[1];
+			properties = new PropertyDescriptor[3];
 
             properties[0] = new PropertyDescriptor("policy", beanClass, "getPolicy", "setPolicy");
             properties[0].setDisplayName(getExternalizedString("property.policy.display_name"));
             properties[0].setShortDescription(getExternalizedString("property.policy.short_description"));  
-            properties[0].setPropertyEditorClass(CouchPostDocumentPolicy.class);  
+            properties[0].setPropertyEditorClass(CouchPostDocumentPolicy.class);
+            
+            properties[1] = new PropertyDescriptor("p_all_or_nothing", beanClass, "getP_all_or_nothing", "setP_all_or_nothing");
+            properties[1].setDisplayName(getExternalizedString("property.p_all_or_nothing.display_name"));
+            properties[1].setShortDescription(getExternalizedString("property.p_all_or_nothing.short_description"));
+            
+            properties[2] = new PropertyDescriptor("p_new_edits", beanClass, "getP_new_edits", "setP_new_edits");
+            properties[2].setDisplayName(getExternalizedString("property.p_new_edits.display_name"));
+            properties[2].setShortDescription(getExternalizedString("property.p_new_edits.short_description"));
 			
 		}
 		catch(Exception e) {
