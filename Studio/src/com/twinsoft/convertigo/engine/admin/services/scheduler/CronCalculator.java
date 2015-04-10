@@ -31,7 +31,10 @@ import org.quartz.CronExpression;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.twinsoft.convertigo.beans.scheduler.AbstractSchedule;
+import com.twinsoft.convertigo.beans.scheduler.ScheduleRunNow;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 
@@ -41,41 +44,50 @@ public class CronCalculator extends XmlService {
 	@Override
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		if (request != null) {
+			AbstractSchedule as = Engine.theApp.schedulerManager.getSchedulerXML().getSchedule(request.getParameter("name"));
 			Element rootElement = document.getDocumentElement();
 			Element cronsElement = document.createElement("crons");
-			
-			int iteration = Integer.parseInt(request.getParameter("iteration"));
-					
-			String cronExpression = request.getParameter("input");
-			cronExpression = cronExpression.substring(cronExpression.indexOf("[") + 1, cronExpression.indexOf("]"));
-			long start = new Date().getTime();
-			boolean bContinue = true;
-			while (iteration-- > 0 && bContinue) {
-				Date nextTime;
-				String nDate;
+			// Compute nextTime only if not type of ScheduleRunNow (info = RunNow)
+			if (!(as instanceof ScheduleRunNow)) {
+				int iteration = Integer.parseInt(request.getParameter("iteration"));
 				
-				try {
-					CronExpression exp = new CronExpression(cronExpression);
-					nextTime = exp.getNextValidTimeAfter(new Date(start));
-					start = nextTime.getTime() + 1;
-					nDate = (new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date(start))) + "";
-
-					Element cronElement = document.createElement("nextTime");
-					cronElement.setTextContent(nDate);
-
-					cronsElement.appendChild(cronElement);
-				} catch (Exception e) {
-					Element errorElement = document.createElement("error");
-					errorElement.setTextContent(e.getMessage());
-
-					cronsElement.appendChild(errorElement);
-
-					nDate = "";
-					bContinue = false;
-				}
-			}
+				String cronExpression = request.getParameter("input");
+				cronExpression = cronExpression.replaceFirst("(?:.*)\\[(.*)\\]", "$1");
 			
+				long start = new Date().getTime();
+				boolean bContinue = true;
+				while (iteration-- > 0 && bContinue) {
+					Date nextTime;
+					String nDate;
+					
+					try {
+						CronExpression exp = new CronExpression(cronExpression);
+						nextTime = exp.getNextValidTimeAfter(new Date(start));
+						start = nextTime.getTime() + 1;
+						nDate = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date(start));
+	
+						addNextTimeToCronsElement(document, cronsElement, nDate);
+					} catch (Exception e) {
+						addElementToCronsElement(document, cronsElement, "error", e.getMessage());
+
+						nDate = "";
+						bContinue = false;
+					}
+				}
+			} else {
+				addNextTimeToCronsElement(document, cronsElement, "n/a");
+			}
 			rootElement.appendChild(cronsElement);
 		}
+	}
+	
+	private void addElementToCronsElement(Document document, Element cronsElement, String name, String textContent) {
+		Element element = document.createElement(name);
+		element.setTextContent(textContent);
+		cronsElement.appendChild(element);
+	}
+	
+	private void addNextTimeToCronsElement(Document document, Element cronsElement, String textContent) {
+		addElementToCronsElement(document, cronsElement, "nextTime", textContent);
 	}
 }

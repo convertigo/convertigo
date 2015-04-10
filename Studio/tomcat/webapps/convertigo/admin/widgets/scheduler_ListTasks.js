@@ -504,7 +504,9 @@ function scheduler_ListTasks_update () {
 					$(".scheduledTableDataCron .schedulerElementDelete").click(function () {
 						deleteAction(this);
 					});
-				}, {input : $element.attr("info"), iteration : "20" });
+					
+					manageNewScheduledJobStateBtn();
+				}, {name : $element.attr("name"), input : $element.attr("info"), iteration : "20" });
 				
 			} else {
 				row = {
@@ -530,11 +532,7 @@ function scheduler_ListTasks_update () {
 			deleteAction(this);
 		});
 		
-		if(jQuery("#scheduled_jobs").getGridParam("records") >0 && jQuery("#scheduled_schedules").getGridParam("records") >0 ){
-			$("#schedulerNewScheduledJob").button("enable");
-		}else{
-			$("#schedulerNewScheduledJob").button("disable");
-		}
+		manageNewScheduledJobStateBtn();
 	});
 	
 	var $select = $("#schedulerProjectSelect");
@@ -679,4 +677,12 @@ function deleteAction(xml){
 			type : "schedulerNew" + $last_element_xml.attr("type")
 		});
 	});
+}
+
+function manageNewScheduledJobStateBtn() {
+	if ($("#scheduled_jobs").getGridParam("records") > 0 && $("#scheduled_schedules").getGridParam("records") > 0) {
+		$("#schedulerNewScheduledJob").button("enable");
+	} else {
+		$("#schedulerNewScheduledJob").button("disable");
+	}
 }
