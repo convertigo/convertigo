@@ -29,6 +29,6 @@ public enum CouchParam {
 	public static final String prefix = "_use_";
 	
 	public String param() {
-		return prefix + db.name();
+		return prefix + name();
 	}
 }

@@ -193,7 +193,7 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 	}
 	
 	public String getParameterStringValue(CouchParam param) {
-		String value = getParameterStringValue("__" + param.param());
+		String value = getParameterStringValue(param.param());
 		if (value == null) {
 			try {
 				value = (String) getClass().getMethod("getP_" + param.name()).invoke(this);
