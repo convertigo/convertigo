@@ -36,6 +36,7 @@ public class PutDocumentAttachmentTransaction extends AbstractDocumentTransactio
 	private static final long serialVersionUID = -689772083455858427L;
 
 	private String p_attname = "";
+	private String p_attpath = "";
 	private String q_rev = "";
 	
 	public PutDocumentAttachmentTransaction() {
@@ -75,6 +76,14 @@ public class PutDocumentAttachmentTransaction extends AbstractDocumentTransactio
 
 	public void setP_attname(String p_attname) {
 		this.p_attname = p_attname;
+	}
+
+	public String getP_attpath() {
+		return p_attpath;
+	}
+
+	public void setP_attpath(String p_attpath) {
+		this.p_attpath = p_attpath;
 	}
 
 	public String getQ_rev() {
