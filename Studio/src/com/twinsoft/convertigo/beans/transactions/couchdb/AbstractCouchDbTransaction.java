@@ -222,7 +222,7 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 					String name = method.getName().substring(5);
 					String value = (String) method.invoke(this);
 					
-					if (!value.isEmpty()) {
+					if (value != null && !value.isEmpty()) {
 						map.put(name, value);
 					}
 				}
@@ -236,7 +236,7 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 					} catch (Throwable t) {
 						String value = getParameterStringValue(variable.getName());
 						
-						if (!value.isEmpty()) {
+						if (value != null && !value.isEmpty()) {
 							map.put(name, value);
 						}
 					}
