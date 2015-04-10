@@ -30,7 +30,7 @@ public class GetViewTransactionBeanInfo extends MySimpleBeanInfo {
 	public GetViewTransactionBeanInfo() {
 		try {
 			beanClass = GetViewTransaction.class;
-			additionalBeanClass = AbstractDocumentTransaction.class;
+			additionalBeanClass = AbstractDatabaseTransaction.class;
 
 			resourceBundle = getResourceBundle("res/GetViewTransaction");
 			

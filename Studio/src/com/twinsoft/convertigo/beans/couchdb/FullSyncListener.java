@@ -25,7 +25,6 @@ package com.twinsoft.convertigo.beans.couchdb;
 import java.io.ByteArrayOutputStream;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -34,8 +33,6 @@ import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
@@ -144,11 +141,10 @@ public class FullSyncListener extends Listener {
 					
 					int limit = 10;
 					try {
-						List<NameValuePair> options = new LinkedList<NameValuePair>();
-						options.add(new BasicNameValuePair("reduce", "false"));
-						options.add(new BasicNameValuePair("include_docs", "true"));
-						options.add(new BasicNameValuePair("limit", Integer.toString(limit)));
-		 
+						Map<String, String> query = new HashMap<String, String>(6);
+						query.put("reduce", "false");
+						query.put("include_docs", "true");
+						query.put("limit", Integer.toString(limit));
 						JSONObject keys = new JSONObject();
 						keys.put("keys", new JSONArray(ids));
 						
@@ -158,7 +154,7 @@ public class FullSyncListener extends Listener {
 						do {
 							bContinue = false;
 							Engine.logBeans.debug("(FullSyncListener) Listener \""+ getName() +"\" : post view for _id keys "+ keys.toString()+ "\n");
-							JSONObject json = connector.getCouchClient().postView(db, ddoc, view, options, keys);
+							JSONObject json = connector.getCouchClient().postView(db, ddoc, view, query, keys);
 							Engine.logBeans.debug("(FullSyncListener) Listener \""+ getName() +"\" : post view returned following documents :\n"+ json.toString()+ "\n");
 							if (json != null) {
 								if (json.has("error")) {
@@ -192,10 +188,9 @@ public class FullSyncListener extends Listener {
 											startkey_docid = "\"" + row.getString("id") + "\"";
 				
 											bContinue = true;
-											options = options.subList(0, 3);
-											options.add(new BasicNameValuePair("start_key", startkey));
-											options.add(new BasicNameValuePair("startkey_docid", startkey_docid));
-											options.add(new BasicNameValuePair("skip", "1"));
+											query.put("start_key", startkey);
+											query.put("startkey_docid", startkey_docid);
+											query.put("skip", "1");
 										}
 									}
 								}

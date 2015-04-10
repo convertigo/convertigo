@@ -46,9 +46,9 @@ public class GetDocumentAttachmentTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[0].setDisplayName(getExternalizedString("property.p_attname.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.p_attname.short_description"));
 			
-			properties[1] = new PropertyDescriptor("p_attname", beanClass, "getP_attname", "setP_attname");
-			properties[1].setDisplayName(getExternalizedString("property.p_attname.display_name"));
-			properties[1].setShortDescription(getExternalizedString("property.p_attname.short_description"));
+			properties[1] = new PropertyDescriptor("p_attpath", beanClass, "getP_attpath", "setP_attpath");
+			properties[1].setDisplayName(getExternalizedString("property.p_attpath.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.p_attpath.short_description"));
 			
 			properties[2] = new PropertyDescriptor("q_rev", beanClass, "getQ_rev", "setQ_rev");
 			properties[2].setDisplayName(getExternalizedString("property.q_rev.display_name"));

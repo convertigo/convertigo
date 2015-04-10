@@ -33,7 +33,7 @@ import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.enums.CouchParam;
 
-public class GetViewTransaction extends AbstractDocumentTransaction implements ITagsProperty {
+public class GetViewTransaction extends AbstractDatabaseTransaction implements ITagsProperty {
 
 	private static final long serialVersionUID = -3684374492418313635L;
 	
