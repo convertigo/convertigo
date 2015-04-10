@@ -433,6 +433,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 									element.setAttribute(child.getNodeName(),child.getNodeValue());
 								}
 							}
+							element.removeAttribute("step_copy");
 						}
 						else {
 							importedNode = doc.importNode(nodeToImport, true);
