@@ -49,7 +49,6 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
-import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -134,14 +133,14 @@ public class FullSyncListener extends Listener {
 						throw new EngineException("Target design document name is null");
 					}
 					
-					String viewName = getTargetViewName();
-					if (viewName == null) {
+					String view = getTargetViewName();
+					if (view == null) {
 						throw new EngineException("Target view name is null");
 					}
 
 					FullSyncConnector connector = getConnector();
 					String db = connector.getDatabaseName();
-					String docId = CouchKey._design.key() + designDocName;
+					String ddoc = designDocName;
 					
 					int limit = 10;
 					try {
@@ -159,7 +158,7 @@ public class FullSyncListener extends Listener {
 						do {
 							bContinue = false;
 							Engine.logBeans.debug("(FullSyncListener) Listener \""+ getName() +"\" : post view for _id keys "+ keys.toString()+ "\n");
-							JSONObject json = connector.getCouchClient().postView(db, docId, viewName, options, keys);
+							JSONObject json = connector.getCouchClient().postView(db, ddoc, view, options, keys);
 							Engine.logBeans.debug("(FullSyncListener) Listener \""+ getName() +"\" : post view returned following documents :\n"+ json.toString()+ "\n");
 							if (json != null) {
 								if (json.has("error")) {
@@ -203,7 +202,7 @@ public class FullSyncListener extends Listener {
 							}
 						} while (bContinue);
 					} catch (Throwable t) {
-						throw new EngineException("Query view named \""+ viewName +"\" of \""+ designDocName +"\" design document failed", t);
+						throw new EngineException("Query view named \""+ view +"\" of \""+ designDocName +"\" design document failed", t);
 					}
 					
 				} catch (Exception e) {
