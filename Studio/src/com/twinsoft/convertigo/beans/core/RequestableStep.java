@@ -803,13 +803,44 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 	
 	private void flushDocument() throws EngineException {
 		if (sequence.runningThread.bContinue) {
-			if (isOutput()) sequence.flushStepDocument(executeTimeID, xmlHttpDocument);
+			// step dom
 			Node rootNode = outputDocument.getDocumentElement();
 			Node newChild = outputDocument.importNode(xmlHttpDocument.getDocumentElement(), true);
 			Node stepNode = ((Element)rootNode).getElementsByTagName(getStepNodeName()).item(0);
 			stepNode.appendChild(newChild);
-			if (parent instanceof Step) {
-				((Step)parent).replaceChildNode(stepNode);
+			
+			// ouput/append to parent
+			if (isOutput()) {
+				sequence.flushStepDocument(executeTimeID, xmlHttpDocument);
+			
+				if (parent instanceof Step) {
+					((Step)parent).replaceChildNode(stepNode);
+				}
+			}
+			// remove from parent
+			else {
+				DatabaseObject parentDbo = parent;
+				String nodeID = ((Element)stepNode).getAttribute("step_id");
+				do {
+					if (parentDbo instanceof Step) {
+						Document doc = ((Step)parentDbo).getOutputDocument();
+						NodeList nodeList = doc.getElementsByTagName(getStepNodeName());
+						for (int i=0; i<nodeList.getLength(); i++) {
+							Element nodeElement = (Element)nodeList.item(i);
+							if (nodeID.equals(nodeElement.getAttribute("step_id"))) {
+								nodeElement.getParentNode().removeChild(nodeElement);
+								break;
+							}
+						}
+						
+						if (!((Step)parentDbo).isOutput())
+							parentDbo = ((Step)parentDbo).parent;
+						else
+							break;
+					}
+					else
+						break;
+				} while (parentDbo != null);
 			}
 		}
 	}
