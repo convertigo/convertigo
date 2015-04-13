@@ -53,14 +53,26 @@ import com.twinsoft.convertigo.engine.dbo_explorer.DboExplorerManager;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboGroup;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
+
 public class BeansDoc {
 	//private static Map<String, Element> collision = new HashMap<String, Element>();
 	private static final Pattern pDescription = Pattern.compile("(.*?)(?:\\|(.*))?");
 
+	
+	
 	public static void main(String[] args) throws Exception {
+		
+		Document documentBeansDoc = CreateDocumentBeansDoc();
+	
+		String sDocument = XMLUtils.prettyPrintDOM(documentBeansDoc);
+		System.out.println(sDocument);
+		FileWriter writer = new FileWriter("beans.xml");
+		writer.write(sDocument);
+		writer.close();
+	}
 
-		// Pseudo initialization of the C8O engine...
-
+	public static Document CreateDocumentBeansDoc() throws Exception
+	{
 		// Loggers
 		Engine.logBeans = Logger.getLogger(BeansDoc.class);
 		Engine.logContext = Logger.getLogger(BeansDoc.class);
@@ -127,14 +139,11 @@ public class BeansDoc {
 					}
 				}
 			}
-		}		
-		String sDocument = XMLUtils.prettyPrintDOM(documentBeansDoc);
-		System.out.println(sDocument);
-		FileWriter writer = new FileWriter("beans.xml");
-		writer.write(sDocument);
-		writer.close();
+		}
+		return documentBeansDoc;
 	}
-
+	
+	
 	private static void createBeanElement(String databaseObjectClassName, Document document, Element parentElement, Boolean bEnable)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IntrospectionException {
 		DatabaseObject databaseObject = (DatabaseObject) Class.forName(
@@ -148,9 +157,6 @@ public class BeansDoc {
 		PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
 		
 		Arrays.sort(propertyDescriptors, new Comparator<PropertyDescriptor>() {
-//			@Override
-//			public int compare(PropertyDescriptor o1, PropertyDescriptor o2) {
-//			return o1.getDisplayName().compareTo(o2.getDisplayName());
 				
 			@Override
 			public int compare(PropertyDescriptor o1, PropertyDescriptor o2) {
@@ -330,18 +336,4 @@ public class BeansDoc {
 		}
 	}
 	
-//	private static void changeName(Element bean) {
-//		try {
-//			Element nameElement = (Element) XPathAPI.selectSingleNode(bean, "display_name");
-//			String name = nameElement.getTextContent();
-//			String groupName = (XPathAPI.selectSingleNode(bean, "ancestor::category/name[text()='Variables']") != null) ?
-//				XPathAPI.selectSingleNode(bean, "ancestor::beans/name/text()").getNodeValue() : // case of Variables
-//				XPathAPI.selectSingleNode(bean, "ancestor::group/name/text()").getNodeValue(); // default case
-//			
-//			nameElement.setTextContent(name + " (" + groupName + ")");
-//		} catch (TransformerException e) {
-//			System.err.println("Unexpected exception in changeName of BeansDoc");
-//			e.printStackTrace(System.err);
-//		}
-//	}
 }
