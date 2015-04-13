@@ -35,8 +35,8 @@ public class GetServerTasksTransactionBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/servertransaction_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/servertransaction_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/getservertasks_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/getservertasks_color_32x32.png";
 			
 		}
 		catch(Exception e) {

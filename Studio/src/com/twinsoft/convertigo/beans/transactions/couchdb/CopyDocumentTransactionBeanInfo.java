@@ -37,8 +37,8 @@ public class CopyDocumentTransactionBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/databasetransaction_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/databasetransaction_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/copydocument_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/copydocument_color_32x32.png";
 			
 			properties = new PropertyDescriptor[4];
 
