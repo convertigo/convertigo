@@ -54,6 +54,7 @@ import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
+import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -193,7 +194,13 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 	}
 	
 	public String getParameterStringValue(CouchParam param) {
-		String value = getParameterStringValue(param.param());
+		String value = null;
+		Variable variable = getVariable(param.param());
+		
+		if (variable != null) {
+			value = getParameterStringValue(param.param());
+		}
+		
 		if (value == null) {
 			try {
 				value = (String) getClass().getMethod("getP_" + param.name()).invoke(this);

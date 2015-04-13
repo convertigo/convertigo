@@ -28,6 +28,7 @@ import javax.xml.namespace.QName;
 
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.CouchParam;
 
 public class GetDocumentAttachmentTransaction extends AbstractDocumentTransaction {
@@ -54,6 +55,8 @@ public class GetDocumentAttachmentTransaction extends AbstractDocumentTransactio
 		String docid = getParameterStringValue(CouchParam.docid);
 		String attname = getParameterStringValue(CouchParam.attname);
 		String attpath = getParameterStringValue(CouchParam.attpath);
+		attpath = Engine.theApp.filePropertyManager.getFilepathFromProperty(attpath, getProject().getName());
+		
 		Map<String, String> query = getQueryVariableValues();
 		
 		JSONObject response = getCouchClient().getDocumentAttachment(db, docid, attname, query, new File(attpath));
