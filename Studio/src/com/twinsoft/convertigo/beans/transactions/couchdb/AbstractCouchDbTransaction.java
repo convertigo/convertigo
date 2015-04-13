@@ -259,7 +259,7 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		// add document members from variables
 		for (RequestableVariable variable: getAllVariables()) {
 			String name = variable.getName();
-			if (!name.startsWith("__")) {
+			if (!name.startsWith("__") && !name.startsWith(CouchParam.prefix)) {
 				Object jsonElement = toJson(getParameterValue(name));
 				addJson(jsonDocument, name, jsonElement);
 			}
