@@ -206,10 +206,13 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 	}
 	
 	public boolean getParameterBooleanValue(CouchParam param, boolean def) {
-		try {
-			return Boolean.parseBoolean(getParameterStringValue(param));
-		} catch (Throwable t) {
-			return def; 
+		String value = getParameterStringValue(param);
+		if ("true".equalsIgnoreCase(value)) {
+			return true;
+		} else if ("false".equalsIgnoreCase(value)) {
+			return false;
+		} else {
+			return def;
 		}
 	}
 	

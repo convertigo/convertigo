@@ -22,6 +22,7 @@
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 
 import javax.xml.namespace.QName;
@@ -32,6 +33,7 @@ import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.enums.CouchParam;
+import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
 
 public class GetViewTransaction extends AbstractDatabaseTransaction implements ITagsProperty {
 
@@ -76,6 +78,14 @@ public class GetViewTransaction extends AbstractDatabaseTransaction implements I
 		String ddoc;
 		String view;
 		Map<String, String> query = getQueryVariableValues();
+		
+		for (Entry<String, String> entry: query.entrySet()) {
+			if (entry.getKey().contains("key")) {
+				String value = entry.getValue();
+				value = CouchClient.quoteValue(value);
+				entry.setValue(value);
+			}
+		}
 		
 		Matcher mSplitViewname = DesignDocument.splitFunctionName.matcher(viewname);
 		
