@@ -35,7 +35,6 @@ import com.twinsoft.convertigo.eclipse.views.references.model.AbstractNodeWithDa
 import com.twinsoft.convertigo.eclipse.views.references.model.InformationNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.IsUsedByNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.RequiresNode;
-import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 
 
 public class ViewRefLabelProvider implements ILabelProvider {
@@ -61,17 +60,8 @@ public class ViewRefLabelProvider implements ILabelProvider {
 		if (element instanceof AbstractNodeWithDatabaseObjectReference) {
 			AbstractNodeWithDatabaseObjectReference node = (AbstractNodeWithDatabaseObjectReference) element;
 			DatabaseObject databaseObject = node.getRefDatabaseObject();
-
-			BeanInfo databaseObjectBeanInfo;
-			try {
-				databaseObjectBeanInfo = CachedIntrospector.getBeanInfo(databaseObject.getClass());
-				iconName = MySimpleBeanInfo.getIconName(databaseObjectBeanInfo, BeanInfo.ICON_COLOR_16x16);
-			} catch (Exception e) {
-			}
-
-			if (iconName == null) {
-				iconName = "/com/twinsoft/convertigo/beans/core/images/default_color_16x16.png";
-			}
+			
+			iconName = MySimpleBeanInfo.getIconName(databaseObject, BeanInfo.ICON_COLOR_16x16);
 		}
 		else {
 			if (element instanceof InformationNode) {
@@ -85,7 +75,7 @@ public class ViewRefLabelProvider implements ILabelProvider {
 			}
 		}
 		
-		image = ViewImageProvider.getImageFromCache(iconName, (Object) element);
+		image = ViewImageProvider.getImageFromCache(iconName, element);
 		return image;
 	}
 	

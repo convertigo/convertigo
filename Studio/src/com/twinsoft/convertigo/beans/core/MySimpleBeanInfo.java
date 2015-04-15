@@ -36,7 +36,9 @@ import java.util.ResourceBundle;
 
 import org.apache.commons.lang.ArrayUtils;
 
+import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 
 public class MySimpleBeanInfo extends SimpleBeanInfo {
@@ -210,6 +212,30 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
     
     public static String getIconName(BeanInfo bean, int iconType) {
     	return bean != null ? (String) bean.getBeanDescriptor().getValue("icon" + iconType) : null;
+    }
+    
+    public static String getIconName(DatabaseObject dbo, int iconType) {
+    	if (dbo instanceof TransactionStep) {
+    		TransactionStep ts = (TransactionStep) dbo;
+    		try {
+				dbo = ts.getTargetTransaction();
+			} catch (EngineException e) {
+				// cannot get the target transaction, use the call transaction icon
+			}
+    	}
+    	
+    	String iconName;
+		try {
+			iconName = getIconName(CachedIntrospector.getBeanInfo(dbo), iconType);
+		} catch (IntrospectionException e) {
+			iconName = dbo.getClass().getName();
+		}
+		
+		if (iconName == null) {
+			iconName = "/com/twinsoft/convertigo/beans/core/images/default_color_16x16.png";
+		}
+		
+		return iconName;
     }
     
     protected PropertyDescriptor getPropertyDescriptor(String name) throws IntrospectionException {

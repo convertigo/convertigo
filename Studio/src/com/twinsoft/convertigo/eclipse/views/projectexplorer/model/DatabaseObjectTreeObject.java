@@ -55,6 +55,7 @@ import org.eclipse.ui.views.properties.TextPropertyDescriptor;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.INillableProperty;
+import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.StatementWithExpressions;
@@ -1035,7 +1036,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 
 	public String getImageName() {
 		//Check the status to the object to display the right image.children at this point aren't updated
-		String imageName = getObject().getClass().getName();
+		String imageName = MySimpleBeanInfo.getIconName(getObject(), BeanInfo.ICON_COLOR_16x16);
 		imageName += (!isEnabled() ? "_disabled": hasAncestorDisabled()? "_unreachable":"");
 		imageName += (isInherited ? "_inherited":"");
 		imageName += (isDetectedObject ? "_detected":"");

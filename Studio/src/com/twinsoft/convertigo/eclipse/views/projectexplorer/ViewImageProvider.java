@@ -32,6 +32,8 @@ import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentFunctionTreeObject;
@@ -42,6 +44,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTable
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject2;
+import com.twinsoft.convertigo.eclipse.views.references.model.AbstractNodeWithDatabaseObjectReference;
 
 public class ViewImageProvider {
 
@@ -60,6 +63,9 @@ public class ViewImageProvider {
 		String imageName = null;
 		if (object instanceof DatabaseObjectTreeObject) {
 			imageName = ((DatabaseObjectTreeObject)object).getImageName();
+		} else if (object instanceof AbstractNodeWithDatabaseObjectReference) {
+			DatabaseObject dbo = ((AbstractNodeWithDatabaseObjectReference) object).getRefDatabaseObject();
+			imageName = MySimpleBeanInfo.getIconName(dbo, MySimpleBeanInfo.ICON_COLOR_16x16);
 		} else if (object instanceof PropertyTableTreeObject) {
 			imageName = "property";
 		} else if (object instanceof PropertyTableRowTreeObject) {
@@ -70,7 +76,7 @@ public class ViewImageProvider {
 			imageName = "variable";
 		} else {
 			try {
-				imageName = object.toString();
+				imageName = object.getClass().getCanonicalName();
 			}
 			catch (Exception e) {
 				imageName = "image";
