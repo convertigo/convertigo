@@ -758,6 +758,9 @@ C8O = {
     				child = parentElement.ownerDocument.createElement(key);
     			} catch (e) {
     				key = key.replace(C8O._define.re_not_normalized, "_");
+    				if (new RegExp("^\\d").test(key)) {
+    					key = "_" + key;
+    				}
     				child = parentElement.ownerDocument.createElement(key);
     			}
     			parentElement.appendChild(child);
