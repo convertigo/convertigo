@@ -23,11 +23,11 @@
 package com.twinsoft.convertigo.beans.connectors;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -273,18 +273,18 @@ public class CouchDbConnector extends Connector {
 		int limit = 10;
 
 		try {
-			List<NameValuePair> options = new LinkedList<NameValuePair>();
-			options.add(new BasicNameValuePair("include_docs", "true"));
-			options.add(new BasicNameValuePair("limit", Integer.toString(limit)));
-			options.add(new BasicNameValuePair("end_key", "\"_design0\""));
-			options.add(new BasicNameValuePair("start_key", "\"_design/\""));
+			Map<String, String> query = new HashMap<String, String>(6);
+			query.put("include_docs", "true");
+			query.put("limit", Integer.toString(limit));
+			query.put("end_key", "\"_design0\"");
+			query.put("start_key", "\"_design/\"");
 
 			String startkey = null, startkey_docid = null;
 			boolean bContinue;
 
 			do {
 				bContinue = false;
-				JSONObject json = couchClient.allDocs(getDatabaseName(), options);
+				JSONObject json = couchClient.getAllDocs(getDatabaseName(), query);
 
 				JSONArray rows = json.getJSONArray("rows");
 				int lenght = rows.length();
@@ -301,10 +301,9 @@ public class CouchDbConnector extends Connector {
 					startkey_docid = "\"" + row.getString("id") + "\"";
 
 					bContinue = true;
-					options = options.subList(0, 3);
-					options.add(new BasicNameValuePair("start_key", startkey));
-					options.add(new BasicNameValuePair("startkey_docid", startkey_docid));
-					options.add(new BasicNameValuePair("skip", "1"));
+					query.put("start_key", startkey);
+					query.put("startkey_docid", startkey_docid);
+					query.put("skip", "1");
 				}
 			} while (bContinue);
 		} catch (Throwable t) {
