@@ -41,7 +41,7 @@ public class PostBulkDocumentsTransactionBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/postbulkdocuments_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/postbulkdocuments_color_32x32.png";
 			
-			properties = new PropertyDescriptor[3];
+			properties = new PropertyDescriptor[4];
 
             properties[0] = new PropertyDescriptor("policy", beanClass, "getPolicy", "setPolicy");
             properties[0].setDisplayName(getExternalizedString("property.policy.display_name"));
@@ -55,6 +55,11 @@ public class PostBulkDocumentsTransactionBeanInfo extends MySimpleBeanInfo {
             properties[2] = new PropertyDescriptor("p_new_edits", beanClass, "getP_new_edits", "setP_new_edits");
             properties[2].setDisplayName(getExternalizedString("property.p_new_edits.display_name"));
             properties[2].setShortDescription(getExternalizedString("property.p_new_edits.short_description"));
+            
+			properties[3] = new PropertyDescriptor("useHash", beanClass, "isUseHash", "setUseHash");
+			properties[3].setDisplayName(getExternalizedString("property.useHash.display_name"));
+			properties[3].setShortDescription(getExternalizedString("property.useHash.short_description"));
+			properties[3].setValue(BLACK_LIST_PARENT_CLASS, "com.twinsoft.convertigo.beans.connectors.CouchDbConnector");
 			
 		}
 		catch(Exception e) {

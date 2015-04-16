@@ -17,6 +17,7 @@ public enum CouchKey {
 	reduce,
 	rev,
 	updates,
+	value,
 	views,
 	c8oAcl("~c8oAcl"),
 	c8oHash("~c8oHash");
@@ -37,6 +38,27 @@ public enum CouchKey {
 	
 	public boolean has(JSONObject json) {
 		return json.has(key);
+	}
+	
+	public boolean equals(JSONObject json1, JSONObject json2) {
+		if (json1.has(key) && json2.has(key)) {
+			try {
+				return json1.get(key).equals(json2.get(key));
+			} catch (JSONException e) {
+				onJSONException(e);
+			}
+		}
+		return false;
+	}
+	
+	public void copy(JSONObject json1, JSONObject json2) {
+		if (json1.has(key)) {
+			try {
+				json2.put(key, json1.get(key));
+			} catch (JSONException e) {
+				onJSONException(e);
+			}
+		}
 	}
 	
 	public void put(JSONObject json, Object value) {

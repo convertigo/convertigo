@@ -21,6 +21,8 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
+import java.util.Collection;
+
 import javax.xml.namespace.QName;
 
 import org.codehaus.jettison.json.JSONArray;
@@ -38,6 +40,7 @@ public class PostBulkDocumentsTransaction extends AbstractDatabaseTransaction {
 	
 	private String p_all_or_nothing = "";
 	private String p_new_edits = "";
+	private boolean useHash = false;
 	
 	public PostBulkDocumentsTransaction() {
 		super();
@@ -51,12 +54,24 @@ public class PostBulkDocumentsTransaction extends AbstractDatabaseTransaction {
 	
 	@Override
 	protected Object invoke() throws Exception {
-		JSONArray jsonDocuments = new JSONArray();
+		JSONArray jsonDocuments;
+		
+		if (getVariable("_json") != null) {
+			Object value = getParameterValue("_json");
+			
+			if (value instanceof Collection) {
+				value = ((Collection<?>) value).iterator().next();
+			}
+			
+			jsonDocuments = new JSONArray(value.toString());
+		} else {
+			jsonDocuments = new JSONArray();
+		}
 		
 		// add document members from variables
 		for (RequestableVariable variable : getVariablesList()) {
-			if (variable.isMultiValued()) {
-				String variableName = variable.getName();
+			String variableName = variable.getName();
+			if (variable.isMultiValued() && !variableName.startsWith(CouchParam.prefix) && !variableName.equals("_json")) {
 				Object jsonv = toJson(getParameterValue(variableName));
 				
 				if (jsonv != null && jsonv instanceof JSONArray) {
@@ -77,7 +92,7 @@ public class PostBulkDocumentsTransaction extends AbstractDatabaseTransaction {
 		boolean all_or_nothing = getParameterBooleanValue(CouchParam.all_or_nothing, false);
 		boolean new_edits = getParameterBooleanValue(CouchParam.new_edits, true);
 		
-		return getCouchClient().postBulkDocs(getTargetDatabase(), jsonDocuments, all_or_nothing, new_edits, policy);
+		return getCouchClient().postBulkDocs(getTargetDatabase(), jsonDocuments, all_or_nothing, new_edits, policy, useHash);
 	}
 
 	@Override
@@ -107,5 +122,13 @@ public class PostBulkDocumentsTransaction extends AbstractDatabaseTransaction {
 
 	public void setP_new_edits(String p_new_edits) {
 		this.p_new_edits = p_new_edits;
+	}
+
+	public boolean isUseHash() {
+		return useHash;
+	}
+
+	public void setUseHash(boolean useHash) {
+		this.useHash = useHash;
 	}
 }
