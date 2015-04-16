@@ -438,6 +438,7 @@ C8O = {
         re_plus: new RegExp("\\+", "g"),
         re_project: new RegExp("/projects/([^/]+).*"),
         re_requestable: new RegExp("^([^.]*)\\.(?:([^.]+)|(?:([^.]+)\\.([^.]+)))$"), // 1: project ; 2: sequence ; 3: connector ; 4: transaction > 1+2 | 1+3+4
+        re_start_digit: new RegExp("^\\d"),
         start_time: new Date().getTime(),
         uid: Math.round((new Date().getTime() * Math.random())).toString(36)
     },
@@ -758,7 +759,7 @@ C8O = {
     				child = parentElement.ownerDocument.createElement(key);
     			} catch (e) {
     				key = key.replace(C8O._define.re_not_normalized, "_");
-    				if (new RegExp("^\\d").test(key)) {
+    				if (C8O._define.re_start_digit.test(key)) {
     					key = "_" + key;
     				}
     				child = parentElement.ownerDocument.createElement(key);
