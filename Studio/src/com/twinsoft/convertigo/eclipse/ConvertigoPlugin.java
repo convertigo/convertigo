@@ -470,7 +470,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					
 					shell.setText("Convertigo Studio");
 					
-					Image image = getStudioIcon("icons/splash_wait_rss.jpg");
+					Image image = getStudioIcon("icons/splash_wait_rss.png");
 					
 					Composite compositeHeader = new Composite(shell, SWT.NONE);
 					compositeHeader.setBackgroundImage(image);
@@ -585,7 +585,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					progressBar.dispose();
 					compositeBar.dispose();
 					
-					image = getStudioIcon("icons/splash_ready_rss.jpg");
+					image = getStudioIcon("icons/splash_ready_rss.png");
 					compositeHeader.setBackgroundImage(image);
 					
 					gridData = new GridData ();
