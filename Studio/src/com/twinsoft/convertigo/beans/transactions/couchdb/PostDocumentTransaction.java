@@ -36,6 +36,7 @@ public class PostDocumentTransaction extends AbstractDatabaseTransaction {
 	private CouchPostDocumentPolicy policy = CouchPostDocumentPolicy.none;
 	
 	private String q_batch = "";
+	private boolean useHash = false;
 	
 	public PostDocumentTransaction() {
 		super();
@@ -54,7 +55,7 @@ public class PostDocumentTransaction extends AbstractDatabaseTransaction {
 		
 		JSONObject jsonDocument = getJsonBody();
 		
-		JSONObject response = getCouchClient().postDocument(db, jsonDocument, query, policy);
+		JSONObject response = getCouchClient().postDocument(db, jsonDocument, query, policy, useHash);
 		
 		return response;
 	}
@@ -78,5 +79,13 @@ public class PostDocumentTransaction extends AbstractDatabaseTransaction {
 
 	public void setQ_batch(String q_batch) {
 		this.q_batch = q_batch;
+	}
+
+	public boolean isUseHash() {
+		return useHash;
+	}
+
+	public void setUseHash(boolean useHash) {
+		this.useHash = useHash;
 	}
 }

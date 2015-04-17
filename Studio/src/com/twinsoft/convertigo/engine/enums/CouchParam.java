@@ -1,5 +1,7 @@
 package com.twinsoft.convertigo.engine.enums;
 
+import java.util.Map;
+
 public enum CouchParam {
 	all_or_nothing,
 	attname,
@@ -14,6 +16,7 @@ public enum CouchParam {
 	doc_ids,
 	docid,
 	func,
+	include_docs,
 	key,
 	name,
 	new_edits,
@@ -30,5 +33,9 @@ public enum CouchParam {
 	
 	public String param() {
 		return prefix + name();
+	}
+	
+	public void put(Map<String, String> query, String value) {
+		query.put(name(), value);
 	}
 }
