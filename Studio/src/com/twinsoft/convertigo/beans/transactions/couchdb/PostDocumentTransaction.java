@@ -27,6 +27,7 @@ import javax.xml.namespace.QName;
 
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.engine.enums.CouchParam;
 import com.twinsoft.convertigo.engine.enums.CouchPostDocumentPolicy;
 
 public class PostDocumentTransaction extends AbstractDatabaseTransaction {
@@ -34,7 +35,8 @@ public class PostDocumentTransaction extends AbstractDatabaseTransaction {
 	private static final long serialVersionUID = -7606732916561433014L;
 	
 	private CouchPostDocumentPolicy policy = CouchPostDocumentPolicy.none;
-	
+
+	private String p_json_base = "";
 	private String q_batch = "";
 	private boolean useHash = false;
 	
@@ -53,7 +55,15 @@ public class PostDocumentTransaction extends AbstractDatabaseTransaction {
 		String db = getTargetDatabase();
 		Map<String, String> query = getQueryVariableValues();
 		
-		JSONObject jsonDocument = getJsonBody();
+		JSONObject jsonBase;
+		
+		try {
+			jsonBase = new JSONObject(getParameterStringValue(CouchParam.json_base));
+		} catch (Throwable t) {
+			jsonBase = new JSONObject();
+		}
+		
+		JSONObject jsonDocument = getJsonBody(jsonBase);
 		
 		JSONObject response = getCouchClient().postDocument(db, jsonDocument, query, policy, useHash);
 		
@@ -71,6 +81,14 @@ public class PostDocumentTransaction extends AbstractDatabaseTransaction {
 
 	public void setPolicy(CouchPostDocumentPolicy policy) {
 		this.policy = policy;
+	}
+
+	public String getP_json_base() {
+		return p_json_base;
+	}
+
+	public void setP_json_base(String p_json_base) {
+		this.p_json_base = p_json_base;
 	}
 
 	public String getQ_batch() {

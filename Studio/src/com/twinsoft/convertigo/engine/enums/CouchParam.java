@@ -17,6 +17,7 @@ public enum CouchParam {
 	docid,
 	func,
 	include_docs,
+	json_base,
 	key,
 	name,
 	new_edits,

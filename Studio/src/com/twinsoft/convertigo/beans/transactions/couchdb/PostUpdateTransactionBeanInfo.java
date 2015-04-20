@@ -54,6 +54,10 @@ public class PostUpdateTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[2] = new PropertyDescriptor("p_func", beanClass, "getP_func", "setP_func");
 			properties[2].setDisplayName(getExternalizedString("property.p_func.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.p_func.short_description"));
+            
+            properties[3] = new PropertyDescriptor("p_json_base", beanClass, "getP_json_base", "setP_json_base");
+            properties[3].setDisplayName(getExternalizedString("property.p_json_base.display_name"));
+            properties[3].setShortDescription(getExternalizedString("property.p_json_base.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

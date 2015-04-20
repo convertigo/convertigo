@@ -21,8 +21,6 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import java.util.Collection;
-
 import javax.xml.namespace.QName;
 
 import org.codehaus.jettison.json.JSONArray;
@@ -40,6 +38,7 @@ public class PostBulkDocumentsTransaction extends AbstractDatabaseTransaction {
 	
 	private String p_all_or_nothing = "";
 	private String p_new_edits = "";
+	private String p_json_base = "";
 	private boolean useHash = false;
 	
 	public PostBulkDocumentsTransaction() {
@@ -54,31 +53,33 @@ public class PostBulkDocumentsTransaction extends AbstractDatabaseTransaction {
 	
 	@Override
 	protected Object invoke() throws Exception {
+		JSONObject jsonDoc = null;
 		JSONArray jsonDocuments;
 		
-		if (getVariable("_json") != null) {
-			Object value = getParameterValue("_json");
-			
-			if (value instanceof Collection) {
-				value = ((Collection<?>) value).iterator().next();
+		String json_base = getParameterStringValue(CouchParam.json_base);
+		
+		try {			
+			jsonDocuments = new JSONArray(json_base);
+		} catch (Throwable t1) {
+			try {
+				jsonDoc = new JSONObject(json_base);
+			} catch (Throwable t2) {
+				// ignore json_base
 			}
-			
-			jsonDocuments = new JSONArray(value.toString());
-		} else {
 			jsonDocuments = new JSONArray();
 		}
 		
 		// add document members from variables
 		for (RequestableVariable variable : getVariablesList()) {
 			String variableName = variable.getName();
-			if (variable.isMultiValued() && !variableName.startsWith(CouchParam.prefix) && !variableName.equals("_json")) {
+			if (variable.isMultiValued() && !variableName.startsWith(CouchParam.prefix)) {
 				Object jsonv = toJson(getParameterValue(variableName));
 				
 				if (jsonv != null && jsonv instanceof JSONArray) {
 					JSONArray jsonArray = (JSONArray) jsonv;
 					
 					while (jsonDocuments.length() < jsonArray.length()) {
-						jsonDocuments.put(new JSONObject());
+						jsonDocuments.put(jsonDoc == null ? new JSONObject() : new JSONObject(json_base));
 					}
 					
 					for (int i = 0; i < jsonArray.length(); i++) {
@@ -122,6 +123,14 @@ public class PostBulkDocumentsTransaction extends AbstractDatabaseTransaction {
 
 	public void setP_new_edits(String p_new_edits) {
 		this.p_new_edits = p_new_edits;
+	}
+
+	public String getP_json_base() {
+		return p_json_base;
+	}
+
+	public void setP_json_base(String p_json_base) {
+		this.p_json_base = p_json_base;
 	}
 
 	public boolean isUseHash() {

@@ -260,9 +260,7 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		return map;
 	}
 	
-	public JSONObject getJsonBody() throws JSONException {
-		JSONObject jsonDocument = new JSONObject();
-
+	public JSONObject getJsonBody(JSONObject jsonDocument) throws JSONException {
 		// add document members from variables
 		for (RequestableVariable variable: getAllVariables()) {
 			String name = variable.getName();

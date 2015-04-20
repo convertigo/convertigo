@@ -40,7 +40,7 @@ public class PutUpdateTransactionBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/putupdate_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/putupdate_color_32x32.png";
 			
-			properties = new PropertyDescriptor[3];
+			properties = new PropertyDescriptor[4];
 
             properties[0] = new PropertyDescriptor("updatename", beanClass, "getUpdatename", "setUpdatename");
             properties[0].setDisplayName(getExternalizedString("property.updatename.display_name"));
@@ -53,7 +53,11 @@ public class PutUpdateTransactionBeanInfo extends MySimpleBeanInfo {
             
             properties[2] = new PropertyDescriptor("p_func", beanClass, "getP_func", "setP_func");
             properties[2].setDisplayName(getExternalizedString("property.p_func.display_name"));
-            properties[2].setShortDescription(getExternalizedString("property.p_func.short_description")); 
+            properties[2].setShortDescription(getExternalizedString("property.p_func.short_description"));
+            
+            properties[3] = new PropertyDescriptor("p_json_base", beanClass, "getP_json_base", "setP_json_base");
+            properties[3].setDisplayName(getExternalizedString("property.p_json_base.display_name"));
+            properties[3].setShortDescription(getExternalizedString("property.p_json_base.short_description"));
             
 		}
 		catch(Exception e) {

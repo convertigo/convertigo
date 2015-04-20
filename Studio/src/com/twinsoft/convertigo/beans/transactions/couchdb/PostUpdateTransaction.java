@@ -40,6 +40,7 @@ public class PostUpdateTransaction extends AbstractDatabaseTransaction implement
 
 	private String p_ddoc = "";
 	private String p_func = "";
+	private String p_json_base = "";
 
 	public PostUpdateTransaction() {
 		super();
@@ -67,7 +68,15 @@ public class PostUpdateTransaction extends AbstractDatabaseTransaction implement
 			func = getParameterStringValue(CouchParam.func);
 		}
 		
-		JSONObject jsonDocument = getJsonBody();
+		JSONObject jsonBase;
+		
+		try {
+			jsonBase = new JSONObject(getParameterStringValue(CouchParam.json_base));
+		} catch (Throwable t) {
+			jsonBase = new JSONObject();
+		}
+		
+		JSONObject jsonDocument = getJsonBody(jsonBase);
 		
 		JSONObject response = getCouchClient().postUpdate(db, ddoc, func, jsonDocument);
 		
@@ -109,5 +118,13 @@ public class PostUpdateTransaction extends AbstractDatabaseTransaction implement
 
 	public void setP_func(String p_func) {
 		this.p_func = p_func;
+	}
+
+	public String getP_json_base() {
+		return p_json_base;
+	}
+
+	public void setP_json_base(String p_json_base) {
+		this.p_json_base = p_json_base;
 	}
 }
