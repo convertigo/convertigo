@@ -224,4 +224,8 @@ public class JscriptStepEditor extends EditorPart implements IPropertyListener {
 		IDocument doc = jsEditor.getDocumentProvider().getDocument(getEditorInput());
 		doc.set(step.getExpression() + toAppend);
 	}
+	
+	public SimpleStep getSimpleStepLinked(){
+		return step;
+	}
 }

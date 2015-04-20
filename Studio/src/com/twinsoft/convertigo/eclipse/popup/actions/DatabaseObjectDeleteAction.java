@@ -34,6 +34,9 @@ import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.IWorkbenchPage;
 
 import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
@@ -48,9 +51,11 @@ import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.statements.ElseStatement;
 import com.twinsoft.convertigo.beans.statements.ThenStatement;
 import com.twinsoft.convertigo.beans.steps.ElseStep;
+import com.twinsoft.convertigo.beans.steps.SimpleStep;
 import com.twinsoft.convertigo.beans.steps.ThenStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.MultipleDeletionDialog;
+import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptStepEditor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectListener;
@@ -59,6 +64,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ConnectorTree
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.SequenceTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
@@ -123,6 +129,29 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
     					else if (treeObject instanceof ConnectorTreeObject) {
     						((ProjectTreeObject) ((ConnectorTreeObject) treeObject).getParent().getParent()).closeConnectorEditors((Connector)treeObject.getObject());
     		        	}
+    					else if (treeObject instanceof StepTreeObject) {
+    						// We close the editor linked with the SimpleStep (=SequenceJsStep)
+    						if ( treeObject.getObject() instanceof SimpleStep) {
+    							boolean find = false;
+    							SimpleStep simpleStep = (SimpleStep) treeObject.getObject();
+    							IWorkbenchPage page = this.getActivePage();	
+    							IEditorReference[] editors = page.getEditorReferences();
+    							int _i = 0;
+    							while (find != true && _i < editors.length) {
+    								IEditorReference editor = editors[_i];
+    								IEditorPart editorPart = page.findEditor(editor.getEditorInput());
+    								if (editorPart != null && editorPart instanceof JscriptStepEditor) {
+    									JscriptStepEditor jscriptEditor = (JscriptStepEditor) editorPart;
+    									if (jscriptEditor.getSimpleStepLinked().equals(simpleStep)) {
+ 		    							   find = true;
+		    							   page.activate(editorPart);
+		    							   page.closeEditor(editorPart, false);
+    									}
+    								}
+    								++_i;
+    							}
+    						}
+    					}
     					
     					delete(treeObject);
     		        	
