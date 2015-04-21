@@ -40,7 +40,7 @@ public class PostUpdateTransactionBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/postupdate_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/postupdate_color_32x32.png";
 			
-			properties = new PropertyDescriptor[3];
+			properties = new PropertyDescriptor[4];
 
             properties[0] = new PropertyDescriptor("updatename", beanClass, "getUpdatename", "setUpdatename");
             properties[0].setDisplayName(getExternalizedString("property.updatename.display_name"));
