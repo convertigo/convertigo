@@ -30,7 +30,6 @@ import org.eclipse.swt.widgets.Shell;
 import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.Variable;
-import com.twinsoft.convertigo.beans.transactions.couchdb.CouchDbParameter;
 import com.twinsoft.convertigo.beans.transactions.couchdb.GetViewTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
@@ -40,6 +39,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumen
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentViewTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+import com.twinsoft.convertigo.engine.enums.CouchParam;
 
 public class ViewExecuteSelectedAction extends MyAbstractAction {
 
@@ -76,7 +76,7 @@ public class ViewExecuteSelectedAction extends MyAbstractAction {
     					Transaction transaction = connector.getTransactionByName(CouchDbConnector.internalView);
     					((GetViewTransaction)transaction).setViewname(viewTreeObject.getDocViewName());
     					
-    					Variable view_reduce = ((GetViewTransaction)transaction).getVariable(CouchDbParameter.Param_view_reduce.variableName());
+    					Variable view_reduce = ((GetViewTransaction)transaction).getVariable(CouchParam.prefix + "reduce");
    						view_reduce.setValueOrNull(viewTreeObject.hasReduce() ? isReduceRequested():false);
     					
     					// execute view transaction

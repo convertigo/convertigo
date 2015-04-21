@@ -45,6 +45,7 @@ import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
+import com.twinsoft.convertigo.engine.enums.CouchParam;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
 
@@ -204,12 +205,9 @@ public class CouchDbConnector extends Connector {
 			try {
 				internalViewTransaction = new GetViewTransaction();
 				internalViewTransaction.setName(internalView);
-				RequestableVariable var_limit = new RequestableVariable();
-				var_limit.setName(CouchDbParameter.Param_view_limit.variableName());
-				var_limit.setValueOrNull("100");
-				internalViewTransaction.add(var_limit);
+				internalViewTransaction.setQ_limit("50");
 				RequestableVariable var_reduce = new RequestableVariable();
-				var_reduce.setName(CouchDbParameter.Param_view_reduce.variableName());
+				var_reduce.setName(CouchParam.prefix + "reduce");
 				var_reduce.setValueOrNull("true");
 				internalViewTransaction.add(var_reduce);
 				internalViewTransaction.setParent(this);
