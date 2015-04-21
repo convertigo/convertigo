@@ -57,6 +57,7 @@ import com.twinsoft.convertigo.beans.core.Reference;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.XMLCopyStep;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
@@ -407,6 +408,32 @@ public class SchemaManager implements AbstractManager {
 										parentAttributeChildren.add(attribute);
 
 									} else if (step instanceof ISchemaParticleGenerator) {
+
+										// SequenceStep case : walk target sequence first
+										if (step instanceof SequenceStep) {
+											try {
+												Sequence targetSequence = ((SequenceStep)step).getTargetSequence();
+												if (targetSequence != null) {
+													String targetProjectName = targetSequence.getProject().getName();
+													String targetSequenceName = targetSequence.getName();
+													String stepSequenceName = step.getSequence().getName();
+													
+													if (!projectName.equals(targetProjectName)) {
+														SchemaManager.this.getSchemaForProject(targetProjectName);
+													}
+													else {
+														boolean isAfter = targetSequenceName.compareToIgnoreCase(stepSequenceName) > 0;
+														if (isAfter) {
+															walk(targetSequence);
+														}
+													}
+												}
+											}
+											catch (Exception e) {
+												e.printStackTrace();
+											}
+										}
+																				
 										// Particle case
 										XmlSchemaParticle particle = ((ISchemaParticleGenerator) step).getXmlSchemaObject(collection, schema);
 										
@@ -491,14 +518,14 @@ public class SchemaManager implements AbstractManager {
 									} else {
 										XmlSchemaObject object;
 										if (step instanceof XMLCopyStep && !fullSchema) {
-											XmlSchemaCollection collection;
-											XmlSchema schema = SchemaManager.this.getSchemaForProject(projectName, Option.fullSchema);
-											collection = SchemaMeta.getCollection(schema);
-											object = step.getXmlSchemaObject(collection, schema);
+											XmlSchema xmlSchema = SchemaManager.this.getSchemaForProject(projectName, Option.fullSchema);
+											XmlSchemaCollection xmlCollection = SchemaMeta.getCollection(xmlSchema);
+											object = step.getXmlSchemaObject(xmlCollection, xmlSchema);
+											SchemaMeta.setXmlSchemaObject(xmlSchema, step, object);
 										} else {
 											object = step.getXmlSchemaObject(collection, schema);
+											SchemaMeta.setXmlSchemaObject(schema, step, object);
 										}
-										SchemaMeta.setXmlSchemaObject(schema, step, object);
 										if (object instanceof XmlSchemaParticle) {
 											particleChildren.add((XmlSchemaParticle) object);
 										} else if (object instanceof XmlSchemaAttribute) {
