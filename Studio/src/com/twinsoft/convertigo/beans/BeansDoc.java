@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.xml.xpath.XPathExpressionException;
+
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -51,6 +53,7 @@ import com.twinsoft.convertigo.engine.dbo_explorer.DboBeans;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboCategory;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboExplorerManager;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboGroup;
+import com.twinsoft.convertigo.engine.dbo_explorer.DboParent;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 
@@ -58,8 +61,6 @@ public class BeansDoc {
 	//private static Map<String, Element> collision = new HashMap<String, Element>();
 	private static final Pattern pDescription = Pattern.compile("(.*?)(?:\\|(.*))?");
 
-	
-	
 	public static void main(String[] args) throws Exception {
 		
 		Document documentBeansDoc = CreateDocumentBeansDoc();
@@ -124,14 +125,13 @@ public class BeansDoc {
 					}
 					List<DboBean> beans = beansCategory.getBeans();
 					for (DboBean bean : beans) {
-						String databaseObjectClassName = bean.getClassName();
 						if(bean.isEnable()) {
 							switch (bean.getDocumentedMode()) {
 							case TRUE:
-								createBeanElement(databaseObjectClassName, documentBeansDoc, dbdBeans, true);
+								createBeanElement(bean, documentBeansDoc, dbdBeans, true);
 								break;
 							case FALSE:
-								createBeanElement(databaseObjectClassName, documentBeansDoc, dbdBeans, false);
+								createBeanElement(bean, documentBeansDoc, dbdBeans, false);
 								break;
 							default: break;
 							}
@@ -144,13 +144,13 @@ public class BeansDoc {
 	}
 	
 	
-	private static void createBeanElement(String databaseObjectClassName, Document document, Element parentElement, Boolean bEnable)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IntrospectionException {
+	private static void createBeanElement(DboBean bean, Document document, Element parentElement, Boolean bEnable)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IntrospectionException, XPathExpressionException {
+		String databaseObjectClassName = bean.getClassName();
 		DatabaseObject databaseObject = (DatabaseObject) Class.forName(
 				databaseObjectClassName).newInstance();
 
 		boolean isExtractionRule = databaseObject instanceof ExtractionRule;
-
 		Class<?> databaseObjectClass = databaseObject.getClass();
 		BeanInfo beanInfo = Introspector.getBeanInfo(databaseObjectClass);
 		BeanDescriptor databaseObjectBeanDescriptor = beanInfo.getBeanDescriptor();
@@ -190,34 +190,8 @@ public class BeansDoc {
 		elementText = document.createTextNode(displayName);
 		elementSub.appendChild(elementText);
 		elementBean.appendChild(elementSub);
-		
-		// Name collision detection
-//		if (collision.containsKey(displayName)) {
-//			Element otherBean = collision.get(displayName);
-//			if (otherBean != null) {
-//				changeName(otherBean);
-//			}
-//			changeName(elementBean);
-//			collision.put(displayName, null);
-//		} else {
-//			collision.put(displayName, elementBean);
-//		}
-		
 
 		String description = databaseObjectBeanDescriptor.getShortDescription();
-
-		//String test = databaseObjectBeanDescriptor.getDisplayName();//yina Server config transactions
-		//if(test.equals("GetServerConfig"))
-			//System.out.println(description+"\n");
-		
-//		String shortDescpription = description;
-//		String longDescpription = "";
-//
-//		if (idx != -1) {
-//			shortDescpription = description.substring(0, idx);
-//			longDescpription = description.substring(idx + 3);
-//		}
-		
 		
 		String shortDescpription = description;
 		
@@ -257,6 +231,17 @@ public class BeansDoc {
 				if (getter == null || setter == null) {
 					continue;
 				}
+				
+				String blackListedForParentClass = (String) databaseObjectPropertyDescriptor.getValue("blackListedForParentClass");
+				if (blackListedForParentClass != null) {
+					// check
+					for (DboParent parent : bean.getParents()) {
+						String parentName = parent.getClassName();
+						if(blackListedForParentClass.equals(parentName)){					
+							continue;
+						}							
+					}
+				}
 	
 				String category = "standard";
 				if (isExtractionRule) {
@@ -267,8 +252,6 @@ public class BeansDoc {
 				} else if (databaseObjectPropertyDescriptor.isExpert()) {
 					category = "expert";
 				}
-				
-				//TODO: parent
 	
 				description = databaseObjectPropertyDescriptor
 						.getShortDescription();
