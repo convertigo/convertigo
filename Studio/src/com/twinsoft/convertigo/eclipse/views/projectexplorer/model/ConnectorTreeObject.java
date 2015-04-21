@@ -39,7 +39,6 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 
 import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
-import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.connectors.SapJcoConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -223,7 +222,7 @@ public class ConnectorTreeObject extends DatabaseObjectTreeObject {
 							propertyName.equals("couchPassword"))
 						{
 							((CouchDbConnector)connector).release();
-							CouchDbManager.createCouchDbAndSync(connector);
+							CouchDbManager.syncDocument(connector);
 		    		    	try {
 		    					ConvertigoPlugin.getDefault().getProjectExplorerView().reloadTreeObject(this);
 		    				} catch (Exception e) {
@@ -231,7 +230,7 @@ public class ConnectorTreeObject extends DatabaseObjectTreeObject {
 		    				}
 						}
 						else if (propertyName.equals("databaseName")) {
-							CouchDbManager.createCouchDbAndSync(connector);
+							CouchDbManager.syncDocument(connector);
 		    		    	try {
 		    					ConvertigoPlugin.getDefault().getProjectExplorerView().reloadTreeObject(this);
 		    				} catch (Exception e) {
@@ -307,8 +306,8 @@ public class ConnectorTreeObject extends DatabaseObjectTreeObject {
 				}
 			}
 			
-			if (connector instanceof FullSyncConnector) {
-				CouchDbManager.createCouchDbAndSync(connector);
+			if (connector instanceof CouchDbConnector) {
+				CouchDbManager.syncDocument(connector);
 		    	try {
 					ConvertigoPlugin.getDefault().getProjectExplorerView().reloadTreeObject(this);
 				} catch (Exception e) {

@@ -55,7 +55,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.FileEditorInput;
 
-import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
+import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -315,10 +315,10 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 					checkMissingProjects();
 			}
 			
-			if (databaseObject instanceof FullSyncConnector) {
-				FullSyncConnector fullSyncConnector = (FullSyncConnector)databaseObject;
-				if (fullSyncConnector.bNew) {
-					CouchDbManager.createCouchDbAndSync(fullSyncConnector);
+			if (databaseObject instanceof CouchDbConnector) {
+				CouchDbConnector couchDbConnector = (CouchDbConnector) databaseObject;
+				if (couchDbConnector.bNew) {
+					CouchDbManager.syncDocument(couchDbConnector);
 				}
 			}
 		}
