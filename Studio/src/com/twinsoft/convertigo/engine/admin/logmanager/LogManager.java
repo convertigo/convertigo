@@ -129,7 +129,7 @@ public class LogManager {
 						// probably not a valid line
 					};
 				}
-				if (!find && sb != null) {
+				if (!find && sb != null && !line.startsWith("!")) {
 					sb.append('\n').append(line);
 				}
 				line = br.readLine();
