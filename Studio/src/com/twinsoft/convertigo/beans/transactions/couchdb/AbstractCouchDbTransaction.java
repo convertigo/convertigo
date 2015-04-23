@@ -23,6 +23,8 @@ package com.twinsoft.convertigo.beans.transactions.couchdb;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -38,6 +40,7 @@ import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaSequence;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -185,6 +188,51 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		Engine.logBeans.debug("(CouchDBTransaction) Document generated!");
 	}
 
+	public Class<?> getParameterDataTypeClass(String parameterName) {
+		try {
+			QName typeQName = ((RequestableVariable) getVariable(parameterName)).getTypeAffectation();
+			if (typeQName.getNamespaceURI().equals(Constants.URI_2001_SCHEMA_XSD)) {
+				if (typeQName.equals(Constants.XSD_BOOLEAN)) {
+					return Boolean.class;
+				}
+				else if (typeQName.equals(Constants.XSD_BYTE)) {
+					return Byte.class;
+				}
+				else if (typeQName.equals(Constants.XSD_SHORT) ||
+						typeQName.equals(Constants.XSD_UNSIGNEDBYTE)) {
+					return Short.class;
+				}
+				else if (typeQName.equals(Constants.XSD_INT) ||
+						typeQName.equals(Constants.XSD_UNSIGNEDSHORT)) {
+					return Integer.class;
+				}
+				else if (typeQName.equals(Constants.XSD_LONG) ||
+						typeQName.equals(Constants.XSD_UNSIGNEDINT)) {
+					return Long.class;
+				}
+				else if (typeQName.equals(Constants.XSD_DOUBLE)) {
+					return Double.class;
+				}
+				else if (typeQName.equals(Constants.XSD_FLOAT)) {
+					return Float.class;
+				}
+				else if (typeQName.equals(Constants.XSD_INTEGER) || 
+						typeQName.equals(Constants.XSD_POSITIVEINTEGER)) {
+					return BigInteger.class;
+				}
+				else if (typeQName.equals(Constants.XSD_DECIMAL) ||
+						typeQName.equals(Constants.XSD_UNSIGNEDLONG)) {
+					return BigDecimal.class;
+				}
+				else if (typeQName.equals(Constants.XSD_STRING)) {
+					return String.class;
+				}
+			}
+		}
+		catch (Exception e) {}
+		return null;
+	}
+
 	public Object getParameterValue(CouchDbParameter param) {
 		return super.getParameterValue(param.variableName());
 	}
@@ -263,24 +311,25 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 	public JSONObject getJsonBody(JSONObject jsonDocument) throws JSONException {
 		// add document members from variables
 		for (RequestableVariable variable: getAllVariables()) {
-			String name = variable.getName();
-			if (!name.startsWith("__") && !name.startsWith(CouchParam.prefix)) {
-				Object jsonElement = toJson(getParameterValue(name));
-				addJson(jsonDocument, name, jsonElement);
+			String variableName = variable.getName();
+			if (!variableName.startsWith("__") && !variableName.startsWith(CouchParam.prefix)) {
+				Object value = toJson(getParameterValue(variableName));
+				addJson(jsonDocument, variableName, value, getParameterDataTypeClass(variableName));
 			}
 		}
 
 		return jsonDocument;
 	}
 	
-	protected static void addJson(JSONObject jsonObject, String propertyName, Object jsonElement) {
-		if (jsonElement != null) {
-			if (jsonElement instanceof JSONObject) { // comes from a complex variable
-				JSONObject json = (JSONObject) jsonElement;
+	protected static void addJson(JSONObject jsonObject, String propertyName, Object propertyValue, Class<?> propertyType) {
+		if (propertyValue != null) {
+			if (propertyValue instanceof JSONObject) { // comes from a complex variable
+				JSONObject json = (JSONObject) propertyValue;
 				for (Iterator<String> i = GenericUtils.cast(json.keys()); i.hasNext(); ) {
 					String key = i.next();
 					try {
-						jsonObject.put(key, json.get(key));
+						//jsonObject.put(key, json.get(key));
+						jsonObject.put(key, valueOf(propertyType, json.get(key)));
 					} catch (JSONException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -288,13 +337,28 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 				}
 			} else { // comes from a simple variable
 				try {
-					jsonObject.put(propertyName, jsonElement);
+					//jsonObject.put(propertyName, propertyValue);
+					jsonObject.put(propertyName, valueOf(propertyType, propertyValue));
 				} catch (JSONException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
 		}
+	}
+	
+	protected static Object valueOf(Class<?> type, Object value) {
+		if (type != null && value != null && value instanceof String) {
+			try {
+				Object args[] = { value };
+				return type.getConstructor(String.class).newInstance(args);
+			}
+			catch (Throwable t) {
+				// TODO Auto-generated catch block
+				t.printStackTrace();
+			}
+		}
+		return value;
 	}
 	
 	protected static Object toJson(Object object) throws JSONException {

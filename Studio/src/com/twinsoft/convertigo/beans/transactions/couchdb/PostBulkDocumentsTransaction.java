@@ -84,7 +84,7 @@ public class PostBulkDocumentsTransaction extends AbstractDatabaseTransaction {
 					
 					for (int i = 0; i < jsonArray.length(); i++) {
 						JSONObject jsonDocument = jsonDocuments.getJSONObject(i);
-						addJson(jsonDocument, variableName, jsonArray.get(i));
+						addJson(jsonDocument, variableName, jsonArray.get(i), getParameterDataTypeClass(variableName));
 					}
 				}
 			}
