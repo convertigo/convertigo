@@ -2867,6 +2867,44 @@
                      menubarPath="import">
                </action>
             </objectContribution>
+            <objectContribution
+            	id="convertigo.couchAddVariables"
+            	objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TransactionTreeObject">
+				<visibility>
+					<or>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.CopyDocumentTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteDocumentTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.GetDocumentTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.HeadDocumentTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PostBulkDocumentsTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PostDocumentTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PostUpdateTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PutUpdateTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteDocumentAttachmentTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.GetDocumentAttachmentTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PutDocumentAttachmentTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteDatabaseTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.GetDatabaseTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.HeadDatabaseTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PostReplicateTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PutDatabaseTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.GetViewTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PostSessionTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerLogTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerStatsTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerUpdatesTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerUuidsTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteServerConfigTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerConfigTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PutServerConfigTransaction"/>
+					</or>
+				</visibility>
+            	<action
+            		class="com.twinsoft.convertigo.eclipse.popup.actions.CouchAddVariables"
+            		enablesFor="1"
+            		id="convertigo.action.couchAddVariables"
+            		label="Add variables for dynamic properties"/>
+            </objectContribution>
    </extension>
    <extension
          point="org.eclipse.ui.preferencePages">

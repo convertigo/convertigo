@@ -27,6 +27,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -518,8 +519,9 @@ public class NewObjectWizard extends Wizard {
 						}
 
 						if (newBean instanceof AbstractCouchDbTransaction) {
-							AbstractCouchDbTransaction abstractCouchDbTransaction = (AbstractCouchDbTransaction)newBean;
-							abstractCouchDbTransaction.createVariables();
+							AbstractCouchDbTransaction abstractCouchDbTransaction = (AbstractCouchDbTransaction) newBean;
+							Map<String, String> selectedParameters = objectInfoPage.getSelectedParameters();
+							abstractCouchDbTransaction.createVariables(selectedParameters);
 						}
 
 						ConvertigoPlugin.logInfo("New object class '"+ this.className +"' named '" + newBean.getName() + "' has been added");

@@ -227,5 +227,5 @@ public class ObjectExplorerWizardPage extends WizardPage {
 			}
 		}
 	}
-	
+
 }

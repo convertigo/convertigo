@@ -22,7 +22,9 @@
 
 package com.twinsoft.convertigo.eclipse.wizards.new_object;
 
+import java.beans.IntrospectionException;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
@@ -40,6 +42,7 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 
 import com.twinsoft.convertigo.beans.common.XMLTable;
+import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
 import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
@@ -57,7 +60,9 @@ import com.twinsoft.convertigo.beans.statements.ScEntryHandlerStatement;
 import com.twinsoft.convertigo.beans.statements.ScExitHandlerStatement;
 import com.twinsoft.convertigo.beans.statements.ScHandlerStatement;
 import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
+import com.twinsoft.convertigo.eclipse.dialogs.CouchVariablesComposite;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class ObjectInfoWizardPage extends WizardPage {
@@ -67,6 +72,9 @@ public class ObjectInfoWizardPage extends WizardPage {
 	private Tree tree;
 	private String treeItemName = null;
 	
+	private CouchVariablesComposite couchVariablesComposite = null;
+	private Composite container = null;
+	
 	public ObjectInfoWizardPage(Object parentObject) {
 		super("ObjectInfoWizardPage");
 		this.parentObject = parentObject;
@@ -75,7 +83,7 @@ public class ObjectInfoWizardPage extends WizardPage {
 	}
 
 	public void createControl(Composite parent) {
-		Composite container = new Composite(parent, SWT.NULL);
+		container = new Composite(parent, SWT.NONE);
 		GridLayout layout = new GridLayout();
 		container.setLayout(layout);
 		layout.numColumns = 2;
@@ -93,25 +101,35 @@ public class ObjectInfoWizardPage extends WizardPage {
 			}
 		});
 		
-		tree = new Tree(container, SWT.SINGLE | SWT.BORDER);
-		tree.setHeaderVisible(false);
-		GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
-		gridData.verticalSpan = 20;
-		gridData.horizontalSpan = 2;
-		tree.setLayoutData(gridData);		
-		tree.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(final Event event) {
-				TreeItem item = (TreeItem) event.item;
-				treeItemName = item.getText();
-				String suffix = getBeanName().endsWith(ScHandlerStatement.EVENT_ENTRY_HANDLER) ? 
-						ScHandlerStatement.EVENT_ENTRY_HANDLER:
-							getBeanName().endsWith(ScHandlerStatement.EVENT_EXIT_HANDLER) ?
-									ScHandlerStatement.EVENT_EXIT_HANDLER : "";
-				setBeanName("on"+ treeItemName + suffix);
-				dialogChanged();
-			}
-		});
-		tree.setVisible(false);
+		if (parentObject instanceof CouchDbConnector) {
+			couchVariablesComposite = new CouchVariablesComposite(container, SWT.NONE);
+			
+			GridData couchVarData = new GridData(GridData.FILL_BOTH);
+			couchVarData.horizontalSpan = 2;
+			
+			couchVariablesComposite.setLayoutData(couchVarData);
+			
+		} else {
+			tree = new Tree(container, SWT.SINGLE | SWT.BORDER);
+			tree.setHeaderVisible(false);
+			GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+			gridData.verticalSpan = 20;
+			gridData.horizontalSpan = 2;
+			tree.setLayoutData(gridData);		
+			tree.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(final Event event) {
+					TreeItem item = (TreeItem) event.item;
+					treeItemName = item.getText();
+					String suffix = getBeanName().endsWith(ScHandlerStatement.EVENT_ENTRY_HANDLER) ? 
+							ScHandlerStatement.EVENT_ENTRY_HANDLER:
+								getBeanName().endsWith(ScHandlerStatement.EVENT_EXIT_HANDLER) ?
+										ScHandlerStatement.EVENT_EXIT_HANDLER : "";
+					setBeanName("on"+ treeItemName + suffix);
+					dialogChanged();
+				}
+			});
+			tree.setVisible(false);
+		}
 		
 		initialize();
 		dialogChanged();
@@ -268,4 +286,31 @@ public class ObjectInfoWizardPage extends WizardPage {
 	public void setBeanName(String name) {
 		beanName.setText(name);
 	}
+
+	@Override
+	public void setVisible(boolean visible) {
+		// TODO Auto-generated method stub
+		super.setVisible(visible);
+		
+		if (visible) {
+			ObjectExplorerWizardPage objectExplorerWizardPage = (ObjectExplorerWizardPage) this.getPreviousPage(); 
+			
+			try {
+				DatabaseObject dbo = objectExplorerWizardPage.getCreatedBean();
+				if (dbo != null && couchVariablesComposite != null){
+					couchVariablesComposite.setPropertyDescriptor(CachedIntrospector.getBeanInfo(dbo).getPropertyDescriptors());
+				}
+			} catch (IntrospectionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+	}
+
+	public Map<String, String> getSelectedParameters() {
+		return couchVariablesComposite.getSelectedParameters();
+	}
+	
+	
 }

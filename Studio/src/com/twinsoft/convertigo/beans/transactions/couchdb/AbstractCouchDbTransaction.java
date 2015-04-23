@@ -102,12 +102,18 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		return getDeclaredParameters(CouchDbParameter.empty);
 	}
 	
-	public void createVariables() {
+	public void createVariables(Map<String, String> selectedParameters) {
 		try {
-			for (CouchDbParameter param : getDeclaredParameters()) {
-				if (getVariable(param.variableName()) == null) {
-					addVariable(CouchDbParameter.create(param.name()));
-					hasChanged = true;
+			if (selectedParameters != null) {
+				for (String param : selectedParameters.keySet()) {
+					if (getVariable(param) == null) {
+						RequestableVariable requestableVariable = new RequestableVariable();
+						requestableVariable.setName(CouchParam.prefix + param.substring(2));
+						requestableVariable.setDescription(selectedParameters.get(param));
+						
+						addVariable(requestableVariable);
+						hasChanged = true;
+					}
 				}
 			}
 		}
