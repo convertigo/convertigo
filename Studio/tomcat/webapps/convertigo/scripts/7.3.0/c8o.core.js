@@ -800,6 +800,7 @@ C8O = {
     _local_cache_insert: function (key, data, success, error) {
         var cacheOptions = key.__localCache;
         delete key.__localCache;
+        delete key.__uid;
         var tKey = C8O.toJSON(key);
         var tData = C8O.serializeXML(data);
         var now = new Date();
@@ -847,6 +848,7 @@ C8O = {
     _local_cache_search_entry: function (key, success, error) {
         key = C8O._obj_clone(key);
         delete key.__localCache;
+        delete key.__uid;
         var tKey = C8O.toJSON(key);
         
         C8O.log.debug("c8o.core: _local_cache_search_entry search for: " + tKey);

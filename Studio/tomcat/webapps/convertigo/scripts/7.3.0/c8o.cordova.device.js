@@ -414,6 +414,7 @@ if ("cordova" in window) {
         _local_cache_insert: function (key, xml, success, error) {
             var cacheOptions = key.__localCache;
             delete key.__localCache;
+            delete key.__uid;
             var tKey = C8O.toJSON(key);
             var tXml = C8O.serializeXML(xml);
             var now = new Date();
