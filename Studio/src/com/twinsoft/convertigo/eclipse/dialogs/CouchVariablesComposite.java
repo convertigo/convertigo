@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
@@ -24,16 +25,17 @@ import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.CouchParam;
 
-public class CouchVariablesComposite extends Composite {
-	private GridLayout gridLayout = null;
+public class CouchVariablesComposite extends ScrolledComposite {
 	private Group groupParameters = null, groupQueries = null;
+	
+	private Composite globalComposite = null;
 	
 	private List<String> parametersCouch = null;
 	private List<RequestableVariable> allVariables = null;
 	private Map<String, String> selectedParameters = null;
 		
 	public CouchVariablesComposite(Composite parent, int style, List<RequestableVariable> allVariables) {
-		super(parent, style);		
+		super(parent, style);	
 		this.allVariables = allVariables;
 		parametersCouch = new ArrayList<String>();
 		selectedParameters = new HashMap<String, String>();
@@ -48,10 +50,8 @@ public class CouchVariablesComposite extends Composite {
 	}
 
 	protected void createContents() {
-		gridLayout = new GridLayout(3, false);
-		gridLayout.horizontalSpacing = 18;
-		setLayoutData(new GridData(GridData.FILL_BOTH));
-		setLayout(gridLayout);	
+		setLayout(new GridLayout(1, true));
+		setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 	}
 
 	public void setPropertyDescriptor(PropertyDescriptor[] propertyDescriptors) {	
@@ -103,11 +103,12 @@ public class CouchVariablesComposite extends Composite {
 											  "body {"+
 											    "font-family: Tahoma new, sans-serif;" +
 											    "font-size: 0.7em;"+
-											    "margin-top: 5px;"+
+											    "margin-top: 5px;" +
+											    "overflow-y: auto;" +
 											    "background-color: #ECEBEB }"+
 										"</style></head><p>" + description + "</p></html>");
 						
-						browserDescription.setSize(browserDescription.getSize().x, 32);
+						browserDescription.setSize(browserDescription.getSize().x, 40);
 						parametersCouch.add(name);
 					}
 				}
@@ -116,34 +117,48 @@ public class CouchVariablesComposite extends Composite {
 		if (groupQueries.getChildren().length == 0) {
 			groupQueries.dispose();
 		}
+		
 		if (groupParameters.getChildren().length == 0) {
 			groupParameters.dispose();
-		}
+		} 
+
+		globalComposite.setSize(getSize());	
+		this.setMinSize(globalComposite.getSize().x, 680);
+		this.setContent(globalComposite);
+		this.setExpandVertical(true);
 		
 		this.layout(true);
 	}
 	
 	private void cleanGroups(){	
-		GridData gridData = new GridData(SWT.FILL, SWT.TOP | SWT.FILL, true, false);
-		gridData.horizontalSpan = 3;
+		final Composite container = this;
+		
+		/* */		
+		globalComposite = new Composite(this, SWT.NONE);
+		globalComposite.setLayout(new GridLayout(1, true));
+		globalComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
+		
+		
+		GridLayout layout = new GridLayout(3, false);
+		layout.horizontalSpacing = 30;
 		
 		if ((groupParameters != null) && (!groupParameters.isDisposed())) {
 			groupParameters.dispose();
 		}
-		groupParameters = new Group(this, SWT.SHADOW_ETCHED_OUT | SWT.V_SCROLL);
-		groupParameters.setLayout(gridLayout);
-		groupParameters.setLayoutData(gridData);
+		groupParameters = new Group(globalComposite, SWT.SHADOW_ETCHED_OUT | SWT.V_SCROLL);
+		groupParameters.setLayout(layout);
+		groupParameters.setLayoutData(new GridData(SWT.FILL, SWT.TOP | SWT.FILL, true, false));
 		groupParameters.setText("Parameters");
 
-		gridData = new GridData(SWT.FILL, SWT.TOP | SWT.FILL, true, false);
-		gridData.horizontalSpan = 3;
-			
+		/* */
+		
 		if ((groupQueries != null) && (!groupQueries.isDisposed())) {
 			groupQueries.dispose();
 		}
-		groupQueries = new Group(this, SWT.SHADOW_ETCHED_OUT | SWT.V_SCROLL);
-		groupQueries.setLayout(gridLayout);
-		groupQueries.setLayoutData(gridData);
+		groupQueries = new Group(globalComposite, SWT.SHADOW_ETCHED_OUT | SWT.V_SCROLL);
+		groupQueries.setLayout(layout);
+		
+		groupQueries.setLayoutData(new GridData(SWT.FILL, SWT.TOP | SWT.FILL, true, false));
 		groupQueries.setText("Queries");
 		
 		if (groupParameters != null) {
@@ -157,7 +172,14 @@ public class CouchVariablesComposite extends Composite {
 				c.dispose();
 			}	
 		}
-
+		
+		addListener(SWT.Resize, new Listener() {
+			@Override
+			public void handleEvent(Event event) {
+				globalComposite.setSize(container.getSize());
+			}
+		});
+		
 		parametersCouch.clear();
 	}
 	

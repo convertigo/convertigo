@@ -102,7 +102,7 @@ public class ObjectInfoWizardPage extends WizardPage {
 		});
 		
 		if (parentObject instanceof CouchDbConnector) {
-			couchVariablesComposite = new CouchVariablesComposite(container, SWT.NONE);
+			couchVariablesComposite = new CouchVariablesComposite(container, SWT.V_SCROLL);
 			
 			GridData couchVarData = new GridData(GridData.FILL_BOTH);
 			couchVarData.horizontalSpan = 2;

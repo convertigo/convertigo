@@ -117,7 +117,7 @@ public class CouchVariablesDialog extends Dialog {
 				dboVariables = couchDbTransaction.getVariablesList();
 			}
 			
-			couchVariablesComposite = new CouchVariablesComposite(parent, SWT.NONE, dboVariables);
+			couchVariablesComposite = new CouchVariablesComposite(parent, SWT.V_SCROLL, dboVariables);
 			couchVariablesComposite.setPropertyDescriptor(availablesParameters);
 
 			GridData couchVarData = new GridData(GridData.FILL_BOTH);
