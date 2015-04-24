@@ -57,7 +57,11 @@
     
 	<!-- Useful for debugging -->
 	<gap:plugin name="org.apache.cordova.console" />
-    
+
+	
+	<!-- Plugin for the local-cache feature, can be removed if not used. Install GIT for local build -->
+	<gap:plugin name="io.litehelpers.cordova.sqlite" git="https://github.com/litehelpers/Cordova-sqlite-storage"/>
+	
 	<!-- Other optional Core plugins, comment them out (ctrl+shit+c) if you want to reduce the package size and permissions -->
 <!--     <gap:plugin name="org.apache.cordova.battery-status" /> -->
 <!--     <gap:plugin name="org.apache.cordova.camera" /> -->
@@ -76,6 +80,8 @@
     <!-- Other optional plugins -->
 <!--     <gap:plugin name="com.phonegap.plugins.pushplugin" /> -->
 <!--     <gap:plugin name="com.phonegap.plugins.barcodescanner" /> -->
+
+
 	
 	<!-- Other plugins and documentation can be find here : https://build.phonegap.com/plugins -->
 	
