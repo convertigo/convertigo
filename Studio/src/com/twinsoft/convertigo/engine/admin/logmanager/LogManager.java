@@ -277,7 +277,7 @@ public class LogManager {
 		if (is != null) {
 			is.close();
 		}
-		is = new TemporalInputStream(log_directory, log_name, date_format, date_format_offset, date_start, date_end);
+		is = new TemporalInputStream(log_directory, log_name, date_format, date_format_offset, date_start, date_end, EnginePropertiesManager.getProperty(PropertyName.LOG4J_APPENDER_CEMSAPPENDER_ENCODING));
 		reset();
 		need_renew = false;
 	}
