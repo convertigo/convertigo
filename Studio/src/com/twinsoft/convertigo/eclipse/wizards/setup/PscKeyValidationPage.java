@@ -7,6 +7,7 @@ import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.wizard.IWizard;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.events.ModifyEvent;
@@ -21,8 +22,10 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -56,12 +59,14 @@ public class PscKeyValidationPage extends WizardPage implements RegisterCallback
 		return super.getWizard();
 	}
 
-	public void createControl(Composite parent) {
-		container = new Composite(parent, SWT.NONE);
-		GridLayout layout = new GridLayout();
-		layout.numColumns = 1;
+	public void createControl(final Composite parent) {		
+		ScrolledComposite sc = new ScrolledComposite(parent, SWT.V_SCROLL);
+		
+		container = new Composite(sc, SWT.NONE);
+		GridLayout layout = new GridLayout(1, true);
 		layout.marginWidth = 30;
 		container.setLayout(layout);
+		container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		
 		GridData layoutDataText = new GridData(GridData.FILL_HORIZONTAL);
 		layoutDataText.verticalIndent = 5;
@@ -190,8 +195,19 @@ public class PscKeyValidationPage extends WizardPage implements RegisterCallback
 			public void widgetDefaultSelected(SelectionEvent e) { }
 		});
 		
+		parent.addListener(SWT.Resize, new Listener() {
+			@Override
+			public void handleEvent(Event event) {
+				container.setSize(parent.getSize());
+			}
+		});
+
+		sc.setMinSize(container.getSize().x, 450);
+		sc.setContent(container);
+    	sc.setExpandVertical(true);
+		
 		// Required to avoid an error in the system
-		setControl(container);
+		setControl(sc);
 		setPageComplete(false);
 	}
 
