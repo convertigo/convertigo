@@ -224,6 +224,11 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
     private BeanDescriptor databaseObjectBeanDescriptor = null;
     private java.beans.PropertyDescriptor[] databaseObjectPropertyDescriptors;
 
+    protected void reloadDescriptors() {
+    	propertyDescriptors = null;
+    	getDescriptors();
+    }
+    
     protected void getDescriptors() {
     	if (propertyDescriptors != null && databaseObjectBeanDescriptor != null &&
     			databaseObjectPropertyDescriptors != null) {

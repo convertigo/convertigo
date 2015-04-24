@@ -89,6 +89,11 @@ public class VariableTreeObject2 extends DatabaseObjectTreeObject implements IOr
 			if (propertyName.equals("name")) {
 				handlesBeanNameChanged(treeObjectEvent);
 			}
+			else if (propertyName.equals("visibility")) {
+				if (treeObject.equals(this)) {
+					reloadDescriptors();
+				}
+			}
 		}
 	}
 
