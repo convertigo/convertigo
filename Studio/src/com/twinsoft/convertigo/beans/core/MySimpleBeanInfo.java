@@ -218,7 +218,10 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
     	if (dbo instanceof TransactionStep) {
     		TransactionStep ts = (TransactionStep) dbo;
     		try {
-				dbo = ts.getTargetTransaction();
+				Transaction t = ts.getTargetTransaction();
+				if (t != null) {
+					dbo = t;
+				}
 			} catch (EngineException e) {
 				// cannot get the target transaction, use the call transaction icon
 			}
