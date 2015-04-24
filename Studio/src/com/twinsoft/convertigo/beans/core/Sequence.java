@@ -1421,6 +1421,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 								}
 							}
 
+							stepParentElement.removeAttribute("step_id");
 							stepParentElement.removeAttribute("step_copy");
 							node = stepParentElement;
 						} else {
