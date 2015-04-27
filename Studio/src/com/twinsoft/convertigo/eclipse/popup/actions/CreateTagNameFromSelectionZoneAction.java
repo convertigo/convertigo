@@ -44,7 +44,6 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ScreenClassTreeObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
-import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.twinj.Javelin;
 
@@ -97,13 +96,18 @@ public class CreateTagNameFromSelectionZoneAction extends MyAbstractAction {
 						    			lastDetectedScreenClass.addExtractionRule(tagName);
 							            
 							            explorerView.reloadTreeObject(lastDetectedScreenClassTreeObject);
+							            
 				    				} catch (Exception e) {
 				    					ConvertigoPlugin.logException(e, "Unable to create screen class from selection zone!");
 				    				}
+				    				
+						            javelin.setSelectionZone(new Rectangle(0, 0, 0, 0));
 				    			}
 				        	});
 				        }
-			            javelin.setSelectionZone(new Rectangle(0, 0, 0, 0));
+				        else {
+				        	javelin.setSelectionZone(new Rectangle(0, 0, 0, 0));
+				        }
 					}
 				}
 			}
