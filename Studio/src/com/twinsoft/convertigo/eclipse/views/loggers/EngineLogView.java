@@ -392,9 +392,11 @@ public class EngineLogView extends ViewPart {
 		searchText.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
+				currentFoundIndex = 0;
 				applySearch();
 			}
 		});
+		
 
 		infoSearch = new Label(compositeSearch, SWT.NONE);
 		infoSearch.setVisible(false);
@@ -432,6 +434,7 @@ public class EngineLogView extends ViewPart {
 		applyButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				currentFoundIndex = 0;
 				applySearch();
 			}
 		});
@@ -521,7 +524,7 @@ public class EngineLogView extends ViewPart {
 		// To force components resizing if needed
 		compositeSearch.layout();
 	}
-
+	
 	/*
 	 * Table viewer
 	 */
