@@ -219,14 +219,23 @@ public class TrSeqSourceEditorComposite extends AbstractDialogComposite implemen
 			ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
 			for (String projectName : projectNames) {
 				Project project = null;
-				TreeObject projectTreeObject = ((ViewContentProvider) projectExplorerView.viewer
-						.getContentProvider()).getProjectRootObject(projectName);
-				if (projectTreeObject instanceof UnloadedProjectTreeObject) {
-					project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
-				} else {
-					project = projectExplorerView.getProject(projectName);
+				try {
+					TreeObject projectTreeObject = ((ViewContentProvider) projectExplorerView.viewer
+							.getContentProvider()).getProjectRootObject(projectName);
+					if (projectTreeObject instanceof UnloadedProjectTreeObject) {
+						project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
+					} else {
+						project = projectExplorerView.getProject(projectName);
+					}
 				}
-
+				catch (EngineException e) {
+					ConvertigoPlugin.logError("Project \""+projectName+"\" could not be loaded yet", true);
+				}
+				
+				if (project == null) {
+					continue;
+				}
+				
 				TVProject tvProject = new TVProject(projectName);
 
 				if (requestableType == RequestableType.TRANSACTION) {
@@ -267,7 +276,7 @@ public class TrSeqSourceEditorComposite extends AbstractDialogComposite implemen
 					}
 				}
 			}
-		} catch (EngineException e) {
+		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "Error while analyzing the projects hierarchy", true);
 		}
 
