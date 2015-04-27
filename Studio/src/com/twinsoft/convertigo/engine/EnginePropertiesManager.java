@@ -779,6 +779,14 @@ public class EnginePropertiesManager {
     		exvalue = (String) properties.put(property.getKey(), value);
     	}
     	if (!value.equals(exvalue) && Engine.isStarted) {
+    		if (property == PropertyName.CONVERTIGO_PRODUCT_VERSION_CHECK) {
+    			if ("false".equals(value)) {
+    				Engine.logEngine.warn("The product version check will be ignored!");
+    			}
+    			else {
+    				Engine.logEngine.info("The product version check will be done!");
+    			}
+    		}
     		Engine.theApp.eventManager.dispatchEvent(new PropertyChangeEvent(property, value), PropertyChangeEventListener.class);
     	}
     }

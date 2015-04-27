@@ -36,7 +36,7 @@ public class VersionUtils {
 		boolean bProductVersionCheck = new Boolean(EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.CONVERTIGO_PRODUCT_VERSION_CHECK)).booleanValue();
     	
 		if (!bProductVersionCheck) {
-			Engine.logEngine.warn("The product version check has been ignored!");
+			Engine.logEngine.trace("The product version check has been ignored!");
 			return 0;
 		}
 		
