@@ -85,8 +85,10 @@ public class AdminServlet extends HttpServlet {
 	    		
 				String requestURL = request.getRequestURL().toString();
 				int i = requestURL.lastIndexOf('/');
-				serviceName = requestURL.substring(i + 1);
-				Engine.logAdmin.info("Service name: " + serviceName);
+				serviceName = requestURL.substring(i + 1); 
+				if (serviceName != null && !serviceName.equals("logs.Get")) {
+					Engine.logAdmin.info("Service name: " + serviceName);
+				}
 				
 				String myPackage = this.getClass().getPackage().getName();
 				Class<?> serviceClass = Class.forName(myPackage + ".services." + serviceName);
