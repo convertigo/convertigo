@@ -94,12 +94,23 @@ public class BuildLocallyEndingDialog extends Dialog {
 		
 		//Normal ending
 		if (exitValue == 0){
-			message = "Application \"" + applicationName
+			if (!applicationName.isEmpty()) {
+				message = "Application \"" + applicationName
 					+ "\" has been successfully built locally."
 					+ "\nThe built file for \"" + mobilePlatform.getCordovaPlatform() + "\" platform is located here:";
+			} else {
+				message = "Application from the Convertigo project \"" + mobilePlatform.getProject().getName()
+						+ "\" has been successfully built locally."
+						+ "\nThe built file for \"" + mobilePlatform.getCordovaPlatform() + "\" platform is located here:";
+			}
 		//Error ending
 		} else {
-			message = "An error occurred on the \"" + applicationName + "\" application during the \"Local build\"!";
+			if (!applicationName.isEmpty()) {
+				message = "An error occurred on the \"" + applicationName + "\" application during the \"Local build\"!";
+			} else {
+				message = "An error occurred on the application from the Convertigo project \"" + mobilePlatform.getProject().getName() 
+						+ "\" during the \"Local build\"!";
+			}
 		}
 		label.setText(message);
 		label.setLayoutData(data);
