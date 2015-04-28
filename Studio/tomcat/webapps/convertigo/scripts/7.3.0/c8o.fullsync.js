@@ -315,7 +315,7 @@ C8O.addHook("_call_fs", function (data) {
 				
 				if (seq == "get") {
 					C8O._fs.addLiveId(db, data);
-					C8O._fs.getDocument(db, options, callback);
+					C8O._fs.getDocument(db, C8O._remove(options, "docid"), options, callback);
 				} else if (seq == "delete") {
 					C8O._fs.deleteDocument(db, C8O._remove(options, "docid"), options, callback);
 				} else if (seq == "view") {
