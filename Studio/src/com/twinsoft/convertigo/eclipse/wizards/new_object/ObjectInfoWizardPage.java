@@ -43,6 +43,7 @@ import org.eclipse.swt.widgets.TreeItem;
 
 import com.twinsoft.convertigo.beans.common.XMLTable;
 import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
+import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
@@ -101,7 +102,7 @@ public class ObjectInfoWizardPage extends WizardPage {
 			}
 		});
 		
-		if (parentObject instanceof CouchDbConnector) {
+		if (parentObject instanceof CouchDbConnector || parentObject instanceof FullSyncConnector) {
 			couchVariablesComposite = new CouchVariablesComposite(container, SWT.V_SCROLL);
 			
 			GridData couchVarData = new GridData(GridData.FILL_BOTH);
