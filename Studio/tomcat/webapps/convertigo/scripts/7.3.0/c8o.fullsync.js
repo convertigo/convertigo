@@ -148,7 +148,7 @@ $.extend(true, C8O, {
 				if (rev) {
 					options.rev = rev;
 				}
-				callback(query);
+				callback(options);
 			});
 		},
 		
