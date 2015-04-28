@@ -79,7 +79,7 @@ public abstract class AbstractSequenceComposite extends Composite implements ISe
 				Sequence sequence = null;
 				if (source instanceof Sequence) sequence = (Sequence)source;
 				if (source instanceof Step) sequence = ((Step)source).getParentSequence();
-				if ((sequence != null) && (sequence.equals(this.sequence)))
+				if ((sequence != null) && (sequence.equals(this.sequence) || sequence.getOriginal().equals(this.sequence)))
 					isSourceFromSequence = true;
 			}
 		}

@@ -41,7 +41,7 @@ public class SequenceComposite extends AbstractSequenceComposite implements Sequ
 	
 	public SequenceComposite(SequenceEditorPart sequenceEditorPart, Sequence sequence, Composite parent, int style) {
 		super(sequenceEditorPart, sequence, parent, style);
-		sequence.addSequenceListener(this);
+		this.sequence.addSequenceListener(this);
 	}
 	
 	/* (non-Javadoc)
