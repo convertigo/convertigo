@@ -558,20 +558,6 @@ $(document).ready(function() {
 					$("#window_exe_increase").removeClass("hidden");
 					$("#window_exe_decrease").removeClass("hidden");
 					//$("h6:first").click();
-				} else {
-					$(".connector_name").each(function(){
-						if ($(this).text() == $project.attr("defaultConnector")) {
-							$(this).click();
-							return false;
-						}
-					});
-					
-					$(".requestable_name").each(function(){
-						if ($(this).text() == $project.attr("defaultTransaction")) {
-							$(this).click();
-							return false;
-						}
-					});
 				}
 			}
 						
@@ -826,7 +812,24 @@ $(document).ready(function() {
 					$(".mobiles .sub_connectors:first").click().parent().find(".requestable h6:first").click().parent().find(".btn_exe_link").click();
 				}
 			} else {
-				$(".sub_connectors:first").click().parent().find(".requestable h6:first").click();
+				if ($(".mobiles").hasClass("hidden")) {
+					$(".connector_name").each(function(){
+						if ($(this).text() == $project.attr("defaultConnector")) {
+							$(this).click();
+							return false;
+						}
+					});
+					
+					$(".requestable_name").each(function(){
+						if ($(this).text() == $project.attr("defaultTransaction")) {
+							$(this).click();
+							return false;
+						}
+					});
+				}
+				else {
+					$(".mobiles .sub_connectors:first").click().parent().find(".requestable h6:first").click();
+				}
 			}
 		});
 	});		
