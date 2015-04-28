@@ -396,7 +396,6 @@ public class EngineLogView extends ViewPart {
 				applySearch();
 			}
 		});
-		
 
 		infoSearch = new Label(compositeSearch, SWT.NONE);
 		infoSearch.setVisible(false);
@@ -1144,9 +1143,12 @@ public class EngineLogView extends ViewPart {
 				}
 			}
 		} catch (JSONException e) {
-			ConvertigoPlugin.logException(e, "Unable to process received Engine logs", true);
+			ConvertigoPlugin.logException(e, "Unable to process received Engine logs", false);
 		} catch (Exception e) {
-			ConvertigoPlugin.logException(e, "Error while loading the Engine logs", true);
+			ConvertigoPlugin.logException(e, "Error while loading the Engine logs (" + e.getClass().getCanonicalName() + ")", false);
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e1) { }
 		}
 		logManager.setContinue(true);
 		return true;

@@ -289,6 +289,10 @@ C8O = {
         return typeof(obj) != "undefined";
     },
     
+    isTrue: function (obj) {
+    	return obj == true || obj == "true";
+    },
+    
     isUndefined: function (obj) {
         return typeof(obj) == "undefined";
     },
@@ -541,7 +545,7 @@ C8O = {
     },
     
     _canLogRemote: function (level) {
-        return C8O.vars.log_remote == "true" &&
+        return C8O.isTrue(C8O.vars.log_remote) &&
             C8O._define.log_remote_path != null &&
             $.inArray(level, C8O._define.log_levels) <= $.inArray(C8O._define.log_remote_level, C8O._define.log_levels);
     },
@@ -699,24 +703,29 @@ C8O = {
     			params = C8O._init.params;
     		}
     		
+    		if (C8O.canLog("trace")) {
+    			C8O.log.trace("c8o.core: init check locks " + C8O.toJSON(C8O._init.locks) + " and tasks " + C8O.toJSON(C8O._init.tasks));
+    		}
+    		
     		if (C8O._init.done) {
     			C8O.log.debug("c8o.core: init already done!");
     		} else if (C8O._init.tasks.length) {
     			var ret;
     			do {
+    	    		C8O.log.info("c8o.core: init task: " + C8O._init.tasks.length);
 	    			var fun = C8O._init.tasks.shift();    			
 	    			if (ret = (fun.call(this, params) === true && C8O._init.tasks.length)) {
 	    				C8O._init.tasks.push(fun);
 	    			}
     			} while(ret);
-    		} else	if ($.isEmptyObject(C8O._init.tasks.locks)) {
+    		} else	if ($.isEmptyObject(C8O._init.locks)) {
     			C8O._init.done = true;
                 C8O._define.connector = params.__connector;
                 C8O._define.context = params.__context;
     
                 C8O._retrieve_vars(params);
                 
-                if (C8O._hook("init_finished", params) && C8O.vars.first_call == "true") {
+                if (C8O._hook("init_finished", params) && C8O.isTrue(C8O.vars.first_call)) {
                     C8O.log.debug("c8o.core: make the first_call");
                     C8O.call(params);
                 } else {
@@ -923,7 +932,7 @@ C8O = {
                     }
                     msg += "\n" + err;
                 }
-                if (C8O.vars.log_line == "true" && navigator.userAgent.indexOf("Chrome") != -1) {
+                if (C8O.isTrue(C8O.vars.log_line) && navigator.userAgent.indexOf("Chrome") != -1) {
                     msg += "\n\t\t" + new Error().stack.split("\n")[3];
                 }
                 var time = (new Date().getTime() - C8O._define.start_time) / 1000;
@@ -1200,7 +1209,7 @@ C8O._init.tasks.push(function (params) {
         C8O.init_vars.enc = value;
     }
     
-    if (C8O.init_vars.enc == "true" && !C8O._init.locks.rsa) {
+    if (C8O.isTrue(C8O.init_vars.enc) && !C8O._init.locks.rsa) {
         C8O.log.debug("c8o.core: request encryption enabled");
         
         C8O._getScript(C8O._define.plugins_path + "rsa.js", function () {

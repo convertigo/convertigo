@@ -30,7 +30,7 @@ C8O._init_siteclipper = function (params) {
         $siteclipped.load(function () {
             var timer = false;
             
-            if (C8O._define.iframe && C8O.vars.auto_resize === "true") {
+            if (C8O._define.iframe && C8O.isTrue(C8O.vars.auto_resize)) {
                 var $doc = $(this.contentWindow.document);
                 var exHeight = 0;
                 var reHeight = function () {

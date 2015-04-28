@@ -56,8 +56,7 @@ if ("cordova" in window) {
         _define: {
             local_cache_dir: null,
             re_download_url: new RegExp("^https?://.*?(\\.\\w*?)(?:\\?.*)?$"),
-            re_tail_url: new RegExp("([^#?]*)/.*"),
-            re_auth_url: new RegExp("(.*?://)(.*?):(.*?)@(.*)$")
+            re_tail_url: new RegExp("([^#?]*)/.*")
         },
         
         deleteAllCacheEntries: function (success, error) {
@@ -669,7 +668,7 @@ if ("cordova" in window) {
                 window.openDatabase = sqlitePlugin.openDatabase;
             }
             
-            if (C8O.isDefined(window.cblite) && C8O.isUndefined(window.PouchDB)) {
+            if (C8O.isDefined(window.cblite)) {
                 C8O._init.locks.cblite = true;
                 
                 C8O._init.tasks.push(function () {
@@ -682,15 +681,6 @@ if ("cordova" in window) {
 		                	} else {
 		                		url = url.replace(new RegExp("/$"), "");
 		                		C8O.log.debug("c8o.cdv : Couchbase Lite running at " + url);
-		                		
-		                		var auth_url = C8O._define.re_auth_url.exec(url);
-		                		if (auth_url != null) {
-		                			url = auth_url[1] + auth_url[4];
-		                			C8O._fs.auth = {
-		                		    	"Authorization":
-		                		    	"Basic " + btoa(auth_url[2] + ":" + auth_url[3])
-		                		    };
-		                		}
 		                		
 		                		C8O._fs.server = url;
 		                	}

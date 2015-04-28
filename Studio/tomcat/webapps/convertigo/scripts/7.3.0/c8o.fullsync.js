@@ -1,8 +1,7 @@
 $.extend(true, C8O, {
 	init_vars: {
-		fs_server: "http://127.0.0.1:5984",
-		fs_username: null,
-		fs_password: null
+		fs_server: null,
+		fs_force_pouch: false
 	},
 	
 	vars: {
@@ -13,11 +12,17 @@ $.extend(true, C8O, {
 	
 	_define: {
 		re_fs_match_db: new RegExp("^fs://([^/]*)"),
-		re_fs_parse_headers: new RegExp("^\\s*(.*?): (.*)"),
-		re_fs_get_policy: new RegExp("^post(?:_(.*))?")
+		re_fs_seq: new RegExp("^(.*?)(?:#|$)"),
+		re_fs_use: new RegExp("^(?:_use_(.*)$|__)")
 	},
 	
-	_pouch: {
+	_fs: {
+		server: null,
+		live_ids: {},
+		live_views: {},
+		live_dbs: {},
+		syncs: {},
+		sync_events: ["change", "pause", "active", "denied", "complete", "error"],
 		dbs: {},
 		
 		handle: function (err, doc, callback) {
@@ -25,202 +30,83 @@ $.extend(true, C8O, {
 		},
 		
 		getDb: function (db) {
-			return C8O._pouch.dbs[db] ? C8O._pouch.dbs[db] : (C8O._pouch.dbs[db] = new PouchDB(db));
-		},
-		
-		getAllDocs: function (db, callback) {
-			var options = {};
-			C8O._pouch.getDb(db).allDocs(options, function (err, doc) {
-				C8O._pouch.handle(err, doc, callback);
-			});
-		},
-		
-		getDocument: function (db, docId, docRev, callback) {
-			var options = {};
-			if (docRev) {
-				options.rev = docRev;
+			if (C8O._fs.dbs[db]) {
+				// exists
+			} else if (C8O._fs.server && !C8O.init_vars.fs_force_pouch) {
+				C8O._fs.dbs[db] = new PouchDB(C8O._fs.server + '/' + db);
+			} else {
+				C8O._fs.dbs[db] = new PouchDB(db);
 			}
-			C8O._pouch.getDb(db).get(docId, options, function (err, doc) {
-				C8O._pouch.handle(err, doc, callback);
+			return C8O._fs.dbs[db];
+		},
+		
+		getAllDocs: function (db, options, callback) {
+			C8O.log.info("c8o.fs  : getAllDocs " + db + " " + C8O.toJSON(options));
+			
+			C8O._fs.getDb(db).allDocs(options, function (err, doc) {
+				C8O._fs.handle(err, doc, callback);
 			});
 		},
 		
-		getDocumentRev: function (db, docId, callback) {
-			C8O._pouch.getDb(db).get(docId, options, function (err, doc) {
+		getDocument: function (db, docid, options, callback) {
+			C8O.log.info("c8o.fs  : getDocument " + db + " " + docid + " " + C8O.toJSON(options));
+			
+			C8O._fs.handleOptionsRev(db, docid, options, false, function (options) {
+				C8O._fs.getDb(db).get(docid, options, function (err, doc) {
+					C8O._fs.handle(err, doc, callback);
+				});
+			});
+		},
+		
+		getDocumentRev: function (db, docid, callback) {
+			C8O._fs.getDb(db).get(docid, {}, function (err, doc) {
 				callback(doc._rev);
 			});
 		},
 		
-		postDocument: function (db, document, policy, callback) {
-			var options = {};
-			C8O._fs.applyPolicy(db, document, policy, function (document) {
-				C8O._pouch.getDb(db).post(document, options, function (err, doc) {
-					C8O._pouch.handle(err, doc, callback);
-				});
-			});
-		},
-		
-		deleteDocument: function (db, docId, docRev, callback) {
-			var options = {};
-			var addDocRev = function (docRev) {
-				C8O._pouch.getDb(db).remove(docId, docRev, options, function (err, doc) {
-					C8O._pouch.handle(err, doc, callback);
-				});
-			}
-			
-			if (!docRev) {
-				C8O._pouch.getDocumentRev(db, docId, addDocRev);
+		postDocument: function (db, document, policy, options, callback) {
+			if (C8O.canLog("debug")) {
+				C8O.log.debug("c8o.fs  : postDocument " + db + " " + C8O.toJSON(document) + " " + policy + " " + C8O.toJSON(options));
 			} else {
-				addDocRev(docRev);
+				C8O.log.info("c8o.fs  : postDocument " + db + " (debug to see doc) " + policy + " " + C8O.toJSON(options));
 			}
-		},
-		
-		getView: function (db, docId, viewName, options, callback) {
-			var view = docId.replace("_design/", "") + "/" + viewName;
-			C8O._pouch.getDb(db).query(view, options, function (err, doc) {
-				C8O._pouch.handle(err, doc, callback);
+			
+			C8O._fs.applyPolicy(db, document, policy, function (document) {
+				C8O._fs.getDb(db).post(document, options, function (err, doc) {
+					C8O._fs.handle(err, doc, callback);
+				});
 			});
 		},
 		
-		postReplicate: function (source, target, create_target, continuous, cancel, callback) {
-			var options = {
-				live: continuous,
-				retry: continuous
-			};
+		deleteDocument: function (db, docid, options, callback) {
+			C8O.log.info("c8o.fs  : deleteDocument " + db + " " + docid + " " + C8O.toJSON(options));
 			
-			source = source.indexOf("://") != -1 ? source : C8O._pouch.getDb(source);
-			target = target.indexOf("://") != -1 ? target : C8O._pouch.getDb(target);
-			
-			var rep = PouchDB.replicate(source, target, options).on("complete", function (info) {
-				callback(info);
+			C8O._fs.handleOptionsRev(db, docid, options, true, function (options) {
+				C8O._fs.getDb(db).remove(docid, options, function (err, doc) {
+					C8O._fs.handle(err, doc, callback);
+				});
 			});
+		},
+		
+		getView: function (db, ddoc, view, options, callback) {
+			C8O.log.info("c8o.fs  : getView " + db + " " + ddoc + " " + view + " " + C8O.toJSON(options));
 			
-			if (cancel) {
-				rep.cancel();
-			}
+			C8O._fs.getDb(db).query(ddoc + "/" + view, options, function (err, doc) {
+				C8O._fs.handle(err, doc, callback);
+			});
 		},
 		
 		onChange: function (db, onChange) {
-			C8O._pouch.getDb(db).changes({
+			C8O._fs.getDb(db).changes({
 			  since: "now",
 			  live: true
 			}).on("change", onChange);
-		}
-	},
-	_fs: {
-		server: null,
-		auth: null,
-		live_ids: {},
-		live_views: {},
-		live_dbs: {},
+		},
 		
 		getRemoteUrl: function (db) {
 			return C8O._fs.remote + (C8O.vars.fs_token ? "/~" + C8O.vars.fs_token : "") + "/" + db
 		},
-		
-		getDatabaseUrl: function (db) {
-			return C8O._fs.server + '/' + db;
-		},
-		
-		getDocumentUrl: function (db, docId) {
-			return C8O._fs.server + '/' + db + '/' + docId;
-		},
-		
-		putDatabase: function (db, callback) {
-			var request = {type: "PUT", url: C8O._fs.getDatabaseUrl(db)};
-			
-			C8O._fs.execute(request, callback);
-		},
-		
-		getAllDocs: function (db, callback) {
-			var request = {type: "GET", url: C8O._fs.getDatabaseUrl(db) + "/_all_docs"};
-			
-			C8O._fs.execute(request, callback);
-		},
-		
-		headDocument: function (db, docId, callback) {
-			var request = {db: db, type: "HEAD", url: C8O._fs.getDocumentUrl(db, docId)};
-			
-			C8O._fs.execute(request, callback);
-		},
-		
-		getDocument: function (db, docId, docRev, callback) {
-			var request = {db: db, type: "GET", url: C8O._fs.getDocumentUrl(db, docId)};
-			
-			if (docRev) {
-				request.headers = {"If-Match": docRev};
-			}
-			
-			C8O._fs.execute(request, callback);
-		},
-		
-		getDocumentRev: function (db, docId, callback) {
-			headDocument(db, docId, function (head) {
-				var rev = null;
-				try {
-					var _c8oMeta = head._c8oMeta;
-					if ("success" == _c8oMeta.status) {
-						rev = _c8oMeta.headers.ETag;
-						rev = rev.substring(1, rev.length() - 1);
-					}
-				} catch (e) {
-					// TODO Auto-generated catch block
-				}
-				callback(rev);
-			});
-		},
-		
-		postDocument: function (db, document, policy, callback) {
-			C8O._fs.applyPolicy(db, document, policy, function (document) {
-				var request = {db: db, type: "POST", url: C8O._fs.getDatabaseUrl(db)};
-				C8O._fs.setJsonEntity(request, document);			
 				
-				C8O._fs.execute(request, callback);
-			});
-		},
-		
-		deleteDocument: function (db, docId, docRev, callback) {
-			var request = {db: db, type: "DELETE", url: C8O._fs.getDocumentUrl(db, docId)};
-			
-			var addDocRev = function (docRev) {
-				if (docRev) {
-					request.headers = {"If-Match": docRev};
-				}
-				C8O._fs.execute(request, callback);
-			}
-			
-			if (!docRev) {
-				C8O._fs.getDocumentRev(db, docId, addDocRev);
-			} else {
-				addDocRev(docRev);
-			}
-		},
-		
-		getView: function (db, docId, viewName, options, callback) {
-			if (docId.indexOf("_design/") != 0) {
-				docId = "_design/" + docId;
-			}
-			var request = {db: db, type: "GET", url: C8O._fs.getDocumentUrl(db, docId) + "/_view/" + viewName + "?" + $.param(options)};
-						
-			C8O._fs.execute(request, callback);
-		},
-		
-		postReplicate: function (source, target, create_target, continuous, cancel, callback) {
-			var request = {type: "POST", url: C8O._fs.server + "/_replicate"};
-			
-			var json = {
-				source: source,
-				target: target,
-				create_target: create_target,
-				continuous: continuous,
-				cancel: cancel
-			};
-			
-			C8O._fs.setJsonEntity(request, json);
-			
-			return C8O._fs.execute(request, callback);
-		},
-		
 		applyPolicy: function (db, document, policy, callback) {
 			delete document._c8oMeta;
 			
@@ -233,18 +119,18 @@ $.extend(true, C8O, {
 				
 				callback(document);
 			} else {
-				var docId = document._id || null;
+				var docid = document._id || null;
 				
-				if (docId != null) {
+				if (docid != null) {
 					if (policy == "override") {
-						C8O._fs.getDocumentRev(db, docId, function (rev) {
+						C8O._fs.getDocumentRev(db, docid, function (rev) {
 							if (rev != null) {
 								document._rev = rev;
 							}
 							callback(document);
 						});
 					} else if (policy == "merge") {
-						C8O._fs.getDocument(db, docId, undefined, function (dbDocument) {
+						C8O._fs.getDocument(db, docid, undefined, function (dbDocument) {
 							if (dbDocument._id) {
 								delete dbDocument._c8oMeta;
 								// merge documents
@@ -257,111 +143,21 @@ $.extend(true, C8O, {
 			}
 		},
 		
-		setJsonEntity: function (request, json) {
-			request.data = C8O.toJSON(json);
-			request.headers = $.extend(true, request.headers, {"Content-Type": "application/json"});
-		},
-		
-		execute: function (request, callback) {
-			if (!request.headers || !request.headers["Accept"]) {
-				request.headers = $.extend(true, request.headers, {"Accept": "application/json"});
-			}
-			
-			if (C8O._fs.auth != null) {
-				request.headers = $.extend(true, request.headers, C8O._fs.auth);
-			}
-			
-			request.dataType = "text";
-			request.processData = false;
-			
-			C8O.log.debug("c8o.fs  : execute url " + request.type + " " + request.url);
-			
-			$.ajax(request).always(function (response, status, jqXHR) {
-				if (!$.isPlainObject(response)) {
-					response = jqXHR;
+		handleOptionsRev(db, docid, options, addLast, callback) {			
+			var rev = C8O._fs.handleRev(db, docid, options.rev, addLast, function (rev) {
+				if (rev) {
+					options.rev = rev;
 				}
-				
-				var json = null;
-				
-				var contentType = response.getResponseHeader("Content-Type");
-				
-				if (contentType == "application/json" || contentType == "text/plain") {
-					json = $.parseJSON(response.responseText);
-				}
-				
-				json = json || {};
-				
-				var code = response.status;
-				
-				if (request.db && code == 404 && "no_db_file" == json.reason) {
-					C8O._fs.putDatabase(request.db, function (putResponse) {
-						if (putResponse.ok) {
-							C8O._fs.execute(request, callback);
-						} else {
-							//TODO
-						}
-					});
-					return;
-				}
-				
-				status =
-					code < 100 ? "unknown" :
-					code < 200 ? "informational" :
-					code < 300 ? "success" :
-					code < 400 ? "redirection" :
-					code < 500 ? "client error" :
-					code < 600 ? "server error" : "unknown";
-				
-				var responseDetails = {
-					statusCode: code,
-					status: status,
-					reasonPhrase: response.statusText,
-					headers: {}
-				};
-				
-				var headers = response.getAllResponseHeaders();
-				for (var header = C8O._define.re_fs_parse_headers.exec(headers); header != null; header = C8O._define.re_fs_parse_headers.exec(headers)) {
-					headers = headers.substring(header[0].length);
-					responseDetails.headers[header[1]] = header[2];
-				}
-				
-				json._c8oMeta = responseDetails;
-				
-				if (callback) {
-					callback(json);
-				}
+				callback(query);
 			});
 		},
 		
-		removeDoubleUnderscore: function (data) {
-			for (var key in data) {
-				if (key.indexOf("__") == 0) {
-					delete data[key];
-				}
+		handleRev(db, docid, rev, addLast, callback) {
+			if (!rev && addLast) {
+				C8O._fs.getDocumentRev(db, docid, callback);
+			} else {
+				callback(rev);
 			}
-		},
-		
-		onChange: function (db, onChange) {
-			var since = "now";
-			var poll = function () {
-				var query = {
-					since: since,
-					heartbeat: 10000,
-					feed: "longpoll"
-				};
-				
-				var request = {type: "GET", url: C8O._fs.getDatabaseUrl(db) + "/_changes?" + $.param(query)};
-					
-				C8O._fs.execute(request, function (changes) {
-					since = changes.last_seq;
-					
-					for (var i in changes.results) {
-						onChange(changes.results[i]);
-					}
-					poll();
-				});	
-			};
-			poll();
 		},
 		
 		addLiveId: function (db, data) {
@@ -399,59 +195,64 @@ $.extend(true, C8O, {
 		}
 	},
 	
-	fs_replicate: function (options, callback) {
-		C8O.fs_update_device(options, callback);
-		C8O.fs_update_remote(options, callback);
+	fs_sync: function (options) {
+		options = options || {};
+		var db = C8O._remove(options, "db") || C8O.vars.fs_default_db;
+		
+		C8O.log.info("c8o.fs  : fs_sync requested for " + db);
+		return C8O.fs_getDB(db).sync(C8O._fs.getRemoteUrl(db), options);
 	},
 	
-	fs_update_device: function (options, callback) {
-		var db = options.db || C8O.vars.fs_default_db;
-		var continuous = options.continuous || false;
-		var cancel = options.cancel || false;
+	fs_replicate_pull: function (options) {
+		options = options || {};
+		var db = C8O._remove(options, "db") || C8O.vars.fs_default_db;
 		
-		callback = callback || function (doc) {
-			C8O.log.info("c8o.fs  : fs_update_device return " + C8O.toJSON(doc));
-		};
-		
-		C8O._fs.postReplicate(C8O._fs.getRemoteUrl(db), db + "_device", true, continuous, cancel, callback);
+		C8O.log.info("c8o.fs  : fs_replicate_pull requested for " + db);
+		return C8O.fs_getDB(db).replicate.from(C8O._fs.getRemoteUrl(db), options);
 	},
 	
-	fs_update_remote: function (options, callback) {
-		var db = options.db || C8O.vars.fs_default_db;
-		var continuous = options.continuous || false;
-		var cancel = options.cancel || false;
+	fs_replicate_push: function (options) {
+		options = options || {};
+		var db = C8O._remove(options, "db") || C8O.vars.fs_default_db;
 		
-		callback = callback || function (doc) {
-			C8O.log.info("c8o.fs  : fs_update_remote return " + C8O.toJSON(doc));
-		};
-		
-		C8O._fs.postReplicate(db + "_device", C8O._fs.getRemoteUrl(db), false, continuous, cancel, callback);
+		C8O.log.info("c8o.fs  : fs_replicate_push requested for " + db);
+		return C8O.fs_getDB(db).replicate.to(C8O._fs.getRemoteUrl(db), options);
 	},
 	
 	fs_onChange: function (options) {
 		var db = options.db || C8O.vars.fs_default_db;
 		C8O._fs.onChange(db + "_device", options.onChange);
+	},
+		
+	fs_getDB: function (db) {
+		db = (db || C8O.vars.fs_default_db) + "_device";
+		return C8O._fs.getDb(db);
 	}
+	
+// DEPRECATED AREA
+	
+//	fs_replicate: function (options, callback) {
+//		C8O.log.warn("c8o.fs  : fs_replicate deprecated, please use fs_sync");
+//		return C8O.fs_sync(options).on("complete", callback);
+//	},
+//	
+//	fs_update_device: function (options, callback) {
+//		C8O.log.warn("c8o.fs  : fs_update_device deprecated, please use fs_replicate_device");
+//		return C8O.fs_replicate_device(options).on("complete", callback);
+//	},
+//	
+//	fs_update_remote: function (options, callback) {
+//		C8O.log.warn("c8o.fs  : fs_update_device deprecated, please use fs_replicate_remote");
+//		return C8O.fs_replicate_remote(options).on("complete", callback);
+//	},
 });
 
 C8O._init.locks.fullsync = true;
 C8O._init.tasks.push(function () {
     C8O.log.info("c8o.fs  : initializing FullSync");
-
-    if (C8O.isDefined(window.PouchDB)) {
-        C8O.log.info("c8o.fs  : using PouchDB for FullSync");
-		$.extend(true, C8O._fs, C8O._pouch);
-	}
     
-    C8O._fs.server = C8O.init_vars.fs_server;
+    C8O._fs.server = C8O._remove(C8O.init_vars, "fs_server");
     C8O._fs.remote = C8O._define.convertigo_path + "/fullsync";
-    
-    if (C8O.init_vars.fs_username != null && C8O.init_vars.fs_password != null) {
-    	C8O._fs.auth = {
-    		"Authorization":
-    		"Basic " + btoa(C8O._remove(C8O.init_vars, "fs_username") + ":" + C8O._remove(C8O.init_vars, "fs_password"))
-    	};
-    }
     
     delete C8O._init.locks.fullsync;
     
@@ -465,14 +266,19 @@ C8O.addHook("_call_fs", function (data) {
 		C8O.log.debug("c8o.fs  : database used '" + db + "'");
 		
 		var callback = function (json) {
-			C8O.log.debug("c8o.fs  : json response\n" + JSON.stringify(json));
+			if (C8O.canLog("trace")) {
+				C8O.log.trace("c8o.fs  : json response\n" + JSON.stringify(json));
+			}
 			
 			var xmlData = $.parseXML("<couchdb_output/>");
 			C8O._jsonToXml(undefined, json, xmlData.documentElement, function (keys, json) {
 				keys.sort();
 				return keys;
 			});
-			C8O.log.debug("c8o.fs  : xml response\n" + C8O.serializeXML(xmlData));
+			
+			if (C8O.canLog("debug")) {
+				C8O.log.debug("c8o.fs  : xml response\n" + C8O.serializeXML(xmlData));
+			}
 			
 			var fakeXHR = {
 				C8O_data: data
@@ -483,41 +289,98 @@ C8O.addHook("_call_fs", function (data) {
 		};
 		
 		if (data.__sequence) {
-			if (data.__sequence == "get") {
-				C8O._fs.addLiveId(db, data);
-				C8O._fs.getDocument(db, data.docid, data.docrev, callback);
-			} else if (data.__sequence == "head") {
-				C8O._fs.addLiveId(db, data);				
-				C8O._fs.headDocument(db, data.docid, callback);
-			} else if (data.__sequence.indexOf("post") == 0) {
-				var policy = C8O._define.re_fs_get_policy.exec(data.__sequence)[1] || "none";
-				policy = data.__postPolicy || policy;
+			var options = {};
+			var postData = {};
+			
+			for (var key in data) {
+				var isUse = C8O._define.re_fs_use.exec(key); 
+				if (isUse) {
+					if (isUse[1]) {
+						options[isUse[1]] = data[key];
+					}
+				} else {
+					postData[key] = data[key];
+				}
+			}
+			
+			var seq = C8O._define.re_fs_seq.exec(data.__sequence)[1];
+			C8O.log.info("c8o.fs  : calling " + seq);
+			
+			if (seq == "post") {
+				var policy = C8O._remove(options, "policy") || "none";
 				
-				var postData = $.extend({}, data);
-				
-				C8O._fs.removeDoubleUnderscore(postData);
-				
-				C8O._fs.postDocument(db, postData, policy, callback);
-			} else if (data.__sequence == "delete") {
-				C8O._fs.deleteDocument(db, data.docid, callback);
-			} else if (data.__sequence == "view") {
-				C8O._fs.addLiveView(db, data);
-				
-				var docid = data.docid || C8O.vars.fs_default_design;
-				var viewname = data.viewname;
-				
-				var viewData = $.extend({}, data);
-				
-				delete viewData.docid;
-				delete viewData.viewname;
-				
-				C8O._fs.removeDoubleUnderscore(viewData);
-				
-				C8O._fs.getView(db, docid, viewname, viewData, callback);
-			} else if (data.__sequence == "all") {
-				C8O._fs.getAllDocs(db, callback);
+				C8O._fs.postDocument(db, postData, policy, options, callback);
 			} else {
-				callback({error: "invalid command '" + data.__sequence + "'"});
+				options = $.extend(postData, options);
+				
+				if (seq == "get") {
+					C8O._fs.addLiveId(db, data);
+					C8O._fs.getDocument(db, options, callback);
+				} else if (seq == "delete") {
+					C8O._fs.deleteDocument(db, C8O._remove(options, "docid"), options, callback);
+				} else if (seq == "view") {
+					C8O._fs.addLiveView(db, data);
+					
+					var ddoc = C8O._remove(options, "ddoc") || C8O.vars.fs_default_design;
+					var view = C8O._remove(options, "view");
+					
+					C8O._fs.getView(db, ddoc, view, options, callback);
+				} else if (seq == "all") {
+					C8O._fs.getAllDocs(db, options, callback);
+				} else if (seq == "sync" || seq == "replicate_pull" || seq == "replicate_push") {
+					if (C8O._fs.syncs[data.__sequence]) {
+						C8O._fs.syncs[data.__sequence].cancel();
+						delete C8O._fs.syncs[data.__sequence];
+					}
+					
+					if (!C8O.isTrue(options.cancel)) {
+						var callbacks = {};
+						$.each(C8O._fs.sync_events, function() {
+							var event = this;
+							if (C8O.isTrue(C8O._remove(options, event))) {
+								callbacks[event] = function (data) {
+									callback({
+										event: event,
+										data: data
+									});
+								};
+							}
+						});
+						
+						var sync = function (options, callbacks) {
+							C8O.log.info("c8o.fs  : " + seq + " " + C8O.toJSON(options));
+							
+							C8O._fs.syncs[data.__sequence] = C8O["fs_" + seq](options);
+							if ($.isEmptyObject(callbacks)) {
+								callback({
+									event: "none",
+									data: {}
+								});
+							} else {
+								for (var key in callbacks) {
+									C8O._fs.syncs[data.__sequence].on(key, callbacks[key]);
+								}
+							}
+						};
+						
+						if (C8O.isTrue(options.live) && callbacks.complete) {
+							C8O.log.info("c8o.fs  : " + seq + " full before live");
+							sync(
+								$.extend({}, options, {live: false}),
+								$.extend({}, callbacks, {complete: function (info) {
+									callbacks.complete(info);
+									sync(options, callbacks);
+								}})
+							);
+						} else {
+							sync(options, callbacks);
+						}
+					} else {
+						C8O.log.info("c8o.fs  : " + seq + " canceled");
+					}
+				} else {
+					callback({error: "invalid command '" + data.__sequence + "'"});
+				}
 			}
 		}
 		return false;

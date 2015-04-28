@@ -102,7 +102,7 @@ C8O._init.tasks.push(function (params) {
         
         try {
             C8O.ro_vars.portal_username = $(top.document).find("#UIUserInfoPortlet .Name a").text();
-            if (C8O.vars.send_portal_username === "true") {
+            if (C8O.isTrue(C8O.vars.send_portal_username)) {
                 C8O.addRecallParameter("portal_username", C8O.ro_vars.portal_username);
             }
         } catch (e) {

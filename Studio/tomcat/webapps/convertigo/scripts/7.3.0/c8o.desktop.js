@@ -164,7 +164,7 @@ $.extend(true, C8O, {
             $container = $($container);
         }
         
-        if (C8O.vars.target_append == "true") {
+        if (C8O.isTrue(C8O.vars.target_append)) {
             $container.append(content);
         } else {
             $container.html(content).children("title:first").each(function () {
@@ -177,7 +177,7 @@ $.extend(true, C8O, {
             $("a, input[type=button], input[type=image], input[type=submit]").filter("[twsid]").unbind(".clipping").bind("click.clipping", C8O._handleEvent);
             $("form[twsid]").unbind(".clipping").bind("submit.clipping", C8O._handleEvent);
             
-            if (C8O.vars.auto_resize == "true" && window != window.parent && (C8O.isUndefined(resize) || resize)) {
+            if (C8O.isTrue(C8O.vars.auto_resize) && window != window.parent && (C8O.isUndefined(resize) || resize)) {
                 window.setTimeout(C8O._resize, 750);
             }
             if ("true" == C8O.vars.auto_refresh && $("[twsid]:first").length > 0) {
@@ -239,7 +239,7 @@ $.extend(true, C8O, {
                 if (!C8O.isUndefined(redirect_location)) {
                     C8O.log.debug("c8o.desk: receive a siteclipper response, prepare for redirection");
                     
-                    if (C8O.vars.use_siteclipper_plugin == "true") {
+                    if (C8O.isTrue(C8O.vars.use_siteclipper_plugin)) {
                         C8O._getScript(C8O._define.plugins_path + "siteclipper.js", function () {
                             C8O._init_siteclipper({redirect_location: redirect_location});
                         });
