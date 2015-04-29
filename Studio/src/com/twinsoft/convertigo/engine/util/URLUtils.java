@@ -41,6 +41,16 @@ public class URLUtils {
 	static private Pattern scheme_host_pattern = Pattern.compile("(^https?://.*?)(?:/.*|$)");
 	static private Pattern splitEqual = Pattern.compile("=");
 	static private Pattern splitAnd = Pattern.compile("&");
+	static private Pattern pathPart = Pattern.compile("/([^/]*)");
+	
+	public static String encodePath(String path, String urlEncoding) throws UnsupportedEncodingException {
+		StringBuilder sb = new StringBuilder();
+		Matcher m = pathPart.matcher(path);
+		while (m.find()) {
+			sb.append('/').append(URLEncoder.encode(m.group(1), urlEncoding));
+		}
+		return sb.toString();
+	}
 	
 	public static String encodeAbsoluteURL(String url, String urlEncoding) {
 		String sUrl = url;

@@ -3,6 +3,7 @@ package com.twinsoft.convertigo.engine.servlets;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.Collections;
 import java.util.regex.Matcher;
@@ -35,6 +36,7 @@ import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.util.ContentTypeDecoder;
+import com.twinsoft.convertigo.engine.util.URLUtils;
 
 public class FullSyncServlet extends HttpServlet {
 	private static final long serialVersionUID = -5147185931965387561L;
@@ -58,7 +60,7 @@ public class FullSyncServlet extends HttpServlet {
 			case TRACE: newRequest = new HttpTrace(); break;
 			default: throw new ServletException("Invalid HTTP method");
 			}
-
+			
 			RequestParser requestParser = new RequestParser(request.getPathInfo());
 			String token = requestParser.getId();
 			URI uri;
@@ -183,11 +185,11 @@ public class FullSyncServlet extends HttpServlet {
 		private String dbName;
 		private String docId;
 		
-		RequestParser(String request_path) {
+		RequestParser(String request_path) throws UnsupportedEncodingException {
 			Matcher mPath = pPath.matcher(request_path);
 			if (mPath.matches()) {
 				id = mPath.group(1);
-				path = mPath.group(2);
+				path = URLUtils.encodePath(mPath.group(2), "UTF-8");
 				special = mPath.group(3);
 				if (special == null) {
 					dbName = mPath.group(4);
