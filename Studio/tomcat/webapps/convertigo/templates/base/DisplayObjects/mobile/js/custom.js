@@ -1,6 +1,6 @@
 /*******************************************************
  *******************************************************
- * public C8O API for CEMS 7.2.0
+ * public C8O API for CEMS 7.3.0
  * for a jQuery Mobile application using the CTF
  *
  * Dependences in HTML file:
@@ -14,14 +14,10 @@
  * * jquery.mobile(.min).js
  *
  * You can find documentation about Convertigo Templating Framework here:
- * http://help.convertigo.com/latest/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/convertigoTemplatingFramework.html
- * or
- * http://help.convertigo.com/7.2.0/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/convertigoTemplatingFramework.html
+ * http://www.convertigo.com/document/latest/reference-manual/convertigo-templating-framework/
  *
- * You can find documentation about Convertigo Internationalization Framework (CTF plugin) here:
- * http://help.convertigo.com/latest/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/internationalization.html
- * or
- * http://help.convertigo.com/7.2.0/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/internationalization.html
+ * You can find documentation about Convertigo Internationalization Framework here:
+ * http://www.convertigo.com/document/latest/reference-manual/internationalization-framework/
  *
  *******************************************************
  *******************************************************/
@@ -39,6 +35,8 @@ $.extend(true, C8O, {
      */
     init_vars: {
 //        enc: "false", /** enables rsa encoding */
+//        fs_server: null, /** force a couchdb server for fullsync. 'null' use pouchdb or the cblite plugin. Else expects 'http://user:pass@server:port' */
+//        fs_force_pouch: false, /** force to use pouch, even if fs_server isn't null or cblite plugin is available */
 //        i18n: "" /** in case of multi-language application, force usage of the language selected. Empty string will select the browser language */
     },
     
@@ -69,6 +67,9 @@ $.extend(true, C8O, {
 //        ajax_method: "POST", /** POST/GET: http method to request CEMS */
 //        endpoint_url: "", /** base of the URL CEMS calls. Should not be modified */
 //        first_call: "false", /** true/false: automatically call convertigo using the page query/hash parameters, after the init_finished hook */
+//        fs_default_db: null, /** default fullsync database used for call on fs://.[action] */
+//        fs_default_design: null, /** default design document to use for fs://[db].view with no ddoc parameter */
+//        fs_token: null, /** user specific sync token with the fullsync database */
 //        log_level: "warn", /** none/error/warn/info/debug/trace: filter logs that appear in the browser console */
 //        log_line: "false", /** true/false: add an extra line on Chrome console with a link to the log */
 //        log_remote: "true", /** true/false: send client log to the C8O "Devices" logger depending on its log level */
