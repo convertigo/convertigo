@@ -24,7 +24,6 @@ package com.twinsoft.convertigo.eclipse.wizards.new_object;
 
 import java.beans.IntrospectionException;
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
@@ -61,6 +60,8 @@ import com.twinsoft.convertigo.beans.statements.ScEntryHandlerStatement;
 import com.twinsoft.convertigo.beans.statements.ScExitHandlerStatement;
 import com.twinsoft.convertigo.beans.statements.ScHandlerStatement;
 import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
+import com.twinsoft.convertigo.beans.transactions.couchdb.AbstractCouchDbTransaction;
+import com.twinsoft.convertigo.beans.transactions.couchdb.CouchVariable;
 import com.twinsoft.convertigo.eclipse.dialogs.CouchVariablesComposite;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
@@ -297,9 +298,9 @@ public class ObjectInfoWizardPage extends WizardPage {
 			ObjectExplorerWizardPage objectExplorerWizardPage = (ObjectExplorerWizardPage) this.getPreviousPage(); 
 			
 			try {
-				DatabaseObject dbo = objectExplorerWizardPage.getCreatedBean();
+				AbstractCouchDbTransaction dbo = (AbstractCouchDbTransaction) objectExplorerWizardPage.getCreatedBean();
 				if (dbo != null && couchVariablesComposite != null){
-					couchVariablesComposite.setPropertyDescriptor(CachedIntrospector.getBeanInfo(dbo).getPropertyDescriptors(), 
+					couchVariablesComposite.setPropertyDescriptor(dbo, CachedIntrospector.getBeanInfo(dbo).getPropertyDescriptors(), 
 							(DatabaseObject) parentObject);
 				}
 			} catch (IntrospectionException e) {
@@ -310,7 +311,7 @@ public class ObjectInfoWizardPage extends WizardPage {
 		
 	}
 
-	public Map<String, String> getSelectedParameters() {
+	public List<CouchVariable> getSelectedParameters() {
 		return couchVariablesComposite.getSelectedParameters();
 	}
 	

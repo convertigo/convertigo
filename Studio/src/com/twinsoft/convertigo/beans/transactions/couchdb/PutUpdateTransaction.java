@@ -21,6 +21,8 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.regex.Matcher;
 
 import javax.xml.namespace.QName;
@@ -29,10 +31,11 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
+import com.twinsoft.convertigo.engine.enums.CouchExtraVariable;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.enums.CouchParam;
 
-public class PutUpdateTransaction extends AbstractDocumentTransaction implements ITagsProperty {
+public class PutUpdateTransaction extends AbstractDocumentTransaction implements ITagsProperty, ICouchParametersExtra {
 
 	private static final long serialVersionUID = -7606732916561433615L;
 
@@ -129,5 +132,10 @@ public class PutUpdateTransaction extends AbstractDocumentTransaction implements
 
 	public void setP_json_base(String p_json_base) {
 		this.p_json_base = p_json_base;
+	}
+
+	@Override
+	public Collection<CouchExtraVariable> getCouchParametersExtra() {
+		return Arrays.asList(CouchExtraVariable._id, CouchExtraVariable.data);
 	}
 }

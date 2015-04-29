@@ -27,7 +27,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
+import java.util.List;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -101,6 +101,7 @@ import com.twinsoft.convertigo.beans.transactions.SapJcoTransaction;
 import com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction;
 import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
 import com.twinsoft.convertigo.beans.transactions.couchdb.AbstractCouchDbTransaction;
+import com.twinsoft.convertigo.beans.transactions.couchdb.CouchVariable;
 import com.twinsoft.convertigo.beans.transactions.couchdb.GetServerInfoTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableHttpVariable;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
@@ -520,8 +521,8 @@ public class NewObjectWizard extends Wizard {
 
 						if (newBean instanceof AbstractCouchDbTransaction) {
 							AbstractCouchDbTransaction abstractCouchDbTransaction = (AbstractCouchDbTransaction) newBean;
-							Map<String, String> selectedParameters = objectInfoPage.getSelectedParameters();
-							abstractCouchDbTransaction.createVariables(selectedParameters);
+							List<CouchVariable> selectedVariables = objectInfoPage.getSelectedParameters();
+							abstractCouchDbTransaction.createVariables(selectedVariables);
 						}
 
 						ConvertigoPlugin.logInfo("New object class '"+ this.className +"' named '" + newBean.getName() + "' has been added");

@@ -21,16 +21,19 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
 
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.engine.enums.CouchExtraVariable;
 import com.twinsoft.convertigo.engine.enums.CouchParam;
 import com.twinsoft.convertigo.engine.enums.CouchPostDocumentPolicy;
 
-public class PostDocumentTransaction extends AbstractDatabaseTransaction {
+public class PostDocumentTransaction extends AbstractDatabaseTransaction implements ICouchParametersExtra{
 
 	private static final long serialVersionUID = -7606732916561433014L;
 	
@@ -106,4 +109,9 @@ public class PostDocumentTransaction extends AbstractDatabaseTransaction {
 	public void setUseHash(boolean useHash) {
 		this.useHash = useHash;
 	}
+
+	@Override
+	public Collection<CouchExtraVariable> getCouchParametersExtra() {
+		return Arrays.asList(CouchExtraVariable._id, CouchExtraVariable.data, CouchExtraVariable._rev, CouchExtraVariable._deleted);
+	}	
 }

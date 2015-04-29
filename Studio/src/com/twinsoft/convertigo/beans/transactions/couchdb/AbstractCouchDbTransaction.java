@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
@@ -56,6 +57,7 @@ import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
 import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.beans.variables.RequestableMultiValuedVariable;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -96,16 +98,26 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		// TODO Auto-generated method stub
 	}
 	
-	public void createVariables(Map<String, String> selectedParameters) {
+	public void createVariables(List<CouchVariable> selectedParameters) {
 		try {
 			if (selectedParameters != null) {
-				for (String param : selectedParameters.keySet()) {
-					if (getVariable(param) == null) {
-						RequestableVariable requestableVariable = new RequestableVariable();
-						requestableVariable.setName(CouchParam.prefix + param.substring(2));
-						requestableVariable.setDescription(selectedParameters.get(param));
+				for (CouchVariable variable : selectedParameters) {
+					String varName = variable.getName();
+					String varDesc = variable.getDescription();
+					if (getVariable(varName) == null) {
+						RequestableVariable requestableVariable = null;
+						if (variable.isMultiValued()) {
+							requestableVariable = new RequestableMultiValuedVariable();
+
+						} else {
+							requestableVariable = new RequestableVariable();
+						}
+						requestableVariable.setName(CouchParam.prefix + 
+								(varName.startsWith("p_") || varName.startsWith("q_") ? varName.substring(2) : (varName.startsWith("_") ? varName.substring(1) : varName) ));
+						requestableVariable.setDescription(varDesc);
 						
 						addVariable(requestableVariable);
+
 						hasChanged = true;
 					}
 				}

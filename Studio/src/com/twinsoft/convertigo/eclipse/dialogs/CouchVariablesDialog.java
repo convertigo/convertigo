@@ -25,7 +25,6 @@ package com.twinsoft.convertigo.eclipse.dialogs;
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -43,6 +42,7 @@ import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.beans.transactions.couchdb.AbstractCouchDbTransaction;
+import com.twinsoft.convertigo.beans.transactions.couchdb.CouchVariable;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 
@@ -118,7 +118,7 @@ public class CouchVariablesDialog extends Dialog {
 			}
 			
 			couchVariablesComposite = new CouchVariablesComposite(parent, SWT.V_SCROLL, dboVariables);
-			couchVariablesComposite.setPropertyDescriptor(availablesParameters, couchDbTransaction.getParent());
+			couchVariablesComposite.setPropertyDescriptor(couchDbTransaction, availablesParameters, couchDbTransaction.getParent());
 
 			GridData couchVarData = new GridData(GridData.FILL_BOTH);
 			couchVarData.horizontalSpan = 2;
@@ -155,10 +155,10 @@ public class CouchVariablesDialog extends Dialog {
 	}
 	
 	private void applyProceed() {
-		Map<String, String> selectedParameters = couchVariablesComposite.getSelectedParameters();
+		List<CouchVariable> selectedVariables = couchVariablesComposite.getSelectedParameters();
 		
-		if (selectedParameters != null) {
-			couchDbTransaction.createVariables(selectedParameters);
+		if (selectedVariables != null) {
+			couchDbTransaction.createVariables(selectedVariables);
 		}
 
 		close();
