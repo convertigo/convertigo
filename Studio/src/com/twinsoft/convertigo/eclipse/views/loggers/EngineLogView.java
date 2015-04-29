@@ -405,7 +405,15 @@ public class EngineLogView extends ViewPart {
 		previousSearch.setEnabled(false);
 		previousSearch.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				searchInLogs(-1);
+				if(appliedSearchText != null) {
+					if(!appliedSearchText.equals(searchText.getText())) {
+						currentFoundIndex = 0;
+						applySearch();
+					}
+					else 
+						searchInLogs(-1);
+				}	
+
 			}
 		});
 
@@ -414,7 +422,15 @@ public class EngineLogView extends ViewPart {
 		nextSearch.setEnabled(false);
 		nextSearch.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				searchInLogs(1);
+				if(appliedSearchText != null) {
+					if(!appliedSearchText.equals(searchText.getText())) {
+						currentFoundIndex = 0;
+						applySearch();
+					}
+					else
+						searchInLogs(1);
+				}
+
 			}
 		});
 
@@ -451,9 +467,12 @@ public class EngineLogView extends ViewPart {
 
 	private int currentFoundIndex = 0;
 	private ArrayList<Integer> foundIndexes = new ArrayList<Integer>();
-
+	private String appliedSearchText;
 	private void applySearch() {
+		
 		String searchedText = searchText.getText();
+		appliedSearchText = searchedText;
+		
 		if ("".equals(searchedText)) {
 			nextSearch.setEnabled(false);
 			previousSearch.setEnabled(false);
