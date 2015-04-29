@@ -299,7 +299,8 @@ public class ObjectInfoWizardPage extends WizardPage {
 			try {
 				DatabaseObject dbo = objectExplorerWizardPage.getCreatedBean();
 				if (dbo != null && couchVariablesComposite != null){
-					couchVariablesComposite.setPropertyDescriptor(CachedIntrospector.getBeanInfo(dbo).getPropertyDescriptors());
+					couchVariablesComposite.setPropertyDescriptor(CachedIntrospector.getBeanInfo(dbo).getPropertyDescriptors(), 
+							(DatabaseObject) parentObject);
 				}
 			} catch (IntrospectionException e) {
 				// TODO Auto-generated catch block

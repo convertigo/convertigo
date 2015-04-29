@@ -21,6 +21,8 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.CouchParam;
@@ -54,7 +56,7 @@ public class CouchVariablesComposite extends ScrolledComposite {
 		setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 	}
 
-	public void setPropertyDescriptor(PropertyDescriptor[] propertyDescriptors) {	
+	public void setPropertyDescriptor(PropertyDescriptor[] propertyDescriptors, DatabaseObject parentObject) {	
 		cleanGroups();
 		
 		int height = 0;
@@ -64,9 +66,10 @@ public class CouchVariablesComposite extends ScrolledComposite {
 			final String description = property.getShortDescription();
 			if (!parametersCouch.contains(name) ){
 
-				if (name.startsWith("q_") || name.startsWith("p_")) {
+				if ( (name.startsWith("q_") || name.startsWith("p_")) && 
+						!parentObject.getClass().getCanonicalName().equals(property.getValue( 
+								MySimpleBeanInfo.BLACK_LIST_PARENT_CLASS))) {
 					
-
 					Group choosenGroup = name.startsWith("q_") ? groupQueries : groupParameters;
 					boolean isNotChecked = true;
 					
