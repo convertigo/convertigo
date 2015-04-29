@@ -26,6 +26,9 @@ $.extend(true, C8O, {
 		dbs: {},
 		
 		handle: function (err, doc, callback) {
+			if (err) {
+				C8O.log.error("c8o.fs  : an error occurs", err);
+			}
 			callback(doc);
 		},
 		
@@ -78,11 +81,11 @@ $.extend(true, C8O, {
 			});
 		},
 		
-		deleteDocument: function (db, docid, options, callback) {
-			C8O.log.info("c8o.fs  : deleteDocument " + db + " " + docid + " " + C8O.toJSON(options));
+		deleteDocument: function (db, docid, rev, options, callback) {
+			C8O.log.info("c8o.fs  : deleteDocument " + db + " " + docid + " " + rev + " " + C8O.toJSON(options));
 			
-			C8O._fs.handleOptionsRev(db, docid, options, true, function (options) {
-				C8O._fs.getDb(db).remove(docid, options, function (err, doc) {
+			C8O._fs.handleRev(db, docid, rev, true, function (rev) {
+				C8O._fs.getDb(db).remove(docid, rev, options, function (err, doc) {
 					C8O._fs.handle(err, doc, callback);
 				});
 			});
@@ -314,7 +317,7 @@ C8O.addHook("_call_fs", function (data) {
 					C8O._fs.addLiveId(db, data);
 					C8O._fs.getDocument(db, C8O._remove(options, "docid"), options, callback);
 				} else if (seq == "delete") {
-					C8O._fs.deleteDocument(db, C8O._remove(options, "docid"), options, callback);
+					C8O._fs.deleteDocument(db, C8O._remove(options, "docid"), C8O._remove(options, "rev"), options, callback);
 				} else if (seq == "view") {
 					C8O._fs.addLiveView(db, data);
 					
