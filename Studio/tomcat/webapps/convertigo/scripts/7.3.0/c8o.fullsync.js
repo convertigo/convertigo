@@ -108,8 +108,6 @@ $.extend(true, C8O, {
 		},
 				
 		applyPolicy: function (db, document, policy, callback) {
-			delete document._c8oMeta;
-			
 			if (policy == "none") {
 				// don't modify
 				callback(document);
@@ -130,9 +128,8 @@ $.extend(true, C8O, {
 							callback(document);
 						});
 					} else if (policy == "merge") {
-						C8O._fs.getDocument(db, docid, undefined, function (dbDocument) {
+						C8O._fs.getDocument(db, docid, {}, function (dbDocument) {
 							if (dbDocument._id) {
-								delete dbDocument._c8oMeta;
 								// merge documents
 								delete document._rev;
 								callback($.extend(true, dbDocument, document));
