@@ -28,7 +28,7 @@ public class PostServerRestartTransactionBeanInfo extends MySimpleBeanInfo {
 	public PostServerRestartTransactionBeanInfo() {
 		try {
 			beanClass = PostServerRestartTransaction.class;
-			additionalBeanClass = AbstractServerTransaction.class;
+			additionalBeanClass = AbstractCouchDbTransaction.class;
 
 			resourceBundle = getResourceBundle("res/PostServerRestartTransaction");
 			

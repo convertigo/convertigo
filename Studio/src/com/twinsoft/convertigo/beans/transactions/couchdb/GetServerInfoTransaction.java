@@ -23,7 +23,7 @@ package com.twinsoft.convertigo.beans.transactions.couchdb;
 
 import javax.xml.namespace.QName;
 
-public class GetServerInfoTransaction extends AbstractServerTransaction {
+public class GetServerInfoTransaction extends AbstractCouchDbTransaction {
 
 	private static final long serialVersionUID = 1626225582768805922L;
 

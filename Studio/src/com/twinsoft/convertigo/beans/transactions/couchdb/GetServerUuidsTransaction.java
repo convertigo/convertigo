@@ -29,7 +29,7 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchClientException;
 
-public class GetServerUuidsTransaction extends AbstractServerTransaction {
+public class GetServerUuidsTransaction extends AbstractCouchDbTransaction {
 
 	private static final long serialVersionUID = -7533090778648171161L;
 	

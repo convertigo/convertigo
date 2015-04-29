@@ -27,7 +27,7 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.enums.CouchParam;
 
-public class DeleteServerConfigTransaction extends AbstractServerTransaction {
+public class DeleteServerConfigTransaction extends AbstractCouchDbTransaction {
 
 	private static final long serialVersionUID = 1267816514021649947L;
 	

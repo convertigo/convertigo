@@ -30,7 +30,7 @@ public class DeleteServerConfigTransactionBeanInfo extends MySimpleBeanInfo {
 	public DeleteServerConfigTransactionBeanInfo() {
 		try {
 			beanClass = DeleteServerConfigTransaction.class;
-			additionalBeanClass = AbstractServerTransaction.class;
+			additionalBeanClass = AbstractCouchDbTransaction.class;
 
 			resourceBundle = getResourceBundle("res/DeleteServerConfigTransaction");
 			

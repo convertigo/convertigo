@@ -29,7 +29,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
@@ -54,7 +53,6 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
-import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.core.Variable;
@@ -98,10 +96,6 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		// TODO Auto-generated method stub
 	}
 	
-	public List<CouchDbParameter> getDeclaredParameters() {
-		return getDeclaredParameters(CouchDbParameter.empty);
-	}
-	
 	public void createVariables(Map<String, String> selectedParameters) {
 		try {
 			if (selectedParameters != null) {
@@ -120,18 +114,6 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		catch (Exception e) {
 			Engine.logBeans.error("Unable to add needed variable(s) for CouchDbTransaction", e);
 		}
-	}
-	
-	@Override
-	public void remove(DatabaseObject databaseObject) throws EngineException {
-		if (databaseObject instanceof RequestableVariable) {
-			RequestableVariable variable = (RequestableVariable) databaseObject;
-			
-			if (CouchDbParameter.contains(getDeclaredParameters(), variable.getName())) {
-				throw new EngineException("You are not allowed to remove the variable named '" + variable.getName() + "'");
-			}
-		}
-		super.remove(databaseObject);
 	}
 
 	@Override
@@ -237,14 +219,6 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		}
 		catch (Exception e) {}
 		return null;
-	}
-
-	public Object getParameterValue(CouchDbParameter param) {
-		return super.getParameterValue(param.variableName());
-	}
-
-	public String getParameterStringValue(CouchDbParameter param) {
-		return super.getParameterStringValue(param.variableName());
 	}
 	
 	public String getParameterStringValue(CouchParam param) {
@@ -418,10 +392,6 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		}
 		
 		return jsonElement;
-	}
-	
-	protected List<CouchDbParameter> getDeclaredParameters(CouchDbParameter... parameters) {
-		return getConnector().filter(parameters);
 	}
 	
 	private static JSONObject toJson(Element element) throws JSONException {

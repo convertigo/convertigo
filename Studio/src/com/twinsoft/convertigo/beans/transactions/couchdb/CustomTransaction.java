@@ -22,7 +22,6 @@
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
 import java.net.URI;
-import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -88,11 +87,6 @@ public class CustomTransaction extends AbstractCouchDbTransaction {
 
 	public void setHttpData(String httpData) {
 		this.httpData = httpData;
-	}
-	
-	@Override
-	public List<CouchDbParameter> getDeclaredParameters() {
-		return getDeclaredParameters(CouchDbParameter.empty);
 	}
 
 	@Override

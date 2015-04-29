@@ -27,7 +27,7 @@ import javax.xml.namespace.QName;
 
 import org.codehaus.jettison.json.JSONObject;
 
-public class GetServerLogTransaction extends AbstractServerTransaction {
+public class GetServerLogTransaction extends AbstractCouchDbTransaction {
 
 	private static final long serialVersionUID = 3117082545323969984L;
 	

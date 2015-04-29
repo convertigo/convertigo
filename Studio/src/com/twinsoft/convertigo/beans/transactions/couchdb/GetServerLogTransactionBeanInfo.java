@@ -30,7 +30,7 @@ public class GetServerLogTransactionBeanInfo extends MySimpleBeanInfo {
 	public GetServerLogTransactionBeanInfo() {
 		try {
 			beanClass = GetServerLogTransaction.class;
-			additionalBeanClass = AbstractServerTransaction.class;
+			additionalBeanClass = AbstractCouchDbTransaction.class;
 
 			resourceBundle = getResourceBundle("res/GetServerLogTransaction");
 			

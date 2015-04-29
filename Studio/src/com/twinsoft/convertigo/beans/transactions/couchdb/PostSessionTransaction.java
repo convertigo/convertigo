@@ -26,7 +26,7 @@ import javax.xml.namespace.QName;
 import com.twinsoft.convertigo.engine.enums.CouchParam;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
 
-public class PostSessionTransaction extends AbstractServerTransaction {
+public class PostSessionTransaction extends AbstractCouchDbTransaction {
 
 	private static final long serialVersionUID = -1385969696979516586L;
 	

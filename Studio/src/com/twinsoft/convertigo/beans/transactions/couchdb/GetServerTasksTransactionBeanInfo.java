@@ -28,7 +28,7 @@ public class GetServerTasksTransactionBeanInfo extends MySimpleBeanInfo {
 	public GetServerTasksTransactionBeanInfo() {
 		try {
 			beanClass = GetServerTasksTransaction.class;
-			additionalBeanClass = AbstractServerTransaction.class;
+			additionalBeanClass = AbstractCouchDbTransaction.class;
 
 			resourceBundle = getResourceBundle("res/GetServerTasksTransaction");
 			

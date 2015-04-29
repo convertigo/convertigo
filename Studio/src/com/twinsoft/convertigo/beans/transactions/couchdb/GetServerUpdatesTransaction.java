@@ -21,14 +21,13 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
 
 import org.codehaus.jettison.json.JSONObject;
 
-public class GetServerUpdatesTransaction extends AbstractServerTransaction {
+public class GetServerUpdatesTransaction extends AbstractCouchDbTransaction {
 
 	private static final long serialVersionUID = -4009927560249117525L;
 	
@@ -44,11 +43,6 @@ public class GetServerUpdatesTransaction extends AbstractServerTransaction {
 	public GetServerUpdatesTransaction clone() throws CloneNotSupportedException {
 		GetServerUpdatesTransaction clonedObject =  (GetServerUpdatesTransaction) super.clone();
 		return clonedObject;
-	}
-	
-	@Override
-	public List<CouchDbParameter> getDeclaredParameters() {
-		return getDeclaredParameters(var_feed, var_timeout, var_heartbeat);
 	}
 	
 	@Override

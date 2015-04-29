@@ -23,7 +23,7 @@ package com.twinsoft.convertigo.beans.transactions.couchdb;
 
 import javax.xml.namespace.QName;
 
-public class DeleteSessionTransaction extends AbstractServerTransaction {
+public class DeleteSessionTransaction extends AbstractCouchDbTransaction {
 
 	private static final long serialVersionUID = -6300800378590874080L;
 
@@ -39,8 +39,9 @@ public class DeleteSessionTransaction extends AbstractServerTransaction {
 
 	@Override
 	protected Object invoke() throws Exception {
+		Object res = getCouchClient().deleteSession(); 
 		getConnector().setCouchClient(null);
-		return getCouchClient().deleteSession();
+		return res;
 	}
 
 	@Override

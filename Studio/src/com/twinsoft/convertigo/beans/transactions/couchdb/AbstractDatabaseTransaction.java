@@ -25,9 +25,7 @@ package com.twinsoft.convertigo.beans.transactions.couchdb;
 public abstract class AbstractDatabaseTransaction extends AbstractCouchDbTransaction {
 
 	private static final long serialVersionUID = -2445580621995795014L;
-	
-	public static final CouchDbParameter var_database = CouchDbParameter.Path_database;
-	
+		
 	public AbstractDatabaseTransaction() {
 		super();
 	}

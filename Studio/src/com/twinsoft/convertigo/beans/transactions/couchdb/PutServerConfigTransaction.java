@@ -27,7 +27,7 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.enums.CouchParam;
 
-public class PutServerConfigTransaction extends AbstractServerTransaction {
+public class PutServerConfigTransaction extends AbstractCouchDbTransaction {
 	private static final long serialVersionUID = -3775078867489864436L;
 	
 	private String p_section = "";

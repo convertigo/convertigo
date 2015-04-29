@@ -22,7 +22,6 @@
 
 package com.twinsoft.convertigo.beans.connectors;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -38,7 +37,6 @@ import com.twinsoft.convertigo.beans.core.JsonDocument;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.transactions.couchdb.AbstractDatabaseTransaction;
-import com.twinsoft.convertigo.beans.transactions.couchdb.CouchDbParameter;
 import com.twinsoft.convertigo.beans.transactions.couchdb.GetViewTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Context;
@@ -184,7 +182,7 @@ public class CouchDbConnector extends Connector {
 	}
 	
 	public String getTargetDatabase(AbstractDatabaseTransaction couchDbTransaction) {
-		String targetDbName = couchDbTransaction.getParameterStringValue(AbstractDatabaseTransaction.var_database);
+		String targetDbName = couchDbTransaction.getParameterStringValue(CouchParam.db);
 				
 		if (targetDbName == null) {
 			targetDbName = getDatabaseName();
@@ -309,10 +307,6 @@ public class CouchDbConnector extends Connector {
 		}
 
 		return docList;
-	}
-	
-	public List<CouchDbParameter> filter(CouchDbParameter... parameters) {
-		return Arrays.asList(parameters);
 	}
 	
 	@Override

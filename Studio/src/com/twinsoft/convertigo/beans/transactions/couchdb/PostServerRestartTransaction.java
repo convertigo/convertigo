@@ -25,7 +25,7 @@ import javax.xml.namespace.QName;
 
 import org.codehaus.jettison.json.JSONObject;
 
-public class PostServerRestartTransaction extends AbstractServerTransaction {
+public class PostServerRestartTransaction extends AbstractCouchDbTransaction {
 	
 	private static final long serialVersionUID = 8242007535293507090L;
 

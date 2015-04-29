@@ -30,7 +30,7 @@ public class GetSessionTransactionBeanInfo extends MySimpleBeanInfo {
 	public GetSessionTransactionBeanInfo() {
 		try {
 			beanClass = GetSessionTransaction.class;
-			additionalBeanClass = AbstractServerTransaction.class;
+			additionalBeanClass = AbstractCouchDbTransaction.class;
 
 			resourceBundle = getResourceBundle("res/GetSessionTransaction");
 			

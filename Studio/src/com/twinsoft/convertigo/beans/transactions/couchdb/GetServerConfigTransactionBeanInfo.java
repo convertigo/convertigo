@@ -30,7 +30,7 @@ public class GetServerConfigTransactionBeanInfo extends MySimpleBeanInfo {
 	public GetServerConfigTransactionBeanInfo() {
 		try {
 			beanClass = GetServerConfigTransaction.class;
-			additionalBeanClass = AbstractServerTransaction.class;
+			additionalBeanClass = AbstractCouchDbTransaction.class;
 
 			resourceBundle = getResourceBundle("res/GetServerConfigTransaction");
 			

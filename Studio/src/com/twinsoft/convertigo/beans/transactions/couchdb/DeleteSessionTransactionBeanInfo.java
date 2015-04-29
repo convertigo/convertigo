@@ -28,7 +28,7 @@ public class DeleteSessionTransactionBeanInfo extends MySimpleBeanInfo {
 	public DeleteSessionTransactionBeanInfo() {
 		try {
 			beanClass = DeleteSessionTransaction.class;
-			additionalBeanClass = AbstractServerTransaction.class;
+			additionalBeanClass = AbstractCouchDbTransaction.class;
 
 			resourceBundle = getResourceBundle("res/DeleteSessionTransaction");
 			
