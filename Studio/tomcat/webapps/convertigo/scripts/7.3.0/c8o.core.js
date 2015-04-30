@@ -704,7 +704,7 @@ C8O = {
     		}
     		
     		if (C8O.canLog("trace")) {
-    			C8O.log.trace("c8o.core: init check locks " + C8O.toJSON(C8O._init.locks) + " and tasks " + C8O.toJSON(C8O._init.tasks));
+    			C8O.log.trace("c8o.core: init check locks " + C8O.toJSON(C8O._init.locks) + " and " + C8O._init.tasks.length + " tasks");
     		}
     		
     		if (C8O._init.done) {
