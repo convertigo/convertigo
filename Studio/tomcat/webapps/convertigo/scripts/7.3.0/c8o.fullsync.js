@@ -143,7 +143,7 @@ $.extend(true, C8O, {
 			}
 		},
 		
-		handleOptionsRev(db, docid, options, addLast, callback) {			
+		handleOptionsRev: function (db, docid, options, addLast, callback) {			
 			var rev = C8O._fs.handleRev(db, docid, options.rev, addLast, function (rev) {
 				if (rev) {
 					options.rev = rev;
@@ -152,7 +152,7 @@ $.extend(true, C8O, {
 			});
 		},
 		
-		handleRev(db, docid, rev, addLast, callback) {
+		handleRev: function (db, docid, rev, addLast, callback) {
 			if (!rev && addLast) {
 				C8O._fs.getDocumentRev(db, docid, callback);
 			} else {
