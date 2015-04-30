@@ -29,6 +29,7 @@ import java.net.URL;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.catalina.connector.ClientAbortException;
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.HttpStatus;
@@ -122,6 +123,7 @@ public class GetPackage extends DownloadService {
 			
 			OutputStream responseOutputStream = response.getOutputStream();
 			IOUtils.copy(methodBodyContentInputStream, responseOutputStream);
+		} catch (ClientAbortException cae) { // Fix for ticket #4698
 		} finally {
 			method.releaseConnection();
 		}
