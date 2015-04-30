@@ -298,10 +298,13 @@ public class ObjectInfoWizardPage extends WizardPage {
 			ObjectExplorerWizardPage objectExplorerWizardPage = (ObjectExplorerWizardPage) this.getPreviousPage(); 
 			
 			try {
-				AbstractCouchDbTransaction dbo = (AbstractCouchDbTransaction) objectExplorerWizardPage.getCreatedBean();
-				if (dbo != null && couchVariablesComposite != null){
-					couchVariablesComposite.setPropertyDescriptor(dbo, CachedIntrospector.getBeanInfo(dbo).getPropertyDescriptors(), 
-							(DatabaseObject) parentObject);
+				Object o = objectExplorerWizardPage.getCreatedBean();
+				if (o instanceof AbstractCouchDbTransaction) {
+					AbstractCouchDbTransaction dbo = (AbstractCouchDbTransaction) objectExplorerWizardPage.getCreatedBean();
+					if (dbo != null && couchVariablesComposite != null){
+						couchVariablesComposite.setPropertyDescriptor(dbo, CachedIntrospector.getBeanInfo(dbo).getPropertyDescriptors(), 
+								(DatabaseObject) parentObject);
+					}
 				}
 			} catch (IntrospectionException e) {
 				// TODO Auto-generated catch block
