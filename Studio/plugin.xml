@@ -2890,7 +2890,7 @@
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.GetDocumentAttachmentTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PutDocumentAttachmentTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteDatabaseTransaction"/>
-						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.GetDatabaseTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.GetDatabaseInfoTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.HeadDatabaseTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PostReplicateTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PutDatabaseTransaction"/>
