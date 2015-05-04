@@ -217,7 +217,7 @@ public class CouchVariablesComposite extends ScrolledComposite {
 			FontData fontData = labelName.getFont().getFontData()[0];
 			Font font = new Font(this.getDisplay(), new FontData(fontData.getName(), fontData.getHeight(), SWT.BOLD));
 			labelName.setFont(font);
-			labelName.setText(name.startsWith("p_") || name.startsWith("q_") ? name.substring(2) : (name.startsWith("_") ? name.substring(1) : name) );
+			labelName.setText((name.startsWith("p_") || name.startsWith("q_") ? name.substring(2) : name ));
 			
 			Browser browserDescription = new Browser(choosenGroup, SWT.MULTI | SWT.WRAP | (Engine.isLinux() ? SWT.MOZILLA : SWT.NONE));
 			browserDescription.setLayoutData(new GridData(GridData.FILL, GridData.CENTER, true, false));
@@ -250,11 +250,9 @@ public class CouchVariablesComposite extends ScrolledComposite {
 		if (requestableVariables != null) {
 			for (RequestableVariable requestableVariable : requestableVariables){
 				String requestableVariableName = requestableVariable.getName();
-				if (requestableVariableName.startsWith(CouchParam.prefix)){
-					if (requestableVariableName.equals(CouchParam.prefix + 
-							(name.startsWith("p_") || name.startsWith("q_") ? name.substring(2) : (name.startsWith("_") ? name.substring(1) : name) ) ) ) {
-						return true;
-					}
+				if (requestableVariableName.equals( 
+						name.startsWith("p_") || name.startsWith("q_") ? CouchParam.prefix + name.substring(2) : name ) ) {
+					return true;
 				}
 			}
 		}

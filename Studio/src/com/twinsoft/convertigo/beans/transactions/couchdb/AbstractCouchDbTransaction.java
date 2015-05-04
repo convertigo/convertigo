@@ -103,8 +103,7 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 			if (selectedParameters != null) {
 				for (CouchVariable variable : selectedParameters) {
 					String varName = variable.getName();
-					String varNameNew = CouchParam.prefix + 
-							(varName.startsWith("p_") || varName.startsWith("q_") ? varName.substring(2) : (varName.startsWith("_") ? varName.substring(1) : varName) );
+					String varNameNew = (varName.startsWith("p_") || varName.startsWith("q_") ? CouchParam.prefix + varName.substring(2) : varName );
 					String varDesc = variable.getDescription();
 					if (getVariable(varNameNew) == null) {
 						RequestableVariable requestableVariable = null;
