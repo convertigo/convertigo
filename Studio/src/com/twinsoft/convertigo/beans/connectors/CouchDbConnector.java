@@ -225,14 +225,20 @@ public class CouchDbConnector extends Connector {
 
 	@Override
 	public void removeDocument(Document document) throws EngineException {
-		super.removeDocument(document);
-		
 		JSONObject jsonDocument = ((JsonDocument)document).getJSONObject();
 		String docid = CouchKey._id.String(jsonDocument);
 		if (docid != null) {
 			String rev = CouchKey._rev.String(jsonDocument);
-			getCouchClient().deleteDocument(getDatabaseName(), docid, rev);
+			if (rev == null) {
+				getCouchClient().deleteDocument(getDatabaseName(), docid, (Map<String, String>) null);
+			}
+			else {
+				getCouchClient().deleteDocument(getDatabaseName(), docid, rev);
+			}
 		}
+		
+		super.removeDocument(document);
+		
 	}
 
 	public void importCouchDbDesignDocuments() {
