@@ -118,6 +118,14 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 	protected void prepareForRequestable(Context javascriptContext, Scriptable scope) throws MalformedURLException, EngineException {
 		Sequence targetSequence = getTargetSequence();
 		
+		if (Engine.isStudioMode()) {
+			if (targetSequence != null) {
+				if (sequence.getOriginal().equals(targetSequence.getOriginal())) {
+					throw new EngineException("Execution of recursive sequence is not allowed in Studio mode!");
+				}
+			}
+		}
+		
 		String ctxName = getContextName(javascriptContext, scope);
 		boolean useSequenceJSession = sequence.useSameJSessionForSteps();
 		boolean maintainContext = useSequenceJSession && !ctxName.startsWith("Container-");
@@ -278,7 +286,7 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 		String contents = null;
 		int statuscode = -1;
 		
-		if (sequence.runningThread.bContinue) {
+		if (sequence.isRunning()) {
 			Engine.logBeans.debug("(SequenceStep) Executing method - "+ method.getName() +"("+ method.getPath()+")");
 			
 			String ts = sequence.context.statistics.start(EngineStatistics.EXECUTE_SEQUENCE_CALLS);
