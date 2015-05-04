@@ -218,10 +218,11 @@ public class BeansDoc {
 			elementBean.appendChild(elementSub);
 	
 			for (PropertyDescriptor databaseObjectPropertyDescriptor : propertyDescriptors) {
+				boolean skip = false;
 				
 				// Don't display hidden property descriptors
 				if (databaseObjectPropertyDescriptor.isHidden()) {
-					continue;
+					skip = true;
 				}
 				
 				Method getter = databaseObjectPropertyDescriptor.getReadMethod();
@@ -229,20 +230,25 @@ public class BeansDoc {
 	
 				// Only display read/write property descriptors
 				if (getter == null || setter == null) {
-					continue;
+					skip = true;
 				}
 				
 				String blackListedForParentClass = (String) databaseObjectPropertyDescriptor.getValue("blackListedForParentClass");
 				if (blackListedForParentClass != null) {
 					// check
-					for (DboParent parent : bean.getParents()) {
+					for (DboParent parent: bean.getParents()) {
 						String parentName = parent.getClassName();
-						if(blackListedForParentClass.equals(parentName)){					
+						if (blackListedForParentClass.equals(parentName)) {
+							skip = true;
 							continue;
 						}							
 					}
 				}
-	
+				
+				if (skip) {
+					continue;
+				}
+				
 				String category = "standard";
 				if (isExtractionRule) {
 					category = "configuration";
