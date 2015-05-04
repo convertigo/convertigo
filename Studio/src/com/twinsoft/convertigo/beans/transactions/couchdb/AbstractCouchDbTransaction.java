@@ -103,8 +103,10 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 			if (selectedParameters != null) {
 				for (CouchVariable variable : selectedParameters) {
 					String varName = variable.getName();
+					String varNameNew = CouchParam.prefix + 
+							(varName.startsWith("p_") || varName.startsWith("q_") ? varName.substring(2) : (varName.startsWith("_") ? varName.substring(1) : varName) );
 					String varDesc = variable.getDescription();
-					if (getVariable(varName) == null) {
+					if (getVariable(varNameNew) == null) {
 						RequestableVariable requestableVariable = null;
 						if (variable.isMultiValued()) {
 							requestableVariable = new RequestableMultiValuedVariable();
@@ -112,8 +114,7 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 						} else {
 							requestableVariable = new RequestableVariable();
 						}
-						requestableVariable.setName(CouchParam.prefix + 
-								(varName.startsWith("p_") || varName.startsWith("q_") ? varName.substring(2) : (varName.startsWith("_") ? varName.substring(1) : varName) ));
+						requestableVariable.setName(varNameNew);
 						requestableVariable.setDescription(varDesc);
 						
 						addVariable(requestableVariable);
