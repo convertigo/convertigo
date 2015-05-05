@@ -1058,6 +1058,34 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 
 	public void treeObjectRemoved(TreeObjectEvent treeObjectEvent) {
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
+		
+		if (!(treeObject.equals(this))) {
+			// this is a pool
+			if (getObject() instanceof Pool) {
+				Pool pool = (Pool)getObject();
+				// case transaction deleted
+				if (treeObject instanceof TransactionTreeObject) {
+					if (treeObject.getConnectorTreeObject().equals(getConnectorTreeObject())) {
+						if (pool.getStartTransaction().equals(treeObject.getName())) {
+							pool.setStartTransaction("");
+							hasBeenModified(true);
+							viewer.refresh();							
+						}
+					}
+				}
+				// case screenclass deleted
+				if (treeObject instanceof ScreenClassTreeObject) {
+					if (treeObject.getConnectorTreeObject().equals(getConnectorTreeObject())) {
+						if (pool.getInitialScreenClass().equals(treeObject.getName())) {
+							pool.setInitialScreenClass("");
+							hasBeenModified(true);
+							viewer.refresh();							
+						}
+					}
+				}
+			}
+		}
+		
 		if (!(treeObject.equals(this)) && (!getParents().contains(treeObject)))
 			getDescriptors();// refresh editors (e.g labels in combobox)
 	}
