@@ -240,7 +240,9 @@ public class ClipboardAction extends MyAbstractAction {
 					//explorerView.reloadTreeObject(clipboardManager.parentTreeNodeOfCutObjects[i]);
 					TreeObject parentTreeNodeOfCutObjects = clipboardManager.parentTreeNodeOfCutObjects[i];
 					parentTreeNodeOfCutObjects.getProjectTreeObject().hasBeenModified(true);
-					explorerView.reloadTreeObject(parentTreeNodeOfCutObjects);
+					if (!(parentTreeNodeOfCutObjects instanceof IDesignTreeObject)) {
+						explorerView.reloadTreeObject(parentTreeNodeOfCutObjects);
+					}
             	}
             	
             	if (targetTreeObject != null) {

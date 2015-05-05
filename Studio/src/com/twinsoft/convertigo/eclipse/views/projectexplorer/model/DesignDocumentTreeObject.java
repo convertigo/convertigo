@@ -660,4 +660,17 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		}
 		
 	}
+
+	@Override
+	public boolean canPaste(Object object) {
+		if (object != null) {
+			if (object instanceof DesignDocumentFilterTreeObject)
+				return true;
+			else if (object instanceof DesignDocumentUpdateTreeObject)
+				return true;
+			else if (object instanceof DesignDocumentViewTreeObject)
+				return true;
+		}
+		return false;
+	}
 }

@@ -147,6 +147,9 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 				return getParentDesignTreeObject().add(object, bChangeName);
 			}
 		}
+		else if (object instanceof DesignDocumentFunctionTreeObject) {
+			return getParentDesignTreeObject().add(object, bChangeName);
+		}
 		return null;
 	}
 
@@ -220,6 +223,15 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 			return bool.equals(Boolean.valueOf(canPaste));
 		}
 		return super.testAttribute(target, name, value);
+	}
+
+	@Override
+	public boolean canPaste(Object object) {
+		if (object != null) {
+			if (object.getClass().equals(getClass()))
+				return true;
+		}
+		return false;
 	}
 
 }

@@ -166,6 +166,9 @@ public class DesignDocumentViewTreeObject extends TreeParent implements IDesignT
 		else if (object instanceof DesignDocumentFunctionTreeObject) {
 			return addFunction((DesignDocumentFunctionTreeObject)object);
 		}
+		else if (object instanceof DesignDocumentViewTreeObject) {
+			return getParentDesignTreeObject().add(object, bChangeName);
+		}
 		return null;
 	}
 
@@ -242,6 +245,17 @@ public class DesignDocumentViewTreeObject extends TreeParent implements IDesignT
 			return bool.equals(Boolean.valueOf(canPaste));
 		}
 		return super.testAttribute(target, name, value);
+	}
+
+	@Override
+	public boolean canPaste(Object object) {
+		if (object != null) {
+			if (object.getClass().equals(DesignDocumentFunctionTreeObject.class))
+				return true;
+			else if (object instanceof DesignDocumentViewTreeObject)
+				return true;
+		}
+		return false;
 	}
 
 }

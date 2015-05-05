@@ -35,4 +35,5 @@ public interface IDesignTreeObject {
 	public Element toXml(Document document);
 	public TreeParent getParent();
 	public void hasBeenModified();
+	public boolean canPaste(Object object);
 }
