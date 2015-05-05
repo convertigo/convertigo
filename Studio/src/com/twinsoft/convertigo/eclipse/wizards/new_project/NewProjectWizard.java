@@ -123,6 +123,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int TEMPLATE_SAP_CONNECTOR = 1200;
 	public static final int TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE = 1300;
 	public static final int TEMPLATE_POLYMER = 1400;
+	public static final int TEMPLATE_ANGULARJS = 1500;
 
 	// generic sample
 	public static final int SAMPLE_HELLO_WORLD = 620;
@@ -186,6 +187,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final String SITE_CLIPPER_TEMPLATE_PROJECT_FILE_NAME = "template_siteClipper.car";
 	public static final String JQUERYMOBILE_MOBILE_EMPTY_TEMPLATE_PROJECT_FILE_NAME = "template_mobileJQueryMobile.car";
 	public static final String POLYMER_TEMPLATE_PROJECT_FILE_NAME = "template_Polymer.car";
+	public static final String ANGULARJS_TEMPLATE_PROJECT_FILE_NAME = "template_AngularJS.car";
 	// documentation samples
 	public static final String CLI_DOC_PROJECT_FILE_NAME = "sample_documentation_CLI.car";
 	public static final String CWI_DOC_PROJECT_FILE_NAME = "sample_documentation_CWI.car";
@@ -350,6 +352,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 
 		case TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE:
 		case TEMPLATE_POLYMER:
+		case TEMPLATE_ANGULARJS:
 		case TEMPLATE_SEQUENCE_CONNECTOR:
 		case TEMPLATE_INTERACTION_HUB:
 			page1 = new NewProjectWizardPage1(selection);
@@ -449,6 +452,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case TEMPLATE_INTERACTION_HUB:
 			case TEMPLATE_SITE_CLIPPER:
 			case TEMPLATE_POLYMER:
+			case TEMPLATE_ANGULARJS:
 			case TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE:
 				projectName = page1.getProjectName();
 				monitor.beginTask("Creating project " + projectName, 7);
@@ -638,6 +642,12 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 					+ POLYMER_TEMPLATE_PROJECT_FILE_NAME;
 			oldProjectName = POLYMER_TEMPLATE_PROJECT_FILE_NAME.substring(0,
 					POLYMER_TEMPLATE_PROJECT_FILE_NAME.indexOf(".car"));
+			break;
+		case TEMPLATE_ANGULARJS:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/"
+					+ ANGULARJS_TEMPLATE_PROJECT_FILE_NAME;
+			oldProjectName = ANGULARJS_TEMPLATE_PROJECT_FILE_NAME.substring(0,
+					ANGULARJS_TEMPLATE_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		default:
 			return null;

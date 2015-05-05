@@ -190,10 +190,6 @@
             id="com.twinsoft.convertigo.eclipse.convertigomobile"
             name="Mobile"
             parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>  
-      <category
-            id="com.twinsoft.convertigo.eclipse.convertigopolymer"
-            name="Polymer"
-            parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
 <!-- samples and demos categories -->
       <category
             id="com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
@@ -365,7 +361,7 @@
             </wizard>
 <!-- Polymer connector projects -->
        <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigopolymer"
+            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigomobile"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewPolymerProjectWizard"
             icon="icons/studio/polymer_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewPolymerProjectWizard"
@@ -373,6 +369,17 @@
             preferredPerspectives="convertigo"
             project="true">
             <description>Creates a Polymer connector project.</description> 
+       </wizard>
+<!-- AngularJS connector projects -->
+       <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigomobile"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewAngularJSProjectWizard"
+            icon="icons/studio/angularjs_color_32x32.png"
+            id="com.twinsoft.convertigo.eclipse.wizards.NewAngularJSProjectWizard"
+            name="AngularJS project"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Creates a AngularJS connector project.</description> 
        </wizard>
 <!-- Tutorials sample projects -->
        <wizard
