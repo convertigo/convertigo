@@ -986,6 +986,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 								} else if (theTreeObject instanceof VariableTreeObject2) {
 									objectType = "variable";
 									updateDlg = ((DatabaseObject)theTreeObject.getObject()) instanceof RequestableVariable ? true:false;
+								} else if (theTreeObject instanceof DesignDocumentTreeObject) {
+									objectType = "document";
+									updateDlg = true;
 								} else if (theTreeObject instanceof DesignDocumentViewTreeObject) {
 									objectType = "view";
 									updateDlg = true;
