@@ -190,6 +190,10 @@
             id="com.twinsoft.convertigo.eclipse.convertigomobile"
             name="Mobile"
             parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>  
+      <category
+            id="com.twinsoft.convertigo.eclipse.convertigopolymer"
+            name="Polymer"
+            parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
 <!-- samples and demos categories -->
       <category
             id="com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
@@ -359,6 +363,17 @@
             project="true">
             <description>Creates a Site Clipper connector project.</description> 
             </wizard>
+<!-- Polymer connector projects -->
+       <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigopolymer"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewPolymerProjectWizard"
+            icon="icons/studio/polymer_color_32x32.png"
+            id="com.twinsoft.convertigo.eclipse.wizards.NewPolymerProjectWizard"
+            name="Polymer project"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Creates a Polymer connector project.</description> 
+       </wizard>
 <!-- Tutorials sample projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
@@ -639,7 +654,7 @@
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryPolymerWizard"
-             icon="icons/studio/library_polymer_color_32x32.png"
+             icon="icons/studio/polymer_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryPolymerWizard"
              name="Polymer library"
              preferredPerspectives="convertigo"
