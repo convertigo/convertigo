@@ -56,10 +56,12 @@ import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.INillableProperty;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
+import com.twinsoft.convertigo.beans.core.Pool;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.StatementWithExpressions;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
+import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.statements.HandlerStatement;
 import com.twinsoft.convertigo.beans.statements.ScDefaultHandlerStatement;
 import com.twinsoft.convertigo.beans.statements.ScHandlerStatement;
@@ -1061,6 +1063,44 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	}
 
 	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
+		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
+		
+		String propertyName = (String)treeObjectEvent.propertyName;
+		propertyName = ((propertyName == null) ? "" : propertyName);
+		
+		Object oldValue = treeObjectEvent.oldValue;
+		Object newValue = treeObjectEvent.newValue;
+		
+		// handle bean's name changes
+		if ("name".equals(propertyName)) {
+			// this is a pool
+			if (getObject() instanceof Pool) {
+				Pool pool = (Pool)getObject();
+				// case transaction name changed
+				if (treeObject instanceof TransactionTreeObject) {
+					Transaction transaction = (Transaction) treeObject.getObject();
+					if (transaction.getConnector().equals(pool.getConnector())) {
+						if (pool.getStartTransaction().equals(oldValue)) {
+							pool.setStartTransaction(newValue.toString());
+							hasBeenModified(true);
+							viewer.refresh();							
+						}
+					}
+				}
+				// case screenclass name changed
+				if (treeObject instanceof ScreenClassTreeObject) {
+					ScreenClass sc = (ScreenClass) treeObject.getObject();
+					if (sc.getConnector().equals(pool.getConnector())) {
+						if (pool.getInitialScreenClass().equals(oldValue)) {
+							pool.setInitialScreenClass(newValue.toString());
+							hasBeenModified(true);
+							viewer.refresh();							
+						}
+					}
+				}
+			}
+		}
+
 		getDescriptors();// refresh editors (e.g labels in combobox)
 	}
 	
