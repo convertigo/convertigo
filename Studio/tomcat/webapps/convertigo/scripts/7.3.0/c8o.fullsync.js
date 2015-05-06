@@ -13,6 +13,7 @@ $.extend(true, C8O, {
 	_define: {
 		re_fs_match_db: new RegExp("^fs://([^/]*)"),
 		re_fs_seq: new RegExp("^(.*?)(?:#|$)"),
+		re_fs_task: new RegExp("(\\d+)[^\\d]*(\\d+)"),
 		re_fs_use: new RegExp("^(?:_use_(.*)$|__)")
 	},
 	
@@ -36,7 +37,131 @@ $.extend(true, C8O, {
 			if (C8O._fs.dbs[db]) {
 				// exists
 			} else if (C8O._fs.server && !C8O.init_vars.fs_force_pouch) {
-				C8O._fs.dbs[db] = new PouchDB(C8O._fs.server + '/' + db);
+				var http = C8O._fs.dbs[db] = new PouchDB(C8O._fs.server + '/' + db);
+				
+				var request = http.request;
+				
+				http.request = function (options) {
+					if (!options.timeout) {
+						options.timeout = 3600 * 1000;
+					}
+					return request.apply(this, arguments);
+				};
+				
+				var replicate = http.replicate;
+				
+				var rep = function (options) {
+					var evts = {};
+					var target = options.target == db ? http : new PouchDB(options.target);
+					
+					if (options.live) {
+						options.continuous = true;
+					}
+					
+					var session_id = null;
+					var change = {
+						progress: 0,
+						last_seq: 0,
+						seq: 0
+					};
+					var chkTasks = function () {
+						http.request({method: "GET", url: "../_active_tasks"}, function (err, tasks) {
+							if (err) {
+								console.log("ERROR");
+								console.log(err);
+								return;
+							}
+							var task = null;
+							for (var i = 0; i < tasks.length && task == null; i++) {
+								if (tasks[i].session_id == session_id ||
+										(tasks[i].source == options.source && tasks[i].target == options.target)) {
+									task = tasks[i];
+									session_id = task.task;
+								}
+							}
+							if (session_id == null) {
+								http.request({method: "POST", url: "../_replicate", body: options}, function (err, data) {
+									session_id = data.session_id;
+									chkTasks();
+								});
+							} else {
+								if (task == null) {
+									if (evts.complete) {
+										change.seq = change.last_seq;
+										evts.complete(change);
+									}
+									console.log("replicate finished !");
+								} else {
+									var nextChange = {
+										progress: task.progress,
+										last_seq: 0,
+										seq: 0
+									}
+									
+									if (task.status) {
+										var mStatus = task.status.match(C8O._define.re_fs_task);
+										if (mStatus) {
+											nextChange.seq = mStatus[1] * 1;
+											nextChange.last_seq = mStatus[2] * 1;
+										}
+									}
+									
+									if (evts.change) {
+										if (change.seq != nextChange.seq || change.last_seq != nextChange.last_seq) {
+											change = nextChange;
+											evts.change(change);
+										}
+									} else {
+										change = nextChange;
+									}
+									
+									window.setTimeout(chkTasks, 500);
+								}
+							}
+						});
+					}
+					chkTasks();
+					
+					return {
+						on: function (evt, fun) {
+							C8O.log.warn("on " + evt);
+							evts[evt] = fun;
+							return this;
+						},
+						cancel: function () {
+							if (req) {
+								req.cancel();
+							}
+							req = null;
+							return this;
+						}
+					}
+				};
+				
+				http.replicate = {
+					from: function (remoteDB, options) {
+						return rep($.extend({source: remoteDB, target: db}, options));
+					},
+					to: function (remoteDB, options) {
+						return rep($.extend({source: db, target: remoteDB}, options));
+					},
+					sync: function (remoteDB, options) {
+						var from = http.replicate.from(remoteDB, options);
+						var to = http.replicate.to(remoteDB, options);
+						return {
+							on: function (evt, fun) {
+								from.on(evt, fun);
+//								to.on(evt, fun);
+								return this;
+							},
+							cancel: function () {
+								from.cancel();
+								to.cancel();
+								return this;
+							}
+						}
+					}
+				};
 			} else {
 				C8O._fs.dbs[db] = new PouchDB(db);
 			}
@@ -200,7 +325,7 @@ $.extend(true, C8O, {
 		var db = C8O._remove(options, "db") || C8O.vars.fs_default_db;
 		
 		C8O.log.info("c8o.fs  : fs_sync requested for " + db);
-		return C8O.fs_getDB(db).sync(C8O._fs.getRemoteUrl(db), options);
+		return C8O.fs_getDB(db).replicate.sync(C8O._fs.getRemoteUrl(db), options);
 	},
 	
 	fs_replicate_pull: function (options) {
