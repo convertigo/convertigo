@@ -202,7 +202,7 @@ public class TrSeqSourceEditorComposite extends AbstractDialogComposite implemen
 		if (selectedTVObject != null) {
 			ISelection selection = new StructuredSelection(selectedTVObject);
 			requestables.setSelection(selection, true);
-		} else {
+		} else if (!cellEditor.databaseObjectTreeObject.getObject().bNew) {
 			ConvertigoPlugin.logError("Requestable source not found ('" + requestableSource
 					+ "'). Please check your projects or choose another source.", true);
 			parentDialog.enableOK(false);
