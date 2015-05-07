@@ -43,7 +43,6 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
-import com.twinsoft.convertigo.engine.providers.couchdb.CouchClientException;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
@@ -104,8 +103,8 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 				CouchKey._id.put(jso, CouchKey._design.key() + newName);
 				CouchKey._rev.remove(jso);
 				lastRev = CouchDbManager.syncDocument(couchClient, db, jso.toString());
-			} catch (CouchClientException e) {
-				//TODO: handle e
+			} catch (Exception e) {
+				ConvertigoPlugin.logException(e, "Coudn't rename document \""+oldName+"\" to \""+newName+"\" in the CouchDb database", false);
 			}
 		}
 	}
