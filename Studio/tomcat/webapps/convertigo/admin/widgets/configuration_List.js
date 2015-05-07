@@ -103,6 +103,9 @@ function configuration_List_init () {
 				case "Notifications":
 					urlHelp += "notifications/";
 					break;
+				case "Minification":
+					urlHelp += "minification/";
+					break;
 				case "MobileBuilder":
 					urlHelp += "mobile-builder/";
 					break;
