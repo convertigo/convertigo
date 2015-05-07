@@ -109,6 +109,9 @@ function configuration_List_init () {
 				case "MobileBuilder":
 					urlHelp += "mobile-builder/";
 					break;
+				case "FULLSYNC":
+					urlHelp += "full-sync/";
+					break;
 			}
 
 			
