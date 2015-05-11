@@ -25,16 +25,8 @@ package com.twinsoft.convertigo.eclipse;
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.core.runtime.preferences.DefaultScope;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
-import org.eclipse.core.runtime.preferences.InstanceScope;
-
-import com.twinsoft.convertigo.engine.ProductVersion;
 
 public class ConvertigoPluginPreferenceInitializer extends AbstractPreferenceInitializer {
-	
-	private static final String REMOTE_HELP_HOST = "help.convertigo.com";
-	private static final String REMOTE_HELP_PATH = "/" + ProductVersion.helpVersion + "/";
-	private static final String REMOTE_HELP_NAME = "Convertigo help " + ProductVersion.helpVersion;
-	private static final int REMOTE_HELP_PORT = 80;
 	
 	@Override
 	public void initializeDefaultPreferences() {
@@ -44,35 +36,5 @@ public class ConvertigoPluginPreferenceInitializer extends AbstractPreferenceIni
 		node.put(ConvertigoPlugin.PREFERENCE_TRACEPLAYER_PORT, "2323");
 		node.put(ConvertigoPlugin.PREFERENCE_TREE_HIGHLIGHT_DETECTED, "true");
 		node.put(ConvertigoPlugin.PREFERENCE_IGNORE_NEWS, "false");
-		
-		boolean found = false;
-		String [] remoteHelpPaths;
-
-		IEclipsePreferences rootNode = new InstanceScope().getNode("org.eclipse.help.base");
-		rootNode.putBoolean("remoteHelpOn", true);
-		rootNode.getBoolean("remoteHelpPreferred", false);	
-		
-		if (rootNode.get("remoteHelpPath", "").equals("")) {
-			rootNode.put("remoteHelpName", rootNode.get("remoteHelpName", "") + REMOTE_HELP_NAME);
-			rootNode.put("remoteHelpHost", rootNode.get("remoteHelpHost", "") + REMOTE_HELP_HOST);
-			rootNode.put("remoteHelpPath", rootNode.get("remoteHelpPath", "") + REMOTE_HELP_PATH);
-			rootNode.put("remoteHelpPort", rootNode.get("remoteHelpPort", "") + REMOTE_HELP_PORT);
-			rootNode.put("remoteHelpICEnabled", rootNode.get("remoteHelpICEnabled", "") + "true");
-		}
-		else {
-			remoteHelpPaths = rootNode.get("remoteHelpPath", "").split(",");	
-			for (String remoteHelpPath: remoteHelpPaths) {
-				if (remoteHelpPath.equals(REMOTE_HELP_PATH)) {
-					found = true;
-				}			
-			}
-			if (!found) {
-				rootNode.put("remoteHelpName", rootNode.get("remoteHelpName", "") + "," + REMOTE_HELP_NAME);
-				rootNode.put("remoteHelpHost", rootNode.get("remoteHelpHost", "") + "," + REMOTE_HELP_HOST);
-				rootNode.put("remoteHelpPath", rootNode.get("remoteHelpPath", "") + "," + REMOTE_HELP_PATH);
-				rootNode.put("remoteHelpPort", rootNode.get("remoteHelpPort", "") + "," + REMOTE_HELP_PORT);
-				rootNode.put("remoteHelpICEnabled", rootNode.get("remoteHelpICEnabled", "") + "," +  "true");
-			}
-		}
 	}
 }
