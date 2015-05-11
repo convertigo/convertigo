@@ -57,6 +57,8 @@ import org.xml.sax.SAXException;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.XmlSchemaWalker.XmlSchemaWalkerWatcher;
 
@@ -234,6 +236,15 @@ public class XmlSchemaUtils {
 		return getDomInstance(object, null);
 	}
 	
+	private static int getDomMaxDepth() {
+		try {
+			return Integer.valueOf(EnginePropertiesManager.getProperty(PropertyName.DOCUMENT_FROMSCHEMA_DEPTH), 10);
+		}
+		catch (Exception e) {
+			return 100;
+		}
+	}
+	
 	public static Document getDomInstance(XmlSchemaObject object, final Map<Node, XmlSchemaObject> references) {
 		final Document doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
 		final Element root = doc.createElement("document");
@@ -241,7 +252,7 @@ public class XmlSchemaUtils {
 		
 		new XmlSchemaWalker() {
 			Node parent = root;
-			int maxDepth = 50;
+			int maxDepth = getDomMaxDepth();
 			
 			@Override
 			protected void walkElement(XmlSchema xmlSchema, XmlSchemaElement obj) {

@@ -426,6 +426,8 @@ public class EnginePropertiesManager {
 		DOCUMENT_XSLT_ENGINE ("document.xslt_engine", XsltEngine.xalan_xsltc.getValue(), "XSLT engine", PropertyCategory.XmlGeneration),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		DOCUMENT_NAMESPACE_AWARE("document.namespace.aware", "false", "Set namespace aware", PropertyCategory.XmlGeneration),
+		@PropertyOptions(advance = true)
+		DOCUMENT_FROMSCHEMA_DEPTH("document.fromschema.depth","100","Maximum number of elements for XML sample generation based on schema",PropertyCategory.XmlGeneration),
 		
 		/** PROXY */
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = ProxyMode.class)
