@@ -91,6 +91,10 @@ public class LaunchBuild extends XmlService {
 			params.put("platformType", new String[]{mobilePlatform.getType()});
 			params.put("auth_token", new String[]{mobileApplication.getComputedAuthenticationToken()});
 			
+			//revision and endpoint params
+			params.put("revision", new String[]{mobileResourceHelper.getRevision()});
+			params.put("endpoint", new String[]{mobileApplication.getComputedEndpoint(request)});
+						
 			//iOS
 			if (mobilePlatform instanceof IOs) {
 				IOs ios = (IOs) mobilePlatform;
