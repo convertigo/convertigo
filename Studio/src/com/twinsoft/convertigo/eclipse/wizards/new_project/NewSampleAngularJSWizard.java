@@ -22,11 +22,11 @@
 
 package com.twinsoft.convertigo.eclipse.wizards.new_project;
 
-public class NewPolymerProjectWizard extends NewProjectWizard {
+public class NewSampleAngularJSWizard extends NewProjectWizard {
 
-	public NewPolymerProjectWizard() {
+	public NewSampleAngularJSWizard() {
 		super();
-		this.templateId = NewProjectWizard.TEMPLATE_POLYMER;
+		this.templateId = NewProjectWizard.SAMPLE_ANGULARJS;
 	}
 
 }

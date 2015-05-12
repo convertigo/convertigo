@@ -122,8 +122,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int TEMPLATE_SITE_CLIPPER = 1100;
 	public static final int TEMPLATE_SAP_CONNECTOR = 1200;
 	public static final int TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE = 1300;
-	public static final int TEMPLATE_POLYMER = 1400;
-	public static final int TEMPLATE_ANGULARJS = 1500;
 
 	// generic sample
 	public static final int SAMPLE_HELLO_WORLD = 620;
@@ -168,6 +166,9 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int SAMPLE_MOBILE_USDIRECTORY = 1313;
 	public static final int SAMPLE_MOBILE_MOBTV = 1314;
 	
+	public static final int SAMPLE_POLYMER = 1315;
+	public static final int SAMPLE_ANGULARJS = 1316;
+	
 	// sequencer samples
 	public static final int SAMPLE_SEQUENCER_1 = 510;
 
@@ -186,8 +187,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final String INTERACTION_HUB_TEMPLATE_PROJECT_FILE_NAME = "template_interactionHub.car";
 	public static final String SITE_CLIPPER_TEMPLATE_PROJECT_FILE_NAME = "template_siteClipper.car";
 	public static final String JQUERYMOBILE_MOBILE_EMPTY_TEMPLATE_PROJECT_FILE_NAME = "template_mobileJQueryMobile.car";
-	public static final String POLYMER_TEMPLATE_PROJECT_FILE_NAME = "template_Polymer.car";
-	public static final String ANGULARJS_TEMPLATE_PROJECT_FILE_NAME = "template_AngularJS.car";
 	// documentation samples
 	public static final String CLI_DOC_PROJECT_FILE_NAME = "sample_documentation_CLI.car";
 	public static final String CWI_DOC_PROJECT_FILE_NAME = "sample_documentation_CWI.car";
@@ -202,6 +201,8 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final String SAMPLE_MOBILE_CTF_GALLERY_PROJECT_FILE_NAME = "sampleMobileCtfGallery.car";
 	public static final String SAMPLE_MOBILE_USDIRECTORY_PROJECT_FILE_NAME = "sampleMobileUsDirectoryDemo.car";
 	public static final String SAMPLE_MOBILE_MOB_TV_PROJECT_FILE_NAME = "sampleMobileMobTV.car";
+	public static final String SAMPLE_POLYMER_PROJECT_FILE_NAME = "samplePolymer.car";
+	public static final String SAMPLE_ANGULARJS_PROJECT_FILE_NAME = "sampleAngularJS.car";
 	// libraries
 	public static final String GOOGLE_MAPS_LIBRARY_PROJECT_FILE_NAME = "lib_GoogleMaps.car";
 	public static final String GOOGLE_SPREADSHEETS_LIBRARY_PROJECT_FILE_NAME = "lib_GoogleSpreadsheets.car";
@@ -267,6 +268,8 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case SAMPLE_MOBILE_CTF_GALLERY:
 		case SAMPLE_MOBILE_USDIRECTORY:
 		case SAMPLE_MOBILE_MOBTV:
+		case SAMPLE_POLYMER:
+		case SAMPLE_ANGULARJS:
 		case LIBRARY_GOOGLE_MAPS:
 		case LIBRARY_GOOGLE_SPREADSHEETS:
 		case LIBRARY_GOOGLE_DOCS:
@@ -351,8 +354,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			break;
 
 		case TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE:
-		case TEMPLATE_POLYMER:
-		case TEMPLATE_ANGULARJS:
 		case TEMPLATE_SEQUENCE_CONNECTOR:
 		case TEMPLATE_INTERACTION_HUB:
 			page1 = new NewProjectWizardPage1(selection);
@@ -451,8 +452,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case TEMPLATE_SAP_CONNECTOR:
 			case TEMPLATE_INTERACTION_HUB:
 			case TEMPLATE_SITE_CLIPPER:
-			case TEMPLATE_POLYMER:
-			case TEMPLATE_ANGULARJS:
 			case TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE:
 				projectName = page1.getProjectName();
 				monitor.beginTask("Creating project " + projectName, 7);
@@ -481,6 +480,8 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case SAMPLE_MOBILE_CTF_GALLERY:
 			case SAMPLE_MOBILE_USDIRECTORY:
 			case SAMPLE_MOBILE_MOBTV:
+			case SAMPLE_POLYMER:
+			case SAMPLE_ANGULARJS:
 			case LIBRARY_GOOGLE_MAPS:
 			case LIBRARY_GOOGLE_SPREADSHEETS:
 			case LIBRARY_GOOGLE_DOCS:
@@ -636,18 +637,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 					+ JQUERYMOBILE_MOBILE_EMPTY_TEMPLATE_PROJECT_FILE_NAME;
 			oldProjectName = JQUERYMOBILE_MOBILE_EMPTY_TEMPLATE_PROJECT_FILE_NAME.substring(0,
 					JQUERYMOBILE_MOBILE_EMPTY_TEMPLATE_PROJECT_FILE_NAME.indexOf(".car"));
-			break;
-		case TEMPLATE_POLYMER:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/"
-					+ POLYMER_TEMPLATE_PROJECT_FILE_NAME;
-			oldProjectName = POLYMER_TEMPLATE_PROJECT_FILE_NAME.substring(0,
-					POLYMER_TEMPLATE_PROJECT_FILE_NAME.indexOf(".car"));
-			break;
-		case TEMPLATE_ANGULARJS:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/"
-					+ ANGULARJS_TEMPLATE_PROJECT_FILE_NAME;
-			oldProjectName = ANGULARJS_TEMPLATE_PROJECT_FILE_NAME.substring(0,
-					ANGULARJS_TEMPLATE_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		default:
 			return null;
@@ -1310,6 +1299,14 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case SAMPLE_MOBILE_MOBTV:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_MOBILE_MOB_TV_PROJECT_FILE_NAME;
 			projectName = SAMPLE_MOBILE_MOB_TV_PROJECT_FILE_NAME.substring(0, SAMPLE_MOBILE_MOB_TV_PROJECT_FILE_NAME.indexOf(".car"));
+			break;
+		case SAMPLE_POLYMER:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_POLYMER_PROJECT_FILE_NAME;
+			projectName = SAMPLE_POLYMER_PROJECT_FILE_NAME.substring(0,	SAMPLE_POLYMER_PROJECT_FILE_NAME.indexOf(".car"));
+			break;
+		case SAMPLE_ANGULARJS:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_ANGULARJS_PROJECT_FILE_NAME;
+			projectName = SAMPLE_ANGULARJS_PROJECT_FILE_NAME.substring(0, SAMPLE_ANGULARJS_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		default:
 			return null;

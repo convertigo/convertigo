@@ -358,29 +358,7 @@
             preferredPerspectives="convertigo"
             project="true">
             <description>Creates a Site Clipper connector project.</description> 
-            </wizard>
-<!-- Polymer connector projects -->
-       <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigomobile"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewPolymerProjectWizard"
-            icon="icons/studio/polymer_color_32x32.png"
-            id="com.twinsoft.convertigo.eclipse.wizards.NewPolymerProjectWizard"
-            name="Polymer project"
-            preferredPerspectives="convertigo"
-            project="true">
-            <description>Creates a Polymer connector project.</description> 
-       </wizard>
-<!-- AngularJS connector projects -->
-       <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigomobile"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewAngularJSProjectWizard"
-            icon="icons/studio/angularjs_color_32x32.png"
-            id="com.twinsoft.convertigo.eclipse.wizards.NewAngularJSProjectWizard"
-            name="AngularJS project"
-            preferredPerspectives="convertigo"
-            project="true">
-            <description>Creates a AngularJS connector project.</description> 
-       </wizard>
+	   </wizard>
 <!-- Tutorials sample projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
@@ -553,6 +531,26 @@
              preferredPerspectives="convertigo"
              project="true">
           <description>Imports a vacation management mobile application sample project. The project is based on jQuery Mobile and CTF frameworks, and uses fake data from XML files in the project loaded thanks to a sequence.</description>
+       </wizard>
+       <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleAngularJSWizard"
+            icon="icons/studio/angularjs_color_32x32.png"
+            id="com.twinsoft.convertigo.eclipse.wizards.NewSampleAngularJSWizard"
+            name="AngularJS sample project"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Imports a sample mobile AngularJS application project.</description> 
+       </wizard>
+       <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSamplePolymerWizard"
+            icon="icons/studio/polymer_color_32x32.png"
+            id="com.twinsoft.convertigo.eclipse.wizards.NewSamplePolymerWizard"
+            name="Polymer sample project"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Imports a sample mobile Polymer application project.</description> 
        </wizard>
 <!-- HelloWorld sample project -->
        <wizard
