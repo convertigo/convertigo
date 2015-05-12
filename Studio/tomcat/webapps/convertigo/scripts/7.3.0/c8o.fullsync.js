@@ -43,7 +43,7 @@ $.extend(true, C8O, {
 				
 				http.request = function (options) {
 					if (!options.timeout) {
-						options.timeout = 3600 * 1000;
+						options.timeout = 0;
 					}
 					return request.apply(this, arguments);
 				};
@@ -54,9 +54,9 @@ $.extend(true, C8O, {
 					var evts = {};
 					var target = options.target == db ? http : new PouchDB(options.target);
 					
-					if (options.live) {
-						options.continuous = true;
-					}
+					options.continuous = C8O.isTrue(options.live);
+					delete options.live;					
+					options.create_target = true;
 					
 					var session_id = null;
 					var change = {
@@ -81,16 +81,17 @@ $.extend(true, C8O, {
 							}
 							if (session_id == null) {
 								http.request({method: "POST", url: "../_replicate", body: options}, function (err, data) {
+									C8O.log.info("c8o.fs  : replication started for " + C8O.toJSON(options));
 									session_id = data.session_id;
 									chkTasks();
 								});
 							} else {
 								if (task == null) {
+									C8O.log.info("c8o.fs  : replication finished for " + C8O.toJSON(options));
 									if (evts.complete) {
 										change.seq = change.last_seq;
 										evts.complete(change);
 									}
-									console.log("replicate finished !");
 								} else {
 									var nextChange = {
 										progress: task.progress,
@@ -120,11 +121,17 @@ $.extend(true, C8O, {
 							}
 						});
 					}
-					chkTasks();
+					if (options.continuous && !options.cancel) {
+						http.request({method: "POST", url: "../_replicate", body: options}, function (err, data) {
+							C8O.log.info("c8o.fs  : continuous replication started for " + C8O.toJSON(options));
+						});
+					} else {
+						chkTasks();
+					}
 					
 					return {
 						on: function (evt, fun) {
-							C8O.log.warn("on " + evt);
+							C8O.log.debug("c8o.fs  : register on " + evt);
 							evts[evt] = fun;
 							return this;
 						},
