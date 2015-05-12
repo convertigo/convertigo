@@ -87,6 +87,7 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.EnginePreferenceDialog;
 import com.twinsoft.convertigo.eclipse.dialogs.EventDetailsDialog;
 import com.twinsoft.convertigo.eclipse.dialogs.EventDetailsDialogComposite;
+import com.twinsoft.convertigo.eclipse.dialogs.LimitCharsLogsPreferenceDialog;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.logmanager.LogManager;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
@@ -99,18 +100,20 @@ public class EngineLogView extends ViewPart {
 	private Queue<LogLine> logLines = new ConcurrentLinkedQueue<LogLine>();
 	private Appender appender;
 	private int counter = 0;
+	
+	private long charMeter = 0;
 
 	private boolean scrollLock = false;
 	private boolean activateOnNewEvents = true;
 	private ColumnInfo[] columnInfos = EngineLogView.clone(DEFAULT_COLUMN_INFOS);
 	private int[] columnOrder = DEFAULT_COLUMN_ORDER.clone();
-	private int limitLogLines = MAX_LOG_LINES;
-
-	private static final int MAX_LOG_LINES = 2000;
+	private int limitLogChars = DEFAULT_MAX_LOG_CHARS;
+	
+	private static final int DEFAULT_MAX_LOG_CHARS = 10000;
 	private static final int MAX_BUFFER_LINES = 50;
 	
-	private Action activateOnNewEventsAction, clearLogsAction, restoreDefaultsAction, selectColumnsAction, settingsEngine;
-	private RetargetAction scrollLockAction, optionsAction, searchAction, limitLogLinesAction;
+	private Action activateOnNewEventsAction, clearLogsAction, restoreDefaultsAction, selectColumnsAction, settingsEngine, limitLogCharsAction;
+	private RetargetAction scrollLockAction, optionsAction, searchAction;	
 
 	private EngineLogViewLabelProvider labelProvider;
 
@@ -196,8 +199,8 @@ public class EngineLogView extends ViewPart {
 		// Scroll lock
 		memento.putBoolean("scrollLock", scrollLock);
 
-		// Limit log lines
-		memento.putInteger("limitLogLines", limitLogLines);
+		// Limit log chars
+		memento.putInteger("limitLogChars", limitLogChars);
 
 		// Activate on new events
 		memento.putBoolean("activateOnNewEvents", activateOnNewEvents);
@@ -224,11 +227,11 @@ public class EngineLogView extends ViewPart {
 		Boolean bScrollLock = memento.getBoolean("scrollLock");
 		if (bScrollLock != null)
 			scrollLock = bScrollLock.booleanValue();
-
-		// Limit log lines
-		Integer iLimitLogLines = memento.getInteger("limitLogLines");
-		if (iLimitLogLines != null)
-			limitLogLines = iLimitLogLines.intValue();
+	
+		//Limit log chars
+		Integer iLimitLogChars = memento.getInteger("limitLogChars");
+		if (iLimitLogChars != null)
+			limitLogChars = iLimitLogChars.intValue();
 
 		// Activate on new events
 		Boolean bActivateOnNewEvents = memento.getBoolean("activateOnNewEvents");
@@ -661,21 +664,21 @@ public class EngineLogView extends ViewPart {
 		searchAction.setEnabled(true);
 		searchAction.setChecked(false);
 
-		limitLogLinesAction = new RetargetAction("Toggle", "Limit log lines to " + MAX_LOG_LINES,
-				IAction.AS_CHECK_BOX) {
-			public void runWithEvent(Event event) {
-				if (limitLogLines > 0) {
-					limitLogLines = 0;
-					limitLogLinesAction.setChecked(false);
-				} else {
-					limitLogLinesAction.setChecked(true);
-					limitLogLines = MAX_LOG_LINES;
+		limitLogCharsAction = new Action("Limit log chars to " + limitLogChars) {
+			public void run() {
+				/* OPEN THE DIALOG TO SET THE LIMIT LOG CHARS */
+				LimitCharsLogsPreferenceDialog dialog = new LimitCharsLogsPreferenceDialog(Display.getDefault().getActiveShell(), 
+						limitLogChars);
+				int result = dialog.open();
+				if ( result == SWT.OK ) {
+					limitLogChars = dialog.getLimitLogsChars();
+					limitLogCharsAction.setText("Limit log chars to " + limitLogChars);
+					saveState(memento);
 				}
 			}
 		};
-		limitLogLinesAction.setChecked(true);
-		limitLogLinesAction.setEnabled(true);
-
+		limitLogCharsAction.setEnabled(true);
+		        
 		settingsEngine = new Action("Configure Log level"){
 			public void run(){
 				EnginePreferenceDialog dialog = new EnginePreferenceDialog(Display.getDefault().getActiveShell());
@@ -781,6 +784,7 @@ public class EngineLogView extends ViewPart {
 		tableViewer.getTable().removeAll();
 		lastLogTime = -1;
 		counter = 0;
+		charMeter = 0;
 	}
 
 	private void createToolbar() {
@@ -797,7 +801,7 @@ public class EngineLogView extends ViewPart {
 		manager.add(selectColumnsAction);
 		manager.add(restoreDefaultsAction);
 		manager.add(new Separator());
-		manager.add(limitLogLinesAction);
+		manager.add(limitLogCharsAction);
 		manager.add(activateOnNewEventsAction);
 	}
 
@@ -1045,14 +1049,19 @@ public class EngineLogView extends ViewPart {
 							public void run() {
 								try {
 									while (true && !tableViewer.getTable().isDisposed()) {
-										tableViewer.add(logLines.remove());
+										LogLine line = logLines.remove();
+										charMeter += line.getMessage().length();
+										tableViewer.add(line);
 									}
 								} catch (NoSuchElementException e) {}
 
-								if (!tableViewer.getTable().isDisposed()) {
-									while (limitLogLines > 0 && !tableViewer.getTable().isDisposed() && tableViewer.getTable().getItemCount() > limitLogLines) {
+								if (!tableViewer.getTable().isDisposed()) {									
+									while (limitLogChars > 0 && !tableViewer.getTable().isDisposed() && charMeter > limitLogChars) {
+										LogLine line = (LogLine) tableViewer.getElementAt(0);
+										charMeter -= line.getMessage().length();
 										tableViewer.getTable().remove(0);
-									}
+										
+									}									
 									
 									if (!scrollLock && !tableViewer.getTable().isDisposed()) {
 										tableViewer.getTable().setTopIndex(tableViewer.getTable().getItemCount() - 1);
