@@ -124,6 +124,9 @@ public class GetBuildStatus extends XmlService {
 
 		statusElement.setAttribute("version", jsonResult.has("version") ? jsonResult.getString("version") : "n/a");
 		statusElement.setAttribute("phonegap_version", jsonResult.has("phonegap_version") ? jsonResult.getString("phonegap_version") : "n/a");
+		
+		statusElement.setAttribute("revision", jsonResult.has("revision") ? jsonResult.getString("revision") : "n/a");
+		statusElement.setAttribute("endpoint", jsonResult.has("endpoint") ? jsonResult.getString("endpoint") : "n/a");
 
 		document.getDocumentElement().appendChild(statusElement);
 	}

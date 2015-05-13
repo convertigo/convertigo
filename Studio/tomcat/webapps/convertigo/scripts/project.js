@@ -266,8 +266,11 @@ function getCurrentEndpoint() {
 
 function launchPhoneGapBuild($li) {
 	$("body").css("cursor", "progress");
-	$li.find(".platform_status").attr("title","build requested").empty();
+	$li.find(".platform_status").attr("title","Build requested").empty();
 	$("#main .btn_build, #main .btn_get_source").button("disable");
+	
+	$(".qrcode_version").removeClass("not_updated");
+	$(".warning_icon").css("display", "none");
 	
 	waitDivBuildShow();
 	
@@ -316,34 +319,46 @@ function getPhoneGapBuildStatus() {
 			if ($build.length > 0) {
 				var status = $build.attr("status");
 				if (status === "none") {
-					$platform.find(".platform_status").attr("title","not built").empty().append("<img src=\"images/new/build_none.png\" />");
+					$platform.find(".platform_status").attr("title","Not built").empty().append("<img src=\"images/new/build_none.png\" />");
 					$td.find(".build_status").attr("value","none");
 					$td.find("> a").empty().append("NOT BUILT");
 				}
 				else if (status === "error") {
-					$platform.find(".platform_status").attr("title","build in error").empty().append("<img src=\"images/new/build_none.png\" />");
+					$platform.find(".platform_status").attr("title","Build in error").empty().append("<img src=\"images/new/build_none.png\" />");
 					$td.find(".build_status").attr("value","error");
 					$td.find("> a").empty().append("BUILD ERROR:<br/>" + $build.attr("error"));		
 				}
 				else if (status === "pending") {
-					$platform.find(".platform_status").attr("title","build pending").empty().append("<img src=\"images/new/build_pending.png\" />");
+					$platform.find(".platform_status").attr("title","Build pending").empty().append("<img src=\"images/new/build_pending.png\" />");
 					$td.find(".build_status").attr("value","pending");
 					$td.find("> a").empty().append($("<img/>").attr("src", getLoadingImageUrl()));
 					setTimeout(function() { getPhoneGapBuildStatus.call($td); }, 5000);
 				}
 				else if (status === "complete") {
-					$platform.find(".platform_status").attr("title","build complete").empty().append("<img src=\"images/new/build_complete.png\" />");
+					$platform.find(".platform_status").attr("title","Build complete").empty().append("<img src=\"images/new/build_complete.png\" />");
 					$td.find(".build_status").attr("value","complete");
 					getPhoneGapBuildUrl($td);		
+					 
+					if ($build.attr("endpoint") !== $("#build_endpoint").text() && $build.attr("endpoint") !== "n/a" ) {
+						$platform.find(".built_endpoint").text( $build.attr("endpoint") );
+						$platform.find(".row_built_endpoint").css("display", "block");
+					}
+					
+					$platform.find(".built_revision").text($build.attr("revision") === "n/a" ? "(n/a)" : $build.attr("revision"));
 				}
 				$platform.find(".qrcode_version").text($build.attr("version"));
+				
+				if ($build.attr("version") !== $("#build_application_version").text() && $build.attr("version") !== "n/a") {
+					$platform.find(".qrcode_version").addClass("not_updated");
+					$platform.find(".warning_icon").css("display", "block");
+				}
 				$platform.find(".qrcode_phonegap_version").text($build.attr("phonegap_version"));
 			}
 		},
 		error : function(xml) {
 			var $message = $(xml.responseXML).find("message").text();
-			$td.parents("li:first").find(".platform_status").attr("title","build in error").empty().append("<img src=\"images/new/build_none.png\" />");
-			$td.find(".build_status").attr("value","error");
+			$td.parents("li:first").find(".platform_status").attr("title"," Build in error").empty().append("<img src=\"images/new/build_none.png\" />");
+			$td.find(".build_status").attr("value", "error");
 			$td.find("> a").empty().append("BUILD ERROR:<br/>"+$message);
 
 		}

@@ -366,10 +366,29 @@ color: #00AEE0 !important;
 
 
 	
-.qrcode_platform, .qrcode_install, .qrcode_version, .qrcode_phonegap_version, .platform_revision {
+.qrcode_platform, .qrcode_install, .qrcode_version, .qrcode_phonegap_version, .platform_revision, .built_revision, .built_endpoint {
 	font-family: Verdana, sans-serif;
 	font-weight: bold;
 }
+
+.row_built_endpoint {
+	display: none;
+}
+
+.not_updated {
+	color:red;
+}
+
+.warning_icon {
+	width: 16px;
+	height: 16px;
+	background: transparent url(../admin/images/convertigo-administration-alert-global-symbols.png) center center;
+	background-repeat: no-repeat;
+	float:right;
+	margin-right:30px;
+	display:none;
+}
+
 .qrcode_content a {
 	display: block;
 	padding-top: 8px;
