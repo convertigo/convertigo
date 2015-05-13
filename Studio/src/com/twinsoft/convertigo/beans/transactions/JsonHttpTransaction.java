@@ -139,25 +139,33 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 			objectKey = StringUtils.normalize(objectKey);
 		}
 
-		// String, numeric, boolean value case
-		if (object instanceof Character || object instanceof String || object instanceof Byte
-				|| object instanceof Integer || object instanceof Float || object instanceof Double
-				|| object instanceof Boolean) {
-			Element element = context.outputDocument.createElement(objectKey == null ? "value" : objectKey);
+		// JSON object value case
+		if (object instanceof JSONObject) {
+			JSONObject json = (JSONObject) object;
+
+			Element element = context.outputDocument.createElement(objectKey == null ? "object" : objectKey);
 			if (objectKey != null && !objectKey.equals(originalObjectKey)) {
 				element.setAttribute("originalKeyName", originalObjectKey);
 			}
 
-			parentElement.appendChild(element);
-
-			Text text = context.outputDocument.createTextNode(object.toString());
-			element.appendChild(text);
+			if (jsonArrayTranslationPolicy == JSON_ARRAY_TRANSLATION_POLICY_COMPACT) {
+				if (objectKey == null) {
+					element = parentElement;
+				} else {
+					parentElement.appendChild(element);
+				}
+			} else {
+				parentElement.appendChild(element);
+			}
 
 			if (includeDataType) {
-				String objectType = object.getClass().toString();
-				if (objectType.startsWith("class java.lang."))
-					objectType = objectType.substring(16);
-				element.setAttribute("type", objectType.toLowerCase());
+				element.setAttribute("type", "object");
+			}
+
+			Iterator<String> keys = GenericUtils.cast(json.keys());
+			while (keys.hasNext()) {
+				String key = keys.next();
+				jsonToXml(json.get(key), key, element);
 			}
 		}
 		// Array value case
@@ -187,34 +195,26 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 				jsonToXml(itemArray, arrayItemObjectKey, arrayElement);
 			}
 		}
-		// JSON object value case
-		else if (object instanceof JSONObject) {
-			JSONObject json = (JSONObject) object;
-
-			Element element = context.outputDocument.createElement(objectKey == null ? "object" : objectKey);
+		else {
+			Element element = context.outputDocument.createElement(objectKey == null ? "value" : objectKey);
 			if (objectKey != null && !objectKey.equals(originalObjectKey)) {
 				element.setAttribute("originalKeyName", originalObjectKey);
 			}
 
-			if (jsonArrayTranslationPolicy == JSON_ARRAY_TRANSLATION_POLICY_COMPACT) {
-				if (objectKey == null) {
-					element = parentElement;
-				} else {
-					parentElement.appendChild(element);
-				}
-			} else {
-				parentElement.appendChild(element);
-			}
+			parentElement.appendChild(element);
 
+			if (object != null) {
+				Text text = context.outputDocument.createTextNode(object.toString());
+				element.appendChild(text);
+			}
+			
 			if (includeDataType) {
-				element.setAttribute("type", "object");
-			}
-
-			Iterator<String> keys = GenericUtils.cast(json.keys());
-			while (keys.hasNext()) {
-				String key = keys.next();
-				jsonToXml(json.get(key), key, element);
+				String objectType = object == null ? "null":object.getClass().toString();
+				if (objectType.startsWith("class java.lang."))
+					objectType = objectType.substring(16);
+				element.setAttribute("type", objectType.toLowerCase());
 			}
 		}
+		
 	}
 }
