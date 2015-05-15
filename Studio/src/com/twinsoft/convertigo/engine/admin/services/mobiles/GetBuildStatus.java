@@ -87,7 +87,8 @@ public class GetBuildStatus extends XmlService {
 			method.setRequestBody(new NameValuePair[] {
 				new NameValuePair("application", mobileApplication.getComputedApplicationName()),
 				new NameValuePair("platformName", platformName),
-				new NameValuePair("auth_token", mobileApplication.getComputedAuthenticationToken())
+				new NameValuePair("auth_token", mobileApplication.getComputedAuthenticationToken()),
+				new NameValuePair("endpoint", mobileApplication.getComputedEndpoint(request))
 			});
 			
 			

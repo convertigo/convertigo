@@ -96,7 +96,8 @@ public class GetPackage extends DownloadService {
 			method.setRequestBody(new NameValuePair[] {
 				new NameValuePair("application", finalApplicationName),
 				new NameValuePair("platformName", platformName),
-				new NameValuePair("auth_token", mobileApplication.getComputedAuthenticationToken())
+				new NameValuePair("auth_token", mobileApplication.getComputedAuthenticationToken()),
+				new NameValuePair("endpoint", mobileApplication.getComputedEndpoint(request))
 			});
 
 			methodStatusCode = Engine.theApp.httpClient.executeMethod(hostConfiguration, method, httpState);
