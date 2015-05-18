@@ -23,7 +23,7 @@ $.extend(true, C8O, {
 		live_views: {},
 		live_dbs: {},
 		syncs: {},
-		sync_events: ["change", "pause", "active", "denied", "complete", "error"],
+		sync_events: ["change", /*"pause", "active", "denied",*/ "complete", "error"],
 		dbs: {},
 		
 		handle: function (err, doc, callback) {
@@ -34,6 +34,7 @@ $.extend(true, C8O, {
 		},
 		
 		getDb: function (db) {
+			//db = "debug_memory";
 			if (C8O._fs.dbs[db]) {
 				// exists
 			} else if (C8O._fs.server && !C8O.init_vars.fs_force_pouch) {
@@ -58,7 +59,7 @@ $.extend(true, C8O, {
 					delete options.live;					
 					options.create_target = true;
 					
-					var session_id = null;
+					var replicate = false;
 					var change = {
 						progress: 0,
 						last_seq: 0,
@@ -73,18 +74,19 @@ $.extend(true, C8O, {
 							}
 							var task = null;
 							for (var i = 0; i < tasks.length && task == null; i++) {
-								if (tasks[i].session_id == session_id ||
-										(tasks[i].source == options.source && tasks[i].target == options.target)) {
+								if (tasks[i].source == options.source && tasks[i].target == options.target) {
 									task = tasks[i];
-									session_id = task.task;
+									replicate = true;
 								}
 							}
-							if (session_id == null) {
+							
+							if (!replicate) {
 								http.request({method: "POST", url: "../_replicate", body: options}, function (err, data) {
-									C8O.log.info("c8o.fs  : replication started for " + C8O.toJSON(options));
-									session_id = data.session_id;
-									chkTasks();
+									// async for Android, sync for IOs
 								});
+								C8O.log.info("c8o.fs  : replication started for " + C8O.toJSON(options));
+								replicate = true;
+								window.setTimeout(chkTasks, 1000);
 							} else {
 								if (task == null) {
 									C8O.log.info("c8o.fs  : replication finished for " + C8O.toJSON(options));
@@ -116,7 +118,7 @@ $.extend(true, C8O, {
 										change = nextChange;
 									}
 									
-									window.setTimeout(chkTasks, 500);
+									window.setTimeout(chkTasks, 1000);
 								}
 							}
 						});
@@ -239,7 +241,7 @@ $.extend(true, C8O, {
 		},
 		
 		getRemoteUrl: function (db) {
-			return C8O._fs.remote + (C8O.vars.fs_token ? "/~" + C8O.vars.fs_token : "") + "/" + db
+			return C8O._fs.remote + (C8O.vars.fs_token ? "/~" + C8O.vars.fs_token : "") + "/" + db;
 		},
 				
 		applyPolicy: function (db, document, policy, callback) {
@@ -483,7 +485,7 @@ C8O.addHook("_call_fs", function (data) {
 							C8O.log.info("c8o.fs  : " + seq + " " + C8O.toJSON(options));
 							
 							C8O._fs.syncs[data.__sequence] = C8O["fs_" + seq](options);
-							if ($.isEmptyObject(callbacks)) {
+							if ($.isEmptyObject(callbacks) || options.live) {
 								callback({
 									event: "none",
 									data: {}
@@ -495,12 +497,14 @@ C8O.addHook("_call_fs", function (data) {
 							}
 						};
 						
-						if (C8O.isTrue(options.live) && callbacks.complete) {
+						if (C8O.isTrue(options.live) && (callbacks.complete || callbacks.change)) {
 							C8O.log.info("c8o.fs  : " + seq + " full before live");
 							sync(
 								$.extend({}, options, {live: false}),
 								$.extend({}, callbacks, {complete: function (info) {
-									callbacks.complete(info);
+									if (callbacks.complete) {
+										callbacks.complete(info);
+									}
 									sync(options, callbacks);
 								}})
 							);
