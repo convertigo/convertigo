@@ -855,10 +855,11 @@ public class HttpConnector extends Connector {
 			authenticationPropertiesHasChanged = false;			
 		}	
 		
+		boolean stateChanged = false;
 		if (context.httpState == null) {
 			Engine.logBeans.debug("(HttpConnector) Creating new HttpState for context id " + context.contextID);
 			context.httpState = new HttpState();
-
+			stateChanged = true;
 		} else {
 			Engine.logBeans.debug("(HttpConnector) Using HttpState of context id " + context.contextID);
 		}
@@ -870,12 +871,16 @@ public class HttpConnector extends Connector {
 			String host = hostConfiguration.getHost() == null ? server : hostConfiguration.getHost();
 			String domain = NTLMAuthenticationDomain;
 			
-			authenticationType.setCredentials(context.httpState, user, password, host, domain);
+			if (authenticationType.setCredentials(context.httpState, user, password, host, domain)) {
+				stateChanged = true;
+			}
 		}
 
 		httpState = context.httpState;
-		
-		fireStateChanged(new HttpStateEvent(this, context, realm, server, httpState));
+
+		if (stateChanged) {
+			fireStateChanged(new HttpStateEvent(this, context, realm, server, httpState));
+		}
 	}
 	
 	public void resetHttpState(Context context) {
