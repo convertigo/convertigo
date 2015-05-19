@@ -59,11 +59,11 @@ public enum AuthenticationMode {
 		return -1;
 	}
 	
-	public void setCredentials(HttpState httpState, String user, String password, String host, String domain) {
+	public boolean setCredentials(HttpState httpState, String user, String password, String host, String domain) {
 		if (httpState == null)
-			return;
+			return false;
 		if (host == null)
-			return;
+			return false;
 		
 		AuthScope authScope = new AuthScope(host, AuthScope.ANY_PORT, AuthScope.ANY_REALM);
 		
@@ -99,18 +99,26 @@ public enum AuthenticationMode {
 				case 0:
 					Engine.logEngine.debug("(AuthenticationMode) reusing credentials");
 					break;
-				}
+			}
+			
+			return needChange != 0;
+			
 		} catch (Exception e) {
 			Engine.logEngine.error("Unable to set "+ name() +" credentials for user", e);
+			return false;
 		}
 	}
 	
 	private int compare(Credentials cred1, Credentials cred2) {
-		if (cred2 == null)
+		if (cred1 == null && cred2 == null) {
+			return 0;
+		}
+		else if (cred2 == null) {
 			return -1;
-		
-		if (cred1 == null)
+		}
+		else if (cred1 == null) {
 			return 1;
+		}
 		
 		if (!cred1.getClass().equals(cred2.getClass())) {
 			return 1;
