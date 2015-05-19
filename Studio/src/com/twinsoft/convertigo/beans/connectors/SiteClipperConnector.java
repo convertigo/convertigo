@@ -1085,6 +1085,9 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 		SiteClipperConnector siteClipperConnector = (SiteClipperConnector) super.clone();
 		siteClipperConnector.screenClassHelper = new ScreenClassHelper<SiteClipperScreenClass>(siteClipperConnector);
 		siteClipperConnector.domainsFilter = new DomainsFilterHelper(siteClipperConnector);
+		siteClipperConnector.givenAuthPassword = null;
+		siteClipperConnector.givenAuthUser = null;
+		siteClipperConnector.givenAuthMode = null;
 		return siteClipperConnector;
 	}
 	

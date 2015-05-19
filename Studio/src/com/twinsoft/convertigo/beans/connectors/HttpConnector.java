@@ -210,6 +210,8 @@ public class HttpConnector extends Connector {
 		clonedObject.certificateManager = new CertificateManager();
 
 		clonedObject.hostConfiguration = new HostConfiguration();
+		clonedObject.givenAuthPassword = null;
+		clonedObject.givenAuthUser = null;
 
 		return clonedObject;
 	}
