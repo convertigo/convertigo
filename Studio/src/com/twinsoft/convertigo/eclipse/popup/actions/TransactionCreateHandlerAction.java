@@ -38,7 +38,6 @@ import org.eclipse.ui.IEditorPart;
 import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
-import com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.CreateHandlerDialog;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
@@ -62,7 +61,7 @@ public class TransactionCreateHandlerAction extends MyAbstractAction {
 			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 			TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
 			if (treeObject instanceof TransactionTreeObject)
-				enable = !(treeObject.getObject() instanceof SiteClipperTransaction);
+				enable = true;
 			else if (treeObject instanceof ObjectsFolderTreeObject)
 				enable = ((ObjectsFolderTreeObject)treeObject).folderType == ObjectsFolderTreeObject.FOLDER_TYPE_FUNCTIONS;
 			action.setEnabled(enable);

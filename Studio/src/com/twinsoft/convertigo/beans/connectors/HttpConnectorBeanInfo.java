@@ -24,8 +24,8 @@ package com.twinsoft.convertigo.beans.connectors;
 
 import java.beans.PropertyDescriptor;
 
-import com.twinsoft.convertigo.beans.connectors.HttpConnector.AuthenticationMode;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
+import com.twinsoft.convertigo.engine.enums.AuthenticationMode;
 
 public class HttpConnectorBeanInfo extends MySimpleBeanInfo {
     

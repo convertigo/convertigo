@@ -58,12 +58,9 @@ import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.NTCredentials;
 import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.URI;
 import org.apache.commons.httpclient.URIException;
-import org.apache.commons.httpclient.UsernamePasswordCredentials;
-import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.DeleteMethod;
 import org.apache.commons.httpclient.methods.EntityEnclosingMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -99,6 +96,7 @@ import com.twinsoft.convertigo.engine.HttpStateEvent;
 import com.twinsoft.convertigo.engine.HttpStateListener;
 import com.twinsoft.convertigo.engine.MySSLSocketFactory;
 import com.twinsoft.convertigo.engine.Version;
+import com.twinsoft.convertigo.engine.enums.AuthenticationMode;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.oauth.HttpOAuthConsumer;
@@ -807,6 +805,48 @@ public class HttpConnector extends Connector {
 		super.addTransaction(transaction);
 	}
 
+//	private void getHttpState(Context context) {
+//		if (authenticationPropertiesHasChanged) {
+//			context.httpState = null;
+//			authenticationPropertiesHasChanged = false;			
+//		}	
+//		
+//		if (context.httpState == null) {
+//			Engine.logBeans
+//					.debug("(HttpConnector) Creating new HttpState for context id " + context.contextID);
+//			httpState = new HttpState();
+//
+//			// Basic authentication configuration
+//			String realm = null;
+//			if (!authUser.equals("") || !authPassword.equals("") || (givenAuthUser != null) || (givenAuthPassword != null)) {
+//				String userName = ((givenAuthUser == null) ? authUser : givenAuthUser);
+//				String userPassword = ((givenAuthPassword == null) ? authPassword : givenAuthPassword);
+//
+//				if (authenticationType == AuthenticationMode.Basic) {
+//					httpState.setCredentials(new AuthScope(server, AuthScope.ANY_PORT, AuthScope.ANY_REALM),
+//						new UsernamePasswordCredentials(userName, userPassword));
+//					Engine.logBeans.debug("(HttpConnector) Credentials: " + userName + ": ******");
+//				} else {
+//					httpState.setCredentials(new AuthScope(server, AuthScope.ANY_PORT, AuthScope.ANY_REALM),
+//						new NTCredentials(
+//							userName, 										// Username
+//							userPassword,									// Password
+//							(hostConfiguration.getHost() == null ? server : 
+//								hostConfiguration.getHost()),				// Host
+//							NTLMAuthenticationDomain)						// Domain
+//					);
+//					Engine.logBeans.debug("(HttpConnector) NTLM: " + userName + ": ******");
+//				}
+//			}
+//			
+//			context.httpState = httpState;
+//			fireStateChanged(new HttpStateEvent(this, context, realm, server, httpState));
+//		} else {
+//			Engine.logBeans.debug("(HttpConnector) Using HttpState of context id " + context.contextID);
+//			httpState = context.httpState;
+//		}
+//	}
+
 	private void getHttpState(Context context) {
 		if (authenticationPropertiesHasChanged) {
 			context.httpState = null;
@@ -814,41 +854,28 @@ public class HttpConnector extends Connector {
 		}	
 		
 		if (context.httpState == null) {
-			Engine.logBeans
-					.debug("(HttpConnector) Creating new HttpState for context id " + context.contextID);
-			httpState = new HttpState();
+			Engine.logBeans.debug("(HttpConnector) Creating new HttpState for context id " + context.contextID);
+			context.httpState = new HttpState();
 
-			// Basic authentication configuration
-			String realm = null;
-			if (!authUser.equals("") || !authPassword.equals("") || (givenAuthUser != null) || (givenAuthPassword != null)) {
-				String userName = ((givenAuthUser == null) ? authUser : givenAuthUser);
-				String userPassword = ((givenAuthPassword == null) ? authPassword : givenAuthPassword);
-
-				if (authenticationType == AuthenticationMode.Basic) {
-					httpState.setCredentials(new AuthScope(server, AuthScope.ANY_PORT, AuthScope.ANY_REALM),
-						new UsernamePasswordCredentials(userName, userPassword));
-					Engine.logBeans.debug("(HttpConnector) Credentials: " + userName + ": ******");
-				} else {
-					httpState.setCredentials(new AuthScope(server, AuthScope.ANY_PORT, AuthScope.ANY_REALM),
-						new NTCredentials(
-							userName, 										// Username
-							userPassword,									// Password
-							(hostConfiguration.getHost() == null ? server : 
-								hostConfiguration.getHost()),				// Host
-							NTLMAuthenticationDomain)						// Domain
-					);
-					Engine.logBeans.debug("(HttpConnector) NTLM: " + userName + ": ******");
-				}
-			}
-
-			context.httpState = httpState;
-			fireStateChanged(new HttpStateEvent(this, context, realm, server, httpState));
 		} else {
 			Engine.logBeans.debug("(HttpConnector) Using HttpState of context id " + context.contextID);
-			httpState = context.httpState;
 		}
-	}
+		
+		String realm = null;
+		if (!authUser.equals("") || !authPassword.equals("") || (givenAuthUser != null) || (givenAuthPassword != null)) {
+			String user = ((givenAuthUser == null) ? authUser : givenAuthUser);
+			String password = ((givenAuthPassword == null) ? authPassword : givenAuthPassword);
+			String host = hostConfiguration.getHost() == null ? server : hostConfiguration.getHost();
+			String domain = NTLMAuthenticationDomain;
+			
+			authenticationType.setCredentials(httpState, user, password, host, domain);
+		}
 
+		httpState = context.httpState;
+		
+		fireStateChanged(new HttpStateEvent(this, context, realm, server, httpState));
+	}
+	
 	public void resetHttpState(Context context) {
 		context.httpState = null;
 		getHttpState(context);
@@ -1518,15 +1545,11 @@ public class HttpConnector extends Connector {
 		authenticationPropertiesHasChanged = true;
 	}
 	
-	public enum AuthenticationMode {
-		Basic,
-		NTLM
-	}
 	
 	/**
 	 * Holds value of property authenticationType.
 	 */
-	private AuthenticationMode authenticationType = AuthenticationMode.Basic;
+	private AuthenticationMode authenticationType = AuthenticationMode.None;
 	
 	/**
 	 * Getter for property authenticationType.
@@ -1534,6 +1557,15 @@ public class HttpConnector extends Connector {
 	 */
 	public AuthenticationMode getAuthenticationType() {
 		return authenticationType;
+	}
+	
+	/**
+	 * Setter for property authenticationType.
+	 * @param authenticationType
+	 */
+	public void setAuthenticationType(AuthenticationMode authenticationType) {
+		this.authenticationType = authenticationType;
+		authenticationPropertiesHasChanged = true;
 	}
 	
 	/**
@@ -1555,15 +1587,6 @@ public class HttpConnector extends Connector {
 	 */
 	public void setNTLMAuthenticationDomain(String NTLMAuthenticationDomain) {
 		this.NTLMAuthenticationDomain = NTLMAuthenticationDomain;
-		authenticationPropertiesHasChanged = true;
-	}
-	
-	/**
-	 * Setter for property authenticationType.
-	 * @param authenticationType
-	 */
-	public void setAuthenticationType(AuthenticationMode authenticationType) {
-		this.authenticationType = authenticationType;
 		authenticationPropertiesHasChanged = true;
 	}
 	
