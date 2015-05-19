@@ -109,7 +109,7 @@ public class EngineLogView extends ViewPart {
 	private int[] columnOrder = DEFAULT_COLUMN_ORDER.clone();
 	private int limitLogChars = DEFAULT_MAX_LOG_CHARS;
 	
-	private static final int DEFAULT_MAX_LOG_CHARS = 10000;
+	private static final int DEFAULT_MAX_LOG_CHARS = 100000;
 	private static final int MAX_BUFFER_LINES = 50;
 	
 	private Action activateOnNewEventsAction, clearLogsAction, restoreDefaultsAction, selectColumnsAction, settingsEngine, limitLogCharsAction;
