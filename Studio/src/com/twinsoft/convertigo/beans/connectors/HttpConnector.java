@@ -868,7 +868,7 @@ public class HttpConnector extends Connector {
 			String host = hostConfiguration.getHost() == null ? server : hostConfiguration.getHost();
 			String domain = NTLMAuthenticationDomain;
 			
-			authenticationType.setCredentials(httpState, user, password, host, domain);
+			authenticationType.setCredentials(context.httpState, user, password, host, domain);
 		}
 
 		httpState = context.httpState;
