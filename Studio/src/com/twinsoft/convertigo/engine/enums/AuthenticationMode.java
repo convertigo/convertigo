@@ -35,6 +35,7 @@ public enum AuthenticationMode {
 	Basic,
 	NTLM;
 	
+	static private Credentials ac = new Credentials() {};
 	AuthenticationMode() {
 	}
 
@@ -61,34 +62,34 @@ public enum AuthenticationMode {
 	public void setCredentials(HttpState httpState, String user, String password, String host, String domain) {
 		if (httpState == null)
 			return;
+		if (host == null)
+			return;
 		
-		AuthScope authScope = null;
+		AuthScope authScope = new AuthScope(host, AuthScope.ANY_PORT, AuthScope.ANY_REALM);
+		
 		Credentials credentials = null;
 		int type = getType();
 		try {
 			switch (type) {
-				case 0:
-					authScope = new AuthScope(AuthScope.ANY);
-					credentials = new Credentials() {};
+				case 0: // Anonymous
+					credentials = ac;
 					break;
-				case 1:
-					authScope = new AuthScope(host, AuthScope.ANY_PORT, AuthScope.ANY_REALM);
+				case 1: // Basic
 					credentials = new UsernamePasswordCredentials(user, password);
 					break;
-				case 2:
-					authScope = new AuthScope(host, AuthScope.ANY_PORT, AuthScope.ANY_REALM);
+				case 2: // NTLM
 					credentials = new NTCredentials(user, password, host, domain);
 					break;
-				default:
+				default: // None
 				case -1:
 					break;
 			}
 			
-			Credentials curCred = httpState.getCredentials(new AuthScope(AuthScope.ANY));
+			Credentials curCred = httpState.getCredentials(authScope);
 			int needChange = compare(curCred, credentials);
 			switch (needChange) {
 				case -1:
-					httpState.clearCredentials();
+					httpState.setCredentials(authScope, null);
 					Engine.logEngine.debug("(AuthenticationMode) credentials cleared");
 					break;
 				case 1:
@@ -106,40 +107,19 @@ public enum AuthenticationMode {
 	
 	private int compare(Credentials cred1, Credentials cred2) {
 		if (cred2 == null)
-			return -1; // clear
+			return -1;
 		
 		if (cred1 == null)
-			return 1; // set
+			return 1;
 		
 		if (!cred1.getClass().equals(cred2.getClass())) {
-			return 1; // set
+			return 1;
+		}
+		else if (cred1.equals(cred2)) {
+			return 0;
 		}
 		else {
-			if (cred1 instanceof NTCredentials) {
-				NTCredentials ntc1 = (NTCredentials)cred1;
-				NTCredentials ntc2 = (NTCredentials)cred2;
-				if (ntc1.getUserName().equals(ntc2.getUserName()) &&
-					ntc1.getPassword().equals(ntc2.getPassword()) &&
-					ntc1.getDomain().equals(ntc2.getDomain()) &&
-					ntc1.getHost().equals(ntc2.getHost()))
-				{
-					return 0; // nothing to do
-				}
-			}
-			else if (cred1 instanceof UsernamePasswordCredentials) {
-				UsernamePasswordCredentials ntc1 = (UsernamePasswordCredentials)cred1;
-				UsernamePasswordCredentials ntc2 = (UsernamePasswordCredentials)cred2;
-				if (ntc1.getUserName().equals(ntc2.getUserName()) &&
-					ntc1.getPassword().equals(ntc2.getPassword()))
-				{
-					return 0; // nothing to do
-				}
-			}
-			else {
-				return 0; // nothing to do
-			}
-			
-			return 1; // set
+			return 1;
 		}
 	}
 }
