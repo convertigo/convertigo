@@ -1,7 +1,8 @@
 $.extend(true, C8O, {
 	init_vars: {
 		fs_server: null,
-		fs_force_pouch: false
+		fs_force_pouch: false,
+		fs_force_pouch_replication: false
 	},
 	
 	vars: {
@@ -34,7 +35,6 @@ $.extend(true, C8O, {
 		},
 		
 		getDb: function (db) {
-			//db = "debug_memory";
 			if (C8O._fs.dbs[db]) {
 				// exists
 			} else if (C8O._fs.server && !C8O.init_vars.fs_force_pouch) {
@@ -47,129 +47,6 @@ $.extend(true, C8O, {
 						options.timeout = 0;
 					}
 					return request.apply(this, arguments);
-				};
-				
-				var replicate = http.replicate;
-				
-				var rep = function (options) {
-					var evts = {};
-					var target = options.target == db ? http : new PouchDB(options.target);
-					
-					options.continuous = C8O.isTrue(options.live);
-					delete options.live;					
-					options.create_target = true;
-					
-					var replicate = false;
-					var change = {
-						progress: 0,
-						last_seq: 0,
-						seq: 0
-					};
-					var chkTasks = function () {
-						http.request({method: "GET", url: "../_active_tasks"}, function (err, tasks) {
-							if (err) {
-								console.log("ERROR");
-								console.log(err);
-								return;
-							}
-							var task = null;
-							for (var i = 0; i < tasks.length && task == null; i++) {
-								if (tasks[i].source == options.source && tasks[i].target == options.target) {
-									task = tasks[i];
-									replicate = true;
-								}
-							}
-							
-							if (!replicate) {
-								http.request({method: "POST", url: "../_replicate", body: options}, function (err, data) {
-									// async for Android, sync for IOs
-								});
-								C8O.log.info("c8o.fs  : replication started for " + C8O.toJSON(options));
-								replicate = true;
-								window.setTimeout(chkTasks, 1000);
-							} else {
-								if (task == null) {
-									C8O.log.info("c8o.fs  : replication finished for " + C8O.toJSON(options));
-									if (evts.complete) {
-										change.seq = change.last_seq;
-										evts.complete(change);
-									}
-								} else {
-									var nextChange = {
-										progress: task.progress,
-										last_seq: 0,
-										seq: 0
-									}
-									
-									if (task.status) {
-										var mStatus = task.status.match(C8O._define.re_fs_task);
-										if (mStatus) {
-											nextChange.seq = mStatus[1] * 1;
-											nextChange.last_seq = mStatus[2] * 1;
-										}
-									}
-									
-									if (evts.change) {
-										if (change.seq != nextChange.seq || change.last_seq != nextChange.last_seq) {
-											change = nextChange;
-											evts.change(change);
-										}
-									} else {
-										change = nextChange;
-									}
-									
-									window.setTimeout(chkTasks, 1000);
-								}
-							}
-						});
-					}
-					if (options.continuous && !options.cancel) {
-						http.request({method: "POST", url: "../_replicate", body: options}, function (err, data) {
-							C8O.log.info("c8o.fs  : continuous replication started for " + C8O.toJSON(options));
-						});
-					} else {
-						chkTasks();
-					}
-					
-					return {
-						on: function (evt, fun) {
-							C8O.log.debug("c8o.fs  : register on " + evt);
-							evts[evt] = fun;
-							return this;
-						},
-						cancel: function () {
-							if (req) {
-								req.cancel();
-							}
-							req = null;
-							return this;
-						}
-					}
-				};
-				
-				http.replicate = {
-					from: function (remoteDB, options) {
-						return rep($.extend({source: remoteDB, target: db}, options));
-					},
-					to: function (remoteDB, options) {
-						return rep($.extend({source: db, target: remoteDB}, options));
-					},
-					sync: function (remoteDB, options) {
-						var from = http.replicate.from(remoteDB, options);
-						var to = http.replicate.to(remoteDB, options);
-						return {
-							on: function (evt, fun) {
-								from.on(evt, fun);
-//								to.on(evt, fun);
-								return this;
-							},
-							cancel: function () {
-								from.cancel();
-								to.cancel();
-								return this;
-							}
-						}
-					}
 				};
 			} else {
 				C8O._fs.dbs[db] = new PouchDB(db);
@@ -238,6 +115,10 @@ $.extend(true, C8O, {
 			  since: "now",
 			  live: true
 			}).on("change", onChange);
+		},
+		
+		getRemoteDB: function (db) {
+			return new PouchDB(C8O._fs.getRemoteUrl(db));
 		},
 		
 		getRemoteUrl: function (db) {
@@ -326,31 +207,231 @@ $.extend(true, C8O, {
 					}
 				});
 			}
+		},
+		
+		replicate: function (options, isPull) {
+			options = $.extend({}, options);
+			var db = C8O._remove(options, "db") || C8O.vars.fs_default_db;
+			var direction = isPull ? "pull" : "push";
+			var key = db + "_" + direction;
+			
+			if (C8O._fs.syncs[key]) {
+				C8O._fs.syncs[key].cancel();
+				delete C8O._fs.syncs[key];
+			}
+			
+			if (C8O.isTrue(options.cancel)) {
+				C8O.log.info("c8o.fs  : replicate canceled");
+				return;
+			}
+			
+			var local = C8O.fs_getDB(db);
+			var remote = C8O._fs.getRemoteDB(db);
+			
+			var source = isPull ? remote : local;
+			
+			var evts = {
+				complete: function (){},
+				change: function (){},
+				error: function (){}
+			}
+			
+			var cancel = null;
+			
+			source.info().then(function (info) {
+				var max = info.update_seq;
+				var live = C8O.isTrue(options.live);
+				options.live = false;
+				
+				if (local.type() == "http" && !C8O.init_vars.fs_force_pouch_replication) {
+					var body = {
+						source: isPull ? C8O._fs.getRemoteUrl(db) : db + "_device",
+						target: !isPull ? C8O._fs.getRemoteUrl(db) : db + "_device",
+					};
+					var replicate = false;
+					
+					(isPull ? local : remote).info().then(function (info_target) {
+						var total = Math.max(max - info_target.update_seq, 0);
+						var lastCurrent = 0;
+						
+						var chkTasks = function () {
+							local.request({method: "GET", url: "../_active_tasks"}, function (err, tasks) {
+								if (err) {
+									evts.error(err);
+									return;
+								}
+								
+								var task = null;
+								for (var i = 0; i < tasks.length && task == null; i++) {
+									if (tasks[i].source == body.source && tasks[i].target == body.target) {
+										task = tasks[i];
+									}
+								}
+								
+								if (!replicate) {
+									if (task) {
+										local.request({method: "POST", url: "../_replicate", body: $.extend({}, body, {cancel: true})});
+										C8O.log.info("c8o.fs  : cancel a previous replication for " + C8O.toJSON(body));
+									} else {
+										// async for Android, sync for IOs
+										local.request({method: "POST", url: "../_replicate", body: body});
+										C8O.log.info("c8o.fs  : replication started for " + C8O.toJSON(body));
+										replicate = true;
+									}
+									window.setTimeout(chkTasks, 250);
+								} else {
+									if (task == null) {
+										C8O.log.info("c8o.fs  : replication finished for " + C8O.toJSON(body));
+										
+										evts.complete({
+											ok : true,
+											direction: direction
+										});
+										
+										if (live) {
+											body.continuous = true;
+											local.request({method: "POST", url: "../_replicate", body: body}, function (err, data) {
+												C8O.log.info("c8o.fs  : continuous replication started for " + C8O.toJSON(body));
+											});
+										}
+									} else {
+										var current = lastCurrent;
+										
+										if (task.status) {
+											var mStatus = task.status.match(C8O._define.re_fs_task);
+											if (mStatus) {
+												current = mStatus[1] * 1;
+												total = Math.max(total, mStatus[2] * 1);
+											}
+										}
+																				
+										if (current != lastCurrent) {
+											var progress = current / total * 100;
+											
+											evts.change({
+												direction: direction,
+												current: current,
+												total: total,
+												progress: progress,
+												ok: true												
+											});
+										}
+										
+										lastCurrent = current;
+										
+										window.setTimeout(chkTasks, 750);
+									}
+								}
+							});
+						};
+						
+						chkTasks();
+					});
+					
+					cancel = function () {
+						body.cancel = true;
+						local.request({method: "POST", url: "../_replicate", body: body}, function (err, data) {
+							C8O.log.info("c8o.fs  : continuous replication cancel for " + C8O.toJSON(body));
+						});
+					};
+				} else {
+					cancel = local.replicate[isPull ? "from" : "to"](remote, options).on("change", function (change) {
+						var min = change.last_seq - change.docs_written;
+						var current = change.docs_written;
+						var total = Math.max(max - min, 1);
+						var progress = current / total * 100;
+						
+						evts.change({
+							direction: direction,
+							current: current,
+							total: total,
+							progress: progress,
+							ok: true
+						});
+					}).on("complete", function () {
+						evts.complete({
+							ok : true,
+							direction: direction
+						});
+						if (live) {
+							options.live = live;
+							cancel = local.replicate[isPull ? "from" : "to"](remote, options).cancel;
+						}
+					}).on("error", function (err) {
+						evts.error($.extend({}, err, {direction: direction}));
+					}).cancel;
+				}
+			});
+			
+			return C8O._fs.syncs[key] = {
+				on: function (name, handler) {
+					if (typeof handler == "function") {
+						evts[name] = handler;
+					}
+					return this;
+				},
+				cancel: function () {
+					if (cancel) {
+						cancel();
+					}
+				}
+			};
 		}
 	},
 	
 	fs_sync: function (options) {
-		options = options || {};
-		var db = C8O._remove(options, "db") || C8O.vars.fs_default_db;
+		C8O.log.info("c8o.fs  : fs_replicate_sync requested");
 		
-		C8O.log.info("c8o.fs  : fs_sync requested for " + db);
-		return C8O.fs_getDB(db).replicate.sync(C8O._fs.getRemoteUrl(db), options);
+		var pull = C8O._fs.replicate(options, true);
+		var push = C8O._fs.replicate(options, false);
+		
+		var completes = {
+			pull: null,
+			push: null
+		};
+		
+		var complete = function () {};
+		
+		pull.on("complete", function (data) {
+			completes.pull = data;
+			if (completes.push) {
+				complete(completes);
+			}
+		});
+		
+		push.on("complete", function (data) {
+			completes.push = data;
+			if (completes.pull) {
+				complete(completes);
+			}
+		});
+		
+		return {
+			on: function (name, handler) {
+				if (typeof handler == "function") {
+					if (name == "complete") {
+						complete = handler;
+					} else {
+						pull.on(name, handler);
+						push.on(name, handler);
+					}
+				}
+			},
+			cancel: function () {
+				pull.cancel();
+				push.cancel();
+			}
+		}
 	},
 	
 	fs_replicate_pull: function (options) {
-		options = options || {};
-		var db = C8O._remove(options, "db") || C8O.vars.fs_default_db;
-		
-		C8O.log.info("c8o.fs  : fs_replicate_pull requested for " + db);
-		return C8O.fs_getDB(db).replicate.from(C8O._fs.getRemoteUrl(db), options);
+		C8O.log.info("c8o.fs  : fs_replicate_pull requested");
+		return C8O._fs.replicate(options, true);
 	},
 	
 	fs_replicate_push: function (options) {
-		options = options || {};
-		var db = C8O._remove(options, "db") || C8O.vars.fs_default_db;
-		
-		C8O.log.info("c8o.fs  : fs_replicate_push requested for " + db);
-		return C8O.fs_getDB(db).replicate.to(C8O._fs.getRemoteUrl(db), options);
+		C8O.log.info("c8o.fs  : fs_replicate_pull requested");
+		return C8O._fs.replicate(options, false);
 	},
 	
 	fs_onChange: function (options) {
@@ -362,23 +443,6 @@ $.extend(true, C8O, {
 		db = (db || C8O.vars.fs_default_db) + "_device";
 		return C8O._fs.getDb(db);
 	}
-	
-// DEPRECATED AREA
-	
-//	fs_replicate: function (options, callback) {
-//		C8O.log.warn("c8o.fs  : fs_replicate deprecated, please use fs_sync");
-//		return C8O.fs_sync(options).on("complete", callback);
-//	},
-//	
-//	fs_update_device: function (options, callback) {
-//		C8O.log.warn("c8o.fs  : fs_update_device deprecated, please use fs_replicate_device");
-//		return C8O.fs_replicate_device(options).on("complete", callback);
-//	},
-//	
-//	fs_update_remote: function (options, callback) {
-//		C8O.log.warn("c8o.fs  : fs_update_device deprecated, please use fs_replicate_remote");
-//		return C8O.fs_replicate_remote(options).on("complete", callback);
-//	},
 });
 
 C8O._init.locks.fullsync = true;
@@ -462,57 +526,30 @@ C8O.addHook("_call_fs", function (data) {
 				} else if (seq == "all") {
 					C8O._fs.getAllDocs(db, options, callback);
 				} else if (seq == "sync" || seq == "replicate_pull" || seq == "replicate_push") {
-					if (C8O._fs.syncs[data.__sequence]) {
-						C8O._fs.syncs[data.__sequence].cancel();
-						delete C8O._fs.syncs[data.__sequence];
-					}
-					
-					if (!C8O.isTrue(options.cancel)) {
-						var callbacks = {};
-						$.each(C8O._fs.sync_events, function() {
-							var event = this;
-							if (C8O.isTrue(C8O._remove(options, event))) {
-								callbacks[event] = function (data) {
-									callback({
-										event: event,
-										data: data
-									});
-								};
-							}
-						});
-						
-						var sync = function (options, callbacks) {
-							C8O.log.info("c8o.fs  : " + seq + " " + C8O.toJSON(options));
-							
-							C8O._fs.syncs[data.__sequence] = C8O["fs_" + seq](options);
-							if ($.isEmptyObject(callbacks) || options.live) {
+					var callbacks = {};
+					$.each(C8O._fs.sync_events, function() {
+						var event = this;
+						if (C8O.isTrue(C8O._remove(options, event))) {
+							callbacks[event] = function (data) {
 								callback({
-									event: "none",
-									data: {}
+									event: event,
+									data: data
 								});
-							} else {
-								for (var key in callbacks) {
-									C8O._fs.syncs[data.__sequence].on(key, callbacks[key]);
-								}
-							}
-						};
-						
-						if (C8O.isTrue(options.live) && (callbacks.complete || callbacks.change)) {
-							C8O.log.info("c8o.fs  : " + seq + " full before live");
-							sync(
-								$.extend({}, options, {live: false}),
-								$.extend({}, callbacks, {complete: function (info) {
-									if (callbacks.complete) {
-										callbacks.complete(info);
-									}
-									sync(options, callbacks);
-								}})
-							);
-						} else {
-							sync(options, callbacks);
+							};
 						}
+					});
+					
+					var sync = C8O["fs_" + seq](options);
+					
+					if ($.isEmptyObject(callbacks)) {
+						callback({
+							event: "none",
+							data: {}
+						});
 					} else {
-						C8O.log.info("c8o.fs  : " + seq + " canceled");
+						for (var key in callbacks) {
+							sync.on(key, callbacks[key]);
+						}
 					}
 				} else {
 					callback({error: "invalid command '" + data.__sequence + "'"});
