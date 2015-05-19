@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.beans.connectors;
 import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
+import com.twinsoft.convertigo.engine.enums.AuthenticationMode;
 
 public class SiteClipperConnectorBeanInfo extends MySimpleBeanInfo {
 	public SiteClipperConnectorBeanInfo() {
@@ -40,7 +41,7 @@ public class SiteClipperConnectorBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 
-			properties = new PropertyDescriptor[3];
+			properties = new PropertyDescriptor[7];
 			
 			properties[0] = new PropertyDescriptor("defaultResponseCharset", beanClass, "getDefaultResponseCharset", "setDefaultResponseCharset");
 			properties[0].setDisplayName(getExternalizedString("property.defaultResponseCharset.display_name"));
@@ -54,6 +55,27 @@ public class SiteClipperConnectorBeanInfo extends MySimpleBeanInfo {
 			properties[2] = new PropertyDescriptor("trustAllServerCertificates", beanClass, "isTrustAllServerCertificates", "setTrustAllServerCertificates");
 			properties[2].setDisplayName(getExternalizedString("property.trustAllServerCertificates.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.trustAllServerCertificates.short_description"));
+			
+			properties[3] = new PropertyDescriptor("authUser", beanClass, "getAuthUser", "setAuthUser");
+			properties[3].setDisplayName(getExternalizedString("property.authUser.display_name"));
+			properties[3].setShortDescription(getExternalizedString("property.authUser.short_description"));
+			properties[3].setExpert(true);
+			
+			properties[4] = new PropertyDescriptor("authPassword", beanClass, "getAuthPassword", "setAuthPassword");
+			properties[4].setDisplayName(getExternalizedString("property.authPassword.display_name"));
+			properties[4].setShortDescription(getExternalizedString("property.authPassword.short_description"));
+			properties[4].setExpert(true);
+			
+			properties[5] = new PropertyDescriptor("authenticationType", beanClass, "getAuthenticationType", "setAuthenticationType");
+			properties[5].setDisplayName(getExternalizedString("property.authenticationType.display_name"));
+			properties[5].setShortDescription(getExternalizedString("property.authenticationType.short_description"));
+			properties[5].setPropertyEditorClass(AuthenticationMode.class);
+			properties[5].setExpert(true);
+			
+			properties[6] = new PropertyDescriptor("NTLMAuthenticationDomain", beanClass, "getNTLMAuthenticationDomain", "setNTLMAuthenticationDomain");
+			properties[6].setDisplayName(getExternalizedString("property.NTLMAuthenticationDomain.display_name"));
+			properties[6].setShortDescription(getExternalizedString("property.NTLMAuthenticationDomain.short_description"));
+			properties[6].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

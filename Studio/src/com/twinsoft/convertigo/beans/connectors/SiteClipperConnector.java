@@ -97,6 +97,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.LogParameters;
 import com.twinsoft.convertigo.engine.MySSLSocketFactory;
+import com.twinsoft.convertigo.engine.enums.AuthenticationMode;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HtmlLocation;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
@@ -791,13 +792,15 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 				Engine.logSiteClipper.debug("(SiteClipperConnector) Copying the query string : " + queryString);
 				httpMethod.setQueryString(queryString);
 				
-				if (context.httpState == null) {
-					Engine.logSiteClipper.debug("(SiteClipperConnector) Creating new HttpState for context id " + context.contextID);
-					context.httpState = new HttpState();
-				} else {
-					Engine.logSiteClipper.debug("(SiteClipperConnector) Using HttpState of context id " + context.contextID);
-				}
+//				if (context.httpState == null) {
+//					Engine.logSiteClipper.debug("(SiteClipperConnector) Creating new HttpState for context id " + context.contextID);
+//					context.httpState = new HttpState();
+//				} else {
+//					Engine.logSiteClipper.debug("(SiteClipperConnector) Using HttpState of context id " + context.contextID);
+//				}
 
+				getHttpState(shuttle);
+				
 				HostConfiguration hostConfiguration = getHostConfiguration(shuttle);
 
 				HttpMethodParams httpMethodParams = httpMethod.getParams();
@@ -953,6 +956,31 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 		return testEquals;
 	}
 	
+	private synchronized void getHttpState(Shuttle shuttle) {
+		if (authenticationPropertiesHasChanged) {
+			context.httpState = null;
+			authenticationPropertiesHasChanged = false;			
+		}
+		
+		if (context.httpState == null) {
+			Engine.logSiteClipper.debug("(SiteClipperConnector) Creating new HttpState for context id " + context.contextID);
+			context.httpState = new HttpState();
+		} else {
+			Engine.logSiteClipper.debug("(SiteClipperConnector) Using HttpState of context id " + context.contextID);
+		}
+		
+		if (!authUser.equals("") || !authPassword.equals("") || (givenAuthUser != null) || (givenAuthPassword != null)) {
+			int indexSlash = (givenAuthUser == null) ? -1 : givenAuthUser.indexOf("\\");
+			String domain = (indexSlash == -1) ? NTLMAuthenticationDomain : givenAuthUser.substring(0, indexSlash);
+			String user = (givenAuthUser == null) ? authUser : givenAuthUser.substring(indexSlash + 1);
+			String password = (givenAuthPassword == null) ? authPassword : givenAuthPassword;
+			String type = (givenAuthMode == null ? authenticationType.name() : givenAuthMode);
+			String host = hostConfiguration != null ? hostConfiguration.getHost() : shuttle.getRequest(QueryPart.host);
+			
+			AuthenticationMode.get(type).setCredentials(context.httpState, user, password, host, domain);
+		}
+	}
+	
 	private synchronized HostConfiguration getHostConfiguration(Shuttle shuttle) throws EngineException, MalformedURLException {
 		if (hostConfiguration != null) {
 			String host = hostConfiguration.getHost();
@@ -1011,6 +1039,9 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 		SiteClipperConnector siteClipperConnector = (SiteClipperConnector) super.clone();
 		siteClipperConnector.screenClassHelper = new ScreenClassHelper<SiteClipperScreenClass>(siteClipperConnector);
 		siteClipperConnector.domainsFilter = new DomainsFilterHelper(siteClipperConnector);
+		siteClipperConnector.givenAuthPassword = null;
+		siteClipperConnector.givenAuthUser = null;
+		siteClipperConnector.givenAuthMode = null;
 		return siteClipperConnector;
 	}
 	
@@ -1092,5 +1123,92 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 	
 	public SiteClipperScreenClass newScreenClass() {
 		return new SiteClipperScreenClass();
+	}
+	
+	private boolean authenticationPropertiesHasChanged = false;
+	
+	/** Holds value of property authUser. */
+	private String authUser = "";
+
+	public String getAuthUser() {
+		return authUser;
+	}
+
+	public void setAuthUser(String authUser) {
+		this.authUser = authUser;
+		authenticationPropertiesHasChanged = true;
+	}
+
+	/** Holds value of property authPassword. */
+	private String authPassword = "";
+
+	public String getAuthPassword() {
+		return authPassword;
+	}
+
+	public void setAuthPassword(String authPassword) {
+		this.authPassword = authPassword;
+		authenticationPropertiesHasChanged = true;
+	}
+	
+	/**
+	 * Holds value of property authenticationType.
+	 */
+	private AuthenticationMode authenticationType = AuthenticationMode.None;
+	
+	public AuthenticationMode getAuthenticationType() {
+		return authenticationType;
+	}
+	
+	public void setAuthenticationType(AuthenticationMode authenticationType) {
+		this.authenticationType = authenticationType;
+		authenticationPropertiesHasChanged = true;
+	}
+	
+	/**
+	 * Holds value of property NTLMAuthenticationDomain.
+	 */
+	private String NTLMAuthenticationDomain = "";
+	
+	public String getNTLMAuthenticationDomain() {
+		return NTLMAuthenticationDomain;
+	}
+	
+	public void setNTLMAuthenticationDomain(String NTLMAuthenticationDomain) {
+		this.NTLMAuthenticationDomain = NTLMAuthenticationDomain;
+		authenticationPropertiesHasChanged = true;
+	}
+	
+	/** Holds value of givenAuthUser. */
+	transient private String givenAuthUser = null;
+
+	public String getGivenAuthUser() {
+		return givenAuthUser;
+	}
+
+	public void setGivenAuthUser(String givenAuthUser) {
+		this.givenAuthUser = givenAuthUser;
+	}
+
+	/** Holds value of givenAuthPassword. */
+	transient private String givenAuthPassword = null;
+
+	public String getGivenAuthPassword() {
+		return givenAuthPassword;
+	}
+
+	public void setGivenAuthPassword(String givenAuthPassword) {
+		this.givenAuthPassword = givenAuthPassword;
+	}
+
+	/** Holds value of givenAuthMode. */
+	transient private String givenAuthMode = null;
+
+	public String getGivenAuthMode() {
+		return givenAuthMode;
+	}
+
+	public void setGivenAuthMode(String givenAuthMode) {
+		this.givenAuthMode = givenAuthMode;
 	}
 }
