@@ -41,7 +41,7 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 
 	private static final long serialVersionUID = 1494278577299328199L;
 
-	Pattern reJSONP = Pattern.compile(".*?((\\{|\\[).*\2).*?", Pattern.DOTALL);
+	Pattern reJSONP = Pattern.compile(".*?((?:\\{|\\[).*(?:\\]|\\})).*?", Pattern.DOTALL);
 	
 	public JsonHttpTransaction() {
 		super();
