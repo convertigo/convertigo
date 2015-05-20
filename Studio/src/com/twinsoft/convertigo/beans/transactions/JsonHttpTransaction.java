@@ -97,35 +97,47 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 		Matcher mJSONP = reJSONP.matcher(jsonData);
 		if (mJSONP.matches()) {
 			jsonData = mJSONP.group(1);
-			Engine.logBeans.debug("Trimmed JSON part: " + jsonData);
+		} else {
+			jsonData = jsonData.trim();			
 		}
+		
+		Engine.logBeans.debug("Trimmed JSON part: " + jsonData);
 
 		Element outputDocumentRootElement = context.outputDocument.getDocumentElement();
+		
+		
+		if (!jsonData.isEmpty()) {
+			String message = null;
+			try {
+				// Try to find whether the top JSON structure is a JSON object or a
+				// JSON array
 
-		try {
-			// Try to find whether the top JSON structure is a JSON object or a
-			// JSON array
-			char firstToken = jsonData.charAt(0);
-
-			// JSON Object
-			if (firstToken == '{') {
-				Engine.logBeans.debug("Detected JSON object");
-				JSONObject jsonObject = new JSONObject(jsonData);
-				jsonToXml(jsonObject, null, outputDocumentRootElement);
+				// JSON Object
+				if (jsonData.startsWith("{")) {
+					Engine.logBeans.debug("Detected JSON object");
+					JSONObject jsonObject = new JSONObject(jsonData);
+					jsonToXml(jsonObject, null, outputDocumentRootElement);
+				}
+				// JSON Array
+				else if (jsonData.startsWith("[")) {
+					Engine.logBeans.debug("Detected JSON array");
+					JSONArray jsonArray = new JSONArray(jsonData);
+					jsonToXml(jsonArray, null, outputDocumentRootElement);
+				}
+				else {
+					message = "no JSON delimitor [ or {";
+				}
+			} catch (Exception e) {
+				message = StringUtils.reduce(e.getMessage(), 50);
 			}
-			// JSON Array
-			else if (firstToken == '[') {
-				Engine.logBeans.debug("Detected JSON array");
-				JSONArray jsonArray = new JSONArray(jsonData);
-				jsonToXml(jsonArray, null, outputDocumentRootElement);
-			} else {
+			
+			if (message != null) {
 				throw new EngineException(
-						"Invalid JSON structure: neither a JSON object nor a JSON array; analyzed JSON:\n"
-								+ jsonData);
+					"Invalid JSON structure: neither a JSON object nor a JSON array;\n" +
+					message + 
+					";\nanalyzed JSON:\n" + StringUtils.reduce(jsonData, 500)
+				);				
 			}
-		} catch (IndexOutOfBoundsException e) {
-			// This is an empty JSON data
-			// Just ignore
 		}
 	}
 
