@@ -203,6 +203,10 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 
 			parentElement.appendChild(element);
 
+			if (JSONObject.NULL.equals(object)) {
+				object = null;
+			}
+			
 			if (object != null) {
 				Text text = context.outputDocument.createTextNode(object.toString());
 				element.appendChild(text);
