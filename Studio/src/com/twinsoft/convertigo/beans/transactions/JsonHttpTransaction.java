@@ -41,7 +41,7 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 
 	private static final long serialVersionUID = 1494278577299328199L;
 
-	Pattern reJSONP = Pattern.compile("^.*?\\(\\s*([{\\[].*[}\\]])\\s*\\)", Pattern.DOTALL);
+	Pattern reJSONP = Pattern.compile(".*?((\\{|\\[).*\2).*?", Pattern.DOTALL);
 	
 	public JsonHttpTransaction() {
 		super();
@@ -95,9 +95,9 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 		Engine.logBeans.debug("JSON text: " + jsonData);
 		
 		Matcher mJSONP = reJSONP.matcher(jsonData);
-		if (mJSONP.find()) {
+		if (mJSONP.matches()) {
 			jsonData = mJSONP.group(1);
-			Engine.logBeans.debug("Detected JSONP response, extracting JSON: " + jsonData);
+			Engine.logBeans.debug("Trimmed JSON part: " + jsonData);
 		}
 
 		Element outputDocumentRootElement = context.outputDocument.getDocumentElement();
@@ -105,7 +105,7 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 		try {
 			// Try to find whether the top JSON structure is a JSON object or a
 			// JSON array
-			char firstToken = jsonData.trim().charAt(0);
+			char firstToken = jsonData.charAt(0);
 
 			// JSON Object
 			if (firstToken == '{') {
