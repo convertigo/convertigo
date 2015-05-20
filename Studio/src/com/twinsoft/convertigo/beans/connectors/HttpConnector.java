@@ -1472,7 +1472,7 @@ public class HttpConnector extends Connector {
 		return absoluteUrl;
 	}
 	
-	private boolean authenticationPropertiesHasChanged = false;
+	transient private boolean authenticationPropertiesHasChanged = false;
 	
 	/** Holds value of property trustAllServerCertificates. */
 	private boolean trustAllServerCertificates = true;
@@ -1502,8 +1502,10 @@ public class HttpConnector extends Connector {
 	 *            New value of property server.
 	 */
 	public void setServer(String server) {
-		this.server = server;
-		authenticationPropertiesHasChanged = true;
+		if (!this.server.equals(server)) {
+			this.server = server;
+			authenticationPropertiesHasChanged = true;
+		}
 	}
 
 	/** Holds value of property authUser. */
@@ -1525,8 +1527,10 @@ public class HttpConnector extends Connector {
 	 *            the authUser to set
 	 */
 	public void setAuthUser(String authUser) {
-		this.authUser = authUser;
-		authenticationPropertiesHasChanged = true;
+		if (!this.authUser.equals(authUser)) {
+			this.authUser = authUser;
+			authenticationPropertiesHasChanged = true;
+		}
 	}
 
 	/** Holds value of property authPassword. */
@@ -1548,8 +1552,10 @@ public class HttpConnector extends Connector {
 	 *            the authPassword to set
 	 */
 	public void setAuthPassword(String authPassword) {
-		this.authPassword = authPassword;
-		authenticationPropertiesHasChanged = true;
+		if (!this.authPassword.equals(authPassword)) {
+			this.authPassword = authPassword;
+			authenticationPropertiesHasChanged = true;
+		}
 	}
 	
 	
@@ -1571,8 +1577,10 @@ public class HttpConnector extends Connector {
 	 * @param authenticationType
 	 */
 	public void setAuthenticationType(AuthenticationMode authenticationType) {
-		this.authenticationType = authenticationType;
-		authenticationPropertiesHasChanged = true;
+		if (!this.authenticationType.equals(authenticationType)) {
+			this.authenticationType = authenticationType;
+			authenticationPropertiesHasChanged = true;
+		}
 	}
 	
 	/**
@@ -1593,8 +1601,10 @@ public class HttpConnector extends Connector {
 	 * @param NTLMAuthenticationDomain
 	 */
 	public void setNTLMAuthenticationDomain(String NTLMAuthenticationDomain) {
-		this.NTLMAuthenticationDomain = NTLMAuthenticationDomain;
-		authenticationPropertiesHasChanged = true;
+		if (!this.NTLMAuthenticationDomain.equals(NTLMAuthenticationDomain)) {
+			this.NTLMAuthenticationDomain = NTLMAuthenticationDomain;
+			authenticationPropertiesHasChanged = true;
+		}
 	}
 	
 	/** Holds value of givenAuthUser. */
