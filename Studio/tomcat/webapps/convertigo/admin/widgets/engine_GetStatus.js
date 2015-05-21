@@ -70,6 +70,16 @@ function engine_GetStatus_update() {
 		$("#statusObjects").html($(xml).find("version").attr("beans"));	
 		$("#statusBuildDate").html($(xml).find("build").attr("date"));
 		$("#statusBuildFilename").html($(xml).find("build").attr("filename"));	
+		
+		$("#statusLicenceType").text($(xml).find("version").attr("licence-type"));	
+		$("#statusLicenceNumber").text($(xml).find("version").attr("licence-number"));	
+		$("#statusLicenceEndDate").text($(xml).find("version").attr("licence-end"));
+		
+		if ($(xml).find("version").attr("licence-expired") === "true") {
+			$("#statusLicenceEndDate").css("color", "red");
+			$("#statusLicenceEndDate").css("font-weight", "bold");
+		} 
+		
 		instanceUpdateDate++;
 		init_date_started_from(instanceUpdateDate);		
 	});

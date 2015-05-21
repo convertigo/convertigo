@@ -66,13 +66,22 @@ function keys_List_init() {
 function updateKeysList(xml) {
 	$('#keysListContent').empty();
 	var $template = $("#key-template");
+	var nb_valid_keys = $(xml).find("nb_valid_key").text();
 	$(xml).find("category").each(function () {
 		var $x_category = $(this);
 		var $category = $template.find(".key-category").clone();
-		$category.find(".key-category-name").text($x_category.attr("name"));
-		$category.find(".key-category-total").text($x_category.attr("total"));
-		$category.find(".key-category-used").text($x_category.attr("used"));
-		$category.find(".key-category-remaining").text((parseInt($x_category.attr('total')) - parseInt($x_category.attr('used'))));
+		var $name = $x_category.attr("name");
+		$category.find(".key-category-name").text($name === "Standard Edition" ? 
+				"Convertigo " + (parseInt(nb_valid_keys) > 1 ? "Extended Edition" : "Standard Edition") : $name );
+		if ($name !== "Standard Edition") {
+			$category.find(".key-category-total").text($x_category.attr("total"));
+			$category.find(".key-category-used").text($x_category.attr("used"));
+			$category.find(".key-category-remaining").text((parseInt($x_category.attr('total')) - parseInt($x_category.attr('used'))));
+		} else {
+			$category.find(".key-category-total").parent().remove();
+			$category.find(".key-category-used").parent().remove();
+			$category.find(".key-category-remaining").parent().remove();
+		}
 		var $category_table = $category.find("table:first");
 		$x_category.find("key").each(function (i) {
 			var $x_key = $(this);
@@ -83,8 +92,13 @@ function updateKeysList(xml) {
 			if ($(this).attr('evaluation') != "true" || $(this).attr('expired') != "true") {
 				$key.find(".key-expired").hide();
 			}
+			if ($name === "Standard Edition") {
+				$key.find(".key-connections").text("licence number");
+			}
+			
 			$category_table.prepend($key);
 		});
+		
 		$("#keysListContent").append($category);
 	});
 }

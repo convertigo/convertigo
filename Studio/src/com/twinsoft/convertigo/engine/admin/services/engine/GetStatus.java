@@ -24,7 +24,10 @@ package com.twinsoft.convertigo.engine.admin.services.engine;
 
 import java.io.InputStream;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.TimeZone;
@@ -40,6 +43,9 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.tas.Key;
+import com.twinsoft.tas.KeyManager;
+import com.twinsoft.util.TWSKey;
 
 @ServiceDefinition(
 		name = "GetStatus",
@@ -68,6 +74,50 @@ public class GetStatus extends XmlService {
 		versionElement.setAttribute("beans", com.twinsoft.convertigo.beans.Version.version);
 		versionElement.setAttribute("engine", com.twinsoft.convertigo.engine.Version.version);
 		versionElement.setAttribute("build", com.twinsoft.convertigo.engine.Version.revision);
+
+		// We list each keys to know how are valid and what is the SE key
+		Iterator<?> iter = KeyManager.keys.values().iterator();
+		String keyString = null;
+		int nbValidKey = 0;
+		while (iter.hasNext()) {
+			Key key = (Key)iter.next();
+			if (key.emulatorID == com.twinsoft.api.Session.EmulIDSE) {
+				keyString = key.sKey;
+			}
+			nbValidKey += KeyManager.hasExpired(key.emulatorID) ? 0 : 1;
+		}
+		
+		int iCategory = 0;
+		int iStations = 0;
+		String endDate = null;
+		Date currentDate = new Date();
+		Date expiredDate = null;
+		int iNumberOfDays = -1;
+		
+		//We decypher the founded SE key
+		TWSKey twsKey = new TWSKey(); 	twsKey.CreateKey(3);
+		
+		//We search the licence expiry date
+		if (keyString!=null && !keyString.isEmpty()) {
+			String[] twsKeyInfos = twsKey.decypherbis(keyString).split(";");
+			
+			iCategory = Integer.parseInt(twsKeyInfos[1]);
+			iStations = Integer.parseInt(twsKeyInfos[2]);
+			iNumberOfDays = Integer.parseInt(twsKeyInfos[4]);
+
+			if (iNumberOfDays != 0) {
+				expiredDate = new Date((long)(iNumberOfDays)*1000*60*60*24);;
+				SimpleDateFormat formater = new SimpleDateFormat("MM/dd/yyyy");
+				endDate = formater.format(expiredDate);
+			}
+		}
+		
+		versionElement.setAttribute("licence-type", iCategory == 15 ? 
+				(nbValidKey > 1 ? "Convertigo Extended Edition" : (nbValidKey == 0 ? "Convertigo Community Edition" : "Convertigo Standard Edition") ) 
+				: "Convertigo Community Edition");
+		versionElement.setAttribute("licence-number", iCategory == 15 ? (990000000 + iStations) + "" : "n/a");
+		versionElement.setAttribute("licence-end", iNumberOfDays != 0 ? (iNumberOfDays < 0 ? "n/a" : endDate) : "unlimited");
+		versionElement.setAttribute("licence-expired", iNumberOfDays != 0 ? (iNumberOfDays < 0 ? "n/a" : currentDate.compareTo(expiredDate) > 0) + "" : "false");
 		rootElement.appendChild(versionElement);
 
 		try {
