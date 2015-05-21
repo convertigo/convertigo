@@ -79,10 +79,12 @@ public class GetStatus extends XmlService {
 		Iterator<?> iter = KeyManager.keys.values().iterator();
 		String keyString = null;
 		int nbValidKey = 0;
+		boolean licenceMismatch = true;
 		while (iter.hasNext()) {
 			Key key = (Key)iter.next();
 			if (key.emulatorID == com.twinsoft.api.Session.EmulIDSE) {
 				keyString = key.sKey;
+				licenceMismatch = false;
 			}
 			nbValidKey += KeyManager.hasExpired(key.emulatorID) ? 0 : 1;
 		}
@@ -113,8 +115,12 @@ public class GetStatus extends XmlService {
 		}
 		
 		versionElement.setAttribute("licence-type", iCategory == 15 ? 
-				(nbValidKey > 1 ? "Convertigo Extended Edition" : (nbValidKey == 0 ? "Convertigo Community Edition" : "Convertigo Standard Edition") ) 
-				: "Convertigo Community Edition");
+				(nbValidKey > 1 ? 
+						"Convertigo Extended Edition" + (licenceMismatch ? "(! licence mismatch !)": "") : 
+							(nbValidKey == 0 ? 
+								"Convertigo Community Edition" : 
+								(licenceMismatch ? "(! licence mismatch !)": "Convertigo Standard Edition") ) ) 
+						: "Convertigo Community Edition");
 		versionElement.setAttribute("licence-number", iCategory == 15 ? (990000000 + iStations) + "" : "n/a");
 		versionElement.setAttribute("licence-end", iNumberOfDays != 0 ? (iNumberOfDays < 0 ? "n/a" : endDate) : "unlimited");
 		versionElement.setAttribute("licence-expired", iNumberOfDays != 0 ? (iNumberOfDays < 0 ? "n/a" : currentDate.compareTo(expiredDate) > 0) + "" : "false");
