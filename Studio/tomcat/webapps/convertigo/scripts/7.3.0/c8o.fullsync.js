@@ -38,16 +38,9 @@ $.extend(true, C8O, {
 			if (C8O._fs.dbs[db]) {
 				// exists
 			} else if (C8O._fs.server && !C8O.init_vars.fs_force_pouch) {
-				var http = C8O._fs.dbs[db] = new PouchDB(C8O._fs.server + '/' + db);
-				
-				var request = http.request;
-				
-				http.request = function (options) {
-					if (!options.timeout) {
-						options.timeout = 0;
-					}
-					return request.apply(this, arguments);
-				};
+				C8O._fs.dbs[db] = new PouchDB(C8O._fs.server + '/' + db, {
+					ajax: {timeout: 0} // disable PouchDB request timeout
+				});
 			} else {
 				C8O._fs.dbs[db] = new PouchDB(db);
 			}
@@ -335,7 +328,7 @@ $.extend(true, C8O, {
 						});
 					};
 				} else {
-					cancel = local.replicate[isPull ? "from" : "to"](remote, options).on("change", function (change) {
+					var rep = local.replicate[isPull ? "from" : "to"](remote, options).on("change", function (change) {
 						var min = change.last_seq - change.docs_written;
 						var current = change.docs_written;
 						var total = Math.max(max - min, 1);
@@ -359,7 +352,11 @@ $.extend(true, C8O, {
 						}
 					}).on("error", function (err) {
 						evts.error($.extend({}, err, {direction: direction}));
-					}).cancel;
+					});
+					
+					cancel = function () {
+						rep.cancel();
+					};
 				}
 			});
 			
