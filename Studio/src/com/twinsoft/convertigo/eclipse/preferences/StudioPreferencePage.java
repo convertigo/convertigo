@@ -44,6 +44,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 	private ComboFieldEditor comboLevel = null;
 	private BooleanFieldEditor cbHighlight = null;
 	private BooleanFieldEditor cbIgnoreNews = null;
+	private BooleanFieldEditor cbShowEngineOnConsole = null;
 	private IntegerFieldEditor intTracePlayerPort = null;
 	private StringFieldEditor localBuildAdditionalPath = null;
 	
@@ -87,6 +88,13 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbIgnoreNews.setPreferenceStore(getPreferenceStore());
 		cbIgnoreNews.load();
 
+		cbShowEngineOnConsole = new BooleanFieldEditor(
+				ConvertigoPlugin.PREFERENCE_SHOW_ENGINE_INTO_CONSOLE,
+				"Show Engine logs into Console view", groupGeneral);
+		cbShowEngineOnConsole.setPage(this);
+		cbShowEngineOnConsole.setPreferenceStore(getPreferenceStore());
+		cbShowEngineOnConsole.load();
+		
 		// Diagnostics
 		Group groupDiagnostics = new Group(top, SWT.SHADOW_IN);
 		groupDiagnostics.setText("Diagnostics");
@@ -134,6 +142,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbHighlight.loadDefault();
 		intTracePlayerPort.loadDefault();
 		cbIgnoreNews.loadDefault();
+		cbShowEngineOnConsole.loadDefault();
 		localBuildAdditionalPath.loadDefault();
 		
 		super.performDefaults();
@@ -146,11 +155,13 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 	public boolean performOk() {
 		ConvertigoPlugin.setLogLevel(Integer.valueOf(comboLevel.getValue(),10));
 		ConvertigoPlugin.setHighlightDetectedObject(cbHighlight.getBooleanValue());
+		ConvertigoPlugin.setShowEngineIntoConsole(cbShowEngineOnConsole.getBooleanValue());
 		
 		comboLevel.store();
 		cbHighlight.store();
 		intTracePlayerPort.store();
 		cbIgnoreNews.store();
+		cbShowEngineOnConsole.store();
 		localBuildAdditionalPath.store();
 		
 		return super.performOk();

@@ -109,58 +109,71 @@ public class ConsolePipes {
 					char[] buffer = new char[1024];
 					long logFileSize = 0;
 					long seek = -1;
-
+					boolean alertOnSettings = false;
+					
 					while (bContinue) {
 						if (Engine.logEngine != null) {
-							String logFileName = Engine.LOG_PATH + "/engine.log";
-							File logFile = new File(logFileName);
-							long logFileSizeCurrent = logFile.length();
-							if (logFileSize > logFileSizeCurrent) {
-								seek = -1;
-							}
-
-							if (logFileSize != logFileSizeCurrent) {
-								InputStreamReader fr = null;
-								try {
-									long fileLength = logFile.length();
-									fr = new InputStreamReader(new FileInputStream(logFile), "UTF-8");
-									
-									if (seek == -1) {
-										seek = 0;
-										if (fileLength > MAX_CONSOLE_START_SIZE) {
-											seek = fileLength - MAX_CONSOLE_START_SIZE;
-										}
-									}
-									fr.skip(seek);
-
-									boolean loop = false;
-									do {
-										nbAvailableBytes = fr.read(buffer, 0, buffer.length);
-										if (nbAvailableBytes == -1) {
-											loop = false;
-										} else {
-											if (loop)
-												Thread.sleep(25); // prevent Eclipse from freezing with big logs
-											else
-												loop = true;
-											sBuffer = new String(buffer, 0, nbAvailableBytes);
-											seek += sBuffer.length();
-											convertigoPlugin.engineConsoleStream.print(sBuffer);
-										}
-									} while (loop && bContinue);
-								} catch (FileNotFoundException e) {
-									// Ignore: the file has yet been created
+							if (ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_SHOW_ENGINE_INTO_CONSOLE).equalsIgnoreCase("true")) {
+								alertOnSettings = false;
+								String logFileName = Engine.LOG_PATH + "/engine.log";
+								File logFile = new File(logFileName);
+								long logFileSizeCurrent = logFile.length();
+								if (logFileSize > logFileSizeCurrent) {
 									seek = -1;
-								} catch (IOException e) {
-									seek = -1;
-								} finally {
-									if (fr != null)
-										fr.close();
 								}
-								logFileSize = logFileSizeCurrent;
+	
+								
+								if (logFileSize != logFileSizeCurrent) {
+									InputStreamReader fr = null;
+									try {
+										long fileLength = logFile.length();
+										fr = new InputStreamReader(new FileInputStream(logFile), "UTF-8");
+										
+										if (seek == -1) {
+											seek = 0;
+											if (fileLength > MAX_CONSOLE_START_SIZE) {
+												seek = fileLength - MAX_CONSOLE_START_SIZE;
+											}
+										}
+										fr.skip(seek);
+	
+										boolean loop = false;
+										do {
+											nbAvailableBytes = fr.read(buffer, 0, buffer.length);
+											if (nbAvailableBytes == -1) {
+												loop = false;
+											} else {
+												if (loop)
+													Thread.sleep(25); // prevent Eclipse from freezing with big logs
+												else
+													loop = true;
+												sBuffer = new String(buffer, 0, nbAvailableBytes);
+												seek += sBuffer.length();
+												convertigoPlugin.engineConsoleStream.print(sBuffer);
+											}
+										} while (loop && bContinue);
+									} catch (FileNotFoundException e) {
+										// Ignore: the file has yet been created
+										seek = -1;
+									} catch (IOException e) {
+										seek = -1;
+									} finally {
+										if (fr != null)
+											fr.close();
+									}
+									logFileSize = logFileSizeCurrent;
+								}
+							} else {
+								if (!alertOnSettings) {
+									convertigoPlugin.engineConsoleStream.print("***** ENGINE LOGS NOT WRITTEN INTO THE CONSOLE, IF YOU WANT TO SET THEM *****");
+									convertigoPlugin.engineConsoleStream.println();
+									convertigoPlugin.engineConsoleStream.print("***** PLEASE ENABLE \"Show Engine logs...\" SETTING IN STUDIO PREFERENCES *****");
+									convertigoPlugin.engineConsoleStream.println();
+									alertOnSettings = true;
+								}
 							}
-						}
-
+						} 
+						
 						if (bContinue) Thread.sleep(REFRESH_DELAY);
 					}
 					convertigoPlugin.getLog().log(
@@ -172,6 +185,7 @@ public class ConsolePipes {
 							.log(new Status(Status.ERROR, ConvertigoPlugin.PLUGIN_UNIQUE_ID, Status.OK,
 									message, e));
 				}
+				
 			}
 		};
 		writerThreadEngine.start();

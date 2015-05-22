@@ -165,6 +165,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
     public static final String PREFERENCE_OPENED_CONSOLES = "opened.consoles";
     public static final String PREFERENCE_TRACEPLAYER_PORT = "traceplayer.port";
     public static final String PREFERENCE_IGNORE_NEWS = "news.ignore";
+    public static final String PREFERENCE_SHOW_ENGINE_INTO_CONSOLE = "engine.into.console";
     public static final String PREFERENCE_LOCAL_BUILD_ADDITIONAL_PATH = "localBuild.additionalPath";
     
     private static Display display = null;
@@ -958,6 +959,16 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		return highlightDetectedObject;
 	}
 
+	private static boolean showEnginIntoConsole;
+	
+	public static void setShowEngineIntoConsole(boolean show) {
+		showEnginIntoConsole = show;
+	}
+
+	public static boolean getShowEngineIntoConsole() {
+		return showEnginIntoConsole;
+	}
+	
 	/**
 	 * Clean plug-in
 	 * 
@@ -1200,9 +1211,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 			traceConsole,
 			debugConsole,
 			studioConsole,
-		});
-		
-		consoleManager.showConsoleView(engineConsole);
+		});		
 		
 		// Restore previously opened console views
 		/*
