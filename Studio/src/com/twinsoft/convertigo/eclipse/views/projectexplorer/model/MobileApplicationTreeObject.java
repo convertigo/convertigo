@@ -25,11 +25,16 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.viewers.Viewer;
 
+import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
+import com.twinsoft.convertigo.beans.core.Connector;
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
+import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 
-public class MobileApplicationTreeObject extends DatabaseObjectTreeObject {
+public class MobileApplicationTreeObject extends DatabaseObjectTreeObject implements INamedSourceSelectorTreeObject {
 
 	public MobileApplicationTreeObject(Viewer viewer, MobileApplication object) {
 		super(viewer, object);
@@ -58,6 +63,79 @@ public class MobileApplicationTreeObject extends DatabaseObjectTreeObject {
 			}
 		} catch (Exception e) {
 			ConvertigoPlugin.logWarning(e, "Failed to refresh the mobile platform folder in resource view", false);
+		}
+	}
+
+	@Override
+	public boolean isSelectable(String propertyName, Object nsObject) {
+		if ("fsConnector".equals(propertyName)) {
+			return nsObject instanceof FullSyncConnector;
+		}
+		else if ("fsDesignDocument".equals(propertyName)) {
+			if (nsObject instanceof DesignDocument) {
+				DatabaseObject dboParent = ((DesignDocument)nsObject).getParent();
+				if (dboParent instanceof FullSyncConnector) {
+					return DatabaseObject.getNamedSource(dboParent).equals(getPropertyValue("fsConnector"));
+				}
+			}
+		}
+		return false;
+	}
+	
+	@Override
+	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
+		super.treeObjectPropertyChanged(treeObjectEvent);
+
+		String propertyName = treeObjectEvent.propertyName;
+		propertyName = ((propertyName == null) ? "":propertyName);
+		
+		if (this.equals(treeObjectEvent.getSource())) {
+			if ("fsConnector".equals(propertyName)) {
+				Object oldValue = treeObjectEvent.oldValue;
+				Object newValue = treeObjectEvent.newValue;
+				if (!oldValue.equals(newValue) && "".equals(newValue)) {
+					getObject().setFsDesignDocument("");
+				}
+			}
+		}
+		else if (propertyName.equals("name")) {
+			handlesBeanNameChanged(treeObjectEvent);
+		}
+	}
+
+	protected void handlesBeanNameChanged(TreeObjectEvent treeObjectEvent) {
+		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
+		Object oldValue = treeObjectEvent.oldValue;
+		Object newValue = treeObjectEvent.newValue;
+		int update = treeObjectEvent.update;
+
+		if (update != TreeObjectEvent.UPDATE_NONE) {
+			String _fsOldPrefix = null, _fsNewPrefix = null;
+			if (treeObject instanceof ProjectTreeObject) {
+				_fsOldPrefix = (String) oldValue;
+				_fsNewPrefix = (String) newValue;
+			}
+			else if (treeObject instanceof ConnectorTreeObject) {
+				Connector connector = ((ConnectorTreeObject)treeObject).getObject();
+				if (connector instanceof FullSyncConnector) {
+					_fsOldPrefix = connector.getProject().getName() + "." + (String) oldValue;
+					_fsNewPrefix = connector.getProject().getName() + "." + (String) newValue;
+				}
+			}
+
+			if (_fsOldPrefix != null && _fsNewPrefix != null) {
+				String _fsConnector = getObject().getFsConnector();
+				if (_fsConnector.startsWith(_fsOldPrefix)) {
+					getObject().setFsConnector(_fsConnector.replaceFirst(_fsOldPrefix, _fsNewPrefix));
+					String _fsDesignDocument = getObject().getFsDesignDocument();
+					getObject().setFsDesignDocument(_fsDesignDocument.replaceFirst(_fsOldPrefix, _fsNewPrefix));
+					
+					hasBeenModified(true);
+					viewer.refresh();
+					
+					getDescriptors();// refresh editors (e.g labels in combobox)
+				}
+			}
 		}
 	}
 }

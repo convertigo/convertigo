@@ -1081,6 +1081,15 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		return new Vector<E>();
 	}
 	
+	static public String getNamedSource(DatabaseObject dbo) {
+		if (dbo == null) return null;
+		String namedSource = dbo.getName();
+		if (!(dbo instanceof Project)) {
+			namedSource = getNamedSource(dbo.getParent()) + "." + namedSource;
+		}
+		return namedSource;
+	}
+	
 	public void changed() {
 		if (!isImporting && !hasChanged) {
 			hasChanged = true;

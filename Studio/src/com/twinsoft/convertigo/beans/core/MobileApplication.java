@@ -100,6 +100,9 @@ public class MobileApplication extends DatabaseObject {
 	
 	private String authenticationToken = "";
 	
+	private String fsConnector = "";
+	private String fsDesignDocument = "";
+	
 	public MobileApplication() {
         super();
         databaseType = "MobileApplication";
@@ -373,5 +376,21 @@ public class MobileApplication extends DatabaseObject {
 		return authenticationToken.length() == 0 ?
 				EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_AUTHENTICATION_TOKEN) :
 				authenticationToken;
+	}
+
+	public String getFsConnector() {
+		return fsConnector;
+	}
+
+	public void setFsConnector(String fsConnector) {
+		this.fsConnector = fsConnector;
+	}
+
+	public String getFsDesignDocument() {
+		return fsDesignDocument;
+	}
+
+	public void setFsDesignDocument(String fsDesignDocument) {
+		this.fsDesignDocument = fsDesignDocument;
 	}
 }

@@ -43,7 +43,7 @@ public class MobileApplicationBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
-			properties = new PropertyDescriptor[15];
+			properties = new PropertyDescriptor[17];
 			
             properties[0] = new PropertyDescriptor("enableFlashUpdate", MobileApplication.class, "getEnableFlashUpdate", "setEnableFlashUpdate");
             properties[0].setDisplayName(getExternalizedString("property.enableFlashUpdate.display_name"));
@@ -112,6 +112,16 @@ public class MobileApplicationBeanInfo extends MySimpleBeanInfo {
 			properties[14].setDisplayName(getExternalizedString("property.splashRemoveMode.display_name"));
 			properties[14].setShortDescription(getExternalizedString("property.splashRemoveMode.short_description"));
             properties[14].setPropertyEditorClass(SplashRemoveMode.class);
+
+			properties[15] = new PropertyDescriptor("fsConnector", MobileApplication.class, "getFsConnector", "setFsConnector");
+			properties[15].setDisplayName(getExternalizedString("property.fsConnector.display_name"));
+			properties[15].setShortDescription(getExternalizedString("property.fsConnector.short_description"));
+            properties[15].setPropertyEditorClass(getEditorClass("NamedSourceSelectorEditor"));
+
+			properties[16] = new PropertyDescriptor("fsDesignDocument", MobileApplication.class, "getFsDesignDocument", "setFsDesignDocument");
+			properties[16].setDisplayName(getExternalizedString("property.fsDesignDocument.display_name"));
+			properties[16].setShortDescription(getExternalizedString("property.fsDesignDocument.short_description"));
+            properties[16].setPropertyEditorClass(getEditorClass("NamedSourceSelectorEditor"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
