@@ -85,8 +85,9 @@ public class GetStatus extends XmlService {
 			if (key.emulatorID == com.twinsoft.api.Session.EmulIDSE) {
 				keyString = key.sKey;
 				licenceMismatch = false;
+				
 			}
-			nbValidKey += KeyManager.hasExpired(key.emulatorID) ? 0 : 1;
+			nbValidKey += KeyManager.hasExpired(key.emulatorID) ? 0 : (key.bDemo ? 0 : 1);
 		}
 		
 		int iCategory = 0;
@@ -96,17 +97,17 @@ public class GetStatus extends XmlService {
 		Date expiredDate = null;
 		int iNumberOfDays = -1;
 		
-		//We decypher the founded SE key
 		TWSKey twsKey = new TWSKey(); 	twsKey.CreateKey(3);
 		
-		//We search the licence expiry date
-		if (keyString!=null && !keyString.isEmpty()) {
+		if (keyString != null && !keyString.isEmpty()) {
+			//We decypher the founded SE key
 			String[] twsKeyInfos = twsKey.decypherbis(keyString).split(";");
 			
 			iCategory = Integer.parseInt(twsKeyInfos[1]);
 			iStations = Integer.parseInt(twsKeyInfos[2]);
 			iNumberOfDays = Integer.parseInt(twsKeyInfos[4]);
 
+			//We search the licence expiry date
 			if (iNumberOfDays != 0) {
 				expiredDate = new Date((long)(iNumberOfDays)*1000*60*60*24);;
 				SimpleDateFormat formater = new SimpleDateFormat("MM/dd/yyyy");

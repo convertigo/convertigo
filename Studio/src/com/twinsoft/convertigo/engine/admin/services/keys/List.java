@@ -73,10 +73,10 @@ public class List extends XmlService{
         	while (key != null) {
             	int total = 0;
         		int emulatorID = key.emulatorID;
-        		String emulatorName = KeyManager.getEmulatorName(key.emulatorID);
+        		String emulatorName = KeyManager.getEmulatorName(emulatorID);
 
         		// Count number of valid keys
-        		nbValidKey += KeyManager.hasExpired(emulatorID) ? 0 : 1;
+        		nbValidKey += KeyManager.hasExpired(emulatorID) ? 0 : (key.bDemo ? 0 : 1);
 
         		Element keysElement = document.createElement("keys");
         		
@@ -106,7 +106,7 @@ public class List extends XmlService{
     	
     	//We add the number of valid into the XML response
     	Element countValidKey = document.createElement("nb_valid_key");
-    	countValidKey.setTextContent(nbValidKey+"");
+    	countValidKey.setTextContent(nbValidKey + "");
 		rootElement.appendChild(countValidKey);
 	}
 }
