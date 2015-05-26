@@ -83,4 +83,13 @@ public enum MimeType {
 		MimeType mimeType = cache.get(type.toLowerCase());
 		return mimeType != null ? mimeType : VOID;
 	}
+	
+	public boolean in(MimeType... types) {
+		for (MimeType type: types) {
+			if (type == this) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

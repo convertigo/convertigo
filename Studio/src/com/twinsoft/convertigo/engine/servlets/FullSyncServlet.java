@@ -6,9 +6,15 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.mail.BodyPart;
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMultipart;
+import javax.mail.util.ByteArrayDataSource;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -28,6 +34,7 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpTrace;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 
@@ -36,13 +43,14 @@ import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.util.ContentTypeDecoder;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.URLUtils;
 
 public class FullSyncServlet extends HttpServlet {
 	private static final long serialVersionUID = -5147185931965387561L;
 
 	@Override
-	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	protected void service(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		StringBuffer debug = new StringBuffer();
 
 		try {
@@ -95,12 +103,80 @@ public class FullSyncServlet extends HttpServlet {
 			String dbName = requestParser.getDbName();
 			
 			String requestStringEntity = null;
+			HttpEntity httpEntity = null;
+			
 			if (token != null) {
 				String special = requestParser.getSpecial();
 				
 				if (request.getInputStream() != null) {
-					requestStringEntity = IOUtils.toString(request.getInputStream(), "UTF-8");
-					debug.append("request Entity:\n" + requestStringEntity + "\n");
+					String reqContentType = request.getContentType(); 
+					if (reqContentType != null && reqContentType.startsWith("multipart/related;")) {
+						final MimeMultipart mp = new MimeMultipart(new ByteArrayDataSource(request.getInputStream(), reqContentType));
+
+						int count = mp.getCount();
+						final int[] size = {request.getIntHeader(HeaderName.ContentLength.value())};
+						debug.append("handle multipart/related: " + reqContentType + "; " + count + " parts; original size of " + size[0]);
+						
+						for (int i = 0; i < count; i++) {
+							BodyPart part = mp.getBodyPart(i);
+							ContentTypeDecoder contentType = new ContentTypeDecoder(part.getContentType());
+													
+							if (contentType.mimeType() == MimeType.Json) {
+								String charset = contentType.getCharset("UTF-8");
+								
+								List<javax.mail.Header> headers = Collections.list(GenericUtils.<Enumeration<javax.mail.Header>>cast(part.getAllHeaders()));
+								
+								byte[] buf = IOUtils.toByteArray(part.getInputStream());
+								size[0] -= buf.length;
+								
+								String json = new String(buf, charset);
+								json = Engine.theApp.couchDbManager.handleDocRequest(dbName, json, token);
+								
+								part.setContent(buf = json.getBytes(charset), part.getContentType());
+								size[0] += buf.length;
+								
+								for (javax.mail.Header header: headers) {
+									part.setHeader(header.getName(), header.getValue());
+								}
+							}
+						}
+						debug.append("; new size of " + size[0] + "\n");
+						
+						httpEntity = new AbstractHttpEntity() {
+							
+							@Override
+							public void writeTo(OutputStream arg0) throws IOException {
+								try {
+									mp.writeTo(arg0);
+								} catch (MessagingException e) {
+									new IOException(e);
+								}
+							}
+							
+							@Override
+							public boolean isStreaming() {
+								return false;
+							}
+							
+							@Override
+							public boolean isRepeatable() {
+								return true;
+							}
+							
+							@Override
+							public long getContentLength() {
+								return size[0];
+							}
+							
+							@Override
+							public InputStream getContent() throws IOException, IllegalStateException {
+								return null;
+							}
+						};
+					} else {
+						requestStringEntity = IOUtils.toString(request.getInputStream(), "UTF-8");
+						debug.append("request Entity:\n" + requestStringEntity + "\n");
+					}
 				}
 				
 				if (method == HttpMethodType.POST && "_bulk_docs".equals(special)) {
@@ -110,14 +186,20 @@ public class FullSyncServlet extends HttpServlet {
 					debug.append("Changed to " + method.name() + " URI: " + uri.toString() + "\n");
 				}
 			}
-
-			if (requestStringEntity != null && newRequest instanceof HttpEntityEnclosingRequest) {
-				debug.append("request new Entity:\n" + requestStringEntity + "\n");
-				((HttpEntityEnclosingRequest) newRequest).setEntity(new StringEntity(requestStringEntity, "UTF-8"));
-			} else if (newRequest instanceof HttpEntityEnclosingRequest) {
-				((HttpEntityEnclosingRequest) newRequest).setEntity(new InputStreamEntity(request.getInputStream()));
+			
+			if (newRequest instanceof HttpEntityEnclosingRequest) {
+				if (httpEntity != null) {
+					// already exists
+				} else if (requestStringEntity != null) {
+					debug.append("request new Entity:\n" + requestStringEntity + "\n");
+					httpEntity = new StringEntity(requestStringEntity, "UTF-8");
+				} else {
+					httpEntity = new InputStreamEntity(request.getInputStream());
+				}
+				
+				((HttpEntityEnclosingRequest) newRequest).setEntity(httpEntity);
 			}
-
+			
 			newRequest.setURI(uri);
 
 			HttpResponse newResponse = Engine.theApp.httpClient4.execute(newRequest);
@@ -142,7 +224,7 @@ public class FullSyncServlet extends HttpServlet {
 			OutputStream os = response.getOutputStream();
 			
 			String responseStringEntity = null;
-			if (!continuous && (contentType.mimeType() == MimeType.Plain || contentType.mimeType() == MimeType.Json)) {
+			if (!continuous && (contentType.mimeType().in(MimeType.Plain, MimeType.Json))) {
 				String charset = contentType.getCharset("UTF-8");
 				responseStringEntity = IOUtils.toString(newResponse.getEntity().getContent(), charset);
 
