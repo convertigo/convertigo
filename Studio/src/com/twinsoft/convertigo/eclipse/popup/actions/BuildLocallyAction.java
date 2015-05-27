@@ -46,6 +46,8 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.w3c.dom.traversal.NodeIterator;
 
 import com.twinsoft.convertigo.beans.core.MobileApplication;
@@ -510,6 +512,20 @@ public class BuildLocallyAction extends MyAbstractAction {
 			
 			doc = XMLUtils.loadXml(new File(cordovaDir, "config.xml"));  // The root config.xml
 			
+			NodeList preferencesList = doc.getElementsByTagName("preference");
+			
+			//Remove old preferences
+			while ( preferencesList.getLength() > 0 ) { 
+	            Element pathNode = (Element) preferencesList.item(0);
+	            //Remove empty lines
+	            Node prev = pathNode.getPreviousSibling();
+	            if (prev != null && prev.getNodeType() == Node.TEXT_NODE &&
+	                prev.getNodeValue().trim().length() == 0) {
+	            		doc.getDocumentElement().removeChild(prev);
+	            }
+	            doc.getDocumentElement().removeChild(pathNode);
+	        }
+			
 			for (Element preference = (Element) preferences.nextNode(); preference != null; preference = (Element) preferences.nextNode()) {
 				String name = preference.getAttribute("name");
 				String value = preference.getAttribute("value");
@@ -521,8 +537,8 @@ public class BuildLocallyAction extends MyAbstractAction {
 				Engine.logEngine.info("Adding preference'" + name + "' with value '" + value + "'");
 				
 				doc.getDocumentElement().appendChild(elt);
-				
-			}
+			}	
+			
 			Engine.logEngine.trace("New config.xml is: " + XMLUtils.prettyPrintDOM(doc));
 			File resXmlFile = new File(cordovaDir, "config.xml");
 			FileUtils.deleteQuietly(resXmlFile);
