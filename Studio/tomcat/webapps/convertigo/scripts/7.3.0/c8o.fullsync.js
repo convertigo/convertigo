@@ -179,7 +179,7 @@ $.extend(true, C8O, {
 		
 		addLiveView: function (db, data) {
 			if (data.__live) {
-				var key = data.docid + "/" + data.viewname;
+				var key = data.ddoc + "/" + data.view;
 				C8O._fs.addLiveDb(db);
 				C8O._fs.live_views[key] = $.extend({}, data);
 				delete C8O._fs.live_views[key].__live;
