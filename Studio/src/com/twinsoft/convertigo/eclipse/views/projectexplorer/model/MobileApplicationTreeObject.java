@@ -22,16 +22,17 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.viewers.Viewer;
 
 import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
-import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 
 public class MobileApplicationTreeObject extends DatabaseObjectTreeObject implements INamedSourceSelectorTreeObject {
@@ -67,75 +68,84 @@ public class MobileApplicationTreeObject extends DatabaseObjectTreeObject implem
 	}
 
 	@Override
-	public boolean isSelectable(String propertyName, Object nsObject) {
-		if ("fsConnector".equals(propertyName)) {
-			return nsObject instanceof FullSyncConnector;
-		}
-		else if ("fsDesignDocument".equals(propertyName)) {
-			if (nsObject instanceof DesignDocument) {
-				DatabaseObject dboParent = ((DesignDocument)nsObject).getParent();
-				if (dboParent instanceof FullSyncConnector) {
-					return DatabaseObject.getNamedSource(dboParent).equals(getPropertyValue("fsConnector"));
+	public NamedSourceSelector getNamedSourceSelector() {
+		return new NamedSourceSelector() {
+			@Override
+			protected List<String> getPropertyNamesForSource(Class<?> c) {
+				List<String> list = new ArrayList<String>();
+				
+				if (ProjectTreeObject.class.isAssignableFrom(c) ||
+					ConnectorTreeObject.class.isAssignableFrom(c))
+				{
+					list.add("fsConnector");
 				}
+				
+				if (ProjectTreeObject.class.isAssignableFrom(c) ||
+					ConnectorTreeObject.class.isAssignableFrom(c) ||
+					DesignDocumentTreeObject.class.isAssignableFrom(c))
+				{
+						list.add("fsDesignDocument");
+				}
+				
+				return list;
 			}
-		}
-		return false;
-	}
-	
-	@Override
-	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
-		super.treeObjectPropertyChanged(treeObjectEvent);
-
-		String propertyName = treeObjectEvent.propertyName;
-		propertyName = ((propertyName == null) ? "":propertyName);
-		
-		if (this.equals(treeObjectEvent.getSource())) {
-			if ("fsConnector".equals(propertyName)) {
-				Object oldValue = treeObjectEvent.oldValue;
-				Object newValue = treeObjectEvent.newValue;
-				if (!oldValue.equals(newValue) && "".equals(newValue)) {
+			
+			@Override
+			protected boolean isNamedSource(String propertyName) {
+				return "fsConnector".equals(propertyName) || "fsDesignDocument".equals(propertyName);
+			}
+			
+			@Override
+			public boolean isSelectable(String propertyName, Object nsObject) {
+				if ("fsConnector".equals(propertyName)) {
+					return nsObject instanceof FullSyncConnector;
+				}
+				else if ("fsDesignDocument".equals(propertyName)) {
+					if (nsObject instanceof DesignDocument) {
+						DatabaseObject dboParent = ((DesignDocument)nsObject).getParent();
+						if (dboParent instanceof FullSyncConnector) {
+							return dboParent.getTokenPath(null).equals(getPropertyValue("fsConnector"));
+						}
+					}
+				}
+				return false;
+			}
+			
+			@Override
+			protected void handleSourceCleared(String propertyName) {
+				if ("fsConnector".equals(propertyName)) {
 					getObject().setFsDesignDocument("");
 				}
 			}
-		}
-		else if (propertyName.equals("name")) {
-			handlesBeanNameChanged(treeObjectEvent);
-		}
-	}
-
-	protected void handlesBeanNameChanged(TreeObjectEvent treeObjectEvent) {
-		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
-		Object oldValue = treeObjectEvent.oldValue;
-		Object newValue = treeObjectEvent.newValue;
-		int update = treeObjectEvent.update;
-
-		if (update != TreeObjectEvent.UPDATE_NONE) {
-			String _fsOldPrefix = null, _fsNewPrefix = null;
-			if (treeObject instanceof ProjectTreeObject) {
-				_fsOldPrefix = (String) oldValue;
-				_fsNewPrefix = (String) newValue;
-			}
-			else if (treeObject instanceof ConnectorTreeObject) {
-				Connector connector = ((ConnectorTreeObject)treeObject).getObject();
-				if (connector instanceof FullSyncConnector) {
-					_fsOldPrefix = connector.getProject().getName() + "." + (String) oldValue;
-					_fsNewPrefix = connector.getProject().getName() + "." + (String) newValue;
+			
+			@Override
+			protected void handleSourceRenamed(String propertyName, String oldName, String newName) {
+				if (isNamedSource(propertyName)) {
+					boolean hasBeenRenamed = false;
+					
+					String pValue = (String) getPropertyValue(propertyName);
+					if (pValue != null && pValue.startsWith(oldName)) {
+						String _pValue = newName + pValue.substring(oldName.length());
+						if (!pValue.equals(_pValue)) {
+							if ("fsConnector".equals(propertyName)) {
+								getObject().setFsConnector(_pValue);
+								hasBeenRenamed = true;
+							}
+							else if ("fsDesignDocument".equals(propertyName)) {
+								getObject().setFsDesignDocument(_pValue);
+								hasBeenRenamed = true;
+							}
+						}
+					}
+			
+					if (hasBeenRenamed) {
+						hasBeenModified(true);
+						viewer.refresh();
+						
+						getDescriptors();// refresh editors (e.g labels in combobox)
+					}
 				}
 			}
-
-			if (_fsOldPrefix != null && _fsNewPrefix != null) {
-				String _fsConnector = getObject().getFsConnector();
-				if (_fsConnector.startsWith(_fsOldPrefix)) {
-					getObject().setFsConnector(_fsConnector.replaceFirst(_fsOldPrefix, _fsNewPrefix));
-					String _fsDesignDocument = getObject().getFsDesignDocument();
-					getObject().setFsDesignDocument(_fsDesignDocument.replaceFirst(_fsOldPrefix, _fsNewPrefix));
-					
-					hasBeenModified(true);
-					viewer.refresh();
-					
-					getDescriptors();// refresh editors (e.g labels in combobox)
-				}
-			}
-		}
+		};
 	}
 }

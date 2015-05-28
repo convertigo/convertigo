@@ -75,7 +75,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
  * This is the base class for all Convertigo objects which should be serialized
  * in the Convertigo database.
  */
-public abstract class DatabaseObject implements Serializable, Cloneable {
+public abstract class DatabaseObject implements Serializable, Cloneable, ITokenPath {
 	private static final long serialVersionUID = -873065042105207891L;
 
 	public static final String PROPERTY_XMLNAME = "xmlname";
@@ -270,6 +270,20 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 			return (Project) databaseObject;
 	}
 
+	public String getTokenPath(String oldName) {
+		String tokenPath = oldName == null ? getName():oldName;
+		
+		DatabaseObject parentDbo = parent;
+		while (parentDbo != null) {
+			tokenPath = parentDbo.getName() + "." + tokenPath;
+			if (parentDbo instanceof Project)
+				break;
+			else
+				parentDbo = parentDbo.getParent();
+		}
+		return tokenPath;
+	}
+	
 	public Connector getConnector() {
 		if (this instanceof Project) {
 			return null;
@@ -1079,15 +1093,6 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 
 	public <E extends DatabaseObject> List<E> getAllChildren() {
 		return new Vector<E>();
-	}
-	
-	static public String getNamedSource(DatabaseObject dbo) {
-		if (dbo == null) return null;
-		String namedSource = dbo.getName();
-		if (!(dbo instanceof Project)) {
-			namedSource = getNamedSource(dbo.getParent()) + "." + namedSource;
-		}
-		return namedSource;
 	}
 	
 	public void changed() {

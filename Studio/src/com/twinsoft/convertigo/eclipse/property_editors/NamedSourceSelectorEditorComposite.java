@@ -161,7 +161,9 @@ public class NamedSourceSelectorEditorComposite extends AbstractDialogComposite 
 							JSONObject views = CouchKey.views.JSONObject(json);
 							if (views != null) {
 								for (Iterator<String> it = GenericUtils.cast(views.keys()); it.hasNext(); ) {
-									tvObject.add(new TVObject(it.next(), isSelectable(object)));
+									String key = it.next();
+									String viewName = tvObject.getTargetName() + "." + key;
+									tvObject.add(new TVObject(key, isSelectable(viewName)));
 								}
 							}
 						}
@@ -228,7 +230,7 @@ public class NamedSourceSelectorEditorComposite extends AbstractDialogComposite 
 
 	private boolean isSelectable(Object object) {
 		if (dboto instanceof INamedSourceSelectorTreeObject) {
-			return ((INamedSourceSelectorTreeObject)dboto).isSelectable(propertyName, object);
+			return ((INamedSourceSelectorTreeObject)dboto).getNamedSourceSelector().isSelectable(propertyName, object);
 		}
 		return false;
 	}

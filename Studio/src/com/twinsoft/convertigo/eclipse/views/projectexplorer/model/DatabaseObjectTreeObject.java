@@ -1099,10 +1099,14 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		Object oldValue = treeObjectEvent.oldValue;
 		Object newValue = treeObjectEvent.newValue;
 		
-		// handle bean's name changes
-		if ("name".equals(propertyName)) {
-			// this is a pool
-			if (getObject() instanceof Pool) {
+		if (this instanceof INamedSourceSelectorTreeObject) {
+			((INamedSourceSelectorTreeObject)this).getNamedSourceSelector().treeObjectPropertyChanged(treeObjectEvent);
+		}
+		
+		// this is a pool
+		if (getObject() instanceof Pool) {
+			// handle bean's name changes
+			if ("name".equals(propertyName)) {
 				Pool pool = (Pool)getObject();
 				// case transaction name changed
 				if (treeObject instanceof TransactionTreeObject) {

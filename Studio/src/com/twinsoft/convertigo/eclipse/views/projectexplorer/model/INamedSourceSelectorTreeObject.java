@@ -23,5 +23,5 @@
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
 public interface INamedSourceSelectorTreeObject {
-	public boolean isSelectable(String propertyName, Object nsObject);
+	public NamedSourceSelector getNamedSourceSelector();
 }
