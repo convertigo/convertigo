@@ -28,8 +28,10 @@ import java.util.List;
 import com.twinsoft.convertigo.beans.core.ITokenPath;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 
-public class NamedSourceSelector {
+public abstract class NamedSourceSelector {
 
+	abstract Object thisTreeObject();
+	
 	protected void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 		
@@ -39,7 +41,7 @@ public class NamedSourceSelector {
 		Object oldValue = treeObjectEvent.oldValue;
 		Object newValue = treeObjectEvent.newValue;
 		
-		if (this.equals(treeObject) && isNamedSource(propertyName)) {
+		if (thisTreeObject().equals(treeObject) && isNamedSource(propertyName)) {
 			if ("".equals(newValue) && !newValue.equals(oldValue)) {
 				handleSourceCleared(propertyName);
 			}

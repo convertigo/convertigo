@@ -46,6 +46,11 @@ public class FullSyncListenerTreeObject extends ListenerTreeObject implements IN
 	public NamedSourceSelector getNamedSourceSelector() {
 		return new NamedSourceSelector() {
 			@Override
+			Object thisTreeObject() {
+				return FullSyncListenerTreeObject.this;
+			}
+			
+			@Override
 			protected List<String> getPropertyNamesForSource(Class<?> c) {
 				List<String> list = new ArrayList<String>();
 				

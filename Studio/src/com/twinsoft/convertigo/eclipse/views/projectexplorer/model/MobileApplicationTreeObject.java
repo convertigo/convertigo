@@ -71,6 +71,11 @@ public class MobileApplicationTreeObject extends DatabaseObjectTreeObject implem
 	public NamedSourceSelector getNamedSourceSelector() {
 		return new NamedSourceSelector() {
 			@Override
+			Object thisTreeObject() {
+				return MobileApplicationTreeObject.this;
+			}
+			
+			@Override
 			protected List<String> getPropertyNamesForSource(Class<?> c) {
 				List<String> list = new ArrayList<String>();
 				
