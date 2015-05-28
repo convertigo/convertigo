@@ -46,13 +46,13 @@ public class FullSyncListenerBeanInfo extends MySimpleBeanInfo {
 			properties[0] = new PropertyDescriptor("targetView", beanClass, "getTargetView", "setTargetView");
 			properties[0].setDisplayName(getExternalizedString("property.targetView.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.targetView.short_description"));
-			properties[0].setPropertyEditorClass(getEditorClass("DesignDocumentViewSelectorEditor"));
+			properties[0].setPropertyEditorClass(getEditorClass("NamedSourceSelectorEditor"));
 			properties[0].setExpert(true);
 			
 			properties[1] = new PropertyDescriptor("targetSequence", beanClass, "getTargetSequence", "setTargetSequence");
 			properties[1].setDisplayName(getExternalizedString("property.targetSequence.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.targetSequence.short_description"));
-			properties[1].setPropertyEditorClass(getEditorClass("TrSeqSourceEditor"));
+			properties[1].setPropertyEditorClass(getEditorClass("NamedSourceSelectorEditor"));
 			properties[1].setExpert(true);
 		}
 		catch(Exception e) {

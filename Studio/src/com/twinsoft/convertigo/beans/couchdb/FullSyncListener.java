@@ -54,8 +54,8 @@ public class FullSyncListener extends Listener {
 
 	private static final long serialVersionUID = -7580433107225235685L;
 
-	private String targetView;
-	private String targetSequence;
+	private String targetView = "";
+	private String targetSequence = "";
 	
 	public FullSyncListener() {
 		super();
@@ -121,7 +121,7 @@ public class FullSyncListener extends Listener {
 			@Override
 			public void run() {
 				try {
-					if (targetView == null) {
+					if (targetView == null || targetView.isEmpty()) {
 						throw new EngineException("No target view defined");
 					}
 					
@@ -210,7 +210,7 @@ public class FullSyncListener extends Listener {
 	}
 	
 	private void executeSequence(JSONArray docs, boolean isInternalRequest) throws EngineException {
-		if (targetSequence == null) {
+		if (targetSequence == null || targetSequence.isEmpty()) {
 			throw new EngineException("No target sequence defined");
 		}
 		

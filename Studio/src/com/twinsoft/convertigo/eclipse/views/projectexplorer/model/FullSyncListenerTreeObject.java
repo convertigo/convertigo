@@ -22,19 +22,16 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
-import java.util.StringTokenizer;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.jface.viewers.Viewer;
 
-import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
-import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.couchdb.FullSyncListener;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 
-public class FullSyncListenerTreeObject extends ListenerTreeObject {
+public class FullSyncListenerTreeObject extends ListenerTreeObject implements INamedSourceSelectorTreeObject {
 
 	public FullSyncListenerTreeObject(Viewer viewer, DatabaseObject object, boolean inherited) {
 		super(viewer, object, inherited);
@@ -44,109 +41,83 @@ public class FullSyncListenerTreeObject extends ListenerTreeObject {
 	public FullSyncListener getObject() {
 		return (FullSyncListener) super.getObject();
 	}
-
+	
 	@Override
-	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
-		super.treeObjectPropertyChanged(treeObjectEvent);
-		
-		String propertyName = treeObjectEvent.propertyName;
-		propertyName = ((propertyName == null) ? "":propertyName);
-		
-		if (propertyName.equals("name")) {
-			handlesBeanNameChanged(treeObjectEvent);
-		}
-	}
-
-	protected void handlesBeanNameChanged(TreeObjectEvent treeObjectEvent) {
-		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
-		Object oldValue = treeObjectEvent.oldValue;
-		Object newValue = treeObjectEvent.newValue;
-		int update = treeObjectEvent.update;
-
-		if (update != TreeObjectEvent.UPDATE_NONE) {
-			String _targetSequence = null;
-			String targetSequence = getObject().getTargetSequence();
-			if (targetSequence != null) {
-				StringTokenizer st = new StringTokenizer(targetSequence,".");
-				String projectName = st.nextToken();
-				String sequenceName = st.nextToken();
+	public NamedSourceSelector getNamedSourceSelector() {
+		return new NamedSourceSelector() {
+			@Override
+			protected List<String> getPropertyNamesForSource(Class<?> c) {
+				List<String> list = new ArrayList<String>();
 				
-				if (treeObject instanceof DatabaseObjectTreeObject) {
-					DatabaseObject databaseObject = (DatabaseObject) treeObject.getObject();
-					if (databaseObject instanceof Project && oldValue.equals(projectName)) {
-						_targetSequence = newTargetSequence(newValue.toString(),sequenceName);
-					}
-					else if (databaseObject instanceof Sequence && oldValue.equals(sequenceName)) {
-						if (projectName.equals(databaseObject.getProject().getName())) {
-							_targetSequence = newTargetSequence(projectName, newValue.toString());
-						}
-					}
+				if (ProjectTreeObject.class.isAssignableFrom(c) ||
+					SequenceTreeObject.class.isAssignableFrom(c))
+				{
+					list.add("targetSequence");
 				}
+				
+				if (ProjectTreeObject.class.isAssignableFrom(c) ||
+					ConnectorTreeObject.class.isAssignableFrom(c) ||
+					DesignDocumentTreeObject.class.isAssignableFrom(c) ||
+					DesignDocumentViewTreeObject.class.isAssignableFrom(c))
+				{
+						list.add("targetView");
+				}
+				
+				return list;
 			}
 			
-			String _targetView = null;
-			String targetView = getObject().getTargetView();
-			if (targetView != null) {
-				StringTokenizer st = new StringTokenizer(targetView,".");
-				String projectName = st.nextToken();
-				String connectorName = st.nextToken();
-				String documentName = st.nextToken();
-				String viewName = st.nextToken();
-				
-				if (treeObject instanceof DatabaseObjectTreeObject) {
-					DatabaseObject databaseObject = (DatabaseObject) treeObject.getObject();
-					if (databaseObject instanceof Project && oldValue.equals(projectName)) {
-						_targetView = newTargetView(newValue.toString(), connectorName, documentName, viewName);
+			@Override
+			protected boolean isNamedSource(String propertyName) {
+				return "targetSequence".equals(propertyName) || "targetView".equals(propertyName);
+			}
+			
+			@Override
+			public boolean isSelectable(String propertyName, Object nsObject) {
+				if ("targetSequence".equals(propertyName)) {
+					return nsObject instanceof Sequence;
+				}
+				else if ("targetView".equals(propertyName)) {
+					if (nsObject instanceof String) {
+						return ((String)nsObject).startsWith(getObject().getParent().getTokenPath(null));
 					}
-					else if (databaseObject instanceof FullSyncConnector && oldValue.equals(connectorName)) {
-						if (projectName.equals(databaseObject.getProject().getName())) {
-							_targetView = newTargetView(projectName, newValue.toString(), documentName, viewName);
-						}
-					}
-					else if (databaseObject instanceof DesignDocument && oldValue.equals(documentName)) {
-						if (projectName.equals(databaseObject.getProject().getName())) {
-							if (connectorName.equals(databaseObject.getConnector().getName())) {
-								_targetView = newTargetView(projectName, connectorName, newValue.toString(), viewName);
+				}
+				return false;
+			}
+
+			@Override
+			protected void handleSourceCleared(String propertyName) {
+				// nothing to do
+			}
+
+			@Override
+			protected void handleSourceRenamed(String propertyName, String oldName, String newName) {
+				if (isNamedSource(propertyName)) {
+					boolean hasBeenRenamed = false;
+					
+					String pValue = (String) getPropertyValue(propertyName);
+					if (pValue != null && pValue.startsWith(oldName)) {
+						String _pValue = newName + pValue.substring(oldName.length());
+						if (!pValue.equals(_pValue)) {
+							if ("targetSequence".equals(propertyName)) {
+								getObject().setTargetSequence(_pValue);
+								hasBeenRenamed = true;
+							}
+							else if ("targetView".equals(propertyName)) {
+								getObject().setTargetView(_pValue);
+								hasBeenRenamed = true;
 							}
 						}
 					}
-				}
-				else if (treeObject instanceof DesignDocumentViewTreeObject && oldValue.equals(viewName)) {
-					DesignDocument designDocument = (DesignDocument) ((DesignDocumentViewTreeObject)treeObject).getTreeObjectOwner().getObject();
-					if (projectName.equals(designDocument.getProject().getName())) {
-						if (connectorName.equals(designDocument.getConnector().getName())) {
-							if (documentName.equals(designDocument.getName())) {
-								_targetView = newTargetView(projectName, connectorName, documentName, newValue.toString());
-							}
-						}
+			
+					if (hasBeenRenamed) {
+						hasBeenModified(true);
+						viewer.refresh();
+						
+						getDescriptors();// refresh editors (e.g labels in combobox)
 					}
 				}
 			}
-			
-			boolean shouldUpdate = false;
-			if (_targetSequence != null) {
-				getObject().setTargetSequence(_targetSequence);
-				shouldUpdate = true;
-			}
-			if (_targetView != null) {
-				getObject().setTargetView(_targetView);
-				shouldUpdate = true;
-			}
-			
-			if (shouldUpdate) {
-				hasBeenModified(true);
-				viewer.refresh();
-				
-				getDescriptors();// refresh editors (e.g labels in combobox)
-			}
-		}
+		};
 	}
 	
-	private String newTargetSequence(String projectName, String sequenceName) {
-		return projectName + "." + sequenceName;
-	}
-	
-	private String newTargetView(String projectName, String connectorName, String documentName, String viewName) {
-		return projectName + "." + connectorName + "." + documentName + "." + viewName;
-	}
 }

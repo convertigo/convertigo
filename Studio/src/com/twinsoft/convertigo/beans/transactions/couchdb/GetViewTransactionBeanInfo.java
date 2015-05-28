@@ -46,7 +46,6 @@ public class GetViewTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[0].setDisplayName(getExternalizedString("property.viewname.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.viewname.short_description"));
             properties[0].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
-//			properties[0].setPropertyEditorClass(getEditorClass("DesignDocumentViewSelectorEditor"));
 			
 			properties[1] = new PropertyDescriptor("q_update_seq", beanClass, "getQ_update_seq", "setQ_update_seq");
 			properties[1].setDisplayName(getExternalizedString("property.q_update_seq.display_name"));
