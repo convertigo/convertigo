@@ -59,6 +59,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
 import org.apache.xml.resolver.Catalog;
 import org.apache.xml.resolver.tools.CatalogResolver;
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Attr;
@@ -1136,42 +1137,129 @@ public class XMLUtils {
 		return localName;
 	}
 	
-	public static  void handleElement(Element elt, JSONObject obj, boolean ignoreStepIds) throws JSONException {
-		String key = elt.getTagName();
-		
-		JSONObject value = new JSONObject();
-		NodeList nl = elt.getChildNodes();
-		for(int i=0;i<nl.getLength();i++) {
-			Node node = nl.item(i);
-			if(node.getNodeType()==Node.ELEMENT_NODE) {
-				Element child = (Element) node;
-				handleElement(child, value, ignoreStepIds);
+	private static Object getValue(Element elt, boolean ignoreStepIds) throws JSONException {
+		Object value = null;
+
+		try {
+			if (elt.hasAttribute("type")) {
+				String type = elt.getAttribute("type");
+
+				if (type.equals("object")) {
+					JSONObject jsonObject = new JSONObject();
+
+					NodeList nl = elt.getChildNodes();
+					for (int i = 0; i < nl.getLength(); i++) {
+						Node node = nl.item(i);
+
+						if (node instanceof Element) {
+							Element child = (Element) node;
+							String childName = child.hasAttribute("originalKeyName") ? child.getAttribute("originalKeyName") : child.getTagName();
+							Object childValue = getValue(child, ignoreStepIds);
+							
+							if (childValue != null) {
+								jsonObject.put(childName, childValue);								
+							} else {
+								handleElement(child, jsonObject, true);
+							}
+						}
+					}
+					value = jsonObject;
+				} else if (type.equals("array")) {
+					JSONArray array = new JSONArray();
+
+					NodeList nl = elt.getChildNodes();
+					for (int i = 0; i < nl.getLength(); i++) {
+						Node node = nl.item(i);
+
+						if (node instanceof Element) {
+							Element child = (Element) node;
+							Object childValue = getValue(child, ignoreStepIds);
+							
+							if (childValue != null) {
+								array.put(childValue);							
+							} else {
+								JSONObject obj = new JSONObject();
+								array.put(obj);
+								handleElement(child, obj, true);
+							}
+						}
+					}
+
+					value = array;
+				} else if (type.equals("boolean")) {
+					value = Boolean.parseBoolean(elt.getTextContent());
+				} else if (type.equals("null")) {
+					value = JSONObject.NULL;
+				} else if (type.equals("integer")) {
+					value = Integer.parseInt(elt.getTextContent());
+				} else if (type.equals("long")) {
+					value = Long.parseLong(elt.getTextContent());
+				} else if (type.equals("double")) {
+					value = Double.parseDouble(elt.getTextContent());
+				} else if (type.equals("float")) {
+					value = Float.parseFloat(elt.getTextContent());
+				}
+
+				if (value != null) {
+					elt.removeAttribute(type);
+				}
 			}
+		} catch (Throwable t) {
+			Engine.logEngine.debug("failed to convert the element " + elt.getTagName(), t);
 		}
 		
-		JSONObject attr = new JSONObject();
-		NamedNodeMap nnm = elt.getAttributes();
-		for(int i=0;i<nnm.getLength();i++) {
-			Node node = nnm.item(i);
-			if (ignoreStepIds && (node.getNodeName() != "step_id"))
-				attr.accumulate(node.getNodeName(), node.getNodeValue());
-		}
-		
-		if(value.length()==0) {
-			String content = elt.getTextContent();
-			if(attr.length()==0) obj.accumulate(key, content);
-			else value.accumulate("text", content);
-		}
-		
-		if(attr.length()!=0)
-			value.accumulate("attr", attr);
-		
-		if(value.length()!=0)
-			obj.accumulate(key, value);
+		return value;
 	}
 	
-	public static String XmlToJson(Element elt, boolean ignoreStepIds) throws JSONException
-	{
+	public static  void handleElement(Element elt, JSONObject obj, boolean ignoreStepIds) throws JSONException {
+		String key = elt.getTagName();
+		JSONObject value = new JSONObject();
+		NodeList nl = elt.getChildNodes();
+		
+		for (int i = 0; i < nl.getLength(); i++) {
+			Node node = nl.item(i);
+			
+			if (node instanceof Element) {
+				Element child = (Element) node;
+				Object childValue = getValue(child, ignoreStepIds);
+				
+				if (childValue != null) {
+					value.accumulate(child.getTagName(), childValue);
+				} else {
+					handleElement(child, value, ignoreStepIds);					
+				}
+			}
+		}
+
+		JSONObject attr = new JSONObject();
+		NamedNodeMap nnm = elt.getAttributes();
+		
+		for (int i = 0; i < nnm.getLength(); i++) {
+			Node node = nnm.item(i);
+			if (ignoreStepIds && (node.getNodeName() != "step_id")) {
+				attr.accumulate(node.getNodeName(), node.getNodeValue());
+			}
+		}
+
+		if (value.length() == 0) {
+			String content = elt.getTextContent();
+			if (attr.length() == 0) {
+				obj.accumulate(key, content);
+			} else {
+				value.accumulate("text", content);
+			}
+		}
+
+		if (attr.length() != 0) {
+			value.accumulate("attr", attr);
+		}
+
+		if (value.length() != 0) {
+			obj.accumulate(key, value);
+		}
+	}
+	
+	public static String XmlToJson(Element elt, boolean ignoreStepIds) throws JSONException {
 		JSONObject json = new JSONObject();
 		handleElement(elt, json, ignoreStepIds);
 		String result = json.toString(1);
