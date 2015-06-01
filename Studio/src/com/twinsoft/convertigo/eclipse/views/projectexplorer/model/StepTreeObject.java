@@ -22,6 +22,9 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -30,9 +33,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 
-import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.Transaction;
@@ -61,7 +62,7 @@ import com.twinsoft.convertigo.eclipse.editors.xml.XMLSequenceStepEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionStepEditorInput;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 
-public class StepTreeObject extends DatabaseObjectTreeObject implements IEditableTreeObject, IOrderableTreeObject {
+public class StepTreeObject extends DatabaseObjectTreeObject implements INamedSourceSelectorTreeObject, IEditableTreeObject, IOrderableTreeObject {
 	
 	public StepTreeObject(Viewer viewer, Step object) {
 		this(viewer, object, false);
@@ -86,124 +87,106 @@ public class StepTreeObject extends DatabaseObjectTreeObject implements IEditabl
 	@Override
 	public void hasBeenModified(boolean modified) {
 		super.hasBeenModified(modified);
-//		if (modified)
-//			getObject().setWsdlDomDirty();
 	}
 	
 	@Override
-	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
-		super.treeObjectPropertyChanged(treeObjectEvent);
-		
-		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
-		if (treeObject instanceof DatabaseObjectTreeObject) {
-			//DatabaseObject databaseObject = (DatabaseObject)treeObject.getObject();
-			String propertyName = treeObjectEvent.propertyName;
-			propertyName = ((propertyName == null) ? "":propertyName);
-			
-			// If a bean name has changed
-			if (propertyName.equals("name")) {
-				handlesBeanNameChanged(treeObjectEvent);
+	public NamedSourceSelector getNamedSourceSelector() {
+		return new NamedSourceSelector() {
+			@Override
+			Object thisTreeObject() {
+				return StepTreeObject.this;
 			}
-		}
-	}
+			
+			@Override
+			protected List<String> getPropertyNamesForSource(Class<?> c) {
+				List<String> list = new ArrayList<String>();
+				
+				if (getObject() instanceof TransactionStep) {
+					if (ProjectTreeObject.class.isAssignableFrom(c) ||
+						ConnectorTreeObject.class.isAssignableFrom(c) ||
+						TransactionTreeObject.class.isAssignableFrom(c))
+					{
+							list.add("sourceTransaction");
+					}
+				}
+				if (getObject() instanceof SequenceStep) {
+					if (ProjectTreeObject.class.isAssignableFrom(c) ||
+						SequenceTreeObject.class.isAssignableFrom(c))
+					{
+							list.add("sourceSequence");
+					}
+				}
+				
+				return list;
+			}
+			
+			@Override
+			protected boolean isNamedSource(String propertyName) {
+				if (getObject() instanceof TransactionStep) {
+					return "sourceTransaction".equals(propertyName);
+				}
+				if (getObject() instanceof SequenceStep) {
+					return "sourceSequence".equals(propertyName);
+				}
+				return false;
+			}
+			
+			@Override
+			public boolean isSelectable(String propertyName, Object nsObject) {
+				if (getObject() instanceof TransactionStep) {
+					if ("sourceTransaction".equals(propertyName)) {
+						return nsObject instanceof Transaction;
+					}
+				}
+				if (getObject() instanceof SequenceStep) {
+					if ("sourceSequence".equals(propertyName)) {
+						return nsObject instanceof Sequence;
+					}
+				}
+				return false;
+			}
 
-	protected void handlesBeanNameChanged(TreeObjectEvent treeObjectEvent) {
-		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject)treeObjectEvent.getSource();
-		DatabaseObject databaseObject = (DatabaseObject)treeObject.getObject();
-		Object oldValue = treeObjectEvent.oldValue;
-		Object newValue = treeObjectEvent.newValue;
-		int update = treeObjectEvent.update;
-		
-		// Updates project, connector, sequence, transaction names references
-		if (update != TreeObjectEvent.UPDATE_NONE) {
-			boolean isLocalProject = false;
-			boolean isSameValue = false;
-			boolean shouldUpdate = false;
+			@Override
+			protected void handleSourceCleared(String propertyName) {
+				// nothing to do
+			}
+
+			@Override
+			protected void handleSourceRenamed(int update, String propertyName, String oldName, String newName) {
+				if (isNamedSource(propertyName)) {
+					boolean hasBeenRenamed = false;
+					
+					boolean isLocal = oldName.startsWith(getProjectTreeObject().getName());
+					boolean shoudRename = (update == TreeObjectEvent.UPDATE_ALL) || ((update == TreeObjectEvent.UPDATE_LOCAL) && isLocal);
+					
+					String pValue = (String) getPropertyValue(propertyName);
+					if (shoudRename && pValue != null && pValue.startsWith(oldName)) {
+						String _pValue = newName + pValue.substring(oldName.length());
+						if (!pValue.equals(_pValue)) {
+							if (getObject() instanceof TransactionStep) {
+								if ("sourceTransaction".equals(propertyName)) {
+									((TransactionStep)getObject()).setSourceTransaction(_pValue);
+									hasBeenRenamed = true;
+								}
+							}
+							if (getObject() instanceof SequenceStep) {
+								if ("sourceSequence".equals(propertyName)) {
+									((SequenceStep)getObject()).setSourceSequence(_pValue);
+									hasBeenRenamed = true;
+								}
+							}
+						}
+					}
 			
-			if (getObject() instanceof TransactionStep) {
-				TransactionStep step = (TransactionStep)getObject();
-				
-				// Case of project rename
-				if (databaseObject instanceof Project) {
-					isLocalProject = step.getProject().equals(databaseObject);
-					isSameValue = step.getProjectName().equals(oldValue);
-					shouldUpdate = (update == TreeObjectEvent.UPDATE_ALL) || ((update == TreeObjectEvent.UPDATE_LOCAL) && (isLocalProject));
-					if (isSameValue && shouldUpdate) {
-						step.setSourceTransaction((String)newValue + TransactionStep.SOURCE_SEPARATOR + step.getConnectorName() +
-								TransactionStep.SOURCE_SEPARATOR + step.getTransactionName());
+					if (hasBeenRenamed) {
 						hasBeenModified(true);
 						viewer.refresh();
 						
 						getDescriptors();// refresh editors (e.g labels in combobox)
 					}
 				}
-				// Case of bean rename in same targeted project
-				else if (databaseObject.getProject().getName().equals(step.getProjectName())) {
-					isLocalProject = step.getProject().equals(databaseObject.getProject());
-					shouldUpdate = (update == TreeObjectEvent.UPDATE_ALL) || ((update == TreeObjectEvent.UPDATE_LOCAL) && (isLocalProject));
-					
-					// Case of connector rename
-					if (databaseObject instanceof Connector) {
-						isSameValue = step.getConnectorName().equals(oldValue);
-						if (isSameValue && shouldUpdate) {
-							step.setSourceTransaction(step.getProjectName() + TransactionStep.SOURCE_SEPARATOR + (String) newValue +
-									TransactionStep.SOURCE_SEPARATOR + step.getTransactionName());
-							hasBeenModified(true);
-							viewer.refresh();
-							
-							getDescriptors();// refresh editors (e.g labels in combobox)
-						}
-					}
-					// Case of transaction rename
-					else if (databaseObject instanceof Transaction) {
-						isSameValue = step.getTransactionName().equals(oldValue);
-						if (isSameValue && shouldUpdate) {
-							step.setSourceTransaction(step.getProjectName() + TransactionStep.SOURCE_SEPARATOR + step.getConnectorName() +
-									TransactionStep.SOURCE_SEPARATOR + (String) newValue);
-							hasBeenModified(true);
-							viewer.refresh();
-							
-							getDescriptors();// refresh editors (e.g labels in combobox)
-						}
-					}
-				}
 			}
-			
-			if (getObject() instanceof SequenceStep) {
-				SequenceStep step = (SequenceStep)getObject();
-				
-				// Case of project rename
-				if (databaseObject instanceof Project) {
-					isLocalProject = step.getProject().equals(databaseObject);
-					isSameValue = step.getProjectName().equals(oldValue);
-					shouldUpdate = (update == TreeObjectEvent.UPDATE_ALL) || ((update == TreeObjectEvent.UPDATE_LOCAL) && (isLocalProject));
-					if (isSameValue && shouldUpdate) {
-						step.setSourceSequence((String) newValue + SequenceStep.SOURCE_SEPARATOR + step.getSequenceName());
-						hasBeenModified(true);
-						viewer.refresh();
-						
-						getDescriptors();// refresh editors (e.g labels in combobox)
-					}
-				}
-				// Case of bean rename in same targeted project
-				else if (databaseObject.getProject().getName().equals(step.getProjectName())) {
-					isLocalProject = step.getProject().equals(databaseObject.getProject());
-					shouldUpdate = (update == TreeObjectEvent.UPDATE_ALL) || ((update == TreeObjectEvent.UPDATE_LOCAL) && (isLocalProject));
-					
-					// Case of sequence rename
-					if (databaseObject instanceof Sequence) {
-						isSameValue = step.getSequenceName().equals(oldValue);
-						if (isSameValue && shouldUpdate) {
-							step.setSourceSequence(step.getProjectName() + SequenceStep.SOURCE_SEPARATOR + (String) newValue);
-							hasBeenModified(true);
-							viewer.refresh();
-							
-							getDescriptors();// refresh editors (e.g labels in combobox)
-						}
-					}
-				}
-			}
-		}
+		};
 	}
 	
 	@Override

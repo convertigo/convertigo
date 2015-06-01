@@ -46,7 +46,7 @@ public class TransactionStepBeanInfo extends MySimpleBeanInfo {
 			properties[0] = new PropertyDescriptor("sourceTransaction", beanClass, "getSourceTransaction", "setSourceTransaction");
 			properties[0].setDisplayName(getExternalizedString("property.sourceTransaction.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.sourceTransaction.short_description"));
-			properties[0].setPropertyEditorClass(getEditorClass("TrSeqSourceEditor"));
+			properties[0].setPropertyEditorClass(getEditorClass("NamedSourceSelectorEditor"));
 			
             properties[1] = new PropertyDescriptor("connectionStringDefinition", beanClass, "getConnectionStringDefinition", "setConnectionStringDefinition");
 			properties[1].setDisplayName(getExternalizedString("property.connectionStringDefinition.display_name"));
