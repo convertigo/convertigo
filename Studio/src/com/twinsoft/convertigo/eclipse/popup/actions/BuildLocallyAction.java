@@ -84,6 +84,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 	
 	static {
 		Map<String, String> m = new HashMap<String, String>();
+		m.put("180x180","icon-60@3x.png");
 		//iOS 7.0+ 
 		// iPhone/iPod Touch
 		m.put("60x60", "icon-60.png");
@@ -118,6 +119,8 @@ public class BuildLocallyAction extends MyAbstractAction {
 		Map<String, String> m = new HashMap<String, String>();
 		
 		// iPhone
+		m.put("1242x2208", "Default-736h@3x~iphone.png");
+		m.put("750x1334", "Default-667h@2x~iphone.png");
 		m.put("640x1136", "Default-568h@2x~iphone.png");
 		m.put("640x960", "Default@2x~iphone.png");
 		m.put("320x480", "Default~iphone.png");
@@ -331,6 +334,15 @@ public class BuildLocallyAction extends MyAbstractAction {
 					runCordovaCommand(cordovaDir, arguments);
 				}	
 			}
+			
+			// We correct the application name if needed
+			String applicationName = mobilePlatform.getParent().getComputedApplicationName();
+			Pattern regex = Pattern.compile("[$&+,:;=?@#|\']");
+			Matcher matcher = regex.matcher(applicationName);
+			while (matcher.find()){
+			    applicationName = applicationName.replace(matcher.group(0), "\\" + matcher.group(0));
+			}
+			
 
 			//ANDROID
 			if (mobilePlatform instanceof Android) {
@@ -392,7 +404,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 			
 			//iOS
 			if (mobilePlatform instanceof  IOs) {
-				String applicationName = mobilePlatform.getParent().getComputedApplicationName();
+//				String applicationName = mobilePlatform.getParent().getComputedApplicationName();
 				
 				File iconFolder = new File(cordovaDir, "platforms/" + platform + "/" + applicationName + "/Resources/icons");
 				
@@ -511,6 +523,9 @@ public class BuildLocallyAction extends MyAbstractAction {
 			NodeIterator preferences = xpathApi.selectNodeIterator(doc, "//preference");
 			
 			doc = XMLUtils.loadXml(new File(cordovaDir, "config.xml"));  // The root config.xml
+			
+			Element applicationNameElement = (Element) doc.getElementsByTagName("name").item(0);
+			applicationNameElement.setTextContent(applicationName);
 			
 			NodeList preferencesList = doc.getElementsByTagName("preference");
 			
@@ -847,6 +862,12 @@ public class BuildLocallyAction extends MyAbstractAction {
 	
 	private File getAbsolutePathOfBuiltFile(MobilePlatform mobilePlatform, String buildMode) {
 		String applicationName = mobilePlatform.getParent().getComputedApplicationName();
+		Pattern regex = Pattern.compile("[$&+,:;=?@#|\']");
+		Matcher matcher = regex.matcher(applicationName);
+		while (matcher.find()){
+		    applicationName = applicationName.replace(matcher.group(0), "");
+		}
+		
 		String cordovaPlatform = mobilePlatform.getCordovaPlatform();
 		String builtPath = "/platforms/" + cordovaPlatform + "/";
 		String buildMd = buildMode.equals("debug") ? "Debug" : "Release";
