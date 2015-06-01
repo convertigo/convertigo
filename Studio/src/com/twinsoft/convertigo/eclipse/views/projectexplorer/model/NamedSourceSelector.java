@@ -41,12 +41,14 @@ public abstract class NamedSourceSelector {
 		Object oldValue = treeObjectEvent.oldValue;
 		Object newValue = treeObjectEvent.newValue;
 		
+		int update = treeObjectEvent.update;
+				
 		if (thisTreeObject().equals(treeObject) && isNamedSource(propertyName)) {
 			if ("".equals(newValue) && !newValue.equals(oldValue)) {
 				handleSourceCleared(propertyName);
 			}
 		}
-		else if (treeObjectEvent.update != TreeObjectEvent.UPDATE_NONE && propertyName.equals("name")) {
+		else if (update != TreeObjectEvent.UPDATE_NONE && propertyName.equals("name")) {
 			if (!newValue.equals(oldValue)) {
 				String oldTokenPath = null, newTokenPath = null;
 				if (treeObject instanceof DatabaseObjectTreeObject) {
@@ -64,7 +66,7 @@ public abstract class NamedSourceSelector {
 				}
 				if (oldTokenPath != null && newTokenPath != null) {
 					for (String _propertyName : getPropertyNamesForSource(treeObject.getClass())) {
-						handleSourceRenamed(_propertyName, oldTokenPath, newTokenPath);
+						handleSourceRenamed(update, _propertyName, oldTokenPath, newTokenPath);
 					}
 				}
 			}
@@ -87,7 +89,7 @@ public abstract class NamedSourceSelector {
 		
 	}
 	
-	protected void handleSourceRenamed(String propertyName, String oldName, String newName) {
+	protected void handleSourceRenamed(int update, String propertyName, String oldName, String newName) {
 		
 	}
 }
