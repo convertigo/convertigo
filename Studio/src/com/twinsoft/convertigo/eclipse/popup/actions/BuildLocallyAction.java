@@ -335,17 +335,17 @@ public class BuildLocallyAction extends MyAbstractAction {
 				}	
 			}
 			
-			// We correct the application name if needed
 			String applicationName = mobilePlatform.getParent().getComputedApplicationName();
-			Pattern regex = Pattern.compile("[$&+,:;=?@#|\']");
-			Matcher matcher = regex.matcher(applicationName);
-			while (matcher.find()){
-			    applicationName = applicationName.replace(matcher.group(0), "\\" + matcher.group(0));
-			}
-			
 
 			//ANDROID
 			if (mobilePlatform instanceof Android) {
+				// We correct the application name if needed
+				Pattern regex = Pattern.compile("[$&+,:;=?@#|\']");
+				Matcher matcher = regex.matcher(applicationName);
+				while (matcher.find()){
+				    applicationName = applicationName.replace(matcher.group(0), "\\" + matcher.group(0));
+				}
+				
 				File resFolder = new File(cordovaDir, "platforms/" + platform + "/res");
 				
 				if (defaultIcon != null) {
@@ -404,7 +404,6 @@ public class BuildLocallyAction extends MyAbstractAction {
 			
 			//iOS
 			if (mobilePlatform instanceof  IOs) {
-//				String applicationName = mobilePlatform.getParent().getComputedApplicationName();
 				
 				File iconFolder = new File(cordovaDir, "platforms/" + platform + "/" + applicationName + "/Resources/icons");
 				
@@ -862,17 +861,23 @@ public class BuildLocallyAction extends MyAbstractAction {
 	
 	private File getAbsolutePathOfBuiltFile(MobilePlatform mobilePlatform, String buildMode) {
 		String applicationName = mobilePlatform.getParent().getComputedApplicationName();
-		Pattern regex = Pattern.compile("[$&+,:;=?@#|\']");
-		Matcher matcher = regex.matcher(applicationName);
-		while (matcher.find()){
-		    applicationName = applicationName.replace(matcher.group(0), "");
-		}
 		
 		String cordovaPlatform = mobilePlatform.getCordovaPlatform();
 		String builtPath = "/platforms/" + cordovaPlatform + "/";
 		String buildMd = buildMode.equals("debug") ? "Debug" : "Release";
 		
 		if (mobilePlatform instanceof Android) {
+			// Correct application name for build 
+			if(is(OS.mac)){
+				applicationName = "MainActivity";
+			} else {
+				Pattern regex = Pattern.compile("[$&+,:;=?@#|\']");
+				Matcher matcher = regex.matcher(applicationName);
+				while (matcher.find()){
+				    applicationName = applicationName.replace(matcher.group(0), "");
+				}
+			}
+			
 			builtPath += "ant-build/" + applicationName + "-" + buildMode + ".apk";
 		} else if (mobilePlatform instanceof IOs){
 			// iOS
