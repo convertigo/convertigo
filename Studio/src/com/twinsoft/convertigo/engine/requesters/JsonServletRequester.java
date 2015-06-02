@@ -26,6 +26,7 @@ import java.io.UnsupportedEncodingException;
 
 import org.w3c.dom.Document;
 
+import com.twinsoft.convertigo.engine.enums.JsonOutput;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class JsonServletRequester extends ServletRequester {
@@ -44,7 +45,8 @@ public class JsonServletRequester extends ServletRequester {
 	
 	@Override
 	public String postGetDocument(Document document) throws Exception {
-		return XMLUtils.XmlToJson(document.getDocumentElement(), true);
+		boolean useType = context.project.getJsonOutput() == JsonOutput.useType;
+		return XMLUtils.XmlToJson(document.getDocumentElement(), true, useType);
 	}
 	
 	protected Object addStatisticsAsData(Object result) { 

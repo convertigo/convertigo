@@ -38,6 +38,7 @@ import org.w3c.dom.NodeList;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.JsonOutput;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -105,6 +106,11 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	 * The namespace URI
 	 */
 	private String namespaceUri = "";
+	
+	/**
+	 * .json and .jsonp requester should use "type" attribute to make output
+	 */
+	private JsonOutput jsonOutput = JsonOutput.useType;
 	
 	/**
 	 * The schema element form
@@ -261,13 +267,20 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		this.schemaElementForm = XsdForm.unqualified; // schemaElementForm
 	}
 	
-	
 	public boolean isStrictMode() {
 		return bStrictMode;
 	}
 	
 	public void setStrictMode(boolean strictMode) {
 		bStrictMode = strictMode;
+	}
+
+	public JsonOutput getJsonOutput() {
+		return jsonOutput;
+	}
+
+	public void setJsonOutput(JsonOutput jsonOutput) {
+		this.jsonOutput = jsonOutput;
 	}
 	
 	@Override
@@ -435,24 +448,31 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	@Override
 	public void configure(Element element) throws Exception {
 		super.configure(element);
-		
+
 		String version = element.getAttribute("version");
-		
-		 if (version!= null && VersionUtils.compareMigrationVersion(version, ".m002") < 0) {
-	        	Engine.logDatabaseObjectManager.info("Project's file migration to m002 index.html ...");
-	        	String projectRoot = Engine.PROJECTS_PATH+'/'+getName();
-	        	File indexPage = new File(projectRoot+"/index.html");
-	        	if(indexPage.exists()){
-	        		Engine.logDatabaseObjectManager.info("index.html found, rename it to index_old.html");
-	        		indexPage.renameTo(new File(projectRoot+"/index_old.html"));
-	        	}
-	        	ProjectUtils.copyIndexFile(getName());
-	        	Engine.logDatabaseObjectManager.info("Basic index.html copied");
-		 }
-		 
+
+		if (version!= null) {
+			if (VersionUtils.compareMigrationVersion(version, ".m002") < 0) {
+				Engine.logDatabaseObjectManager.info("Project's file migration to m002 index.html ...");
+				String projectRoot = Engine.PROJECTS_PATH+'/'+getName();
+				File indexPage = new File(projectRoot+"/index.html");
+				if(indexPage.exists()){
+					Engine.logDatabaseObjectManager.info("index.html found, rename it to index_old.html");
+					indexPage.renameTo(new File(projectRoot+"/index_old.html"));
+				}
+				ProjectUtils.copyIndexFile(getName());
+				Engine.logDatabaseObjectManager.info("Basic index.html copied");
+			}
+
+			if (VersionUtils.compareMigrationVersion(version, ".m006") < 0) {
+				Engine.logDatabaseObjectManager.info("Project's file migration to m006: set 'jsonOutput' value to 'verbose' (old behavior)");
+				jsonOutput = JsonOutput.verbose;
+				hasChanged = true;
+			}
+
 			if (VersionUtils.compare(version, "7.3.0") < 0) {
 				NodeList properties = element.getElementsByTagName("property");
-				
+
 				Element propVarDom = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "bStrictMode");
 				if (propVarDom == null) {
 					bStrictMode = false;
@@ -460,6 +480,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 					Engine.logBeans.warn("[Project] Successfully set 'bStrictMode' property for project \""+ getName() +"\" (v 7.3.0)");
 				}
 			}
+		}
     }
     
     private transient MobileApplication mobileApplication = null;
