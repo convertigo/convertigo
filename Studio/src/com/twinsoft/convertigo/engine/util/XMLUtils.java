@@ -1126,7 +1126,7 @@ public class XMLUtils {
 		return localName;
 	}
 	
-	private static Object getValue(Element elt, boolean ignoreStepIds) throws JSONException {
+	private static Object getValue(Element elt, boolean ignoreStepIds, boolean useType) throws JSONException {
 		Object value = null;
 
 		try {
@@ -1143,12 +1143,12 @@ public class XMLUtils {
 						if (node instanceof Element) {
 							Element child = (Element) node;
 							String childName = child.hasAttribute("originalKeyName") ? child.getAttribute("originalKeyName") : child.getTagName();
-							Object childValue = getValue(child, ignoreStepIds);
+							Object childValue = getValue(child, ignoreStepIds, useType);
 							
 							if (childValue != null) {
-								jsonObject.put(childName, childValue);								
+								jsonObject.put(childName, childValue);			
 							} else {
-								handleElement(child, jsonObject, true);
+								handleElement(child, jsonObject, ignoreStepIds, useType);
 							}
 						}
 					}
@@ -1162,14 +1162,14 @@ public class XMLUtils {
 
 						if (node instanceof Element) {
 							Element child = (Element) node;
-							Object childValue = getValue(child, ignoreStepIds);
+							Object childValue = getValue(child, ignoreStepIds, useType);
 							
 							if (childValue != null) {
 								array.put(childValue);							
 							} else {
 								JSONObject obj = new JSONObject();
 								array.put(obj);
-								handleElement(child, obj, true);
+								handleElement(child, obj, ignoreStepIds, useType);
 							}
 						}
 					}
@@ -1200,7 +1200,7 @@ public class XMLUtils {
 		return value;
 	}
 	
-	public static  void handleElement(Element elt, JSONObject obj, boolean ignoreStepIds) throws JSONException {
+	public static  void handleElement(Element elt, JSONObject obj, boolean ignoreStepIds, boolean useType) throws JSONException {
 		String key = elt.getTagName();
 		JSONObject value = new JSONObject();
 		NodeList nl = elt.getChildNodes();
@@ -1210,12 +1210,12 @@ public class XMLUtils {
 			
 			if (node instanceof Element) {
 				Element child = (Element) node;
-				Object childValue = getValue(child, ignoreStepIds);
+				Object childValue = useType ? getValue(child, ignoreStepIds, useType) : null;
 				
 				if (childValue != null) {
 					value.accumulate(child.getTagName(), childValue);
 				} else {
-					handleElement(child, value, ignoreStepIds);					
+					handleElement(child, value, ignoreStepIds, useType);					
 				}
 			}
 		}
@@ -1248,9 +1248,9 @@ public class XMLUtils {
 		}
 	}
 	
-	public static String XmlToJson(Element elt, boolean ignoreStepIds) throws JSONException {
+	public static String XmlToJson(Element elt, boolean ignoreStepIds, boolean useType) throws JSONException {
 		JSONObject json = new JSONObject();
-		handleElement(elt, json, ignoreStepIds);
+		handleElement(elt, json, ignoreStepIds, useType);
 		String result = json.toString(1);
 		return result;
 	}

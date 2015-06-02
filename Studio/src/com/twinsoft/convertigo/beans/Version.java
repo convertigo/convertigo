@@ -29,7 +29,7 @@ public class Version extends com.twinsoft.convertigo.engine.ProductVersion {
 	// This module version is useful for migration purposes. We must increment
 	// this number each time we have to perform a migration.
 	// This number must be in the form "mxxx".
-    public final static String moduleVersion = "m005";
+    public final static String moduleVersion = "m006";
     
     public final static String version = ProductVersion.productVersion + "." + Version.moduleVersion;
     

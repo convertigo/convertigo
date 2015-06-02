@@ -37,6 +37,7 @@ import org.w3c.dom.Element;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.JsonOutput;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 
@@ -103,6 +104,11 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	 * The namespace URI
 	 */
 	private String namespaceUri = "";
+	
+	/**
+	 * .json and .jsonp requester should use "type" attribute to make output
+	 */
+	private JsonOutput jsonOutput = JsonOutput.useType;
 	
 	/**
 	 * The schema element form
@@ -255,6 +261,14 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	 */
 	public void setSchemaElementForm(XsdForm schemaElementForm) {
 		this.schemaElementForm = XsdForm.unqualified; // schemaElementForm
+	}
+
+	public JsonOutput getJsonOutput() {
+		return jsonOutput;
+	}
+
+	public void setJsonOutput(JsonOutput jsonOutput) {
+		this.jsonOutput = jsonOutput;
 	}
 	
 	@Override
@@ -421,21 +435,29 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	
     @Override
 	public void configure(Element element) throws Exception {
-		super.configure(element);
-		
-		String version = element.getAttribute("version");
-		
-		 if (version!= null && VersionUtils.compareMigrationVersion(version, ".m002") < 0) {
-	        	Engine.logDatabaseObjectManager.info("Project's file migration to m002 index.html ...");
-	        	String projectRoot = Engine.PROJECTS_PATH+'/'+getName();
-	        	File indexPage = new File(projectRoot+"/index.html");
-	        	if(indexPage.exists()){
-	        		Engine.logDatabaseObjectManager.info("index.html found, rename it to index_old.html");
-	        		indexPage.renameTo(new File(projectRoot+"/index_old.html"));
-	        	}
-	        	ProjectUtils.copyIndexFile(getName());
-	        	Engine.logDatabaseObjectManager.info("Basic index.html copied");
-		 }
+    	super.configure(element);
+
+    	String version = element.getAttribute("version");
+
+    	if (version!= null) {
+    		if (VersionUtils.compareMigrationVersion(version, ".m002") < 0) {
+    			Engine.logDatabaseObjectManager.info("Project's file migration to m002 index.html ...");
+    			String projectRoot = Engine.PROJECTS_PATH+'/'+getName();
+    			File indexPage = new File(projectRoot+"/index.html");
+    			if(indexPage.exists()){
+    				Engine.logDatabaseObjectManager.info("index.html found, rename it to index_old.html");
+    				indexPage.renameTo(new File(projectRoot+"/index_old.html"));
+    			}
+    			ProjectUtils.copyIndexFile(getName());
+    			Engine.logDatabaseObjectManager.info("Basic index.html copied");
+    		}
+    		
+    		if (VersionUtils.compareMigrationVersion(version, ".m006") < 0) {
+    			Engine.logDatabaseObjectManager.info("Project's file migration to m006: set 'jsonOutput' value to 'verbose' (old behavior)");
+    			jsonOutput = JsonOutput.verbose;
+    			hasChanged = true;
+    		}
+    	}
     }
     
     private transient MobileApplication mobileApplication = null;

@@ -3,6 +3,7 @@ package com.twinsoft.convertigo.beans.steps;
 import java.io.Serializable;
 
 import org.apache.xpath.XPathAPI;
+import org.mozilla.javascript.NativeJavaObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -80,6 +81,9 @@ public class SmartType implements XMLizable, Serializable, Cloneable {
 		String result = null;
 		
 		if (isUseExpression() && evaluated != null) {
+			if (evaluated instanceof NativeJavaObject) {
+				evaluated = ((NativeJavaObject) evaluated).unwrap();
+			}
 			if (evaluated instanceof String) {
 				result = (String) evaluated;
 			} else {
