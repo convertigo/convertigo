@@ -52,14 +52,14 @@ public class PscKeyValidationPage extends WizardPage implements RegisterCallback
 	public IWizard getWizard() {		
 		setErrorMessage(null);
 		setMessage(getDescription());
-
+		
 		SetupWizard wizard = (SetupWizard) super.getWizard();
 		wizard.postRegisterState(this.getClass().getSimpleName().toLowerCase());
 
 		return super.getWizard();
 	}
 
-	public void createControl(final Composite parent) {		
+	public void createControl(final Composite parent) {	
 		ScrolledComposite sc = new ScrolledComposite(parent, SWT.V_SCROLL);
 		
 		container = new Composite(sc, SWT.NONE);
@@ -73,11 +73,11 @@ public class PscKeyValidationPage extends WizardPage implements RegisterCallback
 		
 		Link details = new Link(container, SWT.WRAP);
 		details.setText(
-				"A Personal Studio Configuration (PSC) is required to start Convertigo Studio.\n" +
+				"A Personal Studio Configuration (PSC) is required to start Convertigo Studio. " +
 				"A PSC automatically configures your Studio for project deployments on Convertigo Cloud and Convertigo Servers.\n\n" +
 				"Note that previous Convertigo \"personal registration certificates\" are also valid PSCs.\n\n" +
 				"Included with Convertigo Community Edition, you get access to a free « Convertigo Cloud » account. This cloud is named Convertigo Trial Cloud and can be accessed at the following URL: <a href=\"http://trial.convertigo.net\">http://trial.convertigo.net</a>. You will be able to deploy your projects on this shared cloud for free.\n\n" +
-				"You can access the Convertigo Support Forum by clicking this link: <a href=\"http://www.convertigo.com/Forums\">http://www.convertigo.com/Forums</a>.\n\n" +
+				"You can access the Convertigo Support Forum by clicking this link: <a href=\"http://www.convertigo.com/Forums\">http://www.convertigo.com/Forums</a>\n\n" +
 				"As a result of the registration process, you will receive a PSC by email that will configure your Studio for projects deployment on Convertigo Trial Cloud. \n"
 		);
 		details.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
@@ -96,10 +96,10 @@ public class PscKeyValidationPage extends WizardPage implements RegisterCallback
 		Label label = new Label (container, SWT.NONE);
 		FontData fontDefaultData = label.getFont().getFontData()[0];
 		fontDefaultData.setStyle(SWT.BOLD);
-		fontDefaultData.setHeight(fontDefaultData.getHeight() * 2);
+		fontDefaultData.setHeight(14);
 		
 		label.setFont(new Font(parent.getDisplay(), fontDefaultData));
-		Color color = new  Color(container.getDisplay(), 51,102,255);
+		Color color = new  Color(container.getDisplay(), 51, 102, 255);
 		label.setForeground(color);
 		label.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		label.setText("PSC");
@@ -202,7 +202,7 @@ public class PscKeyValidationPage extends WizardPage implements RegisterCallback
 			}
 		});
 
-		sc.setMinSize(container.getSize().x, 450);
+		sc.setMinSize(400, 500);
 		sc.setContent(container);
     	sc.setExpandVertical(true);
 		
