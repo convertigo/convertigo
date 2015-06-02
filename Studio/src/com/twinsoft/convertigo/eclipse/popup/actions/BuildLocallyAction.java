@@ -334,18 +334,9 @@ public class BuildLocallyAction extends MyAbstractAction {
 					runCordovaCommand(cordovaDir, arguments);
 				}	
 			}
-			
-			String applicationName = mobilePlatform.getParent().getComputedApplicationName();
 
 			//ANDROID
 			if (mobilePlatform instanceof Android) {
-				// We correct the application name if needed
-				Pattern regex = Pattern.compile("[$&+,:;=?@#|\']");
-				Matcher matcher = regex.matcher(applicationName);
-				while (matcher.find()){
-				    applicationName = applicationName.replace(matcher.group(0), "\\" + matcher.group(0));
-				}
-				
 				File resFolder = new File(cordovaDir, "platforms/" + platform + "/res");
 				
 				if (defaultIcon != null) {
@@ -404,6 +395,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 			
 			//iOS
 			if (mobilePlatform instanceof  IOs) {
+				String applicationName = mobilePlatform.getParent().getComputedApplicationName();
 				
 				File iconFolder = new File(cordovaDir, "platforms/" + platform + "/" + applicationName + "/Resources/icons");
 				
@@ -522,9 +514,6 @@ public class BuildLocallyAction extends MyAbstractAction {
 			NodeIterator preferences = xpathApi.selectNodeIterator(doc, "//preference");
 			
 			doc = XMLUtils.loadXml(new File(cordovaDir, "config.xml"));  // The root config.xml
-			
-			Element applicationNameElement = (Element) doc.getElementsByTagName("name").item(0);
-			applicationNameElement.setTextContent(applicationName);
 			
 			NodeList preferencesList = doc.getElementsByTagName("preference");
 			
@@ -737,7 +726,9 @@ public class BuildLocallyAction extends MyAbstractAction {
 
 					if (customDialog.open() == SWT.YES) {
 						//create a local Cordova Environment
-						runCordovaCommand(privateDir, "create", BuildLocallyAction.cordovaDir, mobileApplication.getComputedApplicationId(), mobileApplication.getComputedApplicationName());
+						runCordovaCommand(privateDir, "create", BuildLocallyAction.cordovaDir, 
+								mobileApplication.getComputedApplicationId(), 
+								mobileApplication.getComputedApplicationName() );
 
 						Engine.logEngine.info("Cordova environment is now ready.");
 					} else {
@@ -860,38 +851,57 @@ public class BuildLocallyAction extends MyAbstractAction {
 	}
 	
 	private File getAbsolutePathOfBuiltFile(MobilePlatform mobilePlatform, String buildMode) {
-		String applicationName = mobilePlatform.getParent().getComputedApplicationName();
-		
 		String cordovaPlatform = mobilePlatform.getCordovaPlatform();
 		String builtPath = "/platforms/" + cordovaPlatform + "/";
 		String buildMd = buildMode.equals("debug") ? "Debug" : "Release";
 		
-		if (mobilePlatform instanceof Android) {
-			// Correct application name for build 
-			if(is(OS.mac)){
-				applicationName = "MainActivity";
-			} else {
-				Pattern regex = Pattern.compile("[$&+,:;=?@#|\']");
-				Matcher matcher = regex.matcher(applicationName);
-				while (matcher.find()){
-				    applicationName = applicationName.replace(matcher.group(0), "");
-				}
-			}
-			
-			builtPath += "ant-build/" + applicationName + "-" + buildMode + ".apk";
-		} else if (mobilePlatform instanceof IOs){
+		String extension = "";
+		File f = new File(getCordovaDir(), builtPath);		
+		
+		if (f.exists()) {
+		
+			// Android
+			if (mobilePlatform instanceof Android) {
+				builtPath = builtPath + "ant-build/";
+				extension = "apk";
 			// iOS
-			builtPath += applicationName + ".xcodeproj";
-		} else if (mobilePlatform instanceof WindowsPhone8) {
-			builtPath += "Bin/" + buildMd + "/CordovaAppProj_" + buildMd + "_AnyCPU.xap";
-		} else if (mobilePlatform instanceof WindowsPhone7) {
-			builtPath += "Bin/" + buildMd + "/com.convertigo.mobile." + applicationName + ".xap";
-		} else if (mobilePlatform instanceof BlackBerry10) {
-			//TODO : Handle BB10
-		} else if (mobilePlatform instanceof Windows8){
-			//TODO : Handle Windows 8
+			} else if (mobilePlatform instanceof IOs){
+				extension = "xcodeproj";
+			// Windows Phone 8
+			} else if (mobilePlatform instanceof WindowsPhone8) {
+				builtPath = builtPath + "Bin/" + buildMd + "/";
+				extension = "xap";
+			// Windows Phone 7
+			} else if (mobilePlatform instanceof WindowsPhone7) {
+				builtPath = builtPath + "Bin/" + buildMd + "/";
+				extension = "xap";
+			// Blackberry 10
+			} else if (mobilePlatform instanceof BlackBerry10) {
+				//TODO : Handle BB10
+			// Windows 8
+			} else if (mobilePlatform instanceof Windows8){
+				//TODO : Handle Windows 8
+			} else {
+				return null;
+			}
+		
+		}
+
+		f = new File(getCordovaDir(), builtPath);
+		if (f.exists()) {
+			String[] filesNames = f.list();
+			int i = filesNames.length - 1;
+			boolean find = false;
+			while (i > 0 && !find && !extension.isEmpty()) {
+				String fileName = filesNames[i];
+				if (fileName.endsWith(extension)) {
+					builtPath += fileName;
+					find = true;
+				}
+				i--;
+			}
 		} else {
-			return null;
+			builtPath = "/platforms/" + cordovaPlatform + "/";
 		}
 		
 		return new File (getCordovaDir(), builtPath);
