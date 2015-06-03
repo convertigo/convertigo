@@ -349,6 +349,10 @@ function loadWidget(widgetId, widgetOptions) {
 					case "globalSymbols_List":
 						urlHelp += "global-symbols/";
 						break;
+					//Environment variables
+					case "environmentVariables_List":
+						urlHelp += "global-symbols/#environment";
+						break;
 					//Store page
 					case "store":
 						urlHelp += "store/";
