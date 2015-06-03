@@ -84,6 +84,8 @@ public class BuildLocallyAction extends MyAbstractAction {
 	
 	static {
 		Map<String, String> m = new HashMap<String, String>();
+		// iOS 8.0+ 
+        // iPhone 6 Plus
 		m.put("180x180","icon-60@3x.png");
 		//iOS 7.0+ 
 		// iPhone/iPod Touch
@@ -119,13 +121,14 @@ public class BuildLocallyAction extends MyAbstractAction {
 		Map<String, String> m = new HashMap<String, String>();
 		
 		// iPhone
-		m.put("1242x2208", "Default-736h@3x~iphone.png");
+		m.put("1242x2208", "Default-736h.png");
 		m.put("750x1334", "Default-667h@2x~iphone.png");
 		m.put("640x1136", "Default-568h@2x~iphone.png");
 		m.put("640x960", "Default@2x~iphone.png");
 		m.put("320x480", "Default~iphone.png");
 
 		//iPad
+		m.put("2208x1242", "Default-Landscape-736h.png");
 		m.put("2048x1496", "Default-Landscape@2x~ipad.png");
 		m.put("1024x748", "Default-Landscape~ipad.png");
 		m.put("768x1004", "Default-Portrait~ipad.png");
