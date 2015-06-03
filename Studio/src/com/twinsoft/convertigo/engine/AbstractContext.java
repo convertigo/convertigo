@@ -34,6 +34,7 @@ import javax.servlet.http.HttpSession;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
+import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 
 public abstract class AbstractContext {
@@ -114,8 +115,7 @@ public abstract class AbstractContext {
 	
 	public String getAuthenticatedUser() {
 		if (tasUserName == null) {
-			return httpSession == null || httpSession.getAttribute("authenticatedUser") == null ? 
-					null : httpSession.getAttribute("authenticatedUser").toString();
+			return SessionAttribute.authenticatedUser.string(httpSession);
 		} else {
 			return tasUserName;
 		}
@@ -124,14 +124,14 @@ public abstract class AbstractContext {
 	public void setAuthenticatedUser(String authenticatedUser){
 		if (authenticatedUser != null) {
 //			portalUserName = authenticatedUser;
-			if (httpSession != null) httpSession.setAttribute( "authenticatedUser" , authenticatedUser );
+			SessionAttribute.authenticatedUser.set(httpSession, authenticatedUser);
 		}
 	}
 	
 	public void removeAuthenticatedUser(){
 //		portalUserName = null;
 		tasUserName = null;
-		if (httpSession != null) httpSession.removeAttribute("authenticatedUser");
+		SessionAttribute.authenticatedUser.remove(httpSession);
 	}
 	
 	/**

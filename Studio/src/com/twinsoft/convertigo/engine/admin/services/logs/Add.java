@@ -40,6 +40,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.LogParameters;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
@@ -92,8 +93,8 @@ public class Add extends JSonService {
 				logParameters.put(key.toLowerCase(), env.get(key));
 			}
 
-			if (httpSession.getAttribute("authenticatedUser") != null) {
-				Log4jHelper.mdcPut(mdcKeys.User, httpSession.getAttribute("authenticatedUser").toString());			
+			if (SessionAttribute.authenticatedUser.get(httpSession) != null) {
+				Log4jHelper.mdcPut(mdcKeys.User, SessionAttribute.authenticatedUser.string(httpSession));			
 			}
 
 			for (int i = 0; i < logs.length(); i++) {

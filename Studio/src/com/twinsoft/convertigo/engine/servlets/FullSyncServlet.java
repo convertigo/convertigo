@@ -42,6 +42,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.MimeType;
+import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.util.ContentTypeDecoder;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.URLUtils;
@@ -70,7 +71,11 @@ public class FullSyncServlet extends HttpServlet {
 			}
 			
 			RequestParser requestParser = new RequestParser(request.getPathInfo());
+			
+			
+			
 			String token = requestParser.getId();
+			//token = SessionAttribute.authenticatedUser.string(request.getSession());
 			URI uri;
 			
 			try {

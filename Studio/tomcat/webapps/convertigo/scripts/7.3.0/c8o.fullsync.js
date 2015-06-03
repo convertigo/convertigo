@@ -241,85 +241,103 @@ $.extend(true, C8O, {
 						source: isPull ? C8O._fs.getRemoteUrl(db) : db + "_device",
 						target: !isPull ? C8O._fs.getRemoteUrl(db) : db + "_device",
 					};
+					
 					var replicate = false;
 					
-					(isPull ? local : remote).info().then(function (info_target) {
-						var total = Math.max(max - info_target.update_seq, 0);
-						var lastCurrent = 0;
-						
-						var chkTasks = function () {
-							local.request({method: "GET", url: "../_active_tasks"}, function (err, tasks) {
-								if (err) {
-									evts.error(err);
-									return;
-								}
-								
-								var task = null;
-								for (var i = 0; i < tasks.length && task == null; i++) {
-									if (tasks[i].source == body.source && tasks[i].target == body.target) {
-										task = tasks[i];
+					$.ajax({
+		                dataType: "xml",
+		                type: "POST",
+		                url: C8O._fs.echo_path
+		            }).done(function (xml) {
+		            	var cookie = $(xml).find(">admin>headers>header[name='cookie']").text();
+		            	if (cookie != "") {
+			            	var remoteKey = isPull ? "source" : "target";
+			            	body[remoteKey] = {
+			            		url: body[remoteKey],
+			            		headers: {cookie: cookie}
+			            	};
+		            	}
+		            	
+						(isPull ? local : remote).info().then(function (info_target) {
+							var total = Math.max(max - info_target.update_seq, 0);
+							var lastCurrent = 0;
+							
+							var chkTasks = function () {
+								local.request({method: "GET", url: "../_active_tasks"}, function (err, tasks) {
+									if (err) {
+										evts.error(err);
+										return;
 									}
-								}
-								
-								if (!replicate) {
-									if (task) {
-										local.request({method: "POST", url: "../_replicate", body: $.extend({}, body, {cancel: true})});
-										C8O.log.info("c8o.fs  : cancel a previous replication for " + C8O.toJSON(body));
-									} else {
-										// async for Android, sync for IOs
-										local.request({method: "POST", url: "../_replicate", body: body});
-										C8O.log.info("c8o.fs  : replication started for " + C8O.toJSON(body));
-										replicate = true;
+									
+									var task = null;
+									for (var i = 0; i < tasks.length && task == null; i++) {
+										if (tasks[i].source == body.source && tasks[i].target == body.target) {
+											task = tasks[i];
+										}
 									}
-									window.setTimeout(chkTasks, 250);
-								} else {
-									if (task == null) {
-										C8O.log.info("c8o.fs  : replication finished for " + C8O.toJSON(body));
-										
-										evts.complete({
-											ok : true,
-											direction: direction
-										});
-										
-										if (live) {
-											body.continuous = true;
-											local.request({method: "POST", url: "../_replicate", body: body}, function (err, data) {
-												C8O.log.info("c8o.fs  : continuous replication started for " + C8O.toJSON(body));
-											});
+									
+									if (!replicate) {
+										if (task) {
+											local.request({method: "POST", url: "../_replicate", body: $.extend({}, body, {cancel: true})});
+											C8O.log.info("c8o.fs  : cancel a previous replication for " + C8O.toJSON(body));
+										} else {
+											// async for Android, sync for IOs
+											local.request({method: "POST", url: "../_replicate", body: body});
+											C8O.log.info("c8o.fs  : replication started for " + C8O.toJSON(body));
+											replicate = true;
 										}
+										window.setTimeout(chkTasks, 250);
 									} else {
-										var current = lastCurrent;
-										
-										if (task.status) {
-											var mStatus = task.status.match(C8O._define.re_fs_task);
-											if (mStatus) {
-												current = mStatus[1] * 1;
-												total = Math.max(total, mStatus[2] * 1);
-											}
-										}
-																				
-										if (current != lastCurrent) {
-											var progress = current / total * 100;
+										if (task == null) {
+											C8O.log.info("c8o.fs  : replication finished for " + C8O.toJSON(body));
 											
-											evts.change({
-												direction: direction,
-												current: current,
-												total: total,
-												progress: progress,
-												ok: true												
+											evts.complete({
+												ok : true,
+												direction: direction
 											});
+											
+											if (live) {
+												body.continuous = true;
+												local.request({method: "POST", url: "../_replicate", body: body}, function (err, data) {
+													C8O.log.info("c8o.fs  : continuous replication started for " + C8O.toJSON(body));
+												});
+											}
+										} else {
+											var current = lastCurrent;
+											
+											if (task.status) {
+												var mStatus = task.status.match(C8O._define.re_fs_task);
+												if (mStatus) {
+													current = mStatus[1] * 1;
+													total = Math.max(total, mStatus[2] * 1);
+												}
+											}
+																					
+											if (current != lastCurrent) {
+												var progress = current / total * 100;
+												
+												evts.change({
+													direction: direction,
+													current: current,
+													total: total,
+													progress: progress,
+													ok: true												
+												});
+											}
+											
+											lastCurrent = current;
+											
+											window.setTimeout(chkTasks, 750);
 										}
-										
-										lastCurrent = current;
-										
-										window.setTimeout(chkTasks, 750);
 									}
-								}
-							});
-						};
-						
-						chkTasks();
-					});
+								});
+							};
+							
+							chkTasks();
+						});
+		            }).fail(function (jqXHR, textStatus, errorThrown) {
+		            	C8O.log.error("c8o.fs  : echo failed"); 
+		            });
 					
 					cancel = function () {
 						body.cancel = true;
@@ -448,6 +466,7 @@ C8O._init.tasks.push(function () {
     
     C8O._fs.server = C8O._remove(C8O.init_vars, "fs_server");
     C8O._fs.remote = C8O._define.convertigo_path + "/fullsync";
+    C8O._fs.echo_path = C8O._define.convertigo_path + "/admin/services/utils.EchoHttp";
     
     delete C8O._init.locks.fullsync;
     

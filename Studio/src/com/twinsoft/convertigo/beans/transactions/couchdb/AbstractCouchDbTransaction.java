@@ -408,7 +408,7 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 	
 	private static JSONObject toJson(Element element) throws JSONException {
 		JSONObject jsonXml = new JSONObject();
-		XMLUtils.handleElement(element, jsonXml, true);
+		XMLUtils.handleElement(element, jsonXml, true, false);
 		if (isInputDomVariable(element)) {
 			JSONObject jsonVariable = jsonXml.getJSONObject("variable");
 			JSONObject jsonAttr = jsonVariable.getJSONObject("attr");

@@ -74,6 +74,7 @@ import com.twinsoft.convertigo.engine.JobManager;
 import com.twinsoft.convertigo.engine.NoSuchSecurityTokenException;
 import com.twinsoft.convertigo.engine.SecurityToken;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -404,7 +405,7 @@ public abstract class GenericRequester extends Requester {
 //				context.portalUserName = securityToken.userID;
 				if (context.httpSession != null) {
 //					context.httpSession.setAttribute("authenticatedUser", context.portalUserName);
-					context.httpSession.setAttribute("authenticatedUser", securityToken.getUserID());
+					SessionAttribute.authenticatedUser.set(context.httpSession, securityToken.getUserID());
 					Engine.logContext.debug("Authenticated user added in the HTTP session");
 				}
 				

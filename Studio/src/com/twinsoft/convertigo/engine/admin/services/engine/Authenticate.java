@@ -42,6 +42,7 @@ import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceParameterDefinition;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
+import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.util.SimpleCipher;
 
 @ServiceDefinition(
@@ -208,7 +209,7 @@ public class Authenticate extends XmlService {
 						"" + httpSession.getAttribute(SessionKey.ADMIN_USER.toString()), "user", false);
 				ServiceUtils.addRoleNodes(document.getDocumentElement(), roles);
 
-				httpSession.setAttribute("authenticatedUser", "c8o:admin");
+				SessionAttribute.authenticatedUser.set(httpSession, "c8o:admin");
 
 				Engine.logAdmin.info("User '" + user + "' has been successfully authenticated");
 			}
@@ -216,7 +217,7 @@ public class Authenticate extends XmlService {
 		// Logout
 		else {
 			Engine.authenticatedSessionManager.removeAuthenticatedSession(httpSession);
-			httpSession.removeAttribute("authenticatedUser");
+			SessionAttribute.authenticatedUser.remove(httpSession);
 			ServiceUtils.addMessage(document, document.getDocumentElement(), "", "success");
 		}
 	}
