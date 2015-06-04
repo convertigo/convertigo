@@ -50,6 +50,8 @@
 	<icon src="icon.png"/>
 	
 	<!-- IOs icons -->
+    <icon src="res/icon/icon603x.png"		gap:platform="ios"	width="180"		height="180"	/>	<!-- iPhone 6+ -->
+    <icon src="res/icon/icon602x.png"       gap:platform="ios"	width="120"		height="120" 	/> 	<!-- iPhone 6 -->
     <icon src="res/icon/icon57.png"         gap:platform="ios"	width="57"		height="57" 	/> 	<!-- iPhone -->
     <icon src="res/icon/icon72.png"         gap:platform="ios"	width="72"		height="72" 	/>	<!-- iPad -->
     <icon src="res/icon/icon572x.png"       gap:platform="ios"	width="114"		height="114" 	/>	<!-- iPhone 4 Retina Display -->
@@ -58,6 +60,8 @@
 	<gap:splash src="splash.png" />
 	
 	<!-- IOs splash -->
+    <gap:splash src="res/splash/Default736hiphone.png"			gap:platform="ios"     width="1242" height="2208" 	/>	<!-- iPhone 6+ -->
+    <gap:splash src="res/splash/Default667hiphone.png"			gap:platform="ios"     width="750" 	height="1334" 	/>	<!-- iPhone 6 -->
     <gap:splash src="res/splash/Default568h2xiphone.png"		gap:platform="ios"     width="640" height="1136" 	/>	<!-- iPhone -->
     <gap:splash src="res/splash/DefaultLandscape2xipad.png"		gap:platform="ios"     width="2048" height="1496" 	/>	<!-- iPad -->
     <gap:splash src="res/splash/DefaultLandscapeipad.png"		gap:platform="ios"     width="1024" height="748" 	/>	<!-- iPad -->

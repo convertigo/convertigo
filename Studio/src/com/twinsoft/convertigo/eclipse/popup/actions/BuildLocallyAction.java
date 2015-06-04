@@ -122,7 +122,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 		
 		// iPhone
 		m.put("1242x2208", "Default-736h.png");
-		m.put("750x1334", "Default-667h@2x~iphone.png");
+		m.put("750x1334", "Default-667h.png");
 		m.put("640x1136", "Default-568h@2x~iphone.png");
 		m.put("640x960", "Default@2x~iphone.png");
 		m.put("320x480", "Default~iphone.png");
