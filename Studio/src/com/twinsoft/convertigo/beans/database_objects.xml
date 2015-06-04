@@ -804,7 +804,7 @@
 	<group name="FullSync">
 		<category>
 			<beans>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
                 </bean>
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.couchdb.DesignDocument">
