@@ -25,7 +25,6 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpOptions;
@@ -37,8 +36,12 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.MimeType;
@@ -60,7 +63,7 @@ public class FullSyncServlet extends HttpServlet {
 			HttpMethodType method = HttpMethodType.valueOf(request.getMethod());
 
 			switch (method) {
-			case DELETE: newRequest = new HttpDelete(); break;
+//			case DELETE: newRequest = new HttpDelete(); break; //disabled to prevent db delete
 			case GET: newRequest = new HttpGet(); break;
 			case HEAD: newRequest = new HttpHead(); break;
 			case OPTIONS: newRequest = new HttpOptions(); break;
@@ -72,10 +75,7 @@ public class FullSyncServlet extends HttpServlet {
 			
 			RequestParser requestParser = new RequestParser(request.getPathInfo());
 			
-			
-			
-			String token = requestParser.getId();
-			//token = SessionAttribute.authenticatedUser.string(request.getSession());
+			String authenticatedUser = SessionAttribute.authenticatedUser.string(request.getSession());
 			URI uri;
 			
 			try {
@@ -109,87 +109,103 @@ public class FullSyncServlet extends HttpServlet {
 			
 			String requestStringEntity = null;
 			HttpEntity httpEntity = null;
+			JSONObject bulkDocsRequest = null;
 			
-			if (token != null) {
-				String special = requestParser.getSpecial();
-				
-				if (request.getInputStream() != null) {
-					String reqContentType = request.getContentType(); 
-					if (reqContentType != null && reqContentType.startsWith("multipart/related;")) {
-						final MimeMultipart mp = new MimeMultipart(new ByteArrayDataSource(request.getInputStream(), reqContentType));
+			String special = requestParser.getSpecial();
+			
+			if (request.getInputStream() != null) {
+				String reqContentType = request.getContentType(); 
+				if (reqContentType != null && reqContentType.startsWith("multipart/related;")) {
+					final MimeMultipart mp = new MimeMultipart(new ByteArrayDataSource(request.getInputStream(), reqContentType));
 
-						int count = mp.getCount();
-						final int[] size = {request.getIntHeader(HeaderName.ContentLength.value())};
-						debug.append("handle multipart/related: " + reqContentType + "; " + count + " parts; original size of " + size[0]);
+					int count = mp.getCount();
+					final int[] size = {request.getIntHeader(HeaderName.ContentLength.value())};
+					debug.append("handle multipart/related: " + reqContentType + "; " + count + " parts; original size of " + size[0]);
+
+					bulkDocsRequest = new JSONObject();
+					JSONArray bulkDocsArray = new JSONArray();
+					CouchKey.docs.put(bulkDocsRequest, bulkDocsArray);
+					
+					for (int i = 0; i < count; i++) {
+						BodyPart part = mp.getBodyPart(i);
+						ContentTypeDecoder contentType = new ContentTypeDecoder(part.getContentType());
 						
-						for (int i = 0; i < count; i++) {
-							BodyPart part = mp.getBodyPart(i);
-							ContentTypeDecoder contentType = new ContentTypeDecoder(part.getContentType());
-													
-							if (contentType.mimeType() == MimeType.Json) {
-								String charset = contentType.getCharset("UTF-8");
-								
-								List<javax.mail.Header> headers = Collections.list(GenericUtils.<Enumeration<javax.mail.Header>>cast(part.getAllHeaders()));
-								
-								byte[] buf = IOUtils.toByteArray(part.getInputStream());
-								size[0] -= buf.length;
-								
-								String json = new String(buf, charset);
-								json = Engine.theApp.couchDbManager.handleDocRequest(dbName, json, token);
-								
-								part.setContent(buf = json.getBytes(charset), part.getContentType());
-								size[0] += buf.length;
-								
-								for (javax.mail.Header header: headers) {
-									part.setHeader(header.getName(), header.getValue());
-								}
+						if (contentType.mimeType() == MimeType.Json) {
+							String charset = contentType.getCharset("UTF-8");
+							
+							List<javax.mail.Header> headers = Collections.list(GenericUtils.<Enumeration<javax.mail.Header>>cast(part.getAllHeaders()));
+							
+							byte[] buf = IOUtils.toByteArray(part.getInputStream());
+							size[0] -= buf.length;
+							
+							String json = new String(buf, charset);
+							try {
+								JSONObject docRequest = new JSONObject(json);
+								Engine.theApp.couchDbManager.handleDocRequest(dbName, docRequest, authenticatedUser);
+								bulkDocsArray.put(docRequest);
+								json = docRequest.toString();
+							} catch (JSONException e) {
+								debug.append("failed to parse [ " + e.getMessage() + "]: " + json);
+							}
+							
+							part.setContent(buf = json.getBytes(charset), part.getContentType());
+							size[0] += buf.length;
+							
+							for (javax.mail.Header header: headers) {
+								part.setHeader(header.getName(), header.getValue());
 							}
 						}
-						debug.append("; new size of " + size[0] + "\n");
-						
-						httpEntity = new AbstractHttpEntity() {
-							
-							@Override
-							public void writeTo(OutputStream arg0) throws IOException {
-								try {
-									mp.writeTo(arg0);
-								} catch (MessagingException e) {
-									new IOException(e);
-								}
-							}
-							
-							@Override
-							public boolean isStreaming() {
-								return false;
-							}
-							
-							@Override
-							public boolean isRepeatable() {
-								return true;
-							}
-							
-							@Override
-							public long getContentLength() {
-								return size[0];
-							}
-							
-							@Override
-							public InputStream getContent() throws IOException, IllegalStateException {
-								return null;
-							}
-						};
-					} else {
-						requestStringEntity = IOUtils.toString(request.getInputStream(), "UTF-8");
-						debug.append("request Entity:\n" + requestStringEntity + "\n");
 					}
+					debug.append("; new size of " + size[0] + "\n");
+					
+					httpEntity = new AbstractHttpEntity() {
+						
+						@Override
+						public void writeTo(OutputStream arg0) throws IOException {
+							try {
+								mp.writeTo(arg0);
+							} catch (MessagingException e) {
+								new IOException(e);
+							}
+						}
+						
+						@Override
+						public boolean isStreaming() {
+							return false;
+						}
+						
+						@Override
+						public boolean isRepeatable() {
+							return true;
+						}
+						
+						@Override
+						public long getContentLength() {
+							return size[0];
+						}
+						
+						@Override
+						public InputStream getContent() throws IOException, IllegalStateException {
+							return null;
+						}
+					};
+				} else {
+					requestStringEntity = IOUtils.toString(request.getInputStream(), "UTF-8");
+					debug.append("request Entity:\n" + requestStringEntity + "\n");
 				}
-				
-				if (method == HttpMethodType.POST && "_bulk_docs".equals(special)) {
-					requestStringEntity = Engine.theApp.couchDbManager.handleBulkDocsRequest(dbName, requestStringEntity, token);
-				} else if (method == HttpMethodType.GET && "_changes".equals(special)) {
-					uri = Engine.theApp.couchDbManager.handleChangesUri(dbName, uri, token);
-					debug.append("Changed to " + method.name() + " URI: " + uri.toString() + "\n");
+			}
+			
+			if (method == HttpMethodType.POST && "_bulk_docs".equals(special)) {
+				try {
+					bulkDocsRequest = new JSONObject(requestStringEntity);
+					Engine.theApp.couchDbManager.handleBulkDocsRequest(dbName, bulkDocsRequest, authenticatedUser);
+					requestStringEntity = bulkDocsRequest.toString();
+				} catch (JSONException e) {
+					debug.append("failed to parse [ " + e.getMessage() + "]: " + requestStringEntity);						
 				}
+			} else if (method == HttpMethodType.GET && "_changes".equals(special)) {
+				uri = Engine.theApp.couchDbManager.handleChangesUri(dbName, uri, authenticatedUser);
+				debug.append("Changed to " + method.name() + " URI: " + uri.toString() + "\n");
 			}
 			
 			if (newRequest instanceof HttpEntityEnclosingRequest) {
@@ -255,8 +271,8 @@ public class FullSyncServlet extends HttpServlet {
 
 			Engine.logCouchDbManager.info("(FullSyncServlet) Success to process request:\n" + debug);
 			
-			if (requestStringEntity != null && responseStringEntity != null) {
-				Engine.theApp.couchDbManager.handleBulkDocsResponse(dbName, requestStringEntity, responseStringEntity);
+			if (bulkDocsRequest != null && responseStringEntity != null) {
+				Engine.theApp.couchDbManager.handleBulkDocsResponse(dbName, bulkDocsRequest, responseStringEntity);
 			}
 		} catch (Exception e) {
 			Engine.logCouchDbManager.error("(FullSyncServlet) Failed to process request:\n" + debug, e);
