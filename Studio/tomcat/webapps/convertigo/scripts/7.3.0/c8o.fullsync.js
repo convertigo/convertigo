@@ -554,6 +554,10 @@ C8O.addHook("_call_fs", function (data) {
 						}
 					});
 					
+					if (!options.db) {
+						options.db = db;
+					}
+					
 					var sync = C8O["fs_" + seq](options);
 					
 					if ($.isEmptyObject(callbacks)) {
