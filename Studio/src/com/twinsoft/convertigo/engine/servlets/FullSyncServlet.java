@@ -280,9 +280,8 @@ public class FullSyncServlet extends HttpServlet {
 	}
 	
 	static class RequestParser {
-		static final private Pattern pPath = Pattern.compile("^(?:/~([^/]*))?((?:/(_[^/]*))?(?:/([^/]*))?(?:/(_[^/]*))?(?:/([^/]*))?(.*))$");
+		static final private Pattern pPath = Pattern.compile("^((?:/(_[^/]*))?(?:/([^/]*))?(?:/(_[^/]*))?(?:/([^/]*))?(.*))$");
 		
-		private String id;
 		private String path;
 		private String special;
 		private String dbName;
@@ -291,19 +290,14 @@ public class FullSyncServlet extends HttpServlet {
 		RequestParser(String request_path) throws UnsupportedEncodingException {
 			Matcher mPath = pPath.matcher(request_path);
 			if (mPath.matches()) {
-				id = mPath.group(1);
-				path = URLUtils.encodePath(mPath.group(2), "UTF-8");
-				special = mPath.group(3);
+				path = URLUtils.encodePath(mPath.group(1), "UTF-8");
+				special = mPath.group(2);
 				if (special == null) {
-					dbName = mPath.group(4);
-					special = mPath.group(5);
-					docId = mPath.group(6);
+					dbName = mPath.group(3);
+					special = mPath.group(4);
+					docId = mPath.group(5);
 				}
 			}
-		}
-
-		public String getId() {
-			return id;
 		}
 
 		public String getPath() {
