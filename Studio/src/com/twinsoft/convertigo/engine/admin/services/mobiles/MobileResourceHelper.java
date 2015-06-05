@@ -190,7 +190,7 @@ public class MobileResourceHelper {
 									FileUtils.copyFile(inFile, outFile, true);
 									line = line.replaceFirst("\"\\.\\./\\.\\./\\.\\./\\.\\./.*?\"", "\"" + file + "\"");
 									
-									handleJQMcssFolder(file, inFile, outFile);
+									handleJQMcssFolder(inFile, outFile);
 									
 									if (file.matches(".*/jquery\\.mobilelib\\..*?js")) {
 										String sJs = FileUtils.readFileToString(outFile);
@@ -268,7 +268,7 @@ public class MobileResourceHelper {
 //															prepend += "if (C8O.vars.fs_default_design == null) C8O.vars.fs_default_design=\"" + fsDesignDocument + "\";";
 //														}
 //													}
-												} else if (handleJQMcssFolder(filename, file, resourceBundle.getVirtualFile())) {
+												} else if (handleJQMcssFolder(file, resourceBundle.getVirtualFile())) {
 												}
 											}
 											if (prepend.isEmpty()) {
@@ -494,8 +494,8 @@ public class MobileResourceHelper {
 		return Long.toString(destDir.lastModified());
 	}
 	
-	private static boolean handleJQMcssFolder(String filename, File inFile, File outFile) throws IOException {
-		if (filename.matches("jquery\\.mobile\\.(?:min\\.)?css")) {
+	private static boolean handleJQMcssFolder(File inFile, File outFile) throws IOException {
+		if (inFile.getName().matches("jquery\\.mobile\\.(?:min\\.)?css")) {
 			File inImages = new File(inFile.getParentFile(), "images");
 			File outImages = new File(outFile.getParentFile(), "images");
 			FileUtils.copyDirectory(inImages, outImages, defaultFilter, true);
