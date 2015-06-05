@@ -385,6 +385,10 @@ public class MobileApplication extends DatabaseObject {
 	public void setFsConnector(String fsConnector) {
 		this.fsConnector = fsConnector;
 	}
+	
+	public String getFsDefaultDatabase() {
+		return getFsConnector().replaceFirst(".*?\\.", ""); // remote project.
+	}
 
 	public String getFsDesignDocument() {
 		return fsDesignDocument;
@@ -392,5 +396,9 @@ public class MobileApplication extends DatabaseObject {
 
 	public void setFsDesignDocument(String fsDesignDocument) {
 		this.fsDesignDocument = fsDesignDocument;
+	}
+	
+	public String getFsDefaultDesignDocument() {
+		return getFsDesignDocument().replaceFirst(".*?\\..*?\\.", ""); // remote project.connector.
 	}
 }

@@ -117,11 +117,13 @@ public class MobileApplicationBeanInfo extends MySimpleBeanInfo {
 			properties[15].setDisplayName(getExternalizedString("property.fsConnector.display_name"));
 			properties[15].setShortDescription(getExternalizedString("property.fsConnector.short_description"));
             properties[15].setPropertyEditorClass(getEditorClass("NamedSourceSelectorEditor"));
+            properties[15].setHidden(true);
 
 			properties[16] = new PropertyDescriptor("fsDesignDocument", MobileApplication.class, "getFsDesignDocument", "setFsDesignDocument");
 			properties[16].setDisplayName(getExternalizedString("property.fsDesignDocument.display_name"));
 			properties[16].setShortDescription(getExternalizedString("property.fsDesignDocument.short_description"));
             properties[16].setPropertyEditorClass(getEditorClass("NamedSourceSelectorEditor"));
+            properties[16].setHidden(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

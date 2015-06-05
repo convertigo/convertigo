@@ -100,7 +100,7 @@ public class MobileResourceHelper {
 		try {
 			String endPoint = this.endpoint + "/projects/" + project.getName();
 			String applicationID = mobileApplication.getComputedApplicationId();
-
+			
 			if (!endPoint.endsWith("/")) {
 				endPoint += "/";
 			}
@@ -200,6 +200,20 @@ public class MobileResourceHelper {
 										String sJs = FileUtils.readFileToString(outFile);
 										sJs = sJs.replaceAll(Pattern.quote("endpoint_url: \"\""), "endpoint_url: \"" + endPoint + "\"");
 										writeStringToFile(outFile, sJs);
+//									} else if (file.matches(".*/c8o\\.fullsync\\..*?js")) {
+//										String fsDatabase = mobileApplication.getFsDefaultDatabase();
+//										String fsDesignDocument = mobileApplication.getFsDefaultDesignDocument();
+//										
+//										if (StringUtils.isNotEmpty(fsDatabase) || StringUtils.isNotEmpty(fsDesignDocument)) {
+//											String sJs = FileUtils.readFileToString(outFile);
+//											if (StringUtils.isNotEmpty(fsDatabase)) {
+//												sJs = sJs.replaceAll(Pattern.quote("fs_default_db: null"), "fs_default_db: \"" + fsDatabase + "\"");
+//											}
+//											if (StringUtils.isNotEmpty(fsDesignDocument)) {
+//												sJs = sJs.replaceAll(Pattern.quote("fs_default_design: null"), "fs_default_design: \"" + fsDesignDocument + "\"");
+//											}
+//											writeStringToFile(outFile, sJs);
+//										}
 									}
 									
 									if (file.matches(".*/flashupdate_.*?\\.css")) {
@@ -237,15 +251,27 @@ public class MobileResourceHelper {
 									ResourceBundle resourceBundle = Engine.theApp.minificationManager.process(uri);
 									if (resourceBundle != null) {
 										synchronized (resourceBundle) {
-											String prepend = null;
+											String prepend = "";
 											for (File file: resourceBundle.getFiles()) {
 												String filename = file.getName();
 												if (filename.matches("c8o\\.core\\..*?js")) {
-													prepend = "C8O.vars.endpoint_url=\"" + endPoint + "\";";
+													prepend += "C8O.vars.endpoint_url=\"" + endPoint + "\";";
+//												} else if (filename.matches("c8o\\.fullsync\\..*?js")) {
+//													String fsDatabase = mobileApplication.getFsDefaultDatabase();
+//													String fsDesignDocument = mobileApplication.getFsDefaultDesignDocument();
+//													
+//													if (StringUtils.isNotEmpty(fsDatabase) || StringUtils.isNotEmpty(fsDesignDocument)) {
+//														if (StringUtils.isNotEmpty(fsDatabase)) {
+//															prepend += "if (C8O.vars.fs_default_db == null) C8O.vars.fs_default_db=\"" + fsDatabase + "\";";
+//														}
+//														if (StringUtils.isNotEmpty(fsDesignDocument)) {
+//															prepend += "if (C8O.vars.fs_default_design == null) C8O.vars.fs_default_design=\"" + fsDesignDocument + "\";";
+//														}
+//													}
 												} else if (handleJQMcssFolder(filename, file, resourceBundle.getVirtualFile())) {
 												}
 											}
-											if (prepend == null) {
+											if (prepend.isEmpty()) {
 												resourceBundle.writeFile();
 											} else {
 												resourceBundle.writeFile(prepend);
