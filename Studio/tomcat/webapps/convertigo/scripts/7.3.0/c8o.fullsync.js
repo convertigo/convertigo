@@ -475,8 +475,6 @@ C8O._init.tasks.push(function () {
 C8O.addHook("_call_fs", function (data) {
 	var db;
 	if ((db = C8O._define.re_fs_match_db.exec(data.__project)) != null) {
-		db = (db[1] ? db[1] : C8O.vars.fs_default_db) + "_device";
-		C8O.log.debug("c8o.fs  : database used '" + db + "'");
 		
 		var callback = function (json) {
 			if (C8O.canLog("trace")) {
@@ -502,6 +500,10 @@ C8O.addHook("_call_fs", function (data) {
 		};
 		
 		if (data.__sequence) {
+			var dbName = (db[1] ? db[1] : C8O.vars.fs_default_db);
+			db = dbName + "_device";
+			C8O.log.debug("c8o.fs  : database used '" + dbName + "'");
+			
 			var options = {};
 			var postData = {};
 			
@@ -555,7 +557,7 @@ C8O.addHook("_call_fs", function (data) {
 					});
 					
 					if (!options.db) {
-						options.db = db;
+						options.db = dbName;
 					}
 					
 					var sync = C8O["fs_" + seq](options);
