@@ -7,8 +7,7 @@ $.extend(true, C8O, {
 	
 	vars: {
 		fs_default_db: null,
-		fs_default_design: null,
-		fs_token: null
+		fs_default_design: null
 	},
 	
 	_define: {
@@ -115,7 +114,7 @@ $.extend(true, C8O, {
 		},
 		
 		getRemoteUrl: function (db) {
-			return C8O._fs.remote + (C8O.vars.fs_token ? "/~" + C8O.vars.fs_token : "") + "/" + db;
+			return C8O._fs.remote + "/" + db;
 		},
 				
 		applyPolicy: function (db, document, policy, callback) {
