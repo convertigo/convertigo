@@ -1259,6 +1259,10 @@ public class XMLUtils {
 		}
 	}
 	
+	public static String XmlToJson(Element elt, boolean ignoreStepIds) throws JSONException {
+		return(XmlToJson(elt, ignoreStepIds, false));
+	}
+
 	public static String XmlToJson(Element elt, boolean ignoreStepIds, boolean useType) throws JSONException {
 		JSONObject json = new JSONObject();
 		handleElement(elt, json, ignoreStepIds, useType);
