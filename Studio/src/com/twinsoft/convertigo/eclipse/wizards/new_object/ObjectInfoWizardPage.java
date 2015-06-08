@@ -262,14 +262,14 @@ public class ObjectInfoWizardPage extends WizardPage {
 			else if (dbo instanceof ProjectSchemaReference) {
 				return getWizard().getPage("ProjectSchemaWizardPage");
 			}
-			else if (dbo instanceof XsdSchemaReference) {
-				return getWizard().getPage("XsdSchemaFileWizardPage");
+			else if (dbo instanceof WebServiceReference) {
+				return getWizard().getPage("WebServiceWizardPage");
 			}
 			else if (dbo instanceof WsdlSchemaReference) {
 				return getWizard().getPage("WsdlSchemaFileWizardPage");
 			}
-			else if (dbo instanceof WebServiceReference) {
-				return getWizard().getPage("WebServiceWizardPage");
+			else if (dbo instanceof XsdSchemaReference) {
+				return getWizard().getPage("XsdSchemaFileWizardPage");
 			}
 			else if (dbo instanceof SqlTransaction){
 				return getWizard().getPage("SQLQueriesWizardPage");
@@ -311,7 +311,6 @@ public class ObjectInfoWizardPage extends WizardPage {
 				e.printStackTrace();
 			}
 		}
-		
 	}
 
 	public List<CouchVariable> getSelectedParameters() {

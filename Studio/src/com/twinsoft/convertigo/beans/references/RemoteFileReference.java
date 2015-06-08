@@ -33,7 +33,10 @@ public abstract class RemoteFileReference extends FileReference implements IUrlR
 	private static final long serialVersionUID = 717504231825643840L;
 
 	public String urlpath = "";
+	
 	private boolean needAuthentication = false;
+	private String authUser = "";
+	private String authPassword = "";
 	
 	public boolean needAuthentication() {
 		return needAuthentication;
@@ -63,5 +66,21 @@ public abstract class RemoteFileReference extends FileReference implements IUrlR
 	protected URL getReferenceUrl() throws MalformedURLException {
 		URL url = super.getReferenceUrl();
 		return url != null ? url : getUrl();
+	}
+
+	public String getAuthUser() {
+		return authUser;
+	}
+
+	public void setAuthUser(String authUser) {
+		this.authUser = authUser;
+	}
+
+	public String getAuthPassword() {
+		return authPassword;
+	}
+
+	public void setAuthPassword(String authPassword) {
+		this.authPassword = authPassword;
 	}
 }

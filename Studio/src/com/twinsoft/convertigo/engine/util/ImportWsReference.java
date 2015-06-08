@@ -6,8 +6,8 @@ import com.twinsoft.convertigo.beans.references.WebServiceReference;
 
 public class ImportWsReference extends WsReference {
 
-		public ImportWsReference(String wsdlURL) {
-			super(wsdlURL);
+		public ImportWsReference(String wsdlURL, boolean needAuthentication, String login, String password) {
+			super(wsdlURL, needAuthentication, login, password);
 		}
 
 		public ImportWsReference(WebServiceReference reference) {
@@ -20,12 +20,7 @@ public class ImportWsReference extends WsReference {
 		}
 
 		@Override
-		public HttpConnector importInto(Project project, boolean updateMode) throws Exception {
-			return super.importInto(project, updateMode);
-		}
-		
-		@Override
-		public HttpConnector importIntoAuthenticated(Project project, String login, String password, boolean updateMode) throws Exception {
-			return super.importIntoAuthenticated(project, login, password, updateMode);
+		public HttpConnector importInto(Project project) throws Exception {
+			return super.importInto(project);
 		}
 }

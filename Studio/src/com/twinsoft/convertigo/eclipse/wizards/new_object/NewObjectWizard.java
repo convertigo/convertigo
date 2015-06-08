@@ -38,7 +38,6 @@ import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Text;
 import org.w3c.dom.Document;
 
@@ -73,8 +72,6 @@ import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.references.ImportXsdSchemaReference;
-import com.twinsoft.convertigo.beans.references.IncludeXsdSchemaReference;
-import com.twinsoft.convertigo.beans.references.RemoteFileReference;
 import com.twinsoft.convertigo.beans.references.WebServiceReference;
 import com.twinsoft.convertigo.beans.references.XsdSchemaReference;
 import com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass;
@@ -110,7 +107,6 @@ import com.twinsoft.convertigo.eclipse.wizards.new_project.EmulatorTechnologyWiz
 import com.twinsoft.convertigo.eclipse.wizards.new_project.SQLQueriesWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.new_project.ServiceCodeWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.references.ProjectSchemaWizardPage;
-import com.twinsoft.convertigo.eclipse.wizards.references.SchemaFileWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.references.WebServiceWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.references.WsdlSchemaFileWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.references.XsdSchemaFileWizardPage;
@@ -130,8 +126,6 @@ public class NewObjectWizard extends Wizard {
     private ObjectExplorerWizardPage objectExplorerPage = null;
     private ObjectInfoWizardPage objectInfoPage = null;
     private SQLQueriesWizardPage sqlQueriesWizardPage = null;
-    private WsdlSchemaFileWizardPage wsdlSchemaWizardPage = null;
-    private XsdSchemaFileWizardPage xsdSchemaFileWizardPage = null;
     
 	public Button useAuthentication = null;
 	public Text loginText = null, passwordText = null;
@@ -277,10 +271,10 @@ public class NewObjectWizard extends Wizard {
 			ProjectSchemaWizardPage projectSchemaWizardPage = new ProjectSchemaWizardPage(parentObject);
 			this.addPage(projectSchemaWizardPage);
 			
-			xsdSchemaFileWizardPage = new XsdSchemaFileWizardPage(parentObject);
+			XsdSchemaFileWizardPage xsdSchemaFileWizardPage = new XsdSchemaFileWizardPage(parentObject);
 			this.addPage(xsdSchemaFileWizardPage);
 			
-			wsdlSchemaWizardPage = new WsdlSchemaFileWizardPage(parentObject);
+			WsdlSchemaFileWizardPage wsdlSchemaWizardPage = new WsdlSchemaFileWizardPage(parentObject);
 			this.addPage(wsdlSchemaWizardPage);
 			
 			WebServiceWizardPage webServiceWizardPage = new WebServiceWizardPage(parentObject);
@@ -466,46 +460,17 @@ public class NewObjectWizard extends Wizard {
 						}
 						
 						if (newBean instanceof WebServiceReference) {
-							Project project = (Project)parentObject;
-							WebServiceReference webServiceReference = (WebServiceReference)newBean;
-							webServiceReference.setUrlpath(((SchemaFileWizardPage)wsdlSchemaWizardPage).getWsdlURL());
-							ImportWsReference wsr = new ImportWsReference(webServiceReference);
-							
-							useAuthentication = ((SchemaFileWizardPage)wsdlSchemaWizardPage).getUseAuthentication();
-							loginText = ((SchemaFileWizardPage)wsdlSchemaWizardPage).getLoginText();
-							passwordText = ((SchemaFileWizardPage)wsdlSchemaWizardPage).getPasswordText();
-							
-							
-							Display display = this.getShell().getDisplay();
-							if (!isAuthenticated(display)) {
-								wsr.importInto(project, false); 
-							} else { 
-								try {
-									wsr.importIntoAuthenticated(project, getLogin(display), getPassword(display), false); 
-								}catch (Exception e){
+							try {
+								Project project = (Project)parentObject;
+								WebServiceReference webServiceReference = (WebServiceReference)newBean;
+								ImportWsReference wsr = new ImportWsReference(webServiceReference);
+								wsr.importInto(project);
+							} catch (Exception e){
+								if (newBean != null) {
 									parentObject.remove(newBean);
-									throw new Exception(e.getMessage());
 								}
+								throw new Exception(e.getMessage());
 							}
-
-						}
-						
-						if (newBean instanceof RemoteFileReference) {
-							RemoteFileReference remoteFileReference = (RemoteFileReference)newBean;
-							remoteFileReference.setUrlpath(((SchemaFileWizardPage)wsdlSchemaWizardPage).getWsdlURL());
-							remoteFileReference.setNeedAuthentication(((SchemaFileWizardPage)wsdlSchemaWizardPage).needAuthentication());
-						}
-						
-						if (newBean instanceof IncludeXsdSchemaReference) {
-							IncludeXsdSchemaReference includeXsdSchemaReference = (IncludeXsdSchemaReference) newBean;
-							includeXsdSchemaReference.setUrlpath(xsdSchemaFileWizardPage.getWsdlURL());
-							includeXsdSchemaReference.setNeedAuthentication(xsdSchemaFileWizardPage.needAuthentication());
-						}
-						
-						if (newBean instanceof ImportXsdSchemaReference) {
-							ImportXsdSchemaReference importXsdSchemaReference = (ImportXsdSchemaReference) newBean;
-							importXsdSchemaReference.setUrlpath(xsdSchemaFileWizardPage.getWsdlURL());
-							importXsdSchemaReference.setNeedAuthentication(xsdSchemaFileWizardPage.needAuthentication());
 						}
 						
 						if (newBean instanceof SqlTransaction) {
@@ -732,33 +697,4 @@ public class NewObjectWizard extends Wizard {
 		}
     }
     
-    private boolean isAuthenticated(Display display) {
-		final boolean[] isAuthenticated = new boolean[1];
-		display.syncExec(new Runnable() {
-			public void run() {
-				isAuthenticated[0] = useAuthentication.getSelection();
-			}
-		});
-		return isAuthenticated[0];
-	}
-	
-	private String getLogin(Display display) {
-		final String[] login = new String[1];
-		display.syncExec(new Runnable() {
-			public void run() {
-				login[0] = loginText.getText();
-			}
-		});
-		return login[0];
-	}
-	
-	private String getPassword(Display display) {
-		final String[] password = new String[1];
-		display.syncExec(new Runnable() {
-			public void run() {
-				password[0] = passwordText.getText();
-			}
-		});
-		return password[0];
-	}
 }

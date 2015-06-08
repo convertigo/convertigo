@@ -86,7 +86,14 @@ public class NewProjectWizardComposite10 extends Composite implements IWsReferen
 			}
 		});
 		
-		editor = wsRefAuthenticated.getEditor();		
+		editor = wsRefAuthenticated.getEditor();
+		Composite fileSelectionArea = wsRefAuthenticated.getFileSelectionArea();
+		editor.getTextControl(fileSelectionArea).addModifyListener(new ModifyListener(){
+			public void modifyText(ModifyEvent e) {
+				editorChanged();
+			}
+		});	
+		
 		useAuthentication = wsRefAuthenticated.getUseAuthentication();
 		useAuthentication.addSelectionListener(new SelectionListener() {
 			@Override
@@ -109,16 +116,9 @@ public class NewProjectWizardComposite10 extends Composite implements IWsReferen
 		
 		loginText = wsRefAuthenticated.getLoginText();
 		loginText.addModifyListener(ml);
+		
 		passwordText = wsRefAuthenticated.getPasswordText();
 		passwordText.addModifyListener(ml);
-		
-		Composite fileSelectionArea = wsRefAuthenticated.getFileSelectionArea();
-		
-		editor.getTextControl(fileSelectionArea).addModifyListener(new ModifyListener(){
-			public void modifyText(ModifyEvent e) {
-				editorChanged();
-			}
-		});	
 	}
 	
 	@Override
@@ -162,10 +162,12 @@ public class NewProjectWizardComposite10 extends Composite implements IWsReferen
 			message = "Please enter an URL!";
 		}
 		
-		if (useAuthentication.getSelection() && 
-				(loginText.getText().equals("") || passwordText.getText().equals("")) ) {
-			message = "Please enter login and password";
-		} 
+		if (message == null) {
+			if (useAuthentication.getSelection() && 
+					(loginText.getText().equals("") || passwordText.getText().equals("")) ) {
+				message = "Please enter login and password";
+			} 
+		}
 		
 		setTextStatus(message);
 	}

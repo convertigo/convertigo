@@ -40,7 +40,7 @@ public class RemoteFileReferenceBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[2];
+			properties = new PropertyDescriptor[4];
 
             properties[0] = new PropertyDescriptor("urlpath", beanClass, "getUrlpath", "setUrlpath");
             properties[0].setDisplayName(getExternalizedString("property.urlpath.display_name"));
@@ -49,7 +49,17 @@ public class RemoteFileReferenceBeanInfo extends MySimpleBeanInfo {
             properties[1] = new PropertyDescriptor("needAuthentication", beanClass, "needAuthentication", "setNeedAuthentication");
             properties[1].setDisplayName(getExternalizedString("property.needAuthentication.display_name"));
             properties[1].setShortDescription(getExternalizedString("property.needAuthentication.short_description"));
+            properties[1].setExpert(true);
             
+            properties[2] = new PropertyDescriptor("authUser", beanClass, "getAuthUser", "setAuthUser");
+            properties[2].setDisplayName(getExternalizedString("property.authUser.display_name"));
+            properties[2].setShortDescription(getExternalizedString("property.authUser.short_description"));
+            properties[2].setExpert(true);
+            
+            properties[3] = new PropertyDescriptor("authPassword", beanClass, "getAuthPassword", "setAuthPassword");
+            properties[3].setDisplayName(getExternalizedString("property.authPassword.display_name"));
+            properties[3].setShortDescription(getExternalizedString("property.authPassword.short_description"));
+            properties[3].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

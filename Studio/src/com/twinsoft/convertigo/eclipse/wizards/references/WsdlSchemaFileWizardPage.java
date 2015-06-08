@@ -22,55 +22,19 @@
 
 package com.twinsoft.convertigo.eclipse.wizards.references;
 
-import com.twinsoft.convertigo.beans.references.WsdlSchemaReference;
-
 public class WsdlSchemaFileWizardPage extends SchemaFileWizardPage {
 
 	public WsdlSchemaFileWizardPage(Object parentObject) {
 		super(parentObject, "WsdlSchemaFileWizardPage");
+		setTitle("WSDL Schema file");
 		setFilterExtension(new String[]{"*.wsdl", "*.xml"});
 		setFilterNames(new String[]{"WSDL files", "XML files"});
 	}
-
-	@Override
-	protected void setDboFilePath(String filepath) {
-		((WsdlSchemaReference)getDbo()).setFilepath(filepath);
-		
-	}
-
-	@Override
-	protected void setDboUrlPath(String urlpath) {
-		// TODO Auto-generated method stub
-		((WsdlSchemaReference)getDbo()).setUrlpath(urlpath);
+	
+	public WsdlSchemaFileWizardPage(Object parentObject, String pageName) {
+		super(parentObject, pageName);
+		setFilterExtension(new String[]{"*.wsdl", "*.xml"});
+		setFilterNames(new String[]{"WSDL files", "XML files"});
 	}
 	
-	@Override
-	public void dialogChanged() {
-		// TODO Auto-generated method stub
-		super.dialogChanged();
-	}
-	
-	@Override
-	public void comboChanged() {
-		// TODO Auto-generated method stub
-		super.comboChanged();
-	}
-
-	@Override
-	public void editorChanged() {
-		// TODO Auto-generated method stub
-		super.editorChanged();
-	}
-
-	@Override
-	public void setTextStatus(String message) {
-		// TODO Auto-generated method stub
-		super.setTextStatus(message);
-	}
-
-	@Override
-	protected void setNeedAuthentication(boolean needAuthentication) {
-		((WsdlSchemaReference)getDbo()).setNeedAuthentication(needAuthentication);	
-	}
-
 }

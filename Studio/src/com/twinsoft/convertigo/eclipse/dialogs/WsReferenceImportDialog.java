@@ -26,11 +26,8 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
-
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.references.WebServiceReference;
@@ -40,14 +37,9 @@ import com.twinsoft.convertigo.engine.util.ImportWsReference;
 public class WsReferenceImportDialog extends MyAbstractDialog implements Runnable {
 
 	private ProgressBar progressBar = null;
-	protected Label labelInformation = null;
-	private Button useAuthentication = null;
-	private Text loginText = null, passwordText = null;
-	private String wsdlURL = null;
-	private Project project;
-	private HttpConnector httpConnector = null;
-
 	private WebServiceReference webServiceReference;
+	private HttpConnector httpConnector = null;
+	private Project project = null;;
 	private boolean updateMode = false;
 	
 	/**
@@ -72,24 +64,11 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 	
 	protected void okPressed() {		
 		try {
-			((WsReferenceImportDialogComposite)dialogComposite).setOKButton(this.getButton(OK));
-			
-			labelInformation = ( (WsReferenceImportDialogComposite)dialogComposite ).labelInformation; 
-			
-			useAuthentication = ( (WsReferenceImportDialogComposite)dialogComposite ).useAuthentication;
-			loginText = ( (WsReferenceImportDialogComposite)dialogComposite ).loginText;
-			passwordText = ( (WsReferenceImportDialogComposite)dialogComposite ).passwordText;
-			progressBar = ( (WsReferenceImportDialogComposite)dialogComposite ).progressBar;
-			
-			wsdlURL = ( (WsReferenceImportDialogComposite)dialogComposite ).getURL();
-			if (wsdlURL.startsWith("http://") || wsdlURL.startsWith("https://") || wsdlURL.startsWith("file:/")) {
-				getButton(IDialogConstants.OK_ID).setEnabled(false);
-				getButton(IDialogConstants.CANCEL_ID).setEnabled(false);
-
-				Thread thread = new Thread(this);
-				thread.start();
-			}
-			
+			getButton(IDialogConstants.OK_ID).setEnabled(false);
+			getButton(IDialogConstants.CANCEL_ID).setEnabled(false);
+	
+			Thread thread = new Thread(this);
+			thread.start();
 		}
 		catch (Throwable e) {
 			ConvertigoPlugin.logException(e, "Unable to import WSDL reference!");
@@ -126,17 +105,9 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 		Throwable ex = null;
 		try {		
 			progressBarThread.start();
-			ImportWsReference wsr = null;
-			if (!updateMode) {
-				wsr = new ImportWsReference(wsdlURL);
-			} else {
-				wsr = new ImportWsReference(webServiceReference);
-			}
-			if (!isAuthenticated(display)) {
-				httpConnector = wsr.importInto(project, updateMode); 
-			} else { 
-				httpConnector = wsr.importIntoAuthenticated(project, getLogin(display), getPassword(display), updateMode); 
-			}
+			
+			ImportWsReference wsr = new ImportWsReference(webServiceReference);
+			httpConnector = wsr.importInto(project);
 		}
 		catch (Throwable e) {
 			ex = e;
@@ -162,64 +133,36 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 		}
 	}
 	
-	private boolean isAuthenticated(Display display) {
-		final boolean[] isAuthenticated = new boolean[1];
-		display.syncExec(new Runnable() {
-			public void run() {
-				isAuthenticated[0] = useAuthentication.getSelection();
-			}
-		});
-		return isAuthenticated[0];
+	public void setReference(WebServiceReference webServiceReference) {
+		this.webServiceReference = webServiceReference;
 	}
 	
-	private String getLogin(Display display) {
-		final String[] login = new String[1];
-		display.syncExec(new Runnable() {
-			public void run() {
-				login[0] = loginText.getText();
-			}
-		});
-		return login[0];
+	protected WebServiceReference getReference() {
+		return this.webServiceReference;
 	}
 	
-	private String getPassword(Display display) {
-		final String[] password = new String[1];
-		display.syncExec(new Runnable() {
-			public void run() {
-				password[0] = passwordText.getText();
-			}
-		});
-		return password[0];
-	}
-
-	/**
-	 * @param project
-	 */
 	public void setProject(Project project) {
 		this.project = project;
+	}
+	
+	protected Project getProject() {
+		return this.project;
+	}
+	
+	public void setUpdateMode(boolean updateMode) {
+		this.updateMode = updateMode;
+	}
+	
+	protected boolean isUpdateMode() {
+		return this.updateMode;
 	}
 	
 	public HttpConnector getHttpConnector() {
 		return httpConnector;
 	}
 	
-	public Button getButtonOK(){
+	protected Button getButtonOK(){
 		return getButton(OK);
 	}
 	
-	public void setUpdateMode(boolean updateMode){
-		this.updateMode = updateMode;
-	}
-
-	public String getURL(){
-		return this.webServiceReference.getUrlpath();
-	}
-
-	public String getFilePath() {
-		return this.webServiceReference.getFilepath();
-	}
-
-	public void setReference(WebServiceReference webServiceReference) {
-		this.webServiceReference = webServiceReference;
-	}
 }

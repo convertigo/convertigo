@@ -84,6 +84,7 @@ public class ProjectSchemaWizardPage extends WizardPage {
 		
 		initialize();
 		setControl(container);
+		dialogChanged();
 	}
 
 	@Override
@@ -117,6 +118,11 @@ public class ProjectSchemaWizardPage extends WizardPage {
 	}
 	
 	private void dialogChanged() {
+		if (projectName == null) {
+			updateStatus("Please select a project");
+			return;
+		}
+
 		try {
 			DatabaseObject dbo = ((ObjectExplorerWizardPage)getWizard().getPage("ObjectExplorerWizardPage")).getCreatedBean();
 			if (dbo != null) {

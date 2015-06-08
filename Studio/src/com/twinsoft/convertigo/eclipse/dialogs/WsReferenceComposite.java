@@ -124,7 +124,7 @@ public class WsReferenceComposite extends Composite {
 		passwordText.setEnabled(false);
 		passwordText.setLayoutData(gridData);
 		
-		Object o = getShell().getData();
+		/*Object o = getShell().getData();
 		if (o instanceof WsReferenceImportDialog) {
 			WsReferenceImportDialog ws = (WsReferenceImportDialog) o;
 			String URL = ws.getURL();
@@ -139,7 +139,7 @@ public class WsReferenceComposite extends Composite {
 				combo.setEnabled(false);
 				editor.setEnabled(false, fileSelectionArea);
 			}
-		}		
+		}*/
 	}
 	
 	public void setFilterExtension(String[] filterExtension) {
@@ -195,8 +195,8 @@ public class WsReferenceComposite extends Composite {
  	}
 	
 	public boolean isValidURL() {
-		String wsdlURL = combo.getText();
-		return ((wsdlURL.startsWith("http://") || wsdlURL.startsWith("https://") || wsdlURL.startsWith("file:/")) && !(wsdlURL.replaceAll(" ", "").equals("")));
+		String url = combo.getText();
+		return ((url.startsWith("http://") || url.startsWith("https://") || url.startsWith("file:/")) && !(url.replaceAll(" ", "").equals("")));
 	}
 
 	

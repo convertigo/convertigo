@@ -80,37 +80,24 @@ public class WsReference {
 	private boolean updateMode = false;
 	
 	public WsReference(String wsdlURL) {
-	   	reference = new WebServiceReference();
-	   	reference.setUrlpath(wsdlURL);
+		this(wsdlURL, false, null, null);
 	}
 
+	public WsReference(String wsdlURL, boolean needAuthentication, String login, String password) {
+	   	reference = new WebServiceReference();
+	   	reference.setUrlpath(wsdlURL);
+	   	reference.setNeedAuthentication(needAuthentication);
+	   	reference.setAuthUser(login == null ? "":login);
+	   	reference.setAuthUser(password == null ? "":password);
+	   	reference.bNew = true;
+	}
+	
 	public WsReference(WebServiceReference reference) {
 		this.reference = reference;
 	}
 
 	private WebServiceReference getReference() {
 		return reference;
-	}
-	
-	protected HttpConnector importIntoAuthenticated(Project project, String login, String password, boolean updateMode) throws Exception {
-		HttpConnector httpConnector = null;
-		//We add login/password into the connection
-		System.setProperty("soapui.loader.username", login);
-		System.setProperty("soapui.loader.password", password);
-		
-		try{
-			tryAuthentication(login, password);
-			reference.setNeedAuthentication(true);
-		} catch (Exception e) {
-			throw new Exception ("Authentication failure!", e);
-		}
-		httpConnector = importInto(project, updateMode);
-
-		//We clear login/password
-		System.setProperty("soapui.loader.username", "");
-		System.setProperty("soapui.loader.password", "");
-		
-		return httpConnector;
 	}
 	
 	private void tryAuthentication(String username, String password) throws Exception {
@@ -133,16 +120,34 @@ public class WsReference {
         }
 	}
 	
-	protected HttpConnector importInto(Project project, boolean updateMode) throws Exception {
+	protected HttpConnector importInto(Project project) throws Exception {
 		WebServiceReference webServiceReference = null;
 		HttpConnector httpConnector = null;
-		this.updateMode = updateMode;
+		boolean needAuthentication = false;
 		
-		try{
+		try {
 			if (project != null) {
 				webServiceReference = getReference();
+				needAuthentication = webServiceReference.needAuthentication();
+				
 				if (webServiceReference.getParent() == null)
 	   		   		project.add(webServiceReference);
+				else
+					updateMode = true;// the reference already exist
+
+				if (needAuthentication) {
+					String login = webServiceReference.getAuthUser();
+					String password = webServiceReference.getAuthPassword();
+					try {
+						//We add login/password into the connection
+						System.setProperty("soapui.loader.username", login);
+						System.setProperty("soapui.loader.password", password);
+						
+						tryAuthentication(login, password);
+					} catch (Exception e) {
+						throw new Exception ("Authentication failure!", e);
+					}
+				}
 				
 				httpConnector = importWebService(webServiceReference);
 	   			if (!updateMode && httpConnector != null)
@@ -158,9 +163,14 @@ public class WsReference {
 					project.remove(httpConnector);
 					httpConnector = null;
 				}
+			} catch (Exception ex) {}
+			throw new EngineException("Unable to import the web service reference", e);
+		} finally {
+			if (needAuthentication) {
+				//We clear login/password
+				System.setProperty("soapui.loader.username", "");
+				System.setProperty("soapui.loader.password", "");
 			}
-			catch (Exception ex) {}
-			throw new EngineException("Unable to import the web service reference : Invalid WSDL", e);
 		}
 		return httpConnector;
 	}

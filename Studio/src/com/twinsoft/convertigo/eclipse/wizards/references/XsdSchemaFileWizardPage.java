@@ -22,52 +22,12 @@
 
 package com.twinsoft.convertigo.eclipse.wizards.references;
 
-import com.twinsoft.convertigo.beans.references.XsdSchemaReference;
-
 public class XsdSchemaFileWizardPage extends SchemaFileWizardPage {
 
 	public XsdSchemaFileWizardPage(Object parentObject) {
 		super(parentObject, "XsdSchemaFileWizardPage");
+		setTitle("XSD Schema file");
 		setFilterExtension(new String[]{"*.xsd"});
 		setFilterNames(new String[]{"XSD files"});
-	}
-
-	@Override
-	protected void setDboFilePath(String filepath) {
-		((XsdSchemaReference)getDbo()).setFilepath(filepath);
-	}
-
-	@Override
-	protected void setDboUrlPath(String urlpath) {
-		((XsdSchemaReference)getDbo()).setUrlpath(urlpath);
-	}
-	
-	@Override
-	public void dialogChanged() {
-		// TODO Auto-generated method stub
-		super.dialogChanged();
-	}
-
-	@Override
-	public void comboChanged() {
-		// TODO Auto-generated method stub
-		super.comboChanged();
-	}
-
-	@Override
-	public void editorChanged() {
-		// TODO Auto-generated method stub
-		super.editorChanged();
-	}
-
-	@Override
-	public void setTextStatus(String message) {
-		// TODO Auto-generated method stub
-		super.setTextStatus(message);
-	}
-
-	@Override
-	protected void setNeedAuthentication(boolean needAuthentication) {
-		((XsdSchemaReference)getDbo()).setNeedAuthentication(needAuthentication);		
 	}
 }

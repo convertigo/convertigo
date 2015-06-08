@@ -23,11 +23,13 @@
 package com.twinsoft.convertigo.eclipse.dialogs;
 
 import java.io.File;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -45,17 +47,19 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Text;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.references.RemoteFileReference;
 import com.twinsoft.convertigo.eclipse.wizards.util.FileFieldEditor;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 
-public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite implements IWsReferenceComposite{
+public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite implements IWsReferenceComposite {
 
 	private FileFieldEditor editor = null;
 	private Combo combo = null;
 	private String filePath = "";
 	private String urlPath = "";
 	private WsReferenceComposite wsRefAuthenticated = null;
-	private Button OKButton = null;
 	
 	public Button useAuthentication = null;
 	public Text loginText = null, passwordText = null;
@@ -71,6 +75,20 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 	}
 
 	@Override
+	protected void setParentDialog(Dialog parentDialog) {
+		super.setParentDialog(parentDialog);
+		
+		if (isUpdateMode()) {
+			addToCombo(((RemoteFileReference)getDbo()).getUrlpath());
+			combo.setEnabled(false);
+			Composite fileSelectionArea = wsRefAuthenticated.getFileSelectionArea();
+			editor.setEnabled(false, fileSelectionArea);
+			useAuthentication.setEnabled(false);
+		}
+	}
+
+
+	@Override
 	protected void initialize() {
 		final Composite container = this;
 		GridLayout gridLayout = new GridLayout();
@@ -79,7 +97,6 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 
 		container.setLayout(gridLayout);
 		
-		/* Authenticated Composite for import WS Reference */
 		GridData data1 = new GridData ();
 		data1.horizontalAlignment = GridData.FILL;
 		data1.grabExcessHorizontalSpace = true;
@@ -97,6 +114,7 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 		data1.horizontalAlignment = GridData.FILL;
 		data1.grabExcessHorizontalSpace = true;
 		
+		/* Authenticated Composite for import WS Reference */
 		wsRefAuthenticated = new WsReferenceComposite(this, SWT.NONE, data1);
 		
 		combo = wsRefAuthenticated.getCombo(); 
@@ -136,6 +154,7 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 		
 		loginText = wsRefAuthenticated.getLoginText();
 		loginText.addModifyListener(ml);
+		
 		passwordText = wsRefAuthenticated.getPasswordText();
 		passwordText.addModifyListener(ml);
 
@@ -150,18 +169,23 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 		return null;
 	}
 	
-	public void setOKButton(Button OKButton) {
-		this.OKButton = OKButton;
+	protected DatabaseObject getDbo() {
+		return ((WsReferenceImportDialog)parentDialog).getReference();
 	}
 	
-	public String getURL() {
-		return combo.getText();
+	protected String getProjectName() {
+		return ((WsReferenceImportDialog)parentDialog).getProject().getName();
 	}
-
+	
+	protected boolean isUpdateMode() {
+		return ((WsReferenceImportDialog)parentDialog).isUpdateMode();
+	}
+	
 	@Override
 	public void dialogChanged() {
-		String message = "";
-		if (!urlPath.equals("")) {
+		String message = null;
+		
+		if (!urlPath.isEmpty()) {
 			try {
 				new URL(urlPath);
 			}
@@ -173,44 +197,81 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 			File file = new File(filePath);
 			if (!file.exists()) {
 				message = "Please select an existing file";
-			} else {
+			}
+			else {
 				String[] filterExtensions = wsRefAuthenticated.getFilterExtension()[0].split(";");
 				for (String fileFilter: filterExtensions) {
 					String fileExtension = fileFilter.substring(fileFilter.lastIndexOf("."));
-					if (filePath.endsWith(fileExtension)) {
-						try {					
-							String uriFile = FileUtils.toUriString(file);
-							if(!Arrays.asList(combo.getItems()).contains(uriFile)){
-								combo.add(uriFile);
-								combo.select(combo.getItemCount()-1);
-							} else {
-								combo.select(wsRefAuthenticated.getItem(uriFile));
-							}
-						} catch (Exception e) {
-							message = e.getMessage();
-						}
-					} else {
+					if (!filePath.endsWith(fileExtension)) {
 						message = "Please select a compatible file";
 					}
 				}
 			}
-		} else {
+		}
+		else {
 			message = "Please enter an URL!";
 		}
 		
-		if (useAuthentication.getSelection() && 
-				(loginText.getText().isEmpty() || passwordText.getText().isEmpty()) ) {
-			message = "Please enter login and password";
-		} 
+		if (message == null) {
+			if (useAuthentication.getSelection() && 
+					(loginText.getText().equals("") || passwordText.getText().equals("")) ) {
+				message = "Please enter login and password";
+			} 
+		}
+		
+		if (message == null && !isUpdateMode()) {
+			try {
+				RemoteFileReference reference = (RemoteFileReference)getDbo();
+				
+				String localPath = "";
+				if (urlPath.startsWith("file:/")) {
+					localPath = getLocalFilePath(urlPath.substring("file:/".length()));
+				}
+				reference.setUrlpath(localPath.isEmpty() ? urlPath : "");
+				reference.setFilepath(localPath.isEmpty() ? "" : localPath);
+				
+				if (useAuthentication.getSelection()) {
+					reference.setNeedAuthentication(true);
+					reference.setAuthUser(loginText.getText());
+					reference.setAuthPassword(passwordText.getText());
+				}
+			} catch (Exception e) {
+				message = e.getMessage();
+			}
+		}
 		
 		setTextStatus(message);
 	}
 
+	protected String getLocalFilePath(String path) {
+		if (path != null && !path.isEmpty()) {
+			try {
+				String canonicalPath = new File(path).getCanonicalPath();
+				String projectPath = (new File(Engine.PROJECTS_PATH +"/"+ getProjectName())).getCanonicalPath();
+				String workspacePath = (new File(Engine.USER_WORKSPACE_PATH)).getCanonicalPath();
+				boolean isLocal = canonicalPath.startsWith(projectPath) || canonicalPath.startsWith(workspacePath);
+				if (isLocal) {
+					if (canonicalPath.startsWith(projectPath)) {
+						canonicalPath = "./" + canonicalPath.substring(projectPath.length());
+					} else if (canonicalPath.startsWith(workspacePath)) {
+						canonicalPath = "." + canonicalPath.substring(workspacePath.length());
+					}
+					return canonicalPath.replaceAll("\\\\", "/");
+				}
+			} catch (Exception e) {}
+		}
+		return "";
+	}
+	
 	@Override
 	public void comboChanged() {
 		urlPath = combo.getText();
-		if (urlPath.replaceAll(" ", "").equals("")) {
-			filePath = "";
+
+		if (isUpdateMode())
+			return;
+		
+		if (!filePath.isEmpty() && urlPath.indexOf(filePath) == -1) {
+			editor.setStringValue(null);
 		}
 		dialogChanged();
 	}
@@ -221,32 +282,38 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 		filePath = path.toString();
 		File f = new File(filePath);
 		if(f.exists()) {
-			urlPath = "";
-			dialogChanged();
+			try {
+				addToCombo(FileUtils.toUriString(f));
+			} catch (MalformedURLException e) {}
 		} else {
 			editor.setStringValue(null);
 			setTextStatus("Please select an existing file");
 		}
 	}
 
+	private void addToCombo(String uriFile) {
+		if(!Arrays.asList(combo.getItems()).contains(uriFile)){
+			combo.add(uriFile);
+			combo.select(combo.getItemCount()-1);
+		} else {
+			combo.select(wsRefAuthenticated.getItem(uriFile));
+		}
+	}
+	
 	@Override
 	public void setTextStatus(String message) {
-		WsReferenceImportDialog dialog = (WsReferenceImportDialog) parentDialog;
-		OKButton = dialog.getButtonOK();
-		
 		//Set text color to red
 		labelInformation.setForeground(new Color(labelInformation.getDisplay(), 255, 0, 0));
 		
-		if(message.equals("") && !wsRefAuthenticated.isValidURL()){
-			labelInformation.setText("Please enter a valid URL");	
+		Button OKButton = ((WsReferenceImportDialog) parentDialog).getButtonOK();
+		
+		if (!urlPath.isEmpty() && wsRefAuthenticated.isValidURL()) {
+			labelInformation.setText(message==null ? "":message);
+			OKButton.setEnabled(message==null);
 		} else {
-			labelInformation.setText(message);	
-		}
-
-		if (wsRefAuthenticated.isValidURL()){
-			OKButton.setEnabled(message.equals(""));
-		} else {
+			labelInformation.setText("Please enter a valid URL");
 			OKButton.setEnabled(false);
 		}
+		
 	}
 }

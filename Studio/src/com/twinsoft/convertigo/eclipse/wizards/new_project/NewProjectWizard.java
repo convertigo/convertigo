@@ -504,17 +504,14 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 					monitor.beginTask("Creating project " + projectName, 7);
 					Project project = createFromBlankProject(monitor);
 	
+					boolean needAuth = page10.useAuthentication();
 					String wsdlURL = page10.getWsdlURL().toString();
-					ImportWsReference wsr = new ImportWsReference(wsdlURL);
+					String login = page10.getLogin();
+					String password = page10.getPassword();
 					
-					HttpConnector httpConnector = null;
-					if (!page10.useAuthentication()) {
-						httpConnector = wsr.importInto(project, false);
-					} else {
-						httpConnector = wsr.importIntoAuthenticated(project, page10.getLogin(), 
-								page10.getPassword(), false);
-					}
+					ImportWsReference wsr = new ImportWsReference(wsdlURL, needAuth, login, password);
 					
+					HttpConnector httpConnector = wsr.importInto(project);
 					if (httpConnector != null) {
 						Connector defaultConnector = project.getDefaultConnector();
 						project.setDefaultConnector(httpConnector);

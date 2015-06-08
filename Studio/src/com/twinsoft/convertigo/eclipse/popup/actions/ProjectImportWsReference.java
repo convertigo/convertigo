@@ -24,6 +24,8 @@ package com.twinsoft.convertigo.eclipse.popup.actions;
 
 import java.io.IOException;
 
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
@@ -54,6 +56,17 @@ public class ProjectImportWsReference extends MyAbstractAction {
 		super();
 	}
 
+	public void selectionChanged(IAction action, ISelection selection) {
+		try {
+			super.selectionChanged(action, selection);
+			/*IStructuredSelection structuredSelection = (IStructuredSelection) selection;
+			TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
+			Object ob = treeObject.getObject();*/
+			action.setEnabled(!updateMode);
+		}
+		catch (Exception e) {}
+	}
+	
 	public void run() {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
@@ -67,14 +80,20 @@ public class ProjectImportWsReference extends MyAbstractAction {
 				TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
 				if (treeObject != null) {
 					ProjectTreeObject projectTreeObject = null;
+					WebServiceReference webServiceObject = null;
 					if (treeObject instanceof ProjectTreeObject) {
 						projectTreeObject = (ProjectTreeObject)treeObject;
-						openWsReferenceImportDialog(shell, explorerView, projectTreeObject, null, treeObject);
+						webServiceObject = new WebServiceReference();
+						webServiceObject.bNew = true;
 					}
 					else if (treeObject instanceof ReferenceTreeObject ) {
 						ReferenceTreeObject referenceTreeObject = (ReferenceTreeObject)treeObject;
-						WebServiceReference webServiceObject = (WebServiceReference) referenceTreeObject.getObject();
+						webServiceObject = (WebServiceReference) referenceTreeObject.getObject();
 						projectTreeObject = referenceTreeObject.getProjectTreeObject();
+						
+					}
+					
+					if (webServiceObject != null) {
 						openWsReferenceImportDialog(shell, explorerView, projectTreeObject, webServiceObject, treeObject);
 					}
 				}
@@ -95,7 +114,7 @@ public class ProjectImportWsReference extends MyAbstractAction {
 		
 		Project project = projectTreeObject.getObject();
 		if (project != null) {
-			WsReferenceImportDialog wsReferenceImportDialog = new WsReferenceImportDialog(shell, WsReferenceImportDialogComposite.class, "Update reference");
+			WsReferenceImportDialog wsReferenceImportDialog = new WsReferenceImportDialog(shell, WsReferenceImportDialogComposite.class, "Web service reference");
 			wsReferenceImportDialog.setProject(project);
 			wsReferenceImportDialog.setUpdateMode(updateMode);
 			wsReferenceImportDialog.setReference(webServiceReference);
