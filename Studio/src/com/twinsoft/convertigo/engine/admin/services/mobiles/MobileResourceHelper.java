@@ -378,7 +378,7 @@ public class MobileResourceHelper {
 		}
 		
 		listFiles(json);
-		FileUtils.write(new File(destDir, "files.json"), json.toString());
+		write("files.json", json.toString());
 		
 		String remoteBase = endpoint + "/projects/" + project.getName() + "/_private/mobile/flashupdate_" + this.mobilePlatform.getName();
 				
@@ -399,7 +399,7 @@ public class MobileResourceHelper {
 		json.put("remoteBase", remoteBase);
 		json.put("timeout", mobileApplication.getFlashUpdateTimeout());
 		
-		FileUtils.write(new File(destDir, "env.json"), json.toString());
+		write("env.json", json.toString());
 		
 		File configFile = new File(destDir, "config.xml");
 		
@@ -480,10 +480,7 @@ public class MobileResourceHelper {
 			});
 			
 			try {
-				long revision = destDir.lastModified();
-				FileUtils.write(lastEndpoint, endpoint, "UTF-8");
-				lastEndpoint.setLastModified(revision);
-				destDir.setLastModified(revision);
+				write(lastEndpoint, endpoint);
 			} catch (IOException e) {
 				throw new ServiceException("Failed to write last endpoint", e);
 			}
@@ -519,5 +516,15 @@ public class MobileResourceHelper {
 		}
 		
 		return mobileApplication.getMobilePlatformByName(platform);
+	}
+	
+	private void write(String filename, String content) throws IOException {
+		write(new File(destDir, filename), content);
+	}
+	
+	private void write(File file, String content) throws IOException {
+		long lastModified = destDir.lastModified();
+		FileUtils.write(file, content, "UTF-8");
+		destDir.setLastModified(lastModified);
 	}
 }

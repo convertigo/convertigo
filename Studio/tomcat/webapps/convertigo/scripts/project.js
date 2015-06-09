@@ -343,10 +343,9 @@ function getPhoneGapBuildStatus() {
 						$platform.find(".built_endpoint").text( $build.attr("endpoint") );
 						$platform.find(".row_built_endpoint").css("display", "block");
 					}
-					
-					$platform.find(".built_revision").text($build.attr("revision") === "n/a" ? "(n/a)" : $build.attr("revision"));
 				}
 				$platform.find(".qrcode_version").text($build.attr("version"));
+				$platform.find(".built_revision").text($build.attr("revision"));
 				
 				if ($build.attr("version") !== $("#build_application_version").text() && $build.attr("version") !== "n/a") {
 					$platform.find(".qrcode_version").addClass("not_updated");
