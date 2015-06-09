@@ -483,14 +483,14 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		String cleanDescription = description;
 		// Replace first space
 		if (cleanDescription.charAt(0) == ' ') cleanDescription = cleanDescription.substring(1);
-		// Replace all {{...}}}
-		cleanDescription = cleanDescription.replaceAll("(\\{\\{[^\\{\\}]*\\}\\})", "");
+		// Replace all <span...>
+		cleanDescription = cleanDescription.replaceAll("</?\\w+?.*?>", "");
 		// Replace all \s\n
-		cleanDescription = cleanDescription.replaceAll("(\\s\\\n)", "\n\n");
+		cleanDescription = cleanDescription.replaceAll("\\s\\\n", "\n\n");
 		// Replace all \n\s
-		cleanDescription = cleanDescription.replaceAll("(\\\n\\s)", "\n\n");
+		cleanDescription = cleanDescription.replaceAll("\\\n\\s", "\n\n");
 		// Then replace all ***
-		cleanDescription = cleanDescription.replaceAll("(\\*+)", "\n * ");
+		cleanDescription = cleanDescription.replaceAll("\\*+", "\n * ");
 		return cleanDescription;
 	}
 
