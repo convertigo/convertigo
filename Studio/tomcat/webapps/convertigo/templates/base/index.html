@@ -96,7 +96,7 @@
        	/jquery(.min).js:
        		* jQuery library (1.x)
        		* Convertigo applications are based on JQuery. the following links will reference the current jQuery library.
-       	/c8o.core.js, c8o.desktop & ctf.core.js:
+       	/c8o.core.js, /c8o.desktop, /ctf.core.js, /c8o.fullsync.js & /pouchdb.min.js:
        		* Convertigo jQuery c8o lib
        		* The following links will reference the Convertigo libraries: Convertigo core library, Convertigo desktop dedicated library, 
 			Convertigo Templating Framework library.  
@@ -110,6 +110,9 @@
 			
 			You can find documentation about Convertigo Internationalization Framework here:
 			http://www.convertigo.com/document/latest/reference-manual/internationalization-framework/
+			
+			You can find documentation about Convertigo FullSync Framework here:
+			http://www.convertigo.com/document/latest/reference-manual/convertigo-full-sync-architecture/interacting-locally-with-the-data/
 		custom.js:
 			* Local project custom script
 			* will hold all your custom logic and controller.
@@ -119,6 +122,8 @@
         	'/c8o.core',
         	'/c8o.desktop',
         	'!/ctf.core.js',
+        	'!/pouchdb.min.js',
+        	'!/c8o.fullsync.js',
         	{'file': 'custom', 'minification': 'common'}
         ]"></script>
         <!-- Following commented line is the same inclusion but referencing the original Convertigo version number -->
@@ -129,6 +134,8 @@
         		'/c8o.core',
         		'/c8o.desktop',
         		'!/ctf.core.js',
+        		'!/pouchdb.min.js',
+        		'!/c8o.fullsync.js',
     	    	{'file': 'custom', 'minification': 'common'}
         	], 
         	'version':'7.3.0'

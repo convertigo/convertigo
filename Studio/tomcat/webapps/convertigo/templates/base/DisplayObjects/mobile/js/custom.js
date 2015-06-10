@@ -7,6 +7,7 @@
  * * jquery(.min).js
  * * c8o.core.js
  * * c8o.jquerymobile.js
+ * * ~ cordova.js (for builded application)
  * * ~ c8o.cordova.device.js (for builded application)
  * * ctf.core.js
  * * ctf.jquerymobile.js
@@ -18,7 +19,9 @@
  *
  * You can find documentation about Convertigo Internationalization Framework here:
  * http://www.convertigo.com/document/latest/reference-manual/internationalization-framework/
- *
+ * 
+ * You can find documentation about Convertigo FullSync Framework here:
+ * http://www.convertigo.com/document/latest/reference-manual/convertigo-full-sync-architecture/interacting-locally-with-the-data/
  *******************************************************
  *******************************************************/
 
@@ -37,6 +40,7 @@ $.extend(true, C8O, {
 //        enc: "false", /** enables rsa encoding */
 //        fs_server: null, /** force a couchdb server for fullsync. 'null' use pouchdb or the cblite plugin. Else expects 'http://user:pass@server:port' */
 //        fs_force_pouch: false, /** force to use pouch, even if fs_server isn't null or cblite plugin is available */
+//        fs_force_pouch_replication: false, /** force to use pouch for sync and replicate commands, even if the fs_server isn't null or cblite used */
 //        i18n: "" /** in case of multi-language application, force usage of the language selected. Empty string will select the browser language */
     },
     
@@ -275,6 +279,60 @@ $.extend(true, C8O, {
  * return: the data object or a new one with copied form's inputs values
  */
 //C8O.formToData($form, data);
+
+/**
+ *  fs_getDB function
+ *  ** Needs pouchdb.min.js + c8o.fullsync.js **
+ *  retrieve the PouchDB object for the 'db' database and allow to use its API directly (see http://pouchdb.com/api.html)
+ *  db (optional): name of the fullsync connector to use, default is the C8O.vars.fs_default_db
+ *  return: the PouchDB instance for this 'db'
+ */
+//C8O.fs_getDB(db);
+
+/**
+ *  fs_onChange function
+ *  ** Needs pouchdb.min.js + c8o.fullsync.js **
+ *  
+ *  options (optional): all options default to false unless otherwise specified
+ *  	options.db (optional): name of the fullsync connector to use, default is the C8O.vars.fs_default_db
+ *      options.onChange: handler function called at each local database change
+ *  return: a change object with this method
+ *      .cancel(): stop the current change listener
+ */
+//C8O.fs_onChange(options);
+
+/**
+ *  fs_replicate_pull function
+ *  ** Needs pouchdb.min.js + c8o.fullsync.js **
+ *  start a database synchronization from the Convertigo database to the device
+ *  see C8O.fs_sync for the 'options' and the 'return' value
+ */
+//C8O.fs_replicate_pull(options);
+
+/**
+ *  fs_replicate_push function
+ *  ** Needs pouchdb.min.js + c8o.fullsync.js **
+ *  start a database synchronization from the device to the Convertigo database
+ *  see C8O.fs_sync for the 'options' and the 'return' value
+ */
+//C8O.fs_replicate_push(options);
+
+/**
+ *  fs_sync function
+ *  ** Needs pouchdb.min.js + c8o.fullsync.js **
+ *  start a bidirectional database synchronization between the device and the Convertigo database
+ *  options (optional): all options default to false unless otherwise specified
+ *  	options.db (optional): name of the fullsync connector to use, default is the C8O.vars.fs_default_db
+ *      options.live: if true, starts subscribing to future changes in the source database and continue replicating them
+ *      options.retry: if true will attempt to retry replications in the case of failure (due to being offline)
+ *  return: a replication object with those methods
+ *      .on(eventName, eventHandler): attach an event handler about the replication state
+ *          eventName: can be "change", "complete" or "error"
+ *          eventHandler: a function that receive a parameter
+ *      .cancel(): stop the current replication
+ *      
+ */
+//C8O.fs_sync(options);
 
 /**
  * getBrowserLanguage function

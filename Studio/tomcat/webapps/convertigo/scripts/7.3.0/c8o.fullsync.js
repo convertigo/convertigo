@@ -103,7 +103,7 @@ $.extend(true, C8O, {
 		},
 		
 		onChange: function (db, onChange) {
-			C8O._fs.getDb(db).changes({
+			return C8O._fs.getDb(db).changes({
 			  since: "now",
 			  live: true
 			}).on("change", onChange);
@@ -392,6 +392,26 @@ $.extend(true, C8O, {
 			};
 		}
 	},
+		
+	fs_getDB: function (db) {
+		db = (db || C8O.vars.fs_default_db) + "_device";
+		return C8O._fs.getDb(db);
+	},
+	
+	fs_onChange: function (options) {
+		var db = options.db || C8O.vars.fs_default_db;
+		C8O._fs.onChange(db + "_device", options.onChange);
+	},
+	
+	fs_replicate_pull: function (options) {
+		C8O.log.info("c8o.fs  : fs_replicate_pull requested");
+		return C8O._fs.replicate(options, true);
+	},
+	
+	fs_replicate_push: function (options) {
+		C8O.log.info("c8o.fs  : fs_replicate_pull requested");
+		return C8O._fs.replicate(options, false);
+	},
 	
 	fs_sync: function (options) {
 		C8O.log.info("c8o.fs  : fs_replicate_sync requested");
@@ -436,26 +456,6 @@ $.extend(true, C8O, {
 				push.cancel();
 			}
 		}
-	},
-	
-	fs_replicate_pull: function (options) {
-		C8O.log.info("c8o.fs  : fs_replicate_pull requested");
-		return C8O._fs.replicate(options, true);
-	},
-	
-	fs_replicate_push: function (options) {
-		C8O.log.info("c8o.fs  : fs_replicate_pull requested");
-		return C8O._fs.replicate(options, false);
-	},
-	
-	fs_onChange: function (options) {
-		var db = options.db || C8O.vars.fs_default_db;
-		C8O._fs.onChange(db + "_device", options.onChange);
-	},
-		
-	fs_getDB: function (db) {
-		db = (db || C8O.vars.fs_default_db) + "_device";
-		return C8O._fs.getDb(db);
 	}
 });
 
@@ -523,6 +523,33 @@ C8O.addHook("_call_fs", function (data) {
 			
 			if (seq == "post") {
 				var policy = C8O._remove(options, "policy") || "none";
+				var subSplit = C8O._remove(options, "subSplit");
+				if (subSplit == null) {
+					subSplit = ".";
+				}
+				
+				if (subSplit) {
+					for (var key in postData) {
+						var paths = key.split(subSplit);
+						
+						if (paths.length > 1) {
+							var value = C8O._remove(postData, key);
+							
+							var obj = postData;
+							
+							while (paths.length > 1) {
+								var path = paths.shift();
+								if (!$.isPlainObject(obj[path])) {
+									obj = obj[path] = {};
+								} else {
+									obj = obj[path];
+								}
+							}
+							
+							obj[paths[0]] = value;
+						}
+					}
+				}
 				
 				C8O._fs.postDocument(db, postData, policy, options, callback);
 			} else {
