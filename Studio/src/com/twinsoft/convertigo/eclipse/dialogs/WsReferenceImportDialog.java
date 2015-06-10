@@ -64,6 +64,8 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 	
 	protected void okPressed() {		
 		try {
+			progressBar = ( (WsReferenceImportDialogComposite)dialogComposite ).progressBar;
+			
 			getButton(IDialogConstants.OK_ID).setEnabled(false);
 			getButton(IDialogConstants.CANCEL_ID).setEnabled(false);
 	
@@ -88,8 +90,11 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 						final int j = i;
 						display.asyncExec(new Runnable() {
 							public void run() {
-								if (!progressBar.isDisposed())
-									progressBar.setSelection(j);
+								if (progressBar != null) {
+									if (!progressBar.isDisposed()) {
+										progressBar.setSelection(j);
+									}
+								}
 							}
 						});
 						
