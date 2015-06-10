@@ -186,6 +186,8 @@ public abstract class GenericServlet extends HttpServlet {
 				if (requested_content_type != null && !requested_content_type.equals(content_type)) {
 					Engine.logEngine.debug("(GenericServlet) Override Content-Type requested to change : " + content_type + " to " + requested_content_type);
 					content_type = requested_content_type;
+				} else {
+					requested_content_type = null;
 				}
 				
 				response.setContentType(content_type);
@@ -224,6 +226,11 @@ public abstract class GenericServlet extends HttpServlet {
 							AttachmentDetails attachment = (AttachmentDetails) result;
 							byte[] data = attachment.getData();
 							String contentType = attachment.getContentType();
+							
+							if (requested_content_type != null) {
+								contentType = requested_content_type;
+							}
+							
 							String name = attachment.getName();
 
 							response.setHeader("Content-Type", contentType);
@@ -233,17 +240,13 @@ public abstract class GenericServlet extends HttpServlet {
 							OutputStream out = response.getOutputStream();
 							out.write(data);
 							out.flush();
-
-							/*
-							 * String webURL =(String)request.getAttribute(
-							 * "convertigo.webclipping.url"); if ((webURL !=
-							 * null) && (!webURL.equals(""))) {
-							 * WebClippingServletRequester.storeResponse(webURL,
-							 * (byte[])result); }
-							 */
 						} else if (result instanceof byte[]) {
-							response.setContentType(getContentType(request));
-							response.setCharacterEncoding((String) request.getAttribute("convertigo.charset"));
+							if (requested_content_type != null) {
+								response.setContentType(requested_content_type);
+							} else {
+								response.setContentType(getContentType(request));
+								response.setCharacterEncoding((String) request.getAttribute("convertigo.charset"));
+							}
 							response.addHeader("Content-Length", "" + ((byte[]) result).length);
 
 							OutputStream out = response.getOutputStream();
