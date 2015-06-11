@@ -49,11 +49,11 @@ public class ReferenceTreeObject extends DatabaseObjectTreeObject {
 
 	@Override
 	public boolean testAttribute(Object target, String name, String value) {
-		if (name.equals("filepath")) {
+		if (name.equals("canUpdate")) {
 			ReferenceTreeObject refTreeObject = (ReferenceTreeObject) target;
 			if (refTreeObject.getObject() instanceof RemoteFileReference) {
 				RemoteFileReference remoteFile = (RemoteFileReference) refTreeObject.getObject();
-				return !remoteFile.getFilepath().isEmpty(); 
+				return !remoteFile.getFilepath().isEmpty() && !remoteFile.getUrlpath().isEmpty(); 
 			} 
 		} 
 		return super.testAttribute(target, name, value);

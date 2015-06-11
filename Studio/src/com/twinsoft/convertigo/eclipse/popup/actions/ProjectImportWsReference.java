@@ -22,15 +22,10 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
-import java.io.IOException;
-
-import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
@@ -41,12 +36,10 @@ import com.twinsoft.convertigo.eclipse.dialogs.WsReferenceImportDialog;
 import com.twinsoft.convertigo.eclipse.dialogs.WsReferenceImportDialogComposite;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ReferenceTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.EngineException;
 
 public class ProjectImportWsReference extends MyAbstractAction {
 
@@ -56,17 +49,6 @@ public class ProjectImportWsReference extends MyAbstractAction {
 		super();
 	}
 
-	public void selectionChanged(IAction action, ISelection selection) {
-		try {
-			super.selectionChanged(action, selection);
-			/*IStructuredSelection structuredSelection = (IStructuredSelection) selection;
-			TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
-			Object ob = treeObject.getObject();*/
-			action.setEnabled(!updateMode);
-		}
-		catch (Exception e) {}
-	}
-	
 	public void run() {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
@@ -80,70 +62,57 @@ public class ProjectImportWsReference extends MyAbstractAction {
 				TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
 				if (treeObject != null) {
 					ProjectTreeObject projectTreeObject = null;
-					WebServiceReference webServiceObject = null;
+					WebServiceReference webServiceReference = null;
+					HttpConnector httpConnector = null;
+					
+					// Create a new  WS reference
 					if (treeObject instanceof ProjectTreeObject) {
 						projectTreeObject = (ProjectTreeObject)treeObject;
-						webServiceObject = new WebServiceReference();
-						webServiceObject.bNew = true;
+						webServiceReference = new WebServiceReference();
+						webServiceReference.bNew = true;
 					}
-					else if (treeObject instanceof ReferenceTreeObject ) {
+					// Update an existing WS reference
+					else if (treeObject instanceof ReferenceTreeObject) {
+						/* For further use
 						ReferenceTreeObject referenceTreeObject = (ReferenceTreeObject)treeObject;
-						webServiceObject = (WebServiceReference) referenceTreeObject.getObject();
-						projectTreeObject = referenceTreeObject.getProjectTreeObject();
-						
+						webServiceReference = (WebServiceReference) referenceTreeObject.getObject();
+						projectTreeObject = referenceTreeObject.getProjectTreeObject();*/
 					}
 					
-					if (webServiceObject != null) {
-						openWsReferenceImportDialog(shell, explorerView, projectTreeObject, webServiceObject, treeObject);
+					if (webServiceReference != null) {
+						WsReferenceImportDialog wsReferenceImportDialog = new WsReferenceImportDialog(shell, WsReferenceImportDialogComposite.class, "Web service reference");
+						wsReferenceImportDialog.setProject(projectTreeObject.getObject());
+						wsReferenceImportDialog.setReference(webServiceReference);
+						
+						wsReferenceImportDialog.open();
+			    		if (wsReferenceImportDialog.getReturnCode() != Window.CANCEL) {
+			    			httpConnector = wsReferenceImportDialog.getHttpConnector();
+			    		}
+						
+						Project project = projectTreeObject.getObject();
+						Engine.theApp.schemaManager.clearCache(project.getName());
+						
+	    				// Reload project in tree 
+						explorerView.reloadTreeObject(projectTreeObject);
+						
+		    			if (httpConnector != null && httpConnector.getParent() != null) {
+							explorerView.objectSelected(new CompositeEvent(httpConnector));
+		    			}
+		    			else if (webServiceReference != null && webServiceReference.getParent() != null) {
+		    				if (webServiceReference.hasChanged) projectTreeObject.hasBeenModified(true);
+		    				explorerView.objectSelected(new CompositeEvent(webServiceReference));
+		    			}
 					}
 				}
 			}
 			
 		}
 		catch (Throwable e) {
-			ConvertigoPlugin.logException(e, "Unable to import from remote WSDL!");
+			ConvertigoPlugin.logException(e, "Unable to "+ (updateMode ? "update":"import")+ " from remote WSDL!");
 		}
         finally {
 			shell.setCursor(null);
 			waitCursor.dispose();
         }
-	}
-	
-	private void openWsReferenceImportDialog(Shell shell, ProjectExplorerView explorerView, ProjectTreeObject projectTreeObject, WebServiceReference webServiceReference, TreeObject treeObject) 
-			throws EngineException, IOException{
-		
-		Project project = projectTreeObject.getObject();
-		if (project != null) {
-			WsReferenceImportDialog wsReferenceImportDialog = new WsReferenceImportDialog(shell, WsReferenceImportDialogComposite.class, "Web service reference");
-			wsReferenceImportDialog.setProject(project);
-			wsReferenceImportDialog.setUpdateMode(updateMode);
-			wsReferenceImportDialog.setReference(webServiceReference);
-			
-			wsReferenceImportDialog.open();
-    		if (wsReferenceImportDialog.getReturnCode() != Window.CANCEL) {
-    			HttpConnector httpConnector = wsReferenceImportDialog.getHttpConnector();
-    			if (httpConnector != null) {
-    				// Reload sequence in tree without updating its schema for faster reload
-    				ConvertigoPlugin.logDebug("Reload project: start");
-					explorerView.reloadTreeObject(projectTreeObject);
-					ConvertigoPlugin.logDebug("Reload project: end");
-					// Select target dbo in tree
-					explorerView.objectSelected(new CompositeEvent(httpConnector));
-    			}
-    			
-    			if (updateMode) {
-    			   	MessageBox dialog = new MessageBox(shell, SWT.ICON_INFORMATION | SWT.OK);
-    				dialog.setText("SUCCESS");
-    				dialog.setMessage("The reference file has been updated with success!");
-    				dialog.open();
-    				
-    				webServiceReference.hasChanged = true;
-    				Engine.theApp.schemaManager.clearCache(webServiceReference.getProject().getName());
-					explorerView.reloadTreeObject(treeObject);
-					explorerView.objectSelected(new CompositeEvent(webServiceReference));
-					explorerView.fireTreeObjectPropertyChanged(new TreeObjectEvent(treeObject));
-    			}
-    		}
-		}
 	}
 }

@@ -46,6 +46,7 @@ import org.eclipse.swt.widgets.Text;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.references.RemoteFileReference;
+import com.twinsoft.convertigo.beans.references.WebServiceReference;
 import com.twinsoft.convertigo.eclipse.dialogs.IWsReferenceComposite;
 import com.twinsoft.convertigo.eclipse.dialogs.WsReferenceComposite;
 import com.twinsoft.convertigo.eclipse.wizards.new_object.ObjectExplorerWizardPage;
@@ -202,7 +203,22 @@ public abstract class SchemaFileWizardPage extends WizardPage implements IWsRefe
 		
 		if (!urlPath.isEmpty()) {
 			try {
-				new URL(urlPath);
+				URL url = new URL(urlPath);
+				
+				if (urlPath.startsWith("file:/")) {
+					if (new File(url.getPath()).exists()) {
+						String[] filterExtensions = wsRefAuthenticated.getFilterExtension()[0].split(";");
+						for (String fileFilter: filterExtensions) {
+							String fileExtension = fileFilter.substring(fileFilter.lastIndexOf("."));
+							if (!urlPath.endsWith(fileExtension)) {
+								message = "Please select a compatible file";
+							}
+						}
+					}
+					else {
+						message = "Please select an existing file";
+					}
+				}
 			}
 			catch (Exception e) {
 				message = "Please enter a valid URL";
@@ -242,8 +258,15 @@ public abstract class SchemaFileWizardPage extends WizardPage implements IWsRefe
 				if (urlPath.startsWith("file:/")) {
 					localPath = getLocalFilePath(urlPath.substring("file:/".length()));
 				}
-				reference.setUrlpath(localPath.isEmpty() ? urlPath : "");
-				reference.setFilepath(localPath.isEmpty() ? "" : localPath);
+				
+				if (reference instanceof WebServiceReference) {
+					reference.setUrlpath(urlPath);
+					reference.setFilepath("");
+				}
+				else {
+					reference.setUrlpath(localPath.isEmpty() ? urlPath : "");
+					reference.setFilepath(localPath.isEmpty() ? "" : localPath);
+				}
 				
 				if (useAuthentication.getSelection()) {
 					reference.setNeedAuthentication(true);

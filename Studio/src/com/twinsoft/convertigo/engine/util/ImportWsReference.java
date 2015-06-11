@@ -15,11 +15,6 @@ public class ImportWsReference extends WsReference {
 		}
 
 		@Override
-		public void setTaskLabel(String text) {
-			super.setTaskLabel(text);
-		}
-
-		@Override
 		public HttpConnector importInto(Project project) throws Exception {
 			return super.importInto(project);
 		}

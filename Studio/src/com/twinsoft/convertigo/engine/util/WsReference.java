@@ -34,6 +34,7 @@ import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
@@ -76,14 +77,14 @@ import com.twinsoft.convertigo.engine.Version;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 
 public class WsReference {
-	private WebServiceReference reference = null;
-	private boolean updateMode = false;
 	
-	public WsReference(String wsdlURL) {
+	private WebServiceReference reference = null;
+	
+	protected WsReference(String wsdlURL) {
 		this(wsdlURL, false, null, null);
 	}
 
-	public WsReference(String wsdlURL, boolean needAuthentication, String login, String password) {
+	protected WsReference(String wsdlURL, boolean needAuthentication, String login, String password) {
 	   	reference = new WebServiceReference();
 	   	reference.setUrlpath(wsdlURL);
 	   	reference.setNeedAuthentication(needAuthentication);
@@ -92,7 +93,7 @@ public class WsReference {
 	   	reference.bNew = true;
 	}
 	
-	public WsReference(WebServiceReference reference) {
+	protected WsReference(WebServiceReference reference) {
 		this.reference = reference;
 	}
 
@@ -100,9 +101,63 @@ public class WsReference {
 		return reference;
 	}
 	
-	private void tryAuthentication(String username, String password) throws Exception {
-		URL urlToConnect = reference.getUrl();
-
+	protected HttpConnector importInto(Project project) throws Exception {
+		WebServiceReference webServiceReference = null;
+		boolean needAuthentication = false;
+		
+		try {
+			if (project != null) {
+				webServiceReference = getReference();
+				if (webServiceReference != null) {
+					
+					String wsdlUrl = webServiceReference.getUrlpath();
+					
+					// test for valid URL
+					new URL(wsdlUrl);
+					
+					// Configure SoapUI settings
+					configureSoapUI(wsdlUrl);
+					
+					needAuthentication = webServiceReference.needAuthentication();
+					if (needAuthentication) {
+						String login = webServiceReference.getAuthUser();
+						String password = webServiceReference.getAuthPassword();
+						try {
+							//We add login/password into the connection
+							System.setProperty("soapui.loader.username", login);
+							System.setProperty("soapui.loader.password", password);
+							
+							tryAuthentication(webServiceReference);
+						} catch (Exception e) {
+							throw new Exception ("Authentication failure !", e);
+						}
+					}
+					
+					return importWebService(project, webServiceReference);
+				}
+			}
+		} catch (Throwable t) {
+			throw new EngineException("Unable to import the web service reference", t);
+		} finally {
+			if (needAuthentication) {
+				//We clear login/password
+				System.setProperty("soapui.loader.username", "");
+				System.setProperty("soapui.loader.password", "");
+			}
+		}
+		return null;
+	}
+	
+	static public int getTotalTaskNumber() {
+		return 9;
+	}
+	
+	private static void tryAuthentication(WebServiceReference webServiceReference) throws Exception {
+		URL urlToConnect = webServiceReference.getUrl();
+		String wsdlUrl = webServiceReference.getUrlpath();
+		String username = webServiceReference.getAuthUser();
+		String password = webServiceReference.getAuthPassword();
+		
         HttpClient client = new HttpClient();
 
 		client.getState().setCredentials(
@@ -110,7 +165,7 @@ public class WsReference {
 				new UsernamePasswordCredentials(username, password)
 		);
         
-        GetMethod get = new GetMethod(reference.getUrlpath());
+        GetMethod get = new GetMethod(wsdlUrl);
         get.setDoAuthentication( true );
         
         int statuscode = client.executeMethod(get);
@@ -120,74 +175,7 @@ public class WsReference {
         }
 	}
 	
-	protected HttpConnector importInto(Project project) throws Exception {
-		WebServiceReference webServiceReference = null;
-		HttpConnector httpConnector = null;
-		boolean needAuthentication = false;
-		
-		try {
-			if (project != null) {
-				webServiceReference = getReference();
-				needAuthentication = webServiceReference.needAuthentication();
-				
-				if (webServiceReference.getParent() == null)
-	   		   		project.add(webServiceReference);
-				else
-					updateMode = true;// the reference already exist
-
-				if (needAuthentication) {
-					String login = webServiceReference.getAuthUser();
-					String password = webServiceReference.getAuthPassword();
-					try {
-						//We add login/password into the connection
-						System.setProperty("soapui.loader.username", login);
-						System.setProperty("soapui.loader.password", password);
-						
-						tryAuthentication(login, password);
-					} catch (Exception e) {
-						throw new Exception ("Authentication failure!", e);
-					}
-				}
-				
-				httpConnector = importWebService(webServiceReference);
-	   			if (!updateMode && httpConnector != null)
-	   				project.add(httpConnector);
-			}
-		} catch (Exception e) {
-			try {
-				if (webServiceReference != null) {
-					project.remove(webServiceReference);
-					webServiceReference = null;
-				}
-				if (httpConnector != null) {
-					project.remove(httpConnector);
-					httpConnector = null;
-				}
-			} catch (Exception ex) {}
-			throw new EngineException("Unable to import the web service reference", e);
-		} finally {
-			if (needAuthentication) {
-				//We clear login/password
-				System.setProperty("soapui.loader.username", "");
-				System.setProperty("soapui.loader.password", "");
-			}
-		}
-		return httpConnector;
-	}
-	
-	public void setTaskLabel(String text) {}
-	
-	static public int getTotalTaskNumber() {
-		return 9;
-	}
-	
-	private HttpConnector importWebService(WebServiceReference webServiceReference) throws Exception
-	{
-		String projectName = webServiceReference.getParent().getName();
-		String wsdlUrl = webServiceReference.getUrlpath();
-		setTaskLabel("Importing from \""+wsdlUrl+"\"...");
-
-		// Configure SoapUI settings
+	private static void configureSoapUI(String wsdlUrl) throws Exception {
 		boolean soapuiSettingsChanged = false;
 		Settings settings = SoapUI.getSettings();
 		if (settings != null) {
@@ -265,67 +253,137 @@ public class WsReference {
 		}
 		if (soapuiSettingsChanged)
 			SoapUI.saveSettings();
-		
-		// Import WSDL using SoapUI
-		HttpConnector httpConnector = null;
-		String projectDir = Engine.PROJECTS_PATH + "/"+ projectName;
+	}
+	
+	private static HttpConnector importWebService(Project project, WebServiceReference webServiceReference) throws Exception
+	{
+		List<HttpConnector> connectors = new ArrayList<HttpConnector>();
+	   	HttpConnector firstConnector = null;
+
+		String wsdlUrl = webServiceReference.getUrlpath();
 		
 	   	WsdlProject wsdlProject = new WsdlProject();
 	   	WsdlInterface[] wsdls = WsdlImporter.importWsdl(wsdlProject, wsdlUrl); 	
 	   	
-	   	boolean hasDefaultTransaction;
-	   	WsdlInterface iface;
-	   	
-	   	for (int i=0; i<wsdls.length; i++) {
-		   	iface = wsdls[i];
-		   	if (iface != null) {
-			   	
-			   	// Export WSDL file(s) to project directory and modify reference local file path
-		   		String folderName = iface.getBindingName().getLocalPart();
-		   		File filePath = new File(projectDir + "/wsdl/" + folderName);;
-		   		if (!updateMode) {
-			   		for (int index = 1; filePath.exists(); index++) {
-			   			filePath = new File(projectDir + "/wsdl/" + folderName + index);
-			   		}
-		   		} 
+	   	int len = wsdls.length;
+	   	if (len>0) {
+	   		WsdlInterface iface = wsdls[len-1];
+	   		if (iface != null) {
+	   			// Retrieve definition name or first service name
+	   			String definitionName = null;
+	   			try {
+			   		Definition definition = iface.getWsdlContext().getDefinition();
+			   		QName qname = definition.getQName();
+			   		qname = (qname == null ? (QName) definition.getAllServices().keySet().iterator().next() : qname);
+			   		definitionName = qname.getLocalPart();
+	   			}
+	   			catch (Exception e1) {
+	   				throw new Exception("No service found !");
+	   			}
 		   		
-			   	String wsdlPath = iface.getWsdlContext().export(filePath.getPath());
-			   	wsdlPath = new File(wsdlPath).toURI().getPath();
-			   	webServiceReference.setFilepath(".//" + wsdlPath.substring(wsdlPath.indexOf("/wsdl") + 1));
-			   		
-			   	webServiceReference.setName("Import_WS_" + filePath.getName());
+	   			// Modify reference's name
+		   		if (webServiceReference.bNew) {
+		   			// Note : new reference may have already been added to the project (new object wizard)
+		   			// its name must be replaced with a non existing one !
+	   				String newDatabaseObjectName = project.getChildBeanName(project.getReferenceList(), 
+	   													StringUtils.normalize("Import_WS_" + definitionName), true);
+	   				webServiceReference.setName(newDatabaseObjectName);
+		   		}
+		   		
+		   		// Retrieve directory for WSDLs to download
+				File exportDir = null;
+				/* For further use...
+				if (!webServiceReference.getFilepath().isEmpty()) {	// for update case
+					try {
+						exportDir = webServiceReference.getFile().getParentFile();
+						if (exportDir.exists()) {
+							File destDir = exportDir;
+					   		for (int index = 0; destDir.exists(); index++) {
+					   			destDir = new File(exportDir.getPath()+ "/v" + index);
+					   		}
+							Collection<File> files = GenericUtils.cast(FileUtils.listFiles(exportDir, null, false));
+							for (File file: files) {
+								FileUtils.copyFileToDirectory(file, destDir);
+							}
+						}
+					} catch (Exception ex) {}
+				}*/
+				if (webServiceReference.bNew || exportDir == null) {	// for other cases
+					String projectDir = Engine.PROJECTS_PATH + "/"+ project.getName();
+					exportDir = new File(projectDir + "/wsdl/" + definitionName);
+			   		for (int index = 1; exportDir.exists(); index++) {
+			   			exportDir = new File(projectDir + "/wsdl/" + definitionName + index);
+			   		}
+				}
+				
+				// Download all needed WSDLs (main one and imported/included ones)
+		   		String wsdlPath = iface.getWsdlContext().export(exportDir.getPath());
+		   		
+		   		// Modify reference's filePath : path to local main WSDL
+		   		String wsdlUriPath = new File(wsdlPath).toURI().getPath();
+		   		String wsdlLocalPath = ".//" + wsdlUriPath.substring(wsdlUriPath.indexOf("/wsdl") + 1);
+		   		webServiceReference.setFilepath(wsdlLocalPath);
+		   		webServiceReference.hasChanged = true;
+		   		
+				// Add reference to project
+				if (webServiceReference.getParent() == null) {
+					project.add(webServiceReference);
+				}
 			   	
-			   	Definition definition = iface.getWsdlContext().getDefinition();
-			   	XmlSchemaCollection xmlSchemaCollection = WSDLUtils.readSchemas(definition);
-			   	XmlSchema xmlSchema = xmlSchemaCollection.schemaForNamespace(definition.getTargetNamespace());
-			   	
-			   	if (!updateMode) {
-			   		httpConnector = createConnector(iface);
-			   		if (httpConnector != null) {
-			   		   	hasDefaultTransaction = false;
-					   	for (int j=0; j<iface.getOperationCount(); j++) {
-					   		WsdlOperation wsdlOperation = (WsdlOperation)iface.getOperationAt(j);
-					   		List<RequestableHttpVariable> variables = new ArrayList<RequestableHttpVariable>();
-						   	XmlHttpTransaction xmlHttpTransaction = createTransaction(xmlSchemaCollection, xmlSchema, iface, wsdlOperation, variables, projectName, httpConnector);
-				   			// Adds transaction
-					   		if (xmlHttpTransaction != null) {
-					   			httpConnector.add(xmlHttpTransaction);
-					   			if (!hasDefaultTransaction) {
-					   				xmlHttpTransaction.setByDefault();
-					   				hasDefaultTransaction = true;
-					   			}
+		   		// create an HTTP connector for each binding
+		   		if (webServiceReference.bNew) {
+				   	for (int i=0; i<wsdls.length; i++) {
+					   	iface = wsdls[i];
+					   	if (iface != null) {
+						   	Definition definition = iface.getWsdlContext().getDefinition();
+						   	XmlSchemaCollection xmlSchemaCollection = WSDLUtils.readSchemas(definition);
+						   	XmlSchema xmlSchema = xmlSchemaCollection.schemaForNamespace(definition.getTargetNamespace());
+						   	
+					   		HttpConnector httpConnector = createConnector(iface);
+					   		if (httpConnector != null) {
+					   			String bindingName = iface.getBindingName().getLocalPart();
+				   				String newDatabaseObjectName = project.getChildBeanName(project.getConnectorsList(), 
+											StringUtils.normalize(bindingName), true);
+					   	   		httpConnector.setName(newDatabaseObjectName);
+					   			
+					   		   	boolean hasDefaultTransaction = false;
+							   	for (int j=0; j<iface.getOperationCount(); j++) {
+							   		WsdlOperation wsdlOperation = (WsdlOperation)iface.getOperationAt(j);
+								   	XmlHttpTransaction xmlHttpTransaction = createTransaction(xmlSchema, iface, wsdlOperation, project, httpConnector);
+						   			// Adds transaction
+							   		if (xmlHttpTransaction != null) {
+							   			httpConnector.add(xmlHttpTransaction);
+							   			if (!hasDefaultTransaction) {
+							   				xmlHttpTransaction.setByDefault();
+							   				hasDefaultTransaction = true;
+							   			}
+							   		}
+							   	}
+							   	
+					   	   		connectors.add(httpConnector);
 					   		}
 					   	}
-			   		}
-			   	} else {
-			   		//
-			   	}
-		   	}
+				   	}
+				   	
+				   	// add connector(s) to project
+				   	for (HttpConnector httpConnector : connectors) {
+			   			project.add(httpConnector);
+				   		if (firstConnector == null) {
+				   			firstConnector = httpConnector;
+				   		}
+				   	}
+				   	
+		   		}
+	   		}
 	   	}
-	   	return httpConnector;
+	   	else {
+	   		throw new Exception("No interface found !");
+	   	}
+	   	
+	   	return firstConnector;
 	}
 	
-	private HttpConnector createConnector(WsdlInterface iface) throws EngineException {
+	private static HttpConnector createConnector(WsdlInterface iface) throws Exception {
    		HttpConnector httpConnector = null;
    		if (iface != null) {
    			httpConnector = new HttpConnector();
@@ -335,10 +393,6 @@ public class WsReference {
    	   		try {comment = (comment.equals("")? iface.getBinding().getDocumentationElement().getTextContent():comment);} catch (Exception e) {}
    	   		httpConnector.setComment(comment);
    	   		
-   	   		String connectorName = StringUtils.normalize(iface.getBindingName().getLocalPart());
-   	   		httpConnector.setName(connectorName);
-   		   	setTaskLabel("Creating http connector \""+connectorName+"\"...");
-   		   	
    		   	String[] endPoints = iface.getEndpoints();
    		   	String endPoint = endPoints[0];
    		   	
@@ -381,7 +435,7 @@ public class WsReference {
 	   	return httpConnector;
 	}
 	
-	private XmlHttpTransaction createTransaction(XmlSchemaCollection xmlSchemaCollection, XmlSchema xmlSchema, WsdlInterface iface, WsdlOperation operation, List<RequestableHttpVariable> variables, String projectName, HttpConnector httpConnector) throws ParserConfigurationException, SAXException, IOException, EngineException {
+	private static XmlHttpTransaction createTransaction(XmlSchema xmlSchema, WsdlInterface iface, WsdlOperation operation, Project project, HttpConnector httpConnector) throws ParserConfigurationException, SAXException, IOException, EngineException {
 		XmlHttpTransaction xmlHttpTransaction = null;
 	   	WsdlRequest request;
 	   	String requestXml;
@@ -398,7 +452,6 @@ public class WsReference {
 	   		xmlHttpTransaction.setHttpVerb(HttpMethodType.POST);
 	   		xmlHttpTransaction.setName(transactionName);
 	   		xmlHttpTransaction.setComment(comment);
-	   		setTaskLabel("Creating transaction \""+transactionName+"\"...");
 	   		
 	   		// Set encoding (UTF-8 by default)
 	   		xmlHttpTransaction.setEncodingCharSet("UTF-8");
@@ -408,7 +461,6 @@ public class WsReference {
 	   		xmlHttpTransaction.setIgnoreSoapEnveloppe(true);
 	   		
    			// Adds parameters
-	   		setTaskLabel("Setting http parameters...");
    			XMLVector<XMLVector<String>> parameters = new XMLVector<XMLVector<String>>();
    			XMLVector<String> xmlv;
    			xmlv = new XMLVector<String>();
@@ -492,10 +544,12 @@ public class WsReference {
 			//System.out.println(XMLUtils.prettyPrintDOM(requestDoc));
 			
 			// Extract variables
+			List<RequestableHttpVariable> variables = new ArrayList<RequestableHttpVariable>();
 			extractVariables(xmlSchema, variables, header, null, false, null);
 			extractVariables(xmlSchema, variables, body, null, false, null);
 			
 			// Serialize request/response into template xml files
+			String projectName = project.getName();
 			String connectorName = httpConnector.getName();
 			String templateDir = Engine.PROJECTS_PATH + "/"+ projectName + "/soap-templates/" + connectorName;
 			File dir = new File(templateDir);
@@ -504,12 +558,9 @@ public class WsReference {
 			
 			String requestTemplateName = "/soap-templates/" + connectorName + "/" + xmlHttpTransaction.getName() + ".xml";
 			String requestTemplate = Engine.PROJECTS_PATH + "/"+ projectName + requestTemplateName;
-			//String responseTemplateName = "/soap-templates/" + connectorName + "/" + xmlHttpTransaction.getName() + "-Response.xml";
-			//String responseTemplate = Engine.PROJECTS_DIRECTORY + "/"+ projectName + responseTemplateName;
 			
 			xmlHttpTransaction.setRequestTemplate(requestTemplateName);
 			saveTemplate(requestDoc, requestTemplate);
-			//createTemplate(responseDoc, responseTemplate);
 			
    			// Adds variables
    			for (RequestableHttpVariable variable: variables) {
@@ -523,8 +574,7 @@ public class WsReference {
 		return xmlHttpTransaction;
 	}
 	
-	private void saveTemplate(Document doc, String templateDir) throws EngineException {
-		setTaskLabel("Creating template \""+templateDir+"\"...");
+	private static void saveTemplate(Document doc, String templateDir) throws EngineException {
 		try {
 			XMLUtils.saveXml(doc, templateDir);
         } catch (Exception e) {
@@ -532,7 +582,7 @@ public class WsReference {
         }
 	}
 
-	private void extractVariables(XmlSchema xmlSchema, List<RequestableHttpVariable> variables, Node node, String longName, boolean isMulti, QName variableType) throws EngineException {
+	private static void extractVariables(XmlSchema xmlSchema, List<RequestableHttpVariable> variables, Node node, String longName, boolean isMulti, QName variableType) throws EngineException {
 		if (node == null) return;
 		int type = node.getNodeType();
 		
@@ -571,7 +621,6 @@ public class WsReference {
 					
 					child.setNodeValue("$("+ variableName.toUpperCase() +")");
 					
-					setTaskLabel("Creating variable \""+variableName+"\"...");
 					RequestableHttpVariable httpVariable = createVariable(false, variableName, Constants.XSD_STRING);
 					variables.add(httpVariable);
 				}
@@ -600,7 +649,6 @@ public class WsReference {
 								
 								child.setNodeValue("$("+ variableName.toUpperCase() +")");
 								
-								setTaskLabel("Creating variable \""+variableName+"\"...");
 								RequestableHttpVariable httpVariable = createVariable(isMulti, variableName, variableType);
 								variables.add(httpVariable);
 							}

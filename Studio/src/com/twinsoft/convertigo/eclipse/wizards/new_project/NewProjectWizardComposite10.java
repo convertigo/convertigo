@@ -23,6 +23,7 @@
 package com.twinsoft.convertigo.eclipse.wizards.new_project;
 
 import java.io.File;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 
@@ -126,7 +127,22 @@ public class NewProjectWizardComposite10 extends Composite implements IWsReferen
 		String message = null;
 		if (!urlPath.equals("")) {
 			try {
-				new URL(urlPath);
+				URL url = new URL(urlPath);
+				
+				if (urlPath.startsWith("file:/")) {
+					if (new File(url.getPath()).exists()) {
+						String[] filterExtensions = wsRefAuthenticated.getFilterExtension()[0].split(";");
+						for (String fileFilter: filterExtensions) {
+							String fileExtension = fileFilter.substring(fileFilter.lastIndexOf("."));
+							if (!urlPath.endsWith(fileExtension)) {
+								message = "Please select a compatible file";
+							}
+						}
+					}
+					else {
+						message = "Please select an existing file";
+					}
+				}
 			}
 			catch (Exception e) {
 				message = "Please enter a valid URL";
@@ -140,20 +156,7 @@ public class NewProjectWizardComposite10 extends Composite implements IWsReferen
 				String[] filterExtensions = wsRefAuthenticated.getFilterExtension()[0].split(";");
 				for (String fileFilter: filterExtensions) {
 					String fileExtension = fileFilter.substring(fileFilter.lastIndexOf("."));
-					if (filePath.endsWith(fileExtension)) {
-						try {
-							String uriFile = FileUtils.toUriString(file);
-							if(!Arrays.asList(combo.getItems()).contains(uriFile)){
-								combo.add(uriFile);
-								combo.select(combo.getItemCount()-1);
-							} else {
-								combo.select(wsRefAuthenticated.getItem(uriFile));
-							}
-
-						} catch (Exception e) {
-							message = e.getMessage();
-						}
-					} else {
+					if (!filePath.endsWith(fileExtension)) {
 						message = "Please select a compatible file";
 					}
 				}
@@ -175,9 +178,11 @@ public class NewProjectWizardComposite10 extends Composite implements IWsReferen
 	@Override
 	public void comboChanged() {
 		urlPath = combo.getText();
-		if (urlPath.replaceAll(" ", "").equals("")) {
-			filePath = "";
+		
+		if (!filePath.isEmpty() && urlPath.indexOf(filePath) == -1) {
+			editor.setStringValue(null);
 		}
+
 		dialogChanged();
 	}
 
@@ -187,14 +192,24 @@ public class NewProjectWizardComposite10 extends Composite implements IWsReferen
 		filePath = path.toString();
 		File f = new File(filePath);
 		if(f.exists()) {
-			urlPath = "";
-			dialogChanged();
+			try {
+				addToCombo(FileUtils.toUriString(f));
+			} catch (MalformedURLException e) {}
 		} else {
 			editor.setStringValue(null);
 			setTextStatus("Please select an existing file");
 		}
 	}
 
+	private void addToCombo(String uriFile) {
+		if(!Arrays.asList(combo.getItems()).contains(uriFile)){
+			combo.add(uriFile);
+			combo.select(combo.getItemCount()-1);
+		} else {
+			combo.select(wsRefAuthenticated.getItem(uriFile));
+		}
+	}
+	
 	@Override
 	public void setTextStatus(String message) {
 		if(message==null && !wsRefAuthenticated.isValidURL()){

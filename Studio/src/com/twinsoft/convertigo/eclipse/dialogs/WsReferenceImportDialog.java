@@ -40,7 +40,6 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 	private WebServiceReference webServiceReference;
 	private HttpConnector httpConnector = null;
 	private Project project = null;;
-	private boolean updateMode = false;
 	
 	/**
 	 * @param parentShell
@@ -152,14 +151,6 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 	
 	protected Project getProject() {
 		return this.project;
-	}
-	
-	public void setUpdateMode(boolean updateMode) {
-		this.updateMode = updateMode;
-	}
-	
-	protected boolean isUpdateMode() {
-		return this.updateMode;
 	}
 	
 	public HttpConnector getHttpConnector() {

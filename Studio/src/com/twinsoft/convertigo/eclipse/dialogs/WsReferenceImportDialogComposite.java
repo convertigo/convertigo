@@ -85,6 +85,9 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 			editor.setEnabled(false, fileSelectionArea);
 			useAuthentication.setEnabled(false);
 		}
+		else {
+			fillReference();
+		}
 	}
 
 
@@ -178,7 +181,7 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 	}
 	
 	protected boolean isUpdateMode() {
-		return ((WsReferenceImportDialog)parentDialog).isUpdateMode();
+		return false;
 	}
 	
 	@Override
@@ -187,7 +190,22 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 		
 		if (!urlPath.isEmpty()) {
 			try {
-				new URL(urlPath);
+				URL url = new URL(urlPath);
+				
+				if (urlPath.startsWith("file:/")) {
+					if (new File(url.getPath()).exists()) {
+						String[] filterExtensions = wsRefAuthenticated.getFilterExtension()[0].split(";");
+						for (String fileFilter: filterExtensions) {
+							String fileExtension = fileFilter.substring(fileFilter.lastIndexOf("."));
+							if (!urlPath.endsWith(fileExtension)) {
+								message = "Please select a compatible file";
+							}
+						}
+					}
+					else {
+						message = "Please select an existing file";
+					}
+				}
 			}
 			catch (Exception e) {
 				message = "Please enter a valid URL";
@@ -219,22 +237,9 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 			} 
 		}
 		
-		if (message == null && !isUpdateMode()) {
+		if (message == null) {
 			try {
-				RemoteFileReference reference = (RemoteFileReference)getDbo();
-				
-				String localPath = "";
-				if (urlPath.startsWith("file:/")) {
-					localPath = getLocalFilePath(urlPath.substring("file:/".length()));
-				}
-				reference.setUrlpath(localPath.isEmpty() ? urlPath : "");
-				reference.setFilepath(localPath.isEmpty() ? "" : localPath);
-				
-				if (useAuthentication.getSelection()) {
-					reference.setNeedAuthentication(true);
-					reference.setAuthUser(loginText.getText());
-					reference.setAuthPassword(passwordText.getText());
-				}
+				fillReference();
 			} catch (Exception e) {
 				message = e.getMessage();
 			}
@@ -243,6 +248,21 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 		setTextStatus(message);
 	}
 
+	private void fillReference() {
+		if (!isUpdateMode()) {
+			RemoteFileReference reference = (RemoteFileReference)getDbo();
+			
+			reference.setUrlpath(urlPath);
+			reference.setFilepath("");
+			
+			if (useAuthentication.getSelection()) {
+				reference.setNeedAuthentication(true);
+				reference.setAuthUser(loginText.getText());
+				reference.setAuthPassword(passwordText.getText());
+			}
+		}
+	}
+	
 	protected String getLocalFilePath(String path) {
 		if (path != null && !path.isEmpty()) {
 			try {
