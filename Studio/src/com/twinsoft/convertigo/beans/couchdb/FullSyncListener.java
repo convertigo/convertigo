@@ -33,6 +33,7 @@ import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.io.IOUtils;
+import org.apache.xpath.XPathAPI;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
@@ -222,7 +223,7 @@ public class FullSyncListener extends Listener {
 			Document document = XMLUtils.getDefaultDocumentBuilder().newDocument();
 			Element itemsElement = document.createElement("items");
 			AbstractCouchDbTransaction.toXml(docs, itemsElement);
-			NodeList docList = itemsElement.getElementsByTagName("item");
+			NodeList docList = XPathAPI.selectNodeList(itemsElement, "item");
 			
 			StringTokenizer st = new StringTokenizer(getTargetSequence(),".");
 			String projectName = st.nextToken();
