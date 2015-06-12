@@ -405,6 +405,12 @@ $.extend(true, C8O, {
 		db = (db || C8O.vars.fs_default_db) + "_device";
 		return C8O._fs.getDb(db);
 	},
+		
+	fs_resetDB: function (db) {
+		db = (db || C8O.vars.fs_default_db) + "_device";
+		C8O._fs.getDb(db).destroy();
+		delete C8O._fs.dbs[db];
+	},
 	
 	fs_onChange: function (options) {
 		var db = options.db || C8O.vars.fs_default_db;
@@ -609,6 +615,11 @@ C8O.addHook("_call_fs", function (data) {
 							sync.on(key, callbacks[key]);
 						}
 					}
+				} else if (seq == "reset") {
+					C8O.fs_resetDB(dbName);
+					callback({
+						"ok": true
+					});
 				} else {
 					callback({error: "invalid command '" + data.__sequence + "'"});
 				}

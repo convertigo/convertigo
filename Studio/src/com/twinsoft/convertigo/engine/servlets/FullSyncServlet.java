@@ -48,7 +48,6 @@ import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.util.ContentTypeDecoder;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
-import com.twinsoft.convertigo.engine.util.URLUtils;
 
 public class FullSyncServlet extends HttpServlet {
 	private static final long serialVersionUID = -5147185931965387561L;
@@ -73,7 +72,8 @@ public class FullSyncServlet extends HttpServlet {
 			default: throw new ServletException("Invalid HTTP method");
 			}
 			
-			RequestParser requestParser = new RequestParser(request.getPathInfo());
+			
+			RequestParser requestParser = new RequestParser(request);
 			
 			String authenticatedUser = SessionAttribute.authenticatedUser.string(request.getSession());
 			URI uri;
@@ -287,10 +287,12 @@ public class FullSyncServlet extends HttpServlet {
 		private String dbName;
 		private String docId;
 		
-		RequestParser(String request_path) throws UnsupportedEncodingException {
+		RequestParser(HttpServletRequest request) throws UnsupportedEncodingException {
+			String request_path = request.getRequestURI().substring(request.getContextPath().length() + request.getServletPath().length());
+			
 			Matcher mPath = pPath.matcher(request_path);
 			if (mPath.matches()) {
-				path = URLUtils.encodePath(mPath.group(1), "UTF-8");
+				path = mPath.group(1);
 				special = mPath.group(2);
 				if (special == null) {
 					dbName = mPath.group(3);

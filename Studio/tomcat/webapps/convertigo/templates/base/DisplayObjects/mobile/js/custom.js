@@ -73,7 +73,6 @@ $.extend(true, C8O, {
 //        first_call: "false", /** true/false: automatically call convertigo using the page query/hash parameters, after the init_finished hook */
 //        fs_default_db: null, /** default fullsync database used for call on fs://.[action] */
 //        fs_default_design: null, /** default design document to use for fs://[db].view with no ddoc parameter */
-//        fs_token: null, /** user specific sync token with the fullsync database */
 //        log_level: "warn", /** none/error/warn/info/debug/trace: filter logs that appear in the browser console */
 //        log_line: "false", /** true/false: add an extra line on Chrome console with a link to the log */
 //        log_remote: "true", /** true/false: send client log to the C8O "Devices" logger depending on its log level */
@@ -288,6 +287,14 @@ $.extend(true, C8O, {
  *  return: the PouchDB instance for this 'db'
  */
 //C8O.fs_getDB(db);
+
+/**
+ *  fs_resetDB function
+ *  ** Needs pouchdb.min.js + c8o.fullsync.js **
+ *  destroy the local 'db' database, that will be recreated at the next use 
+ *  db (optional): name of the fullsync connector to use, default is the C8O.vars.fs_default_db
+ */
+//C8O.fs_resetDB(db);
 
 /**
  *  fs_onChange function
