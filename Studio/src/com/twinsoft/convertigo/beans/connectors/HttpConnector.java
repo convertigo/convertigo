@@ -297,9 +297,9 @@ public class HttpConnector extends Connector {
 		// Looks for content-type
 		boolean isFormUrlEncoded = true;
 
-		httpParameters = httpTransaction.getHttpParameters();
+		httpParameters = httpTransaction.getCurrentHttpParameters();
 		
-		for (List<String> httpParameter : httpTransaction.getHttpParameters()) {
+		for (List<String> httpParameter : httpParameters) {
 			String key = httpParameter.get(0);
 			String value = httpParameter.get(1);
 			if (key.equalsIgnoreCase("Content-Type")) {

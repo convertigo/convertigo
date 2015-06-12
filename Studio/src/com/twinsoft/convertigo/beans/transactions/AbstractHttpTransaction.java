@@ -59,9 +59,9 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
     /** Holds value of property httpParameters. */
     private XMLVector<XMLVector<String>> httpParameters = new XMLVector<XMLVector<String>>();
     
-    /** Stores value of property httpParameters. */
-    transient private XMLVector<XMLVector<String>> originalHttpParameters = null;
-
+    /** Stores value of running transaction's httpParameters. */
+    transient private XMLVector<XMLVector<String>> currentHttpParameters = null;
+    
     /** Holds value of property handleCookie. */
     private boolean handleCookie = true;
     
@@ -106,6 +106,15 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
     }
 
     @Override
+	public AbstractHttpTransaction clone() throws CloneNotSupportedException {
+    	AbstractHttpTransaction abstractHttpTransaction = (AbstractHttpTransaction) super.clone();
+    	abstractHttpTransaction.attachmentManager = null;
+    	abstractHttpTransaction.currentHttpParameters = null;
+    	abstractHttpTransaction.originalSubDir = null;
+    	return abstractHttpTransaction;
+	}
+
+	@Override
     public void configure(Element element) throws Exception {
         super.configure(element);
 
@@ -303,11 +312,11 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 			}
 		}
 		
-		// Overrides HTTP headers using __header_ request parameters 
+		// Overrides static HTTP headers using __header_ request parameters 
 		NodeList headerNodes = context.inputDocument.getElementsByTagName("header");
 		int len = headerNodes.getLength();
 		if (len > 0) {
-			XMLVector<XMLVector<String>> headers = getHttpParameters();
+			XMLVector<XMLVector<String>> headers = getCurrentHttpParameters();
 			for (int i=0; i<len; i++) {
 				Element headerNode = (Element) headerNodes.item(i);
 				XMLVector<String> header = new XMLVector<String>();
@@ -315,7 +324,7 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 				header.add(headerNode.getAttribute("value"));
 				headers.add(header);
 			}
-			setHttpParameters(headers);
+			setCurrentHttpParameters(headers);
 			//needRestoreVariablesDefinition = true;
 			needRestoreVariables = true;
 		}
@@ -340,13 +349,21 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
      */
     public void setHttpParameters(XMLVector<XMLVector<String>> httpParameters) {
         this.httpParameters = httpParameters;
-        if ((originalHttpParameters == null) || (originalHttpParameters.equals(this.httpParameters)))
-        	originalHttpParameters = httpParameters;
+    }
+    
+    public XMLVector<XMLVector<String>> getCurrentHttpParameters() {
+    	if (currentHttpParameters == null) {
+    		currentHttpParameters = GenericUtils.cast(httpParameters.clone());
+    	}
+        return currentHttpParameters;
+    }
+
+    public void setCurrentHttpParameters(XMLVector<XMLVector<String>> currentHttpParameters) {
+    	this.currentHttpParameters = currentHttpParameters;
     }
     
     private void resetHttpParametersToOriginal() {
-    	if (originalHttpParameters != null)
-    		this.httpParameters = originalHttpParameters;
+    	currentHttpParameters = null;
     }
     
     /** Getter for property handleCookie.
