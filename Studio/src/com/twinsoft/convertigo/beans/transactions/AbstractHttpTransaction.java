@@ -84,8 +84,8 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 	/** Holds value of property subDir. */
     private String subDir = "";
     
-    /** Stores value of property subDir. */
-    transient private String originalSubDir = null;
+    /** Stores value running transaction's subDir. */
+    transient private String currentSubDir = null;
     
     /** Holds value of property requestTemplate. */
     private String requestTemplate = "";
@@ -110,7 +110,7 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
     	AbstractHttpTransaction abstractHttpTransaction = (AbstractHttpTransaction) super.clone();
     	abstractHttpTransaction.attachmentManager = null;
     	abstractHttpTransaction.currentHttpParameters = null;
-    	abstractHttpTransaction.originalSubDir = null;
+    	abstractHttpTransaction.currentSubDir = null;
     	return abstractHttpTransaction;
 	}
 
@@ -306,7 +306,7 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 			Element uriNode = (Element) uriNodes.item(0);
 			String uri  = uriNode.getAttribute("value");
 			if (!uri.equals("")) {
-				setSubDir(uri);
+				setCurrentSubDir(uri);
 				//needRestoreVariablesDefinition = true;
 				needRestoreVariables = true;
 			}
@@ -392,14 +392,21 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
      */
     public void setSubDir(String subDir) {
         this.subDir = subDir;
-        if ((originalSubDir == null) || (originalSubDir.equals(this.subDir))) {
-        	originalSubDir = subDir;
-        }
+    }
+    
+    public String getCurrentSubDir() {
+    	if (currentSubDir == null) {
+    		currentSubDir = new String(subDir);
+    	}
+    	return currentSubDir;
+    }
+    
+    public void setCurrentSubDir(String currentSubDir) {
+    	this.currentSubDir = currentSubDir;
     }
     
     private void resetSubDirToOriginal() {
-    	if (originalSubDir != null)
-    		this.subDir = originalSubDir;
+    	currentSubDir = null;
     }
 
     /** Getter for property requestTemplate.

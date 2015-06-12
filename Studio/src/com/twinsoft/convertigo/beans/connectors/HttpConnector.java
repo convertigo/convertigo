@@ -369,7 +369,7 @@ public class HttpConnector extends Connector {
 		else
 			setBaseUrl();
 
-		String transactionBaseDir = httpTransaction.getSubDir();
+		String transactionBaseDir = httpTransaction.getCurrentSubDir();
 		if (transactionBaseDir.startsWith("http")) {
 			sUrl = transactionBaseDir;
 			/*
