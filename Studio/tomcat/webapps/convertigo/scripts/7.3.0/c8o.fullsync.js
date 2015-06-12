@@ -107,10 +107,17 @@ $.extend(true, C8O, {
 		},
 		
 		onChange: function (db, onChange) {
+			C8O.log.info("c8o.fs  : onChange requested for " + db);
+			
 			return C8O._fs.getDb(db).changes({
 			  since: "now",
 			  live: true
-			}).on("change", onChange);
+			}).on("change", onChange).on("error", function (err) {
+				window.setTimeout(function () {
+					C8O.log.debug("c8o.fs  : onChange retrying due to error: " + err);
+					C8O._fs.onChange(db, onChange);
+				}, 2500);
+			});
 		},
 		
 		getRemoteDB: function (db) {
@@ -194,6 +201,8 @@ $.extend(true, C8O, {
 			if (!C8O._fs.live_dbs[db]) {
 				C8O._fs.live_dbs[db] = true;
 				C8O._fs.onChange(db, function (change) {
+					C8O.log.debug("c8o.fs  : changed occurs on " + db);
+					
 					var data = C8O._fs.live_ids[change.id];
 					if (data) {
 						C8O.call(data);
