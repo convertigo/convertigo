@@ -2,7 +2,10 @@ $.extend(true, C8O, {
 	init_vars: {
 		fs_server: null,
 		fs_force_pouch: false,
-		fs_force_pouch_replication: false
+		fs_force_pouch_replication: false,
+		fs_new_pouch_options: {
+			auto_compaction: true
+		}
 	},
 	
 	vars: {
@@ -37,11 +40,12 @@ $.extend(true, C8O, {
 			if (C8O._fs.dbs[db]) {
 				// exists
 			} else if (C8O._fs.server && !C8O.init_vars.fs_force_pouch) {
-				C8O._fs.dbs[db] = new PouchDB(C8O._fs.server + '/' + db, {
-					ajax: {timeout: 0} // disable PouchDB request timeout
-				});
+				C8O._fs.dbs[db] = new PouchDB(C8O._fs.server + '/' + db, $.extend(
+					{ajax: {timeout: 0}}, // disable PouchDB request timeout
+					C8O.init_vars.fs_new_pouch_options
+				));
 			} else {
-				C8O._fs.dbs[db] = new PouchDB(db);
+				C8O._fs.dbs[db] = new PouchDB(db, $.extend({}, C8O.init_vars.fs_new_pouch_options));
 			}
 			return C8O._fs.dbs[db];
 		},
@@ -345,7 +349,7 @@ $.extend(true, C8O, {
 						});
 					};
 				} else {
-					var rep = local.replicate[isPull ? "from" : "to"](remote, options).on("change", function (change) {
+					var evtChange = function (change) {
 						var min = change.last_seq - change.docs_written;
 						var current = change.docs_written;
 						var total = Math.max(max - min, 1);
@@ -357,19 +361,23 @@ $.extend(true, C8O, {
 							total: total,
 							progress: progress,
 							ok: true
-						});
-					}).on("complete", function () {
+						});						
+					};
+					
+					var evtError = function (err) {
+						evts.error($.extend({}, err, {direction: direction}));
+					};
+					
+					var rep = local.replicate[isPull ? "from" : "to"](remote, options).on("complete", function () {
 						evts.complete({
 							ok : true,
 							direction: direction
 						});
 						if (live) {
 							options.live = live;
-							cancel = local.replicate[isPull ? "from" : "to"](remote, options).cancel;
+							rep = local.replicate[isPull ? "from" : "to"](remote, options).on("change", evtChange).on("error", evtError);
 						}
-					}).on("error", function (err) {
-						evts.error($.extend({}, err, {direction: direction}));
-					});
+					}).on("change", evtChange).on("error", evtError);
 					
 					cancel = function () {
 						rep.cancel();
@@ -450,10 +458,12 @@ $.extend(true, C8O, {
 						push.on(name, handler);
 					}
 				}
+				return this;
 			},
 			cancel: function () {
 				pull.cancel();
 				push.cancel();
+				return this;
 			}
 		}
 	}

@@ -658,6 +658,36 @@ $.extend(true, C8O, {
 //    return true;
 //});
 
+
+/**
+ *  wait_hide hook
+ *  used after xml_response execution
+ *  or on C8O.waitHide() call
+ *  and hide the transparent mask
+ *  
+ *  data:  "object" data used to generate the C8O.call
+ *  return: true > lets C8O hide the loading mask
+ *             false > doesn't hide anything
+ */
+//C8O.addHook("wait_hide", function (data) {
+//    return true;
+//});
+
+/**
+ *  wait_show hook
+ *  used at C8O.call calling
+ *  or on C8O.waitShow() call
+ *  and display a transparent mask
+ *  that prevents the user to act
+ *  
+ *  data:  "object" data used to generate the C8O.call
+ *  return: true > lets C8O display the loading mask
+ *             false > doesn't display anything
+ */
+//C8O.addHook("wait_show", function (data) {
+//    return true;
+//});
+
 /**
  *  xml_response hook
  *  used for tweak, retrieve value or do transformation

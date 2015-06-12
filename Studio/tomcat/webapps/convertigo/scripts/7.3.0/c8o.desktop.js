@@ -103,14 +103,14 @@ $.extend(true, C8O, {
         }
     },
         
-    waitHide: function () {
-        if (C8O._hook("wait_hide")) {
+    waitHide: function (data) {
+        if (C8O._hook("wait_hide", data || {})) {
             $("#wait_div").remove();
         }
     },
     
-    waitShow: function () {
-        if (C8O._hook("wait_show")) {
+    waitShow: function (data) {
+        if (C8O._hook("wait_show", data || {})) {
             if ($("body #wait_div").length == 0) {
                 $("body").append(C8O._define.wait_div);
             }

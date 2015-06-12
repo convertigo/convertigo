@@ -34,8 +34,9 @@ $.extend(true, C8O, {
         loading: {}
     },
     
-    waitHide: function () {
-        if (C8O._hook("wait_hide") && C8O._hook("loading_stop")) {
+    waitHide: function (data) {
+    	data = data || {};
+        if (C8O._hook("wait_hide", data) && C8O._hook("loading_stop", data)) {
             try {
                 $.mobile.loading("hide");
             } catch (e) {
@@ -49,8 +50,9 @@ $.extend(true, C8O, {
         }
     },
     
-    waitShow: function () {
-        if (C8O._hook("wait_show") && C8O._hook("loading_start")) {
+    waitShow: function (data) {
+    	data = data || {};
+        if (C8O._hook("wait_show", data) && C8O._hook("loading_start", data)) {
             $("#c8oloading").show();
             try {
                 $.mobile.loading("show", C8O.options.loading);

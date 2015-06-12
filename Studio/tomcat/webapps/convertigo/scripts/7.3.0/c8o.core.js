@@ -60,7 +60,11 @@ C8O = {
     appendValue: function (data, key, value) {
         if (!$.isArray(value)) {
             value = [value];
+        } else if (C8O.isUndefined(data[key])) {
+        	data[key] = value;
+        	return;
         }
+        
         for (var i in value) {
             if (C8O.isUndefined(data[key])) {
                 data[key] = value[i];
@@ -106,7 +110,7 @@ C8O = {
         }
 
         C8O.log.trace("c8o.core: call show wait div");
-        C8O.waitShow();
+        C8O.waitShow(data);
         
         if (C8O.isUndefined(data)) {
             C8O.log.trace("c8o.core: call without data");
@@ -379,12 +383,12 @@ C8O = {
         }
     },
     
-    waitHide: function () {
-        C8O._hook("wait_hide");
+    waitHide: function (data) {
+        C8O._hook("wait_hide", data || {});
     },
     
     waitShow: function () {
-        C8O._hook("wait_show");
+        C8O._hook("wait_show", data || {});
     },
     
     /**
@@ -730,7 +734,7 @@ C8O = {
                     C8O.call(params);
                 } else {
                     C8O.log.trace("c8o.core: hide the initial wait div");
-                    C8O.waitHide();
+                    C8O.waitHide(params);
                 }
     		} else {
     			C8O.log.debug("c8o.core: init not finish, remains locks: " + C8O.toJSON(C8O._init.locks));
@@ -1014,7 +1018,7 @@ C8O = {
         
         if (C8O._hook("call_complete", jqXHR, textStatus, jqXHR.C8O_data)) {
             if (!C8O._define.pendingXhrCpt) {
-                C8O.waitHide();
+                C8O.waitHide(jqXHR.C8O_data);
                 C8O.log.debug("c8o.core: Ajax complete, hide the wait div");
             } else {
                 C8O.log.trace("c8o.core: Ajax complete, remains " + C8O._define.pendingXhrCpt + " pending requests");
@@ -1054,7 +1058,7 @@ C8O = {
             }
         }
         
-        if (C8O._hook("call_error", jqXHR, textStatus, errorThrown, jqXHR.data)) {
+        if (C8O._hook("call_error", jqXHR, textStatus, errorThrown, data)) {
             C8O.log.debug("c8o.core: network error occured for request: " + C8O.toJSON(data) + " . Error is: " + C8O.toJSON(errorThrown) + "/" + textStatus);
             // seems we do not have network or the server is unreachable.. Lookup in local cache
 
