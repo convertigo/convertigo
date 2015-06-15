@@ -548,14 +548,14 @@ C8O.addHook("_call_fs", function (data) {
 			
 			if (seq == "post") {
 				var policy = C8O._remove(options, "policy") || "none";
-				var subSplit = C8O._remove(options, "subSplit");
-				if (subSplit == null) {
-					subSplit = ".";
+				var subkey_separator = C8O._remove(options, "subkey_separator");
+				if (subkey_separator == null) {
+					subkey_separator = ".";
 				}
 				
-				if (subSplit) {
+				if (subkey_separator) {
 					for (var key in postData) {
-						var paths = key.split(subSplit);
+						var paths = key.split(subkey_separator);
 						
 						if (paths.length > 1) {
 							var value = C8O._remove(postData, key);
