@@ -219,6 +219,7 @@ public class BeansDoc {
 	
 			for (PropertyDescriptor databaseObjectPropertyDescriptor : propertyDescriptors) {
 				boolean skip = false;
+				longDescpription = "";
 				
 				// Don't display hidden property descriptors
 				if (databaseObjectPropertyDescriptor.isHidden()) {
