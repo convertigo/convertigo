@@ -44,7 +44,7 @@ public class JsonServlet extends GenericServlet {
     
     @Override
     public String getDefaultContentType() {
-    	return "text/javascript";//"application/json";
+    	return "application/json";
     }
 
     @Override
