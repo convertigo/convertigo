@@ -81,7 +81,7 @@ public class ReplaceText extends JavelinExtractionRule {
                         try {
                             state = STATE_NORMAL;
                             b[0] = (byte)Integer.parseInt(code);
-                            res.append(new String(b));
+                            res.append(new String(b, "ISO8859-1"));
                         }
                         catch (Exception e) {
                             return (res.toString());
