@@ -191,12 +191,16 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 	}
 	
 	private void syncDocument() {
-		DesignDocument dd = getObject();
-		JSONObject jso = dd.getJSONObject();
-		
-		if (CouchKey._id.has(jso)) {
-			CouchDbConnector couchDbConnector = dd.getConnector();
-			lastRev = CouchDbManager.syncDocument(couchDbConnector.getCouchClient(), couchDbConnector.getDatabaseName(), jso.toString());
+		try {
+			DesignDocument dd = getObject();
+			JSONObject jso = dd.getJSONObject();
+			
+			if (CouchKey._id.has(jso)) {
+				CouchDbConnector couchDbConnector = dd.getConnector();
+				lastRev = CouchDbManager.syncDocument(couchDbConnector.getCouchClient(), couchDbConnector.getDatabaseName(), jso.toString());
+			}
+		} catch (Throwable t) {
+			ConvertigoPlugin.logException(t, "Failed to syncDocument");
 		}
 	}
 	
