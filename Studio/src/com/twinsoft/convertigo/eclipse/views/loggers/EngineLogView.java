@@ -391,11 +391,9 @@ public class EngineLogView extends ViewPart {
 		layoutData.horizontalAlignment = SWT.FILL;
 		layoutData.grabExcessHorizontalSpace = true;
 		searchText.setLayoutData(layoutData);
-
 		searchText.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
-				currentFoundIndex = 0;
 				applySearch();
 			}
 		});
@@ -408,15 +406,7 @@ public class EngineLogView extends ViewPart {
 		previousSearch.setEnabled(false);
 		previousSearch.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				if(appliedSearchText != null) {
-					if(!appliedSearchText.equals(searchText.getText())) {
-						currentFoundIndex = 0;
-						applySearch();
-					}
-					else 
-						searchInLogs(-1);
-				}	
-
+				searchInLogs(-1);
 			}
 		});
 
@@ -425,15 +415,7 @@ public class EngineLogView extends ViewPart {
 		nextSearch.setEnabled(false);
 		nextSearch.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				if(appliedSearchText != null) {
-					if(!appliedSearchText.equals(searchText.getText())) {
-						currentFoundIndex = 0;
-						applySearch();
-					}
-					else
-						searchInLogs(1);
-				}
-
+				searchInLogs(1);
 			}
 		});
 
@@ -452,7 +434,6 @@ public class EngineLogView extends ViewPart {
 		applyButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				currentFoundIndex = 0;
 				applySearch();
 			}
 		});
@@ -470,15 +451,15 @@ public class EngineLogView extends ViewPart {
 
 	private int currentFoundIndex = 0;
 	private ArrayList<Integer> foundIndexes = new ArrayList<Integer>();
-	private String appliedSearchText;
+	
 	private void applySearch() {
+		currentFoundIndex = 0;
+		nextSearch.setEnabled(false);
+		previousSearch.setEnabled(false);
+		
 		
 		String searchedText = searchText.getText();
-		appliedSearchText = searchedText;
-		
 		if ("".equals(searchedText)) {
-			nextSearch.setEnabled(false);
-			previousSearch.setEnabled(false);
 			infoSearch.setVisible(false);
 			GridData data = (GridData) infoSearch.getLayoutData();
 			data.exclude = true;
@@ -522,19 +503,23 @@ public class EngineLogView extends ViewPart {
 	}
 
 	private void searchInLogs(int side) {
-		currentFoundIndex += side;
+		int searchIndex = currentFoundIndex + side;
+		if (searchIndex < 0 || searchIndex > foundIndexes.size())
+			return;
+		
+		currentFoundIndex = searchIndex;
 		Table table = tableViewer.getTable();
 		
 		table.setSelection(foundIndexes.get(currentFoundIndex));
 		table.setFocus();
 
-		// Disable "second" if is the beginning
+		// Disable "previous" if is the beginning
 		if (foundIndexes.get(currentFoundIndex) == foundIndexes.get(0))
 			previousSearch.setEnabled(false);
 		else
 			previousSearch.setEnabled(true);
 
-		// Disable "first" if is the end
+		// Disable "next" if is the end
 		if (foundIndexes.get(currentFoundIndex) == foundIndexes.get(foundIndexes.size() - 1))
 			nextSearch.setEnabled(false);
 		else
