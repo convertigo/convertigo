@@ -217,4 +217,13 @@ public class URLUtils {
 		}
 		return null;
 	}
+	
+	public static String encodeUTF8(String part) {
+		try {
+			return URLEncoder.encode(part, "UTF-8");
+		} catch (Throwable t) {
+			Engine.logEngine.warn("(URLUtils) encodeUTF8 failed", t);
+			return part;
+		}
+	}
 }
