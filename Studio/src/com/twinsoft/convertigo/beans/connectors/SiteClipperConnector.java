@@ -780,7 +780,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 									newQuery.append('=').append(URLEncoder.encode(URLDecoder.decode(pair[1], "UTF-8"), "UTF-8"));
 								}
 							} catch (UnsupportedEncodingException ee) {
-								Engine.logSiteClipper.trace("(SiteClipperConnector) failed to encore query part : " + part);
+								Engine.logSiteClipper.trace("(SiteClipperConnector) failed to encode query part : " + part);
 							}
 						}
 

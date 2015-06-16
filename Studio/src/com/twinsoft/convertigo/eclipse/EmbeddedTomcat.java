@@ -60,6 +60,7 @@ public class EmbeddedTomcat implements Runnable {
 
 			System.out.println("(EmbeddedTomcat) Catalina home: " + tomcatHome);
 			System.setProperty("catalina.home", tomcatHome);
+			System.setProperty("org.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH", "true");
 	        
 			// Create an embedded server
 			System.out.println("(EmbeddedTomcat) Creating a new instance of EmbeddedTomcat");
