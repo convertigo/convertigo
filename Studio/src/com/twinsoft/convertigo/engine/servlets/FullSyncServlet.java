@@ -51,6 +51,8 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class FullSyncServlet extends HttpServlet {
 	private static final long serialVersionUID = -5147185931965387561L;
+	
+	private static final Pattern replace2F = Pattern.compile("(/_design)%2[fF]");
 
 	@Override
 	protected void service(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -239,7 +241,7 @@ public class FullSyncServlet extends HttpServlet {
 			}
 			
 			HttpEntity responseEntity = newResponse.getEntity();
-			ContentTypeDecoder contentType = new ContentTypeDecoder(responseEntity == null ? "" : responseEntity.getContentType().getValue());
+			ContentTypeDecoder contentType = new ContentTypeDecoder(responseEntity == null || responseEntity.getContentType() == null  ? "" : responseEntity.getContentType().getValue());
 			
 			boolean continuous = code == 200 && uri.getQuery() != null && uri.getQuery().contains("feed=continuous");
 			OutputStream os = response.getOutputStream();
@@ -289,6 +291,8 @@ public class FullSyncServlet extends HttpServlet {
 		
 		RequestParser(HttpServletRequest request) throws UnsupportedEncodingException {
 			String request_path = request.getRequestURI().substring(request.getContextPath().length() + request.getServletPath().length());
+			
+			request_path = replace2F.matcher(request_path).replaceFirst("$1/");
 			
 			Matcher mPath = pPath.matcher(request_path);
 			if (mPath.matches()) {
