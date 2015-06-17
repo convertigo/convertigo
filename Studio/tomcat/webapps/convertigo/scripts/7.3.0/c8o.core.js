@@ -387,7 +387,7 @@ C8O = {
         C8O._hook("wait_hide", data || {});
     },
     
-    waitShow: function () {
+    waitShow: function (data) {
         C8O._hook("wait_show", data || {});
     },
     
