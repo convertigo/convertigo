@@ -168,6 +168,8 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	
 	public static final int SAMPLE_POLYMER = 1315;
 	public static final int SAMPLE_ANGULARJS = 1316;
+	public static final int SAMPLE_OFFCHAT = 1317;
+	public static final int SAMPLE_RETAILSTORE = 1318;
 	
 	// sequencer samples
 	public static final int SAMPLE_SEQUENCER_1 = 510;
@@ -203,6 +205,8 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final String SAMPLE_MOBILE_MOB_TV_PROJECT_FILE_NAME = "sampleMobileMobTV.car";
 	public static final String SAMPLE_POLYMER_PROJECT_FILE_NAME = "samplePolymer.car";
 	public static final String SAMPLE_ANGULARJS_PROJECT_FILE_NAME = "sampleAngularJS.car";
+	public static final String SAMPLE_OFFCHAT_PROJECT_FILE_NAME = "sampleMobileOffChat.car";
+	public static final String SAMPLE_RETAILSTORE_PROJECT_FILE_NAME = "sampleMobileRetailStore.car";
 	// libraries
 	public static final String GOOGLE_MAPS_LIBRARY_PROJECT_FILE_NAME = "lib_GoogleMaps.car";
 	public static final String GOOGLE_SPREADSHEETS_LIBRARY_PROJECT_FILE_NAME = "lib_GoogleSpreadsheets.car";
@@ -270,6 +274,8 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case SAMPLE_MOBILE_MOBTV:
 		case SAMPLE_POLYMER:
 		case SAMPLE_ANGULARJS:
+		case SAMPLE_OFFCHAT:
+		case SAMPLE_RETAILSTORE:
 		case LIBRARY_GOOGLE_MAPS:
 		case LIBRARY_GOOGLE_SPREADSHEETS:
 		case LIBRARY_GOOGLE_DOCS:
@@ -482,6 +488,8 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case SAMPLE_MOBILE_MOBTV:
 			case SAMPLE_POLYMER:
 			case SAMPLE_ANGULARJS:
+			case SAMPLE_OFFCHAT:
+			case SAMPLE_RETAILSTORE:
 			case LIBRARY_GOOGLE_MAPS:
 			case LIBRARY_GOOGLE_SPREADSHEETS:
 			case LIBRARY_GOOGLE_DOCS:
@@ -1304,6 +1312,14 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case SAMPLE_ANGULARJS:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_ANGULARJS_PROJECT_FILE_NAME;
 			projectName = SAMPLE_ANGULARJS_PROJECT_FILE_NAME.substring(0, SAMPLE_ANGULARJS_PROJECT_FILE_NAME.indexOf(".car"));
+			break;
+		case SAMPLE_OFFCHAT:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_OFFCHAT_PROJECT_FILE_NAME;
+			projectName = SAMPLE_OFFCHAT_PROJECT_FILE_NAME.substring(0, SAMPLE_OFFCHAT_PROJECT_FILE_NAME.indexOf(".car"));
+			break;
+		case SAMPLE_RETAILSTORE:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_RETAILSTORE_PROJECT_FILE_NAME;
+			projectName = SAMPLE_RETAILSTORE_PROJECT_FILE_NAME.substring(0, SAMPLE_RETAILSTORE_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		default:
 			return null;
