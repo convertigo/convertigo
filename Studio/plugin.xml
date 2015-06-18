@@ -560,7 +560,7 @@
             name="OffChat sample project"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Imports a project creating a sampleOffChat application. This application demonstrates FullSync technology used to an “Offline Chat” application. This app enables users to establish conversations between them and chat using text messages and photos.  When the device is online, messages will flow from one to the other immediately, using FullSync “live” replications. If the device if offline, posts will be secured in the local FullSync NoSQL database and will be synced automatically when the device is online again.</description> 
+            <description>Imports a project creating a sampleOffChat application. This application demonstrates FullSync technology used to an “Offline Chat” application. This app enables users to establish conversations between them and chat using text messages and photos. When the device is online, messages will flow from one to the other immediately, using FullSync “live” replications. If the device if offline, posts will be secured in the local FullSync NoSQL database and will be synced automatically when the device is online again.</description> 
        </wizard>
        <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
@@ -570,7 +570,7 @@
             name="RetailStore sample project"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Imports a project creating a sampleRetailStore application. This application demonstrates FullSync technology  used for a mobile retail store application where the user can browse a catalog of products downloaded on his mobile phone.  For this demo , the data comes from a static XML file imported in the FullSync server database. When the mobile application is launched, a first step will be done to import the data in the server database, then the data will be “synced” on the mobile device. Be sure to install a CouchDB server on  your workstation before running this demo.</description> 
+            <description>Imports a project creating a sampleRetailStore application. This application demonstrates FullSync technology used for a mobile retail store application where the user can browse a catalog of products downloaded on his mobile phone. For this demo, the data come from a static XML file imported in the FullSync server database. When the mobile application is launched, a first step will be done to import the data in the server database, then the data will be “synced” on the mobile device. Be sure to install a CouchDB server on your workstation before running this demo.</description> 
        </wizard>
 <!-- HelloWorld sample project -->
        <wizard
