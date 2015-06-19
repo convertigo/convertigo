@@ -22,7 +22,6 @@
 
 package com.twinsoft.convertigo.beans.couchdb;
 
-import java.io.ByteArrayOutputStream;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
@@ -32,7 +31,6 @@ import java.util.StringTokenizer;
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.io.IOUtils;
 import org.apache.xpath.XPathAPI;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
@@ -284,12 +282,9 @@ public class FullSyncListener extends Listener {
 					
 					Engine.logBeans.debug("(FullSyncListener) Listener \""+ getName() +"\" : http invoke requested");
 					int statusCode = Engine.theApp.httpClient.executeMethod(hostConfiguration, postMethod, httpState);
-					ByteArrayOutputStream baos = new ByteArrayOutputStream();
-					IOUtils.copy(postMethod.getResponseBodyAsStream(), baos);
-					byte[] result = baos.toByteArray();
-					String contents = new String((result != null) ? result : new byte[] {});
 					
 					if (statusCode != -1) {
+						String contents = postMethod.getResponseBodyAsString();
 						Engine.logBeans.debug("(FullSyncListener) Listener \""+ getName() +"\" : sequence successfully executed with following result\n"+ contents + "\n");
 					}
 				} catch (Exception e) {
