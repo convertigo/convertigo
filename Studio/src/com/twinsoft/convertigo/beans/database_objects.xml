@@ -883,10 +883,10 @@
 		</category>
 		<category name="CouchDB">
 			<beans>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.couchdb.DesignDocument">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.couchdb.DesignDocument">
                     <parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
             </beans>
