@@ -480,15 +480,24 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty{
 	
 	@Override
 	public List<DatabaseObject> getAllChildren() {	
-		List<DatabaseObject> rep=super.getAllChildren();
-		List<Transaction> trans=getTransactionsList();		
-		for(Transaction tran:trans){
+		List<DatabaseObject> rep = super.getAllChildren();
+		
+		for (Transaction tran : getTransactionsList()){
 			rep.add(tran);
 		}
-		List<Pool> pools=getPoolsList();	
-		for(Pool pool:pools){
+		
+		for (Pool pool : getPoolsList()) {
 			rep.add(pool);
-		}		
+		}
+		
+		for (com.twinsoft.convertigo.beans.core.Document document : getDocumentsList()) {
+			rep.add(document);
+		}
+		
+		for (Listener listener : getListenersList()) {
+			rep.add(listener);
+		}
+		
 		return rep;
 	}
 	
