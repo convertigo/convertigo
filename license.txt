@@ -15,7 +15,7 @@ BY INDICATING YOUR ACCEPTANCE BY CLICKING "YES" BELOW, OR INSTALLING OR USING TH
 Any user of the Software that is authorized to access or use a Software that has been licensed to an Organization under the terms of this Agreement, provided that in total, the count of all such users does not exceed the total number of licenses acquired by such Organization.
 
 " Community Edition "
-Edition of the Software delivered by CONVERTIGO without activation keys to activate the Extended Edition components HTML, MAINFRAME, SAP connectors and Full Sync off line data beyond the 30 days trial period and without Standard Edition components documented scripts which allow to run the Server under multi-instance mode. 
+Edition of the Software delivered by CONVERTIGO without activation keys to activate the Extended Edition components HTML, MAINFRAME, SAP connectors and FullSync offline data beyond the 30 days trial period and without Standard Edition components documented scripts which allow to run the Server under multi-instance mode. 
 
  " Organization "
 The person, partnership, entity, corporation, or government entity that is granted a license on the Software and that shall be responsible for any use of the Software.
@@ -31,7 +31,7 @@ The Software Studio includes an Eclipse IDE, Convertigo plugins, a minimal mono 
 Projects developed with Software Studio are saved into Project.car files to be executed on "Software Server" in production or on the minimal mono user Software Server included within the Studio.
 
 " Extended Edition "
-Edition of the Software which allows you to use the Software Extended Edition components HTML, MAINFRAME, SAP connectors and Full Sync off line data beyond the 30 days trial period with activation keys and the Software Standard Edition components documented scripts.
+Edition of the Software which allows you to use the Software Extended Edition components HTML, MAINFRAME, SAP connectors and FullSync offline data beyond the 30 days trial period with activation keys and the Software Standard Edition components documented scripts.
 Activation keys are delivered separately by Convertigo to activate the Software Extended Edition components beyond the 30 days trial period.
 The Software Extended Edition components are delivered and bundled with the Software Studio. They are running under the minimal mono user Software Server installed with the Software Studio and are free of use for development purpose only. 
 
@@ -43,7 +43,7 @@ The Software Server installer is installing the Server Software and an administr
 The Software Server contains all run time components to run the Projects.car files. 
 
 " Standard Edition "
-Edition of the Software delivered by CONVERTIGO without activation keys to activate the Extended Edition components HTML, MAINFRAME, SAP connectors and Full Sync off line data beyond the 30 days trial period and which allows you to use the Standard Edition components including documented scripts which allow you to run the Server under multi-instance mode.
+Edition of the Software delivered by CONVERTIGO without activation keys to activate the Extended Edition components HTML, MAINFRAME, SAP connectors and FullSync offline data beyond the 30 days trial period and which allows you to use the Standard Edition components including documented scripts which allow you to run the Server under multi-instance mode.
 The Standard Edition components are delivered separately by Convertigo and on demand. 
 
 " Third Party Software "
@@ -356,17 +356,9 @@ Phaos Technology SSLava (Oracle)
   | http://www.phaos.com
   | Inside Aviva License
 ------------------------------------------------------
-DirectKit
-  | http://www.orange-business-services.com
-  | OBS license
-------------------------------------------------------
 OpenSSL
   | http://www.openssl.org
   | OpenSSL license BSD Like
-------------------------------------------------------
-Oracle
-  | http://www.oracle.com
-  | ORACLE license
 ------------------------------------------------------
 BackPort
   | http://creativecommons.org/licenses/publicdomain
