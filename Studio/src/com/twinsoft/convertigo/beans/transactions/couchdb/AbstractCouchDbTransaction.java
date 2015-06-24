@@ -217,7 +217,10 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 					return Float.class;
 				}
 				else if (typeQName.equals(Constants.XSD_INTEGER) || 
-						typeQName.equals(Constants.XSD_POSITIVEINTEGER)) {
+						typeQName.equals(Constants.XSD_POSITIVEINTEGER) ||
+						typeQName.equals(Constants.XSD_NEGATIVEINTEGER) ||
+						typeQName.equals(Constants.XSD_NONNEGATIVEINTEGER) ||
+						typeQName.equals(Constants.XSD_NONPOSITIVEINTEGER)) {
 					return BigInteger.class;
 				}
 				else if (typeQName.equals(Constants.XSD_DECIMAL) ||
