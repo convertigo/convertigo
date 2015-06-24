@@ -37,37 +37,37 @@
 		<link>
 			<name>src/com/convertigo/externalbrowser/common</name>
 			<type>2</type>
-			<locationURI>WORKSPACE_LOC/CemsExternalBrowser_7.3.x/src/java/com/convertigo/externalbrowser/common</locationURI>
+			<locationURI>WORKSPACE_LOC/CemsExternalBrowser_7.4.x/src/java/com/convertigo/externalbrowser/common</locationURI>
 		</link>
 		<link>
 			<name>src/com/convertigo/externalbrowser/agent/stub</name>
 			<type>2</type>
-			<locationURI>WORKSPACE_LOC/CemsExternalBrowser_7.3.x/src/java/com/convertigo/externalbrowser/agent/stub</locationURI>
+			<locationURI>WORKSPACE_LOC/CemsExternalBrowser_7.4.x/src/java/com/convertigo/externalbrowser/agent/stub</locationURI>
 		</link>
 		<link>
 			<name>src/com/twinsoft/convertigo/engine/externalbrowser</name>
 			<type>2</type>
-			<locationURI>WORKSPACE_LOC/CemsExternalBrowser_7.3.x/src/java/com/twinsoft/convertigo/engine/externalbrowser</locationURI>
+			<locationURI>WORKSPACE_LOC/CemsExternalBrowser_7.4.x/src/java/com/twinsoft/convertigo/engine/externalbrowser</locationURI>
 		</link>
 		<link>
 			<name>src/com/twinsoft/convertigo/engine/parsers</name>
 			<type>2</type>
-			<locationURI>WORKSPACE_LOC/CemsHtmlParsers_7.3.x/src/com/twinsoft/convertigo/engine/parsers</locationURI>
+			<locationURI>WORKSPACE_LOC/CemsHtmlParsers_7.4.x/src/com/twinsoft/convertigo/engine/parsers</locationURI>
 		</link>
 		<link>
 			<name>src/com/twinsoft/convertigo/engine/plugins</name>
 			<type>2</type>
-			<locationURI>WORKSPACE_LOC/Plugins_7.3.x/src/com/twinsoft/convertigo/engine/plugins</locationURI>
+			<locationURI>WORKSPACE_LOC/Plugins_7.4.x/src/com/twinsoft/convertigo/engine/plugins</locationURI>
 		</link>
 		<link>
 			<name>src/com/twinsoft/convertigo/engine/providers/couchdb</name>
 			<type>2</type>
-			<locationURI>WORKSPACE_LOC/CouchDBConnector_7.3.x/src/com/twinsoft/convertigo/engine/providers/couchdb</locationURI>
+			<locationURI>WORKSPACE_LOC/CouchDBConnector_7.4.x/src/com/twinsoft/convertigo/engine/providers/couchdb</locationURI>
 		</link>
 		<link>
 			<name>src/com/twinsoft/convertigo/engine/providers/sapjco</name>
 			<type>2</type>
-			<locationURI>WORKSPACE_LOC/SapConnector_7.3.x/src/com/twinsoft/convertigo/engine/providers/sapjco</locationURI>
+			<locationURI>WORKSPACE_LOC/SapConnector_7.4.x/src/com/twinsoft/convertigo/engine/providers/sapjco</locationURI>
 		</link>
 	</linkedResources>
 	<filteredResources>
