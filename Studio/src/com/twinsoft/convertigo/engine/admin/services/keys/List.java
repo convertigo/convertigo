@@ -95,7 +95,7 @@ public class List extends XmlService{
         		
         		Element emulatorNameElement = document.createElement("category");    	    	    	
         		emulatorNameElement.setAttribute("name", emulatorName);
-        		emulatorNameElement.setAttribute("used", Integer.toString(total-KeyManager.getCV(emulatorID)));
+        		emulatorNameElement.setAttribute("used", Integer.toString(KeyManager.getCV(emulatorID)));
         		emulatorNameElement.setAttribute("total", Integer.toString(total));
         		
         		emulatorNameElement.appendChild(keysElement);
