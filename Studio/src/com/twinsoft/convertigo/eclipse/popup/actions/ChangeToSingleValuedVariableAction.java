@@ -98,6 +98,9 @@ public class ChangeToSingleValuedVariableAction extends MyAbstractAction {
         					if (multi instanceof StepMultiValuedVariable){
         						((StepVariable)simple).setSourceDefinition(((StepVariable)multi).getSourceDefinition());
         					}
+        					if (multi instanceof RequestableVariable){
+        						((RequestableVariable)simple).setXmlTypeAffectation(((RequestableVariable)multi).getXmlTypeAffectation());
+        					}
         					if (multi instanceof RequestableHttpVariable){
         						// HttpName
         						((RequestableHttpVariable)simple).setHttpName(((RequestableHttpVariable)multi).getHttpName());
