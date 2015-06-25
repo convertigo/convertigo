@@ -236,7 +236,6 @@ public class DatabaseObjectsManager implements AbstractManager {
 			try {
 				checkForEngineMigrationProcess(projectName);
 				project = importProject(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml");
-				CouchDbManager.syncDocument(project);
 			} catch (ClassCastException e) {
 				throw new EngineException("The requested object \"" + projectName + "\" is not a project!", e);
 			} catch (ProjectInMigrationProcessException e) {
@@ -825,7 +824,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 	public Project importProject(String importFileName) throws EngineException {
 		try {
-			return importProject(importFileName, null);
+			Project project = importProject(importFileName, null);
+			CouchDbManager.syncDocument(project);
+			return project;
 		} catch (Exception e) {
 			throw new EngineException("An error occured while importing project", e);
 		}
