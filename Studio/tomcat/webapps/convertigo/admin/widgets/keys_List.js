@@ -75,8 +75,8 @@ function updateKeysList(xml) {
 				"Convertigo " + (parseInt(nb_valid_keys) > 1 ? "Extended Edition" : "Standard Edition") : $name );
 		if ($name !== "Standard Edition") {
 			$category.find(".key-category-total").text($x_category.attr("total"));
-			$category.find(".key-category-used").text($x_category.attr("used"));
-			$category.find(".key-category-remaining").text((parseInt($x_category.attr('total')) - parseInt($x_category.attr('used'))));
+			$category.find(".key-category-remaining").text($x_category.attr("remaining"));
+			$category.find(".key-category-used").text((parseInt($x_category.attr('total')) - parseInt($x_category.attr('remaining'))));
 		} else {
 			$category.find(".key-category-total").parent().remove();
 			$category.find(".key-category-used").parent().remove();
