@@ -37,7 +37,7 @@ public class EmbeddedTomcat implements Runnable {
 
 	private Tomcat embedded;
 	public String tomcatHome;
-	private int httpsPort = 8081;
+	private int httpPort = 18080;
 	
 	/**
 	 * Default Constructor
@@ -83,9 +83,9 @@ public class EmbeddedTomcat implements Runnable {
 				httpConnectorPort = Integer.parseInt(convertigoServer.substring(i+1, j));
 			}
 
-			embedded.setPort(httpConnectorPort);
+			embedded.setPort(httpPort = httpConnectorPort);
 			
-			int httpsConnectorPort = httpsPort = httpConnectorPort + 1;
+			int httpsConnectorPort = httpConnectorPort + 1;
 			System.out.println("(EmbeddedTomcat) Installing the embedded HTTPS connector listening on port " + httpsConnectorPort);
 			
 			Connector connector = new Connector();
@@ -144,7 +144,7 @@ public class EmbeddedTomcat implements Runnable {
 		start();
 	}
 
-	public int getHttpsPort() {
-		return httpsPort;
+	public int getHttpPort() {
+		return httpPort;
 	}
 }
