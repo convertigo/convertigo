@@ -1717,4 +1717,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 		return value;
 	}
+	
+	public void fullsyncUpdate() {
+		for (Project project : projects.values()) {
+			CouchDbManager.syncDocument(project);
+		}
+	}
 }
