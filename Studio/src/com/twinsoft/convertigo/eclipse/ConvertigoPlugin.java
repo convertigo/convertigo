@@ -45,7 +45,6 @@ import java.util.Set;
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.protocol.Protocol;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.core.resources.IProject;
@@ -135,7 +134,6 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectManager;
 import com.twinsoft.convertigo.eclipse.views.references.ReferencesView;
 import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.MySSLSocketFactory;
 import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
@@ -795,11 +793,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 							}
 
 							runRequestableHostConfiguration = new HostConfiguration();
-							Protocol myhttps = new Protocol(
-									"https",
-									MySSLSocketFactory.getSSLSocketFactory(null, null, null, null, true),
-									embeddedTomcat.getHttpsPort());
-							runRequestableHostConfiguration.setHost("localhost", embeddedTomcat.getHttpsPort(), myhttps);
+							runRequestableHostConfiguration.setHost("localhost", embeddedTomcat.getHttpPort());
 							runRequestableHttpState = new  HttpState();
 							
 							// The console threads must be started AFTER the engine
