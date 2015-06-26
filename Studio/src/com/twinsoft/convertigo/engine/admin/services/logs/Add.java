@@ -109,7 +109,7 @@ public class Add extends JSonService {
 				}
 			}
 			
-			response.put("remoteLogLevel", Engine.logDevices.getLevel().toString().toLowerCase());
+			response.put("remoteLogLevel", Engine.logDevices.getEffectiveLevel().toString().toLowerCase());
 		} finally {
 			Log4jHelper.mdcClear();
 		}
