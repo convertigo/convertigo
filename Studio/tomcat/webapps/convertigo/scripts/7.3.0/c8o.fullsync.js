@@ -249,10 +249,9 @@ $.extend(true, C8O, {
 				options.live = false;
 				
 				if (local.type() == "http" && !C8O.init_vars.fs_force_pouch_replication) {
-					var body = {
-						source: isPull ? C8O._fs.getRemoteUrl(db) : db + "_device",
-						target: !isPull ? C8O._fs.getRemoteUrl(db) : db + "_device",
-					};
+					var source = isPull ? C8O._fs.getRemoteUrl(db) : db + "_device";
+					var target = !isPull ? C8O._fs.getRemoteUrl(db) : db + "_device";
+					var body = {source: source, target: target};
 					
 					var replicate = false;
 					
@@ -283,7 +282,7 @@ $.extend(true, C8O, {
 									
 									var task = null;
 									for (var i = 0; i < tasks.length && task == null; i++) {
-										if (tasks[i].source == body.source && tasks[i].target == body.target) {
+										if (tasks[i].source == source && tasks[i].target == target) {
 											task = tasks[i];
 										}
 									}
@@ -298,7 +297,7 @@ $.extend(true, C8O, {
 											C8O.log.info("c8o.fs  : replication started for " + C8O.toJSON(body));
 											replicate = true;
 										}
-										window.setTimeout(chkTasks, 250);
+										window.setTimeout(chkTasks, 750);
 									} else {
 										if (task == null) {
 											C8O.log.info("c8o.fs  : replication finished for " + C8O.toJSON(body));
