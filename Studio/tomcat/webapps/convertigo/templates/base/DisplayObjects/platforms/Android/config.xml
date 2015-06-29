@@ -23,7 +23,7 @@
 	<gap:platform name="android"/>
 	
 	<!-- Customize your app and platform with the preference element. -->
-    <preference name="phonegap-version"           value="3.7.0" />          <!-- all: current version of PhoneGap -->
+    <preference name="phonegap-version"           value="cli-5.1.1" />      <!-- all: current version of PhoneGap -->
     <preference name="orientation"                value="default" />        <!-- all: default means both landscape and portrait are enabled -->
     <preference name="target-device"              value="universal" />      <!-- all: possible values handset, tablet, or universal -->
     <preference name="fullscreen"                 value="false" />          <!-- all: hides the status bar at the top of the screen -->
@@ -63,29 +63,33 @@
 	<preference name="permissions" value="none"/>
 	
     <!-- Core plugins mandatory for FlashUpdate service -->
-    <gap:plugin name="org.apache.cordova.device" />
-    <gap:plugin name="org.apache.cordova.file" />
-    <gap:plugin name="org.apache.cordova.file-transfer" />
-    <gap:plugin name="org.apache.cordova.splashscreen" />
+    <gap:plugin name="cordova-plugin-device" source="npm" />
+    <gap:plugin name="cordova-plugin-file" source="npm" />
+    <gap:plugin name="cordova-plugin-file-transfer" source="npm" />
+    <gap:plugin name="cordova-plugin-splashscreen" source="npm" />
+    <gap:plugin name="cordova-plugin-whitelist" source="npm" />
     
 	<!-- Useful for debugging -->
-	<gap:plugin name="org.apache.cordova.console" />
+	<gap:plugin name="cordova-plugin-console" source="npm" />
+
+	<!-- Native plugin for fullsync project that speedup indexing of documents -->
+	<gap:plugin name="com.couchbase.lite.phonegap" source="plugins.cordova.io" git="https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin.git"/>
     
 	<!-- Other optional Core plugins, comment them out (ctrl+shit+c) if you want to reduce the package size and permissions -->
-<!--     <gap:plugin name="org.apache.cordova.battery-status" /> -->
-<!--     <gap:plugin name="org.apache.cordova.camera" /> -->
-<!--     <gap:plugin name="org.apache.cordova.media-capture" /> -->
-<!--     <gap:plugin name="org.apache.cordova.contacts" /> -->
-<!--     <gap:plugin name="org.apache.cordova.device-motion" /> -->
-<!--     <gap:plugin name="org.apache.cordova.device-orientation" /> -->
-<!--     <gap:plugin name="org.apache.cordova.dialogs" /> -->
-<!--     <gap:plugin name="org.apache.cordova.geolocation" /> -->
-<!--     <gap:plugin name="org.apache.cordova.globalization" /> -->
-<!--     <gap:plugin name="org.apache.cordova.inappbrowser" /> -->
-<!--     <gap:plugin name="org.apache.cordova.media" /> -->
-<!--     <gap:plugin name="org.apache.cordova.network-information" /> -->
-<!--     <gap:plugin name="org.apache.cordova.vibration" /> -->
-<!--     <gap:plugin name="org.apache.cordova.statusbar" /> -->
+<!--     <gap:plugin name="cordova-plugin-battery-status" /> -->
+<!--     <gap:plugin name="cordova-plugin-camera" source="npm" /> -->
+<!--     <gap:plugin name="cordova-plugin-media-capture" source="npm" /> -->
+<!--     <gap:plugin name="cordova-plugin-contacts" source="npm" /> -->
+<!--     <gap:plugin name="cordova-plugin-device-motion" source="npm" /> -->
+<!--     <gap:plugin name="cordova-plugin-device-orientation" source="npm" /> -->
+<!--     <gap:plugin name="cordova-plugin-dialogs" source="npm" /> -->
+<!--     <gap:plugin name="cordova-plugin-geolocation" source="npm" /> -->
+<!--     <gap:plugin name="cordova-plugin-globalization" source="npm" /> -->
+<!--     <gap:plugin name="cordova-plugin-inappbrowser" source="npm" /> -->
+<!--     <gap:plugin name="cordova-plugin-media" source="npm" /> -->
+<!--     <gap:plugin name="cordova-plugin-network-information" source="npm" /> -->
+<!--     <gap:plugin name="cordova-plugin-vibration" source="npm" /> -->
+<!--     <gap:plugin name="cordova-plugin-statusbar" source="npm" /> -->
 
     <!-- Other optional plugins -->
 <!--     <gap:plugin name="com.phonegap.plugins.pushplugin" /> -->
