@@ -98,5 +98,6 @@
 	<!-- Other plugins and documentation can be find here : https://build.phonegap.com/plugins -->
 	
 	<!-- Expose access to all URIs, including the file and http protocols -->
-	<access origin="*" subdomains="true"/>
+	<allow-navigation href="*" />
+	<allow-intent href="*" />
 </widget>
