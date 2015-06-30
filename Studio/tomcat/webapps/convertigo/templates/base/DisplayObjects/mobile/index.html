@@ -2,7 +2,12 @@
 <html>
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		
+		<!-- You must configure to reduce XSS risks by declaring what dynamic resources are allowed. See http://content-security-policy.com/ -->
+		<meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline'" />
+		
 		<title>Convertigo FlashUpdate</title>
+		
 	<!-- Optimized mobile viewport -->
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"/>
 		<meta name="apple-mobile-web-app-capable" content="yes" />
