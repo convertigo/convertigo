@@ -668,7 +668,7 @@ if ("cordova" in window) {
                 window.openDatabase = sqlitePlugin.openDatabase;
             }
             
-            if (C8O.isDefined(window.cblite)) {
+            if (C8O.isDefined(C8O._fs) && C8O.isDefined(window.cblite)) {
                 C8O._init.locks.cblite = true;
                 
                 C8O._init.tasks.push(function () {
