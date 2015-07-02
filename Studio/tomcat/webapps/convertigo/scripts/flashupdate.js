@@ -172,9 +172,8 @@ var F = {
 	
 	getFlashUpdateDir: function () {
 		F.debug("getFlashUpdateDir");
-		var quota = F.env.platform == "blackberry10" ? Math.pow(1024, 3) : 0;
 		
-		window.requestFileSystem(LocalFileSystem.PERSISTENT, quota, function (fileSystem) {
+		var onSuccess = function (fileSystem) {
 			try {
 				var wwwPath = "www";
 				
@@ -184,7 +183,7 @@ var F = {
 				
 				F.debug("getDirectory " + wwwPath);
 				
-				fileSystem.root.getDirectory(wwwPath, {create: true}, function (wwwDir) {
+				(fileSystem.root ? fileSystem.root : fileSystem).getDirectory(wwwPath, {create: true}, function (wwwDir) {
 					F.debug("getDirectory www/flashupdate");
 					
 					wwwDir.getDirectory("flashupdate", {create: true}, function (flashUpdateDir) {
@@ -223,9 +222,18 @@ var F = {
 			} catch (err) {
 				F.error("getDirectory flashupdate failed", err);
 			}
-		}, function (err) {
+		};
+		
+		var onError = function (err) {
 			F.error("requestFileSystem failed", err);
-		});
+		};
+		
+		if (cordova.file && cordova.file.dataDirectory) {
+			window.resolveLocalFileSystemURL(cordova.file.dataDirectory, onSuccess, onError);
+		} else {
+			var quota = F.env.platform == "blackberry10" ? Math.pow(1024, 3) : 0;
+			window.requestFileSystem(LocalFileSystem.PERSISTENT, quota, onSuccess, onError);
+		}
 		
 		// retry since cordova 3.5
 		window.setTimeout(function () {
