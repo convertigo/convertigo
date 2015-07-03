@@ -431,7 +431,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 			Engine.logBeans.trace("(TransactionWithVariables) parameter value: " + Visibility.Logs.printValue(variableVisibility,variableValue));
 
 		// Otherwise context parameter
-		if (variableValue == null) {
+		if (variableValue == null && context != null) {
 			variableValue = (context.get(parameterName) == null ? null : context.get(parameterName));
 			if (variableValue != null)
 				Engine.logBeans.trace("(TransactionWithVariables) context value: " + Visibility.Logs.printValue(variableVisibility,variableValue));
