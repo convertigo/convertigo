@@ -389,6 +389,11 @@ public class SqlTransaction extends TransactionWithVariables {
 		
 		String preparedSqlQuery = sqlQueryInfos.getQuery();
 		
+		// Add the removed semicolon (required in some case - e.g : SQL server MERGE)
+		int len = preparedSqlQuery.length();
+		if (len > 0 && preparedSqlQuery.charAt(len-1) != ';')
+			preparedSqlQuery = preparedSqlQuery +";";
+		
 		// Limit number of result
 		if (sqlQueryInfos.getType() == SqlKeywords.select) {
 			if (!maxResult.equals("") && preparedSqlQuery.toUpperCase().indexOf("LIMIT") == -1) {
