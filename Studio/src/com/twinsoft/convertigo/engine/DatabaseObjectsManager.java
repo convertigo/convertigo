@@ -107,6 +107,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 	private static Pattern pFindSymbol = Pattern.compile("\\$\\{([^\\{\\r\\n]*?)(?:=(.*?(?<!\\\\)))?}");
 	private static Pattern pFindEnv = Pattern.compile("\\%([^\\r\\n]*?)(?:=(.*?(?<!\\\\)))?\\%");
 	
+	public static interface OpenableProject {
+		boolean canOpen(String projectName);
+	}
+	
+	public static OpenableProject openableProject = null;
+	
 	private Map<String, Project> projects;
 	
 	private String globalSymbolsFilePath = null;
@@ -171,14 +177,24 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 
 	public List<String> getAllProjectNamesList() {
-		Engine.logDatabaseObjectManager.trace("Retrieving all project names from \""
-				+ Engine.PROJECTS_PATH + "\"");
+		return getAllProjectNamesList(true);
+	}
+	
+	public List<String> getAllProjectNamesList(boolean checkOpenable) {
+		Engine.logDatabaseObjectManager.trace("Retrieving all project names from \"" + Engine.PROJECTS_PATH + "\"");
+		
 		File projectsDir = new File(Engine.PROJECTS_PATH);
 		SortedSet<String> projectNames = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
 		
 		for (File projectDir : projectsDir.listFiles()) {
-			if (projectDir.isDirectory() && new File(projectDir, projectDir.getName() + ".xml").exists()) {
-				projectNames.add(projectDir.getName());
+			String projectName = projectDir.getName();
+			
+			if (projectDir.isDirectory() && new File(projectDir, projectName + ".xml").exists()) {
+				if (!checkOpenable || canOpenProject(projectName)) {
+					projectNames.add(projectName);
+				} else {
+					clearCache(projectName);
+				}
 			}
 		}
 		
@@ -220,6 +236,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 	
 	public Project getOriginalProjectByName(String projectName) throws EngineException {
 		Engine.logDatabaseObjectManager.trace("Requiring loading of project \"" + projectName + "\"");
+		
+		if (!canOpenProject(projectName)) {
+			Engine.logDatabaseObjectManager.trace("The project \"" + projectName + "\" cannot be open");
+			clearCache(projectName);
+			return null;
+		}
 		
 		Project project;
 		
@@ -1722,5 +1744,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 		for (Project project : projects.values()) {
 			CouchDbManager.syncDocument(project);
 		}
+	}
+	
+	public boolean canOpenProject(String projectName) {
+		return openableProject != null && openableProject.canOpen(projectName);
 	}
 }

@@ -25,7 +25,6 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 import java.util.Collection;
 
 import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
@@ -143,7 +142,7 @@ public class ViewContentProvider implements IStructuredContentProvider, ITreeCon
 					bRefresh = true;
 				}
 				if (bRefresh) {
-					for (String projectName : Engine.theApp.databaseObjectsManager.getAllProjectNamesList()) {
+					for (String projectName: Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false)) {
 						if (MigrationManager.isProjectMigrated(projectName)) {
 							ConvertigoPlugin.logDebug("[ViewContentProvider] getUnloadedProjects : do load project "+projectName);
 							loadProjectRootObject(projectName);
@@ -162,17 +161,12 @@ public class ViewContentProvider implements IStructuredContentProvider, ITreeCon
 	}
 
 	private void loadProjectRootObject(String projectName) throws Exception {
-		UnloadedProjectTreeObject unloadedProjectTreeObject = null;
-		IProject resourceProject = null;
-		
 		TreeObject treeObject = getProjectRootObject(projectName);
 		if (treeObject == null) {
-			unloadedProjectTreeObject = new UnloadedProjectTreeObject(projectExplorerView.viewer, projectName);
+			UnloadedProjectTreeObject unloadedProjectTreeObject = new UnloadedProjectTreeObject(projectExplorerView.viewer, projectName);
 			invisibleRoot.addChild(unloadedProjectTreeObject);
-			resourceProject = ConvertigoPlugin.getDefault().createProjectPluginResource(projectName);
-			if (resourceProject != null) {
-				if (resourceProject.isOpen())
-					projectExplorerView.loadProject(unloadedProjectTreeObject);
+			if (ConvertigoPlugin.getDefault().isProjectOpened(projectName)) {
+				projectExplorerView.loadProject(unloadedProjectTreeObject);
 			}
 		}
 	}

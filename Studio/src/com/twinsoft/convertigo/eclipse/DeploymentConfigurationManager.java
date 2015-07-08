@@ -57,7 +57,7 @@ public class DeploymentConfigurationManager {
 	}
 	
 	public void doMigration() throws EngineException, IOException, ClassNotFoundException {
-		List<String> projectsNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();		 
+		List<String> projectsNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false);		 
 		ObjectInputStream objectInputStream = null;		
 		DeploymentInformation deploymentInformation = null;
 		

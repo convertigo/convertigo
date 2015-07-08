@@ -45,6 +45,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 	private BooleanFieldEditor cbHighlight = null;
 	private BooleanFieldEditor cbIgnoreNews = null;
 	private BooleanFieldEditor cbShowEngineOnConsole = null;
+	private BooleanFieldEditor cbEngineLoadAllProjects = null;
 	private IntegerFieldEditor intTracePlayerPort = null;
 	private StringFieldEditor localBuildAdditionalPath = null;
 	
@@ -94,6 +95,13 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbShowEngineOnConsole.setPage(this);
 		cbShowEngineOnConsole.setPreferenceStore(getPreferenceStore());
 		cbShowEngineOnConsole.load();
+
+		cbEngineLoadAllProjects = new BooleanFieldEditor(
+				ConvertigoPlugin.PREFERENCE_ENGINE_LOAD_ALL_PROJECTS,
+				"Engine load all projects even if closed", groupGeneral);
+		cbEngineLoadAllProjects.setPage(this);
+		cbEngineLoadAllProjects.setPreferenceStore(getPreferenceStore());
+		cbEngineLoadAllProjects.load();
 		
 		// Diagnostics
 		Group groupDiagnostics = new Group(top, SWT.SHADOW_IN);
@@ -143,6 +151,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		intTracePlayerPort.loadDefault();
 		cbIgnoreNews.loadDefault();
 		cbShowEngineOnConsole.loadDefault();
+		cbEngineLoadAllProjects.loadDefault();
 		localBuildAdditionalPath.loadDefault();
 		
 		super.performDefaults();
@@ -162,6 +171,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		intTracePlayerPort.store();
 		cbIgnoreNews.store();
 		cbShowEngineOnConsole.store();
+		cbEngineLoadAllProjects.store();
 		localBuildAdditionalPath.store();
 		
 		return super.performOk();
