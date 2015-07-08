@@ -133,6 +133,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectManager;
 import com.twinsoft.convertigo.eclipse.views.references.ReferencesView;
 import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
+import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
@@ -164,6 +165,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
     public static final String PREFERENCE_TRACEPLAYER_PORT = "traceplayer.port";
     public static final String PREFERENCE_IGNORE_NEWS = "news.ignore";
     public static final String PREFERENCE_SHOW_ENGINE_INTO_CONSOLE = "engine.into.console";
+    public static final String PREFERENCE_ENGINE_LOAD_ALL_PROJECTS = "engine.load.all.projects";
     public static final String PREFERENCE_LOCAL_BUILD_ADDITIONAL_PATH = "localBuild.additionalPath";
     
     private static Display display = null;
@@ -732,6 +734,18 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		
 		// Adds listeners
 		addListeners();
+		
+		DatabaseObjectsManager.openableProject = new DatabaseObjectsManager.OpenableProject() {
+			
+			@Override
+			public boolean canOpen(String projectName) {
+				if ("true".equals(ConvertigoPlugin.getProperty(PREFERENCE_ENGINE_LOAD_ALL_PROJECTS))) {
+					return true;
+				}
+				return isProjectOpened(projectName);
+			}
+			
+		};
 		
 		final Exception afterPscException[] = { null };
 		final Runnable afterPscOk = new Runnable() {
@@ -1475,6 +1489,17 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	
 	public IProject createProjectPluginResource(String projectName) throws CoreException {
 		return createProjectPluginResource(projectName, null);
+	}
+	
+	public boolean isProjectOpened(String projectName) {
+		boolean isOpen = false;
+		try {
+			IProject resourceProject = ConvertigoPlugin.getDefault().createProjectPluginResource(projectName);
+			isOpen = resourceProject != null && resourceProject.isOpen();
+		} catch (CoreException e) {
+			logWarning(e, "Error when checking if '" + projectName + "' is open", false);
+		}
+		return isOpen;
 	}
 	
 	public IProject createProjectPluginResource(String projectName, IProgressMonitor monitor) throws CoreException {
