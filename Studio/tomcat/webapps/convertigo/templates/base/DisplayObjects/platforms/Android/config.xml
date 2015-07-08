@@ -76,7 +76,7 @@
 	<gap:plugin name="com.couchbase.lite.phonegap" source="plugins.cordova.io" git="https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin.git"/>
     
 	<!-- Other optional Core plugins, comment them out (ctrl+shit+c) if you want to reduce the package size and permissions -->
-<!--     <gap:plugin name="cordova-plugin-battery-status" /> -->
+<!--     <gap:plugin name="cordova-plugin-battery-status" source="npm" /> -->
 <!--     <gap:plugin name="cordova-plugin-camera" source="npm" /> -->
 <!--     <gap:plugin name="cordova-plugin-media-capture" source="npm" /> -->
 <!--     <gap:plugin name="cordova-plugin-contacts" source="npm" /> -->
