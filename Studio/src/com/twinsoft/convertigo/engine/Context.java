@@ -53,7 +53,9 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.Header;
+import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpState;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -72,12 +74,15 @@ import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
 import com.twinsoft.convertigo.engine.cache.CacheEntry;
+import com.twinsoft.convertigo.engine.enums.HttpPool;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.parsers.HtmlParser;
 import com.twinsoft.convertigo.engine.parsers.XulRecorder;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.URLrewriter;
 import com.twinsoft.twinj.Javelin;
@@ -155,6 +160,9 @@ public class Context extends AbstractContext implements Cloneable {
 	private Scriptable sharedScope = null;
 	
 	private XulRecorder xulRecorder = null;
+	
+	private HttpClient httpClient3 = null;
+	private CloseableHttpClient httpClient4 = null;
 	
 	public Context(String contextID) {
 		this.contextID = contextID;
@@ -670,5 +678,57 @@ public class Context extends AbstractContext implements Cloneable {
 			clone.logParameters = (LogParameters) logParameters.clone();
 		}
 		return clone;
+	}
+
+	public HttpClient getHttpClient3(HttpPool httpPool) {
+		switch (httpPool) {
+			case no:
+				return HttpUtils.makeHttpClient3(false);
+			case context:
+				synchronized (this) {
+					if (httpClient3 == null) {
+						httpClient3 = HttpUtils.makeHttpClient3(true);
+					}					
+				}
+				
+				return httpClient3;
+			case session:
+				HttpClient httpClient;
+				
+				synchronized (this) {
+					httpClient = SessionAttribute.httpClient3.get(httpSession);
+					if (httpClient == null) {
+						httpClient = HttpUtils.makeHttpClient3(true);
+						SessionAttribute.httpClient3.set(httpSession, httpClient);
+					}
+				}
+				
+				return httpClient;
+			case global:
+				return Engine.theApp.httpClient;
+		}
+		return null;
+	}
+
+	public CloseableHttpClient getHttpClient4(HttpPool httpPool) {
+		switch (httpPool) {
+			case no:
+				return HttpUtils.makeHttpClient4(false);
+			case context:
+				if (httpClient4 == null) {
+					httpClient4 = HttpUtils.makeHttpClient4(true);
+				}
+				return httpClient4;
+			case session:
+				CloseableHttpClient httpClient = SessionAttribute.httpClient4.get(httpSession);
+				if (httpClient == null) {
+					httpClient = HttpUtils.makeHttpClient4(true);
+					SessionAttribute.httpClient4.set(httpSession, httpClient);
+				}
+				return httpClient;
+			case global:
+				return Engine.theApp.httpClient4;
+		}
+		return null;
 	}
 }

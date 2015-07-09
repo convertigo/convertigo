@@ -38,6 +38,7 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.transform.TransformerFactoryConfigurationError;
+
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.URIException;
@@ -717,7 +718,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 			try {
 				displayCookies();
 				
-				HttpUtils.logCurrentHttpConnection(hostConfiguration);
+				HttpUtils.logCurrentHttpConnection(Engine.theApp.httpClient, hostConfiguration);
 				Engine.logBeans.debug("(RequestableStep) HttpClient: executing method...");
 				statuscode = Engine.theApp.httpClient.executeMethod(hostConfiguration, method, httpState);
 				Engine.logBeans.debug("(RequestableStep) HttpClient: end of method successfull");
@@ -727,7 +728,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 			}
 			catch(IOException e) {
 				try {
-					HttpUtils.logCurrentHttpConnection(hostConfiguration);
+					HttpUtils.logCurrentHttpConnection(Engine.theApp.httpClient, hostConfiguration);
 					Engine.logBeans.warn("(RequestableStep) HttpClient: connection error to " + targetUrl + ": " + e.getMessage() + "; retrying method");
 					statuscode = Engine.theApp.httpClient.executeMethod(hostConfiguration, method, httpState);
 					Engine.logBeans.debug("(RequestableStep) HttpClient: end of method successfull");

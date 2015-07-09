@@ -58,6 +58,7 @@ import javax.servlet.http.HttpSession;
 import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HostConfiguration;
+import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.URI;
@@ -101,6 +102,7 @@ import com.twinsoft.convertigo.engine.enums.AuthenticationMode;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HtmlLocation;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
+import com.twinsoft.convertigo.engine.enums.HttpPool;
 import com.twinsoft.convertigo.engine.helpers.DomainsFilterHelper;
 import com.twinsoft.convertigo.engine.helpers.ScreenClassHelper;
 import com.twinsoft.convertigo.engine.parsers.XulRecorder;
@@ -180,6 +182,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 		private Scriptable sharedScope = null;
 		private Scriptable clonedScope = null;
 		private List<IClientInstruction> postInstructions = null;
+		private HttpPool httpPool = HttpPool.global;
 		
 		private Shuttle(HttpServletRequest request, HttpServletResponse response, Matcher url_matcher) {
 			this.request = request;
@@ -559,6 +562,14 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			}
 			postInstructions.add(postInstruction);
 		}
+
+		public HttpPool getHttpPool() {
+			return httpPool;
+		}
+
+		public void setHttpPool(HttpPool httpPool) {
+			this.httpPool = httpPool;
+		}
 	}
 	
 	// END OF Shuttle START OF SiteClipperConnector
@@ -811,9 +822,10 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 				Engine.logSiteClipper.info("Requesting " + httpMethod.getName() + " "
 						+ hostConfiguration.getHostURL()
 						+ httpMethod.getURI().toString());
-
-				HttpUtils.logCurrentHttpConnection(hostConfiguration);
-				Engine.theApp.httpClient.executeMethod(hostConfiguration, httpMethod, context.httpState);
+				
+				HttpClient httpClient = context.getHttpClient3(shuttle.getHttpPool());
+				HttpUtils.logCurrentHttpConnection(httpClient, hostConfiguration);
+				httpClient.executeMethod(hostConfiguration, httpMethod, context.httpState);
 			} else {
 				Engine.logSiteClipper.info("Retrieve recorded response from Context");
 			}
@@ -911,7 +923,17 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			} else {
 				InputStream is = (shuttle.responseAsByte == null)? httpMethod.getResponseBodyAsStream() : new ByteArrayInputStream(shuttle.responseAsByte);
 				if (is != null) {
-					nbBytes = IOUtils.copyLarge(is, shuttle.response.getOutputStream());
+					nbBytes = 0;
+					OutputStream os = shuttle.response.getOutputStream();
+					int read = is.read();
+					while (read >= 0) {
+						os.write(read);
+						os.flush();
+						read = is.read();
+						nbBytes++;
+					}
+					is.close();
+//					nbBytes = IOUtils.copyLarge(is, shuttle.response.getOutputStream());
 					Engine.logSiteClipper.trace("(SiteClipperConnector) Response body copyied (" + nbBytes + " bytes)");
 				}
 			}
