@@ -1604,6 +1604,9 @@
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.RequestJavaScript">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass"/>
 				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.SetHttpPoolPolicy">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass"/>
+				</bean>
 			</beans>
             <beans groupname="Response rules">
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ResponseJavaScript">

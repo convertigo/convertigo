@@ -38,10 +38,22 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.httpclient.HostConfiguration;
+import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpConnectionManager;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
+import org.apache.commons.httpclient.cookie.CookiePolicy;
+import org.apache.commons.httpclient.params.HttpClientParams;
+import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 
 public class HttpUtils {
@@ -230,15 +242,102 @@ public class HttpUtils {
 		return url;
 	}
 	
-	public static void logCurrentHttpConnection(HostConfiguration hostConfiguration) {
-		if (Engine.logEngine.isInfoEnabled() && Engine.theApp != null && Engine.theApp.httpClient != null) {
-			HttpConnectionManager httpConnectionManager = Engine.theApp.httpClient.getHttpConnectionManager();
+	public static void logCurrentHttpConnection(HttpClient httpClient, HostConfiguration hostConfiguration) {
+		if (Engine.logEngine.isInfoEnabled() && httpClient != null) {
+			HttpConnectionManager httpConnectionManager = httpClient.getHttpConnectionManager();
 			if (httpConnectionManager != null && httpConnectionManager instanceof MultiThreadedHttpConnectionManager) {
 				MultiThreadedHttpConnectionManager mtHttpConnectionManager = (MultiThreadedHttpConnectionManager) httpConnectionManager;
 				int connections = mtHttpConnectionManager.getConnectionsInPool();
 				int connectionsForHost = mtHttpConnectionManager.getConnectionsInPool(hostConfiguration);
-				Engine.logEngine.info("(HttpUtils) Currently " + connections + " HTTP connections pooled, " + connectionsForHost + " for " + hostConfiguration.getHost() + "; Getting one ...");
+				Engine.logEngine.info("(HttpUtils) Currently " + connections + " HTTP connections pooled, " + connectionsForHost + " for " + hostConfiguration.getHost() + "; Getting one ... [for " + httpClient + "]");
 			}
 		}
+	}
+	
+	public static HttpClient makeHttpClient3(boolean usePool) {
+		HttpClient httpClient;
+		
+		if (usePool) {
+			MultiThreadedHttpConnectionManager connectionManager = new MultiThreadedHttpConnectionManager();
+	
+			int maxTotalConnections = 100;
+			try {
+				maxTotalConnections = new Integer(
+						EnginePropertiesManager
+								.getProperty(PropertyName.HTTP_CLIENT_MAX_TOTAL_CONNECTIONS))
+						.intValue();
+			} catch (NumberFormatException e) {
+				Engine.logEngine
+						.warn("Unable to retrieve the max number of connections; defaults to 100.");
+			}
+	
+			int maxConnectionsPerHost = 50;
+			try {
+				maxConnectionsPerHost = new Integer(
+						EnginePropertiesManager
+								.getProperty(PropertyName.HTTP_CLIENT_MAX_CONNECTIONS_PER_HOST))
+						.intValue();
+			} catch (NumberFormatException e) {
+				Engine.logEngine
+						.warn("Unable to retrieve the max number of connections per host; defaults to 100.");
+			}
+	
+			HttpConnectionManagerParams httpConnectionManagerParams = new HttpConnectionManagerParams();
+			httpConnectionManagerParams.setDefaultMaxConnectionsPerHost(maxConnectionsPerHost);
+			httpConnectionManagerParams.setMaxTotalConnections(maxTotalConnections);
+			connectionManager.setParams(httpConnectionManagerParams);
+			
+			httpClient = new HttpClient(connectionManager);
+		} else {
+			httpClient = new HttpClient();
+		}
+		
+		HttpClientParams httpClientParams = (HttpClientParams) HttpClientParams.getDefaultParams();
+		httpClientParams.setCookiePolicy(CookiePolicy.BROWSER_COMPATIBILITY);
+		/** #741 : belambra wants only one Set-Cookie header */
+		httpClientParams.setParameter("http.protocol.single-cookie-header", Boolean.TRUE);
+		
+		httpClient.setParams(httpClientParams);
+		
+		return httpClient;
+	}
+	
+	public static CloseableHttpClient makeHttpClient4(boolean usePool) {
+		HttpClientBuilder httpClientBuilder = HttpClients.custom();
+		httpClientBuilder.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.BROWSER_COMPATIBILITY).build());
+		
+		if (usePool) {
+			PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
+	
+			int maxTotalConnections = 100;
+			try {
+				maxTotalConnections = new Integer(
+						EnginePropertiesManager
+								.getProperty(PropertyName.HTTP_CLIENT_MAX_TOTAL_CONNECTIONS))
+						.intValue();
+			} catch (NumberFormatException e) {
+				Engine.logEngine
+						.warn("Unable to retrieve the max number of connections; defaults to 100.");
+			}
+	
+			int maxConnectionsPerHost = 50;
+			try {
+				maxConnectionsPerHost = new Integer(
+						EnginePropertiesManager
+								.getProperty(PropertyName.HTTP_CLIENT_MAX_CONNECTIONS_PER_HOST))
+						.intValue();
+			} catch (NumberFormatException e) {
+				Engine.logEngine
+						.warn("Unable to retrieve the max number of connections per host; defaults to 100.");
+			}
+			
+			connManager.setDefaultMaxPerRoute(maxConnectionsPerHost);
+			connManager.setMaxTotal(maxTotalConnections);
+			
+			httpClientBuilder.setConnectionManager(connManager);
+		}
+		
+		
+		return httpClientBuilder.build();
 	}
 }

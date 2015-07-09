@@ -55,6 +55,7 @@ import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HeaderElement;
 import org.apache.commons.httpclient.HostConfiguration;
+import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.HttpStatus;
@@ -98,6 +99,7 @@ import com.twinsoft.convertigo.engine.MySSLSocketFactory;
 import com.twinsoft.convertigo.engine.Version;
 import com.twinsoft.convertigo.engine.enums.AuthenticationMode;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
+import com.twinsoft.convertigo.engine.enums.HttpPool;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.oauth.HttpOAuthConsumer;
@@ -125,6 +127,8 @@ public class HttpConnector extends Connector {
 
 	private XMLVector<XMLVector<String>> httpHeaderForward = new XMLVector<XMLVector<String>>();
 
+	private HttpPool httpPool = HttpPool.global;
+	
 	transient public CertificateManager certificateManager = null;
 	transient public HostConfiguration hostConfiguration = null;
 	transient public HttpState httpState = null;
@@ -1314,7 +1318,9 @@ public class HttpConnector extends Connector {
 
 		// Tells the method to automatically handle redirection.
 		method.setFollowRedirects(false);
-
+		
+		HttpClient httpClient = context.getHttpClient3(getHttpPool());
+		
 		try {
 			// Display the cookies
 			if (handleCookie) {
@@ -1363,13 +1369,13 @@ public class HttpConnector extends Connector {
 				oAuthConsumer = null;
 			}
 			
-			HttpUtils.logCurrentHttpConnection(hostConfiguration);
+			HttpUtils.logCurrentHttpConnection(httpClient, hostConfiguration);
 			
 			hostConfiguration.getParams().setIntParameter(HttpConnectionParams.SO_TIMEOUT, (int) context.requestedObject.getResponseTimeout() * 1000);
 			hostConfiguration.getParams().setIntParameter(HttpConnectionParams.CONNECTION_TIMEOUT, (int) context.requestedObject.getResponseTimeout() * 1000);
 			
 			Engine.logBeans.debug("(HttpConnector) HttpClient: executing method...");
-			statuscode = Engine.theApp.httpClient.executeMethod(hostConfiguration, method, httpState);
+			statuscode = httpClient.executeMethod(hostConfiguration, method, httpState);
 			Engine.logBeans.debug("(HttpConnector) HttpClient: end of method successfull");
 
 			// Display the cookies
@@ -1383,10 +1389,10 @@ public class HttpConnector extends Connector {
 			throw new ConnectionException("Timeout reached (" + context.requestedObject.getResponseTimeout() + " sec)");
 		} catch (IOException e) {
 			try {
-				HttpUtils.logCurrentHttpConnection(hostConfiguration);
+				HttpUtils.logCurrentHttpConnection(httpClient, hostConfiguration);
 				Engine.logBeans.warn("(HttpConnector) HttpClient: connection error to " + sUrl + ": "
 						+ e.getMessage() + "; retrying method");
-				statuscode = Engine.theApp.httpClient.executeMethod(hostConfiguration, method, httpState);
+				statuscode = httpClient.executeMethod(hostConfiguration, method, httpState);
 				Engine.logBeans.debug("(HttpConnector) HttpClient: end of method successfull");
 			} catch (IOException ee) {
 				throw new ConnectionException("Connection error to " + sUrl, ee);
@@ -1773,5 +1779,13 @@ public class HttpConnector extends Connector {
 
 	public void setUrlEncodingCharset(String urlEncodingCharset) {
 		this.urlEncodingCharset = urlEncodingCharset;
+	}
+
+	public HttpPool getHttpPool() {
+		return httpPool;
+	}
+
+	public void setHttpPool(HttpPool httpPool) {
+		this.httpPool = httpPool;
 	}
 }

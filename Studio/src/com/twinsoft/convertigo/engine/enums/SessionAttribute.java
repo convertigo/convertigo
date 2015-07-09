@@ -3,30 +3,47 @@ package com.twinsoft.convertigo.engine.enums;
 import javax.servlet.http.HttpSession;
 
 public enum SessionAttribute {
-	authenticatedUser;
+	authenticatedUser,
+	httpClient3("__httpClient3__"),
+	httpClient4("__httpClient4__");
+	
+	String value;
+	
+	SessionAttribute() {
+		value = name();
+	}
+	
+	SessionAttribute(String value) {
+		this.value = value;
+	}
+	
+	public String value() {
+		return value;
+	}
 	
 	public void set(HttpSession session, Object value) {
 		if (session != null) {
-			session.setAttribute(name(), value);
+			session.setAttribute(value(), value);
 		}
 	}
 	
-	public Object get(HttpSession session) {
+	@SuppressWarnings("unchecked")
+	public <E> E get(HttpSession session) {
 		if (session != null) {
-			return session.getAttribute(name());
+			return (E) session.getAttribute(value());
 		}
 		return null;
 	}
 	
 	public void remove(HttpSession session) {
 		if (session != null) {
-			session.removeAttribute(name());
+			session.removeAttribute(value());
 		}
 	}
 	
 	public String string(HttpSession session) {
-		if (session != null && session.getAttribute(name()) != null) {
-			return session.getAttribute(name()).toString();
+		if (session != null && session.getAttribute(value()) != null) {
+			return session.getAttribute(value()).toString();
 		} else {
 			return null;
 		}

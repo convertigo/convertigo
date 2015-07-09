@@ -39,14 +39,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.swing.event.EventListenerList;
 
 import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.auth.AuthPolicy;
-import org.apache.commons.httpclient.cookie.CookiePolicy;
-import org.apache.commons.httpclient.params.HttpClientParams;
-import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -68,6 +62,7 @@ import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.LogWrapper;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.tas.ApplicationException;
@@ -622,46 +617,9 @@ public class Engine {
 				// Initialize the HttpClient
 				try {
 					Engine.logEngine.debug("HttpClient initializing...");
-					MultiThreadedHttpConnectionManager connectionManager = new MultiThreadedHttpConnectionManager();
-					PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
 
-					int maxTotalConnections = 100;
-					try {
-						maxTotalConnections = new Integer(
-								EnginePropertiesManager
-										.getProperty(PropertyName.HTTP_CLIENT_MAX_TOTAL_CONNECTIONS))
-								.intValue();
-					} catch (NumberFormatException e) {
-						Engine.logEngine
-								.warn("Unable to retrieve the max number of connections; defaults to 100.");
-					}
-
-					int maxConnectionsPerHost = 50;
-					try {
-						maxConnectionsPerHost = new Integer(
-								EnginePropertiesManager
-										.getProperty(PropertyName.HTTP_CLIENT_MAX_CONNECTIONS_PER_HOST))
-								.intValue();
-					} catch (NumberFormatException e) {
-						Engine.logEngine
-								.warn("Unable to retrieve the max number of connections per host; defaults to 100.");
-					}
-
-					HttpConnectionManagerParams httpConnectionManagerParams = new HttpConnectionManagerParams();
-					httpConnectionManagerParams.setDefaultMaxConnectionsPerHost(maxConnectionsPerHost);
-					httpConnectionManagerParams.setMaxTotalConnections(maxTotalConnections);
-					connectionManager.setParams(httpConnectionManagerParams);
-
-					connManager.setDefaultMaxPerRoute(maxConnectionsPerHost);
-					connManager.setMaxTotal(maxTotalConnections);
-					
-					HttpClientParams httpClientParams = (HttpClientParams) HttpClientParams.getDefaultParams();
-					httpClientParams.setCookiePolicy(CookiePolicy.BROWSER_COMPATIBILITY);
-					/** #741 : belambra wants only one Set-Cookie header */
-					httpClientParams.setParameter("http.protocol.single-cookie-header", Boolean.TRUE);
-
-					Engine.theApp.httpClient = new HttpClient(connectionManager);
-					Engine.theApp.httpClient4 = HttpClients.custom().setConnectionManager(connManager).build();
+					Engine.theApp.httpClient = HttpUtils.makeHttpClient3(true);
+					Engine.theApp.httpClient4 = HttpUtils.makeHttpClient4(true);
 
 					Engine.logEngine.debug("HttpClient initialized!");
 				} catch (Exception e) {
