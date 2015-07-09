@@ -1747,6 +1747,6 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 	
 	public boolean canOpenProject(String projectName) {
-		return openableProject != null && openableProject.canOpen(projectName);
+		return openableProject == null || openableProject.canOpen(projectName);
 	}
 }
