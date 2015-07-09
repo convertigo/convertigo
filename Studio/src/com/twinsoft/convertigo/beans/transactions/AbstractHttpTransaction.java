@@ -349,6 +349,7 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
      */
     public void setHttpParameters(XMLVector<XMLVector<String>> httpParameters) {
         this.httpParameters = httpParameters;
+        resetHttpParametersToOriginal();
     }
     
     public XMLVector<XMLVector<String>> getCurrentHttpParameters() {
@@ -392,6 +393,7 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
      */
     public void setSubDir(String subDir) {
         this.subDir = subDir;
+        resetSubDirToOriginal();
     }
     
     public String getCurrentSubDir() {
