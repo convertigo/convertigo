@@ -685,7 +685,7 @@ public class Context extends AbstractContext implements Cloneable {
 			case no:
 				return HttpUtils.makeHttpClient3(false);
 			case context:
-				synchronized (this) {
+				synchronized (used_connectors) {
 					if (httpClient3 == null) {
 						httpClient3 = HttpUtils.makeHttpClient3(true);
 					}					
@@ -695,7 +695,7 @@ public class Context extends AbstractContext implements Cloneable {
 			case session:
 				HttpClient httpClient;
 				
-				synchronized (this) {
+				synchronized (used_connectors) {
 					httpClient = SessionAttribute.httpClient3.get(httpSession);
 					if (httpClient == null) {
 						httpClient = HttpUtils.makeHttpClient3(true);

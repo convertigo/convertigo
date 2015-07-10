@@ -99,7 +99,6 @@ import com.twinsoft.convertigo.engine.MySSLSocketFactory;
 import com.twinsoft.convertigo.engine.Version;
 import com.twinsoft.convertigo.engine.enums.AuthenticationMode;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
-import com.twinsoft.convertigo.engine.enums.HttpPool;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.oauth.HttpOAuthConsumer;
@@ -126,8 +125,6 @@ public class HttpConnector extends Connector {
 	}
 
 	private XMLVector<XMLVector<String>> httpHeaderForward = new XMLVector<XMLVector<String>>();
-
-	private HttpPool httpPool = HttpPool.global;
 	
 	transient public CertificateManager certificateManager = null;
 	transient public HostConfiguration hostConfiguration = null;
@@ -1319,7 +1316,7 @@ public class HttpConnector extends Connector {
 		// Tells the method to automatically handle redirection.
 		method.setFollowRedirects(false);
 		
-		HttpClient httpClient = context.getHttpClient3(getHttpPool());
+		HttpClient httpClient = context.getHttpClient3(((AbstractHttpTransaction) context.transaction).getHttpPool());
 		
 		try {
 			// Display the cookies
@@ -1779,13 +1776,5 @@ public class HttpConnector extends Connector {
 
 	public void setUrlEncodingCharset(String urlEncodingCharset) {
 		this.urlEncodingCharset = urlEncodingCharset;
-	}
-
-	public HttpPool getHttpPool() {
-		return httpPool;
-	}
-
-	public void setHttpPool(HttpPool httpPool) {
-		this.httpPool = httpPool;
 	}
 }

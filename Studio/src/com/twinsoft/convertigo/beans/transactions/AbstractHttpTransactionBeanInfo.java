@@ -28,6 +28,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
+import com.twinsoft.convertigo.engine.enums.HttpPool;
 
 public class AbstractHttpTransactionBeanInfo extends MySimpleBeanInfo {
     
@@ -38,7 +39,7 @@ public class AbstractHttpTransactionBeanInfo extends MySimpleBeanInfo {
 
 			resourceBundle = getResourceBundle("res/AbstractHttpTransaction");
 
-			properties = new PropertyDescriptor[9];
+			properties = new PropertyDescriptor[10];
 			
 			properties[0] = new PropertyDescriptor("subDir", AbstractHttpTransaction.class, "getSubDir", "setSubDir");
 			properties[0].setDisplayName(getExternalizedString("property.subDir.display_name"));
@@ -85,6 +86,12 @@ public class AbstractHttpTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[8].setDisplayName(getExternalizedString("property.customHttpVerb.display_name"));
 			properties[8].setShortDescription(getExternalizedString("property.customHttpVerb.short_description"));
 			properties[8].setExpert(true);
+			
+			properties[9] = new PropertyDescriptor("httpPool", beanClass, "getHttpPool", "setHttpPool");
+			properties[9].setDisplayName(getExternalizedString("property.httpPool.display_name"));
+			properties[9].setShortDescription(getExternalizedString("property.httpPool.short_description"));
+			properties[9].setPropertyEditorClass(HttpPool.class);
+			properties[9].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
