@@ -66,6 +66,7 @@ import com.twinsoft.convertigo.beans.variables.StepMultiValuedVariable;
 import com.twinsoft.convertigo.beans.variables.StepVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.HttpPool;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -718,7 +719,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 			try {
 				displayCookies();
 				
-				HttpUtils.logCurrentHttpConnection(Engine.theApp.httpClient, hostConfiguration);
+				HttpUtils.logCurrentHttpConnection(Engine.theApp.httpClient, hostConfiguration, HttpPool.global);
 				Engine.logBeans.debug("(RequestableStep) HttpClient: executing method...");
 				statuscode = Engine.theApp.httpClient.executeMethod(hostConfiguration, method, httpState);
 				Engine.logBeans.debug("(RequestableStep) HttpClient: end of method successfull");
@@ -728,7 +729,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 			}
 			catch(IOException e) {
 				try {
-					HttpUtils.logCurrentHttpConnection(Engine.theApp.httpClient, hostConfiguration);
+					HttpUtils.logCurrentHttpConnection(Engine.theApp.httpClient, hostConfiguration, HttpPool.global);
 					Engine.logBeans.warn("(RequestableStep) HttpClient: connection error to " + targetUrl + ": " + e.getMessage() + "; retrying method");
 					statuscode = Engine.theApp.httpClient.executeMethod(hostConfiguration, method, httpState);
 					Engine.logBeans.debug("(RequestableStep) HttpClient: end of method successfull");

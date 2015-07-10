@@ -824,7 +824,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 						+ httpMethod.getURI().toString());
 				
 				HttpClient httpClient = context.getHttpClient3(shuttle.getHttpPool());
-				HttpUtils.logCurrentHttpConnection(httpClient, hostConfiguration);
+				HttpUtils.logCurrentHttpConnection(httpClient, hostConfiguration, shuttle.getHttpPool());
 				httpClient.executeMethod(hostConfiguration, httpMethod, context.httpState);
 			} else {
 				Engine.logSiteClipper.info("Retrieve recorded response from Context");

@@ -687,6 +687,7 @@ public class Context extends AbstractContext implements Cloneable {
 			case context:
 				synchronized (used_connectors) {
 					if (httpClient3 == null) {
+						Engine.logContext.debug("Create a new context HTTP pool.");
 						httpClient3 = HttpUtils.makeHttpClient3(true);
 					}					
 				}
@@ -698,6 +699,7 @@ public class Context extends AbstractContext implements Cloneable {
 				synchronized (used_connectors) {
 					httpClient = SessionAttribute.httpClient3.get(httpSession);
 					if (httpClient == null) {
+						Engine.logContext.debug("Create a new session HTTP pool.");
 						httpClient = HttpUtils.makeHttpClient3(true);
 						SessionAttribute.httpClient3.set(httpSession, httpClient);
 					}

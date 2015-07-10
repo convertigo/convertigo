@@ -99,6 +99,7 @@ import com.twinsoft.convertigo.engine.MySSLSocketFactory;
 import com.twinsoft.convertigo.engine.Version;
 import com.twinsoft.convertigo.engine.enums.AuthenticationMode;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
+import com.twinsoft.convertigo.engine.enums.HttpPool;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.oauth.HttpOAuthConsumer;
@@ -1325,7 +1326,8 @@ public class HttpConnector extends Connector {
 		// Tells the method to automatically handle redirection.
 		method.setFollowRedirects(false);
 		
-		HttpClient httpClient = context.getHttpClient3(((AbstractHttpTransaction) context.transaction).getHttpPool());
+		HttpPool httpPool = ((AbstractHttpTransaction) context.transaction).getHttpPool();
+		HttpClient httpClient = context.getHttpClient3(httpPool);
 		
 		try {
 			// Display the cookies
@@ -1375,7 +1377,7 @@ public class HttpConnector extends Connector {
 				oAuthConsumer = null;
 			}
 			
-			HttpUtils.logCurrentHttpConnection(httpClient, hostConfiguration);
+			HttpUtils.logCurrentHttpConnection(httpClient, hostConfiguration, httpPool);
 			
 			hostConfiguration.getParams().setIntParameter(HttpConnectionParams.SO_TIMEOUT, (int) context.requestedObject.getResponseTimeout() * 1000);
 			hostConfiguration.getParams().setIntParameter(HttpConnectionParams.CONNECTION_TIMEOUT, (int) context.requestedObject.getResponseTimeout() * 1000);
@@ -1395,7 +1397,7 @@ public class HttpConnector extends Connector {
 			throw new ConnectionException("Timeout reached (" + context.requestedObject.getResponseTimeout() + " sec)");
 		} catch (IOException e) {
 			try {
-				HttpUtils.logCurrentHttpConnection(httpClient, hostConfiguration);
+				HttpUtils.logCurrentHttpConnection(httpClient, hostConfiguration, httpPool);
 				Engine.logBeans.warn("(HttpConnector) HttpClient: connection error to " + sUrl + ": "
 						+ e.getMessage() + "; retrying method");
 				statuscode = httpClient.executeMethod(hostConfiguration, method, httpState);
