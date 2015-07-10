@@ -148,9 +148,9 @@ function addRequestableData(params, $requestable_name) {
 	var connectorName = $requestable_name.parents(".connector:first").find(".connector_name").text();
 	if (connectorName.length > 0) {
 		params.__connector = connectorName;
-		params.__transaction = $requestable_name.text();
+		params.__transaction = $requestable_name.attr("displayname");
 	} else {
-		params.__sequence = $requestable_name.text();
+		params.__sequence = $requestable_name.attr("displayname");
 	}
 	return params;
 }
@@ -238,7 +238,10 @@ function setLinkForTestCase(a) {
 }
 
 function setName($elt, $xml) {
-	$elt.text($xml.attr("name")).attr("title", $xml.attr("comment"));	
+	var accessibilityIcon = $xml.attr("accessibility") === "Public" ? "🚪  " : 
+		($xml.attr("accessibility") === "Private" ? "🔒  " : 
+			($xml.attr("accessibility") === "Hidden" ? "👓  " : "" ));
+	$elt.text(accessibilityIcon + $xml.attr("name")).attr("title", $xml.attr("comment")).attr("displayname", $xml.attr("name"));	
 }
 
 function toUrl(params) {

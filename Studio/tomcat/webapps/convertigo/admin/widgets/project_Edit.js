@@ -89,8 +89,8 @@ function loadProject(projectName) {
 		$("#project_Edit h3").first().html("Project " + $(xml).find("project").attr("name"));
 		
 		// create the project node
-		var htmlProjectEditDivTree = '<div class="projectEdit-selectableElement" qname="' + $(xml).find("project").first().attr('qname')
-				+ '"><div ><span id="projectTreeWidgetRoot"><img src="services/database_objects.GetIcon?className=com.twinsoft.convertigo.beans.core.Project" />'
+		var htmlProjectEditDivTree = '<div class="projectEdit-selectableElement" qname="' + $(xml).find("project").first().attr('qname') + '">'+
+			'<span id="projectTreeWidgetRoot"><img src="services/database_objects.GetIcon?className=com.twinsoft.convertigo.beans.core.Project" />'
 				+ $(xml).find("project").attr("name") + '</span></div></div>';
 		htmlProjectEditDivTree += "<ul id=\"projectEditTree\"></ul>";				
 		$("#projectEditDivTree").html(htmlProjectEditDivTree);
@@ -130,6 +130,7 @@ function loadProject(projectName) {
 function constructTree($xml, $tree) {
 	var tagName;
 	var displayName;
+	var accessibilityIcon;
 	var img;
 	var treeCategories=new Array();	
 	// for each element of project.Get
@@ -141,15 +142,17 @@ function constructTree($xml, $tree) {
 			$tree.append('<li><span><img src="images/folder.gif" />' + formatFolderName(tagName) + '</span><ul></ul></li>');
 			treeCategories[tagName]=$tree.find("ul").last();			
 		}
-		var $currentNode=treeCategories[tagName];
+		var $currentNode = treeCategories[tagName];
 		displayName = $(this).attr("name");
+		accessibilityIcon = $(this).attr("accessibility") === "Public" ? "🚪 " : 
+			($(this).attr("accessibility") === "Private" ? "🔒 " : 
+				($(this).attr("accessibility") === "Hidden" ? "👓 " : " " ));
 
 		if (displayName != undefined) {
 			// add the element			
-			img = '<img src="services/database_objects.GetIcon?className=' + $(this).attr(
-					"classname") + '" />';
+			img = '<img src="services/database_objects.GetIcon?className=' + $(this).attr("classname") + '" />';
 			$currentNode.append('<li  class="projectEdit-selectableElement" qname="' + $(this).attr('qname') + '">'
-					+ '<div><span>' + img + displayName + '</span></div><ul></ul></li>');
+					+ '<div><span>' + img + accessibilityIcon + displayName + '</span></div><ul></ul></li>');
 			// construct the sons of the element
 			constructTree($(this), $currentNode.find("ul").last());
 		}
