@@ -55,6 +55,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
+import com.twinsoft.convertigo.engine.enums.HttpPool;
 
 public class HttpUtils {
 	private final static Pattern c8o_request_pattern = Pattern.compile("((.*?)/(?:projects/(.+?)|admin))/.*");
@@ -242,14 +243,18 @@ public class HttpUtils {
 		return url;
 	}
 	
-	public static void logCurrentHttpConnection(HttpClient httpClient, HostConfiguration hostConfiguration) {
+	public static void logCurrentHttpConnection(HttpClient httpClient, HostConfiguration hostConfiguration, HttpPool poolMode) {
 		if (Engine.logEngine.isInfoEnabled() && httpClient != null) {
-			HttpConnectionManager httpConnectionManager = httpClient.getHttpConnectionManager();
-			if (httpConnectionManager != null && httpConnectionManager instanceof MultiThreadedHttpConnectionManager) {
-				MultiThreadedHttpConnectionManager mtHttpConnectionManager = (MultiThreadedHttpConnectionManager) httpConnectionManager;
-				int connections = mtHttpConnectionManager.getConnectionsInPool();
-				int connectionsForHost = mtHttpConnectionManager.getConnectionsInPool(hostConfiguration);
-				Engine.logEngine.info("(HttpUtils) Currently " + connections + " HTTP connections pooled, " + connectionsForHost + " for " + hostConfiguration.getHost() + "; Getting one ... [for " + httpClient + "]");
+			if (poolMode == HttpPool.no) {
+				Engine.logEngine.info("(HttpUtils) Use a not pooled HTTP connection for " + hostConfiguration.getHost());
+			} else {
+				HttpConnectionManager httpConnectionManager = httpClient.getHttpConnectionManager();
+				if (httpConnectionManager != null && httpConnectionManager instanceof MultiThreadedHttpConnectionManager) {
+					MultiThreadedHttpConnectionManager mtHttpConnectionManager = (MultiThreadedHttpConnectionManager) httpConnectionManager;
+					int connections = mtHttpConnectionManager.getConnectionsInPool();
+					int connectionsForHost = mtHttpConnectionManager.getConnectionsInPool(hostConfiguration);
+					Engine.logEngine.info("(HttpUtils) Use a " + poolMode.name() + " pool with " + connections + " HTTP connections, " + connectionsForHost + " for " + hostConfiguration.getHost() + "; Getting one ... [for instance " + httpClient.hashCode() + "]");
+				}
 			}
 		}
 	}

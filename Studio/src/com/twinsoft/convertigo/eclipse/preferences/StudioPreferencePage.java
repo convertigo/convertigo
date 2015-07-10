@@ -98,7 +98,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 
 		cbEngineLoadAllProjects = new BooleanFieldEditor(
 				ConvertigoPlugin.PREFERENCE_ENGINE_LOAD_ALL_PROJECTS,
-				"Engine load all projects even if closed", groupGeneral);
+				"Engine loads all projects even if closed", groupGeneral);
 		cbEngineLoadAllProjects.setPage(this);
 		cbEngineLoadAllProjects.setPreferenceStore(getPreferenceStore());
 		cbEngineLoadAllProjects.load();
