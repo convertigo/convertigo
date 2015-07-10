@@ -42,6 +42,7 @@ import org.eclipse.ui.model.WorkbenchLabelProvider;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentFunctionTreeObject;
@@ -56,6 +57,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TemplateTreeO
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TraceTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UnloadedProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject2;
+import com.twinsoft.convertigo.engine.enums.Accessibility;
 
 class ViewLabelProvider extends LabelProvider implements IFontProvider, IColorProvider {
 
@@ -109,6 +111,11 @@ class ViewLabelProvider extends LabelProvider implements IFontProvider, IColorPr
 			DatabaseObject dbo = ((DatabaseObjectTreeObject) obj).getObject();
 			if (dbo.isSymbolError() || (dbo instanceof Project && ((Project) dbo).undefinedGlobalSymbols)) {
 				return obj.toString() + " (! undefined symbol !)"; 
+			}
+			
+			if (dbo instanceof RequestableObject ) {
+				return ( ((RequestableObject) dbo).getAccessibility() == Accessibility.Private ? "ðŸ”’ " : ( 
+						((RequestableObject) dbo).getAccessibility() == Accessibility.Hidden ? "ðŸ‘“ " : " ðŸšª  ") ) + obj.toString();
 			}
 		}
 		return obj.toString();
