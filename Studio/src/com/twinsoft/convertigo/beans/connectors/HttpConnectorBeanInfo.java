@@ -26,7 +26,6 @@ import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.engine.enums.AuthenticationMode;
-import com.twinsoft.convertigo.engine.enums.HttpPool;
 
 public class HttpConnectorBeanInfo extends MySimpleBeanInfo {
     
@@ -43,7 +42,7 @@ public class HttpConnectorBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 
-			properties = new PropertyDescriptor[12];
+			properties = new PropertyDescriptor[11];
 			
 			properties[0] = new PropertyDescriptor("baseDir", beanClass, "getBaseDir", "setBaseDir");
 			properties[0].setDisplayName(getExternalizedString("property.baseDir.display_name"));
@@ -96,12 +95,6 @@ public class HttpConnectorBeanInfo extends MySimpleBeanInfo {
 			properties[10].setDisplayName(getExternalizedString("property.urlEncodingCharset.display_name"));
 			properties[10].setShortDescription(getExternalizedString("property.urlEncodingCharset.short_description"));
 			properties[10].setExpert(true);
-			
-			properties[11] = new PropertyDescriptor("httpPool", beanClass, "getHttpPool", "setHttpPool");
-			properties[11].setDisplayName(getExternalizedString("property.httpPool.display_name"));
-			properties[11].setShortDescription(getExternalizedString("property.httpPool.short_description"));
-			properties[11].setPropertyEditorClass(HttpPool.class);
-			properties[11].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

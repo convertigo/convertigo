@@ -46,6 +46,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
+import com.twinsoft.convertigo.engine.enums.HttpPool;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -68,6 +69,8 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
     /** Holds value of property statusCodeInfo. */
     private boolean httpInfo = false;
     private String httpInfoTagName = "HttpInfo";
+    
+	private HttpPool httpPool = HttpPool.global;
     
     /** Holds value of property httpVerb. */
     private HttpMethodType httpVerb = HttpMethodType.GET;
@@ -504,5 +507,13 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 
 	public void setCustomHttpVerb(String customHttpVerb) {
 		this.customHttpVerb = customHttpVerb;
+	}
+
+	public HttpPool getHttpPool() {
+		return httpPool;
+	}
+
+	public void setHttpPool(HttpPool httpPool) {
+		this.httpPool = httpPool;
 	}
 }
