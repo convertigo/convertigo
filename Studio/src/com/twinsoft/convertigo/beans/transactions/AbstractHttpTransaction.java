@@ -24,6 +24,10 @@ package com.twinsoft.convertigo.beans.transactions;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.xpath.XPathAPI;
 import org.mozilla.javascript.EcmaError;
@@ -117,6 +121,20 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
     	return abstractHttpTransaction;
 	}
 
+	static public List<String> getPathVariableList(String sPath) {
+		List<String> list = new ArrayList<String>();
+		
+		Pattern pattern = Pattern.compile("\\{([a-zA-Z0-9_]+)\\}");
+		Matcher matcher = pattern.matcher(sPath);
+		while (matcher.find()) {
+			String variableName = matcher.group(1);
+			if (!list.contains(variableName)) {
+				list.add(variableName);
+			}
+		}
+		return list;
+	}
+    
 	@Override
     public void configure(Element element) throws Exception {
         super.configure(element);

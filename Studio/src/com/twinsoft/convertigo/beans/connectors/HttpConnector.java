@@ -385,18 +385,32 @@ public class HttpConnector extends Connector {
 			certificateManager.collectStoreInformation(context);
 		}
 
-		// Getting all input variables marked as GET
-		Engine.logBeans.trace("(HttpConnector) Loading all GET input variables");
 		String variable, method, httpVariable, queryString = "";
 		Object httpObjectVariableValue;
 		boolean isMultiValued = false;
 		boolean bIgnoreVariable = false;
 		
-		// int len = httpTransaction.getVariablesDefinitionSize();
 		int len = httpTransaction.numberOfVariables();
 		
 		String urlEncodingCharset = httpTransaction.getComputedUrlEncodingCharset();
 
+		// Replace variables in URL
+		List<String> urlPathVariableList = AbstractHttpTransaction.getPathVariableList(sUrl);
+		if (!urlPathVariableList.isEmpty()) {
+			Engine.logBeans.debug("(HttpConnector) Defined URL: " + sUrl);
+			for (String varName : urlPathVariableList) {
+				RequestableHttpVariable rVariable = (RequestableHttpVariable) httpTransaction.getVariable(varName);
+				httpObjectVariableValue = rVariable == null ? "":httpTransaction.getParameterValue(varName);
+				httpVariable = rVariable == null ? "null":varName;
+				method = rVariable == null ? "NULL":rVariable.getHttpMethod();
+				
+				Engine.logBeans.trace("(HttpConnector) Path variable: " + varName + " => (" + method + ") " + httpVariable);
+				
+				sUrl = sUrl.replaceAll("\\{"+varName+"\\}", ParameterUtils.toString(httpObjectVariableValue));
+			}
+		}
+		
+		// Build query string
 		for (int i = 0; i < len; i++) {
 			RequestableHttpVariable rVariable = (RequestableHttpVariable) httpTransaction.getVariable(i);
 			variable = rVariable.getName();
@@ -405,47 +419,40 @@ public class HttpConnector extends Connector {
 			httpVariable = rVariable.getHttpName();
 			httpObjectVariableValue = httpTransaction.getParameterValue(variable);
 
-			Engine.logBeans.trace("(HttpConnector) Variable: " + variable + " => (" + method + ") " + httpVariable);
+			bIgnoreVariable = urlPathVariableList.contains(variable) ||
+								httpObjectVariableValue == null ||
+								httpVariable.isEmpty() ||
+								!method.equals("GET");
 			
-			boolean isUrlPathVariable = sUrl.indexOf("{"+variable+"}") != -1;
-			
-			if (httpObjectVariableValue != null) {
-				// variable is part of the Url
-				if (isUrlPathVariable) {
-					sUrl = sUrl.replaceAll("\\{"+variable+"\\}", ParameterUtils.toString(httpObjectVariableValue));
-				}
-				// variable is part of query string
-				else if (method.equals("GET") && !httpVariable.isEmpty()) {
-					try {
-						// handle multivalued variable
-						if (isMultiValued) {
-							if (httpObjectVariableValue instanceof Collection<?>)
-								for (Object httpVariableValue : (Collection<?>) httpObjectVariableValue) {
-									queryString += ((queryString.length() != 0) ? "&" : "");
-									queryString += httpVariable + "=" + URLEncoder.encode(ParameterUtils.toString(httpVariableValue), urlEncodingCharset);
-								}
-							else if (httpObjectVariableValue.getClass().isArray())
-								for (Object item : (Object[]) httpObjectVariableValue) {
-									queryString += ((queryString.length() != 0) ? "&" : "");
-									queryString += httpVariable + "=" + URLEncoder.encode(ParameterUtils.toString(item), urlEncodingCharset);
-								}
-						}
-						// standard case
-						else {
-							queryString += ((queryString.length() != 0) ? "&" : "");
-							queryString += httpVariable + "=" + URLEncoder.encode(ParameterUtils.toString(httpObjectVariableValue), urlEncodingCharset);
-						}
-					} catch (UnsupportedEncodingException e) {
-						throw new EngineException(urlEncodingCharset + " encoding is not supported.", e);
+			if (!bIgnoreVariable) {
+				Engine.logBeans.trace("(HttpConnector) Query variable: " + variable + " => (" + method + ") " + httpVariable);
+				
+				try {
+					// handle multivalued variable
+					if (isMultiValued) {
+						if (httpObjectVariableValue instanceof Collection<?>)
+							for (Object httpVariableValue : (Collection<?>) httpObjectVariableValue) {
+								queryString += ((queryString.length() != 0) ? "&" : "");
+								queryString += httpVariable + "=" + URLEncoder.encode(ParameterUtils.toString(httpVariableValue), urlEncodingCharset);
+							}
+						else if (httpObjectVariableValue.getClass().isArray())
+							for (Object item : (Object[]) httpObjectVariableValue) {
+								queryString += ((queryString.length() != 0) ? "&" : "");
+								queryString += httpVariable + "=" + URLEncoder.encode(ParameterUtils.toString(item), urlEncodingCharset);
+							}
 					}
+					// standard case
+					else {
+						queryString += ((queryString.length() != 0) ? "&" : "");
+						queryString += httpVariable + "=" + URLEncoder.encode(ParameterUtils.toString(httpObjectVariableValue), urlEncodingCharset);
+					}
+				} catch (UnsupportedEncodingException e) {
+					throw new EngineException(urlEncodingCharset + " encoding is not supported.", e);
 				}
-			}
-			else if (isUrlPathVariable) {
-				sUrl = sUrl.replaceAll("\\{"+variable+"\\}", "");
 			}
 		}
 
-		// encodes URL if it contains special characters
+		// Encodes URL if it contains special characters
 		sUrl = URLUtils.encodeAbsoluteURL(sUrl, urlEncodingCharset);
 
 		if (queryString.length() != 0) {
@@ -462,8 +469,7 @@ public class HttpConnector extends Connector {
 			Engine.logBeans.debug("(HttpConnector) GET query: " + Visibility.Logs.replaceVariables(httpTransaction.getVariablesList(), queryString));
 		}
 
-		// Posting all input variables marked as POST
-		Engine.logBeans.trace("(HttpConnector) Posting all POST input variables");
+		// Build body for POST/PUT
 		postQuery = "";
 
 		// Load request template in postQuery if necessary
@@ -565,6 +571,7 @@ public class HttpConnector extends Connector {
 			}
 		}
 
+		// Add all input variables marked as POST
 		boolean isLogHidden = false;
 		List<String> logHiddenValues = new ArrayList<String>();
 		
@@ -586,6 +593,7 @@ public class HttpConnector extends Connector {
 			if (method.equals("POST")) {
 				// variable must be sent as an HTTP parameter
 				if (!bIgnoreVariable) {
+					Engine.logBeans.trace("(HttpConnector) Parameter variable: " + variable + " => (" + method + ") " + httpVariable);
 					// Content-Type is 'application/x-www-form-urlencoded'
 					if (isFormUrlEncoded) {
 						// Replace variable value in postQuery
