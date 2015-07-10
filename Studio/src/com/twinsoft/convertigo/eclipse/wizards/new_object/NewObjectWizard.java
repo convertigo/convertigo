@@ -88,6 +88,7 @@ import com.twinsoft.convertigo.beans.steps.IThenElseContainer;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.ThenStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
+import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
 import com.twinsoft.convertigo.beans.transactions.CicsTransaction;
 import com.twinsoft.convertigo.beans.transactions.ExternalBrowserTransaction;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
@@ -112,6 +113,7 @@ import com.twinsoft.convertigo.eclipse.wizards.references.WsdlSchemaFileWizardPa
 import com.twinsoft.convertigo.eclipse.wizards.references.XsdSchemaFileWizardPage;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.ImportWsReference;
 import com.twinsoft.convertigo.engine.util.StringUtils;
@@ -454,7 +456,11 @@ public class NewObjectWizard extends Wizard {
 						
 						if (newBean instanceof RequestableHttpVariable) {
 							RequestableHttpVariable variable = (RequestableHttpVariable)newBean;
-							if (!(variable.getParent() instanceof HtmlTransaction)) {
+							AbstractHttpTransaction httpTransaction = (AbstractHttpTransaction) variable.getParent();
+							HttpMethodType httpMethodType = httpTransaction.getHttpVerb();
+							boolean isVarPost = httpMethodType.equals(HttpMethodType.PUT) || httpMethodType.equals(HttpMethodType.POST);
+							variable.setHttpMethod(isVarPost ? HttpMethodType.POST.name() : HttpMethodType.GET.name());
+							if (!(httpTransaction instanceof HtmlTransaction)) {
 								variable.setHttpName(variable.getName());
 							}
 						}

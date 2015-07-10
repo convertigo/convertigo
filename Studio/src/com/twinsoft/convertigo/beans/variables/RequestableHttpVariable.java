@@ -26,7 +26,7 @@ public class RequestableHttpVariable extends RequestableVariable {
 
 	private static final long serialVersionUID = -8730510144092552400L;
 
-	private String httpMethod = "POST";
+	private String httpMethod = "GET";
 	private String httpName = "";
 	
 	public RequestableHttpVariable() {
