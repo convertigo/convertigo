@@ -144,15 +144,16 @@ function constructTree($xml, $tree) {
 		}
 		var $currentNode = treeCategories[tagName];
 		displayName = $(this).attr("name");
-		accessibilityIcon = $(this).attr("accessibility") === "Public" ? "ðŸšª " : 
-			($(this).attr("accessibility") === "Private" ? "ðŸ”’ " : 
-				($(this).attr("accessibility") === "Hidden" ? "ðŸ‘“ " : " " ));
+		accessibilityIcon = $(this).attr("accessibility") === "Public" ? " 🚪 " : 
+			($(this).attr("accessibility") === "Private" ? " 🔒 " : 
+				($(this).attr("accessibility") === "Hidden" ? " 👓 " : " " ));
 
 		if (displayName != undefined) {
 			// add the element			
 			img = '<img src="services/database_objects.GetIcon?className=' + $(this).attr("classname") + '" />';
-			$currentNode.append('<li  class="projectEdit-selectableElement" qname="' + $(this).attr('qname') + '">'
-					+ '<div><span>' + img + accessibilityIcon + displayName + '</span></div><ul></ul></li>');
+			$currentNode.append('<li class="projectEdit-selectableElement" qname="' + $(this).attr('qname') + '"><div>' + 
+					img + '<span style="font-weight:normal;">' + accessibilityIcon + '</span>' +
+					'<span>' + displayName + '</span></div><ul></ul></li>');
 			// construct the sons of the element
 			constructTree($(this), $currentNode.find("ul").last());
 		}
