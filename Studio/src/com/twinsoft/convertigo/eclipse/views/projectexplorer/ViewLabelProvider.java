@@ -114,8 +114,8 @@ class ViewLabelProvider extends LabelProvider implements IFontProvider, IColorPr
 			}
 			
 			if (dbo instanceof RequestableObject ) {
-				return ( ((RequestableObject) dbo).getAccessibility() == Accessibility.Private ? "ðŸ”’ " : ( 
-						((RequestableObject) dbo).getAccessibility() == Accessibility.Hidden ? "ðŸ‘“ " : " ðŸšª  ") ) + obj.toString();
+				return ( ((RequestableObject) dbo).getAccessibility() == Accessibility.Private ? "🔒 " : ( 
+						((RequestableObject) dbo).getAccessibility() == Accessibility.Hidden ? "👓 " : " 🚪  ") ) + obj.toString();
 			}
 		}
 		return obj.toString();
