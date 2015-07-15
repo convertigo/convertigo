@@ -229,7 +229,12 @@ var F = {
 		};
 		
 		if (cordova.file && cordova.file.dataDirectory) {
-			window.resolveLocalFileSystemURL(cordova.file.dataDirectory, onSuccess, onError);
+			var path = cordova.file.dataDirectory;
+			// for projects built before 7.3.0
+			if (location.href.indexOf("/files/files/www/") != -1) {
+				path += "files/";
+			}
+			window.resolveLocalFileSystemURL(path, onSuccess, onError);
 		} else {
 			var quota = F.env.platform == "blackberry10" ? Math.pow(1024, 3) : 0;
 			window.requestFileSystem(LocalFileSystem.PERSISTENT, quota, onSuccess, onError);
