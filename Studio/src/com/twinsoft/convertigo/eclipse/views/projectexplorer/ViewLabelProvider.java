@@ -112,8 +112,11 @@ class ViewLabelProvider extends LabelProvider implements IFontProvider, IColorPr
 			if (dbo.isSymbolError() || (dbo instanceof Project && ((Project) dbo).undefinedGlobalSymbols)) {
 				return obj.toString() + " (! undefined symbol !)"; 
 			}
+			String osname = System.getProperty ( "os.name" );
+			String version = System.getProperty ( "os.version" );
+			boolean notShownSpecialChar = osname.startsWith("Windows") && Double.parseDouble(version) < 6.2;
 			
-			if (dbo instanceof RequestableObject ) {
+			if (dbo instanceof RequestableObject && !notShownSpecialChar ) {
 				return ( ((RequestableObject) dbo).getAccessibility() == Accessibility.Private ? "🔒 " : ( 
 						((RequestableObject) dbo).getAccessibility() == Accessibility.Hidden ? "👓 " : " 🚪  ") ) + obj.toString();
 			}
