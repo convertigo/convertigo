@@ -891,7 +891,6 @@
 	             label="Local build(Debug)"
 	             menubarPath="convertigo.menu.action.cordova/build" />
 	  </objectContribution>
-
 	  <objectContribution
 	        id="convertigo.launchMobileApplicationProjectContribution"
 	        objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplicationTreeObject">
@@ -901,16 +900,14 @@
 	             icon="icons/studio/launch_test_platform_16x16.png"
 	             id="convertigo.action.launchMobileApplicationProject"
 	             label="Launch in test platform"
-	             menubarPath="run">
-	       </action>
+	             menubarPath="run"/>
 	       <action
 	             class="com.twinsoft.convertigo.eclipse.popup.actions.LaunchMobileApplicationFullScreenProjectAction"
 	             enablesFor="1"
 	             icon="icons/studio/launch_fullscreen_16x16.png"
 	             id="convertigo.action.launchMobileApplicationFullScreenProject"
 	             label="Launch Fullscreen"
-	             menubarPath="run">
-	       </action>
+	             menubarPath="run"/>
 	  </objectContribution>
       <objectContribution
             id="convertigo.mobileApplicationContribution"
@@ -918,7 +915,7 @@
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobilePlatformAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/mobileplatform_color_16x16.png"
                id="convertigo.action.newMobilePlatform"
                label="Mobile platform"
                menubarPath="convertigo.menu.new/content">
@@ -930,21 +927,21 @@
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateInheritedScreenClassAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/screenclass_color_16x16.png"
                id="convertigo.action.newScreenclass"
                label="Screen class"
                menubarPath="convertigo.menu.new/content"/>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateSheetAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/sheet_color_16x16.png"
                id="convertigo.action.newScreenclassSheet"
                label="Sheet"
                menubarPath="convertigo.menu.new/content"/>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateCriteriaAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/criteria_color_16x16.png"
                id="convertigo.action.newCriteria"
                label="Criteria"
                menubarPath="convertigo.menu.new/content">
@@ -957,7 +954,7 @@
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateExtractionRuleAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/extractionrule_color_16x16.png"
                id="convertigo.action.newExtractionRule"
                label="Extraction rule"
                menubarPath="convertigo.menu.new/content"/>
@@ -1083,8 +1080,7 @@
                icon="icons/studio/project_delete.gif"
                id="convertigo.action.deleteProjectAction"
                label="Delete"
-               menubarPath="project">
-         </action>
+               menubarPath="project"/>
       </objectContribution>
       <!--objectContribution
       		id="convertigo.webServiceContribution"
@@ -1106,32 +1102,31 @@
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.TransactionCreateHandlerAction"
                enablesFor="1"
+               icon="icons/studio/menu/handler_color_16x16.png"
                id="convertigo.action.createHandler"
                label="Handler"
                menubarPath="convertigo.menu.new/content"/>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateSheetAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/sheet_color_16x16.png"
                id="convertigo.action.newTransactionSheet"
                label="Sheet"
                menubarPath="convertigo.menu.new/content"/>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateVariableAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/variable_color_16x16.png"
                id="convertigo.action.newTransactionVariable"
                label="Variable"
-               menubarPath="convertigo.menu.new/content">
-         </action>
+               menubarPath="convertigo.menu.new/content"/>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateTestCaseAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/testcase_color_16x16.png"
                id="convertigo.action.newTransactionTestCase"
                label="TestCase"
-               menubarPath="convertigo.menu.new/content">
-         </action>
+               menubarPath="convertigo.menu.new/content"/>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.TransactionEditHandlersAction"
                enablesFor="1"
@@ -1143,30 +1138,26 @@
                icon="icons/studio/transaction_execute_selected.gif"
                id="convertigo.action.executeSelectedTransactionFromStub"
                label="Execute from stub"
-               menubarPath="execute">
-         </action>
+               menubarPath="execute"/>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.TransactionExecuteSelectedAction"
                enablesFor="1"
                icon="icons/studio/transaction_execute_selected.gif"
                id="convertigo.action.executeSelectedTransaction"
                label="Execute"
-               menubarPath="execute">
-          </action>
+               menubarPath="execute"/>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.UpdateXSDTypesFromXMLAction"
                enablesFor="1"
                id="convertigo.action.updateXSDFromXML"
                label="Update schema from current generated XML"
-               menubarPath="xsd">
-         </action>
+               menubarPath="xsd"/>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.UpdateXSDTypesAction"
                enablesFor="1"
                id="convertigo.action.updateXSD"
                label="Update schema from transaction&apos;s definition"
-               menubarPath="xsd">
-         </action>
+               menubarPath="xsd"/>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.SetDefaultTransactionAction"
                enablesFor="1"
@@ -1185,23 +1176,19 @@
                enablesFor="1"
                id="convertigo.action.generateForm"
                label="Generate Request Form Transaction"
-               menubarPath="transaction">
-         </action>
-                  <action
+               menubarPath="transaction"/>
+         <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateEmptyStubAction"
                enablesFor="1"
                id="convertigo.action.createEmptyStub"
                label="Create empty stub"
-               menubarPath="stub">
-         </action>
+               menubarPath="stub"/>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateStubFromXMLAction"
                enablesFor="1"
                id="convertigo.action.createStubFromXML"
                label="Create stub from current generated XML"
-               menubarPath="stub">
-         </action>
-         
+               menubarPath="stub"/>
       </objectContribution>
       <objectContribution
             id="convertigo.transactionCopybookContribution"
@@ -1216,8 +1203,7 @@
                enablesFor="1"
                id="convertigo.action.importCopybook"
                label="Import copybook"
-               menubarPath="transaction">
-         </action>
+               menubarPath="transaction"/>
       </objectContribution>
       <objectContribution
             id="convertigo.projectContribution"
@@ -1292,34 +1278,31 @@
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileApplicationAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/mobileapplication_color_16x16.png"
                id="convertigo.action.newMobileApplication"
                label="Mobile application"
-               menubarPath="convertigo.menu.new/content">
-         </action>
+               menubarPath="convertigo.menu.new/content"/>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateReferenceAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/reference_color_16x16.gif"
                id="convertigo.action.newReference"
                label="Reference"
-               menubarPath="convertigo.menu.new/content">
-         </action>
+               menubarPath="convertigo.menu.new/content"/>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateConnectorAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/connector_color_16x16.png"
                id="convertigo.action.newConnector"
                label="Connector"
                menubarPath="convertigo.menu.new/content"/>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateSequenceAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/sequence_color_16x16.png"
                id="convertigo.action.newSequence"
                label="Sequence"
-               menubarPath="convertigo.menu.new/content">
-         </action>
+               menubarPath="convertigo.menu.new/content"/>
          <!--action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileDeviceAction"
                enablesFor="1"
@@ -1375,28 +1358,28 @@
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreatePoolAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/pool_color_16x16.png"
                id="convertigo.action.newPool"
                label="Pool"
                menubarPath="convertigo.menu.new/content"/>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateTransactionAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/transaction_color_16x16.png"
                id="convertigo.action.newTransaction"
                label="Transaction"
                menubarPath="convertigo.menu.new/content"/>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateDocumentAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/document_color_16x16.png"
                id="convertigo.action.newDocument"
                label="Document"
                menubarPath="convertigo.menu.new/content"/>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateListenerAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/listener_color_16x16.png"
                id="convertigo.action.newListener"
                label="Listener"
                menubarPath="convertigo.menu.new/content"/>
@@ -1456,7 +1439,7 @@
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateStatementAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/statement_color_16x16.png"
                id="convertigo.action.newStatement"
                label="Statement"
                menubarPath="convertigo.menu.new/content"/>
@@ -1571,7 +1554,7 @@
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateStatementAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/statement_color_16x16.png"
                id="convertigo.action.newStatement"
                label="Statement"
                menubarPath="convertigo.menu.new/content">
@@ -1640,7 +1623,7 @@
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateTransactionAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/transaction_color_16x16.png"
                id="convertigo.action.newTransaction"
                label="Transaction"
                menubarPath="convertigo.menu.new/content">
@@ -1653,7 +1636,7 @@
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.TransactionCreateHandlerAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/handler_color_16x16.png"
                id="convertigo.action.createHandler"
                label="Handler"
                menubarPath="convertigo.menu.new/content">
@@ -1666,7 +1649,7 @@
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateInheritedScreenClassAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/screenclass_color_16x16.png"
                id="convertigo.action.newScreenclass"
                label="Screen class"
                menubarPath="convertigo.menu.new/content">
@@ -1679,7 +1662,7 @@
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateSheetAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/sheet_color_16x16.png"
                id="convertigo.action.newSheet"
                label="Sheet"
                menubarPath="convertigo.menu.new/content">
@@ -1692,7 +1675,7 @@
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreatePoolAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/pool_color_16x16.png"
                id="convertigo.action.newPool"
                label="Pool"
                menubarPath="convertigo.menu.new/content">
@@ -1705,7 +1688,7 @@
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateExtractionRuleAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/extractionrule_color_16x16.png"
                id="convertigo.action.newExtractionRule"
                label="Extraction rule"
                menubarPath="convertigo.menu.new/content">
@@ -1718,7 +1701,7 @@
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateCriteriaAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/criteria_color_16x16.png"
                id="convertigo.action.newCriteria"
                label="Criteria"
                menubarPath="convertigo.menu.new/content">
@@ -1731,7 +1714,7 @@
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateConnectorAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/connector_color_16x16.png"
                id="convertigo.action.newConnector"
                label="Connector"
                menubarPath="convertigo.menu.new/content">
@@ -1744,7 +1727,7 @@
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateSequenceAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/sequence_color_16x16.png"
                id="convertigo.action.newSequence"
                label="Sequence"
                menubarPath="convertigo.menu.new/content">
@@ -1772,7 +1755,7 @@
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateStepAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/step_color_16x16.png"
                id="convertigo.action.newStep"
                label="Step"
                menubarPath="convertigo.menu.new/content">
@@ -1786,7 +1769,7 @@
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateTestCaseAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/testcase_color_16x16.png"
                id="convertigo.action.newTestCase"
                label="Test case"
                menubarPath="convertigo.menu.new/content">
@@ -1800,7 +1783,7 @@
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateVariableAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/variable_color_16x16.png"
                id="convertigo.action.newVariable"
                label="Variable"
                menubarPath="convertigo.menu.new/content">
@@ -1814,7 +1797,7 @@
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateReferenceAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/reference_color_16x16.gif"
                id="convertigo.action.newReference"
                label="Reference"
                menubarPath="convertigo.menu.new/content">
@@ -1828,7 +1811,7 @@
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateDocumentAction"
                enablesFor="1"
-               icon="icons/studio/new.gif"
+               icon="icons/studio/menu/document_color_16x16.png"
                id="convertigo.action.newDocument"
                label="Document"
                menubarPath="convertigo.menu.new/content">
@@ -1970,11 +1953,10 @@
                <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.CreateVariableAction"
                      enablesFor="1"
-                     icon="icons/studio/new.gif"
+                     icon="icons/studio/menu/variable_color_16x16.png"
                      id="convertigo.action.newHttpStatementVariable"
                      label="Variable"
-                     menubarPath="convertigo.menu.new/content">
-               </action>
+                     menubarPath="convertigo.menu.new/content"/>
                <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.StatementAddVariableToTransactionAction"
                      enablesFor="1"
@@ -2079,7 +2061,7 @@
                <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.CreateStepAction"
                      enablesFor="1"
-                     icon="icons/studio/new.gif"
+                     icon="icons/studio/menu/step_color_16x16.png"
                      id="convertigo.action.newStep"
                      label="Step"
                      menubarPath="convertigo.menu.new/content">
@@ -2395,7 +2377,7 @@
                <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.CreateStepAction"
                      enablesFor="1"
-                     icon="icons/studio/new.gif"
+                     icon="icons/studio/menu/step_color_16x16.png"
                      id="convertigo.action.newStep"
                      label="Step"
                      menubarPath="convertigo.menu.new/content">
@@ -2403,7 +2385,7 @@
                <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.CreateSheetAction"
                      enablesFor="1"
-                     icon="icons/studio/new.gif"
+                     icon="icons/studio/menu/sheet_color_16x16.png"
                      id="convertigo.action.newSequenceSheet"
                      label="Sheet"
                      menubarPath="convertigo.menu.new/content">
@@ -2411,7 +2393,7 @@
                <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.CreateVariableAction"
                      enablesFor="1"
-                     icon="icons/studio/new.gif"
+                     icon="icons/studio/menu/variable_color_16x16.png"
                      id="convertigo.action.newSequenceVariable"
                      label="Variable"
                      menubarPath="convertigo.menu.new/content">
@@ -2419,7 +2401,7 @@
                <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.CreateTestCaseAction"
                      enablesFor="1"
-                     icon="icons/studio/new.gif"
+                     icon="icons/studio/menu/testcase_color_16x16.png"
                      id="convertigo.action.newTestCase"
                      label="Test case"
                      menubarPath="convertigo.menu.new/content">
@@ -2478,7 +2460,7 @@
                <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.CreateVariableAction"
                      enablesFor="1"
-                     icon="icons/studio/new.gif"
+                     icon="icons/studio/menu/call_variable_color_16x16.png"
                      id="convertigo.action.newTransactionStepVariable"
                      label="Variable"
                      menubarPath="convertigo.menu.new/content">
@@ -2510,7 +2492,7 @@
                <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.CreateVariableAction"
                      enablesFor="1"
-                     icon="icons/studio/new.gif"
+                     icon="icons/studio/menu/call_variable_color_16x16.png"
                      id="convertigo.action.newSequenceStepVariable"
                      label="Variable"
                      menubarPath="convertigo.menu.new/content">
@@ -2902,7 +2884,7 @@
                <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.CreateVariableAction"
                      enablesFor="1"
-                     icon="icons/studio/new.gif"
+                     icon="icons/studio/menu/testcasevariable_color_16x16.png"
                      id="convertigo.action.newTestCaseVariable"
                      label="Variable"
                      menubarPath="convertigo.menu.new/content">
