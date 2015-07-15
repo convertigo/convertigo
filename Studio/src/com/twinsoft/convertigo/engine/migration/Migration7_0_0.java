@@ -176,7 +176,7 @@ public class Migration7_0_0 {
 			Map<String, Reference> referenceMap = new HashMap<String, Reference>();
 			XmlSchema projectSchema = null;
 
-			Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+			Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
 			
 			// Copy all xsd files to project's xsd directory
 			File destDir = new File(project.getXsdDirPath());
