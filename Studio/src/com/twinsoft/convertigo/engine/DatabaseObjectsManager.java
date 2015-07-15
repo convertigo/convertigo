@@ -235,9 +235,13 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 	
 	public Project getOriginalProjectByName(String projectName) throws EngineException {
+		return getOriginalProjectByName(projectName, true);
+	}
+	
+	public Project getOriginalProjectByName(String projectName, boolean checkOpenable) throws EngineException {
 		Engine.logDatabaseObjectManager.trace("Requiring loading of project \"" + projectName + "\"");
 		
-		if (!canOpenProject(projectName)) {
+		if (checkOpenable && !canOpenProject(projectName)) {
 			Engine.logDatabaseObjectManager.trace("The project \"" + projectName + "\" cannot be open");
 			clearCache(projectName);
 			return null;
