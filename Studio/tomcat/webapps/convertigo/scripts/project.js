@@ -238,11 +238,13 @@ function setLinkForTestCase(a) {
 }
 
 function setName($elt, $xml) {
-	var accessibilityIcon = $xml.attr("accessibility") === "Public" ? "&nbsp;&nbsp;🚪 &nbsp;" : 
-		($xml.attr("accessibility") === "Private" ? "&nbsp;🔒&nbsp;" : 
-			($xml.attr("accessibility") === "Hidden" ? "&nbsp;👓&nbsp;" : "&nbsp;" ));
-	$elt.text($xml.attr("name")).attr("title", $xml.attr("comment")).attr("displayname", $xml.attr("name"));	
-	$elt.prepend("<span style='font-weight:normal;font-size:120%;'>" + accessibilityIcon + "</span>");
+	var accessibilityIcon = $xml.attr("accessibility") === "Public" ? "🚪" : 
+		($xml.attr("accessibility") === "Private" ? "🔒" : 
+			($xml.attr("accessibility") === "Hidden" ? "👓" : "" ));
+	$elt.text($xml.attr("name")).attr("title", $xml.attr("comment")).attr("displayname", $xml.attr("name"));
+	if (accessibilityIcon != "") {
+		$elt.prepend("<span class='accessibility-icon'>" + accessibilityIcon + "</span>");
+	}
 }
 
 function toUrl(params) {

@@ -1721,6 +1721,13 @@ a.start {
 	opacity: 0.75;
 	cursor: pointer;
 }
+.accessibility-icon {
+	font-weight:normal;
+	font-size:120%;
+	width:25px;
+	text-align:center;
+	display:inline-block;
+}
 .longDescriptionComputer {
 	font-family: courier;
 }

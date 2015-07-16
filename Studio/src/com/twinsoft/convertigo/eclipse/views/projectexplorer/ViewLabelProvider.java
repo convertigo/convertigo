@@ -114,11 +114,13 @@ class ViewLabelProvider extends LabelProvider implements IFontProvider, IColorPr
 			}
 			String osname = System.getProperty ( "os.name" );
 			String version = System.getProperty ( "os.version" );
-			boolean notShownSpecialChar = osname.startsWith("Windows") && Double.parseDouble(version) < 6.2;
+			
+			boolean notShownSpecialChar = osname.toLowerCase().startsWith("windows") && Double.parseDouble(version) < 6.2;
+			boolean isMac = osname.toLowerCase().startsWith("mac");
 			
 			if (dbo instanceof RequestableObject && !notShownSpecialChar ) {
 				return ( ((RequestableObject) dbo).getAccessibility() == Accessibility.Private ? "🔒 " : ( 
-						((RequestableObject) dbo).getAccessibility() == Accessibility.Hidden ? "👓 " : " 🚪  ") ) + obj.toString();
+						((RequestableObject) dbo).getAccessibility() == Accessibility.Hidden ? "👓 " : (isMac ? "" : " " ) + "🚪  ") ) + obj.toString();
 			}
 		}
 		return obj.toString();
