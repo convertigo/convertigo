@@ -904,6 +904,13 @@ ul.connectors .acc {
 	background-color:#fff;
 	margin:0;
 }
+.accessibility-icon {
+	font-weight:normal;
+	font-size:120%;
+	width:25px;
+	text-align:center;
+	display:inline-block;
+}
 .connectors .acc-section .acc-content ul.requestables li {
 	width:100% !important;
 }
