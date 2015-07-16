@@ -120,7 +120,7 @@ class ViewLabelProvider extends LabelProvider implements IFontProvider, IColorPr
 			
 			if (dbo instanceof RequestableObject && !notShownSpecialChar ) {
 				return ( ((RequestableObject) dbo).getAccessibility() == Accessibility.Private ? "🔒 " : ( 
-						((RequestableObject) dbo).getAccessibility() == Accessibility.Hidden ? "👓 " : (isMac ? "" : " " ) + "🚪  ") ) + obj.toString();
+						((RequestableObject) dbo).getAccessibility() == Accessibility.Hidden ? "👓 " : (isMac ? "🚪 " : " 🚪  " ) ) ) + obj.toString();
 			}
 		}
 		return obj.toString();
