@@ -355,7 +355,7 @@ function getPhoneGapBuildStatus() {
 				
 				if ($build.attr("version") !== $("#build_application_version").text() && $build.attr("version") !== "n/a") {
 					$platform.find(".qrcode_version").addClass("not_updated");
-					$platform.find(".warning_icon").css("display", "block").attr("title", "The local build version is different to the remote build version!");
+					$platform.find(".warning_icon").css("display", "block").attr("title", "The local version is different from the remote built version");
 				}
 				$platform.find(".qrcode_phonegap_version").text($build.attr("phonegap_version"));
 			}
