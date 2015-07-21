@@ -731,14 +731,13 @@ public class BuildLocallyAction extends MyAbstractAction {
 					MessageBox customDialog = new MessageBox(shell, SWT.ICON_INFORMATION | SWT.YES | SWT.NO);
 					customDialog.setText("Create a Cordova environment");
 					customDialog.setMessage(
-						"The cordova environment for this project has not been created yet. Creating the\n" +
-						"environment must be done once by project. This project's environment will be shared\n" +
-						"by all mobile devices for local build.\n\n" +
-						"You have to install Cordova on your local machine to be able to build locally.\n" +
-						"If Cordova is not yet installed, click 'No' and download cordova from :\n" +
-						"http://cordova.apache.org . Be sure to follow all instruction on Cordova's\n" +
-						"Website to setup your local Cordova build system. \n\n" +
-						"Do you want to create a Cordova environment for your project now ?");
+							"The cordova environment for this project has not been created yet.\n" +
+							"Creating the environment must be done once by mobile platform.\n" +
+							"You have to install Cordova on your local machine to be able to build locally.\n" +
+							"If Cordova is not yet installed, click 'No' and download cordova from:\n" +
+							"http://cordova.apache.org . Be sure to follow all instruction on Cordova's\n" +
+							"Website to setup your local Cordova build system.\n\n" +
+							"Do you want to create a Cordova environment for your mobile platform now?");
 
 					if (customDialog.open() == SWT.YES) {
 						
