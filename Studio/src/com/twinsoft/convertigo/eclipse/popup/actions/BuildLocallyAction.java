@@ -340,10 +340,10 @@ public class BuildLocallyAction extends MyAbstractAction {
 
 			//ANDROID
 			if (mobilePlatform instanceof Android) {
-				File resFolder = new File(cordovaDir, "platforms/" + platform + "/res");
+				File resFolder = new File(cordovaDir, "platforms" + File.separator + platform + File.separator + "res");
 				
 				if (defaultIcon != null) {
-					FileUtils.copyFile(defaultIcon, new File(resFolder, "drawable/icon.png"));
+					FileUtils.copyFile(defaultIcon, new File(resFolder, "drawable" + File.separator + "icon.png"));
 				}
 				
 				// Copy the icons to the correct res directory
@@ -353,7 +353,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 					String gapAttrib = icon.getAttribute(icon.hasAttribute("gap:qualifier") ? "gap:qualifier" : "gap:density");
 					
 					File iconSrc = new File(wwwDir, source);
-					File dest = new File(resFolder, "drawable-" + gapAttrib + "/icon.png");
+					File dest = new File(resFolder, "drawable-" + gapAttrib + File.separator + "icon.png");
 					
 					Engine.logEngine.debug("Copying " + iconSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
 					
@@ -369,7 +369,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 				}
 				
 				if (defaultSplash != null) {
-					FileUtils.copyFile(defaultSplash, new File(resFolder, "drawable/splash.png"));
+					FileUtils.copyFile(defaultSplash, new File(resFolder, "drawable" + File.separator + "splash.png"));
 				}
 				
 				// now the stuff for splashes
@@ -380,14 +380,14 @@ public class BuildLocallyAction extends MyAbstractAction {
 					String gapAttrib = splash.getAttribute(splash.hasAttribute("gap:qualifier") ? "gap:qualifier" : "gap:density");
 					
 					File splashSrc = new File(wwwDir, source);
-					File dest = new File(resFolder, "drawable-" + gapAttrib + "/splash.png");
+					File dest = new File(resFolder, "drawable-" + gapAttrib + File.separator + "splash.png");
 					
 					Engine.logEngine.debug("Copying " + splashSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
 					
 					FileUtils.copyFile(splashSrc, dest);
 					if (gapAttrib.equalsIgnoreCase("ldpi")) {
 						// special case for ldpi assume it goes also in the drawable folder
-						dest = new File(resFolder, "drawable/splash.png");
+						dest = new File(resFolder, "drawable" + File.separator + "splash.png");
 						
 						Engine.logEngine.debug("Copying " + splashSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
 						
@@ -400,7 +400,8 @@ public class BuildLocallyAction extends MyAbstractAction {
 			if (mobilePlatform instanceof  IOs) {
 				String applicationName = mobilePlatform.getParent().getComputedApplicationName();
 				
-				File iconFolder = new File(cordovaDir, "platforms/" + platform + "/" + applicationName + "/Resources/icons");
+				File iconFolder = new File(cordovaDir, 
+						"platforms" + File.separator + platform + File.separator + applicationName + File.separator + "Resources" + File.separator + "icons");
 				
 				if (defaultIcon != null) {
 					for (String iconName: iOSIconsCorrespondences.values()) {
@@ -425,7 +426,8 @@ public class BuildLocallyAction extends MyAbstractAction {
 					FileUtils.copyFile(iconSrc, dest);
 				}
 				
-				File splashFolder = new File(cordovaDir, "platforms/" + platform + "/" + applicationName + "/Resources/splash");
+				File splashFolder = new File(cordovaDir, 
+						"platforms" + File.separator + platform + File.separator + applicationName + File.separator + "Resources" + File.separator + "splash");
 				
 				if (defaultSplash != null) {
 					for (String splashName: iOSSplashCorrespondences.values()) {
@@ -454,7 +456,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 			
 			//WINPHONE
 			if (mobilePlatform instanceof WindowsPhone7 || mobilePlatform instanceof WindowsPhone8) {
-				File resFolder = new File(cordovaDir, "platforms/" + platform);
+				File resFolder = new File(cordovaDir, "platforms" + File.separator + platform);
 				File destIcon = new File(resFolder, "ApplicationIcon.png");
 				File destBackground = new File(resFolder, "Background.png");
 				File destSplashScreen = new File(resFolder, "SplashScreenImage.jpg");
@@ -510,13 +512,14 @@ public class BuildLocallyAction extends MyAbstractAction {
 				
 			}
 			
-			// We have to add the the root Config.xml all our app's config.xml preferences.
+			// We have to add the root config.xml all our app's config.xml preferences.
 			// Cordova will use this file to generates the platform specific config.xml
 			
 			// get preferences from current config.xml
 			NodeIterator preferences = xpathApi.selectNodeIterator(doc, "//preference");
+			File configFile = new File(cordovaDir, "config.xml");
 			
-			doc = XMLUtils.loadXml(new File(cordovaDir, "config.xml"));  // The root config.xml
+			doc = XMLUtils.loadXml(configFile);  // The root config.xml
 			
 			NodeList preferencesList = doc.getElementsByTagName("preference");
 			
@@ -710,9 +713,19 @@ public class BuildLocallyAction extends MyAbstractAction {
 						return;
 					}
 				}
+				//create a local Cordova Environment
+				final File localBuildDir = new File(privateDir, "localbuild");
+				if (!localBuildDir.exists()) {
+					localBuildDir.mkdir();
+				}
+				
+				final File mobilePlatformDir = new File(localBuildDir, mobilePlatform.getName());
+				if (!mobilePlatformDir.exists()) {
+					mobilePlatformDir.mkdir();
+				}
 
 				// Test to see if the Cordova application has been created		        
-				if (!new File(privateDir, cordovaDir).exists()) {
+				if (!new File(mobilePlatformDir, cordovaDir).exists()) {
 
 					// no Cordova directory has been found ask the user if he wants to create it
 					MessageBox customDialog = new MessageBox(shell, SWT.ICON_INFORMATION | SWT.YES | SWT.NO);
@@ -728,8 +741,9 @@ public class BuildLocallyAction extends MyAbstractAction {
 						"Do you want to create a Cordova environment for your project now ?");
 
 					if (customDialog.open() == SWT.YES) {
-						//create a local Cordova Environment
-						runCordovaCommand(privateDir, "create", BuildLocallyAction.cordovaDir, 
+						
+						runCordovaCommand(mobilePlatformDir, "create", 
+								BuildLocallyAction.cordovaDir, 
 								mobileApplication.getComputedApplicationId(), 
 								mobileApplication.getComputedApplicationName() );
 
@@ -747,11 +761,12 @@ public class BuildLocallyAction extends MyAbstractAction {
 						try {
 							// Cordova environment is already created, we have to build
 							// Step 1: call Mobile packager to prepare the source package
-							MobileResourceHelper mobileResourceHelper = new MobileResourceHelper(mobilePlatform, "_private/" + BuildLocallyAction.cordovaDir + "/www");
+							MobileResourceHelper mobileResourceHelper = new MobileResourceHelper(mobilePlatform, 
+									"_private" + File.separator + "localbuild" + File.separator + mobilePlatform.getName() + File.separator + BuildLocallyAction.cordovaDir + File.separator + "www");
 							File wwwDir = mobileResourceHelper.preparePackage();
 
-							// Step 2: Add platform and Read And process Config.xml to copy needed icons and splash resources
-							File cordovaDir = getCordovaDir();
+							// Step 2: Add platform and read config.xml to copy needed icons and splash resources
+							File cordovaDir = getCordovaDir(mobilePlatform);
 							String cordovaPlatform = mobilePlatform.getCordovaPlatform();
 							
 							if (mobilePlatform instanceof Android && getCordovaVersion().startsWith("3.5.0")) {
@@ -859,13 +874,18 @@ public class BuildLocallyAction extends MyAbstractAction {
 		String buildMd = buildMode.equals("debug") ? "Debug" : "Release";
 		
 		String extension = "";
-		File f = new File(getCordovaDir(), builtPath);		
+		File f = new File(getCordovaDir(mobilePlatform), builtPath);		
 		
 		if (f.exists()) {
 		
 			// Android
 			if (mobilePlatform instanceof Android) {
 				builtPath = builtPath + "ant-build/";
+				File f2 = new File(getCordovaDir(mobilePlatform), builtPath);
+				if (!f2.exists()) {
+					builtPath = File.separator + "platforms" + File.separator + cordovaPlatform + 
+							File.separator + "build" + File.separator + "outputs" + File.separator + "apk" + File.separator;
+				}
 				extension = "apk";
 			// iOS
 			} else if (mobilePlatform instanceof IOs){
@@ -890,7 +910,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 		
 		}
 
-		f = new File(getCordovaDir(), builtPath);
+		f = new File(getCordovaDir(mobilePlatform), builtPath);
 		if (f.exists()) {
 			String[] filesNames = f.list();
 			int i = filesNames.length - 1;
@@ -907,7 +927,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 			builtPath = "/platforms/" + cordovaPlatform + "/";
 		}
 		
-		return new File (getCordovaDir(), builtPath);
+		return new File (getCordovaDir(mobilePlatform), builtPath);
 	}
 
 	/**
@@ -918,14 +938,14 @@ public class BuildLocallyAction extends MyAbstractAction {
 	private void removeCordovaPlatform () {
 		final MobilePlatform mobilePlatform = getMobilePlatform();
 		
-		if (mobilePlatform != null && getCordovaDir().exists()) {
+		if (mobilePlatform != null && getCordovaDir(mobilePlatform).exists()) {
 			final String platformName = mobilePlatform.getCordovaPlatform();
 			
 			Job removeCordovaPlatformJob = new Job("Remove " + platformName + " platform on cordova in progress...") {
 				@Override
 				protected IStatus run(IProgressMonitor arg0) {
 					try {
-						runCordovaCommand(getCordovaDir(), "platform", "rm", platformName);
+						runCordovaCommand(getCordovaDir(mobilePlatform), "platform", "rm", platformName);
 
 						return org.eclipse.core.runtime.Status.OK_STATUS;
 
@@ -955,6 +975,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 	 * We also explain, what we do and how to recreate the cordova environment
 	 */
 	private void removeCordovaDirectory() {
+		final MobilePlatform mobilePlatform = getMobilePlatform();
 		
 		MessageBox customDialog = new MessageBox(getParentShell(),
 				SWT.ICON_INFORMATION | SWT.YES | SWT.NO);
@@ -967,7 +988,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 		
 		if (customDialog.open() == SWT.YES) {
 			//Step 1: Recover the "cordova" directory	
-	        final File cordovaDirectory = getCordovaDir();
+	        final File cordovaDirectory = getCordovaDir(mobilePlatform);
 			
 			//Step 2: Remove the "cordova" directory
 	        if (cordovaDirectory.exists()) {
@@ -999,8 +1020,9 @@ public class BuildLocallyAction extends MyAbstractAction {
 		return null;
 	}
 	
-	private File getCordovaDir() {
-		return new File(getPrivateDir(), BuildLocallyAction.cordovaDir);
+	private File getCordovaDir(MobilePlatform mobilePlatform) {
+		return new File(getPrivateDir(), 
+				"localbuild" + File.separator + mobilePlatform.getName() + File.separator + BuildLocallyAction.cordovaDir);
 	}
 	
 	private File getPrivateDir() {
