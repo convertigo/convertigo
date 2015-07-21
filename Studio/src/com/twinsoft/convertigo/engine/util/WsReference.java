@@ -22,11 +22,15 @@
 
 package com.twinsoft.convertigo.engine.util;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.wsdl.Definition;
@@ -43,6 +47,8 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.constants.Constants;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -65,7 +71,12 @@ import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.references.RemoteFileReference;
+import com.twinsoft.convertigo.beans.references.RestServiceReference;
 import com.twinsoft.convertigo.beans.references.WebServiceReference;
+import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
+import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
+import com.twinsoft.convertigo.beans.transactions.JsonHttpTransaction;
 import com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableHttpMultiValuedVariable;
 import com.twinsoft.convertigo.beans.variables.RequestableHttpVariable;
@@ -75,65 +86,65 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMode;
 import com.twinsoft.convertigo.engine.PacManager.PacInfos;
 import com.twinsoft.convertigo.engine.Version;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
+import com.twinsoft.convertigo.engine.enums.Parameter;
 
 public class WsReference {
 	
-	private WebServiceReference reference = null;
-	
-	protected WsReference(String wsdlURL) {
-		this(wsdlURL, false, null, null);
-	}
-
-	protected WsReference(String wsdlURL, boolean needAuthentication, String login, String password) {
-	   	reference = new WebServiceReference();
-	   	reference.setUrlpath(wsdlURL);
-	   	reference.setNeedAuthentication(needAuthentication);
-	   	reference.setAuthUser(login == null ? "":login);
-	   	reference.setAuthUser(password == null ? "":password);
-	   	reference.bNew = true;
-	}
+	private RemoteFileReference reference = null;
 	
 	protected WsReference(WebServiceReference reference) {
 		this.reference = reference;
 	}
 
-	private WebServiceReference getReference() {
+	protected WsReference(RestServiceReference reference) {
+		this.reference = reference;
+	}
+
+	private RemoteFileReference getReference() {
 		return reference;
 	}
 	
 	protected HttpConnector importInto(Project project) throws Exception {
-		WebServiceReference webServiceReference = null;
 		boolean needAuthentication = false;
 		
 		try {
 			if (project != null) {
-				webServiceReference = getReference();
-				if (webServiceReference != null) {
+				RemoteFileReference wsReference = getReference();
+				if (wsReference != null) {
 					
-					String wsdlUrl = webServiceReference.getUrlpath();
+					String wsdlUrl = wsReference.getUrlpath();
 					
 					// test for valid URL
 					new URL(wsdlUrl);
 					
 					// Configure SoapUI settings
-					configureSoapUI(wsdlUrl);
+					if (wsReference instanceof WebServiceReference) {
+						configureSoapUI(wsdlUrl);
+					}
 					
-					needAuthentication = webServiceReference.needAuthentication();
+					needAuthentication = wsReference.needAuthentication();
 					if (needAuthentication) {
-						String login = webServiceReference.getAuthUser();
-						String password = webServiceReference.getAuthPassword();
+						String login = wsReference.getAuthUser();
+						String password = wsReference.getAuthPassword();
 						try {
 							//We add login/password into the connection
 							System.setProperty("soapui.loader.username", login);
 							System.setProperty("soapui.loader.password", password);
 							
-							tryAuthentication(webServiceReference);
+							tryAuthentication(wsReference);
 						} catch (Exception e) {
 							throw new Exception ("Authentication failure !", e);
 						}
 					}
 					
-					return importWebService(project, webServiceReference);
+					if (wsReference instanceof WebServiceReference) {
+						WebServiceReference soapServiceReference = (WebServiceReference)wsReference;
+						return importSoapWebService(project, soapServiceReference);
+					}
+					if (wsReference instanceof RestServiceReference) {
+						RestServiceReference restServiceReference = (RestServiceReference)wsReference;
+						return importRestWebService(project, restServiceReference);
+					}
 				}
 			}
 		} catch (Throwable t) {
@@ -152,11 +163,11 @@ public class WsReference {
 		return 9;
 	}
 	
-	private static void tryAuthentication(WebServiceReference webServiceReference) throws Exception {
-		URL urlToConnect = webServiceReference.getUrl();
-		String wsdlUrl = webServiceReference.getUrlpath();
-		String username = webServiceReference.getAuthUser();
-		String password = webServiceReference.getAuthPassword();
+	private static void tryAuthentication(RemoteFileReference wsReference) throws Exception {
+		URL urlToConnect = wsReference.getUrl();
+		String wsdlUrl = wsReference.getUrlpath();
+		String username = wsReference.getAuthUser();
+		String password = wsReference.getAuthPassword();
 		
         HttpClient client = new HttpClient();
 
@@ -255,12 +266,236 @@ public class WsReference {
 			SoapUI.saveSettings();
 	}
 	
-	private static HttpConnector importWebService(Project project, WebServiceReference webServiceReference) throws Exception
+	private static HttpConnector importRestWebService(Project project, RestServiceReference restServiceReference) throws Exception
+	{
+		try {
+			HttpConnector httpConnector = null;
+			
+			URL restUrl = restServiceReference.getUrl();
+			
+			String jsonString = readFromURL(restUrl);
+		    //System.out.println(jsonString);
+			
+			JSONObject json = new JSONObject(jsonString);
+		    //System.out.println(json.toString(1));
+			
+			httpConnector = createRestConnector(json);
+			
+			project.add(httpConnector);
+			if (project.getDefaultConnector() == null) {
+				project.setDefaultConnector(httpConnector);
+			}
+			project.hasChanged = true;
+			
+			return httpConnector;
+		}
+		catch (Throwable t) {
+			throw new Exception("Unable to import REST service", t);
+		}
+	}
+	
+	public static String readFromURL(URL url) throws Exception {
+		String line;
+		StringBuffer buf = new StringBuffer("");
+        BufferedReader in = null;
+        try {
+    		Boolean isFileUrl = url.getProtocol().equals("file");
+	        in = new BufferedReader(new InputStreamReader(isFileUrl ? new FileInputStream(url.getFile()):url.openStream()));
+	        while ((line = in.readLine()) != null) {
+				buf.append(line);
+				buf.append("\n");
+	        }
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new Exception("Unable to read from URL:"+ url, e);
+		} finally {
+    		try {
+				if (in != null) {
+					in.close();
+				}
+			} catch (IOException e) {}
+        }
+		return buf.toString();
+	}
+	
+	
+	public static HttpConnector createRestConnector(JSONObject swagger) throws Exception {
+		try {
+			HttpConnector httpConnector = new HttpConnector();
+			httpConnector.bNew = true;
+			
+			JSONObject info = swagger.getJSONObject("info");
+			httpConnector.setName(StringUtils.normalize(info.getString("title")));
+			
+			String host = swagger.getString("host");
+			int index = host.indexOf(":");
+			String server = index == -1 ? host : host.substring(0, index);
+			int port = index == -1 ? 0 : Integer.parseInt(host.substring(index+1, 10));
+			httpConnector.setServer(server);
+			httpConnector.setPort(port);
+			
+			String basePath = swagger.getString("basePath");
+			httpConnector.setBaseDir(basePath);
+			
+			JSONArray _produces = new JSONArray();
+			if (swagger.has("produces")) {
+				_produces = swagger.getJSONArray("produces");
+			}
+			
+			JSONObject paths = swagger.getJSONObject("paths");
+			for (Iterator<String> i1 = GenericUtils.cast(paths.keys()); i1.hasNext(); ) {
+				String subDir = i1.next();
+				JSONObject path = paths.getJSONObject(subDir);
+				
+				for (Iterator<String> i2 = GenericUtils.cast(path.keys()); i2.hasNext(); ) {
+					String httpVerb = i2.next();
+					JSONObject json = path.getJSONObject(httpVerb);
+					
+					JSONArray produces = json.has("produces") ? json.getJSONArray("produces"):_produces;
+					
+					AbstractHttpTransaction transaction = new HttpTransaction();
+					for (int i=0; i<produces.length(); i++) {
+						String produce = produces.getString(i);
+						if (produce.equalsIgnoreCase("application/xml")) {
+							transaction = new XmlHttpTransaction();
+							break;
+						}
+						if (produce.equalsIgnoreCase("application/json")) {
+							transaction = new JsonHttpTransaction();
+							break;
+						}
+					}
+					transaction.bNew =  true;
+					
+					//JSONArray consumes = new JSONArray();
+					//if (json.has("consumes")) {
+					//	consumes = json.getJSONArray("consumes");
+					//}
+					
+					XMLVector<XMLVector<String>> httpParameters = transaction.getHttpParameters();
+		   			XMLVector<String> xmlv = new XMLVector<String>();
+		   			xmlv.addElement("Accept");
+		   			if (transaction instanceof XmlHttpTransaction)
+		   				xmlv.addElement("application/xml");
+		   			else if (transaction instanceof JsonHttpTransaction)
+		   				xmlv.addElement("application/json");
+		   			else
+		   				xmlv.addElement("application/xml");
+		   			httpParameters.addElement(xmlv);
+		   			transaction.setHttpParameters(httpParameters);
+					
+					String operationId = "";
+					if (json.has("operationId")) {
+						operationId = json.getString("operationId");
+					}
+					
+					String summary = "";
+					if (json.has("summary")) {
+						summary = json.getString("summary");
+					}
+					
+					String description ="";
+					if (json.has("description")) {
+						description = json.getString("description");
+					}
+					
+					String name = StringUtils.normalize(operationId);
+					if (name.isEmpty()) {
+						name = StringUtils.normalize(summary);
+						if (name.isEmpty()) {
+							name = "operation";
+						}
+					}
+					
+					String comment = summary;
+					if (comment.isEmpty()) {
+						comment = description;
+					}
+					
+					transaction.setName(name);
+					transaction.setComment(comment);
+					transaction.setSubDir(subDir);
+					transaction.setHttpVerb(HttpMethodType.valueOf(httpVerb.toUpperCase()));
+					
+					JSONArray parameters = new JSONArray();
+					if (json.has("parameters")) {
+						parameters = json.getJSONArray("parameters");
+						for (int i=0; i<parameters.length(); i++) {
+							JSONObject parameter = (JSONObject) parameters.get(i);
+							
+							String type = "string";
+							if (parameter.has("collectionFormat")) {
+								type = parameter.getString("type");
+							}
+							
+							String collectionFormat = "csv";
+							if (parameter.has("collectionFormat")) {
+								collectionFormat = parameter.getString("collectionFormat");
+							}
+							
+							boolean isMultiValued = type.equalsIgnoreCase("array") && 
+														collectionFormat.equals("multi");
+							
+							RequestableHttpVariable httpVariable = isMultiValued ? 
+																	new RequestableHttpMultiValuedVariable():
+																	new RequestableHttpVariable();
+							httpVariable.bNew = true;
+							
+							httpVariable.setName(parameter.getString("name"));
+							httpVariable.setHttpName(parameter.getString("name"));
+							
+							String in = parameter.getString("in");
+							if (in.equals("query") || in.equals("path")) {
+								httpVariable.setHttpMethod(HttpMethodType.GET.name());
+							}
+							else if (in.equals("formData") || in.equals("body")) {
+								httpVariable.setHttpMethod(HttpMethodType.POST.name());
+							}
+							else if (in.equals("header")) {
+								httpVariable.setHttpMethod(HttpMethodType.GET.name());
+								httpVariable.setHttpName(Parameter.HttpHeader.getName() + parameter.getString("name"));
+							}
+							else {
+								httpVariable.setHttpMethod("");
+							}
+							
+							Object defaultValue = null;
+							if (parameter.has("default")) {
+								defaultValue = parameter.get("default");
+							}
+							if (defaultValue == null && type.equalsIgnoreCase("array")) {
+								JSONObject items = parameter.getJSONObject("items");
+								if (items.has("default")) {
+									defaultValue = items.get("default");
+								}
+							}
+							httpVariable.setValueOrNull(defaultValue);
+							
+							if (parameter.has("description")) {
+								httpVariable.setDescription(parameter.getString("description"));
+							}
+							
+							transaction.addVariable(httpVariable);
+						}
+					}
+					httpConnector.add(transaction);
+				}
+			}
+			
+			return httpConnector;
+		}
+		catch (Throwable t) {
+			System.out.println(t);
+			throw new Exception("Invalid Swagger JSON", t);
+		}
+	}
+	
+	private static HttpConnector importSoapWebService(Project project, WebServiceReference soapServiceReference) throws Exception
 	{
 		List<HttpConnector> connectors = new ArrayList<HttpConnector>();
 	   	HttpConnector firstConnector = null;
 
-		String wsdlUrl = webServiceReference.getUrlpath();
+		String wsdlUrl = soapServiceReference.getUrlpath();
 		
 	   	WsdlProject wsdlProject = new WsdlProject();
 	   	WsdlInterface[] wsdls = WsdlImporter.importWsdl(wsdlProject, wsdlUrl); 	
@@ -282,12 +517,12 @@ public class WsReference {
 	   			}
 		   		
 	   			// Modify reference's name
-		   		if (webServiceReference.bNew) {
+		   		if (soapServiceReference.bNew) {
 		   			// Note : new reference may have already been added to the project (new object wizard)
 		   			// its name must be replaced with a non existing one !
 	   				String newDatabaseObjectName = project.getChildBeanName(project.getReferenceList(), 
 	   													StringUtils.normalize("Import_WS_" + definitionName), true);
-	   				webServiceReference.setName(newDatabaseObjectName);
+	   				soapServiceReference.setName(newDatabaseObjectName);
 		   		}
 		   		
 		   		// Retrieve directory for WSDLs to download
@@ -308,7 +543,7 @@ public class WsReference {
 						}
 					} catch (Exception ex) {}
 				}*/
-				if (webServiceReference.bNew || exportDir == null) {	// for other cases
+				if (soapServiceReference.bNew || exportDir == null) {	// for other cases
 					String projectDir = Engine.PROJECTS_PATH + "/"+ project.getName();
 					exportDir = new File(projectDir + "/wsdl/" + definitionName);
 			   		for (int index = 1; exportDir.exists(); index++) {
@@ -322,16 +557,16 @@ public class WsReference {
 		   		// Modify reference's filePath : path to local main WSDL
 		   		String wsdlUriPath = new File(wsdlPath).toURI().getPath();
 		   		String wsdlLocalPath = ".//" + wsdlUriPath.substring(wsdlUriPath.indexOf("/wsdl") + 1);
-		   		webServiceReference.setFilepath(wsdlLocalPath);
-		   		webServiceReference.hasChanged = true;
+		   		soapServiceReference.setFilepath(wsdlLocalPath);
+		   		soapServiceReference.hasChanged = true;
 		   		
 				// Add reference to project
-				if (webServiceReference.getParent() == null) {
-					project.add(webServiceReference);
+				if (soapServiceReference.getParent() == null) {
+					project.add(soapServiceReference);
 				}
 			   	
 		   		// create an HTTP connector for each binding
-		   		if (webServiceReference.bNew) {
+		   		if (soapServiceReference.bNew) {
 				   	for (int i=0; i<wsdls.length; i++) {
 					   	iface = wsdls[i];
 					   	if (iface != null) {
@@ -339,7 +574,7 @@ public class WsReference {
 						   	XmlSchemaCollection xmlSchemaCollection = WSDLUtils.readSchemas(definition);
 						   	XmlSchema xmlSchema = xmlSchemaCollection.schemaForNamespace(definition.getTargetNamespace());
 						   	
-					   		HttpConnector httpConnector = createConnector(iface);
+					   		HttpConnector httpConnector = createSoapConnector(iface);
 					   		if (httpConnector != null) {
 					   			String bindingName = iface.getBindingName().getLocalPart();
 				   				String newDatabaseObjectName = project.getChildBeanName(project.getConnectorsList(), 
@@ -349,7 +584,7 @@ public class WsReference {
 					   		   	boolean hasDefaultTransaction = false;
 							   	for (int j=0; j<iface.getOperationCount(); j++) {
 							   		WsdlOperation wsdlOperation = (WsdlOperation)iface.getOperationAt(j);
-								   	XmlHttpTransaction xmlHttpTransaction = createTransaction(xmlSchema, iface, wsdlOperation, project, httpConnector);
+								   	XmlHttpTransaction xmlHttpTransaction = createSoapTransaction(xmlSchema, iface, wsdlOperation, project, httpConnector);
 						   			// Adds transaction
 							   		if (xmlHttpTransaction != null) {
 							   			httpConnector.add(xmlHttpTransaction);
@@ -383,7 +618,7 @@ public class WsReference {
 	   	return firstConnector;
 	}
 	
-	private static HttpConnector createConnector(WsdlInterface iface) throws Exception {
+	private static HttpConnector createSoapConnector(WsdlInterface iface) throws Exception {
    		HttpConnector httpConnector = null;
    		if (iface != null) {
    			httpConnector = new HttpConnector();
@@ -435,7 +670,7 @@ public class WsReference {
 	   	return httpConnector;
 	}
 	
-	private static XmlHttpTransaction createTransaction(XmlSchema xmlSchema, WsdlInterface iface, WsdlOperation operation, Project project, HttpConnector httpConnector) throws ParserConfigurationException, SAXException, IOException, EngineException {
+	private static XmlHttpTransaction createSoapTransaction(XmlSchema xmlSchema, WsdlInterface iface, WsdlOperation operation, Project project, HttpConnector httpConnector) throws ParserConfigurationException, SAXException, IOException, EngineException {
 		XmlHttpTransaction xmlHttpTransaction = null;
 	   	WsdlRequest request;
 	   	String requestXml;
@@ -545,8 +780,8 @@ public class WsReference {
 			
 			// Extract variables
 			List<RequestableHttpVariable> variables = new ArrayList<RequestableHttpVariable>();
-			extractVariables(xmlSchema, variables, header, null, false, null);
-			extractVariables(xmlSchema, variables, body, null, false, null);
+			extractSoapVariables(xmlSchema, variables, header, null, false, null);
+			extractSoapVariables(xmlSchema, variables, body, null, false, null);
 			
 			// Serialize request/response into template xml files
 			String projectName = project.getName();
@@ -582,7 +817,7 @@ public class WsReference {
         }
 	}
 
-	private static void extractVariables(XmlSchema xmlSchema, List<RequestableHttpVariable> variables, Node node, String longName, boolean isMulti, QName variableType) throws EngineException {
+	private static void extractSoapVariables(XmlSchema xmlSchema, List<RequestableHttpVariable> variables, Node node, String longName, boolean isMulti, QName variableType) throws EngineException {
 		if (node == null) return;
 		int type = node.getNodeType();
 		
@@ -603,7 +838,7 @@ public class WsReference {
 					if (atype.startsWith("xsd:")) {
 						String variableName = elementName + "_item";
 						child.appendChild(element.getOwnerDocument().createTextNode("$("+ variableName.toUpperCase() +")"));
-						RequestableHttpVariable httpVariable = createVariable(true, variableName, new QName(Constants.URI_2001_SCHEMA_XSD,atype.split(":")[1]));
+						RequestableHttpVariable httpVariable = createHttpVariable(true, variableName, new QName(Constants.URI_2001_SCHEMA_XSD,atype.split(":")[1]));
 						variables.add(httpVariable);
 					}
 					element.appendChild(child);
@@ -621,7 +856,7 @@ public class WsReference {
 					
 					child.setNodeValue("$("+ variableName.toUpperCase() +")");
 					
-					RequestableHttpVariable httpVariable = createVariable(false, variableName, Constants.XSD_STRING);
+					RequestableHttpVariable httpVariable = createHttpVariable(false, variableName, Constants.XSD_STRING);
 					variables.add(httpVariable);
 				}
 				
@@ -649,12 +884,12 @@ public class WsReference {
 								
 								child.setNodeValue("$("+ variableName.toUpperCase() +")");
 								
-								RequestableHttpVariable httpVariable = createVariable(isMulti, variableName, variableType);
+								RequestableHttpVariable httpVariable = createHttpVariable(isMulti, variableName, variableType);
 								variables.add(httpVariable);
 							}
 						}
 						else if (child.getNodeType() == Node.ELEMENT_NODE) {
-							extractVariables(xmlSchema, variables, child, elementName, multi, qname);
+							extractSoapVariables(xmlSchema, variables, child, elementName, multi, qname);
 							multi = false;
 							qname = Constants.XSD_STRING;
 						}
@@ -711,7 +946,7 @@ public class WsReference {
 		}
 	}
 	
-	private static RequestableHttpVariable createVariable(boolean multi, String variableName, QName schemaTypeName) throws EngineException {
+	private static RequestableHttpVariable createHttpVariable(boolean multi, String variableName, QName schemaTypeName) throws EngineException {
 		RequestableHttpVariable httpVariable = (multi ? new RequestableHttpMultiValuedVariable():new RequestableHttpVariable());
 		httpVariable.setName(variableName);
 		httpVariable.setDescription(variableName);

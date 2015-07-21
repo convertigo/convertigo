@@ -22,17 +22,12 @@
 
 package com.twinsoft.convertigo.eclipse.wizards.references;
 
-public abstract class SchemaFileWizardPage extends RemoteFileWizardPage {
-	public SchemaFileWizardPage(Object parentObject) {
-		super(parentObject, "SchemaFileWizardPage");
-		setTitle("Schema file");
-		setFilterExtension(new String[]{"*.xsd"});
-		setFilterNames(new String[]{"XSD files"});
-	}
-	
-	public SchemaFileWizardPage(Object parentObject, String pageName) {
-		super(parentObject, pageName);
-		setFilterExtension(new String[]{"*.xsd"});
-		setFilterNames(new String[]{"XSD files"});
+public class RestServiceWizardPage extends RemoteFileWizardPage {
+
+	public RestServiceWizardPage(Object parentObject) {
+		super(parentObject, "RestServiceWizardPage");
+		setTitle("REST Web Service");
+		setFilterExtension(new String[]{"*.json", "*.yaml"});
+		setFilterNames(new String[]{"JSON files", "YAML files"});
 	}
 }

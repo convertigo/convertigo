@@ -90,6 +90,10 @@ public class WsReferenceComposite extends Composite {
 			combo.add("http://demo.convertigo.net/cems/projects/globalCompany_accounting_WS/.wsl?wsdl");
 			combo.select(0);
 		}
+		else if (filterExtension[0].equals("*.json")) {
+			combo.add("http://petstore.swagger.io/v2/swagger.json");
+			combo.select(0);
+		}
 		editor.setFilterNames(filterNames);
 		editor.getTextControl(fileSelectionArea).setEnabled(false);
 
@@ -148,8 +152,15 @@ public class WsReferenceComposite extends Composite {
 			editor.setFilterExtensions(filterExtension);
 			if (!filterExtension[0].equals("*.wsdl")) {
 				combo.removeAll();
-			} else {
+			}
+			if (filterExtension[0].equals("*.wsdl")) {
 				String url = "http://www.oorsprong.org/websamples.countryinfo/CountryInfoService.wso?WSDL";
+				if(!Arrays.asList(combo.getItems()).contains(url)){
+					combo.add(url);
+					combo.select(0);
+				}
+			} else if (filterExtension[0].equals("*.json")) {
+				String url = "http://petstore.swagger.io/v2/swagger.json";
 				if(!Arrays.asList(combo.getItems()).contains(url)){
 					combo.add(url);
 					combo.select(0);

@@ -72,6 +72,7 @@ import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.references.ImportXsdSchemaReference;
+import com.twinsoft.convertigo.beans.references.RestServiceReference;
 import com.twinsoft.convertigo.beans.references.WebServiceReference;
 import com.twinsoft.convertigo.beans.references.XsdSchemaReference;
 import com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass;
@@ -108,6 +109,7 @@ import com.twinsoft.convertigo.eclipse.wizards.new_project.EmulatorTechnologyWiz
 import com.twinsoft.convertigo.eclipse.wizards.new_project.SQLQueriesWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.new_project.ServiceCodeWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.references.ProjectSchemaWizardPage;
+import com.twinsoft.convertigo.eclipse.wizards.references.RestServiceWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.references.WebServiceWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.references.WsdlSchemaFileWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.references.XsdSchemaFileWizardPage;
@@ -279,8 +281,11 @@ public class NewObjectWizard extends Wizard {
 			WsdlSchemaFileWizardPage wsdlSchemaWizardPage = new WsdlSchemaFileWizardPage(parentObject);
 			this.addPage(wsdlSchemaWizardPage);
 			
-			WebServiceWizardPage webServiceWizardPage = new WebServiceWizardPage(parentObject);
-			this.addPage(webServiceWizardPage);
+			WebServiceWizardPage soapServiceWizardPage = new WebServiceWizardPage(parentObject);
+			this.addPage(soapServiceWizardPage);
+
+			RestServiceWizardPage restServiceWizardPage = new RestServiceWizardPage(parentObject);
+			this.addPage(restServiceWizardPage);
 		}
 	}
 	
@@ -470,6 +475,20 @@ public class NewObjectWizard extends Wizard {
 								Project project = (Project)parentObject;
 								WebServiceReference webServiceReference = (WebServiceReference)newBean;
 								ImportWsReference wsr = new ImportWsReference(webServiceReference);
+								wsr.importInto(project);
+							} catch (Exception e){
+								if (newBean != null) {
+									parentObject.remove(newBean);
+								}
+								throw new Exception(e.getMessage());
+							}
+						}
+						
+						if (newBean instanceof RestServiceReference) {
+							try {
+								Project project = (Project)parentObject;
+								RestServiceReference restServiceReference = (RestServiceReference)newBean;
+								ImportWsReference wsr = new ImportWsReference(restServiceReference);
 								wsr.importInto(project);
 							} catch (Exception e){
 								if (newBean != null) {

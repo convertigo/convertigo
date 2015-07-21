@@ -25,6 +25,6 @@ package com.twinsoft.convertigo.eclipse.wizards.references;
 public class WebServiceWizardPage extends WsdlSchemaFileWizardPage {
 	public WebServiceWizardPage(Object parentObject) {
 		super(parentObject, "WebServiceWizardPage");
-		setTitle("Web Service");
+		setTitle("SOAP Web Service");
 	}
 }

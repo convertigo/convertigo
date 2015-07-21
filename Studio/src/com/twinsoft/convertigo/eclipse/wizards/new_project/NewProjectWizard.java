@@ -57,6 +57,7 @@ import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.references.WebServiceReference;
 import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
@@ -517,7 +518,14 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 					String login = page10.getLogin();
 					String password = page10.getPassword();
 					
-					ImportWsReference wsr = new ImportWsReference(wsdlURL, needAuth, login, password);
+					WebServiceReference reference = new WebServiceReference();
+				   	reference.setUrlpath(wsdlURL);
+				   	reference.setNeedAuthentication(needAuth);
+				   	reference.setAuthUser(login == null ? "":login);
+				   	reference.setAuthUser(password == null ? "":password);
+				   	reference.bNew = true;
+				   	
+					ImportWsReference wsr = new ImportWsReference(reference);
 					
 					HttpConnector httpConnector = wsr.importInto(project);
 					if (httpConnector != null) {
