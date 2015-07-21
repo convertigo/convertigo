@@ -851,34 +851,6 @@
 	       <action
 	             class="com.twinsoft.convertigo.eclipse.popup.actions.BuildLocallyAction"
 	             enablesFor="1"
-	             icon="icons/studio/run_locally_16x16.png"
-	             id="convertigo.action.runLocally"
-	             label="Run on Device"
-	             menubarPath="convertigo.menu.action.cordova/run" />
-	       <action
-	             class="com.twinsoft.convertigo.eclipse.popup.actions.BuildLocallyAction"
-	             enablesFor="1"
-	             icon="icons/studio/emulate_locally_16x16.png"
-	             id="convertigo.action.emulateLocally"
-	             label="Run on Emulator"
-	             menubarPath="convertigo.menu.action.cordova/run" />
-	       <action
-	             class="com.twinsoft.convertigo.eclipse.popup.actions.BuildLocallyAction"
-	             enablesFor="1"
-	             icon="icons/studio/remove_cordova_platform_16x16.png"
-	             id="convertigo.action.removeCordovaPlatform"
-	             label="Remove platform"
-	             menubarPath="convertigo.menu.action.cordova/clean" />
-	       <action
-	             class="com.twinsoft.convertigo.eclipse.popup.actions.BuildLocallyAction"
-	             enablesFor="1"
-	             icon="icons/studio/remove_cordova_dir_16x16.png"
-	             id="convertigo.action.removeCordovaDirectory"
-	             label="Clear Cordova"
-	             menubarPath="convertigo.menu.action.cordova/clean" />
-	       <action
-	             class="com.twinsoft.convertigo.eclipse.popup.actions.BuildLocallyAction"
-	             enablesFor="1"
 	             icon="icons/studio/build_locally_release_16x16.png"
 	             id="convertigo.action.buildLocallyRelease"
 	             label="Local build(Release)"
@@ -890,6 +862,34 @@
 	             id="convertigo.action.buildLocallyDebug"
 	             label="Local build(Debug)"
 	             menubarPath="convertigo.menu.action.cordova/build" />
+	       <action
+	             class="com.twinsoft.convertigo.eclipse.popup.actions.BuildLocallyAction"
+	             enablesFor="1"
+	             icon="icons/studio/run_locally_16x16.png"
+	             id="convertigo.action.runLocally"
+	             label="Run on Device"
+	             menubarPath="convertigo.menu.action.cordova/run" />
+	       <action
+	             class="com.twinsoft.convertigo.eclipse.popup.actions.BuildLocallyAction"
+	             enablesFor="1"
+	             icon="icons/studio/emulate_locally_16x16.png"
+	             id="convertigo.action.emulateLocally"
+	             label="Run on Emulator"
+	             menubarPath="convertigo.menu.action.cordova/run" />
+<!--	   <action
+	             class="com.twinsoft.convertigo.eclipse.popup.actions.BuildLocallyAction"
+	             enablesFor="1"
+	             icon="icons/studio/remove_cordova_platform_16x16.png"
+	             id="convertigo.action.removeCordovaPlatform"
+	             label="Remove platform"
+	             menubarPath="convertigo.menu.action.cordova/clean" /> -->
+	       <action
+	             class="com.twinsoft.convertigo.eclipse.popup.actions.BuildLocallyAction"
+	             enablesFor="1"
+	             icon="icons/studio/remove_cordova_dir_16x16.png"
+	             id="convertigo.action.removeCordovaDirectory"
+	             label="Clear Cordova"
+	             menubarPath="convertigo.menu.action.cordova/clean" />
 	  </objectContribution>
 	  <objectContribution
 	        id="convertigo.launchMobileApplicationProjectContribution"
