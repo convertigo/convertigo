@@ -74,15 +74,14 @@
 
 	<!-- Native plugin for fullsync project that speedup indexing of documents -->
 	<!-- 
-		Warning !, Local build can fail. To prevent this, modify the build.gradle file and add this above ""repositories" section :
-		// CouchBase:
-		// workaround for "duplicate files during packaging of APK" issue
-		// see https://groups.google.com/d/msg/adt-dev/bl5Rc4Szpzg/wC8cylTWuIEJ
-		packagingOptions {
-			exclude 'META-INF/ASL2.0'
-			exclude 'META-INF/LICENSE'
-			exclude 'META-INF/NOTICE'
-		}
+		Warning !, Local build can fail. To prevent this, modify the build.gradle file and add this into section 'android' :
+		// CouchBase Lite workaround for "duplicate files during packaging of APK" issue
+	    // see https://groups.google.com/d/msg/adt-dev/bl5Rc4Szpzg/wC8cylTWuIEJ
+	    packagingOptions {
+	        exclude 'META-INF/ASL2.0'
+	        exclude 'META-INF/LICENSE'
+	        exclude 'META-INF/NOTICE'
+	    }
 	-->
 	<gap:plugin name="com.couchbase.lite.phonegap" source="plugins.cordova.io" git="https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin.git"/>
     
