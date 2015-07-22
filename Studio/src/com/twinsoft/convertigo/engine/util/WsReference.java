@@ -553,6 +553,7 @@ public class WsReference {
 					transaction.setSubDir(subDir);
 					transaction.setHttpVerb(HttpMethodType.valueOf(httpVerb.toUpperCase()));
 					transaction.setHttpParameters(httpParameters);
+					transaction.setHttpInfo(true);
 					
 					httpConnector.add(transaction);
 				}
