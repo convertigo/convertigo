@@ -426,6 +426,7 @@ public class WsReference {
 						}
 						else if (h_Accept.equals("application/json")) {
 							transaction = new JsonHttpTransaction();
+							((JsonHttpTransaction)transaction).setIncludeDataType(false);
 						}
 						
 					}
