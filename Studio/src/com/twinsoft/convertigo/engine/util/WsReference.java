@@ -30,8 +30,10 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.wsdl.Definition;
 import javax.xml.namespace.QName;
@@ -117,30 +119,41 @@ public class WsReference {
 					// test for valid URL
 					new URL(wsdlUrl);
 					
-					// Configure SoapUI settings
-					if (wsReference instanceof WebServiceReference) {
-						configureSoapUI(wsdlUrl);
-					}
-					
 					needAuthentication = wsReference.needAuthentication();
-					if (needAuthentication) {
-						String login = wsReference.getAuthUser();
-						String password = wsReference.getAuthPassword();
+					
+					// SOAP web service
+					if (wsReference instanceof WebServiceReference) {
 						try {
-							//We add login/password into the connection
-							System.setProperty("soapui.loader.username", login);
-							System.setProperty("soapui.loader.password", password);
+							// Configure SoapUI settings
+							configureSoapUI(wsdlUrl);
 							
-							tryAuthentication(wsReference);
-						} catch (Exception e) {
-							throw new Exception ("Authentication failure !", e);
+							// Authenticate
+							if (needAuthentication) {
+								String login = wsReference.getAuthUser();
+								String password = wsReference.getAuthPassword();
+								try {
+									//We add login/password into the connection
+									System.setProperty("soapui.loader.username", login);
+									System.setProperty("soapui.loader.password", password);
+									
+									tryAuthentication(wsReference);
+								} catch (Exception e) {
+									throw new Exception ("Authentication failure !", e);
+								}
+							}
+							
+							WebServiceReference soapServiceReference = (WebServiceReference)wsReference;
+							return importSoapWebService(project, soapServiceReference);
+						} finally {
+							if (needAuthentication) {
+								//We clear login/password
+								System.setProperty("soapui.loader.username", "");
+								System.setProperty("soapui.loader.password", "");
+							}
 						}
 					}
 					
-					if (wsReference instanceof WebServiceReference) {
-						WebServiceReference soapServiceReference = (WebServiceReference)wsReference;
-						return importSoapWebService(project, soapServiceReference);
-					}
+					// REST web service
 					if (wsReference instanceof RestServiceReference) {
 						RestServiceReference restServiceReference = (RestServiceReference)wsReference;
 						return importRestWebService(project, restServiceReference);
@@ -149,12 +162,6 @@ public class WsReference {
 			}
 		} catch (Throwable t) {
 			throw new EngineException("Unable to import the web service reference", t);
-		} finally {
-			if (needAuthentication) {
-				//We clear login/password
-				System.setProperty("soapui.loader.username", "");
-				System.setProperty("soapui.loader.password", "");
-			}
 		}
 		return null;
 	}
@@ -319,7 +326,7 @@ public class WsReference {
 	}
 	
 	
-	public static HttpConnector createRestConnector(JSONObject swagger) throws Exception {
+	private static HttpConnector createRestConnector(JSONObject swagger) throws Exception {
 		try {
 			HttpConnector httpConnector = new HttpConnector();
 			httpConnector.bNew = true;
@@ -337,9 +344,25 @@ public class WsReference {
 			String basePath = swagger.getString("basePath");
 			httpConnector.setBaseDir(basePath);
 			
+			JSONArray _consumes = new JSONArray();
+			if (swagger.has("consumes")) {
+				_consumes = swagger.getJSONArray("consumes");
+			}
+			
 			JSONArray _produces = new JSONArray();
 			if (swagger.has("produces")) {
 				_produces = swagger.getJSONArray("produces");
+			}
+
+			Map<String, JSONObject> models = new HashMap<String, JSONObject>();
+			JSONObject definitions = new JSONObject();
+			if (swagger.has("definitions")) {
+				definitions = swagger.getJSONObject("definitions");
+				for (Iterator<String> i = GenericUtils.cast(definitions.keys()); i.hasNext(); ) {
+					String key = i.next();
+					JSONObject model = definitions.getJSONObject(key);
+					models.put(key, model);
+				}
 			}
 			
 			JSONObject paths = swagger.getJSONObject("paths");
@@ -351,39 +374,70 @@ public class WsReference {
 					String httpVerb = i2.next();
 					JSONObject json = path.getJSONObject(httpVerb);
 					
-					JSONArray produces = json.has("produces") ? json.getJSONArray("produces"):_produces;
-					
+					XMLVector<XMLVector<String>> httpParameters = new XMLVector<XMLVector<String>>();
 					AbstractHttpTransaction transaction = new HttpTransaction();
+					
+					JSONArray consumes = json.has("consumes") ? json.getJSONArray("consumes"):_consumes;
+					List<String> consumeList = new ArrayList<String>();
+					for (int i=0; i<consumes.length(); i++) {
+						consumeList.add(consumes.getString(i));
+					}
+					
+					String h_ContentType = null;
+					if (consumeList.contains("application/xml")) {
+						h_ContentType = "application/xml";
+					}
+					else if (consumeList.contains("application/json")) {
+						h_ContentType = "application/json";
+					}
+					else {
+						h_ContentType = consumeList.size() > 0 ? 
+								consumeList.get(0):"application/x-www-form-urlencoded";
+					}
+					
+					JSONArray produces = json.has("produces") ? json.getJSONArray("produces"):_produces;
+					List<String> produceList = new ArrayList<String>();
 					for (int i=0; i<produces.length(); i++) {
-						String produce = produces.getString(i);
-						if (produce.equalsIgnoreCase("application/xml")) {
-							transaction = new XmlHttpTransaction();
-							break;
+						produceList.add(produces.getString(i));
+					}
+					
+					String h_Accept = null;
+					if (produceList.contains(h_ContentType)) {
+						h_Accept = h_ContentType;
+					}
+					else {
+						if (produceList.contains("application/xml")) {
+							h_Accept = "application/xml";
 						}
-						if (produce.equalsIgnoreCase("application/json")) {
-							transaction = new JsonHttpTransaction();
-							break;
+						else if (produceList.contains("application/json")) {
+							h_Accept = "application/json";
 						}
 					}
-					transaction.bNew =  true;
 					
-					//JSONArray consumes = new JSONArray();
-					//if (json.has("consumes")) {
-					//	consumes = json.getJSONArray("consumes");
-					//}
+					if (h_Accept != null) {
+						XMLVector<String> xmlv = new XMLVector<String>();
+						xmlv.addElement("Accept");
+						xmlv.addElement(h_Accept);
+			   			httpParameters.addElement(xmlv);
+			   			
+						if (h_Accept.equals("application/xml")) {
+							transaction = new XmlHttpTransaction();
+							((XmlHttpTransaction)transaction).setXmlEncoding("UTF-8");
+						}
+						else if (h_Accept.equals("application/json")) {
+							transaction = new JsonHttpTransaction();
+						}
+						
+					}
 					
-					XMLVector<XMLVector<String>> httpParameters = transaction.getHttpParameters();
-		   			XMLVector<String> xmlv = new XMLVector<String>();
-		   			xmlv.addElement("Accept");
-		   			if (transaction instanceof XmlHttpTransaction)
-		   				xmlv.addElement("application/xml");
-		   			else if (transaction instanceof JsonHttpTransaction)
-		   				xmlv.addElement("application/json");
-		   			else
-		   				xmlv.addElement("application/xml");
-		   			httpParameters.addElement(xmlv);
-		   			transaction.setHttpParameters(httpParameters);
+					if (h_ContentType != null) {
+						XMLVector<String> xmlv = new XMLVector<String>();
+						xmlv.addElement("Content-Type");
+						xmlv.addElement(h_ContentType);
+			   			httpParameters.addElement(xmlv);
+					}
 					
+
 					String operationId = "";
 					if (json.has("operationId")) {
 						operationId = json.getString("operationId");
@@ -411,11 +465,6 @@ public class WsReference {
 					if (comment.isEmpty()) {
 						comment = description;
 					}
-					
-					transaction.setName(name);
-					transaction.setComment(comment);
-					transaction.setSubDir(subDir);
-					transaction.setHttpVerb(HttpMethodType.valueOf(httpVerb.toUpperCase()));
 					
 					JSONArray parameters = new JSONArray();
 					if (json.has("parameters")) {
@@ -450,8 +499,27 @@ public class WsReference {
 							}
 							else if (in.equals("formData") || in.equals("body")) {
 								httpVariable.setHttpMethod(HttpMethodType.POST.name());
+								if (in.equals("body")) {
+									// overrides variable's name for internal use
+									httpVariable.setName(Parameter.HttpBody.getName());
+									
+									// add internal __contentType variable
+									RequestableHttpVariable ct = new RequestableHttpVariable();
+									ct.setName(Parameter.HttpContentType.getName());
+									ct.setHttpName(""); // do not post on remote target server
+									ct.setHttpMethod(HttpMethodType.POST.name());
+									ct.setValueOrNull(null);
+									ct.bNew = true;
+									transaction.addVariable(ct);
+									
+									//
+									if (parameter.has("schema")) {
+										//String schema = parameter.getString("schema");
+									}
+								}
 							}
 							else if (in.equals("header")) {
+								// will be treated as Dynamic header
 								httpVariable.setHttpMethod(HttpMethodType.GET.name());
 								httpVariable.setHttpName(Parameter.HttpHeader.getName() + parameter.getString("name"));
 							}
@@ -478,6 +546,14 @@ public class WsReference {
 							transaction.addVariable(httpVariable);
 						}
 					}
+					
+					transaction.bNew =  true;
+					transaction.setName(name);
+					transaction.setComment(comment);
+					transaction.setSubDir(subDir);
+					transaction.setHttpVerb(HttpMethodType.valueOf(httpVerb.toUpperCase()));
+					transaction.setHttpParameters(httpParameters);
+					
 					httpConnector.add(transaction);
 				}
 			}
