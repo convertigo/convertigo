@@ -34,6 +34,8 @@ public enum Parameter {
 	HtmlStatefull("__statefull"),
 	HttpHeader("__header_"), 			// __header_XX
 	HttpUri("__uri"),
+	HttpBody("__body"),
+	HttpContentType("__contentType"),
 	Lang("__lang"),
 	NoCache("__nocache"),
 	Pool("__pool"),

@@ -296,19 +296,18 @@ public class HttpConnector extends Connector {
 			httpState.clearCookies(); // remove cookies from previous
 										// transaction
 
-		// Looks for content-type
-		boolean isFormUrlEncoded = true;
 
 		httpParameters = httpTransaction.getCurrentHttpParameters();
+		
+		String contentType = "application/x-www-form-urlencoded";
 		
 		for (List<String> httpParameter : httpParameters) {
 			String key = httpParameter.get(0);
 			String value = httpParameter.get(1);
+			
+			// Content-Type
 			if (key.equalsIgnoreCase("Content-Type")) {
-				if (!value.equalsIgnoreCase("application/x-www-form-urlencoded")) {
-					isFormUrlEncoded = false;
-					break;
-				}
+				contentType = value;
 			}
 			
 			// oAuth Parameters are passed as standard Headers
@@ -326,6 +325,7 @@ public class HttpConnector extends Connector {
 			}
 		}
 
+		boolean isFormUrlEncoded = contentType.equalsIgnoreCase("application/x-www-form-urlencoded");
 		
 		// Retrieve request template file if necessary
 		File requestTemplateFile = null;
@@ -568,6 +568,23 @@ public class HttpConnector extends Connector {
 					throw new EngineException(
 							"An unexpected error occured while retrieving the request template file for transaction \""
 									+ httpTransaction.getName() + "\".", e);
+				}
+			}
+			else  {
+				RequestableHttpVariable body = (RequestableHttpVariable) httpTransaction.getVariable(Parameter.HttpBody.getName());
+				if (body != null) {
+					method = body.getHttpMethod();
+					httpObjectVariableValue = httpTransaction.getParameterValue(Parameter.HttpBody.getName());
+					if (method.equals("POST") && httpObjectVariableValue != null) {
+						String bodyContentType = ParameterUtils.toString(httpTransaction.getParameterValue(Parameter.HttpContentType.getName()));
+						if (bodyContentType != null) {
+							// TODO: body conversion
+							if (!contentType.equalsIgnoreCase(bodyContentType)) {
+								
+							}
+						}
+						postQuery = ParameterUtils.toString(httpObjectVariableValue);
+					}
 				}
 			}
 		}

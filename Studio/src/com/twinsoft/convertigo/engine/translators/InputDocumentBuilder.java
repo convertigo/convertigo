@@ -210,6 +210,15 @@ class InputDocumentBuilder {
 		}
 		// This is an internal parameter
 		else if (parameterName.startsWith("__")) {
+			// The Body part for HTTP requests; handled in connector
+			if (parameterName.indexOf(Parameter.HttpBody.getName()) == 0) {
+				return false;
+			}
+			// The Body content type for HTTP requests; handled in connector
+			else if (parameterName.indexOf(Parameter.HttpContentType.getName()) == 0) {
+				return false;
+			}
+			
 			// Probably handled somewhere else; ignoring it
 			Engine.logContext.debug("Convertigo internal variable \"" + parameterName + "\" ignored! (not handled here)");
 		}
