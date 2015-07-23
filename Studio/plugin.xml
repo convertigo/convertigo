@@ -1621,6 +1621,19 @@
             id="convertigo.folderContribution"
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject">
          <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateListenerAction"
+               enablesFor="1"
+               icon="icons/studio/menu/listener_color_16x16.png"
+               id="convertigo.action.newListener"
+               label="Listener"
+               menubarPath="convertigo.menu.new/content">
+            <enablement>
+               <objectState
+                     name="folderType"
+                     value="16"/>
+            </enablement>
+         </action>
+         <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateTransactionAction"
                enablesFor="1"
                icon="icons/studio/menu/transaction_color_16x16.png"
