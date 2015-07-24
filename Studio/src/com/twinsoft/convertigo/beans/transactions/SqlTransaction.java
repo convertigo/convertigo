@@ -388,11 +388,12 @@ public class SqlTransaction extends TransactionWithVariables {
 		logHiddenValues.clear();
 		
 		String preparedSqlQuery = sqlQueryInfos.getQuery();
-		
-		// Add the removed semicolon (required in some case - e.g : SQL server MERGE)
-		int len = preparedSqlQuery.length();
-		if (len > 0 && preparedSqlQuery.charAt(len-1) != ';')
-			preparedSqlQuery = preparedSqlQuery +";";
+
+//		// Commented code for #4800 : following fix does'nt work -> need to have a special syntax to add semicolon(s)
+//		// Add the removed semicolon (required in some case - e.g : SQL server MERGE)
+//		int len = preparedSqlQuery.length();
+//		if (len > 0 && preparedSqlQuery.charAt(len-1) != ';')
+//			preparedSqlQuery = preparedSqlQuery +";";
 		
 		// Limit number of result
 		if (sqlQueryInfos.getType() == SqlKeywords.select) {
