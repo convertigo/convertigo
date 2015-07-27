@@ -27,7 +27,7 @@ public class RestServiceWizardPage extends RemoteFileWizardPage {
 	public RestServiceWizardPage(Object parentObject) {
 		super(parentObject, "RestServiceWizardPage");
 		setTitle("REST Web Service");
-		setFilterExtension(new String[]{"*.json", "*.yaml"});
-		setFilterNames(new String[]{"JSON files", "YAML files"});
+		setFilterExtension(new String[]{"*.yaml", "*.json"});
+		setFilterNames(new String[]{"YAML files", "JSON files"});
 	}
 }

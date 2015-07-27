@@ -19,6 +19,7 @@
 package com.twinsoft.convertigo.eclipse.dialogs;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -44,6 +45,15 @@ public class WsReferenceComposite extends Composite {
 	private FileFieldEditor editor = null;
 	private Composite fileSelectionArea = null;	
 	private GridData data = null;
+	
+	private static final List<String> soapUrls = Arrays.asList(
+					"http://www.oorsprong.org/websamples.countryinfo/CountryInfoService.wso?WSDL", 
+					"http://demo.convertigo.net/cems/projects/globalCompany_HR_WS/.wsl?wsdl", 
+					"http://demo.convertigo.net/cems/projects/globalCompany_accounting_WS/.wsl?wsdl");
+	
+	private static final List<String> restUrls = Arrays.asList(
+			"http://petstore.swagger.io/v2/swagger.yaml",
+			"http://petstore.swagger.io/v2/swagger.json");
 	
 	public WsReferenceComposite(Composite parent, int style, GridData gridData) {
 		super(parent, style);
@@ -81,17 +91,18 @@ public class WsReferenceComposite extends Composite {
 		gridData.grabExcessHorizontalSpace = true;
 		gridData.horizontalSpan = 2;
 		
-		editor = new FileFieldEditor("fileSelect", "Select File: ",
-				fileSelectionArea);
+		editor = new FileFieldEditor("fileSelect", "Select File: ", fileSelectionArea);
 		editor.setFilterExtensions(filterExtension);
 		if (filterExtension[0].equals("*.wsdl")) {
-			combo.add("http://www.oorsprong.org/websamples.countryinfo/CountryInfoService.wso?WSDL");
-			combo.add("http://demo.convertigo.net/cems/projects/globalCompany_HR_WS/.wsl?wsdl");
-			combo.add("http://demo.convertigo.net/cems/projects/globalCompany_accounting_WS/.wsl?wsdl");
+			for (String url : soapUrls) {
+				combo.add(url);
+			}
 			combo.select(0);
 		}
-		else if (filterExtension[0].equals("*.json")) {
-			combo.add("http://petstore.swagger.io/v2/swagger.json");
+		else if (filterExtension[0].equals("*.yaml")) {
+			for (String url : restUrls) {
+				combo.add(url);
+			}
 			combo.select(0);
 		}
 		editor.setFilterNames(filterNames);
@@ -150,21 +161,21 @@ public class WsReferenceComposite extends Composite {
 		if (filterExtension != null && filterExtension.length > 0) {
 			this.filterExtension = filterExtension;
 			editor.setFilterExtensions(filterExtension);
-			if (!filterExtension[0].equals("*.wsdl")) {
-				combo.removeAll();
-			}
+			combo.removeAll();
 			if (filterExtension[0].equals("*.wsdl")) {
-				String url = "http://www.oorsprong.org/websamples.countryinfo/CountryInfoService.wso?WSDL";
-				if(!Arrays.asList(combo.getItems()).contains(url)){
-					combo.add(url);
-					combo.select(0);
+				for (String url : soapUrls) {
+					if(!Arrays.asList(combo.getItems()).contains(url)) {
+						combo.add(url);
+					}
 				}
-			} else if (filterExtension[0].equals("*.json")) {
-				String url = "http://petstore.swagger.io/v2/swagger.json";
-				if(!Arrays.asList(combo.getItems()).contains(url)){
-					combo.add(url);
-					combo.select(0);
+				combo.select(0);
+			} else if (filterExtension[0].equals("*.yaml")) {
+				for (String url : restUrls) {
+					if(!Arrays.asList(combo.getItems()).contains(url)) {
+						combo.add(url);
+					}
 				}
+				combo.select(0);
 			}
 		}
 	}
