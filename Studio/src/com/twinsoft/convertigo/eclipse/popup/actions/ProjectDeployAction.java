@@ -22,6 +22,9 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
@@ -30,7 +33,9 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.dialogs.ProjectChooseTestCasesDialog;
 import com.twinsoft.convertigo.eclipse.dialogs.ProjectDeployDialog;
 import com.twinsoft.convertigo.eclipse.dialogs.ProjectDeployDialogComposite;
 import com.twinsoft.convertigo.eclipse.dialogs.ProjectVersionUpdateDialog;
@@ -76,10 +81,24 @@ public class ProjectDeployAction extends MyAbstractAction {
 					else
 						bDeploy = false;
     			}
+    			
+    			ProjectChooseTestCasesDialog dlgTC = null;
+            	List<TestCase> listTestCasesSelected = new ArrayList<TestCase>();
+            	boolean checkTestCases = dlg.isCheckTestCases();
+            	
+            	if (checkTestCases) {
+            		dlgTC = new ProjectChooseTestCasesDialog(shell, project);
+					if (dlgTC.open() == Window.OK) {
+						listTestCasesSelected = dlgTC.getTestCasesMap();
+					}
+            	}
+    			
     			if (bDeploy) {
-	            	ProjectDeployDialog projectDeployDialog = new ProjectDeployDialog(shell, ProjectDeployDialogComposite.class, "Deploy a Convertigo project");
+	            	ProjectDeployDialog projectDeployDialog = new ProjectDeployDialog(shell, ProjectDeployDialogComposite.class, 
+	            			"Deploy a Convertigo project", listTestCasesSelected);
 	            	projectDeployDialog.open();
-	        		if (projectDeployDialog.getReturnCode() != Window.CANCEL) {
+	            	
+	        		if (projectDeployDialog.getReturnCode() != Window.CANCEL) { 
 	        			
 	        		}
     			}

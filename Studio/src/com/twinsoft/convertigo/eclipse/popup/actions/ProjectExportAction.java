@@ -24,6 +24,7 @@ package com.twinsoft.convertigo.eclipse.popup.actions;
 
 import java.awt.Toolkit;
 import java.io.File;
+import java.util.List;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.window.Window;
@@ -34,7 +35,9 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.dialogs.ProjectChooseTestCasesDialog;
 import com.twinsoft.convertigo.eclipse.dialogs.ProjectVersionUpdateDialog;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
@@ -80,6 +83,17 @@ public class ProjectExportAction extends MyAbstractAction {
             	fileDialog.setFilterNames(new String[]{"Convertigo archives","Convertigo projects"});
             	fileDialog.setFilterPath(Engine.PROJECTS_PATH);
             	fileDialog.setFileName(projectArchive);
+
+            	ProjectChooseTestCasesDialog dlgTC = null;
+            	List<TestCase> listTestCasesSelected = null;
+            	boolean checkTestCases = dlg.isCheckTestCases();
+            	
+            	if (checkTestCases) {
+            		dlgTC = new ProjectChooseTestCasesDialog(shell, project);
+					if (dlgTC.open()==Window.OK) {
+						listTestCasesSelected = dlgTC.getTestCasesMap();
+					}
+            	}
             	
             	String filePath = fileDialog.open();
             	if (filePath != null) {
@@ -93,7 +107,7 @@ public class ProjectExportAction extends MyAbstractAction {
 								ConvertigoPlugin.warningMessageBox("Error when deleting the file "+file.getName()+"! Please verify access rights!");
 								return;
 							}
-						}else{
+						} else {
 							return;
 						}
 					}
@@ -114,14 +128,21 @@ public class ProjectExportAction extends MyAbstractAction {
         					ConvertigoPlugin.logWarning("Xml file and project must have same name!");
         					return;
     					}
-            			
-    					CarUtils.exportProject(project, filePath);
-    				}
+    					if (checkTestCases) {
+    						CarUtils.exportProject(project, filePath, listTestCasesSelected);
+    					} else {
+    						CarUtils.exportProject(project, filePath);
+    					}
+            		}
     				else if (filePath.endsWith(".car")) {
     					if (!overriddenProjectName.equals(exportName)) {
     						exportName = overriddenProjectName;
     					}
-						CarUtils.makeArchive(file.getParent(), project, exportName);
+    					if (checkTestCases) {
+    						CarUtils.makeArchive(file.getParent(), project, exportName, listTestCasesSelected);
+    					} else {
+    						CarUtils.makeArchive(file.getParent(), project, exportName);	
+    					}
     				}
     				else {
     					Toolkit.getDefaultToolkit().beep();

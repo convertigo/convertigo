@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.eclipse.dialogs;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
@@ -33,6 +34,7 @@ public class ProjectVersionUpdateDialogComposite extends MyAbstractDialogComposi
 
 	private String version = "";
 	public Text text =  null;
+	public Button checkBoxTestCase = null;
 	
 	public ProjectVersionUpdateDialogComposite(Composite parent, int style, String version) {
 		super(parent, style);
@@ -59,12 +61,24 @@ public class ProjectVersionUpdateDialogComposite extends MyAbstractDialogComposi
 		text.setText (version);
 		text.setLayoutData(textData);
 		
+		GridData checkData = new GridData ();
+		checkData.horizontalAlignment = GridData.END;
+		checkData.grabExcessHorizontalSpace = true;
+		
+		checkBoxTestCase = new Button(this, SWT.CHECK);
+		checkBoxTestCase.setText("Choose tests cases to export");
+		checkBoxTestCase.setLayoutData(checkData);
+		
 		GridLayout gridLayout = new GridLayout();
 		setLayout(gridLayout);
 	}
 	
 	public Text getTextControl() {
 		return text;
+	}
+
+	public Button getCheckBoxControl(){
+		return checkBoxTestCase;
 	}
 	
 	@Override

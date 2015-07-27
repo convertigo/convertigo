@@ -27,7 +27,10 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
@@ -37,6 +40,7 @@ public class ProjectVersionUpdateDialog extends Dialog {
 	private ProjectVersionUpdateDialogComposite dlgComposite = null;
 	private String version = "";
 	public String result = null;
+	private boolean checkTestCases = false;
 	
 	public ProjectVersionUpdateDialog(Shell parent, String version) {
 		super(parent);
@@ -56,6 +60,18 @@ public class ProjectVersionUpdateDialog extends Dialog {
 				public void modifyText(ModifyEvent arg0) {
 					enableOK(!version.equals(dlgComposite.getValue(null)));
 				}
+			});
+			
+			final Button checkTestCases = dlgComposite.getCheckBoxControl();
+			checkTestCases.addSelectionListener(new SelectionListener() {				
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					Button button = (Button) e.widget;
+					setCheckTestCases(button.getSelection()); 
+				}
+				
+				@Override
+				public void widgetDefaultSelected(SelectionEvent e) {}
 			});
 		}
 		catch (Exception e) {};
@@ -93,5 +109,12 @@ public class ProjectVersionUpdateDialog extends Dialog {
 		}
 		super.okPressed();
 	}
-
+	
+	public void setCheckTestCases(boolean value) {
+		this.checkTestCases = value;
+	}
+	
+	public boolean isCheckTestCases() {
+		return checkTestCases;
+	}
 }

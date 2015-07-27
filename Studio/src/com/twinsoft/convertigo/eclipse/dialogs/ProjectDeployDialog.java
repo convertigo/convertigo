@@ -27,7 +27,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -42,6 +44,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 
+import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.DeploymentConfiguration;
 import com.twinsoft.convertigo.eclipse.DeploymentConfigurationReadOnly;
@@ -65,9 +68,11 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 	boolean trustAllCertificates = false;
 	boolean isHttps = false;
 	boolean bAssembleXsl = false;
+	private List<TestCase> listTestCasesSelected = new ArrayList<TestCase>(); 
 	
-	public ProjectDeployDialog(Shell parentShell, Class<? extends Composite> dialogAreaClass, String dialogTitle) {
+	public ProjectDeployDialog(Shell parentShell, Class<? extends Composite> dialogAreaClass, String dialogTitle, List<TestCase> listTestCasesSelected) {
 		super(parentShell, dialogAreaClass, dialogTitle, 460, 500);
+		this.listTestCasesSelected = listTestCasesSelected;
 	}
 	
 	@Override
@@ -299,7 +304,11 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 			setTextLabel("Archive creation");
 			ConvertigoPlugin.logDebug("Creation of the archive...");
 			try {				
-				CarUtils.makeArchive(ConvertigoPlugin.projectManager.currentProject);
+				if (listTestCasesSelected.size() > 0) {
+					CarUtils.makeArchive(ConvertigoPlugin.projectManager.currentProject, listTestCasesSelected);
+				} else {
+					CarUtils.makeArchive(ConvertigoPlugin.projectManager.currentProject);
+				}
 			}
 			catch(com.twinsoft.convertigo.engine.EngineException e) {
 				throw new com.twinsoft.convertigo.engine.EngineException("The archive creation has failed: (EngineException) "+ e.getMessage());

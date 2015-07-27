@@ -45,6 +45,7 @@ import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
@@ -59,9 +60,17 @@ public class CarUtils {
 	public static void makeArchive(Project project) throws EngineException {
 		makeArchive(Engine.PROJECTS_PATH, project);
 	}
+	
+	public static void makeArchive(Project project, List<TestCase> listTestCasesSelected) throws EngineException {
+		makeArchive(Engine.PROJECTS_PATH, project, listTestCasesSelected);
+	}
 
 	public static void makeArchive(String dir, Project project) throws EngineException {
 		makeArchive(dir, project, project.getName());
+	}
+	
+	public static void makeArchive(String dir, Project project, List<TestCase> listTestCasesSelected) throws EngineException {
+		makeArchive(dir, project, project.getName(), listTestCasesSelected);
 	}
 	
 	public static void makeArchive(String dir, Project project, String exportName) throws EngineException {
@@ -71,6 +80,23 @@ public class CarUtils {
 			// Export the project
 			String exportedProjectFileName = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml";
 			exportProject(project, exportedProjectFileName);
+			
+			// Create Convertigo archive
+			String projectArchiveFilename = dir + "/" + exportName + ".car";
+			ZipUtils.makeZip(projectArchiveFilename, Engine.PROJECTS_PATH + "/" + projectName, projectName, undeployedFiles);
+		} catch(Exception e) {
+			throw new EngineException("Unable to make the archive file for the project \"" + projectName + "\".", e);
+		}
+	}
+	
+	public static void makeArchive(String dir, Project project, String exportName, 
+			List<TestCase> listTestCasesSelected) throws EngineException {
+		List<File> undeployedFiles= getUndeployedFiles(project.getName());	
+		String projectName = project.getName();
+		try {
+			// Export the project
+			String exportedProjectFileName = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml";
+			exportProject(project, exportedProjectFileName, listTestCasesSelected);
 			
 			// Create Convertigo archive
 			String projectArchiveFilename = dir + "/" + exportName + ".car";
@@ -99,7 +125,17 @@ public class CarUtils {
 	}
 
 	public static void exportProject(Project project, String fileName) throws EngineException {
-		Document document = exportProject(project);
+		Document document = exportProject(project, new ArrayList<TestCase>());
+		exportXMLProject(fileName, document);
+	}
+	
+	public static void exportProject(Project project, String fileName, 
+			List<TestCase> selectedTestCases) throws EngineException {
+		Document document = exportProject(project, selectedTestCases);
+		exportXMLProject(fileName, document);
+	}
+	
+	private static void exportXMLProject(String fileName, Document document) throws EngineException {
 		try {
 			Transformer transformer = TransformerFactory.newInstance().newTransformer();
 			
@@ -119,8 +155,9 @@ public class CarUtils {
 			throw new EngineException("(CarUtils) exportProject failed", e);
 		}
 	}
-
-	private static Document exportProject(Project project) throws EngineException {
+	
+	private static Document exportProject(Project project, final List<TestCase> selectedTestCases) 
+			throws EngineException {
 		long exportTime = project.getExportTime();
 		try {
 			final Document document = XMLUtils.getDefaultDocumentBuilder().newDocument();
@@ -169,7 +206,14 @@ public class CarUtils {
 					String closepad = StringUtils.repeat("   ", depth);
 					parentElement.appendChild(document.createTextNode("\n"));
 					parentElement.appendChild(document.createComment(StringUtils.rightPad(openpad + "<" + name + ">", 150)));
-					parentElement.appendChild(element);
+					
+					if (databaseObject instanceof TestCase && selectedTestCases.size() > 0) { 
+						if (selectedTestCases.contains((TestCase)databaseObject)) {
+							parentElement.appendChild(element);
+						} 
+					} else {
+						parentElement.appendChild(element);
+					}
 					
 					document.setUserData("depth", depth + 1, null);
 					
@@ -194,7 +238,7 @@ public class CarUtils {
 			throw new EngineException("Unable to export the project \"" + project.getName() + "\".", e);
 		}
 	}
-
+	
 	/*
 	 * Returns an ArrayList of abstract pathnames denoting the files and directories
 	 * in the directory denoted by this abstract pathname
