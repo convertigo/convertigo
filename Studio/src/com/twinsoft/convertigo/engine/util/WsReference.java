@@ -22,6 +22,21 @@
 
 package com.twinsoft.convertigo.engine.util;
 
+import io.swagger.models.Info;
+import io.swagger.models.Model;
+import io.swagger.models.Operation;
+import io.swagger.models.Path;
+import io.swagger.models.Swagger;
+import io.swagger.models.parameters.AbstractSerializableParameter;
+import io.swagger.models.parameters.BodyParameter;
+import io.swagger.models.parameters.FormParameter;
+import io.swagger.models.parameters.HeaderParameter;
+import io.swagger.models.parameters.PathParameter;
+import io.swagger.models.parameters.QueryParameter;
+import io.swagger.models.parameters.SerializableParameter;
+import io.swagger.models.properties.Property;
+import io.swagger.parser.SwaggerParser;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -278,21 +293,30 @@ public class WsReference {
 		try {
 			HttpConnector httpConnector = null;
 			
-			URL restUrl = restServiceReference.getUrl();
-			
-			String jsonString = readFromURL(restUrl);
-		    //System.out.println(jsonString);
-			
-			JSONObject json = new JSONObject(jsonString);
-		    //System.out.println(json.toString(1));
-			
-			httpConnector = createRestConnector(json);
-			
-			project.add(httpConnector);
-			if (project.getDefaultConnector() == null) {
-				project.setDefaultConnector(httpConnector);
+			if (restServiceReference == null) {
+				throw new Exception("Reference is null");
 			}
-			project.hasChanged = true;
+			
+			// Try to parse as a Swagger definition
+			Swagger swagger = new SwaggerParser().read(restServiceReference.getUrlpath());
+			if (swagger != null) {
+				httpConnector = createRestConnector(swagger);
+			}
+			// Try to parse as a ? definition
+			else {
+				//String jsonString = readFromURL(restServiceReference.getUrl());
+				//httpConnector = createRestConnector(new JSONObject(jsonString));
+				
+				throw new Exception("Invalid Swagger definition");
+			}
+			
+			if (httpConnector != null) {
+				project.add(httpConnector);
+				if (project.getDefaultConnector() == null) {
+					project.setDefaultConnector(httpConnector);
+				}
+				project.hasChanged = true;
+			}
 			
 			return httpConnector;
 		}
@@ -301,7 +325,8 @@ public class WsReference {
 		}
 	}
 	
-	public static String readFromURL(URL url) throws Exception {
+	@SuppressWarnings("unused")
+	private static String readFromURL(URL url) throws Exception {
 		String line;
 		StringBuffer buf = new StringBuffer("");
         BufferedReader in = null;
@@ -326,38 +351,39 @@ public class WsReference {
 	}
 	
 	
-	private static HttpConnector createRestConnector(JSONObject swagger) throws Exception {
+	@SuppressWarnings("unused")
+	private static HttpConnector createRestConnector(JSONObject json) throws Exception {
 		try {
 			HttpConnector httpConnector = new HttpConnector();
 			httpConnector.bNew = true;
 			
-			JSONObject info = swagger.getJSONObject("info");
+			JSONObject info = json.getJSONObject("info");
 			httpConnector.setName(StringUtils.normalize(info.getString("title")));
 			
-			String host = swagger.getString("host");
+			String host = json.getString("host");
 			int index = host.indexOf(":");
 			String server = index == -1 ? host : host.substring(0, index);
 			int port = index == -1 ? 0 : Integer.parseInt(host.substring(index+1, 10));
 			httpConnector.setServer(server);
 			httpConnector.setPort(port);
 			
-			String basePath = swagger.getString("basePath");
+			String basePath = json.getString("basePath");
 			httpConnector.setBaseDir(basePath);
 			
 			JSONArray _consumes = new JSONArray();
-			if (swagger.has("consumes")) {
-				_consumes = swagger.getJSONArray("consumes");
+			if (json.has("consumes")) {
+				_consumes = json.getJSONArray("consumes");
 			}
 			
 			JSONArray _produces = new JSONArray();
-			if (swagger.has("produces")) {
-				_produces = swagger.getJSONArray("produces");
+			if (json.has("produces")) {
+				_produces = json.getJSONArray("produces");
 			}
 
 			Map<String, JSONObject> models = new HashMap<String, JSONObject>();
 			JSONObject definitions = new JSONObject();
-			if (swagger.has("definitions")) {
-				definitions = swagger.getJSONObject("definitions");
+			if (json.has("definitions")) {
+				definitions = json.getJSONObject("definitions");
 				for (Iterator<String> i = GenericUtils.cast(definitions.keys()); i.hasNext(); ) {
 					String key = i.next();
 					JSONObject model = definitions.getJSONObject(key);
@@ -365,19 +391,19 @@ public class WsReference {
 				}
 			}
 			
-			JSONObject paths = swagger.getJSONObject("paths");
+			JSONObject paths = json.getJSONObject("paths");
 			for (Iterator<String> i1 = GenericUtils.cast(paths.keys()); i1.hasNext(); ) {
 				String subDir = i1.next();
 				JSONObject path = paths.getJSONObject(subDir);
 				
 				for (Iterator<String> i2 = GenericUtils.cast(path.keys()); i2.hasNext(); ) {
 					String httpVerb = i2.next();
-					JSONObject json = path.getJSONObject(httpVerb);
+					JSONObject verb = path.getJSONObject(httpVerb);
 					
 					XMLVector<XMLVector<String>> httpParameters = new XMLVector<XMLVector<String>>();
 					AbstractHttpTransaction transaction = new HttpTransaction();
 					
-					JSONArray consumes = json.has("consumes") ? json.getJSONArray("consumes"):_consumes;
+					JSONArray consumes = verb.has("consumes") ? verb.getJSONArray("consumes"):_consumes;
 					List<String> consumeList = new ArrayList<String>();
 					for (int i=0; i<consumes.length(); i++) {
 						consumeList.add(consumes.getString(i));
@@ -395,7 +421,7 @@ public class WsReference {
 								consumeList.get(0):"application/x-www-form-urlencoded";
 					}
 					
-					JSONArray produces = json.has("produces") ? json.getJSONArray("produces"):_produces;
+					JSONArray produces = verb.has("produces") ? verb.getJSONArray("produces"):_produces;
 					List<String> produceList = new ArrayList<String>();
 					for (int i=0; i<produces.length(); i++) {
 						produceList.add(produces.getString(i));
@@ -440,18 +466,18 @@ public class WsReference {
 					
 
 					String operationId = "";
-					if (json.has("operationId")) {
-						operationId = json.getString("operationId");
+					if (verb.has("operationId")) {
+						operationId = verb.getString("operationId");
 					}
 					
 					String summary = "";
-					if (json.has("summary")) {
-						summary = json.getString("summary");
+					if (verb.has("summary")) {
+						summary = verb.getString("summary");
 					}
 					
 					String description ="";
-					if (json.has("description")) {
-						description = json.getString("description");
+					if (verb.has("description")) {
+						description = verb.getString("description");
 					}
 					
 					String name = StringUtils.normalize(operationId);
@@ -468,8 +494,8 @@ public class WsReference {
 					}
 					
 					JSONArray parameters = new JSONArray();
-					if (json.has("parameters")) {
-						parameters = json.getJSONArray("parameters");
+					if (verb.has("parameters")) {
+						parameters = verb.getJSONArray("parameters");
 						for (int i=0; i<parameters.length(); i++) {
 							JSONObject parameter = (JSONObject) parameters.get(i);
 							
@@ -495,8 +521,13 @@ public class WsReference {
 							httpVariable.setHttpName(parameter.getString("name"));
 							
 							String in = parameter.getString("in");
-							if (in.equals("query") || in.equals("path")) {
+							if (in.equals("query") || in.equals("path") || in.equals("header")) {
 								httpVariable.setHttpMethod(HttpMethodType.GET.name());
+								if (in.equals("header")) {
+									// overrides variable's name : will be treated as dynamic header
+									httpVariable.setName(Parameter.HttpHeader.getName() + parameter.getString("name"));
+									httpVariable.setHttpName(""); // do not post on target server
+								}
 							}
 							else if (in.equals("formData") || in.equals("body")) {
 								httpVariable.setHttpMethod(HttpMethodType.POST.name());
@@ -507,7 +538,7 @@ public class WsReference {
 									// add internal __contentType variable
 									RequestableHttpVariable ct = new RequestableHttpVariable();
 									ct.setName(Parameter.HttpContentType.getName());
-									ct.setHttpName(""); // do not post on remote target server
+									ct.setHttpName(""); // do not post on target server
 									ct.setHttpMethod(HttpMethodType.POST.name());
 									ct.setValueOrNull(null);
 									ct.bNew = true;
@@ -518,11 +549,6 @@ public class WsReference {
 										//String schema = parameter.getString("schema");
 									}
 								}
-							}
-							else if (in.equals("header")) {
-								// will be treated as Dynamic header
-								httpVariable.setHttpMethod(HttpMethodType.GET.name());
-								httpVariable.setHttpName(Parameter.HttpHeader.getName() + parameter.getString("name"));
 							}
 							else {
 								httpVariable.setHttpMethod("");
@@ -564,7 +590,243 @@ public class WsReference {
 		}
 		catch (Throwable t) {
 			System.out.println(t);
-			throw new Exception("Invalid Swagger JSON", t);
+			throw new Exception("Invalid Swagger format", t);
+		}
+	}
+	
+	private static HttpConnector createRestConnector(Swagger swagger) throws Exception {
+		try {
+			HttpConnector httpConnector = new HttpConnector();
+			httpConnector.bNew = true;
+			
+			Info info = swagger.getInfo();
+			httpConnector.setName(StringUtils.normalize(info.getTitle()));
+			
+			String host = swagger.getHost();
+			int index = host.indexOf(":");
+			String server = index == -1 ? host : host.substring(0, index);
+			int port = index == -1 ? 0 : Integer.parseInt(host.substring(index+1, 10));
+			httpConnector.setServer(server);
+			httpConnector.setPort(port);
+			
+			String basePath = swagger.getBasePath();
+			httpConnector.setBaseDir(basePath);
+			
+			List<String> _consumeList = swagger.getConsumes();
+			List<String> _produceList = swagger.getProduces();
+
+			//Map<String, Model> models = swagger.getDefinitions();
+			
+			Map<String, Path> paths = swagger.getPaths();
+			for (String subDir : paths.keySet()) {
+				Path path = paths.get(subDir);
+				
+				// Add transactions
+				List<Operation> operations = path.getOperations();
+				for (Operation operation : operations) {
+					List<String> consumeList = operation.getConsumes();
+					consumeList = consumeList== null || consumeList.isEmpty() ? _consumeList : consumeList;
+					
+					List<String> produceList = operation.getProduces();
+					produceList = produceList== null || produceList.isEmpty() ? _produceList : produceList;
+					
+					String operationId = operation.getOperationId();
+					String description = operation.getDescription();
+					String summary = operation.getSummary();
+					
+					String name = StringUtils.normalize(operationId);
+					if (name.isEmpty()) {
+						name = StringUtils.normalize(summary);
+						if (name.isEmpty()) {
+							name = "operation";
+						}
+					}
+					
+					String comment = summary;
+					if (comment.isEmpty()) {
+						comment = description;
+					}
+					
+					HttpMethodType httpMethodType = null;
+					if (operation.equals(path.getGet())) {
+						httpMethodType = HttpMethodType.GET;
+					}
+					else if (operation.equals(path.getPost())) {
+						httpMethodType = HttpMethodType.POST;
+					}
+					else if (operation.equals(path.getPut())) {
+						httpMethodType = HttpMethodType.PUT;
+					}
+					else if (operation.equals(path.getDelete())) {
+						httpMethodType = HttpMethodType.DELETE;
+					}
+					else if (operation.equals(path.getOptions())) {
+						httpMethodType = HttpMethodType.OPTIONS;
+					}
+					
+					XMLVector<XMLVector<String>> httpParameters = new XMLVector<XMLVector<String>>();
+					AbstractHttpTransaction transaction = new HttpTransaction();
+					
+					String h_ContentType = "application/x-www-form-urlencoded";
+					if (consumeList != null) {
+						if (consumeList.contains("application/xml")) {
+							h_ContentType = "application/xml";
+						}
+						else if (consumeList.contains("application/json")) {
+							h_ContentType = "application/json";
+						}
+						else {
+							h_ContentType = consumeList.size() > 0 ? 
+									consumeList.get(0):"application/x-www-form-urlencoded";
+						}
+					}
+					
+					String h_Accept = "application/xml";
+					if (produceList != null) {
+						if (produceList.contains(h_ContentType)) {
+							h_Accept = h_ContentType;
+						}
+						else {
+							if (produceList.contains("application/xml")) {
+								h_Accept = "application/xml";
+							}
+							else if (produceList.contains("application/json")) {
+								h_Accept = "application/json";
+							}
+						}
+					}
+					
+					if (h_Accept != null) {
+						XMLVector<String> xmlv = new XMLVector<String>();
+						xmlv.addElement("Accept");
+						xmlv.addElement(h_Accept);
+			   			httpParameters.addElement(xmlv);
+			   			
+						if (h_Accept.equals("application/xml")) {
+							transaction = new XmlHttpTransaction();
+							((XmlHttpTransaction)transaction).setXmlEncoding("UTF-8");
+						}
+						else if (h_Accept.equals("application/json")) {
+							transaction = new JsonHttpTransaction();
+							((JsonHttpTransaction)transaction).setIncludeDataType(false);
+						}
+						
+					}
+					
+					if (h_ContentType != null) {
+						XMLVector<String> xmlv = new XMLVector<String>();
+						xmlv.addElement("Content-Type");
+						xmlv.addElement(h_ContentType);
+			   			httpParameters.addElement(xmlv);
+					}
+					
+					// Add variables
+					List<io.swagger.models.parameters.Parameter> parameters = operation.getParameters();
+					for (io.swagger.models.parameters.Parameter parameter : parameters) {
+						//String p_access = parameter.getAccess();
+						String p_description = parameter.getDescription();
+						//String p_in = parameter.getIn();
+						String p_name = parameter.getName();
+						//String p_pattern = parameter.getPattern();
+						//boolean p_required = parameter.getRequired();
+						//Map<String,Object> p_extensions = parameter.getVendorExtensions();
+						
+						boolean isMultiValued = false;
+						if (parameter instanceof SerializableParameter) {
+							SerializableParameter serializable = (SerializableParameter)parameter;
+							if (serializable.getType().equalsIgnoreCase("array")) {
+								if (serializable.getCollectionFormat().equalsIgnoreCase("multi")) {
+									isMultiValued = true;
+								}
+							}
+						}
+						
+						RequestableHttpVariable httpVariable = isMultiValued ? 
+																new RequestableHttpMultiValuedVariable():
+																new RequestableHttpVariable();
+						httpVariable.bNew = true;
+						
+						httpVariable.setName(p_name);
+						httpVariable.setHttpName(p_name);
+						
+						if (parameter instanceof QueryParameter || parameter instanceof PathParameter || parameter instanceof HeaderParameter) {
+							httpVariable.setHttpMethod(HttpMethodType.GET.name());
+							if (parameter instanceof HeaderParameter) {
+								// overrides variable's name : will be treated as dynamic header
+								httpVariable.setName(Parameter.HttpHeader.getName() + p_name);
+								httpVariable.setHttpName(""); // do not post on target server
+							}
+						}
+						else if (parameter instanceof FormParameter || parameter instanceof BodyParameter) {
+							httpVariable.setHttpMethod(HttpMethodType.POST.name());
+							if (parameter instanceof BodyParameter) {
+								// overrides variable's name for internal use
+								httpVariable.setName(Parameter.HttpBody.getName());
+								
+								// add internal __contentType variable
+								RequestableHttpVariable ct = new RequestableHttpVariable();
+								ct.setName(Parameter.HttpContentType.getName());
+								ct.setHttpName(""); // do not post on target server
+								ct.setHttpMethod(HttpMethodType.POST.name());
+								ct.setValueOrNull(null);
+								ct.bNew = true;
+								transaction.addVariable(ct);
+								
+								BodyParameter bodyParameter = (BodyParameter)parameter;
+								Model model = bodyParameter.getSchema();
+								if (model != null) {
+									
+								}
+							}
+						}
+						else {
+							httpVariable.setHttpMethod("");
+						}
+						
+						Object defaultValue = null;
+						if (parameter instanceof AbstractSerializableParameter<?>) {
+							defaultValue = ((AbstractSerializableParameter<?>)parameter).getDefaultValue();
+						}
+						if (defaultValue == null && parameter instanceof SerializableParameter) {
+							SerializableParameter serializable = (SerializableParameter)parameter;
+							if (serializable.getType().equalsIgnoreCase("array")) {
+								Property items = serializable.getItems();
+								try {
+									Class<?> c = items.getClass();
+									defaultValue = c.getMethod("getDefault").invoke(items);
+								} catch (Exception e) {}
+							}
+						}
+						if (defaultValue == null && parameter.getRequired()) {
+							defaultValue = "";
+						}
+						httpVariable.setValueOrNull(defaultValue);
+						
+						if (p_description != null) {
+							httpVariable.setDescription(p_description);
+						}
+						
+						transaction.addVariable(httpVariable);
+					}
+					
+					transaction.bNew =  true;
+					transaction.setName(name);
+					transaction.setComment(comment);
+					transaction.setSubDir(subDir);
+					transaction.setHttpVerb(httpMethodType);
+					transaction.setHttpParameters(httpParameters);
+					transaction.setHttpInfo(true);
+					
+					httpConnector.add(transaction);
+					
+				}
+			}
+			
+			return httpConnector;
+		}
+		catch (Throwable t) {
+			System.out.println(t);
+			throw new Exception("Invalid Swagger format", t);
 		}
 	}
 	

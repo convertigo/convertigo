@@ -143,6 +143,15 @@
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/xml-resolver-1.2.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/xmlbeans-2.3.0.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/XmlSchema-1.4.7.jar"/>
+	<classpathentry kind="lib" path="lib/swagger/jackson-annotations-2.6.0.jar"/>
+	<classpathentry kind="lib" path="lib/swagger/jackson-core-2.6.0.jar"/>
+	<classpathentry kind="lib" path="lib/swagger/jackson-databind-2.6.0.jar"/>
+	<classpathentry kind="lib" path="lib/swagger/jackson-dataformat-yaml-2.6.0.jar"/>
+	<classpathentry kind="lib" path="lib/swagger/validation-api-1.1.0.Final.jar"/>
+	<classpathentry kind="lib" path="lib/swagger/swagger-annotations-1.5.0.jar"/>
+	<classpathentry kind="lib" path="lib/swagger/swagger-core-1.5.0.jar"/>
+	<classpathentry kind="lib" path="lib/swagger/swagger-models-1.5.0.jar"/>
+	<classpathentry kind="lib" path="lib/swagger/swagger-parser-1.0.8.jar"/>
 	<classpathentry kind="lib" path="lib/signpost-core-1.2.1.2.jar"/>
 	<classpathentry kind="lib" path="lib/internal/ibm-v35876.jar"/>
 	<classpathentry kind="lib" path="lib/httpclientAuthHelper.jar"/>
