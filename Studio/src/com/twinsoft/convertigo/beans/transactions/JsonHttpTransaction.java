@@ -142,7 +142,7 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 	}
 
 	private void jsonToXml(Object object, String objectKey, Element parentElement) throws JSONException {
-		Engine.logBeans.debug("Converting JSON to XML: object=" + object.toString() + "; objectKey=\""
+		Engine.logBeans.trace("Converting JSON to XML: object=" + object.toString() + "; objectKey=\""
 				+ objectKey + "\"");
 
 		// Normalize object key
