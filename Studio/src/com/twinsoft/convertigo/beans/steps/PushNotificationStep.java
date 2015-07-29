@@ -62,6 +62,7 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 	
 	private String clientCertificate = "\".//<client certificate>.p12\"";
 	private String certificatePassword = "\"<your .p12 certificate password>\"";
+	private String notificationTitle = "\"TITLE\"";
 	private ApnsNotificationType apnsNotificationType = ApnsNotificationType.Message;
 	private String GCMApiKey = "\"<configure your api key here>\"";
 	private int    AndroidTimeToLive = 3600;
@@ -199,6 +200,7 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 										.timeToLive(AndroidTimeToLive)
 										.delayWhileIdle(true) 
 										.addData("message", sPayload) 
+										.addData("title", notificationTitle)
 										.build(); 
 		
 				// Use this for multicast messages 
@@ -331,5 +333,15 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 			return true;
 		}
 		return super.isCipheredProperty(propertyName);
+	}
+
+
+	public String getNotificationTitle() {
+		return notificationTitle;
+	}
+
+
+	public void setNotificationTitle(String notificationTitle) {
+		this.notificationTitle = notificationTitle;
 	}
 }

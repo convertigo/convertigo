@@ -77,11 +77,17 @@ public class PushNotificationStepBeanInfo extends MySimpleBeanInfo {
 			properties[5].setShortDescription(getExternalizedString("property.sourceDefinition.short_description"));
 			properties[5].setPropertyEditorClass(getEditorClass("StepSourceEditor"));
 
-			properties[6] = new PropertyDescriptor("androidTimeToLive", beanClass, "getAndroidTimeToLive", "setAndroidTimeToLive");
+			properties[6] = new PropertyDescriptor("notificationTitle", beanClass, "getNotificationTitle", "setNotificationTitle");
 			properties[6].setExpert(false);
-			properties[6].setDisplayName(getExternalizedString("property.androidTimeToLive.display_name"));
-			properties[6].setShortDescription(getExternalizedString("property.androidTimeToLive.short_description"));
-            properties[6].setValue("scriptable", Boolean.TRUE);
+			properties[6].setDisplayName(getExternalizedString("property.notificationTitle.display_name"));
+			properties[6].setShortDescription(getExternalizedString("property.notificationTitle.short_description"));
+			properties[6].setValue("scriptable", Boolean.TRUE);
+			
+			properties[7] = new PropertyDescriptor("androidTimeToLive", beanClass, "getAndroidTimeToLive", "setAndroidTimeToLive");
+			properties[7].setExpert(false);
+			properties[7].setDisplayName(getExternalizedString("property.androidTimeToLive.display_name"));
+			properties[7].setShortDescription(getExternalizedString("property.androidTimeToLive.short_description"));
+            properties[7].setValue("scriptable", Boolean.TRUE);
 			
 			
 			
