@@ -51,14 +51,12 @@ import com.twinsoft.convertigo.beans.mobileplatforms.IOs;
 import com.twinsoft.convertigo.beans.mobileplatforms.Windows8;
 import com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhone7;
 import com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhone8;
-import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.dialogs.BuildLocallyEndingDialog;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.mobiles.MobileResourceHelper;
 import com.twinsoft.convertigo.engine.util.ImageUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public class BuildLocally {
+public abstract class BuildLocally {
 
 	private static final String cordovaDir = "cordova";
 	/** know which icon goes with which name on ios platform in function of height and width */
@@ -170,7 +168,7 @@ public class BuildLocally {
 	private String runCordovaCommand(File projectDir, List<String> cordovaCommands) throws Throwable {
 		String shell = is(OS.win32) ? "cordova.cmd" : "cordova";
 		
-		String paths = ConvertigoPlugin.getLocalBuildAdditionalPath();
+		String paths = getLocalBuildAdditionalPath();
 		paths = (paths.length() > 0 ? paths + File.pathSeparator : "") + System.getenv("PATH");
 		
 		String shellFullpath = getFullPath(paths, shell);
@@ -553,7 +551,7 @@ public class BuildLocally {
 			// FileUtils.deleteDirectory(new File(wwwDir, "res"));
 			
 		} catch (Exception e) {
-			ConvertigoPlugin.logException(e, "Unable to process config.xml in your project, check the file's validity");
+			logException(e, "Unable to process config.xml in your project, check the file's validity");
 		}
 	}
 	
@@ -610,36 +608,12 @@ public class BuildLocally {
 	}
 	
 	/***
-	 * Show the dialog with builded application file 
-	 * @param mobilePlatform
-	 * @param exitValue
-	 * @param errorLines
-	 * @param buildOption
-	 */
-	private void showLocationInstallFile(final MobilePlatform mobilePlatform, 
-			final int exitValue, final String errorLines, final String buildOption) {
-		
-		ConvertigoPlugin.getDisplay().asyncExec(new Runnable() {
-			@Override
-			public void run() {
-				File builtFile = getAbsolutePathOfBuiltFile(mobilePlatform, buildOption);
-				
-				BuildLocallyEndingDialog buildSuccessDialog = new BuildLocallyEndingDialog(
-					ConvertigoPlugin.getMainShell(), builtFile, exitValue, errorLines, mobilePlatform
-				);
-				
-				buildSuccessDialog.open();
-			}
-        });
-	}
-	
-	/***
 	 * Return the absolute path of builded application file
 	 * @param mobilePlatform
 	 * @param buildMode
 	 * @return
 	 */
-	private File getAbsolutePathOfBuiltFile(MobilePlatform mobilePlatform, String buildMode) {
+	protected File getAbsolutePathOfBuiltFile(MobilePlatform mobilePlatform, String buildMode) {
 		String cordovaPlatform = mobilePlatform.getCordovaPlatform();
 		String builtPath = File.separator + "platforms" + File.separator + cordovaPlatform + File.separator;
 		String buildMd = buildMode.equals("debug") ? "Debug" : "Release";
@@ -744,9 +718,7 @@ public class BuildLocally {
 	 * @return File
 	 */
 	private File getPrivateDir() {
-		return new File(Engine.PROJECTS_PATH + File.separator
-				+ ConvertigoPlugin.projectManager.currentProject.getName()
-				+ File.separator + "_private");
+		return new File(mobilePlatform.getProject().getDirPath() + "/_private");
 	}
 
 	/***
@@ -839,7 +811,7 @@ public class BuildLocally {
 			
 			return Status.OK;
 		} catch (Throwable e) {
-			ConvertigoPlugin.logException(e, "Error when processing Cordova build");
+			logException(e, "Error when processing Cordova build");
 			
 			return Status.CANCEL;
 		}
@@ -887,14 +859,11 @@ public class BuildLocally {
      */ 
     public Status runRemoveCordovaPlatform (String platformName) { 
     	try {
-			runCordovaCommand(getCordovaDir(),
-					"platform", "rm", platformName);
+			runCordovaCommand(getCordovaDir(), "platform", "rm", platformName);
 			return Status.OK;
 
 		} catch (Throwable thr) {
-			Engine.logEngine
-					.error("Error when removing the required mobile platform!",
-							thr);
+			Engine.logEngine.error("Error when removing the required mobile platform!", thr);
 			return Status.CANCEL;
 		}
     } 
@@ -903,4 +872,16 @@ public class BuildLocally {
     public void cancelRemoveCordovaPlatform(){
     	process.destroy();
     }
+    
+    abstract protected String getLocalBuildAdditionalPath();
+    abstract protected void logException(Throwable e, String message);
+    /***
+	 * Show the dialog with builded application file 
+	 * @param mobilePlatform
+	 * @param exitValue
+	 * @param errorLines
+	 * @param buildOption
+	 */
+    abstract protected void showLocationInstallFile(final MobilePlatform mobilePlatform, 
+			final int exitValue, final String errorLines, final String buildOption);
 }

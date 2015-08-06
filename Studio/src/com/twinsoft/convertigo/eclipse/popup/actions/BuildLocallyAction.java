@@ -36,6 +36,7 @@ import org.eclipse.swt.widgets.Shell;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.dialogs.BuildLocallyEndingDialog;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.Engine;
@@ -60,7 +61,36 @@ public class BuildLocallyAction extends MyAbstractAction {
 		parentShell = getParentShell();
 		mobilePlatform = getMobilePlatform();
 		
-		buildLocally = new BuildLocally(getMobilePlatform());
+		buildLocally = new BuildLocally(getMobilePlatform()) {
+			
+			@Override
+			protected void logException(Throwable e, String message) {
+				ConvertigoPlugin.logException(e, message);
+			}
+			
+			@Override
+			protected String getLocalBuildAdditionalPath() {
+				return ConvertigoPlugin.getLocalBuildAdditionalPath();
+			}
+			
+			@Override
+			protected void showLocationInstallFile(final MobilePlatform mobilePlatform, 
+					final int exitValue, final String errorLines, final String buildOption) {
+				
+				ConvertigoPlugin.getDisplay().asyncExec(new Runnable() {
+					@Override
+					public void run() {
+						File builtFile = getAbsolutePathOfBuiltFile(mobilePlatform, buildOption);
+						
+						BuildLocallyEndingDialog buildSuccessDialog = new BuildLocallyEndingDialog(
+							ConvertigoPlugin.getMainShell(), builtFile, exitValue, errorLines, mobilePlatform
+						);
+						
+						buildSuccessDialog.open();
+					}
+		        });
+			}
+		};
 		
 		if (actionID.equals("convertigo.action.buildLocallyRelease")){
 			build("release", false, "");
