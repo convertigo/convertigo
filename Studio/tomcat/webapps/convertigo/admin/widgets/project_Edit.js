@@ -110,14 +110,14 @@ function loadProject(projectName) {
 		});
 
 		// interaction on click
-		$(".projectEdit-selectableElement >div>span").click(function() {
+		$(".projectEdit-selectableElement >div>span, #projectTreeWidgetRoot").click(function() {
 			$("*[class~=projectEdit-editedObject]").each(function() {
 				$(this).removeClass("projectEdit-editedObject");
 			});
 			$(this).addClass("projectEdit-editedObject");
 			 
 			
-			loadElement($(this).parent().parent().attr("qname"), $(this));
+			loadElement($(this).parents(".projectEdit-selectableElement:first").attr("qname"), $(this));
 			return false;
 		});
 
