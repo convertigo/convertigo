@@ -70,6 +70,7 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 	private transient StepSource tokenSource = null;
 	private transient String     sClientCertificate;
 	private transient String     sCertificatePassword;
+	private transient String	 sNotificationTitle;
 	private transient String     sPayload;
 	private transient String 	 sGCMApiKey;
 
@@ -193,14 +194,17 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 				
 				if (devicesList.isEmpty())
 					return;
-	
+
+				evaluate(javascriptContext, scope, this.notificationTitle, "notificationTitle", false);
+				sNotificationTitle = evaluated instanceof Undefined ? "" : evaluated.toString();
+				
 				// use this line to send message with payload data 
 				Message message = new Message.Builder() 
 										.collapseKey("1") 
 										.timeToLive(AndroidTimeToLive)
 										.delayWhileIdle(true) 
 										.addData("message", sPayload) 
-										.addData("title", notificationTitle)
+										.addData("title", sNotificationTitle)
 										.build(); 
 		
 				// Use this for multicast messages 
