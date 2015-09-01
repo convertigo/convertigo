@@ -22,6 +22,9 @@
 
 package com.twinsoft.convertigo.eclipse.actions;
 
+import java.security.InvalidParameterException;
+import java.util.UUID;
+
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.program.Program;
@@ -32,7 +35,19 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 
 public class AdministrationAction implements IWorkbenchWindowActionDelegate {
-
+	
+	private static String lastAuthToken;
+	private static long lastAuthTokenExpiration;
+	
+	public static void checkAuthToken(String authToken) throws InvalidParameterException {
+		boolean isAuth = authToken != null && authToken.equals(lastAuthToken) && System.currentTimeMillis() < lastAuthTokenExpiration;
+		lastAuthToken = null;
+		lastAuthTokenExpiration = 0;
+		if (!isAuth) {
+			throw new InvalidParameterException("authToken not valid");
+		}
+	}
+	
 	public void dispose() {
 	}
 
@@ -41,7 +56,10 @@ public class AdministrationAction implements IWorkbenchWindowActionDelegate {
 
 	public void run(IAction action) {
 		try {
-			Program.launch(EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue() + "/admin/");
+			lastAuthToken = UUID.randomUUID().toString();
+			lastAuthTokenExpiration = System.currentTimeMillis() + 5000;
+			
+			Program.launch(EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue() + "/admin/login.html#authToken=" + lastAuthToken);
 		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "Error while opening the Convertigo administration page");
 		}

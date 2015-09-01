@@ -99,8 +99,24 @@ public class Authenticate extends XmlService {
 		// Login
 		if (logIn) {
 
-			String user = ServiceUtils.getRequiredParameter(request, "authUserName");
-			String password = ServiceUtils.getRequiredParameter(request, "authPassword");
+			String authToken = request.getParameter("authToken");
+
+			String user = null;
+			String password = null;
+			
+			if (authToken != null) {
+				try {
+					Class.forName("com.twinsoft.convertigo.eclipse.actions.AdministrationAction").getMethod("checkAuthToken", String.class).invoke(null, authToken);
+					user = EnginePropertiesManager.getProperty(PropertyName.ADMIN_USERNAME);
+				} catch (Throwable t) {
+					authToken = null;
+				}
+			}
+			
+			if (authToken == null) {
+				user = ServiceUtils.getRequiredParameter(request, "authUserName");
+				password = ServiceUtils.getRequiredParameter(request, "authPassword");
+			}
 
 			httpSession.setAttribute(SessionKey.ADMIN_USER.toString(), user);
 			Engine.logAdmin.info("User '" + user + "' is trying to login");
@@ -134,8 +150,8 @@ public class Authenticate extends XmlService {
 			Role[] roles = null;
 
 			// Legacy authentication
-			if (EnginePropertiesManager.getProperty(PropertyName.ADMIN_USERNAME).equals(user)
-					&& EnginePropertiesManager.checkProperty(PropertyName.ADMIN_PASSWORD, password)) {
+			if (authToken != null || (EnginePropertiesManager.getProperty(PropertyName.ADMIN_USERNAME).equals(user) &&
+					EnginePropertiesManager.checkProperty(PropertyName.ADMIN_PASSWORD, password))) {
 				roles = new Role[] { Role.WEB_ADMIN, Role.TEST_PLATFORM, Role.AUTHENTICATED };
 			} else if (EnginePropertiesManager.getProperty(PropertyName.TEST_PLATFORM_USERNAME).equals(user)
 					&& EnginePropertiesManager.checkProperty(PropertyName.TEST_PLATFORM_PASSWORD, password)) {

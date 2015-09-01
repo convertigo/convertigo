@@ -1,30 +1,36 @@
-jQuery().ready(
-		function() {
-		    checkAuthentication();
-		    $(".index").show();
+jQuery().ready(function() {
+	var authToken = location.hash.match(new RegExp("#authToken=(.*)"));
+	
+	if (authToken != null) {
+		authenticate({authToken: authToken[1]});
+	} else {
+		checkAuthentication();
+	}
+	
+    $(".index").show();
 
-			$("#FieldConvAdminUserLogin").focus();
+	$("#FieldConvAdminUserLogin").focus();
 
-			$("#dlgAuthFailed").dialog( {
-				autoOpen : false,
-				title : "Error",
-				modal : true,
-				buttons : {
-					Ok : function() {
-						$(this).dialog('close');
-						return false;
-					}
-				}
-			});
+	$("#dlgAuthFailed").dialog( {
+		autoOpen : false,
+		title : "Error",
+		modal : true,
+		buttons : {
+			Ok : function() {
+				$(this).dialog('close');
+				return false;
+			}
+		}
+	});
 
-			$("#loginForm").submit(
-					function() {
-						authenticate(
-								$("#FieldConvAdminUserLogin").val(),
-								$("#FieldConvAdminUserPassword").val());
-						return false;
-					});		
+	$("#loginForm").submit(function() {
+		authenticate({
+			authUserName: $("#FieldConvAdminUserLogin").val(),
+			authPassword: $("#FieldConvAdminUserPassword").val()
 		});
+		return false;
+	});
+});
 
 function checkAuthentication() {
 	$.ajax( {
@@ -42,15 +48,13 @@ function checkAuthentication() {
 	});
 }
 
-function authenticate(userName, password) {
+function authenticate(data) {
+	data.authType = "login";
+	
 	request = $.ajax( {
 		type : "POST",
 		url : "services/engine.Authenticate",
-		data : {
-			authUserName : userName,
-			authPassword : password,
-			authType : "login"
-		},
+		data : data,
 		dataType : "xml",
 		success : function(xml) {
 			var $xml = $(xml);
