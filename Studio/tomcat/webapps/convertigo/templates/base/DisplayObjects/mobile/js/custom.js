@@ -396,6 +396,8 @@ $.extend(true, C8O, {
  * or call the hook "log" if added.
  * msg: string with the message to log
  * e (optional): exception object to add to the log
+ *               or a plain object
+ *               or an array
  */
 //C8O.log.error(msg, e);
 //C8O.log.warn(msg, e);
