@@ -371,9 +371,9 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 				if (recipients[i].indexOf(":") != -1) {
 					String sRecipientType  = recipients[i].split(":")[0];
 					String sRecipientAddress  = recipients[i].split(":")[1];
-					if (sRecipientType.toUpperCase() == "TO") {
+					if ("TO".equalsIgnoreCase(sRecipientType)) {
 						ret.addRecipient(Message.RecipientType.TO, new InternetAddress(sRecipientAddress));
-					} else if (sRecipientType.toUpperCase() == "BCC") {
+					} else if ("BCC".equalsIgnoreCase(sRecipientType)) {
 						ret.addRecipient(Message.RecipientType.BCC, new InternetAddress(sRecipientAddress));
 					} else {
 						ret.addRecipient(Message.RecipientType.CC, new InternetAddress(sRecipientAddress));
