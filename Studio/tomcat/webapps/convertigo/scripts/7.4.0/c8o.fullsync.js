@@ -29,11 +29,11 @@ $.extend(true, C8O, {
 		sync_events: ["change", /*"pause", "active", "denied",*/ "complete", "error"],
 		dbs: {},
 		
-		handle: function (err, doc, callback) {
-			if (err) {
-				C8O.log.error("c8o.fs  : an error occurs", err);
+		handle: function (err, doc, callback, silent) {
+			if (err && !silent) {
+				C8O.log.info("c8o.fs  : an error occurs", err);
 			}
-			callback(doc);
+			callback(doc, err);
 		},
 		
 		getDb: function (db) {
@@ -58,12 +58,14 @@ $.extend(true, C8O, {
 			});
 		},
 		
-		getDocument: function (db, docid, options, callback) {
-			C8O.log.info("c8o.fs  : getDocument " + db + " " + docid + " " + C8O.toJSON(options));
+		getDocument: function (db, docid, options, callback, silent) {
+			if (!silent) {
+				C8O.log.info("c8o.fs  : getDocument " + db + " " + docid + " " + C8O.toJSON(options));
+			}
 			
 			C8O._fs.handleOptionsRev(db, docid, options, false, function (options) {
 				C8O._fs.getDb(db).get(docid, options, function (err, doc) {
-					C8O._fs.handle(err, doc, callback);
+					C8O._fs.handle(err, doc, callback, silent);
 				});
 			});
 		},
@@ -157,7 +159,7 @@ $.extend(true, C8O, {
 							} else {
 								callback(document);
 							}
-						});
+						}, true);
 					}
 				} else {
 					callback(document);
