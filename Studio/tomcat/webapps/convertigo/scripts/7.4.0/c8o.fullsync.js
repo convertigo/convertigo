@@ -150,13 +150,17 @@ $.extend(true, C8O, {
 						});
 					} else if (policy == "merge") {
 						C8O._fs.getDocument(db, docid, {}, function (dbDocument) {
-							if (dbDocument._id) {
+							if (dbDocument && dbDocument._id) {
 								// merge documents
 								delete document._rev;
 								callback($.extend(true, dbDocument, document));
+							} else {
+								callback(document);
 							}
 						});
 					}
+				} else {
+					callback(document);
 				}
 			}
 		},

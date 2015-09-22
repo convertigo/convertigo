@@ -92,7 +92,7 @@ public class FullSyncServlet extends HttpServlet {
 				}
 				uri = builder.build();
 			}
-
+			
 			debug.append(method.name() + " URI: " + uri.toString() + "\n");
 
 			for (String headerName: Collections.list(request.getHeaderNames())) {
@@ -106,6 +106,14 @@ public class FullSyncServlet extends HttpServlet {
 					debug.append("skip request Header: " + headerName + "=" + request.getHeader(headerName)+ "\n");
 				}
 			}
+			
+			{
+				Header authBasicHeader = Engine.theApp.couchDbManager.getFullSyncClient().getAuthBasicHeader();
+				if (authBasicHeader != null) {
+					newRequest.addHeader(authBasicHeader);
+				}
+			}
+			
 			
 			String dbName = requestParser.getDbName();
 			
