@@ -1705,7 +1705,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 	
 	public Set<String> symbolsGetUndefined(String projectName) throws Exception {
-		Project project = getOriginalProjectByName(projectName);
+		Project project = getOriginalProjectByName(projectName, false);
 		final Set<String> allUndefinedSymbols = new HashSet<String>();
 		
 		if (project.undefinedGlobalSymbols) {
