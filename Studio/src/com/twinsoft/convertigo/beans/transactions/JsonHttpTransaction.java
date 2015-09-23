@@ -108,6 +108,7 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 		
 		if (!jsonData.isEmpty()) {
 			String message = null;
+			Object value = null;
 			try {
 				// Try to find whether the top JSON structure is a JSON object or a
 				// JSON array
@@ -115,20 +116,48 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 				// JSON Object
 				if (jsonData.startsWith("{")) {
 					Engine.logBeans.debug("Detected JSON object");
-					JSONObject jsonObject = new JSONObject(jsonData);
-					jsonToXml(jsonObject, null, outputDocumentRootElement);
+					value = new JSONObject(jsonData);
 				}
 				// JSON Array
 				else if (jsonData.startsWith("[")) {
 					Engine.logBeans.debug("Detected JSON array");
-					JSONArray jsonArray = new JSONArray(jsonData);
-					jsonToXml(jsonArray, null, outputDocumentRootElement);
+					value = new JSONArray(jsonData);
+				}
+				else if (jsonData.equals("null")) {
+					Engine.logBeans.debug("Detected null JSON");
+				}
+				else if (jsonData.equals("true")) {
+					Engine.logBeans.debug("Detected boolean (true) JSON");
+					value = true;
+				}
+				else if (jsonData.equals("false")) {
+					Engine.logBeans.debug("Detected boolean (false) JSON");
+					value = false;
+				}
+				else if (jsonData.startsWith("\"") && jsonData.endsWith("\"")) {
+					Engine.logBeans.debug("Detected String JSON");
+					value = jsonData.substring(1, jsonData.length() - 1).replace("\\\"", "\"");
 				}
 				else {
-					message = "no JSON delimitor [ or {";
+					try {
+						value = Long.parseLong(jsonData);
+						Engine.logBeans.debug("Detected int JSON");
+					} catch (NumberFormatException nfe) {
+						try {
+							value = Double.parseDouble(jsonData);
+							Engine.logBeans.debug("Detected decimal JSON");
+						} catch (NumberFormatException nfe2) {						
+						}
+					}
 				}
 			} catch (Exception e) {
 				message = StringUtils.reduce(e.getMessage(), 50);
+			}
+			
+			if (value != null || jsonData.equals("null")) {
+				jsonToXml(value, null, outputDocumentRootElement);
+			} else {
+				message = "no JSON delimitor [ or {, nor null, boolean, string or number";					
 			}
 			
 			if (message != null) {
@@ -142,7 +171,7 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 	}
 
 	private void jsonToXml(Object object, String objectKey, Element parentElement) throws JSONException {
-		Engine.logBeans.trace("Converting JSON to XML: object=" + object.toString() + "; objectKey=\""
+		Engine.logBeans.trace("Converting JSON to XML: object=" + object + "; objectKey=\""
 				+ objectKey + "\"");
 
 		// Normalize object key
