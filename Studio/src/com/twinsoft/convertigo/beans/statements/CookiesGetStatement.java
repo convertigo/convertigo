@@ -67,9 +67,9 @@ public class CookiesGetStatement extends Statement {
 							code += array ? "[]" : "''";
 						} else {
 							String sep = array ? "\",\"" : separator;
-							code += (array ? "[\"" : "\"") + CookiesUtils.formatCookie(cookies[0]);
+							code += (array ? "[\"" : "\"") + CookiesUtils.formatCookie(cookies[0]).replace("\"", "\\\"");
 							for (int i = 1; i < cookies.length; i++) {
-								code += sep + CookiesUtils.formatCookie(cookies[i]);
+								code += sep + CookiesUtils.formatCookie(cookies[i]).replace("\"", "\\\"");
 							}
 							code += (array ? "\"]" : "\"");
 						}
