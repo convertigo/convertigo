@@ -121,23 +121,26 @@ public class DatabaseObjectIncreasePriorityAction extends MyAbstractAction imple
 			DatabaseObject databaseObject = (DatabaseObject) treeObject.getObject();
 			DatabaseObject parent = databaseObject.getParent();
 			
-			while (count-->0) {
-				if (parent instanceof IContainerOrdered) {
-					((IContainerOrdered) parent).increasePriority(databaseObject);
-				}
-			}
-			
-			if (parent.hasChanged) {
-				TreeParent parentTreeObject = null;
-				TreeParent treeParent = treeObject.getParent();
-				if (treeParent instanceof FolderTreeObject) {
-					parentTreeObject = treeObject.getParent().getParent();
-				} else {
-					parentTreeObject = treeParent;
+			if (parent != null && parent instanceof IContainerOrdered) {
+				IContainerOrdered containerOrdered = (IContainerOrdered) parent;
+				
+				while (count-- > 0) {
+					containerOrdered.increasePriority(databaseObject);
 				}
 				
-				if (!treeNodesToUpdate.contains(parentTreeObject)) {
-					treeNodesToUpdate.add(parentTreeObject);
+				if (parent.hasChanged) {
+					TreeParent parentTreeObject = null;
+					TreeParent treeParent = treeObject.getParent();
+					
+					if (treeParent instanceof FolderTreeObject) {
+						parentTreeObject = treeObject.getParent().getParent();
+					} else {
+						parentTreeObject = treeParent;
+					}
+					
+					if (!treeNodesToUpdate.contains(parentTreeObject)) {
+						treeNodesToUpdate.add(parentTreeObject);
+					}
 				}
 			}
 		}
