@@ -353,6 +353,7 @@ public class ReadCSVStep extends ReadFileStep {
 				if (cols != null) {
 					if (verticalDirection) {
 						for (String col : cols) {
+							col = StringUtils.normalize(col);
 							subElt = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
 							subElt.setName(col);
 							sequence.getItems().add(subElt);
@@ -373,6 +374,7 @@ public class ReadCSVStep extends ReadFileStep {
 					} else {
 						subElt.setName(tagLineName);
 						for (String col : cols) {
+							col = StringUtils.normalize(col);
 							subElt = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
 							subElt.setName(col);
 							subElt.setSchemaTypeName(Constants.XSD_STRING);
