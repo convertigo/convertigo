@@ -652,6 +652,16 @@
                 </bean>
             </beans>
             <beans groupname="HTTP session management">
+            	<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.LDAPAuthenticationStep">
+            	    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLErrorStep"/>
+            	</bean>            
             	<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.SetAuthenticatedUserStep">
             	    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
@@ -702,7 +712,7 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLErrorStep"/>
             	</bean>
-            </beans>
+            </beans>         
             <beans groupname="Others">
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.InputVariablesStep">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
