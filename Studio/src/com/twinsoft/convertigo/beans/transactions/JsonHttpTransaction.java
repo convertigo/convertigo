@@ -160,13 +160,13 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 			
 			if (value != null || jsonData.equals("null")) {
 				jsonToXml(value, null, outputDocumentRootElement);
-			} else {
+			} else if (message == null) {
 				message = "no JSON delimitor [ or {, nor null, boolean, string or number";					
 			}
 			
 			if (message != null) {
 				throw new EngineException(
-					"Invalid JSON structure: neither a JSON object nor a JSON array;\n" +
+					"Invalid JSON value:\n" +
 					message + 
 					";\nanalyzed JSON:\n" + StringUtils.reduce(jsonData, 500)
 				);				
