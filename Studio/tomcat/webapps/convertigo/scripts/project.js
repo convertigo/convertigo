@@ -191,9 +191,17 @@ function launchCliplet(url) {
 		//If the project is for mobile device
 		var ismobile = $("#window_exe_device").css("display") == "block";
 		if (ismobile) {
-			$("#window_exe_content_mobile").empty().append("<iframe class='cliplet_div_iframe' frameborder='0' src='" + url + "'></iframe>");
+			$("<iframe/>").attr({
+				class: "cliplet_div_iframe",
+				frameborder: "0",
+				src: url
+			}).appendTo($("#window_exe_content_mobile").empty());
 		} else {
-			$("#window_exe_content").empty().append("<iframe class='cliplet_div_iframe' frameborder='0' src='" + url + "'></iframe>");	
+			$("<iframe/>").attr({
+				class: "cliplet_div_iframe",
+				frameborder: "0",
+				src: url
+			}).appendTo($("#window_exe_content").empty());	
 		}
 		$iframe.slideDown(500);
 	}
