@@ -92,7 +92,11 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 		}
 			
 		String jsonData = new String(httpData, jsonEncoding);
-		Engine.logBeans.debug("JSON text: " + jsonData);
+		if (Engine.logBeans.isTraceEnabled()) {
+			Engine.logBeans.trace("JSON text: " + jsonData);
+		} else {
+			Engine.logBeans.debug("JSON text (limit 100): " + StringUtils.reduce(jsonData, 100));
+		}
 		
 		Matcher mJSONP = reJSONP.matcher(jsonData);
 		if (mJSONP.matches()) {
@@ -101,7 +105,7 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 			jsonData = jsonData.trim();			
 		}
 		
-		Engine.logBeans.debug("Trimmed JSON part: " + jsonData);
+		Engine.logBeans.debug("Trimmed JSON part (limit 250): " + StringUtils.reduce(jsonData, 250));
 
 		Element outputDocumentRootElement = context.outputDocument.getDocumentElement();
 		
