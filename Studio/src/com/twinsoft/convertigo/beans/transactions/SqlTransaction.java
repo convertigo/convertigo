@@ -65,6 +65,8 @@ public class SqlTransaction extends TransactionWithVariables {
 
 	private static final long serialVersionUID = 5180639998317573920L;
 	
+	final private static Pattern p_semicolon = Pattern.compile(".*?(?:;|$)", Pattern.DOTALL);
+	
 	enum keywords {
 		_tagname,
 		_level;
@@ -339,16 +341,14 @@ public class SqlTransaction extends TransactionWithVariables {
 		}
 		
 		// We split the sqlQuery in list array of multiple sqlQuery
-		String[] sqlQueries = sqlQuery.split(";");
-		
-		if ( sqlQueries != null) {
-			// We loop every query of the String tab and create SqlQueryInfos element for the preparedSqlQueries list
-			for ( String query : sqlQueries ){
-				if ( query != null && !query.trim().replaceAll(" ", "").equals("")) {
-					SqlQueryInfos sqlQueryInfos = new SqlQueryInfos(query, this, updateDefinitions);
-					// skip sql comments (-- query....)
-					if (sqlQueryInfos.getType() != SqlKeywords.doubledash)
-						preparedSqlQueries.add(sqlQueryInfos);
+		Matcher matcher = p_semicolon.matcher(sqlQuery);
+		while (matcher.find()) {
+			String query = matcher.group().trim();
+			if (!query.replaceAll(" ", "").isEmpty()) {
+				SqlQueryInfos sqlQueryInfos = new SqlQueryInfos(query, this, updateDefinitions);
+				// skip sql comments (-- query....)
+				if (sqlQueryInfos.getType() != SqlKeywords.doubledash) {
+					preparedSqlQueries.add(sqlQueryInfos);
 				}
 			}
 		}
@@ -388,12 +388,6 @@ public class SqlTransaction extends TransactionWithVariables {
 		logHiddenValues.clear();
 		
 		String preparedSqlQuery = sqlQueryInfos.getQuery();
-
-//		// Commented code for #4800 : following fix does'nt work -> need to have a special syntax to add semicolon(s)
-//		// Add the removed semicolon (required in some case - e.g : SQL server MERGE)
-//		int len = preparedSqlQuery.length();
-//		if (len > 0 && preparedSqlQuery.charAt(len-1) != ';')
-//			preparedSqlQuery = preparedSqlQuery +";";
 		
 		// Limit number of result
 		if (sqlQueryInfos.getType() == SqlKeywords.select) {
