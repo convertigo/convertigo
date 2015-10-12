@@ -1,43 +1,61 @@
 /*
- * Copyright (c) 2001-2011 Convertigo SA.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; either version 3
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see<http://www.gnu.org/licenses/>.
- *
- * $URL: http://sourceus/svn/convertigo/CEMS_opensource/trunk/Studio/src/com/twinsoft/convertigo/beans/steps/SmtpStep.java $
- * $Author: nicolasa $
- * $Revision: 32814 $
- * $Date: 2012-12-03 17:03:22 +0100 (lun., 03 déc. 2012) $
+* Copyright (c) 2001-2014 Convertigo. All Rights Reserved.
+*
+* The copyright to the computer  program(s) herein  is the property
+* of Convertigo.
+* The program(s) may  be used  and/or copied  only with the written
+* permission  of  Convertigo  or in accordance  with  the terms and
+* conditions  stipulated  in the agreement/contract under which the
+* program(s) have been supplied.
+*
+* Convertigo makes  no  representations  or  warranties  about  the
+* suitability of the software, either express or implied, including
+* but  not  limited  to  the implied warranties of merchantability,
+* fitness for a particular purpose, or non-infringement. Convertigo
+* shall  not  be  liable for  any damage  suffered by licensee as a
+* result of using,  modifying or  distributing this software or its
+* derivatives.
+*/
+
+/*
+ * $URL$
+ * $Author$
+ * $Revision$
+ * $Date$
  */
 
 package com.twinsoft.convertigo.beans.steps;
 
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 import javapns.Push;
+import javapns.notification.Payload;
 import javapns.notification.PushedNotification;
 import javapns.notification.PushedNotifications;
 
+import org.codehaus.jettison.json.JSONObject;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.Undefined;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.google.android.gcm.server.Message;
 import com.google.android.gcm.server.MulticastResult;
 import com.google.android.gcm.server.Sender;
+import com.sun.javadoc.Doc;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.Step;
@@ -45,6 +63,7 @@ import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class PushNotificationStep extends Step implements IStepSourceContainer {
 
@@ -169,10 +188,15 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 		return Engine.theApp.filePropertyManager.getFilepathFromProperty(entry, getProject().getName());
 	}
 
-	protected void PushToGCM(Context javascriptContext, Scriptable scope) throws EngineException, Exception
+	protected void PushToGCM(Context javascriptContext, Scriptable scope, Map<String, String> dictionary) throws EngineException, Exception
 	{
 		Engine.logBeans.debug("Push notification, Notifying Android devices");
 		try {
+			if (dictionary == null) {
+				Engine.logBeans.debug("Push notification, dictionary empty");
+				return;
+			}
+			
 			evaluate(javascriptContext, scope, this.GCMApiKey, "gcmapikey", false);
 			sGCMApiKey = evaluated instanceof Undefined ? "" : evaluated.toString();
 			
@@ -198,14 +222,17 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 				evaluate(javascriptContext, scope, this.notificationTitle, "notificationTitle", false);
 				sNotificationTitle = evaluated instanceof Undefined ? "" : evaluated.toString();
 				
-				// use this line to send message with payload data 
-				Message message = new Message.Builder() 
-										.collapseKey("1") 
-										.timeToLive(AndroidTimeToLive)
-										.delayWhileIdle(true) 
-										.addData("message", sPayload) 
-										.addData("title", sNotificationTitle)
-										.build(); 
+				// use this line to send message with payload data
+				Message.Builder builder = new Message.Builder()										
+											.collapseKey("1") 
+											.timeToLive(AndroidTimeToLive)
+											.delayWhileIdle(true);
+				
+				// add all dictionary entries in turn
+				for(Map.Entry<String, String> e : dictionary.entrySet())
+				    builder.addData(e.getKey(), e.getValue());
+				
+				Message message = builder.build(); 
 		
 				// Use this for multicast messages 
 				MulticastResult result = sender.send(message, devicesList, 1); 
@@ -226,7 +253,11 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 		} 
 	}
 	
-	protected void PushToAPNS(Context javascriptContext, Scriptable scope) throws EngineException, Exception
+	
+	//
+	// seems like total size of Payload cannot exceed 256 bytes.
+	//
+	protected void PushToAPNS(Context javascriptContext, Scriptable scope, Map<String, String> dictionary) throws EngineException, Exception
 	{
 		evaluate(javascriptContext, scope, this.clientCertificate, "clientCertificate", false);
 		sClientCertificate = evaluated instanceof Undefined ? "" : evaluated.toString();
@@ -242,50 +273,83 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 		if (list != null) {
 			ArrayList<String> devicesList = new ArrayList<String>(); 
 			
-			for (int i=0; i< list.getLength(); i++) {
+			for (int i=0; i<list.getLength(); i++) {
 				String token = getNodeValue(list.item(i));
 				if (token.startsWith("apns:")) {
 					devicesList.add(token.substring(5));
 					Engine.logBeans.trace("Push notification, iOS device " + token.substring(5) + " will be notified");
 				}
 			}
-
+/*
 			if (devicesList.isEmpty())
 				return;
-
-			
-			
-			// Submit the push to JavaPN libarary...
+*/			
+			// Submit the push to JavaPN library...
 			PushedNotifications pn;
-			if (apnsNotificationType == ApnsNotificationType.Message) {
-				pn = Push.alert(sPayload,
-								sClientCertificate,
-								sCertificatePassword,
-								true,
-								devicesList);
-				
-			} else if (apnsNotificationType == ApnsNotificationType.Sound) {
-				pn = Push.badge(Integer.parseInt(sPayload, 10),
-								sClientCertificate,
-								sCertificatePassword,
-								true,
-								devicesList);
-				
-			} else { 
-				pn = Push.sound(sPayload,
-								sClientCertificate,
-								sCertificatePassword,
-								true,
-								devicesList);
+			
+			if (dictionary.size() > 1) {				
+				pn = Push.payload((Payload)dictionary, 
+							sClientCertificate,
+							sCertificatePassword,
+							true,
+							devicesList);
+			}
+			else {
+				if (apnsNotificationType == ApnsNotificationType.Message) {				
+					pn = Push.alert(dictionary.get("alert"),
+									sClientCertificate,
+									sCertificatePassword,
+									true,
+									devicesList);
+					
+				} else if (apnsNotificationType == ApnsNotificationType.Badge) {	// mod jmc 07/10/2015
+					pn = Push.badge(Integer.parseInt(dictionary.get("badge"), 10),
+									sClientCertificate,
+									sCertificatePassword,
+									true,
+									devicesList);
+					
+				} else { 
+					pn = Push.sound(dictionary.get("sound"),
+									sClientCertificate,
+									sCertificatePassword,
+									true,
+									devicesList);
+				}
 			}
 			
-			// Analyse the responses..
+			// Analyze the responses..
 			Iterator<PushedNotification>  iPn  = pn.iterator();
 			while (iPn.hasNext()) {
 				PushedNotification notif = iPn.next();
-				Engine.logBeans.debug("Push notification :" + notif + " Sucessfull : " + notif.isSuccessful());
+				Engine.logBeans.debug("Push notification :" + notif + " Successful : " + notif.isSuccessful());
 			}
 		}
+	}
+
+	/**
+	 *  recurse in nodelist and put in dictionnary couples 'variableName, variableValue'
+	 * 	variables with no values are not used
+	 * 
+	 * @param node
+	 * @param dictionary
+	 */
+	public static void enumAllStrings(Node node, Map<String, String> dictionary) {
+		if (node == null)
+			return;
+
+		String value = node.getFirstChild().getNodeValue();
+		if (value != null)
+			dictionary.put(node.getNodeName(), node.getFirstChild().getNodeValue());
+
+	    NodeList nodeList = node.getChildNodes();
+	    for (int i = 0; i < nodeList.getLength(); i++) {
+	        Node currentNode = nodeList.item(i);
+	        if (currentNode.getNodeType() == Node.ELEMENT_NODE) {
+	            //calls this method for all the children which is Element
+	        	enumAllStrings(currentNode, dictionary);
+	        }
+	    }
 	}
 	
 	@Override
@@ -295,18 +359,26 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 				// get Source data as a string to payload
 				StepSource stepSource = getSource();
 				NodeList list;
-
-				list = stepSource.inError() ? null : stepSource.getContextOutputNodes();
-				if (list != null)
-					sPayload = getNodeValue(list.item(0));
 				
-				try {
-					PushToAPNS(javascriptContext, scope);
-					PushToGCM(javascriptContext, scope);
-				} catch (EngineException e) {
-					throw e;
-				} catch (Exception e) {
-					throw new EngineException(e.getClass().getSimpleName() + " during push notification", e);
+				list = stepSource.inError() ? null : stepSource.getContextOutputNodes();
+				
+				if (list != null) {
+					Map<String, String> dictionary = new HashMap<String, String>();
+					NodeList childNodes = list.item(0).getChildNodes();
+					
+					if (childNodes.getLength() > 0)
+						enumAllStrings(list.item(0), dictionary);
+					else
+						dictionary.put(list.item(0).getNodeName(), list.item(0).getNodeValue());
+					
+					try {
+						PushToAPNS(javascriptContext, scope, dictionary);
+						PushToGCM(javascriptContext, scope, dictionary);
+					} catch (EngineException e) {
+						throw e;
+					} catch (Exception e) {
+						throw new EngineException(e.getClass().getSimpleName() + " during push notification", e);
+					}
 				}
 			}
 		}
