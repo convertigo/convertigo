@@ -256,9 +256,6 @@ public class DatabaseObjectsManager implements AbstractManager {
 		if (project == null) {		
 			long t0 = Calendar.getInstance().getTime().getTime();
 
-			projectLoadingDataThreadLocal.remove();
-			getProjectLoadingData().projectName = projectName;
-
 			try {
 				checkForEngineMigrationProcess(projectName);
 				project = importProject(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml");
@@ -935,6 +932,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 			Element pName = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "name");
 			String projectName = (String) XMLUtils.readObjectFromXml((Element) XMLUtils.findChildNode(pName, Node.ELEMENT_NODE));
 
+			projectLoadingDataThreadLocal.remove();
+			getProjectLoadingData().projectName = projectName;
+			
 			// Import will perform necessary beans migration (see deserialization)
 			Project project = (Project) importDatabaseObject(projectNode, null);
 			project.undefinedGlobalSymbols = getProjectLoadingData().undefinedGlobalSymbol;
