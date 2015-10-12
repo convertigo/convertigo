@@ -760,7 +760,7 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 			TreeObject projectTreeObject = ((ViewContentProvider) projectExplorerView.viewer
 					.getContentProvider()).getProjectRootObject(projectName);
 			if (projectTreeObject instanceof UnloadedProjectTreeObject) {
-				project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
+				project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
 			} else {
 				project = projectExplorerView.getProject(projectName);
 			}
