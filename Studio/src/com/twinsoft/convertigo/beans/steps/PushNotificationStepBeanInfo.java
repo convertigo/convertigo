@@ -42,7 +42,7 @@ public class PushNotificationStepBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
-			properties = new PropertyDescriptor[7];
+			properties = new PropertyDescriptor[8];
 			
 			properties[0] = new PropertyDescriptor("token", beanClass, "getTokens", "setTokens");
             properties[0].setDisplayName(getExternalizedString("property.token.display_name"));
