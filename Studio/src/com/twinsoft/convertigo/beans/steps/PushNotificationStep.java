@@ -26,25 +26,17 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
-
-import java.io.StringReader;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
 import javapns.Push;
 import javapns.notification.Payload;
+import javapns.notification.PushNotificationPayload;
 import javapns.notification.PushedNotification;
 import javapns.notification.PushedNotifications;
 
-import org.codehaus.jettison.json.JSONObject;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.Undefined;
@@ -55,7 +47,6 @@ import org.w3c.dom.NodeList;
 import com.google.android.gcm.server.Message;
 import com.google.android.gcm.server.MulticastResult;
 import com.google.android.gcm.server.Sender;
-import com.sun.javadoc.Doc;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.Step;
@@ -63,7 +54,6 @@ import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
-import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class PushNotificationStep extends Step implements IStepSourceContainer {
 
@@ -280,15 +270,38 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 					Engine.logBeans.trace("Push notification, iOS device " + token.substring(5) + " will be notified");
 				}
 			}
-/*
+
 			if (devicesList.isEmpty())
 				return;
-*/			
+			
 			// Submit the push to JavaPN library...
 			PushedNotifications pn;
 			
-			if (dictionary.size() > 1) {				
-				pn = Push.payload((Payload)dictionary, 
+			if (dictionary.size() > 1) {
+				String str = null;
+				/* Build a blank payload to customize */ 
+		        PushNotificationPayload payload = PushNotificationPayload.complex();
+		        if ((str = dictionary.get("alert")) != null)
+		        	payload.addAlert(str);
+
+		        if ((str = dictionary.get("badge")) != null)
+		        	payload.addBadge(Integer.parseInt(str, 10));
+
+		        if ((str = dictionary.get("sound")) != null)
+		        	payload.addSound(str);
+		        
+				// add all dictionary entries in turn
+				for(Map.Entry<String, String> e : dictionary.entrySet()) {
+					if (e.getKey().equalsIgnoreCase("alert"))
+						continue;
+					if (e.getKey().equalsIgnoreCase("badge"))
+						continue;
+					if (e.getKey().equalsIgnoreCase("sound"))
+						continue;
+					payload.addCustomDictionary(e.getKey(), e.getValue());
+				}
+
+				pn = Push.payload(payload, 
 							sClientCertificate,
 							sCertificatePassword,
 							true,
