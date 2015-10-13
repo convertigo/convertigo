@@ -242,8 +242,7 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 			Engine.logBeans.error("Push notification, Android device exception: " + e);
 		} 
 	}
-	
-	
+		
 	//
 	// seems like total size of Payload cannot exceed 256 bytes.
 	//
@@ -382,7 +381,7 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 					if (childNodes.getLength() > 0)
 						enumAllStrings(list.item(0), dictionary);
 					else
-						dictionary.put(list.item(0).getNodeName(), list.item(0).getNodeValue());
+						dictionary.put(list.item(0).getParentNode().getNodeName(), list.item(0).getNodeValue());
 					
 					try {
 						PushToAPNS(javascriptContext, scope, dictionary);
