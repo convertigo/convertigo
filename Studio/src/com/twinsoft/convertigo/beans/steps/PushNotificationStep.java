@@ -80,7 +80,6 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 	private transient String     sClientCertificate;
 	private transient String     sCertificatePassword;
 	private transient String	 sNotificationTitle;
-	private transient String     sPayload;
 	private transient String 	 sGCMApiKey;
 
 	
@@ -209,18 +208,22 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 				if (devicesList.isEmpty())
 					return;
 
-				evaluate(javascriptContext, scope, this.notificationTitle, "notificationTitle", false);
-				sNotificationTitle = evaluated instanceof Undefined ? "" : evaluated.toString();
-				
 				// use this line to send message with payload data
 				Message.Builder builder = new Message.Builder()										
 											.collapseKey("1") 
 											.timeToLive(AndroidTimeToLive)
 											.delayWhileIdle(true);
 				
-				// add all dictionary entries in turn
-				for(Map.Entry<String, String> e : dictionary.entrySet())
+				// add all dictionary entries in turn				
+				for(Map.Entry<String, String> e : dictionary.entrySet()) {
+					// for compatibility with former Convertigo versions
+					// if only one dictionary entry, hardcode key as "message"
+					if (dictionary.size() == 1) {
+						builder.addData("message", e.getValue());
+						break;
+					}
 				    builder.addData(e.getKey(), e.getValue());
+				}
 				
 				Message message = builder.build(); 
 		
