@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2001-2014 Convertigo. All Rights Reserved.
+* Copyright (c) 2001-2015 Convertigo. All Rights Reserved.
 *
 * The copyright to the computer  program(s) herein  is the property
 * of Convertigo.
@@ -26,6 +26,7 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -43,8 +44,10 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.google.android.gcm.server.Constants;
 import com.google.android.gcm.server.Message;
 import com.google.android.gcm.server.MulticastResult;
+import com.google.android.gcm.server.Result;
 import com.google.android.gcm.server.Sender;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
@@ -225,17 +228,42 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 				
 				Message message = builder.build(); 
 		
-				// Use this for multicast messages 
-				MulticastResult result = sender.send(message, devicesList, 1); 
-				sender.send(message, devicesList, 1); 
-				Engine.logBeans.debug("Push notification, Android devices notified: " + result.toString());
-	
-				if (result.getResults() != null) { 
-					int canonicalRegId = result.getCanonicalIds(); 
-					if (canonicalRegId != 0) { 
-					} 
+				// Use this for multicast messages
+				MulticastResult multicastResult;
+				
+				try {
+					multicastResult = sender.send(message, devicesList, 1);
+				} catch(IOException e) {
+					Engine.logBeans.debug("Push notification, Error posting Android messages " + e.toString());
+					return;
+				}
+ 
+				if (multicastResult.getResults() != null) {
+					Engine.logBeans.debug("Push notification, Android devices notified: " + multicastResult.toString());
+					Result result = multicastResult.getResults().get(0);
+					String regId = devicesList.get(0);
+					String messageId = result.getMessageId();
+					if (messageId != null) {
+						Engine.logBeans.debug("Push notification, succesfully sent message to device: " + regId + "; messageId = " + messageId);
+						String canonicalRegId = result.getCanonicalRegistrationId();
+			            if (canonicalRegId != null) {
+			              // same device has more than on registration id: update it
+			            	Engine.logBeans.info("Push notification, same device has more than on registration canonicalRegId " + canonicalRegId);
+			            	// Datastore.updateRegistration(regId, canonicalRegId);
+			            }
+					}
+					else {
+						String error = result.getErrorCodeName();
+			            if (error.equals(Constants.ERROR_NOT_REGISTERED)) {
+			              // application has been removed from device - unregister it
+			            	Engine.logBeans.info("Push notification, unregistered device: " + regId);
+			            	// Datastore.unregister(regId);
+			            } else {
+			            	Engine.logBeans.debug("Push notification, error sending message to " + regId + ": " + error);
+			            }
+					}					
 				} else { 
-					int error = result.getFailure(); 
+					int error = multicastResult.getFailure(); 
 					Engine.logBeans.error("Push notification, Android device error: " + error);
 				}
 			}
