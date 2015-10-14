@@ -1,23 +1,27 @@
 /*
- * Copyright (c) 2001-2011 Convertigo SA.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; either version 3
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see<http://www.gnu.org/licenses/>.
- *
- * $URL: http://sourceus/svn/convertigo/CEMS_opensource/trunk/Studio/src/com/twinsoft/convertigo/beans/steps/SmtpStepBeanInfo.java $
- * $Author: nicolasa $
- * $Revision: 31403 $
- * $Date: 2012-08-17 16:56:26 +0200 (ven., 17 août 2012) $
+* Copyright (c) 2001-2014 Convertigo. All Rights Reserved.
+*
+* The copyright to the computer  program(s) herein  is the property
+* of Convertigo.
+* The program(s) may  be used  and/or copied  only with the written
+* permission  of  Convertigo  or in accordance  with  the terms and
+* conditions  stipulated  in the agreement/contract under which the
+* program(s) have been supplied.
+*
+* Convertigo makes  no  representations  or  warranties  about  the
+* suitability of the software, either express or implied, including
+* but  not  limited  to  the implied warranties of merchantability,
+* fitness for a particular purpose, or non-infringement. Convertigo
+* shall  not  be  liable for  any damage  suffered by licensee as a
+* result of using,  modifying or  distributing this software or its
+* derivatives.
+*/
+
+/*
+ * $URL$
+ * $Author$
+ * $Revision$
+ * $Date$
  */
 
 package com.twinsoft.convertigo.beans.steps;
@@ -42,7 +46,7 @@ public class PushNotificationStepBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
-			properties = new PropertyDescriptor[8];
+			properties = new PropertyDescriptor[7];
 			
 			properties[0] = new PropertyDescriptor("token", beanClass, "getTokens", "setTokens");
             properties[0].setDisplayName(getExternalizedString("property.token.display_name"));
@@ -77,20 +81,11 @@ public class PushNotificationStepBeanInfo extends MySimpleBeanInfo {
 			properties[5].setShortDescription(getExternalizedString("property.sourceDefinition.short_description"));
 			properties[5].setPropertyEditorClass(getEditorClass("StepSourceEditor"));
 
-			properties[6] = new PropertyDescriptor("notificationTitle", beanClass, "getNotificationTitle", "setNotificationTitle");
+			properties[6] = new PropertyDescriptor("androidTimeToLive", beanClass, "getAndroidTimeToLive", "setAndroidTimeToLive");
 			properties[6].setExpert(false);
-			properties[6].setDisplayName(getExternalizedString("property.notificationTitle.display_name"));
-			properties[6].setShortDescription(getExternalizedString("property.notificationTitle.short_description"));
-			properties[6].setValue("scriptable", Boolean.TRUE);
-			
-			properties[7] = new PropertyDescriptor("androidTimeToLive", beanClass, "getAndroidTimeToLive", "setAndroidTimeToLive");
-			properties[7].setExpert(false);
-			properties[7].setDisplayName(getExternalizedString("property.androidTimeToLive.display_name"));
-			properties[7].setShortDescription(getExternalizedString("property.androidTimeToLive.short_description"));
-            properties[7].setValue("scriptable", Boolean.TRUE);
-			
-			
-			
+			properties[6].setDisplayName(getExternalizedString("property.androidTimeToLive.display_name"));
+			properties[6].setShortDescription(getExternalizedString("property.androidTimeToLive.short_description"));
+            properties[6].setValue("scriptable", Boolean.TRUE);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

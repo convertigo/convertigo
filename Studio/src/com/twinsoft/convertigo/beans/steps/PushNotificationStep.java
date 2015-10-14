@@ -32,7 +32,6 @@ import java.util.Iterator;
 import java.util.Map;
 
 import javapns.Push;
-import javapns.notification.Payload;
 import javapns.notification.PushNotificationPayload;
 import javapns.notification.PushedNotification;
 import javapns.notification.PushedNotifications;
@@ -79,7 +78,6 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 	private transient StepSource tokenSource = null;
 	private transient String     sClientCertificate;
 	private transient String     sCertificatePassword;
-	private transient String	 sNotificationTitle;
 	private transient String 	 sGCMApiKey;
 
 	
