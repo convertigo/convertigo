@@ -138,7 +138,8 @@ public class SchemaViewContentProvider implements ITreeContentProvider {
 						} else if (Constants.URI_2001_SCHEMA_XSD.equals(o2.getTargetNamespace())) {
 							return -1;
 						} else {
-							return SchemaMeta.isDynamic(o1) ? -1 : SchemaMeta.isDynamic(o2) ? 1 : 0;
+							return SchemaMeta.isDynamic(o1) ? -1 : SchemaMeta.isDynamic(o2) ? 1 : 
+									o1.getTargetNamespace().compareTo(o2.getTargetNamespace());
 						}
 					}
 				});
