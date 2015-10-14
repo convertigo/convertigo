@@ -1,6 +1,7 @@
 package com.twinsoft.convertigo.engine;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -568,10 +569,19 @@ public class SchemaManager implements AbstractManager {
 					
 				}.init(project);
 				
+				// sort schemas by namespaces ascending order
+				List<XmlSchema> schemaList = Arrays.asList(collection.getXmlSchemas());
+				Collections.sort(schemaList, new Comparator<XmlSchema>() {
+					@Override
+					public int compare(XmlSchema o1, XmlSchema o2) {
+						return o1.getTargetNamespace().compareTo(o2.getTargetNamespace());
+					}
+				});
+				
 				// defined prefixes for this schema
 				NamespaceMap nsMap = new NamespaceMap();
 				int cpt1 = 0, cpt2 = 0;
-				for (final XmlSchema xs : collection.getXmlSchemas()) {
+				for (final XmlSchema xs : schemaList) {
 					String tns = xs.getTargetNamespace();
 					String prefix;
 					if (Constants.URI_2001_SCHEMA_XSD.equals(tns)) {
