@@ -30,6 +30,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import javapns.Push;
@@ -232,7 +234,7 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 				MulticastResult multicastResult;
 				
 				try {
-					multicastResult = sender.send(message, devicesList, 1);
+					multicastResult = sender.send(message, devicesList, devicesList.size());
 				} catch(IOException e) {
 					Engine.logBeans.debug("Push notification, Error posting Android messages " + e.toString());
 					return;
@@ -240,28 +242,33 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
  
 				if (multicastResult.getResults() != null) {
 					Engine.logBeans.debug("Push notification, Android devices notified: " + multicastResult.toString());
-					Result result = multicastResult.getResults().get(0);
-					String regId = devicesList.get(0);
-					String messageId = result.getMessageId();
-					if (messageId != null) {
-						Engine.logBeans.debug("Push notification, succesfully sent message to device: " + regId + "; messageId = " + messageId);
-						String canonicalRegId = result.getCanonicalRegistrationId();
-			            if (canonicalRegId != null) {
-			              // same device has more than on registration id: update it
-			            	Engine.logBeans.info("Push notification, same device has more than on registration canonicalRegId " + canonicalRegId);
-			            	// Datastore.updateRegistration(regId, canonicalRegId);
-			            }
+					
+					List<Result> results = multicastResult.getResults();
+					// analyze the result for each device
+					for (int i=0; i<devicesList.size(); i++) {
+						Result result = results.get(i);
+						String regId = devicesList.get(i);
+						String messageId = result.getMessageId();
+						if (messageId != null) {
+							Engine.logBeans.info("Push notification, succesfully sent message to device: " + regId + "; messageId = " + messageId);
+							String canonicalRegId = result.getCanonicalRegistrationId();
+				            if (canonicalRegId != null) {
+				              // same device has more than on registration id: update it
+				            	Engine.logBeans.info("Push notification, warning, same device has more than on registration canonicalRegId " + canonicalRegId);
+				            	// Datastore.updateRegistration(regId, canonicalRegId);
+				            }
+						}
+						else {
+							String error = result.getErrorCodeName();
+				            if (error.equals(Constants.ERROR_NOT_REGISTERED)) {
+				              // application has been removed from device - unregister it
+				            	Engine.logBeans.info("Push notification, unregistered device: " + regId);
+				            	// Datastore.unregister(regId);
+				            } else {
+				            	Engine.logBeans.debug("Push notification, error sending message to " + regId + ": " + error);
+				            }
+						}
 					}
-					else {
-						String error = result.getErrorCodeName();
-			            if (error.equals(Constants.ERROR_NOT_REGISTERED)) {
-			              // application has been removed from device - unregister it
-			            	Engine.logBeans.info("Push notification, unregistered device: " + regId);
-			            	// Datastore.unregister(regId);
-			            } else {
-			            	Engine.logBeans.debug("Push notification, error sending message to " + regId + ": " + error);
-			            }
-					}					
 				} else { 
 					int error = multicastResult.getFailure(); 
 					Engine.logBeans.error("Push notification, Android device error: " + error);
