@@ -28,20 +28,21 @@ package com.twinsoft.convertigo.beans.steps;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import javapns.Push;
 import javapns.notification.PushNotificationPayload;
 import javapns.notification.PushedNotification;
 import javapns.notification.PushedNotifications;
 
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.Undefined;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -58,16 +59,25 @@ import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class PushNotificationStep extends Step implements IStepSourceContainer {
 
 	
 	private static final long serialVersionUID = 3915732415195665643L;
 	
+	public static int NB_RETRIES=1;
+	
 	public enum ApnsNotificationType {
 		Message,
 		Badge,
 		Sound
+	}
+	
+	public enum PushNotificationErrorType {
+		No_Error,
+		Device_Registered_More_Than_Once,
+		Application_Removed_From_Device
 	}
 	
 	private XMLVector<String> sourceDefinition = new XMLVector<String>();
@@ -84,12 +94,11 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 	private transient String     sClientCertificate;
 	private transient String     sCertificatePassword;
 	private transient String 	 sGCMApiKey;
-
+	private transient JSONArray  errorList; 
 	
 	public PushNotificationStep() {
 		super();
 	}
-
 	
 	public int getAndroidTimeToLive() {
 		return AndroidTimeToLive;
@@ -180,7 +189,20 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 		return Engine.theApp.filePropertyManager.getFilepathFromProperty(entry, getProject().getName());
 	}
 
-	protected void PushToGCM(Context javascriptContext, Scriptable scope, Map<String, String> dictionary) throws EngineException, Exception
+	private void saveErrorForOutput(String regId, String messageId, String canonicalRegId, PushNotificationErrorType errorType) {
+		try {
+			JSONObject jso = new JSONObject();
+			jso.put("regId", regId);
+			jso.put("messageId", messageId);
+			jso.put("canonicalRegId", canonicalRegId);
+			jso.put("errorType", ""+errorType);
+			errorList.put(jso);
+		}
+		catch(JSONException e) {			
+		}
+	}
+	
+	protected void PushToGCM(Context javascriptContext, Scriptable scope, List<Parameters> dictionary) throws EngineException, Exception
 	{
 		Engine.logBeans.debug("Push notification, Notifying Android devices");
 		try {
@@ -208,8 +230,10 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 					}
 				}
 				
-				if (devicesList.isEmpty())
+				if (devicesList.isEmpty()) {
+					Engine.logBeans.debug("Push notification, device list empty");
 					return;
+				}
 
 				// use this line to send message with payload data
 				Message.Builder builder = new Message.Builder()										
@@ -218,14 +242,15 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 											.delayWhileIdle(true);
 				
 				// add all dictionary entries in turn				
-				for(Map.Entry<String, String> e : dictionary.entrySet()) {
+				for(int i=0; i<dictionary.size(); i++) {
 					// for compatibility with former Convertigo versions
 					// if only one dictionary entry, hardcode key as "message"
 					if (dictionary.size() == 1) {
-						builder.addData("message", e.getValue());
+						builder.addData("message", dictionary.get(i).value);
 						break;
 					}
-				    builder.addData(e.getKey(), e.getValue());
+
+					builder.addData(dictionary.get(i).name, dictionary.get(i).value);
 				}
 				
 				Message message = builder.build(); 
@@ -234,9 +259,9 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 				MulticastResult multicastResult;
 				
 				try {
-					multicastResult = sender.send(message, devicesList, devicesList.size());
+					multicastResult = sender.send(message, devicesList, NB_RETRIES);
 				} catch(IOException e) {
-					Engine.logBeans.debug("Push notification, Error posting Android messages " + e.toString());
+					Engine.logBeans.debug("Push notification, error posting Android messages " + e.toString());
 					return;
 				}
  
@@ -245,14 +270,17 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 					
 					List<Result> results = multicastResult.getResults();
 					// analyze the result for each device
+
 					for (int i=0; i<devicesList.size(); i++) {
 						Result result = results.get(i);
 						String regId = devicesList.get(i);
 						String messageId = result.getMessageId();
+						String canonicalRegId = "";
 						if (messageId != null) {
 							Engine.logBeans.info("Push notification, succesfully sent message to device: " + regId + "; messageId = " + messageId);
-							String canonicalRegId = result.getCanonicalRegistrationId();
+							canonicalRegId = result.getCanonicalRegistrationId();
 				            if (canonicalRegId != null) {
+				            	saveErrorForOutput(regId, messageId, canonicalRegId, PushNotificationErrorType.Device_Registered_More_Than_Once);				            	
 				              // same device has more than on registration id: update it
 				            	Engine.logBeans.info("Push notification, warning, same device has more than on registration canonicalRegId " + canonicalRegId);
 				            	// Datastore.updateRegistration(regId, canonicalRegId);
@@ -260,7 +288,10 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 						}
 						else {
 							String error = result.getErrorCodeName();
+							
 				            if (error.equals(Constants.ERROR_NOT_REGISTERED)) {
+				            	saveErrorForOutput(regId, messageId, canonicalRegId, PushNotificationErrorType.Application_Removed_From_Device);
+				            	
 				              // application has been removed from device - unregister it
 				            	Engine.logBeans.info("Push notification, unregistered device: " + regId);
 				            	// Datastore.unregister(regId);
@@ -270,7 +301,7 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 						}
 					}
 				} else { 
-					int error = multicastResult.getFailure(); 
+					int error = multicastResult.getFailure();
 					Engine.logBeans.error("Push notification, Android device error: " + error);
 				}
 			}
@@ -282,7 +313,7 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 	//
 	// seems like total size of Payload cannot exceed 256 bytes.
 	//
-	protected void PushToAPNS(Context javascriptContext, Scriptable scope, Map<String, String> dictionary) throws EngineException, Exception
+	protected void PushToAPNS(Context javascriptContext, Scriptable scope, List<Parameters> dictionary) throws EngineException, Exception
 	{
 		evaluate(javascriptContext, scope, this.clientCertificate, "clientCertificate", false);
 		sClientCertificate = evaluated instanceof Undefined ? "" : evaluated.toString();
@@ -313,28 +344,25 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 			PushedNotifications pn;
 			
 			if (dictionary.size() > 1) {
-				String str = null;
 				/* Build a blank payload to customize */ 
 		        PushNotificationPayload payload = PushNotificationPayload.complex();
-		        if ((str = dictionary.get("alert")) != null)
-		        	payload.addAlert(str);
-
-		        if ((str = dictionary.get("badge")) != null)
-		        	payload.addBadge(Integer.parseInt(str, 10));
-
-		        if ((str = dictionary.get("sound")) != null)
-		        	payload.addSound(str);
 		        
-				// add all dictionary entries in turn
-				for(Map.Entry<String, String> e : dictionary.entrySet()) {
-					if (e.getKey().equalsIgnoreCase("alert"))
-						continue;
-					if (e.getKey().equalsIgnoreCase("badge"))
-						continue;
-					if (e.getKey().equalsIgnoreCase("sound"))
-						continue;
-					payload.addCustomDictionary(e.getKey(), e.getValue());
-				}
+		        for(int i=0; i<dictionary.size(); i++) {
+			        if (dictionary.get(i).name.equalsIgnoreCase("alert"))
+			        	payload.addAlert(dictionary.get(i).value);
+			        else
+		        	if (dictionary.get(i).name.equalsIgnoreCase("badge"))
+			        	payload.addBadge(Integer.parseInt(dictionary.get(i).value, 10));
+			        else
+		        	if (dictionary.get(i).name.equalsIgnoreCase("sound"))
+			        	payload.addSound(dictionary.get(i).value);
+		        	else {
+						if (dictionary.get(i).type.equalsIgnoreCase("int"))
+							payload.addCustomDictionary(dictionary.get(i).name, Integer.parseInt(dictionary.get(i).value, 10));
+						else
+							payload.addCustomDictionary(dictionary.get(i).name, dictionary.get(i).value);
+		        	}
+		        }
 
 				pn = Push.payload(payload, 
 							sClientCertificate,
@@ -344,21 +372,21 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 			}
 			else {
 				if (apnsNotificationType == ApnsNotificationType.Message) {				
-					pn = Push.alert(dictionary.get("alert"),
+					pn = Push.alert(dictionary.get(0).value,
 									sClientCertificate,
 									sCertificatePassword,
 									true,
 									devicesList);
 					
 				} else if (apnsNotificationType == ApnsNotificationType.Badge) {	// mod jmc 07/10/2015
-					pn = Push.badge(Integer.parseInt(dictionary.get("badge"), 10),
+					pn = Push.badge(Integer.parseInt(dictionary.get(0).value, 10),
 									sClientCertificate,
 									sCertificatePassword,
 									true,
 									devicesList);
 					
 				} else { 
-					pn = Push.sound(dictionary.get("sound"),
+					pn = Push.sound(dictionary.get(0).value,
 									sClientCertificate,
 									sCertificatePassword,
 									true,
@@ -375,6 +403,18 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 		}
 	}
 
+	private class Parameters {
+		String name;
+		String type;
+		String value;
+		
+		public Parameters(String name, String type, String value) {
+			this.name = name;
+			this.type = type;
+			this.value = value;
+		}
+    };
+	
 	/**
 	 *  recurse in nodelist and put in dictionnary couples 'variableName, variableValue'
 	 * 	variables with no values are not used
@@ -382,13 +422,17 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 	 * @param node
 	 * @param dictionary
 	 */
-	public static void enumAllStrings(Node node, Map<String, String> dictionary) {
+	public void enumAllStrings(Node node, List<Parameters> dictionary) {
 		if (node == null)
 			return;
 
 		String value = node.getFirstChild().getNodeValue();
-		if (value != null)
-			dictionary.put(node.getNodeName(), node.getFirstChild().getNodeValue());
+
+		if (value != null) {
+			PushNotificationStep.Parameters entry = this.new Parameters(node.getNodeName(), ((Element)node).getAttribute("type"), node.getFirstChild().getNodeValue()); 
+			dictionary.add(entry);
+			// dictionary.put(node.getNodeName(), node.getFirstChild().getNodeValue());
+		}
 
 	    NodeList nodeList = node.getChildNodes();
 	    for (int i = 0; i < nodeList.getLength(); i++) {
@@ -403,21 +447,21 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable()) {
+			 errorList = new JSONArray();
+			
 			if (super.stepExecute(javascriptContext, scope)) {
 				// get Source data as a string to payload
 				StepSource stepSource = getSource();
-				NodeList list;
-				
-				list = stepSource.inError() ? null : stepSource.getContextOutputNodes();
+				NodeList list = stepSource.inError() ? null : stepSource.getContextOutputNodes();
 				
 				if (list != null) {
-					Map<String, String> dictionary = new HashMap<String, String>();
+					List<Parameters> dictionary = new ArrayList<PushNotificationStep.Parameters>();
 					NodeList childNodes = list.item(0).getChildNodes();
 					
 					if (childNodes.getLength() > 0)
 						enumAllStrings(list.item(0), dictionary);
 					else
-						dictionary.put(list.item(0).getParentNode().getNodeName(), list.item(0).getNodeValue());
+						dictionary.add(new PushNotificationStep.Parameters(list.item(0).getParentNode().getNodeName(), "string", list.item(0).getNodeValue()));
 					
 					try {
 						PushToAPNS(javascriptContext, scope, dictionary);
@@ -436,7 +480,65 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 	public String toJsString() {
 		return "";
 	}
+
+	@Override
+	public String getStepNodeName() {
+		return "pushnotification";
+	}	
 	
+	@Override
+	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {					
+		try {	
+			// for debug
+			// saveErrorForOutput("regId", "messageId", "canonicalRegId", PushNotificationErrorType.Device_Registered_More_Than_Once);
+			
+			Element device, devices;
+
+			if (errorList.length() == 0) {
+            	Element element = doc.createElement("error");
+            	element.setTextContent("0");
+            	stepNode.appendChild(element);            	
+
+            	element = doc.createElement("message");
+            	element.setTextContent("OK");
+            	stepNode.appendChild(element);
+			}
+			else {
+            	Element element = doc.createElement("error");
+            	element.setTextContent("-1");
+            	stepNode.appendChild(element);            	
+
+            	element = doc.createElement("message");
+            	if (errorList.length() == 1)
+            		element.setTextContent(errorList.length() + " error detected");
+            	else
+            		element.setTextContent(errorList.length() + " errors detected");
+            	stepNode.appendChild(element);
+				
+	        	devices = doc.createElement("devices");
+	        	stepNode.appendChild(devices);
+	
+				for(int i=0; i<errorList.length(); i++) {
+					JSONObject jso = (JSONObject)errorList.get(i);
+					
+					String regId = jso.getString("regId");
+					String messageId = jso.getString("messageId");
+					String canonicalRegId = jso.getString("canonicalRegId");
+					String errorType = jso.getString("errorType");
+					
+	            	device = doc.createElement("device");
+	            	device.setAttribute("regId", regId);
+	            	device.setAttribute("messageId", messageId);
+	            	device.setAttribute("canonicalRegId", canonicalRegId);
+	            	device.setAttribute("errorType", errorType);
+	            	// device.appendChild(doc.createTextNode(fileName));
+	            	devices.appendChild(device);
+				}
+			}
+		}
+		catch(JSONException e) {
+		}
+	}
 	
     @Override
 	public void configure(Element element) throws Exception {
