@@ -278,7 +278,6 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 				            	saveErrorForOutput(regId, messageId, canonicalRegId, "Device registered more than once");				            	
 				              // same device has more than on registration id: update it
 				            	Engine.logBeans.info("Push notification, warning, same device has more than on registration canonicalRegId " + canonicalRegId);
-				            	// Datastore.updateRegistration(regId, canonicalRegId);
 				            }
 						}
 						else {
@@ -289,7 +288,6 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 				            	
 				              // application has been removed from device - unregister it
 				            	Engine.logBeans.info("Push notification, unregistered device: " + regId);
-				            	// Datastore.unregister(regId);
 				            } else {
 				            	saveErrorForOutput(regId, "", canonicalRegId, error);
 				            	Engine.logBeans.debug("Push notification, error sending message to '" + regId + "': " + error);
@@ -345,19 +343,25 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 		        PushNotificationPayload payload = PushNotificationPayload.complex();
 		        
 		        for(int i=0; i<dictionary.size(); i++) {
+		        	String value = dictionary.get(i).value;
+		        	
+		        	// skip json strings
+		        	if (value.startsWith("{"))
+		        		continue;
+		        	
 			        if (dictionary.get(i).name.equalsIgnoreCase("alert"))
-			        	payload.addAlert(dictionary.get(i).value);
+			        	payload.addAlert(value);
 			        else
 		        	if (dictionary.get(i).name.equalsIgnoreCase("badge"))
-			        	payload.addBadge(Integer.parseInt(dictionary.get(i).value, 10));
+			        	payload.addBadge(Integer.parseInt(value, 10));
 			        else
 		        	if (dictionary.get(i).name.equalsIgnoreCase("sound"))
-			        	payload.addSound(dictionary.get(i).value);
+			        	payload.addSound(value);
 		        	else {
 						if (dictionary.get(i).type.equalsIgnoreCase("int"))
-							payload.addCustomDictionary(dictionary.get(i).name, Integer.parseInt(dictionary.get(i).value, 10));
+							payload.addCustomDictionary(dictionary.get(i).name, Integer.parseInt(value, 10));
 						else
-							payload.addCustomDictionary(dictionary.get(i).name, dictionary.get(i).value);
+							payload.addCustomDictionary(dictionary.get(i).name, value);
 		        	}
 		        }
 
