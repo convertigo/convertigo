@@ -22,6 +22,10 @@
 
 package com.twinsoft.convertigo.beans.core;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -444,9 +448,22 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 				Engine.logBeans.trace("(TransactionWithVariables) default value: " + Visibility.Logs.printValue(variableVisibility,variableValue));
 		}
 
-		if (variableValue == null)
+		if (variableValue == null) {
 			Engine.logBeans.trace("(TransactionWithVariables) none value found");
-
+		} else if (variableValue.getClass().isArray()) {
+			Engine.logBeans.trace("(TransactionWithVariables) transform the array value as a collection");
+			if (variableValue.getClass().getComponentType().isPrimitive()) {
+				int len = Array.getLength(variableValue);
+				Collection<Object> newVariableValue = new ArrayList<Object>(len);
+				for (int i = 0; i < len; i++) {
+					newVariableValue.add(Array.get(variableValue, i));
+				}
+				variableValue = newVariableValue;
+			} else {
+				variableValue = Arrays.asList((Object[]) variableValue);
+			}
+		}
+		
 		return variableValue;
 	}
 	

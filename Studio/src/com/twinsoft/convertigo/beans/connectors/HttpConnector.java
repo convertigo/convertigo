@@ -22,11 +22,12 @@
 
 package com.twinsoft.convertigo.beans.connectors;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
@@ -37,11 +38,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
+import javax.activation.DataSource;
+import javax.activation.FileDataSource;
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMultipart;
 import javax.swing.event.EventListenerList;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -51,6 +58,7 @@ import javax.xml.transform.stream.StreamSource;
 
 import oauth.signpost.exception.OAuthException;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HeaderElement;
@@ -69,10 +77,12 @@ import org.apache.commons.httpclient.methods.HeadMethod;
 import org.apache.commons.httpclient.methods.OptionsMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
+import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.httpclient.methods.TraceMethod;
 import org.apache.commons.httpclient.params.HttpConnectionParams;
 import org.apache.commons.httpclient.protocol.Protocol;
+import org.apache.commons.io.IOUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -98,12 +108,14 @@ import com.twinsoft.convertigo.engine.HttpStateListener;
 import com.twinsoft.convertigo.engine.MySSLSocketFactory;
 import com.twinsoft.convertigo.engine.Version;
 import com.twinsoft.convertigo.engine.enums.AuthenticationMode;
+import com.twinsoft.convertigo.engine.enums.DoFileUploadMode;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.HttpPool;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.oauth.HttpOAuthConsumer;
 import com.twinsoft.convertigo.engine.plugins.VicApi;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.ParameterUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
@@ -431,16 +443,12 @@ public class HttpConnector extends Connector {
 				try {
 					// handle multivalued variable
 					if (isMultiValued) {
-						if (httpObjectVariableValue instanceof Collection<?>)
+						if (httpObjectVariableValue instanceof Collection<?>) {
 							for (Object httpVariableValue : (Collection<?>) httpObjectVariableValue) {
 								queryString += ((queryString.length() != 0) ? "&" : "");
 								queryString += httpVariable + "=" + URLEncoder.encode(ParameterUtils.toString(httpVariableValue), urlEncodingCharset);
 							}
-						else if (httpObjectVariableValue.getClass().isArray())
-							for (Object item : (Object[]) httpObjectVariableValue) {
-								queryString += ((queryString.length() != 0) ? "&" : "");
-								queryString += httpVariable + "=" + URLEncoder.encode(ParameterUtils.toString(item), urlEncodingCharset);
-							}
+						}
 					}
 					// standard case
 					else {
@@ -517,15 +525,7 @@ public class HttpConnector extends Connector {
 											Element valueElement = variablesDocument.createElement("value");
 											variableElement.appendChild(valueElement);
 											Text valueText = variablesDocument
-													.createTextNode(ParameterUtils.toString(httpVariableValue));
-											valueElement.appendChild(valueText);
-										}
-									} else if (httpObjectVariableValue.getClass().isArray()) {
-										for (Object httpVariableValue : (Object[]) httpObjectVariableValue) {
-											Element valueElement = variablesDocument.createElement("value");
-											variableElement.appendChild(valueElement);
-											Text valueText = variablesDocument
-													.createTextNode(ParameterUtils.toString(httpVariableValue));
+													.createTextNode(getStringValue(trVariable, httpVariableValue));
 											valueElement.appendChild(valueText);
 										}
 									}
@@ -533,7 +533,7 @@ public class HttpConnector extends Connector {
 									Element valueElement = variablesDocument.createElement("value");
 									variableElement.appendChild(valueElement);
 									Text valueText = variablesDocument
-											.createTextNode(ParameterUtils.toString(httpObjectVariableValue));
+											.createTextNode(getStringValue(trVariable, httpObjectVariableValue));
 									valueElement.appendChild(valueText);
 								}
 							}
@@ -608,6 +608,7 @@ public class HttpConnector extends Connector {
 
 			// Retrieves variable value
 			httpObjectVariableValue = httpTransaction.getParameterValue(variable);
+			
 			if (method.equals("POST")) {
 				// variable must be sent as an HTTP parameter
 				if (!bIgnoreVariable) {
@@ -659,7 +660,7 @@ public class HttpConnector extends Connector {
 											// multiple values
 											String httpVariableValue = "";
 											for (Object var : (Collection<?>) httpObjectVariableValue)
-												httpVariableValue += ParameterUtils.toString(var);
+												httpVariableValue += getStringValue(trVariable, var);
 											if (isLogHidden) logHiddenValues.add(httpVariableValue);
 											postQuery = postQuery.substring(0, varPatternIndex)
 													+ httpVariableValue
@@ -675,51 +676,13 @@ public class HttpConnector extends Connector {
 													+ postQuery.substring(indexAfterPattern).indexOf('>');
 											String tmpPostQuery = postQuery.substring(0, beginTagIndex);
 											for (Object httpVariableValue : (Collection<?>) httpObjectVariableValue) {
-												if (isLogHidden) logHiddenValues.add(ParameterUtils.toString(httpVariableValue));
+												String stringValue = getStringValue(trVariable, httpVariableValue);
+												if (isLogHidden) {
+													logHiddenValues.add(stringValue);
+												}
 												tmpPostQuery += (postQuery.substring(beginTagIndex,
 														varPatternIndex)
-														+ ParameterUtils.toString(httpVariableValue) + postQuery.substring(
-														indexAfterPattern, endTagIndex + 1));
-											}
-											tmpPostQuery += postQuery.substring(endTagIndex + 1);
-											postQuery = tmpPostQuery;
-										}
-									}
-								} else if (httpObjectVariableValue.getClass().isArray()) {
-									// while postQuery contains the variable
-									// pattern
-									while (postQuery.indexOf(varPattern) != -1) {
-										varPatternIndex = postQuery.indexOf(varPattern);
-										indexAfterPattern = varPatternIndex + varPattern.length();
-										if (postQuery.substring(indexAfterPattern).startsWith("concat")) {
-											// concat every value from the
-											// vector
-											// to replace the occurrence in the
-											// template
-											// by the concatenation of the
-											// multiple values
-											String httpVariableValue = "";
-											for (Object item : (Object[]) httpObjectVariableValue)
-												httpVariableValue += ParameterUtils.toString(item);
-											if (isLogHidden) logHiddenValues.add(httpVariableValue);
-											postQuery = postQuery.substring(0, varPatternIndex)
-													+ httpVariableValue
-													+ postQuery.substring(indexAfterPattern
-													+ "concat".length());
-										} else {
-											// duplicate the tag surrounding the
-											// occurrence in the template
-											// for each value from the vector
-											beginTagIndex = postQuery.substring(0, varPatternIndex)
-													.lastIndexOf('<');
-											endTagIndex = indexAfterPattern
-													+ postQuery.substring(indexAfterPattern).indexOf('>');
-											String tmpPostQuery = postQuery.substring(0, beginTagIndex);
-											for (Object item : (Object[]) httpObjectVariableValue) {
-												if (isLogHidden) logHiddenValues.add(ParameterUtils.toString(item));
-												tmpPostQuery += (postQuery.substring(beginTagIndex,
-														varPatternIndex)
-														+ ParameterUtils.toString(item) + postQuery.substring(
+														+ stringValue + postQuery.substring(
 														indexAfterPattern, endTagIndex + 1));
 											}
 											tmpPostQuery += postQuery.substring(endTagIndex + 1);
@@ -727,18 +690,25 @@ public class HttpConnector extends Connector {
 										}
 									}
 								} else {
-									if (isLogHidden) logHiddenValues.add(ParameterUtils.toString(httpObjectVariableValue));
+									String stringValue = getStringValue(trVariable, httpObjectVariableValue);
+									if (isLogHidden) {
+										logHiddenValues.add(stringValue);
+									}
 									StringEx sx = new StringEx(postQuery);
-									sx.replaceAll("$(" + httpVariable + ")concat", ParameterUtils.toString(httpObjectVariableValue));
+									sx.replaceAll("$(" + httpVariable + ")concat", stringValue);
 									postQuery = sx.toString();
 								}
 							}
 							// Handle single valued variable
 							else {
-								if (isLogHidden) logHiddenValues.add(ParameterUtils.toString(httpObjectVariableValue));
+								String stringValue = getStringValue(trVariable, httpObjectVariableValue);
+								
+								if (isLogHidden) {
+									logHiddenValues.add(stringValue);
+								}
 								StringEx sx = new StringEx(postQuery);
-								sx.replaceAll("$(" + httpVariable + ")noE", ParameterUtils.toString(httpObjectVariableValue));
-								sx.replaceAll("$(" + httpVariable + ")", ParameterUtils.toString(httpObjectVariableValue));
+								sx.replaceAll("$(" + httpVariable + ")noE", stringValue);
+								sx.replaceAll("$(" + httpVariable + ")", stringValue);
 								postQuery = sx.toString();
 							}
 						}
@@ -765,9 +735,12 @@ public class HttpConnector extends Connector {
 																			// replace
 																			// empty
 																			// element
-						if (isLogHidden) logHiddenValues.add(ParameterUtils.toString(httpObjectVariableValue));
+						String stringValue = getStringValue(trVariable, httpObjectVariableValue);
+						if (isLogHidden) {
+							logHiddenValues.add(stringValue);
+						}
 						StringEx sx = new StringEx(postQuery);
-						sx.replaceAll(httpVariable, ParameterUtils.toString(httpObjectVariableValue));
+						sx.replaceAll(httpVariable, stringValue);
 						postQuery = sx.toString();
 					}
 				}
@@ -798,49 +771,7 @@ public class HttpConnector extends Connector {
 					+ transaction.getClass().getName());
 		super.addTransaction(transaction);
 	}
-
-//	private void getHttpState(Context context) {
-//		if (authenticationPropertiesHasChanged) {
-//			context.httpState = null;
-//			authenticationPropertiesHasChanged = false;			
-//		}	
-//		
-//		if (context.httpState == null) {
-//			Engine.logBeans
-//					.debug("(HttpConnector) Creating new HttpState for context id " + context.contextID);
-//			httpState = new HttpState();
-//
-//			// Basic authentication configuration
-//			String realm = null;
-//			if (!authUser.equals("") || !authPassword.equals("") || (givenAuthUser != null) || (givenAuthPassword != null)) {
-//				String userName = ((givenAuthUser == null) ? authUser : givenAuthUser);
-//				String userPassword = ((givenAuthPassword == null) ? authPassword : givenAuthPassword);
-//
-//				if (authenticationType == AuthenticationMode.Basic) {
-//					httpState.setCredentials(new AuthScope(server, AuthScope.ANY_PORT, AuthScope.ANY_REALM),
-//						new UsernamePasswordCredentials(userName, userPassword));
-//					Engine.logBeans.debug("(HttpConnector) Credentials: " + userName + ": ******");
-//				} else {
-//					httpState.setCredentials(new AuthScope(server, AuthScope.ANY_PORT, AuthScope.ANY_REALM),
-//						new NTCredentials(
-//							userName, 										// Username
-//							userPassword,									// Password
-//							(hostConfiguration.getHost() == null ? server : 
-//								hostConfiguration.getHost()),				// Host
-//							NTLMAuthenticationDomain)						// Domain
-//					);
-//					Engine.logBeans.debug("(HttpConnector) NTLM: " + userName + ": ******");
-//				}
-//			}
-//
-//			context.httpState = httpState;
-//			fireStateChanged(new HttpStateEvent(this, context, realm, server, httpState));
-//		} else {
-//			Engine.logBeans.debug("(HttpConnector) Using HttpState of context id " + context.contextID);
-//			httpState = context.httpState;
-//		}
-//	}
-
+	
 	private void getHttpState(Context context) {
 		if (authenticationPropertiesHasChanged) {
 			context.httpState = null;
@@ -1034,27 +965,98 @@ public class HttpConnector extends Connector {
 			for (List<String> httpParameter : httpParameters) {
 				String key = httpParameter.get(0);
 				String value = httpParameter.get(1);
-				if (key.equalsIgnoreCase("host") && !value.equals(host))
+				if (key.equalsIgnoreCase("host") && !value.equals(host)) {
 					value = host;
+				}
 
-				if (!key.startsWith(DYNAMIC_HEADER_PREFIX))
+				if (!key.startsWith(DYNAMIC_HEADER_PREFIX)) {
 					method.setRequestHeader(key, value);
-				if (key.equalsIgnoreCase("User-Agent"))
+				}
+				if (key.equalsIgnoreCase("User-Agent")) {
 					hasUserAgent = true;
-				if (key.equalsIgnoreCase("Content-Type"))
+				}
+				if (key.equalsIgnoreCase("Content-Type")) {
 					content_type = value;
+				}
 			}
 
 			// set user-agent header if not found
-			if (!hasUserAgent)
+			if (!hasUserAgent) {
 				method.setRequestHeader("User-Agent", getUserAgent(context));
+			}
 
 			// Setting POST or PUT parameters if any
 			Engine.logBeans.debug("(HttpConnector) Setting " + httpVerb + " data");
 			if (method instanceof EntityEnclosingMethod) {
 				EntityEnclosingMethod entityEnclosingMethod = (EntityEnclosingMethod) method;
 				if (content_type.equalsIgnoreCase("text/xml")) {
-					entityEnclosingMethod.setRequestEntity(new StringRequestEntity(postQuery, "text/xml", "UTF-8"));
+					final MimeMultipart[] mp = {null};
+					
+					AbstractHttpTransaction transaction = (AbstractHttpTransaction) context.requestedObject;
+					
+					for (RequestableVariable variable : transaction.getVariablesList()) {
+						if (variable instanceof RequestableHttpVariable) {
+							RequestableHttpVariable httpVariable = (RequestableHttpVariable) variable;
+							
+							if (httpVariable.getDoFileUploadMode() == DoFileUploadMode.MTOM) {
+								try {
+									if (mp[0] == null) {
+										mp[0] = new MimeMultipart("related; type=\"application/xop+xml\"");
+										MimeBodyPart bp = new MimeBodyPart();
+										bp.setText(postQuery, "UTF-8");
+										bp.setHeader("Content-Type", "text/xml");
+										mp[0].addBodyPart(bp);
+									}
+									
+									Object httpObjectVariableValue = transaction.getVariableValue(httpVariable.getName());
+									
+									if (httpVariable.isMultiValued()) {
+										if (httpObjectVariableValue instanceof Collection<?>) {
+											for (Object httpVariableValue : (Collection<?>) httpObjectVariableValue) {
+												addMtomPart(mp[0], httpVariable, httpVariableValue);
+											}
+										}
+									} else {
+										addMtomPart(mp[0], httpVariable, httpObjectVariableValue);
+									}
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+							}
+						}
+					}
+					
+					if (mp[0] == null) {
+						entityEnclosingMethod.setRequestEntity(new StringRequestEntity(postQuery, "text/xml", "UTF-8"));
+					} else {
+						method.setRequestHeader("Content-Type", mp[0].getContentType());
+						entityEnclosingMethod.setRequestEntity(new RequestEntity() {
+							
+							@Override
+							public void writeRequest(OutputStream outputStream) throws IOException {
+								try {
+									mp[0].writeTo(outputStream);
+								} catch (MessagingException e) {
+									new IOException(e);
+								}
+							}
+							
+							@Override
+							public boolean isRepeatable() {
+								return true;
+							}
+							
+							@Override
+							public String getContentType() {
+								return mp[0].getContentType();
+							}
+							
+							@Override
+							public long getContentLength() {
+								return -1;
+							}
+						});
+					}					
 				}
 				else {
 					String charset = httpTransaction.getComputedUrlEncodingCharset();
@@ -1081,7 +1083,7 @@ public class HttpConnector extends Connector {
 				method.releaseConnection();
 		}
 	}
-
+	
 	protected String getUserAgent(Context context) throws ConnectionException {
 		return "Mozilla/5.0 ConvertigoEMS/" + Version.fullProductVersion;
 	}
@@ -1112,7 +1114,7 @@ public class HttpConnector extends Connector {
 		}
 	}
 
-	private byte[] executeMethod(HttpMethod method, Context context) throws IOException, URIException,
+	private byte[] executeMethod(HttpMethod method, final Context context) throws IOException, URIException,
 			MalformedURLException, EngineException {
 		Header[] requestHeaders, responseHeaders = null;
 		byte[] result = null;
@@ -1171,16 +1173,99 @@ public class HttpConnector extends Connector {
 								}
 						}
 					}
-
-					ByteArrayOutputStream bos = new ByteArrayOutputStream();
-					byte[] buf = new byte[1024];
-					int len;
-					while ((len = in.read(buf)) > 0) {
-						bos.write(buf, 0, len);
+					
+					if (context.contentType != null && context.contentType.startsWith("multipart/") && context.requestedObject instanceof AbstractHttpTransaction) {
+						File mpBuf = null;
+						try {
+							AbstractHttpTransaction transaction = (AbstractHttpTransaction) context.requestedObject;
+							MimeMultipart mp;
+							
+							if (transaction.getAllowDownloadAttachment()) {
+								mpBuf = File.createTempFile("multipart_", "_c8o.buf");
+								IOUtils.copyLarge(in, new FileOutputStream(mpBuf));
+								
+								mp = new MimeMultipart(new FileDataSource(mpBuf));	
+							} else {
+								final InputStream mpIn = in;
+								mp = new MimeMultipart(new DataSource() {
+									
+									@Override
+									public OutputStream getOutputStream() throws IOException {
+										return null;
+									}
+									
+									@Override
+									public String getName() {
+										return null;
+									}
+									
+									@Override
+									public InputStream getInputStream() throws IOException {
+										return mpIn;
+									}
+									
+									@Override
+									public String getContentType() {
+										return context.contentType;
+									}
+								});
+							}
+							
+							int i = 0;
+							
+							MimeBodyPart bp = (MimeBodyPart) mp.getBodyPart(i++);
+							in = bp.getInputStream();
+							
+							result = IOUtils.toByteArray(in);
+							
+							if (transaction.getAllowDownloadAttachment()) {
+								Document doc = context.outputDocument;
+								Element attInfo = doc.createElement("AttachmentInfo");
+								doc.getDocumentElement().appendChild(attInfo);
+								
+								try {
+									while (true) {
+										bp = (MimeBodyPart) mp.getBodyPart(i++);
+										
+										Element att = doc.createElement("attachment");
+										attInfo.appendChild(att);
+										
+										String cid = bp.getContentID();
+										cid = cid.replaceFirst("^<?(.*?)>?$", "$1");
+										att.setAttribute("cid", "cid:" + cid);
+										
+										File partFile = File.createTempFile(cid + "_", "_c8o.bin");
+										partFile.deleteOnExit();
+										
+										att.setAttribute("filepath", partFile.getAbsolutePath());
+										
+										Enumeration<javax.mail.Header> headers = GenericUtils.cast(bp.getAllHeaders());
+										while (headers.hasMoreElements()) {
+											javax.mail.Header header = headers.nextElement();
+											Element eHeader = doc.createElement("header");
+											att.appendChild(eHeader);
+											
+											eHeader.setAttribute("name", header.getName());
+											eHeader.setAttribute("value", header.getValue());
+										}
+										
+										bp.saveFile(partFile);
+									}
+								} catch (Exception e1) {
+									e1.printStackTrace();
+								}
+							}
+						} catch (Exception e) {
+							Engine.logBeans.error("(HttpConnector) Failed to retrieve attachments", e);
+						} finally {
+							if (mpBuf != null) {
+								mpBuf.delete();
+							}
+						}
+					} else {
+						result = IOUtils.toByteArray(in);
+						in.close();						
 					}
-					result = bos.toByteArray();
-					in.close();
-					bos.close();
 				}
 
 				if (Engine.logBeans.isTraceEnabled()) {
@@ -1305,8 +1390,8 @@ public class HttpConnector extends Connector {
 
 					for (int i = 0; i < headers.size(); i++){
 						Element elt = doc.createElement("header");
-						elt.setAttribute("name", headers.get(i).toString().substring( 0, headers.get(i).toString().indexOf(":") ) );
-						elt.setAttribute("value", headers.get(i).toString().substring( headers.get(i).toString().indexOf(":")+2 ) );
+						elt.setAttribute("name", headers.get(i).getName());
+						elt.setAttribute("value", headers.get(i).getValue());
 						httpHeadersElement.appendChild(elt);
 					}				
 					httpInfoElement.appendChild(httpHeadersElement);
@@ -1318,15 +1403,15 @@ public class HttpConnector extends Connector {
 
 					for (int i = 0; i < responseHeaders.length; i++){
 						Element elt = doc.createElement("header");
-						elt.setAttribute("name", responseHeaders[i].toString().substring( 0, responseHeaders[i].toString().indexOf(":") ) );
-						elt.setAttribute("value", responseHeaders[i].toString().substring( responseHeaders[i].toString().indexOf(":")+2 ) );
+						elt.setAttribute("name", responseHeaders[i].getName());
+						elt.setAttribute("value", responseHeaders[i].getValue());
 						httpHeadersElement.appendChild(elt);
 					}				
 					httpInfoElement.appendChild(httpHeadersElement);
 				}	
 				
 				doc.getDocumentElement().appendChild(httpInfoElement);
-			}				
+			}
 		} finally {
 			method.releaseConnection();
 		}
@@ -1525,6 +1610,34 @@ public class HttpConnector extends Connector {
 			}
 		}
 		return absoluteUrl;
+	}
+	
+	public String getStringValue(RequestableHttpVariable variable, Object value) {
+		String stringValue = ParameterUtils.toString(value);
+		
+		DoFileUploadMode doFileUploadmode = variable.getDoFileUploadMode();
+		if (doFileUploadmode == DoFileUploadMode.base64) {
+			try {
+				String filepath = Engine.theApp.filePropertyManager.getFilepathFromProperty(stringValue, getProject().getName());
+				stringValue = Base64.encodeBase64String(IOUtils.toByteArray(new FileInputStream(filepath)));
+			} catch (Exception e) {
+				Engine.logBeans.warn("(HttpConnector) Failed to read the file for base64 encoding: " + stringValue, e);
+			}
+		} else if (doFileUploadmode == DoFileUploadMode.MTOM) {
+			stringValue = "<xop:Include xmlns:xop=\"http://www.w3.org/2004/08/xop/include\" href=\"cid:" + variable.getMtomCid(stringValue) + "\"/>";
+		}
+		
+		return stringValue;
+	}
+	
+	private void addMtomPart(MimeMultipart mp, RequestableHttpVariable variable, Object httpVariableValue) throws IOException, MessagingException {
+		String stringValue = ParameterUtils.toString(httpVariableValue);
+		String filepath = Engine.theApp.filePropertyManager.getFilepathFromProperty(stringValue, getProject().getName());
+		
+		MimeBodyPart bp = new MimeBodyPart();
+		bp.attachFile(filepath);
+		bp.setContentID(variable.getMtomCid(stringValue));
+		mp.addBodyPart(bp);
 	}
 	
 	transient private boolean authenticationPropertiesHasChanged = false;
