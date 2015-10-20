@@ -22,12 +22,15 @@
 
 package com.twinsoft.convertigo.beans.variables;
 
+import com.twinsoft.convertigo.engine.enums.DoFileUploadMode;
+
 public class RequestableHttpVariable extends RequestableVariable {
 
 	private static final long serialVersionUID = -8730510144092552400L;
 
 	private String httpMethod = "POST";
 	private String httpName = "";
+	private DoFileUploadMode doFileUploadMode = DoFileUploadMode.none;
 	
 	public RequestableHttpVariable() {
 		super();
@@ -66,5 +69,16 @@ public class RequestableHttpVariable extends RequestableVariable {
 		}
 		return super.getTagsForProperty(propertyName);
 	}
+
+	public DoFileUploadMode getDoFileUploadMode() {
+		return doFileUploadMode;
+	}
+
+	public void setDoFileUploadMode(DoFileUploadMode doFileUploadMode) {
+		this.doFileUploadMode = doFileUploadMode;
+	}
 	
+	public String getMtomCid(String value) {
+		return getName() + "_" + value.hashCode();
+	}
 }

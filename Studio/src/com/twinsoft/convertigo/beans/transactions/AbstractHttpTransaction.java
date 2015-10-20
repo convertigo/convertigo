@@ -97,6 +97,8 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 
 	private String urlEncodingCharset = "";
 
+	private boolean allowDownloadAttachment = false;
+	
     public AbstractHttpTransaction() {
 		super();
 		
@@ -515,5 +517,13 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 
 	public void setHttpPool(HttpPool httpPool) {
 		this.httpPool = httpPool;
+	}
+
+	public boolean getAllowDownloadAttachment() {
+		return allowDownloadAttachment;
+	}
+
+	public void setAllowDownloadAttachment(boolean allowDownloadAttachment) {
+		this.allowDownloadAttachment = allowDownloadAttachment;
 	}
 }

@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.beans.variables;
 import java.beans.*;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
+import com.twinsoft.convertigo.engine.enums.DoFileUploadMode;
 
 
 public class RequestableHttpVariableBeanInfo extends MySimpleBeanInfo {
@@ -42,7 +43,7 @@ public class RequestableHttpVariableBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 
-			properties = new PropertyDescriptor[2];
+			properties = new PropertyDescriptor[3];
 			
             properties[0] = new PropertyDescriptor("httpMethod", beanClass, "getHttpMethod", "setHttpMethod");
 			properties[0].setDisplayName(getExternalizedString("property.httpMethod.display_name"));
@@ -52,6 +53,12 @@ public class RequestableHttpVariableBeanInfo extends MySimpleBeanInfo {
             properties[1] = new PropertyDescriptor("httpName", beanClass, "getHttpName", "setHttpName");
 			properties[1].setDisplayName(getExternalizedString("property.httpName.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.httpName.short_description"));
+			
+            properties[2] = new PropertyDescriptor("doFileUploadMode", beanClass, "getDoFileUploadMode", "setDoFileUploadMode");
+			properties[2].setDisplayName(getExternalizedString("property.doFileUploadMode.display_name"));
+			properties[2].setShortDescription(getExternalizedString("property.doFileUploadMode.short_description"));
+			properties[2].setPropertyEditorClass(DoFileUploadMode.class);
+			properties[2].setExpert(true);
 			
 		}
 		catch(Exception e) {
