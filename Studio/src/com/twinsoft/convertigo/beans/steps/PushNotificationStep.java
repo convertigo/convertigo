@@ -59,7 +59,6 @@ import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
-import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class PushNotificationStep extends Step implements IStepSourceContainer {
 
@@ -74,18 +73,13 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 		Sound
 	}
 	
-	public enum PushNotificationErrorType {
-		No_Error,
-		Device_Registered_More_Than_Once,
-		Application_Removed_From_Device
-	}
-	
 	private XMLVector<String> sourceDefinition = new XMLVector<String>();
 	private XMLVector<String> tokens =  new XMLVector<String>();
 	
 	private String clientCertificate = "\".//<client certificate>.p12\"";
 	private String certificatePassword = "\"<your .p12 certificate password>\"";
 	private String notificationTitle = "\"TITLE\"";
+	private String errorMessage = "";
 	private ApnsNotificationType apnsNotificationType = ApnsNotificationType.Message;
 	private String GCMApiKey = "\"<configure your api key here>\"";
 	private int    AndroidTimeToLive = 3600;
@@ -189,13 +183,13 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 		return Engine.theApp.filePropertyManager.getFilepathFromProperty(entry, getProject().getName());
 	}
 
-	private void saveErrorForOutput(String regId, String messageId, String canonicalRegId, PushNotificationErrorType errorType) {
+	private void saveErrorForOutput(String regId, String messageId, String canonicalRegId, String errorType) {
 		try {
 			JSONObject jso = new JSONObject();
 			jso.put("regId", regId);
 			jso.put("messageId", messageId);
 			jso.put("canonicalRegId", canonicalRegId);
-			jso.put("errorType", ""+errorType);
+			jso.put("errorType", "" + errorType);
 			errorList.put(jso);
 		}
 		catch(JSONException e) {			
@@ -261,7 +255,8 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 				try {
 					multicastResult = sender.send(message, devicesList, NB_RETRIES);
 				} catch(IOException e) {
-					Engine.logBeans.debug("Push notification, error posting Android messages " + e.toString());
+					errorMessage = "Push notification, error posting Android messages " + e.toString();
+					Engine.logBeans.debug(errorMessage);
 					return;
 				}
  
@@ -275,12 +270,12 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 						Result result = results.get(i);
 						String regId = devicesList.get(i);
 						String messageId = result.getMessageId();
-						String canonicalRegId = "";
+						String canonicalRegId = result.getCanonicalRegistrationId();
 						if (messageId != null) {
 							Engine.logBeans.info("Push notification, succesfully sent message to device: " + regId + "; messageId = " + messageId);
 							canonicalRegId = result.getCanonicalRegistrationId();
 				            if (canonicalRegId != null) {
-				            	saveErrorForOutput(regId, messageId, canonicalRegId, PushNotificationErrorType.Device_Registered_More_Than_Once);				            	
+				            	saveErrorForOutput(regId, messageId, canonicalRegId, "Device registered more than once");				            	
 				              // same device has more than on registration id: update it
 				            	Engine.logBeans.info("Push notification, warning, same device has more than on registration canonicalRegId " + canonicalRegId);
 				            	// Datastore.updateRegistration(regId, canonicalRegId);
@@ -290,23 +285,25 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 							String error = result.getErrorCodeName();
 							
 				            if (error.equals(Constants.ERROR_NOT_REGISTERED)) {
-				            	saveErrorForOutput(regId, messageId, canonicalRegId, PushNotificationErrorType.Application_Removed_From_Device);
+				            	saveErrorForOutput(regId, messageId, canonicalRegId, "Application removed from device");
 				            	
 				              // application has been removed from device - unregister it
 				            	Engine.logBeans.info("Push notification, unregistered device: " + regId);
 				            	// Datastore.unregister(regId);
 				            } else {
-				            	Engine.logBeans.debug("Push notification, error sending message to " + regId + ": " + error);
+				            	saveErrorForOutput(regId, "", canonicalRegId, error);
+				            	Engine.logBeans.debug("Push notification, error sending message to '" + regId + "': " + error);
 				            }
 						}
 					}
 				} else { 
-					int error = multicastResult.getFailure();
-					Engine.logBeans.error("Push notification, Android device error: " + error);
+					errorMessage = "Push notification, Android device error: " + multicastResult.getFailure(); 
+					Engine.logBeans.error(errorMessage);
 				}
 			}
 		} catch (Exception e) { 
-			Engine.logBeans.error("Push notification, Android device exception: " + e);
+			errorMessage = "Push notification, Android device exception: " + e;
+			Engine.logBeans.error(errorMessage);
 		} 
 	}
 		
@@ -448,32 +445,37 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable()) {
 			 errorList = new JSONArray();
-			
-			if (super.stepExecute(javascriptContext, scope)) {
-				// get Source data as a string to payload
-				StepSource stepSource = getSource();
-				NodeList list = stepSource.inError() ? null : stepSource.getContextOutputNodes();
 				
-				if (list != null) {
-					List<Parameters> dictionary = new ArrayList<PushNotificationStep.Parameters>();
-					NodeList childNodes = list.item(0).getChildNodes();
-					
-					if (childNodes.getLength() > 0)
-						enumAllStrings(list.item(0), dictionary);
-					else
-						dictionary.add(new PushNotificationStep.Parameters(list.item(0).getParentNode().getNodeName(), "string", list.item(0).getNodeValue()));
-					
-					try {
-						PushToAPNS(javascriptContext, scope, dictionary);
-						PushToGCM(javascriptContext, scope, dictionary);
-					} catch (EngineException e) {
-						throw e;
-					} catch (Exception e) {
-						throw new EngineException(e.getClass().getSimpleName() + " during push notification", e);
-					}
+			// get Source data as a string to payload
+			StepSource stepSource = getSource();
+			NodeList list = stepSource.inError() ? null : stepSource.getContextOutputNodes();
+			
+			if (list != null) {
+				List<Parameters> dictionary = new ArrayList<PushNotificationStep.Parameters>();
+				NodeList childNodes = list.item(0).getChildNodes();
+				
+				if (childNodes.getLength() > 0)
+					enumAllStrings(list.item(0), dictionary);
+				else
+					dictionary.add(new PushNotificationStep.Parameters(list.item(0).getParentNode().getNodeName(), "string", list.item(0).getNodeValue()));
+				
+				try {	
+					PushToAPNS(javascriptContext, scope, dictionary);
+					PushToGCM(javascriptContext, scope, dictionary);
+				} catch (EngineException e) {
+					errorMessage = e.toString();
+					throw e;
+				} catch (Exception e) {
+					errorMessage = e.getClass().getSimpleName() + " during push notification";
+					throw new EngineException(e.getClass().getSimpleName() + " during push notification", e);
 				}
 			}
+			
+			if (super.stepExecute(javascriptContext, scope)) {
+				return true;
+			}
 		}
+		
 		return false;
 	}
 	
@@ -485,53 +487,56 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 	public String getStepNodeName() {
 		return "pushnotification";
 	}	
-	
-	@Override
-	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {					
+
+@Override
+	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
+		String regId;
+		String messageId;
+		String canonicalRegId;
+		String errorType;
+
 		try {	
-			// for debug
-			// saveErrorForOutput("regId", "messageId", "canonicalRegId", PushNotificationErrorType.Device_Registered_More_Than_Once);
-			
-			Element device, devices;
+			Element device, devices, element;
 
-			if (errorList.length() == 0) {
-            	Element element = doc.createElement("error");
-            	element.setTextContent("0");
-            	stepNode.appendChild(element);            	
-
-            	element = doc.createElement("message");
-            	element.setTextContent("OK");
+			if (errorMessage.length() != 0) {
+            	element = doc.createElement("errorMessage");
+            	element.setTextContent(errorMessage);
             	stepNode.appendChild(element);
 			}
-			else {
-            	Element element = doc.createElement("error");
-            	element.setTextContent("-1");
-            	stepNode.appendChild(element);            	
-
-            	element = doc.createElement("message");
-            	if (errorList.length() == 1)
-            		element.setTextContent(errorList.length() + " error detected");
-            	else
-            		element.setTextContent(errorList.length() + " errors detected");
-            	stepNode.appendChild(element);
-				
+			
+			if (errorList.length() != 0) {
 	        	devices = doc.createElement("devices");
 	        	stepNode.appendChild(devices);
 	
 				for(int i=0; i<errorList.length(); i++) {
 					JSONObject jso = (JSONObject)errorList.get(i);
-					
-					String regId = jso.getString("regId");
-					String messageId = jso.getString("messageId");
-					String canonicalRegId = jso.getString("canonicalRegId");
-					String errorType = jso.getString("errorType");
+
+					try {
+						regId = jso.getString("regId");
+					} catch(JSONException j1) {
+						regId = "";
+					}
+					try {
+						messageId = jso.getString("messageId");
+					} catch(JSONException j2) {
+						messageId = "";
+					}
+					try {
+						canonicalRegId = jso.getString("canonicalRegId");
+					} catch(JSONException j3) {
+						canonicalRegId = "";
+					}
+					try {
+						errorType = jso.getString("errorType");
+					} catch(JSONException j4) {
+						errorType = "";
+					}
 					
 	            	device = doc.createElement("device");
 	            	device.setAttribute("regId", regId);
 	            	device.setAttribute("messageId", messageId);
-	            	device.setAttribute("canonicalRegId", canonicalRegId);
+	            	device.setAttribute("canonicalRegId", (canonicalRegId == null) ? "":canonicalRegId);
 	            	device.setAttribute("errorType", errorType);
-	            	// device.appendChild(doc.createTextNode(fileName));
 	            	devices.appendChild(device);
 				}
 			}
