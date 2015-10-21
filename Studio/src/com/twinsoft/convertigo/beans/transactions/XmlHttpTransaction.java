@@ -28,6 +28,7 @@ import java.nio.charset.Charset;
 import javax.xml.namespace.QName;
 import javax.xml.soap.SOAPException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
@@ -36,6 +37,7 @@ import org.apache.ws.commons.schema.XmlSchemaImport;
 import org.apache.ws.commons.schema.XmlSchemaInclude;
 import org.apache.ws.commons.schema.XmlSchemaSequence;
 import org.apache.ws.commons.schema.constants.Constants;
+import org.apache.xpath.XPathAPI;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -168,6 +170,32 @@ public class XmlHttpTransaction extends AbstractHttpTransaction implements IElem
 				Node error = context.outputDocument.importNode(errDocument.getDocumentElement().getFirstChild(), true);
 				context.outputDocument.getDocumentElement().appendChild(error);
 				return;
+			}
+		}
+		
+		if (getAllowDownloadAttachment()) {
+			Element attachmentInfo = (Element) XPathAPI.selectSingleNode(context.outputDocument, "/document/AttachmentInfo");
+			
+			if (attachmentInfo != null) {
+				NodeList nl = XPathAPI.selectNodeList(attachmentInfo, "attachment");
+				
+				for (int i = 0; i < nl.getLength(); i++) {
+					Element attachment = (Element) nl.item(i);
+					String cid = attachment.getAttribute("cid");
+					
+					if (StringUtils.isNotBlank(cid)) {
+						Element include = (Element) XPathAPI.selectSingleNode(xmlHttpDocument, "//*[local-name()='Include' and @href='" + cid + "']");
+						
+						if (include != null) {
+							include.appendChild(xmlHttpDocument.importNode(attachment, true));
+							XMLUtils.removeNode(attachment);
+						}
+					}
+				}
+							
+				if (XPathAPI.selectSingleNode(attachmentInfo, "attachment") == null) {
+					XMLUtils.removeNode(attachmentInfo);
+				}
 			}
 		}
 		
