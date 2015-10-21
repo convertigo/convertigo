@@ -119,6 +119,8 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	
 	private boolean bStrictMode = true;
 	
+	private String corsOrigin = "";
+	
 	/**
 	 * The default connector for this project.
 	 */
@@ -631,5 +633,13 @@ public class Project extends DatabaseObject implements IInfoProperty {
 			}
 		}
 		return missingProjects;
+	}
+
+	public String getCorsOrigin() {
+		return corsOrigin;
+	}
+
+	public void setCorsOrigin(String corsOrigin) {
+		this.corsOrigin = corsOrigin;
 	}
 }

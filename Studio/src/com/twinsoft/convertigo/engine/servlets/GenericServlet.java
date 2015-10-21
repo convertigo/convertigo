@@ -29,6 +29,8 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -47,6 +49,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.requesters.ServletRequester;
 import com.twinsoft.convertigo.engine.requesters.WebServiceServletRequester;
@@ -236,7 +239,9 @@ public abstract class GenericServlet extends HttpServlet {
 							response.setHeader("Content-Type", contentType);
 							response.setHeader("Content-Length", "" + data.length);
 							response.setHeader("Content-Disposition", "attachment; filename=" + name);
-
+							
+							applyCustomHeaders(request, response);
+							
 							OutputStream out = response.getOutputStream();
 							out.write(data);
 							out.flush();
@@ -248,6 +253,8 @@ public abstract class GenericServlet extends HttpServlet {
 								response.setCharacterEncoding((String) request.getAttribute("convertigo.charset"));
 							}
 							response.addHeader("Content-Length", "" + ((byte[]) result).length);
+							
+							applyCustomHeaders(request, response);
 
 							OutputStream out = response.getOutputStream();
 							out.write((byte[]) result);
@@ -261,12 +268,16 @@ public abstract class GenericServlet extends HttpServlet {
 							} else if (result instanceof SOAPMessage){
 								sResult = SOAPUtils.toString((SOAPMessage) result, (String) request.getAttribute("convertigo.charset"));
 							}
+							
+							applyCustomHeaders(request, response);
 
 							Writer writer = response.getWriter();
 							writer.write(sResult);
 							writer.flush();
 						}
 					} else {
+						applyCustomHeaders(request, response);
+						
 						response.setStatus(HttpServletResponse.SC_NO_CONTENT);
 					}
 				} catch (IOException e) {
@@ -533,4 +544,16 @@ public abstract class GenericServlet extends HttpServlet {
 	}
 
 	public abstract String getDocumentExtension();
+	
+	private void applyCustomHeaders(HttpServletRequest request, HttpServletResponse response) {
+		Map<String, String> headers = RequestAttribute.responseHeader.get(request);
+		if (headers != null) {
+			Engine.logContext.debug("[GenericServlet] Setting custom response headers (" + headers.size() + ")");
+			
+			for (Entry<String, String> header : headers.entrySet()) {
+				Engine.logContext.debug("[GenericServlet] Setting custom response header: " + header.getKey() + "=" + header.getValue());
+				response.setHeader(header.getKey(), header.getValue());
+			}
+		}
+	}
 }

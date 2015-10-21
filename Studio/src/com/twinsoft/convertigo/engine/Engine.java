@@ -40,6 +40,7 @@ import javax.swing.event.EventListenerList;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.auth.AuthPolicy;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
@@ -1049,7 +1050,12 @@ public class Engine {
 				}
 			}
 			context.project.checkSymbols();
-
+			
+			String corsOrigin = context.project.getCorsOrigin();
+			if (StringUtils.isNotBlank(corsOrigin)) {
+				context.setResponseHeader("Access-Control-Allow-Origin", corsOrigin);
+			}
+			
 			// Loading sequence
 			if (context.sequenceName != null) {
 				
