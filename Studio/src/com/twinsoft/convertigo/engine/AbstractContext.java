@@ -397,4 +397,13 @@ public abstract class AbstractContext {
 	 * @return the context requested by the client
 	 */
 	public abstract Context getRootContext();
+	
+	
+	/**
+	 * Set a header to the HTTP response.
+	 * 
+	 * @param name the header name to set
+	 * @param value the header value to set for this name
+	 */
+	public abstract void setResponseHeader(String name, String value);
 }

@@ -43,7 +43,7 @@ public class ProjectBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
-			properties = new PropertyDescriptor[10];
+			properties = new PropertyDescriptor[11];
 			
 			properties[0] = new PropertyDescriptor("browserDefinitions", beanClass, "getBrowserDefinitions", "setBrowserDefinitions");
 			properties[0].setExpert(true);
@@ -100,6 +100,11 @@ public class ProjectBeanInfo extends MySimpleBeanInfo {
             properties[9].setShortDescription(getExternalizedString("property.jsonOutput.short_description"));
             properties[9].setPropertyEditorClass(JsonOutput.class);
             properties[9].setExpert(true);
+            
+            properties[10] = new PropertyDescriptor("corsOrigin", beanClass, "getCorsOrigin", "setCorsOrigin");
+			properties[10].setDisplayName(getExternalizedString("property.corsOrigin.display_name"));
+			properties[10].setShortDescription(getExternalizedString("property.corsOrigin.short_description"));
+			properties[10].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

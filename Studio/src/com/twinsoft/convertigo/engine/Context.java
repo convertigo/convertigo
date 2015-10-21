@@ -76,6 +76,7 @@ import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
 import com.twinsoft.convertigo.engine.cache.CacheEntry;
 import com.twinsoft.convertigo.engine.enums.HttpPool;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.parsers.HtmlParser;
 import com.twinsoft.convertigo.engine.parsers.XulRecorder;
@@ -732,5 +733,18 @@ public class Context extends AbstractContext implements Cloneable {
 				return Engine.theApp.httpClient4;
 		}
 		return null;
+	}
+
+	@Override
+	public void setResponseHeader(String name, String value) {
+		if (httpServletRequest != null) {
+			Map<String, String> headers = RequestAttribute.responseHeader.get(httpServletRequest);
+			
+			if (headers == null) {
+				RequestAttribute.responseHeader.set(httpServletRequest, headers = new HashMap<String, String>());
+			}
+			
+			headers.put(name, value);
+		}
 	}
 }

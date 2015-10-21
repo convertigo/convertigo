@@ -93,30 +93,6 @@ public abstract class GenericRequester extends Requester {
 	public void checkAccessibility() throws EngineException {
 		// Default implementation: nothing to check
 	}
-
-//	@Override
-//	public void checkAuthenticatedContext() throws EngineException {
-//		
-//		context.portalUserName = null;
-//		
-//		if (context.httpSession != null) {
-//			Object authenticatedUser = context.httpSession.getAttribute("authenticatedUser");
-//			if (authenticatedUser != null) {
-//				// If there is an authenticated user in the HTTP session, we consider
-//				// the context as authenticated "from the top", and then copy the user
-//				// into the context.
-//				context.portalUserName = authenticatedUser.toString();
-//				Engine.logContext.debug("Authenticated user added in the context from the HTTP session");
-//			}
-//		}
-//		
-//		if (context.requestedObject.getAuthenticatedContextRequired()) {
-//			Engine.logContext.debug("Authenticated context required");
-//			if ("(anonymous)".equals(context.getAuthenticatedUser())) {
-//				throw new EngineException("Authentication required");
-//			}
-//		}
-//	}
 	
 	@Override
 	public void checkAuthenticatedContext() throws EngineException {
