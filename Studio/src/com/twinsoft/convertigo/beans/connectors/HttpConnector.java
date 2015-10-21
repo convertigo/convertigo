@@ -989,6 +989,7 @@ public class HttpConnector extends Connector {
 			Engine.logBeans.debug("(HttpConnector) Setting " + httpVerb + " data");
 			if (method instanceof EntityEnclosingMethod) {
 				EntityEnclosingMethod entityEnclosingMethod = (EntityEnclosingMethod) method;
+				
 				if (content_type.equalsIgnoreCase("text/xml")) {
 					final MimeMultipart[] mp = {null};
 					
@@ -999,13 +1000,18 @@ public class HttpConnector extends Connector {
 							RequestableHttpVariable httpVariable = (RequestableHttpVariable) variable;
 							
 							if (httpVariable.getDoFileUploadMode() == DoFileUploadMode.MTOM) {
+								Engine.logBeans.trace("(HttpConnector) Variable " + httpVariable.getName() + " detected as MTOM");
+								
+								MimeMultipart mimeMultipart = mp[0];
 								try {
-									if (mp[0] == null) {
-										mp[0] = new MimeMultipart("related; type=\"application/xop+xml\"");
+									if (mimeMultipart == null) {
+										Engine.logBeans.debug("(HttpConnector) Preparing the MTOM request");
+										
+										mimeMultipart = new MimeMultipart("related; type=\"application/xop+xml\"");
 										MimeBodyPart bp = new MimeBodyPart();
 										bp.setText(postQuery, "UTF-8");
 										bp.setHeader("Content-Type", "text/xml");
-										mp[0].addBodyPart(bp);
+										mimeMultipart.addBodyPart(bp);
 									}
 									
 									Object httpObjectVariableValue = transaction.getVariableValue(httpVariable.getName());
@@ -1013,14 +1019,15 @@ public class HttpConnector extends Connector {
 									if (httpVariable.isMultiValued()) {
 										if (httpObjectVariableValue instanceof Collection<?>) {
 											for (Object httpVariableValue : (Collection<?>) httpObjectVariableValue) {
-												addMtomPart(mp[0], httpVariable, httpVariableValue);
+												addMtomPart(mimeMultipart, httpVariable, httpVariableValue);
 											}
 										}
 									} else {
-										addMtomPart(mp[0], httpVariable, httpObjectVariableValue);
+										addMtomPart(mimeMultipart, httpVariable, httpObjectVariableValue);
 									}
+									mp[0] = mimeMultipart;
 								} catch (Exception e) {
-									e.printStackTrace();
+									Engine.logBeans.warn("(HttpConnector) Failed to add MTOM part for " + httpVariable.getName(), e);
 								}
 							}
 						}
@@ -1029,6 +1036,8 @@ public class HttpConnector extends Connector {
 					if (mp[0] == null) {
 						entityEnclosingMethod.setRequestEntity(new StringRequestEntity(postQuery, "text/xml", "UTF-8"));
 					} else {
+						Engine.logBeans.debug("(HttpConnector) Commit the MTOM request with the ContentType: " + mp[0].getContentType());
+						
 						method.setRequestHeader("Content-Type", mp[0].getContentType());
 						entityEnclosingMethod.setRequestEntity(new RequestEntity() {
 							
@@ -1056,7 +1065,7 @@ public class HttpConnector extends Connector {
 								return -1;
 							}
 						});
-					}					
+					}
 				}
 				else {
 					String charset = httpTransaction.getComputedUrlEncodingCharset();
@@ -1175,17 +1184,24 @@ public class HttpConnector extends Connector {
 					}
 					
 					if (context.contentType != null && context.contentType.startsWith("multipart/") && context.requestedObject instanceof AbstractHttpTransaction) {
+						Engine.logBeans.debug("(HttpConnector) Decoding multipart contentType");
+						
 						File mpBuf = null;
 						try {
 							AbstractHttpTransaction transaction = (AbstractHttpTransaction) context.requestedObject;
 							MimeMultipart mp;
 							
-							if (transaction.getAllowDownloadAttachment()) {
+							if (transaction.getAllowDownloadAttachment()) {								
 								mpBuf = File.createTempFile("multipart_", "_c8o.buf");
+								
+								Engine.logBeans.debug("(HttpConnector) Retrieve the whole multipart in: " + mpBuf.getAbsolutePath());
+								
 								IOUtils.copyLarge(in, new FileOutputStream(mpBuf));
 								
-								mp = new MimeMultipart(new FileDataSource(mpBuf));	
+								mp = new MimeMultipart(new FileDataSource(mpBuf));
 							} else {
+								Engine.logBeans.debug("(HttpConnector) Not allowed to download attachments, just retrieve the first part");
+								
 								final InputStream mpIn = in;
 								mp = new MimeMultipart(new DataSource() {
 									
@@ -1211,9 +1227,7 @@ public class HttpConnector extends Connector {
 								});
 							}
 							
-							int i = 0;
-							
-							MimeBodyPart bp = (MimeBodyPart) mp.getBodyPart(i++);
+							MimeBodyPart bp = (MimeBodyPart) mp.getBodyPart(0);
 							in = bp.getInputStream();
 							
 							result = IOUtils.toByteArray(in);
@@ -1223,36 +1237,44 @@ public class HttpConnector extends Connector {
 								Element attInfo = doc.createElement("AttachmentInfo");
 								doc.getDocumentElement().appendChild(attInfo);
 								
-								try {
-									while (true) {
-										bp = (MimeBodyPart) mp.getBodyPart(i++);
-										
+								int count = mp.getCount();
+								Engine.logBeans.debug("(HttpConnector) Saving " + (count - 1) + " attachment(s)");
+								
+								for (int i = 1; i < count; i++) {
+									
+									try {
+										bp = (MimeBodyPart) mp.getBodyPart(i);
+
 										Element att = doc.createElement("attachment");
 										attInfo.appendChild(att);
-										
+
 										String cid = bp.getContentID();
-										cid = cid.replaceFirst("^<?(.*?)>?$", "$1");
-										att.setAttribute("cid", "cid:" + cid);
-										
+										if (cid != null) {
+											cid = cid.replaceFirst("^<?(.*?)>?$", "$1");
+											att.setAttribute("cid", "cid:" + cid);
+										}
+
 										File partFile = File.createTempFile(cid + "_", "_c8o.bin");
 										partFile.deleteOnExit();
 										
+										Engine.logBeans.debug("(HttpConnector) Saving the attachment " + i + " cid: " + cid + " in file: " + partFile.getAbsolutePath());
+
 										att.setAttribute("filepath", partFile.getAbsolutePath());
-										
+
 										Enumeration<javax.mail.Header> headers = GenericUtils.cast(bp.getAllHeaders());
 										while (headers.hasMoreElements()) {
 											javax.mail.Header header = headers.nextElement();
 											Element eHeader = doc.createElement("header");
 											att.appendChild(eHeader);
-											
+
 											eHeader.setAttribute("name", header.getName());
 											eHeader.setAttribute("value", header.getValue());
 										}
-										
+
 										bp.saveFile(partFile);
+									} catch (Exception e1) {
+										Engine.logBeans.error("(HttpConnector) Failed to retrieve the attachment " + i, e1);
 									}
-								} catch (Exception e1) {
-									e1.printStackTrace();
 								}
 							}
 						} catch (Exception e) {
@@ -1633,10 +1655,13 @@ public class HttpConnector extends Connector {
 	private void addMtomPart(MimeMultipart mp, RequestableHttpVariable variable, Object httpVariableValue) throws IOException, MessagingException {
 		String stringValue = ParameterUtils.toString(httpVariableValue);
 		String filepath = Engine.theApp.filePropertyManager.getFilepathFromProperty(stringValue, getProject().getName());
+		String cid = variable.getMtomCid(stringValue);
+		
+		Engine.logBeans.debug("(HttpConnector) Prepare the MTOM attachment with cid: " + cid + ". Converting the path '" + stringValue + "' to '" + filepath + "'");
 		
 		MimeBodyPart bp = new MimeBodyPart();
 		bp.attachFile(filepath);
-		bp.setContentID(variable.getMtomCid(stringValue));
+		bp.setContentID(cid);
 		mp.addBodyPart(bp);
 	}
 	
