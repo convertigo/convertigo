@@ -200,9 +200,10 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 		return Engine.theApp.filePropertyManager.getFilepathFromProperty(entry, getProject().getName());
 	}
 
-	private void saveErrorForOutput(String regId, String messageId, String canonicalRegId, String errorType) {
+	private void saveErrorForOutput(String plugin, String regId, String messageId, String canonicalRegId, String errorType) {
 		try {
 			JSONObject jso = new JSONObject();
+			jso.put("plugIn", plugin);
 			jso.put("regId", regId);
 			jso.put("messageId", messageId);
 			jso.put("canonicalRegId", canonicalRegId);
@@ -296,7 +297,7 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 							Engine.logBeans.info("Push notification, succesfully sent message to device: " + regId + "; messageId = " + messageId);
 							canonicalRegId = result.getCanonicalRegistrationId();
 				            if (canonicalRegId != null) {
-				            	saveErrorForOutput(regId, messageId, canonicalRegId, "Device registered more than once");				            	
+				            	saveErrorForOutput("gcm", regId, messageId, canonicalRegId, "Device registered more than once");				            	
 				              // same device has more than on registration id: update it
 				            	Engine.logBeans.info("Push notification, warning, same device has more than on registration canonicalRegId " + canonicalRegId);
 				            }
@@ -305,12 +306,12 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 							String error = result.getErrorCodeName();
 							
 				            if (error.equals(Constants.ERROR_NOT_REGISTERED)) {
-				            	saveErrorForOutput(regId, messageId, canonicalRegId, "Application removed from device");
+				            	saveErrorForOutput("gcm", regId, messageId, canonicalRegId, "Application removed from device");
 				            	
 				              // application has been removed from device - unregister it
 				            	Engine.logBeans.info("Push notification, unregistered device: " + regId);
 				            } else {
-				            	saveErrorForOutput(regId, "", canonicalRegId, error);
+				            	saveErrorForOutput("gcm", regId, "", canonicalRegId, error);
 				            	Engine.logBeans.debug("Push notification, error sending message to '" + regId + "': " + error);
 				            }
 						}
@@ -431,19 +432,19 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
                         ResponsePacket theErrorResponse = notification.getResponse();
                         
                         if (theErrorResponse != null)
-                        	saveErrorForOutput(invalidToken, ""+theErrorResponse.getIdentifier(), "", theErrorResponse.getMessage());
+                        	saveErrorForOutput("aps", invalidToken, ""+theErrorResponse.getIdentifier(), "", theErrorResponse.getMessage());
                         else
-                        	saveErrorForOutput(invalidToken, "", "", theProblem.getMessage());
+                        	saveErrorForOutput("aps", invalidToken, "", "", theProblem.getMessage());
 	                }
 				}
 			}
 			catch (KeystoreException e) {
 				errorMessage = e.toString();
-				Engine.logBeans.error("Push notification, keystore exception : " + errorMessage);
+				Engine.logBeans.error("Push notification, IOS keystore exception : " + errorMessage);
 			} catch (CommunicationException e) {
 				/* A critical communication error occurred while trying to contact Apple servers */  
 				errorMessage = e.toString();
-				Engine.logBeans.error("Push notification, communication exception : " + errorMessage);
+				Engine.logBeans.error("Push notification, IOS communication exception : " + errorMessage);
 			} catch (Exception e) { 
 				errorMessage = "Push notification, IOS device exception: " + e.toString();
 				Engine.logBeans.error(errorMessage);
@@ -529,7 +530,8 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 
 @Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
-		String regId;
+		String plugIn;
+		String regId;		
 		String messageId;
 		String canonicalRegId;
 		String errorType;
@@ -550,6 +552,11 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 				for(int i=0; i<errorList.length(); i++) {
 					JSONObject jso = (JSONObject)errorList.get(i);
 
+					try {
+						plugIn = jso.getString("plugIn");
+					} catch(JSONException j1) {
+						plugIn = "";
+					}
 					try {
 						regId = jso.getString("regId");
 					} catch(JSONException j1) {
@@ -572,6 +579,7 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 					}
 					
 	            	device = doc.createElement("device");
+	            	device.setAttribute("plugIn", plugIn);
 	            	device.setAttribute("regId", regId);
 	            	device.setAttribute("messageId", messageId);
 	            	device.setAttribute("canonicalRegId", (canonicalRegId == null) ? "":canonicalRegId);
