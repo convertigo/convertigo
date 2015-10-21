@@ -28,13 +28,15 @@ package com.twinsoft.convertigo.beans.steps;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import javapns.Push;
+import javapns.communication.exceptions.CommunicationException;
+import javapns.communication.exceptions.KeystoreException;
 import javapns.notification.PushNotificationPayload;
 import javapns.notification.PushedNotification;
 import javapns.notification.PushedNotifications;
+import javapns.notification.ResponsePacket;
 
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
@@ -89,6 +91,21 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 	private transient String     sCertificatePassword;
 	private transient String 	 sGCMApiKey;
 	private transient JSONArray  errorList; 
+
+	// child class
+	private class Parameters {
+		String name;
+		String plug;
+		String type;
+		String value;
+		
+		public Parameters(String name, String plug, String type, String value) {
+			this.name = (name == null) ? "":name;
+			this.plug = (plug == null) ? "":plug;
+			this.type = (type == null) ? "":type;
+			this.value = (value == null) ? "":value;
+		}
+    };
 	
 	public PushNotificationStep() {
 		super();
@@ -237,6 +254,10 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 				
 				// add all dictionary entries in turn				
 				for(int i=0; i<dictionary.size(); i++) {
+					// if plugin specified, check it and skip accordingly
+					if ((dictionary.get(i).plug.length() != 0) && !(dictionary.get(i).plug.equalsIgnoreCase("gcm") || dictionary.get(i).plug.equalsIgnoreCase("all"))) 
+						continue;
+					
 					// for compatibility with former Convertigo versions
 					// if only one dictionary entry, hardcode key as "message"
 					if (dictionary.size() == 1) {
@@ -310,6 +331,8 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 	//
 	protected void PushToAPNS(Context javascriptContext, Scriptable scope, List<Parameters> dictionary) throws EngineException, Exception
 	{
+		Engine.logBeans.debug("Push notification, Notifying IOS devices");
+		
 		evaluate(javascriptContext, scope, this.clientCertificate, "clientCertificate", false);
 		sClientCertificate = evaluated instanceof Undefined ? "" : evaluated.toString();
 		sClientCertificate = getAbsoluteFilePath(sClientCertificate);
@@ -335,87 +358,99 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 			if (devicesList.isEmpty())
 				return;
 			
-			// Submit the push to JavaPN library...
-			PushedNotifications pn;
-			
-			if (dictionary.size() > 1) {
-				/* Build a blank payload to customize */ 
-		        PushNotificationPayload payload = PushNotificationPayload.complex();
-		        
-		        for(int i=0; i<dictionary.size(); i++) {
-		        	String value = dictionary.get(i).value;
-		        	
-		        	// skip json strings
-		        	if (value.startsWith("{"))
-		        		continue;
-		        	
-			        if (dictionary.get(i).name.equalsIgnoreCase("alert"))
-			        	payload.addAlert(value);
-			        else
-		        	if (dictionary.get(i).name.equalsIgnoreCase("badge"))
-			        	payload.addBadge(Integer.parseInt(value, 10));
-			        else
-		        	if (dictionary.get(i).name.equalsIgnoreCase("sound"))
-			        	payload.addSound(value);
-		        	else {
-						if (dictionary.get(i).type.equalsIgnoreCase("int"))
-							payload.addCustomDictionary(dictionary.get(i).name, Integer.parseInt(value, 10));
-						else
-							payload.addCustomDictionary(dictionary.get(i).name, value);
-		        	}
-		        }
+			try {
+				// Submit the push to JavaPN library...
+				PushedNotifications pn;
+				
+				if (dictionary.size() > 1) {
+					/* Build a blank payload to customize */ 
+			        PushNotificationPayload payload = PushNotificationPayload.complex();
+			        
+			        for(int i=0; i<dictionary.size(); i++) {
+						// if plugin specified, check it and skip accordingly
+			        	if ((dictionary.get(i).plug.length() != 0) && !(dictionary.get(i).plug.equalsIgnoreCase("aps") || dictionary.get(i).plug.equalsIgnoreCase("all"))) 
+							continue;
+			        	
+			        	String value = dictionary.get(i).value;
+			        	
+				        if (dictionary.get(i).name.equalsIgnoreCase("alert"))
+				        	payload.addAlert(value);
+				        else
+			        	if (dictionary.get(i).name.equalsIgnoreCase("badge"))
+				        	payload.addBadge(Integer.parseInt(value, 10));
+				        else
+			        	if (dictionary.get(i).name.equalsIgnoreCase("sound"))
+				        	payload.addSound(value);
+			        	else {
+							if (dictionary.get(i).type.equalsIgnoreCase("int"))
+								payload.addCustomDictionary(dictionary.get(i).name, Integer.parseInt(value, 10));
+							else
+								payload.addCustomDictionary(dictionary.get(i).name, value);
+			        	}
+			        }
+	
+					pn = Push.payload(payload, 
+								sClientCertificate,
+								sCertificatePassword,
+								true,
+								devicesList);
+				}
+				else {
+					if (apnsNotificationType == ApnsNotificationType.Message) {				
+						pn = Push.alert(dictionary.get(0).value,
+										sClientCertificate,
+										sCertificatePassword,
+										true,
+										devicesList);
+						
+					} else if (apnsNotificationType == ApnsNotificationType.Badge) {	// mod jmc 07/10/2015
+						pn = Push.badge(Integer.parseInt(dictionary.get(0).value, 10),
+										sClientCertificate,
+										sCertificatePassword,
+										true,
+										devicesList);
+						
+					} else { 
+						pn = Push.sound(dictionary.get(0).value,
+										sClientCertificate,
+										sCertificatePassword,
+										true,
+										devicesList);
+					}
+				}
+				
+				// Analyze the responses..
+				for (PushedNotification notification : pn) {
+	                if (!notification.isSuccessful()) {
+                        String invalidToken = notification.getDevice().getToken();
 
-				pn = Push.payload(payload, 
-							sClientCertificate,
-							sCertificatePassword,
-							true,
-							devicesList);
-			}
-			else {
-				if (apnsNotificationType == ApnsNotificationType.Message) {				
-					pn = Push.alert(dictionary.get(0).value,
-									sClientCertificate,
-									sCertificatePassword,
-									true,
-									devicesList);
-					
-				} else if (apnsNotificationType == ApnsNotificationType.Badge) {	// mod jmc 07/10/2015
-					pn = Push.badge(Integer.parseInt(dictionary.get(0).value, 10),
-									sClientCertificate,
-									sCertificatePassword,
-									true,
-									devicesList);
-					
-				} else { 
-					pn = Push.sound(dictionary.get(0).value,
-									sClientCertificate,
-									sCertificatePassword,
-									true,
-									devicesList);
+                        /* Find out more about what the problem was */  
+                        Exception theProblem = notification.getException();
+
+                        /* If the problem was an error-response packet returned by Apple, get it */  
+                        ResponsePacket theErrorResponse = notification.getResponse();
+                        
+                        if (theErrorResponse != null)
+                        	saveErrorForOutput(invalidToken, ""+theErrorResponse.getIdentifier(), "", theErrorResponse.getMessage());
+                        else
+                        	saveErrorForOutput(invalidToken, "", "", theProblem.getMessage());
+	                }
 				}
 			}
-			
-			// Analyze the responses..
-			Iterator<PushedNotification>  iPn  = pn.iterator();
-			while (iPn.hasNext()) {
-				PushedNotification notif = iPn.next();
-				Engine.logBeans.debug("Push notification :" + notif + " Successful : " + notif.isSuccessful());
-			}
+			catch (KeystoreException e) {
+				errorMessage = e.toString();
+				Engine.logBeans.error("Push notification, keystore exception : " + errorMessage);
+			} catch (CommunicationException e) {
+				/* A critical communication error occurred while trying to contact Apple servers */  
+				errorMessage = e.toString();
+				Engine.logBeans.error("Push notification, communication exception : " + errorMessage);
+			} catch (Exception e) { 
+				errorMessage = "Push notification, IOS device exception: " + e.toString();
+				Engine.logBeans.error(errorMessage);
+			} 
 		}
 	}
 
-	private class Parameters {
-		String name;
-		String type;
-		String value;
-		
-		public Parameters(String name, String type, String value) {
-			this.name = name;
-			this.type = type;
-			this.value = value;
-		}
-    };
-	
 	/**
 	 *  recurse in nodelist and put in dictionnary couples 'variableName, variableValue'
 	 * 	variables with no values are not used
@@ -430,7 +465,7 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 		String value = node.getFirstChild().getNodeValue();
 
 		if (value != null) {
-			PushNotificationStep.Parameters entry = this.new Parameters(node.getNodeName(), ((Element)node).getAttribute("type"), node.getFirstChild().getNodeValue()); 
+			PushNotificationStep.Parameters entry = this.new Parameters(node.getNodeName(), ((Element)node).getAttribute("plugin"), ((Element)node).getAttribute("type"), node.getFirstChild().getNodeValue()); 
 			dictionary.add(entry);
 			// dictionary.put(node.getNodeName(), node.getFirstChild().getNodeValue());
 		}
@@ -461,7 +496,7 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 				if (childNodes.getLength() > 0)
 					enumAllStrings(list.item(0), dictionary);
 				else
-					dictionary.add(new PushNotificationStep.Parameters(list.item(0).getParentNode().getNodeName(), "string", list.item(0).getNodeValue()));
+					dictionary.add(new PushNotificationStep.Parameters(list.item(0).getParentNode().getNodeName(), ((Element)list.item(0).getParentNode()).getAttribute("plugin"), "string", list.item(0).getNodeValue()));
 				
 				try {	
 					PushToAPNS(javascriptContext, scope, dictionary);
