@@ -22,9 +22,10 @@
 
 package com.twinsoft.convertigo.beans.connectors;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -44,11 +45,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
-import javax.activation.DataSource;
-import javax.activation.FileDataSource;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
+import javax.mail.internet.MimePart;
 import javax.swing.event.EventListenerList;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -115,6 +115,7 @@ import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.oauth.HttpOAuthConsumer;
 import com.twinsoft.convertigo.engine.plugins.VicApi;
+import com.twinsoft.convertigo.engine.util.BigMimeMultipart;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.ParameterUtils;
@@ -1157,80 +1158,45 @@ public class HttpConnector extends Connector {
 					if (context.contentType != null && context.contentType.startsWith("multipart/") && context.requestedObject instanceof AbstractHttpTransaction) {
 						Engine.logBeans.debug("(HttpConnector) Decoding multipart contentType");
 						
-						File mpBuf = null;
 						try {
 							AbstractHttpTransaction transaction = (AbstractHttpTransaction) context.requestedObject;
-							MimeMultipart mp;
+														
+							BigMimeMultipart mp = new BigMimeMultipart(new BufferedInputStream(in), context.contentType);
 							
-							if (transaction.getAllowDownloadAttachment()) {								
-								mpBuf = File.createTempFile("multipart_", "_c8o.buf");
-								
-								Engine.logBeans.debug("(HttpConnector) Retrieve the whole multipart in: " + mpBuf.getAbsolutePath());
-								
-								IOUtils.copyLarge(in, new FileOutputStream(mpBuf));
-								
-								mp = new MimeMultipart(new FileDataSource(mpBuf));
-							} else {
-								Engine.logBeans.debug("(HttpConnector) Not allowed to download attachments, just retrieve the first part");
-								
-								final InputStream mpIn = in;
-								mp = new MimeMultipart(new DataSource() {
-									
-									@Override
-									public OutputStream getOutputStream() throws IOException {
-										return null;
-									}
-									
-									@Override
-									public String getName() {
-										return null;
-									}
-									
-									@Override
-									public InputStream getInputStream() throws IOException {
-										return mpIn;
-									}
-									
-									@Override
-									public String getContentType() {
-										return context.contentType;
-									}
-								});
-							}
-							
-							MimeBodyPart bp = (MimeBodyPart) mp.getBodyPart(0);
-							in = bp.getInputStream();
-							
-							result = IOUtils.toByteArray(in);
+							ByteArrayOutputStream bos = new ByteArrayOutputStream();
+							mp.nextPart(bos);
+							result = bos.toByteArray();
 							
 							if (transaction.getAllowDownloadAttachment()) {
 								Document doc = context.outputDocument;
-								Element attInfo = doc.createElement("AttachmentInfo");
-								doc.getDocumentElement().appendChild(attInfo);
+								Element attInfo = null;
 								
-								int count = mp.getCount();
-								Engine.logBeans.debug("(HttpConnector) Saving " + (count - 1) + " attachment(s)");
+								File file = File.createTempFile("c8o_", ".part");
 								
-								for (int i = 1; i < count; i++) {
-									
+								for (MimePart bp = mp.nextPart(file); bp != null; bp = mp.nextPart(file)) {
 									try {
-										bp = (MimeBodyPart) mp.getBodyPart(i);
-
+										file.deleteOnExit();
+										
+										if (attInfo == null) {
+											Engine.logBeans.debug("(HttpConnector) Saving attachment(s)");
+											
+											attInfo = doc.createElement("AttachmentInfo");
+											doc.getDocumentElement().appendChild(attInfo);
+										}
+										
 										Element att = doc.createElement("attachment");
 										attInfo.appendChild(att);
 
 										String cid = bp.getContentID();
+										
 										if (cid != null) {
 											cid = cid.replaceFirst("^<?(.*?)>?$", "$1");
 											att.setAttribute("cid", "cid:" + cid);
 										}
-
-										File partFile = File.createTempFile(cid + "_", "_c8o.bin");
-										partFile.deleteOnExit();
 										
-										Engine.logBeans.debug("(HttpConnector) Saving the attachment " + i + " cid: " + cid + " in file: " + partFile.getAbsolutePath());
+										Engine.logBeans.debug("(HttpConnector) Saving the attachment cid: " + cid + " in file: " + file.getAbsolutePath());
 
-										att.setAttribute("filepath", partFile.getAbsolutePath());
+										att.setAttribute("filepath", file.getAbsolutePath());
 
 										Enumeration<javax.mail.Header> headers = GenericUtils.cast(bp.getAllHeaders());
 										while (headers.hasMoreElements()) {
@@ -1241,19 +1207,18 @@ public class HttpConnector extends Connector {
 											eHeader.setAttribute("name", header.getName());
 											eHeader.setAttribute("value", header.getValue());
 										}
-
-										bp.saveFile(partFile);
 									} catch (Exception e1) {
-										Engine.logBeans.error("(HttpConnector) Failed to retrieve the attachment " + i, e1);
+										Engine.logBeans.error("(HttpConnector) Failed to retrieve the attachment in " + file.getAbsolutePath(), e1);
 									}
+									
+									file = File.createTempFile("c8o_", ".part");
 								}
+								
+								file.delete();
+								in.close();
 							}
 						} catch (Exception e) {
 							Engine.logBeans.error("(HttpConnector) Failed to retrieve attachments", e);
-						} finally {
-							if (mpBuf != null) {
-								mpBuf.delete();
-							}
 						}
 					} else {
 						result = IOUtils.toByteArray(in);
