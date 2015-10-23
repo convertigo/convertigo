@@ -33,12 +33,7 @@ public class TransactionBeanInfo extends MySimpleBeanInfo {
 
 			resourceBundle = getResourceBundle("res/Transaction");
 			
-			properties = new PropertyDescriptor[1];
-
-			properties[0] = new PropertyDescriptor("includedTagAttributes", beanClass, "getIncludedTagAttributes", "setIncludedTagAttributes");
-			properties[0].setDisplayName(getExternalizedString("property.includedTagAttributes.display_name"));
-			properties[0].setShortDescription(getExternalizedString("property.includedTagAttributes.short_description"));
-			properties[0].setPropertyEditorClass(getEditorClass("IncludedTagAttributesEditor"));
+			properties = new PropertyDescriptor[0];
 
 			PropertyDescriptor property = getPropertyDescriptor("sheetLocation");
 			property.setPropertyEditorClass(getEditorClass("TransactionSheetLocationEditor"));

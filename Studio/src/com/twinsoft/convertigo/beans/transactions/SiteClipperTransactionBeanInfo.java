@@ -50,9 +50,6 @@ public class SiteClipperTransactionBeanInfo extends MySimpleBeanInfo {
 			PropertyDescriptor property = getPropertyDescriptor("clientCachable");
 			property.setHidden(true);
 			
-			property = getPropertyDescriptor("includedTagAttributes");
-			property.setHidden(true);
-			
 			property = getPropertyDescriptor("responseExpiryDate");
 			property.setHidden(true);
 			
