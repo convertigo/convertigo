@@ -36,7 +36,7 @@ public class JavelinTransactionBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/images/javelintransaction_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/images/javelintransaction_color_32x32.png";
 
-			properties = new PropertyDescriptor[6];
+			properties = new PropertyDescriptor[7];
 			
 			resourceBundle = getResourceBundle("res/JavelinTransaction");
 
@@ -72,6 +72,11 @@ public class JavelinTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[5].setExpert(true);
 			properties[5].setDisplayName(getExternalizedString("property.removeBlocksNode.display_name"));
 			properties[5].setShortDescription(getExternalizedString("property.removeBlocksNode.short_description"));
+
+			properties[6] = new PropertyDescriptor("includedTagAttributes", beanClass, "getIncludedTagAttributes", "setIncludedTagAttributes");
+			properties[6].setDisplayName(getExternalizedString("property.includedTagAttributes.display_name"));
+			properties[6].setShortDescription(getExternalizedString("property.includedTagAttributes.short_description"));
+			properties[6].setPropertyEditorClass(getEditorClass("IncludedTagAttributesEditor"));
 
 		}
 		catch(Exception e) {
