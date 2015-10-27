@@ -85,7 +85,7 @@ public class EnginePreferenceComposite extends Composite {
 		GridData gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
 		bar.setLayoutData(gridData);
 		
-		for (PropertyCategory propertyCategory : PropertyCategory.values()) {
+		for (PropertyCategory propertyCategory : PropertyCategory.getSortedValues()) {
 			if (propertyCategory.isVisible()) {		
 				Composite container = new Composite(bar, SWT.NONE);
 				
@@ -259,7 +259,7 @@ public class EnginePreferenceComposite extends Composite {
 			}
 		}
         
-		for (PropertyCategory propertyCategory : PropertyCategory.values()) {
+		for (PropertyCategory propertyCategory : PropertyCategory.getSortedValues()) {
 			if (propertyCategory.isVisible()) {
 				Composite container = containersMap.get(propertyCategory);
 				if (container != null){

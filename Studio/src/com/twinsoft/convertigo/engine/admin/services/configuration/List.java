@@ -51,7 +51,7 @@ public class List extends XmlService{
 		
 		Element rootElement = document.getDocumentElement();
 
-		for (PropertyCategory propertyCategory : PropertyCategory.values()) {
+		for (PropertyCategory propertyCategory : PropertyCategory.getSortedValues()) {
 			if (propertyCategory.isVisible()) {
 	            Element elementCategory = document.createElement("category");
 	            elementCategory.setAttribute("name", propertyCategory.toString());

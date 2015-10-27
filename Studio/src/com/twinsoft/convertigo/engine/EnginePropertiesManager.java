@@ -32,8 +32,10 @@ import java.io.OutputStream;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -262,6 +264,28 @@ public class EnginePropertiesManager {
 			}
 			return true;
 		}
+		
+		public static PropertyCategory[] getSortedValues() {
+			PropertyCategory[] properties = values();
+	        Arrays.sort(properties, PropertyByNameComparator.INSTANCE);
+	        return properties;
+	    }
+		
+		private static class PropertyByNameComparator implements Comparator<PropertyCategory> {
+
+	        public static final Comparator<PropertyCategory> INSTANCE = new PropertyByNameComparator();
+
+	        public int compare(PropertyCategory enum1, PropertyCategory enum2) {	 
+	        	if (enum1.equals(Main)) {
+	        		return -1;
+	        	}
+	        	if (enum2.equals(Main)) {
+	        		return 1;
+	        	}
+	            return enum1.getDisplayName().compareTo(enum2.getDisplayName());
+	        }
+
+	    }
     };
 	
 	@PropertyOptions
@@ -315,9 +339,10 @@ public class EnginePropertiesManager {
 		TEST_PLATFORM_PASSWORD ("testplatform.password", ""+"".hashCode(), "Test Platform password", PropertyCategory.Account),
 		
 		/** LOGS */
-		LOG4J_LOGGER_CEMS ("log4j.logger.cems", LogLevels.INFO.getValue() + ", CemsAppender", "Log4J root logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_ADMIN ("log4j.logger.cems.Admin", LogLevels.WARN.getValue(), "Log4J admin logger", PropertyCategory.Logs),
+		@PropertyOptions(propertyType = PropertyType.Text)
+		LOG4J_LOGGER_CEMS_CONTEXT_AUDIT ("log4j.logger.cems.Context.Audit", LogLevels.INFO.getValue() + ", AuditAppender", "Log4J audit context logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_BEANS ("log4j.logger.cems.Beans", LogLevels.INHERITED.getValue(), "Log4J beans logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
@@ -329,15 +354,17 @@ public class EnginePropertiesManager {
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_CONTEXT ("log4j.logger.cems.Context", LogLevels.INHERITED.getValue(), "Log4J context logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
-		LOG4J_LOGGER_CEMS_CONTEXT_USER ("log4j.logger.cems.Context.User", LogLevels.INHERITED.getValue(), "Log4J user context logger", PropertyCategory.Logs),
-		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_CONTEXTMANAGER ("log4j.logger.cems.ContextManager", LogLevels.WARN.getValue(), "Log4J context manager logger", PropertyCategory.Logs),
+		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
+		LOG4J_LOGGER_CEMS_CDBMANAGER ("log4j.logger.cems.CouchDbManager", LogLevels.WARN.getValue(), "Log4J couch DB manager output logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_DATABASEOBJECTMANAGER ("log4j.logger.cems.DatabaseObjectManager", LogLevels.WARN.getValue(), "Log4J database objects manager logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
+		LOG4J_LOGGER_CEMS_DEVICES ("log4j.logger.cems.Devices", LogLevels.INFO.getValue(), "Log4J devices output logger", PropertyCategory.Logs),
+		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_EMULATORS ("log4j.logger.cems.Emulators", LogLevels.INFO.getValue(), "Log4J emulators output logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
-		LOG4J_LOGGER_CEMS_ENGINE ("log4j.logger.cems.Engine", LogLevels.INHERITED.getValue(), "Log4J engine logger", PropertyCategory.Logs),
+		LOG4J_LOGGER_CEMS_ENGINE ("log4j.logger.cems.Engine", LogLevels.INHERITED.getValue(), "Log4J engine logger", PropertyCategory.Logs),		
 		/** #3437 : Disabled ExternalBrowser feature because it's not terminated
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_EXTERNALBROWSER ("log4j.logger.cems.ExternalBrowser", LogLevels.INFO.getValue(), "Log4J external browser output logger", PropertyCategory.Logs),
@@ -346,6 +373,7 @@ public class EnginePropertiesManager {
 		LOG4J_LOGGER_CEMS_JOBMANAGER ("log4j.logger.cems.JobManager", LogLevels.WARN.getValue(), "Log4J job manager logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_PROXYMANAGER ("log4j.logger.cems.ProxyManager", LogLevels.INFO.getValue(), "Log4J proxy manager logger", PropertyCategory.Logs),
+		LOG4J_LOGGER_CEMS ("log4j.logger.cems", LogLevels.INFO.getValue() + ", CemsAppender", "Log4J root logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_SCHEDULER ("log4j.logger.cems.Scheduler", LogLevels.INFO.getValue(), "Log4J scheduler output logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
@@ -359,35 +387,13 @@ public class EnginePropertiesManager {
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_USAGEMONITOR ("log4j.logger.cems.UsageMonitor", LogLevels.WARN.getValue(), "Log4J usage monitor logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
+		LOG4J_LOGGER_CEMS_CONTEXT_USER ("log4j.logger.cems.Context.User", LogLevels.INHERITED.getValue(), "Log4J user context logger", PropertyCategory.Logs),
+		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_USER ("log4j.logger.cems.User", LogLevels.INFO.getValue(), "Log4J user output logger", PropertyCategory.Logs),
-		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
-		LOG4J_LOGGER_CEMS_DEVICES ("log4j.logger.cems.Devices", LogLevels.INFO.getValue(), "Log4J devices output logger", PropertyCategory.Logs),
-		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
-		LOG4J_LOGGER_CEMS_CDBMANAGER ("log4j.logger.cems.CouchDbManager", LogLevels.WARN.getValue(), "Log4J couch DB manager output logger", PropertyCategory.Logs),
-		@PropertyOptions(propertyType = PropertyType.Text)
-		LOG4J_LOGGER_CEMS_CONTEXT_AUDIT ("log4j.logger.cems.Context.Audit", LogLevels.INFO.getValue() + ", AuditAppender", "Log4J audit context logger", PropertyCategory.Logs),
 		
 		/** LOGS ADVANCE */
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN)
 		LOG_EXPLICIT_VARIABLES ("log.explicit_variables", "contextid,project,sequence,connector,transaction,user,clientip,clienthostname", "Explicit variables", PropertyCategory.Logs),
-		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN)
-		LOG_START_OF_LINE_CHARACTER ("log.start_of_line_character", "!", "Start-of-line character", PropertyCategory.Logs),
-		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
-		LOG4J_ADDITIVITY_CEMS ("log4j.additivity.cems", "false", "Log4J root logger additivity", PropertyCategory.Logs),
-		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
-		LOG4J_APPENDER_CEMSAPPENDER ("log4j.appender.CemsAppender", "org.apache.log4j.RollingFileAppender", "Log4J default appender", PropertyCategory.Logs),
-		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)
-		LOG4J_APPENDER_CEMSAPPENDER_FILE ("log4j.appender.CemsAppender.File","${log.directory}/engine.log", "Log4J default appender file", PropertyCategory.Logs),
-		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
-		LOG4J_APPENDER_CEMSAPPENDER_LAYOUT ("log4j.appender.CemsAppender.layout","org.apache.log4j.PatternLayout", "Log4J default appender layout", PropertyCategory.Logs),
-		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN)
-		LOG4J_APPENDER_CEMSAPPENDER_LAYOUT_CONVERSIONPATTERN ("log4j.appender.CemsAppender.layout.ConversionPattern", "!%-28c{1} | %d | %-5p | %-32t | %X{ContextualParameters}%m%n", "Log4J default appender layout conversion pattern", PropertyCategory.Logs),
-		@PropertyOptions(advance = true)
-		LOG4J_APPENDER_CEMSAPPENDER_MAXFILESIZE ("log4j.appender.CemsAppender.MaxFileSize", "10MB", "Log4J default appender max file size", PropertyCategory.Logs),
-		@PropertyOptions(advance = true)
-		LOG4J_APPENDER_CEMSAPPENDER_MAXBACKUPINDEX ("log4j.appender.CemsAppender.MaxBackupIndex", "100", "Log4J default appender max backup index", PropertyCategory.Logs),
-		@PropertyOptions(advance = true)
-		LOG4J_APPENDER_CEMSAPPENDER_ENCODING ("log4j.appender.CemsAppender.Encoding","UTF-8", "Log4J default appender encoding (requires JVM restart)", PropertyCategory.Logs),
 		// New appender for the Audit logger.
 		LOG4J_APPENDER_AUDITAPPENDER ("log4j.appender.AuditAppender", "org.apache.log4j.RollingFileAppender", "Log4J audit appender", PropertyCategory.Logs),
 		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)
@@ -397,9 +403,27 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN)
 		LOG4J_APPENDER_AUDITAPPENDER_LAYOUT_CONVERSIONPATTERN ("log4j.appender.AuditAppender.layout.ConversionPattern", "!%c{1} | %d | %-5p | %m%n", "Log4J audit appender layout conversion pattern", PropertyCategory.Logs),
 		@PropertyOptions(advance = true)
-		LOG4J_APPENDER_AUDITAPPENDER_MAXFILESIZE ("log4j.appender.AuditAppender.MaxFileSize", "10MB", "Log4J audit appender max file size", PropertyCategory.Logs),
-		@PropertyOptions(advance = true)
 		LOG4J_APPENDER_AUDITAPPENDER_MAXBACKUPINDEX ("log4j.appender.AuditAppender.MaxBackupIndex", "100", "Log4J audit appender max backup index", PropertyCategory.Logs),
+		@PropertyOptions(advance = true)
+		LOG4J_APPENDER_AUDITAPPENDER_MAXFILESIZE ("log4j.appender.AuditAppender.MaxFileSize", "10MB", "Log4J audit appender max file size", PropertyCategory.Logs),
+		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
+		LOG4J_APPENDER_CEMSAPPENDER ("log4j.appender.CemsAppender", "org.apache.log4j.RollingFileAppender", "Log4J default appender", PropertyCategory.Logs),
+		@PropertyOptions(advance = true)
+		LOG4J_APPENDER_CEMSAPPENDER_ENCODING ("log4j.appender.CemsAppender.Encoding","UTF-8", "Log4J default appender encoding (requires JVM restart)", PropertyCategory.Logs),
+		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)
+		LOG4J_APPENDER_CEMSAPPENDER_FILE ("log4j.appender.CemsAppender.File","${log.directory}/engine.log", "Log4J default appender file", PropertyCategory.Logs),
+		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
+		LOG4J_APPENDER_CEMSAPPENDER_LAYOUT ("log4j.appender.CemsAppender.layout","org.apache.log4j.PatternLayout", "Log4J default appender layout", PropertyCategory.Logs),
+		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN)
+		LOG4J_APPENDER_CEMSAPPENDER_LAYOUT_CONVERSIONPATTERN ("log4j.appender.CemsAppender.layout.ConversionPattern", "!%-28c{1} | %d | %-5p | %-32t | %X{ContextualParameters}%m%n", "Log4J default appender layout conversion pattern", PropertyCategory.Logs),
+		@PropertyOptions(advance = true)
+		LOG4J_APPENDER_CEMSAPPENDER_MAXBACKUPINDEX ("log4j.appender.CemsAppender.MaxBackupIndex", "100", "Log4J default appender max backup index", PropertyCategory.Logs),
+		@PropertyOptions(advance = true)
+		LOG4J_APPENDER_CEMSAPPENDER_MAXFILESIZE ("log4j.appender.CemsAppender.MaxFileSize", "10MB", "Log4J default appender max file size", PropertyCategory.Logs),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		LOG4J_ADDITIVITY_CEMS ("log4j.additivity.cems", "false", "Log4J root logger additivity", PropertyCategory.Logs),
+		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN)
+		LOG_START_OF_LINE_CHARACTER ("log.start_of_line_character", "!", "Start-of-line character", PropertyCategory.Logs),
 		
 		/** NETWORK */
 		@PropertyOptions(propertyType = PropertyType.Boolean)
