@@ -38,6 +38,15 @@ import javapns.notification.PushedNotification;
 import javapns.notification.PushedNotifications;
 import javapns.notification.ResponsePacket;
 
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaAttribute;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaComplexType;
+import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaSequence;
+import org.apache.ws.commons.schema.XmlSchemaSimpleContent;
+import org.apache.ws.commons.schema.XmlSchemaSimpleContentExtension;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -49,7 +58,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.google.android.gcm.server.Constants;
 import com.google.android.gcm.server.Message;
 import com.google.android.gcm.server.MulticastResult;
 import com.google.android.gcm.server.Result;
@@ -61,6 +69,7 @@ import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class PushNotificationStep extends Step implements IStepSourceContainer {
 
@@ -109,6 +118,8 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 	
 	public PushNotificationStep() {
 		super();
+		setOutput(false);
+		xml = true;
 	}
 	
 	public int getAndroidTimeToLive() {
@@ -305,7 +316,7 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 						else {
 							String error = result.getErrorCodeName();
 							
-				            if (error.equals(Constants.ERROR_NOT_REGISTERED)) {
+				            if (error.equals(com.google.android.gcm.server.Constants.ERROR_NOT_REGISTERED)) {
 				            	saveErrorForOutput("gcm", regId, messageId, canonicalRegId, "Application removed from device");
 				            	
 				              // application has been removed from device - unregister it
@@ -621,5 +632,81 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 
 	public void setNotificationTitle(String notificationTitle) {
 		this.notificationTitle = notificationTitle;
+	}
+	
+	@Override
+	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
+		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
+
+		XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+		element.setType(cType);
+
+		XmlSchemaSequence sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
+		cType.setParticle(sequence);
+		
+		/**
+		 * create devices complextype tag
+		 */
+		XmlSchemaElement devices = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+		sequence.getItems().add(devices);
+		devices.setName("devices");
+		devices.setMinOccurs(0);
+		devices.setMaxOccurs(Long.MAX_VALUE);
+		cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+		devices.setType(cType);
+		
+		sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
+		cType.setParticle(sequence);
+		
+		/**
+		 * create device simple type tag
+		 */
+		XmlSchemaElement elt = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+		sequence.getItems().add(elt);
+		elt.setName("device");
+		elt.setMinOccurs(1);
+		elt.setMaxOccurs(Long.MAX_VALUE);		
+		cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+		elt.setType(cType);
+		
+		/**
+		 * 
+		 */
+		XmlSchemaSimpleContent sContent = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSimpleContent());
+		cType.setContentModel(sContent);
+		
+		XmlSchemaSimpleContentExtension sContentExt = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSimpleContentExtension());
+		sContent.setContent(sContentExt);
+		sContentExt.setBaseTypeName(Constants.XSD_STRING);
+		
+		/**
+		 * create all device attributes
+		 */
+		XmlSchemaAttribute attr = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
+		attr.setName("plugIn");
+		attr.setSchemaTypeName(Constants.XSD_STRING);
+		sContentExt.getAttributes().add(attr);
+		
+		attr = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
+		attr.setName("regId");
+		attr.setSchemaTypeName(Constants.XSD_STRING);
+		sContentExt.getAttributes().add(attr);
+		
+		attr = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
+		attr.setName("messageId");
+		attr.setSchemaTypeName(Constants.XSD_STRING);
+		sContentExt.getAttributes().add(attr);
+
+		attr = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
+		attr.setName("canonicalRegId");
+		attr.setSchemaTypeName(Constants.XSD_STRING);
+		sContentExt.getAttributes().add(attr);
+
+		attr = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
+		attr.setName("errorType");
+		attr.setSchemaTypeName(Constants.XSD_STRING);
+		sContentExt.getAttributes().add(attr);
+		
+		return element;
 	}
 }
