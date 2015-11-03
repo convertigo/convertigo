@@ -58,7 +58,14 @@ public class PutDocumentAttachmentTransaction extends AbstractDocumentTransactio
 		Map<String, String> query = getQueryVariableValues();
 		
 		attpath = Engine.theApp.filePropertyManager.getFilepathFromProperty(attpath, getProject().getName());
-		String contentType = context.httpServletRequest.getServletContext().getMimeType(attpath);
+		String contentType;
+		
+		try {
+			contentType = context.httpServletRequest.getServletContext().getMimeType(attpath);
+		} catch (Exception e) {
+			Engine.logBeans.warn("(PutDocumentAttachmentTransaction) Failed to detect contentType");
+			contentType = "application/octet-stream";
+		}
 		
 		JSONObject response = getCouchClient().putDocumentAttachment(db, docid, attname, query, new File(attpath), contentType);
 		
