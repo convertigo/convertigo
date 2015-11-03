@@ -1186,6 +1186,8 @@ public class XMLUtils {
 					}
 
 					value = array;
+				} else if (type.equals("string")) {
+					value = elt.getTextContent();
 				} else if (type.equals("boolean")) {
 					value = Boolean.parseBoolean(elt.getTextContent());
 				} else if (type.equals("null")) {
