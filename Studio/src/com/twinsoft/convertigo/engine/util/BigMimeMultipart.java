@@ -3,6 +3,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,7 +28,7 @@ public class BigMimeMultipart {
 		Matcher mBoundary = pBoundary.matcher(contentType);
 		
 		if (mBoundary.find()) {
-			byte[] boundary = ("--" + mBoundary.group(1) + "\r\n").getBytes("ascii");
+			byte[] boundary = ("--" + mBoundary.group(1)).getBytes("ascii");
 			pis = new PartInputStream(is, boundary);
 			
 			preamble = IOUtils.toString(pis, "ascii");
@@ -67,6 +68,14 @@ public class BigMimeMultipart {
 	
 	private MimeBodyPart readHeaders() throws IOException, MessagingException {
 		if (pis.isStreamEnd()) {
+			return null;
+		}
+		
+		byte[] sep = new byte[2];
+		int read = pis.read(sep);
+		
+		if (read != 2 || !Arrays.equals(sep, sLine))
+		{
 			return null;
 		}
 		
