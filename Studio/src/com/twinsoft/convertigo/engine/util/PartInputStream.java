@@ -61,7 +61,7 @@ public class PartInputStream extends InputStream {
 		if (isPartEnd()) {
 			return -1;
 		} else if (iSaved < lSaved) {
-			return saved[iSaved++];
+			return Byte.toUnsignedInt(saved[iSaved++]);
 		} else {
 			return lastRead = inputStream.read();
 		}
