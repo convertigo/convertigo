@@ -598,7 +598,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		
 		protected FunctionObject createReduce() {
 			if (!hasReduce()) {
-				CouchKey.reduce.put(jsonObject, "function (keys, values) {\r\n\ttry {\r\n\t\treturn values.length;\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}");
+				CouchKey.reduce.put(jsonObject, "function (keys, values, rereduce) {\r\n\ttry {\r\n\t\treturn values.length;\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}");
 				return getReduce();
 			}
 			return null;
