@@ -22,36 +22,17 @@
 
 package com.twinsoft.convertigo.beans.references;
 
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-
-import javax.wsdl.Binding;
 import javax.wsdl.Definition;
-import javax.wsdl.Import;
-import javax.wsdl.Types;
-import javax.wsdl.extensions.ExtensibilityElement;
-import javax.wsdl.extensions.schema.Schema;
-import javax.wsdl.extensions.soap.SOAPBinding;
-import javax.wsdl.factory.WSDLFactory;
-import javax.wsdl.xml.WSDLReader;
-import javax.xml.namespace.QName;
-
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
-import org.apache.ws.commons.schema.XmlSchemaObject;
-import org.apache.ws.commons.schema.resolver.DefaultURIResolver;
-import org.w3c.dom.Element;
-
+import org.apache.ws.commons.schema.constants.Constants;
 import com.twinsoft.convertigo.beans.core.ISchemaReader;
 import com.twinsoft.convertigo.beans.core.IWsdlReader;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.SchemaManager;
-import com.twinsoft.convertigo.engine.util.GenericUtils;
-import com.twinsoft.convertigo.engine.util.SchemaUtils;
-import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
+import com.twinsoft.convertigo.engine.util.WSDLUtils;
 
 public abstract class WsdlSchemaReference extends RemoteFileReference implements ISchemaReference, ISchemaReader, IWsdlReader {
 
@@ -59,72 +40,27 @@ public abstract class WsdlSchemaReference extends RemoteFileReference implements
 
 	public XmlSchema readSchema(XmlSchemaCollection collection) {
 		try {
-			List<String> namespaceList = new ArrayList<String>();
-			String mainSchemaNamespace = null;
-			XmlSchema mainSchema = null;
-			boolean bImport = false;
+			Definition definition = readWsdl();
+			String mainSchemaNamespace = definition.getTargetNamespace();
+			XmlSchemaCollection wsdlCol = WSDLUtils.readSchemas(definition);
 			
-			// First read all schemas from WSDL in a new Collection
-			List<Definition> definitions = readWsdl();
-			XmlSchemaCollection c = new XmlSchemaCollection();
-			for (Definition definition: definitions) {
-				String baseURI = definition.getDocumentBaseURI();
-				if (baseURI != null) c.setBaseUri(baseURI);
-				Types types = definition.getTypes();
-				List<?> list = types.getExtensibilityElements();
-				Iterator<?> iterator = list.iterator();
-				while (iterator.hasNext()) {
-					ExtensibilityElement extensibilityElement = (ExtensibilityElement)iterator.next();
-					if (extensibilityElement instanceof Schema) {
-						Element element = ((Schema)extensibilityElement).getElement();
-						
-						// overwrites elementFormDefault, attributeFormDefault
-						//element.setAttribute("elementFormDefault", Project.XSD_FORM_UNQUALIFIED);
-						//element.setAttribute("attributeFormDefault", Project.XSD_FORM_UNQUALIFIED);
-						
-						// check for targetNamespace declaration
-						if (!element.hasAttribute("targetNamespace"))
-							element.setAttribute("targetNamespace", definition.getTargetNamespace());
-						
-						// read schema
-						XmlSchema xmlSchema = c.read(element);
-						
-						String schemaNamespace = xmlSchema.getTargetNamespace();
-						namespaceList.add(schemaNamespace);
-						if (definition.getTargetNamespace().equals(schemaNamespace)) {
-							mainSchemaNamespace = schemaNamespace;
-						}
-					}
-				}
+			List<String> namespaceList = new ArrayList<String>();
+			
+			// First read main schema
+			XmlSchema mxs = wsdlCol.schemaForNamespace(mainSchemaNamespace);
+			if (mxs != null && collection.schemaForNamespace(mainSchemaNamespace) == null) {
+				namespaceList.add(mainSchemaNamespace);
+				collection.read(mxs.getSchemaDocument(),mxs.getSourceURI(),null);
 			}
-
-			// Then load schemas into our Collection
-			String baseURI = ((DefaultURIResolver)c.getSchemaResolver()).getCollectionBaseURI();
-			if (baseURI != null) collection.setBaseUri(baseURI);
-			for (XmlSchema xs : c.getXmlSchemas()) {
-				String nsuri = xs.getTargetNamespace();
-				if (namespaceList.contains(nsuri)) {
-					if (collection.schemaForNamespace(nsuri) == null) {
-						// ! schema with this ns does not exist !
-						// ! because of xsd:include it is possible to have more than one schema with the same nsuri !
-						// ! we must retrieve the whole schema through collection.schemaForNamespace instead of using xs !
-						if (c.schemaForNamespace(nsuri) != null) {
-							collection.read(c.schemaForNamespace(nsuri).getSchemaDocument(),null);
-							if (nsuri.equals(mainSchemaNamespace)) {
-								bImport = true;
-							}
-						}
-					}
-					else {
-						if (!bImport) {
-							// ! a previously imported (from wsdl) schema already exist with same ns !
-							// ! we need to add all items to existing schema !
-							XmlSchema xc1 = c.schemaForNamespace(nsuri);
-							XmlSchema xc2 = collection.schemaForNamespace(nsuri);
-							for (XmlSchemaObject ob : new XmlSchemaUtils.XmlSchemaObjectCollectionList<XmlSchemaObject>(xc1.getItems())) {
-								XmlSchemaUtils.add(xc2, ob);
-							}
-						}
+			
+			// Then read others
+			for (XmlSchema xs : wsdlCol.getXmlSchemas()) {
+				String tns = xs.getTargetNamespace();
+				if (!namespaceList.contains(tns) && !tns.equals(Constants.URI_2001_SCHEMA_XSD)) {
+					namespaceList.add(tns);
+					XmlSchema cxs = wsdlCol.schemaForNamespace(tns);
+					if (cxs != null && collection.schemaForNamespace(tns) == null) {
+						collection.read(cxs.getSchemaDocument(),cxs.getSourceURI(),null);
 					}
 				}
 			}
@@ -133,7 +69,6 @@ public abstract class WsdlSchemaReference extends RemoteFileReference implements
 			for (XmlSchema xmlSchema : collection.getXmlSchemas()) {
 				String tns = xmlSchema.getTargetNamespace();
 				if (namespaceList.contains(tns)) {
-					
 					// Add missing 'import' in collection schemas (for validation)
 					String[] declaredPrefixes = xmlSchema.getNamespaceContext().getDeclaredPrefixes();
 					for (int i=0; i <declaredPrefixes.length; i++) {
@@ -148,14 +83,7 @@ public abstract class WsdlSchemaReference extends RemoteFileReference implements
 				}
 			}
 			
-			// Remember main schema to import in project's one
-			if (mainSchemaNamespace != null) {
-				if (bImport)
-					mainSchema = collection.schemaForNamespace(mainSchemaNamespace);
-				else
-					mainSchema = null;
-			}
-			
+			XmlSchema mainSchema = collection.schemaForNamespace(mainSchemaNamespace);
 			return mainSchema;
 		}
 		catch (Exception e) {
@@ -164,68 +92,14 @@ public abstract class WsdlSchemaReference extends RemoteFileReference implements
 		return null;
 	}
 	
-
-	public List<Definition> readWsdl() {
-		List<Definition> list = new ArrayList<Definition>();
+	public Definition readWsdl() {
+		Definition definition = null;
 		try {
-			URL wsdlURL = getReferenceUrl();
-			if (wsdlURL != null) {
-				WSDLFactory factory = WSDLFactory.newInstance();
-				WSDLReader reader = factory.newWSDLReader();
-				//reader.setFeature("javax.wsdl.importDocuments", true);
-				Definition definition = reader.readWSDL(null, wsdlURL.toString());
-				list.addAll(readWsdlImports(definition));
-			}
+			definition = WSDLUtils.readWsdl(getReferenceUrl());
 		}
 		catch (Exception e) {
 			Engine.logBeans.error(e.getMessage(), e);
 		}
-		return list;
-	}
-	
-	protected List<Definition> readWsdlImports(Definition definition) {
-		List<Definition> list = new ArrayList<Definition>();
-		Map<String, List<Import>> imports = GenericUtils.cast(definition.getImports());
-		for (List<Import> iList : imports.values()) {
-			for (Import wsdlImport : iList) {
-				Definition def = wsdlImport.getDefinition();
-				list.addAll(readWsdlImports(def));
-			}
-		}
-		
-		// add soap-encoding import if needed (for validation)
-		addRpcSoapEncImport(definition);
-		
-		list.add(definition);
-		return list;
-	}
-
-	protected void addRpcSoapEncImport(Definition definition) {
-		boolean hasRpc = false;
-		Map<QName, Binding> bmap = GenericUtils.cast(definition.getBindings());
-		Iterator<QName> it = bmap.keySet().iterator();
-		while (it.hasNext()) {
-			Binding bind = bmap.get(it.next());
-			List<ExtensibilityElement> exs = GenericUtils.cast(bind.getExtensibilityElements());
-			for (ExtensibilityElement ee : exs) {
-				if (ee instanceof SOAPBinding) {
-					String style = ((SOAPBinding)ee).getStyle();
-					if (style != null && style.toLowerCase().equals("rpc")) {
-						hasRpc = true;
-					}
-				}
-			}
-		}
-		if (hasRpc) {
-			Types types = definition.getTypes();
-			Iterator<?> exs = types.getExtensibilityElements().iterator();
-			while (exs.hasNext()) {
-				ExtensibilityElement ee = (ExtensibilityElement)exs.next();
-				if (ee instanceof Schema) {
-					Element se = ((Schema)ee).getElement();
-					SchemaUtils.addSoapEncSchemaImport(se);
-				}
-			}
-		}
+		return definition;
 	}
 }
