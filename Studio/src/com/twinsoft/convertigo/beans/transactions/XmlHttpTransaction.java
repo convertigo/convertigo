@@ -446,13 +446,14 @@ public class XmlHttpTransaction extends AbstractHttpTransaction implements IElem
 	}
 	
 	
+	@SuppressWarnings("unused")
 	@Override
 	public XmlSchemaInclude getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
-		XmlSchemaInclude xmlSchemaInclude = super.getXmlSchemaObject(collection, schema);	
-		
 		XmlQName xmlQName = getXmlElementRefAffectation();
 		String reqn = getResponseElementQName();
 		if (!xmlQName.isEmpty() || !reqn.equals("")) {
+			long timeStart = System.currentTimeMillis();
+			XmlSchemaInclude xmlSchemaInclude = new XmlSchemaInclude();	
 			XmlSchema transactionSchema =  createSchema();
 			if (transactionSchema != null) {
 //				Transformer transformer = TransformerFactory.newInstance().newTransformer();
@@ -461,8 +462,13 @@ public class XmlHttpTransaction extends AbstractHttpTransaction implements IElem
 //				transformer.transform(new DOMSource(transactionSchema.getSchemaDocument()), new StreamResult(System.out));
 				xmlSchemaInclude.setSchema(transactionSchema);
 			}
+			long timeStop = System.currentTimeMillis();
+//			System.out.println("Schema for \"" + getName() + "\" | Times >> total : " + (timeStop - timeStart) + " ms");
+			return xmlSchemaInclude;
 		}
-		return xmlSchemaInclude;
+		else {
+			return super.getXmlSchemaObject(collection, schema);
+		}
 	}
 
 	@Override
