@@ -242,7 +242,7 @@ public class ConvertigoError {
 		XmlSchemaUtils.add(schema, cConvertigoErrorType);
 	}
 
-	public static void updateXmlSchemaObjects(XmlSchema schema) {
+	public static void removeXmlSchemaObjects(XmlSchema schema) {
 		XmlSchemaType type = null;
 		if ((type = schema.getTypeByName("ConvertigoErrorContextVariable")) != null)
 			XmlSchemaUtils.remove(schema, type);
@@ -250,10 +250,13 @@ public class ConvertigoError {
 			XmlSchemaUtils.remove(schema, type);
 		if ((type = schema.getTypeByName("ConvertigoError")) != null)
 			XmlSchemaUtils.remove(schema, type);
-		
-		ConvertigoError.addXmlSchemaObjects(schema);
 	}
-
+	
+	public static void updateXmlSchemaObjects(XmlSchema schema) {
+		removeXmlSchemaObjects(schema);
+		addXmlSchemaObjects(schema);
+	}
+	
 	public static ConvertigoError initError(ConvertigoException convertigoException) {
 		return initError(ErrorType.Convertigo, convertigoException);
 	}

@@ -436,10 +436,12 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		}
 	}
 	
-	private synchronized void updateTransactionSchemas() {
+	private void updateTransactionSchemas() {
 		for (Connector connector: getObject().getConnectorsList()) {
 			for (Transaction transaction: connector.getTransactionsList()) {
-				transaction.updateSchemaToFile();
+				synchronized (transaction) {
+					transaction.updateSchemaToFile();
+				}
 			}
 		}
 		Engine.theApp.schemaManager.clearCache(getName());
