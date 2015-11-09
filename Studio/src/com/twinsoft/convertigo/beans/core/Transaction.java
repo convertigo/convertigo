@@ -639,8 +639,8 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 	protected XmlSchema loadSchemaFromFile() {
 		try {
 			return SchemaUtils.loadSchema(getSchemaFilePath());
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (Throwable t) {
+			Engine.logBeans.warn("An error ocurred while generating transaction \"\" schema from file", t);
 		}
 		return null;
 	}
@@ -846,7 +846,8 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 				schemaElement.setAttribute("elementFormDefault", getProject().getSchemaElementForm().name());
 				
 				XmlSchemaCollection collection = new XmlSchemaCollection();
-				XmlSchema transactionSchema = collection.read(schemaElement);
+				collection.setBaseUri(getSchemaFilePath());
+				XmlSchema transactionSchema = collection.read(schemaElement, xmlSchema.getSourceURI());
 				new File(getSchemaFileDirPath()).mkdirs();
 				SchemaUtils.saveSchema(getSchemaFilePath(), transactionSchema);
 			}
@@ -855,9 +856,20 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 		}
 	}
 	
+	@SuppressWarnings("unused")
 	public XmlSchemaInclude getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
+		long timeStart = System.currentTimeMillis();
+
 		XmlSchemaInclude xmlSchemaInclude = new XmlSchemaInclude();		
-		XmlSchema transactionSchema = loadSchemaFromFile();
+		XmlSchema transactionSchema = loadSchemaFromFile(); // load schema from internal xsd file
+		if (transactionSchema != null) {
+			// check target namespace is valid (means it is the same in both schemas)
+			if (!schema.getTargetNamespace().equals(transactionSchema.getTargetNamespace())) {
+				transactionSchema = null;
+				Engine.logBeans.warn("The target namespace for transaction \""+getName()+"\" is invalid : please correct its internal xsd file !");
+			}
+		}
+		
 		if (transactionSchema == null) {
 			transactionSchema = createSchema();
 		}
@@ -868,6 +880,10 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 //			transformer.transform(new DOMSource(transactionSchema.getSchemaDocument()), new StreamResult(System.out));
 			xmlSchemaInclude.setSchema(transactionSchema);
 		}
+		
+		long timeStop = System.currentTimeMillis();
+//		System.out.println("Schema for \"" + getName() + "\" | Times >> total : " + (timeStop - timeStart) + " ms");
+		
 		return xmlSchemaInclude;
 	}
 }
