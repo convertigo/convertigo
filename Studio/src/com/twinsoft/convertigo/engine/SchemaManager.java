@@ -167,7 +167,7 @@ public class SchemaManager implements AbstractManager {
 								} else if (databaseObject instanceof ISchemaIncludeGenerator) {
 									// Include case
 									if (databaseObject instanceof Transaction) {
-										XmlSchemaInclude schemaInclude = ((ISchemaIncludeGenerator)databaseObject).getXmlSchemaObject(new XmlSchemaCollection(), schema);
+										XmlSchemaInclude schemaInclude = ((ISchemaIncludeGenerator)databaseObject).getXmlSchemaObject(collection, schema);
 										//SchemaMeta.setXmlSchemaObject(schema, databaseObject, schemaInclude);
 										addSchemaIncludeObjects(databaseObject, schemaInclude.getSchema());
 									} else {
@@ -234,14 +234,16 @@ public class SchemaManager implements AbstractManager {
 								}
 								else if (xmlSchemaObject instanceof XmlSchemaElement) {
 									XmlSchemaElement element = (XmlSchemaElement) xmlSchemaObject;
-									if (collection.getElementByQName(element.getQName()) == null) {
+									if (collection.getElementByQName(element.getQName()) == null &&
+											schema.getElementByName(element.getQName()) == null) {
 										schema.getElements().add(element.getQName(), element);
 										schema.getItems().add(element);
 									}
 								}
 								else if (xmlSchemaObject instanceof XmlSchemaType) {
 									XmlSchemaType schemaType = (XmlSchemaType) xmlSchemaObject;
-									if (collection.getTypeByQName(schemaType.getQName()) == null) {
+									if (collection.getTypeByQName(schemaType.getQName()) == null &&
+											schema.getTypeByName(schemaType.getQName()) == null) {
 										schema.addType(schemaType);
 										schema.getItems().add(schemaType);
 									}
@@ -634,7 +636,7 @@ public class SchemaManager implements AbstractManager {
 				//					transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
 				//					transformer.transform(new DOMSource(schema.getSchemaDocument()), new StreamResult(System.out));
 				//				}
-				System.out.println("Schema for " + projectName + " | Times >> total : " + (timeStop - timeStart) + " ms");
+				System.out.println("Schema for project \"" + projectName + "\" | Times >> total : " + (timeStop - timeStart) + " ms");
 			} catch (Exception e) {
 				e.printStackTrace();
 				throw e;
@@ -1009,7 +1011,9 @@ public class SchemaManager implements AbstractManager {
 	}
 	
 	public void clearCache(String projectName) {
-		schemaCache.remove(projectName);
+		synchronized (schemaCache) {
+			schemaCache.remove(projectName);
+		}
 	}
 	
 	public void validateResponse(String projectName, String requestableName, Document document) throws SAXException {

@@ -42,9 +42,9 @@ import com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction;
 import com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.TransactionXSDTypesDialog;
+import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.Engine;
@@ -203,8 +203,7 @@ public class UpdateXSDTypesAction extends MyAbstractAction {
                     	Engine.theApp.schemaManager.clearCache(requestable.getProject().getName());
                     	explorerView.refreshFirstSelectedTreeObject();
                     	
-                    	// fire event for schema regeneration in schema view
-                    	explorerView.fireTreeObjectPropertyChanged(new TreeObjectEvent(treeObject));
+                    	explorerView.objectSelected(new CompositeEvent(requestable));
                     }
             	}
         	}
