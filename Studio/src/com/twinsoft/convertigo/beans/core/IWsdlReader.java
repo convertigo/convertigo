@@ -22,10 +22,8 @@
 
 package com.twinsoft.convertigo.beans.core;
 
-import java.util.List;
-
 import javax.wsdl.Definition;
 
 public interface IWsdlReader {
-	abstract List<Definition> readWsdl();
+	abstract Definition readWsdl();
 }

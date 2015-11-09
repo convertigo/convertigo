@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.engine.util;
 
+import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -31,11 +32,34 @@ import javax.wsdl.Import;
 import javax.wsdl.Types;
 import javax.wsdl.extensions.ExtensibilityElement;
 import javax.wsdl.extensions.schema.Schema;
+import javax.wsdl.factory.WSDLFactory;
+import javax.wsdl.xml.WSDLReader;
 
+import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaSerializer.XmlSchemaSerializerException;
+import org.w3c.dom.Element;
+
+import com.twinsoft.convertigo.engine.Engine;
 
 public class WSDLUtils {
 
+	public static Definition readWsdl(URL wsdlURL) {
+		Definition definition = null;
+		try {
+			if (wsdlURL != null) {
+				WSDLFactory factory = WSDLFactory.newInstance();
+				WSDLReader reader = factory.newWSDLReader();
+				//reader.setFeature("javax.wsdl.importDocuments", true);
+				definition = reader.readWSDL(null, wsdlURL.toString());
+			}
+		}
+		catch (Throwable t) {
+			Engine.logEngine.error("(WSDLUtils) error while reading WSDL", t);
+		}
+		return definition;
+	}
+	
 	public static XmlSchemaCollection readSchemas(Definition definition) {
 		XmlSchemaCollection schemaCol = new XmlSchemaCollection();
 		schemaCol.setBaseUri(definition.getDocumentBaseURI());
@@ -56,12 +80,52 @@ public class WSDLUtils {
 		}
 		
 		// Read schemas of WSDL types
+		String defns = definition.getTargetNamespace();
 		Types types = definition.getTypes();
 		Iterator<?> exs = types.getExtensibilityElements().iterator();
 		while (exs.hasNext()) {
 			ExtensibilityElement ee = (ExtensibilityElement)exs.next();
 			if (ee instanceof Schema) {
-				schemaCol.read(((Schema)ee).getElement());
+				try {
+					Schema schema = (Schema)ee;
+					Element se = schema.getElement();
+					if (se != null) {
+						// Modify Schema element for RPC if needed
+						SchemaUtils.addSoapEncSchemaImport(se);
+						
+						// Read Schema element
+						XmlSchemaCollection collection = new XmlSchemaCollection();
+						collection.setBaseUri(schema.getDocumentBaseURI());
+						collection.read(se);
+						
+						// Add main XmSchema to collection
+						readSchema(schemaCol, collection.schemaForNamespace(defns));
+						
+						// Add other XmSchema(s) to collection
+						for (XmlSchema xs : collection.getXmlSchemas()) {
+							readSchema(schemaCol, xs);
+						}
+					}
+				}
+				catch (Throwable t) {
+					Engine.logEngine.error("(WSDLUtils) error while reading Schema", t);
+				}
+			}
+		}
+	}
+	
+	private static void readSchema(XmlSchemaCollection schemaCol, XmlSchema xs) throws XmlSchemaSerializerException {
+		if (xs != null) {
+			String tns = xs.getTargetNamespace();
+			if (tns != null && !tns.equals("")) {
+				if (schemaCol.schemaForNamespace(tns) == null) {
+					Engine.logEngine.debug("(WSDLUtils) {"+tns+"} reading schema...");
+					if (Engine.logEngine.isTraceEnabled()) {
+						Engine.logEngine.trace(XMLUtils.prettyPrintDOM(xs.getSchemaDocument()));
+					}
+					XmlSchema xr = schemaCol.read(xs.getSchemaDocument(),null);
+					xr.setSourceURI(xs.getSourceURI());
+				}
 			}
 		}
 	}
