@@ -33,8 +33,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
-import javax.xml.transform.stream.StreamSource;
-
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaForm;
@@ -83,7 +81,9 @@ public class SchemaUtils {
 
 	public static XmlSchema loadSchema(String xsdFilePath) throws SAXException, IOException {
 		File xsdFile = new File(xsdFilePath);
-		return loadSchema(xsdFile, new XmlSchemaCollection());
+		XmlSchemaCollection collection = new XmlSchemaCollection();
+		collection.setBaseUri(xsdFilePath);
+		return loadSchema(xsdFile, collection);
 	}
 
 	public static XmlSchema loadSchema(File xsdFile, XmlSchemaCollection xmlSchemaCollection) throws SAXException, IOException {
@@ -93,26 +93,27 @@ public class SchemaUtils {
 		return null;
 	}
 	
+	@SuppressWarnings("unused")
 	public static XmlSchema loadSchema(URL xsdUrl, XmlSchemaCollection xmlSchemaCollection) throws SAXException, IOException {
-		if (xsdUrl != null) {
-			// build document from url
-			Document xsdDocument = getDefaultDocumentBuilder().parse(xsdUrl.toString());
-			
-			// add soap-encoding import if needed (for validation)
-			addSoapEncSchemaImport(xsdDocument.getDocumentElement());
-
-			File tmp = File.createTempFile("c8oSchema", "xml");
-			try {
-				XMLUtils.saveXml(xsdDocument, tmp);
+		long timeStart = System.currentTimeMillis();
+		try {
+			if (xsdUrl != null) {
+				// build document from url
+				Document xsdDocument = getDefaultDocumentBuilder().parse(xsdUrl.toString());
 				
-//				XmlSchema xmlSchema = xmlSchemaCollection.read(xsdDocument, xsdUrl.toString(), null);
-				XmlSchema xmlSchema = xmlSchemaCollection.read(new StreamSource(tmp), null);
+				// add soap-encoding import if needed (for validation)
+				addSoapEncSchemaImport(xsdDocument.getDocumentElement());
+	
+				XmlSchema xmlSchema = xmlSchemaCollection.read(xsdDocument, xsdUrl.toString(), null);
 				return xmlSchema;
-			} finally {
-				tmp.delete();
+				
 			}
+			return null;
 		}
-		return null;
+		finally {
+			long timeStop = System.currentTimeMillis();
+//			System.out.println("Schema for \"" + xsdUrl.toString() + "\" | Times >> total : " + (timeStop - timeStart) + " ms");
+		}
 	}
 	
 	public static Element getSchemaImport(Element schemaElement, String namespace) {

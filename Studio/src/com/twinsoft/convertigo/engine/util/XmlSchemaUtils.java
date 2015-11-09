@@ -442,7 +442,10 @@ public class XmlSchemaUtils {
 				XMLUtils.saveXml(doc, tmp);
 				//doc.getDocumentElement().setAttribute("elementFormDefault", Project.XSD_FORM_UNQUALIFIED);
 				//doc.getDocumentElement().setAttribute("attributeFormDefault", Project.XSD_FORM_UNQUALIFIED);
-//				sources[i] = new DOMSource(doc, collectionBaseURI);
+				
+				// 7.2.x
+				//sources[i] = new DOMSource(doc, collectionBaseURI);
+				// 7.3.x
 				sources[i] = new StreamSource(tmp);
 			}
 			

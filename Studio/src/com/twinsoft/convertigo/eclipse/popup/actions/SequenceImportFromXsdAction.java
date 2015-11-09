@@ -79,6 +79,7 @@ public class SequenceImportFromXsdAction extends MyAbstractAction {
             		filePath = filePath.replaceAll("\\\\", "/");
             		
             		XmlSchemaCollection collection = new XmlSchemaCollection();
+            		collection.setBaseUri(filePath);
             		XmlSchema xmlSchema = SchemaUtils.loadSchema(new File(filePath), collection);
             		SchemaMeta.setCollection(xmlSchema, collection);
             		
