@@ -134,7 +134,7 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 												message.setText("The " + projectName + " " + requestableName + " XML response is valid.");
 											} else {
 												message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_RED));
-												message.setText("The " + projectName + " " + requestableName + " XML response is invalid : " + exception[0].getMessage());
+												message.setText("The " + projectName + " " + requestableName + " XML response is invalid : " + exception[0].toString()/*exception[0].getMessage()*/);
 											}
 											content.layout(true);
 										}
@@ -562,7 +562,7 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 												message.setText("The " + projectName + " schema is valid.");
 											} else {
 												message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_RED));
-												message.setText("The " + projectName + " schema is invalid : " + exception[0].getMessage());
+												message.setText("The " + projectName + " schema is invalid : " + exception[0].toString()/*getMessage()*/);
 											}
 											content.layout(true);
 										}
