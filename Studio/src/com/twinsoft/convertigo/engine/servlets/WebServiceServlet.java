@@ -88,7 +88,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
 import com.ibm.wsdl.DefinitionImpl;
 import com.ibm.wsdl.extensions.PopulatedExtensionRegistry;
 import com.ibm.wsdl.extensions.schema.SchemaConstants;
@@ -234,6 +233,7 @@ public class WebServiceServlet extends GenericServlet {
     
     public static String generateWsdlForDocLiteral(String servletURI, String projectName) throws EngineException {
     	Engine.logEngine.debug("(WebServiceServlet) Generating WSDL...");
+    	long timeStart = System.currentTimeMillis();
     	
     	String locationPath = servletURI.substring(0,servletURI.indexOf("/.w"));
     	String targetNamespace = Project.CONVERTIGO_PROJECTS_NAMESPACEURI + projectName;
@@ -335,15 +335,13 @@ public class WebServiceServlet extends GenericServlet {
 
 			// Read schemas into a new Collection in order to modify them
 			XmlSchemaCollection wsdlSchemaCollection = new XmlSchemaCollection();
-			String baseURI = Engine.PROJECTS_PATH + "/" + projectName + "/xsd";
-			if (baseURI != null) wsdlSchemaCollection.setBaseUri(baseURI);
 			for (XmlSchema xmlSchema: xmlSchemaCollection.getXmlSchemas()) {
 				String tns = xmlSchema.getTargetNamespace();
 				if (tns.equals(Constants.URI_2001_SCHEMA_XSD)) continue;
 				if (tns.equals(SchemaUtils.URI_SOAP_ENC)) continue;
 				
 				if (wsdlSchemaCollection.schemaForNamespace(tns) == null) {
-					wsdlSchemaCollection.read(xmlSchema.getSchemaDocument().getDocumentElement());
+					wsdlSchemaCollection.read(xmlSchema.getSchemaDocument(),xmlSchema.getSourceURI(),null);
 				}
 			}
 			
@@ -467,6 +465,10 @@ public class WebServiceServlet extends GenericServlet {
 			Engine.logEngine.error("An error occured while generating WSDL", e);
 		}
 		String wsdl = sw.toString();
+		
+		long timeStop = System.currentTimeMillis();
+		System.out.println("Wsdl for " + projectName + " | Times >> total : " + (timeStop - timeStart) + " ms");
+		
         return wsdl;
     }
     
