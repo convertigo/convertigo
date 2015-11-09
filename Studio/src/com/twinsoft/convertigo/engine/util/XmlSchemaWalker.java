@@ -323,11 +323,20 @@ public class XmlSchemaWalker {
 		return new XmlSchemaWalker(deep, deepExternal) {
 			private LinkedHashMap<QName, XmlSchemaObject> linkedMap = map;
 			
+			private boolean isLinked(XmlSchemaObject obj, QName qname) {
+				boolean linked = linkedMap.containsKey(qname);
+				if (linked) {
+					// check linked object is the same : an XmlSchemaElement & an XmlSchemaType may have the same qname
+					linked = obj.hashCode() == linkedMap.get(qname).hashCode();
+				}
+				return linked;
+			}
+			
 			@Override
 			public void walkByTypeName(XmlSchema xmlSchema, QName qname) {
 				XmlSchemaType obj = SchemaMeta.getCollection(xmlSchema).getTypeByQName(qname);
 				if (obj != null) {
-					if (!linkedMap.containsKey(qname)) {
+					if (!isLinked(obj, qname)) {
 						linkedMap.put(qname, obj);
 						super.walkByTypeName(xmlSchema, qname);
 					}
@@ -338,7 +347,7 @@ public class XmlSchemaWalker {
 			public void walkByElementRef(XmlSchema xmlSchema, QName qname) {
 				XmlSchemaElement obj = SchemaMeta.getCollection(xmlSchema).getElementByQName(qname);
 				if (obj != null) {
-					if (!linkedMap.containsKey(qname)) {
+					if (!isLinked(obj, qname)) {
 						linkedMap.put(qname, obj);
 						super.walkByElementRef(xmlSchema, qname);
 					}
@@ -350,7 +359,7 @@ public class XmlSchemaWalker {
 				XmlSchema schema = SchemaMeta.getCollection(xmlSchema).schemaForNamespace(qname.getNamespaceURI());
 				XmlSchemaAttributeGroup obj = (XmlSchemaAttributeGroup) schema.getAttributeGroups().getItem(qname);
 				if (obj != null) {
-					if (!linkedMap.containsKey(qname)) {
+					if (!isLinked(obj, qname)) {
 						linkedMap.put(qname, obj);
 						super.walkByAttributeGroupRef(xmlSchema, qname);
 					}
@@ -361,7 +370,7 @@ public class XmlSchemaWalker {
 			public void walkByAttributeRef(XmlSchema xmlSchema, QName qname) {
 				XmlSchemaAttribute obj = SchemaMeta.getCollection(xmlSchema).getAttributeByQName(qname);
 				if (obj != null) {
-					if (!linkedMap.containsKey(qname)) {
+					if (!isLinked(obj, qname)) {
 						linkedMap.put(qname, obj);
 						super.walkByAttributeRef(xmlSchema, qname);
 					}
@@ -373,7 +382,7 @@ public class XmlSchemaWalker {
 				XmlSchema schema = SchemaMeta.getCollection(xmlSchema).schemaForNamespace(qname.getNamespaceURI());
 				XmlSchemaGroup obj = (XmlSchemaGroup) schema.getGroups().getItem(qname);
 				if (obj != null) {
-					if (!linkedMap.containsKey(qname)) {
+					if (!isLinked(obj, qname)) {
 						linkedMap.put(qname, obj);
 						super.walkByGroupRef(xmlSchema, qname);
 					}
