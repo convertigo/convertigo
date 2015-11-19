@@ -293,6 +293,8 @@ public class Project extends DatabaseObject implements IInfoProperty {
 			addSequence((Sequence) databaseObject);
 		} else if (databaseObject instanceof MobileApplication) {
 			addMobileApplication((MobileApplication) databaseObject);
+		} else if (databaseObject instanceof UrlMapper) {
+			addUrlMapper((UrlMapper) databaseObject);
 		} else if (databaseObject instanceof Reference) {
 			addReference((Reference) databaseObject);
 		} else {
@@ -308,6 +310,8 @@ public class Project extends DatabaseObject implements IInfoProperty {
 			removeSequence((Sequence) databaseObject);
 		} else if (databaseObject instanceof MobileApplication) {
 			removeMobileApplication((MobileApplication) databaseObject);
+		} else if (databaseObject instanceof UrlMapper) {
+			removeUrlMapper((UrlMapper) databaseObject);
 		} else if (databaseObject instanceof Reference) {
 			removeReference((Reference) databaseObject);
 		} else {
@@ -444,6 +448,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		clonedObject.vConnectors = new LinkedList<Connector>();
 		clonedObject.vSequences = new LinkedList<Sequence>();
 		clonedObject.mobileApplication = null;
+		clonedObject.urlMapper = null;
 		return clonedObject;
 	}
 	
@@ -505,6 +510,27 @@ public class Project extends DatabaseObject implements IInfoProperty {
     	}
     }
 
+	private transient UrlMapper urlMapper = null;
+	
+    public UrlMapper getUrlMapper() {
+		return urlMapper;
+	}
+
+    public void addUrlMapper(UrlMapper urlMapper) throws EngineException {
+    	if (this.urlMapper != null) {
+    		throw new EngineException("The project \"" + getName() + "\" already contains an URL mapper! Please delete it first.");
+    	}
+    	this.urlMapper = urlMapper;
+		super.add(urlMapper);
+    }
+    
+    public void removeUrlMapper(UrlMapper urlMapper) {
+    	if (urlMapper != null && urlMapper.equals(this.urlMapper)) {
+    		this.urlMapper = null;
+    	}
+    }
+    
+    
 	@Override
 	public List<DatabaseObject> getAllChildren() {	
 		List<DatabaseObject> rep = super.getAllChildren();
@@ -512,6 +538,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		rep.addAll(getSequencesList());
 		rep.addAll(getReferenceList());
 		if (mobileApplication != null) rep.add(mobileApplication);
+		if (urlMapper != null) rep.add(urlMapper);
 		return rep;
 	}
 
