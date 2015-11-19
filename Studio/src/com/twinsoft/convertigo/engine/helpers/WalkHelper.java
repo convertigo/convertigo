@@ -9,6 +9,7 @@ import com.twinsoft.convertigo.beans.core.ExtractionRule;
 import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
 import com.twinsoft.convertigo.beans.core.Listener;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
+import com.twinsoft.convertigo.beans.core.UrlMapper;
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.beans.core.Pool;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -24,6 +25,9 @@ import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
+import com.twinsoft.convertigo.beans.core.UrlMapping;
+import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
+import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.statements.HTTPStatement;
@@ -65,6 +69,13 @@ public class WalkHelper {
 				}
 			}
 			
+			if (before(databaseObject, UrlMapper.class)) {
+				UrlMapper urlMapper = project.getUrlMapper();
+				if (urlMapper != null) {
+					walk(urlMapper);
+				}
+			}
+			
 			if (before(databaseObject, Reference.class)) {
 				for (Reference reference : project.getReferenceList()) {
 					walk(reference);
@@ -76,6 +87,30 @@ public class WalkHelper {
 			if (before(databaseObject, MobilePlatform.class)) {
 				for (MobilePlatform device : mobileApplication.getMobilePlatformList()) {
 					walk(device);
+				}
+			}
+		} else if (databaseObject instanceof UrlMapper) {
+			UrlMapper urlMapper = (UrlMapper) databaseObject;
+
+			if (before(databaseObject, UrlMapping.class)) {
+				for (UrlMapping mapping : urlMapper.getMappingList()) {
+					walk(mapping);
+				}
+			}
+		} else if (databaseObject instanceof UrlMapping) {
+			UrlMapping urlMapping = (UrlMapping) databaseObject;
+
+			if (before(databaseObject, UrlMappingOperation.class)) {
+				for (UrlMappingOperation operation : urlMapping.getOperationList()) {
+					walk(operation);
+				}
+			}
+		} else if (databaseObject instanceof UrlMappingOperation) {
+			UrlMappingOperation urlMappingOperation = (UrlMappingOperation) databaseObject;
+
+			if (before(databaseObject, UrlMappingParameter.class)) {
+				for (UrlMappingParameter parameter : urlMappingOperation.getParameterList()) {
+					walk(parameter);
 				}
 			}
 		} else if (databaseObject instanceof Sequence) {

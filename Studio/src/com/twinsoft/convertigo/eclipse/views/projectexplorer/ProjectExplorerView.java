@@ -133,6 +133,10 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.core.UrlMapper;
+import com.twinsoft.convertigo.beans.core.UrlMapping;
+import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
+import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
@@ -204,6 +208,10 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TraceTreeObje
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TransactionTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UnloadedProjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UrlMapperTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UrlMappingOperationTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UrlMappingParameterTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UrlMappingTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject2;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.XMLRecordDescriptionTreeObject;
@@ -251,6 +259,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public static final int TREE_OBJECT_TYPE_DBO_MOBILEPLATFORM = 0x111;
 	public static final int TREE_OBJECT_TYPE_DBO_DOCUMENT = 0x113;
 	public static final int TREE_OBJECT_TYPE_DBO_LISTENER = 0x114;
+	public static final int TREE_OBJECT_TYPE_DBO_URLMAPPER = 0x115;
+	public static final int TREE_OBJECT_TYPE_DBO_URLMAPPING = 0x116;
+	public static final int TREE_OBJECT_TYPE_DBO_URLMAPPINGOPERATION = 0x117;
+	public static final int TREE_OBJECT_TYPE_DBO_URLMAPPINGPARAMETER = 0x118;
 
 	public static final int TREE_OBJECT_TYPE_DBO_PROPERTY_TABLE = 0x300;
 	public static final int TREE_OBJECT_TYPE_DBO_PROPERTY_TABLE_ROW = 0x301;
@@ -274,6 +286,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public static final int TREE_OBJECT_TYPE_FOLDER_MOBILEPLATFORMS = 0x20C;
 	public static final int TREE_OBJECT_TYPE_FOLDER_DOCUMENTS = 0x20D;
 	public static final int TREE_OBJECT_TYPE_FOLDER_LISTENERS = 0x20E;
+	public static final int TREE_OBJECT_TYPE_FOLDER_MAPPINGS = 0x20F;
+	public static final int TREE_OBJECT_TYPE_FOLDER_OPERATIONS = 0x210;
+	public static final int TREE_OBJECT_TYPE_FOLDER_PARAMETERS = 0x210;
 
 	public static final int TREE_OBJECT_TYPE_MISC = 0x8000;						// 1000 0000 0000 0000
 
@@ -1310,7 +1325,22 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 						} else if (databaseObject instanceof MobilePlatform) {
 							databaseObjectTreeObject = new MobilePlatformTreeObject(viewer, (MobilePlatform) databaseObject, false);
-
+							
+						} else if (databaseObject instanceof UrlMapper) {
+							databaseObjectTreeObject = new UrlMapperTreeObject(viewer, (UrlMapper) databaseObject, false);
+							
+						} else if (databaseObject instanceof UrlMapping) {
+							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_MAPPINGS;
+							databaseObjectTreeObject = new UrlMappingTreeObject(viewer, (UrlMapping) databaseObject, false);
+							
+						} else if (databaseObject instanceof UrlMappingOperation) {
+							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_OPERATIONS;
+							databaseObjectTreeObject = new UrlMappingOperationTreeObject(viewer, (UrlMappingOperation) databaseObject, false);
+							
+						} else if (databaseObject instanceof UrlMappingParameter) {
+							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_PARAMETERS;
+							databaseObjectTreeObject = new UrlMappingParameterTreeObject(viewer, (UrlMappingParameter) databaseObject, false);
+							
 						} else if (databaseObject instanceof Reference) {
 							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_REFERENCES;
 							databaseObjectTreeObject = new ReferenceTreeObject(viewer, (Reference) databaseObject, false);
@@ -2163,6 +2193,15 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			else if (folderType == ObjectsFolderTreeObject.FOLDER_TYPE_LISTENERS) {
 				return ProjectExplorerView.TREE_OBJECT_TYPE_FOLDER_LISTENERS;
 			}
+			else if (folderType == ObjectsFolderTreeObject.FOLDER_TYPE_MAPPINGS) {
+				return ProjectExplorerView.TREE_OBJECT_TYPE_FOLDER_MAPPINGS;
+			}
+			else if (folderType == ObjectsFolderTreeObject.FOLDER_TYPE_OPERATIONS) {
+				return ProjectExplorerView.TREE_OBJECT_TYPE_FOLDER_OPERATIONS;
+			}
+			else if (folderType == ObjectsFolderTreeObject.FOLDER_TYPE_PARAMETERS) {
+				return ProjectExplorerView.TREE_OBJECT_TYPE_FOLDER_PARAMETERS;
+			}
 		}
 		else if (treeNode instanceof HandlersDeclarationTreeObject) {
 			return ProjectExplorerView.TREE_OBJECT_TYPE_HANDLERS_DECLARATION;
@@ -2211,6 +2250,18 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			}
 			else if (databaseObject instanceof MobilePlatform) {
 				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILEPLATFORM;
+			}
+			else if (databaseObject instanceof UrlMapper) {
+				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_URLMAPPER;
+			}
+			else if (databaseObject instanceof UrlMapping) {
+				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_URLMAPPING;
+			}
+			else if (databaseObject instanceof UrlMappingOperation) {
+				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_URLMAPPINGOPERATION;
+			}
+			else if (databaseObject instanceof UrlMappingParameter) {
+				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_URLMAPPINGPARAMETER;
 			}
 			else if (databaseObject instanceof Criteria) {
 				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_CRITERIA;

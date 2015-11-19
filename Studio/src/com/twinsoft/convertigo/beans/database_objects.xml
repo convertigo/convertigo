@@ -148,6 +148,51 @@
 		</category>
 	</group>
 	
+	<group name="URL Mapper">
+		<category>
+			<beans>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.core.UrlMapper">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
+                </bean>
+			</beans>
+		</category>
+		<category name="REST API">
+			<beans groupname="Mappings">
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.rest.PathMapping">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.UrlMapper"/>
+				</bean>
+			</beans>
+			<beans groupname="Operations">
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.rest.GetOperation">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PathMapping"/>
+				</bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.rest.PostOperation">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PathMapping"/>
+				</bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.rest.PutOperation">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PathMapping"/>
+				</bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.rest.DeleteOperation">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PathMapping"/>
+				</bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.rest.HeadOperation">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PathMapping"/>
+				</bean>
+			</beans>
+			<beans groupname="Parameters">
+				<!-- <bean enable="false" documented="false" classname="com.twinsoft.convertigo.beans.rest.PathParameter">
+				</bean>-->
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.rest.QueryParameter">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.GetOperation"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PostOperation"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PutOperation"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.DeleteOperation"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.HeadOperation"/>
+				</bean>
+			</beans>
+		</category>
+	</group>
+	
 	<group name="Sequencer">
 		<category>
 			<beans>

@@ -70,6 +70,10 @@ import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.core.UrlMapper;
+import com.twinsoft.convertigo.beans.core.UrlMapping;
+import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
+import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.references.ImportXsdSchemaReference;
 import com.twinsoft.convertigo.beans.references.RestServiceReference;
@@ -231,6 +235,22 @@ public class NewObjectWizard extends Wizard {
 			else if (beanClass.equals(com.twinsoft.convertigo.beans.core.Listener.class)) {
 				objectExplorerPageTitle = "New Listener";
 				objectExplorerPageMessage = "Please select a listener template.";
+			}
+			else if (beanClass.equals(UrlMapper.class)) {
+				objectExplorerPageTitle = "New URL Mapper";
+				objectExplorerPageMessage = "Please select an URL mapper template.";
+			}
+			else if (beanClass.equals(UrlMapping.class)) {
+				objectExplorerPageTitle = "New URL Mapping";
+				objectExplorerPageMessage = "Please select an URL mapping template.";
+			}
+			else if (beanClass.equals(UrlMappingOperation.class)) {
+				objectExplorerPageTitle = "New Mapping Operation";
+				objectExplorerPageMessage = "Please select a mapping operation template.";
+			}
+			else if (beanClass.equals(UrlMappingParameter.class)) {
+				objectExplorerPageTitle = "New Mapping Parameter";
+				objectExplorerPageMessage = "Please select a mapping parameter template.";
 			}
 			
 			addBeanPages(objectExplorerPageTitle, objectExplorerPageMessage, beanClass);
