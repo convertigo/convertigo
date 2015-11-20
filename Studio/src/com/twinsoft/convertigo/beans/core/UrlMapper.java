@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.beans.core;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
 public class UrlMapper extends DatabaseObject {
@@ -75,11 +76,18 @@ public class UrlMapper extends DatabaseObject {
 	transient private List<UrlMapping> mappings = new LinkedList<UrlMapping>();
 		
 	protected void addMapping(UrlMapping mapping) throws EngineException {
+		boolean hasMappingPath = getMappingByPath(mapping.getPath()) != null;
+		//if (hasMappingPath) {
+		//	throw new EngineException("The mapper already contains a mapping with given path \""+mapping.getPath()+"\"");
+		//}
 		checkSubLoaded();
 		String newDatabaseObjectName = getChildBeanName(mappings, mapping.getName(), mapping.bNew);
 		mapping.setName(newDatabaseObjectName);
 		mappings.add(mapping);
 		super.add(mapping);
+		if (hasMappingPath) {
+			Engine.logBeans.warn("The mapper already contains a mapping with given path \""+mapping.getPath()+"\". Only the first one will be taken into account.");
+		}
 	}
 
 	public void removeMapping(UrlMapping mapping) throws EngineException {
@@ -99,4 +107,10 @@ public class UrlMapper extends DatabaseObject {
 		throw new EngineException("There is no mapping named \"" + mappingName + "\" found into this project.");
 	}
 	
+	public UrlMapping getMappingByPath(String mappingPath) {
+		checkSubLoaded();
+		for (UrlMapping mapping : mappings)
+			if (mapping.getPath().equalsIgnoreCase(mappingPath)) return mapping;
+		return null;
+	}
 }

@@ -40,6 +40,16 @@ public class PathMapping extends UrlMapping {
 		super();
 	}
 
+	private String path = "";
+	
+	public String getPath() {
+		return path;
+	}
+
+	public void setPath(String path) {
+		this.path = path;
+	}
+	
 	@Override
 	public UrlMapping clone() throws CloneNotSupportedException {
 		PathMapping clonedObject = (PathMapping) super.clone();

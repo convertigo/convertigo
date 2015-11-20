@@ -50,6 +50,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.core.UrlMapping;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.references.RestServiceReference;
 import com.twinsoft.convertigo.beans.references.WebServiceReference;
@@ -277,6 +278,9 @@ public class ObjectInfoWizardPage extends WizardPage {
 			}
 			else if (dbo instanceof SqlTransaction){
 				return getWizard().getPage("SQLQueriesWizardPage");
+			}
+			else if (dbo instanceof UrlMapping){
+				return getWizard().getPage("UrlMappingWizardPage");
 			}
 		}
 		catch (NullPointerException e) {

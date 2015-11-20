@@ -24,6 +24,7 @@ package com.twinsoft.convertigo.beans.core;
 
 import java.util.LinkedList;
 import java.util.List;
+
 import com.twinsoft.convertigo.engine.EngineException;
 
 public abstract class UrlMapping extends DatabaseObject {
@@ -40,6 +41,14 @@ public abstract class UrlMapping extends DatabaseObject {
 		UrlMapping clonedObject = (UrlMapping)super.clone();
 		clonedObject.operations = new LinkedList<UrlMappingOperation>();
 		return clonedObject;
+	}
+
+	public abstract String getPath();
+	public abstract void setPath(String path);
+		
+	@Override
+	public String toString() {
+		return getPath();
 	}
 
 	@Override

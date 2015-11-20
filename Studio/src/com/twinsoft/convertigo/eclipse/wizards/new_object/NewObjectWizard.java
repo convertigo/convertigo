@@ -112,6 +112,7 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.wizards.new_project.EmulatorTechnologyWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.new_project.SQLQueriesWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.new_project.ServiceCodeWizardPage;
+import com.twinsoft.convertigo.eclipse.wizards.new_project.UrlMappingWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.references.ProjectSchemaWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.references.RestServiceWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.references.WebServiceWizardPage;
@@ -306,6 +307,11 @@ public class NewObjectWizard extends Wizard {
 
 			RestServiceWizardPage restServiceWizardPage = new RestServiceWizardPage(parentObject);
 			this.addPage(restServiceWizardPage);
+		}
+		
+		if (beanClass.equals(UrlMapping.class)) {
+			UrlMappingWizardPage urlMappingWizardPage = new UrlMappingWizardPage(parentObject);
+			this.addPage(urlMappingWizardPage);
 		}
 	}
 	
