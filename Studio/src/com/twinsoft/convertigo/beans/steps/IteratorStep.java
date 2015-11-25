@@ -115,11 +115,16 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 				throw new EngineException("Unable to initialize iterator",e);
 			}
 			
+			if (inError()) {
+				Engine.logBeans.warn("(IteratorStep) Skipping step "+ this +" ("+ hashCode()+") because its source is in error");
+				return true;
+			}
+			
 			for (int i=0; i < iterator.size(); i++) {
-				if (inError()) {
+				/*if (inError()) {
 					Engine.logBeans.warn("(IteratorStep) Skipping step "+ this +" ("+ hashCode()+") because its source is in error");
 					return true;
-				}
+				}*/
 				if (bContinue && sequence.isRunning()) {
 					int index = iterator.numberOfIterations();
 					Scriptable jsIndex = org.mozilla.javascript.Context.toObject(index, scope);
@@ -209,14 +214,17 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 		private int stepLoop = 1;
 		private NodeList list = null;
 		private int index = 0;
+		private String xpath = null;
 		
 		public Iterator() throws EngineException {
-			step = getSource().getStep();
-			stepLoop = getSource().getLoop();
+			StepSource stepSource = getSource();
+			step = stepSource.getStep();
+			stepLoop = stepSource.getLoop();
+			xpath = stepSource.getXpath();
 		}
 		
 		private void init() throws TransformerException, EngineException {
-			String xpath = getSource().getXpath();
+			//String xpath = getSource().getXpath();
 			if ((list == null) && (step != null) && (xpath != null)) {
 				list = getXPathAPI().selectNodeList(step.getContextNode(stepLoop), step.getContextXpath(xpath));
 			}
