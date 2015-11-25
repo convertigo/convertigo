@@ -35,7 +35,7 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.NativeJavaArray;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Attr;
-import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -162,12 +162,13 @@ public class AttributeStep extends Step implements ISchemaAttributeGenerator, IS
 				nodeValue = evaluated.toString();
 		}
 		
-		Document doc = getOutputDocument();
+//		Document doc = getOutputDocument();
+		Element workerElement = getWorkerElement();
 		if (!inError()) {
 			String namespace = getNodeNameSpace();
 			if (namespace.equals("")) {
-				doc.getDocumentElement().setAttribute(getStepNodeName(), nodeValue);
-				stepNode = doc.getDocumentElement().getAttributeNode(getStepNodeName());
+				workerElement.setAttribute(getStepNodeName(), nodeValue);
+				stepNode = workerElement.getAttributeNode(getStepNodeName());
 				stepNode = ((Step)parent).appendChildNode(stepNode);
 			}
 			else {
@@ -176,12 +177,12 @@ public class AttributeStep extends Step implements ISchemaAttributeGenerator, IS
 					throw new EngineException("Blank namespace URI is not allowed (using namespace '"
 							+ namespace + "' in jAttribute step '" + getName() + "')");
 
-				doc.getDocumentElement().setAttributeNS(
+				workerElement.setAttributeNS(
 						namespaceURI,
 						namespace + ":" + getStepNodeName(),
 						nodeValue);
-				doc.getDocumentElement().setAttribute(namespace + ":" + getStepNodeName(), nodeValue);
-				stepNode = doc.getDocumentElement().getAttributeNode(namespace + ":" + getStepNodeName());
+				workerElement.setAttribute(namespace + ":" + getStepNodeName(), nodeValue);
+				stepNode = workerElement.getAttributeNode(namespace + ":" + getStepNodeName());
 			}
 
 			stepNode = ((Step)parent).appendChildNode(stepNode);

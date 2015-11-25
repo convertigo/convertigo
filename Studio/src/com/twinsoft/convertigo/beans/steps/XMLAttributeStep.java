@@ -28,7 +28,7 @@ import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.w3c.dom.Attr;
-import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -133,6 +133,7 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer, ISch
 		return "//document/@"+ getStepNodeName();
 	}
 
+/*
 	@Override
 	protected Node createStepNode() throws EngineException {
 		Attr stepNode = null;
@@ -199,7 +200,74 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer, ISch
 		}
 		return stepNode;
 	}
+*/
+	@Override
+	protected Node createStepNode() throws EngineException {
+		Attr stepNode = null;
+		Element workerElement = getWorkerElement();
+		if (!inError()) {
+			boolean useDefaultValue = true;
+			NodeList list = getContextValues();
+			if (list != null) {
+				int len = list.getLength();
+				useDefaultValue = (len == 0);
+				if (!useDefaultValue) {
+					for (int i = 0; i < len; i++) {
+						Node node = list.item(i);
+						if (node != null) {
+							String snodeName = ((len==1) ? getStepNodeName():node.getNodeName());
+							String snodeValue = getNodeValue(node);
+							
+							String namespace = getNodeNameSpace();
+							if (namespace.equals("")) {
+								workerElement.setAttribute(snodeName, (snodeValue == null) ? getNodeText():snodeValue);
+								stepNode = workerElement.getAttributeNode(snodeName);
+							}
+							else {
+								String namespaceURI = getNodeNameSpaceURI();
+								if (namespaceURI.equals(""))
+									throw new EngineException("Blank namespace URI is not allowed (using namespace '"
+											+ namespace + "' in XMLAttribute step '" + getName() + "')");
+	
+								workerElement.setAttributeNS(
+										namespaceURI,
+										namespace + ":" + snodeName,
+										(snodeValue == null) ? getNodeText() : snodeValue);
+								stepNode = workerElement.getAttributeNode(namespace + ":" + snodeName);
+							}
+							
+							stepNode = ((Step)parent).appendChildNode(stepNode);
+						}
+					}
+				}
+			}
+			if (useDefaultValue) {
+				String namespace = getNodeNameSpace();
+				if (namespace.equals("")) {
+					workerElement.setAttribute(getStepNodeName(), getNodeText());
+					stepNode = workerElement.getAttributeNode(getStepNodeName());
+					stepNode = ((Step)parent).appendChildNode(stepNode);
+				}
+				else {
+					String namespaceURI = getNodeNameSpaceURI();
+					if (namespaceURI.equals(""))
+						throw new EngineException("Blank namespace URI is not allowed (using namespace '"
+								+ namespace + "' in XMLAttribute step '" + getName() + "')");
 
+					workerElement.setAttributeNS(
+							namespaceURI,
+							namespace + ":" + getStepNodeName(),
+							getNodeText());
+					workerElement.setAttribute(namespace + ":" + getStepNodeName(), getNodeText());
+					stepNode = workerElement.getAttributeNode(namespace + ":" + getStepNodeName());
+				}
+
+				stepNode = ((Step)parent).appendChildNode(stepNode);
+			}
+		}
+		return stepNode;
+	}
+	
 	@Override
 	public XmlSchemaAttribute getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		String namespace = getNodeNameSpace();

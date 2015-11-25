@@ -50,6 +50,7 @@ import org.mozilla.javascript.JavaScriptException;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.Undefined;
 import org.w3c.dom.Document;
+import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -92,7 +93,8 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	transient protected HttpState httpState = null;
 	transient protected boolean stepDone = false;
 	transient protected Sequence sequence = null;
-	transient protected Document outputDocument = null;
+//	transient protected Document outputDocument = null;
+	transient protected DocumentFragment workerFragment = null;
 	transient protected String executeTimeID = "";
 	transient private boolean inError = false;
 	transient private int cloneNumber = 0;
@@ -125,7 +127,8 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		clonedObject.sequence = null;
 		clonedObject.vSheets = new LinkedList<Sheet>();
 		clonedObject.newPriority = newPriority;
-		clonedObject.outputDocument = null;
+//		clonedObject.outputDocument = null;
+		clonedObject.workerFragment = null;
 		return clonedObject;
 	}
     
@@ -160,7 +163,8 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		xpathApi = null;
 		parent = null;
 		sequence = null;
-		outputDocument = null;
+//		outputDocument = null;
+		workerFragment = null;
 		transactionContextMaintainer = null;
 		vSheets = null; // ! Do not clear()!
 		if (executedSteps != null) {
@@ -260,9 +264,13 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	
 	protected void reset() throws EngineException {
 		stepDone = false;
-		outputDocument = null;
-		if (outputDocument == null) {
-	        outputDocument = sequence.createDOM();
+//		outputDocument = null;
+//		if (outputDocument == null) {
+//	        outputDocument = sequence.createDOM();
+//		}
+		workerFragment = null;
+		if (workerFragment == null) {
+			workerFragment = sequence.createDocumentFragment();
 		}
 	}
 	
@@ -351,11 +359,26 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	}
 	
 	protected Node createStepNode() throws EngineException {
-		Document doc = getOutputDocument();
+//		Document doc = getOutputDocument();
+//		Element stepNode = doc.createElement(getStepNodeName());
+//		stepNode.setAttribute("step_id", this.executeTimeID);
+//		
+//		doc.getDocumentElement().appendChild(stepNode);
+//		if (!inError()) {
+//			createStepNodeValue(doc, stepNode);
+//			if (isXmlOrOutput()) {
+//				if (parent instanceof Step)
+//					stepNode = ((Step)parent).appendChildNode(stepNode);
+//			}
+//		}
+//		return stepNode;
+
+		Element workerElement = getWorkerElement();
+		Document doc = workerElement.getOwnerDocument();
 		Element stepNode = doc.createElement(getStepNodeName());
 		stepNode.setAttribute("step_id", this.executeTimeID);
 		
-		doc.getDocumentElement().appendChild(stepNode);
+		workerElement.appendChild(stepNode);
 		if (!inError()) {
 			createStepNodeValue(doc, stepNode);
 			if (isXmlOrOutput()) {
@@ -390,6 +413,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		//does nothing
 	}
 	
+/*
 	public <N extends Node> N appendChildNode(N nodeToImport) throws EngineException {
 		Document doc = getOutputDocument();
 		Node importedNode = null;
@@ -452,7 +476,65 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		}
 		return nodeToImport;
 	}
+*/	
+	public <N extends Node> N appendChildNode(N nodeToImport) throws EngineException {
+		Element workerElement = getWorkerElement();
+		Node importedNode = nodeToImport.cloneNode(true);
+		
+		
+		if (!inError()) {
+			if (isXmlOrOutput()) {
+				NodeList list = workerElement.getElementsByTagName(getStepNodeName());
+				if (list.getLength()>0) {
+					Element element = (Element)list.item(0);
+					
+					if (nodeToImport.getNodeType() == Node.ATTRIBUTE_NODE) {
+						//importedNode = doc.importNode(nodeToImport, true);
+						element.setAttribute(importedNode.getNodeName(), importedNode.getNodeValue());
+					}
+					else if (nodeToImport.getNodeType() == Node.ELEMENT_NODE) {
+						String sCopy = ((Element)nodeToImport).getAttribute("step_copy");
+						boolean isCopy = ((sCopy!=null)&& (sCopy.equals("true")));
+						if (isCopy) {
+							NodeList children = ((Element)nodeToImport).getChildNodes();
+							int len = children.getLength();
+							for (int i=0;i<len;i++) {
+								Node child = children.item(i);
+								if ((child != null) && ((child.getNodeType() == Node.ELEMENT_NODE) || (child.getNodeType() == Node.TEXT_NODE))) {
+									//importedNode = doc.importNode(child, true);
+									element.appendChild(child.cloneNode(true));
+								}
+							}
+							
+							NamedNodeMap map = ((Element)nodeToImport).getAttributes();
+							len = map.getLength();
+							for (int i=0;i<len;i++) {
+								Node child = map.item(i);
+								if ((child != null) && ((child.getNodeType() == Node.ATTRIBUTE_NODE))) {
+									element.setAttribute(child.getNodeName(),child.getNodeValue());
+								}
+							}
+							element.removeAttribute("step_copy");
+						}
+						else {
+							//importedNode = doc.importNode(nodeToImport, true);
+							element.appendChild(importedNode);
+						}
+					}
+					
+					if (parent instanceof Step)
+						((Step)parent).replaceChildNode(element);
+				}
+			}
+			else {
+				if (parent instanceof Step)
+					nodeToImport = ((Step)parent).appendChildNode(nodeToImport);
+			}
+		}
+		return nodeToImport;
+	}
 	
+/*	
 	public void replaceChildNode(Node nodeToImport) throws EngineException {
 		if (nodeToImport.getNodeType() == Node.ATTRIBUTE_NODE)
 			return;
@@ -491,9 +573,51 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 			}
 		}
 	}
+*/
+	public void replaceChildNode(Node nodeToImport) throws EngineException {
+		if (nodeToImport.getNodeType() == Node.ATTRIBUTE_NODE)
+			return;
+		
+		Element workerElement = getWorkerElement();
+		Node importedNode = nodeToImport.cloneNode(true);
+		if (!inError()) {
+			if (isXmlOrOutput()) {
+				Element toReplace = null;
+				String nodeName = ((Element)importedNode).getNodeName();
+				String nodeID = ((Element)importedNode).getAttribute("step_id");
+				NodeList nodeList = workerElement.getElementsByTagName(nodeName);
+				if (nodeList != null) {
+					for (int i=0; i<nodeList.getLength(); i++) {
+						Element nodeElement = (Element)nodeList.item(i);
+						if (nodeElement.getAttribute("step_id").equals(nodeID)) {
+							toReplace = nodeElement;
+							break;
+						}
+					}
+					if (toReplace != null)
+						toReplace.getParentNode().replaceChild(importedNode, toReplace);
+
+				}
+				
+				NodeList list = workerElement.getElementsByTagName(getStepNodeName());
+				if (list.getLength()>0) {
+					Element element = (Element)list.item(0);
+					if (parent instanceof Step)
+						((Step)parent).replaceChildNode(element);
+				}
+			}
+			else {
+				if (parent instanceof Step)
+					((Step)parent).replaceChildNode(nodeToImport);
+			}
+		}
+	}
+//	public Document getOutputDocument() {
+//		return outputDocument;
+//	}
 	
-	public Document getOutputDocument() {
-		return outputDocument;
+	public Element getWorkerElement() {
+		return (Element) workerFragment.getFirstChild();
 	}
 	
 	protected String getLabel() throws EngineException {
@@ -516,14 +640,23 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	}
 	
 	public Node getContextNode(int loop) throws EngineException {
+//		if (isXml()) {
+//			Document outputDocument = getOutputDocument();
+//			return (outputDocument != null) ? outputDocument.getDocumentElement().getFirstChild() : null;
+//		}
+//		if (workOnSource()) {
+//			return getSource().getContextNode();
+//		}
+//		return outputDocument.getDocumentElement();
+		
+		Element workerElement = getWorkerElement();
 		if (isXml()) {
-			Document outputDocument = getOutputDocument();
-			return (outputDocument != null) ? outputDocument.getDocumentElement().getFirstChild() : null;
+			return (workerElement != null) ? workerElement.getFirstChild() : null;
 		}
 		if (workOnSource()) {
 			return getSource().getContextNode();
 		}
-		return outputDocument.getDocumentElement();
+		return workerElement;
 	}
 	
 	public Node getContextNode(String xpath, int loop) {

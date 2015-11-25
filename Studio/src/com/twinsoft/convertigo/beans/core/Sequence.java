@@ -53,6 +53,7 @@ import org.apache.ws.commons.schema.constants.Constants;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
+import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -1383,6 +1384,14 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		return doc;
     }
 	
+	public DocumentFragment createDocumentFragment() {
+		Document outputDocument = context.outputDocument;
+		DocumentFragment fragment = outputDocument.createDocumentFragment();
+		Element rootElement = outputDocument.createElement("document");
+		fragment.appendChild(rootElement);
+		return fragment;
+	}
+	
 	public void appendStepNode(Step step) throws EngineException {
 		if (Thread.currentThread() instanceof AsynchronousStepThread) {
 			AsynchronousStepThread thread = (AsynchronousStepThread) Thread.currentThread();
@@ -1405,7 +1414,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 								for (int i = 0 ; i < len ; i++) {
 									Node child = list.item(i);
 									if ((child != null) && ((child.getNodeType() == Node.ELEMENT_NODE) || (child.getNodeType() == Node.TEXT_NODE))) {
-										node = context.outputDocument.importNode(child, true);
+										//node = context.outputDocument.importNode(child, true);
+										node = child.cloneNode(true);
 										stepParentElement.appendChild(node);
 									}
 								}
@@ -1425,12 +1435,14 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 							stepParentElement.removeAttribute("step_copy");
 							node = stepParentElement;
 						} else {
-							node = context.outputDocument.importNode(stepNode, true);
+							//node = context.outputDocument.importNode(stepNode, true);
+							node = stepNode.cloneNode(true);
 							((Element) node).removeAttribute("step_id");
 							stepParentElement.appendChild(node);
 						}
 					} else if (stepNode.getNodeType() == Node.ATTRIBUTE_NODE) {
-						node = context.outputDocument.importNode(stepNode, true);
+						//node = context.outputDocument.importNode(stepNode, true);
+						node = stepNode.cloneNode(true);
 						stepParentElement.setAttributeNode((Attr) node);
 					}
 
