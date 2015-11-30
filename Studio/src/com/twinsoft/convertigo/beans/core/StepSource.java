@@ -22,7 +22,6 @@
 
 package com.twinsoft.convertigo.beans.core;
 
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -102,12 +101,16 @@ public class StepSource {
 					step = (Step)owner.getSequence().getCopy(sourceExecuteTimeID);
 				
 				if (step == null) {
-					if (sourceExecuteTimeID != null) Engine.logBeans.warn("Did not find source copy ("+getPriority()+") for step \""+ owner.getName()+"\". Retrieving original source.", null);
+					if (sourceExecuteTimeID != null) {
+						if (Engine.logBeans.isInfoEnabled())
+							Engine.logBeans.warn("Did not find source copy ("+getPriority()+") for step \""+ owner.getName()+"\". Retrieving original source.", null);
+					}
 					step = (Step)owner.getSequence().loadedSteps.get(key);
 					if (step == null)
 						throw new SourceNotFoundException("Did not find source ("+getPriority()+") for step \""+ owner.getName()+"\"");
 				}
-				Engine.logBeans.trace("(ISourceContainer) "+ owner+" ["+owner.hashCode()+"] using source "+step+" ["+step.hashCode()+"]");
+				if (Engine.logBeans.isTraceEnabled())
+					Engine.logBeans.trace("(ISourceContainer) "+ owner+" ["+owner.hashCode()+"] using source "+step+" ["+step.hashCode()+"]");
 				
 				if (sourceExecuteTimeID != null) {
 					int index = sourceExecuteTimeID.lastIndexOf(Step.loopSeparator);  
@@ -142,8 +145,10 @@ public class StepSource {
 		if (definition.size() > 0) {
 			Step step = getStep();
 			String xpath = getXpath();
-			Engine.logBeans.trace("(ISourceContainer) "+ owner+" ["+owner.executeTimeID+"] retreiving value from source "+step+" ["+step.executeTimeID+"]");
-			Engine.logBeans.trace("(ISourceContainer) "+ owner+" ["+owner.hashCode()+"] retreiving value from source "+step+" ["+step.hashCode()+"]");
+			if (Engine.logBeans.isTraceEnabled()) {
+				Engine.logBeans.trace("(ISourceContainer) "+ owner+" ["+owner.executeTimeID+"] retreiving value from source "+step+" ["+step.executeTimeID+"]");
+				Engine.logBeans.trace("(ISourceContainer) "+ owner+" ["+owner.hashCode()+"] retreiving value from source "+step+" ["+step.hashCode()+"]");
+			}
 			nodeList = step.getContextValues(xpath, sourceLoop);
 		}
 		return nodeList;
@@ -174,7 +179,8 @@ public class StepSource {
 			try {
 				return getStep().inError();
 			} catch (SourceNotFoundException e) {
-				Engine.logBeans.debug("StepSource inError because a SourceNotFoundException : " + e.getMessage());
+				if (Engine.logBeans.isDebugEnabled())
+					Engine.logBeans.debug("StepSource inError because a SourceNotFoundException : " + e.getMessage());
 				return true;
 			}
 		}

@@ -1237,7 +1237,6 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	try {
 	    	if (hasSteps()) {
 	    		Long t1 = System.currentTimeMillis();
-	    		Engine.logBeans.info("(Sequence) starting executing steps...");
 	    		for (int i=0; i < numberOfSteps(); i++) {
 	        		if (isRunning()) {
         				executeNextStep((Step)getSteps().get(i), javascriptContext, scope);
@@ -1260,7 +1259,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	    		}
 	    		
 	    		Long t2 = System.currentTimeMillis();
-	    		Engine.logBeans.info("(Sequence) ended executing steps in :" + (t2-t1) + "ms");
+	    		if (Engine.logBeans.isDebugEnabled())
+	    			Engine.logBeans.debug("(Sequence) ended executing steps in :" + (t2-t1) + "ms");
 	    	}
 	    	return true;
     	}

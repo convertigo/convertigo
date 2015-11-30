@@ -193,7 +193,8 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	
 	protected TwsCachedXPathAPI getXPathAPI() {
 		if (xpathApi == null) {
-			Engine.logBeans.trace("[Step] Step needed to retrieve new TwsCachedXPathAPI");
+			if (Engine.logBeans.isTraceEnabled())
+				Engine.logBeans.trace("[Step] Step needed to retrieve new TwsCachedXPathAPI");
 			return xpathApi = new TwsCachedXPathAPI();
 		}
 		return xpathApi;
@@ -537,7 +538,8 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 			Node node = getXPathAPI().selectSingleNode(contextNode, contextXPath);
 			return node;
 		} catch (Exception e) {
-			Engine.logBeans.warn("Unable to retrieve context node for step "+ this +" and for xpath \""+ xpath +"\"");
+			if (Engine.logBeans.isInfoEnabled())
+				Engine.logBeans.warn("Unable to retrieve context node for step "+ this +" and for xpath \""+ xpath +"\"");
 			return null;
 		}
 	}
@@ -574,7 +576,8 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 									return null;
 							}
 						} else {
-							Engine.logBeans.warn("Applied XPath on step '"+ this +"' returned node with null value ('"+node.getNodeName()+"')");
+							if (Engine.logBeans.isInfoEnabled())
+								Engine.logBeans.warn("Applied XPath on step '"+ this +"' returned node with null value ('"+node.getNodeName()+"')");
 							return null;
 						}
 					}
@@ -585,7 +588,8 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 				case Node.ATTRIBUTE_NODE:
 					return node.getNodeValue();
 				default:
-					Engine.logBeans.warn("Applied XPath on step '"+ this +"' is not supported");
+					if (Engine.logBeans.isInfoEnabled())
+						Engine.logBeans.warn("Applied XPath on step '"+ this +"' is not supported");
 					return null;
 			}
 		}
@@ -599,14 +603,17 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 			contextXpath = getContextXpath(xpath);
 			Node contextNode = getContextNode(loop);
 			
-			Engine.logBeans.trace("Source for step is : " + this.getName() + " , contextXPath is : " + contextXpath);
+			if (Engine.logBeans.isTraceEnabled())
+				Engine.logBeans.trace("Source for step is : " + this.getName() + " , contextXPath is : " + contextXpath);
 			if (contextNode != null) {
 				list = getXPathAPI().selectNodeList(contextNode, contextXpath);
 			} else {
-				Engine.logBeans.debug("No context node ! Source for step is : " + this.getName() + " , contextXPath is : " + contextXpath);
+				if (Engine.logBeans.isDebugEnabled())
+					Engine.logBeans.debug("No context node ! Source for step is : " + this.getName() + " , contextXPath is : " + contextXpath);
 			}
 		} catch (Exception e) {
-			Engine.logBeans.warn("Error in XPath '" + contextXpath + "' applied to data from Step '" + this.getName()+"' : " +e.getMessage());
+			if (Engine.logBeans.isInfoEnabled())
+				Engine.logBeans.warn("Error in XPath '" + contextXpath + "' applied to data from Step '" + this.getName()+"' : " +e.getMessage());
 		}
 		return list;
 	}
@@ -744,7 +751,8 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable && sequence.isRunning()) {
-			Engine.logBeans.debug("Executing step named '"+ this +"' ("+ this.getName() +")");
+			if (Engine.logBeans.isDebugEnabled())
+				Engine.logBeans.debug("Executing step named '"+ this +"' ("+ this.getName() +")");
 			
 			Long key = new Long(priority);
 			
@@ -752,7 +760,8 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
             if (Engine.isStudioMode()) {
             	Step loadedStep = (Step) sequence.loadedSteps.get(key).getOriginal();
             	Engine.theApp.fireObjectDetected(new EngineEvent(loadedStep));
-				Engine.logBeans.trace("(Step) Step reached before its execution \"" + getName() + "\" ( "+ this+" ["+ hashCode() +"] ).");
+            	if (Engine.logBeans.isTraceEnabled())
+            		Engine.logBeans.trace("(Step) Step reached before its execution \"" + getName() + "\" ( "+ this+" ["+ hashCode() +"] ).");
 				Engine.theApp.fireStepReached(new EngineEvent(loadedStep));
             }
             
@@ -761,7 +770,8 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 
             // Adds step's reference to executed steps
             executedSteps.put(key, executeTimeID);
-			Engine.logBeans.trace("Step copy ["+executeTimeID+"] contains "+ executedSteps.size() + " executed steps.");
+            if (Engine.logBeans.isTraceEnabled())
+            	Engine.logBeans.trace("Step copy ["+executeTimeID+"] contains "+ executedSteps.size() + " executed steps.");
 			
 			// Adds step's reference to sequence copies
 			sequence.addCopy(executeTimeID, this);
@@ -774,7 +784,8 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	}
 	
 	protected void stepDone() {
-		Engine.logBeans.trace("Step "+ getName() + " ("+executeTimeID+") done");
+		if (Engine.logBeans.isTraceEnabled())
+			Engine.logBeans.trace("Step "+ getName() + " ("+executeTimeID+") done");
 		stepDone = true;
 	}
 	
