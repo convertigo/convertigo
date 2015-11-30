@@ -226,10 +226,12 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 			if (variable != null) {
 				value = variable.getValueOrNull();// new 5.0.3 (may return null)
 				valueToPrint = Visibility.Logs.printValue(variable.getVisibility(), value);
+				if (Engine.logBeans.isDebugEnabled()) {
 				if ((value != null) && (value instanceof String))
 					Engine.logBeans.debug("Default value: " + requestedVariableName + " = \"" + valueToPrint + "\"");
 				else
 					Engine.logBeans.debug("Default value: " + requestedVariableName + " = " + valueToPrint);
+				}
 			}
 		}
 
@@ -285,7 +287,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 					}
 				}
 				else {
-					Engine.logBeans.warn("Sequence: there's no testcase named '" + variableValue + "' for '" +  getName() + "' sequence");
+					if (Engine.logBeans.isInfoEnabled())
+						Engine.logBeans.warn("Sequence: there's no testcase named '" + variableValue + "' for '" +  getName() + "' sequence");
 				}
 				continue;
 			}
@@ -340,10 +343,12 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 			jsObject = ((variableValue == null) ? null:org.mozilla.javascript.Context.toObject(variableValue, scope));
 			scope.put(variableName, scope, jsObject);
 			variableValueToPrint = Visibility.Logs.printValue(variableVisibility,variableValue);
+			if (Engine.logBeans.isDebugEnabled()) {
 			if ((variableValue != null) && (variableValue instanceof String))
 				Engine.logBeans.debug("(Sequence) Declared but not provided sequence variable " + variableName + "=\"" + variableValueToPrint + "\" added to the scripting scope");
 			else
 				Engine.logBeans.debug("(Sequence) Declared but not provided sequence variable " + variableName + "=" + variableValueToPrint + " added to the scripting scope");
+			}
 		}
 		
 
@@ -354,10 +359,12 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 			jsObject = ((variableValue == null) ? null:org.mozilla.javascript.Context.toObject(variableValue, scope));
 			scope.put(variableName2, scope, jsObject);
 			variableValueToPrint = Visibility.Logs.printValue(variableVisibility,variableValue);
+			if (Engine.logBeans.isDebugEnabled()) {
 			if ((variableValue != null) && (variableValue instanceof String))
 				Engine.logBeans.debug("(Sequence) Provided sequence variable " + variableName2 + "=\"" + variableValueToPrint + "\" added (or overridden) to the scripting scope");
 			else
 				Engine.logBeans.debug("(Sequence) Provided sequence variable " + variableName2 + "=" + variableValueToPrint + " added (or overridden) to the scripting scope");
+			}
 		}
     }
 
@@ -477,10 +484,12 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 			
 			Project loadedProject = (Project) loadedProjects.get(projectName);
 			if (loadedProject != null) {
-				Engine.logBeans.trace("Current project name : " + project + ", requested projectName :" + projectName + " already loaded");
+				if (Engine.logBeans.isTraceEnabled())
+					Engine.logBeans.trace("Current project name : " + project + ", requested projectName :" + projectName + " already loaded");
 			}
 			else {
-				Engine.logBeans.trace("Current project name : " + project + ", loading requested projectName :" + projectName);
+				if (Engine.logBeans.isTraceEnabled())
+					Engine.logBeans.trace("Current project name : " + project + ", loading requested projectName :" + projectName);
 				loadedProject = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
 				loadedProjects.put(projectName, loadedProject);
 			}
@@ -495,7 +504,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 				Project p = (Project)loadedProjects.get(projectName);
 				if ((p == null) || ((p != null) && (!p.equals(project)))) {
 					loadedProjects.put(projectName, project);
-					Engine.logBeans.trace("Updated sequence '"+getName()+"' with project "+ projectName +"("+project.hashCode()+")");
+					if (Engine.logBeans.isTraceEnabled())
+						Engine.logBeans.trace("Updated sequence '"+getName()+"' with project "+ projectName +"("+project.hashCode()+")");
 				}
 			}
 		}
@@ -1164,7 +1174,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	@Override
 	public void abort() {
 		if (isRunning()) {
-			Engine.logBeans.debug("Sequence '"+ getName() + "' is aborting...");
+			if (Engine.logBeans.isDebugEnabled())
+				Engine.logBeans.debug("Sequence '"+ getName() + "' is aborting...");
 			
 			// Sets abort flag
 			arborting = true;
@@ -1193,7 +1204,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	        		Context ctx = Engine.theApp.contextManager.getContextByName(contextName);
 	        		if (ctx != null) {
 	        			try {
-	        				Engine.logBeans.debug("(Sequence) Aborting requestable for context ("+contextName+") "+ ctx.contextID);
+	        				if (Engine.logBeans.isDebugEnabled())
+	        					Engine.logBeans.debug("(Sequence) Aborting requestable for context ("+contextName+") "+ ctx.contextID);
 	        				ctx.abortRequestable();
 	                	}
 	                	catch (Exception e) {}
@@ -1245,13 +1257,15 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	            			boolean hasWait = false;
 	            			while (nbAsyncThreadRunning > 0) {
 	            				// If this sequence contains ParallelSteps, waits until child's threads finish
-	            				Engine.logBeans.trace("Sequence '"+ getName() + "' waiting...");
+	            				if (Engine.logBeans.isTraceEnabled())
+	            					Engine.logBeans.trace("Sequence '"+ getName() + "' waiting...");
 	            				Thread.sleep(500);
 	            				hasWait = true;
 	            			}
 	            			if (hasWait) Engine.logBeans.trace("Sequence '"+ getName() + "' ends wait");
 	            		} catch (InterruptedException e) {
-	            			Engine.logBeans.trace("Sequence '"+ getName() + "' has been interrupted");
+	            			if (Engine.logBeans.isTraceEnabled())
+	            				Engine.logBeans.trace("Sequence '"+ getName() + "' has been interrupted");
 	            		}
 	        		}
 	        		if (skipSteps)
@@ -1267,7 +1281,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	finally {
     		arborting = false;
     		skipSteps = false;
-    		Engine.logBeans.debug("Sequence '"+ getName() + "' done");
+    		if (Engine.logBeans.isDebugEnabled())
+    			Engine.logBeans.debug("Sequence '"+ getName() + "' done");
     		
         	try {
         		// Cleans all steps
@@ -1299,26 +1314,32 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		if (Engine.isEngineMode()) {
 			if (useSameJSessionForSteps()) {
 	    		String sessionID, contextName;
-				Engine.logBeans.debug("(Sequence) Executing deletion of transaction's context for sequence \""+ getName() +"\"");
+	    		if (Engine.logBeans.isDebugEnabled())
+	    			Engine.logBeans.debug("(Sequence) Executing deletion of transaction's context for sequence \""+ getName() +"\"");
 	    		sessionID = getSessionId();
 	    		for (int i=0; i<stepContextNames.size(); i++) {
 	    			contextName = (String)stepContextNames.get(i);
     				String contextID = sessionID + "_" + contextName;
 	    			if (contextName.startsWith("Container-")) { // Only remove context automatically named
-	    				Engine.logBeans.debug("(Sequence) Removing context \""+ contextID +"\"");
+	    				if (Engine.logBeans.isDebugEnabled())
+	    					Engine.logBeans.debug("(Sequence) Removing context \""+ contextID +"\"");
 	    				Engine.theApp.contextManager.remove(contextID);
 	    			}
 	    			else {
-	    				Engine.logBeans.debug("(Sequence) Keeping context \""+ contextID +"\"");
+	    				if (Engine.logBeans.isDebugEnabled())
+	    					Engine.logBeans.debug("(Sequence) Keeping context \""+ contextID +"\"");
 	    			}
 	    		}
-				Engine.logBeans.debug("(Sequence) Deletion of transaction's context for sequence \""+ getName() +"\" done");
+	    		if (Engine.logBeans.isDebugEnabled())
+	    			Engine.logBeans.debug("(Sequence) Deletion of transaction's context for sequence \""+ getName() +"\" done");
 			}
 			else {
 				if (transactionSessionId != null) {
-					Engine.logBeans.debug("(Sequence) Executing deletion of transaction's context for sequence \""+ getName() +"\"");
+					if (Engine.logBeans.isDebugEnabled())
+						Engine.logBeans.debug("(Sequence) Executing deletion of transaction's context for sequence \""+ getName() +"\"");
 					Engine.theApp.contextManager.removeAll(transactionSessionId);
-					Engine.logBeans.debug("(Sequence) Deletion of transaction's context for sequence \""+ getName() +"\" done");
+					if (Engine.logBeans.isDebugEnabled())
+						Engine.logBeans.debug("(Sequence) Deletion of transaction's context for sequence \""+ getName() +"\" done");
 				}
 			}
 		}
@@ -1327,7 +1348,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	private void removeSequenceContext() {
 		if (Engine.isEngineMode()) {
 			if (!context.isAsync) {
-				Engine.logBeans.debug("(Sequence) Requires its context removal");
+				if (Engine.logBeans.isDebugEnabled())
+					Engine.logBeans.debug("(Sequence) Requires its context removal");
 				context.requireRemoval(true);
 			}
 		}
@@ -1341,7 +1363,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 			stepToExecute.xpathApi = xpathApi;
 			stepToExecute.httpState = ((stepToExecute instanceof BranchStep) ? getNewHttpState():getStepHttpState());
 			stepToExecute.executedSteps.putAll(executedSteps);
-			Engine.logBeans.trace("(Sequence) "+step+" ["+step.hashCode()+"] has been copied into "+stepToExecute+" ["+stepToExecute.hashCode()+"]");
+			if (Engine.logBeans.isTraceEnabled())
+				Engine.logBeans.trace("(Sequence) "+step+" ["+step.hashCode()+"] has been copied into "+stepToExecute+" ["+stepToExecute.hashCode()+"]");
     		stepToExecute.checkSymbols();
 			
     		if (stepToExecute.execute(javascriptContext, scope)) {
