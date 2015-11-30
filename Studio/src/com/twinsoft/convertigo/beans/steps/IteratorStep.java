@@ -50,6 +50,7 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 	
 	private transient Iterator iterator = null;
 	private transient Integer iterations = null;
+	private transient Integer maxIterations = null;
 	
 	public IteratorStep() {
 		super();
@@ -60,6 +61,7 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
     	IteratorStep clonedObject = (IteratorStep) super.clone();
     	clonedObject.iterator = null;
     	clonedObject.iterations = null;
+    	clonedObject.maxIterations = null;
         return clonedObject;
     }
 
@@ -120,6 +122,9 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 				return true;
 			}
 			
+			int start = evaluateToInteger(javascriptContext, scope, getStartIndex(), "startIndex", true);
+			maxIterations = evaluateMaxIterationsInteger(javascriptContext, scope);
+			
 			for (int i=0; i < iterator.size(); i++) {
 				if (bContinue && sequence.isRunning()) {
 					int index = iterator.numberOfIterations();
@@ -130,7 +135,6 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 					Scriptable jsItem = org.mozilla.javascript.Context.toObject(item, scope);
 					scope.put("item", scope, jsItem);
 					
-					int start = evaluateToInteger(javascriptContext, scope, getStartIndex(), "startIndex", true);
 					start = start<0 ? 0:start;
 					if (start > index) {
 						doLoop(javascriptContext, scope);
@@ -170,7 +174,6 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 	protected void doLoop(Context javascriptContext, Scriptable scope) throws EngineException {
 		super.doLoop(javascriptContext, scope);
 		if (iterator.hasMoreElements()) {
-			int maxIterations = evaluateMaxIterationsInteger(javascriptContext, scope);
 			if (!((maxIterations == -1) || (iterator.numberOfIterations() < maxIterations))) {
 				bContinue = false;
 			}
