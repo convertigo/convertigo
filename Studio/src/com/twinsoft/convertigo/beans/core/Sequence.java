@@ -53,15 +53,14 @@ import org.apache.ws.commons.schema.constants.Constants;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
-import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions.AsynchronousStepThread;
 import com.twinsoft.convertigo.beans.steps.BranchStep;
+import com.twinsoft.convertigo.beans.steps.XMLCopyStep;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.beans.variables.TestCaseVariable;
 import com.twinsoft.convertigo.engine.Context;
@@ -131,6 +130,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	transient private List<RequestableVariable> vVariables = new Vector<RequestableVariable>();
 	
 	transient private List<TestCase> vTestCases = new Vector<TestCase>();
+	
+	//transient private Element workerElement = null;
 	
     /** The vector of ordered step objects which can be applied on the Sequence. */
 	private XMLVector<XMLVector<Long>> orderedSteps = null;
@@ -1012,9 +1013,9 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		currentChildStep = 0;
 		xpathApi = new TwsCachedXPathAPI();
 		copies = new Hashtable<String, Step>(100);
-		childrenSteps = new Hashtable<String, Long>(10);
-		executedSteps = new Hashtable<Long, String>(100);
-		appendedStepElements = new Hashtable<String, Node>(100);
+		childrenSteps = new Hashtable<String, Long>(100);
+		executedSteps = new Hashtable<Long, String>(1000);
+		appendedStepElements = new Hashtable<String, Node>(1000);
 		
 		insertObjectsInScope();
 	}
@@ -1235,6 +1236,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		
     	try {
 	    	if (hasSteps()) {
+	    		Long t1 = System.currentTimeMillis();
+	    		Engine.logBeans.info("(Sequence) starting executing steps...");
 	    		for (int i=0; i < numberOfSteps(); i++) {
 	        		if (isRunning()) {
         				executeNextStep((Step)getSteps().get(i), javascriptContext, scope);
@@ -1255,6 +1258,9 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	        		if (skipSteps)
 	        			break;
 	    		}
+	    		
+	    		Long t2 = System.currentTimeMillis();
+	    		Engine.logBeans.info("(Sequence) ended executing steps in :" + (t2-t1) + "ms");
 	    	}
 	    	return true;
     	}
@@ -1384,14 +1390,6 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		return doc;
     }
 	
-	public DocumentFragment createDocumentFragment() {
-		Document outputDocument = context.outputDocument;
-		DocumentFragment fragment = outputDocument.createDocumentFragment();
-		Element rootElement = outputDocument.createElement("document");
-		fragment.appendChild(rootElement);
-		return fragment;
-	}
-	
 	public void appendStepNode(Step step) throws EngineException {
 		if (Thread.currentThread() instanceof AsynchronousStepThread) {
 			AsynchronousStepThread thread = (AsynchronousStepThread) Thread.currentThread();
@@ -1401,7 +1399,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		synchronized (this) {
 			Node stepNode = step.getStepNode();
 			if (stepNode != null) {
-				if (step.isOutput()) {
+				/*if (step.isOutput()) {
 					Node node = null;
 					Element stepParentElement = findParentStepElement(step);
 					if (stepNode.getNodeType() == Node.ELEMENT_NODE) {
@@ -1414,8 +1412,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 								for (int i = 0 ; i < len ; i++) {
 									Node child = list.item(i);
 									if ((child != null) && ((child.getNodeType() == Node.ELEMENT_NODE) || (child.getNodeType() == Node.TEXT_NODE))) {
-										//node = context.outputDocument.importNode(child, true);
-										node = child.cloneNode(true);
+										node = context.outputDocument.importNode(child, true);
 										stepParentElement.appendChild(node);
 									}
 								}
@@ -1435,25 +1432,56 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 							stepParentElement.removeAttribute("step_copy");
 							node = stepParentElement;
 						} else {
-							//node = context.outputDocument.importNode(stepNode, true);
-							node = stepNode.cloneNode(true);
+							node = context.outputDocument.importNode(stepNode, true);
 							((Element) node).removeAttribute("step_id");
 							stepParentElement.appendChild(node);
 						}
 					} else if (stepNode.getNodeType() == Node.ATTRIBUTE_NODE) {
-						//node = context.outputDocument.importNode(stepNode, true);
-						node = stepNode.cloneNode(true);
+						node = context.outputDocument.importNode(stepNode, true);
 						stepParentElement.setAttributeNode((Attr) node);
 					}
 
 					if (node != null) {
 						appendedStepElements.put(step.executeTimeID, node);
 					}
+				}*/
+				
+				appendedStepElements.put(step.executeTimeID, stepNode);
+				
+//				Element stepParentElement = findParentStepElement(step);
+//				if (stepParentElement != null) {
+//					if (stepNode.getNodeType() == Node.ELEMENT_NODE) {
+//						stepParentElement.appendChild(stepNode);
+//					} else if (stepNode.getNodeType() == Node.ATTRIBUTE_NODE) {
+//						stepParentElement.setAttributeNode((Attr) stepNode);
+//					}
+//				}
+				if (step.isOutput()) {
+					Element stepParentElement = findParentStepElement(step);
+					if (step instanceof XMLCopyStep) {
+						NodeList children = stepNode.getChildNodes();
+						for (int i=0; i<children.getLength(); i++) {
+							append(stepParentElement, children.item(i));
+						}
+					}
+					else {
+						append(stepParentElement, stepNode);
+					}
 				}
 			}
 		}
 	}
     
+	private static void append(Element parent, Node node) {
+		if (parent != null) {
+			if (node.getNodeType() == Node.ELEMENT_NODE) {
+				parent.appendChild(node);
+			} else if (node.getNodeType() == Node.ATTRIBUTE_NODE) {
+				parent.setAttributeNode((Attr) node);
+			}
+		}
+	}
+	
 	public synchronized void flushStepDocument(String executeTimeID , Document doc) {
 		Element stepElement = findStepElement(executeTimeID);
 		if (stepElement == null) {
@@ -1477,7 +1505,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		return getName() + "_";
 	}
 	
-	private Element findStepElement(String executeTimeID) {
+	protected Element findStepElement(String executeTimeID) {
 		Element stepElement = (Element)appendedStepElements.get(executeTimeID);
 		if (stepElement == null) {
 			stepElement = context.outputDocument.getDocumentElement();
@@ -1486,9 +1514,11 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	}
 
 	private Element findParentStepElement(Step step) {
-		Step parentStep;
+		Step parentStep = step;
 		try {
-			parentStep = (Step)step.getParent();
+			do {
+				parentStep = (Step)parentStep.getParent();
+			} while (!parentStep.isOutput());
 		}
 		catch (ClassCastException e) {
 			return context.outputDocument.getDocumentElement();

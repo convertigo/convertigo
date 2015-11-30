@@ -35,7 +35,7 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.NativeJavaArray;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Attr;
-import org.w3c.dom.Element;
+import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -162,14 +162,15 @@ public class AttributeStep extends Step implements ISchemaAttributeGenerator, IS
 				nodeValue = evaluated.toString();
 		}
 		
-//		Document doc = getOutputDocument();
-		Element workerElement = getWorkerElement();
-		if (!inError()) {
+		Document doc = getOutputDocument();
+		if (!inError() && isOutput()) {
 			String namespace = getNodeNameSpace();
 			if (namespace.equals("")) {
-				workerElement.setAttribute(getStepNodeName(), nodeValue);
-				stepNode = workerElement.getAttributeNode(getStepNodeName());
-				stepNode = ((Step)parent).appendChildNode(stepNode);
+//				doc.getDocumentElement().setAttribute(getStepNodeName(), nodeValue);
+//				stepNode = doc.getDocumentElement().getAttributeNode(getStepNodeName());
+//				stepNode = ((Step)parent).appendChildNode(stepNode);
+				stepNode = doc.createAttribute(getStepNodeName());
+				stepNode.setNodeValue(nodeValue);
 			}
 			else {
 				String namespaceURI = getNodeNameSpaceURI();
@@ -177,15 +178,17 @@ public class AttributeStep extends Step implements ISchemaAttributeGenerator, IS
 					throw new EngineException("Blank namespace URI is not allowed (using namespace '"
 							+ namespace + "' in jAttribute step '" + getName() + "')");
 
-				workerElement.setAttributeNS(
-						namespaceURI,
-						namespace + ":" + getStepNodeName(),
-						nodeValue);
-				workerElement.setAttribute(namespace + ":" + getStepNodeName(), nodeValue);
-				stepNode = workerElement.getAttributeNode(namespace + ":" + getStepNodeName());
+//				doc.getDocumentElement().setAttributeNS(
+//						namespaceURI,
+//						namespace + ":" + getStepNodeName(),
+//						nodeValue);
+//				doc.getDocumentElement().setAttribute(namespace + ":" + getStepNodeName(), nodeValue);
+//				stepNode = doc.getDocumentElement().getAttributeNode(namespace + ":" + getStepNodeName());
+				stepNode = doc.createAttributeNS(namespaceURI, namespace + ":" + getStepNodeName());
+				stepNode.setNodeValue(nodeValue);
 			}
 
-			stepNode = ((Step)parent).appendChildNode(stepNode);
+//			stepNode = ((Step)parent).appendChildNode(stepNode);
 		}
 		return stepNode;
 	}

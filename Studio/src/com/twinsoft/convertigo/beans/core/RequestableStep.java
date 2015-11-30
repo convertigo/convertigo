@@ -775,9 +775,11 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 
 		            	if (result != null) {
 			            	xmlHttpDocument = (Document) result;
-			            	sequence.fireDataChanged(new SequenceEvent(this, result));
 			            	if (Engine.isStudioMode()) {
 			            		((Sequence)sequence.getOriginal()).fireDataChanged(new SequenceEvent(this, result));
+			            	}
+			            	else {
+				            	sequence.fireDataChanged(new SequenceEvent(this, result));
 			            	}
 			            	flushDocument();
 		            	}
@@ -788,9 +790,11 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 		            	Engine.logBeans.debug("(RequestableStep) Total read bytes: " + ((result != null) ? result.length:0));
 		            	if (result != null) {
 			            	makeDocument(result);
-			            	sequence.fireDataChanged(new SequenceEvent(this, result));
 			            	if (Engine.isStudioMode()) {
 			            		((Sequence)sequence.getOriginal()).fireDataChanged(new SequenceEvent(this, result));
+			            	}
+			            	else {
+				            	sequence.fireDataChanged(new SequenceEvent(this, result));			            		
 			            	}
 			            	flushDocument();
 		            	}
@@ -809,9 +813,8 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 		return false;
 	}
 	
-/*
 	private void flushDocument() throws EngineException {
-		if (sequence.runningThread.bContinue) {
+		/*if (sequence.runningThread.bContinue) {
 			// step dom
 			Node rootNode = outputDocument.getDocumentElement();
 			Node newChild = outputDocument.importNode(xmlHttpDocument.getDocumentElement(), true);
@@ -851,50 +854,10 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 						break;
 				} while (parentDbo != null);
 			}
-		}
-	}
-*/
-	private void flushDocument() throws EngineException {
+		}*/
+		
 		if (sequence.runningThread.bContinue) {
-			// step dom
-			Element workerElement = getWorkerElement();
-			Node newChild = workerElement.getOwnerDocument().importNode(xmlHttpDocument.getDocumentElement(), true);
-			Node stepNode = workerElement.getElementsByTagName(getStepNodeName()).item(0);
-			stepNode.appendChild(newChild);
-			
-			// ouput/append to parent
-			if (isOutput()) {
-				sequence.flushStepDocument(executeTimeID, xmlHttpDocument);
-			
-				if (parent instanceof Step) {
-					((Step)parent).replaceChildNode(stepNode);
-				}
-			}
-			// remove from parent
-			else {
-				DatabaseObject parentDbo = parent;
-				String nodeID = ((Element)stepNode).getAttribute("step_id");
-				do {
-					if (parentDbo instanceof Step) {
-						Element parentWorkerElement = ((Step)parentDbo).getWorkerElement();
-						NodeList nodeList = parentWorkerElement.getElementsByTagName(getStepNodeName());
-						for (int i=0; i<nodeList.getLength(); i++) {
-							Element nodeElement = (Element)nodeList.item(i);
-							if (nodeID.equals(nodeElement.getAttribute("step_id"))) {
-								nodeElement.getParentNode().removeChild(nodeElement);
-								break;
-							}
-						}
-						
-						if (!((Step)parentDbo).isOutput())
-							parentDbo = ((Step)parentDbo).parent;
-						else
-							break;
-					}
-					else
-						break;
-				} while (parentDbo != null);
-			}
+			sequence.flushStepDocument(executeTimeID, xmlHttpDocument);
 		}
 	}
 

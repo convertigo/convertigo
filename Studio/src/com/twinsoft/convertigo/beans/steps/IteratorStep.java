@@ -121,10 +121,6 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 			}
 			
 			for (int i=0; i < iterator.size(); i++) {
-				/*if (inError()) {
-					Engine.logBeans.warn("(IteratorStep) Skipping step "+ this +" ("+ hashCode()+") because its source is in error");
-					return true;
-				}*/
 				if (bContinue && sequence.isRunning()) {
 					int index = iterator.numberOfIterations();
 					Scriptable jsIndex = org.mozilla.javascript.Context.toObject(index, scope);
@@ -240,7 +236,10 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 				if (list != null) {
 					return (list.getLength() - index > 0);
 				}
-			} catch (Exception e) {reset();}
+			} catch (Exception e) {
+				e.printStackTrace();
+				reset();
+			}
 			
 			return false;
 		}
@@ -251,7 +250,10 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 				if (list != null) {
 					return list.getLength();
 				}
-			} catch (Exception e) {reset();}
+			} catch (Exception e) {
+				e.printStackTrace();
+				reset();
+			}
 			
 			return 0;
 		}
@@ -262,7 +264,9 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 				if (list != null) {
 					return list.item(index++);
 				}
-			} catch (Exception e) {}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			
 			return null;
 		}
@@ -273,7 +277,9 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 				if (list != null) {
 					return list.item(loop-1);
 				}
-			} catch (Exception e) {}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			
 			return null;
 		}

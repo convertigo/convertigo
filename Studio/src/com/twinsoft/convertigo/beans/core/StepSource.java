@@ -151,7 +151,7 @@ public class StepSource {
 	
 	public NodeList getContextOutputNodes() throws EngineException {
 		NodeList list = getContextValues();
-		if (list != null) {
+		/*if (list != null) {
 			int len = list.getLength();
 			for (int i=0; i<len;i++) {
 				Node node = list.item(i);
@@ -159,7 +159,7 @@ public class StepSource {
 					Step.removeUselessAttributes((Element)node);
 				}
 			}
-		}
+		}*/
 		return list;
 	}
 	

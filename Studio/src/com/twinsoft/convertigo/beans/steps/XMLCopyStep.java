@@ -96,7 +96,7 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 	@Override
 	public Node getContextNode(int loop) throws EngineException {
 //		return outputDocument.getDocumentElement();
-		return getWorkerElement();
+		return super.getContextNode(loop);
 	}
 
 	@Override
@@ -113,17 +113,7 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 //		}
 //		return stepNode;
 		
-		Element workerElement = getWorkerElement();
-		Document doc = workerElement.getOwnerDocument();
-		Element stepNode = workerElement;//doc.getDocumentElement();
-		stepNode.setAttribute("step_id", this.executeTimeID);
-		stepNode.setAttribute("step_copy", "true");
-		
-		if (!inError()) {
-			createStepNodeValue(doc, stepNode);
-			if (parent instanceof Step)
-				stepNode = ((Step)parent).appendChildNode(stepNode);
-		}
+		Element stepNode = (Element) super.createStepNode();
 		return stepNode;
 	}
 
@@ -133,13 +123,29 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 	}
 	
 	static protected void createCopy(Step step, Document doc, Element stepNode) throws EngineException {
+//		NodeList list = step.getContextValues();
+//		if (list != null) {
+//			int len = list.getLength();
+//			for (int i=0; i<len;i++) {
+//				Node node = list.item(i);
+//				if (node != null) {
+//					Node imported = doc.importNode(node, true);
+//					if (imported.getNodeType() == Node.ELEMENT_NODE) {
+//						stepNode.appendChild((Element) imported);
+//					} else if (imported.getNodeType() == Node.ATTRIBUTE_NODE) {
+//						stepNode.setAttribute(imported.getNodeName(),imported.getNodeValue());
+//					}
+//				}
+//			}
+//		}
+//		removeUselessAttributes(stepNode);
+		
 		NodeList list = step.getContextValues();
 		if (list != null) {
 			int len = list.getLength();
 			for (int i=0; i<len;i++) {
 				Node node = list.item(i);
 				if (node != null) {
-//					Node imported = doc.importNode(node, true);
 					Node imported = node.cloneNode(true);
 					if (imported.getNodeType() == Node.ELEMENT_NODE) {
 						stepNode.appendChild((Element) imported);
@@ -149,7 +155,7 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 				}
 			}
 		}
-		removeUselessAttributes(stepNode);
+		
 	}
 
 	protected StepSource getTargetSource() throws EngineException {

@@ -166,12 +166,9 @@ public abstract class ReadFileStep extends Step {
 //			Node newChild = outputDocument.importNode(xmlDoc.getDocumentElement(), true);
 //			stepNode.appendChild(newChild);
 //		}
+		
 		if (sequence.runningThread.bContinue) {
-			if (isOutput()) sequence.flushStepDocument(executeTimeID, xmlDoc);
-			Element workerElement = getWorkerElement();
-			Node stepNode = workerElement.getFirstChild();
-			Node newChild = workerElement.getOwnerDocument().importNode(xmlDoc.getDocumentElement(), true);
-			stepNode.appendChild(newChild);
+			sequence.flushStepDocument(executeTimeID, xmlDoc);
 		}
 	}
 	
