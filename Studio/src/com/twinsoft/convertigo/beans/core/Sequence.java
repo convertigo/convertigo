@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.beans.core;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -29,9 +30,12 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
 
@@ -56,6 +60,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.traversal.DocumentTraversal;
+import org.w3c.dom.traversal.NodeFilter;
+import org.w3c.dom.traversal.TreeWalker;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions.AsynchronousStepThread;
@@ -100,7 +107,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     
     transient public Hashtable<Long, String> executedSteps = null;
     
-	transient private Hashtable<String, Node> appendedStepElements = null;
+	transient private Hashtable<String, Node> workerElementMap = null;
 	
     transient private List<Step> vAllSteps = null;
     
@@ -131,7 +138,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	
 	transient private List<TestCase> vTestCases = new Vector<TestCase>();
 	
-	//transient private Element workerElement = null;
+//	transient private Element workerRootElement = null;
 	
     /** The vector of ordered step objects which can be applied on the Sequence. */
 	private XMLVector<XMLVector<Long>> orderedSteps = null;
@@ -169,7 +176,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	clonedObject.loadedSteps = new Hashtable<Long, Step>(10);
     	clonedObject.executedSteps = null;
     	clonedObject.childrenSteps = null;
-    	clonedObject.appendedStepElements = null;
+    	clonedObject.workerElementMap = null;
     	clonedObject.vSteps = new Vector<Step>();
         clonedObject.vAllSteps = null;
         clonedObject.handlePriorities = handlePriorities;
@@ -1025,7 +1032,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		copies = new Hashtable<String, Step>(100);
 		childrenSteps = new Hashtable<String, Long>(100);
 		executedSteps = new Hashtable<Long, String>(1000);
-		appendedStepElements = new Hashtable<String, Node>(1000);
+		workerElementMap = new Hashtable<String, Node>(1000);
 		
 		insertObjectsInScope();
 	}
@@ -1051,9 +1058,9 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	    	executedSteps.clear();
 	    	executedSteps = null;
     	}
-    	if (appendedStepElements != null) {
-        	appendedStepElements.clear();
-        	appendedStepElements = null;
+    	if (workerElementMap != null) {
+        	workerElementMap.clear();
+        	workerElementMap = null;
     	}
     	if (loadedProjects != null) {
     		if (Engine.isEngineMode()) {
@@ -1246,6 +1253,9 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	// Retrieves HttpState of steps
     	getStepHttpState();
 		
+    	//workerRootElement = context.outputDocument.createElement("worker");
+    	//context.outputDocument.getDocumentElement().appendChild(workerRootElement);
+    	
     	try {
 	    	if (hasSteps()) {
 	    		Long t1 = System.currentTimeMillis();
@@ -1272,7 +1282,14 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	        			break;
 	    		}
 	    		
-	    		Long t2 = System.currentTimeMillis();
+	    		Element root = context.outputDocument.getDocumentElement();//workerRootElement
+	    		OutputFilter outputFilter = new OutputFilter();
+	    		DocumentTraversal traversal = (DocumentTraversal)context.outputDocument;
+	    		TreeWalker walker = traversal.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, outputFilter, false);	    		
+	    		traverseLevel(walker,null,"");
+	            outputFilter.doOutPut();
+	    		
+	            Long t2 = System.currentTimeMillis();
 	    		if (Engine.logBeans.isDebugEnabled())
 	    			Engine.logBeans.debug("(Sequence) ended executing steps in :" + (t2-t1) + "ms");
 	    	}
@@ -1299,6 +1316,108 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
         	}
     	}
     }
+	
+	private class OutputFilter implements NodeFilter {
+		private final Map<Element, List<List<Element>>> map = new LinkedHashMap<Element, List<List<Element>>>();
+		
+		private List<Element> getToRemoveList(Element key) {
+			List<List<Element>> l = map.get(key);
+			if (l == null) {
+				l = new ArrayList<List<Element>>();
+				l.add(new LinkedList<Element>());
+				l.add(new LinkedList<Element>());
+				map.put(key, l);
+			}
+			return l.get(0);
+		}
+		
+		private List<Element> getToAddList(Element key) {
+			List<List<Element>> l = map.get(key);
+			if (l == null) {
+				l = new ArrayList<List<Element>>();
+				l.add(new LinkedList<Element>());
+				l.add(new LinkedList<Element>());
+				map.put(key, l);
+			}
+			return l.get(1);
+		}
+		
+		private void doOutPut() {
+    		Iterator<Entry<Element, List<List<Element>>>> it = map.entrySet().iterator();
+    		while (it.hasNext()) {
+    			Entry<Element, List<List<Element>>> entry = it.next();
+    			Element key = entry.getKey();
+    			List<List<Element>> value = entry.getValue();
+    			List<Element> l0 = value.get(0);
+    			List<Element> l1 = value.get(1);
+    			//System.out.println("For " + key.getTagName());
+    			//System.out.println("\ttobeAdded "+ l1);
+    			//System.out.println("\ttobeRemoved "+ l0);
+    			
+    			Element firstToRemove = l0.size() > 0 ? l0.get(0):null;
+    			for (Element e : l1) {
+    				try {
+    					key.insertBefore(e, firstToRemove);
+    				}
+    				catch (Exception ex) {
+    					if (Engine.logBeans.isDebugEnabled()) {
+    						Engine.logBeans.debug("(Sequence.OutputFilter) Could not move \""+ e.getTagName() 
+    								+"\" element in \""+ key.getTagName() +"\" element", ex);
+    					}
+    				}
+    			}
+    			for (Element e : l0) {
+    				if (e.getParentNode() != null) {
+    					try {
+    						key.removeChild(e);
+        				}
+        				catch (Exception ex) {
+        					if (Engine.logBeans.isDebugEnabled()) {
+        						Engine.logBeans.debug("(Sequence.OutputFilter) Could not remove \""+ e.getTagName() 
+        								+"\" element from \""+ key.getTagName() +"\" element", ex);
+        					}
+        				}
+    				}
+    			}
+    		}
+		}
+		
+	    public short acceptNode(Node thisNode) { 
+	    	if (thisNode.getNodeType() == Node.ELEMENT_NODE) { 
+	    		Element e = (Element)thisNode; 
+	            if ("false".equals(e.getAttribute("step_output"))) {
+	            	Element p = (Element) e.getParentNode();
+	            	getToRemoveList(p).add(e);
+	            	if (e.getTagName().equals("sequence") || e.getTagName().equals("transaction")) {
+	            		return NodeFilter.FILTER_REJECT;
+	            	}
+	            	return NodeFilter.FILTER_SKIP;
+	            }
+	        }
+	        return NodeFilter.FILTER_ACCEPT; 
+	    }
+	}
+	
+	private static void traverseLevel(TreeWalker walker, Element topParent, String indent) {
+	    // describe current node:
+	    Element current = (Element) walker.getCurrentNode();
+	    //System.out.println(indent + "- " + ((Element) current).getTagName());
+	    
+	    OutputFilter outputFilter = (OutputFilter)walker.getFilter();
+	    if (topParent != null) {
+	    	Element parent = (Element) current.getParentNode();
+	    	if (parent != null && !topParent.equals(parent))
+	    		outputFilter.getToAddList(topParent).add(current);
+	    }
+	    
+	    // traverse children:
+	    for (Node n = walker.firstChild(); n != null; n = walker.nextSibling()) {
+	      traverseLevel(walker, current, indent + '\t');
+	    }
+	    
+	    // return position to the current (level up):
+	    walker.setCurrentNode(current);
+	}
 	
 	private void removeContexts() {
 		// Remove transaction's context if needed
@@ -1469,7 +1588,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 					}
 				}*/
 				
-				appendedStepElements.put(step.executeTimeID, stepNode);
+				workerElementMap.put(step.executeTimeID, stepNode);
 				
 //				Element stepParentElement = findParentStepElement(step);
 //				if (stepParentElement != null) {
@@ -1479,22 +1598,103 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 //						stepParentElement.setAttributeNode((Attr) stepNode);
 //					}
 //				}
-				if (step.isOutput()) {
+				if (step.isXmlOrOutput()) {
 					Element stepParentElement = findParentStepElement(step);
-					if (step instanceof XMLCopyStep) {
-						NodeList children = stepNode.getChildNodes();
-						for (int i=0; i<children.getLength(); i++) {
-							append(stepParentElement, children.item(i));
+					if (stepParentElement != null) {
+						if (!step.isOutput() && stepNode.getNodeType() == Node.ELEMENT_NODE) {
+							//((Element) stepNode).setAttribute("step_output", "false");
+							setOutputAttribute((Element) stepNode, "false");
 						}
-					}
-					else {
-						append(stepParentElement, stepNode);
+						
+						if (step instanceof XMLCopyStep) {
+							NodeList children = stepNode.getChildNodes();
+							for (int i=0; i<children.getLength(); i++) {
+								Node copied = children.item(i).cloneNode(true);
+								if (copied.getNodeType() == Node.ELEMENT_NODE) {
+									if (!step.isOutput())
+										copied = setOutputAttribute((Element) copied, "false", true);
+									else
+										copied = removeOutputAttribute((Element) copied, true);
+								}
+								append(stepParentElement, copied);
+							}
+						}
+						else {
+							append(stepParentElement, stepNode);
+						}
 					}
 				}
 			}
 		}
 	}
     
+	public static List<Node> removeUselessAttributes(NodeList nodeList) {
+		List<Node> list = null;
+		if (nodeList != null) {
+			int len = nodeList.getLength();
+			list = new ArrayList<Node>(len);
+			for (int i=0; i<len;i++) {
+				Node node = nodeList.item(i);
+				if ((node != null) && (node.getNodeType() == Node.ELEMENT_NODE)) {
+					Element cloned = (Element) node.cloneNode(true);
+					list.add(removeOutputAttribute(cloned, true));
+				}
+			}
+		}
+		return list;
+	}
+	
+	private static Element removeOutputAttribute(Element element, boolean recurse) {
+		if (element != null) {
+			element.removeAttribute("step_output");
+			if (recurse && element.hasChildNodes()) {
+				NodeList list = element.getChildNodes();
+				List<Element> toRemove = null;
+				for (int i=0; i<list.getLength(); i++) {
+					Node node = list.item(i);
+					if (node.getNodeType() == Node.ELEMENT_NODE) {
+						Element child = (Element)node;
+						if (!child.getTagName().equals("sequence") && !child.getTagName().equals("transaction")) {
+							removeOutputAttribute(child, recurse);
+						}
+						else if ("false".equals(child.getAttribute("step_output"))) {
+							if (toRemove == null) {
+								toRemove = new ArrayList<Element>();
+								toRemove.add(child);
+							}
+						}
+					}				
+				}
+				
+				if (toRemove != null) {
+					for (Element child : toRemove) {
+						element.removeChild(child);
+					}
+				}
+			}
+		}
+		return element;
+	}
+	
+	private static Element setOutputAttribute(Element element, String value) {
+		return setOutputAttribute(element, value, false);
+	}
+	
+	private static Element setOutputAttribute(Element element, String value, boolean recurse) {
+		if (element != null) {
+			element.setAttribute("step_output",value);
+			if (recurse && element.hasChildNodes()) {
+				NodeList list = element.getChildNodes();
+				for (int i=0; i<list.getLength(); i++) {
+					if (list.item(i).getNodeType() == Node.ELEMENT_NODE) {
+						setOutputAttribute((Element)list.item(i), value, recurse);
+					}				
+				}
+			}
+		}
+		return element;
+	}
+	
 	private static void append(Element parent, Node node) {
 		if (parent != null) {
 			if (node.getNodeType() == Node.ELEMENT_NODE) {
@@ -1529,8 +1729,9 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	}
 	
 	protected Element findStepElement(String executeTimeID) {
-		Element stepElement = (Element)appendedStepElements.get(executeTimeID);
+		Element stepElement = (Element)workerElementMap.get(executeTimeID);
 		if (stepElement == null) {
+			//stepElement = workerRootElement;
 			stepElement = context.outputDocument.getDocumentElement();
 		}
 		return stepElement;
@@ -1541,20 +1742,25 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		try {
 			do {
 				parentStep = (Step)parentStep.getParent();
-			} while (!parentStep.isOutput());
+			} while (!parentStep.isXmlOrOutput());
+			
 		}
 		catch (ClassCastException e) {
+			//return workerRootElement;
 			return context.outputDocument.getDocumentElement();
 		}
 		
-		Element parentStepElement = (Element)appendedStepElements.get(parentStep.executeTimeID);
+		Element parentStepElement = (Element)workerElementMap.get(parentStep.executeTimeID);
+		if (!parentStep.isOutput()) {
+			parentStepElement.setAttribute("step_output", "false");
+		}
+		
 		if (parentStepElement == null) {
 			return findParentStepElement(parentStep);
 		}
 		return parentStepElement;
 	}
 	
-
 	transient private EventListenerList sequenceListeners = new EventListenerList();
     
     public void addSequenceListener(SequenceListener sequenceListener) {
