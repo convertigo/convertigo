@@ -23,14 +23,16 @@
 package com.twinsoft.convertigo.beans.steps;
 
 import java.io.File;
-import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.Base64;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class WriteBase64Step extends WriteFileStep {
 
@@ -62,8 +64,7 @@ public class WriteBase64Step extends WriteFileStep {
 		return "WriteBase64" + label + (!text.equals("") ? " // "+text:"");
 	}
 
-	//protected void writeFile(String filePath, NodeList nodeList) throws EngineException {
-	protected void writeFile(String filePath, List<Node> nodeList) throws EngineException {
+	protected void writeFile(String filePath, NodeList nodeList) throws EngineException {
 		if (nodeList == null) {
 			throw new EngineException("Unable to write to xml file: element is Null");
 		}
@@ -71,8 +72,7 @@ public class WriteBase64Step extends WriteFileStep {
 		String fullPathName = getAbsoluteFilePath(filePath);
 		synchronized (Engine.theApp.filePropertyManager.getMutex(fullPathName)) {
 			try {
-				//for (Node node : XMLUtils.toNodeArray(nodeList)) {
-				for (Node node : nodeList) {
+				for (Node node : XMLUtils.toNodeArray(nodeList)) {
 					try {
 						String content = node instanceof Element ? ((Element) node).getTextContent() : node.getNodeValue();
 						if (content != null && content.length() > 0) {

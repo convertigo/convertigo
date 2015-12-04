@@ -22,8 +22,6 @@
 
 package com.twinsoft.convertigo.beans.core;
 
-import java.util.List;
-
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -156,10 +154,9 @@ public class StepSource {
 		return nodeList;
 	}
 	
-	public List<Node> getContextOutputNodes() throws EngineException {
-	/*
+	public NodeList getContextOutputNodes() throws EngineException {
 		NodeList list = getContextValues();
-		if (list != null) {
+		/*if (list != null) {
 			int len = list.getLength();
 			for (int i=0; i<len;i++) {
 				Node node = list.item(i);
@@ -167,11 +164,10 @@ public class StepSource {
 					Step.removeUselessAttributes((Element)node);
 				}
 			}
-		}
+		}*/
 		return list;
-	*/
-		return Sequence.removeUselessAttributes(getContextValues());
 	}
+
 	
 	public Node getContextNode() throws EngineException {
 		if (definition.size() > 0)

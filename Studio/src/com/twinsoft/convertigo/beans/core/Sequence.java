@@ -1259,6 +1259,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	try {
 	    	if (hasSteps()) {
 	    		Long t1 = System.currentTimeMillis();
+	    		
+	    		// Generate sequence working dom (see also appendStepNode(Step))
 	    		for (int i=0; i < numberOfSteps(); i++) {
 	        		if (isRunning()) {
         				executeNextStep((Step)getSteps().get(i), javascriptContext, scope);
@@ -1282,12 +1284,10 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	        			break;
 	    		}
 	    		
-	    		Element root = context.outputDocument.getDocumentElement();//workerRootElement
-	    		OutputFilter outputFilter = new OutputFilter();
-	    		DocumentTraversal traversal = (DocumentTraversal)context.outputDocument;
-	    		TreeWalker walker = traversal.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, outputFilter, false);	    		
-	    		traverseLevel(walker,null,"");
-	            outputFilter.doOutPut();
+	    		// Finally modify sequence working dom to output dom
+	    		Element root = context.outputDocument.getDocumentElement();
+	    		OutputFilter outputFilter = new OutputFilter(OutputOption.VisibleOnly);
+	    		buildOutputDom(root, outputFilter);
 	    		
 	            Long t2 = System.currentTimeMillis();
 	    		if (Engine.logBeans.isDebugEnabled())
@@ -1317,8 +1317,51 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	}
     }
 	
+	protected NodeList ouputDomView(NodeList nodeList) {
+		if (nodeList != null) {
+			int len = nodeList.getLength();
+			if (len > 0) {
+				Node node = nodeList.item(0);
+				
+				Document doc = node.getOwnerDocument();
+				Element fake = doc.createElement("fake");
+				Element root = (Element) doc.getDocumentElement().appendChild(fake);
+				
+				for (int i=0; i<len ; i++) {
+					node = nodeList.item(i);
+					root.appendChild(node.cloneNode(true)); // clone removes any userdata
+				}
+				
+	    		OutputFilter outputFilter = new OutputFilter(OutputOption.UsefullOnly);
+	    		buildOutputDom(root, outputFilter);
+				
+				doc.getDocumentElement().removeChild(fake);
+				return fake.getChildNodes();
+			}
+			return nodeList;
+		}
+		return null;
+	}
+	
+	private static void buildOutputDom(Element root, OutputFilter outputFilter) {
+		DocumentTraversal traversal = (DocumentTraversal)root.getOwnerDocument();
+		TreeWalker walker = traversal.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, outputFilter, false);	    		
+		traverseLevel(walker,null,"");
+        outputFilter.doOutPut();
+	}
+	
+	public enum OutputOption {
+		VisibleOnly,
+		UsefullOnly
+	}
+	
 	private class OutputFilter implements NodeFilter {
 		private final Map<Element, List<List<Element>>> map = new LinkedHashMap<Element, List<List<Element>>>();
+		private OutputOption option;
+		
+		private OutputFilter(OutputOption option) {
+			this.option = option;
+		}
 		
 		private List<Element> getToRemoveList(Element key) {
 			List<List<Element>> l = map.get(key);
@@ -1384,15 +1427,24 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		
 	    public short acceptNode(Node thisNode) { 
 	    	if (thisNode.getNodeType() == Node.ELEMENT_NODE) { 
-	    		Element e = (Element)thisNode; 
-	            if ("false".equals(e.getAttribute("step_output"))) {
-	            	Element p = (Element) e.getParentNode();
-	            	getToRemoveList(p).add(e);
-	            	if (e.getTagName().equals("sequence") || e.getTagName().equals("transaction")) {
-	            		return NodeFilter.FILTER_REJECT;
-	            	}
-	            	return NodeFilter.FILTER_SKIP;
-	            }
+	    		Element e = (Element)thisNode;
+	    		if (option.equals(OutputOption.VisibleOnly)) {
+		    		if ("false".equals(e.getUserData(Step.NODE_USERDATA_OUTPUT))) {
+		            	Element p = (Element) e.getParentNode();
+		            	getToRemoveList(p).add(e);
+		            	if (e.getTagName().equals("sequence") || e.getTagName().equals("transaction")) {
+		            		return NodeFilter.FILTER_REJECT;
+		            	}
+		            	return NodeFilter.FILTER_SKIP;
+		            }
+	    		}
+	    		else if (option.equals(OutputOption.UsefullOnly)) {
+	    			if (e.getTagName().equals("sequence") || e.getTagName().equals("transaction")) {
+		            	Element p = (Element) e.getParentNode();
+		            	getToRemoveList(p).add(e);
+		            	return NodeFilter.FILTER_REJECT;
+	    			}
+	    		}
 	        }
 	        return NodeFilter.FILTER_ACCEPT; 
 	    }
@@ -1602,20 +1654,17 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 					Element stepParentElement = findParentStepElement(step);
 					if (stepParentElement != null) {
 						if (!step.isOutput() && stepNode.getNodeType() == Node.ELEMENT_NODE) {
-							//((Element) stepNode).setAttribute("step_output", "false");
-							setOutputAttribute((Element) stepNode, "false");
+							boolean recurse = !(step instanceof StepWithExpressions);
+							// set output mode userdata (used by the TreeWalker OutputFilter)
+							setOutputUserData((Element) stepNode, "false", recurse);
 						}
 						
 						if (step instanceof XMLCopyStep) {
 							NodeList children = stepNode.getChildNodes();
 							for (int i=0; i<children.getLength(); i++) {
 								Node copied = children.item(i).cloneNode(true);
-								if (copied.getNodeType() == Node.ELEMENT_NODE) {
-									if (!step.isOutput())
-										copied = setOutputAttribute((Element) copied, "false", true);
-									else
-										copied = removeOutputAttribute((Element) copied, true);
-								}
+								// set again user data because clone does not preserve it
+								setOutputUserData(copied, String.valueOf(step.isOutput()), true);
 								append(stepParentElement, copied);
 							}
 						}
@@ -1628,23 +1677,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		}
 	}
     
-	public static List<Node> removeUselessAttributes(NodeList nodeList) {
-		List<Node> list = null;
-		if (nodeList != null) {
-			int len = nodeList.getLength();
-			list = new ArrayList<Node>(len);
-			for (int i=0; i<len;i++) {
-				Node node = nodeList.item(i);
-				if ((node != null) && (node.getNodeType() == Node.ELEMENT_NODE)) {
-					Element cloned = (Element) node.cloneNode(true);
-					list.add(removeOutputAttribute(cloned, true));
-				}
-			}
-		}
-		return list;
-	}
-	
-	private static Element removeOutputAttribute(Element element, boolean recurse) {
+	public static Element removeOutputAttribute(Element element, boolean recurse) {
 		if (element != null) {
 			element.removeAttribute("step_output");
 			if (recurse && element.hasChildNodes()) {
@@ -1676,23 +1709,22 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		return element;
 	}
 	
-	private static Element setOutputAttribute(Element element, String value) {
-		return setOutputAttribute(element, value, false);
-	}
-	
-	private static Element setOutputAttribute(Element element, String value, boolean recurse) {
-		if (element != null) {
-			element.setAttribute("step_output",value);
-			if (recurse && element.hasChildNodes()) {
-				NodeList list = element.getChildNodes();
-				for (int i=0; i<list.getLength(); i++) {
-					if (list.item(i).getNodeType() == Node.ELEMENT_NODE) {
-						setOutputAttribute((Element)list.item(i), value, recurse);
-					}				
+	private static Node setOutputUserData(Node node, Object value, boolean recurse) {
+		if (node != null) {
+			// set output mode as userdata (element or attribute)
+			node.setUserData(Step.NODE_USERDATA_OUTPUT, value, null);
+			
+			// recurse on element child nodes only
+			if (node.getNodeType() == Node.ELEMENT_NODE) {
+				if (recurse && node.hasChildNodes()) {
+					NodeList list = node.getChildNodes();
+					for (int i=0; i<list.getLength(); i++) {
+						setOutputUserData(list.item(i), value, recurse);
+					}
 				}
 			}
 		}
-		return element;
+		return node;
 	}
 	
 	private static void append(Element parent, Node node) {
@@ -1752,7 +1784,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		
 		Element parentStepElement = (Element)workerElementMap.get(parentStep.executeTimeID);
 		if (!parentStep.isOutput()) {
-			parentStepElement.setAttribute("step_output", "false");
+			//parentStepElement.setAttribute("step_output", "false");
+			setOutputUserData(parentStepElement, "false", false);
 		}
 		
 		if (parentStepElement == null) {

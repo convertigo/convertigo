@@ -85,8 +85,7 @@ public class WriteCSVStep extends WriteFileStep {
 	}
 
 	@Override
-	//protected void writeFile(String filePath, NodeList nodeList) throws EngineException {
-	protected void writeFile(String filePath, List<Node> nodeList) throws EngineException {
+	protected void writeFile(String filePath, NodeList nodeList) throws EngineException {
 		if (nodeList == null) {
 			throw new EngineException("Unable to write to xml file: element is Null");
 		}
@@ -112,10 +111,8 @@ public class WriteCSVStep extends WriteFileStep {
 				int cols = 0;
 
 				// Parse element on two levels of children
-				//for (int i = 0; i < nodeList.getLength(); i++) {
-				for (int i = 0; i < nodeList.size(); i++) {
-					//Node nodey = nodeList.item(i);
-					Node nodey = nodeList.get(i);
+				for (int i = 0; i < nodeList.getLength(); i++) {
+					Node nodey = nodeList.item(i);
 					if (nodey.getNodeType() == Node.ELEMENT_NODE) {// first
 																	// level
 						if (titleLine) {

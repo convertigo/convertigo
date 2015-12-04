@@ -28,11 +28,12 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
-import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.StringUtils;
@@ -69,9 +70,8 @@ public class WriteXMLStep extends WriteFileStep {
 		} catch (EngineException e) {}
 		return "WriteXML" + label + (!text.equals("") ? " // "+text:"");
 	}
-	
-	//protected void writeFile(String filePath, NodeList nodeList) throws EngineException {
-	protected void writeFile(String filePath, List<Node> nodeList) throws EngineException {
+
+	protected void writeFile(String filePath, NodeList nodeList) throws EngineException {
 		if (nodeList == null) {
 			throw new EngineException("Unable to write to xml file: element is Null");
 		}
@@ -89,14 +89,9 @@ public class WriteXMLStep extends WriteFileStep {
 				StringBuffer content = new StringBuffer();
 				
 				/* do the content, only append child element */
-				/*for (int i = 0; i < nodeList.getLength(); i++) {
+				for (int i = 0; i < nodeList.getLength(); i++) {
 					if (nodeList.item(i).getNodeType() == Node.ELEMENT_NODE) {
 						content.append(XMLUtils.prettyPrintElement((Element) nodeList.item(i), true, true));
-					}
-				}*/
-				for (Node node : nodeList) {
-					if (node.getNodeType() == Node.ELEMENT_NODE) {
-						content.append(XMLUtils.prettyPrintElement((Element) node, true, true));
 					}
 				}
 				

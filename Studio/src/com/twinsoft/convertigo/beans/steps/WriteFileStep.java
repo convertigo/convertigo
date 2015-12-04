@@ -24,7 +24,6 @@ package com.twinsoft.convertigo.beans.steps;
 
 import java.io.File;
 import java.util.Date;
-import java.util.List;
 
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaAttribute;
@@ -37,7 +36,8 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.Step;
@@ -163,8 +163,7 @@ public abstract class WriteFileStep extends Step implements IStepSourceContainer
 					StepSource stepSource = getSource();
 					if (!stepSource.inError()) {
 						filePath = evaluateDataFileName(javascriptContext, scope);
-						//NodeList nl = stepSource.getContextOutputNodes();
-						List<Node> nl = stepSource.getContextOutputNodes();
+						NodeList nl = stepSource.getContextOutputNodes();
 						writeFile(filePath, nl);
 						filePath = getAbsoluteFilePath(filePath);
 					}
@@ -178,8 +177,7 @@ public abstract class WriteFileStep extends Step implements IStepSourceContainer
 		return false;
 	}
 	
-	//protected abstract void writeFile(String filePath, NodeList nodeList) throws EngineException;
-	protected abstract void writeFile(String filePath, List<Node> nodeList) throws EngineException;
+	protected abstract void writeFile(String filePath, NodeList nodeList) throws EngineException;
 	
 	private String evaluateDataFileName(Context javascriptContext, Scriptable scope) throws EngineException {
 		return evaluateToString(javascriptContext, scope, dataFile, "dataFile", true);

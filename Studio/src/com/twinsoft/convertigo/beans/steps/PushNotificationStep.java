@@ -24,7 +24,6 @@ package com.twinsoft.convertigo.beans.steps;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
 import javapns.Push;
 import javapns.notification.PushedNotification;
@@ -34,7 +33,8 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.Undefined;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import com.google.android.gcm.server.Message;
 import com.google.android.gcm.server.MulticastResult;
 import com.google.android.gcm.server.Sender;
@@ -180,16 +180,12 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 
 			// get Token List
 			StepSource tokens = getTokenSource();
-			//NodeList list;
-			//list = tokens.inError() ? null : tokens.getContextOutputNodes();
-			List<Node> list = tokens.inError() ? null : tokens.getContextOutputNodes();
-			
+			NodeList list;
+			list = tokens.inError() ? null : tokens.getContextOutputNodes();
 			if (list != null) {
 				ArrayList<String> devicesList = new ArrayList<String>(); 
-				//for (int i=0; i< list.getLength(); i++) {
-				for (Node node : list) {
-					//String token = getNodeValue(list.item(i));
-					String token = getNodeValue(node);
+				for (int i=0; i< list.getLength(); i++) {
+					String token = getNodeValue(list.item(i));
 					if (token.startsWith("gcm:")) {
 						devicesList.add(token.substring(4));
 						Engine.logBeans.trace("Push notification, Android device " + token.substring(4) + " will be notified");
@@ -241,16 +237,13 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 
 		// get Token List
 		StepSource tokens = getTokenSource();
-		//NodeList list;
-		//list = tokens.inError() ? null : tokens.getContextOutputNodes();
-		List<Node> list = tokens.inError() ? null : tokens.getContextOutputNodes();
+		NodeList list;
+		list = tokens.inError() ? null : tokens.getContextOutputNodes();
 		if (list != null) {
 			ArrayList<String> devicesList = new ArrayList<String>(); 
 			
-			//for (int i=0; i< list.getLength(); i++) {
-			for (Node node : list) {
-				//String token = getNodeValue(list.item(i));
-				String token = getNodeValue(node);
+			for (int i=0; i< list.getLength(); i++) {
+				String token = getNodeValue(list.item(i));
 				if (token.startsWith("apns:")) {
 					devicesList.add(token.substring(5));
 					Engine.logBeans.trace("Push notification, iOS device " + token.substring(5) + " will be notified");
@@ -301,13 +294,11 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 			if (super.stepExecute(javascriptContext, scope)) {
 				// get Source data as a string to payload
 				StepSource stepSource = getSource();
-				//NodeList list;
-				//list = stepSource.inError() ? null : stepSource.getContextOutputNodes();
-				List<Node> list = stepSource.inError() ? null : stepSource.getContextOutputNodes();
+				NodeList list;
 
+				list = stepSource.inError() ? null : stepSource.getContextOutputNodes();
 				if (list != null)
-					//sPayload = getNodeValue(list.item(0));
-					sPayload = getNodeValue(list.get(0));
+					sPayload = getNodeValue(list.item(0));
 				
 				try {
 					PushToAPNS(javascriptContext, scope);

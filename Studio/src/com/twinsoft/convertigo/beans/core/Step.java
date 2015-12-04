@@ -78,6 +78,8 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	
     public static String loopSeparator = "--";
     
+    public static final String NODE_USERDATA_OUTPUT = "step_output";
+    
     private boolean isEnable = true;
     private boolean output = false;
     private XmlQName xmlComplexTypeAffectation = new XmlQName();
@@ -354,6 +356,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	protected Node createStepNode() throws EngineException {
 		Document doc = getOutputDocument();
 		Element stepNode = doc.createElement(getStepNodeName());
+		stepNode.setUserData(NODE_USERDATA_OUTPUT, String.valueOf(isOutput()), null);
 		
 		//doc.getDocumentElement().appendChild(stepNode);
 		if (!inError()) {
@@ -596,7 +599,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		return null;
 	}
 	
-	public synchronized NodeList getContextValues(String xpath, int loop) throws EngineException {
+	protected synchronized NodeList getContextValues(String xpath, int loop) throws EngineException {
 		NodeList list = null;
 		String contextXpath = null;
 		try {
