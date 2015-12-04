@@ -83,7 +83,7 @@
 	        exclude 'META-INF/NOTICE'
 	    }
 	-->
-	<gap:plugin name="com.couchbase.lite.phonegap" source="plugins.cordova.io" git="https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin.git"/>
+	<gap:plugin name=" couchbase-lite-phonegap-plugin" source="npm" />
     
 	<!-- Other optional Core plugins, comment them out (ctrl+shit+c) if you want to reduce the package size and permissions -->
 <!--     <gap:plugin name="cordova-plugin-battery-status" source="npm" /> -->
