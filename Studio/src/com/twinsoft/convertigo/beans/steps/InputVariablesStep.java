@@ -134,10 +134,11 @@ public class InputVariablesStep extends Step implements ISchemaParticleGenerator
 			if (value instanceof NodeList) {
 				NodeList valueNodeList = (NodeList) value;
 				int nlLen = valueNodeList.getLength();
-				//Document document = stepNode.getOwnerDocument();
+				Document document = stepNode.getOwnerDocument();
 				for (int i = 0; i < nlLen; i++) {
-					//Node nodeVarPart = document.importNode((Node) valueNodeList.item(i), true);
 					Node nodeVarPart = valueNodeList.item(i);
+					if (!nodeVarPart.getOwnerDocument().equals(document))
+						nodeVarPart = document.importNode(nodeVarPart, true);
 					var.appendChild(nodeVarPart);
 				}
 			} else {
