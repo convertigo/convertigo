@@ -22,7 +22,6 @@
 
 package com.twinsoft.convertigo.beans.core;
 
-import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -61,8 +60,6 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
-import com.twinsoft.convertigo.engine.util.CachedIntrospector;
-import com.twinsoft.convertigo.engine.util.CachedIntrospector.Property;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -270,61 +267,103 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	}
 	
 	public boolean workOnSource() {
-		try {
-			for (PropertyDescriptor propertyDescriptor: CachedIntrospector.getPropertyDescriptors(this, Property.smartType)) {
-				SmartType st = (SmartType) propertyDescriptor.getReadMethod().invoke(this);
-				if (st.isUseSource()) {
-					return true;
-				}
-			}
-			PropertyDescriptor sourcesDefinitionPropDesc = CachedIntrospector.getPropertyDescriptor(this, Property.sourcesDefinition);
-			if (sourcesDefinitionPropDesc != null) {
-				XMLVector<XMLVector<Object>> sourcesDefinition = GenericUtils.cast(sourcesDefinitionPropDesc.getReadMethod().invoke(this));
-				if (!sourcesDefinition.isEmpty()) {
-					return true;
-				}
-			}
-			
-			return CachedIntrospector.getPropertyDescriptor(this, Property.sourceDefinition) != null;
-		} catch (Exception e) {
-			throw (e instanceof RuntimeException) ? (RuntimeException) e : new RuntimeException("Step.workOnSource failed", e);
+//		try {
+//			for (PropertyDescriptor propertyDescriptor: CachedIntrospector.getPropertyDescriptors(this, Property.smartType)) {
+//				SmartType st = (SmartType) propertyDescriptor.getReadMethod().invoke(this);
+//				if (st.isUseSource()) {
+//					return true;
+//				}
+//			}
+//			PropertyDescriptor sourcesDefinitionPropDesc = CachedIntrospector.getPropertyDescriptor(this, Property.sourcesDefinition);
+//			if (sourcesDefinitionPropDesc != null) {
+//				XMLVector<XMLVector<Object>> sourcesDefinition = GenericUtils.cast(sourcesDefinitionPropDesc.getReadMethod().invoke(this));
+//				if (!sourcesDefinition.isEmpty()) {
+//					return true;
+//				}
+//			}
+//			
+//			return CachedIntrospector.getPropertyDescriptor(this, Property.sourceDefinition) != null;
+//		} catch (Exception e) {
+//			throw (e instanceof RuntimeException) ? (RuntimeException) e : new RuntimeException("Step.workOnSource failed", e);
+//		}
+		
+		if (this instanceof IStepSourceContainer) {
+			return !((IStepSourceContainer)this).getSourceDefinition().isEmpty();
 		}
+		else if (this instanceof IStepSourcesContainer) {
+			return !((IStepSourcesContainer)this).getSourcesDefinition().isEmpty();
+		}
+		else if (this instanceof IStepSmartTypeContainer) {
+			for (SmartType smartType: ((IStepSmartTypeContainer)this).getSmartTypes()) {
+				if (smartType.isUseSource()) {
+					return true;
+				}
+			}
+		}
+		return false;
+		
 	}
 	
 	public boolean canWorkOnSource() {
-		return CachedIntrospector.getPropertyDescriptor(this, Property.sourceDefinition) != null
-				|| CachedIntrospector.getPropertyDescriptor(this, Property.sourcesDefinition) != null
-				|| CachedIntrospector.getPropertyDescriptors(this, Property.smartType).size() > 0;
+//		return CachedIntrospector.getPropertyDescriptor(this, Property.sourceDefinition) != null
+//				|| CachedIntrospector.getPropertyDescriptor(this, Property.sourcesDefinition) != null
+//				|| CachedIntrospector.getPropertyDescriptors(this, Property.smartType).size() > 0;
+		return this instanceof IStepSourceContainer ||
+				this instanceof IStepSourcesContainer ||
+				this instanceof IStepSmartTypeContainer;
 	}
 	
 	protected StepSource getSource() {
-		XMLVector<String> value = CachedIntrospector.getPropertyValue(this, Property.sourceDefinition);
-		return value == null ? null : new StepSource(this, value);
+		//XMLVector<String> value = CachedIntrospector.getPropertyValue(this, Property.sourceDefinition);
+		//return value == null ? null : new StepSource(this, value);
+		if (this instanceof IStepSourceContainer) {
+			return new StepSource(this, ((IStepSourceContainer)this).getSourceDefinition());
+		}
+		return null;
 	}
 	
 	public Set<StepSource> getSources() {
-		Set<SmartType> smartTypes = CachedIntrospector.getPropertyValues(this, Property.smartType);
-		XMLVector<String> sourceDefinition = CachedIntrospector.getPropertyValue(this, Property.sourceDefinition);
-		XMLVector<XMLVector<Object>> sourcesDefinition = CachedIntrospector.getPropertyValue(this, Property.sourcesDefinition);
+//		Set<SmartType> smartTypes = CachedIntrospector.getPropertyValues(this, Property.smartType);
+//		XMLVector<String> sourceDefinition = CachedIntrospector.getPropertyValue(this, Property.sourceDefinition);
+//		XMLVector<XMLVector<Object>> sourcesDefinition = CachedIntrospector.getPropertyValue(this, Property.sourcesDefinition);
+//		Set<StepSource> stepSources = new HashSet<StepSource>();
+//		
+//		if (sourceDefinition != null) {
+//			stepSources.add(new StepSource(this, sourceDefinition));
+//		}
+//		
+//		if (sourcesDefinition != null) {
+//			for (XMLVector<Object> row: sourcesDefinition) {
+//				sourceDefinition = GenericUtils.cast(row.get(1));
+//				stepSources.add(new StepSource(this, sourceDefinition));
+//			}
+//		}
+//		
+//		for (SmartType smartType: smartTypes) {
+//			if (smartType.isUseSource()) {
+//				stepSources.add(new StepSource(this, smartType.getSourceDefinition()));
+//			}
+//		}
+//			
+//		return stepSources;
+		
 		Set<StepSource> stepSources = new HashSet<StepSource>();
-		
-		if (sourceDefinition != null) {
-			stepSources.add(new StepSource(this, sourceDefinition));
+		if (this instanceof IStepSourceContainer) {
+			stepSources.add(getSource());
 		}
-		
-		if (sourcesDefinition != null) {
-			for (XMLVector<Object> row: sourcesDefinition) {
-				sourceDefinition = GenericUtils.cast(row.get(1));
+		else if (this instanceof IStepSourcesContainer) {
+			for (XMLVector<Object> row: ((IStepSourcesContainer)this).getSourcesDefinition()) {
+				XMLVector<String> sourceDefinition = GenericUtils.cast(row.get(1));
 				stepSources.add(new StepSource(this, sourceDefinition));
 			}
 		}
-		
-		for (SmartType smartType: smartTypes) {
-			if (smartType.isUseSource()) {
-				stepSources.add(new StepSource(this, smartType.getSourceDefinition()));
+		else if (this instanceof IStepSmartTypeContainer) {
+			for (SmartType smartType: ((IStepSmartTypeContainer)this).getSmartTypes()) {
+				if (smartType.isUseSource()) {
+					stepSources.add(new StepSource(this, smartType.getSourceDefinition()));
+				}
 			}
 		}
-			
 		return stepSources;
 	}
 	
@@ -655,9 +694,16 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	}
 	
 	protected boolean inError() throws EngineException {
-		if (workOnSource()) {
+//		if (workOnSource()) {
+//			for (StepSource stepSource: getSources()) {
+//				return stepSource.inError();
+//			}
+//		}
+		if (canWorkOnSource()) {
 			for (StepSource stepSource: getSources()) {
-				return stepSource.inError();
+				if (stepSource.inError()) {
+					return inError = true;
+				}
 			}
 		}
 		return inError;
