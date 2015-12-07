@@ -1317,7 +1317,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	}
     }
 	
-	protected NodeList ouputDomView(NodeList nodeList) {
+	public static NodeList ouputDomView(NodeList nodeList, OutputFilter outputFilter) {
 		if (nodeList != null) {
 			int len = nodeList.getLength();
 			if (len > 0) {
@@ -1332,7 +1332,6 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 					root.appendChild(node.cloneNode(true)); // clone removes any userdata
 				}
 				
-	    		OutputFilter outputFilter = new OutputFilter(OutputOption.UsefullOnly);
 	    		buildOutputDom(root, outputFilter);
 				
 				doc.getDocumentElement().removeChild(fake);
@@ -1355,11 +1354,11 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		UsefullOnly
 	}
 	
-	private class OutputFilter implements NodeFilter {
+	public class OutputFilter implements NodeFilter {
 		private final Map<Element, List<List<Element>>> map = new LinkedHashMap<Element, List<List<Element>>>();
 		private OutputOption option;
 		
-		private OutputFilter(OutputOption option) {
+		public OutputFilter(OutputOption option) {
 			this.option = option;
 		}
 		
@@ -1677,38 +1676,6 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		}
 	}
     
-	public static Element removeOutputAttribute(Element element, boolean recurse) {
-		if (element != null) {
-			element.removeAttribute("step_output");
-			if (recurse && element.hasChildNodes()) {
-				NodeList list = element.getChildNodes();
-				List<Element> toRemove = null;
-				for (int i=0; i<list.getLength(); i++) {
-					Node node = list.item(i);
-					if (node.getNodeType() == Node.ELEMENT_NODE) {
-						Element child = (Element)node;
-						if (!child.getTagName().equals("sequence") && !child.getTagName().equals("transaction")) {
-							removeOutputAttribute(child, recurse);
-						}
-						else if ("false".equals(child.getAttribute("step_output"))) {
-							if (toRemove == null) {
-								toRemove = new ArrayList<Element>();
-								toRemove.add(child);
-							}
-						}
-					}				
-				}
-				
-				if (toRemove != null) {
-					for (Element child : toRemove) {
-						element.removeChild(child);
-					}
-				}
-			}
-		}
-		return element;
-	}
-	
 	private static Node setOutputUserData(Node node, Object value, boolean recurse) {
 		if (node != null) {
 			// set output mode as userdata (element or attribute)
