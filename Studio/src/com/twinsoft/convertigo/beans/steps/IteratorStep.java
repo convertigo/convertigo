@@ -164,9 +164,9 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 	}
 	
 	private Integer evaluateMaxIterationsInteger(Context javascriptContext, Scriptable scope) throws EngineException {
-		String condition = getCondition();
-		if (iterations == null)
-			iterations = evaluateToInteger(javascriptContext, scope, condition, "condition", true);
+		if (iterations == null) {
+			iterations = evaluateToInteger(javascriptContext, scope, getCondition(), "condition", true);
+		}
 		return iterations;
 	}
 	

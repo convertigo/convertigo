@@ -876,21 +876,34 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	
 	protected Integer evaluateToInteger(Context javascriptContext, Scriptable scope, String source, String sourceName, boolean bDialog) throws EngineException {
 		Integer value = null;
-		evaluate(javascriptContext, scope, source, sourceName, true);
-		if (evaluated instanceof Undefined || evaluated.equals(""))
-			value = -1;
-		else if (evaluated instanceof Number) {
-			value = Integer.valueOf(((Number)evaluated).intValue());
+		
+		try {
+			if (source.isEmpty()) {
+				value = -1;
+			}
+			else {
+				value = Integer.valueOf(String.valueOf(source), 10);
+			}
 		}
-		else {
-			try {value = Integer.valueOf(String.valueOf(evaluated), 10);}
-			catch (NumberFormatException nfe) {}
-		}
+		catch (NumberFormatException nfe) {}
+		
 		if (value == null) {
-			EngineException ee = new EngineException(
-					"Invalid \""+sourceName+"\" value.\n" +
-					"Step: \"" + getName()+ "\"");
-			throw ee;
+			evaluate(javascriptContext, scope, source, sourceName, true);
+			if (evaluated instanceof Undefined || evaluated.equals(""))
+				value = -1;
+			else if (evaluated instanceof Number) {
+				value = Integer.valueOf(((Number)evaluated).intValue());
+			}
+			else {
+				try {value = Integer.valueOf(String.valueOf(evaluated), 10);}
+				catch (NumberFormatException nfe) {}
+			}
+			if (value == null) {
+				EngineException ee = new EngineException(
+						"Invalid \""+sourceName+"\" value.\n" +
+						"Step: \"" + getName()+ "\"");
+				throw ee;
+			}
 		}
 		return value;
 	}

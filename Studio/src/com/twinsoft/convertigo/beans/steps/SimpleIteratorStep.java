@@ -116,11 +116,14 @@ public class SimpleIteratorStep extends LoopStep {
 				throw new EngineException("Unable to initialize iterator",e);
 			}
 			
+			if (inError()) {
+				Engine.logBeans.warn("(SimpleIteratorStep) Skipping step "+ this +" ("+ hashCode()+") because its source is in error");
+				return true;
+			}
+
+			int start = evaluateToInteger(javascriptContext, scope, getStartIndex(), "startIndex", true);
+			
 			for (int i=0; i < iterator.size(); i++) {
-				if (inError()) {
-					Engine.logBeans.warn("(SimpleIteratorStep) Skipping step "+ this +" ("+ hashCode()+") because its source is in error");
-					return true;
-				}
 				if (bContinue && sequence.isRunning()) {
 					int index = iterator.numberOfIterations();
 					Scriptable jsIndex = org.mozilla.javascript.Context.toObject(index, scope);
@@ -130,7 +133,6 @@ public class SimpleIteratorStep extends LoopStep {
 					Scriptable jsItem = org.mozilla.javascript.Context.toObject(item, scope);
 					scope.put("item", scope, jsItem);
 					
-					int start = evaluateToInteger(javascriptContext, scope, getStartIndex(), "startIndex", true);
 					start = start<0 ? 0:start;
 					if (start > index) {
 						doLoop(javascriptContext, scope);
@@ -160,9 +162,9 @@ public class SimpleIteratorStep extends LoopStep {
 	}
 	
 	private Integer evaluateMaxIterationsInteger(Context javascriptContext, Scriptable scope) throws EngineException {
-		String condition = getCondition();
-		if (iterations == null)
-			iterations = evaluateToInteger(javascriptContext, scope, condition, "condition", true);
+		if (iterations == null) {
+			iterations = evaluateToInteger(javascriptContext, scope, getCondition(), "condition", true);
+		}
 		return iterations;
 	}
 
