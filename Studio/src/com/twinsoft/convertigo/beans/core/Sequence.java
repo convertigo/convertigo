@@ -1709,7 +1709,10 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		if (stepElement == null) {
 			stepElement = context.outputDocument.getDocumentElement();
 		}
-		stepElement.appendChild( context.outputDocument.importNode(doc.getDocumentElement(), true) );
+		
+		Node imported = context.outputDocument.importNode(doc.getDocumentElement(), true);
+		setOutputUserData(imported, stepElement.getUserData(Step.NODE_USERDATA_OUTPUT), true);
+		stepElement.appendChild(imported);
 	}
 
 	@Override
