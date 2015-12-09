@@ -53,7 +53,7 @@ public class SourcePickerHelper implements IStepSourceEditor {
 	private StepXpathEvaluatorComposite xpathEvaluator;
 
 	private Document currentDom = null;
-	private TwsCachedXPathAPI twsCachedXPathAPI = new TwsCachedXPathAPI();
+	private TwsCachedXPathAPI twsCachedXPathAPI = new TwsCachedXPathAPI(false);//new TwsCachedXPathAPI();
 	private String regexpForPredicates = "\\[\\D{1,}\\]";
 
 	protected String onDisplayXhtml(String xpath) {

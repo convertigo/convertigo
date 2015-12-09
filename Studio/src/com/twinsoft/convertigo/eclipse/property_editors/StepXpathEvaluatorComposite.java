@@ -49,7 +49,7 @@ public class StepXpathEvaluatorComposite extends XpathEvaluatorComposite {
 
 	public TwsCachedXPathAPI getXpathApi() {
 		if (twsCachedXPathAPI == null)
-			return new TwsCachedXPathAPI();
+			return new TwsCachedXPathAPI(false);//return new TwsCachedXPathAPI();
 		return twsCachedXPathAPI;
 	}
 

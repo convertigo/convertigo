@@ -37,7 +37,15 @@ import org.w3c.dom.traversal.NodeIterator;
 public class TwsCachedXPathAPI{
 	protected Node lastContextNode = null;
 	protected CachedXPathAPI xpathApi = new CachedXPathAPI();
+	protected boolean shouldReset = true;
+	
+	public TwsCachedXPathAPI() {
+	}
 
+	public TwsCachedXPathAPI(boolean shouldReset) {
+		this.shouldReset = shouldReset;
+	}
+	
 	public XObject eval(Node contextNode, String xpath, Node namespaceNode) throws TransformerException {
 		checkContextNode(contextNode);
 		return xpathApi.eval(contextNode, xpath, namespaceNode);
@@ -117,7 +125,7 @@ public class TwsCachedXPathAPI{
 	}
 
 	protected void checkContextNode(Node contextNode){
-		if(contextNode != lastContextNode){
+		if(shouldReset && contextNode != lastContextNode) {
 			// reset the cache
 			xpathApi = new CachedXPathAPI();
 			lastContextNode = contextNode;
