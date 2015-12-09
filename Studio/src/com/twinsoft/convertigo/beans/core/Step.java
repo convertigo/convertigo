@@ -874,19 +874,21 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	
 	protected transient Object evaluated = null;
 	
-	protected Integer evaluateToInteger(Context javascriptContext, Scriptable scope, String source, String sourceName, boolean bDialog) throws EngineException {
-		Integer value = null;
-		
+	public static Integer getValueOfInteger(String source) {
 		try {
 			if (source.isEmpty()) {
-				value = -1;
+				return -1;
 			}
 			else {
-				value = Integer.valueOf(String.valueOf(source), 10);
+				return Integer.valueOf(String.valueOf(source), 10);
 			}
 		}
 		catch (NumberFormatException nfe) {}
-		
+		return null;
+	}
+	
+	protected Integer evaluateToInteger(Context javascriptContext, Scriptable scope, String source, String sourceName, boolean bDialog) throws EngineException {
+		Integer value = getValueOfInteger(source);
 		if (value == null) {
 			evaluate(javascriptContext, scope, source, sourceName, true);
 			if (evaluated instanceof Undefined || evaluated.equals(""))
