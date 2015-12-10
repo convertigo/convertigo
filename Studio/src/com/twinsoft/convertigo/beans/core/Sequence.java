@@ -1028,7 +1028,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	@Override
 	public void prepareForRequestable(Context context, org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException {
 		currentChildStep = 0;
-		xpathApi = new TwsCachedXPathAPI(false);//xpathApi = new TwsCachedXPathAPI();
+		xpathApi = new TwsCachedXPathAPI();
 		copies = new Hashtable<String, Step>(100);
 		childrenSteps = new Hashtable<String, Long>(100);
 		executedSteps = new Hashtable<Long, String>(1000);
@@ -1069,8 +1069,11 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     			}
     		}
     	}
+    	if (xpathApi != null) {
+    		xpathApi.release();
+        	xpathApi = null;
+    	}
     	stepHttpState = null;
-    	xpathApi = null;
 	}
 	
 	private void resetLoadedStepAsyncThreadRunning(Long stepPriority) {

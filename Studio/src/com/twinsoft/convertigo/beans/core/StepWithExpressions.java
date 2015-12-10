@@ -40,12 +40,14 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.steps.BranchStep;
 import com.twinsoft.convertigo.beans.steps.ParallelStep;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
+import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public abstract class StepWithExpressions extends Step implements IContextMaintainer, IContainerOrdered, ISchemaParticleGenerator {
@@ -578,6 +580,9 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 				org.mozilla.javascript.Context.exit();
 				javascriptContext = null;
                	decreaseAsyncThreadRunning();
+               	if (step.xpathApi != null) {
+               		step.xpathApi.release();
+               	}
                	step.cleanCopy();
                	refSequence.removeCopy(step.executeTimeID, new Long(step.priority));
                	if (Engine.logBeans.isDebugEnabled())
@@ -662,7 +667,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 		if (stepToInvoke != null) {
 			stepToInvoke.parent = this;
 			stepToInvoke.transactionContextMaintainer = ((sequence.useSameJSessionForSteps()) ? this:null);
-			stepToInvoke.xpathApi = xpathApi;
+			stepToInvoke.xpathApi = new TwsCachedXPathAPI();//xpathApi;
 			stepToInvoke.httpState = sequence.getNewHttpState(); // require new HttpState!
 			stepToInvoke.executedSteps.putAll(executedSteps);
 			if (Engine.logBeans.isTraceEnabled())

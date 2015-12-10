@@ -34,16 +34,12 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.traversal.NodeIterator;
 
-public class TwsCachedXPathAPI{
+public class TwsCachedXPathAPI {
 	protected Node lastContextNode = null;
-	protected CachedXPathAPI xpathApi = new CachedXPathAPI();
-	protected boolean shouldReset = true;
+	protected CachedXPathAPI xpathApi = null;
 	
 	public TwsCachedXPathAPI() {
-	}
-
-	public TwsCachedXPathAPI(boolean shouldReset) {
-		this.shouldReset = shouldReset;
+		xpathApi = new CachedXPathAPI();
 	}
 	
 	public XObject eval(Node contextNode, String xpath, Node namespaceNode) throws TransformerException {
@@ -124,15 +120,47 @@ public class TwsCachedXPathAPI{
 		return xpathApi.selectSingleNode(contextNode, xpath);
 	}
 
-	protected void checkContextNode(Node contextNode){
-		if(shouldReset && contextNode != lastContextNode) {
+	protected void checkContextNode(Node contextNode) {
+		if (shouldReset(lastContextNode, contextNode)) {
 			// reset the cache
 			xpathApi = new CachedXPathAPI();
 			lastContextNode = contextNode;
 		}
 	}
 	
-	public void resetCache(){
+	public void release() {
+		if (xpathApi != null) {
+			XPathContext  xpathContext = xpathApi.getXPathContext();
+			if (xpathContext != null) {
+				xpathContext.reset();
+			}
+		}
+		resetCache();
+	}
+	
+	public void resetCache() {
 		lastContextNode = null;
+	}
+	
+	private static boolean shouldReset(Node last, Node current) {
+		boolean shouldReset = last == null;
+		if (!shouldReset) {
+			int lastNodeType = last.getNodeType();
+			int currentNodeType = current.getNodeType();
+			
+			if (lastNodeType == Node.DOCUMENT_NODE && currentNodeType == Node.DOCUMENT_NODE) {
+				shouldReset = !last.equals(current);
+			}
+			else if (lastNodeType == Node.DOCUMENT_NODE && currentNodeType != Node.DOCUMENT_NODE) {
+				shouldReset = !last.equals(current.getOwnerDocument());
+			}
+			else if (lastNodeType != Node.DOCUMENT_NODE && currentNodeType == Node.DOCUMENT_NODE) {
+				shouldReset = !last.getOwnerDocument().equals(current);
+			}
+			else {
+				shouldReset = !last.getOwnerDocument().equals(current.getOwnerDocument());
+			}
+		}
+		return shouldReset;
 	}
 }
