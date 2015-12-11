@@ -40,12 +40,14 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.steps.BranchStep;
 import com.twinsoft.convertigo.beans.steps.ParallelStep;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
+import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public abstract class StepWithExpressions extends Step implements IContextMaintainer, IContainerOrdered, ISchemaParticleGenerator {
@@ -122,10 +124,12 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 	public void setTransactionSessionId(String sessionId) {
 		if ((transactionSessionId == null) && (sessionId != null)) {
 			transactionSessionId = sessionId;
-			Engine.logBeans.trace("(StepWithExpression) setting transactionSessionId: "+ transactionSessionId);
+			if (Engine.logBeans.isTraceEnabled())
+				Engine.logBeans.trace("(StepWithExpression) setting transactionSessionId: "+ transactionSessionId);
 		}
 		else if (transactionSessionId != null) {
-			Engine.logBeans.trace("(StepWithExpression) transactionSessionId/JSESSIONID: "+ transactionSessionId +"/"+sessionId);
+			if (Engine.logBeans.isTraceEnabled())
+				Engine.logBeans.trace("(StepWithExpression) transactionSessionId/JSESSIONID: "+ transactionSessionId +"/"+sessionId);
 		}
 	}
 	
@@ -139,7 +143,8 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 					cookie = httpCookies[i];
 					if (cookie.getName().equalsIgnoreCase("JSESSIONID")) {
 						transactionSessionId = cookie.getValue();
-						Engine.logBeans.trace("(StepWithExpression) setting transactionSessionId: "+ transactionSessionId);
+						if (Engine.logBeans.isTraceEnabled())
+							Engine.logBeans.trace("(StepWithExpression) setting transactionSessionId: "+ transactionSessionId);
 						break;
 					}
 				}
@@ -445,13 +450,18 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 				boolean hasWait = false;
 				while (nbAsyncThreadRunning > 0) {
 					// If contains ParallelSteps, waits until child's threads finish
-					Engine.logBeans.trace("Step "+ getName() + " ("+executeTimeID+") waiting...");
+					if (Engine.logBeans.isTraceEnabled())
+						Engine.logBeans.trace("Step "+ getName() + " ("+executeTimeID+") waiting...");
 					Thread.sleep(500);
 					hasWait = true;
 				}
-				if (hasWait) Engine.logBeans.trace("Step "+ getName() + " ("+executeTimeID+") ends wait");
+				if (hasWait) {
+					if (Engine.logBeans.isTraceEnabled())
+						Engine.logBeans.trace("Step "+ getName() + " ("+executeTimeID+") ends wait");
+				}
 			} catch (InterruptedException e) {
-				Engine.logBeans.trace("Step "+ getName() + " ("+executeTimeID+") has been interrupted");
+				if (Engine.logBeans.isTraceEnabled())
+					Engine.logBeans.trace("Step "+ getName() + " ("+executeTimeID+") has been interrupted");
 			}
 		}
 		
@@ -468,9 +478,13 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 					// TODO ??
 				}
 				else {
-					Engine.logBeans.debug("Executing deletion of transaction's context for step \""+ getName() +"\"");
+					if (Engine.logBeans.isDebugEnabled())
+						Engine.logBeans.debug("Executing deletion of transaction's context for step \""+ getName() +"\"");
+					
 					Engine.theApp.contextManager.removeAll(transactionSessionId);
-					Engine.logBeans.debug("Deletion of transaction's context for step \""+ getName() +"\" done");
+					
+					if (Engine.logBeans.isDebugEnabled())
+						Engine.logBeans.debug("Deletion of transaction's context for step \""+ getName() +"\" done");
 				}
 			}
 		}
@@ -510,7 +524,9 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 	}
 
 	protected void invokeStep(Step step, Context javascriptContext, Scriptable scope) {
-		Engine.logBeans.debug("Invoquing step named '"+ step +"' ("+ step.getName() +")");
+		if (Engine.logBeans.isDebugEnabled())
+			Engine.logBeans.debug("Invoquing step named '"+ step +"' ("+ step.getName() +")");
+		
 		AsynchronousStepThread connectionStepThread = new AsynchronousStepThread(step, scope);
 		increaseAsyncThreadRunning();
 		connectionStepThread.setDaemon(true);
@@ -539,7 +555,8 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
             try {
                 javascriptContext = org.mozilla.javascript.Context.enter();
             	if (step != null) {
-                	Engine.logBeans.debug("(AsynchronousStepThread) \""+ AsynchronousStepThread.this.getName() +"\" executing step : "+ step.getName());
+            		if (Engine.logBeans.isDebugEnabled())
+            			Engine.logBeans.debug("(AsynchronousStepThread) \""+ AsynchronousStepThread.this.getName() +"\" executing step : "+ step.getName());
            			if (step.execute(javascriptContext, scope)) {
            				//childrenSteps.put(step.executeTimeID, new Long(step.priority));
        					//executedSteps.putAll(step.executedSteps);
@@ -549,7 +566,8 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
            		    				Thread.sleep(500);
            		    			}
            		    		} catch (InterruptedException e) {
-           		    			Engine.logBeans.debug("(AsynchronousStepThread) \""+ AsynchronousStepThread.this.getName() +"\" has been interrupted");
+           		    			if (Engine.logBeans.isDebugEnabled())
+           		    				Engine.logBeans.debug("(AsynchronousStepThread) \""+ AsynchronousStepThread.this.getName() +"\" has been interrupted");
            		    		}
            				}
            			}
@@ -562,9 +580,13 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 				org.mozilla.javascript.Context.exit();
 				javascriptContext = null;
                	decreaseAsyncThreadRunning();
+               	if (step.xpathApi != null) {
+               		step.xpathApi.release();
+               	}
                	step.cleanCopy();
                	refSequence.removeCopy(step.executeTimeID, new Long(step.priority));
-               	Engine.logBeans.debug("(AsynchronousStepThread) \""+ AsynchronousStepThread.this.getName() +"\" done");
+               	if (Engine.logBeans.isDebugEnabled())
+               		Engine.logBeans.debug("(AsynchronousStepThread) \""+ AsynchronousStepThread.this.getName() +"\" done");
             }
         }
         
@@ -573,18 +595,21 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
         		synchronized (asyncCounters) {
         			long next = asyncCounters[1];
         			
-        			Engine.logBeans.trace("(AsynchronousStepThread) \"" + AsynchronousStepThread.this.getName() + "\" (" + step.getName() + ") wakeTurn : is " + asyncNum + " and current is " + next);
+        			if (Engine.logBeans.isTraceEnabled())
+        				Engine.logBeans.trace("(AsynchronousStepThread) \"" + AsynchronousStepThread.this.getName() + "\" (" + step.getName() + ") wakeTurn : is " + asyncNum + " and current is " + next);
         			
         			while (asyncNum > next && bContinue && sequence.isRunning()) {
         				try {
         					asyncCounters.wait(5000);
         				} catch (InterruptedException e) { }
         				next = asyncCounters[1];
-        				Engine.logBeans.debug("(AsynchronousStepThread) \"" + AsynchronousStepThread.this.getName() + "\" (" + step.getName() + ") wakeTurn retry : is " + asyncNum + " and current is " + next);
+        				if (Engine.logBeans.isDebugEnabled())
+        					Engine.logBeans.debug("(AsynchronousStepThread) \"" + AsynchronousStepThread.this.getName() + "\" (" + step.getName() + ") wakeTurn retry : is " + asyncNum + " and current is " + next);
         			}
         			if (asyncNum == asyncCounters[1]) {
         				asyncCounters[1]++;
-            			Engine.logBeans.debug("(AsynchronousStepThread) \"" + AsynchronousStepThread.this.getName() + "\" (" + step.getName() + ") wakeTurn inc : next value is " + asyncCounters[1]);
+        				if (Engine.logBeans.isDebugEnabled())
+        					Engine.logBeans.debug("(AsynchronousStepThread) \"" + AsynchronousStepThread.this.getName() + "\" (" + step.getName() + ") wakeTurn inc : next value is " + asyncCounters[1]);
         			}
         			asyncCounters.notifyAll();
         		}
@@ -631,7 +656,8 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 			stepToExecute.xpathApi = xpathApi;
 			stepToExecute.httpState = ((stepToExecute instanceof BranchStep) ? sequence.getNewHttpState():this.httpState);
 			stepToExecute.executedSteps.putAll(executedSteps);
-			Engine.logBeans.trace("(StepWithExpression) "+step+" ["+step.hashCode()+"] has been copied into "+stepToExecute+" ["+stepToExecute.hashCode()+"]");
+			if (Engine.logBeans.isTraceEnabled())
+				Engine.logBeans.trace("(StepWithExpression) "+step+" ["+step.hashCode()+"] has been copied into "+stepToExecute+" ["+stepToExecute.hashCode()+"]");
 		}
 		return stepToExecute;
 	}
@@ -641,10 +667,11 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 		if (stepToInvoke != null) {
 			stepToInvoke.parent = this;
 			stepToInvoke.transactionContextMaintainer = ((sequence.useSameJSessionForSteps()) ? this:null);
-			stepToInvoke.xpathApi = xpathApi;
+			stepToInvoke.xpathApi = new TwsCachedXPathAPI();
 			stepToInvoke.httpState = sequence.getNewHttpState(); // require new HttpState!
 			stepToInvoke.executedSteps.putAll(executedSteps);
-			Engine.logBeans.trace("(StepWithExpression) "+step+" ["+step.hashCode()+"] has been copied into "+stepToInvoke+" ["+stepToInvoke.hashCode()+"]");
+			if (Engine.logBeans.isTraceEnabled())
+				Engine.logBeans.trace("(StepWithExpression) "+step+" ["+step.hashCode()+"] has been copied into "+stepToInvoke+" ["+stepToInvoke.hashCode()+"]");
 		}
 		return stepToInvoke;
 	}
@@ -672,13 +699,18 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 		try {
 			if (haveToWait.equals(Boolean.TRUE)) {
 				if (bContinue && sequence.isRunning()) {
-					Engine.logBeans.trace("Step '"+ getName() +"' ("+executeTimeID+") waiting...");
+					if (Engine.logBeans.isTraceEnabled())
+						Engine.logBeans.trace("Step '"+ getName() +"' ("+executeTimeID+") waiting...");
+					
 					wait();
-					Engine.logBeans.trace("Step '"+ getName() +"' ("+executeTimeID+") going through...");
+					
+					if (Engine.logBeans.isTraceEnabled())
+						Engine.logBeans.trace("Step '"+ getName() +"' ("+executeTimeID+") going through...");
 				}
 			}
 		} catch (InterruptedException e) {
-			Engine.logBeans.debug("Step '"+ getName() +"' ("+executeTimeID+") has been interrupted");				
+			if (Engine.logBeans.isDebugEnabled())
+				Engine.logBeans.debug("Step '"+ getName() +"' ("+executeTimeID+") has been interrupted");				
 		}
 	}
 	
@@ -689,7 +721,8 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 		}
 		else {
 			if (haveToWait.equals(Boolean.TRUE)) {
-				Engine.logBeans.trace("Step '"+ getName() +"' ("+executeTimeID+") has been notified");
+				if (Engine.logBeans.isTraceEnabled())
+					Engine.logBeans.trace("Step '"+ getName() +"' ("+executeTimeID+") has been notified");
 				haveToWait = Boolean.FALSE;
 				notify();
 			}

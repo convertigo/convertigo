@@ -40,6 +40,9 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
+import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.core.Sequence.OutputFilter;
+import com.twinsoft.convertigo.beans.core.Sequence.OutputOption;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.Engine;
@@ -157,13 +160,14 @@ public abstract class WriteFileStep extends Step implements IStepSourceContainer
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable()) {
-
 				filePath = null;
 				try {
 					StepSource stepSource = getSource();
 					if (!stepSource.inError()) {
 						filePath = evaluateDataFileName(javascriptContext, scope);
-						NodeList nl = stepSource.getContextOutputNodes();
+						//Retrieve a view based on context nodes (prevent to modify context nodes, output usefull nodes only)
+						OutputFilter outputFilter = sequence.new OutputFilter(OutputOption.UsefullOnly);
+						NodeList nl = Sequence.ouputDomView(stepSource.getContextOutputNodes(),outputFilter);
 						writeFile(filePath, nl);
 						filePath = getAbsoluteFilePath(filePath);
 					}

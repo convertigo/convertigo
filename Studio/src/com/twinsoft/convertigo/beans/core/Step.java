@@ -22,7 +22,6 @@
 
 package com.twinsoft.convertigo.beans.core;
 
-import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -51,7 +50,6 @@ import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.Undefined;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -62,8 +60,6 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
-import com.twinsoft.convertigo.engine.util.CachedIntrospector;
-import com.twinsoft.convertigo.engine.util.CachedIntrospector.Property;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -79,6 +75,8 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	
     public static String loopSeparator = "--";
     
+    public static final String NODE_USERDATA_OUTPUT = "step_output";
+    
     private boolean isEnable = true;
     private boolean output = false;
     private XmlQName xmlComplexTypeAffectation = new XmlQName();
@@ -92,7 +90,6 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	transient protected HttpState httpState = null;
 	transient protected boolean stepDone = false;
 	transient protected Sequence sequence = null;
-	transient protected Document outputDocument = null;
 	transient protected String executeTimeID = "";
 	transient private boolean inError = false;
 	transient private int cloneNumber = 0;
@@ -125,7 +122,6 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		clonedObject.sequence = null;
 		clonedObject.vSheets = new LinkedList<Sheet>();
 		clonedObject.newPriority = newPriority;
-		clonedObject.outputDocument = null;
 		return clonedObject;
 	}
     
@@ -160,7 +156,6 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		xpathApi = null;
 		parent = null;
 		sequence = null;
-		outputDocument = null;
 		transactionContextMaintainer = null;
 		vSheets = null; // ! Do not clear()!
 		if (executedSteps != null) {
@@ -194,7 +189,8 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	
 	protected TwsCachedXPathAPI getXPathAPI() {
 		if (xpathApi == null) {
-			Engine.logBeans.trace("[Step] Step needed to retrieve new TwsCachedXPathAPI");
+			if (Engine.logBeans.isTraceEnabled())
+				Engine.logBeans.trace("[Step] Step needed to retrieve new TwsCachedXPathAPI");
 			return xpathApi = new TwsCachedXPathAPI();
 		}
 		return xpathApi;
@@ -260,68 +256,57 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	
 	protected void reset() throws EngineException {
 		stepDone = false;
-		outputDocument = null;
-		if (outputDocument == null) {
-	        outputDocument = sequence.createDOM();
-		}
 	}
 	
 	public boolean workOnSource() {
-		try {
-			for (PropertyDescriptor propertyDescriptor: CachedIntrospector.getPropertyDescriptors(this, Property.smartType)) {
-				SmartType st = (SmartType) propertyDescriptor.getReadMethod().invoke(this);
-				if (st.isUseSource()) {
-					return true;
-				}
-			}
-			PropertyDescriptor sourcesDefinitionPropDesc = CachedIntrospector.getPropertyDescriptor(this, Property.sourcesDefinition);
-			if (sourcesDefinitionPropDesc != null) {
-				XMLVector<XMLVector<Object>> sourcesDefinition = GenericUtils.cast(sourcesDefinitionPropDesc.getReadMethod().invoke(this));
-				if (!sourcesDefinition.isEmpty()) {
-					return true;
-				}
-			}
-			
-			return CachedIntrospector.getPropertyDescriptor(this, Property.sourceDefinition) != null;
-		} catch (Exception e) {
-			throw (e instanceof RuntimeException) ? (RuntimeException) e : new RuntimeException("Step.workOnSource failed", e);
+		if (this instanceof IStepSourceContainer) {
+			return !((IStepSourceContainer)this).getSourceDefinition().isEmpty();
 		}
+		else if (this instanceof IStepSourcesContainer) {
+			return !((IStepSourcesContainer)this).getSourcesDefinition().isEmpty();
+		}
+		else if (this instanceof IStepSmartTypeContainer) {
+			for (SmartType smartType: ((IStepSmartTypeContainer)this).getSmartTypes()) {
+				if (smartType.isUseSource()) {
+					return true;
+				}
+			}
+		}
+		return false;
+		
 	}
 	
 	public boolean canWorkOnSource() {
-		return CachedIntrospector.getPropertyDescriptor(this, Property.sourceDefinition) != null
-				|| CachedIntrospector.getPropertyDescriptor(this, Property.sourcesDefinition) != null
-				|| CachedIntrospector.getPropertyDescriptors(this, Property.smartType).size() > 0;
+		return this instanceof IStepSourceContainer ||
+				this instanceof IStepSourcesContainer ||
+				this instanceof IStepSmartTypeContainer;
 	}
 	
 	protected StepSource getSource() {
-		XMLVector<String> value = CachedIntrospector.getPropertyValue(this, Property.sourceDefinition);
-		return value == null ? null : new StepSource(this, value);
+		if (this instanceof IStepSourceContainer) {
+			return new StepSource(this, ((IStepSourceContainer)this).getSourceDefinition());
+		}
+		return null;
 	}
 	
 	public Set<StepSource> getSources() {
-		Set<SmartType> smartTypes = CachedIntrospector.getPropertyValues(this, Property.smartType);
-		XMLVector<String> sourceDefinition = CachedIntrospector.getPropertyValue(this, Property.sourceDefinition);
-		XMLVector<XMLVector<Object>> sourcesDefinition = CachedIntrospector.getPropertyValue(this, Property.sourcesDefinition);
 		Set<StepSource> stepSources = new HashSet<StepSource>();
-		
-		if (sourceDefinition != null) {
-			stepSources.add(new StepSource(this, sourceDefinition));
+		if (this instanceof IStepSourceContainer) {
+			stepSources.add(getSource());
 		}
-		
-		if (sourcesDefinition != null) {
-			for (XMLVector<Object> row: sourcesDefinition) {
-				sourceDefinition = GenericUtils.cast(row.get(1));
+		else if (this instanceof IStepSourcesContainer) {
+			for (XMLVector<Object> row: ((IStepSourcesContainer)this).getSourcesDefinition()) {
+				XMLVector<String> sourceDefinition = GenericUtils.cast(row.get(1));
 				stepSources.add(new StepSource(this, sourceDefinition));
 			}
 		}
-		
-		for (SmartType smartType: smartTypes) {
-			if (smartType.isUseSource()) {
-				stepSources.add(new StepSource(this, smartType.getSourceDefinition()));
+		else if (this instanceof IStepSmartTypeContainer) {
+			for (SmartType smartType: ((IStepSmartTypeContainer)this).getSmartTypes()) {
+				if (smartType.isUseSource()) {
+					stepSources.add(new StepSource(this, smartType.getSourceDefinition()));
+				}
 			}
 		}
-			
 		return stepSources;
 	}
 	
@@ -353,147 +338,20 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	protected Node createStepNode() throws EngineException {
 		Document doc = getOutputDocument();
 		Element stepNode = doc.createElement(getStepNodeName());
-		stepNode.setAttribute("step_id", this.executeTimeID);
+		stepNode.setUserData(NODE_USERDATA_OUTPUT, String.valueOf(isOutput()), null);
 		
-		doc.getDocumentElement().appendChild(stepNode);
 		if (!inError()) {
 			createStepNodeValue(doc, stepNode);
-			if (isXmlOrOutput()) {
-				if (parent instanceof Step)
-					stepNode = ((Step)parent).appendChildNode(stepNode);
-			}
 		}
 		return stepNode;
 	}
-	
-	protected static Element removeUselessAttributes(Element element) {
-		if (element != null) {
-			element.removeAttribute("step_id");
-			if (element.hasChildNodes()) {
-				NodeList list = element.getChildNodes();
-				for (int i=0; i<list.getLength(); i++) {
-					if (list.item(i).getNodeType() == Node.ELEMENT_NODE) {
-						Element e = (Element)list.item(i);
-						// Recurse only if child node contains step_id attribute
-						if (e.getAttribute("step_id").length() > 0) {
-							e.removeAttribute("step_copy");
-							removeUselessAttributes(e);
-						}
-					}				
-				}
-			}
-		}
-		return element;
-	}
-	
+
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
 		//does nothing
 	}
-	
-	public <N extends Node> N appendChildNode(N nodeToImport) throws EngineException {
-		Document doc = getOutputDocument();
-		Node importedNode = null;
-		
-//		// To qualify node
-//		if (nodeToImport.getNamespaceURI() == null) {
-//			String tns = getComplexTypeAffectation().getNamespaceURI();
-//			if (tns.length() > 0) {
-//				nodeToImport = XMLUtils.setNamespace(nodeToImport, tns);
-//			}
-//		}
-		
-		if (!inError()) {
-			if (isXmlOrOutput()) {
-				NodeList list = doc.getElementsByTagName(getStepNodeName());
-				if (list.getLength()>0) {
-					Element element = (Element)list.item(0);
-					if (nodeToImport.getNodeType() == Node.ATTRIBUTE_NODE) {
-						importedNode = doc.importNode(nodeToImport, true);
-						element.setAttribute(importedNode.getNodeName(), importedNode.getNodeValue());
-					}
-					else if (nodeToImport.getNodeType() == Node.ELEMENT_NODE) {
-						String sCopy = ((Element)nodeToImport).getAttribute("step_copy");
-						boolean isCopy = ((sCopy!=null)&& (sCopy.equals("true")));
-						if (isCopy) {
-							NodeList children = ((Element)nodeToImport).getChildNodes();
-							int len = children.getLength();
-							for (int i=0;i<len;i++) {
-								Node child = children.item(i);
-								if ((child != null) && ((child.getNodeType() == Node.ELEMENT_NODE) || (child.getNodeType() == Node.TEXT_NODE))) {
-									importedNode = doc.importNode(child, true);
-									element.appendChild(importedNode);
-								}
-							}
-							
-							NamedNodeMap map = ((Element)nodeToImport).getAttributes();
-							len = map.getLength();
-							for (int i=0;i<len;i++) {
-								Node child = map.item(i);
-								if ((child != null) && ((child.getNodeType() == Node.ATTRIBUTE_NODE))) {
-									element.setAttribute(child.getNodeName(),child.getNodeValue());
-								}
-							}
-							element.removeAttribute("step_copy");
-						}
-						else {
-							importedNode = doc.importNode(nodeToImport, true);
-							element.appendChild(importedNode);
-						}
-					}
-					
-					if (parent instanceof Step)
-						((Step)parent).replaceChildNode(element);
-				}
-			}
-			else {
-				if (parent instanceof Step)
-					nodeToImport = ((Step)parent).appendChildNode(nodeToImport);
-			}
-		}
-		return nodeToImport;
-	}
-	
-	public void replaceChildNode(Node nodeToImport) throws EngineException {
-		if (nodeToImport.getNodeType() == Node.ATTRIBUTE_NODE)
-			return;
-		
-		Document doc = getOutputDocument();
-		Node importedNode = doc.importNode(nodeToImport, true);
-		if (!inError()) {
-			if (isXmlOrOutput()) {
-				Element toReplace = null;
-				String nodeName = ((Element)importedNode).getNodeName();
-				String nodeID = ((Element)importedNode).getAttribute("step_id");
-				NodeList nodeList = doc.getElementsByTagName(nodeName);
-				if (nodeList != null) {
-					for (int i=0; i<nodeList.getLength(); i++) {
-						Element nodeElement = (Element)nodeList.item(i);
-						if (nodeElement.getAttribute("step_id").equals(nodeID)) {
-							toReplace = nodeElement;
-							break;
-						}
-					}
-					if (toReplace != null)
-						toReplace.getParentNode().replaceChild(importedNode, toReplace);
 
-				}
-				
-				NodeList list = doc.getElementsByTagName(getStepNodeName());
-				if (list.getLength()>0) {
-					Element element = (Element)list.item(0);
-					if (parent instanceof Step)
-						((Step)parent).replaceChildNode(element);
-				}
-			}
-			else {
-				if (parent instanceof Step)
-					((Step)parent).replaceChildNode(nodeToImport);
-			}
-		}
-	}
-	
 	public Document getOutputDocument() {
-		return outputDocument;
+		return sequence.context.outputDocument;
 	}
 	
 	protected String getLabel() throws EngineException {
@@ -516,14 +374,8 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	}
 	
 	public Node getContextNode(int loop) throws EngineException {
-		if (isXml()) {
-			Document outputDocument = getOutputDocument();
-			return (outputDocument != null) ? outputDocument.getDocumentElement().getFirstChild() : null;
-		}
-		if (workOnSource()) {
-			return getSource().getContextNode();
-		}
-		return outputDocument.getDocumentElement();
+		Element stepElement = sequence.findStepElement(this.executeTimeID);
+		return stepElement;
 	}
 	
 	public Node getContextNode(String xpath, int loop) {
@@ -533,7 +385,8 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 			Node node = getXPathAPI().selectSingleNode(contextNode, contextXPath);
 			return node;
 		} catch (Exception e) {
-			Engine.logBeans.warn("Unable to retrieve context node for step "+ this +" and for xpath \""+ xpath +"\"");
+			if (Engine.logBeans.isInfoEnabled())
+				Engine.logBeans.warn("Unable to retrieve context node for step "+ this +" and for xpath \""+ xpath +"\"");
 			return null;
 		}
 	}
@@ -551,7 +404,6 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 			switch (nodeType) {
 				case Node.ELEMENT_NODE:
 					if (sequence.getProject().isStrictMode()) {
-						Step.removeUselessAttributes((Element)node);
 						return XMLUtils.prettyPrintElement((Element)node, true, false);
 					}
 					else {
@@ -564,13 +416,13 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 								case Node.TEXT_NODE: 
 									return ((len<2) ? firstChild.getNodeValue():XMLUtils.getNormalizedText(node));
 								case Node.ELEMENT_NODE: 
-									Step.removeUselessAttributes((Element)node);
 									return XMLUtils.prettyPrintElement((Element)node, true, false);
 								default: 
 									return null;
 							}
 						} else {
-							Engine.logBeans.warn("Applied XPath on step '"+ this +"' returned node with null value ('"+node.getNodeName()+"')");
+							if (Engine.logBeans.isInfoEnabled())
+								Engine.logBeans.warn("Applied XPath on step '"+ this +"' returned node with null value ('"+node.getNodeName()+"')");
 							return null;
 						}
 					}
@@ -581,27 +433,32 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 				case Node.ATTRIBUTE_NODE:
 					return node.getNodeValue();
 				default:
-					Engine.logBeans.warn("Applied XPath on step '"+ this +"' is not supported");
+					if (Engine.logBeans.isInfoEnabled())
+						Engine.logBeans.warn("Applied XPath on step '"+ this +"' is not supported");
 					return null;
 			}
 		}
 		return null;
 	}
 	
-	public synchronized NodeList getContextValues(String xpath, int loop) throws EngineException {
+	protected synchronized NodeList getContextValues(String xpath, int loop) throws EngineException {
 		NodeList list = null;
 		String contextXpath = null;
 		try {
 			contextXpath = getContextXpath(xpath);
 			Node contextNode = getContextNode(loop);
-			Engine.logBeans.trace("Source for step is : " + this.getName() + " , contextXPath is : " + contextXpath);
+			
+			if (Engine.logBeans.isTraceEnabled())
+				Engine.logBeans.trace("Source for step is : " + this.getName() + " , contextXPath is : " + contextXpath);
 			if (contextNode != null) {
 				list = getXPathAPI().selectNodeList(contextNode, contextXpath);
 			} else {
-				Engine.logBeans.debug("No context node ! Source for step is : " + this.getName() + " , contextXPath is : " + contextXpath);
+				if (Engine.logBeans.isDebugEnabled())
+					Engine.logBeans.debug("No context node ! Source for step is : " + this.getName() + " , contextXPath is : " + contextXpath);
 			}
 		} catch (Exception e) {
-			Engine.logBeans.warn("Error in XPath '" + contextXpath + "' applied to data from Step '" + this.getName()+"' : " +e.getMessage());
+			if (Engine.logBeans.isInfoEnabled())
+				Engine.logBeans.warn("Error in XPath '" + contextXpath + "' applied to data from Step '" + this.getName()+"' : " +e.getMessage());
 		}
 		return list;
 	}
@@ -640,9 +497,11 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	}
 	
 	protected boolean inError() throws EngineException {
-		if (workOnSource()) {
+		if (canWorkOnSource()) {
 			for (StepSource stepSource: getSources()) {
-				return stepSource.inError();
+				if (stepSource.inError()) {
+					return inError = true;
+				}
 			}
 		}
 		return inError;
@@ -739,7 +598,8 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable && sequence.isRunning()) {
-			Engine.logBeans.debug("Executing step named '"+ this +"' ("+ this.getName() +")");
+			if (Engine.logBeans.isDebugEnabled())
+				Engine.logBeans.debug("Executing step named '"+ this +"' ("+ this.getName() +")");
 			
 			Long key = new Long(priority);
 			
@@ -747,7 +607,8 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
             if (Engine.isStudioMode()) {
             	Step loadedStep = (Step) sequence.loadedSteps.get(key).getOriginal();
             	Engine.theApp.fireObjectDetected(new EngineEvent(loadedStep));
-				Engine.logBeans.trace("(Step) Step reached before its execution \"" + getName() + "\" ( "+ this+" ["+ hashCode() +"] ).");
+            	if (Engine.logBeans.isTraceEnabled())
+            		Engine.logBeans.trace("(Step) Step reached before its execution \"" + getName() + "\" ( "+ this+" ["+ hashCode() +"] ).");
 				Engine.theApp.fireStepReached(new EngineEvent(loadedStep));
             }
             
@@ -756,7 +617,8 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 
             // Adds step's reference to executed steps
             executedSteps.put(key, executeTimeID);
-			Engine.logBeans.trace("Step copy ["+executeTimeID+"] contains "+ executedSteps.size() + " executed steps.");
+            if (Engine.logBeans.isTraceEnabled())
+            	Engine.logBeans.trace("Step copy ["+executeTimeID+"] contains "+ executedSteps.size() + " executed steps.");
 			
 			// Adds step's reference to sequence copies
 			sequence.addCopy(executeTimeID, this);
@@ -769,7 +631,8 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	}
 	
 	protected void stepDone() {
-		Engine.logBeans.trace("Step "+ getName() + " ("+executeTimeID+") done");
+		if (Engine.logBeans.isTraceEnabled())
+			Engine.logBeans.trace("Step "+ getName() + " ("+executeTimeID+") done");
 		stepDone = true;
 	}
 	
@@ -809,23 +672,38 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	
 	protected transient Object evaluated = null;
 	
+	public static Integer getValueOfInteger(String source) {
+		try {
+			if (source.isEmpty()) {
+				return -1;
+			}
+			else {
+				return Integer.valueOf(String.valueOf(source), 10);
+			}
+		}
+		catch (NumberFormatException nfe) {}
+		return null;
+	}
+	
 	protected Integer evaluateToInteger(Context javascriptContext, Scriptable scope, String source, String sourceName, boolean bDialog) throws EngineException {
-		Integer value = null;
-		evaluate(javascriptContext, scope, source, sourceName, true);
-		if (evaluated instanceof Undefined || evaluated.equals(""))
-			value = -1;
-		else if (evaluated instanceof Number) {
-			value = Integer.valueOf(((Number)evaluated).intValue());
-		}
-		else {
-			try {value = Integer.valueOf(String.valueOf(evaluated), 10);}
-			catch (NumberFormatException nfe) {}
-		}
+		Integer value = getValueOfInteger(source);
 		if (value == null) {
-			EngineException ee = new EngineException(
-					"Invalid \""+sourceName+"\" value.\n" +
-					"Step: \"" + getName()+ "\"");
-			throw ee;
+			evaluate(javascriptContext, scope, source, sourceName, true);
+			if (evaluated instanceof Undefined || evaluated.equals(""))
+				value = -1;
+			else if (evaluated instanceof Number) {
+				value = Integer.valueOf(((Number)evaluated).intValue());
+			}
+			else {
+				try {value = Integer.valueOf(String.valueOf(evaluated), 10);}
+				catch (NumberFormatException nfe) {}
+			}
+			if (value == null) {
+				EngineException ee = new EngineException(
+						"Invalid \""+sourceName+"\" value.\n" +
+						"Step: \"" + getName()+ "\"");
+				throw ee;
+			}
 		}
 		return value;
 	}

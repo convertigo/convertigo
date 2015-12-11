@@ -95,21 +95,12 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 
 	@Override
 	public Node getContextNode(int loop) throws EngineException {
-		return outputDocument.getDocumentElement();
+		return super.getContextNode(loop);
 	}
 
 	@Override
 	protected Node createStepNode() throws EngineException {
-		Document doc = getOutputDocument();
-		Element stepNode = doc.getDocumentElement();
-		stepNode.setAttribute("step_id", this.executeTimeID);
-		stepNode.setAttribute("step_copy", "true");
-		
-		if (!inError()) {
-			createStepNodeValue(doc, stepNode);
-			if (parent instanceof Step)
-				stepNode = ((Step)parent).appendChildNode(stepNode);
-		}
+		Element stepNode = (Element) super.createStepNode();
 		return stepNode;
 	}
 
@@ -125,16 +116,16 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 			for (int i=0; i<len;i++) {
 				Node node = list.item(i);
 				if (node != null) {
-					Node imported = doc.importNode(node, true);
-					if (imported.getNodeType() == Node.ELEMENT_NODE) {
-						stepNode.appendChild((Element) imported);
-					} else if (imported.getNodeType() == Node.ATTRIBUTE_NODE) {
-						stepNode.setAttribute(imported.getNodeName(),imported.getNodeValue());
+					boolean shouldImport = !node.getOwnerDocument().equals(doc);
+					Node child = shouldImport ? doc.importNode(node, true):node.cloneNode(true);
+					if (child.getNodeType() == Node.ELEMENT_NODE) {
+						stepNode.appendChild((Element) child);
+					} else if (child.getNodeType() == Node.ATTRIBUTE_NODE) {
+						stepNode.setAttribute(child.getNodeName(),child.getNodeValue());
 					}
 				}
 			}
 		}
-		removeUselessAttributes(stepNode);
 	}
 
 	protected StepSource getTargetSource() throws EngineException {

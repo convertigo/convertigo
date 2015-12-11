@@ -163,12 +163,11 @@ public class AttributeStep extends Step implements ISchemaAttributeGenerator, IS
 		}
 		
 		Document doc = getOutputDocument();
-		if (!inError()) {
+		if (!inError() && isOutput()) {
 			String namespace = getNodeNameSpace();
 			if (namespace.equals("")) {
-				doc.getDocumentElement().setAttribute(getStepNodeName(), nodeValue);
-				stepNode = doc.getDocumentElement().getAttributeNode(getStepNodeName());
-				stepNode = ((Step)parent).appendChildNode(stepNode);
+				stepNode = doc.createAttribute(getStepNodeName());
+				stepNode.setNodeValue(nodeValue);
 			}
 			else {
 				String namespaceURI = getNodeNameSpaceURI();
@@ -176,15 +175,9 @@ public class AttributeStep extends Step implements ISchemaAttributeGenerator, IS
 					throw new EngineException("Blank namespace URI is not allowed (using namespace '"
 							+ namespace + "' in jAttribute step '" + getName() + "')");
 
-				doc.getDocumentElement().setAttributeNS(
-						namespaceURI,
-						namespace + ":" + getStepNodeName(),
-						nodeValue);
-				doc.getDocumentElement().setAttribute(namespace + ":" + getStepNodeName(), nodeValue);
-				stepNode = doc.getDocumentElement().getAttributeNode(namespace + ":" + getStepNodeName());
+				stepNode = doc.createAttributeNS(namespaceURI, namespace + ":" + getStepNodeName());
+				stepNode.setNodeValue(nodeValue);
 			}
-
-			stepNode = ((Step)parent).appendChildNode(stepNode);
 		}
 		return stepNode;
 	}

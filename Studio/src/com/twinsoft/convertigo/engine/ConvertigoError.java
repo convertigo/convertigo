@@ -92,66 +92,72 @@ public class ConvertigoError {
 		
 		Element error = document.createElement("error");
 		doc.appendChild(error);
-		
-		Text text;
-
-		if (!bHide) {
-			if (context != null) {
-				if (context.projectName != null)
-					error.setAttributeNS("","project",context.projectName);
-				if (context.connectorName != null)
-					error.setAttributeNS("","connector", context.connectorName);
-				if (context.transactionName != null)
-					error.setAttributeNS("","transaction",  context.transactionName);
-				if (context.sequenceName != null)
-					error.setAttributeNS("","sequence",  context.sequenceName);
-			}
-			error.setAttributeNS("","type", getErrorType().getType());
-			
-			Element code = document.createElement("code");
-			text = document.createTextNode(String.valueOf(getErrorCode()));
-			code.appendChild(text);
-			error.appendChild(code);
-
-			Element message = document.createElement("message");
-			text = document.createTextNode(getErrorMessage());
-			message.appendChild(text);
-			error.appendChild(message);
-
-			Element details = document.createElement("details");
-			text = document.createTextNode(getErrorDetails());
-			details.appendChild(text);
-			error.appendChild(details);
-			
-			Element econtext = document.createElement("context");
-			if (context != null) {
-				for (String key : context.keys()) {
-					Object value = context.get(key);
-					if ((value != null) && (value instanceof String)) {
-						Element variable = document.createElement("variable");
-						variable.setAttribute("name", key);
-						variable.setAttribute("value", (String) value);
-						econtext.appendChild(variable);
+		appendOutputNodes(error, context, bHide);
+		return document;
+	}
+	
+	public void appendOutputNodes(Element error, Context context, boolean bHide) throws Exception {
+		if (error != null) {
+			Document document = error.getOwnerDocument();
+			Text text;
+	
+			if (!bHide) {
+				if (context != null) {
+					if (context.projectName != null)
+						error.setAttributeNS("","project",context.projectName);
+					if (context.connectorName != null)
+						error.setAttributeNS("","connector", context.connectorName);
+					if (context.transactionName != null)
+						error.setAttributeNS("","transaction",  context.transactionName);
+					if (context.sequenceName != null)
+						error.setAttributeNS("","sequence",  context.sequenceName);
+				}
+				error.setAttributeNS("","type", getErrorType().getType());
+				
+				Element code = document.createElement("code");
+				text = document.createTextNode(String.valueOf(getErrorCode()));
+				code.appendChild(text);
+				error.appendChild(code);
+	
+				Element message = document.createElement("message");
+				text = document.createTextNode(getErrorMessage());
+				message.appendChild(text);
+				error.appendChild(message);
+	
+				Element details = document.createElement("details");
+				text = document.createTextNode(getErrorDetails());
+				details.appendChild(text);
+				error.appendChild(details);
+				
+				Element econtext = document.createElement("context");
+				if (context != null) {
+					for (String key : context.keys()) {
+						Object value = context.get(key);
+						if ((value != null) && (value instanceof String)) {
+							Element variable = document.createElement("variable");
+							variable.setAttribute("name", key);
+							variable.setAttribute("value", (String) value);
+							econtext.appendChild(variable);
+						}
 					}
 				}
+				
+				error.appendChild(econtext);
+		
+				Element exception = document.createElement("exception");
+				text = document.createTextNode(getThrowable().getClass().getName());
+				exception.appendChild(text);
+				error.appendChild(exception);
+		
+				Element stackTrace = document.createElement("stacktrace");
+				String jss = Log.getStackTrace(getThrowable());
+				jss = jss.replace('\r', ' ');
+				text = document.createTextNode(jss);
+				stackTrace.appendChild(text);
+				error.appendChild(stackTrace);
+		
 			}
-			
-			error.appendChild(econtext);
-	
-			Element exception = document.createElement("exception");
-			text = document.createTextNode(getThrowable().getClass().getName());
-			exception.appendChild(text);
-			error.appendChild(exception);
-	
-			Element stackTrace = document.createElement("stacktrace");
-			String jss = Log.getStackTrace(getThrowable());
-			jss = jss.replace('\r', ' ');
-			text = document.createTextNode(jss);
-			stackTrace.appendChild(text);
-			error.appendChild(stackTrace);
-	
 		}
-		return document;
 	}
 	
 	public static void addXmlSchemaObjects(XmlSchema schema) {

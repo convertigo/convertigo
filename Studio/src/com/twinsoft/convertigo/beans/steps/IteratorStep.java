@@ -49,7 +49,10 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 	private String startIndex = "0";
 	
 	private transient Iterator iterator = null;
-	private transient Integer iterations = null;
+	private transient Integer iStart = null;
+	private transient Integer iStop = null;
+	private transient boolean needToEvaluateStart = true;
+	private transient boolean needToEvaluateStop = true;
 	
 	public IteratorStep() {
 		super();
@@ -59,7 +62,10 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
     public IteratorStep clone() throws CloneNotSupportedException {
     	IteratorStep clonedObject = (IteratorStep) super.clone();
     	clonedObject.iterator = null;
-    	clonedObject.iterations = null;
+    	clonedObject.needToEvaluateStart = needToEvaluateStart;
+    	clonedObject.needToEvaluateStop = needToEvaluateStop;
+    	clonedObject.iStart = iStart;
+    	clonedObject.iStop = iStop;
         return clonedObject;
     }
 
@@ -98,6 +104,24 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 
 	public void setStartIndex(String startIndex) {
 		this.startIndex = startIndex;
+		if (isOriginal()) {
+			this.iStart = getValueOfInteger(startIndex);
+			this.needToEvaluateStart = this.iStart == null;
+		}
+	}
+
+	@Override
+	public String getCondition() {
+		return super.getCondition();
+	}
+
+	@Override
+	public void setCondition(String condition) {
+		super.setCondition(condition);
+		if (isOriginal()) {
+			this.iStop = getValueOfInteger(condition);
+			this.needToEvaluateStop = this.iStop == null;
+		}
 	}
 
 	@Override
@@ -115,11 +139,13 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 				throw new EngineException("Unable to initialize iterator",e);
 			}
 			
+			if (inError()) {
+				Engine.logBeans.warn("(IteratorStep) Skipping step "+ this +" ("+ hashCode()+") because its source is in error");
+				return true;
+			}
+			
+			int start = getLoopStartIndex(javascriptContext, scope);
 			for (int i=0; i < iterator.size(); i++) {
-				if (inError()) {
-					Engine.logBeans.warn("(IteratorStep) Skipping step "+ this +" ("+ hashCode()+") because its source is in error");
-					return true;
-				}
 				if (bContinue && sequence.isRunning()) {
 					int index = iterator.numberOfIterations();
 					Scriptable jsIndex = org.mozilla.javascript.Context.toObject(index, scope);
@@ -129,7 +155,6 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 					Scriptable jsItem = org.mozilla.javascript.Context.toObject(item, scope);
 					scope.put("item", scope, jsItem);
 					
-					int start = evaluateToInteger(javascriptContext, scope, getStartIndex(), "startIndex", true);
 					start = start<0 ? 0:start;
 					if (start > index) {
 						doLoop(javascriptContext, scope);
@@ -158,19 +183,26 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 		super.stepDone();
 	}
 	
-	private Integer evaluateMaxIterationsInteger(Context javascriptContext, Scriptable scope) throws EngineException {
-		String condition = getCondition();
-		if (iterations == null)
-			iterations = evaluateToInteger(javascriptContext, scope, condition, "condition", true);
-		return iterations;
+	private Integer getLoopStartIndex(Context javascriptContext, Scriptable scope) throws EngineException {
+		if (iStart == null || needToEvaluateStart) {
+			iStart = evaluateToInteger(javascriptContext, scope, getStartIndex(), "startIndex", true);
+		}
+		return iStart;
+	}
+
+	private Integer getLoopStopIndex(Context javascriptContext, Scriptable scope) throws EngineException {
+		if (iStop == null || needToEvaluateStop) {
+			iStop = evaluateToInteger(javascriptContext, scope, getCondition(), "condition", true);
+		}
+		return iStop;
 	}
 	
 	@Override
 	protected void doLoop(Context javascriptContext, Scriptable scope) throws EngineException {
 		super.doLoop(javascriptContext, scope);
 		if (iterator.hasMoreElements()) {
-			int maxIterations = evaluateMaxIterationsInteger(javascriptContext, scope);
-			if (!((maxIterations == -1) || (iterator.numberOfIterations() < maxIterations))) {
+			int stop = getLoopStopIndex(javascriptContext, scope);
+			if (!((stop == -1) || (iterator.numberOfIterations() < stop))) {
 				bContinue = false;
 			}
 		}
@@ -209,14 +241,16 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 		private int stepLoop = 1;
 		private NodeList list = null;
 		private int index = 0;
+		private String xpath = null;
 		
 		public Iterator() throws EngineException {
-			step = getSource().getStep();
-			stepLoop = getSource().getLoop();
+			StepSource stepSource = getSource();
+			step = stepSource.getStep();
+			stepLoop = stepSource.getLoop();
+			xpath = stepSource.getXpath();
 		}
 		
 		private void init() throws TransformerException, EngineException {
-			String xpath = getSource().getXpath();
 			if ((list == null) && (step != null) && (xpath != null)) {
 				list = getXPathAPI().selectNodeList(step.getContextNode(stepLoop), step.getContextXpath(xpath));
 			}
@@ -232,7 +266,10 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 				if (list != null) {
 					return (list.getLength() - index > 0);
 				}
-			} catch (Exception e) {reset();}
+			} catch (Exception e) {
+				e.printStackTrace();
+				reset();
+			}
 			
 			return false;
 		}
@@ -243,7 +280,10 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 				if (list != null) {
 					return list.getLength();
 				}
-			} catch (Exception e) {reset();}
+			} catch (Exception e) {
+				e.printStackTrace();
+				reset();
+			}
 			
 			return 0;
 		}
@@ -254,7 +294,9 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 				if (list != null) {
 					return list.item(index++);
 				}
-			} catch (Exception e) {}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			
 			return null;
 		}
@@ -265,7 +307,9 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 				if (list != null) {
 					return list.item(loop-1);
 				}
-			} catch (Exception e) {}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			
 			return null;
 		}
@@ -273,7 +317,6 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 		private void reset() {
 			list = null;
 			index = 0;
-			iterations = null;
 		}
 	}
 }

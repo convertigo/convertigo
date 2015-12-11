@@ -22,18 +22,17 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.xml.namespace.QName;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
-import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
+import com.twinsoft.convertigo.beans.core.IStepSmartTypeContainer;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.engine.ConvertigoError;
 import com.twinsoft.convertigo.engine.Engine;
@@ -41,7 +40,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.ErrorType;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
-public class XMLErrorStep extends StepWithExpressions implements IComplexTypeAffectation {
+public class XMLErrorStep extends StepWithExpressions implements IStepSmartTypeContainer, IComplexTypeAffectation {
 
 	private static final long serialVersionUID = 7008868210812220725L;
 	
@@ -63,6 +62,7 @@ public class XMLErrorStep extends StepWithExpressions implements IComplexTypeAff
 	@Override
     public XMLErrorStep clone() throws CloneNotSupportedException {
     	XMLErrorStep clonedObject = (XMLErrorStep) super.clone();
+    	clonedObject.smartTypes = null;
         return clonedObject;
     }
 
@@ -97,19 +97,15 @@ public class XMLErrorStep extends StepWithExpressions implements IComplexTypeAff
 			eMessage = (eMessage = message.getSingleString(this)) == null ? "" : eMessage;
 			eDetails = (eDetails = details.getSingleString(this)) == null ? "" : eDetails;
 			ConvertigoError err = ConvertigoError.initError(eCode, ErrorType.Project, new StepException(eMessage, eDetails));
-			Document document = err.buildErrorDocument(getSequence().getRequester(), getSequence().context);
-			Element error = (Element) document.getElementsByTagName("error").item(0);
-			NodeList children = error.getChildNodes();
-			for (int i=0; i<children.getLength();i++) {
-				Node node = children.item(i);
-				boolean deep = !node.getNodeName().equalsIgnoreCase("stacktrace") && !node.getNodeName().equalsIgnoreCase("exception");
-				stepNode.appendChild(doc.importNode(node, deep));
+			err.appendOutputNodes(stepNode, getSequence().context, false);
+			try {
+				Element exception = (Element) stepNode.getElementsByTagName("exception").item(0);
+				stepNode.replaceChild(doc.createElement("exception"), exception);
+				Element stacktrace = (Element) stepNode.getElementsByTagName("stacktrace").item(0);
+				stepNode.replaceChild(doc.createElement("stacktrace"), stacktrace);
 			}
-			NamedNodeMap attributes = error.getAttributes();
-			for (int i=0; i<attributes.getLength();i++) {
-				Attr attr = (Attr) attributes.item(i);
-				stepNode.setAttributeNS("", attr.getName(), attr.getNodeValue());
-			}
+			catch (Exception e) {}
+			
 		} catch (Exception e) {
 			setErrorStatus(true);
 			Engine.logBeans.error("An error occured while generating values from XMLErrorStep", e);
@@ -149,5 +145,24 @@ public class XMLErrorStep extends StepWithExpressions implements IComplexTypeAff
 		} catch (Exception e) {
 			return str;
 		}
+	}
+
+	private transient Set<SmartType> smartTypes = null;
+	
+	@Override
+	public Set<SmartType> getSmartTypes() {
+		if (smartTypes != null) {
+			if  (!hasChanged)
+				return smartTypes;
+			else
+				smartTypes.clear();
+		}
+		else {
+			smartTypes = new HashSet<SmartType>();
+		}
+		smartTypes.add(code);
+		smartTypes.add(message);
+		smartTypes.add(details);
+		return smartTypes;
 	}
 }

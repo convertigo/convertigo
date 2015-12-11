@@ -137,7 +137,7 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer, ISch
 	protected Node createStepNode() throws EngineException {
 		Attr stepNode = null;
 		Document doc = getOutputDocument();
-		if (!inError()) {
+		if (!inError() && isOutput()) {
 			boolean useDefaultValue = true;
 			NodeList list = getContextValues();
 			if (list != null) {
@@ -152,8 +152,8 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer, ISch
 							
 							String namespace = getNodeNameSpace();
 							if (namespace.equals("")) {
-								doc.getDocumentElement().setAttribute(snodeName, (snodeValue == null) ? getNodeText():snodeValue);
-								stepNode = doc.getDocumentElement().getAttributeNode(snodeName);
+								stepNode = doc.createAttribute(snodeName);
+								stepNode.setNodeValue(snodeValue);
 							}
 							else {
 								String namespaceURI = getNodeNameSpaceURI();
@@ -161,14 +161,10 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer, ISch
 									throw new EngineException("Blank namespace URI is not allowed (using namespace '"
 											+ namespace + "' in XMLAttribute step '" + getName() + "')");
 	
-								doc.getDocumentElement().setAttributeNS(
-										namespaceURI,
-										namespace + ":" + snodeName,
-										(snodeValue == null) ? getNodeText() : snodeValue);
-								stepNode = doc.getDocumentElement().getAttributeNode(namespace + ":" + snodeName);
+								stepNode = doc.createAttributeNS(namespaceURI, namespace + ":" + snodeName);
+								stepNode.setNodeValue(snodeValue == null ? getNodeText() : snodeValue);
+								
 							}
-							
-							stepNode = ((Step)parent).appendChildNode(stepNode);
 						}
 					}
 				}
@@ -176,9 +172,8 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer, ISch
 			if (useDefaultValue) {
 				String namespace = getNodeNameSpace();
 				if (namespace.equals("")) {
-					doc.getDocumentElement().setAttribute(getStepNodeName(), getNodeText());
-					stepNode = doc.getDocumentElement().getAttributeNode(getStepNodeName());
-					stepNode = ((Step)parent).appendChildNode(stepNode);
+					stepNode = doc.createAttribute(getStepNodeName());
+					stepNode.setNodeValue(getNodeText());
 				}
 				else {
 					String namespaceURI = getNodeNameSpaceURI();
@@ -186,15 +181,10 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer, ISch
 						throw new EngineException("Blank namespace URI is not allowed (using namespace '"
 								+ namespace + "' in XMLAttribute step '" + getName() + "')");
 
-					doc.getDocumentElement().setAttributeNS(
-							namespaceURI,
-							namespace + ":" + getStepNodeName(),
-							getNodeText());
-					doc.getDocumentElement().setAttribute(namespace + ":" + getStepNodeName(), getNodeText());
-					stepNode = doc.getDocumentElement().getAttributeNode(namespace + ":" + getStepNodeName());
+					stepNode = doc.createAttributeNS(namespaceURI, namespace + ":" + getStepNodeName());
+					stepNode.setNodeValue(getNodeText());
+					
 				}
-
-				stepNode = ((Step)parent).appendChildNode(stepNode);
 			}
 		}
 		return stepNode;

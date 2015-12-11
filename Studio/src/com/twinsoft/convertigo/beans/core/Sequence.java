@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.beans.core;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -29,9 +30,12 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
 
@@ -54,13 +58,16 @@ import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.traversal.DocumentTraversal;
+import org.w3c.dom.traversal.NodeFilter;
+import org.w3c.dom.traversal.TreeWalker;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions.AsynchronousStepThread;
 import com.twinsoft.convertigo.beans.steps.BranchStep;
+import com.twinsoft.convertigo.beans.steps.XMLCopyStep;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.beans.variables.TestCaseVariable;
 import com.twinsoft.convertigo.engine.Context;
@@ -100,7 +107,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     
     transient public Hashtable<Long, String> executedSteps = null;
     
-	transient private Hashtable<String, Node> appendedStepElements = null;
+	transient private Hashtable<String, Node> workerElementMap = null;
 	
     transient private List<Step> vAllSteps = null;
     
@@ -167,7 +174,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	clonedObject.loadedSteps = new Hashtable<Long, Step>(10);
     	clonedObject.executedSteps = null;
     	clonedObject.childrenSteps = null;
-    	clonedObject.appendedStepElements = null;
+    	clonedObject.workerElementMap = null;
     	clonedObject.vSteps = new Vector<Step>();
         clonedObject.vAllSteps = null;
         clonedObject.handlePriorities = handlePriorities;
@@ -224,10 +231,12 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 			if (variable != null) {
 				value = variable.getValueOrNull();// new 5.0.3 (may return null)
 				valueToPrint = Visibility.Logs.printValue(variable.getVisibility(), value);
+				if (Engine.logBeans.isDebugEnabled()) {
 				if ((value != null) && (value instanceof String))
 					Engine.logBeans.debug("Default value: " + requestedVariableName + " = \"" + valueToPrint + "\"");
 				else
 					Engine.logBeans.debug("Default value: " + requestedVariableName + " = " + valueToPrint);
+				}
 			}
 		}
 
@@ -283,7 +292,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 					}
 				}
 				else {
-					Engine.logBeans.warn("Sequence: there's no testcase named '" + variableValue + "' for '" +  getName() + "' sequence");
+					if (Engine.logBeans.isInfoEnabled())
+						Engine.logBeans.warn("Sequence: there's no testcase named '" + variableValue + "' for '" +  getName() + "' sequence");
 				}
 				continue;
 			}
@@ -338,10 +348,12 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 			jsObject = ((variableValue == null) ? null:org.mozilla.javascript.Context.toObject(variableValue, scope));
 			scope.put(variableName, scope, jsObject);
 			variableValueToPrint = Visibility.Logs.printValue(variableVisibility,variableValue);
+			if (Engine.logBeans.isDebugEnabled()) {
 			if ((variableValue != null) && (variableValue instanceof String))
 				Engine.logBeans.debug("(Sequence) Declared but not provided sequence variable " + variableName + "=\"" + variableValueToPrint + "\" added to the scripting scope");
 			else
 				Engine.logBeans.debug("(Sequence) Declared but not provided sequence variable " + variableName + "=" + variableValueToPrint + " added to the scripting scope");
+			}
 		}
 		
 
@@ -352,10 +364,12 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 			jsObject = ((variableValue == null) ? null:org.mozilla.javascript.Context.toObject(variableValue, scope));
 			scope.put(variableName2, scope, jsObject);
 			variableValueToPrint = Visibility.Logs.printValue(variableVisibility,variableValue);
+			if (Engine.logBeans.isDebugEnabled()) {
 			if ((variableValue != null) && (variableValue instanceof String))
 				Engine.logBeans.debug("(Sequence) Provided sequence variable " + variableName2 + "=\"" + variableValueToPrint + "\" added (or overridden) to the scripting scope");
 			else
 				Engine.logBeans.debug("(Sequence) Provided sequence variable " + variableName2 + "=" + variableValueToPrint + " added (or overridden) to the scripting scope");
+			}
 		}
     }
 
@@ -475,10 +489,12 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 			
 			Project loadedProject = (Project) loadedProjects.get(projectName);
 			if (loadedProject != null) {
-				Engine.logBeans.trace("Current project name : " + project + ", requested projectName :" + projectName + " already loaded");
+				if (Engine.logBeans.isTraceEnabled())
+					Engine.logBeans.trace("Current project name : " + project + ", requested projectName :" + projectName + " already loaded");
 			}
 			else {
-				Engine.logBeans.trace("Current project name : " + project + ", loading requested projectName :" + projectName);
+				if (Engine.logBeans.isTraceEnabled())
+					Engine.logBeans.trace("Current project name : " + project + ", loading requested projectName :" + projectName);
 				loadedProject = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
 				loadedProjects.put(projectName, loadedProject);
 			}
@@ -493,7 +509,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 				Project p = (Project)loadedProjects.get(projectName);
 				if ((p == null) || ((p != null) && (!p.equals(project)))) {
 					loadedProjects.put(projectName, project);
-					Engine.logBeans.trace("Updated sequence '"+getName()+"' with project "+ projectName +"("+project.hashCode()+")");
+					if (Engine.logBeans.isTraceEnabled())
+						Engine.logBeans.trace("Updated sequence '"+getName()+"' with project "+ projectName +"("+project.hashCode()+")");
 				}
 			}
 		}
@@ -1011,9 +1028,9 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		currentChildStep = 0;
 		xpathApi = new TwsCachedXPathAPI();
 		copies = new Hashtable<String, Step>(100);
-		childrenSteps = new Hashtable<String, Long>(10);
-		executedSteps = new Hashtable<Long, String>(100);
-		appendedStepElements = new Hashtable<String, Node>(100);
+		childrenSteps = new Hashtable<String, Long>(100);
+		executedSteps = new Hashtable<Long, String>(1000);
+		workerElementMap = new Hashtable<String, Node>(1000);
 		
 		insertObjectsInScope();
 	}
@@ -1039,9 +1056,9 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	    	executedSteps.clear();
 	    	executedSteps = null;
     	}
-    	if (appendedStepElements != null) {
-        	appendedStepElements.clear();
-        	appendedStepElements = null;
+    	if (workerElementMap != null) {
+        	workerElementMap.clear();
+        	workerElementMap = null;
     	}
     	if (loadedProjects != null) {
     		if (Engine.isEngineMode()) {
@@ -1050,8 +1067,11 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     			}
     		}
     	}
+    	if (xpathApi != null) {
+    		xpathApi.release();
+        	xpathApi = null;
+    	}
     	stepHttpState = null;
-    	xpathApi = null;
 	}
 	
 	private void resetLoadedStepAsyncThreadRunning(Long stepPriority) {
@@ -1162,7 +1182,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	@Override
 	public void abort() {
 		if (isRunning()) {
-			Engine.logBeans.debug("Sequence '"+ getName() + "' is aborting...");
+			if (Engine.logBeans.isDebugEnabled())
+				Engine.logBeans.debug("Sequence '"+ getName() + "' is aborting...");
 			
 			// Sets abort flag
 			arborting = true;
@@ -1191,7 +1212,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	        		Context ctx = Engine.theApp.contextManager.getContextByName(contextName);
 	        		if (ctx != null) {
 	        			try {
-	        				Engine.logBeans.debug("(Sequence) Aborting requestable for context ("+contextName+") "+ ctx.contextID);
+	        				if (Engine.logBeans.isDebugEnabled())
+	        					Engine.logBeans.debug("(Sequence) Aborting requestable for context ("+contextName+") "+ ctx.contextID);
 	        				ctx.abortRequestable();
 	                	}
 	                	catch (Exception e) {}
@@ -1234,6 +1256,9 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		
     	try {
 	    	if (hasSteps()) {
+	    		Long t1 = System.currentTimeMillis();
+	    		
+	    		// Generate sequence working dom (see also appendStepNode(Step))
 	    		for (int i=0; i < numberOfSteps(); i++) {
 	        		if (isRunning()) {
         				executeNextStep((Step)getSteps().get(i), javascriptContext, scope);
@@ -1242,25 +1267,37 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	            			boolean hasWait = false;
 	            			while (nbAsyncThreadRunning > 0) {
 	            				// If this sequence contains ParallelSteps, waits until child's threads finish
-	            				Engine.logBeans.trace("Sequence '"+ getName() + "' waiting...");
+	            				if (Engine.logBeans.isTraceEnabled())
+	            					Engine.logBeans.trace("Sequence '"+ getName() + "' waiting...");
 	            				Thread.sleep(500);
 	            				hasWait = true;
 	            			}
 	            			if (hasWait) Engine.logBeans.trace("Sequence '"+ getName() + "' ends wait");
 	            		} catch (InterruptedException e) {
-	            			Engine.logBeans.trace("Sequence '"+ getName() + "' has been interrupted");
+	            			if (Engine.logBeans.isTraceEnabled())
+	            				Engine.logBeans.trace("Sequence '"+ getName() + "' has been interrupted");
 	            		}
 	        		}
 	        		if (skipSteps)
 	        			break;
 	    		}
+	    		
+	    		// Finally modify sequence working dom to output dom
+	    		Element root = context.outputDocument.getDocumentElement();
+	    		OutputFilter outputFilter = new OutputFilter(OutputOption.VisibleOnly);
+	    		buildOutputDom(root, outputFilter);
+	    		
+	            Long t2 = System.currentTimeMillis();
+	    		if (Engine.logBeans.isDebugEnabled())
+	    			Engine.logBeans.debug("(Sequence) ended executing steps in :" + (t2-t1) + "ms");
 	    	}
 	    	return true;
     	}
     	finally {
     		arborting = false;
     		skipSteps = false;
-    		Engine.logBeans.debug("Sequence '"+ getName() + "' done");
+    		if (Engine.logBeans.isDebugEnabled())
+    			Engine.logBeans.debug("Sequence '"+ getName() + "' done");
     		
         	try {
         		// Cleans all steps
@@ -1278,6 +1315,159 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	}
     }
 	
+	public static NodeList ouputDomView(NodeList nodeList, OutputFilter outputFilter) {
+		if (nodeList != null) {
+			int len = nodeList.getLength();
+			if (len > 0) {
+				Node node = nodeList.item(0);
+				
+				Document doc = node.getOwnerDocument();
+				Element fake = doc.createElement("fake");
+				Element root = (Element) doc.getDocumentElement().appendChild(fake);
+				
+				for (int i=0; i<len ; i++) {
+					node = nodeList.item(i);
+					root.appendChild(node.cloneNode(true)); // clone removes any userdata
+				}
+				
+	    		buildOutputDom(root, outputFilter);
+				
+				doc.getDocumentElement().removeChild(fake);
+				return fake.getChildNodes();
+			}
+			return nodeList;
+		}
+		return null;
+	}
+	
+	private static void buildOutputDom(Element root, OutputFilter outputFilter) {
+		DocumentTraversal traversal = (DocumentTraversal)root.getOwnerDocument();
+		TreeWalker walker = traversal.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, outputFilter, false);	    		
+		traverseLevel(walker,null,"");
+        outputFilter.doOutPut();
+	}
+	
+	public enum OutputOption {
+		VisibleOnly,
+		UsefullOnly
+	}
+	
+	public class OutputFilter implements NodeFilter {
+		private final Map<Element, List<List<Element>>> map = new LinkedHashMap<Element, List<List<Element>>>();
+		private OutputOption option;
+		
+		public OutputFilter(OutputOption option) {
+			this.option = option;
+		}
+		
+		private List<Element> getToRemoveList(Element key) {
+			List<List<Element>> l = map.get(key);
+			if (l == null) {
+				l = new ArrayList<List<Element>>();
+				l.add(new LinkedList<Element>());
+				l.add(new LinkedList<Element>());
+				map.put(key, l);
+			}
+			return l.get(0);
+		}
+		
+		private List<Element> getToAddList(Element key) {
+			List<List<Element>> l = map.get(key);
+			if (l == null) {
+				l = new ArrayList<List<Element>>();
+				l.add(new LinkedList<Element>());
+				l.add(new LinkedList<Element>());
+				map.put(key, l);
+			}
+			return l.get(1);
+		}
+		
+		private void doOutPut() {
+    		Iterator<Entry<Element, List<List<Element>>>> it = map.entrySet().iterator();
+    		while (it.hasNext()) {
+    			Entry<Element, List<List<Element>>> entry = it.next();
+    			Element key = entry.getKey();
+    			List<List<Element>> value = entry.getValue();
+    			List<Element> l0 = value.get(0);
+    			List<Element> l1 = value.get(1);
+    			//System.out.println("For " + key.getTagName());
+    			//System.out.println("\ttobeAdded "+ l1);
+    			//System.out.println("\ttobeRemoved "+ l0);
+    			
+    			Element firstToRemove = l0.size() > 0 ? l0.get(0):null;
+    			for (Element e : l1) {
+    				try {
+    					key.insertBefore(e, firstToRemove);
+    				}
+    				catch (Exception ex) {
+    					if (Engine.logBeans.isDebugEnabled()) {
+    						Engine.logBeans.debug("(Sequence.OutputFilter) Could not move \""+ e.getTagName() 
+    								+"\" element in \""+ key.getTagName() +"\" element", ex);
+    					}
+    				}
+    			}
+    			for (Element e : l0) {
+    				if (e.getParentNode() != null) {
+    					try {
+    						key.removeChild(e);
+        				}
+        				catch (Exception ex) {
+        					if (Engine.logBeans.isDebugEnabled()) {
+        						Engine.logBeans.debug("(Sequence.OutputFilter) Could not remove \""+ e.getTagName() 
+        								+"\" element from \""+ key.getTagName() +"\" element", ex);
+        					}
+        				}
+    				}
+    			}
+    		}
+		}
+		
+	    public short acceptNode(Node thisNode) { 
+	    	if (thisNode.getNodeType() == Node.ELEMENT_NODE) { 
+	    		Element e = (Element)thisNode;
+	    		if (option.equals(OutputOption.VisibleOnly)) {
+		    		if ("false".equals(e.getUserData(Step.NODE_USERDATA_OUTPUT))) {
+		            	Element p = (Element) e.getParentNode();
+		            	getToRemoveList(p).add(e);
+		            	if (e.getTagName().equals("sequence") || e.getTagName().equals("transaction")) {
+		            		return NodeFilter.FILTER_REJECT;
+		            	}
+		            	return NodeFilter.FILTER_SKIP;
+		            }
+	    		}
+	    		else if (option.equals(OutputOption.UsefullOnly)) {
+	    			if (e.getTagName().equals("sequence") || e.getTagName().equals("transaction")) {
+		            	Element p = (Element) e.getParentNode();
+		            	getToRemoveList(p).add(e);
+		            	return NodeFilter.FILTER_REJECT;
+	    			}
+	    		}
+	        }
+	        return NodeFilter.FILTER_ACCEPT; 
+	    }
+	}
+	
+	private static void traverseLevel(TreeWalker walker, Element topParent, String indent) {
+	    // describe current node:
+	    Element current = (Element) walker.getCurrentNode();
+	    //System.out.println(indent + "- " + ((Element) current).getTagName());
+	    
+	    OutputFilter outputFilter = (OutputFilter)walker.getFilter();
+	    if (topParent != null) {
+	    	Element parent = (Element) current.getParentNode();
+	    	if (parent != null && !topParent.equals(parent))
+	    		outputFilter.getToAddList(topParent).add(current);
+	    }
+	    
+	    // traverse children:
+	    for (Node n = walker.firstChild(); n != null; n = walker.nextSibling()) {
+	      traverseLevel(walker, current, indent + '\t');
+	    }
+	    
+	    // return position to the current (level up):
+	    walker.setCurrentNode(current);
+	}
+	
 	private void removeContexts() {
 		// Remove transaction's context if needed
 		removeTransactionContexts();
@@ -1292,26 +1482,32 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		if (Engine.isEngineMode()) {
 			if (useSameJSessionForSteps()) {
 	    		String sessionID, contextName;
-				Engine.logBeans.debug("(Sequence) Executing deletion of transaction's context for sequence \""+ getName() +"\"");
+	    		if (Engine.logBeans.isDebugEnabled())
+	    			Engine.logBeans.debug("(Sequence) Executing deletion of transaction's context for sequence \""+ getName() +"\"");
 	    		sessionID = getSessionId();
 	    		for (int i=0; i<stepContextNames.size(); i++) {
 	    			contextName = (String)stepContextNames.get(i);
     				String contextID = sessionID + "_" + contextName;
 	    			if (contextName.startsWith("Container-")) { // Only remove context automatically named
-	    				Engine.logBeans.debug("(Sequence) Removing context \""+ contextID +"\"");
+	    				if (Engine.logBeans.isDebugEnabled())
+	    					Engine.logBeans.debug("(Sequence) Removing context \""+ contextID +"\"");
 	    				Engine.theApp.contextManager.remove(contextID);
 	    			}
 	    			else {
-	    				Engine.logBeans.debug("(Sequence) Keeping context \""+ contextID +"\"");
+	    				if (Engine.logBeans.isDebugEnabled())
+	    					Engine.logBeans.debug("(Sequence) Keeping context \""+ contextID +"\"");
 	    			}
 	    		}
-				Engine.logBeans.debug("(Sequence) Deletion of transaction's context for sequence \""+ getName() +"\" done");
+	    		if (Engine.logBeans.isDebugEnabled())
+	    			Engine.logBeans.debug("(Sequence) Deletion of transaction's context for sequence \""+ getName() +"\" done");
 			}
 			else {
 				if (transactionSessionId != null) {
-					Engine.logBeans.debug("(Sequence) Executing deletion of transaction's context for sequence \""+ getName() +"\"");
+					if (Engine.logBeans.isDebugEnabled())
+						Engine.logBeans.debug("(Sequence) Executing deletion of transaction's context for sequence \""+ getName() +"\"");
 					Engine.theApp.contextManager.removeAll(transactionSessionId);
-					Engine.logBeans.debug("(Sequence) Deletion of transaction's context for sequence \""+ getName() +"\" done");
+					if (Engine.logBeans.isDebugEnabled())
+						Engine.logBeans.debug("(Sequence) Deletion of transaction's context for sequence \""+ getName() +"\" done");
 				}
 			}
 		}
@@ -1320,7 +1516,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	private void removeSequenceContext() {
 		if (Engine.isEngineMode()) {
 			if (!context.isAsync) {
-				Engine.logBeans.debug("(Sequence) Requires its context removal");
+				if (Engine.logBeans.isDebugEnabled())
+					Engine.logBeans.debug("(Sequence) Requires its context removal");
 				context.requireRemoval(true);
 			}
 		}
@@ -1334,7 +1531,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 			stepToExecute.xpathApi = xpathApi;
 			stepToExecute.httpState = ((stepToExecute instanceof BranchStep) ? getNewHttpState():getStepHttpState());
 			stepToExecute.executedSteps.putAll(executedSteps);
-			Engine.logBeans.trace("(Sequence) "+step+" ["+step.hashCode()+"] has been copied into "+stepToExecute+" ["+stepToExecute.hashCode()+"]");
+			if (Engine.logBeans.isTraceEnabled())
+				Engine.logBeans.trace("(Sequence) "+step+" ["+step.hashCode()+"] has been copied into "+stepToExecute+" ["+stepToExecute.hashCode()+"]");
     		stepToExecute.checkSymbols();
 			
     		if (stepToExecute.execute(javascriptContext, scope)) {
@@ -1392,62 +1590,71 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		synchronized (this) {
 			Node stepNode = step.getStepNode();
 			if (stepNode != null) {
-				if (step.isOutput()) {
-					Node node = null;
+				workerElementMap.put(step.executeTimeID, stepNode);
+				if (step.isXmlOrOutput()) {
 					Element stepParentElement = findParentStepElement(step);
-					if (stepNode.getNodeType() == Node.ELEMENT_NODE) {
-						String sCopy = ((Element) stepNode).getAttribute("step_copy");
-						boolean isCopy = sCopy != null && sCopy.equals("true");
-						if (isCopy) {
-							NodeList list = ((Element) stepNode).getChildNodes();
-							if (list != null) {
-								int len = list.getLength();
-								for (int i = 0 ; i < len ; i++) {
-									Node child = list.item(i);
-									if ((child != null) && ((child.getNodeType() == Node.ELEMENT_NODE) || (child.getNodeType() == Node.TEXT_NODE))) {
-										node = context.outputDocument.importNode(child, true);
-										stepParentElement.appendChild(node);
-									}
-								}
-							}
-							NamedNodeMap map = ((Element)stepNode).getAttributes();
-							if (map != null) {
-								int len = map.getLength();
-								for (int i = 0 ; i < len ; i++) {
-									Node child = map.item(i);
-									if ((child != null) && ((child.getNodeType() == Node.ATTRIBUTE_NODE))) {
-										stepParentElement.setAttribute(child.getNodeName(),child.getNodeValue());
-									}
-								}
-							}
-
-							stepParentElement.removeAttribute("step_id");
-							stepParentElement.removeAttribute("step_copy");
-							node = stepParentElement;
-						} else {
-							node = context.outputDocument.importNode(stepNode, true);
-							((Element) node).removeAttribute("step_id");
-							stepParentElement.appendChild(node);
+					if (stepParentElement != null) {
+						if (!step.isOutput() && stepNode.getNodeType() == Node.ELEMENT_NODE) {
+							boolean recurse = !(step instanceof StepWithExpressions);
+							// set output mode userdata (used by the TreeWalker OutputFilter)
+							setOutputUserData((Element) stepNode, "false", recurse);
 						}
-					} else if (stepNode.getNodeType() == Node.ATTRIBUTE_NODE) {
-						node = context.outputDocument.importNode(stepNode, true);
-						stepParentElement.setAttributeNode((Attr) node);
-					}
-
-					if (node != null) {
-						appendedStepElements.put(step.executeTimeID, node);
+						
+						if (step instanceof XMLCopyStep) {
+							NodeList children = stepNode.getChildNodes();
+							for (int i=0; i<children.getLength(); i++) {
+								Node copied = children.item(i).cloneNode(true);
+								// set again user data because clone does not preserve it
+								setOutputUserData(copied, String.valueOf(step.isOutput()), true);
+								append(stepParentElement, copied);
+							}
+						}
+						else {
+							append(stepParentElement, stepNode);
+						}
 					}
 				}
 			}
 		}
 	}
     
+	private static Node setOutputUserData(Node node, Object value, boolean recurse) {
+		if (node != null) {
+			// set output mode as userdata (element or attribute)
+			node.setUserData(Step.NODE_USERDATA_OUTPUT, value, null);
+			
+			// recurse on element child nodes only
+			if (node.getNodeType() == Node.ELEMENT_NODE) {
+				if (recurse && node.hasChildNodes()) {
+					NodeList list = node.getChildNodes();
+					for (int i=0; i<list.getLength(); i++) {
+						setOutputUserData(list.item(i), value, recurse);
+					}
+				}
+			}
+		}
+		return node;
+	}
+	
+	private static void append(Element parent, Node node) {
+		if (parent != null) {
+			if (node.getNodeType() == Node.ELEMENT_NODE) {
+				parent.appendChild(node);
+			} else if (node.getNodeType() == Node.ATTRIBUTE_NODE) {
+				parent.setAttributeNode((Attr) node);
+			}
+		}
+	}
+	
 	public synchronized void flushStepDocument(String executeTimeID , Document doc) {
 		Element stepElement = findStepElement(executeTimeID);
 		if (stepElement == null) {
 			stepElement = context.outputDocument.getDocumentElement();
 		}
-		stepElement.appendChild( context.outputDocument.importNode(doc.getDocumentElement(), true) );
+		
+		Node imported = context.outputDocument.importNode(doc.getDocumentElement(), true);
+		setOutputUserData(imported, stepElement.getUserData(Step.NODE_USERDATA_OUTPUT), true);
+		stepElement.appendChild(imported);
 	}
 
 	@Override
@@ -1465,8 +1672,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		return getName() + "_";
 	}
 	
-	private Element findStepElement(String executeTimeID) {
-		Element stepElement = (Element)appendedStepElements.get(executeTimeID);
+	protected Element findStepElement(String executeTimeID) {
+		Element stepElement = (Element)workerElementMap.get(executeTimeID);
 		if (stepElement == null) {
 			stepElement = context.outputDocument.getDocumentElement();
 		}
@@ -1474,22 +1681,28 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	}
 
 	private Element findParentStepElement(Step step) {
-		Step parentStep;
+		Step parentStep = step;
 		try {
-			parentStep = (Step)step.getParent();
+			do {
+				parentStep = (Step)parentStep.getParent();
+			} while (!parentStep.isXmlOrOutput());
+			
 		}
 		catch (ClassCastException e) {
 			return context.outputDocument.getDocumentElement();
 		}
 		
-		Element parentStepElement = (Element)appendedStepElements.get(parentStep.executeTimeID);
+		Element parentStepElement = (Element)workerElementMap.get(parentStep.executeTimeID);
+		if (!parentStep.isOutput()) {
+			setOutputUserData(parentStepElement, "false", false);
+		}
+		
 		if (parentStepElement == null) {
 			return findParentStepElement(parentStep);
 		}
 		return parentStepElement;
 	}
 	
-
 	transient private EventListenerList sequenceListeners = new EventListenerList();
     
     public void addSequenceListener(SequenceListener sequenceListener) {

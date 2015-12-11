@@ -26,6 +26,9 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaElement;
@@ -36,10 +39,11 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
+import com.twinsoft.convertigo.beans.core.IStepSmartTypeContainer;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.EngineException;
 
-public class SetAuthenticatedUserStep extends Step implements IComplexTypeAffectation {
+public class SetAuthenticatedUserStep extends Step implements IStepSmartTypeContainer, IComplexTypeAffectation {
 
 	private static final long serialVersionUID = -1894558458026853410L;
 
@@ -54,6 +58,7 @@ public class SetAuthenticatedUserStep extends Step implements IComplexTypeAffect
 	@Override
     public SetAuthenticatedUserStep clone() throws CloneNotSupportedException {
     	SetAuthenticatedUserStep clonedObject = (SetAuthenticatedUserStep) super.clone();
+    	clonedObject.smartTypes = null;
         return clonedObject;
     }
 
@@ -107,5 +112,22 @@ public class SetAuthenticatedUserStep extends Step implements IComplexTypeAffect
 	
 	public void setUserId(SmartType userId) {
 		this.userid = userId;
+	}
+
+	private transient Set<SmartType> smartTypes = null;
+	
+	@Override
+	public Set<SmartType> getSmartTypes() {
+		if (smartTypes != null) {
+			if  (!hasChanged)
+				return smartTypes;
+			else
+				smartTypes.clear();
+		}
+		else {
+			smartTypes = new HashSet<SmartType>();
+		}
+		smartTypes.add(userid);
+		return smartTypes;
 	}
 }

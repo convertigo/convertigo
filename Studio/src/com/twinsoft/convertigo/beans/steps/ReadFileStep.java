@@ -30,7 +30,6 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.Engine;
@@ -160,11 +159,7 @@ public abstract class ReadFileStep extends Step {
 	
 	private void flushDocument(Document xmlDoc) {
 		if (sequence.runningThread.bContinue) {
-			if (isOutput()) sequence.flushStepDocument(executeTimeID, xmlDoc);
-			Node rootNode = outputDocument.getDocumentElement();
-			Node stepNode = rootNode.getFirstChild();
-			Node newChild = outputDocument.importNode(xmlDoc.getDocumentElement(), true);
-			stepNode.appendChild(newChild);
+			sequence.flushStepDocument(executeTimeID, xmlDoc);
 		}
 	}
 	
