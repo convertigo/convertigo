@@ -36,7 +36,7 @@ public class PutOperationBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/rest/images/putoperation_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/rest/images/putoperation_color_32x32.png";
 
-			resourceBundle = getResourceBundle("res/putOperation");
+			resourceBundle = getResourceBundle("res/PutOperation");
 
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
