@@ -24,6 +24,7 @@ package com.twinsoft.convertigo.beans.core;
 
 import java.util.LinkedList;
 import java.util.List;
+import javax.servlet.http.HttpServletRequest;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -101,16 +102,30 @@ public class UrlMapper extends DatabaseObject {
 	}
 
 	public UrlMapping getMappingByName(String mappingName) throws EngineException {
-		checkSubLoaded();
-		for (UrlMapping mapping : mappings)
-			if (mapping.getName().equalsIgnoreCase(mappingName)) return mapping;
+		for (UrlMapping mapping : getMappingList()) {
+			if (mapping.getName().equalsIgnoreCase(mappingName)) {
+				return mapping;
+			}
+		}
 		throw new EngineException("There is no mapping named \"" + mappingName + "\" found into this project.");
 	}
 	
 	public UrlMapping getMappingByPath(String mappingPath) {
-		checkSubLoaded();
-		for (UrlMapping mapping : mappings)
-			if (mapping.getPath().equalsIgnoreCase(mappingPath)) return mapping;
+		for (UrlMapping mapping : getMappingList()) {
+			if (mapping.getPath().equalsIgnoreCase(mappingPath)) {
+				return mapping;
+			}
+		}
+		return null;
+	}
+	
+	public UrlMappingOperation getMatchingOperation(HttpServletRequest request) {
+		for (UrlMapping mapping : getMappingList()) {
+			UrlMappingOperation urlMappingOperation = mapping.getMatchingOperation(request);
+			if (urlMappingOperation != null) {
+				return urlMappingOperation;
+			}
+		}
 		return null;
 	}
 }

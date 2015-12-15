@@ -22,10 +22,9 @@
 
 package com.twinsoft.convertigo.beans.rest;
 
-import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 
-public class GetOperation extends UrlMappingOperation implements IRestOperation {
+public class GetOperation extends AbstractRestOperation {
 
 	private static final long serialVersionUID = -3507102149014807706L;
 
@@ -40,9 +39,7 @@ public class GetOperation extends UrlMappingOperation implements IRestOperation 
 	}
 
 	@Override
-	public HttpMethodType getHttpMethodType() {
-		return HttpMethodType.GET;
+	public String getMethod() {
+		return HttpMethodType.GET.name();
 	}
-
-	
 }

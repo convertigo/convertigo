@@ -62,7 +62,7 @@ public class UrlMappingWizardPage extends WizardPage {
 		mappingPath = new Text(container, SWT.BORDER | SWT.SINGLE);
 		mappingPath.setFont(new Font(container.getDisplay(), "Tahoma", 10, 0));
 		mappingPath.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		mappingPath.setText("/api/");
+		mappingPath.setText("/");
 		mappingPath.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
 				dialogChanged();
@@ -89,8 +89,8 @@ public class UrlMappingWizardPage extends WizardPage {
 				updateStatus("Path must be specified");
 				return;
 			}
-			if (!path.startsWith("/api/")) {
-				updateStatus("Path must start with \"/api/\"");
+			if (!path.startsWith("/")) {
+				updateStatus("Path must start with \"/\"");
 				return;
 			}
 			

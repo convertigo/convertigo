@@ -38,5 +38,9 @@ public class PathParameter extends UrlMappingParameter {
 		return clonedObject;
 	}
 
+	@Override
+	public Type getType() {
+		return Type.Path;
+	}
 	
 }

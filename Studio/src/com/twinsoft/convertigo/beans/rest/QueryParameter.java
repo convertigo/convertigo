@@ -38,5 +38,9 @@ public class QueryParameter extends UrlMappingParameter {
 		return clonedObject;
 	}
 
+	@Override
+	public Type getType() {
+		return Type.Query;
+	}
 	
 }

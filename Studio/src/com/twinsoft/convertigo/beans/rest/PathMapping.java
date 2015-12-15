@@ -24,9 +24,14 @@ package com.twinsoft.convertigo.beans.rest;
 
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.servlet.http.HttpServletRequest;
 
 import com.twinsoft.convertigo.beans.core.UrlMapping;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 
@@ -35,21 +40,21 @@ public class PathMapping extends UrlMapping {
 	private static final long serialVersionUID = 1966653914675161306L;
 
 	transient private Map<HttpMethodType, UrlMappingOperation> operationMap = new EnumMap<HttpMethodType, UrlMappingOperation>(HttpMethodType.class);
-	
+			
 	public PathMapping() {
 		super();
 	}
 
-	private String path = "";
+	private String path = "/";
 	
 	public String getPath() {
 		return path;
 	}
 
-	public void setPath(String path) {
-		this.path = path;
+	public void setPath(String mappingPath) {
+		this.path = mappingPath;
 	}
-	
+
 	@Override
 	public UrlMapping clone() throws CloneNotSupportedException {
 		PathMapping clonedObject = (PathMapping) super.clone();
@@ -59,13 +64,13 @@ public class PathMapping extends UrlMapping {
 
 	@Override
 	protected void addOperation(UrlMappingOperation operation) throws EngineException {
-		if (operation instanceof IRestOperation) {
-			HttpMethodType httpMethodType = ((IRestOperation)operation).getHttpMethodType(); 
-			if (operationMap.containsKey(httpMethodType)) {
-				throw new EngineException("The Path mapping already contains an operation of type " + httpMethodType.name());
+		if (operation instanceof AbstractRestOperation) {
+			String method = operation.getMethod();
+			if (operationMap.containsKey(HttpMethodType.valueOf(method))) {
+				throw new EngineException("The Path mapping already contains an operation of type " + method);
 			}
 			super.addOperation(operation);
-			operationMap.put(httpMethodType, operation);
+			operationMap.put(HttpMethodType.valueOf(method), operation);
 		} else {
 			throw new EngineException("You cannot add to a Path mapping an operation of type " + operation.getClass().getName());
 		}
@@ -73,16 +78,41 @@ public class PathMapping extends UrlMapping {
 
 	@Override
 	public void removeOperation(UrlMappingOperation operation) throws EngineException {
-		if (operation instanceof IRestOperation) {
-			HttpMethodType httpMethodType = ((IRestOperation)operation).getHttpMethodType(); 
-			if (!operationMap.containsKey(httpMethodType)) {
-				throw new EngineException("The Path mapping does not contain any operation of type " + httpMethodType.name());
+		if (operation instanceof AbstractRestOperation) {
+			String method = operation.getMethod();
+			if (!operationMap.containsKey(HttpMethodType.valueOf(method))) {
+				throw new EngineException("The Path mapping does not contain any operation of type " + method);
 			}
 			super.removeOperation(operation);
-			operationMap.remove(httpMethodType);
+			operationMap.remove(HttpMethodType.valueOf(method));
 		} else {
 			throw new EngineException("You cannot remove from a Path mapping an operation of type " + operation.getClass().getName());
 		}
 	}
 
+	@Override
+	public UrlMappingOperation getMatchingOperation(HttpServletRequest request) {
+		checkSubLoaded();
+		
+		// Check if path is matching against request uri
+		String urlPath = request.getRequestURI();
+		urlPath = urlPath.substring(request.getContextPath().length());
+		
+		String regex = path.replaceAll("\\{([a-zA-Z0-9_]+)\\}", "([^/]*?)");
+		Pattern url_pattern = Pattern.compile(regex);
+		Matcher url_matcher = url_pattern.matcher(urlPath);
+		if (url_matcher.matches()) {
+			Engine.logBeans.debug("(PathMapping) Found \""+path+"\" matching the request");
+			// Check if mapping has an operation for request method
+			UrlMappingOperation operation = operationMap.get(HttpMethodType.valueOf(request.getMethod()));
+			if (operation != null) {
+				Engine.logBeans.debug("(PathMapping) Found \""+operation.getName()+"\" matching the request method");
+				// TODO: Check for parameters and especially required ones
+				
+				return operation;
+			}
+		};
+		
+		return null;
+	}
 }

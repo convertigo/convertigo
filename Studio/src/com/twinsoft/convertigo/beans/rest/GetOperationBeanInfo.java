@@ -31,7 +31,7 @@ public class GetOperationBeanInfo extends MySimpleBeanInfo {
 	public GetOperationBeanInfo() {
 		try {
 			beanClass = GetOperation.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.core.UrlMappingOperation.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.rest.AbstractRestOperation.class;
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/rest/images/getoperation_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/rest/images/getoperation_color_32x32.png";

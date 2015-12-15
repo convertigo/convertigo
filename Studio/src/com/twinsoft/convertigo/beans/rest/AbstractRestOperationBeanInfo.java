@@ -26,17 +26,17 @@ import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
-public class DeleteOperationBeanInfo extends MySimpleBeanInfo {
+public class AbstractRestOperationBeanInfo extends MySimpleBeanInfo {
 
-	public DeleteOperationBeanInfo() {
+	public AbstractRestOperationBeanInfo() {
 		try {
-			beanClass = DeleteOperation.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.rest.AbstractRestOperation.class;
+			beanClass = AbstractRestOperation.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.core.UrlMappingOperation.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/rest/images/deleteoperation_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/rest/images/deleteoperation_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/rest/images/abstractrestoperation_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/rest/images/abstractrestoperation_color_32x32.png";
 
-			resourceBundle = getResourceBundle("res/DeleteOperation");
+			resourceBundle = getResourceBundle("res/AbstractRestOperation");
 
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");

@@ -22,8 +22,13 @@
 
 package com.twinsoft.convertigo.beans.core;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.servlet.http.HttpServletRequest;
 
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -45,7 +50,8 @@ public abstract class UrlMapping extends DatabaseObject {
 
 	public abstract String getPath();
 	public abstract void setPath(String path);
-		
+	public abstract UrlMappingOperation getMatchingOperation(HttpServletRequest request);
+	
 	@Override
 	public String toString() {
 		return getPath();
@@ -105,5 +111,18 @@ public abstract class UrlMapping extends DatabaseObject {
 		for (UrlMappingOperation operation : operations)
 			if (operation.getName().equalsIgnoreCase(operationName)) return operation;
 		throw new EngineException("There is no operation named \"" + operationName + "\" found into this mapping.");
+	}
+
+	public List<String> getPathVariables() {
+		List<String> varList = new ArrayList<String>();
+		Pattern pattern = Pattern.compile("\\{([a-zA-Z0-9_]+)\\}");
+		Matcher matcher = pattern.matcher(getPath());
+		while (matcher.find()) {
+			String path_varname = matcher.group(1);
+			if (!path_varname.isEmpty() && !varList.contains(path_varname)) {
+				varList.add(path_varname);
+			}
+		}
+		return varList;
 	}
 }

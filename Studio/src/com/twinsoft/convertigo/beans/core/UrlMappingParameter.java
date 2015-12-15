@@ -27,6 +27,15 @@ public abstract class UrlMappingParameter extends DatabaseObject {
 
 	private static final long serialVersionUID = -2280875929012349646L;
 
+	private Boolean required = Boolean.TRUE;
+	
+	public enum Type {
+		Path,
+		Query,
+		Body,
+		Form
+	}
+	
 	public UrlMappingParameter() {
 		super();
 		databaseType = "UrlMappingParameter";
@@ -38,4 +47,13 @@ public abstract class UrlMappingParameter extends DatabaseObject {
 		return clonedObject;
 	}
 
+	public abstract Type getType();
+	
+	public Boolean isRequired() {
+		return required;
+	}
+
+	public void setRequired(Boolean required) {
+		this.required = required;
+	}
 }
