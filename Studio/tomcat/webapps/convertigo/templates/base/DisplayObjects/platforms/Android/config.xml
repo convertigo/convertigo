@@ -73,7 +73,7 @@
 	<gap:plugin name="cordova-plugin-console" source="npm" />
 
 	<!-- Native plugin for fullsync project that speedup indexing of documents -->
-	<gap:plugin name=" couchbase-lite-phonegap-plugin" source="npm" />
+	<gap:plugin name="couchbase-lite-phonegap-plugin" source="npm" />
     
 	<!-- Other optional Core plugins, comment them out (ctrl+shit+c) if you want to reduce the package size and permissions -->
 <!--     <gap:plugin name="cordova-plugin-battery-status" source="npm" /> -->

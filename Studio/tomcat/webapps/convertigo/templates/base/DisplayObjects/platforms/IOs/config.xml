@@ -86,7 +86,7 @@
 	<gap:plugin name="cordova-plugin-console" source="npm" />
 	
 	<!-- Native plugin for fullsync project that speedup indexing of documents -->
-	<gap:plugin name=" couchbase-lite-phonegap-plugin" source="npm" />
+	<gap:plugin name="couchbase-lite-phonegap-plugin" source="npm" />
 	
 	<!-- Status bar plugin for iOS 7+ -->
 	<gap:plugin name="cordova-plugin-statusbar" source="npm" />
