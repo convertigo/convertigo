@@ -351,6 +351,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		synchronized (projects) {
 			if (projects.get(name) == project) {
 				projects.remove(name);
+				RestApiManager.getInstance().removeUrlMapper(name);
 			}
 		}
 	}
@@ -358,6 +359,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	public void clearCache(String projectName) {
 		synchronized (projects) {
 			projects.remove(projectName);
+			RestApiManager.getInstance().removeUrlMapper(projectName);
 		}
 	}
 	
@@ -366,6 +368,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			if(projects.containsKey(projectName)) {
 				if (symbolsProjectCheckUndefined(projectName)) {
 					projects.remove(projectName);
+					RestApiManager.getInstance().removeUrlMapper(projectName);
 				}
 			}	
 		}
@@ -941,6 +944,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			
 			synchronized (projects) {
 				projects.put(project.getName(), project);
+				RestApiManager.getInstance().putUrlMapper(project);
 			}
 
 			// Creates xsd/wsdl files (Since 4.6.0)
