@@ -31,6 +31,8 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.twinsoft.convertigo.beans.core.UrlMapping;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
+import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
+import com.twinsoft.convertigo.beans.core.UrlMappingParameter.Type;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
@@ -94,20 +96,28 @@ public class PathMapping extends UrlMapping {
 	public UrlMappingOperation getMatchingOperation(HttpServletRequest request) {
 		checkSubLoaded();
 		
-		// Check if path is matching against request uri
-		String urlPath = request.getRequestURI();
-		urlPath = urlPath.substring(request.getContextPath().length());
-		
-		String regex = path.replaceAll("\\{([a-zA-Z0-9_]+)\\}", "([^/]*?)");
-		Pattern url_pattern = Pattern.compile(regex);
-		Matcher url_matcher = url_pattern.matcher(urlPath);
-		if (url_matcher.matches()) {
-			Engine.logBeans.debug("(PathMapping) Found \""+path+"\" matching the request");
+		// Check if mapping path is matching request path
+		String requestPath = request.getPathInfo();
+		String path_regex = path.replaceAll("\\{([a-zA-Z0-9_]+)\\}", "([^/]+?)");
+		Pattern path_pattern = Pattern.compile(path_regex);
+		Matcher path_matcher = path_pattern.matcher(requestPath);
+		if (path_matcher.matches()) {
+			Engine.logBeans.debug("(PathMapping) Found mapping \""+path+"\" matching the request");
+			
 			// Check if mapping has an operation for request method
 			UrlMappingOperation operation = operationMap.get(HttpMethodType.valueOf(request.getMethod()));
 			if (operation != null) {
-				Engine.logBeans.debug("(PathMapping) Found \""+operation.getName()+"\" matching the request method");
-				// TODO: Check for parameters and especially required ones
+				Engine.logBeans.debug("(PathMapping) Found operation \""+operation.getName()+"\" matching the request method");
+				
+				// Check for required operation parameters
+				for (UrlMappingParameter param :operation.getParameterList()) {
+					if (param.isRequired() && (param.getType() == Type.Query || param.getType() == Type.Form)) {
+						if (request.getParameter(param.getName()) == null) {
+							Engine.logBeans.debug("(PathMapping) Missing required operation's parameter \""+param.getName()+"\"");
+							return null;
+						}
+					}
+				}
 				
 				return operation;
 			}
