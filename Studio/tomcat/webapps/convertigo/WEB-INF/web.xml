@@ -225,6 +225,15 @@
         <url-pattern>/store/*</url-pattern>
 	</filter-mapping>
 	
+    <servlet>
+		<servlet-name>RestApiServlet</servlet-name>
+		<servlet-class>com.twinsoft.convertigo.engine.servlets.RestApiServlet</servlet-class>
+	</servlet>
+    <servlet-mapping>
+        <servlet-name>RestApiServlet</servlet-name>
+        <url-pattern>/api/*</url-pattern>
+    </servlet-mapping>
+	
     <!-- HTTP print entry point -->
 	<!--  Disabled in this version
 	<servlet>
