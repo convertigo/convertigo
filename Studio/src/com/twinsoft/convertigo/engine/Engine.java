@@ -201,9 +201,14 @@ public class Engine {
 	public PluginsManager pluginsManager;
 
 	/**
-	 * The plugins manager
+	 * The CouchDb manager
 	 */
 	public CouchDbManager couchDbManager;
+	
+	/**
+	 * The REST api manager
+	 */
+	public RestApiManager restApiManager;
 	
 	/**
 	 * Loggers
@@ -470,6 +475,13 @@ public class Engine {
 					Engine.theApp.pluginsManager.init();
 				} catch (Exception e) {
 					Engine.logEngine.error("Unable to run the plugins manager.", e);
+				}
+				
+				try {
+					Engine.theApp.restApiManager = RestApiManager.getInstance();
+					Engine.theApp.restApiManager.init();
+				} catch (Exception e) {
+					Engine.logEngine.error("Unable to run the rest api manager.", e);
 				}
 				
 				Engine.logEngine.info("Current working directory is '" + System.getProperty("user.dir") + "'.");
@@ -743,68 +755,82 @@ public class Engine {
 				// running thread engine ID.
 				Engine.startStopDate = 0;
 				
-				Engine.logEngine.info("Removing all contexts");
-				if (Engine.theApp.contextManager != null)
+				if (Engine.theApp.contextManager != null) {
+					Engine.logEngine.info("Removing all contexts");
 					Engine.theApp.contextManager.destroy();
-
+				}
+				
 				Engine.logEngine.info("Resetting statistics");
 				EngineStatistics.reset();
 
-				Engine.logEngine.info("Removing the usage monitor");
-				Engine.theApp.usageMonitor.destroy();
-
-				Engine.logEngine.info("Removing the SQL connections manager");
+				if (Engine.theApp.usageMonitor != null) {
+					Engine.logEngine.info("Removing the usage monitor");
+					Engine.theApp.usageMonitor.destroy();
+				}
+				
 				if (Engine.theApp.sqlConnectionManager != null) {
+					Engine.logEngine.info("Removing the SQL connections manager");
 					Engine.theApp.sqlConnectionManager.destroy();
 				}
 
-				Engine.logEngine.info("Removing the file property manager");
 				if (Engine.theApp.filePropertyManager != null) {
+					Engine.logEngine.info("Removing the file property manager");
 					Engine.theApp.filePropertyManager.destroy();
 				}
 
-				Engine.logEngine.info("Removing the billing manager");
 				if (Engine.theApp.billingManager != null) {
+					Engine.logEngine.info("Removing the billing manager");
 					Engine.theApp.billingManager.destroy();
 				}
 
-				Engine.logEngine.info("Removing the TracePlayer manager");
 				if (Engine.theApp.tracePlayerManager != null) {
+					Engine.logEngine.info("Removing the TracePlayer manager");
 					Engine.theApp.tracePlayerManager.destroy();
 				}
 
-				Engine.logEngine.info("Removing the cache manager");
 				if (Engine.theApp.cacheManager != null) {
+					Engine.logEngine.info("Removing the cache manager");
 					Engine.theApp.cacheManager.destroy();
 				}
 
-				Engine.logEngine.info("Removing the proxy manager");
 				if (Engine.theApp.proxyManager != null) {
+					Engine.logEngine.info("Removing the proxy manager");
 					Engine.theApp.proxyManager.destroy();
 				}
 				
 				if (Engine.theApp.minificationManager != null) {
+					Engine.logEngine.info("Removing the minification manager");
 					Engine.theApp.minificationManager.destroy();
 				}
 
 				if (Engine.theApp.couchDbManager != null) {
+					Engine.logEngine.info("Removing the couchdb manager");
 					Engine.theApp.couchDbManager.destroy();
 				}
 				
 				if (Engine.theApp.rsaManager != null) {
+					Engine.logEngine.info("Removing the rsa manager");
 					Engine.theApp.rsaManager.destroy();
 				}
 				
 				if (Engine.theApp.externalBrowserManager != null) {
+					Engine.logEngine.info("Removing the external browser manager");
 					Engine.theApp.externalBrowserManager.destroy();
 				}
 				
 				if (Engine.theApp.schemaManager != null) {
+					Engine.logEngine.info("Removing the schema manager");
 					Engine.theApp.schemaManager.destroy();
 				}
 
 				if (Engine.theApp.pluginsManager != null) {
+					Engine.logEngine.info("Removing the plugins manager");
 					Engine.theApp.pluginsManager.destroy();
+				}
+				
+				if (Engine.theApp.restApiManager != null) {
+					Engine.logEngine.info("Removing the rest api manager");
+					Engine.theApp.restApiManager.destroy();
 				}
 				
 				// Closing the session manager
@@ -817,20 +843,25 @@ public class Engine {
 				Engine.logEngine.info("Resetting the key manager");
 				KeyManager.reset();
 
-				if (Engine.theApp.schedulerManager != null)
+				if (Engine.theApp.schedulerManager != null) {
+					Engine.logEngine.info("Removing the scheduler manager");
 					Engine.theApp.schedulerManager.destroy();
-
-				Engine.logEngine.info("Removing the database objects manager");
-				if (Engine.theApp.databaseObjectsManager != null)
+				}
+				
+				if (Engine.theApp.databaseObjectsManager != null) {
+					Engine.logEngine.info("Removing the database objects manager");
 					Engine.theApp.databaseObjectsManager.destroy();
+				}
 
-				Engine.logEngine.info("Removing the thread manager");
-				if (Engine.theApp.threadManager != null)
+				if (Engine.theApp.threadManager != null) {
+					Engine.logEngine.info("Removing the thread manager");
 					Engine.theApp.threadManager.destroy();
+				}
 
-				Engine.logEngine.info("Removing the security token manager");
-				if (Engine.theApp.securityTokenManager != null)
+				if (Engine.theApp.securityTokenManager != null) {
+					Engine.logEngine.info("Removing the security token manager");
 					Engine.theApp.securityTokenManager.destroy();
+				}
 
 				Engine.logEngine.info("Unregistering the SAP destination provider");
 				try {
@@ -843,6 +874,11 @@ public class Engine {
 				Engine.logEngine.info("The Convertigo Engine has been successfully stopped.");
 			} finally {
 				Engine.startStopDate = System.currentTimeMillis();
+				
+				if (Engine.theApp.eventManager != null) {
+					Engine.logEngine.info("Removing the event manager");
+					Engine.theApp.eventManager.destroy();
+				}
 				Engine.theApp.eventManager = null;
 
 				isStarted = false;
