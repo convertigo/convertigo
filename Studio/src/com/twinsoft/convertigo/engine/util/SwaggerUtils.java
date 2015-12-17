@@ -19,6 +19,7 @@ import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter.Type;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+
 import io.swagger.parser.SwaggerParser;
 import io.swagger.util.Json;
 import io.swagger.util.Yaml;
@@ -33,6 +34,7 @@ import io.swagger.models.Tag;
 import io.swagger.models.parameters.Parameter;
 import io.swagger.models.parameters.PathParameter;
 import io.swagger.models.parameters.QueryParameter;
+import io.swagger.models.parameters.SerializableParameter;
 
 public class SwaggerUtils {
 
@@ -74,11 +76,7 @@ public class SwaggerUtils {
 				Swagger p_swagger = parse(urlMapper);
 				if (p_swagger != null) {
 					if (p_swagger != null) {
-						Tag tag = new Tag();
-						tag.setName(urlMapper.getProject().getName());
-						tag.setDescription(urlMapper.getProject().getComment());
-						tags.add(tag);
-						
+						tags.addAll(p_swagger.getTags());
 						paths.putAll(p_swagger.getPaths());
 					}
 				}
@@ -118,6 +116,13 @@ public class SwaggerUtils {
 		
 		swagger.setProduces(Arrays.asList("application/json", "application/xml"));
 		
+		List<Tag> tags = new ArrayList<Tag>();
+		Tag tag = new Tag();
+		tag.setName(urlMapper.getProject().getName());
+		tag.setDescription(urlMapper.getProject().getComment());
+		tags.add(tag);
+		swagger.setTags(tags);
+		
 		Map<String, Path> swagger_paths = new HashMap<String, Path>();
 		try {
 			for (UrlMapping urlMapping: urlMapper.getMappingList()) {
@@ -128,8 +133,8 @@ public class SwaggerUtils {
 					s_operation.setProduces(Arrays.asList("application/json", "application/xml"));
 					
 					// Set operation tags
-					List<String> tags = Arrays.asList(""+ project.getName());
-					s_operation.setTags(tags);
+					List<String> list = Arrays.asList(""+ project.getName());
+					s_operation.setTags(list);
 					
 					// Set operation responses
 					Map<String, Response> responses = new HashMap<String, Response>();
@@ -144,6 +149,7 @@ public class SwaggerUtils {
 						PathParameter s_parameter = new PathParameter();
 						s_parameter.setName(pathVarName);
 						s_parameter.setRequired(true);
+						s_parameter.setType("string");
 						s_parameters.add(s_parameter);
 					}
 					for (UrlMappingParameter ump: umo.getParameterList()) {
@@ -155,6 +161,24 @@ public class SwaggerUtils {
 							s_parameter.setName(ump.getName());
 							s_parameter.setDescription(ump.getComment());
 							s_parameter.setRequired(ump.isRequired());
+							if (s_parameter instanceof SerializableParameter) {
+								((SerializableParameter)s_parameter).setType("string"/*param.getType()*/);
+								((SerializableParameter)s_parameter).setCollectionFormat(null/*param.getCollection()*/);
+								
+								/*String value = s_parameter.getValue();
+								if (value != null) {
+									String collection = s_parameter.getCollection();
+									if (collection != null && collection.equals("multi")) {
+										Property items = new StringProperty();
+										items.setDefault(value);
+										((SerializableParameter) s_parameter).setItems(items);
+									}
+									else {
+										((AbstractSerializableParameter<?>)s_parameter).setDefaultValue(value);
+									}
+								}*/
+								
+							}
 							s_parameters.add(s_parameter);
 						}
 					}
