@@ -145,6 +145,7 @@ public class TwsCachedXPathAPI {
 	private static boolean shouldReset(Node last, Node current) {
 		boolean shouldReset = last == null;
 		if (!shouldReset) {
+			/* Does not work in all cases
 			int lastNodeType = last.getNodeType();
 			int currentNodeType = current.getNodeType();
 			
@@ -160,6 +161,8 @@ public class TwsCachedXPathAPI {
 			else {
 				shouldReset = !last.getOwnerDocument().equals(current.getOwnerDocument());
 			}
+		*/
+			shouldReset = !last.equals(current);
 		}
 		return shouldReset;
 	}
