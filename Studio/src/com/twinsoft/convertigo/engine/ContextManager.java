@@ -29,6 +29,8 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -500,13 +502,25 @@ public class ContextManager extends AbstractRunnableManager {
 		// HTTP session maintain its own context list in order to
 		// improve context removal on session unbound process
 		try {
-			HttpSession httpSession = (HttpSession)HttpSessionListener.httpSessions.get(sessionID);
-			ArrayList<Context> contextList = GenericUtils.cast(httpSession.getAttribute("contexts"));
+			HttpSession httpSession = (HttpSession) HttpSessionListener.httpSessions.get(sessionID);
+			List<Context> contextList = GenericUtils.cast(httpSession.getAttribute("contexts"));
+			
 			for (Context context: contextList) {
 				remove(context);
 			}
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
+			if (e instanceof IllegalStateException || e instanceof NullPointerException) {
+				try {
+					for (Iterator<String> i = contexts.keySet().iterator(); i.hasNext();){
+						String contextID = i.next();
+						if (contextID.startsWith(sessionID)) {
+							remove(contextID);
+						}
+					}
+				} catch (Exception e2) {
+					// prevent exception propagation
+				}
+			}
 		}
 	}
     

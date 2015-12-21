@@ -34,7 +34,7 @@ import java.util.*;
  * 2.2 API.
  */
 public class HttpSessionListener implements HttpSessionBindingListener {
-    public static Hashtable<String, HttpSession> httpSessions = new Hashtable<String, HttpSession>(256);
+    public static Map<String, HttpSession> httpSessions = Collections.synchronizedMap(new HashMap<String, HttpSession>(256));
     
     public void valueBound(HttpSessionBindingEvent event) {
         try {
