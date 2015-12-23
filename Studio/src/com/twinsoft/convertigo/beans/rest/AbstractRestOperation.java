@@ -105,7 +105,7 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 		String connectorName = count == 3 ? st.nextToken():"";
 		String transactionName = count == 3 ? st.nextToken():"";
 		
-		String h_Accept = request.getHeader(HeaderName.Accept.name());
+		String h_Accept = request.getHeader(HeaderName.Accept.value());
 		
 		String targetUrl = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
 		targetUrl += (targetUrl.endsWith("/") ? "":"/") + "projects/"+ projectName + "/";
@@ -122,7 +122,7 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 				postMethod = new PostMethod(targetUrl);
 
 				/* HEADERS */
-				postMethod.setRequestHeader(HeaderName.ContentType.name(), "application/x-www-form-urlencoded;charset=UTF-8");
+				postMethod.setRequestHeader(HeaderName.ContentType.value(), "application/x-www-form-urlencoded;charset=UTF-8");
 				
 				/* PARAMETERS */
 				// Add requestable parameter(s)
@@ -210,18 +210,6 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 					statusCode = Engine.theApp.httpClient.executeMethod(hostConfiguration, postMethod, httpState);
 					Engine.logBeans.debug("(AbstractRestOperation) \""+ getName() +"\" requestable response status code: "+ statusCode);
 					
-					// Retrieve response Content-Type
-					Header h_ContentType = postMethod.getResponseHeader(HeaderName.ContentType.name());
-					if (h_ContentType != null) {
-						responseContenType = h_ContentType.getValue();
-					}
-					
-					// Retrieve response content
-					if (statusCode != -1) {
-						content = postMethod.getResponseBodyAsString();
-					}
-					Engine.logBeans.trace("(AbstractRestOperation) \""+ getName() +"\" requestable response content:\n"+ content + "\n");
-					
 					// Response Headers
 					if (Engine.logBeans.isTraceEnabled()) {
 						Header[] responseHeaders = postMethod.getResponseHeaders();
@@ -232,6 +220,18 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 						}
 						Engine.logBeans.trace(buf.toString());
 					}
+					
+					// Retrieve response Content-Type
+					Header h_ContentType = postMethod.getResponseHeader(HeaderName.ContentType.value());
+					if (h_ContentType != null) {
+						responseContenType = h_ContentType.getValue();
+					}
+					
+					// Retrieve response content
+					if (statusCode != -1) {
+						content = postMethod.getResponseBodyAsString();
+					}
+					Engine.logBeans.trace("(AbstractRestOperation) \""+ getName() +"\" requestable response content:\n"+ content + "\n");
 					
 				}
 				catch (MalformedURLException e) {
@@ -258,7 +258,7 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 			
 			// Set response content-type header
 			if (responseContenType != null) {
-				response.addHeader(HeaderName.ContentType.name(), responseContenType);
+				response.addHeader(HeaderName.ContentType.value(), responseContenType);
 			}
 			
 			// Set response content
