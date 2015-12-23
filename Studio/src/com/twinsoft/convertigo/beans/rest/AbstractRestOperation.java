@@ -195,20 +195,20 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 					}
 					
 					// Request Headers
-					if (Engine.logBeans.isDebugEnabled()) {
+					if (Engine.logBeans.isTraceEnabled()) {
 						Header[] requestHeaders = postMethod.getRequestHeaders();
 						StringBuffer buf = new StringBuffer();
-						buf.append("(AbstractRestOperation) \""+ getName() +"\" request headers:\n");
+						buf.append("(AbstractRestOperation) \""+ getName() +"\" requestable request headers:\n");
 						for (Header header: requestHeaders) {
 							buf.append(" " + header.getName() + "=" + header.getValue() + "\n");
 						}
-						Engine.logBeans.debug(buf.toString());
+						Engine.logBeans.trace(buf.toString());
 					}
 					
 					// Invoke requestable
 					Engine.logBeans.debug("(AbstractRestOperation) \""+ getName() +"\" executing requestable \""+ targetRequestableQName +"\"");
 					statusCode = Engine.theApp.httpClient.executeMethod(hostConfiguration, postMethod, httpState);
-					Engine.logBeans.debug("(AbstractRestOperation) \""+ getName() +"\" response status code: "+ statusCode);
+					Engine.logBeans.debug("(AbstractRestOperation) \""+ getName() +"\" requestable response status code: "+ statusCode);
 					
 					// Retrieve response Content-Type
 					Header h_ContentType = postMethod.getResponseHeader(HeaderName.ContentType.name());
@@ -220,17 +220,17 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 					if (statusCode != -1) {
 						content = postMethod.getResponseBodyAsString();
 					}
-					Engine.logBeans.trace("(AbstractRestOperation) \""+ getName() +"\" response content:\n"+ content + "\n");
+					Engine.logBeans.trace("(AbstractRestOperation) \""+ getName() +"\" requestable response content:\n"+ content + "\n");
 					
 					// Response Headers
-					if (Engine.logBeans.isDebugEnabled()) {
+					if (Engine.logBeans.isTraceEnabled()) {
 						Header[] responseHeaders = postMethod.getResponseHeaders();
 						StringBuffer buf = new StringBuffer();
-						buf.append("(AbstractRestOperation) \""+ getName() +"\" response headers:\n");
+						buf.append("(AbstractRestOperation) \""+ getName() +"\" requestable response headers:\n");
 						for (Header header: responseHeaders) {
 							buf.append(" " + header.getName() + "=" + header.getValue() + "\n");
 						}
-						Engine.logBeans.debug(buf.toString());
+						Engine.logBeans.trace(buf.toString());
 					}
 					
 				}
@@ -241,7 +241,7 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 					Engine.logBeans.error("(AbstractRestOperation) \""+ getName() +"\" : http invoke failed", e);
 					throw e;
 				} catch (IOException e) {
-					Engine.logBeans.error("(AbstractRestOperation) \""+ getName() +"\" : get response failed", e);
+					Engine.logBeans.error("(AbstractRestOperation) \""+ getName() +"\" : get response body failed", e);
 					throw e;
 				}
 				finally {
