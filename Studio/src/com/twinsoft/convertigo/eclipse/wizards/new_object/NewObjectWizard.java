@@ -74,6 +74,7 @@ import com.twinsoft.convertigo.beans.core.UrlMapper;
 import com.twinsoft.convertigo.beans.core.UrlMapping;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
+import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.references.ImportXsdSchemaReference;
 import com.twinsoft.convertigo.beans.references.RestServiceReference;
@@ -252,6 +253,10 @@ public class NewObjectWizard extends Wizard {
 			else if (beanClass.equals(UrlMappingParameter.class)) {
 				objectExplorerPageTitle = "New Mapping Parameter";
 				objectExplorerPageMessage = "Please select a mapping parameter template.";
+			}
+			else if (beanClass.equals(UrlMappingResponse.class)) {
+				objectExplorerPageTitle = "New Mapping Response";
+				objectExplorerPageMessage = "Please select a mapping response template.";
 			}
 			
 			addBeanPages(objectExplorerPageTitle, objectExplorerPageMessage, beanClass);

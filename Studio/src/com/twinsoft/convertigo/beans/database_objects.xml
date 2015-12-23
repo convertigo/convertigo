@@ -179,6 +179,15 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PathMapping"/>
 				</bean>
 			</beans>
+			<beans groupname="Responses">
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.rest.OperationResponse">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.GetOperation"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PostOperation"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PutOperation"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.DeleteOperation"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.HeadOperation"/>
+				</bean>
+			</beans>
 			<beans groupname="Parameters">
 				<!-- <bean enable="false" documented="false" classname="com.twinsoft.convertigo.beans.rest.PathParameter">
 				</bean>-->

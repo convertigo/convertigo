@@ -1884,6 +1884,20 @@
                </objectState>
             </enablement>
          </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateUrlMappingResponseAction"
+               enablesFor="1"
+               icon="icons/studio/menu/urlmappingresponse_color_16x16.png"
+               id="convertigo.action.newUrlMappingResponse"
+               label="Response"
+               menubarPath="convertigo.menu.new/content">
+            <enablement>
+               <objectState
+                     name="folderType"
+                     value="20">
+               </objectState>
+            </enablement>
+         </action>
          <menu
                id="convertigo.menu.new"
                label="New"
@@ -3036,6 +3050,13 @@
 	               icon="icons/studio/menu/urlmappingparameter_color_16x16.png"
 	               id="convertigo.action.newUrlMappingParameter"
 	               label="Parameter"
+	               menubarPath="convertigo.menu.new/content"/>
+	         <action
+	               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateUrlMappingResponseAction"
+	               enablesFor="1"
+	               icon="icons/studio/menu/urlmappingresponse_color_16x16.png"
+	               id="convertigo.action.newUrlMappingResponse"
+	               label="Response"
 	               menubarPath="convertigo.menu.new/content"/>
 	      </objectContribution>
    </extension>

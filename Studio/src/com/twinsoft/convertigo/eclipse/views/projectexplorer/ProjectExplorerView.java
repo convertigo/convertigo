@@ -137,6 +137,7 @@ import com.twinsoft.convertigo.beans.core.UrlMapper;
 import com.twinsoft.convertigo.beans.core.UrlMapping;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
+import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
@@ -211,6 +212,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UnloadedProje
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UrlMapperTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UrlMappingOperationTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UrlMappingParameterTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UrlMappingResponseTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UrlMappingTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject2;
@@ -263,6 +265,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public static final int TREE_OBJECT_TYPE_DBO_URLMAPPING = 0x116;
 	public static final int TREE_OBJECT_TYPE_DBO_URLMAPPINGOPERATION = 0x117;
 	public static final int TREE_OBJECT_TYPE_DBO_URLMAPPINGPARAMETER = 0x118;
+	public static final int TREE_OBJECT_TYPE_DBO_URLMAPPINGRESPONSE = 0x119;
 
 	public static final int TREE_OBJECT_TYPE_DBO_PROPERTY_TABLE = 0x300;
 	public static final int TREE_OBJECT_TYPE_DBO_PROPERTY_TABLE_ROW = 0x301;
@@ -1341,6 +1344,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_PARAMETERS;
 							databaseObjectTreeObject = new UrlMappingParameterTreeObject(viewer, (UrlMappingParameter) databaseObject, false);
 							
+						} else if (databaseObject instanceof UrlMappingResponse) {
+							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_RESPONSES;
+							databaseObjectTreeObject = new UrlMappingResponseTreeObject(viewer, (UrlMappingResponse) databaseObject, false);
+							
 						} else if (databaseObject instanceof Reference) {
 							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_REFERENCES;
 							databaseObjectTreeObject = new ReferenceTreeObject(viewer, (Reference) databaseObject, false);
@@ -2262,6 +2269,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			}
 			else if (databaseObject instanceof UrlMappingParameter) {
 				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_URLMAPPINGPARAMETER;
+			}
+			else if (databaseObject instanceof UrlMappingResponse) {
+				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_URLMAPPINGRESPONSE;
 			}
 			else if (databaseObject instanceof Criteria) {
 				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_CRITERIA;

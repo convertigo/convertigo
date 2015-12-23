@@ -43,6 +43,7 @@ public abstract class UrlMappingOperation extends DatabaseObject {
 	public UrlMappingOperation clone() throws CloneNotSupportedException {
 		UrlMappingOperation clonedObject = (UrlMappingOperation)super.clone();
 		clonedObject.parameters = new LinkedList<UrlMappingParameter>();
+		clonedObject.responses = new LinkedList<UrlMappingResponse>();
 		return clonedObject;
 	}
 
@@ -71,6 +72,8 @@ public abstract class UrlMappingOperation extends DatabaseObject {
     public void add(DatabaseObject databaseObject) throws EngineException {
 		if (databaseObject instanceof UrlMappingParameter) {
 			addParameter((UrlMappingParameter) databaseObject);
+		} else if (databaseObject instanceof UrlMappingResponse) {
+			addResponse((UrlMappingResponse) databaseObject);
 		} else {
 			throw new EngineException("You cannot add to an URL mapping operation a database object of type " + databaseObject.getClass().getName());
 		}
@@ -80,6 +83,8 @@ public abstract class UrlMappingOperation extends DatabaseObject {
     public void remove(DatabaseObject databaseObject) throws EngineException {
 		if (databaseObject instanceof UrlMappingParameter) {
 			removeParameter((UrlMappingParameter) databaseObject);
+		} else if (databaseObject instanceof UrlMappingResponse) {
+			removeResponse((UrlMappingResponse) databaseObject);
 		} else {
 			throw new EngineException("You cannot remove from an URL mapping operation a database object of type " + databaseObject.getClass().getName());
 		}
@@ -118,4 +123,35 @@ public abstract class UrlMappingOperation extends DatabaseObject {
 			if (parameter.getName().equalsIgnoreCase(parameterName)) return parameter;
 		throw new EngineException("There is no parameter named \"" + parameterName + "\" found into this operation.");
 	}
+	
+	/**
+	 * The list of available responses for this operation.
+	 */
+	transient private List<UrlMappingResponse> responses = new LinkedList<UrlMappingResponse>();
+		
+	protected void addResponse(UrlMappingResponse response) throws EngineException {
+		checkSubLoaded();
+		String newDatabaseObjectName = getChildBeanName(responses, response.getName(), response.bNew);
+		response.setName(newDatabaseObjectName);
+		responses.add(response);
+		super.add(response);
+	}
+
+	protected void removeResponse(UrlMappingResponse response) throws EngineException {
+		checkSubLoaded();
+		responses.remove(response);
+	}
+	
+	public List<UrlMappingResponse> getResponseList() {
+		checkSubLoaded();
+		return sort(responses);
+	}
+
+	public UrlMappingResponse getResponseByCode(Integer statusCode) throws EngineException {
+		checkSubLoaded();
+		for (UrlMappingResponse response : responses)
+			if (response.getStatusCode().equals(statusCode)) return response;
+		throw new EngineException("There is no response \"" + statusCode + "\" status code found into this operation.");
+	}
+	
 }

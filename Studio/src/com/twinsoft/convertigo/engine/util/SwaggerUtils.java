@@ -20,6 +20,7 @@ import com.twinsoft.convertigo.beans.core.IMappingRefModel;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter.Type;
+import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 
@@ -43,6 +44,7 @@ import io.swagger.models.parameters.Parameter;
 import io.swagger.models.parameters.PathParameter;
 import io.swagger.models.parameters.QueryParameter;
 import io.swagger.models.parameters.SerializableParameter;
+import io.swagger.models.properties.RefProperty;
 
 public class SwaggerUtils {
 
@@ -161,13 +163,6 @@ public class SwaggerUtils {
 					List<String> list = Arrays.asList(""+ project.getName());
 					s_operation.setTags(list);
 					
-					// Set operation responses
-					Map<String, Response> responses = new HashMap<String, Response>();
-					Response resp200 = new Response();
-					resp200.description("successful operation");
-					responses.put("200", resp200);
-					s_operation.setResponses(responses);
-					
 					// Set operation parameters
 					List<Parameter> s_parameters = new ArrayList<Parameter>();
 					for (String pathVarName: urlMapping.getPathVariableNames()) {
@@ -225,6 +220,32 @@ public class SwaggerUtils {
 						}
 					}
 					s_operation.setParameters(s_parameters);
+					
+					// Set operation responses
+					Map<String, Response> responses = new HashMap<String, Response>();
+					for (UrlMappingResponse umr: umo.getResponseList()) {
+						String statusCode = umr.getStatusCode();
+						if (!statusCode.isEmpty()) {
+							if (!responses.containsKey(statusCode)) {
+								Response response = new Response();
+								response.setDescription(umr.getStatusText());
+								if (umr instanceof IMappingRefModel) {
+									String modelreference = ((IMappingRefModel)umr).getModelReference();
+									if (!modelreference.isEmpty()) {
+										RefProperty refProperty = new RefProperty(modelreference);
+										response.setSchema(refProperty);
+									}
+								}
+								responses.put(statusCode, response);
+							}
+						}
+					}
+					if (responses.isEmpty()) {
+						Response resp200 = new Response();
+						resp200.description("successful operation");
+						responses.put("200", resp200);
+					}
+					s_operation.setResponses(responses);
 					
 					// Add operation to path
 					String s_method = umo.getMethod().toLowerCase();

@@ -28,6 +28,7 @@ import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.core.UrlMapping;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
+import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.statements.HTTPStatement;
@@ -111,6 +112,12 @@ public class WalkHelper {
 			if (before(databaseObject, UrlMappingParameter.class)) {
 				for (UrlMappingParameter parameter : urlMappingOperation.getParameterList()) {
 					walk(parameter);
+				}
+			}
+			
+			if (before(databaseObject, UrlMappingResponse.class)) {
+				for (UrlMappingResponse response : urlMappingOperation.getResponseList()) {
+					walk(response);
 				}
 			}
 		} else if (databaseObject instanceof Sequence) {
