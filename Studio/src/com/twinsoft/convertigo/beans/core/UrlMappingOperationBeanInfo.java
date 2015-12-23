@@ -39,7 +39,12 @@ public class UrlMappingOperationBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[0];
+			properties = new PropertyDescriptor[1];
+			
+            properties[0] = new PropertyDescriptor("targetRequestable", beanClass, "getTargetRequestable", "setTargetRequestable");
+			properties[0].setDisplayName(getExternalizedString("property.targetRequestable.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.targetRequestable.short_description"));
+			properties[0].setPropertyEditorClass(getEditorClass("NamedSourceSelectorEditor"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

@@ -20,41 +20,37 @@
  * $Date$
  */
 
-package com.twinsoft.convertigo.beans.core;
+package com.twinsoft.convertigo.beans.rest;
 
+import com.twinsoft.convertigo.beans.core.IMappingRefModel;
+import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 
-public abstract class UrlMappingParameter extends DatabaseObject {
+public class BodyParameter extends UrlMappingParameter implements IMappingRefModel {
 
-	private static final long serialVersionUID = -2280875929012349646L;
+	private static final long serialVersionUID = 4569438940311244772L;
 
-	private Boolean required = Boolean.TRUE;
-	
-	public enum Type {
-		Path,
-		Query,
-		Body,
-		Form,
-		Header
-	}
-	
-	public UrlMappingParameter() {
+	public BodyParameter() {
 		super();
-		databaseType = "UrlMappingParameter";
 	}
-	
+
 	@Override
-	public UrlMappingParameter clone() throws CloneNotSupportedException {
-		UrlMappingParameter clonedObject = (UrlMappingParameter)super.clone();
+	public BodyParameter clone() throws CloneNotSupportedException {
+		BodyParameter clonedObject = (BodyParameter) super.clone();
 		return clonedObject;
 	}
 
-	public abstract Type getType();
-	
-	public Boolean isRequired() {
-		return required;
+	@Override
+	public Type getType() {
+		return Type.Body;
 	}
-
-	public void setRequired(Boolean required) {
-		this.required = required;
+	
+	private String modelReference = "";
+	
+	public String getModelReference() {
+		return modelReference;
+	}
+	
+	public void setModelReference(String modelReference) {
+		this.modelReference = modelReference;
 	}
 }

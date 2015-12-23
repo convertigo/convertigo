@@ -182,12 +182,27 @@
 			<beans groupname="Parameters">
 				<!-- <bean enable="false" documented="false" classname="com.twinsoft.convertigo.beans.rest.PathParameter">
 				</bean>-->
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.rest.HeaderParameter">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.GetOperation"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PostOperation"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PutOperation"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.DeleteOperation"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.HeadOperation"/>
+				</bean>
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.rest.QueryParameter">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.GetOperation"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PostOperation"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PutOperation"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.DeleteOperation"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.HeadOperation"/>
+				</bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.rest.FormParameter">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PostOperation"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PutOperation"/>
+				</bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.rest.BodyParameter">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PostOperation"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PutOperation"/>
 				</bean>
 			</beans>
 		</category>

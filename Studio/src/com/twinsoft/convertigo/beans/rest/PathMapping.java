@@ -22,11 +22,9 @@
 
 package com.twinsoft.convertigo.beans.rest;
 
+import java.io.IOException;
 import java.util.EnumMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import javax.servlet.http.HttpServletRequest;
 
 import com.twinsoft.convertigo.beans.core.UrlMapping;
@@ -97,24 +95,39 @@ public class PathMapping extends UrlMapping {
 		checkSubLoaded();
 		
 		// Check if mapping path is matching request path
-		String requestPath = request.getPathInfo();
-		String path_regex = path.replaceAll("\\{([a-zA-Z0-9_]+)\\}", "([^/]+?)");
-		Pattern path_pattern = Pattern.compile(path_regex);
-		Matcher path_matcher = path_pattern.matcher(requestPath);
-		if (path_matcher.matches()) {
+		Map<String, String> varMap = getPathVariableValues(request);
+		if (!varMap.isEmpty()) {
 			Engine.logBeans.debug("(PathMapping) Found mapping \""+path+"\" matching the request");
 			
 			// Check if mapping has an operation for request method
 			UrlMappingOperation operation = operationMap.get(HttpMethodType.valueOf(request.getMethod()));
 			if (operation != null) {
-				Engine.logBeans.debug("(PathMapping) Found operation \""+operation.getName()+"\" matching the request method");
+				Engine.logBeans.debug("(PathMapping) Found operation \""+operation.getName()+"\" matching the "+request.getMethod()+" request method");
 				
 				// Check for required operation parameters
 				for (UrlMappingParameter param :operation.getParameterList()) {
-					if (param.isRequired() && (param.getType() == Type.Query || param.getType() == Type.Form)) {
-						if (request.getParameter(param.getName()) == null) {
-							Engine.logBeans.debug("(PathMapping) Missing required operation's parameter \""+param.getName()+"\"");
-							return null;
+					if (param.isRequired()) {
+						if (param.getType() == Type.Query || param.getType() == Type.Form) {
+							if (request.getParameter(param.getName()) == null) {
+								Engine.logBeans.debug("(PathMapping) Missing required operation's parameter \""+param.getName()+"\"");
+								return null;
+							}
+						}
+						if (param.getType() == Type.Header) {
+							if (request.getHeader(param.getName()) == null) {
+								Engine.logBeans.debug("(PathMapping) Missing required operation's header \""+param.getName()+"\"");
+								return null;
+							}
+						}
+						if (param.getType() == Type.Body) {
+							try {
+								if (request.getInputStream() == null) {
+									Engine.logBeans.debug("(PathMapping) Missing required operation's body parameter");
+									return null;
+								}
+								// TODO check for contentType is in consumes
+							} catch (IOException e) {
+							}
 						}
 					}
 				}

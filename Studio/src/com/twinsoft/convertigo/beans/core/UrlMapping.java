@@ -23,8 +23,10 @@
 package com.twinsoft.convertigo.beans.core;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -113,7 +115,7 @@ public abstract class UrlMapping extends DatabaseObject {
 		throw new EngineException("There is no operation named \"" + operationName + "\" found into this mapping.");
 	}
 
-	public List<String> getPathVariables() {
+	public List<String> getPathVariableNames() {
 		List<String> varList = new ArrayList<String>();
 		Pattern pattern = Pattern.compile("\\{([a-zA-Z0-9_]+)\\}");
 		Matcher matcher = pattern.matcher(getPath());
@@ -125,4 +127,31 @@ public abstract class UrlMapping extends DatabaseObject {
 		}
 		return varList;
 	}
+	
+	public Map<String, String> getPathVariableValues(HttpServletRequest request) {
+		Map<String, String> varMap = new LinkedHashMap<String, String>();
+		String requestPath = request.getPathInfo();
+		String url_regex = getPath().replaceAll("\\{([a-zA-Z0-9_]+)\\}", "([^/]+?)");
+		Pattern url_pattern = Pattern.compile(url_regex);
+		Matcher url_matcher = url_pattern.matcher(requestPath);
+		if (url_matcher.matches()) {
+			Pattern var_pattern = Pattern.compile("\\{([a-zA-Z0-9_]+)\\}");
+			Matcher var_matcher = var_pattern.matcher(getPath());
+			int i = 1;
+			while (var_matcher.find()) {
+				try {
+					String varName = var_matcher.group(1);
+					String varValue = url_matcher.group(i++);
+					if (varName != null && !varName.isEmpty()) {
+						varMap.put(varName, varValue);
+					}
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return varMap;
+	}
+	
 }

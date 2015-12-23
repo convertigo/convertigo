@@ -24,6 +24,10 @@ package com.twinsoft.convertigo.beans.core;
 
 import java.util.LinkedList;
 import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import com.twinsoft.convertigo.engine.EngineException;
 
 public abstract class UrlMappingOperation extends DatabaseObject {
@@ -42,8 +46,19 @@ public abstract class UrlMappingOperation extends DatabaseObject {
 		return clonedObject;
 	}
 
+	abstract public String getMethod();
+	abstract protected boolean canAddParameter(UrlMappingParameter parameter);
+	abstract public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws EngineException;
+
+	private String targetRequestable = "";
 	
-	public abstract String getMethod();
+	public String getTargetRequestable() {
+		return targetRequestable;
+	}
+
+	public void setTargetRequestable(String targetRequestable) {
+		this.targetRequestable = targetRequestable;
+	}
 	
 	@Override
 	public List<DatabaseObject> getAllChildren() {	
@@ -77,6 +92,9 @@ public abstract class UrlMappingOperation extends DatabaseObject {
 	transient private List<UrlMappingParameter> parameters = new LinkedList<UrlMappingParameter>();
 		
 	protected void addParameter(UrlMappingParameter parameter) throws EngineException {
+		if (!canAddParameter(parameter)) {
+			throw new EngineException("You cannot add to this URL mapping operation a database object of type " + parameter.getClass().getName());
+		}
 		checkSubLoaded();
 		String newDatabaseObjectName = getChildBeanName(parameters, parameter.getName(), parameter.bNew);
 		parameter.setName(newDatabaseObjectName);
@@ -84,7 +102,7 @@ public abstract class UrlMappingOperation extends DatabaseObject {
 		super.add(parameter);
 	}
 
-	public void removeParameter(UrlMappingParameter parameter) throws EngineException {
+	protected void removeParameter(UrlMappingParameter parameter) throws EngineException {
 		checkSubLoaded();
 		parameters.remove(parameter);
 	}

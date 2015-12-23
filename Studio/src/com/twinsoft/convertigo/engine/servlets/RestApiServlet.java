@@ -5,6 +5,7 @@ import java.io.Writer;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
+
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -13,7 +14,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.twinsoft.convertigo.beans.core.UrlMapper;
-import com.twinsoft.convertigo.beans.core.UrlMapping;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -78,57 +78,70 @@ public class RestApiServlet extends HttpServlet {
 		}
 		// Handle REST request
 		else {
-			Collection<UrlMapper> collection = RestApiManager.getInstance().getUrlMappers();
-			
-			if (collection.size() > 0) {
-				if (Engine.logEngine.isDebugEnabled()) {
-					StringBuffer buf = new StringBuffer();
-					buf.append("(RestApiServlet) Request headers:\n");
-					Enumeration<String> headerNames = request.getHeaderNames();
-					while (headerNames.hasMoreElements()) {
-						String headerName = headerNames.nextElement();
-						buf.append(" " + headerName + "=" + request.getHeader(headerName) + "\n");
-					}
-					Engine.logEngine.debug(buf.toString());
-					
-					Engine.logEngine.debug("(RestApiServlet) Request parameters: "+ 
-												Collections.list(request.getParameterNames()));
-				}
+			try {
+				Collection<UrlMapper> collection = RestApiManager.getInstance().getUrlMappers();
 				
-				// Found a matching operation
-				UrlMappingOperation urlMappingOperation = null;
-				for (UrlMapper urlMapper : collection) {
-					urlMappingOperation = urlMapper.getMatchingOperation(request);
+				if (collection.size() > 0) {
+					// Found a matching operation
+					UrlMappingOperation urlMappingOperation = null;
+					for (UrlMapper urlMapper : collection) {
+						urlMappingOperation = urlMapper.getMatchingOperation(request);
+						if (urlMappingOperation != null) {
+							break;
+						}
+					}
+					
+					// Handle request
 					if (urlMappingOperation != null) {
-						break;
-					}
-				}
-				
-				if (urlMappingOperation != null) {
-					// TODO : Handle request
-					StringBuffer buf = new StringBuffer();
-					buf.append("Not yet implemented...\n\n");
-					buf.append("Found a matching operation for request:\n");
-					buf.append(" project: " + urlMappingOperation.getProject().getName() + 
-								", mapping: "+ ((UrlMapping) urlMappingOperation.getParent()).getPath() + 
-								", operation: "+urlMappingOperation.getName()+"\n");
+						StringBuffer buf;
+						
+						// Request headers
+						if (Engine.logEngine.isDebugEnabled()) {
+							buf = new StringBuffer();
+							buf.append("(RestApiServlet) Request headers:\n");
+							Enumeration<String> headerNames = request.getHeaderNames();
+							while (headerNames.hasMoreElements()) {
+								String headerName = headerNames.nextElement();
+								String headerValue = request.getHeader(headerName);
+								buf.append(" " + headerName + "=" + headerValue + "\n");
+							}
+							Engine.logEngine.debug(buf.toString());
 
-					// Write response
-					Writer writer = response.getWriter();
-	                writer.write(buf.toString());
-					
-					// Request handled
-					Engine.logEngine.debug("(RestApiServlet) Request successfully handled");
+							Engine.logEngine.debug("(RestApiServlet) Request parameters: "+ 
+													Collections.list(request.getParameterNames()));
+						}
+						
+						// Handle request
+		                urlMappingOperation.handleRequest(request, response);
+		                Engine.logEngine.debug("(RestApiServlet) Response status code: "+ response.getStatus());
+		                
+						// Response headers
+						if (Engine.logEngine.isDebugEnabled()) {
+			    			buf = new StringBuffer();
+			    			buf.append("(RestApiServlet) Response headers:\n");
+			    			Collection<String> headerNames = response.getHeaderNames();
+			    			for (String headerName: headerNames) {
+			    				String headerValue = response.getHeader(headerName);
+		    					buf.append(" " + headerName + "=" + headerValue + "\n");
+			    			}
+			    			Engine.logEngine.debug(buf.toString());
+						}
+						
+						Engine.logEngine.debug("(RestApiServlet) Request successfully handled");
+					}
+					else {
+						Engine.logEngine.debug("(RestApiServlet) No matching operation for request");
+						super.service(request, response);
+					}
 				}
 				else {
-					Engine.logEngine.debug("(RestApiServlet) No matching operation for request");
+					Engine.logEngine.debug("(RestApiServlet) No mapping defined");
 					super.service(request, response);
 				}
 			}
-			else {
-				Engine.logEngine.debug("(RestApiServlet) No mapping defined");
-				super.service(request, response);
-			}
+    		catch (Exception e) {
+    			throw new ServletException(e);
+    		}
 		}
 	}
 }

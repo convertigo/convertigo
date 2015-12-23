@@ -45,6 +45,16 @@ public class UrlMapper extends DatabaseObject {
 		return clonedObject;
 	}
 
+	private String models = "";
+	
+	public String getModels() {
+		return models;
+	}
+
+	public void setModels(String models) {
+		this.models = models;
+	}
+
 	@Override
 	public List<DatabaseObject> getAllChildren() {	
 		List<DatabaseObject> rep = super.getAllChildren();

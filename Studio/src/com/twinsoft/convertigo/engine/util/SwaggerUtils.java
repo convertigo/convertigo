@@ -5,8 +5,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -14,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.UrlMapper;
 import com.twinsoft.convertigo.beans.core.UrlMapping;
+import com.twinsoft.convertigo.beans.core.IMappingRefModel;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter.Type;
@@ -25,12 +28,17 @@ import io.swagger.util.Json;
 import io.swagger.util.Yaml;
 import io.swagger.models.Contact;
 import io.swagger.models.Info;
+import io.swagger.models.Model;
 import io.swagger.models.Operation;
 import io.swagger.models.Path;
+import io.swagger.models.RefModel;
 import io.swagger.models.Response;
 import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
 import io.swagger.models.Tag;
+import io.swagger.models.parameters.BodyParameter;
+import io.swagger.models.parameters.FormParameter;
+import io.swagger.models.parameters.HeaderParameter;
 import io.swagger.models.parameters.Parameter;
 import io.swagger.models.parameters.PathParameter;
 import io.swagger.models.parameters.QueryParameter;
@@ -123,6 +131,23 @@ public class SwaggerUtils {
 		tags.add(tag);
 		swagger.setTags(tags);
 		
+		Map<String, Model> swagger_models = new HashMap<String, Model>();		
+		try {
+			String models = urlMapper.getModels();
+			if (!models.isEmpty()) {
+				ObjectMapper mapper = Json.mapper();
+				JsonNode definitionNode = mapper.readTree(models);
+				for (Iterator<Entry<String, JsonNode>> it = GenericUtils.cast(definitionNode.fields()); it.hasNext();) {
+					Entry<String, JsonNode> entry = it.next();
+					swagger_models.put(entry.getKey().toString(), mapper.convertValue(entry.getValue(), Model.class));
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		swagger.setDefinitions(swagger_models);
+		
+		
 		Map<String, Path> swagger_paths = new HashMap<String, Path>();
 		try {
 			for (UrlMapping urlMapping: urlMapper.getMappingList()) {
@@ -145,7 +170,7 @@ public class SwaggerUtils {
 					
 					// Set operation parameters
 					List<Parameter> s_parameters = new ArrayList<Parameter>();
-					for (String pathVarName: urlMapping.getPathVariables()) {
+					for (String pathVarName: urlMapping.getPathVariableNames()) {
 						PathParameter s_parameter = new PathParameter();
 						s_parameter.setName(pathVarName);
 						s_parameter.setRequired(true);
@@ -157,6 +182,23 @@ public class SwaggerUtils {
 						if (ump.getType() == Type.Query) {
 							s_parameter = new QueryParameter();
 						}
+						else if (ump.getType() == Type.Form) {
+							s_parameter = new FormParameter();
+						}
+						else if (ump.getType() == Type.Body) {
+							s_parameter = new BodyParameter();
+							if (ump instanceof IMappingRefModel) {
+								String modelreference = ((IMappingRefModel)ump).getModelReference();
+								if (!modelreference.isEmpty()) {
+									RefModel refModel = new RefModel(modelreference);
+									((BodyParameter)s_parameter).setSchema(refModel);
+								}
+							}
+						}
+						else if (ump.getType() == Type.Header) {
+							s_parameter = new HeaderParameter();
+						}
+						
 						if (s_parameter != null) {
 							s_parameter.setName(ump.getName());
 							s_parameter.setDescription(ump.getComment());
