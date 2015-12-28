@@ -34,6 +34,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
@@ -72,7 +73,8 @@ import com.twinsoft.convertigo.engine.dbo_explorer.DboUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class ObjectsExplorerComposite extends Composite {
-
+	static private Pattern removeTag = Pattern.compile("</?\\w+ ?/?>");
+	
 	protected Color FOREGROUND_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND);
 	protected Color BACKGROUND_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
 	protected Color FOREGROUND_SELECTED_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_BLUE);
@@ -535,8 +537,7 @@ public class ObjectsExplorerComposite extends Composite {
 	
 		if("".equals(beansCategory.getName())) {
 			composite = composites[0];
-		}
-		else {
+		} else {
 			for(int i=0; i < items.length; i++) {
 				if(items[i].getText().equals(beansCategory.getName())) {
 					composite = composites[i];
@@ -548,7 +549,7 @@ public class ObjectsExplorerComposite extends Composite {
 		label.setImage(beanImage);
 		label.setText(beanName);
 		label.setAlignment(SWT.LEFT);
-		label.setToolTipText(beanShortDescription);
+		label.setToolTipText(removeTag.matcher(beanShortDescription).replaceAll(""));
 		label.setCursor(handCursor);
 
 		label.setLayoutData(new RowData());
