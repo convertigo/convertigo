@@ -17,7 +17,7 @@
 	<classpathentry kind="lib" path="bin/" sourcepath="src"/>
 	<classpathentry kind="lib" path="lib/internal/crysec-090918.jar"/>
 	<classpathentry kind="lib" path="lib/internal/ui-090918.jar"/>
-	<classpathentry kind="lib" path="lib/internal/util-v39827.jar" sourcepath="/ConvertigoLibs/src"/>
+	<classpathentry kind="lib" path="lib/internal/util-v41019.jar" sourcepath="/ConvertigoLibs/src"/>
 	<classpathentry kind="lib" path="lib/internal/vdx-090918.jar"/>
 	<classpathentry kind="lib" path="lib/internal/vt220-v34405.jar"/>
 	<classpathentry kind="lib" path="lib/internal/ms.jar"/>
@@ -34,7 +34,7 @@
 	<classpathentry kind="lib" path="lib/apache/xmlgraphics/xmlgraphics-commons-1.4.jar"/>
 	<classpathentry kind="lib" path="lib/internal/bull-v24323.jar"/>
 	<classpathentry kind="lib" path="lib/internal/phaos.jar"/>
-	<classpathentry kind="lib" path="lib/internal/tas-v39827.jar" sourcepath="/ConvertigoLibs/src"/>
+	<classpathentry kind="lib" path="lib/internal/tas-v41019.jar" sourcepath="/ConvertigoLibs/src"/>
 	<classpathentry kind="lib" path="lib/internal/api-v39827.jar" sourcepath="/ConvertigoLibs/src"/>
 	<classpathentry kind="lib" path="lib/internal/twinj-v28353.jar"/>
 	<classpathentry kind="lib" path="lib/internal/aviva-111114.jar"/>

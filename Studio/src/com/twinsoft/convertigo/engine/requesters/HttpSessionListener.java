@@ -22,11 +22,25 @@
 
 package com.twinsoft.convertigo.engine.requesters;
 
-import javax.servlet.http.*;
+import java.io.File;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpSessionBindingEvent;
+import javax.servlet.http.HttpSessionBindingListener;
+
+import org.apache.commons.io.FileUtils;
 
 import com.twinsoft.convertigo.engine.Engine;
-
-import java.util.*;
+import com.twinsoft.tas.KeyManager;
+import com.twinsoft.tas.TASException;
 
 /**
  * This class is a workaround class, allowing to detect HTTP session
@@ -34,17 +48,32 @@ import java.util.*;
  * 2.2 API.
  */
 public class HttpSessionListener implements HttpSessionBindingListener {
-    public static Map<String, HttpSession> httpSessions = Collections.synchronizedMap(new HashMap<String, HttpSession>(256));
+	private static final DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy-hh:mm:ss.SSS");
+    private static final Map<String, HttpSession> httpSessions = new HashMap<String, HttpSession>();
     
     public void valueBound(HttpSessionBindingEvent event) {
         try {
             Engine.logContext.debug("HTTP session starting...");
             HttpSession httpSession = event.getSession();
             String httpSessionID = httpSession.getId();
-            httpSessions.put(httpSessionID, httpSession);
+            synchronized (httpSessions) {
+                httpSessions.put(httpSessionID, httpSession);				
+			}
             Engine.logContext.debug("HTTP session started [" + httpSessionID + "]");
-        }
-        catch(Exception e) {
+            KeyManager.start(com.twinsoft.api.Session.EmulIDSE);
+        } catch(TASException e) {
+        	if (e.isOverflow()) {
+        		String line = dateFormat.format(new Date()) + "\t" + e.getCvMax() + "\t" + e.getCvCurrent() + "\n";
+        		try {
+					FileUtils.write(new File(Engine.LOG_PATH + "/Session License exceeded.log"), line, true);
+				} catch (IOException e1) {
+					Engine.logContext.error("Failed to write the 'Session License exceeded.log' file", e1);
+				}
+        	} else {
+	        	event.getSession().setAttribute("__exception", e);
+	        	event.getSession().setMaxInactiveInterval(1);
+        	}
+        } catch(Exception e) {
             Engine.logContext.error("Exception during binding HTTP session listener", e);
         }
     }
@@ -54,12 +83,37 @@ public class HttpSessionListener implements HttpSessionBindingListener {
             Engine.logContext.debug("HTTP session stopping...");
             HttpSession httpSession = event.getSession();
             String httpSessionID = httpSession.getId();
+
             if (Engine.theApp != null) Engine.theApp.contextManager.removeAll(httpSessionID);
-            httpSessions.remove(httpSessionID);
+            removeSession(httpSessionID);
+            
             Engine.logContext.debug("HTTP session stopped [" + httpSessionID + "]");
-        }
-        catch(Exception e) {
+        } catch(Exception e) {
             Engine.logContext.error("Exception during unbinding HTTP session listener", e);
+        }
+    }
+    
+    static public void removeSession(String httpSessionID) {
+        synchronized (httpSessions) {
+            if (httpSessions.remove(httpSessionID) != null) {
+            	KeyManager.stop(com.twinsoft.api.Session.EmulIDSE);
+            }
+        }    	
+    }
+    
+    static public HttpSession getHttpSession(String sessionID) {
+        synchronized (httpSessions) {
+        	return httpSessions.get(sessionID);
+        }
+    }
+    
+    static public void removeAllSession() {
+        synchronized (httpSessions) {
+        	for (Iterator<Entry<String, HttpSession>> iEntry = httpSessions.entrySet().iterator(); iEntry.hasNext(); iEntry = httpSessions.entrySet().iterator()) {
+        		Entry<String, HttpSession> entry = iEntry.next();
+        		entry.getValue().setMaxInactiveInterval(1);
+        		removeSession(entry.getKey());
+        	}
         }
     }
 }

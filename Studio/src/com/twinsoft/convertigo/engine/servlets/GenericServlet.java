@@ -366,13 +366,17 @@ public abstract class GenericServlet extends HttpServlet {
 	protected void removeSession(HttpServletRequest request, int interval) {
 		if (Engine.isEngineMode()) {
 			Engine.logContext.debug("[GenericServlet] End of session required => try to invalidate session");
-			HttpSession httpSession = request.getSession();
-			boolean isAdminSession = "true".equals((String) httpSession.getAttribute("administration"));
-			if (!isAdminSession && Engine.theApp.contextManager.isSessionEmtpy(httpSession.getId())) {
-				Engine.logContext
-						.debug("[GenericServlet] The owner HTTP session is empty => invalidating HTTP session in "
-								+ interval + "s.");
-				httpSession.setMaxInactiveInterval(interval);
+			try {
+				HttpSession httpSession = request.getSession();
+				boolean isAdminSession = "true".equals((String) httpSession.getAttribute("administration"));
+				if (!isAdminSession && Engine.theApp.contextManager.isSessionEmtpy(httpSession.getId())) {
+					Engine.logContext
+							.debug("[GenericServlet] The owner HTTP session is empty => invalidating HTTP session in "
+									+ interval + "s.");
+					httpSession.setMaxInactiveInterval(interval);
+				}
+			} catch (Exception e) {
+				Engine.logContext.debug("[GenericServlet] End of session required => failed to get the session: " + e);
 			}
 		}
 	}

@@ -77,13 +77,13 @@ public class GetStatus extends XmlService {
 
 		// We list each keys to know how are valid and what is the SE key
 		Iterator<?> iter = KeyManager.keys.values().iterator();
-		String keyString = null;
 		int nbValidKey = 0;
 		boolean licenceMismatch = true;
+		Key seKey = null;
 		while (iter.hasNext()) {
 			Key key = (Key)iter.next();
 			if (key.emulatorID == com.twinsoft.api.Session.EmulIDSE) {
-				keyString = key.sKey;
+				seKey = key;
 				licenceMismatch = false;
 				
 			}
@@ -99,17 +99,14 @@ public class GetStatus extends XmlService {
 		
 		TWSKey twsKey = new TWSKey(); 	twsKey.CreateKey(3);
 		
-		if (keyString != null && !keyString.isEmpty()) {
-			//We decypher the founded SE key
-			String[] twsKeyInfos = twsKey.decypherbis(keyString).split(";");
-			
-			iCategory = Integer.parseInt(twsKeyInfos[1]);
-			iStations = Integer.parseInt(twsKeyInfos[2]);
-			iNumberOfDays = Integer.parseInt(twsKeyInfos[4]);
+		if (seKey != null) {			
+			iCategory = 15;
+			iStations = seKey.licence;
+			iNumberOfDays = seKey.expiration;
 
 			//We search the licence expiry date
 			if (iNumberOfDays != 0) {
-				expiredDate = new Date((long)(iNumberOfDays)*1000*60*60*24);;
+				expiredDate = new Date((long) (iNumberOfDays) * 1000 * 60 * 60 * 24);
 				SimpleDateFormat formater = new SimpleDateFormat("MM/dd/yyyy");
 				endDate = formater.format(expiredDate);
 			}

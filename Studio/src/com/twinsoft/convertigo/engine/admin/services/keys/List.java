@@ -85,7 +85,7 @@ public class List extends XmlService{
         			
         			Element keyElement = document.createElement("key");
         			keyElement.setAttribute("text", key.sKey);
-        			keyElement.setAttribute("value", Integer.toString( key.cv + (key.emulatorID == com.twinsoft.api.Session.EmulIDSE ? 990000000 : 0 ) ) );
+        			keyElement.setAttribute("value", Integer.toString(key.cv));
         			keyElement.setAttribute("evaluation",key.bDemo ? "true" : "false");
         			keyElement.setAttribute("expired",key.cv == 0 ? "true" : "false");
         			keysElement.appendChild(keyElement);

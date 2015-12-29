@@ -73,15 +73,11 @@ function updateKeysList(xml) {
 		var $name = $x_category.attr("name");
 		$category.find(".key-category-name").text($name === "Standard Edition" ? 
 				"Convertigo " + (parseInt(nb_valid_keys) > 1 ? "Extended Edition" : "Standard Edition") : $name );
-		if ($name !== "Standard Edition") {
-			$category.find(".key-category-total").text($x_category.attr("total"));
-			$category.find(".key-category-remaining").text($x_category.attr("remaining"));
-			$category.find(".key-category-used").text((parseInt($x_category.attr('total')) - parseInt($x_category.attr('remaining'))));
-		} else {
-			$category.find(".key-category-total").parent().remove();
-			$category.find(".key-category-used").parent().remove();
-			$category.find(".key-category-remaining").parent().remove();
-		}
+		
+		$category.find(".key-category-total").text($x_category.attr("total"));
+		$category.find(".key-category-remaining").text($x_category.attr("remaining"));
+		$category.find(".key-category-used").text((parseInt($x_category.attr('total')) - parseInt($x_category.attr('remaining'))));
+			
 		var $category_table = $category.find("table:first");
 		$x_category.find("key").each(function (i) {
 			var $x_key = $(this);
@@ -89,14 +85,16 @@ function updateKeysList(xml) {
 			$key.addClass(i % 2 == 0 ? "main_even" : "main_odd" )
 			$key.find(".key-text").text($x_key.attr('text'));
 			$key.find(".key-value").text($x_key.attr('value'));
+			
 			if ($(this).attr('evaluation') != "true" || $(this).attr('expired') != "true") {
 				$key.find(".key-expired").hide();
 			}
-			if ($name === "Standard Edition") {
-				$key.find(".key-connections").text("licence number");
-			}
 			
 			$category_table.prepend($key);
+			
+			if ($name === "Standard Edition") {
+				$category_table.find("td:contains('simultaneous connections')").text("simultaneous sessions");
+			}
 		});
 		
 		$("#keysListContent").append($category);

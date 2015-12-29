@@ -30,16 +30,17 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Text;
 
+import com.twinsoft.api.Session;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+import com.twinsoft.tas.KeyManager;
 
 @ServiceDefinition(
 		name = "List",
@@ -81,28 +82,31 @@ public class List extends XmlService{
         rootElement.appendChild(connectionsListElement);
         
         Element contextsInUseElement = document.createElement("contextsInUse");
-        Text connectedUsersTextNode = document.createTextNode("" + Engine.theApp.contextManager.getNumberOfContexts());
-        contextsInUseElement.appendChild(connectedUsersTextNode);
+        contextsInUseElement.setTextContent("" + Engine.theApp.contextManager.getNumberOfContexts());
         rootElement.appendChild(contextsInUseElement);
         
         Element contextsNumberElement = document.createElement("contextsNumber");
-        Text contextsNumberTextNode = document.createTextNode("" + EnginePropertiesManager.getProperty(PropertyName.CONVERTIGO_MAX_CONTEXTS));
-        contextsNumberElement.appendChild(contextsNumberTextNode);
+        contextsNumberElement.setTextContent("" + EnginePropertiesManager.getProperty(PropertyName.CONVERTIGO_MAX_CONTEXTS));
         rootElement.appendChild(contextsNumberElement);
         
+        Element sessionsInUseElement = document.createElement("sessionsInUse");
+        sessionsInUseElement.setTextContent("" + (KeyManager.getMaxCV(Session.EmulIDSE) - KeyManager.getCV(Session.EmulIDSE)));
+        rootElement.appendChild(sessionsInUseElement);
+        
+        Element sessionsNumberElement = document.createElement("sessionsNumber");
+        sessionsNumberElement.setTextContent("" + KeyManager.getMaxCV(Session.EmulIDSE));
+        rootElement.appendChild(sessionsNumberElement);
+        
         Element threadsInUseElement = document.createElement("threadsInUse");
-        Text threadsInUseTextNode = document.createTextNode("" + com.twinsoft.convertigo.beans.core.RequestableObject.nbCurrentWorkerThreads);
-        threadsInUseElement.appendChild(threadsInUseTextNode);
+        threadsInUseElement.setTextContent("" + com.twinsoft.convertigo.beans.core.RequestableObject.nbCurrentWorkerThreads);
         rootElement.appendChild(threadsInUseElement);
         
         Element threadsNumberElement = document.createElement("threadsNumber");
-        Text threadsNumberTextNode = document.createTextNode(EnginePropertiesManager.getProperty(PropertyName.DOCUMENT_THREADING_MAX_WORKER_THREADS));
-        threadsNumberElement.appendChild(threadsNumberTextNode);
+        threadsNumberElement.setTextContent(EnginePropertiesManager.getProperty(PropertyName.DOCUMENT_THREADING_MAX_WORKER_THREADS));
         rootElement.appendChild(threadsNumberElement);
         
         Element httpTimeoutElement = document.createElement("httpTimeout");
-        Text httpTimeoutTextNode = document.createTextNode(formatTime(request.getSession().getMaxInactiveInterval()));
-        httpTimeoutElement.appendChild(httpTimeoutTextNode);
+        httpTimeoutElement.setTextContent(formatTime(request.getSession().getMaxInactiveInterval()));
         rootElement.appendChild(httpTimeoutElement);
         
         String order = request.getParameter("sortParam");
