@@ -311,7 +311,7 @@ public class ContextManager extends AbstractRunnableManager {
 		// HTTP session maintain its own context list in order to
 		// improve context removal on session unbound process
 		try {
-			HttpSession httpSession = (HttpSession)HttpSessionListener.httpSessions.get(sessionID);
+			HttpSession httpSession = HttpSessionListener.getHttpSession(sessionID);
 			synchronized (httpSession) {
 				ArrayList<Context> contextList = GenericUtils.cast(httpSession.getAttribute("contexts"));
 				int size = contextList.size();
@@ -373,7 +373,9 @@ public class ContextManager extends AbstractRunnableManager {
         synchronized(contexts) {
         	context = contexts.remove(contextID);
         }
-        remove(context);
+        if (context != null) {
+        	remove(context);
+        }
     }
     
     public void remove(Context context) {
@@ -461,7 +463,7 @@ public class ContextManager extends AbstractRunnableManager {
 			// See also #4198 which fix a regression
 			String sessionID = context.httpSession != null ? context.httpSession.getId() :
 									context.contextID.substring(0,context.contextID.indexOf("_"));
-			HttpSession httpSession = (HttpSession)HttpSessionListener.httpSessions.get(sessionID);
+			HttpSession httpSession = HttpSessionListener.getHttpSession(sessionID);
 			if (httpSession != null) {
 				synchronized (httpSession) {
 					try {
@@ -502,7 +504,7 @@ public class ContextManager extends AbstractRunnableManager {
 		// HTTP session maintain its own context list in order to
 		// improve context removal on session unbound process
 		try {
-			HttpSession httpSession = (HttpSession) HttpSessionListener.httpSessions.get(sessionID);
+			HttpSession httpSession = HttpSessionListener.getHttpSession(sessionID);
 			List<Context> contextList = GenericUtils.cast(httpSession.getAttribute("contexts"));
 			
 			for (Context context: contextList) {

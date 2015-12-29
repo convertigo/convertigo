@@ -24,11 +24,13 @@ var params="";
 var desc="&desc";
 
 function updateConnectionsList(xml) {
-	$("#connectionsContextsInUse").html($(xml).find("contextsInUse").text());
-	$("#connectionsContextsNumber").html($(xml).find("contextsNumber").text());
-	$("#connectionsThreadsInUse").html($(xml).find("threadsInUse").text());
-	$("#connectionsThreadsNumber").html($(xml).find("threadsNumber").text());
-	$("#connectionsHttpTimeout").html($(xml).find("httpTimeout").text());
+	$("#connectionsContextsInUse").text($(xml).find("contextsInUse").text());
+	$("#connectionsContextsNumber").text($(xml).find("contextsNumber").text());
+	$("#sessionsInUse").text($(xml).find("sessionsInUse").text());
+	$("#sessionsNumber").text($(xml).find("sessionsNumber").text());
+	$("#connectionsThreadsInUse").text($(xml).find("threadsInUse").text());
+	$("#connectionsThreadsNumber").text($(xml).find("threadsNumber").text());
+	$("#connectionsHttpTimeout").text($(xml).find("httpTimeout").text());
 
 	$("#connectionsList").jqGrid('clearGridData');
 

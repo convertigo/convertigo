@@ -273,6 +273,9 @@ public abstract class ServletRequester extends GenericRequester {
 		if (httpSession.getAttribute("__sessionListener") == null) {
 			Engine.logContext.trace("Inserting HTTP session listener into the HTTP session");
 			httpSession.setAttribute("__sessionListener", new HttpSessionListener());
+			if (httpSession.getAttribute("__exception") != null) {
+				throw new RuntimeException((Throwable) httpSession.getAttribute("__exception"));
+			}
 		}
 	}
 }
