@@ -53,7 +53,7 @@ public class RemoveSessionStep extends Step {
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable()) {
-			if (super.stepExecute(javascriptContext, scope) && Engine.isEngineMode()) {
+			if (super.stepExecute(javascriptContext, scope)) {
 				if (sequence.context != null && sequence.context.httpSession != null) {
 					sequence.context.httpSession.setMaxInactiveInterval(1);
 					sequence.context.requireEndOfContext = true;

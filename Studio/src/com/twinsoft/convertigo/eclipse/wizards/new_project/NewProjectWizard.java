@@ -152,6 +152,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int LIBRARY_TWITTER = 805;
 	public static final int LIBRARY_OAUTH = 806;
 	public static final int LIBRARY_POLYMER = 807;
+	public static final int LIBRARY_FILE_TRANSFER = 808;
 	// demos
 	public static final int DEMOS_SALESFORCE = 900;
 	public static final int DEMOS_USDIRECTORY = 901;
@@ -216,6 +217,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final String TWITTER_LIBRARY_PROJECT_FILE_NAME = "lib_Twitter.car";
 	public static final String OAUTH_LIBRARY_PROJECT_FILE_NAME = "lib_OAuth.car";
 	public static final String POLYMER_LIBRARY_PROJECT_FILE_NAME = "lib_Polymer.car";
+	public static final String FILE_TRANSFER_LIBRARY_PROJECT_FILE_NAME = "lib_FileTransfer.car";
 	// mashup demo
 	public static final String SALESFORCE_DEMO_PROJECT_FILE_NAME = "demo_SalesForce.car";
 	public static final String USDIRECTORY_DEMO_PROJECT_FILE_NAME = "demo_usDirectory.car";
@@ -284,6 +286,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case LIBRARY_TWITTER:
 		case LIBRARY_OAUTH:
 		case LIBRARY_POLYMER:
+		case LIBRARY_FILE_TRANSFER:
 		case DEMOS_SALESFORCE:
 		case DEMOS_USDIRECTORY:
 		case DEMOS_LEGACYCRM:
@@ -498,6 +501,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case LIBRARY_TWITTER:
 			case LIBRARY_OAUTH:
 			case LIBRARY_POLYMER:
+			case LIBRARY_FILE_TRANSFER:
 			case DEMOS_SALESFORCE:
 			case DEMOS_USDIRECTORY:
 			case DEMOS_LEGACYCRM:
@@ -1268,6 +1272,10 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case LIBRARY_POLYMER:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + POLYMER_LIBRARY_PROJECT_FILE_NAME;
 			projectName = POLYMER_LIBRARY_PROJECT_FILE_NAME.substring(0, POLYMER_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
+			break;
+		case LIBRARY_FILE_TRANSFER:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + FILE_TRANSFER_LIBRARY_PROJECT_FILE_NAME;
+			projectName = FILE_TRANSFER_LIBRARY_PROJECT_FILE_NAME.substring(0, FILE_TRANSFER_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case DEMOS_SALESFORCE:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SALESFORCE_DEMO_PROJECT_FILE_NAME;
