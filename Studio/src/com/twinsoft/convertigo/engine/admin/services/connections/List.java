@@ -93,6 +93,10 @@ public class List extends XmlService{
         sessionsInUseElement.setTextContent("" + (KeyManager.getMaxCV(Session.EmulIDSE) - KeyManager.getCV(Session.EmulIDSE)));
         rootElement.appendChild(sessionsInUseElement);
         
+        Element sessionsIsOverflowElement = document.createElement("sessionsIsOverflow");
+        sessionsIsOverflowElement.setTextContent(KeyManager.isOverflow(Session.EmulIDSE) ? "true" : "false");
+        rootElement.appendChild(sessionsIsOverflowElement);
+        
         Element sessionsNumberElement = document.createElement("sessionsNumber");
         sessionsNumberElement.setTextContent("" + KeyManager.getMaxCV(Session.EmulIDSE));
         rootElement.appendChild(sessionsNumberElement);

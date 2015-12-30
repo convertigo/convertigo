@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.twinsoft.api.Session;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
@@ -97,6 +98,10 @@ public class List extends XmlService{
         		emulatorNameElement.setAttribute("name", emulatorName);
         		emulatorNameElement.setAttribute("remaining", Integer.toString(KeyManager.getCV(emulatorID)));
         		emulatorNameElement.setAttribute("total", Integer.toString(total));
+        		
+        		if (emulatorID == Session.EmulIDSE) {
+        			emulatorNameElement.setAttribute("overflow", KeyManager.isOverflow(emulatorID) ? "true" : "false");
+        		}
         		
         		emulatorNameElement.appendChild(keysElement);
         		

@@ -70,9 +70,18 @@ function updateKeysList(xml) {
 	$(xml).find("category").each(function () {
 		var $x_category = $(this);
 		var $category = $template.find(".key-category").clone();
-		var $name = $x_category.attr("name");
-		$category.find(".key-category-name").text($name === "Standard Edition" ? 
-				"Convertigo " + (parseInt(nb_valid_keys) > 1 ? "Extended Edition" : "Standard Edition") : $name );
+		var categoryName = $x_category.attr("name");
+		
+		var display = categoryName;
+		if (categoryName == "Standard Edition") {
+			if (parseInt(nb_valid_keys) > 1) {
+				display = "Extended Edition";
+			}
+			if ($x_category.attr("overflow") == "true") {
+				display += " (session overflow allowed)";
+			}
+		}
+		$category.find(".key-category-name").text(display);
 		
 		$category.find(".key-category-total").text($x_category.attr("total"));
 		$category.find(".key-category-remaining").text($x_category.attr("remaining"));
@@ -92,7 +101,7 @@ function updateKeysList(xml) {
 			
 			$category_table.prepend($key);
 			
-			if ($name === "Standard Edition") {
+			if (categoryName == "Standard Edition") {
 				$category_table.find("td:contains('simultaneous connections')").text("simultaneous sessions");
 			}
 		});
