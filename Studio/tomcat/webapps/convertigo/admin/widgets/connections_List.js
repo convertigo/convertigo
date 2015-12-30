@@ -24,17 +24,24 @@ var params="";
 var desc="&desc";
 
 function updateConnectionsList(xml) {
-	$("#connectionsContextsInUse").text($(xml).find("contextsInUse").text());
-	$("#connectionsContextsNumber").text($(xml).find("contextsNumber").text());
-	$("#sessionsInUse").text($(xml).find("sessionsInUse").text());
-	$("#sessionsNumber").text($(xml).find("sessionsNumber").text());
-	$("#connectionsThreadsInUse").text($(xml).find("threadsInUse").text());
-	$("#connectionsThreadsNumber").text($(xml).find("threadsNumber").text());
-	$("#connectionsHttpTimeout").text($(xml).find("httpTimeout").text());
-
+	var $xml = $(xml);
+	$("#connectionsContextsInUse").text($xml.find("contextsInUse").text());
+	$("#connectionsContextsNumber").text($xml.find("contextsNumber").text());
+	$("#sessionsInUse").text($xml.find("sessionsInUse").text());
+	$("#sessionsNumber").text($xml.find("sessionsNumber").text());
+	$("#connectionsThreadsInUse").text($xml.find("threadsInUse").text());
+	$("#connectionsThreadsNumber").text($xml.find("threadsNumber").text());
+	$("#connectionsHttpTimeout").text($xml.find("httpTimeout").text());
+	
+	if ($xml.find("sessionsIsOverflow").text() == "true") {
+		$("#sessionOverflow").show();
+	} else {
+		$("#sessionOverflow").hide();
+	}
+	
 	$("#connectionsList").jqGrid('clearGridData');
 
-	$(xml).find("connection").each(function(index) {
+	$xml.find("connection").each(function(index) {
 		projectName = $(this).attr("name");
 		$("#connectionsList").jqGrid("addRowData", $(this).attr("contextName"), {
 				btnDelete: '<a title="Delete the connection"><img border="0" src="images/convertigo-administration-picto-delete.png" onClick="deleteConnection(\'' + $(this).attr("contextName") + '\')"></a></td>',

@@ -60,7 +60,10 @@ public class HttpSessionListener implements HttpSessionBindingListener {
                 httpSessions.put(httpSessionID, httpSession);				
 			}
             Engine.logContext.debug("HTTP session started [" + httpSessionID + "]");
-            KeyManager.start(com.twinsoft.api.Session.EmulIDSE);
+            
+            if (Engine.isEngineMode()) {
+            	KeyManager.start(com.twinsoft.api.Session.EmulIDSE);
+            }
         } catch(TASException e) {
         	if (e.isOverflow()) {
         		String line = dateFormat.format(new Date()) + "\t" + e.getCvMax() + "\t" + e.getCvCurrent() + "\n";
@@ -95,7 +98,7 @@ public class HttpSessionListener implements HttpSessionBindingListener {
     
     static public void removeSession(String httpSessionID) {
         synchronized (httpSessions) {
-            if (httpSessions.remove(httpSessionID) != null) {
+            if (httpSessions.remove(httpSessionID) != null && Engine.isEngineMode()) {
             	KeyManager.stop(com.twinsoft.api.Session.EmulIDSE);
             }
         }    	
