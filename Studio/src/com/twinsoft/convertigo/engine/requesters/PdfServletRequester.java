@@ -48,7 +48,7 @@ public class PdfServletRequester extends ServletRequester {
 
 	private FopFactory fopFactory;
 	
-	public void preGetDocument() {
+	public void preGetDocument() throws EngineException {
 		super.preGetDocument();
 		context.isXsltRequest = true;
 	}

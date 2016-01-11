@@ -45,7 +45,7 @@ public class JsonServletRequester extends ServletRequester {
 	
 	@Override
 	public String postGetDocument(Document document) throws Exception {
-		boolean useType = context.project.getJsonOutput() == JsonOutput.useType;
+		boolean useType = context.project != null && context.project.getJsonOutput() == JsonOutput.useType;
 		return XMLUtils.XmlToJson(document.getDocumentElement(), true, useType);
 	}
 	

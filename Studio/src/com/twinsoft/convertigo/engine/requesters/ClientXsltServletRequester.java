@@ -27,6 +27,7 @@ import java.io.UnsupportedEncodingException;
 import org.w3c.dom.*;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.translators.Translator;
 import com.twinsoft.convertigo.engine.translators.XmlServletTranslator;
@@ -45,7 +46,7 @@ public class ClientXsltServletRequester extends ServletRequester {
         return "ClientXsltServletRequester";
     }
 
-	public void preGetDocument() {
+	public void preGetDocument() throws EngineException {
 		super.preGetDocument();
 		context.isXsltRequest = true;
 	}
