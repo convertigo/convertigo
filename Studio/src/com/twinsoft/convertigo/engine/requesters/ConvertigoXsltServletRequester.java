@@ -26,9 +26,11 @@ import java.io.UnsupportedEncodingException;
 
 import org.w3c.dom.*;
 
+import com.twinsoft.convertigo.engine.EngineException;
+
 public class ConvertigoXsltServletRequester extends ServletRequester {
 
-	public void preGetDocument() {
+	public void preGetDocument() throws EngineException {
 		super.preGetDocument();
 		context.isXsltRequest = true;
 	}

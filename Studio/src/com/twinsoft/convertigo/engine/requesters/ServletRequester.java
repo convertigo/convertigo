@@ -28,18 +28,22 @@ import java.util.Enumeration;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import com.twinsoft.api.Session;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.KeyExpiredException;
+import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.translators.DefaultServletTranslator;
 import com.twinsoft.convertigo.engine.translators.Translator;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
+import com.twinsoft.tas.KeyManager;
 
 public abstract class ServletRequester extends GenericRequester {
 	
@@ -232,8 +236,20 @@ public abstract class ServletRequester extends GenericRequester {
 		return new DefaultServletTranslator();
 	}
 
-	public void preGetDocument() {
+	public void preGetDocument() throws EngineException {
 		HttpServletRequest request = (HttpServletRequest) inputData;
+		
+		String c8oSDK;
+		
+		if (Engine.isEngineMode() && (c8oSDK = request.getHeader(HeaderName.XConvertigoSDK.value())) != null) {
+			if (!KeyManager.hasExpired(Session.EmulIDSE)) {
+				Engine.logContext.debug("Convertigo-SDK allowed: \"" + c8oSDK + "\"");
+			} else {
+				KeyExpiredException e = new KeyExpiredException("Convertigo Community Edition isn't licenced to accept Convertigo SDK calls, please check your licences keys.");
+				Engine.logContext.error("Convertigo-SDK not allowed: \"" + c8oSDK + "\"\n" + e.getMessage());
+				throw e;
+			}
+		}
 		
 		HttpSession httpSession = request.getSession();
 
@@ -273,8 +289,13 @@ public abstract class ServletRequester extends GenericRequester {
 		if (httpSession.getAttribute("__sessionListener") == null) {
 			Engine.logContext.trace("Inserting HTTP session listener into the HTTP session");
 			httpSession.setAttribute("__sessionListener", new HttpSessionListener());
-			if (httpSession.getAttribute("__exception") != null) {
-				throw new RuntimeException((Throwable) httpSession.getAttribute("__exception"));
+			Object t;
+			if ((t = httpSession.getAttribute("__exception")) != null) {
+				if (t instanceof EngineException) {
+					throw (EngineException) t;
+				} else if (t instanceof Throwable) {
+					throw new RuntimeException((Throwable) t);
+				}
 			}
 		}
 	}

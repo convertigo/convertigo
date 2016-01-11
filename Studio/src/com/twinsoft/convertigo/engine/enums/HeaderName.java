@@ -48,6 +48,7 @@ public enum HeaderName {
 	XConvertigoRequestHost("x-convertigo-request-host"),
 	XConvertigoHttpsState("x-convertigo-https-state"),
 	XConvertigoFrontal("x-convertigo-frontal"),
+	XConvertigoSDK("x-convertigo-sdk"),
 	VOID("");
 	
 	String value;

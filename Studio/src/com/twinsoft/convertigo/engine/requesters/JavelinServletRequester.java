@@ -46,7 +46,7 @@ import com.twinsoft.convertigo.engine.EngineStatistics;
 
 public class JavelinServletRequester extends ServletRequester {
 
-	public void preGetDocument() {
+	public void preGetDocument() throws EngineException {
 		super.preGetDocument();
 		context.isXsltRequest = true;
 	}
