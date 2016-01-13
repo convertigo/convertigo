@@ -386,51 +386,53 @@ public class WsReference {
 	private static HttpConnector createConnector(WsdlInterface iface) throws Exception {
    		HttpConnector httpConnector = null;
    		if (iface != null) {
-   			httpConnector = new HttpConnector();
-   	   		httpConnector.bNew = true;
-
-   	   		String comment = iface.getDescription();
-   	   		try {comment = (comment.equals("")? iface.getBinding().getDocumentationElement().getTextContent():comment);} catch (Exception e) {}
-   	   		httpConnector.setComment(comment);
-   	   		
    		   	String[] endPoints = iface.getEndpoints();
-   		   	String endPoint = endPoints[0];
-   		   	
-   		   	String host, server, port, baseDir;
-   		   	boolean isHttps = endPoint.startsWith("https://");
-   		   	if (endPoint.indexOf("://") != -1) {
-	   		   	int beginIndex = endPoint.indexOf("://") + "://".length();
-	   		   	int endIndex = endPoint.indexOf("/", beginIndex);
-	   		   	if (endIndex != -1) {
-	   		   		host = endPoint.substring(beginIndex, endIndex);
-	   		   		baseDir = endPoint.substring(endIndex+1);
+   		   	if (endPoints.length > 0) {
+   	   	   		String comment = iface.getDescription();
+   	   	   		try {comment = (comment.equals("")? iface.getBinding().getDocumentationElement().getTextContent():comment);} catch (Exception e) {}
+
+   	   	   		String endPoint = endPoints[0];
+	   		   	
+	   		   	String host, server, port, baseDir;
+	   		   	boolean isHttps = endPoint.startsWith("https://");
+	   		   	if (endPoint.indexOf("://") != -1) {
+		   		   	int beginIndex = endPoint.indexOf("://") + "://".length();
+		   		   	int endIndex = endPoint.indexOf("/", beginIndex);
+		   		   	if (endIndex != -1) {
+		   		   		host = endPoint.substring(beginIndex, endIndex);
+		   		   		baseDir = endPoint.substring(endIndex+1);
+		   		   	}
+		   		   	else {
+		   		   		host = endPoint.substring(beginIndex);
+		   		   		baseDir = "";
+		   		   	}
+		   		   	
+		   		   	int middleIndex = host.indexOf(":");
+		   		   	if (middleIndex != -1) {
+		   		   		server = host.substring(0, middleIndex);
+		   		   		port = host.substring(middleIndex+1);
+		   		   	}
+		   		   	else {
+		   		   		server = host;
+		   		   		port = isHttps ? "443":"80";
+		   		   	}
 	   		   	}
 	   		   	else {
-	   		   		host = endPoint.substring(beginIndex);
+	   		   		server = endPoint;
+	   		   		port = isHttps ? "443":"80";
 	   		   		baseDir = "";
 	   		   	}
 	   		   	
-	   		   	int middleIndex = host.indexOf(":");
-	   		   	if (middleIndex != -1) {
-	   		   		server = host.substring(0, middleIndex);
-	   		   		port = host.substring(middleIndex+1);
-	   		   	}
-	   		   	else {
-	   		   		server = host;
-	   		   		port = isHttps ? "443":"80";
-	   		   	}
+   	   			httpConnector = new HttpConnector();
+   	   	   		httpConnector.bNew = true;
+   	   	   		
+   	   	   		httpConnector.setComment(comment);
+	   		   	httpConnector.setHttps(isHttps);
+	   		   	httpConnector.setServer(server);
+	   		   	httpConnector.setPort(Integer.valueOf(port).intValue());
+			   	httpConnector.setBaseDir("/"+baseDir);
+	   		   	httpConnector.hasChanged = true;
    		   	}
-   		   	else {
-   		   		server = endPoint;
-   		   		port = isHttps ? "443":"80";
-   		   		baseDir = "";
-   		   	}
-   		   	
-   		   	httpConnector.setHttps(isHttps);
-   		   	httpConnector.setServer(server);
-   		   	httpConnector.setPort(Integer.valueOf(port).intValue());
-		   	httpConnector.setBaseDir("/"+baseDir);
-   		   	httpConnector.hasChanged = true;
    		}
 	   	return httpConnector;
 	}
