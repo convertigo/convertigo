@@ -345,4 +345,12 @@ public class HttpUtils {
 		
 		return httpClientBuilder.build();
 	}
+	
+	public static void terminateSession(HttpSession httpSession) {
+		if (httpSession != null) {
+			if ("true".equals("" + httpSession.getAttribute("administration"))) {
+				httpSession.setMaxInactiveInterval(1);						
+			}
+		}
+	}
 }
