@@ -39,6 +39,7 @@ import javax.servlet.http.HttpSessionBindingListener;
 import org.apache.commons.io.FileUtils;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.tas.KeyManager;
 import com.twinsoft.tas.TASException;
 
@@ -74,7 +75,7 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 				}
         	} else {
 	        	event.getSession().setAttribute("__exception", e);
-	        	event.getSession().setMaxInactiveInterval(1);
+	        	HttpUtils.terminateSession(event.getSession());
         	}
         } catch(Exception e) {
             Engine.logContext.error("Exception during binding HTTP session listener", e);
@@ -98,7 +99,7 @@ public class HttpSessionListener implements HttpSessionBindingListener {
     
     static public void removeSession(String httpSessionID) {
         synchronized (httpSessions) {
-            if (httpSessions.remove(httpSessionID) != null && Engine.isEngineMode()) {
+            if (Engine.isEngineMode() && httpSessions.remove(httpSessionID) != null) {
             	KeyManager.stop(com.twinsoft.api.Session.EmulIDSE);
             }
         }    	
@@ -114,7 +115,7 @@ public class HttpSessionListener implements HttpSessionBindingListener {
         synchronized (httpSessions) {
         	for (Iterator<Entry<String, HttpSession>> iEntry = httpSessions.entrySet().iterator(); iEntry.hasNext(); iEntry = httpSessions.entrySet().iterator()) {
         		Entry<String, HttpSession> entry = iEntry.next();
-        		entry.getValue().setMaxInactiveInterval(1);
+        		HttpUtils.terminateSession(entry.getValue());
         		removeSession(entry.getKey());
         	}
         }

@@ -29,6 +29,7 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
+import com.twinsoft.convertigo.engine.util.HttpUtils;
 
 public class RemoveSessionStep extends Step {
 
@@ -55,7 +56,7 @@ public class RemoveSessionStep extends Step {
 		if (isEnable()) {
 			if (super.stepExecute(javascriptContext, scope) && Engine.isEngineMode()) {
 				if (sequence.context != null && sequence.context.httpSession != null) {
-					sequence.context.httpSession.setMaxInactiveInterval(1);
+					HttpUtils.terminateSession(sequence.context.httpSession);
 					sequence.context.requireEndOfContext = true;
 					HttpSessionListener.removeSession(sequence.context.httpSession.getId());
 				} else {
