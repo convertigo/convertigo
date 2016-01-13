@@ -15,13 +15,13 @@ BY INDICATING YOUR ACCEPTANCE BY CLICKING "YES" BELOW, OR INSTALLING OR USING TH
 Any user of the Software that is authorized to access or use a Software that has been licensed to an Organization under the terms of this Agreement, provided that in total, the count of all such users does not exceed the total number of licenses acquired by such Organization.
 
 " Community Edition "
-Edition of the Software delivered by CONVERTIGO without activation keys to activate the Extended Edition components HTML, MAINFRAME, SAP connectors and FullSync offline data beyond the 30 days trial period and without Standard Edition components documented scripts which allow to run the Server under multi-instance mode. 
+Edition of the Software delivered by CONVERTIGO without activation keys to activate the Extended Edition components (HTML MAINFRAME, SAP connectors and Full Sync off line data, beyond the 30 days trial period and without Standard Edition components documented scripts which allow to run the Server under multi-instance mode. 
 
- " Organization "
-The person, partnership, entity, corporation, or government entity that is granted a license on the Software and that shall be responsible for any use of the Software.
+" Organization "
+The person, partner, entity, corporation, or government entity that is granted a license on the Software and that shall be responsible for any use of the Software.
 
 " Software "
-The Convertigo Mobility Platform which includes Convertigo proprietary software with Software documentation (refers to the Software user manual and Software installation guides) and any Software updates acquired through technical support. The Convertigo Mobility Platform is composed mainly of Software Studio and Software Server. The Software is distributed by Convertigo in editions which include the Community Edition, the Standard Edition and the Extended Edition.
+The Convertigo Mobility Platform which includes Convertigo proprietary software with Software documentation (refers to the Software user manual and Software installation guides) and any Software updates acquired through technical support. The Convertigo Mobility Platform is composed mainly of 3 installation binaries: Software Studio and Software Server and Software SDK. The Software is distributed by Convertigo in editions which include the Community Edition, the Standard Edition and the Extended Edition.
 
 " Software Studio "
 One of the Software core components which is for "Convertigo project" developments purposes and delivered as one installation file for Windows Desktops.
@@ -31,7 +31,7 @@ The Software Studio includes an Eclipse IDE, Convertigo plugins, a minimal mono 
 Projects developed with Software Studio are saved into Project.car files to be executed on "Software Server" in production or on the minimal mono user Software Server included within the Studio.
 
 " Extended Edition "
-Edition of the Software which allows you to use the Software Extended Edition components HTML, MAINFRAME, SAP connectors and FullSync offline data beyond the 30 days trial period with activation keys and the Software Standard Edition components documented scripts.
+Edition of the Software which allows you to use the Software Extended Edition components including HTML, MAINFRAME, SAP connectors and Full Sync off line data beyond the 30 days trial period with activation keys and the Software Standard Edition components documented scripts.
 Activation keys are delivered separately by Convertigo to activate the Software Extended Edition components beyond the 30 days trial period.
 The Software Extended Edition components are delivered and bundled with the Software Studio. They are running under the minimal mono user Software Server installed with the Software Studio and are free of use for development purpose only. 
 
@@ -43,8 +43,16 @@ The Software Server installer is installing the Server Software and an administr
 The Software Server contains all run time components to run the Projects.car files. 
 
 " Standard Edition "
-Edition of the Software delivered by CONVERTIGO without activation keys to activate the Extended Edition components HTML, MAINFRAME, SAP connectors and FullSync offline data beyond the 30 days trial period and which allows you to use the Standard Edition components including documented scripts which allow you to run the Server under multi-instance mode.
+Edition of the Software delivered by CONVERTIGO without activation keys to activate the Extended Edition components including HTML, MAINFRAME, SAP connectors and Full Sync off line data, beyond the 30 days trial period and which allows you to use the Standard Edition components including documented scripts which allow you to run the Server under multi-instance mode.
 The Standard Edition components are delivered separately by Convertigo and on demand. 
+
+" Software SDK "
+One of the core Standard or Extended Edition Software component which allows to: 
+access Standard or Extended Editions Software Servers services directly within development environments such as Xcode, Android studio, visual studio or Xamarine studio
+compile native mobile applications from the aforesaid environments which can access Standard or Extended Editions Software Servers. Such mobile native applications are including the SDK Software libraries.
+The SDK Software includes Convertigo proprietary developments as well as Third Party Software.
+The SDK Software installed within developments environments or inside mobile device can be freely deployed with no limitations.
+The Software SDK has installations binaries corresponding to the targeted development framework which can be ios android, .net and others in the future.
 
 " Third Party Software "
 Software components edited by third party software vendors which are installed or used with the Software and can only be used as described in Section 12 of this license. 
@@ -79,8 +87,8 @@ Convertigo provides Software Studio and Software Server with third party softwar
 
 2- Third party open source components are delivered under their respective licenses and can only be used as described in Section 4.11 below. 
 
-3- Extended Edition components, such as the HTML and the mainframe connectors, are delivered in object code only for the restricted use as mentioned hereafter :
-The Extended Edition components delivered and bundled with Software Studio are free of use for developments purpose only. They include HTML and mainframe connectors.
+3- Extended Edition components, such as the HTML, MAINFRAME, SAP connectors and Full Sync off line data, are delivered in object code only for the restricted use as mentioned hereafter :
+The Extended Edition components delivered and bundled with Software Studio are free of use for developments purpose only. They include HTML, MAINFRAME, SAP connectors and Full Sync off line data.
 The Extended Edition components delivered and bundled with Software Server are pre activated for a 30 days trial period and require keys to extend the activation period. 
 Non-key activated Software components delivered and bundled with Software Studio and Software Server are inactive and can be copied and distributed by you but only bundled with Convertigo products.
 
@@ -114,7 +122,7 @@ Third party components installed or used with Convertigo Extended Edition compon
 
 4.1	Right to Use the Software 
 
-The right to use the Standard Edition or the Extended Edition is granted to you by Convertigo under "a per CPU" or "per USER" license for a period of one year which is renewable for successive periods of one year.
+The right to use the Standard Edition or the Extended Edition is granted to you by Convertigo under "a per CPU or Session" or "per USER or Device" or per Transactions license for a period of one year which is renewable for successive periods of one year.
 
 Your right to use the Software is conditional upon payment of the license fees due by the Organization, as specified in the corresponding purchase order.
 
@@ -124,8 +132,8 @@ Subject to the terms of this Agreement and subject to the payment of the appropr
 
 You agree to be bound by the following limitations:
 
--	if the license is "per CPU", you will not deploy more than the number of CPU for which you have been licensed.
--	if the license is "per User", you will not deploy more than the number of User for which you have been licensed.
+-	if the license is "per CPU or Session or Transaction", you will not deploy more than the number of CPU or Sessions or Transactions for which you have been licensed.
+-	if the license is "per User or per Device", you will not deploy more than the number of User or Device for which you have been licensed.
 
 The Software Extended Edition components can only be used if a license for the Software Extended Edition is granted to you.
 
@@ -171,7 +179,7 @@ For a period of ninety (90) days from the date you receive the Software, Convert
 
 4.7	Customer Remedies
 
-Convertigo's entire liability and the exclusive remedy of the Organization shall be: at Convertigo's option, either (a) return of the price paid or (b) repair or replacement of the Software that does not meet the above Limited Warranty. Any replacement Software will be warranted for the remainder of the original warranty period.
+Convertigo's entire liability and the exclusive remedy of the Organization shall be: at Convertigo’s option, either (a) return of the price paid or (b) repair or replacement of the Software that does not meet the above Limited Warranty. Any replacement Software will be warranted for the remainder of the original warranty period.
 
 
 =====================================================
@@ -204,166 +212,240 @@ NAME
   |  URL
   |  LICENSE
 ------------------------------------------------------
-NAME
-  |  URL
-  |  LICENSE
-------------------------------------------------------
 Avalon
-  | http://avalon.apache.org/
-  | ASL 1.1
+  |  http://avalon.apache.org/
+  |  ASL 1.1
 ------------------------------------------------------
 Apache Commons
-  | http://commons.apache.org/
-  | ASL 2.0
+  |  http://commons.apache.org/
+  |  ASL 2.0
 ------------------------------------------------------
 Axis
-  | http://ws.apache.org/axis2
-  | ASL 2.0
+  |  http://ws.apache.org/axis2
+  |  ASL 2.0
 ------------------------------------------------------
 Batik
-  | http://xml.apache.org/batik
-  | ASL 2.0
+  |  http://xml.apache.org/batik
+  |  ASL 2.0
 ------------------------------------------------------
 BCEL
-  | http://jakarta.apache.org/bcel
-  | ASL 2.0
+  |  http://jakarta.apache.org/bcel
+  |  ASL 2.0
 ------------------------------------------------------
 FOP
-  | http://xmlgraphics.apache.org/fop/
-  | ASL 2.0
+  |  http://xmlgraphics.apache.org/fop/
+  |  ASL 2.0
 ------------------------------------------------------
 HttpclientAuthHelper
-  | https://github.com/DovAmir/httpclientAuthHelper
-  | ASL 2.0
+  |  https://github.com/DovAmir/httpclientAuthHelper
+  |  ASL 2.0
 ------------------------------------------------------
 Jaxen
-  | http://www.jaxen.org
-  | ASL 2.0
+  |  http://www.jaxen.org
+  |  ASL 2.0
 ------------------------------------------------------
 Quartz
-  | http://www.quartz-scheduler.org
-  | ASL 2.0
+  |  http://www.quartz-scheduler.org
+  |  ASL 2.0
 ------------------------------------------------------
 Tomcat
-  | http://tomcat.apache.org
-  | ASL 2.0
+  |  http://tomcat.apache.org
+  |  ASL 2.0
 ------------------------------------------------------
 XmlGraphics
-  | http://xmlgraphics.apache.org
-  | ASL 2.0
+  |  http://xmlgraphics.apache.org
+  |  ASL 2.0
 ------------------------------------------------------
 Aviva
-  | http://www.avivasolutions.com
-  | Aviva license
+  |  http://www.avivasolutions.com
+  |  Aviva license
 ------------------------------------------------------
 Dom4j
-  | http://www.dom4j.org
-  | BSD style
+  |  http://www.dom4j.org
+  |  BSD style
 ------------------------------------------------------
 Jakarta RegExp
-  | http://jakarta.apache.org/regexp
-  | BSD style
+  |  http://jakarta.apache.org/regexp
+  |  BSD style
 ------------------------------------------------------
 Eclipse
-  | http://www.eclipse.org
-  | EPL 1.0
+  |  http://www.eclipse.org
+  |  EPL 1.0
 ------------------------------------------------------
 HSQLDB
-  | http://hsqldb.org
-  | HSQLDB license
+  |  http://hsqldb.org
+  |  HSQLDB license
 ------------------------------------------------------
 JT400
-  | http://opensource.org/licenses/IPL-1.0
-  | IBM Public License 1.0
+  |  http://opensource.org/licenses/IPL-1.0
+  |  IBM Public License 1.0
 ------------------------------------------------------
 Java
-  | http://www.oracle.com/technetwork/java/javase/downloads/jre-6u21-license-159054.txt
-  | Java license
+  |  http://www.oracle.com/technetwork/java/javase/downloads/jre-6u21-license-159054.txt
+  |  Java license
 ------------------------------------------------------
 jCharts
-  | http://jcharts.sourceforge.net/
-  | jCharts license
+  |  http://jcharts.sourceforge.net/
+  |  jCharts license
 ------------------------------------------------------
 jettison
-  | http://www.apache.org/licenses/LICENSE-2.0
-  | Jettison license
+  |  http://www.apache.org/licenses/LICENSE-2.0
+  |  Jettison license
 ------------------------------------------------------
 Hibernate
-  | http://www.hibernate.org
-  | LGPL 2.1
+  |  http://www.hibernate.org
+  |  LGPL 2.1
 ------------------------------------------------------
 Httpclient
-  | http://www.innovation.ch/java/HTTPClient
-  | LGPL 2.1
+  |  http://www.innovation.ch/java/HTTPClient
+  |  LGPL 2.1
 ------------------------------------------------------
 Jacob
-  | http://sourceforge.net/projects/jacob-project
-  | LGPL 2.1
+  |  http://sourceforge.net/projects/jacob-project
+  |  LGPL 2.1
 ------------------------------------------------------
 jTDS
-  | http://jtds.sourceforge.net
-  | LGPL 2.1
+  |  http://jtds.sourceforge.net
+  |  LGPL 2.1
 ------------------------------------------------------
 MariaDB Client Library for Java Applications
-  | http://www.skysql.com/downloads/connectors/java
-  | LGPL 2.1
+  |  http://www.skysql.com/downloads/connectors/java
+  |  LGPL 2.1
 ------------------------------------------------------
 Rhino
-  | https://developer.mozilla.org
-  | LGPL 2.1
+  |  https://developer.mozilla.org
+  |  LGPL 2.1
 ------------------------------------------------------
 SoapUI
-  | http://www.soapui.org
-  | LGPL 2.1
+  |  http://www.soapui.org
+  |  LGPL 2.1
 ------------------------------------------------------
 Telnet Java Socks4
-  | http://jsocks.sourceforge.net
-  | LGPL 2.1
+  |  http://jsocks.sourceforge.net
+  |  LGPL 2.1
 ------------------------------------------------------
 Scribe
-  | https://github.com/fernandezpablo85/scribe-java/blob/master/LICENSE.txt
-  | MIT
+  |  https://github.com/fernandezpablo85/scribe-java/blob/master/LICENSE.txt
+  |  MIT
 ------------------------------------------------------
 DHTML Tree
-  | http://www.mattkruse.com
-  | MIT
+  |  http://www.mattkruse.com
+  |  MIT
 ------------------------------------------------------
 jQuery
-  | http://www.jquery.com
-  | MIT
+  |  http://www.jquery.com
+  |  MIT
 ------------------------------------------------------
 MIT VT220 parser
-  | http://web.mit.edu/dosathena/doc/www/parser.html
-  | MIT
+  |  http://web.mit.edu/dosathena/doc/www/parser.html
+  |  MIT
 ------------------------------------------------------
 QRCode (Kazuhiko Arase)
-  | http://www.d-project.com/qrcode/
-  | MIT
+  |  http://www.d-project.com/qrcode/
+  |  MIT
 ------------------------------------------------------
 Scribe
-  | https://github.com/fernandezpablo85/scribe-java
-  | MIT
+  |  https://github.com/fernandezpablo85/scribe-java
+  |  MIT
 ------------------------------------------------------
 SLF4J
-  | http://www.slf4j.org/
-  | MIT
+  |  http://www.slf4j.org/
+  |  MIT
 ------------------------------------------------------
 Xulrunner
-  | http://www.mozilla.org
-  | MPL 1.1
+  |  http://www.mozilla.org
+  |  MPL 1.1
 ------------------------------------------------------
 Phaos Technology SSLava (Oracle)
-  | http://www.phaos.com
-  | Inside Aviva License
+  |  http://www.phaos.com
+  |  Inside Aviva License
 ------------------------------------------------------
 OpenSSL
-  | http://www.openssl.org
-  | OpenSSL license BSD Like
+  |  http://www.openssl.org
+  |  OpenSSL license BSD Like
 ------------------------------------------------------
 BackPort
-  | http://creativecommons.org/licenses/publicdomain
-  | Public Domain
+  |  http://creativecommons.org/licenses/publicdomain
+  |  Public Domain
 ------------------------------------------------------
+
+You may install and use the following Third party Software with the Software SDK: 
+
+For .Net (WPF and Xamarin) :
+
+Name
+Url
+Licence
+------------------------------------------------------
+UnicodeNomalization
+  |  https://github.com/Turo-NET/UnicodeNormalization/blob/master/LICENSE.txt
+  |  MIT
+------------------------------------------------------
+JSON.NET
+  |  https://github.com/JamesNK/Newtonsoft.Json/blob/master/LICENSE.md
+  |  MIT
+------------------------------------------------------
+CouchBase Lite
+  |  https://github.com/couchbase/couchbase-lite-net/blob/master/LICENSE
+  |  MIT
+------------------------------------------------------
+SQLite.RAW
+  |  https://raw.githubusercontent.com/ericsink/SQLitePCL.raw/master/LICENSE.TXT
+  |  Apache 2.0
+------------------------------------------------------
+SQLite.UGLY
+  |  https://raw.githubusercontent.com/ericsink/SQLitePCL.raw/master/LICENSE.TXT
+  |  Apache 2.0
+------------------------------------------------------
+Stateless
+  |  https://github.com/nblumhardt/stateless
+  |  Apache 2.0
+------------------------------------------------------
+JInt
+  |  https://raw.githubusercontent.com/sebastienros/jint/master/LICENSE.txt
+  |  BSD 2-Clause License
+------------------------------------------------------
+SharpZipLib
+  |  http://icsharpcode.github.io/SharpZipLib/#license
+  |  GPL with exception for free none contaminating libraries distribution
+------------------------------------------------------
+
+
+For Android :
+
+Commons-io
+  |  http://www.apache.org/licenses/
+  |  APACHE 2.0 license
+------------------------------------------------------
+http-core
+  |  https://hc.apache.org/httpcomponents-core-ga/
+  |  APACHE 2.0 license
+------------------------------------------------------
+jackson-annotations
+  |  https://github.com/FasterXML/jackson-annotations
+  |  APACHE 2.0 License
+------------------------------------------------------
+Jackson-core
+  |  https://github.com/FasterXML/jackson-core
+  |  APACHE 2.0 license
+------------------------------------------------------
+Jackson-databind
+  |  https://github.com/FasterXML/jackson-databind/
+  |  APACHE 2.0 license
+------------------------------------------------------
+Rhinojs
+  |  https://github.com/mozilla/rhino
+  |  MPL 2.0 Licence
+------------------------------------------------------
+Stateless4j
+  |  https://github.com/oxo42/stateless4j
+  |  APACHE 2.0 license
+------------------------------------------------------
+Couchbase-lite
+  |  https://github.com/couchbase/couchbase-lite-android
+  |  APACHE 2.0 license
+------------------------------------------------------
+
 
 7.3	SOFTWARE COMPONENTS IN THIS PRODUCT WERE IN PART PROVIDED BY AVIVA SOLUTIONS INC., AND/OR ITS AFFILIATES AND LICENSORS.
 The name of Aviva Solutions Inc. nor the names of its contributors may be used to endorse or promote products derived from this Software without specific prior written permission.
@@ -378,7 +460,7 @@ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WA
 
 8 .	Intellectual Property
 
-You do not acquire hereby any intellectual property or other proprietary rights, including patents, designs, trademarks, copyrights or rights in any confidential information or trade-secrets in or relating to the Software. You also do not acquire any rights in or related to the Software, or any components thereof, other than the rights expressly licensed to You under this Agreement or in another mutually agreed upon, written agreement that you may have with Convertigo. Any grants not expressly granted herein are reserved. The Software is only licensed to your Organization as expressly set out herein and is protected by copyright and "droit d'auteur". There are severe penalties both civil and criminal for intellectual property infringement.
+You do not acquire hereby any intellectual property or other proprietary rights, including patents, designs, trademarks, copyrights or rights in any confidential information or trade-secrets in or relating to the Software. You also do not acquire any rights in or related to the Software, or any components thereof, other than the rights expressly licensed to You under this Agreement or in another mutually agreed upon, written agreement that you may have with Convertigo. Any grants not expressly granted herein are reserved. The Software is only licensed to your Organization as expressly set out herein and is protected by copyright and "droit d’auteur". There are severe penalties both civil and criminal for intellectual property infringement.
 
 
 =====================================================
@@ -392,14 +474,14 @@ You acknowledge and agree that the Software was developed at considerable time a
 
 10.	Indemnity/Liability.
 
-You shall defend, indemnify, and hold harmless Convertigo, Convertigo's suppliers, successors, affiliates, agents and assigns (each a "Convertigo Indemnified Party") from any claims, damages, losses, or expenses (including without limitation attorney fees and costs) incurred by a Convertigo Indemnified Party in connection with all claims, suits, judgments and causes of action (i) for infringement of patents or other intellectual property or proprietary rights arising from combining with or using any device, system or service in connection with the Software, (ii) for damages arising from Your breach of Sections 3, 4, 5, 6, 12, 13, 14 and 15 herein, (iii) for libel, slander, defamation or infringement of copyright or other intellectual property or proprietary right with respect to material transmitted by You (iv) for any injury, death or property damage arising in connection with the presence, use or non-use of any portion of the Software (other than such damage to person or property (excluding data) that directly arises from the use of the Software strictly in accordance with the documentation and user manuals provided by Convertigo which specifically pertains to such Software) or (v) for claims made by third persons against Convertigo arising from or related to Your use of the Software (other than such claims that arise solely from the use of the Software strictly in accordance with the documentation and user manuals provided by Convertigo with the Software which specifically pertains to such Products or Software). No remedy herein conferred upon Convertigo is intended to be, nor shall it be construed to be, exclusive of any other remedy provided herein or as allowed by law or in equity, but all such remedies shall be cumulative. In the event of the termination of this Agreement for Your breach, You shall pay to Convertigo all attorney fees, collection fees, and related expenses, expended or incurred by Convertigo in the enforcement of any right or privilege hereunder (including, but not limited to, telephone, freight, express and postal charges, expenses of paid investigators and reasonable compensation for time of Convertigo's representatives).
+You shall defend, indemnify, and hold harmless Convertigo, Convertigo’s suppliers, successors, affiliates, agents and assigns (each a "Convertigo Indemnified Party") from any claims, damages, losses, or expenses (including without limitation attorney fees and costs) incurred by a Convertigo Indemnified Party in connection with all claims, suits, judgments and causes of action (i) for infringement of patents or other intellectual property or proprietary rights arising from combining with or using any device, system or service in connection with the Software, (ii) for damages arising from Your breach of Sections 3, 4, 5, 6, 12, 13, 14 and 15 herein, (iii) for libel, slander, defamation or infringement of copyright or other intellectual property or proprietary right with respect to material transmitted by You (iv) for any injury, death or property damage arising in connection with the presence, use or non-use of any portion of the Software (other than such damage to person or property (excluding data) that directly arises from the use of the Software strictly in accordance with the documentation and user manuals provided by Convertigo which specifically pertains to such Software) or (v) for claims made by third persons against Convertigo arising from or related to Your use of the Software (other than such claims that arise solely from the use of the Software strictly in accordance with the documentation and user manuals provided by Convertigo with the Software which specifically pertains to such Products or Software). No remedy herein conferred upon Convertigo is intended to be, nor shall it be construed to be, exclusive of any other remedy provided herein or as allowed by law or in equity, but all such remedies shall be cumulative. In the event of the termination of this Agreement for Your breach, You shall pay to Convertigo all attorney fees, collection fees, and related expenses, expended or incurred by Convertigo in the enforcement of any right or privilege hereunder (including, but not limited to, telephone, freight, express and postal charges, expenses of paid investigators and reasonable compensation for time of Convertigo’s representatives).
 
 
 =====================================================
 
 11.	Right to Audit
 
-You agree to keep all usual and proper records and books of accounts and all usual proper entries relating to each reproduction and user of the Software during the term of this Agreement and for a period of three (3) years thereafter. During this period, Convertigo may cause an audit to be made of the applicable records in order to verify your compliance with this Agreement and prompt adjustment shall be made to compensate for any errors or omissions disclosed by such audit. Any such audit shall be conducted by an independent certified public accountant selected by Convertigo and shall be conducted during the regular business hours at your Organization's offices and in such a manner as not to reasonably interfere with your normal business activities. Any such audit shall be paid for by Convertigo unless material discrepancies are disclosed. For such purposes, "material discrepancies" shall mean three percent (3%) or more of the number of Authorized Licenses pursuant to this Agreement. If material discrepancies are disclosed, you agree to pay Convertigo for the costs associated with the audit as well as fees for all additional licenses. In no event shall audits be made more frequently than semi-annually unless the immediately preceding audit disclosed a material discrepancy.
+You agree to keep all usual and proper records and books of accounts and all usual proper entries relating to each reproduction and user of the Software during the term of this Agreement and for a period of three (3) years thereafter. During this period, Convertigo may cause an audit to be made of the applicable records in order to verify your compliance with this Agreement and prompt adjustment shall be made to compensate for any errors or omissions disclosed by such audit. Any such audit shall be conducted by an independent certified public accountant selected by Convertigo and shall be conducted during the regular business hours at your Organization’s offices and in such a manner as not to reasonably interfere with your normal business activities. Any such audit shall be paid for by Convertigo unless material discrepancies are disclosed. For such purposes, "material discrepancies" shall mean three percent (3%) or more of the number of Authorized Licenses pursuant to this Agreement. If material discrepancies are disclosed, you agree to pay Convertigo for the costs associated with the audit as well as fees for all additional licenses. In no event shall audits be made more frequently than semi-annually unless the immediately preceding audit disclosed a material discrepancy.
 
 
 =====================================================
@@ -431,7 +513,6 @@ THE CONTRACT IS SUBJECT TO FRENCH LAW. ANY LITIGATION RELATED TO THE AGREEMENT, 
 
 14.5	Severability. If a provision of this Agreement is held to be invalid or unenforceable, such invalidity or unenforceability shall not invalidate or render unenforceable the entire Agreement, but rather (unless a failure of consideration would result there from) the entire Agreement shall be construed as if not containing the particular invalid or unenforceable provision or provisions, and the rights and obligations of each party shall be construed and enforced accordingly.
 
-14.6	Language. It is the express will of the parties that this Agreement and all related documents be drawn up in English. C'est la volonte expresse des parties que la presente convention ainsi que les documents qui s'y rattachent soient rediges en anglais.
+14.6	Language. It is the express will of the parties that this Agreement and all related documents be drawn up in English. C’est la volonté expresse des parties que la présente convention ainsi que les documents qui s’y rattachent soient rédigés en anglais.
 
 14.7	Entire Agreement. This Agreement constitutes the entire agreement between the parties hereto with respect to the subject matter hereof and cancels and supersedes any prior understandings and agreements between the parties hereto with respect thereto. There are no provisions, representations, undertakings, agreements, or collateral agreements between the parties other than as set out in this Agreement. Further You acknowledge that no statements or representations made by or on behalf of Convertigo have been relied upon by You in agreeing to enter into this Agreement. The Agreement may be amended at any time upon mutual agreement by the parties. Convertigo further reserves the right to make changes to this Agreement by providing You with reasonable notice of the change by either e-mail or by posting notice of the change at www.convertigo.com. If You continue to use the Software more than sixty (60) days after notice of the change has been given, You shall be deemed to have accepted this change.
-
