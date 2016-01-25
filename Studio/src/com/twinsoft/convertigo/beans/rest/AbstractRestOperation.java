@@ -2,20 +2,15 @@ package com.twinsoft.convertigo.beans.rest;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HostConfiguration;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpState;
-import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.io.IOUtils;
+import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.beans.core.UrlMapping;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
@@ -23,11 +18,13 @@ import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter.Type;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
+import com.twinsoft.convertigo.engine.enums.JsonOutput;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
+import com.twinsoft.convertigo.engine.requesters.InternalRequester;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public abstract class AbstractRestOperation extends UrlMappingOperation {
 
@@ -90,7 +87,7 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 		}
 	}
 
-
+/*
 	@Override
 	public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws EngineException {
 		String targetRequestableQName = getTargetRequestable();
@@ -113,7 +110,7 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 		
 		try {
 			PostMethod postMethod = null;
-			String responseContenType = null;
+			String responseContentType = null;
 			String content = null;
 			int statusCode = -1;
 			
@@ -121,10 +118,8 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 			try {
 				postMethod = new PostMethod(targetUrl);
 
-				/* HEADERS */
 				postMethod.setRequestHeader(HeaderName.ContentType.value(), "application/x-www-form-urlencoded;charset=UTF-8");
 				
-				/* PARAMETERS */
 				// Add requestable parameter(s)
 				if (sequenceName.isEmpty()) {
 					postMethod.addParameter(Parameter.Connector.getName(), connectorName);
@@ -136,9 +131,11 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 				
 				// Add path variables parameters
 				Map<String, String> varMap = ((UrlMapping)getParent()).getPathVariableValues(request);
-				for (String varName: varMap.keySet()) {
-					String varValue = varMap.get(varName);
-					postMethod.addParameter(varName, varValue);
+				if (varMap != null) {
+					for (String varName: varMap.keySet()) {
+						String varValue = varMap.get(varName);
+						postMethod.addParameter(varName, varValue);
+					}
 				}
 				
 				// Add other parameters
@@ -224,7 +221,7 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 					// Retrieve response Content-Type
 					Header h_ContentType = postMethod.getResponseHeader(HeaderName.ContentType.value());
 					if (h_ContentType != null) {
-						responseContenType = h_ContentType.getValue();
+						responseContentType = h_ContentType.getValue();
 					}
 					
 					// Retrieve response content
@@ -257,8 +254,8 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 			response.setStatus(statusCode);
 			
 			// Set response content-type header
-			if (responseContenType != null) {
-				response.addHeader(HeaderName.ContentType.value(), responseContenType);
+			if (responseContentType != null) {
+				response.addHeader(HeaderName.ContentType.value(), responseContentType);
 			}
 			
 			// Set response content
@@ -271,5 +268,130 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 			throw new EngineException("Operation \""+ getName() +"\" failed to handle request", t);
 		}
 	}
+*/	
+	
+	@Override
+	public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws EngineException {
+		String targetRequestableQName = getTargetRequestable();
+		if (targetRequestableQName.isEmpty()) {
+			throw new EngineException("Mapping operation \""+ getName() +"\" has no target requestable defined");
+		}
+		
+		StringTokenizer st = new StringTokenizer(targetRequestableQName,".");
+		int count = st.countTokens();
+		String projectName = st.nextToken();
+		String sequenceName = count == 2 ? st.nextToken():"";
+		String connectorName = count == 3 ? st.nextToken():"";
+		String transactionName = count == 3 ? st.nextToken():"";
+		
+		String h_Accept = request.getHeader(HeaderName.Accept.value());
+		
+		try {
+			Map<String, Object> map = new HashMap<String, Object>();
+			String responseContentType = null;
+			String content = null;
+			int statusCode = -1;
+			
+			try {
+				String contextName = request.getParameter(Parameter.Context.getName());
+				String sessionId = request.getSession().getId();
+				
+		    	map.put(Parameter.Context.getName(), new String[] { contextName });
+		    	map.put(Parameter.SessionId.getName(), new String[] { sessionId });
+
+		    	map.put(Parameter.Project.getName(), new String[] { projectName });
+				if (sequenceName.isEmpty()) {
+					map.put(Parameter.Connector.getName(), new String[] { connectorName });
+					map.put(Parameter.Transaction.getName(), new String[] { transactionName });
+				}
+				else {
+					map.put(Parameter.Sequence.getName(), new String[] { sequenceName });
+				}
+				
+				// Add path variables parameters
+				Map<String, String> varMap = ((UrlMapping)getParent()).getPathVariableValues(request);
+				for (String varName: varMap.keySet()) {
+					String varValue = varMap.get(varName);
+					map.put(varName, varValue);
+				}
+				
+				// Add other parameters
+				for (UrlMappingParameter param :getParameterList()) {
+					String paramName = param.getName();
+					Object paramValue = null;
+					if (param.getType() == Type.Header) {
+						paramValue = request.getHeader(paramName);
+					}
+					if (param.getType() == Type.Body) {
+						if (request.getInputStream() != null) {
+							//String requestContentType = request.getContentType();
+							paramValue = IOUtils.toString(request.getInputStream(), "UTF-8");
+						}
+					}
+					if ((param.getType() == Type.Query || param.getType() == Type.Form)) {
+						paramValue = request.getParameterValues(paramName);
+					}
+					
+					if (paramValue != null) {
+						if (paramValue instanceof String) {
+							map.put(paramName, new String[] { paramValue.toString() });
+						}
+						else if (paramValue instanceof String[]) {
+							String[] values = (String[])paramValue;
+							map.put(paramName, values);
+						}
+					}
+					else if (param.isRequired()) {
+						Engine.logBeans.warn("(AbstractRestOperation) \""+ getName() +"\" : missing parameter "+ param.getName());
+					}
+				}
+			}
+			catch (IOException ioe) {
+				Engine.logBeans.error("(AbstractRestOperation) \""+ getName() +"\" : invalid body", ioe);
+				throw ioe;
+			}
+			
+			// Execute requestable
+			Engine.logBeans.debug("(AbstractRestOperation) \""+ getName() +"\" executing requestable \""+ targetRequestableQName +"\"");
+        	InternalRequester internalRequester = new InternalRequester(request);
+        	internalRequester.setStrictMode(getProject().isStrictMode());
+    		Object result = internalRequester.processRequest(map);
+        	if (result != null) {
+        		statusCode = 200;
+        		Document xmlHttpDocument = (Document) result;
+        		if (h_Accept.indexOf("application/json") != -1) {
+        			JsonRoot jsonRoot = getProject().getJsonRoot();
+        			boolean useType = getProject().getJsonOutput() == JsonOutput.useType;
+            		content = XMLUtils.XmlToJson(xmlHttpDocument.getDocumentElement(), true, useType, jsonRoot);
+            		responseContentType = "application/json";
+        		}
+        		else {
+        			content = XMLUtils.prettyPrintDOMWithEncoding(xmlHttpDocument, "UTF-8");
+            		responseContentType = "application/xml";
+        		}
+        	}
+        	
+			
+			//TODO : analyse/modify status/content with Response beans
+			
+            // Set response status
+			response.setStatus(statusCode);
+			
+			// Set response content-type header
+			if (responseContentType != null) {
+				response.addHeader(HeaderName.ContentType.value(), responseContentType);
+			}
+			
+			// Set response content
+			if (content != null) {
+				Writer writer = response.getWriter();
+	            writer.write(content);
+			}
+		}
+		catch (Throwable t) {
+			throw new EngineException("Operation \""+ getName() +"\" failed to handle request", t);
+		}
+	}
+	
 	
 }

@@ -26,6 +26,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.Set;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.mozilla.javascript.NativeJavaObject;
 import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
@@ -45,12 +47,19 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class InternalRequester extends GenericRequester {
 	
+	private HttpServletRequest httpServletRequest = null;
+	
 	boolean bStrictMode = false;
 	
     public InternalRequester() {
+    	this(null);
     }
     
-	public void setStrictMode(boolean strictMode) {
+    public InternalRequester(HttpServletRequest httpServletRequest) {
+    	this.httpServletRequest = httpServletRequest;
+    }
+
+    public void setStrictMode(boolean strictMode) {
 		this.bStrictMode = strictMode;
 	}
     
@@ -131,6 +140,10 @@ public class InternalRequester extends GenericRequester {
     public void initContext(Context context) throws Exception {
     	super.initContext(context);
 
+    	if (context != null) {
+    		context.setRequest(httpServletRequest);
+    	}
+    	
     	Map<String, Object> request = GenericUtils.cast(inputData);
 
 		// We transform the HTTP post data into XML data.

@@ -60,6 +60,11 @@ public abstract class UrlMapping extends DatabaseObject {
 	}
 
 	@Override
+	public Object getOrderedValue() {
+		return getPath();
+	}
+
+	@Override
 	public List<DatabaseObject> getAllChildren() {	
 		List<DatabaseObject> rep = super.getAllChildren();
 		rep.addAll(getOperationList());
@@ -129,11 +134,11 @@ public abstract class UrlMapping extends DatabaseObject {
 	}
 	
 	public Map<String, String> getPathVariableValues(HttpServletRequest request) {
-		Map<String, String> varMap = new LinkedHashMap<String, String>();
 		String requestPath = request.getPathInfo();
 		String url_regex = getPath().replaceAll("\\{([a-zA-Z0-9_]+)\\}", "([^/]+?)");
 		Pattern url_pattern = Pattern.compile(url_regex);
 		Matcher url_matcher = url_pattern.matcher(requestPath);
+		Map<String, String> varMap = new LinkedHashMap<String, String>();
 		if (url_matcher.matches()) {
 			Pattern var_pattern = Pattern.compile("\\{([a-zA-Z0-9_]+)\\}");
 			Matcher var_matcher = var_pattern.matcher(getPath());
@@ -154,4 +159,11 @@ public abstract class UrlMapping extends DatabaseObject {
 		return varMap;
 	}
 	
+	public boolean isMatching(HttpServletRequest request) {
+		String requestPath = request.getPathInfo();
+		String url_regex = getPath().replaceAll("\\{([a-zA-Z0-9_]+)\\}", "([^/]+?)");
+		Pattern url_pattern = Pattern.compile(url_regex);
+		Matcher url_matcher = url_pattern.matcher(requestPath);
+		return url_matcher.matches();
+	}
 }

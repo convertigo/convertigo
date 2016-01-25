@@ -95,8 +95,7 @@ public class PathMapping extends UrlMapping {
 		checkSubLoaded();
 		
 		// Check if mapping path is matching request path
-		Map<String, String> varMap = getPathVariableValues(request);
-		if (!varMap.isEmpty()) {
+		if (isMatching(request)) {
 			Engine.logBeans.debug("(PathMapping) Found mapping \""+path+"\" matching the request");
 			
 			// Check if mapping has an operation for request method
@@ -113,13 +112,13 @@ public class PathMapping extends UrlMapping {
 								return null;
 							}
 						}
-						if (param.getType() == Type.Header) {
+						else if (param.getType() == Type.Header) {
 							if (request.getHeader(param.getName()) == null) {
 								Engine.logBeans.debug("(PathMapping) Missing required operation's header \""+param.getName()+"\"");
 								return null;
 							}
 						}
-						if (param.getType() == Type.Body) {
+						else if (param.getType() == Type.Body) {
 							try {
 								if (request.getInputStream() == null) {
 									Engine.logBeans.debug("(PathMapping) Missing required operation's body parameter");
