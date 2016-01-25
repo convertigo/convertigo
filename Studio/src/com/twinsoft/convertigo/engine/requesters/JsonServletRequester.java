@@ -24,9 +24,12 @@ package com.twinsoft.convertigo.engine.requesters;
 
 import java.io.UnsupportedEncodingException;
 
+import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.engine.enums.JsonOutput;
+import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class JsonServletRequester extends ServletRequester {
@@ -45,8 +48,18 @@ public class JsonServletRequester extends ServletRequester {
 	
 	@Override
 	public String postGetDocument(Document document) throws Exception {
+		Element docElement = document.getDocumentElement();
 		boolean useType = context.project != null && context.project.getJsonOutput() == JsonOutput.useType;
-		return XMLUtils.XmlToJson(document.getDocumentElement(), true, useType);
+		JsonRoot jsonRoot = context.project != null ? context.project.getJsonRoot() : JsonRoot.docNode;
+		String jsonString =  XMLUtils.XmlToJson(docElement, true, useType);
+		if (!jsonRoot.equals(JsonRoot.docNode)) {
+			JSONObject jso = new JSONObject(jsonString).getJSONObject(docElement.getTagName());
+			if (jsonRoot.equals(JsonRoot.docChildNodes)) {
+				jso.remove("attr");
+			}
+			jsonString = jso.toString(1);
+		}
+		return jsonString;
 	}
 	
 	protected Object addStatisticsAsData(Object result) { 
