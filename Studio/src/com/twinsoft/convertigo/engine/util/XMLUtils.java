@@ -80,6 +80,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.util.StringEx;
 
 public class XMLUtils {
@@ -1266,10 +1267,21 @@ public class XMLUtils {
 	}
 
 	public static String XmlToJson(Element elt, boolean ignoreStepIds, boolean useType) throws JSONException {
+		return (XmlToJson(elt, ignoreStepIds, useType, null));
+	}
+	
+	public static String XmlToJson(Element elt, boolean ignoreStepIds, boolean useType, JsonRoot jsonRoot) throws JSONException {
 		JSONObject json = new JSONObject();
 		handleElement(elt, json, ignoreStepIds, useType);
-		String result = json.toString(1);
-		return result;
+		String jsonString =   json.toString(1);
+		if (jsonRoot != null && !jsonRoot.equals(JsonRoot.docNode)) {
+			JSONObject jso = new JSONObject(jsonString).getJSONObject(elt.getTagName());
+			if (jsonRoot.equals(JsonRoot.docChildNodes)) {
+				jso.remove("attr");
+			}
+			jsonString = jso.toString(1);
+		}
+		return jsonString;
 	}
 	
 	public static Charset getEncoding(File file) {
