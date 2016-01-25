@@ -17,4 +17,20 @@ public enum JsonOutput {
 	public String toString() {
 		return toString;
 	}
+	
+	public enum JsonRoot {
+		docNode("document node"),
+		docChildNodes("document child nodes"),
+		docAttrAndChildNodes("document attributes and child nodes");
+		
+		private final String label;
+		
+		private JsonRoot(String label) {
+			this.label = label;
+		}
+		
+		public String toString() {
+			return label;
+		}
+	}
 }

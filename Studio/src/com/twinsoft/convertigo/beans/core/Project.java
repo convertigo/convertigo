@@ -39,6 +39,7 @@ import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.JsonOutput;
+import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -111,6 +112,8 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	 * .json and .jsonp requester should use "type" attribute to make output
 	 */
 	private JsonOutput jsonOutput = JsonOutput.useType;
+	
+	private JsonRoot jsonRoot = JsonRoot.docChildNodes;
 	
 	/**
 	 * The schema element form
@@ -285,6 +288,15 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		this.jsonOutput = jsonOutput;
 	}
 	
+	
+	public JsonRoot getJsonRoot() {
+		return jsonRoot;
+	}
+
+	public void setJsonRoot(JsonRoot jsonRoot) {
+		this.jsonRoot = jsonRoot;
+	}
+
 	@Override
     public void add(DatabaseObject databaseObject) throws EngineException {
 		if (databaseObject instanceof Connector) {
@@ -485,6 +497,16 @@ public class Project extends DatabaseObject implements IInfoProperty {
 					bStrictMode = false;
 					hasChanged = true;
 					Engine.logBeans.warn("[Project] Successfully set 'bStrictMode' property for project \""+ getName() +"\" (v 7.3.0)");
+				}
+			}
+			
+			if (VersionUtils.compare(version, "7.4.0") < 0) {
+				NodeList properties = element.getElementsByTagName("property");
+				Element propVarDom = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "jsonRoot");
+				if (propVarDom == null) {
+					Engine.logDatabaseObjectManager.info("Project's file migration to 7.4.0: set 'jsonRoot' value to 'docNode' (old behavior)");
+					jsonRoot = JsonRoot.docNode;
+					hasChanged = true;
 				}
 			}
 		}

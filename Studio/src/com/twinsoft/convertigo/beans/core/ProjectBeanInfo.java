@@ -27,6 +27,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.Project.WsdlStyle;
 import com.twinsoft.convertigo.beans.core.Project.XsdForm;
 import com.twinsoft.convertigo.engine.enums.JsonOutput;
+import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 
 public class ProjectBeanInfo extends MySimpleBeanInfo {
     
@@ -43,7 +44,7 @@ public class ProjectBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
-			properties = new PropertyDescriptor[11];
+			properties = new PropertyDescriptor[12];
 			
 			properties[0] = new PropertyDescriptor("browserDefinitions", beanClass, "getBrowserDefinitions", "setBrowserDefinitions");
 			properties[0].setExpert(true);
@@ -105,6 +106,12 @@ public class ProjectBeanInfo extends MySimpleBeanInfo {
 			properties[10].setDisplayName(getExternalizedString("property.corsOrigin.display_name"));
 			properties[10].setShortDescription(getExternalizedString("property.corsOrigin.short_description"));
 			properties[10].setExpert(true);
+			
+            properties[11] = new PropertyDescriptor("jsonRoot", beanClass, "getJsonRoot", "setJsonRoot");
+            properties[11].setDisplayName(getExternalizedString("property.jsonRoot.display_name"));
+            properties[11].setShortDescription(getExternalizedString("property.jsonRoot.short_description"));
+            properties[11].setPropertyEditorClass(JsonRoot.class);
+            properties[11].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
