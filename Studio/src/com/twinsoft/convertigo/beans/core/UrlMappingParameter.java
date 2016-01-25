@@ -22,24 +22,20 @@
 
 package com.twinsoft.convertigo.beans.core;
 
-
 public abstract class UrlMappingParameter extends DatabaseObject {
 
 	private static final long serialVersionUID = -2280875929012349646L;
 
-	private Boolean required = Boolean.TRUE;
-	
 	public enum Type {
 		Path,
 		Query,
 		Body,
 		Form,
-		Header
+		Header;
 	}
 	
 	public UrlMappingParameter() {
 		super();
-		databaseType = "UrlMappingParameter";
 	}
 	
 	@Override
@@ -48,7 +44,9 @@ public abstract class UrlMappingParameter extends DatabaseObject {
 		return clonedObject;
 	}
 
-	public abstract Type getType();
+	abstract public Type getType();
+	
+	private Boolean required = Boolean.TRUE;
 	
 	public Boolean isRequired() {
 		return required;
@@ -56,5 +54,15 @@ public abstract class UrlMappingParameter extends DatabaseObject {
 
 	public void setRequired(Boolean required) {
 		this.required = required;
+	}
+	
+	private Boolean multiValued = Boolean.FALSE;
+	
+	public Boolean isMultiValued() {
+		return multiValued;
+	}
+
+	public void setMultiValued(Boolean multiValued) {
+		this.multiValued = multiValued;
 	}
 }

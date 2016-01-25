@@ -46,6 +46,9 @@ public class BodyParameterBeanInfo extends MySimpleBeanInfo {
             properties[0] = new PropertyDescriptor("modelReference", beanClass, "getModelReference", "setModelReference");
             properties[0].setDisplayName(getExternalizedString("property.modelReference.display_name"));
             properties[0].setShortDescription(getExternalizedString("property.modelReference.short_description"));
+            
+			getPropertyDescriptor("multiValued").setHidden(true);
+
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

@@ -42,6 +42,8 @@ public class PathParameterBeanInfo extends MySimpleBeanInfo {
 			shortDescription = resourceBundle.getString("short_description");
 			
 			properties = new PropertyDescriptor[0];
+			
+			getPropertyDescriptor("multiValued").setHidden(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
