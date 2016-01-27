@@ -70,5 +70,18 @@ public class ServletUtils {
 			}
 		}
 	}
+
+	@SuppressWarnings("deprecation")
+	public static void applyCustomStatus(HttpServletRequest request, HttpServletResponse response) {
+		Map<Integer, String> status = RequestAttribute.responseStatus.get(request);
+		if (status != null) {
+			Engine.logContext.debug("Setting custom response status");
+			if (!status.isEmpty()) {
+				Entry<Integer, String> entry = status.entrySet().iterator().next();
+				Engine.logContext.debug("Setting custom response status: " + entry.getKey() + "=" + entry.getValue());
+				response.setStatus(entry.getKey(), entry.getValue());
+			}
+		}
+	}
 	
 }

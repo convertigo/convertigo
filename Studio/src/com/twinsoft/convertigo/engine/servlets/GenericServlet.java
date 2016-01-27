@@ -221,6 +221,9 @@ public abstract class GenericServlet extends HttpServlet {
 								Engine.logEngine.debug("(GenericServlet) Requested HTTP 500 status code");
 							}
 						}
+						else {
+							applyCustomStatus(request, response);
+						}
 
 						if (result instanceof AttachmentDetails) {
 							AttachmentDetails attachment = (AttachmentDetails) result;
@@ -548,5 +551,8 @@ public abstract class GenericServlet extends HttpServlet {
 	
 	private void applyCustomHeaders(HttpServletRequest request, HttpServletResponse response) {
 		ServletUtils.applyCustomHeaders(request, response);
+	}
+	private void applyCustomStatus(HttpServletRequest request, HttpServletResponse response) {
+		ServletUtils.applyCustomStatus(request, response);
 	}
 }

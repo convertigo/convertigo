@@ -114,6 +114,7 @@ public class RestApiServlet extends HttpServlet {
 						
 						// Handle request
 		                urlMappingOperation.handleRequest(request, response);
+		                ServletUtils.applyCustomStatus(request, response);
 		                Engine.logEngine.debug("(RestApiServlet) Response status code: "+ response.getStatus());
 		                
 						// Response headers

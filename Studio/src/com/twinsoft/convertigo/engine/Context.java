@@ -747,4 +747,17 @@ public class Context extends AbstractContext implements Cloneable {
 			headers.put(name, value);
 		}
 	}
+
+	@Override
+	public void setResponseStatus(Integer code, String text) {
+		if (httpServletRequest != null) {
+			Map<Integer, String> status = RequestAttribute.responseStatus.get(httpServletRequest);
+			
+			if (status == null) {
+				RequestAttribute.responseStatus.set(httpServletRequest, status = new HashMap<Integer, String>());
+			}
+			
+			status.put(code, text);
+		}
+	}
 }

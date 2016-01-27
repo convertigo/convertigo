@@ -406,4 +406,12 @@ public abstract class AbstractContext {
 	 * @param value the header value to set for this name
 	 */
 	public abstract void setResponseHeader(String name, String value);
+
+	/**
+	 * Set a status to the HTTP response.
+	 * 
+	 * @param code the status code to set
+	 * @param text the status message to set for this code
+	 */
+	public abstract void setResponseStatus(Integer code, String text);
 }

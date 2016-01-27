@@ -3,7 +3,8 @@ package com.twinsoft.convertigo.engine.enums;
 import javax.servlet.ServletRequest;
 
 public enum RequestAttribute {
-	responseHeader;
+	responseHeader,
+	responseStatus;
 	
 	private RequestAttribute() {
 		value = "convertigo." + name();
