@@ -18,6 +18,7 @@ import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.RestApiManager;
+import com.twinsoft.convertigo.engine.util.ServletUtils;
 import com.twinsoft.convertigo.engine.util.SwaggerUtils;
 
 public class RestApiServlet extends HttpServlet {
@@ -116,6 +117,7 @@ public class RestApiServlet extends HttpServlet {
 		                Engine.logEngine.debug("(RestApiServlet) Response status code: "+ response.getStatus());
 		                
 						// Response headers
+		                ServletUtils.applyCustomHeaders(request, response);
 						if (Engine.logEngine.isDebugEnabled()) {
 			    			buf = new StringBuffer();
 			    			buf.append("(RestApiServlet) Response headers:\n");

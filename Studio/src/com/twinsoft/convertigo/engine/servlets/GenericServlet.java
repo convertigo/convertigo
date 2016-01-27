@@ -29,9 +29,6 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -49,7 +46,6 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.Parameter;
-import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.requesters.ServletRequester;
 import com.twinsoft.convertigo.engine.requesters.WebServiceServletRequester;
@@ -57,6 +53,7 @@ import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpServletRequestTwsWrapper;
 import com.twinsoft.convertigo.engine.util.SOAPUtils;
+import com.twinsoft.convertigo.engine.util.ServletUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public abstract class GenericServlet extends HttpServlet {
@@ -550,14 +547,6 @@ public abstract class GenericServlet extends HttpServlet {
 	public abstract String getDocumentExtension();
 	
 	private void applyCustomHeaders(HttpServletRequest request, HttpServletResponse response) {
-		Map<String, String> headers = RequestAttribute.responseHeader.get(request);
-		if (headers != null) {
-			Engine.logContext.debug("[GenericServlet] Setting custom response headers (" + headers.size() + ")");
-			
-			for (Entry<String, String> header : headers.entrySet()) {
-				Engine.logContext.debug("[GenericServlet] Setting custom response header: " + header.getKey() + "=" + header.getValue());
-				response.setHeader(header.getKey(), header.getValue());
-			}
-		}
+		ServletUtils.applyCustomHeaders(request, response);
 	}
 }

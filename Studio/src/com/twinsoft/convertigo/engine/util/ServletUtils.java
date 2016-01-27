@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -14,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 
 public class ServletUtils {
 	public static void handleFileFilter(File file, HttpServletRequest request, HttpServletResponse response, FilterConfig filterConfig, FilterChain chain) throws IOException, ServletException {
@@ -56,4 +59,16 @@ public class ServletUtils {
     	    chain.doFilter(request, response);
     	}
 	}
+	
+	public static void applyCustomHeaders(HttpServletRequest request, HttpServletResponse response) {
+		Map<String, String> headers = RequestAttribute.responseHeader.get(request);
+		if (headers != null) {
+			Engine.logContext.debug("Setting custom response headers (" + headers.size() + ")");
+			for (Entry<String, String> header : headers.entrySet()) {
+				Engine.logContext.debug("Setting custom response header: " + header.getKey() + "=" + header.getValue());
+				response.setHeader(header.getKey(), header.getValue());
+			}
+		}
+	}
+	
 }
