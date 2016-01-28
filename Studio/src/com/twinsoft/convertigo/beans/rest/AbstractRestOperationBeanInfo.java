@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.beans.rest;
 import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
+import com.twinsoft.convertigo.beans.rest.AbstractRestOperation.DataContent;
 
 public class AbstractRestOperationBeanInfo extends MySimpleBeanInfo {
 
@@ -41,7 +42,12 @@ public class AbstractRestOperationBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[0];
+			properties = new PropertyDescriptor[1];
+			
+            properties[0] = new PropertyDescriptor("outputContent", beanClass, "getOutputContent", "setOutputContent");
+            properties[0].setDisplayName(getExternalizedString("property.outputContent.display_name"));
+            properties[0].setShortDescription(getExternalizedString("property.outputContent.short_description"));
+            properties[0].setPropertyEditorClass(DataContent.class);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

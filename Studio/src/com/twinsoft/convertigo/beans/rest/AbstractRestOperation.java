@@ -16,12 +16,14 @@ import com.twinsoft.convertigo.beans.core.UrlMapping;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter.Type;
+import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.JsonOutput;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -31,6 +33,23 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 	private static final long serialVersionUID = 895538076484401562L;
 
 	private transient boolean hasBodyParameter = false;
+	
+	public enum DataContent {
+		useHeader("Use Accept header"),
+		toBinary("Binary"),
+		toJson("Json"),
+		toXml("Xml");
+		
+		private final String label;
+		
+		DataContent(String label) {
+			this.label = label;
+		}
+		
+		public String toString() {
+			return label;
+		}
+	}
 	
 	@Override
 	public AbstractRestOperation clone() throws CloneNotSupportedException {
@@ -87,6 +106,17 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 		}
 	}
 
+	private DataContent outputContent = DataContent.toJson;
+	
+	public DataContent getOutputContent() {
+		return outputContent;
+	}
+
+	public void setOutputContent(DataContent outputContent) {
+		this.outputContent = outputContent;
+	}
+	
+	
 /*
 	@Override
 	public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws EngineException {
@@ -271,6 +301,7 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 */	
 	
 	@Override
+	@SuppressWarnings("deprecation")
 	public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws EngineException {
 		String targetRequestableQName = getTargetRequestable();
 		if (targetRequestableQName.isEmpty()) {
@@ -284,13 +315,10 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 		String connectorName = count == 3 ? st.nextToken():"";
 		String transactionName = count == 3 ? st.nextToken():"";
 		
-		String h_Accept = request.getHeader(HeaderName.Accept.value());
-		
 		try {
 			Map<String, Object> map = new HashMap<String, Object>();
 			String responseContentType = null;
 			String content = null;
-			int statusCode = -1;
 			
 			try {
 				String contextName = request.getParameter(Parameter.Context.getName());
@@ -357,9 +385,43 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
         	internalRequester.setStrictMode(getProject().isStrictMode());
     		Object result = internalRequester.processRequest(map);
         	if (result != null) {
-        		statusCode = 200;
         		Document xmlHttpDocument = (Document) result;
-        		if (h_Accept.indexOf("application/json") != -1) {
+        		
+        		// Get output content type
+        		DataContent dataOutput = getOutputContent();
+        		if (dataOutput.equals(DataContent.useHeader)) {
+            		String h_Accept = request.getHeader(HeaderName.Accept.value());
+        			if (h_Accept == null || h_Accept.indexOf("application/xml") != -1) {
+        				dataOutput = DataContent.toXml;
+        			}
+        			if (h_Accept == null || h_Accept.indexOf("application/json") != -1) {
+        				dataOutput = DataContent.toJson;
+        			}
+        		}
+        		
+        		// Modify status according to XPath condition of Response beans        		
+        		int statusCode = HttpServletResponse.SC_OK;
+        		String statusText = "";
+        		if (RequestAttribute.responseStatus.get(request) == null) {
+	        		for (UrlMappingResponse umr : getResponseList()) {
+	        			if (umr instanceof OperationResponse) {
+	        				OperationResponse or = (OperationResponse)umr;
+	        				if (or.isMatching(xmlHttpDocument)) {
+	        					try {
+	        						statusCode = Integer.valueOf(or.getStatusCode(),10);
+	        						statusText = or.getStatusText();
+	        					}
+	        					catch (Exception e) {}
+	        					break;
+	        				}
+	        			}
+	        		}
+        		}
+        		if (statusText.isEmpty()) response.setStatus(statusCode);
+        		else response.setStatus(statusCode, statusText);
+        		
+        		// Transform XML data
+        		if (dataOutput.equals(DataContent.toJson)) {
         			JsonRoot jsonRoot = getProject().getJsonRoot();
         			boolean useType = getProject().getJsonOutput() == JsonOutput.useType;
             		content = XMLUtils.XmlToJson(xmlHttpDocument.getDocumentElement(), true, useType, jsonRoot);
@@ -370,12 +432,9 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
             		responseContentType = "application/xml";
         		}
         	}
-        	
-			
-			//TODO : analyse/modify status/content with Response beans
-			
-            // Set response status
-			response.setStatus(statusCode);
+        	else {
+        		response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        	}
 			
 			// Set response content-type header
 			if (responseContentType != null) {
