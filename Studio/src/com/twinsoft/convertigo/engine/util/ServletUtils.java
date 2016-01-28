@@ -80,6 +80,7 @@ public class ServletUtils {
 				Entry<Integer, String> entry = status.entrySet().iterator().next();
 				Engine.logContext.debug("Setting custom response status: " + entry.getKey() + "=" + entry.getValue());
 				response.setStatus(entry.getKey(), entry.getValue());
+				//response.setStatus(entry.getKey());
 			}
 		}
 	}
