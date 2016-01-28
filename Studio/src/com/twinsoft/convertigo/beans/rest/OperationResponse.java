@@ -22,6 +22,11 @@
 
 package com.twinsoft.convertigo.beans.rest;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+
+import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
+
 public class OperationResponse extends AbstractRestResponse {
 
 	private static final long serialVersionUID = -8385527221074999901L;
@@ -36,4 +41,25 @@ public class OperationResponse extends AbstractRestResponse {
 		return clonedObject;
 	}
 	
+	private String xpath = "";
+	
+	public String getXpath() {
+		return xpath;
+	}
+
+	public void setXpath(String xpath) {
+		this.xpath = xpath;
+	}
+	
+	public boolean isMatching(Document xmlDocument) {
+		if (xmlDocument != null && !xpath.isEmpty()) {
+			try {
+				TwsCachedXPathAPI xpathApi = new TwsCachedXPathAPI();
+				NodeList nodeList = xpathApi.selectNodeList(xmlDocument, xpath);
+				int  length = nodeList.getLength();
+				return (length > 0) ? true:false;
+			} catch (Exception e) {}
+		}
+		return false;
+	}
 }
