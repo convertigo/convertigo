@@ -65,4 +65,14 @@ public abstract class UrlMappingParameter extends DatabaseObject {
 	public void setMultiValued(Boolean multiValued) {
 		this.multiValued = multiValued;
 	}
+	
+	private String mappedVariableName = "";
+
+	public String getMappedVariableName() {
+		return mappedVariableName;
+	}
+
+	public void setMappedVariableName(String mappedVariableName) {
+		this.mappedVariableName = mappedVariableName;
+	}
 }

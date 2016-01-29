@@ -346,6 +346,10 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 				// Add other parameters
 				for (UrlMappingParameter param :getParameterList()) {
 					String paramName = param.getName();
+					if (!param.getMappedVariableName().isEmpty()) {
+						paramName = param.getMappedVariableName();
+					}
+					
 					Object paramValue = null;
 					if (param.getType() == Type.Header) {
 						paramValue = request.getHeader(paramName);
