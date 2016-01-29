@@ -1,21 +1,23 @@
 
 =====================================================
- CONVERTIGO MOBILITY PLATFORM LICENCE AGREEMENT
+  CONVERTIGO MOBILITY PLATFORM LICENSE AGREEMENT
 =====================================================
- 
-This is a legal agreement ("Agreement") between the organization which is represented by a duly authorized representative ("you") and the Convertigo entity which grants you the present license as specified in the purchase order ("Convertigo") for the software product that this license agreement accompanies.
+
+Any Customer using the Convertigo Mobility Platform shall agree to comply with the following license terms:
+
+=================
+  LICENSE TERMS
+=================
+
+This is a legal agreement ("Agreement") between the organization which is represented by a duly authorized representative ("You") and the Convertigo entity which grants You the present license as specified in the purchase order ("Convertigo") for the software product that this license agreement accompanies.
 BY INDICATING YOUR ACCEPTANCE BY CLICKING "YES" BELOW, OR INSTALLING OR USING THE SOFTWARE, YOU ARE AGREEING TO BE BOUND BY THE TERMS OF THIS AGREEMENT. IF, PRIOR TO USING SUCH SOFTWARE, YOU DECIDE YOU ARE UNWILLING TO AGREE TO THE TERMS OF THIS AGREEMENT, THEN CLICK THE "CANCEL" BUTTON AND THE INSTALLATION PROCESS WILL TERMINATE. 
-
-
-=====================================================
-
 1.	Definitions
 
 " Authorized User " 
 Any user of the Software that is authorized to access or use a Software that has been licensed to an Organization under the terms of this Agreement, provided that in total, the count of all such users does not exceed the total number of licenses acquired by such Organization.
 
 " Community Edition "
-Edition of the Software delivered by CONVERTIGO without activation keys to activate the Extended Edition components (HTML MAINFRAME, SAP connectors and Full Sync off line data, beyond the 30 days trial period and without Standard Edition components documented scripts which allow to run the Server under multi-instance mode. 
+Edition of the Software delivered by CONVERTIGO without activation keys to activate the Extended Edition components (HTML MAINFRAME, SAP connectors and Full Sync off line data, beyond the 30 days' trial period and without Standard Edition keys and components documented scripts which allow to run the Server under multi-instance mode and beyond 10 Sessions. 
 
 " Organization "
 The person, partner, entity, corporation, or government entity that is granted a license on the Software and that shall be responsible for any use of the Software.
@@ -31,7 +33,7 @@ The Software Studio includes an Eclipse IDE, Convertigo plugins, a minimal mono 
 Projects developed with Software Studio are saved into Project.car files to be executed on "Software Server" in production or on the minimal mono user Software Server included within the Studio.
 
 " Extended Edition "
-Edition of the Software which allows you to use the Software Extended Edition components including HTML, MAINFRAME, SAP connectors and Full Sync off line data beyond the 30 days trial period with activation keys and the Software Standard Edition components documented scripts.
+Edition of the Software which allows You to use the Software Extended Edition components including HTML, MAINFRAME, SAP connectors and Full Sync off line data beyond the 30 days' trial period with activation keys and the Software Standard Edition components documented scripts.
 Activation keys are delivered separately by Convertigo to activate the Software Extended Edition components beyond the 30 days trial period.
 The Software Extended Edition components are delivered and bundled with the Software Studio. They are running under the minimal mono user Software Server installed with the Software Studio and are free of use for development purpose only. 
 
@@ -43,13 +45,14 @@ The Software Server installer is installing the Server Software and an administr
 The Software Server contains all run time components to run the Projects.car files. 
 
 " Standard Edition "
-Edition of the Software delivered by CONVERTIGO without activation keys to activate the Extended Edition components including HTML, MAINFRAME, SAP connectors and Full Sync off line data, beyond the 30 days trial period and which allows you to use the Standard Edition components including documented scripts which allow you to run the Server under multi-instance mode.
-The Standard Edition components are delivered separately by Convertigo and on demand. 
+Edition of the Software delivered by CONVERTIGO with activation keys and components documented scripts which allow to run the Server under multi-instance mode and beyond 10 Sessions.
+Standard Edition doesn't include Extended Edition components as HTML, MAINFRAME, SAP connectors and Full Sync off line data
+Standard Edition Activation keys and components are delivered separately by Convertigo and on demand. 
 
 " Software SDK "
 One of the core Standard or Extended Edition Software component which allows to: 
-access Standard or Extended Editions Software Servers services directly within development environments such as Xcode, Android studio, visual studio or Xamarine studio
-compile native mobile applications from the aforesaid environments which can access Standard or Extended Editions Software Servers. Such mobile native applications are including the SDK Software libraries.
+-	access Standard or Extended Editions Software Servers services directly within development environments such as Xcode, Android studio, visual studio or Xamarine studio
+-	compile native mobile applications from the aforesaid environments which can access Standard or Extended Editions Software Servers. Such mobile native applications are including the SDK Software libraries.
 The SDK Software includes Convertigo proprietary developments as well as Third Party Software.
 The SDK Software installed within developments environments or inside mobile device can be freely deployed with no limitations.
 The Software SDK has installations binaries corresponding to the targeted development framework which can be ios android, .net and others in the future.
@@ -57,40 +60,33 @@ The Software SDK has installations binaries corresponding to the targeted develo
 " Third Party Software "
 Software components edited by third party software vendors which are installed or used with the Software and can only be used as described in Section 12 of this license. 
 
-
-=====================================================
-
 2.	Purpose
 
-This Agreement has for purpose to determine the license terms applicable to the use of the Software which may be distributed in different editions : Community Edition, Standard Edition or Extended Edition.
+This Agreement has for purpose to determine the license terms applicable to the use of the Software which may be distributed in different editions: Community Edition, Standard Edition or Extended Edition.
 
 For each edition, specific license terms are applicable.
 
 
-The use of each edition is subject to the corresponding license terms : license terms for the Community Edition or license terms for the Standard Edition and the Convertigo Extended Edition here below. 
+The use of each edition is subject to the corresponding license terms: license terms for the Community Edition or license terms for the Standard Edition and the Convertigo Extended Edition here below. 
 
 You agree to comply with the license terms for the Convertigo Community Edition and for the Standard Edition and for the Extended Edition.
-
-
-=====================================================
 
 3.	License Terms for the Community Edition
 
 The Community Edition allows to use the Software Studio and the Software Server under Affero GPL V3 License and can be used for free.
 Affero GPL V3 License can be accessed at: http://www.gnu.org/licenses/agpl-3.0.html
- 
 The Community Edition allows to develop end to end applications from backend enterprise sources to multi-devices.
 
-Convertigo provides Software Studio and Software Server with third party software components, and with Extended Edition components which may be used only as described below :
+Convertigo provides Software Studio and Software Server with third party software components, and with Extended Edition components which may be used only as described below:
 
 1- Software Studio and Software Server are delivered under Affero GPLV3 license (http://www.gnu.org/licenses/agpl-3.0.html).
 
 2- Third party open source components are delivered under their respective licenses and can only be used as described in Section 4.11 below. 
 
-3- Extended Edition components, such as the HTML, MAINFRAME, SAP connectors and Full Sync off line data, are delivered in object code only for the restricted use as mentioned hereafter :
+3- Extended Edition components, such as the HTML, MAINFRAME, SAP connectors and Full Sync off line data, are delivered in object code only for the restricted use as mentioned hereafter:
 The Extended Edition components delivered and bundled with Software Studio are free of use for developments purpose only. They include HTML, MAINFRAME, SAP connectors and Full Sync off line data.
 The Extended Edition components delivered and bundled with Software Server are pre activated for a 30 days trial period and require keys to extend the activation period. 
-Non-key activated Software components delivered and bundled with Software Studio and Software Server are inactive and can be copied and distributed by you but only bundled with Convertigo products.
+Non-key activated Software components delivered and bundled with Software Studio and Software Server are inactive and can be copied and distributed by You but only bundled with Convertigo products.
 
 Any other use of the Extended Edition components bundled with Software Studio or Software Server necessitates to obtain the Standard Edition or Extended Edition license. 
 
@@ -100,7 +96,7 @@ References (calls) to the third party software and Convertigo Extended Edition c
 
 Details about the third party software which may be used by Convertigo with Software Studio and Software Server (the "Third Party Software") well as the corresponding license terms are available at www.convertigo.com/EEand3rdpartycomponents.
 
-You should read carefully the agreements covering the Third Party Software. Each of these agreements or terms can be accessed via www.convertigo.com/EEand3rdpartycomponents. By installing and using this Third Party Software you accept these Third Party Software license terms and acknowledge that you have read them and understand them. Convertigo does not sell, resell, or license any of this Third Party Software, and Convertigo disclaims to the maximum extent permitted by applicable law, any responsibility for or liability related to the Third Party Software. Any questions, complaints or claims related to the Third Party Software should be directed to the appropriate vendor. 
+You should read carefully the agreements covering the Third Party Software. Each of these agreements or terms can be accessed via www.convertigo.com/EEand3rdpartycomponents. By installing and using this Third Party Software You accept these Third Party Software license terms and acknowledge that You have read them and understand them. Convertigo does not sell, resell, or license any of this Third Party Software, and Convertigo disclaims to the maximum extent permitted by applicable law, any responsibility for or liability related to the Third Party Software. Any questions, complaints or claims related to the Third Party Software should be directed to the appropriate vendor. 
 
 TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, CONVERTIGO MAKES NO REPRESENTATIONS OR WARRANTIES OF ANY KIND CONCERNING THE QUALITY, SAFETY OR SUITABILITY OF ANY THIRD PARTY SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT. In no circumstances will we be liable for any indirect, incidental, special or consequential damages to You or any third party (including without limitation, loss of data, loss of profits, computer failure and business interruption), arising out of the use of or inability to use any Third Party Software, even if Convertigo has been advised of such damages. Your only right or remedy with respect to any problems or dissatisfaction with any Third Party Software is to de-install and cease use of such Third Party Software.
 
@@ -108,12 +104,7 @@ TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, CONVERTIGO MAKES NO REPRESENT
 Details about Convertigo components architecture are available at:
 www.convertigo.com/en/product-overview/modules-and-connectors.html
 
-Matrix about Convertigo Edition features is available at:
-http://www.convertigo.com/en/open-sources/feature-matrix.html 
-
-
-=====================================================
-
+Matrix about Convertigo Edition features is available at: http://www.convertigo.com/en/open-sources/feature-matrix.html
 4.	License terms for the Standard Edition and the Extended Edition
 
 The use of the Standard Edition or of the Extended Edition is submitted to the following license terms as specified below.
@@ -122,7 +113,7 @@ Third party components installed or used with Convertigo Extended Edition compon
 
 4.1	Right to Use the Software 
 
-The right to use the Standard Edition or the Extended Edition is granted to you by Convertigo under "a per CPU or Session" or "per USER or Device" or per Transactions license for a period of one year which is renewable for successive periods of one year.
+The right to use the Standard Edition or the Extended Edition is granted to You by Convertigo under "a per Session" or "per Device" license for a period of one year which is renewable for successive periods of one year.
 
 Your right to use the Software is conditional upon payment of the license fees due by the Organization, as specified in the corresponding purchase order.
 
@@ -132,20 +123,18 @@ Subject to the terms of this Agreement and subject to the payment of the appropr
 
 You agree to be bound by the following limitations:
 
--	if the license is "per CPU or Session or Transaction", you will not deploy more than the number of CPU or Sessions or Transactions for which you have been licensed.
--	if the license is "per User or per Device", you will not deploy more than the number of User or Device for which you have been licensed.
+-	if the license is "per Session ", You will not deploy more than the number of Sessions for which You have been licensed.
+-	if the license is " per Device", You will not deploy more than the number of Device for which You have been licensed.
 
 The Software Extended Edition components can only be used if a license for the Software Extended Edition is granted to you.
 
-The Software Standard Edition components can only be used if a license for the Software Standard Edition is granted to you.
+The Software Standard Edition running beyond 10 Sessions and related components can only be used if a license for the Software Standard Edition is granted to you.
 
 The Software Extended Edition components delivered and bundled with the Software Server are pre activated for a 30 days trial period and requires keys to extend the activation period. 
 
 4.3	Conditions for License Types
 
 4.3.1	If the enclosed Software is an evaluation version of a Convertigo product, You may use not more than one copy of the Software for evaluation purposes during any pre-determined evaluation period and only in accordance with the documentation to determine whether You are interested in acquiring a license to use the Software. Notwithstanding anything else in this Section 4.1, a Software provided on an evaluation loan basis shall only be used by You in a non-production laboratory environment, for internal testing purposes only, to determine whether to acquire the Software for fair market value, and only at the site to which the Software is shipped or downloaded. A copy of the results of the evaluation shall be provided to Convertigo, but not to any third party. No reviews may be published or provided to third parties. All rights and ownership in the Software shall at all times remain solely with Convertigo.
-
-4.3.2	If the enclosed Software is an on-premise single machine dual core CPU version of a Convertigo product, You may use not more than one copy of the Software on a single use machine dual core CPU. 
 
 4.4	General License Conditions:
 
@@ -155,7 +144,7 @@ Except as otherwise expressly provided in this Agreement, the following rights a
 
 4.4.2	You may use the Software in accordance with any documentation accompanying the Software.
 
-4.4.3	You may transfer the Software from one Authorized User to another within your Organization if the other individual agrees to accept the terms and conditions of this Agreement. If you transfer the Software you must at the same time either transfer all copies whether in printed or machine readable form to the same party or destroy any copies not transferred.
+4.4.3	You may transfer the Software from one Authorized User to another within your Organization if the other individual agrees to accept the terms and conditions of this Agreement. If You transfer the Software You must at the same time either transfer all copies whether in printed or machine readable form to the same party or destroy any copies not transferred.
 
 4.4.4	You may not rent, lease or otherwise transfer rights to the Software or remove any proprietary notices, labels or marks. 
 
@@ -165,33 +154,26 @@ Except as otherwise expressly provided in this Agreement, the following rights a
 
 4.4.7	You may not distribute the Software to any third parties or permit other entities to use the Software. 
 
-4.4.8	If you transfer possession of any copy of the Software to another party in any way other than expressly permitted in this Agreement, your license is automatically terminated.
+4.4.8	If You transfer possession of any copy of the Software to another party in any way other than expressly permitted in this Agreement, your license is automatically terminated.
 
 4.4.9	You will take all reasonable precautions to prevent third parties from using the Software or any part thereof in any way that would constitute a breach hereof.
 
 4.5	Term
 
-The Agreement shall be effective upon Your agreement to be bound by the terms of this Agreement, (as manifested by the conduct described in the preamble above) and shall end upon termination of the license on the Software. You may terminate the Agreement at any time by destroying the Software and providing written notice to Convertigo with the License ID described in the Convertigo web base administration of the terminated Software. Convertigo web base administration access is by default for the ID "admin" and for password "admin" as long as customers do not personalize it. Convertigo may terminate this Agreement at any time ipso jure for your breach of this Agreement. Unauthorized copying of the Software or otherwise failing to comply with the license grant of this Agreement will result in automatic termination of this Agreement and will make available to Convertigo all other legal remedies. You agree and acknowledge that your material breach of this Agreement shall cause Convertigo irreparable harm for which monetary damages alone would be inadequate and that, to the extent permitted by applicable law, Convertigo shall be entitled to injunctive or equitable relief without the need for posting a bond. Upon termination of this Agreement the license granted herein will terminate and you must immediately destroy the Software and the back-up copy thereof.
+The Agreement shall be effective upon Your agreement to be bound by the terms of this Agreement, (as manifested by the conduct described in the preamble above) and shall end upon termination of the license on the Software. You may terminate the Agreement at any time by destroying the Software and providing written notice to Convertigo with the License ID described in the Convertigo web base administration of the terminated Software. Convertigo web base administration access is by default for the ID "admin" and for password "admin" as long as customers do not personalize it. Convertigo may terminate this Agreement at any time ipso jure for your breach of this Agreement. Unauthorized copying of the Software or otherwise failing to comply with the license grant of this Agreement will result in automatic termination of this Agreement and will make available to Convertigo all other legal remedies. You agree and acknowledge that your material breach of this Agreement shall cause Convertigo irreparable harm for which monetary damages alone would be inadequate and that, to the extent permitted by applicable law, Convertigo shall be entitled to injunctive or equitable relief without the need for posting a bond. Upon termination of this Agreement the license granted herein will terminate and You must immediately destroy the Software and the back-up copy thereof.
 
 4.6	Limited Warranty
 
-For a period of ninety (90) days from the date you receive the Software, Convertigo warrants that the Software will perform substantially in accordance with the documentation when used as directed ("Limited Warranty"). This Limited Warranty is void if failure of the Software has resulted from modification, accident, abuse or misapplication. This Limited Warranty does not apply to evaluation Software which is provided AS IS with no warranty whatsoever. CONVERTIGO DOES NOT GUARANTEE THAT THE SOFTWARE WILL PERFORM ERROR-FREE OR UNINTERRUPTED OR THAT CONVERTIGO WILL CORRECT ALL SOFTWARE ERRORS.
+For a period of ninety (90) days from the date You receive the Software, Convertigo warrants that the Software will perform substantially in accordance with the documentation when used as directed ("Limited Warranty"). This Limited Warranty is void if failure of the Software has resulted from modification, accident, abuse or misapplication. This Limited Warranty does not apply to evaluation Software which is provided AS IS with no warranty whatsoever. CONVERTIGO DOES NOT GUARANTEE THAT THE SOFTWARE WILL PERFORM ERROR-FREE OR UNINTERRUPTED OR THAT CONVERTIGO WILL CORRECT ALL SOFTWARE ERRORS.
 
 4.7	Customer Remedies
 
 Convertigo's entire liability and the exclusive remedy of the Organization shall be: at Convertigo's option, either (a) return of the price paid or (b) repair or replacement of the Software that does not meet the above Limited Warranty. Any replacement Software will be warranted for the remainder of the original warranty period.
 
-
-=====================================================
-
 5.	Liability
 
 The only type of damages that can be recovered against Convertigo arising from or related to this Agreement including without limitation in relation to the provision, use, performance or non-performance of the Software, shall be the direct damages suffered by the Organization, if any, and without expanding on the specific remedies set out in Section 8 above (i) in no event shall the aggregate liability of Convertigo exceed the amount paid by the Organization for the Software, and (ii) Convertigo shall only be liable for damages incurred during the period of such failure, delay or nonperformance of the Software. CONVERTIGO SHALL HAVE NO LIABILITY WHATSOEVER TO THE ORGANIZATION OR ANY PARTY CLAIMING BY OR THROUGH YOU FOR THE ACCURACY, TIMELINESS OR CONTINUED AVAILABILITY OF ANY SERVICE OR SOFTWARE. 
 EXCEPT FOR THE LIMITED DIRECT DAMAGES SPECIFIED ABOVE, TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL CONVERTIGO BE LIABLE FOR ANY DAMAGES WHATSOEVER (INCLUDING, WITHOUT LIMITATION, INDIRECT, SPECIAL, INCIDENTAL, EXEMPLARY OR CONSEQUENTIAL OR PUNITIVE DAMAGES, DAMAGES FOR LOSS OF BUSINESS PROFITS OR REVENUES, BUSINESS INTERRUPTION, LOSS OF BUSINESS INFORMATION OR CORRUPTION OR LOSS OF DATA, FAILURES TO TRANSMIT OR RECEIVE ANY DATA, PROBLEMS ASSOCIATED WITH ANY APPLICATIONS USED IN CONJUNCTION WITH THE SOFTWARE, DOWNTIME COSTS, LOSS OF THE USE OF THE SOFTWARE, COST OF SUBSTITUTE GOODS, FACILITIES, OR SERVICES, COST OF CAPITAL, OR OTHER PECUNIARY LOSS ARISING OUT OF OR RELATED TO THIS AGREEMENT WHETHER OR NOT SUCH DAMAGES WERE FORESEEN OR UNFORESEEN INCLUDING WITHOUT LIMITATION THE USE OF OR INABILITY TO USE THE SOFTWARE OR ANY THIRD PARTY SOFTWARE, EVEN IF CONVERTIGO HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. 
-
-
-=====================================================
-
 6.	No Other Warranties
 
 CONVERTIGO DISCLAIMS ALL WARRANTIES AND CONDITIONS NOT EXPRESSLY SPECIFIED IN THIS AGREEMENT (EITHER EXPRESS OR IMPLIED), INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OR CONDITIONS OF MERCHANTABILITY, MERCHANTABLE QUALITY, FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, TITLE, LATENT DEFECTS, OR NON-INFRINGEMENT AND ANY OTHER IMPLIED REPRESENTATION, WARRANTY OR CONDITION ARISING BY STATUTE OR CUSTOM OR USAGE OF TRADE RELATED TO THE SOFTWARE. THIS LIMITED WARRANTY GIVES YOU SPECIFIC LEGAL RIGHTS. YOU MAY HAVE OTHERS, WHICH MAY VARY FROM JURISDICTION TO JURISDICTION.
@@ -199,18 +181,16 @@ CONVERTIGO DISCLAIMS ALL WARRANTIES AND CONDITIONS NOT EXPRESSLY SPECIFIED IN TH
 SOME JURISDICTIONS MAY NOT ALLOW THE EXCLUSION OR LIMITATION OF IMPLIED WARRANTIES AND CONDITIONS. TO THE EXTENT PERMITTED BY LAW, ANY IMPLIED WARRANTIES OR CONDITIONS RELATING TO THE SOFTWARE TO THE EXTENT THAT THEY CANNOT BE EXCLUDED AS SET OUT ABOVE ARE LIMITED TO 90 DAYS FROM THE DATE YOU FIRST INSTALLED THE SOFTWARE ON ANY COMPUTER.
 
 
-=====================================================
-
 7.	Third Party Software 
 
-7.1	 When you install the Software, you will install software from third party software vendors (Third Party Software). Use of the Third Party Software will be governed by licenses or other arrangements between such vendors and yourself, including without limitation those software components listed in Section 13 below. 
+7.1	 When You install the Software, You will install software from third party software vendors (Third Party Software). Use of the Third Party Software will be governed by licenses or other arrangements between such vendors and yourself, including without limitation those software components listed in Section 13 below. 
 
-7.2	 You should read carefully the agreements covering the Third Party Software. Each of these agreements can be accessed via www.convertigo.com/EEand3rdpartycomponents or via the urls provided in this Section 12.2. By installing and using this Third Party Software you accept these Third Party Software licenses or other arrangements and acknowledge that you have read them and understand them. Convertigo does not sell, resell, or license any of this Third Party Software, and Convertigo disclaims to the maximum extent permitted by applicable law, any responsibility for or liability related to the Third Party Software. Any questions, complaints or claims related to the Third Party Software should be directed to the appropriate vendor. 
+7.2	 You should read carefully the agreements covering the Third Party Software. Each of these agreements can be accessed via www.convertigo.com/EEand3rdpartycomponents or via the urls provided in this Section 12.2. By installing and using this Third Party Software You accept these Third Party Software licenses or other arrangements and acknowledge that You have read them and understand them. Convertigo does not sell, resell, or license any of this Third Party Software, and Convertigo disclaims to the maximum extent permitted by applicable law, any responsibility for or liability related to the Third Party Software. Any questions, complaints or claims related to the Third Party Software should be directed to the appropriate vendor. 
 The Third Party Software includes the following on the date of execution of the Agreement:
 
-NAME
-  |  URL
-  |  LICENSE
+Name
+  |  Url
+  |  Licence
 ------------------------------------------------------
 Avalon
   |  http://avalon.apache.org/
@@ -234,10 +214,6 @@ BCEL
 ------------------------------------------------------
 FOP
   |  http://xmlgraphics.apache.org/fop/
-  |  ASL 2.0
-------------------------------------------------------
-HttpclientAuthHelper
-  |  https://github.com/DovAmir/httpclientAuthHelper
   |  ASL 2.0
 ------------------------------------------------------
 Jaxen
@@ -296,9 +272,8 @@ Hibernate
   |  http://www.hibernate.org
   |  LGPL 2.1
 ------------------------------------------------------
-Httpclient
-  |  http://www.innovation.ch/java/HTTPClient
-  |  LGPL 2.1
+  |  Httpclient
+  |  http://www.innovation.ch/java/HTTPClient	LGPL 2.1
 ------------------------------------------------------
 Jacob
   |  http://sourceforge.net/projects/jacob-project
@@ -360,6 +335,10 @@ Phaos Technology SSLava (Oracle)
   |  http://www.phaos.com
   |  Inside Aviva License
 ------------------------------------------------------
+DirectKit
+  |  http://www.orange-business-services.com
+  |  OBS license
+------------------------------------------------------
 OpenSSL
   |  http://www.openssl.org
   |  OpenSSL license BSD Like
@@ -371,11 +350,11 @@ BackPort
 
 You may install and use the following Third party Software with the Software SDK: 
 
-For .Net (WPF and Xamarin) :
+For .Net (WPF and Xamarin):
 
 Name
-Url
-Licence
+  |  Url
+  |  Licence
 ------------------------------------------------------
 UnicodeNomalization
   |  https://github.com/Turo-NET/UnicodeNormalization/blob/master/LICENSE.txt
@@ -417,9 +396,8 @@ Commons-io
   |  http://www.apache.org/licenses/
   |  APACHE 2.0 license
 ------------------------------------------------------
-http-core
-  |  https://hc.apache.org/httpcomponents-core-ga/
-  |  APACHE 2.0 license
+  |  http-core
+  |  https://hc.apache.org/httpcomponents-core-ga/	 APACHE 2.0 license
 ------------------------------------------------------
 jackson-annotations
   |  https://github.com/FasterXML/jackson-annotations
@@ -450,55 +428,32 @@ Couchbase-lite
 7.3	SOFTWARE COMPONENTS IN THIS PRODUCT WERE IN PART PROVIDED BY AVIVA SOLUTIONS INC., AND/OR ITS AFFILIATES AND LICENSORS.
 The name of Aviva Solutions Inc. nor the names of its contributors may be used to endorse or promote products derived from this Software without specific prior written permission.
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL AVIVA BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES, LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
-
 7.4	TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, CONVERTIGO MAKES NO REPRESENTATIONS OR WARRANTIES OF ANY KIND CONCERNING THE QUALITY, SAFETY OR SUITABILITY OF ANY THIRD PARTY SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT. In no circumstances will we be liable for any indirect, incidental, special or consequential damages to You or any third party (including without limitation, loss of data, loss of profits, computer failure and business interruption), arising out of the use of or inability to use any Third Party Software, even if Convertigo has been advised of such damages. Your only right or remedy with respect to any problems or dissatisfaction with any Third Party Software is to de-install and cease use of such Third Party Software.
 
-7.5	You are solely responsible for adequate protection and backup of the data and equipment used in connection with any of the Third Party Software, and Convertigo will not be liable for any damages that you may suffer in connection with using, modifying or distributing any of the Third Party Software.
-
-
-=====================================================
+7.5	You are solely responsible for adequate protection and backup of the data and equipment used in connection with any of the Third Party Software, and Convertigo will not be liable for any damages that You may suffer in connection with using, modifying or distributing any of the Third Party Software.
 
 8 .	Intellectual Property
 
-You do not acquire hereby any intellectual property or other proprietary rights, including patents, designs, trademarks, copyrights or rights in any confidential information or trade-secrets in or relating to the Software. You also do not acquire any rights in or related to the Software, or any components thereof, other than the rights expressly licensed to You under this Agreement or in another mutually agreed upon, written agreement that you may have with Convertigo. Any grants not expressly granted herein are reserved. The Software is only licensed to your Organization as expressly set out herein and is protected by copyright and "droit d'auteur". There are severe penalties both civil and criminal for intellectual property infringement.
-
-
-=====================================================
+You do not acquire hereby any intellectual property or other proprietary rights, including patents, designs, trademarks, copyrights or rights in any confidential information or trade-secrets in or relating to the Software. You also do not acquire any rights in or related to the Software, or any components thereof, other than the rights expressly licensed to You under this Agreement or in another mutually agreed upon, written agreement that You may have with Convertigo. Any grants not expressly granted herein are reserved. The Software is only licensed to your Organization as expressly set out herein and is protected by copyright and "droit d'auteur". There are severe penalties both civil and criminal for intellectual property infringement.
 
 9.	Confidentiality
 
 You acknowledge and agree that the Software was developed at considerable time and expense by Convertigo and is confidential to and contains trade secrets of Convertigo. You agree to maintain the Software in strict confidence and not to disclose or provide access thereto to any person except to your employees or contractors with a need for access to exercise the license rights conferred hereby. You do not have the right to obtain or use any source code for the Software, and may not translate, reverse engineer, decompile or disassemble, or otherwise attempt to derive the source code of the Software and agree not to authorize, allow or enable any other person to do so.
 
-
-=====================================================
-
 10.	Indemnity/Liability.
 
 You shall defend, indemnify, and hold harmless Convertigo, Convertigo's suppliers, successors, affiliates, agents and assigns (each a "Convertigo Indemnified Party") from any claims, damages, losses, or expenses (including without limitation attorney fees and costs) incurred by a Convertigo Indemnified Party in connection with all claims, suits, judgments and causes of action (i) for infringement of patents or other intellectual property or proprietary rights arising from combining with or using any device, system or service in connection with the Software, (ii) for damages arising from Your breach of Sections 3, 4, 5, 6, 12, 13, 14 and 15 herein, (iii) for libel, slander, defamation or infringement of copyright or other intellectual property or proprietary right with respect to material transmitted by You (iv) for any injury, death or property damage arising in connection with the presence, use or non-use of any portion of the Software (other than such damage to person or property (excluding data) that directly arises from the use of the Software strictly in accordance with the documentation and user manuals provided by Convertigo which specifically pertains to such Software) or (v) for claims made by third persons against Convertigo arising from or related to Your use of the Software (other than such claims that arise solely from the use of the Software strictly in accordance with the documentation and user manuals provided by Convertigo with the Software which specifically pertains to such Products or Software). No remedy herein conferred upon Convertigo is intended to be, nor shall it be construed to be, exclusive of any other remedy provided herein or as allowed by law or in equity, but all such remedies shall be cumulative. In the event of the termination of this Agreement for Your breach, You shall pay to Convertigo all attorney fees, collection fees, and related expenses, expended or incurred by Convertigo in the enforcement of any right or privilege hereunder (including, but not limited to, telephone, freight, express and postal charges, expenses of paid investigators and reasonable compensation for time of Convertigo's representatives).
 
-
-=====================================================
-
 11.	Right to Audit
 
-You agree to keep all usual and proper records and books of accounts and all usual proper entries relating to each reproduction and user of the Software during the term of this Agreement and for a period of three (3) years thereafter. During this period, Convertigo may cause an audit to be made of the applicable records in order to verify your compliance with this Agreement and prompt adjustment shall be made to compensate for any errors or omissions disclosed by such audit. Any such audit shall be conducted by an independent certified public accountant selected by Convertigo and shall be conducted during the regular business hours at your Organization's offices and in such a manner as not to reasonably interfere with your normal business activities. Any such audit shall be paid for by Convertigo unless material discrepancies are disclosed. For such purposes, "material discrepancies" shall mean three percent (3%) or more of the number of Authorized Licenses pursuant to this Agreement. If material discrepancies are disclosed, you agree to pay Convertigo for the costs associated with the audit as well as fees for all additional licenses. In no event shall audits be made more frequently than semi-annually unless the immediately preceding audit disclosed a material discrepancy.
-
-
-=====================================================
+You agree to keep all usual and proper records and books of accounts and all usual proper entries relating to each reproduction and user of the Software during the term of this Agreement and for a period of three (3) years thereafter. During this period, Convertigo may cause an audit to be made of the applicable records in order to verify your compliance with this Agreement and prompt adjustment shall be made to compensate for any errors or omissions disclosed by such audit. Any such audit shall be conducted by an independent certified public accountant selected by Convertigo and shall be conducted during the regular business hours at your Organization's offices and in such a manner as not to reasonably interfere with your normal business activities. Any such audit shall be paid for by Convertigo unless material discrepancies are disclosed. For such purposes, "material discrepancies" shall mean three percent (3%) or more of the number of Authorized Licenses pursuant to this Agreement. If material discrepancies are disclosed, You agree to pay Convertigo for the costs associated with the audit as well as fees for all additional licenses. In no event shall audits be made more frequently than semi-annually unless the immediately preceding audit disclosed a material discrepancy.
 
 12.	Export
 
-Export laws and regulations of France and the United States and any other relevant local export laws and regulations apply to the Software. You agree that such export control laws govern your use of the Software (including technical data) and you agree to comply with all such export laws and regulations (including `deemed export` and `deemed re-export` regulations). You agree that no Software will be exported directly or indirectly, in violation of these laws, or will be used for any purpose prohibited by these laws including, without limitation, nuclear, chemical, or biological weapons proliferation, or development of missile technology.
-
-
-=====================================================
-
+Export laws and regulations of France and the United States and any other relevant local export laws and regulations apply to the Software. You agree that such export control laws govern your use of the Software (including technical data) and You agree to comply with all such export laws and regulations (including `deemed export` and `deemed re-export` regulations). You agree that no Software will be exported directly or indirectly, in violation of these laws, or will be used for any purpose prohibited by these laws including, without limitation, nuclear, chemical, or biological weapons proliferation, or development of missile technology.
 13.	U.S. Government Restricted Rights
 
 The Software provided to any agency or department of the United States Government is provided with restricted rights. By accepting delivery of or installing or using the Software, the U.S. Government or its prime contractor or subcontractor (at any tier) agrees that notwithstanding anything to the contrary, and to the maximum extent possible under federal law: (a) the acquisition of such Software is governed by FAR Part 12 or DFAR 227.7202-4, as applicable and to the extent such provisions are consistent with the Agreement; (b) such Software qualifies as "commercial computer software" under the applicable procurement regulations; (c) any modifications provided by Convertigo in connection with such Software are either minor derivative modifications or are of a type generally available in the commercial marketplace; and (d) the U.S. Government will be bound by the commercial terms and conditions and restricted rights contained in the Agreement, and no other license terms shall be incorporated into the Agreement except by mutual written consent. 
-
-
-=====================================================
 
 14.	General Conditions
 
