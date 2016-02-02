@@ -696,6 +696,16 @@
              project="true">
           <description>Imports the Convertigo FileTransfer library project.</description>
        </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibrarySigfoxWizard"
+             icon="icons/studio/library_sigfox_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibrarySigfoxWizard"
+             name="Sigfox library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the Convertigo Sigfox library project.</description>
+       </wizard>
 <!-- Mashup demo projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodemos"
