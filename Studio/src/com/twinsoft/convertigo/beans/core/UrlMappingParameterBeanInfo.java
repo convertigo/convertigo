@@ -24,6 +24,8 @@ package com.twinsoft.convertigo.beans.core;
 
 import java.beans.PropertyDescriptor;
 
+import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataContent;
+
 public class UrlMappingParameterBeanInfo extends MySimpleBeanInfo {
     
 	public UrlMappingParameterBeanInfo() {
@@ -39,7 +41,7 @@ public class UrlMappingParameterBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[3];
+			properties = new PropertyDescriptor[4];
             properties[0] = new PropertyDescriptor("required", beanClass, "isRequired", "setRequired");
             properties[0].setDisplayName(getExternalizedString("property.required.display_name"));
             properties[0].setShortDescription(getExternalizedString("property.required.short_description"));
@@ -51,6 +53,12 @@ public class UrlMappingParameterBeanInfo extends MySimpleBeanInfo {
             properties[2] = new PropertyDescriptor("mappedVariableName", beanClass, "getMappedVariableName", "setMappedVariableName");
             properties[2].setDisplayName(getExternalizedString("property.mappedVariableName.display_name"));
             properties[2].setShortDescription(getExternalizedString("property.mappedVariableName.short_description"));
+            
+            properties[3] = new PropertyDescriptor("inputContent", beanClass, "getInputContent", "setInputContent");
+            properties[3].setDisplayName(getExternalizedString("property.inputContent.display_name"));
+            properties[3].setShortDescription(getExternalizedString("property.inputContent.short_description"));
+            properties[3].setPropertyEditorClass(DataContent.class);
+            properties[3].setHidden(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

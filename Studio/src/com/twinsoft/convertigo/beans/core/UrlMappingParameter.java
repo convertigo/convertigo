@@ -34,6 +34,25 @@ public abstract class UrlMappingParameter extends DatabaseObject {
 		Header;
 	}
 	
+	public enum DataContent {
+		noConvert("Do not convert"),
+		useHeader("Use header specific"),
+		toBinary("Binary"),
+		toJson("Json"),
+		toXml("Xml");
+		
+		private final String label;
+		
+		DataContent(String label) {
+			this.label = label;
+		}
+		
+		public String toString() {
+			return label;
+		}
+	}
+
+	
 	public UrlMappingParameter() {
 		super();
 	}
@@ -75,4 +94,15 @@ public abstract class UrlMappingParameter extends DatabaseObject {
 	public void setMappedVariableName(String mappedVariableName) {
 		this.mappedVariableName = mappedVariableName;
 	}
+	
+	private DataContent intputContent = DataContent.useHeader;
+	
+	public DataContent getInputContent() {
+		return intputContent;
+	}
+
+	public void setInputContent(DataContent intputContent) {
+		this.intputContent = intputContent;
+	}
+	
 }

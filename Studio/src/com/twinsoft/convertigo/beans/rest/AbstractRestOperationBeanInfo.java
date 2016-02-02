@@ -25,7 +25,7 @@ package com.twinsoft.convertigo.beans.rest;
 import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
-import com.twinsoft.convertigo.beans.rest.AbstractRestOperation.DataContent;
+import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataContent;
 
 public class AbstractRestOperationBeanInfo extends MySimpleBeanInfo {
 

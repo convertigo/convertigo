@@ -38,6 +38,8 @@ import java.io.Writer;
 import java.lang.reflect.Array;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -1282,6 +1284,67 @@ public class XMLUtils {
 			jsonString = jso.toString(1);
 		}
 		return jsonString;
+	}
+	
+	public static void JsonToXml(Object object, Element parentElement) {
+		Document doc = parentElement.getOwnerDocument();
+		if (object instanceof JSONObject) {
+			JSONObject jsonObject = (JSONObject) object;
+			String[] keys = new String[jsonObject.length()];
+			
+			int index = 0;
+			for (Iterator<String> i = GenericUtils.cast(jsonObject.keys()); i.hasNext();) {
+				keys[index++] = i.next();
+			}
+			
+			Arrays.sort(keys);
+			
+			for (String key: keys) {
+				try {
+					JsonToXml(key, jsonObject.get(key), parentElement);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		else if (object instanceof JSONArray) {
+			JSONArray jsonArray = (JSONArray) object;
+			for (int i = 0; i < jsonArray.length(); i++) {
+				Element item = doc.createElement("item");
+				parentElement.appendChild(item);
+				try {
+					JsonToXml(jsonArray.get(i), item);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		else if (object != null && object != JSONObject.NULL) {
+			parentElement.setTextContent(object.toString());
+		}
+	}
+	
+	public static void JsonToXml(String key, Object value, Element parentElement) {
+		if (key == null || "".equals(key)) {
+			key = "object";
+		}
+		
+		if ("_attachments".equals(parentElement.getNodeName())) {
+			Element att = parentElement.getOwnerDocument().createElement("attachment");
+			Element att_name = parentElement.getOwnerDocument().createElement("name");
+			att_name.setTextContent(key);
+			att.appendChild(att_name);
+			parentElement.appendChild(att);
+			JsonToXml(value, att);
+		}
+		else {
+			String normalisedKey = StringUtils.normalize(key);
+			Element child = parentElement.getOwnerDocument().createElement(normalisedKey);
+			parentElement.appendChild(child);
+			JsonToXml(value, child);
+		}
 	}
 	
 	public static Charset getEncoding(File file) {

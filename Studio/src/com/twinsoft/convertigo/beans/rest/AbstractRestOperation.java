@@ -10,11 +10,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
+import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
-
+import org.w3c.dom.Element;
 import com.twinsoft.convertigo.beans.core.UrlMapping;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
+import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataContent;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter.Type;
 import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
 import com.twinsoft.convertigo.engine.Engine;
@@ -33,23 +35,6 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 	private static final long serialVersionUID = 895538076484401562L;
 
 	private transient boolean hasBodyParameter = false;
-	
-	public enum DataContent {
-		useHeader("Use Accept header"),
-		toBinary("Binary"),
-		toJson("Json"),
-		toXml("Xml");
-		
-		private final String label;
-		
-		DataContent(String label) {
-			this.label = label;
-		}
-		
-		public String toString() {
-			return label;
-		}
-	}
 	
 	@Override
 	public AbstractRestOperation clone() throws CloneNotSupportedException {
@@ -346,31 +331,68 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 				// Add other parameters
 				for (UrlMappingParameter param :getParameterList()) {
 					String paramName = param.getName();
-					if (!param.getMappedVariableName().isEmpty()) {
-						paramName = param.getMappedVariableName();
-					}
+					String variableName = param.getMappedVariableName();
 					
 					Object paramValue = null;
 					if (param.getType() == Type.Header) {
 						paramValue = request.getHeader(paramName);
 					}
-					if (param.getType() == Type.Body) {
-						if (request.getInputStream() != null) {
-							//String requestContentType = request.getContentType();
-							paramValue = IOUtils.toString(request.getInputStream(), "UTF-8");
-						}
-					}
-					if ((param.getType() == Type.Query || param.getType() == Type.Form)) {
+					else if ((param.getType() == Type.Query || param.getType() == Type.Form)) {
 						paramValue = request.getParameterValues(paramName);
+					}
+					else if (param.getType() == Type.Body) {
+						if (request.getInputStream() != null) {
+							// Retrieve data
+							paramValue = IOUtils.toString(request.getInputStream(), "UTF-8");
+			        		
+							// Get input content type
+			        		DataContent dataInput = param.getInputContent();
+			        		if (dataInput.equals(DataContent.useHeader)) {
+			        			String requestContentType = request.getContentType();
+			        			if (requestContentType == null || requestContentType.indexOf("application/json") != -1) {
+			        				dataInput = DataContent.toJson;
+			        			}
+			        			if (requestContentType == null || requestContentType.indexOf("application/xml") != -1) {
+			        				dataInput = DataContent.toXml;
+			        			}
+			        		}
+			        		
+			        		// Transform input data
+			        		try {
+				        		if (dataInput.equals(DataContent.toJson)) {
+				        			String objectName = variableName.isEmpty() ? paramName : variableName;
+				        			Document doc = XMLUtils.parseDOMFromString("<"+objectName+"/>");
+				        			Element root = doc.getDocumentElement();
+				        			XMLUtils.JsonToXml(new JSONObject((String)paramValue), root);
+				        			paramValue = root.getChildNodes();
+				        		}
+				        		else if (dataInput.equals(DataContent.toXml)) {
+				        			Document doc = XMLUtils.parseDOMFromString((String)paramValue);
+				        			paramValue = doc.getDocumentElement();
+				        		}
+			        		}
+			        		catch (Exception e) {
+			        			Engine.logBeans.error("(AbstractRestOperation) \""+ getName() +"\" : unable to decode body", e);
+			        		}
+						}
 					}
 					
 					if (paramValue != null) {
+						// map parameter to variable
+						if (!variableName.isEmpty()) {
+							paramName = variableName;
+						}
+						
+						// add parameter with value to input map
 						if (paramValue instanceof String) {
 							map.put(paramName, new String[] { paramValue.toString() });
 						}
 						else if (paramValue instanceof String[]) {
 							String[] values = (String[])paramValue;
 							map.put(paramName, values);
+						}
+						else {
+							map.put(paramName, paramValue);
 						}
 					}
 					else if (param.isRequired()) {
@@ -455,6 +477,4 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 			throw new EngineException("Operation \""+ getName() +"\" failed to handle request", t);
 		}
 	}
-	
-	
 }
