@@ -109,12 +109,20 @@ public class CarUtils {
 	private static List<File> getUndeployedFiles(String projectName){
 		List<File> undeployedFiles = new LinkedList<File>();
 		
-		File privateDir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/_private");
+		File projectDir = new File(Engine.PROJECTS_PATH + "/" + projectName);
+		
+		File privateDir = new File(projectDir, "_private");
 		undeployedFiles.add(privateDir);
-		File dataDir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/_data");
+		File dataDir = new File(projectDir, "_data");
 		undeployedFiles.add(dataDir);
-		File carFile = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".car");
+		File carFile = new File(projectDir, projectName + ".car");
 		undeployedFiles.add(carFile);
+		
+		for (File file : projectDir.listFiles()) {
+			if (file.getName().startsWith(".")) {
+				undeployedFiles.add(file);
+			}
+		}
 		
 		List<File> svnFiles = CarUtils.deepListFiles(Engine.PROJECTS_PATH + "/" + projectName, ".svn");
 		if (svnFiles != null) {

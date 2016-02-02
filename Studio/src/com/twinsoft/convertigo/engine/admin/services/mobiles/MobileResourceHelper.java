@@ -52,8 +52,7 @@ public class MobileResourceHelper {
 		
 		public boolean accept(File file) {
 			String filename = file.getName();
-			return !filename.equals(".DS_Store") && !filename.equalsIgnoreCase("thumbs.db")
-					&& !filename.equals(".svn");
+			return !filename.startsWith(".") && !filename.equalsIgnoreCase("thumbs.db");
 		}
 
 		public boolean accept(File file, String path) {
