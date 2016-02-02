@@ -140,7 +140,7 @@ public class InternalRequester extends GenericRequester {
     public void initContext(Context context) throws Exception {
     	super.initContext(context);
 
-    	if (context != null) {
+    	if (httpServletRequest != null) {
     		context.setRequest(httpServletRequest);
     	}
     	
