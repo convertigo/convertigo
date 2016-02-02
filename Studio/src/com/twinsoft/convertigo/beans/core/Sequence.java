@@ -1886,31 +1886,33 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 			cRequestDataType.setParticle(s);
 			
 			for (RequestableVariable variable : variables) {
-				XmlSchemaElement element = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaElement());
-				s.getItems().add(element);
-				element.setName(variable.getName());
-				String description = variable.getDescription();
-				if (description != null && description.length() > 0) {
-					XmlSchemaAnnotation annotation = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaAnnotation());
-					element.setAnnotation(annotation);
-					XmlSchemaAppInfo appInfo = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaAppInfo());
-					annotation.getItems().add(appInfo);
-					appInfo.setMarkup(XMLUtils.asNodeList(description));
-				}
-				if (variable.isMultiValued()) {
-					if (variable.isSoapArray()) {
-						cRequestDataType = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaComplexType(schema));
-						element.setType(cRequestDataType);
-						XmlSchemaSequence items = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaSequence());
-						cRequestDataType.setParticle(items);
-						element = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaElement());
-						element.setName("item");
-						items.getItems().add(element);
+				if (variable.isWsdl()) {
+					XmlSchemaElement element = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaElement());
+					s.getItems().add(element);
+					element.setName(variable.getName());
+					String description = variable.getDescription();
+					if (description != null && description.length() > 0) {
+						XmlSchemaAnnotation annotation = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaAnnotation());
+						element.setAnnotation(annotation);
+						XmlSchemaAppInfo appInfo = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaAppInfo());
+						annotation.getItems().add(appInfo);
+						appInfo.setMarkup(XMLUtils.asNodeList(description));
 					}
-					element.setMinOccurs(0);
-					element.setMaxOccurs(Long.MAX_VALUE);
+					if (variable.isMultiValued()) {
+						if (variable.isSoapArray()) {
+							cRequestDataType = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaComplexType(schema));
+							element.setType(cRequestDataType);
+							XmlSchemaSequence items = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaSequence());
+							cRequestDataType.setParticle(items);
+							element = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaElement());
+							element.setName("item");
+							items.getItems().add(element);
+						}
+						element.setMinOccurs(0);
+						element.setMaxOccurs(Long.MAX_VALUE);
+					}
+					element.setSchemaTypeName(variable.getTypeAffectation());
 				}
-				element.setSchemaTypeName(variable.getTypeAffectation());
 			}
 		}
 		
