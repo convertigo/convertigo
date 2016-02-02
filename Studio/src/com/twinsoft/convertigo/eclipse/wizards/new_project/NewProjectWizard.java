@@ -153,6 +153,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int LIBRARY_OAUTH = 806;
 	public static final int LIBRARY_POLYMER = 807;
 	public static final int LIBRARY_FILE_TRANSFER = 808;
+	public static final int LIBRARY_SIGFOX = 809;
 	// demos
 	public static final int DEMOS_SALESFORCE = 900;
 	public static final int DEMOS_USDIRECTORY = 901;
@@ -218,6 +219,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final String OAUTH_LIBRARY_PROJECT_FILE_NAME = "lib_OAuth.car";
 	public static final String POLYMER_LIBRARY_PROJECT_FILE_NAME = "lib_Polymer.car";
 	public static final String FILE_TRANSFER_LIBRARY_PROJECT_FILE_NAME = "lib_FileTransfer.car";
+	public static final String SIGFOX_LIBRARY_PROJECT_FILE_NAME = "lib_Sigfox.car";
 	// mashup demo
 	public static final String SALESFORCE_DEMO_PROJECT_FILE_NAME = "demo_SalesForce.car";
 	public static final String USDIRECTORY_DEMO_PROJECT_FILE_NAME = "demo_usDirectory.car";
@@ -287,6 +289,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case LIBRARY_OAUTH:
 		case LIBRARY_POLYMER:
 		case LIBRARY_FILE_TRANSFER:
+		case LIBRARY_SIGFOX:
 		case DEMOS_SALESFORCE:
 		case DEMOS_USDIRECTORY:
 		case DEMOS_LEGACYCRM:
@@ -502,6 +505,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case LIBRARY_OAUTH:
 			case LIBRARY_POLYMER:
 			case LIBRARY_FILE_TRANSFER:
+			case LIBRARY_SIGFOX:
 			case DEMOS_SALESFORCE:
 			case DEMOS_USDIRECTORY:
 			case DEMOS_LEGACYCRM:
@@ -1276,6 +1280,10 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case LIBRARY_FILE_TRANSFER:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + FILE_TRANSFER_LIBRARY_PROJECT_FILE_NAME;
 			projectName = FILE_TRANSFER_LIBRARY_PROJECT_FILE_NAME.substring(0, FILE_TRANSFER_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
+			break;
+		case LIBRARY_SIGFOX:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SIGFOX_LIBRARY_PROJECT_FILE_NAME;
+			projectName = SIGFOX_LIBRARY_PROJECT_FILE_NAME.substring(0, SIGFOX_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case DEMOS_SALESFORCE:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SALESFORCE_DEMO_PROJECT_FILE_NAME;
