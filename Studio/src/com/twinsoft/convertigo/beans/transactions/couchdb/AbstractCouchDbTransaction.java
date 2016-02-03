@@ -65,7 +65,6 @@ import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.enums.CouchParam;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
-import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public abstract class AbstractCouchDbTransaction extends TransactionWithVariables implements IComplexTypeAffectation {
@@ -181,7 +180,7 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		if (result instanceof JSONObject) {
 			JSONObject jsonResult = (JSONObject) result;
 			Element couchdb_output = doc.createElement("couchdb_output");
-			toXml(jsonResult, couchdb_output);
+			XMLUtils.JsonToXml(jsonResult, couchdb_output);
 			root.appendChild(couchdb_output);
 		}
 		
@@ -456,67 +455,6 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 			return isInputDomVariable(l.getLength() == 0 ? false : l.item(0));
 		}
 		return false;
-	}
-	
-	public static void toXml(Object object, Element parentElement) {
-		Document doc = parentElement.getOwnerDocument();
-		if (object instanceof JSONObject) {
-			JSONObject jsonObject = (JSONObject) object;
-			String[] keys = new String[jsonObject.length()];
-			
-			int index = 0;
-			for (Iterator<String> i = GenericUtils.cast(jsonObject.keys()); i.hasNext();) {
-				keys[index++] = i.next();
-			}
-			
-			Arrays.sort(keys);
-			
-			for (String key: keys) {
-				try {
-					toXml(key, jsonObject.get(key), parentElement);
-				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}
-		else if (object instanceof JSONArray) {
-			JSONArray jsonArray = (JSONArray) object;
-			for (int i = 0; i < jsonArray.length(); i++) {
-				Element item = doc.createElement("item");
-				parentElement.appendChild(item);
-				try {
-					toXml(jsonArray.get(i), item);
-				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}
-		else if (object != null && object != JSONObject.NULL) {
-			parentElement.setTextContent(object.toString());
-		}
-	}
-	
-	private static void toXml(String key, Object value, Element parentElement) {
-		if (key == null || "".equals(key)) {
-			key = "object";
-		}
-		
-		if ("_attachments".equals(parentElement.getNodeName())) {
-			Element att = parentElement.getOwnerDocument().createElement("attachment");
-			Element att_name = parentElement.getOwnerDocument().createElement("name");
-			att_name.setTextContent(key);
-			att.appendChild(att_name);
-			parentElement.appendChild(att);
-			toXml(value, att);
-		}
-		else {
-			String normalisedKey = StringUtils.normalize(key);
-			Element child = parentElement.getOwnerDocument().createElement(normalisedKey);
-			parentElement.appendChild(child);
-			toXml(value, child);
-		}
 	}
 	
 	@Override

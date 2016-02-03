@@ -40,7 +40,6 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.core.Listener;
-import com.twinsoft.convertigo.beans.transactions.couchdb.AbstractCouchDbTransaction;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -220,7 +219,7 @@ public class FullSyncListener extends Listener {
 		try {
 			Document document = XMLUtils.getDefaultDocumentBuilder().newDocument();
 			Element itemsElement = document.createElement("items");
-			AbstractCouchDbTransaction.toXml(docs, itemsElement);
+			XMLUtils.JsonToXml(docs, itemsElement);
 			NodeList docList = XPathAPI.selectNodeList(itemsElement, "item");
 			
 			StringTokenizer st = new StringTokenizer(getTargetSequence(),".");
