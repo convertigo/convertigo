@@ -120,6 +120,12 @@
                label="&amp;Open web administration console"
                menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator"/>
          <action
+               class="com.twinsoft.convertigo.eclipse.actions.OpenSwaggerConsoleAction"
+               icon="icons/studio/swagger_16x16.png"
+               id="com.twinsoft.convertigo.OpenSwaggerConsole"
+               label="&amp;Open Swagger console"
+               menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator"/>
+         <action
                class="com.twinsoft.convertigo.eclipse.actions.OpenConvertigoDocumentationAction"
                icon="icons/convertigo_doc_16x16.gif"
                id="com.twinsoft.convertigo.OpenConvertigoDocumentation"
