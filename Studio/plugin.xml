@@ -1380,6 +1380,18 @@
 	       </action>
 	  </objectContribution>
       <objectContribution
+	        id="convertigo.openProjectSwaggerConsoleContribution"
+	        objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject">
+	       <action
+	             class="com.twinsoft.convertigo.eclipse.popup.actions.OpenProjectSwaggerConsoleAction"
+	             enablesFor="1"
+	             icon="icons/studio/swagger_16x16.png"
+	             id="convertigo.action.openProjectSwaggerConsole"
+	             label="Open Swagger Console"
+	             menubarPath="stats">
+	       </action>
+	  </objectContribution>
+      <objectContribution
             id="convertigo.connectorContribution"
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ConnectorTreeObject">
          <action
