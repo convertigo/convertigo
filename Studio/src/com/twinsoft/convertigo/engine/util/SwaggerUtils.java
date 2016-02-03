@@ -81,6 +81,7 @@ public class SwaggerUtils {
 		
 		List<Tag> tags = new ArrayList<Tag>();
 		Map<String, Path> paths = new HashMap<String, Path>();
+		Map<String, Model> models = new HashMap<String, Model>();
 		for (UrlMapper urlMapper : collection) {
 			if (urlMapper != null) {
 				Swagger p_swagger = parse(urlMapper);
@@ -88,12 +89,14 @@ public class SwaggerUtils {
 					if (p_swagger != null) {
 						tags.addAll(p_swagger.getTags());
 						paths.putAll(p_swagger.getPaths());
+						models.putAll(p_swagger.getDefinitions());
 					}
 				}
 			}
 		}
 		swagger.setTags(tags);
 		swagger.setPaths(paths);
+		swagger.setDefinitions(models);
 		
 		return swagger;
 	}
