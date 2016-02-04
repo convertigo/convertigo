@@ -746,9 +746,12 @@ public class HttpConnector extends Connector {
 	
 	private void getHttpState(Context context) {
 		if (authenticationPropertiesHasChanged) {
-			context.httpState = null;
+			if (context.httpState != null) {
+				context.httpState.clearCredentials();
+				context.httpState.clearProxyCredentials();
+			}
 			authenticationPropertiesHasChanged = false;			
-		}	
+		}
 		
 		boolean stateChanged = false;
 		if (context.httpState == null) {
@@ -1101,7 +1104,7 @@ public class HttpConnector extends Connector {
 		byte[] result = null;
 		String contents = null;
 		int statuscode = -1;
-
+		
 		if (!context.requestedObject.runningThread.bContinue)
 			return null;
 
@@ -1633,7 +1636,7 @@ public class HttpConnector extends Connector {
 	public void setServer(String server) {
 		if (!this.server.equals(server)) {
 			this.server = server;
-			authenticationPropertiesHasChanged = true;
+			setAuthenticationPropertiesChanged();
 		}
 	}
 
@@ -1658,7 +1661,7 @@ public class HttpConnector extends Connector {
 	public void setAuthUser(String authUser) {
 		if (!this.authUser.equals(authUser)) {
 			this.authUser = authUser;
-			authenticationPropertiesHasChanged = true;
+			setAuthenticationPropertiesChanged();
 		}
 	}
 
@@ -1683,7 +1686,7 @@ public class HttpConnector extends Connector {
 	public void setAuthPassword(String authPassword) {
 		if (!this.authPassword.equals(authPassword)) {
 			this.authPassword = authPassword;
-			authenticationPropertiesHasChanged = true;
+			setAuthenticationPropertiesChanged();
 		}
 	}
 	
@@ -1707,7 +1710,7 @@ public class HttpConnector extends Connector {
 	public void setAuthenticationType(AuthenticationMode authenticationType) {
 		if (!this.authenticationType.equals(authenticationType)) {
 			this.authenticationType = authenticationType;
-			authenticationPropertiesHasChanged = true;
+			setAuthenticationPropertiesChanged();
 		}
 	}
 	
@@ -1731,7 +1734,7 @@ public class HttpConnector extends Connector {
 	public void setNTLMAuthenticationDomain(String NTLMAuthenticationDomain) {
 		if (!this.NTLMAuthenticationDomain.equals(NTLMAuthenticationDomain)) {
 			this.NTLMAuthenticationDomain = NTLMAuthenticationDomain;
-			authenticationPropertiesHasChanged = true;
+			setAuthenticationPropertiesChanged();
 		}
 	}
 	
@@ -1878,5 +1881,11 @@ public class HttpConnector extends Connector {
 
 	public void setUrlEncodingCharset(String urlEncodingCharset) {
 		this.urlEncodingCharset = urlEncodingCharset;
+	}
+	
+	private void setAuthenticationPropertiesChanged() {
+		if (!isOriginal()) {
+			authenticationPropertiesHasChanged = true;
+		}
 	}
 }

@@ -318,6 +318,7 @@ public abstract class GenericRequester extends Requester {
 	        Engine.logContext.debug("Project name differs from previous one; requiring new session");
 			context.isNewSession = true;
 			context.projectName = projectName;
+			Log4jHelper.mdcPut(mdcKeys.Project, context.projectName);
 		}
 	}
 
