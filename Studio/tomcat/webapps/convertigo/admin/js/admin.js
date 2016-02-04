@@ -54,6 +54,8 @@ $(window).ready(function() {
 		}
 	});
 	
+	$("#swaggerLink").attr("href", "../swagger/ui/index.html?url="+getEncodedYamlUri());
+	
 	$("#logOut div").click(function() {
 		$.ajax( {
 			type : "POST",
@@ -167,7 +169,6 @@ function displayPage(layoutName, widgetOptions) {
 	} else {
 		loadWidgets(layoutName, widgetOptions);
 	}
-	
 }
 
 function initWidgetContainer() {
@@ -595,4 +596,17 @@ function simpleWheel(event, delta) {
 		event.data.fn.apply(this, [delta < 0 ? 1 : -1]);
 		return false;
 	}
+}
+
+function getEncodedYamlUri(project) {
+	var yamlUrl = "";
+	try {
+		var location = document.location.href;
+		yamlUrl = location.substring(0,location.indexOf("/admin"))+"/api?YAML";
+		if (typeof(project) !== "undefined") {
+			yamlUrl += "&__project="+project;
+		}
+	}
+	catch (e) {}
+	return encodeURIComponent(yamlUrl);
 }
