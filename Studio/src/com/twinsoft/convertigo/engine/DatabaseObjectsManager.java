@@ -1062,7 +1062,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 	private void performPostMigration(String version, String projectName) {
 		if (VersionUtils.compare(version, "6.2.0") < 0) {
 			try {
-				Project project = getProjectByName(projectName);
+				//Project project = getProjectByName(projectName); //recursivity issue since #4780
+				Project project = getOriginalProjectByName(projectName, false);
 				for (Sequence sequence : project.getSequencesList()) {
 					// Modify source's xpath for steps which have a source on a ReadFileStep
 					replaceSourceXpath(version, sequence, sequence.getSteps());
