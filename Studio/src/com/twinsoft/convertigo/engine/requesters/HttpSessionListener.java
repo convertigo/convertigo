@@ -113,7 +113,7 @@ public class HttpSessionListener implements HttpSessionBindingListener {
     
     static public void removeAllSession() {
         synchronized (httpSessions) {
-        	for (Iterator<Entry<String, HttpSession>> iEntry = httpSessions.entrySet().iterator(); iEntry.hasNext(); iEntry = httpSessions.entrySet().iterator()) {
+        	for (Iterator<Entry<String, HttpSession>> iEntry = httpSessions.entrySet().iterator(); iEntry.hasNext();) {
         		Entry<String, HttpSession> entry = iEntry.next();
         		HttpUtils.terminateSession(entry.getValue());
         		removeSession(entry.getKey());
