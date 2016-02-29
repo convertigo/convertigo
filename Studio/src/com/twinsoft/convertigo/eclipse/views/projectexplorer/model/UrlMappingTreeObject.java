@@ -127,7 +127,8 @@ public class UrlMappingTreeObject extends DatabaseObjectTreeObject {
 					    		    					if (parameter.getType().equals(Type.Path)) {
 					    		    						try {
 					    		    							parameter.delete();
-					    		    							//operation.remove(parameter);
+					    		    							operation.remove(parameter);
+					    		    							operation.hasChanged = true;
 					    		    						} catch (EngineException e) {
 					    		    							ConvertigoPlugin.logException(e, "Error when deleting the parameter \""+variableName+"\"");
 					    		    						}
@@ -170,6 +171,7 @@ public class UrlMappingTreeObject extends DatabaseObjectTreeObject {
 		    		    						try {
 			    		    						parameter = new PathParameter();
 			    		    						parameter.setName(variableName);
+			    		    						parameter.setMappedVariableName(variableName);
 			    		    						parameter.bNew = true;
 			    		    						
 			    		    						operation.add(parameter);

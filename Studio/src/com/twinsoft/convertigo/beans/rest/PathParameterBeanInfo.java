@@ -22,8 +22,6 @@
 
 package com.twinsoft.convertigo.beans.rest;
 
-import java.beans.PropertyDescriptor;
-
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class PathParameterBeanInfo extends MySimpleBeanInfo {
@@ -41,8 +39,7 @@ public class PathParameterBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[0];
-			
+			getPropertyDescriptor("required").setHidden(true);
 			getPropertyDescriptor("multiValued").setHidden(true);
 		}
 		catch(Exception e) {
