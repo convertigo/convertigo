@@ -120,8 +120,21 @@ public abstract class UrlMapping extends DatabaseObject {
 		throw new EngineException("There is no operation named \"" + operationName + "\" found into this mapping.");
 	}
 
-	public List<String> getPathVariableNames() {
+	public List<String> getPathVariableNames(String path) {
 		List<String> varList = new ArrayList<String>();
+		Pattern pattern = Pattern.compile("\\{([a-zA-Z0-9_]+)\\}");
+		Matcher matcher = pattern.matcher(path);
+		while (matcher.find()) {
+			String path_varname = matcher.group(1);
+			if (!path_varname.isEmpty() && !varList.contains(path_varname)) {
+				varList.add(path_varname);
+			}
+		}
+		return varList;
+	}
+	
+	public List<String> getPathVariableNames() {
+		/*List<String> varList = new ArrayList<String>();
 		Pattern pattern = Pattern.compile("\\{([a-zA-Z0-9_]+)\\}");
 		Matcher matcher = pattern.matcher(getPath());
 		while (matcher.find()) {
@@ -130,7 +143,8 @@ public abstract class UrlMapping extends DatabaseObject {
 				varList.add(path_varname);
 			}
 		}
-		return varList;
+		return varList;*/
+		return getPathVariableNames(getPath());
 	}
 	
 	public Map<String, String> getPathVariableValues(HttpServletRequest request) {
