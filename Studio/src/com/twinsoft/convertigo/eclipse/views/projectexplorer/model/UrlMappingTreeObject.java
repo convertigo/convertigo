@@ -171,7 +171,6 @@ public class UrlMappingTreeObject extends DatabaseObjectTreeObject {
 		    		    						try {
 			    		    						parameter = new PathParameter();
 			    		    						parameter.setName(variableName);
-			    		    						parameter.setMappedVariableName(variableName);
 			    		    						parameter.bNew = true;
 			    		    						
 			    		    						operation.add(parameter);
