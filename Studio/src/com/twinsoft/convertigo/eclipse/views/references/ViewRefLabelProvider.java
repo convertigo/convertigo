@@ -1,6 +1,31 @@
+/*
+* Copyright (c) 2001-2016 Convertigo. All Rights Reserved.
+*
+* The copyright to the computer  program(s) herein  is the property
+* of Convertigo.
+* The program(s) may  be used  and/or copied  only with the written
+* permission  of  Convertigo  or in accordance  with  the terms and
+* conditions  stipulated  in the agreement/contract under which the
+* program(s) have been supplied.
+*
+* Convertigo makes  no  representations  or  warranties  about  the
+* suitability of the software, either express or implied, including
+* but  not  limited  to  the implied warranties of merchantability,
+* fitness for a particular purpose, or non-infringement. Convertigo
+* shall  not  be  liable for  any damage  suffered by licensee as a
+* result of using,  modifying or  distributing this software or its
+* derivatives.
+*/
+
+/*
+ * $URL$
+ * $Author$
+ * $Revision$
+ * $Date$
+ */
+
 package com.twinsoft.convertigo.eclipse.views.references;
 /*
- * Copyright (c) 2001-2011 Convertigo SA.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License
@@ -15,10 +40,10 @@ package com.twinsoft.convertigo.eclipse.views.references;
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
  *
- * $URL: http://sourceus/svn/convertigo/CEMS_opensource/trunk/Studio/src/com/twinsoft/convertigo/eclipse/views/projectexplorer/ViewLabelProvider.java $
- * $Author: nathalieh $
- * $Revision: 29152 $
- * $Date: 2011-11-30 18:38:10 +0100 (Wed, 30 Nov 2011) $
+ * $URL$
+ * $Author$
+ * $Revision$
+ * $Date$
  */
 
 import java.beans.BeanInfo;
@@ -35,7 +60,6 @@ import com.twinsoft.convertigo.eclipse.views.references.model.AbstractNodeWithDa
 import com.twinsoft.convertigo.eclipse.views.references.model.InformationNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.IsUsedByNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.RequiresNode;
-
 
 public class ViewRefLabelProvider implements ILabelProvider {
 
@@ -61,7 +85,21 @@ public class ViewRefLabelProvider implements ILabelProvider {
 			AbstractNodeWithDatabaseObjectReference node = (AbstractNodeWithDatabaseObjectReference) element;
 			DatabaseObject databaseObject = node.getRefDatabaseObject();
 			
-			iconName = MySimpleBeanInfo.getIconName(databaseObject, BeanInfo.ICON_COLOR_16x16);
+			/**
+			 * treat case Entry handlers, Exit handlers etc... where dbo == null
+			 * could be cleaner if having its own icon etc...
+			 */
+			if (databaseObject == null) {
+				if (node.getName().contains("entry"))
+					iconName = "/com/twinsoft/convertigo/beans/statements/images/handler_entry_16x16.png";
+				else 
+				if (node.getName().contains("exit"))
+					iconName = "/com/twinsoft/convertigo/beans/statements/images/handler_exit_16x16.png";
+				else
+					iconName = null;
+			}
+			else
+				iconName = MySimpleBeanInfo.getIconName(databaseObject, BeanInfo.ICON_COLOR_16x16);
 		}
 		else {
 			if (element instanceof InformationNode) {
