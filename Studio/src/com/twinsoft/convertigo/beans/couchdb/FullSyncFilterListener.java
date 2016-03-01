@@ -32,50 +32,47 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
 
-public class FullSyncListener extends AbstractFullSyncViewListener {
+public class FullSyncFilterListener extends AbstractFullSyncFilterListener {
 
 	private static final long serialVersionUID = -7580433107225235685L;
 	
-	public FullSyncListener() {
+	public FullSyncFilterListener() {
 		super();
 	}
 
 	@Override
-	public FullSyncListener clone() throws CloneNotSupportedException {
-		FullSyncListener clonedObject =  (FullSyncListener) super.clone();
+	public FullSyncFilterListener clone() throws CloneNotSupportedException {
+		FullSyncFilterListener clonedObject =  (FullSyncFilterListener) super.clone();
 		return clonedObject;
 	}
 	
 	@Override
 	protected void triggerSequence(JSONArray ids) throws EngineException {
-		if (targetView == null || targetView.isEmpty()) {
+		if (targetFilter == null || targetFilter.isEmpty()) {
 			throw new EngineException("No target view defined");
 		}
 		
-		String ddoc = getTargetDocName();
-		if (ddoc == null) {
-			throw new EngineException("Target design document name is null");
-		}
+		String filter = targetFilter;
 		
-		String view = getTargetViewName();
-		if (view == null) {
-			throw new EngineException("Target view name is null");
+		String ddoc = getTargetDocName();
+		String filterName = getTargetFilterName();
+		if (ddoc != null && filterName != null) {
+			filter = ddoc + "/" + filterName;
 		}
 		
 		int len = ids.length();
 		
 		Map<String, String> query = new HashMap<String, String>(2);
-		query.put("reduce", "false");
+		query.put("filter", filter);
 		query.put("include_docs", "true");
-
 		try {
 			for (int i = 0; i < len;) {
 				JSONArray doc_ids = getChunk(ids, i);
 				i += doc_ids.length();
 
-				Engine.logBeans.debug("(FullSyncListener) Listener \"" + getName() + "\" : post view for _id keys " + doc_ids);
-				JSONObject json = getCouchClient().postView(getDatabaseName(), ddoc, view, query, CouchKey.keys.put(new JSONObject(), doc_ids));
-				Engine.logBeans.debug("(FullSyncListener) Listener \"" + getName() + "\" : post view returned following documents :\n" + json.toString());
+				Engine.logBeans.debug("(FullSyncFilterListener) Listener \"" + getName() + "\" : post filter for _id keys " + doc_ids);
+				JSONObject json = getCouchClient().postChange(getDatabaseName(), query, CouchKey.doc_ids.put(new JSONObject(), doc_ids));
+				Engine.logBeans.debug("(FullSyncFilterListener) Listener \"" + getName() + "\" : post filter returned following documents :\n" + json.toString());
 
 				if (json != null) {
 					if (CouchKey.error.has(json)) {
@@ -83,13 +80,13 @@ public class FullSyncListener extends AbstractFullSyncViewListener {
 						error = error == null ? "unknown" : error;
 						String reason = CouchKey.reason.String(json);
 						reason = reason == null ? "unknown" : reason;
-						throw new EngineException("View returned error: " + error + ", reason: " + reason);
+						throw new EngineException("Filter returned error: " + error + ", reason: " + reason);
 					}
-					runDocs(CouchKey.rows.JSONArray(json));
+					runDocs(CouchKey.results.JSONArray(json));
 				}
 			}
 		} catch (Throwable t) {
-			throw new EngineException("Query view named \""+ view +"\" of \""+ ddoc +"\" design document failed", t);
+			throw new EngineException("Query filter named \""+ filter +"\" design document failed", t);
 		}
 	}
 }

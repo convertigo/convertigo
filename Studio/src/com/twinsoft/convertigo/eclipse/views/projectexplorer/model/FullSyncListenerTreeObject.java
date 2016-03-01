@@ -29,7 +29,9 @@ import org.eclipse.jface.viewers.Viewer;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
-import com.twinsoft.convertigo.beans.couchdb.FullSyncListener;
+import com.twinsoft.convertigo.beans.couchdb.AbstractFullSyncFilterListener;
+import com.twinsoft.convertigo.beans.couchdb.AbstractFullSyncListener;
+import com.twinsoft.convertigo.beans.couchdb.AbstractFullSyncViewListener;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 
 public class FullSyncListenerTreeObject extends ListenerTreeObject implements INamedSourceSelectorTreeObject {
@@ -39,8 +41,8 @@ public class FullSyncListenerTreeObject extends ListenerTreeObject implements IN
 	}
 
 	@Override
-	public FullSyncListener getObject() {
-		return (FullSyncListener) super.getObject();
+	public AbstractFullSyncListener getObject() {
+		return (AbstractFullSyncListener) super.getObject();
 	}
 	
 	@Override
@@ -69,6 +71,14 @@ public class FullSyncListenerTreeObject extends ListenerTreeObject implements IN
 						list.add("targetView");
 				}
 				
+				if (ProjectTreeObject.class.isAssignableFrom(c) ||
+					ConnectorTreeObject.class.isAssignableFrom(c) ||
+					DesignDocumentTreeObject.class.isAssignableFrom(c) ||
+					DesignDocumentFilterTreeObject.class.isAssignableFrom(c))
+				{
+						list.add("targetFilter");
+				}
+				
 				return list;
 			}
 			
@@ -82,9 +92,9 @@ public class FullSyncListenerTreeObject extends ListenerTreeObject implements IN
 				if ("targetSequence".equals(propertyName)) {
 					return nsObject instanceof Sequence;
 				}
-				else if ("targetView".equals(propertyName)) {
+				else if ("targetView".equals(propertyName) || "targetFilter".equals(propertyName)) {
 					if (nsObject instanceof String) {
-						return ((String)nsObject).startsWith(getObject().getParent().getTokenPath(null));
+						return ((String) nsObject).startsWith(getObject().getParent().getTokenPath(null));
 					}
 				}
 				return false;
@@ -112,7 +122,11 @@ public class FullSyncListenerTreeObject extends ListenerTreeObject implements IN
 								hasBeenRenamed = true;
 							}
 							else if ("targetView".equals(propertyName)) {
-								getObject().setTargetView(_pValue);
+								((AbstractFullSyncViewListener) getObject()).setTargetView(_pValue);
+								hasBeenRenamed = true;
+							}
+							else if ("targetFilter".equals(propertyName)) {
+								((AbstractFullSyncFilterListener) getObject()).setTargetFilter(_pValue);
 								hasBeenRenamed = true;
 							}
 						}

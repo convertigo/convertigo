@@ -26,17 +26,17 @@ import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
-public class FullSyncListenerBeanInfo extends MySimpleBeanInfo {
+public class FullSyncDeleteFilterListenerBeanInfo extends MySimpleBeanInfo {
 
-	public FullSyncListenerBeanInfo() {
+	public FullSyncDeleteFilterListenerBeanInfo() {
 		try {
-			beanClass =  FullSyncListener.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.couchdb.AbstractFullSyncViewListener.class;
+			beanClass =  FullSyncDeleteFilterListener.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.couchdb.AbstractFullSyncFilterListener.class;
 
 		    iconNameC16 = "/com/twinsoft/convertigo/beans/couchdb/images/fullsynclistener_color_16x16.png";
 		    iconNameC32 = "/com/twinsoft/convertigo/beans/couchdb/images/fullsynclistener_color_32x32.png";
 			
-			resourceBundle = getResourceBundle("res/FullSyncListener");
+			resourceBundle = getResourceBundle("res/FullSyncDeleteFilterListener");
 			
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

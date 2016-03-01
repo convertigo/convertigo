@@ -49,6 +49,8 @@ import com.twinsoft.convertigo.beans.core.Listener;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.couchdb.AbstractFullSyncFilterListener;
+import com.twinsoft.convertigo.beans.couchdb.AbstractFullSyncViewListener;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
@@ -158,12 +160,24 @@ public class NamedSourceSelectorEditorComposite extends AbstractDialogComposite 
 					else if (object instanceof Document) {
 						if (object instanceof DesignDocument) {
 							JSONObject json = ((DesignDocument)object).getJSONObject();
-							JSONObject views = CouchKey.views.JSONObject(json);
-							if (views != null) {
-								for (Iterator<String> it = GenericUtils.cast(views.keys()); it.hasNext(); ) {
-									String key = it.next();
-									String viewName = tvObject.getTargetName() + "." + key;
-									tvObject.add(new TVObject(key, isSelectable(viewName)));
+							if (dboto.getObject() instanceof AbstractFullSyncViewListener) {
+								JSONObject views = CouchKey.views.JSONObject(json);
+								if (views != null) {
+									for (Iterator<String> it = GenericUtils.cast(views.keys()); it.hasNext(); ) {
+										String key = it.next();
+										String viewName = tvObject.getTargetName() + "." + key;
+										tvObject.add(new TVObject(key, isSelectable(viewName)));
+									}
+								}
+							}
+							if (dboto.getObject() instanceof AbstractFullSyncFilterListener) {
+								JSONObject filters = CouchKey.filters.JSONObject(json);
+								if (filters != null) {
+									for (Iterator<String> it = GenericUtils.cast(filters.keys()); it.hasNext(); ) {
+										String key = it.next();
+										String filterName = tvObject.getTargetName() + "." + key;
+										tvObject.add(new TVObject(key, isSelectable(filterName)));
+									}
 								}
 							}
 						}
@@ -262,6 +276,9 @@ public class NamedSourceSelectorEditorComposite extends AbstractDialogComposite 
 	private Object getInitalInput() {
 		TVRoot tvRoot = new TVRoot();
 		try {
+			if (dboto.getObject() instanceof AbstractFullSyncFilterListener) {
+				tvRoot.add(new TVObject("_doc_ids", true));
+			}
 			tvRoot.addObject(null);
 		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "Error while analyzing the projects hierarchy", true);

@@ -7,6 +7,7 @@ import org.codehaus.jettison.json.JSONObject;
 public enum CouchKey {
 	_id,
 	_rev,
+	_deleted,
 	_design("_design/"),
 	_global("_global/"),
 	_c8oMeta,
@@ -29,6 +30,7 @@ public enum CouchKey {
 	proxy,
 	reason,
 	reduce,
+	results,
 	rev,
 	rows,
 	source,
@@ -79,12 +81,13 @@ public enum CouchKey {
 		}
 	}
 	
-	public void put(JSONObject json, Object value) {
+	public JSONObject put(JSONObject json, Object value) {
 		try {
 			json.put(key, value);
 		} catch (JSONException e) {
 			onJSONException(e);
 		}
+		return json;
 	}
 	
 	public void remove(JSONObject json) {

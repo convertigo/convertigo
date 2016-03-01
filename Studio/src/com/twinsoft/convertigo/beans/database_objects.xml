@@ -930,6 +930,15 @@
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.couchdb.FullSyncListener">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
                 </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.couchdb.FullSyncDeleteViewListener">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
+                </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.couchdb.FullSyncFilterListener">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
+                </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.couchdb.FullSyncDeleteFilterListener">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
+                </bean>
             </beans>
             <beans groupname="Document transactions">
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.HeadDocumentTransaction">

@@ -26,22 +26,31 @@ import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
-public class FullSyncListenerBeanInfo extends MySimpleBeanInfo {
+public class AbstractFullSyncListenerBeanInfo extends MySimpleBeanInfo {
 
-	public FullSyncListenerBeanInfo() {
+	public AbstractFullSyncListenerBeanInfo() {
 		try {
-			beanClass =  FullSyncListener.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.couchdb.AbstractFullSyncViewListener.class;
+			beanClass =  AbstractFullSyncListener.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.core.Listener.class;
 
 		    iconNameC16 = "/com/twinsoft/convertigo/beans/couchdb/images/fullsynclistener_color_16x16.png";
 		    iconNameC32 = "/com/twinsoft/convertigo/beans/couchdb/images/fullsynclistener_color_32x32.png";
 			
-			resourceBundle = getResourceBundle("res/FullSyncListener");
+			resourceBundle = getResourceBundle("res/AbstractFullSyncListener");
 			
 			displayName = getExternalizedString("display_name");
-			shortDescription = getExternalizedString("short_description");
+			shortDescription = getExternalizedString("short_description");	
 			
-			properties = new PropertyDescriptor[0];
+			properties = new PropertyDescriptor[2];
+			
+			properties[0] = new PropertyDescriptor("targetSequence", beanClass, "getTargetSequence", "setTargetSequence");
+			properties[0].setDisplayName(getExternalizedString("property.targetSequence.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.targetSequence.short_description"));
+			properties[0].setPropertyEditorClass(getEditorClass("NamedSourceSelectorEditor"));
+			
+			properties[1] = new PropertyDescriptor("chunk", beanClass, "getChunk", "setChunk");
+			properties[1].setDisplayName(getExternalizedString("property.chunk.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.chunk.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
