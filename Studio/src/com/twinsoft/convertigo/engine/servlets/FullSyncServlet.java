@@ -8,6 +8,7 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -40,6 +41,7 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.beans.couchdb.AbstractFullSyncListener;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
@@ -231,6 +233,8 @@ public class FullSyncServlet extends HttpServlet {
 				((HttpEntityEnclosingRequest) newRequest).setEntity(httpEntity);
 			}
 			
+			Map<AbstractFullSyncListener, JSONArray> listeners = Engine.theApp.couchDbManager.handleBulkDocsRequest(dbName, bulkDocsRequest);
+			
 			newRequest.setURI(uri);
 
 			HttpResponse newResponse = Engine.theApp.httpClient4.execute(newRequest);
@@ -282,7 +286,7 @@ public class FullSyncServlet extends HttpServlet {
 			Engine.logCouchDbManager.info("(FullSyncServlet) Success to process request:\n" + debug);
 			
 			if (bulkDocsRequest != null && responseStringEntity != null) {
-				Engine.theApp.couchDbManager.handleBulkDocsResponse(dbName, bulkDocsRequest, responseStringEntity);
+				Engine.theApp.couchDbManager.handleBulkDocsResponse(listeners, bulkDocsRequest, responseStringEntity);
 			}
 		} catch (Exception e) {
 			Engine.logCouchDbManager.error("(FullSyncServlet) Failed to process request:\n" + debug, e);

@@ -26,22 +26,27 @@ import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
-public class FullSyncListenerBeanInfo extends MySimpleBeanInfo {
+public class AbstractFullSyncFilterListenerBeanInfo extends MySimpleBeanInfo {
 
-	public FullSyncListenerBeanInfo() {
+	public AbstractFullSyncFilterListenerBeanInfo() {
 		try {
-			beanClass =  FullSyncListener.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.couchdb.AbstractFullSyncViewListener.class;
+			beanClass =  AbstractFullSyncFilterListener.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.couchdb.AbstractFullSyncListener.class;
 
 		    iconNameC16 = "/com/twinsoft/convertigo/beans/couchdb/images/fullsynclistener_color_16x16.png";
 		    iconNameC32 = "/com/twinsoft/convertigo/beans/couchdb/images/fullsynclistener_color_32x32.png";
 			
-			resourceBundle = getResourceBundle("res/FullSyncListener");
+			resourceBundle = getResourceBundle("res/AbstractFullSyncFilterListener");
 			
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 			
-			properties = new PropertyDescriptor[0];
+			properties = new PropertyDescriptor[1];
+			
+			properties[0] = new PropertyDescriptor("targetFilter", beanClass, "getTargetFilter", "setTargetFilter");
+			properties[0].setDisplayName(getExternalizedString("property.targetFilter.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.targetFilter.short_description"));
+			properties[0].setPropertyEditorClass(getEditorClass("NamedSourceSelectorEditor"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

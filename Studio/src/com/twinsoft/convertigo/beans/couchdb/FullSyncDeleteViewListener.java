@@ -26,28 +26,34 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
 
-public class FullSyncListener extends AbstractFullSyncViewListener {
+public class FullSyncDeleteViewListener extends AbstractFullSyncViewListener implements FullSyncDeleteListener {
 
 	private static final long serialVersionUID = -7580433107225235685L;
 	
-	public FullSyncListener() {
+	public FullSyncDeleteViewListener() {
 		super();
 	}
 
 	@Override
-	public FullSyncListener clone() throws CloneNotSupportedException {
-		FullSyncListener clonedObject =  (FullSyncListener) super.clone();
+	public FullSyncDeleteViewListener clone() throws CloneNotSupportedException {
+		FullSyncDeleteViewListener clonedObject =  (FullSyncDeleteViewListener) super.clone();
 		return clonedObject;
 	}
 	
 	@Override
-	protected void triggerSequence(JSONArray ids) throws EngineException {
+	protected void triggerSequence(JSONArray deletedDocs) throws EngineException, JSONException {		
+		onDeletedDocs(deletedDocs);
+	}
+
+	@Override
+	public JSONArray onPreBulkDocs(JSONArray deletedIds) throws EngineException, JSONException {
 		if (targetView == null || targetView.isEmpty()) {
 			throw new EngineException("No target view defined");
 		}
@@ -62,34 +68,26 @@ public class FullSyncListener extends AbstractFullSyncViewListener {
 			throw new EngineException("Target view name is null");
 		}
 		
-		int len = ids.length();
+		JSONArray deletedDocs = null;
 		
 		Map<String, String> query = new HashMap<String, String>(2);
 		query.put("reduce", "false");
 		query.put("include_docs", "true");
+		
+		Engine.logBeans.debug("(FullSyncDeleteViewListener) Listener \"" + getName() + "\" : post view for _id keys " + deletedIds);
+		JSONObject json = getCouchClient().postView(getDatabaseName(), ddoc, view, query, deletedIds);
+		Engine.logBeans.debug("(FullSyncDeleteViewListener) Listener \"" + getName() + "\" : post view returned following documents :\n" + json.toString());
 
-		try {
-			for (int i = 0; i < len;) {
-				JSONArray doc_ids = getChunk(ids, i);
-				i += doc_ids.length();
-
-				Engine.logBeans.debug("(FullSyncListener) Listener \"" + getName() + "\" : post view for _id keys " + doc_ids);
-				JSONObject json = getCouchClient().postView(getDatabaseName(), ddoc, view, query, CouchKey.keys.put(new JSONObject(), doc_ids));
-				Engine.logBeans.debug("(FullSyncListener) Listener \"" + getName() + "\" : post view returned following documents :\n" + json.toString());
-
-				if (json != null) {
-					if (CouchKey.error.has(json)) {
-						String error = CouchKey.error.String(json);
-						error = error == null ? "unknown" : error;
-						String reason = CouchKey.reason.String(json);
-						reason = reason == null ? "unknown" : reason;
-						throw new EngineException("View returned error: " + error + ", reason: " + reason);
-					}
-					runDocs(CouchKey.rows.JSONArray(json));
-				}
+		if (json != null) {
+			if (CouchKey.error.has(json)) {
+				String error = CouchKey.error.String(json);
+				error = error == null ? "unknown" : error;
+				String reason = CouchKey.reason.String(json);
+				reason = reason == null ? "unknown" : reason;
+				throw new EngineException("View returned error: " + error + ", reason: " + reason);
 			}
-		} catch (Throwable t) {
-			throw new EngineException("Query view named \""+ view +"\" of \""+ ddoc +"\" design document failed", t);
+			deletedDocs = getDeletedDocs(CouchKey.rows.JSONArray(json));
 		}
+		return deletedDocs;
 	}
 }
