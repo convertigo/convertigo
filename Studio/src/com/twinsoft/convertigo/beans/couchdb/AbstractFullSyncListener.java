@@ -127,8 +127,17 @@ public abstract class AbstractFullSyncListener extends Listener {
 			throw new EngineException("Parameter 'docs' is null");
 		}
 		
-		if (docs.length() == 0) {
+		int len = docs.length(); 
+		if (len == 0) {
 			return;
+		}
+		
+		for (int i = 0; i < len; i++) {
+			try {
+				CouchKey.c8oHash.remove(docs.getJSONObject(i));
+			} catch (JSONException e) {
+				throw new EngineException("Incoming documents error", e);
+			}
 		}
 		
 		try {
