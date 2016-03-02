@@ -197,6 +197,11 @@ public class DeploymentConfigurationManager {
     		ConvertigoPlugin.logException(e, "Invalid encryption key: " + e.getMessage());
     	} catch (FileNotFoundException e) {
 			// Use the default empty database
+    		add(new DeploymentConfiguration(
+				"localhost:28080/convertigo",
+				"admin", "admin",
+				false, false, false)
+    		);
 		} catch (Exception e) {
 			ConvertigoPlugin.logError("Unable to load the deployment configurations: " + e.getMessage() + "\n. A new empty list will be created.");
         	// Use the default empty database
