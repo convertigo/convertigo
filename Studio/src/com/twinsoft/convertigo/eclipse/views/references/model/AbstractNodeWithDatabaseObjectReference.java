@@ -45,7 +45,15 @@ public abstract class AbstractNodeWithDatabaseObjectReference extends AbstractPa
 
 	@Override
 	public String getName() {
+		/*
+		 * treat speacial case, see ViewRefLabelProvider.java
+		 * public Image getImage(Object element)
+		 */
+		if (refDatabaseObject == null) {
+			if (name.contains("entry") || name.contains("exit")) {
+				return name;
+			}
+		}
 		return (refDatabaseObject == null ? name + " (broken reference)" : name);
 	}
-
 }

@@ -60,8 +60,24 @@ public class ViewRefLabelProvider implements ILabelProvider {
 		if (element instanceof AbstractNodeWithDatabaseObjectReference) {
 			AbstractNodeWithDatabaseObjectReference node = (AbstractNodeWithDatabaseObjectReference) element;
 			DatabaseObject databaseObject = node.getRefDatabaseObject();
-			
-			iconName = MySimpleBeanInfo.getIconName(databaseObject, BeanInfo.ICON_COLOR_16x16);
+
+			/**
+			 * treat case Entry handlers, Exit handlers etc... where dbo == null
+			 * could be cleaner if having its own icon etc...
+			 */
+			if (databaseObject == null) {
+				if (node.getName().contains("entry")) {
+					iconName = "/com/twinsoft/convertigo/beans/statements/images/handler_entry_16x16.png";
+				} else { 
+					if (node.getName().contains("exit")) {
+						iconName = "/com/twinsoft/convertigo/beans/statements/images/handler_exit_16x16.png";
+					} else {
+						iconName = null;
+					}
+				}
+			} else {
+				iconName = MySimpleBeanInfo.getIconName(databaseObject, BeanInfo.ICON_COLOR_16x16);
+			}
 		}
 		else {
 			if (element instanceof InformationNode) {

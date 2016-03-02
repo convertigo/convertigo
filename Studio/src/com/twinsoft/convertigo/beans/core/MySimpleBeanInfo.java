@@ -218,6 +218,8 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
 			iconName = getIconName(CachedIntrospector.getBeanInfo(dbo), iconType);
 		} catch (IntrospectionException e) {
 			iconName = dbo.getClass().getName();
+		} catch (Exception e) {
+			iconName = null;
 		}
 		
 		if (iconName == null) {

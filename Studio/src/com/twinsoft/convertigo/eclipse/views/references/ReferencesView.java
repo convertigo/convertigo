@@ -267,8 +267,8 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 		
 		IsUsedByNode isUsedByNode = new IsUsedByNode(screenClassFolder, "Is used by");
 
-		EntryHandlerNode entryFolder = new EntryHandlerNode(isUsedByNode, "Entry handlers", null);
-		ExitHandlerNode exitFolder = new ExitHandlerNode(isUsedByNode, "Exit handlers", null);
+		EntryHandlerNode entryFolder = new EntryHandlerNode(isUsedByNode, "Transaction entry handlers", null);
+		ExitHandlerNode exitFolder = new ExitHandlerNode(isUsedByNode, "Transaction exit handlers", null);
 		
 		if (connector instanceof HtmlConnector) {
 			for (Transaction transaction : transactions) {
