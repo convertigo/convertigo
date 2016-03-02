@@ -83,7 +83,9 @@ public class ProjectVersionUpdateDialog extends Dialog {
 		Control buttonBar =  super.createButtonBar(parent);
 		getButton(IDialogConstants.OK_ID).setText("Update");
 		getButton(IDialogConstants.OK_ID).setEnabled(false);
-		getButton(IDialogConstants.CANCEL_ID).setText("Skip");
+		Button cancel = getButton(IDialogConstants.CANCEL_ID);
+		cancel.setText("Skip");
+		cancel.setFocus();
 		return buttonBar;
 	}
 	
