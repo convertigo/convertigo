@@ -26,9 +26,9 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -99,7 +99,7 @@ public class HttpSessionListener implements HttpSessionBindingListener {
     
     static public void removeSession(String httpSessionID) {
         synchronized (httpSessions) {
-            if (Engine.isEngineMode() && httpSessions.remove(httpSessionID) != null) {
+            if (httpSessions.remove(httpSessionID) != null && Engine.isEngineMode()) {
             	KeyManager.stop(com.twinsoft.api.Session.EmulIDSE);
             }
         }    	
@@ -113,10 +113,9 @@ public class HttpSessionListener implements HttpSessionBindingListener {
     
     static public void removeAllSession() {
         synchronized (httpSessions) {
-        	for (Iterator<Entry<String, HttpSession>> iEntry = httpSessions.entrySet().iterator(); iEntry.hasNext();) {
-        		Entry<String, HttpSession> entry = iEntry.next();
+        	for (Entry<String, HttpSession> entry: new ArrayList<Entry<String, HttpSession>>(httpSessions.entrySet())) {
         		HttpUtils.terminateSession(entry.getValue());
-        		removeSession(entry.getKey());
+        		removeSession(entry.getKey());        		
         	}
         }
     }
