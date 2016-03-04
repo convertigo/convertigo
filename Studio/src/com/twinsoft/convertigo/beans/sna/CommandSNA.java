@@ -218,7 +218,7 @@ public class CommandSNA extends com.twinsoft.convertigo.beans.common.Command {
 										}
 		                        		block.setText(oldLabel.substring(0, index));
 		                        		tmp.setText(oldLabel.substring(index));
-		                        		tmp.column = tmp.column + index + keywordLen;
+		                        		tmp.column = tmp.column + index + keywordLen +1;
 		                        		blockFactory.insertBlock(tmp, block);
 		                        	} else {
 		                        		block.setText(oldLabel);
