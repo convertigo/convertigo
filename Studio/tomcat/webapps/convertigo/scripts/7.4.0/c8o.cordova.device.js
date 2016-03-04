@@ -561,7 +561,7 @@ if ("cordova" in window) {
             		C8O.getCordovaEnv().uuid = uuid = device.uuid;
             	} catch (err) {}
             }
-            C8O._define.log_remote_init_env.cordova_uuid = uuid;
+            C8O._define.log_remote_init_env.uuid = uuid;
             C8O.addRecallParameter("__uuid", uuid);
         	
             C8O._init.check();

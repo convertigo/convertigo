@@ -125,9 +125,9 @@ public class EngineLogView extends ViewPart {
 			new ColumnInfo("Transaction", true, 70), new ColumnInfo("Sequence", true, 70),
 			new ColumnInfo("ContextID", true, 160), new ColumnInfo("UID", false, 50),
 			new ColumnInfo("User", false, 50), new ColumnInfo("ClientIP", false, 50),
-			new ColumnInfo("ClientHostName", false, 50) };
+			new ColumnInfo("ClientHostName", false, 50), new ColumnInfo("UUID", false, 50) };
 
-	private static final int[] DEFAULT_COLUMN_ORDER = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+	private static final int[] DEFAULT_COLUMN_ORDER = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
 
 	private static ColumnInfo[] clone(ColumnInfo[] array) {
 		ColumnInfo[] clonedArray = array.clone();

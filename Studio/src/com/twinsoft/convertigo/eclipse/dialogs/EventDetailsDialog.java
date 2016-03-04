@@ -42,7 +42,7 @@ public class EventDetailsDialog extends MyAbstractDialog {
 	private Label logThread = null;
 	private Text textMessage = null;
 	//private Text textExtra = null;
-	private Text textClientIp, textConnector, textContextId, textProject, textTransaction, textUID, textUser, textSequence, textClientHostName;
+	private Text textClientIp, textConnector, textContextId, textProject, textTransaction, textUID, textUser, textSequence, textClientHostName, textUUID;
 	
 	public EventDetailsDialog(Shell parentShell, Class<? extends Composite> dialogAreaClass, String dialogTitle, LogLine logLine) {
 		super(parentShell, dialogAreaClass, dialogTitle, 800, 450);
@@ -75,6 +75,7 @@ public class EventDetailsDialog extends MyAbstractDialog {
 		textUser = ((EventDetailsDialogComposite)dialogComposite).textUser;
 		textSequence = ((EventDetailsDialogComposite)dialogComposite).textSequence;
 		textClientHostName = ((EventDetailsDialogComposite)dialogComposite).textClientHostName;
+		textUUID = ((EventDetailsDialogComposite)dialogComposite).textUUID;
 		
 		
 		String level = logLine.getLevel();
@@ -95,24 +96,46 @@ public class EventDetailsDialog extends MyAbstractDialog {
 		logCategory.setText(logLine.getCategory());
 		logThread.setText(logLine.getThread());
 		textMessage.setText(logLine.getFullMessage());
-		if(logLine.getClientIP() != null)
-			textClientIp.setText(logLine.getClientIP());
-		if(logLine.getConnector() != null)
-			textConnector.setText(logLine.getConnector());
-		if(logLine.getContextID() != null)
-			textContextId.setText(logLine.getContextID());
-		if(logLine.getProject() != null)
-			textProject.setText(logLine.getProject());
-		if(logLine.getTransaction() != null)
-			textTransaction.setText(logLine.getTransaction());
-		if(logLine.getUID() != null)
-			textUID.setText(logLine.getUID());
-		if(logLine.getUser() != null)
-			textUser.setText(logLine.getUser());
-		if(logLine.getSequence() != null)
-			textSequence.setText(logLine.getSequence());
-		if(logLine.getClientHostName() != null)
-			textClientHostName.setText(logLine.getClientHostName());
+		String txt = logLine.getClientIP(); 
+		if(txt != null) {
+			textClientIp.setText(txt);
+		}
+		txt = logLine.getConnector(); 
+		if(txt != null) {
+			textConnector.setText(txt);
+		}
+		txt = logLine.getContextID(); 
+		if(txt != null) {
+			textContextId.setText(txt);
+		}
+		txt = logLine.getProject(); 
+		if(txt != null) {
+			textProject.setText(txt);
+		}
+		txt = logLine.getTransaction(); 
+		if(txt != null) {
+			textTransaction.setText(txt);
+		}
+		txt = logLine.getUID(); 
+		if(txt != null) {
+			textUID.setText(txt);
+		}
+		txt = logLine.getUser(); 
+		if(txt != null) {
+			textUser.setText(txt);
+		}
+		txt = logLine.getSequence(); 
+		if(txt != null) {
+			textSequence.setText(txt);
+		}
+		txt = logLine.getClientHostName(); 
+		if(txt != null) {
+			textClientHostName.setText(txt);
+		}
+		txt = logLine.getUUID(); 
+		if(txt != null) {
+			textUUID.setText(txt);
+		}
 		
 		//textExtra.setText(logLine.getFullExtra());
 

@@ -33,6 +33,7 @@ public enum HeaderName {
 	ContentLocation("Content-Location"),
 	ContentEncoding("Content-Encoding"),
 	Destination("Destination"),
+	UserAgent("User-Agent"),
 	TransferEncoding("Transfer-Encoding"),
 	Cookie("Cookie"),
 	SetCookie("Set-Cookie"),

@@ -728,7 +728,8 @@ C8O = {
                 C8O._define.context = params.__context;
     
                 C8O._retrieve_vars(params);
-                
+
+                C8O.log.info("c8o.core: init_finished for the userAgent: " + navigator.userAgent);
                 if (C8O._hook("init_finished", params) && C8O.isTrue(C8O.vars.first_call)) {
                     C8O.log.debug("c8o.core: make the first_call");
                     C8O.call(params);
