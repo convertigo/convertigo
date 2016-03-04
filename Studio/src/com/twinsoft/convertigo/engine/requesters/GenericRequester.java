@@ -35,6 +35,7 @@ import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.Vector;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -73,6 +74,7 @@ import com.twinsoft.convertigo.engine.ExpiredSecurityTokenException;
 import com.twinsoft.convertigo.engine.JobManager;
 import com.twinsoft.convertigo.engine.NoSuchSecurityTokenException;
 import com.twinsoft.convertigo.engine.SecurityToken;
+import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
@@ -220,6 +222,15 @@ public abstract class GenericRequester extends Requester {
 				Log4jHelper.mdcPut(mdcKeys.UID, Long.toHexString(uniqueRequestID));
 				Log4jHelper.mdcPut(mdcKeys.ContextID, context.contextID);
 				Log4jHelper.mdcPut(mdcKeys.Project, context.projectName);
+				
+				if (inputData instanceof HttpServletRequest) {
+					HttpServletRequest request = (HttpServletRequest) inputData;
+					String deviceUUID = request.getParameter(Parameter.DeviceUUID.getName());
+					if (deviceUUID != null) {
+						Log4jHelper.mdcPut(mdcKeys.UUID, deviceUUID);
+						Engine.logContext.debug("[" + getName() + "] request from device UUID: '" + deviceUUID + "' with user agent '" + request.getHeader(HeaderName.UserAgent.value()) + "'");
+					}
+				}
 
 				Engine.logContext.trace("[" + getName() + "] start");
 				

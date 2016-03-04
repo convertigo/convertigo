@@ -142,6 +142,10 @@ public class LogLine {
 		return allExtras.get("clienthostname");
 	}
 
+	public String getUUID() {
+		return allExtras.get("uuid");
+	}
+
 	public String getFullExtra() {
 		return allExtras.toString();
 	}

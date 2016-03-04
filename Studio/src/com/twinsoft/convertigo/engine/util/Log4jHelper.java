@@ -31,7 +31,7 @@ import com.twinsoft.convertigo.engine.LogParameters;
 
 public class Log4jHelper {
 	
-	public static enum mdcKeys {ClientIP, Connector, ContextID, Project, Transaction, UID, User, Sequence, ClientHostName};
+	public static enum mdcKeys {ClientIP, Connector, ContextID, Project, Transaction, UID, User, Sequence, ClientHostName, UUID};
 	
 	static public void mdcInit(Context context) {
 		if (context.logParameters != null) {

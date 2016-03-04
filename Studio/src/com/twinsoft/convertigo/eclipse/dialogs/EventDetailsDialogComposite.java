@@ -45,7 +45,7 @@ public class EventDetailsDialogComposite extends MyAbstractDialogComposite {
 	
 	public Text textMessage = null;
 	//public Text textExtra = null;
-	public Text textClientIp, textConnector, textContextId, textProject, textTransaction, textUID, textUser, textSequence, textClientHostName = null;
+	public Text textClientIp, textConnector, textContextId, textProject, textTransaction, textUID, textUser, textSequence, textClientHostName = null, textUUID;
 	
 	public EventDetailsDialogComposite(Composite parent, int style) {
 		super(parent, style);
@@ -128,6 +128,11 @@ public class EventDetailsDialogComposite extends MyAbstractDialogComposite {
 		item.setText ("ClientHostName");
 		textClientHostName = new Text(tabFolder, SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
 		item.setControl(textClientHostName);
+		
+		item = new CTabItem (tabFolder, SWT.NONE);
+		item.setText ("UUID");
+		textUUID = new Text(tabFolder, SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
+		item.setControl(textUUID);
 		
 		labelThread = new Label(this, SWT.NONE);
         labelThread.setText("Thread:");
