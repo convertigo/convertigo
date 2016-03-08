@@ -205,72 +205,86 @@ public abstract class GenericRequester extends Requester {
         if (Engine.theApp == null) throw new EngineException("Unable to process the request: the Convertigo engine is not started!");
 
 		Object result = null;
+		boolean needRetry;
 
     	try {
-			this.inputData = inputData;
-			context = getContext();
-
-			Engine.logContext.debug("[" + getName() + "] Locking the working semaphore...");
-
-			synchronized(context) {
-				context.waitingRequests++;
-				Engine.logContext.debug("[" + getName() + "] Working semaphore locked (" + context.waitingRequests + " requests(s) pending) [" + context.hashCode() + "]");
-
-				// Update log4j context infos
-				Log4jHelper.mdcInit(context);
-				long uniqueRequestID = System.currentTimeMillis() + (long) (Math.random() * 1261440000000L);
-				Log4jHelper.mdcPut(mdcKeys.UID, Long.toHexString(uniqueRequestID));
-				Log4jHelper.mdcPut(mdcKeys.ContextID, context.contextID);
-				Log4jHelper.mdcPut(mdcKeys.Project, context.projectName);
-				
-				if (inputData instanceof HttpServletRequest) {
-					HttpServletRequest request = (HttpServletRequest) inputData;
-					String deviceUUID = request.getParameter(Parameter.DeviceUUID.getName());
-					if (deviceUUID != null) {
-						Log4jHelper.mdcPut(mdcKeys.UUID, deviceUUID);
-						Engine.logContext.debug("[" + getName() + "] request from device UUID: '" + deviceUUID + "' with user agent '" + request.getHeader(HeaderName.UserAgent.value()) + "'");
+    		do {
+    			needRetry = false;
+				this.inputData = inputData;
+				context = getContext();
+	
+				Engine.logContext.debug("[" + getName() + "] Locking the working semaphore...");
+	
+				synchronized(context) {
+					// #4910 : case of queued sequences, renew the context
+					if (context.removalRequired()) {
+						context.requireRemoval(false);
+						Engine.theApp.contextManager.remove(context);
 					}
-				}
-
-				Engine.logContext.trace("[" + getName() + "] start");
-				
-    			context.statistics.clearLatestDurations();
-    			String t = context.statistics.start(EngineStatistics.REQUEST);
-	    		
-	            try {
-	            	if ((context.isAsync) && (JobManager.jobExists(context.contextID))) { 
-	                	Engine.logContext.debug("[" + getName() + "] Context is async and job is running, do not initialize context");
-	                } else {
-	                	Engine.logContext.trace("[" + getName() + "] Context is not async and no job are running");
-	                	initContext(context);
-	            		
-	                	if (context.sequenceName != null) 
-
-	                		Log4jHelper.mdcPut(mdcKeys.Sequence, context.sequenceName);
-	                	if (context.transactionName != null) {
-		            		Log4jHelper.mdcPut(mdcKeys.Connector, context.connectorName);
-		            		Log4jHelper.mdcPut(mdcKeys.Transaction, context.transactionName);
-	                	}
-	            		Log4jHelper.mdcPut(mdcKeys.User, context.tasUserName == null ? "(anonymous)" : "'" + context.tasUserName + "'");
-
-	                }
+					if (context.isDestroying) {
+						needRetry = true;
+						continue;
+					}
 					
-					result = coreProcessRequest();
-					result = getTranslator().buildOutputData(context, result);
-	            } finally {
-    				if (context != null) {
-    					context.statistics.stop(t);
-    				
-    				// Bugfix for #853 (Tomcat looses parameters without any explanation)
-    				// Remove the request and session references from the context
-    				// Moved here by #2254
-	    				Engine.logContext.trace("Bugfix #853, #2254");
-	    				Engine.logContext.trace("context=" + context);
-    					Engine.logContext.trace("Removing request and session objects from the context");
-    					context.clearRequest();
-    				}
-	            }
-			}
+					context.waitingRequests++;
+					Engine.logContext.debug("[" + getName() + "] Working semaphore locked (" + context.waitingRequests + " requests(s) pending) [" + context.hashCode() + "]");
+	
+					// Update log4j context infos
+					Log4jHelper.mdcInit(context);
+					long uniqueRequestID = System.currentTimeMillis() + (long) (Math.random() * 1261440000000L);
+					Log4jHelper.mdcPut(mdcKeys.UID, Long.toHexString(uniqueRequestID));
+					Log4jHelper.mdcPut(mdcKeys.ContextID, context.contextID);
+					Log4jHelper.mdcPut(mdcKeys.Project, context.projectName);
+					
+					if (inputData instanceof HttpServletRequest) {
+						HttpServletRequest request = (HttpServletRequest) inputData;
+						String deviceUUID = request.getParameter(Parameter.DeviceUUID.getName());
+						if (deviceUUID != null) {
+							Log4jHelper.mdcPut(mdcKeys.UUID, deviceUUID);
+							Engine.logContext.debug("[" + getName() + "] request from device UUID: '" + deviceUUID + "' with user agent '" + request.getHeader(HeaderName.UserAgent.value()) + "'");
+						}
+					}
+	
+					Engine.logContext.trace("[" + getName() + "] start");
+					
+	    			context.statistics.clearLatestDurations();
+	    			String t = context.statistics.start(EngineStatistics.REQUEST);
+		    		
+		            try {
+		            	if ((context.isAsync) && (JobManager.jobExists(context.contextID))) { 
+		                	Engine.logContext.debug("[" + getName() + "] Context is async and job is running, do not initialize context");
+		                } else {
+		                	Engine.logContext.trace("[" + getName() + "] Context is not async and no job are running");
+		                	initContext(context);
+		            		
+		                	if (context.sequenceName != null) 
+	
+		                		Log4jHelper.mdcPut(mdcKeys.Sequence, context.sequenceName);
+		                	if (context.transactionName != null) {
+			            		Log4jHelper.mdcPut(mdcKeys.Connector, context.connectorName);
+			            		Log4jHelper.mdcPut(mdcKeys.Transaction, context.transactionName);
+		                	}
+		            		Log4jHelper.mdcPut(mdcKeys.User, context.tasUserName == null ? "(anonymous)" : "'" + context.tasUserName + "'");
+	
+		                }
+						
+						result = coreProcessRequest();
+						result = getTranslator().buildOutputData(context, result);
+		            } finally {
+	    				if (context != null) {
+	    					context.statistics.stop(t);
+	    				
+	    				// Bugfix for #853 (Tomcat looses parameters without any explanation)
+	    				// Remove the request and session references from the context
+	    				// Moved here by #2254
+		    				Engine.logContext.trace("Bugfix #853, #2254");
+		    				Engine.logContext.trace("context=" + context);
+	    					Engine.logContext.trace("Removing request and session objects from the context");
+	    					context.clearRequest();
+	    				}
+		            }
+				}
+    		} while (needRetry);
     	} finally {
     		// Remove all MDC values for clean release of the thread
     		Log4jHelper.mdcClear();
