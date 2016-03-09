@@ -414,6 +414,8 @@ public class ContextManager extends AbstractRunnableManager {
 						Engine.logContextManager.debug("Trying to execute the end transaction: \"" + endTransactionName + "\"");
 						context.transactionName = endTransactionName;
 						DefaultRequester defaultRequester = new DefaultRequester();
+						// #4910 - prevent loop for destroying context renew
+						context.isDestroying = false;
 						defaultRequester.processRequest(context);
 						Engine.logContextManager.debug("End transaction successfull");
 					}
@@ -424,6 +426,8 @@ public class ContextManager extends AbstractRunnableManager {
 						"connector: " + context.connectorName + ", " +
 						"end transaction: " + endTransactionName,
 						e);
+				} finally {
+					context.isDestroying = true;
 				}
 				// Unlocks device if any
 				// WARNING: removing the device pool MUST BE DONE AFTER the end transaction!!!
