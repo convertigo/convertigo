@@ -401,7 +401,7 @@ function genericError(XMLHttpRequest, type, extra, callback) {
 		
 		var $error = $xml.find("error > message:contains('Authentication failure')");
 		if ($error.length != 0) {
-			document.location.href = "login.html";
+			//document.location.href = "login.html";
 		} else if (typeof(callback) !== "undefined") {
 			callback(httpRequest.responseXML);
 		} else if ("" + XMLHttpRequest.status === "0") {

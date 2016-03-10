@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -156,6 +157,11 @@ public class Authenticate extends XmlService {
 			} else if (EnginePropertiesManager.getProperty(PropertyName.TEST_PLATFORM_USERNAME).equals(user)
 					&& EnginePropertiesManager.checkProperty(PropertyName.TEST_PLATFORM_PASSWORD, password)) {
 				roles = new Role[] { Role.TEST_PLATFORM, Role.AUTHENTICATED };
+			} else if (Engine.authenticatedSessionManager.getPassword(user).equals(password)) {
+				Set<Role> set = Engine.authenticatedSessionManager.getRoles(user);
+				roles = new Role[set.size() + 1];
+				set.toArray(roles);
+				roles[roles.length - 1] = Role.AUTHENTICATED;
 			}
 			// Trial authentication
 			else {

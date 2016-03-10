@@ -1,15 +1,51 @@
 package com.twinsoft.convertigo.engine;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.collections.ListUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
+
+import com.twinsoft.convertigo.engine.util.FileUtils;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class AuthenticatedSessionManager implements AbstractManager {
 	public static enum SessionKey {ADMIN_ROLES, ADMIN_USER};
-	public static enum Role { ANONYMOUS, AUTHENTICATED, WEB_ADMIN, TRIAL, MANAGER, MONITOR_AGENT, TEST_PLATFORM };
+	public static enum Role {
+		ANONYMOUS,
+		AUTHENTICATED,
+		WEB_ADMIN,
+		TRIAL,
+		MANAGER,
+		MONITOR_AGENT,
+		TEST_PLATFORM("Unlock the testplatform"),
+		LOG_VIEW("Consult logs"),
+		LOG_SET_LEVELS("Set logs levels");
+		
+		String description = null;
+		
+		Role(){}
+		Role(String description) {
+			this.description = description;
+		}
+		
+		public String description() {
+			return description;
+		}
+	};
+	
+	private JSONObject cache = null;
 
 	public void init() throws EngineException {
 	}
@@ -85,5 +121,116 @@ public class AuthenticatedSessionManager implements AbstractManager {
 	private Role[] roles(HttpSession httpSession) {
 		return (Role[]) httpSession.getAttribute(SessionKey.ADMIN_ROLES.toString());
 	}
+	
+	private JSONObject load() throws IOException, JSONException {
+		if (cache == null) {
+			try {
+				String file = FileUtils.readFileToString(new File(Engine.CONFIGURATION_PATH + "/user_roles.db"), "UTF-8");
+				cache = new JSONObject(file);
+			} catch (FileNotFoundException e) {
+				cache = new JSONObject();
+			}
+		}
+		return cache;
+	}
+	
+	private void save(JSONObject db) throws IOException {
+		cache = db;
+		FileUtils.write(new File(Engine.CONFIGURATION_PATH + "/user_roles.db"), db.toString(), "UTF-8");
+	}
+	
+	public void setUser(String username, String password, Set<Role> roles) throws EngineException {
+		try {
+			if (StringUtils.isBlank(username)) {
+				throw new IllegalArgumentException("Blank username not allowed");
+			}
+			if (StringUtils.isBlank(password)) {
+				throw new IllegalArgumentException("Blank password not allowed");
+			}
+			
+			JSONArray array = new JSONArray();
+			for (Role role : roles) {
+				array.put(role.name());
+			}
+			
+			JSONObject user = new JSONObject();
+			user.put("password", password);
+			user.put("roles", array);
+			
+			synchronized (this) {
+				JSONObject db = load();
+				db.put(username, user);
+				save(db);
+			}
+		} catch (Exception e) {
+			throw new EngineException("Failed to set the role", e);
+		}
+	}
+	
+	public void deleteUser(String username) throws EngineException {
+		try {			
+			synchronized (this) {
+				JSONObject db = load();
+				db.remove(username);
+				save(db);
+			}
+		} catch (Exception e) {
+			throw new EngineException("Failed to delete the user '" + username + "'", e);
+		}
+	}
+	
+	public Set<String> getUsers() throws EngineException {
+		try {
+			JSONObject db;
+			synchronized (this) {
+				db = load();
+			}
+			Set<String> users = new TreeSet<String>();
+			for (Iterator<String> i = GenericUtils.cast(db.keys()); i.hasNext();) {
+				users.add(i.next());
+			}
+			return users;
+		} catch (Exception e) {
+			throw new EngineException("Failed to get users", e);
+		}
+	}
+	
+	public Set<Role> getRoles(String username) throws EngineException {
+		try {
+			JSONObject db;
+			synchronized (this) {
+				db = load();
+			}
+			JSONArray array = db.getJSONObject(username).getJSONArray("roles");
+			Set<Role> roles = new TreeSet<Role>();
+			for (int i = 0; i < array.length(); i++) {
+				roles.add(Role.valueOf(array.getString(i)));
+			}
+			return roles;
+		} catch (Exception e) {
+			throw new EngineException("Failed to get roles", e);
+		}
+	}
+	
+	public String getPassword(String username) throws EngineException {
+		try {
+			JSONObject db;
+			synchronized (this) {
+				db = load();
+			}
+			return db.getJSONObject(username).getString("password");
+		} catch (Exception e) {
+			throw new EngineException("Failed to get the password", e);
+		}
+	}
 
+	public void deleteUsers() throws EngineException {
+		try {
+			synchronized (this) {
+				save(new JSONObject());
+			}
+		} catch (Exception e) {
+			throw new EngineException("Failed to get remove users", e);
+		}
+	}
 }

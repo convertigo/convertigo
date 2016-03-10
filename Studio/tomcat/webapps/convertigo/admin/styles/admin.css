@@ -1812,9 +1812,6 @@ a.start {
 	margin: 0;
 	margin-left: 21px;
 }
-#exportSymbolsButtonAction {
-	display: none;
-}
 /* = Statistics
 -------------------------- */
 #dialog-statistics-project {
@@ -1840,6 +1837,25 @@ a.start {
 ---------------------------------------------------------------------- */
 #dialog-add-symbol {
 	display: none;
+}
+
+#exportSymbolsButtonAction {
+	display: none;
+}
+
+/* = ROLES WIDGET
+---------------------------------------------------------------------- */
+#dialog-add-user {
+	display: none;
+}
+
+#exportUsersButtonAction {
+	display: none;
+}
+
+#roles {
+	text-align: left;
+	margin-top: 0px;
 }
 
 /* = Store
