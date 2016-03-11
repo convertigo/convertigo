@@ -168,13 +168,22 @@ public class SwaggerUtils {
 					
 					// Set operation parameters
 					List<Parameter> s_parameters = new ArrayList<Parameter>();
+					// 1 - add path parameters
 					for (String pathVarName: urlMapping.getPathVariableNames()) {
 						PathParameter s_parameter = new PathParameter();
 						s_parameter.setName(pathVarName);
 						s_parameter.setRequired(true);
 						s_parameter.setType("string");
+						
+						// retrieve parameter description from bean
+						UrlMappingParameter ump = umo.getParameterByName(pathVarName);
+						if (ump != null && ump.getType() == Type.Path) {
+							s_parameter.setDescription(ump.getComment());
+						}
+						
 						s_parameters.add(s_parameter);
 					}
+					// 2 - add other parameters
 					for (UrlMappingParameter ump: umo.getParameterList()) {
 						Parameter s_parameter = null;
 						if (ump.getType() == Type.Query) {
@@ -195,6 +204,9 @@ public class SwaggerUtils {
 						}
 						else if (ump.getType() == Type.Header) {
 							s_parameter = new HeaderParameter();
+						}
+						else if (ump.getType() == Type.Path) {
+							// ignore : should have been treated before
 						}
 						
 						if (s_parameter != null) {
