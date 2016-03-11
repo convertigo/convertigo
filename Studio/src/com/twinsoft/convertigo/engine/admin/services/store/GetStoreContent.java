@@ -24,7 +24,7 @@ import com.twinsoft.convertigo.engine.enums.Accessibility;
 
 @ServiceDefinition(
 		name = "GetStoreContent",
-		roles = { Role.TEST_PLATFORM },
+		roles = { Role.TEST_PLATFORM, Role.STORE_CONFIG, Role.STORE_VIEW },
 		parameters = {
 		@ServiceParameterDefinition(
 				name = "platform",

@@ -121,16 +121,52 @@ function roles_List_init() {
 		hideExportUsersPanel();
 	});
 	
+	$("#check_view").button({
+		icons : {
+			primary : "ui-icon-plus"
+		}
+	}).click(function(){
+		$("#roles input[name$='_VIEW']").prop("checked", true);
+	});
+	
+	$("#check_config").button({
+		icons : {
+			primary : "ui-icon-plus"
+		}
+	}).click(function(){
+		$("#roles input[name$='_CONFIG']").prop("checked", true);
+	});
+	
+	$("#uncheck_view").button({
+		icons : {
+			primary : "ui-icon-minus"
+		}
+	}).click(function(){
+		$("#roles input[name$='_VIEW']").prop("checked", false);
+	});
+	
+	$("#uncheck_config").button({
+		icons : {
+			primary : "ui-icon-minus"
+		}
+	}).click(function(){
+		$("#roles input[name$='_CONFIG']").prop("checked", false);
+	});
+	
 	callService("roles.List", function(xml) {
 		$last_roles_list_xml = $(xml);
 		$("#roles").empty();
-		$(xml).find(">admin>roles>role").each(function () {
+		var $tr;
+		$(xml).find(">admin>roles>role").each(function (i) {
 			var name = $(this).attr("name");
-			$("#roles").append(
-				'<li title="' + $(this).attr("description") + '">'
+			if (i%2 == 0) {
+				$tr = $("<tr/>").appendTo("#roles");
+			}
+			$tr.append(
+				'<td title="' + $(this).attr("description") + '">'
 				+ '<input type="checkbox" name="' + name + '" id="c' + name + '"/>'
 				+ '<label for="c' + name + '">' + name + '</label>' + 
-				'</li>'
+				'</td>'
 			);
 		});
 		$("#usersList").jqGrid( {
@@ -270,7 +306,7 @@ function deleteUser(username) {
 						if ($response.attr("state") == "success") {
 							$("#username").val("");
 							$("#password").val("");
-							globalroles_List_update();
+							roles_List_update();
 						}
 						showInfo($(xml).find("response").attr("message"));
 					}, {username: username});
@@ -285,13 +321,14 @@ function deleteUser(username) {
 }
 
 function addUser(xml, mode) {
-	$("#addName").val("");
-	$("#addValue").val("");
-	
+	$("#username").val("");
+	$("#password").val("").parent().attr("title", "Cannot be empty");
+	$("#role input").prop("checked", false);
 	$("#dialog-add-user").dialog({
 			autoOpen : true,
 			title : "Add user",
 			modal : true,
+			minWidth: 400,
 			buttons : {
 				"Ok" : function () {
 					var roles = $("#roles input:checked").map(function(){
@@ -300,8 +337,8 @@ function addUser(xml, mode) {
 					callService("roles.Add", function(xml) {
 						var $response = $(xml).find("response:first");  
 						if ($response.attr("state") == "success") {
-							$("#addName").val("");
-							$("#addValue").val("");
+							$("#username").val("");
+							$("#password").val("");
 							roles_List_update();
 						}
 						showInfo($(xml).find("response").attr("message"));
@@ -319,14 +356,15 @@ function editUser(username) {
 	$("#username").val(username);
 	var $user = $last_roles_list_xml.find("user[name='" + username + "']");
 	$user.find("role").each(function () {
-		$("#c" + $(this).attr("name")).prop("checked", true)
+		$("#c" + $(this).attr("name")).prop("checked", true);
 	});
-	$("#password").val($user.attr("password"));
+	$("#password").val("").parent().attr("title", "Empty to not change the password");
 	
 	$("#dialog-add-user").dialog({
 			autoOpen : true,
 			title : "Edit user",
 			modal : true,
+			minWidth: 400,
 			buttons : {
 				"Ok" : function() {
 					roles = $("#roles input:checked").map(function(){

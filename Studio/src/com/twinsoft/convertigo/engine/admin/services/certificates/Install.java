@@ -38,7 +38,7 @@ import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 
 @ServiceDefinition(
 		name = "Install",
-		roles = { Role.WEB_ADMIN },
+		roles = { Role.WEB_ADMIN, Role.CERTIFICATE_CONFIG },
 		parameters = {},
 		returnValue = ""
 	)

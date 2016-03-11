@@ -35,7 +35,7 @@ import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 
 @ServiceDefinition(
 		name = "Clear",
-		roles = { Role.WEB_ADMIN },
+		roles = { Role.WEB_ADMIN, Role.CACHE_CONFIG },
 		parameters = {},
 		returnValue = ""
 	)

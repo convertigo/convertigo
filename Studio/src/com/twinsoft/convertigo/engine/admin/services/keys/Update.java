@@ -45,7 +45,7 @@ import com.twinsoft.util.TWSKey;
 
 @ServiceDefinition(
 		name = "Update",
-		roles = { Role.WEB_ADMIN },
+		roles = { Role.WEB_ADMIN, Role.KEYS_CONFIG },
 		parameters = {},
 		returnValue = "" ,
 		cloud_forbidden = true)

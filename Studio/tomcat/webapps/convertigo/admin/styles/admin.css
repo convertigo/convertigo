@@ -1856,6 +1856,10 @@ a.start {
 #roles {
 	text-align: left;
 	margin-top: 0px;
+	margin-left: auto;
+	margin-right: auto;
+	margin-bottom: 10px;
+	min-width: 330px;
 }
 
 /* = Store

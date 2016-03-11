@@ -48,7 +48,7 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 @ServiceDefinition(
 		name = "Download",
-		roles = { Role.WEB_ADMIN },
+		roles = { Role.WEB_ADMIN, Role.LOGS_CONFIG, Role.LOGS_VIEW },
 		parameters = {},
 		returnValue = ""
 	)

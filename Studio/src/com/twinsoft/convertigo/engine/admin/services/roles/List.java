@@ -49,7 +49,6 @@ public class List extends XmlService{
     	for (String username : Engine.authenticatedSessionManager.getUsers()) { 
 			Element userElement = document.createElement("user");
 			userElement.setAttribute("name", username);
-			userElement.setAttribute("password", Engine.authenticatedSessionManager.getPassword(username));
 			for (Role role: Engine.authenticatedSessionManager.getRoles(username)) {
 	        	Element roleElement = document.createElement("role");
 	        	roleElement.setAttribute("name", role.name());

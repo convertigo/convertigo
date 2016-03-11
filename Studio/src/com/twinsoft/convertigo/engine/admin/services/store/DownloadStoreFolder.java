@@ -20,7 +20,7 @@ import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 @ServiceDefinition(
 		name = "DownloadStoreFolder",
-		roles = { Role.WEB_ADMIN },
+		roles = { Role.WEB_ADMIN, Role.STORE_CONFIG, Role.STORE_VIEW },
 		parameters = {
 		@ServiceParameterDefinition(
 				name = "css",

@@ -41,7 +41,7 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 
 @ServiceDefinition(
 		name = "Purge",
-		roles = { Role.WEB_ADMIN },
+		roles = { Role.WEB_ADMIN, Role.LOGS_CONFIG },
 		parameters = {},
 		returnValue = ""
 	)

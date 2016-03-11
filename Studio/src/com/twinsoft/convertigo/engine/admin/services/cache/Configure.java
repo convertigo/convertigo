@@ -49,7 +49,7 @@ import com.twinsoft.convertigo.engine.util.SqlRequester;
 
 @ServiceDefinition(
 		name = "Configure",
-		roles = { Role.WEB_ADMIN },
+		roles = { Role.WEB_ADMIN, Role.CACHE_CONFIG },
 		parameters = {
 				@ServiceParameterDefinition(
 						name = "cacheType",

@@ -29,9 +29,29 @@ public class AuthenticatedSessionManager implements AbstractManager {
 		TRIAL,
 		MANAGER,
 		MONITOR_AGENT,
-		TEST_PLATFORM("Unlock the testplatform"),
-		LOG_VIEW("Consult logs"),
-		LOG_SET_LEVELS("Set logs levels");
+		CACHE_VIEW("Consult the cache part"),
+		CACHE_CONFIG("Configure the cache part"),
+		CERTIFICATE_VIEW("Consult the certificate part"),
+		CERTIFICATE_CONFIG("Configure the certificate part"),
+		CONNECTIONS_VIEW("Consult the connections part"),
+		CONNECTIONS_CONFIG("Configure the connections part"),
+		KEYS_VIEW("Consult the keys part"),
+		KEYS_CONFIG("Configure the keys part"),
+		LOGS_VIEW("Consult the logs part"),
+		LOGS_CONFIG("Configure the logs part"),
+		PROJECT_DBO_VIEW("Consult a project content"),
+		PROJECT_DBO_CONFIG("Configure a project content"),
+		PROJECTS_VIEW("Consult the projects part"),
+		PROJECTS_CONFIG("Configure the projects part"),
+		SCHEDULER_VIEW("Consult the scheduler part"),
+		SCHEDULER_CONFIG("Configure the scheduler part"),
+		STORE_VIEW("Consult the store part"),
+		STORE_CONFIG("Configure the store part"),
+		SYMBOLS_VIEW("Consult the symbols part"),
+		SYMBOLS_CONFIG("Configure the symbols part"),
+		TRACE_VIEW("Consult the trace player part"),
+		TRACE_CONFIG("Configure the trace player part"),
+		TEST_PLATFORM("Unlock the testplatform");
 		
 		String description = null;
 		
@@ -147,6 +167,9 @@ public class AuthenticatedSessionManager implements AbstractManager {
 			if (StringUtils.isBlank(password)) {
 				throw new IllegalArgumentException("Blank password not allowed");
 			}
+			if ("admin".equals(username)) {
+				throw new IllegalArgumentException("Cannot defined another 'admin' user");				
+			}
 			
 			JSONArray array = new JSONArray();
 			for (Role role : roles) {
@@ -204,7 +227,11 @@ public class AuthenticatedSessionManager implements AbstractManager {
 			JSONArray array = db.getJSONObject(username).getJSONArray("roles");
 			Set<Role> roles = new TreeSet<Role>();
 			for (int i = 0; i < array.length(); i++) {
-				roles.add(Role.valueOf(array.getString(i)));
+				try {
+					roles.add(Role.valueOf(array.getString(i)));
+				} catch (IllegalArgumentException e) {
+					Engine.logEngine.warn("Fail to load the role '" + array.getString(i) + "', ignored");
+				}
 			}
 			return roles;
 		} catch (Exception e) {
@@ -231,6 +258,18 @@ public class AuthenticatedSessionManager implements AbstractManager {
 			}
 		} catch (Exception e) {
 			throw new EngineException("Failed to get remove users", e);
+		}
+	}
+	
+	public boolean hasUser(String username) throws EngineException {
+		try {
+			JSONObject db;
+			synchronized (this) {
+				db = load();
+			}
+			return db.has(username);
+		} catch (Exception e) {
+			throw new EngineException("Failed to get the password", e);
 		}
 	}
 }

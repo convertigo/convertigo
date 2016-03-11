@@ -49,7 +49,7 @@ import com.twinsoft.util.QuickSort;
 
 @ServiceDefinition(
 		name = "Configure",
-		roles = { Role.WEB_ADMIN },
+		roles = { Role.WEB_ADMIN, Role.CERTIFICATE_CONFIG },
 		parameters = {		
 			@ServiceParameterDefinition(
 					name = "group_{i}",

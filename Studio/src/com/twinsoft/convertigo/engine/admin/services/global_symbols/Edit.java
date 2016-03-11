@@ -34,7 +34,7 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 
 @ServiceDefinition(
 		name = "Edit",
-		roles = { Role.WEB_ADMIN },
+		roles = { Role.WEB_ADMIN, Role.SYMBOLS_CONFIG },
 		parameters = {},
 		returnValue = "edit an existing global symbol"
 	)

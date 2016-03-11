@@ -34,7 +34,7 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 
 @ServiceDefinition(
 		name = "Add",
-		roles = { Role.WEB_ADMIN },
+		roles = { Role.WEB_ADMIN, Role.SYMBOLS_CONFIG },
 		parameters = {},
 		returnValue = "add a new global symbol"
 	)

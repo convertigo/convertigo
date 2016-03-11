@@ -18,7 +18,7 @@ import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 @ServiceDefinition(
 		name = "UploadCustomStore",
-		roles = { Role.WEB_ADMIN },
+		roles = { Role.WEB_ADMIN, Role.STORE_CONFIG },
 		parameters = {},
 		returnValue = ""
 	)

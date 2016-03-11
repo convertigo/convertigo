@@ -41,7 +41,7 @@ import com.twinsoft.convertigo.engine.util.Crypto2;
 
 @ServiceDefinition(
 		name = "Clear",
-		roles = { Role.WEB_ADMIN },
+		roles = { Role.WEB_ADMIN, Role.CACHE_VIEW, Role.CACHE_CONFIG },
 		parameters = {},
 		returnValue = ""
 	)

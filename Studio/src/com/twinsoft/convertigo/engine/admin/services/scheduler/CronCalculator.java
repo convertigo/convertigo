@@ -38,7 +38,12 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 
-@ServiceDefinition(name = "CronCalculator", roles = { Role.WEB_ADMIN }, parameters = {}, returnValue = "")
+@ServiceDefinition(
+	name = "CronCalculator",
+	roles = { Role.WEB_ADMIN, Role.SCHEDULER_CONFIG, Role.SCHEDULER_VIEW },
+	parameters = {},
+	returnValue = ""
+)
 public class CronCalculator extends XmlService {
 	
 	@Override

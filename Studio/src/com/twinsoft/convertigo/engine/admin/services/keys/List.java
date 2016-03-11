@@ -46,7 +46,7 @@ import com.twinsoft.tas.KeyManager;
 
 @ServiceDefinition(
 		name = "List",
-		roles = { Role.WEB_ADMIN },
+		roles = { Role.WEB_ADMIN, Role.KEYS_CONFIG, Role.KEYS_VIEW },
 		parameters = {},
 		returnValue = "",
 		cloud_forbidden = true

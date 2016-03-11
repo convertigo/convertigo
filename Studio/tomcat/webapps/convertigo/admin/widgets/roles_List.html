@@ -39,18 +39,24 @@
 		<!-- Global Users table -->
 		<table id="usersList"></table>
 	
-		<form id="dialog-add-user">
-				<label for="username">Name : </label>
-				<input type='text' id='username' value=''/>
+		<div id="dialog-add-user">
+				<span title="Cannot be empty">
+					<label for="username">Name : </label>
+					<input type='text' id='username' value=''/>
+				</span>
 				<br/>
-				<label for="password">Password : </label>
-				<input type='password' id='password' value=''/>
+				<span>
+					<label for="password">Password : </label>
+					<input type='password' id='password' value=''/>
+				</span>
 				<br/>
 				<br/>
-				<label for="roles">Roles : </label>
-				<ul id='roles'>
-				</ul>
-		</form>
+				<label for="roles">Roles <small>(CONFIG roles can also VIEW)</small>: </label>
+				<table id="roles">
+				</table>
+				<button id="check_view">Check VIEW</button><button id="check_config">Check CONFIG</button><br/>
+				<button id="uncheck_view">Uncheck VIEW</button><button id="uncheck_config">Uncheck CONFIG</button>
+		</div>
 		
 	</body>
 </html>

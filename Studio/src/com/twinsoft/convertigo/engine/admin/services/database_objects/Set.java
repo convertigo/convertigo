@@ -47,7 +47,12 @@ import com.twinsoft.convertigo.engine.util.EnumUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-@ServiceDefinition(name = "Set", roles = { Role.WEB_ADMIN }, parameters = {}, returnValue = "the state of saving properties")
+@ServiceDefinition(
+	name = "Set",
+	roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG },
+	parameters = {},
+	returnValue = "the state of saving properties"
+)
 public class Set extends XmlService {
 	private TwsCachedXPathAPI xpath;
 	private Node postElt;

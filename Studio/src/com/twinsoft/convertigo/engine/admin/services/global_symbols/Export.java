@@ -33,7 +33,7 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 
 @ServiceDefinition(
 		name = "Export", 
-		roles = { Role.WEB_ADMIN }, 
+		roles = { Role.WEB_ADMIN, Role.SYMBOLS_CONFIG, Role.SYMBOLS_VIEW }, 
 		parameters = {}, 
 		returnValue = "return the global_symbols.properties file"
 	)

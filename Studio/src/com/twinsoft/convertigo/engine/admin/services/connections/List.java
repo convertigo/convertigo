@@ -44,7 +44,7 @@ import com.twinsoft.tas.KeyManager;
 
 @ServiceDefinition(
 		name = "List",
-		roles = { Role.WEB_ADMIN },
+		roles = { Role.WEB_ADMIN, Role.CONNECTIONS_CONFIG, Role.CONNECTIONS_VIEW },
 		parameters = {},
 		returnValue = ""
 	)

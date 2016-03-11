@@ -34,7 +34,7 @@ import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 
 @ServiceDefinition(
 		name = "Import",
-		roles = { Role.WEB_ADMIN },
+		roles = { Role.WEB_ADMIN, Role.SYMBOLS_CONFIG },
 		parameters = {},
 		returnValue = ""
 	)

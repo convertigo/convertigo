@@ -32,6 +32,7 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
@@ -157,7 +158,7 @@ public class Authenticate extends XmlService {
 			} else if (EnginePropertiesManager.getProperty(PropertyName.TEST_PLATFORM_USERNAME).equals(user)
 					&& EnginePropertiesManager.checkProperty(PropertyName.TEST_PLATFORM_PASSWORD, password)) {
 				roles = new Role[] { Role.TEST_PLATFORM, Role.AUTHENTICATED };
-			} else if (Engine.authenticatedSessionManager.getPassword(user).equals(password)) {
+			} else if (Engine.authenticatedSessionManager.getPassword(user).equals(DigestUtils.md5Hex(password))) {
 				Set<Role> set = Engine.authenticatedSessionManager.getRoles(user);
 				roles = new Role[set.size() + 1];
 				set.toArray(roles);

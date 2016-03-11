@@ -27,6 +27,8 @@ import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -58,9 +60,20 @@ public class Edit extends XmlService {
 				set.add(Role.valueOf(role));
 			}
 			
-			Engine.authenticatedSessionManager.setUser(username, password, set);
+			if (StringUtils.isBlank(password)) {
+				password = Engine.authenticatedSessionManager.getPassword(oldUsername);
+			} else {
+				password = DigestUtils.md5Hex(password);
+			}
+			
 			if (!username.equals(oldUsername)) {
+				if (Engine.authenticatedSessionManager.hasUser(username)) {
+					throw new IllegalArgumentException("User '" + username + "' already exists");
+				}
+				Engine.authenticatedSessionManager.setUser(username, password, set);
 				Engine.authenticatedSessionManager.deleteUser(oldUsername);
+			} else {
+				Engine.authenticatedSessionManager.setUser(username, password, set);
 			}
 			response.setAttribute("state", "success");
 			response.setAttribute("message","User '" + username + "' have been successfully edited!");

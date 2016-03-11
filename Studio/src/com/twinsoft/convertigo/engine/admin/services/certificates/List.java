@@ -47,7 +47,7 @@ import com.twinsoft.util.QuickSort;
 
 @ServiceDefinition(
 		name = "List",
-		roles = { Role.WEB_ADMIN },
+		roles = { Role.WEB_ADMIN, Role.CERTIFICATE_CONFIG, Role.CERTIFICATE_VIEW },
 		parameters = {},
 		returnValue = ""
 	)

@@ -40,7 +40,7 @@ import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 
 @ServiceDefinition(
 		name = "Create",
-		roles = { Role.WEB_ADMIN },
+		roles = { Role.WEB_ADMIN, Role.TRACE_CONFIG },
 		parameters = {},
 		returnValue = ""
 	)

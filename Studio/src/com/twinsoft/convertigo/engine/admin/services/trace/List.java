@@ -35,7 +35,7 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 
 @ServiceDefinition(
 		name = "List",
-		roles = { Role.WEB_ADMIN },
+		roles = { Role.WEB_ADMIN, Role.TRACE_CONFIG, Role.TRACE_VIEW },
 		parameters = {},
 		returnValue = ""
 	)

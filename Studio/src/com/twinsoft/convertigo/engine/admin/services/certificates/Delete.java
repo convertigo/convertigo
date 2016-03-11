@@ -43,7 +43,7 @@ import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 
 @ServiceDefinition(
 		name = "Delete",
-		roles = { Role.WEB_ADMIN },
+		roles = { Role.WEB_ADMIN, Role.CERTIFICATE_CONFIG },
 		parameters = {
 				@ServiceParameterDefinition(
 						name = "certificateName_{i}",

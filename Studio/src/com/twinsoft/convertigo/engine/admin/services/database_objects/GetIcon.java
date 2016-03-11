@@ -40,7 +40,12 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
-@ServiceDefinition(name = "GetIcon", roles = { Role.WEB_ADMIN }, parameters = {}, returnValue = "")
+@ServiceDefinition(
+	name = "GetIcon",
+	roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG, Role.PROJECT_DBO_VIEW },
+	parameters = {},
+	returnValue = ""
+)
 public class GetIcon extends DownloadService {
 
 	@Override

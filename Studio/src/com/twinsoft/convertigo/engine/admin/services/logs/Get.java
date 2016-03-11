@@ -44,7 +44,7 @@ import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 
 @ServiceDefinition(
 		name = "Get",
-		roles = { Role.WEB_ADMIN, Role.LOG_VIEW },
+		roles = { Role.WEB_ADMIN, Role.LOGS_CONFIG, Role.LOGS_VIEW },
 		parameters = {},
 		returnValue = ""
 	)

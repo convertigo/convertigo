@@ -55,7 +55,12 @@ import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 import com.twinsoft.convertigo.engine.scheduler.SchedulerManager;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
-@ServiceDefinition(name = "CreateScheduledElements", roles = { Role.WEB_ADMIN }, parameters = {}, returnValue = "")
+@ServiceDefinition(
+	name = "CreateScheduledElements",
+	roles = { Role.WEB_ADMIN, Role.SCHEDULER_CONFIG },
+	parameters = {},
+	returnValue = ""
+)
 public class CreateScheduledElements extends XmlService {
 	static private Pattern prefixPattern = Pattern.compile("requestable_parameter_(.*)");
 	

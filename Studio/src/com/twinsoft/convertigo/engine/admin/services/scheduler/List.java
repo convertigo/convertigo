@@ -49,7 +49,7 @@ import com.twinsoft.convertigo.engine.scheduler.SchedulerManager;
 
 @ServiceDefinition(
 		name = "List",
-		roles = { Role.WEB_ADMIN },
+		roles = { Role.WEB_ADMIN, Role.SCHEDULER_CONFIG, Role.SCHEDULER_VIEW },
 		parameters = {},
 		returnValue = ""
 	)

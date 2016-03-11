@@ -22,11 +22,14 @@
 
 package com.twinsoft.convertigo.engine.admin.services.roles;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -52,11 +55,28 @@ public class Add extends XmlService {
 		Element response = document.createElement("response");
 
 		try {
-			Set<Role> set = new HashSet<Role>(roles.length);
-			for (String role: roles) {
-				set.add(Role.valueOf(role));
+			if (StringUtils.isBlank(username)) {
+				throw new IllegalArgumentException("Blank username not allowed");
 			}
-			Engine.authenticatedSessionManager.setUser(username, password, set);
+			
+			if (StringUtils.isBlank(password)) {
+				throw new IllegalArgumentException("Blank password not allowed");
+			}
+			
+			if (Engine.authenticatedSessionManager.hasUser(username)) {
+				throw new IllegalArgumentException("User '" + username + "' already exists");
+			}
+			
+			Set<Role> set;
+			if (roles == null) {
+				set = Collections.emptySet();
+			} else {
+				set = new HashSet<Role>(roles.length);
+				for (String role: roles) {
+					set.add(Role.valueOf(role));
+				}
+			}
+			Engine.authenticatedSessionManager.setUser(username, DigestUtils.md5Hex(password), set);
 			response.setAttribute("state", "success");
 			response.setAttribute("message","User '" + username + "' have been successfully declared!");
 		} catch (Exception e) {
