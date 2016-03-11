@@ -37,7 +37,7 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 
 @ServiceDefinition(
 		name = "GetJavaSystemProperties",
-		roles = { Role.TEST_PLATFORM },
+		roles = { Role.TEST_PLATFORM, Role.HOME_VIEW, Role.HOME_CONFIG },
 		parameters = {},
 		returnValue = "the Java system properties"
 	)

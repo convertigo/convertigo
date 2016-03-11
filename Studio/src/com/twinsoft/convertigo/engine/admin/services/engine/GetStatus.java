@@ -49,7 +49,7 @@ import com.twinsoft.util.TWSKey;
 
 @ServiceDefinition(
 		name = "GetStatus",
-		roles = { Role.TEST_PLATFORM },
+		roles = { Role.TEST_PLATFORM, Role.HOME_VIEW, Role.HOME_CONFIG },
 		parameters = {},
 		returnValue = "the engine status"
 		)

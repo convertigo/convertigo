@@ -41,7 +41,7 @@ function checkAuthentication() {
 		success : function(xml) {
 			var $xml = $(xml);
 			var $authenticated = $xml.find("authenticated");
-			if ($authenticated.text() == "true" && checkRoleAdmin($xml)) {
+			if ($authenticated.text() == "true") {
 				document.location.href = "main.html";
 			}
 		}
@@ -58,7 +58,7 @@ function authenticate(data) {
 		dataType : "xml",
 		success : function(xml) {
 			var $xml = $(xml);
-			if ($xml.find("success").length > 0 && checkRoleAdmin($xml)) {
+			if ($xml.find("success").length > 0) {
 				$("form").unbind("submit").submit();
 			} else {
 				$("#dlgAuthFailed_message").html($xml.find("error").text().replace(/\n/g, "<br/>"));
@@ -66,8 +66,4 @@ function authenticate(data) {
 			};
 		}
 	});
-}
-
-function checkRoleAdmin($xml) {
-	return true; //$xml.find("roles>role[name=\"WEB_ADMIN\"]").length > 0;
 }

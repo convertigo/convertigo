@@ -36,7 +36,7 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 
 @ServiceDefinition(
 		name = "GetEnvironmentVariablesList",
-		roles = { Role.TEST_PLATFORM },
+		roles = { Role.TEST_PLATFORM, Role.SYMBOLS_VIEW, Role.HOME_VIEW, Role.HOME_CONFIG },
 		parameters = {},
 		returnValue = "the Environment variables list"
 	)

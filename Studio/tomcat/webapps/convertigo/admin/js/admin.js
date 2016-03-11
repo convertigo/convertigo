@@ -357,6 +357,10 @@ function loadWidget(widgetId, widgetOptions) {
 					//Store page
 					case "store":
 						urlHelp += "store/";
+						break;
+					//Role page
+					case "role":
+						urlHelp += "roles/";
 						break;	
 				}
 				//show icon help button
@@ -401,7 +405,7 @@ function genericError(XMLHttpRequest, type, extra, callback) {
 		
 		var $error = $xml.find("error > message:contains('Authentication failure')");
 		if ($error.length != 0) {
-			//document.location.href = "login.html";
+			toast($xml.find("error > message").text());
 		} else if (typeof(callback) !== "undefined") {
 			callback(httpRequest.responseXML);
 		} else if ("" + XMLHttpRequest.status === "0") {
@@ -609,4 +613,12 @@ function getEncodedYamlUri(project) {
 	}
 	catch (e) {}
 	return encodeURIComponent(yamlUrl);
+}
+
+function toast(msg) {
+	var $div = $("<div/>").text(msg).prependTo("#toaster").fadeIn(300, function () {
+		$(this).fadeOut(5000, function () {
+			$(this).remove();
+		});
+	});
 }

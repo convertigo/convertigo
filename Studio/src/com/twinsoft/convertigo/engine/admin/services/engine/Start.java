@@ -33,7 +33,7 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 
 @ServiceDefinition(
 		name = "Start",
-		roles = { Role.WEB_ADMIN, Role.MANAGER },
+		roles = { Role.WEB_ADMIN, Role.MANAGER, Role.HOME_CONFIG },
 		parameters = {},
 		returnValue = "nothing"
 	)

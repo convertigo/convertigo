@@ -17,6 +17,8 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
@@ -29,6 +31,9 @@ public class AuthenticatedSessionManager implements AbstractManager {
 		TRIAL,
 		MANAGER,
 		MONITOR_AGENT,
+		WEB_ACCESS,
+		HOME_VIEW("Consult the home part"),
+		HOME_CONFIG("Configure the home part"),
 		CACHE_VIEW("Consult the cache part"),
 		CACHE_CONFIG("Configure the cache part"),
 		CERTIFICATE_VIEW("Consult the certificate part"),
@@ -145,18 +150,29 @@ public class AuthenticatedSessionManager implements AbstractManager {
 	private JSONObject load() throws IOException, JSONException {
 		if (cache == null) {
 			try {
-				String file = FileUtils.readFileToString(new File(Engine.CONFIGURATION_PATH + "/user_roles.db"), "UTF-8");
-				cache = new JSONObject(file);
+				byte[] data = FileUtils.readFileToByteArray(new File(Engine.CONFIGURATION_PATH + "/user_roles.db"));
+				data = Crypto2.decodeFromByteArray(EnginePropertiesManager.getProperty(PropertyName.CRYPTO_PASSPHRASE), data);
+				String json = new String(data, "UTF-8");
+				cache = new JSONObject(json);
 			} catch (FileNotFoundException e) {
 				cache = new JSONObject();
+			} catch (Exception e) {
+				File copy = new File(Engine.CONFIGURATION_PATH + "/user_roles." + System.currentTimeMillis() + ".db");
+				FileUtils.copyFile(new File(Engine.CONFIGURATION_PATH + "/user_roles.db"), copy);
+				Engine.logEngine.error("Broken user_roles.db file, create a new one. The old db is saved here: " + copy, e);
+				cache = new JSONObject();
+				save(cache);
 			}
 		}
 		return cache;
 	}
 	
 	private void save(JSONObject db) throws IOException {
+		String json = db.toString();
 		cache = db;
-		FileUtils.write(new File(Engine.CONFIGURATION_PATH + "/user_roles.db"), db.toString(), "UTF-8");
+		byte[] data = json.getBytes("UTF-8");
+		data = Crypto2.encodeToByteArray(EnginePropertiesManager.getProperty(PropertyName.CRYPTO_PASSPHRASE), data);
+		FileUtils.writeByteArrayToFile(new File(Engine.CONFIGURATION_PATH + "/user_roles.db"), data);
 	}
 	
 	public void setUser(String username, String password, Set<Role> roles) throws EngineException {

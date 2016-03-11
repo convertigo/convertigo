@@ -36,7 +36,7 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 
 @ServiceDefinition(
 		name = "Monitor",
-		roles = { Role.WEB_ADMIN, Role.MONITOR_AGENT },
+		roles = { Role.WEB_ADMIN, Role.MONITOR_AGENT, Role.HOME_VIEW, Role.HOME_CONFIG },
 		parameters = {},
 		returnValue = "the monitoring data"
 	)

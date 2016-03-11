@@ -528,6 +528,22 @@ background-position-x: -2px;
 	color: #8f8f8f;
 }
 
+#toaster {
+    position: fixed;
+    width: 33%;
+    top: 5%;
+    color: black;
+    left: 33%;
+    text-align: left;
+}
+
+#toaster div {
+    background-color: orange;
+    display: none;
+    border-radius: 15px;
+    padding: 15px;
+}
+
 /* = WIDGET
 ---------------------------------------------------------------------- */
 
