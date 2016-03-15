@@ -29,7 +29,6 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -166,16 +165,12 @@ public class CarUtils {
 	
 	private static Document exportProject(Project project, final List<TestCase> selectedTestCases) 
 			throws EngineException {
-		long exportTime = project.getExportTime();
 		try {
 			final Document document = XMLUtils.getDefaultDocumentBuilder().newDocument();
 			//            ProcessingInstruction pi = document.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"UTF-8\"");
 			//            document.appendChild(pi);
 			final Element rootElement = document.createElement("convertigo");
-			project.setExportTime(Calendar.getInstance().getTime().getTime());
-			String exported = project.getInfoForProperty("exported");
 			
-			rootElement.setAttribute("exported", exported);
 			rootElement.setAttribute("version", com.twinsoft.convertigo.engine.Version.fullProductVersion);
 			rootElement.setAttribute("engine", com.twinsoft.convertigo.engine.Version.version);
 			rootElement.setAttribute("beans", com.twinsoft.convertigo.beans.Version.version);
@@ -242,7 +237,6 @@ public class CarUtils {
 			
 			return document;
 		} catch(Exception e) {
-			project.setExportTime(exportTime);
 			throw new EngineException("Unable to export the project \"" + project.getName() + "\".", e);
 		}
 	}

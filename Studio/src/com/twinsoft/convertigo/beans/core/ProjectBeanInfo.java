@@ -44,7 +44,7 @@ public class ProjectBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
-			properties = new PropertyDescriptor[12];
+			properties = new PropertyDescriptor[11];
 			
 			properties[0] = new PropertyDescriptor("browserDefinitions", beanClass, "getBrowserDefinitions", "setBrowserDefinitions");
 			properties[0].setExpert(true);
@@ -86,32 +86,27 @@ public class ProjectBeanInfo extends MySimpleBeanInfo {
             properties[6].setDisplayName(getExternalizedString("property.version.display_name"));
             properties[6].setShortDescription(getExternalizedString("property.version.short_description"));
 
-            properties[7] = new PropertyDescriptor("exported", beanClass, "getExportTime", "setExportTime");
-            properties[7].setDisplayName(getExternalizedString("property.exported.display_name"));
-            properties[7].setShortDescription(getExternalizedString("property.exported.short_description"));
-            properties[7].setPropertyEditorClass(getEditorClass("PropertyWithDynamicInfoEditor"));
-            
-            properties[8] = new PropertyDescriptor("bStrictMode", beanClass, "isStrictMode", "setStrictMode");
-			properties[8].setDisplayName(getExternalizedString("property.bStrictMode.display_name"));
-			properties[8].setShortDescription(getExternalizedString("property.bStrictMode.short_description"));
-			properties[8].setExpert(true);
+            properties[7] = new PropertyDescriptor("bStrictMode", beanClass, "isStrictMode", "setStrictMode");
+			properties[7].setDisplayName(getExternalizedString("property.bStrictMode.display_name"));
+			properties[7].setShortDescription(getExternalizedString("property.bStrictMode.short_description"));
+			properties[7].setExpert(true);
 
-            properties[9] = new PropertyDescriptor("jsonOutput", beanClass, "getJsonOutput", "setJsonOutput");
-            properties[9].setDisplayName(getExternalizedString("property.jsonOutput.display_name"));
-            properties[9].setShortDescription(getExternalizedString("property.jsonOutput.short_description"));
-            properties[9].setPropertyEditorClass(JsonOutput.class);
-            properties[9].setExpert(true);
+            properties[8] = new PropertyDescriptor("jsonOutput", beanClass, "getJsonOutput", "setJsonOutput");
+            properties[8].setDisplayName(getExternalizedString("property.jsonOutput.display_name"));
+            properties[8].setShortDescription(getExternalizedString("property.jsonOutput.short_description"));
+            properties[8].setPropertyEditorClass(JsonOutput.class);
+            properties[8].setExpert(true);
             
-            properties[10] = new PropertyDescriptor("corsOrigin", beanClass, "getCorsOrigin", "setCorsOrigin");
-			properties[10].setDisplayName(getExternalizedString("property.corsOrigin.display_name"));
-			properties[10].setShortDescription(getExternalizedString("property.corsOrigin.short_description"));
-			properties[10].setExpert(true);
+            properties[9] = new PropertyDescriptor("corsOrigin", beanClass, "getCorsOrigin", "setCorsOrigin");
+			properties[9].setDisplayName(getExternalizedString("property.corsOrigin.display_name"));
+			properties[9].setShortDescription(getExternalizedString("property.corsOrigin.short_description"));
+			properties[9].setExpert(true);
 			
-            properties[11] = new PropertyDescriptor("jsonRoot", beanClass, "getJsonRoot", "setJsonRoot");
-            properties[11].setDisplayName(getExternalizedString("property.jsonRoot.display_name"));
-            properties[11].setShortDescription(getExternalizedString("property.jsonRoot.short_description"));
-            properties[11].setPropertyEditorClass(JsonRoot.class);
-            properties[11].setExpert(true);
+            properties[10] = new PropertyDescriptor("jsonRoot", beanClass, "getJsonRoot", "setJsonRoot");
+            properties[10].setDisplayName(getExternalizedString("property.jsonRoot.display_name"));
+            properties[10].setShortDescription(getExternalizedString("property.jsonRoot.short_description"));
+            properties[10].setPropertyEditorClass(JsonRoot.class);
+            properties[10].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

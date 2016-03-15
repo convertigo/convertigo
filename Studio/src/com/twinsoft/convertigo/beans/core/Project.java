@@ -610,14 +610,14 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	/*
 	 * The time of last project export
 	 */
-	private long exported = 0L;
-
-	public void setExportTime(long exported) {
-		this.exported = exported;
-	}
-
 	public long getExportTime() {
-		return exported;
+		try {
+			String projectName = getName();
+			String exportedProjectFileName = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml";
+			File f = new File(exportedProjectFileName);
+			return f.lastModified();
+		} catch (Throwable t) {}
+		return 0L;
 	}
 
 	public String getInfoForProperty(String propertyName, DateFormat df, Locale locale) {
