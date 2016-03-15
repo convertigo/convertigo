@@ -103,6 +103,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	public static final String P_PRIORITY = "#priority";
 	public static final String P_QNAME = "#qname";
 	public static final String P_NAME = "#name";
+	public static final String P_EXPORTED = "#exported";
 
 	public String objectClassName = null;
 	public boolean canPaste = false;
@@ -279,6 +280,10 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
         propertyDescriptor.setCategory("Information");
         vPropertyDescriptors.add(propertyDescriptor);
         propertyDescriptor = new PropertyDescriptor(P_DEPTH, "Depth");
+        propertyDescriptor.setCategory("Information");
+        vPropertyDescriptors.add(propertyDescriptor);
+        
+        propertyDescriptor = new PropertyDescriptor(P_EXPORTED, "Exported");
         propertyDescriptor.setCategory("Information");
         vPropertyDescriptors.add(propertyDescriptor);
         
@@ -567,9 +572,14 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			return databaseObject.getQName();
 		else if (propertyName.equals(P_PRIORITY))
 			return Long.toString(databaseObject.priority);
-		else if (propertyName.equals(P_DEPTH))
+		else if (propertyName.equals(P_DEPTH)) {
 	        if (databaseObject instanceof ScreenClass) return Integer.toString(((ScreenClass) databaseObject).getDepth());
 			else return "n/a";
+		}
+		else if (propertyName.equals(P_EXPORTED)) {
+			if (databaseObject instanceof Project) return ((Project)databaseObject).getInfoForProperty("exported");
+			else return "n/a";
+		}
 		else {
 			try {
 				java.beans.PropertyDescriptor databaseObjectPropertyDescriptor = getPropertyDescriptor(propertyName);
