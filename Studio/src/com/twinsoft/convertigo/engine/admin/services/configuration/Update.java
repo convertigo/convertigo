@@ -28,6 +28,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager;
+import com.twinsoft.convertigo.engine.AuthenticationException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
@@ -38,7 +40,12 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 @ServiceDefinition(
 		name = "Update",
-		roles = { Role.WEB_ADMIN },
+		roles = {
+			Role.WEB_ADMIN,
+			Role.LOGS_CONFIG,
+			Role.CACHE_CONFIG,
+			Role.CERTIFICATE_CONFIG
+		},
 		parameters = {},
 		returnValue = ""
 	)
@@ -52,7 +59,20 @@ public class Update extends XmlService {
 		post = XMLUtils.parseDOM(request.getInputStream());
 
 		NodeList nl = post.getElementsByTagName("property");
-
+		
+		Role[] roles = Engine.authenticatedSessionManager.getRoles(request.getSession());
+		
+		for (int i = 0; i < nl.getLength(); i++) {
+			String propKey = ((Element) nl.item(i)).getAttribute("key");
+			PropertyName property = PropertyName.valueOf(propKey);
+			if (property.isVisible()) {
+				if (!AuthenticatedSessionManager.hasRole(roles, Role.WEB_ADMIN)
+					&& !AuthenticatedSessionManager.hasRole(roles, property.getCategory().configRoles())) {
+					throw new AuthenticationException("Authentication failure: user has not sufficient rights!");
+				}
+			}
+		}
+		
 		for (int i = 0; i < nl.getLength(); i++) {
 			String propKey = ((Element) nl.item(i)).getAttribute("key");
 			PropertyName property = PropertyName.valueOf(propKey);

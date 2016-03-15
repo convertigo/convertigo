@@ -262,7 +262,10 @@ function updateConfiguration () {
 			showInfo("The configuration has been successfully updated!");
 			propertyMap = {};
 			$(".config-update").button("disable");
-		}, domToString2(xmlDoc), undefined, {contentType : "application/xml"});
+		}, domToString2(xmlDoc), function() {
+			propertyMap = {};
+			$(".config-update").button("disable");
+		}, {contentType : "application/xml"});
 	} else {
 		$(".config-update").button("disable");
 	}

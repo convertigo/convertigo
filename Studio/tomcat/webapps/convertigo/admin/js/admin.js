@@ -406,8 +406,11 @@ function genericError(XMLHttpRequest, type, extra, callback) {
 		var $error = $xml.find("error > message:contains('Authentication failure')");
 		if ($error.length != 0) {
 			toast($xml.find("error > message").text());
+			if (typeof(callback) !== "undefined") {
+				callback(XMLHttpRequest.responseXML);
+			}
 		} else if (typeof(callback) !== "undefined") {
-			callback(httpRequest.responseXML);
+			callback(XMLHttpRequest.responseXML);
 		} else if ("" + XMLHttpRequest.status === "0") {
 			showError("Server seems unreacheable");
 		} else {

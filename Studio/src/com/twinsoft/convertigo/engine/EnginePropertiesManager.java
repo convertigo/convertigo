@@ -45,6 +45,7 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.helpers.OptionConverter;
 
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.MinificationManager.MinificationOptions;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
@@ -57,6 +58,8 @@ public class EnginePropertiesManager {
 	@Retention(RetentionPolicy.RUNTIME)
 	@interface CategoryOptions {
     	Visibility visibility() default Visibility.VISIBLE;
+    	Role[] viewRoles() default {};
+    	Role[] configRoles() default {};
 	}
     
 	@Retention(RetentionPolicy.RUNTIME)
@@ -219,7 +222,9 @@ public class EnginePropertiesManager {
     public enum PropertyCategory {
     	Main ("Main parameters"),
     	Account ("Accounts"),
+    	@CategoryOptions(viewRoles = {Role.LOGS_VIEW, Role.LOGS_CONFIG}, configRoles = {Role.LOGS_CONFIG})
     	Logs ("Logs"),
+    	@CategoryOptions(viewRoles = {Role.LOGS_VIEW, Role.LOGS_CONFIG}, configRoles = {Role.LOGS_CONFIG})
     	Context ("Real-time activity monitoring"),
     	XmlGeneration ("XML generation"),
     	XulRunner ("HTML parser"),
@@ -227,7 +232,9 @@ public class EnginePropertiesManager {
     	Network ("Network"),
     	Proxy ("Proxy"),
     	SecurityToken ("Security token"),
+    	@CategoryOptions(viewRoles = {Role.CERTIFICATE_VIEW, Role.CERTIFICATE_CONFIG}, configRoles = {Role.CERTIFICATE_CONFIG})
     	Ssl ("SSL"),
+    	@CategoryOptions(viewRoles = {Role.CACHE_VIEW, Role.CACHE_CONFIG}, configRoles = {Role.CACHE_CONFIG})
     	Cache ("Cache"),
     	@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
     	Carioca ("Legacy Carioca portal"),
@@ -236,7 +243,7 @@ public class EnginePropertiesManager {
     	Notifications ("Notifications"),
     	Minification ("Minification"),
     	MobileBuilder ("Mobile builder"),
-    	FULLSYNC ("Full sync"),
+    	FullSync ("Full sync"),
     	@CategoryOptions(visibility = Visibility.HIDDEN)
     	ExternalBrowser ("External browser")
     	;
@@ -263,6 +270,22 @@ public class EnginePropertiesManager {
 				}
 			}
 			return true;
+		}
+		    	
+		public Role[] viewRoles() {
+			CategoryOptions categoryOptions = GenericUtils.getAnnotation(CategoryOptions.class, this);
+			if (categoryOptions != null) {
+				return categoryOptions.viewRoles();
+			}
+			return null;
+		}
+    	
+		public Role[] configRoles() {
+			CategoryOptions categoryOptions = GenericUtils.getAnnotation(CategoryOptions.class, this);
+			if (categoryOptions != null) {
+				return categoryOptions.configRoles();
+			}
+			return null;
 		}
 		
 		public static PropertyCategory[] getSortedValues() {
@@ -600,10 +623,10 @@ public class EnginePropertiesManager {
 		MOBILE_BUILDER_PLATFORM_URL ("mobile.builder.platform_url", "https://build.convertigo.net/cmb/PhoneGapBuilder", "Mobile builder platform URL", PropertyCategory.MobileBuilder),
 		
 		/** FULL SYNC */
-		FULLSYNC_COUCH_URL ("fullsync.couch.url", "http://127.0.0.1:5984", "Couch DB URL for FullSync", PropertyCategory.FULLSYNC),
-		FULLSYNC_COUCH_USERNAME ("fullsync.couch.username", "", "Couch DB username for FullSync", PropertyCategory.FULLSYNC),
+		FULLSYNC_COUCH_URL ("fullsync.couch.url", "http://127.0.0.1:5984", "Couch DB URL for FullSync", PropertyCategory.FullSync),
+		FULLSYNC_COUCH_USERNAME ("fullsync.couch.username", "", "Couch DB username for FullSync", PropertyCategory.FullSync),
 		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
-		FULLSYNC_COUCH_PASSWORD ("fullsync.couch.password", "", "Couch DB password for FullSync", PropertyCategory.FULLSYNC),
+		FULLSYNC_COUCH_PASSWORD ("fullsync.couch.password", "", "Couch DB password for FullSync", PropertyCategory.FullSync),
 		
 		/** EXTERNAL BROWSER */
 		@PropertyOptions(propertyType = PropertyType.Array)

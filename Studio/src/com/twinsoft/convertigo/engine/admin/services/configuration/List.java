@@ -29,6 +29,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.ComboEnum;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyCategory;
@@ -36,12 +39,16 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyType;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 @ServiceDefinition(
 		name = "List",
-		roles = { Role.WEB_ADMIN },
+		roles = {
+			Role.WEB_ADMIN,
+			Role.LOGS_VIEW, Role.LOGS_CONFIG,
+			Role.CACHE_VIEW, Role.CACHE_CONFIG,
+			Role.CERTIFICATE_VIEW, Role.CERTIFICATE_CONFIG
+		},
 		parameters = {},
 		returnValue = ""
 	)
@@ -51,8 +58,13 @@ public class List extends XmlService{
 		
 		Element rootElement = document.getDocumentElement();
 
+		Role[] roles = Engine.authenticatedSessionManager.getRoles(request.getSession());
+		
 		for (PropertyCategory propertyCategory : PropertyCategory.getSortedValues()) {
-			if (propertyCategory.isVisible()) {
+			if (propertyCategory.isVisible() && (
+					AuthenticatedSessionManager.hasRole(roles, Role.WEB_ADMIN) ||
+					AuthenticatedSessionManager.hasRole(roles, propertyCategory.viewRoles())
+			)) {				
 	            Element elementCategory = document.createElement("category");
 	            elementCategory.setAttribute("name", propertyCategory.toString());
 	            elementCategory.setAttribute("displayName", propertyCategory.getDisplayName());

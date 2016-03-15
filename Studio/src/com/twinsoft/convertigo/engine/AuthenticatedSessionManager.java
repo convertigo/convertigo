@@ -114,6 +114,13 @@ public class AuthenticatedSessionManager implements AbstractManager {
 	public static boolean hasRole(Role[] roles, Role role) {
 		return (roles != null && Arrays.asList(roles).contains(role));
 	}
+	
+	public static boolean hasRole(Role[] userRoles, Role[] requiredRoles) {
+		if (userRoles == null || requiredRoles == null) {
+			return false;
+		}
+		return !ListUtils.intersection(Arrays.asList(userRoles), Arrays.asList(requiredRoles)).isEmpty();
+	}
 
 	public Role[] getRoles(HttpSession httpSession) {
 		Role[] roles = roles(httpSession);
@@ -136,7 +143,7 @@ public class AuthenticatedSessionManager implements AbstractManager {
 		Engine.logAdmin.debug("Required roles: " + lRequiredRoles);
 
 		// Check if the user has one (or more) role(s) in common with the required roles list
-		if (ListUtils.intersection(lUserRoles, lRequiredRoles).size() > 0) {
+		if (!ListUtils.intersection(lUserRoles, lRequiredRoles).isEmpty()) {
 			return;
 		}
 		
