@@ -292,7 +292,7 @@ public class AuthenticatedSessionManager implements AbstractManager {
 			}
 			return db.has(username);
 		} catch (Exception e) {
-			throw new EngineException("Failed to get the password", e);
+			return false;
 		}
 	}
 }
