@@ -44,7 +44,9 @@ import io.swagger.models.parameters.Parameter;
 import io.swagger.models.parameters.PathParameter;
 import io.swagger.models.parameters.QueryParameter;
 import io.swagger.models.parameters.SerializableParameter;
+import io.swagger.models.properties.Property;
 import io.swagger.models.properties.RefProperty;
+import io.swagger.models.properties.StringProperty;
 
 public class SwaggerUtils {
 
@@ -76,6 +78,8 @@ public class SwaggerUtils {
 		schemes.add(Scheme.HTTP);
 		schemes.add(Scheme.HTTPS);
 		swagger.setSchemes(schemes);
+		
+		swagger.setConsumes(Arrays.asList("application/x-www-form-urlencoded","application/json", "application/xml"));
 		
 		swagger.setProduces(Arrays.asList("application/json", "application/xml"));
 		
@@ -126,6 +130,8 @@ public class SwaggerUtils {
 		schemes.add(Scheme.HTTP);
 		schemes.add(Scheme.HTTPS);
 		swagger.setSchemes(schemes);
+		
+		swagger.setConsumes(Arrays.asList("application/x-www-form-urlencoded","application/json", "application/xml"));
 		
 		swagger.setProduces(Arrays.asList("application/json", "application/xml"));
 		
@@ -214,8 +220,16 @@ public class SwaggerUtils {
 							s_parameter.setDescription(ump.getComment());
 							s_parameter.setRequired(ump.isRequired());
 							if (s_parameter instanceof SerializableParameter) {
-								((SerializableParameter)s_parameter).setType("string"/*param.getType()*/);
-								((SerializableParameter)s_parameter).setCollectionFormat(null/*param.getCollection()*/);
+								if (ump.isMultiValued()) {
+									((SerializableParameter)s_parameter).setType("array");
+									((SerializableParameter)s_parameter).setCollectionFormat("multi");
+									Property items = new StringProperty();
+									((SerializableParameter) s_parameter).setItems(items);
+								}
+								else {
+									((SerializableParameter)s_parameter).setType("string");
+									((SerializableParameter)s_parameter).setCollectionFormat(null);
+								}
 								
 								/*String value = s_parameter.getValue();
 								if (value != null) {

@@ -395,7 +395,7 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 							map.put(paramName, paramValue);
 						}
 					}
-					else if (param.isRequired()) {
+					else if (param.isRequired() && param.getType() != Type.Path) {
 						Engine.logBeans.warn("(AbstractRestOperation) \""+ getName() +"\" : missing parameter "+ param.getName());
 					}
 				}
