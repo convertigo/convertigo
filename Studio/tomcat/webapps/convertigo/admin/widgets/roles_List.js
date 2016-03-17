@@ -323,7 +323,7 @@ function deleteUser(username) {
 function addUser(xml, mode) {
 	$("#username").val("");
 	$("#password").val("").parent().attr("title", "Cannot be empty");
-	$("#role input").prop("checked", false);
+	$("#roles input").prop("checked", false);
 	$("#dialog-add-user").dialog({
 			autoOpen : true,
 			title : "Add user",
@@ -354,6 +354,7 @@ function addUser(xml, mode) {
 
 function editUser(username) {
 	$("#username").val(username);
+	$("#roles input").prop("checked", false);
 	var $user = $last_roles_list_xml.find("user[name='" + username + "']");
 	$user.find("role").each(function () {
 		$("#c" + $(this).attr("name")).prop("checked", true);
@@ -389,16 +390,16 @@ function editUser(username) {
 }
 
 function initializeImportUser() {
-	var actionForm = "services/users.Import";
+	var actionForm = "services/roles.Import";
 	
 	var ajaxUpload = new AjaxUpload("importUserUpload", {
 		action : actionForm,			
 		responseType : "xml",		
 		onSubmit : function(file, ext) {
 			$("#dialog-confirm-users").dialog("close");
-			var str = ".properties";
+			var str = ".json";
 			if (file.match(str + "$") != str) {
-				showError("<p>The users file '" + file + "' is not a valid properties file</p>");
+				showError("<p>The users file '" + file + "' is not a valid db file</p>");
 				return false;
 			} else {
 				this._settings.action = this._settings.action+"?"+ $("#dialog-import-users").serialize();
@@ -458,6 +459,6 @@ function exportUserFile(){
 		userstoExport += "{ 'name' : "+$(this).prop('value')+" }";
 	});
 
-	window.open("services/global_users.Export?users=" + 
+	window.open("services/roles.Export?users=" + 
 			userstoExport  );
 }

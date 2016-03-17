@@ -18,11 +18,12 @@
 package com.twinsoft.convertigo.engine.admin.services.roles;
 
 import java.io.IOException;
-import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.io.IOUtils;
+import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
@@ -47,23 +48,24 @@ public class Import extends UploadService {
 			actionImport = request.getParameter("priority");
 		}
 		
-		if (!item.getName().endsWith(".properties")) {
+		if (!item.getName().endsWith(".json")) {
 			ServiceUtils.addMessage(document, document.getDocumentElement(), "The import of the user file "
-					+ item.getName() + " has failed. The file is not valid (.properties required).", "error",
+					+ item.getName() + " has failed. The file is not valid (.json required).", "error",
 					false);
 		}
 		
 		//We save the users imported file
-		Properties prop = new Properties();
 		try {
-			prop.load(item.getInputStream());				
+			byte[] data = IOUtils.toByteArray(item.getInputStream());
+			String json = new String(data, "UTF-8");
+			JSONObject users = new JSONObject(json);
+			Engine.authenticatedSessionManager.updateUsers(users, actionImport);
+			
 		} catch (IOException ioe) {
-			String message = "Unable to load property file:\n" + ioe.getMessage();
+			String message = "Unable to load the db file:\n" + ioe.getMessage();
 			ServiceUtils.addMessage(document, document.getDocumentElement(), message, "message", false);
-			throw new EngineException("Unable to load property file", ioe);
-		}
-		
-//		Engine.theApp.databaseObjectsManager.symbolsUpdate(prop, actionImport);	
+			throw new EngineException("Unable to load the db file", ioe);
+		}	
 		
 		String message = "The users file has been successfully imported.";
 		Engine.logAdmin.info(message);

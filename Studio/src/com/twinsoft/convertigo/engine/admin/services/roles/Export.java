@@ -17,12 +17,10 @@
 
 package com.twinsoft.convertigo.engine.admin.services.roles;
 
-import java.io.PrintStream;
-import java.util.Date;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.IOUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -48,29 +46,15 @@ public class Export extends DownloadService {
 		
 		if ( users != null && !users.equals("") ) {
 			//Parse string requested parameter to JSON
-//			JSONObject jsonObj = new JSONObject(users);
-//			JSONArray usersNames = jsonObj.getJSONArray("users");
-			
-			//Write header information
-			String writedString = "#users\n";
-			writedString += "#" + new Date() + "\n";
-
-			//Write users saved with name and value for each requested/selected users
-//			for (int i = 0; i < usersNames.length(); i++) {
-//				JSONObject jo = usersNames.getJSONObject(i);
-//				String userValue = Engine.theApp.databaseObjectsManager
-//						.usersGetValue(jo.getString("name"));
-//				writedString += jo.getString("name") + "=" + userValue + "\n";
-//			}
+			JSONObject jsonObj = new JSONObject(users);
+			JSONArray usernames = jsonObj.getJSONArray("users");
+			JSONObject export = Engine.authenticatedSessionManager.exportUsers(usernames);
 
 			response.setHeader("Content-Disposition",
-					"attachment; filename=\"users.properties\"");
+					"attachment; filename=\"user_roles.json\"");
 			response.setContentType("text/plain");
 			
-			//We directly write the concatenated string into the output stream of response
-			PrintStream printStream = new PrintStream(response.getOutputStream());
-			printStream.print(writedString);
-			printStream.close();
+			IOUtils.write(export.toString(2), response.getOutputStream(), "UTF-8");
 
 			String message = "The users file has been exported.";
 			Engine.logAdmin.info(message);

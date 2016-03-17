@@ -3,7 +3,10 @@ package com.twinsoft.convertigo.engine;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -293,6 +296,69 @@ public class AuthenticatedSessionManager implements AbstractManager {
 			return db.has(username);
 		} catch (Exception e) {
 			return false;
+		}
+	}
+	
+	public void updateUsers(JSONObject users, String importAction) throws EngineException {
+		try {
+			if (!(importAction.equals("clear-import") || importAction.equals("priority-server") || importAction.equals("priority-import"))) {
+				throw new IllegalArgumentException("importAction must be 'clear-import', 'priority-server' or 'priority-import'");
+			}
+			
+			File f = new File(Engine.CONFIGURATION_PATH + "/user_roles.db");
+			
+			File oldFile = null;
+			if (f.exists()) {
+				Date date = new Date();
+				DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+				
+				File parentFile = f.getParentFile();
+				oldFile = new File(parentFile, f.getName().replaceAll(".db", "_" + dateFormat.format(date) + ".db"));
+				
+				int i = 1;
+				while (oldFile.exists()) {
+					oldFile = new File(parentFile, f.getName().replaceAll(".db", "_" + dateFormat.format(date) + "_" + i + ".db"));
+					i++;
+				}
+				f.renameTo(oldFile);
+			}
+			synchronized (this) {
+				if (!importAction.equals("clear-import")) {
+					boolean priorityServer = importAction.equals("priority-server");
+					JSONObject oldUsers = load();
+					for (Iterator<String> i = GenericUtils.cast(oldUsers.keys()); i.hasNext();) {
+						String name = i.next();
+						if (priorityServer || !users.has(name)) {
+							users.put(name, oldUsers.get(name));
+						}
+					}
+					
+				}
+				save(users);
+			}
+		} catch (Exception exception) {
+			throw new EngineException("Failed to update Users", exception);
+		}
+	}
+	
+	public JSONObject exportUsers(JSONArray usernames) throws EngineException {
+		try {
+			JSONObject users;
+			JSONObject export = new JSONObject();
+			
+			synchronized (this) {
+				users = load();
+			}
+	
+			for (int i = 0; i < usernames.length(); i++) {
+				String name = usernames.getJSONObject(i).getString("name");
+				if (users.has(name)) {
+					export.put(name, users.get(name));
+				}
+			}
+			return export;
+		} catch (Exception exception) {
+			throw new EngineException("Failed to update Users", exception);
 		}
 	}
 }
