@@ -1,26 +1,35 @@
 package com.twinsoft.convertigo.beans.rest;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
 import com.twinsoft.convertigo.beans.core.UrlMapping;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataContent;
+import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataType;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter.Type;
 import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.JsonOutput;
@@ -28,6 +37,7 @@ import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public abstract class AbstractRestOperation extends UrlMappingOperation {
@@ -301,11 +311,74 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 		String transactionName = count == 3 ? st.nextToken():"";
 		
 		try {
+			
 			Map<String, Object> map = new HashMap<String, Object>();
 			String responseContentType = null;
 			String content = null;
 			
 			try {
+				
+				// Check multipart request
+				if (ServletFileUpload.isMultipartContent(request)) {
+					Engine.logBeans.debug("(AbstractRestOperation) \""+ getName() +"\" Multipart resquest");
+		
+					// Create a factory for disk-based file items
+					DiskFileItemFactory factory = new DiskFileItemFactory();
+		
+					// Set factory constraints
+					factory.setSizeThreshold(1000);
+		
+					File temporaryFile = File.createTempFile("c8o-multipart-files", ".tmp");
+					int cptFile = 0;
+					temporaryFile.delete();
+					temporaryFile.mkdirs();
+					factory.setRepository(temporaryFile);
+					Engine.logBeans.debug("(AbstractRestOperation) \""+ getName() +"\" Temporary folder for upload is : " + temporaryFile.getAbsolutePath());
+		
+					// Create a new file upload handler
+					ServletFileUpload upload = new ServletFileUpload(factory);
+		
+					// Set overall request size constraint
+					upload.setSizeMax(EnginePropertiesManager.getPropertyAsLong(PropertyName.FILE_UPLOAD_MAX_REQUEST_SIZE));
+					upload.setFileSizeMax(EnginePropertiesManager.getPropertyAsLong(PropertyName.FILE_UPLOAD_MAX_FILE_SIZE));
+		
+					// Parse the request
+					List<FileItem> items = GenericUtils.cast(upload.parseRequest(request));
+					for (FileItem fileItem : items) {
+						String parameterName = fileItem.getFieldName();
+						String parameterValue;
+						if (fileItem.isFormField()) {
+							parameterValue = fileItem.getString();
+							Engine.logBeans.debug("(AbstractRestOperation) \""+ getName() +"\"  Value for field '" + parameterName + "' : " + parameterValue);
+						} else {
+							String name = fileItem.getName().replaceFirst("^.*(?:\\\\|/)(.*?)$", "$1");
+							if (name.length() > 0) {
+								File wDir = new File(temporaryFile, "" + (++cptFile));
+								wDir.mkdirs();
+								File wFile = new File(wDir, name);
+								fileItem.write(wFile);
+								fileItem.delete();
+								parameterValue = wFile.getAbsolutePath();
+								Engine.logBeans.debug("(AbstractRestOperation) \""+ getName() +"\" Temporary uploaded file for field '" + parameterName + "' : " + parameterValue);
+							} else {
+								Engine.logBeans.debug("(AbstractRestOperation) \""+ getName() +"\" No temporary uploaded file for field '" + parameterName + "', empty name");
+								parameterValue = "";
+							}
+						}
+		
+						if (parameterValue != null && !parameterValue.isEmpty()) {
+							UrlMappingParameter param = getParameterByName(parameterName);
+							if (param != null) {
+								String variableName = param.getMappedVariableName();
+								if (!variableName.isEmpty()) {
+									parameterName = variableName;
+								}
+							}
+							map.put(parameterName, parameterValue);
+						}
+					}
+				}
+				
 				String contextName = request.getParameter(Parameter.Context.getName());
 				String sessionId = request.getSession().getId();
 				
@@ -395,8 +468,16 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 							map.put(paramName, paramValue);
 						}
 					}
-					else if (param.isRequired() && param.getType() != Type.Path) {
-						Engine.logBeans.warn("(AbstractRestOperation) \""+ getName() +"\" : missing parameter "+ param.getName());
+					else if (param.isRequired()) {
+						if (param.getType() == Type.Path) {
+							// ignore : already handled
+						}
+						else if (param.getDataType().equals(DataType.File)) {
+							// ignore : already handled
+						}
+						else {
+							Engine.logBeans.warn("(AbstractRestOperation) \""+ getName() +"\" : missing parameter "+ param.getName());
+						}
 					}
 				}
 			}

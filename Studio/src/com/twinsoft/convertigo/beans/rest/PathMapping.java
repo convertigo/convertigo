@@ -25,11 +25,13 @@ package com.twinsoft.convertigo.beans.rest;
 import java.io.IOException;
 import java.util.EnumMap;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 
 import com.twinsoft.convertigo.beans.core.UrlMapping;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
+import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataType;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter.Type;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -106,6 +108,14 @@ public class PathMapping extends UrlMapping {
 				// Check for required operation parameters
 				for (UrlMappingParameter param :operation.getParameterList()) {
 					if (param.isRequired()) {
+						if (param.getDataType().equals(DataType.File)) {
+							if (request.getContentType().indexOf("multipart") == -1) {
+								Engine.logBeans.debug("(PathMapping) Invalid content type for file parameter \""+param.getName()+"\"");
+								return null;
+							}
+							continue;
+						}
+						
 						if (param.getType() == Type.Query || param.getType() == Type.Form) {
 							if (request.getParameter(param.getName()) == null) {
 								Engine.logBeans.debug("(PathMapping) Missing required operation's parameter \""+param.getName()+"\"");

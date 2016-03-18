@@ -79,7 +79,7 @@ public class SwaggerUtils {
 		schemes.add(Scheme.HTTPS);
 		swagger.setSchemes(schemes);
 		
-		swagger.setConsumes(Arrays.asList("application/x-www-form-urlencoded","application/json", "application/xml"));
+		swagger.setConsumes(Arrays.asList("multipart/form-data","application/x-www-form-urlencoded","application/json","application/xml"));
 		
 		swagger.setProduces(Arrays.asList("application/json", "application/xml"));
 		
@@ -131,7 +131,7 @@ public class SwaggerUtils {
 		schemes.add(Scheme.HTTPS);
 		swagger.setSchemes(schemes);
 		
-		swagger.setConsumes(Arrays.asList("application/x-www-form-urlencoded","application/json", "application/xml"));
+		swagger.setConsumes(Arrays.asList("multipart/form-data","application/x-www-form-urlencoded","application/json","application/xml"));
 		
 		swagger.setProduces(Arrays.asList("application/json", "application/xml"));
 		
@@ -219,17 +219,16 @@ public class SwaggerUtils {
 							s_parameter.setName(ump.getName());
 							s_parameter.setDescription(ump.getComment());
 							s_parameter.setRequired(ump.isRequired());
+							
 							if (s_parameter instanceof SerializableParameter) {
-								if (ump.isMultiValued()) {
-									((SerializableParameter)s_parameter).setType("array");
-									((SerializableParameter)s_parameter).setCollectionFormat("multi");
-									Property items = new StringProperty();
-									((SerializableParameter) s_parameter).setItems(items);
-								}
-								else {
-									((SerializableParameter)s_parameter).setType("string");
-									((SerializableParameter)s_parameter).setCollectionFormat(null);
-								}
+								boolean isArray = ump.isMultiValued(); //|| ump.isArray();
+								String _type = isArray ? "array":ump.getDataType().name().toLowerCase();
+								String _collectionFormat = ump.isMultiValued() ? "multi":(isArray ? "csv":null);
+								Property _items = isArray ? new StringProperty():null;
+								
+								((SerializableParameter)s_parameter).setType(_type);
+								((SerializableParameter)s_parameter).setCollectionFormat(_collectionFormat);
+								((SerializableParameter) s_parameter).setItems(_items);
 								
 								/*String value = s_parameter.getValue();
 								if (value != null) {
