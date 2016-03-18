@@ -115,6 +115,16 @@ public abstract class UrlMappingParameter extends DatabaseObject implements ITag
 		this.multiValued = multiValued;
 	}
 	
+	private Boolean array = Boolean.FALSE;
+	
+	public Boolean isArray() {
+		return array;
+	}
+
+	public void setArray(Boolean array) {
+		this.array = array;
+	}
+
 	private String mappedVariableName = "";
 
 	public String getMappedVariableName() {

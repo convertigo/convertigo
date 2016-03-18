@@ -19,6 +19,7 @@ import com.twinsoft.convertigo.beans.core.UrlMapping;
 import com.twinsoft.convertigo.beans.core.IMappingRefModel;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
+import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataType;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter.Type;
 import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -44,6 +45,9 @@ import io.swagger.models.parameters.Parameter;
 import io.swagger.models.parameters.PathParameter;
 import io.swagger.models.parameters.QueryParameter;
 import io.swagger.models.parameters.SerializableParameter;
+import io.swagger.models.properties.BooleanProperty;
+import io.swagger.models.properties.DoubleProperty;
+import io.swagger.models.properties.IntegerProperty;
 import io.swagger.models.properties.Property;
 import io.swagger.models.properties.RefProperty;
 import io.swagger.models.properties.StringProperty;
@@ -221,10 +225,10 @@ public class SwaggerUtils {
 							s_parameter.setRequired(ump.isRequired());
 							
 							if (s_parameter instanceof SerializableParameter) {
-								boolean isArray = ump.isMultiValued(); //|| ump.isArray();
+								boolean isArray = ump.isMultiValued() || ump.isArray();
 								String _type = isArray ? "array":ump.getDataType().name().toLowerCase();
 								String _collectionFormat = ump.isMultiValued() ? "multi":(isArray ? "csv":null);
-								Property _items = isArray ? new StringProperty():null;
+								Property _items = isArray ? getItems(ump.getDataType()):null;
 								
 								((SerializableParameter)s_parameter).setType(_type);
 								((SerializableParameter)s_parameter).setCollectionFormat(_collectionFormat);
@@ -289,6 +293,18 @@ public class SwaggerUtils {
 		swagger.setPaths(swagger_paths);
 		
 		return swagger;
+	}
+	
+	public static Property getItems(DataType dataType) {
+		if (DataType.String.equals(dataType))
+			return new StringProperty();
+		else if (DataType.Integer.equals(dataType))
+			return new IntegerProperty();
+		else if (DataType.Boolean.equals(dataType))
+			return new BooleanProperty();
+		else if (DataType.Number.equals(dataType))
+			return new DoubleProperty();
+		return null;
 	}
 	
 	public static String getYamlDefinition(Object object) throws JsonProcessingException {
