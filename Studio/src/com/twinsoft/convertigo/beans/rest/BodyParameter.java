@@ -31,6 +31,7 @@ public class BodyParameter extends UrlMappingParameter implements IMappingRefMod
 
 	public BodyParameter() {
 		super();
+		this.inputType = DataType.Model.name();
 	}
 
 	@Override
@@ -44,6 +45,11 @@ public class BodyParameter extends UrlMappingParameter implements IMappingRefMod
 		return Type.Body;
 	}
 	
+	@Override
+	public DataType getDataType() {
+		return DataType.Model;
+	}
+
 	private String modelReference = "";
 	
 	public String getModelReference() {

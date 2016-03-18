@@ -22,7 +22,13 @@
 
 package com.twinsoft.convertigo.beans.core;
 
-public abstract class UrlMappingParameter extends DatabaseObject {
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import com.twinsoft.convertigo.engine.util.EnumUtils;
+
+public abstract class UrlMappingParameter extends DatabaseObject implements ITagsProperty{
 
 	private static final long serialVersionUID = -2280875929012349646L;
 
@@ -32,6 +38,22 @@ public abstract class UrlMappingParameter extends DatabaseObject {
 		Body,
 		Form,
 		Header;
+		
+		public List<String> getAllowedDataTypes() {
+			List<String> types = new ArrayList<String>();
+			types.addAll(Arrays.asList(EnumUtils.toNames(DataType.class)));
+			if (this.equals(Body)) {
+				types.clear();
+				types.add(DataType.Model.name());
+			}
+			else {
+				types.remove(DataType.Model.name());
+				if (!this.equals(Form)) {
+					types.remove(DataType.File.name());
+				}
+			}
+			return types;
+		}
 	}
 	
 	public enum DataContent {
@@ -52,6 +74,14 @@ public abstract class UrlMappingParameter extends DatabaseObject {
 		}
 	}
 
+	public enum DataType {
+		Boolean,
+		Integer,
+		Number,
+		String,
+		File,
+		Model;
+	}
 	
 	public UrlMappingParameter() {
 		super();
@@ -103,6 +133,30 @@ public abstract class UrlMappingParameter extends DatabaseObject {
 
 	public void setInputContent(DataContent intputContent) {
 		this.intputContent = intputContent;
+	}
+
+	protected String inputType = DataType.String.name();
+	
+	public String getInputType() {
+		return inputType;
+	}
+
+	public void setInputType(String inputType) {
+		this.inputType = inputType;
+	}
+	
+	public DataType getDataType() {
+		return DataType.valueOf(inputType);
+	}
+	
+	@Override
+	public String[] getTagsForProperty(String propertyName) {
+		if (propertyName.equals("inputType")) {
+			List<String> types = getType().getAllowedDataTypes();
+			String[] tags = types.toArray(new String[types.size()]);
+			return tags;
+		}
+		return new String[0];
 	}
 	
 }
