@@ -68,11 +68,13 @@ public class UrlMappingTreeObject extends DatabaseObjectTreeObject {
 						UrlMapping urlMapping = getObject();
 						for (String variableName : urlMapping.getPathVariableNames()) {
 							try {
-								PathParameter parameter = new PathParameter();
-	    						parameter.setName(variableName);
-	    						parameter.bNew = true;
-	    						
-	    						operation.add(parameter);
+								if (operation.getParameterByName(variableName) == null) {
+									PathParameter parameter = new PathParameter();
+		    						parameter.setName(variableName);
+		    						parameter.bNew = true;
+		    						
+		    						operation.add(parameter);
+								}
     						} catch (EngineException ex) {
     							ConvertigoPlugin.logException(ex, "Error when adding the parameter \""+variableName+"\"");
     						}
