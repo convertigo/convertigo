@@ -3111,6 +3111,67 @@
 	               label="Response"
 	               menubarPath="convertigo.menu.new/content"/>
 	      </objectContribution>
+	      <objectContribution
+	            id="convertigo.urlmappingparameterContribution"
+	            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UrlMappingParameterTreeObject">
+               <menu
+                     id="convertigo.menu.mappings.changeTo"
+                     label="Change to"
+                     path="changeTo">
+               </menu>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToFormParameterAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToFormParameter"
+                     label="Form parameter"
+                     icon="icons/studio/beans/mappings/formparameter_16x16.png"
+                     menubarPath="convertigo.menu.mappings.changeTo/content" >
+                  <!--enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.steps.AttributeStep" />
+                  </enablement-->
+                </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToQueryParameterAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToQueryParameter"
+                     label="Query parameter"
+                     icon="icons/studio/beans/mappings/queryparameter_16x16.png"
+                     menubarPath="convertigo.menu.mappings.changeTo/content" >
+                  <!--enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.steps.AttributeStep" />
+                  </enablement-->
+                </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToHeaderParameterAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToHeaderParameter"
+                     label="Header parameter"
+                     icon="icons/studio/beans/mappings/headerparameter_16x16.png"
+                     menubarPath="convertigo.menu.mappings.changeTo/content" >
+                  <!--enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.steps.AttributeStep" />
+                  </enablement-->
+                </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToBodyParameterAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToBodyParameter"
+                     label="Body parameter"
+                     icon="icons/studio/beans/mappings/bodyparameter_16x16.png"
+                     menubarPath="convertigo.menu.mappings.changeTo/content" >
+                  <!--enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.steps.AttributeStep" />
+                  </enablement-->
+                </action>
+	      </objectContribution>
    </extension>
    <extension
          point="org.eclipse.ui.preferencePages">
