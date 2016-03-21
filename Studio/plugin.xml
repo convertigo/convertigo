@@ -3110,6 +3110,13 @@
 	               id="convertigo.action.newUrlMappingResponse"
 	               label="Response"
 	               menubarPath="convertigo.menu.new/content"/>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.OperationImportParametersFromVariablesAction"
+                     enablesFor="1"
+                     id="convertigo.action.importParametersFromVariables"
+                     label="Import parameters from target requestable"
+                     menubarPath="import">
+               </action>	               
 	      </objectContribution>
 	      <objectContribution
 	            id="convertigo.urlmappingparameterContribution"
