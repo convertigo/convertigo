@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Shell;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.rest.HeaderParameter;
+import com.twinsoft.convertigo.beans.rest.PathParameter;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
@@ -55,7 +56,7 @@ public class ChangeToHeaderParameterAction extends MyAbstractAction {
 		TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
 		
 		UrlMappingParameter parameter = (UrlMappingParameter) treeObject.getObject();
-		boolean enabled = !(parameter instanceof HeaderParameter);
+		boolean enabled = !(parameter instanceof HeaderParameter) && !(parameter instanceof PathParameter);
 		action.setEnabled(enabled);
 	}
 

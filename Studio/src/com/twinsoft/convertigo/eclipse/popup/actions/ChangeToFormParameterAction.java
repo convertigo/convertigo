@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Shell;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.rest.FormParameter;
+import com.twinsoft.convertigo.beans.rest.PathParameter;
 import com.twinsoft.convertigo.beans.rest.PostOperation;
 import com.twinsoft.convertigo.beans.rest.PutOperation;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -58,7 +59,7 @@ public class ChangeToFormParameterAction extends MyAbstractAction {
 		
 		UrlMappingParameter parameter = (UrlMappingParameter) treeObject.getObject();
 		UrlMappingOperation operation = (UrlMappingOperation) parameter.getParent();
-		boolean enabled = !(parameter instanceof FormParameter) 
+		boolean enabled = !(parameter instanceof FormParameter) && !(parameter instanceof PathParameter) 
 							&& (operation instanceof PostOperation || operation instanceof PutOperation);
 		action.setEnabled(enabled);
 	}

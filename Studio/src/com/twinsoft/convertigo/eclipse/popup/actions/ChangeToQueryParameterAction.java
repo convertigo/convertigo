@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
+import com.twinsoft.convertigo.beans.rest.PathParameter;
 import com.twinsoft.convertigo.beans.rest.PutOperation;
 import com.twinsoft.convertigo.beans.rest.QueryParameter;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -57,7 +58,7 @@ public class ChangeToQueryParameterAction extends MyAbstractAction {
 		
 		UrlMappingParameter parameter = (UrlMappingParameter) treeObject.getObject();
 		UrlMappingOperation operation = (UrlMappingOperation) parameter.getParent();
-		boolean enabled = !(parameter instanceof QueryParameter) 
+		boolean enabled = !(parameter instanceof QueryParameter) && !(parameter instanceof PathParameter) 
 							&& !(operation instanceof PutOperation);
 		action.setEnabled(enabled);
 	}
