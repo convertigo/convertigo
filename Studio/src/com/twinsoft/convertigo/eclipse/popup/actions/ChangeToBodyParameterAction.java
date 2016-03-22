@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
+import java.util.List;
+
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -33,6 +35,7 @@ import org.eclipse.swt.widgets.Shell;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.rest.BodyParameter;
+import com.twinsoft.convertigo.beans.rest.HeaderParameter;
 import com.twinsoft.convertigo.beans.rest.PathParameter;
 import com.twinsoft.convertigo.beans.rest.PostOperation;
 import com.twinsoft.convertigo.beans.rest.PutOperation;
@@ -61,6 +64,25 @@ public class ChangeToBodyParameterAction extends MyAbstractAction {
 		UrlMappingOperation operation = (UrlMappingOperation) parameter.getParent();
 		boolean enabled = !(parameter instanceof BodyParameter) && !(parameter instanceof PathParameter) 
 				&& (operation instanceof PostOperation || operation instanceof PutOperation);
+		
+		
+		if (enabled) {
+			List<UrlMappingParameter> params = operation.getParameterList();
+			if (params.size() == 1) {
+				enabled = true;
+			}
+			else if (params.size() > 1) {
+				for (UrlMappingParameter param : params) {
+					if (!(param instanceof HeaderParameter)) {
+						enabled = false;
+						break;
+					}
+				}
+			}
+			else {
+				enabled = false;
+			}
+		}
 		action.setEnabled(enabled);
 	}
 
