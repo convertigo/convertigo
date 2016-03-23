@@ -430,7 +430,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			// URLMAPPER
 			else if (parent instanceof UrlMappingOperation) {
 				
-				// Set associated requestable with mapping operation
+				// Set associated requestable for operation
 				if (databaseObject instanceof RequestableObject) {
 					String dboQName = "";
 					if (databaseObject instanceof Sequence) {
@@ -468,6 +468,16 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						parent.add(parameter);
 						parent.hasChanged = true;
 					}
+					return true;
+				}
+			}
+			else if (parent instanceof UrlMappingParameter) {
+				// Set associated mapped variable for parameter
+				if (databaseObject instanceof RequestableVariable) {
+					RequestableVariable variable = (RequestableVariable)databaseObject;
+					UrlMappingParameter parameter = (UrlMappingParameter)parent;
+					parameter.setMappedVariableName(variable.getName());
+					parameter.hasChanged = true;
 					return true;
 				}
 			}
