@@ -68,7 +68,10 @@ import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
+import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.beans.rest.FormParameter;
+import com.twinsoft.convertigo.beans.rest.QueryParameter;
 import com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass;
 import com.twinsoft.convertigo.beans.statements.XpathableStatement;
 import com.twinsoft.convertigo.beans.steps.IThenElseContainer;
@@ -78,6 +81,7 @@ import com.twinsoft.convertigo.beans.steps.SmartType.Mode;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.steps.XMLElementStep;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
+import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.beans.variables.StepMultiValuedVariable;
 import com.twinsoft.convertigo.beans.variables.StepVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -99,6 +103,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.eclipse.wizards.new_object.NewObjectWizard;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
+import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector.Property;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -441,6 +446,28 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					UrlMappingOperation operation = (UrlMappingOperation) parent;
 					operation.setTargetRequestable(dboQName);
 					operation.hasChanged = true;
+					return true;
+				}
+				// Add a parameter to mapping operation
+				else if (databaseObject instanceof RequestableVariable) {
+					RequestableVariable variable = (RequestableVariable)databaseObject;
+					UrlMappingOperation operation = (UrlMappingOperation) parent;
+					UrlMappingParameter parameter = null;
+					try {
+						parameter = operation.getParameterByName(variable.getName());
+					}
+					catch (Exception e) {}
+					if (parameter == null) {
+						boolean acceptForm = operation.getMethod().equalsIgnoreCase(HttpMethodType.POST.name()) ||
+								operation.getMethod().equalsIgnoreCase(HttpMethodType.PUT.name());
+						parameter = acceptForm ? new FormParameter() : new QueryParameter();
+						parameter.setComment(variable.getComment());
+						parameter.setName(variable.getName());
+						parameter.setMappedVariableName(variable.getName());
+						parameter.bNew = true;
+						parent.add(parameter);
+						parent.hasChanged = true;
+					}
 					return true;
 				}
 			}
