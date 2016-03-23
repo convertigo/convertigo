@@ -60,12 +60,14 @@ import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.IXPathable;
+import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
+import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass;
 import com.twinsoft.convertigo.beans.statements.XpathableStatement;
@@ -365,6 +367,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			DatabaseObject databaseObject = paste(node, null, true);
 			Element element = (Element)((Element)node).getElementsByTagName("dnd").item(0);
 			
+			// SEQUENCER
 			if (parent instanceof Sequence || parent instanceof StepWithExpressions) {
 				
 				if (parent instanceof XMLElementStep)
@@ -416,6 +419,28 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						stepVariable.setVisibility(variable.getVisibility());
 						sequenceStep.addVariable(stepVariable);
 					}
+					return true;
+				}
+			}
+			// URLMAPPER
+			else if (parent instanceof UrlMappingOperation) {
+				
+				// Set associated requestable with mapping operation
+				if (databaseObject instanceof RequestableObject) {
+					String dboQName = "";
+					if (databaseObject instanceof Sequence) {
+						dboQName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name") +
+								"." + databaseObject.getName();
+					}
+					else if (databaseObject instanceof Transaction) {
+						dboQName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name") +
+								"." + ((Element)element.getElementsByTagName("connector").item(0)).getAttribute("name") +
+								"." + databaseObject.getName();
+					}
+					
+					UrlMappingOperation operation = (UrlMappingOperation) parent;
+					operation.setTargetRequestable(dboQName);
+					operation.hasChanged = true;
 					return true;
 				}
 			}
