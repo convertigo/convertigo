@@ -33,16 +33,26 @@ import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.CellEditor;
+import org.eclipse.jface.viewers.ComboBoxCellEditor;
 import org.eclipse.jface.viewers.ICellEditorValidator;
+import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.TraverseEvent;
+import org.eclipse.swt.events.TraverseListener;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IActionFilter;
-import org.eclipse.ui.views.properties.ComboBoxPropertyDescriptor;
 import org.eclipse.ui.views.properties.IPropertyDescriptor;
 import org.eclipse.ui.views.properties.IPropertySheetPage;
 import org.eclipse.ui.views.properties.IPropertySource;
@@ -372,7 +382,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
         if (pec == null) {
 			if (value instanceof Boolean) {
 		    	String[] values = new String[] { "true", "false" };
-				propertyDescriptor = new ComboBoxPropertyDescriptor(name, displayName, values);
+				propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, values);
 		    }
 			else if (value instanceof Number) {
 				propertyDescriptor = new TextPropertyDescriptor(name, displayName);
@@ -394,11 +404,11 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
     			} else if (PropertyWithTagsEditorAdvance.class.isAssignableFrom(pec)){
     				Method getTags = pec.getDeclaredMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
     				tags = (String[]) getTags.invoke(null, new Object[] { this, name } );
-    				propertyDescriptor = new ComboBoxPropertyDescriptor(name, displayName, tags);
+    				propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, tags);
     			} else {
     				Method getTags = pec.getDeclaredMethod("getTags", new Class[] { DatabaseObjectTreeObject.class});
     				tags = (String[]) getTags.invoke(null, new Object[] { this } );
-    				propertyDescriptor = new ComboBoxPropertyDescriptor(name, displayName, tags);
+    				propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, tags);
     			}
    	        }
         	else if (PropertyWithDynamicInfoEditor.class.isAssignableFrom(pec)) {
@@ -430,7 +440,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	        else if (Enum.class.isAssignableFrom(pec)) {
 	        	String[] tags = EnumUtils.toStrings(pec);
 	        	
-	        	propertyDescriptor = new ComboBoxPropertyDescriptor(name, displayName, tags);
+	        	propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, tags);
 	        }
         }
 
@@ -469,6 +479,48 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
     	}
         
     	if (propertyDescriptor != null) {
+    		final ILabelProvider labelProvider = propertyDescriptor.getLabelProvider();
+    		propertyDescriptor.setLabelProvider(new ILabelProvider() {
+				
+				@Override
+				public void removeListener(ILabelProviderListener listener) {
+					labelProvider.removeListener(listener);
+				}
+				
+				@Override
+				public boolean isLabelProperty(Object element, String property) {
+					return labelProvider.isLabelProperty(element, property);
+				}
+				
+				@Override
+				public void dispose() {
+					labelProvider.dispose();
+				}
+				
+				@Override
+				public void addListener(ILabelProviderListener listener) {
+					labelProvider.addListener(listener);
+				}
+				
+				@Override
+				public String getText(Object element) {
+					String text = labelProvider.getText(element);
+					try {
+						String compiled = Engine.theApp.databaseObjectsManager.getCompiledValue(text);
+						if (!text.equals(compiled)) {
+							text += "  => " + compiled;
+						}
+					} catch (UndefinedSymbolsException e) {
+						text += "  /!\\ undefined symbol /!\\";
+					}
+					return text;
+				}
+				
+				@Override
+				public Image getImage(Object element) {
+					return labelProvider.getImage(element);
+				}
+			});
             String beanDescription =  databaseObjectPropertyDescriptor.getShortDescription();
             String[] beanDescriptions = beanDescription.split("\\|");
             String beanShortDescription = beanDescriptions[0];
@@ -583,8 +635,10 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		else {
 			try {
 				java.beans.PropertyDescriptor databaseObjectPropertyDescriptor = getPropertyDescriptor(propertyName);
-	            if (databaseObjectPropertyDescriptor == null) return null;
-
+	            if (databaseObjectPropertyDescriptor == null) {
+	            	return null;
+	            }
+	            
 	            Class<?> pec = databaseObjectPropertyDescriptor.getPropertyEditorClass();
 				
 	            Method getter = databaseObjectPropertyDescriptor.getReadMethod();
@@ -599,7 +653,20 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	            	value = compilablePropertySourceValue;
 	            }
 	            
-	            if (value instanceof Boolean) {
+	            boolean done = false;
+	            
+	            if (value instanceof String) {
+		            PropertyDescriptor propertyDescriptor = findPropertyDescriptor(id);
+		            if (propertyDescriptor instanceof DynamicComboBoxPropertyDescriptor) {
+		            	DynamicComboBoxPropertyDescriptor pd = (DynamicComboBoxPropertyDescriptor) propertyDescriptor;
+		            	value = pd.setValue((String) value);
+		            	done = true;
+		            }
+	            }
+	            
+	            if (done) {
+	            	// do nothing
+	            } else if (value instanceof Boolean) {
 	            	value = ((Boolean) value).booleanValue() ? new Integer(0) : new Integer(1); 
 	            }
 	            else if ((pec != null) && (PropertyWithTagsEditor.class.isAssignableFrom(pec) || Enum.class.isAssignableFrom(pec))) {
@@ -702,7 +769,12 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		Object oldValue = getPropertyValue(id);
 		String propertyName = (String) id;
 		
-		if (isValueInProcess || (oldValue != null && oldValue.equals(value))) {
+		ComboBoxCellEditor editor = DynamicComboBoxPropertyDescriptor.getLast();
+		if (editor != null && !Integer.valueOf(editor.getItems().length - 1).equals(value)) {
+			editor = null;
+		}
+		
+		if (isValueInProcess || (oldValue != null && oldValue.equals(value) && editor == null)) {
 			return;
 		}
 		
@@ -715,6 +787,84 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 
 			Class<?> propertyClass = databaseObjectPropertyDescriptor.getPropertyType();
 			Class<?> pec = databaseObjectPropertyDescriptor.getPropertyEditorClass();
+			
+			if (editor != null) {
+				Control control = editor.getControl();
+				Display display = control.getDisplay(); 
+				final Shell shell = new Shell(control.getShell(), SWT.ON_TOP | SWT.TOOL | SWT.NO_FOCUS | SWT.APPLICATION_MODAL);
+				shell.setLocation(control.toDisplay(0, 0));
+				shell.setSize(control.getSize());
+				shell.setLayout(new FillLayout());
+				final Text text = new Text(shell, SWT.NONE);
+				final String[] newValue = new String[] { null };
+				String[] items = editor.getItems();
+				text.setText(items[items.length - 1]);
+				text.addTraverseListener(new TraverseListener() {					
+					@Override
+					public void keyTraversed(TraverseEvent e) {
+						if (e.detail == SWT.TRAVERSE_RETURN) {
+							newValue[0] = text.getText();
+							shell.close();
+						}
+					}
+				});
+				shell.open();
+				while (!shell.isDisposed()) {
+				    if (!display.readAndDispatch()) {
+				        display.sleep();
+				    }
+				}
+				
+				if (newValue[0] != null) {
+					value = newValue[0];
+				}
+			}
+
+			Object oriValue = value;
+			boolean changed;
+			do {
+				changed = false;
+				boolean wasSymbolError = databaseObject.isSymbolError();
+				value = databaseObject.compileProperty(propertyClass, propertyName, oriValue);
+				
+				try {
+					oldValue = Engine.theApp.databaseObjectsManager.getCompiledValue(oldValue);
+				} catch (UndefinedSymbolsException e) {
+					oldValue = e.incompletValue();
+				}
+				
+				Set<String> symbolsErrors = databaseObject.getSymbolsErrors(propertyName);
+				if (symbolsErrors != null) {
+					boolean[] res = ConvertigoPlugin.warningGlobalSymbols(databaseObject.getProject().getName(),
+							databaseObject.getName(), databaseObject.getDatabaseType(),
+							propertyName, "" + databaseObject.getCompilablePropertySourceValue(propertyName),
+							symbolsErrors, false);
+					changed = res[0];
+					if (changed) {
+						Engine.theApp.databaseObjectsManager.symbolsCreateUndefined(symbolsErrors);
+					} else {
+						databaseObject.getProject().undefinedGlobalSymbols = true;
+						viewer.update(getProjectTreeObject(), null);
+					}
+				} else if (wasSymbolError) {
+					Engine.theApp.databaseObjectsManager.symbolsProjectCheckUndefined(databaseObject.getProject().getName());
+					viewer.update(getProjectTreeObject(), null);
+				}
+			} while (changed);
+			
+			if (editor != null && value instanceof String) {
+				String[] items = editor.getItems();
+				int len = items.length - 1;
+				String strValue = (String) value;
+				value = 0;
+				for (int i = 0; i < len; i++) {
+					if (items[i].equals(strValue)) {
+						value = i;
+						break;
+					};
+				}
+				
+			}
 			
     		if (pec != null && propertyClass != int.class && propertyClass != Integer.class && value instanceof Integer) {
     			Object[] values = null;
@@ -740,43 +890,6 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 
         		value = emulatorClassNames[((Integer) value).intValue()];
             }
-    		
-    		
-			if ((propertyClass == boolean.class) || (propertyClass == Boolean.class)) {
-            	if (((Integer) value).intValue() == 0) value = Boolean.TRUE;
-            	else value = Boolean.FALSE;
-			} else {
-				boolean changed;
-				do {
-					changed = false;
-					boolean wasSymbolError = databaseObject.isSymbolError();
-					value = databaseObject.compileProperty(propertyClass, propertyName, value);
-					
-					try {
-						oldValue = Engine.theApp.databaseObjectsManager.getCompiledValue(oldValue);
-					} catch (UndefinedSymbolsException e) {
-						oldValue = e.incompletValue();
-					}
-					
-					Set<String> symbolsErrors = databaseObject.getSymbolsErrors(propertyName);
-					if (symbolsErrors != null) {
-						boolean[] res = ConvertigoPlugin.warningGlobalSymbols(databaseObject.getProject().getName(),
-								databaseObject.getName(), databaseObject.getDatabaseType(),
-								propertyName, "" + databaseObject.getCompilablePropertySourceValue(propertyName),
-								symbolsErrors, false);
-						changed = res[0];
-						if (changed) {
-							Engine.theApp.databaseObjectsManager.symbolsCreateUndefined(symbolsErrors);
-						} else {
-							databaseObject.getProject().undefinedGlobalSymbols = true;
-							viewer.update(getProjectTreeObject(), null);
-						}
-					} else if (wasSymbolError) {
-						Engine.theApp.databaseObjectsManager.symbolsProjectCheckUndefined(databaseObject.getProject().getName());
-						viewer.update(getProjectTreeObject(), null);
-					}
-				} while (changed);
-			}
 			
 			// Must rename bean when normalizedScreenClassName changed
 			if (databaseObject instanceof ScHandlerStatement) {
