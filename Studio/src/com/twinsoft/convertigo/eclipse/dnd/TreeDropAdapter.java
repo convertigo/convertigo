@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.TreeSet;
 
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -60,6 +61,7 @@ import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.IXPathable;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Statement;
@@ -101,6 +103,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTable
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ScreenClassTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.eclipse.wizards.new_object.NewObjectWizard;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
@@ -430,7 +433,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			// URLMAPPER
 			else if (parent instanceof UrlMappingOperation) {
 				
-				// Set associated requestable for operation
+				// Set associated requestable, add all parameters for operation
 				if (databaseObject instanceof RequestableObject) {
 					String dboQName = "";
 					if (databaseObject instanceof Sequence) {
@@ -446,6 +449,40 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					UrlMappingOperation operation = (UrlMappingOperation) parent;
 					operation.setTargetRequestable(dboQName);
 					operation.hasChanged = true;
+					try {
+						StringTokenizer st = new StringTokenizer(dboQName,".");
+						int count = st.countTokens();
+						Project p = Engine.theApp.databaseObjectsManager.getProjectByName(st.nextToken());
+						List<RequestableVariable> variables = new ArrayList<RequestableVariable>();
+						if (count == 2) {
+							variables = p.getSequenceByName(st.nextToken()).getVariablesList();
+						}
+						else if (count == 3) {
+							variables = ((TransactionWithVariables)p.getConnectorByName(st.nextToken()).getTransactionByName(st.nextToken())).getVariablesList();
+						}
+						
+						for (RequestableVariable variable: variables) {
+							UrlMappingParameter parameter = null;
+							try {
+								parameter = operation.getParameterByName(variable.getName());
+							}
+							catch (Exception e) {}
+							if (parameter == null) {
+								boolean acceptForm = operation.getMethod().equalsIgnoreCase(HttpMethodType.POST.name()) ||
+										operation.getMethod().equalsIgnoreCase(HttpMethodType.PUT.name());
+								parameter = acceptForm ? new FormParameter() : new QueryParameter();
+								parameter.setComment(variable.getComment());
+								parameter.setName(variable.getName());
+								parameter.setMappedVariableName(variable.getName());
+								parameter.setMultiValued(variable.isMultiValued());
+								parameter.bNew = true;
+								operation.add(parameter);
+								operation.hasChanged = true;
+							}
+						}
+					}
+					catch (Exception e) {}
+					
 					return true;
 				}
 				// Add a parameter to mapping operation
@@ -464,9 +501,10 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						parameter.setComment(variable.getComment());
 						parameter.setName(variable.getName());
 						parameter.setMappedVariableName(variable.getName());
+						parameter.setMultiValued(variable.isMultiValued());
 						parameter.bNew = true;
-						parent.add(parameter);
-						parent.hasChanged = true;
+						operation.add(parameter);
+						operation.hasChanged = true;
 					}
 					return true;
 				}
