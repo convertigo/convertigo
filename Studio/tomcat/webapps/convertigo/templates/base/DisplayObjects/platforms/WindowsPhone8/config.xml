@@ -20,10 +20,10 @@
 
 	<author href="$(ApplicationAuthorWebsite)$" email="$(ApplicationAuthorEmail)$">$(ApplicationAuthorName)$</author>
 	
-	<gap:platform name="winphone"/>
+	<engine name="wp8" spec="~3.8.2" />
 	
 	<!-- Customize your app and platform with the preference element. -->
-    <preference name="phonegap-version"           value="cli-5.1.1" />      <!-- all: current version of PhoneGap -->
+    <preference name="phonegap-version"           value="cli-5.2.0" />      <!-- all: current version of PhoneGap -->
     <preference name="orientation"                value="default" />        <!-- all: default means both landscape and portrait are enabled -->
     <preference name="target-device"              value="universal" />      <!-- all: possible values handset, tablet, or universal -->
     <preference name="fullscreen"                 value="true" />           <!-- all: hides the status bar at the top of the screen -->
@@ -33,13 +33,13 @@
 	<icon src="icon.png"/>
 	
 	<!-- Windows Phone 8 icons -->
-    <icon src="res/icon/icon48.png"      	gap:platform="winphone" />
-    <icon src="res/icon/icon173tile.png" 	gap:platform="winphone"   gap:role="background" />
+    <icon src="res/icon/icon48.png"      	platform="winphone" />
+    <icon src="res/icon/icon173tile.png" 	platform="winphone"   role="background" />
 	
-	<gap:splash src="splash.png" />
+	<splash src="splash.png" />
 	
 	<!-- Windows Phone 8 splash -->
-    <gap:splash src="res/splash/splash.jpg" 		     gap:platform="winphone" />
+    <splash src="res/splash/splash.jpg" 		     platform="winphone" />
 	
 	<!-- If you do not want any permissions to be added to your app, add the
     following tag to your config.xml; you will still have the INTERNET
@@ -47,37 +47,37 @@
 	<preference name="permissions" value="none" />
 	
     <!-- Core plugins mandatory for FlashUpdate service -->
-    <gap:plugin name="cordova-plugin-device" source="npm" />
-    <gap:plugin name="cordova-plugin-file" source="npm" />
-    <gap:plugin name="cordova-plugin-file-transfer" version="1.1.0" source="npm" />
-    <gap:plugin name="cordova-plugin-splashscreen" source="npm" />
-    <gap:plugin name="cordova-plugin-whitelist" source="npm" />
+    <plugin name="cordova-plugin-device" spec="~1.1.1" />
+    <plugin name="cordova-plugin-file" spec="~4.1.1" />
+    <plugin name="cordova-plugin-file-transfer" spec="~1.5.0" />
+    <plugin name="cordova-plugin-splashscreen" spec="~3.2.1" />
+    <plugin name="cordova-plugin-whitelist" spec="1" />
 
 	<!-- Useful for debugging -->
-	<gap:plugin name="cordova-plugin-console" source="npm" />
+	<plugin name="cordova-plugin-console" spec="~1.0.2" />
 
 	<!-- Plugin for the local-cache feature, can be removed if not used. Install GIT for local build -->
-	<gap:plugin name="io.litehelpers.cordova.sqlite" git="https://github.com/litehelpers/Cordova-sqlite-storage"/>
+<!-- 	<plugin name="io.litehelpers.cordova.sqlite" git="https://github.com/litehelpers/Cordova-sqlite-storage"/> -->
 	
 	<!-- Other optional Core plugins, comment them out (ctrl+shit+c) if you want to reduce the package size and permissions -->
-<!--     <gap:plugin name="cordova-plugin-battery-status" source="npm" /> -->
-<!--     <gap:plugin name="cordova-plugin-camera" source="npm" /> -->
-<!--     <gap:plugin name="cordova-plugin-media-capture" source="npm" /> -->
-<!--     <gap:plugin name="cordova-plugin-contacts" source="npm" /> -->
-<!--     <gap:plugin name="cordova-plugin-device-motion" source="npm" /> -->
-<!--     <gap:plugin name="cordova-plugin-device-orientation" source="npm" /> -->
-<!--     <gap:plugin name="cordova-plugin-dialogs" source="npm" /> -->
-<!--     <gap:plugin name="cordova-plugin-geolocation" source="npm" /> -->
-<!--     <gap:plugin name="cordova-plugin-globalization" source="npm" /> -->
-<!--     <gap:plugin name="cordova-plugin-inappbrowser" source="npm" /> -->
-<!--     <gap:plugin name="cordova-plugin-media" source="npm" /> -->
-<!--     <gap:plugin name="cordova-plugin-network-information" source="npm" /> -->
-<!--     <gap:plugin name="cordova-plugin-vibration" source="npm" /> -->
-<!--     <gap:plugin name="cordova-plugin-statusbar" source="npm" /> -->
+<!--     <plugin name="cordova-plugin-battery-status" spec="~1.1.1" /> -->
+<!--     <plugin name="cordova-plugin-camera" spec="~2.1.1" /> -->
+<!--     <plugin name="cordova-plugin-media-capture" spec="~1.2.0" /> -->
+<!--     <plugin name="cordova-plugin-contacts" spec="~2.0.1" /> -->
+<!--     <plugin name="cordova-plugin-device-motion" spec="~1.2.0" /> -->
+<!--     <plugin name="cordova-plugin-device-orientation" spec="~1.0.2" /> -->
+<!--     <plugin name="cordova-plugin-dialogs" spec="~1.2.0" /> -->
+<!--     <plugin name="cordova-plugin-geolocation" spec="~2.1.0" /> -->
+<!--     <plugin name="cordova-plugin-globalization" spec="~1.0.3" /> -->
+<!--     <plugin name="cordova-plugin-inappbrowser" spec="~1.3.0" /> -->
+<!--     <plugin name="cordova-plugin-media" spec="~2.2.0" /> -->
+<!--     <plugin name="cordova-plugin-network-information" spec="~1.2.0" /> -->
+<!--     <plugin name="cordova-plugin-vibration" spec="~2.1.0" /> -->
+<!--     <plugin name="cordova-plugin-statusbar" spec="~2.1.2" /> -->
 
     <!-- Other optional plugins -->
-<!--     <gap:plugin name="com.phonegap.plugins.pushplugin" /> -->
-<!--     <gap:plugin name="com.phonegap.plugins.barcodescanner" /> -->
+<!--     <plugin name="com.phonegap.plugins.pushplugin" spec="~" /> -->
+<!--     <plugin name="com.phonegap.plugins.barcodescanner" spec="~" /> -->
 	
 	
 	<!-- Other plugins and documentation can be find here : https://build.phonegap.com/plugins -->

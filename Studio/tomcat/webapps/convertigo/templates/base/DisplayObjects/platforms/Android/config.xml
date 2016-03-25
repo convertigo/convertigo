@@ -20,16 +20,16 @@
 
 	<author href="$(ApplicationAuthorWebsite)$" email="$(ApplicationAuthorEmail)$">$(ApplicationAuthorName)$</author>
 	 
-	<gap:platform name="android"/>
+	<engine name="android" spec="~4.1.1" />
 	
 	<!-- Customize your app and platform with the preference element. -->
-    <preference name="phonegap-version"           value="cli-5.1.1" />      <!-- all: current version of PhoneGap -->
+    <preference name="phonegap-version"           value="cli-5.2.0" />      <!-- all: current version of PhoneGap -->
     <preference name="orientation"                value="default" />        <!-- all: default means both landscape and portrait are enabled -->
     <preference name="target-device"              value="universal" />      <!-- all: possible values handset, tablet, or universal -->
     <preference name="fullscreen"                 value="false" />          <!-- all: hides the status bar at the top of the screen -->
     <preference name="SplashScreen"    			  value="splash" />         <!-- all: the splash screen resource if built without phonegap build -->
     <preference name="SplashScreenDelay"          value="60000" />          <!-- android: sets the default delay of how long the splashscreen appears in milliseconds, this should be the maximum expected start time -->
-    <preference name="android-minSdkVersion"      value="10" />             <!-- android: MIN SDK version supported on the target device. MAX version is blank by default. -->
+    <preference name="android-minSdkVersion"      value="14" />             <!-- android: MIN SDK version supported on the target device. MAX version is blank by default. -->
     <preference name="android-installLocation"    value="auto" />           <!-- android: app install location. 'auto' will choose. 'internalOnly' is device memory. 'preferExternal' is SDCard. -->
     
 	<!-- Mandatory preferences for FlashUpdate service -->
@@ -38,23 +38,23 @@
 	<icon src="icon.png"/>
 	
 	<!-- Android icons -->
-	<icon src="res/icon/icon36ldpi.png"   gap:platform="android" gap:qualifier="ldpi" />
-    <icon src="res/icon/icon48mdpi.png"   gap:platform="android" gap:qualifier="mdpi" />
-    <icon src="res/icon/icon72hdpi.png"   gap:platform="android" gap:qualifier="hdpi" />
-    <icon src="res/icon/icon96xhdpi.png"  gap:platform="android" gap:qualifier="xhdpi" />
+	<icon src="www/res/icon/icon36ldpi.png"   platform="android" qualifier="ldpi" />
+    <icon src="www/res/icon/icon48mdpi.png"   platform="android" qualifier="mdpi" />
+    <icon src="www/res/icon/icon72hdpi.png"   platform="android" qualifier="hdpi" />
+    <icon src="www/res/icon/icon96xhdpi.png"  platform="android" qualifier="xhdpi" />
 <!--     <icon src="res/icon/android/icon144xxhdpi.png"  gap:platform="android"    gap:density="xxhdpi" /> -->
 	
-	<gap:splash src="splash.png" />
+	<splash src="splash.png" />
 	
 	<!-- Android splash -->
-	<gap:splash src="res/splash/ldpi.png"  gap:platform="android" gap:qualifier="ldpi" />
-    <gap:splash src="res/splash/mdpi.png"  gap:platform="android" gap:qualifier="mdpi" />
-    <gap:splash src="res/splash/hdpi.png"  gap:platform="android" gap:qualifier="hdpi" />
-    <gap:splash src="res/splash/xhdpi.png" gap:platform="android" gap:qualifier="xhdpi" />
-    <gap:splash src="res/splash/landscape-ldpi.png" gap:platform="android" gap:qualifier="land-ldpi" />
-	<gap:splash src="res/splash/landscape-mdpi.png" gap:platform="android" gap:qualifier="land-mdpi" />
-	<gap:splash src="res/splash/landscape-hdpi.png" gap:platform="android" gap:qualifier="land-hdpi" />
-	<gap:splash src="res/splash/landscape-xhdpi.png" gap:platform="android" gap:qualifier="land-xhdpi" />
+	<splash src="www/res/splash/ldpi.png"  platform="android" qualifier="ldpi" />
+    <splash src="www/res/splash/mdpi.png"  platform="android" qualifier="mdpi" />
+    <splash src="www/res/splash/hdpi.png"  platform="android" qualifier="hdpi" />
+    <splash src="www/res/splash/xhdpi.png" platform="android" qualifier="xhdpi" />
+    <splash src="www/res/splash/landscape-ldpi.png" platform="android" qualifier="land-ldpi" />
+	<splash src="www/res/splash/landscape-mdpi.png" platform="android" qualifier="land-mdpi" />
+	<splash src="www/res/splash/landscape-hdpi.png" platform="android" qualifier="land-hdpi" />
+	<splash src="www/res/splash/landscape-xhdpi.png" platform="android" qualifier="land-xhdpi" />
     
 	
 	<!-- If you do not want any permissions to be added to your app, add the
@@ -63,14 +63,14 @@
 	<preference name="permissions" value="none"/>
 	
     <!-- Core plugins mandatory for FlashUpdate service -->
-    <gap:plugin name="cordova-plugin-device" source="npm" />
-    <gap:plugin name="cordova-plugin-file" source="npm" />
-    <gap:plugin name="cordova-plugin-file-transfer" source="npm" />
-    <gap:plugin name="cordova-plugin-splashscreen" source="npm" />
-    <gap:plugin name="cordova-plugin-whitelist" source="npm" />
+    <plugin name="cordova-plugin-device" spec="~1.1.1" />
+    <plugin name="cordova-plugin-file" spec="~4.1.1" />
+    <plugin name="cordova-plugin-file-transfer" spec="~1.5.0" />
+    <plugin name="cordova-plugin-splashscreen" spec="~3.2.1" />
+    <plugin name="cordova-plugin-whitelist" spec="~1.2.1" />
     
 	<!-- Useful for debugging -->
-	<gap:plugin name="cordova-plugin-console" source="npm" />
+	<plugin name="cordova-plugin-console" spec="~1.0.2" />
 
 	<!-- Native plugin for fullsync project that speedup indexing of documents -->
 	<!-- 
@@ -83,27 +83,27 @@
 	        exclude 'META-INF/NOTICE'
 	    }
 	-->
-	<gap:plugin name="couchbase-lite-phonegap-plugin" source="npm" version="1.1.1" />
+	<!-- <plugin name="couchbase-lite-phonegap-plugin" spec="~1.1.1"  /> -->
     
 	<!-- Other optional Core plugins, comment them out (ctrl+shit+c) if you want to reduce the package size and permissions -->
-<!--     <gap:plugin name="cordova-plugin-battery-status" source="npm" /> -->
-<!--     <gap:plugin name="cordova-plugin-camera" source="npm" /> -->
-<!--     <gap:plugin name="cordova-plugin-media-capture" source="npm" /> -->
-<!--     <gap:plugin name="cordova-plugin-contacts" source="npm" /> -->
-<!--     <gap:plugin name="cordova-plugin-device-motion" source="npm" /> -->
-<!--     <gap:plugin name="cordova-plugin-device-orientation" source="npm" /> -->
-<!--     <gap:plugin name="cordova-plugin-dialogs" source="npm" /> -->
-<!--     <gap:plugin name="cordova-plugin-geolocation" source="npm" /> -->
-<!--     <gap:plugin name="cordova-plugin-globalization" source="npm" /> -->
-<!--     <gap:plugin name="cordova-plugin-inappbrowser" source="npm" /> -->
-<!--     <gap:plugin name="cordova-plugin-media" source="npm" /> -->
-<!--     <gap:plugin name="cordova-plugin-network-information" source="npm" /> -->
-<!--     <gap:plugin name="cordova-plugin-vibration" source="npm" /> -->
-<!--     <gap:plugin name="cordova-plugin-statusbar" source="npm" /> -->
+<!--     <plugin name="cordova-plugin-battery-status" spec="~1.1.1" /> -->
+<!--     <plugin name="cordova-plugin-camera" spec="~2.1.1" /> -->
+<!--     <plugin name="cordova-plugin-media-capture" spec="~1.2.0" /> -->
+<!--     <plugin name="cordova-plugin-contacts" spec="~2.0.1" /> -->
+<!--     <plugin name="cordova-plugin-device-motion" spec="~1.2.0" /> -->
+<!--     <plugin name="cordova-plugin-device-orientation" spec="~1.0.2" /> -->
+<!--     <plugin name="cordova-plugin-dialogs" spec="~1.2.0" /> -->
+<!--     <plugin name="cordova-plugin-geolocation" spec="~2.1.0" /> -->
+<!--     <plugin name="cordova-plugin-globalization" spec="~1.0.3" /> -->
+<!--     <plugin name="cordova-plugin-inappbrowser" spec="~1.3.0" /> -->
+<!--     <plugin name="cordova-plugin-media" spec="~2.2.0" /> -->
+<!--     <plugin name="cordova-plugin-network-information" spec="~1.2.0" /> -->
+<!--     <plugin name="cordova-plugin-vibration" spec="~2.1.0" /> -->
+<!--     <plugin name="cordova-plugin-statusbar" spec="~2.1.2" /> -->
 
     <!-- Other optional plugins -->
-<!--     <gap:plugin name="com.phonegap.plugins.pushplugin" /> -->
-<!--     <gap:plugin name="com.phonegap.plugins.barcodescanner" /> -->
+<!--     <plugin name="com.phonegap.plugins.pushplugin" spec="~" /> -->
+<!--     <plugin name="com.phonegap.plugins.barcodescanner" spec="~" /> -->
 	
 	<!-- Other plugins and documentation can be find here : https://build.phonegap.com/plugins -->
 	
