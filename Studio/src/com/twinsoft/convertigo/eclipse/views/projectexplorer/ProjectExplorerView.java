@@ -60,7 +60,6 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.jface.viewers.DecoratingLabelProvider;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ILabelDecorator;
@@ -68,9 +67,12 @@ import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.ITreeViewerListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.TreeExpansionEvent;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.TreeEditor;
 import org.eclipse.swt.dnd.DND;
@@ -90,6 +92,7 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IEditorInput;
@@ -348,6 +351,12 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		super.dispose();
 	}
 
+	private void packColumns() {
+		for (TreeColumn tc : viewer.getTree().getColumns()) {
+            tc.pack();
+		}
+	}
+	
 	/**
 	 * This is a callback that will allow us
 	 * to create the viewer and initialize it.
@@ -355,8 +364,20 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public void createPartControl(Composite parent) {
 		viewContentProvider = new ViewContentProvider(this);
 		
-		viewer = new TreeViewer(parent,  SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
-		viewer.setContentProvider(viewContentProvider);
+		viewer = new TreeViewer(parent,  SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL) {
+			@Override
+			public void refresh(Object element) {
+				super.refresh(element);
+				packColumns();
+			}
+
+			@Override
+			public void update(Object element, String[] properties) {
+				super.update(element, properties);
+				packColumns();
+			}
+		};
+		viewer.setContentProvider(viewContentProvider);		
 		
 		// DND support
 		int ops = DND.DROP_COPY | DND.DROP_MOVE ;
@@ -365,13 +386,32 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		viewer.addDragSupport(ops, dragtfs, new TreeDragListener(viewer));
 		viewer.addDropSupport(ops, droptfs, new TreeDropAdapter(viewer));
 		
-		ILabelProvider lp = new ViewLabelProvider();
-		ILabelDecorator ld = new ViewLabelDecorator();
-		//viewer.setLabelProvider(lp);
-		viewer.setLabelProvider(new DecoratingLabelProvider(lp, ld));
-		
+		viewer.addTreeListener(new ITreeViewerListener() {
+			
+			@Override
+			public void treeExpanded(TreeExpansionEvent event) {
+				packColumns();
+			}
+			
+			@Override
+			public void treeCollapsed(TreeExpansionEvent event) {
+				packColumns();
+			}
+		});
+
 		viewer.setSorter(new TreeObjectSorter());
 		viewer.setInput(getViewSite());
+		
+		TreeViewerColumn treeViewerColumn = new TreeViewerColumn(viewer, SWT.LEFT);
+		
+		ILabelProvider lp = new ViewLabelProvider();
+		ILabelDecorator ld = new ViewLabelDecorator();
+		
+		treeViewerColumn.setLabelProvider(new DecoratingColumnLabelProvider(lp, ld));
+		
+		treeViewerColumn = new TreeViewerColumn(viewer, SWT.LEFT);
+		treeViewerColumn.setLabelProvider(new CommentColumnLabelProvider());
+		treeViewerColumn.setEditingSupport(new CommentEditingSupport(viewer));
 		
 		//drillDownAdapter = new DrillDownAdapter(viewer);
 		
