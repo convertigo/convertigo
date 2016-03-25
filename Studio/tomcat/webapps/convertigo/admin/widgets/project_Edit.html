@@ -55,7 +55,10 @@
 	</table>	
 	<input class="projectEditInputText" type="text"></input>
 	<input class="projectEditInputPassword" type="password"></input>
-	<input class="projectEditInputCheckbox" type="checkbox"></input>
+	<div class="projectEditInputTrueFalse">
+		<value>true</value>
+		<value>false</value>
+	</div>
 	<select class="projectEditInputCombo projectEdit-form-item">
 		<option></option>
 	</select>
@@ -63,7 +66,7 @@
 </div>
 
 
-<form id="dialog-statistics-project" >
+<div id="dialog-statistics-project" >
 	<div class="bgButtonAction">		
 		<h2 id="statisticsGlobalProjectName"></h2>
 		<h4 id="statisticsGlobalProjectInfo"></h4>
@@ -74,4 +77,8 @@
 			<td id="statisticsDetails"></td>
 		</tr>
 	</table>
-</form>
+</div>
+
+<div id="dialog-symbol-project" >
+	<input type="text" id="symbol-input"></input>
+</div>

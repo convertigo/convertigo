@@ -339,8 +339,10 @@ public class XMLUtils {
 		else if (object instanceof String) {
 			Element element = document.createElement(object.getClass().getName());
 			element.setAttribute("value", object.toString());
-			if (compiledValue != null)
+			if (compiledValue != null) {
+				element.setAttribute("compiledValueClass", compiledValue.getClass().getCanonicalName());
 				element.setAttribute("compiledValue", compiledValue.toString());
+			}
 			return element;
 		}
 		// Arrays

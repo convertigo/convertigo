@@ -770,10 +770,6 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 					propertyType = pd.getPropertyType();
 					propertyObjectValue = XMLUtils.readObjectFromXml((Element) XMLUtils.findChildNode(
 							childNode, Node.ELEMENT_NODE));
-					
-					if (Enum.class.isAssignableFrom(propertyType)) {
-						propertyObjectValue = EnumUtils.valueOf(propertyType, propertyObjectValue);
-					}
 
 					// Hides value in log trace if needed
 					if ("false".equals(childElement.getAttribute("traceable"))) {
@@ -792,6 +788,11 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 					}
 
 					propertyObjectValue = databaseObject.compileProperty(propertyType, propertyName, propertyObjectValue);
+					
+					if (Enum.class.isAssignableFrom(propertyType)) {
+						propertyObjectValue = EnumUtils.valueOf(propertyType, propertyObjectValue);
+					}
+					
 					propertyValue = propertyObjectValue.toString();
 					
 					Method setter = pd.getWriteMethod();

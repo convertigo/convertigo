@@ -42,6 +42,28 @@ function project_Edit_init() {
 	}).click(function() {
 		projectStats();
 	});
+	
+	$("#dialog-symbol-project").dialog({
+		autoOpen : false,
+		title : "set a value using symbols",
+        width: 400,
+		modal : true,
+        buttons: [{
+            id: "btn-symbol-OK",
+            text: "OK",
+            click: function() {
+            	var newVal = $("#symbol-input").val();
+            	$(this).dialog("close").data("option").text(newVal).parent().val(newVal).data("lastVal", newVal);
+            }
+        }, {
+            id: "btn-symbol-Cancel",
+            text: "Cancel",
+            click: function() {
+            	var $select = $(this).dialog("close").data("option").parent();
+            	$select.val($select.data("lastVal"));
+            }
+        }]
+	});
 }
 
 function project_Edit_update() {
@@ -240,15 +262,11 @@ function loadElement(elementQName, $treeitem) {
 					$projectEditObjectPropertiesListTable.append($propertyLine_xml);											
 				});			
 		
-		$("#projectEditObjectPropertiesList").html($projectEditObjectPropertiesListTable);		
-		$("input[type=checkbox]").click(function() {
-			$(this).attr("value", "" + $(this).prop("checked"));
-		});
+		$("#projectEditObjectPropertiesList").html($projectEditObjectPropertiesListTable);
 		$(".projectEditorPropertyHelpIcon > img").click(function(){
 			showInfo($(this).data("long_description"));
 		});
-		xmlDatabaseObject = xml;		
-		//$("#projectEditObjectProperties").css("margin-top", Math.max(0, $treeitem.position().top - ($("#projectEditObjectProperties").height() / 2)));
+		xmlDatabaseObject = xml;
 	}, {"qname":elementQName});
 }
 
@@ -289,7 +307,11 @@ function addPropertyContent(propertyName, propertyEditor, $xmlPropertyValue, $xm
 		var value = $xmlPropertyValue.attr("value");
 		var $responseField;
 		var $option;
-		var $possibleValues=$xmlProperty.find("possibleValues");	
+		var $possibleValues = $xmlProperty.find("possibleValues");
+		
+		if (propertyJavaClassName == "java.lang.Boolean" || $xmlPropertyValue.attr("compiledValueClass") == "java.lang.Boolean") {	
+			$possibleValues = $("#projectEditTemplate .projectEditInputTrueFalse");
+		}
 		
 		if (propertyEditor == "SqlQueryEditor") {			
 			$responseField=getInputCopyOf("projectEditTextArea");
@@ -316,27 +338,34 @@ function addPropertyContent(propertyName, propertyEditor, $xmlPropertyValue, $xm
 			var i = 0;
 			$possibleValues.find("value").each(function(){
 				if (propertyJavaClassName == "java.lang.Integer") {
-					$responseField.append($option.clone().text($(this).text()).attr("value", ""+i));
+					$responseField.append($option.clone().text($(this).text()).attr("value", "" + i));
 					i++;
 				} else {
 					$responseField.append($option.clone().text($(this).text()));
 				}
 			});
 			$responseField.val(value).data("propertyName",propertyName);
+			if ($responseField.val() != null) {
+				$responseField.append($option.clone().text("${symbol}"));
+			} else {
+				$responseField.append($option.clone().text(value));
+				$responseField.val(value);
+			}
+			$responseField.data("lastVal", value).change(function () {
+				var $lastOption = $responseField.find("option:last");
+				if ($lastOption.prop("selected")) {
+					$("#symbol-input").val($(this).val());
+					$("#dialog-symbol-project").dialog("open").data("option", $lastOption);
+				} else {
+					$responseField.data("lastVal", value);
+				}
+			});
 		} else {
-			
-			if (propertyJavaClassName == "java.lang.Boolean") {				
-				$responseField=getInputCopyOf("projectEditInputCheckbox");	
-				if ($xmlPropertyValue.attr("value") == "true"){
-					$responseField.prop("checked", true);
-				}
-			}else{
-				if ($xmlProperty.attr("isMasked") == "true") {
-					$responseField= $("#projectEditTemplate .projectEditInputPassword").clone();
-				}
-				else {
-					$responseField= $("#projectEditTemplate .projectEditInputText").clone();
-				}
+			if ($xmlProperty.attr("isMasked") == "true") {
+				$responseField= $("#projectEditTemplate .projectEditInputPassword").clone();
+			}
+			else {
+				$responseField= $("#projectEditTemplate .projectEditInputText").clone();
 			}
 							
 			$responseField.attr("value",value).data("propertyName",propertyName);	

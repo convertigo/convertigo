@@ -1723,6 +1723,10 @@ a.start {
 	-khtml-border-radius: 10px 10px 10px 10px/ 10px 10px 10px 10px;
 }
 
+#symbol-input {
+	width: 90%;
+}
+
 .projectEditPropertyTable {
 	width: 100%;  
 }
