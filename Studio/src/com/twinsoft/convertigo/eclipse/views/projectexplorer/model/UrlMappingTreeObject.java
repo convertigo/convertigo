@@ -59,31 +59,43 @@ public class UrlMappingTreeObject extends DatabaseObjectTreeObject {
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 		if (treeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObject databaseObject = (DatabaseObject)treeObject.getObject();
-			
-			if (getObject().equals(databaseObject.getParent())) {
+			try {
+				boolean needReload = false;
+				UrlMapping urlMapping = getObject();
 				// An UrlMappingOperation has been added : add all path parameters
 				if (databaseObject instanceof UrlMappingOperation) {
-					UrlMappingOperation operation = (UrlMappingOperation)databaseObject;
-					if (operation.bNew) {
-						UrlMapping urlMapping = getObject();
-						for (String variableName : urlMapping.getPathVariableNames()) {
-							try {
-								if (operation.getParameterByName(variableName) == null) {
-									PathParameter parameter = new PathParameter();
-		    						parameter.setName(variableName);
-		    						parameter.bNew = true;
-		    						
-		    						operation.add(parameter);
-								}
-    						} catch (EngineException ex) {
-    							ConvertigoPlugin.logException(ex, "Error when adding the parameter \""+variableName+"\"");
-    						}
+					if (urlMapping.equals(databaseObject.getParent())) {
+						UrlMappingOperation operation = (UrlMappingOperation)databaseObject;
+						if (operation.bNew) {
+							for (String variableName : urlMapping.getPathVariableNames()) {
+		    					UrlMappingParameter parameter = null;
+		    					try {
+		    						parameter = operation.getParameterByName(variableName);
+		    					}
+		    					catch (EngineException e) {
+		    						try {
+			    						parameter = new PathParameter();
+			    						parameter.setName(variableName);
+			    						parameter.bNew = true;
+			    						
+			    						operation.add(parameter);
+			    						operation.hasChanged = true;
+			    						needReload = true;
+		    						} catch (EngineException ex) {
+		    							ConvertigoPlugin.logException(ex, "Error when adding the parameter \""+variableName+"\"");
+		    						}
+		    					}
+							}
+						}
+						if (needReload) {
+							ConvertigoPlugin.getDefault().getProjectExplorerView().reloadTreeObject(this);
 						}
 					}
 				}
+			} catch (Exception e) {
+				ConvertigoPlugin.logWarning(e, "Could not reload in tree Mapping \""+databaseObject.getName()+"\" !");
 			}
 		}
-		
 	}
 
 	@Override
