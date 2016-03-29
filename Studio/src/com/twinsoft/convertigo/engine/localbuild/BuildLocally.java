@@ -257,13 +257,13 @@ public abstract class BuildLocally {
 		try {
 			
 			// Est ce que ça doit être dans le dossier www ou cordova ???
-			
-			Document doc = XMLUtils.loadXml(new File(cordovaDir, "config.xml"));
+			File configFile = new File(cordovaDir, "config.xml");
+			Document doc = XMLUtils.loadXml(configFile);
 			CachedXPathAPI xpathApi = new CachedXPathAPI();
 			String platform = mobilePlatform.getCordovaPlatform();
 			
-			File defaultSplash = null;
-			File defaultIcon = null;
+//			File defaultSplash = null;
+//			File defaultIcon = null;
 			
 //			/** Handle plugins in the config.xml file and test to see if the plugin is not already installed */
 //			Engine.logEngine.info("Checking installed plugins... ");
@@ -271,21 +271,38 @@ public abstract class BuildLocally {
 			
 //			NodeIterator plugins = xpathApi.selectNodeIterator(doc, "//*[local-name()='plugin']");
 			
-			Element singleElement = (Element) xpathApi.selectSingleNode(doc, "//*[local-name()='splash' and @src and not(@platform)]");
-			if (singleElement != null) {
-				defaultSplash = new File(wwwDir, singleElement.getAttribute("src"));
-				if (!defaultSplash.exists()) {
-					defaultSplash = null;
+//			Element singleElement = (Element) xpathApi.selectSingleNode(doc, "//*[local-name()='splash' and @src and not(@platform)]");
+//			if (singleElement != null) {
+//				defaultSplash = new File(wwwDir, singleElement.getAttribute("src"));
+//				if (!defaultSplash.exists()) {
+//					defaultSplash = null;
+//				}
+//			}
+//			
+//			singleElement = (Element) xpathApi.selectSingleNode(doc, "//*[local-name()='icon' and @src and not(@platform)]");
+//			if (singleElement != null) {
+//				defaultIcon = new File(wwwDir, singleElement.getAttribute("src"));
+//				if (!defaultIcon.exists()) {
+//					defaultIcon = null;
+//				}
+//			}
+			
+			// Changes icons and splashs src in config.xml file because it was moved to the parent folder
+			NodeIterator nodeIterator = xpathApi.selectNodeIterator(doc, "//*[local-name()='splash' or local-name()='icon']");
+			Element singleElement = (Element) nodeIterator.nextNode();
+			while (singleElement != null) {
+				String src = singleElement.getAttribute("src");
+				src = "www/" + src;
+				File file = new File(cordovaDir, src);
+				if (file.exists()) {
+					singleElement.setAttribute("src", src);
 				}
+				
+				singleElement = (Element) nodeIterator.nextNode();
 			}
 			
-			singleElement = (Element) xpathApi.selectSingleNode(doc, "//*[local-name()='icon' and @src and not(@platform)]");
-			if (singleElement != null) {
-				defaultIcon = new File(wwwDir, singleElement.getAttribute("src"));
-				if (!defaultIcon.exists()) {
-					defaultIcon = null;
-				}
-			}
+			XMLUtils.saveXml(doc, configFile.getAbsolutePath());
+			
 			
 //			for (Element plugin = (Element) plugins.nextNode(); plugin != null; plugin = (Element) plugins.nextNode()) {
 //				List<String> options = new LinkedList<String>();
@@ -333,12 +350,12 @@ public abstract class BuildLocally {
 //			}
 
 			//ANDROID
-			if (mobilePlatform instanceof Android) {
-				File resFolder = new File(cordovaDir, "platforms" + File.separator + platform + File.separator + "res");
+//			if (mobilePlatform instanceof Android) {
+//				File resFolder = new File(cordovaDir, "platforms" + File.separator + platform + File.separator + "res");
 //				
-				if (defaultIcon != null) {
-					FileUtils.copyFile(defaultIcon, new File(resFolder, "drawable" + File.separator + "icon.png"));
-				}
+//				if (defaultIcon != null) {
+//					FileUtils.copyFile(defaultIcon, new File(resFolder, "drawable" + File.separator + "icon.png"));
+//				}
 //				
 //				// Copy the icons to the correct "res" directory
 //				NodeIterator icons = xpathApi.selectNodeIterator(doc, "//icon[@platform = 'android']");
@@ -362,9 +379,9 @@ public abstract class BuildLocally {
 //					}
 //				}
 //				
-				if (defaultSplash != null) {
-					FileUtils.copyFile(defaultSplash, new File(resFolder, "drawable" + File.separator + "splash.png"));
-				}
+//				if (defaultSplash != null) {
+//					FileUtils.copyFile(defaultSplash, new File(resFolder, "drawable" + File.separator + "splash.png"));
+//				}
 //				
 //				// now the stuff for splashes
 //				// for splashes, as there is the the 'gap:' name space use the local-name xpath function instead 
@@ -388,79 +405,79 @@ public abstract class BuildLocally {
 //						FileUtils.copyFile(splashSrc, dest);
 //					}
 //				}
-			}
+//			}
 			
 			//iOS
-			if (mobilePlatform instanceof  IOs) {
-				String applicationName = mobilePlatform.getParent().getComputedApplicationName();
-				
-				File iconFolder = new File(cordovaDir, 
-						"platforms" + File.separator + platform + File.separator + applicationName + File.separator + "Resources" + 
-								File.separator + "icons");
-				
-				if (defaultIcon != null) {
-					for (String iconName: iOSIconsCorrespondences.values()) {
-						FileUtils.copyFile(defaultIcon, new File(iconFolder, iconName));
-					}
-				}
-				
-				// Copy the icons to the correct res directory
-				NodeIterator icons = xpathApi.selectNodeIterator(doc, "//icon[@platform = 'ios']");
-				for (Element icon = (Element) icons.nextNode(); icon != null; icon = (Element) icons.nextNode()) {
-					String source = icon.getAttribute("src");
-					String height = icon.getAttribute("height");
-					String width = icon.getAttribute("width");
-
-					File iconSrc = new File(wwwDir, source);
-					
-					String iconName = iOSIconsCorrespondences.get(width + "x" + height);
-					File dest = new File(iconFolder, iconName );
-
-					Engine.logEngine.debug("Copying " + iconSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
-					
-					FileUtils.copyFile(iconSrc, dest);
-				}
-				
-				File splashFolder = new File(cordovaDir, 
-						"platforms" + File.separator + platform + File.separator + applicationName + File.separator + "Resources" + 
-								File.separator + "splash");
-				
-				if (defaultSplash != null) {
-					for (String splashName: iOSSplashCorrespondences.values()) {
-						FileUtils.copyFile(defaultSplash, new File(splashFolder, splashName));
-					}
-				}
-				
-				// now the stuff for splashes
-				// for splashes, as there is the the 'gap:' name space use the local-name xpath function instead 
-				NodeIterator splashes = xpathApi.selectNodeIterator(doc, "//*[local-name()='splash' and @platform = 'ios']");
-				for (Element splash = (Element) splashes.nextNode(); splash != null; splash = (Element) splashes.nextNode()) {
-					String source = splash.getAttribute("src");
-					String height = splash.getAttribute("height");
-					String width = splash.getAttribute("width");
-					
-					File splashSrc = new File(wwwDir, source);
-					
-					String splashName = iOSSplashCorrespondences.get(width + "x" + height);
-					File dest = new File(splashFolder, splashName);
-					
-					Engine.logEngine.debug("Copying " + splashSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
-					
-					FileUtils.copyFile(splashSrc, dest);
-				}
-			}
+//			if (mobilePlatform instanceof  IOs) {
+//				String applicationName = mobilePlatform.getParent().getComputedApplicationName();
+//				
+//				File iconFolder = new File(cordovaDir, 
+//						"platforms" + File.separator + platform + File.separator + applicationName + File.separator + "Resources" + 
+//								File.separator + "icons");
+//				
+//				if (defaultIcon != null) {
+//					for (String iconName: iOSIconsCorrespondences.values()) {
+//						FileUtils.copyFile(defaultIcon, new File(iconFolder, iconName));
+//					}
+//				}
+//				
+//				// Copy the icons to the correct res directory
+//				NodeIterator icons = xpathApi.selectNodeIterator(doc, "//icon[@platform = 'ios']");
+//				for (Element icon = (Element) icons.nextNode(); icon != null; icon = (Element) icons.nextNode()) {
+//					String source = icon.getAttribute("src");
+//					String height = icon.getAttribute("height");
+//					String width = icon.getAttribute("width");
+//
+//					File iconSrc = new File(wwwDir, source);
+//					
+//					String iconName = iOSIconsCorrespondences.get(width + "x" + height);
+//					File dest = new File(iconFolder, iconName );
+//
+//					Engine.logEngine.debug("Copying " + iconSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
+//					
+//					FileUtils.copyFile(iconSrc, dest);
+//				}
+//				
+//				File splashFolder = new File(cordovaDir, 
+//						"platforms" + File.separator + platform + File.separator + applicationName + File.separator + "Resources" + 
+//								File.separator + "splash");
+//				
+//				if (defaultSplash != null) {
+//					for (String splashName: iOSSplashCorrespondences.values()) {
+//						FileUtils.copyFile(defaultSplash, new File(splashFolder, splashName));
+//					}
+//				}
+//				
+//				// now the stuff for splashes
+//				// for splashes, as there is the the 'gap:' name space use the local-name xpath function instead 
+//				NodeIterator splashes = xpathApi.selectNodeIterator(doc, "//*[local-name()='splash' and @platform = 'ios']");
+//				for (Element splash = (Element) splashes.nextNode(); splash != null; splash = (Element) splashes.nextNode()) {
+//					String source = splash.getAttribute("src");
+//					String height = splash.getAttribute("height");
+//					String width = splash.getAttribute("width");
+//					
+//					File splashSrc = new File(wwwDir, source);
+//					
+//					String splashName = iOSSplashCorrespondences.get(width + "x" + height);
+//					File dest = new File(splashFolder, splashName);
+//					
+//					Engine.logEngine.debug("Copying " + splashSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
+//					
+//					FileUtils.copyFile(splashSrc, dest);
+//				}
+//			}
 			
 			//WINPHONE
-			if (mobilePlatform instanceof WindowsPhone7 || mobilePlatform instanceof WindowsPhone8) {
-				File resFolder = new File(cordovaDir, "platforms" + File.separator + platform);
-				File destIcon = new File(resFolder, "ApplicationIcon.png");
-				File destBackground = new File(resFolder, "Background.png");
-				File destSplashScreen = new File(resFolder, "SplashScreenImage.jpg");
-				
-				if (defaultIcon != null) {
-					FileUtils.copyFile(defaultIcon, destIcon);
-					FileUtils.copyFile(defaultIcon, destBackground);
-				}
+//			if (mobilePlatform instanceof WindowsPhone7 || mobilePlatform instanceof WindowsPhone8) {
+//				File resFolder = new File(cordovaDir, "platforms" + File.separator + platform);
+//				File destIcon = new File(resFolder, "ApplicationIcon.png");
+//				File destBackground = new File(resFolder, "Background.png");
+//				File destSplashScreen = new File(resFolder, "SplashScreenImage.jpg");
+//				
+//				if (defaultIcon != null) {
+//					FileUtils.copyFile(defaultIcon, destIcon);
+//					FileUtils.copyFile(defaultIcon, destBackground);
+//				}
 
 //				NodeIterator icons = xpathApi.selectNodeIterator(doc, "//icon[@platform = 'winphone']");
 //				for (Element icon = (Element) icons.nextNode(); icon != null; icon = (Element) icons.nextNode()) {
@@ -481,9 +498,9 @@ public abstract class BuildLocally {
 //					}
 //				}
 				
-				if (defaultSplash != null) {
-					ImageUtils.pngToJpg(defaultSplash, destSplashScreen);
-				}
+//				if (defaultSplash != null) {
+//					ImageUtils.pngToJpg(defaultSplash, destSplashScreen);
+//				}
 				
 				// now the stuff for splashes
 				// for splashes, as there is the the 'gap:' name space use the local-name xpath function instead 
@@ -497,7 +514,7 @@ public abstract class BuildLocally {
 //					
 //					FileUtils.copyFile(splashSrc, destSplashScreen);
 //				}
-			}
+//			}
 
 
 			if (mobilePlatform instanceof BlackBerry10) {
@@ -513,7 +530,7 @@ public abstract class BuildLocally {
 			
 			// Get preferences from current config.xml
 			NodeIterator preferences = xpathApi.selectNodeIterator(doc, "//preference");
-			File configFile = new File(cordovaDir, "config.xml");
+			// File configFile = new File(cordovaDir, "config.xml");
 			
 			doc = XMLUtils.loadXml(configFile);  // The root config.xml
 			

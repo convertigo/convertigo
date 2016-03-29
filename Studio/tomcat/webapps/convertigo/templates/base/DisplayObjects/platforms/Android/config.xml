@@ -27,7 +27,7 @@
     <preference name="orientation"                value="default" />        <!-- all: default means both landscape and portrait are enabled -->
     <preference name="target-device"              value="universal" />      <!-- all: possible values handset, tablet, or universal -->
     <preference name="fullscreen"                 value="false" />          <!-- all: hides the status bar at the top of the screen -->
-    <preference name="SplashScreen"    			  value="splash" />         <!-- all: the splash screen resource if built without phonegap build -->
+    <preference name="SplashScreen"    			  value="screen" />         <!-- all: the splash screen resource if built without phonegap build -->
     <preference name="SplashScreenDelay"          value="60000" />          <!-- android: sets the default delay of how long the splashscreen appears in milliseconds, this should be the maximum expected start time -->
     <preference name="android-minSdkVersion"      value="14" />             <!-- android: MIN SDK version supported on the target device. MAX version is blank by default. -->
     <preference name="android-installLocation"    value="auto" />           <!-- android: app install location. 'auto' will choose. 'internalOnly' is device memory. 'preferExternal' is SDCard. -->
@@ -38,23 +38,27 @@
 	<icon src="icon.png"/>
 	
 	<!-- Android icons -->
-	<icon src="www/res/icon/icon36ldpi.png"   platform="android" qualifier="ldpi" />
-    <icon src="www/res/icon/icon48mdpi.png"   platform="android" qualifier="mdpi" />
-    <icon src="www/res/icon/icon72hdpi.png"   platform="android" qualifier="hdpi" />
-    <icon src="www/res/icon/icon96xhdpi.png"  platform="android" qualifier="xhdpi" />
-<!--     <icon src="res/icon/android/icon144xxhdpi.png"  gap:platform="android"    gap:density="xxhdpi" /> -->
+	<platform name="android">
+		<icon src="res/icon/icon36ldpi.png" density="ldpi" />
+	    <icon src="res/icon/icon48mdpi.png" density="mdpi" />
+	    <icon src="res/icon/icon72hdpi.png" density="hdpi" />
+	    <icon src="res/icon/icon96xhdpi.png" density="xhdpi" />
+<!-- 	    <icon src="res/icon/android/icon144xxhdpi.png" density="xxhdpi" /> -->
+    </platform>
 	
 	<splash src="splash.png" />
 	
 	<!-- Android splash -->
-	<splash src="www/res/splash/ldpi.png"  platform="android" qualifier="ldpi" />
-    <splash src="www/res/splash/mdpi.png"  platform="android" qualifier="mdpi" />
-    <splash src="www/res/splash/hdpi.png"  platform="android" qualifier="hdpi" />
-    <splash src="www/res/splash/xhdpi.png" platform="android" qualifier="xhdpi" />
-    <splash src="www/res/splash/landscape-ldpi.png" platform="android" qualifier="land-ldpi" />
-	<splash src="www/res/splash/landscape-mdpi.png" platform="android" qualifier="land-mdpi" />
-	<splash src="www/res/splash/landscape-hdpi.png" platform="android" qualifier="land-hdpi" />
-	<splash src="www/res/splash/landscape-xhdpi.png" platform="android" qualifier="land-xhdpi" />
+	<platform name="android">
+		<splash src="res/splash/ldpi.png" density="ldpi" />
+	    <splash src="res/splash/mdpi.png" density="mdpi" />
+	    <splash src="res/splash/hdpi.png" density="hdpi" />
+	    <splash src="res/splash/xhdpi.png" density="xhdpi" />
+	    <splash src="res/splash/landscape-ldpi.png" density="land-ldpi" />
+		<splash src="res/splash/landscape-mdpi.png" density="land-mdpi" />
+		<splash src="res/splash/landscape-hdpi.png" density="land-hdpi" />
+		<splash src="res/splash/landscape-xhdpi.png" density="land-xhdpi" />
+	</platform>
     
 	
 	<!-- If you do not want any permissions to be added to your app, add the
