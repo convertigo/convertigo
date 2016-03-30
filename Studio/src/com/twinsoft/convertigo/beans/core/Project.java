@@ -39,6 +39,7 @@ import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.JsonOutput;
+import com.twinsoft.convertigo.engine.enums.XPathEngine;
 import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
@@ -123,6 +124,8 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	private boolean bStrictMode = true;
 	
 	private String corsOrigin = "";
+	
+	private XPathEngine xpathEngine = XPathEngine.JXPath;
 	
 	/**
 	 * The default connector for this project.
@@ -690,5 +693,13 @@ public class Project extends DatabaseObject implements IInfoProperty {
 
 	public void setCorsOrigin(String corsOrigin) {
 		this.corsOrigin = corsOrigin;
+	}
+
+	public XPathEngine getXpathEngine() {
+		return xpathEngine;
+	}
+
+	public void setXpathEngine(XPathEngine xpathEngine) {
+		this.xpathEngine = xpathEngine;
 	}
 }

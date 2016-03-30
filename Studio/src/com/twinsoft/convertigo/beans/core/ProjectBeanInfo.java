@@ -28,6 +28,7 @@ import com.twinsoft.convertigo.beans.core.Project.WsdlStyle;
 import com.twinsoft.convertigo.beans.core.Project.XsdForm;
 import com.twinsoft.convertigo.engine.enums.JsonOutput;
 import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
+import com.twinsoft.convertigo.engine.enums.XPathEngine;
 
 public class ProjectBeanInfo extends MySimpleBeanInfo {
     
@@ -44,7 +45,7 @@ public class ProjectBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
-			properties = new PropertyDescriptor[11];
+			properties = new PropertyDescriptor[12];
 			
 			properties[0] = new PropertyDescriptor("browserDefinitions", beanClass, "getBrowserDefinitions", "setBrowserDefinitions");
 			properties[0].setExpert(true);
@@ -107,6 +108,12 @@ public class ProjectBeanInfo extends MySimpleBeanInfo {
             properties[10].setShortDescription(getExternalizedString("property.jsonRoot.short_description"));
             properties[10].setPropertyEditorClass(JsonRoot.class);
             properties[10].setExpert(true);
+			
+            properties[11] = new PropertyDescriptor("xpathEngine", beanClass, "getXpathEngine", "setXpathEngine");
+            properties[11].setDisplayName(getExternalizedString("property.xpathEngine.display_name"));
+            properties[11].setShortDescription(getExternalizedString("property.xpathEngine.short_description"));
+            properties[11].setPropertyEditorClass(XPathEngine.class);
+            properties[11].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

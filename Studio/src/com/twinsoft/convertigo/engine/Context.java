@@ -437,22 +437,27 @@ public class Context extends AbstractContext implements Cloneable {
 	}
 	
 	public IdToXpathManager getIdToXpathManager(){
-		if(idToXpathManager==null)idToXpathManager = new IdToXpathManager();
+		if (idToXpathManager == null) {
+			idToXpathManager = new IdToXpathManager();
+		}
 		return idToXpathManager;
 	}
 	
 	public TwsCachedXPathAPI getXpathApi(){
-		if(xpathApi==null)xpathApi = new TwsCachedXPathAPI();
+		if (xpathApi == null) {
+			xpathApi = new TwsCachedXPathAPI(project);
+		}
 		return xpathApi;
 	}
 	
 	public void cleanXpathApi(){
-		xpathApi=null;
+		xpathApi = null;
 	}
 	
 	public Object getTransactionProperty(String propertyName) {
-		if (requestedObject == null)
+		if (requestedObject == null) {
 			return null;
+		}
 		BeanInfo bi;
 		try {
 			bi = CachedIntrospector.getBeanInfo(requestedObject.getClass());

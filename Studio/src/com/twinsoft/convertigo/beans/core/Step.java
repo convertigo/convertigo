@@ -191,7 +191,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		if (xpathApi == null) {
 			if (Engine.logBeans.isTraceEnabled())
 				Engine.logBeans.trace("[Step] Step needed to retrieve new TwsCachedXPathAPI");
-			return xpathApi = new TwsCachedXPathAPI();
+			return xpathApi = new TwsCachedXPathAPI(getProject());
 		}
 		return xpathApi;
 	}

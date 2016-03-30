@@ -22,24 +22,60 @@
 
 package com.twinsoft.convertigo.engine.util;
 
+import java.util.Collections;
+import java.util.List;
+
 import javax.xml.transform.TransformerException;
 
+import org.apache.commons.jxpath.JXPathContext;
 import org.apache.xml.utils.PrefixResolver;
 import org.apache.xpath.CachedXPathAPI;
 import org.apache.xpath.XPathContext;
 import org.apache.xpath.objects.XObject;
+import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.traversal.NodeFilter;
 import org.w3c.dom.traversal.NodeIterator;
+
+import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.engine.enums.XPathEngine;
 
 public class TwsCachedXPathAPI {
 	protected Node lastContextNode = null;
 	protected CachedXPathAPI xpathApi = null;
+	protected XPathEngine xpathEngine = XPathEngine.JXPath;
 	
 	public TwsCachedXPathAPI() {
-		xpathApi = new CachedXPathAPI();
+	}
+	
+	public TwsCachedXPathAPI(Project project) {
+		if (project != null) {
+			xpathEngine = project.getXpathEngine();
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	public List<Node> selectList(Node contextNode, String xpath) {
+		List<Node> nodes;
+		try {
+			nodes = JXPathContext.newContext(contextNode).selectNodes(xpath);
+		} catch (Exception e) {
+			nodes = Collections.emptyList();
+		}
+		return nodes;
+	}
+	
+	public Node selectNode(Node contextNode, String xpath) {
+		Node node;
+		try {
+			node = (Node) JXPathContext.newContext(contextNode).selectSingleNode(xpath);
+		} catch (Exception e) {
+			node = null;
+		}
+		return node;
 	}
 	
 	public XObject eval(Node contextNode, String xpath, Node namespaceNode) throws TransformerException {
@@ -58,6 +94,9 @@ public class TwsCachedXPathAPI {
 	}
 
 	public XPathContext getXPathContext() {
+		if (xpathApi == null) {
+			xpathApi = new CachedXPathAPI();
+		}
 		return xpathApi.getXPathContext();
 	}
 
@@ -67,8 +106,12 @@ public class TwsCachedXPathAPI {
 	}
 
 	public NodeIterator selectNodeIterator(Node contextNode, String xpath) throws TransformerException {
-		checkContextNode(contextNode);
-		return xpathApi.selectNodeIterator(contextNode, xpath);
+		switch (xpathEngine) {
+		case Xalan:
+			checkContextNode(contextNode);
+			return xpathApi.selectNodeIterator(contextNode, xpath);
+		}
+		return new JXPathNodeIterator(selectList(contextNode, xpath));
 	}
 
 	public NodeList selectNodeList(Node contextNode, String xpath, Node namespaceNode) throws TransformerException {
@@ -86,28 +129,33 @@ public class TwsCachedXPathAPI {
 	 * @throws TransformerException
 	 */
 	public NodeList selectNodeList(Node contextNode, String xpath) throws TransformerException {
-		checkContextNode(contextNode);
-		XObject Xobj;
-		
-		Xobj = xpathApi.eval(contextNode, xpath);
-		switch (Xobj.getType()) {
-			case XObject.CLASS_NODESET:
-				return (Xobj.nodelist());
+		switch (xpathEngine) {
+		case Xalan:		
+			checkContextNode(contextNode);
+			XObject Xobj;
 			
-			case XObject.CLASS_BOOLEAN:
-			case XObject.CLASS_NUMBER:
-			case XObject.CLASS_STRING:
-				try {
-					Document doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
-					Element root =  (Element) doc.createElement("root"); 
-					doc.appendChild(root);
-					root.appendChild(doc.createTextNode(Xobj.str()));
-					return (root.getChildNodes());
-				} catch (Exception e) {
-					return null;
-				}
+			Xobj = xpathApi.eval(contextNode, xpath);
+			switch (Xobj.getType()) {
+				case XObject.CLASS_NODESET:
+					return (Xobj.nodelist());
+				
+				case XObject.CLASS_BOOLEAN:
+				case XObject.CLASS_NUMBER:
+				case XObject.CLASS_STRING:
+					try {
+						Document doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
+						Element root =  (Element) doc.createElement("root"); 
+						doc.appendChild(root);
+						root.appendChild(doc.createTextNode(Xobj.str()));
+						return (root.getChildNodes());
+					} catch (Exception e) {
+						return null;
+					}
+			}
+			return null;
 		}
-		return null;
+		return new JXPathNodeList(selectList(contextNode, xpath));
+
 	}
 
 	public Node selectSingleNode(Node contextNode, String xpath, Node namespaceNode) throws TransformerException {
@@ -116,8 +164,12 @@ public class TwsCachedXPathAPI {
 	}
 
 	public Node selectSingleNode(Node contextNode, String xpath) throws TransformerException {
-		checkContextNode(contextNode);
-		return xpathApi.selectSingleNode(contextNode, xpath);
+		switch (xpathEngine) {
+		case Xalan:
+			checkContextNode(contextNode);
+			return xpathApi.selectSingleNode(contextNode, xpath);
+		}
+		return selectNode(contextNode, xpath);
 	}
 
 	protected void checkContextNode(Node contextNode) {
@@ -142,8 +194,8 @@ public class TwsCachedXPathAPI {
 		lastContextNode = null;
 	}
 	
-	private static boolean shouldReset(Node last, Node current) {
-		boolean shouldReset = last == null;
+	private boolean shouldReset(Node last, Node current) {
+		boolean shouldReset = last == null || xpathApi == null;
 		if (!shouldReset) {
 		/* Does not work in all cases
 			int lastNodeType = last.getNodeType();
@@ -165,5 +217,75 @@ public class TwsCachedXPathAPI {
 			shouldReset = !last.equals(current);
 		}
 		return shouldReset;
+	}
+	
+	protected class JXPathNodeList implements NodeList {
+		List<Node> nodes;
+		
+		public JXPathNodeList(List<Node> nodes) {
+			this.nodes = nodes;
+		}
+
+		@Override
+		public int getLength() {
+			return nodes.size();
+		}
+
+		@Override
+		public Node item(int index) {
+			return nodes.get(index);
+		}
+		
+	}
+	
+	protected class JXPathNodeIterator implements NodeIterator {
+		List<Node> nodes;
+		int i = 0;
+		
+		public JXPathNodeIterator(List<Node> nodes) {
+			this.nodes = nodes;
+		}
+		
+		@Override
+		public void detach() {
+			nodes = null;
+		}
+
+		@Override
+		public boolean getExpandEntityReferences() {
+			return false;
+		}
+
+		@Override
+		public NodeFilter getFilter() {
+			return new NodeFilter() {
+				
+				@Override
+				public short acceptNode(Node arg0) {
+					return 0;
+				}
+			};
+		}
+
+		@Override
+		public Node getRoot() {
+			return nodes.isEmpty() ? null : nodes.get(0);
+		}
+
+		@Override
+		public int getWhatToShow() {
+			return 0;
+		}
+
+		@Override
+		public Node nextNode() throws DOMException {
+			return i < nodes.size() ? nodes.get(i++) : null;
+		}
+
+		@Override
+		public Node previousNode() throws DOMException {
+			return i > 0 ? nodes.get(--i) : null;
+		}
+		
 	}
 }

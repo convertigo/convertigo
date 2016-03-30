@@ -667,7 +667,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 		if (stepToInvoke != null) {
 			stepToInvoke.parent = this;
 			stepToInvoke.transactionContextMaintainer = ((sequence.useSameJSessionForSteps()) ? this:null);
-			stepToInvoke.xpathApi = new TwsCachedXPathAPI();
+			stepToInvoke.xpathApi = new TwsCachedXPathAPI(getProject());
 			stepToInvoke.httpState = sequence.getNewHttpState(); // require new HttpState!
 			stepToInvoke.executedSteps.putAll(executedSteps);
 			if (Engine.logBeans.isTraceEnabled())

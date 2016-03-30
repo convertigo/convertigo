@@ -54,7 +54,7 @@ public class OperationResponse extends AbstractRestResponse {
 	public boolean isMatching(Document xmlDocument) {
 		if (xmlDocument != null && !xpath.isEmpty()) {
 			try {
-				TwsCachedXPathAPI xpathApi = new TwsCachedXPathAPI();
+				TwsCachedXPathAPI xpathApi = new TwsCachedXPathAPI(getProject());
 				NodeList nodeList = xpathApi.selectNodeList(xmlDocument, xpath);
 				int  length = nodeList.getLength();
 				return (length > 0) ? true:false;
