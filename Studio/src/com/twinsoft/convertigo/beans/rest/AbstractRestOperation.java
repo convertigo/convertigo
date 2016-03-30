@@ -367,7 +367,10 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 						}
 		
 						if (parameterValue != null && !parameterValue.isEmpty()) {
-							UrlMappingParameter param = getParameterByName(parameterName);
+							UrlMappingParameter param = null;
+							try {
+								param = getParameterByName(parameterName);
+							} catch (Exception e) {}
 							if (param != null) {
 								String variableName = param.getMappedVariableName();
 								if (!variableName.isEmpty()) {

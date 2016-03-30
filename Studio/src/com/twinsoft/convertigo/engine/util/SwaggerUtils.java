@@ -186,7 +186,10 @@ public class SwaggerUtils {
 						s_parameter.setType("string");
 						
 						// retrieve parameter description from bean
-						UrlMappingParameter ump = umo.getParameterByName(pathVarName);
+						UrlMappingParameter ump = null;
+						try {
+							ump = umo.getParameterByName(pathVarName);
+						} catch (Exception e) {}
 						if (ump != null && ump.getType() == Type.Path) {
 							s_parameter.setDescription(ump.getComment());
 						}
