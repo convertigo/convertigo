@@ -352,9 +352,16 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 
 	private void packColumns() {
-		for (TreeColumn tc : viewer.getTree().getColumns()) {
-            tc.pack();
-		}
+		Display.getCurrent().asyncExec(new Runnable() {
+
+			@Override
+			public void run() {
+				for (TreeColumn tc : viewer.getTree().getColumns()) {
+		            tc.pack();
+				}
+			}
+			
+		});
 	}
 	
 	/**
