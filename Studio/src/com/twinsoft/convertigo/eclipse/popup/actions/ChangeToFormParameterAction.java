@@ -56,12 +56,13 @@ public class ChangeToFormParameterAction extends MyAbstractAction {
 		super.selectionChanged(action, selection);
 		IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 		TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
-		
-		UrlMappingParameter parameter = (UrlMappingParameter) treeObject.getObject();
-		UrlMappingOperation operation = (UrlMappingOperation) parameter.getParent();
-		boolean enabled = !(parameter instanceof FormParameter) && !(parameter instanceof PathParameter) 
-							&& (operation instanceof PostOperation || operation instanceof PutOperation);
-		action.setEnabled(enabled);
+		if (treeObject != null) {
+			UrlMappingParameter parameter = (UrlMappingParameter) treeObject.getObject();
+			UrlMappingOperation operation = (UrlMappingOperation) parameter.getParent();
+			boolean enabled = !(parameter instanceof FormParameter) && !(parameter instanceof PathParameter) 
+								&& (operation instanceof PostOperation || operation instanceof PutOperation);
+			action.setEnabled(enabled);
+		}
 	}
 
 	@Override

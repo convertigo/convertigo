@@ -54,10 +54,11 @@ public class ChangeToHeaderParameterAction extends MyAbstractAction {
 		super.selectionChanged(action, selection);
 		IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 		TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
-		
-		UrlMappingParameter parameter = (UrlMappingParameter) treeObject.getObject();
-		boolean enabled = !(parameter instanceof HeaderParameter) && !(parameter instanceof PathParameter);
-		action.setEnabled(enabled);
+		if (treeObject != null) {
+			UrlMappingParameter parameter = (UrlMappingParameter) treeObject.getObject();
+			boolean enabled = !(parameter instanceof HeaderParameter) && !(parameter instanceof PathParameter);
+			action.setEnabled(enabled);
+		}
 	}
 
 

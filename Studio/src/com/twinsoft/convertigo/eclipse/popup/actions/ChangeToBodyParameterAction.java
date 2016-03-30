@@ -59,31 +59,32 @@ public class ChangeToBodyParameterAction extends MyAbstractAction {
 		super.selectionChanged(action, selection);
 		IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 		TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
-		
-		UrlMappingParameter parameter = (UrlMappingParameter) treeObject.getObject();
-		UrlMappingOperation operation = (UrlMappingOperation) parameter.getParent();
-		boolean enabled = !(parameter instanceof BodyParameter) && !(parameter instanceof PathParameter) 
-				&& (operation instanceof PostOperation || operation instanceof PutOperation);
-		
-		
-		if (enabled) {
-			List<UrlMappingParameter> params = operation.getParameterList();
-			if (params.size() == 1) {
-				enabled = true;
-			}
-			else if (params.size() > 1) {
-				for (UrlMappingParameter param : params) {
-					if (!(param instanceof HeaderParameter)) {
-						enabled = false;
-						break;
+		if (treeObject != null) {
+			UrlMappingParameter parameter = (UrlMappingParameter) treeObject.getObject();
+			UrlMappingOperation operation = (UrlMappingOperation) parameter.getParent();
+			boolean enabled = !(parameter instanceof BodyParameter) && !(parameter instanceof PathParameter) 
+					&& (operation instanceof PostOperation || operation instanceof PutOperation);
+			
+			
+			if (enabled) {
+				List<UrlMappingParameter> params = operation.getParameterList();
+				if (params.size() == 1) {
+					enabled = true;
+				}
+				else if (params.size() > 1) {
+					for (UrlMappingParameter param : params) {
+						if (!(param instanceof HeaderParameter)) {
+							enabled = false;
+							break;
+						}
 					}
 				}
+				else {
+					enabled = false;
+				}
 			}
-			else {
-				enabled = false;
-			}
+			action.setEnabled(enabled);
 		}
-		action.setEnabled(enabled);
 	}
 
 
