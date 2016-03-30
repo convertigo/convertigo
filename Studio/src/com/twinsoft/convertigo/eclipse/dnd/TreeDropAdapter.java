@@ -272,7 +272,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 									for (int i = 0 ; i < len ; i++) {
 										node = (Node) nodeList.item(i);
 										if (node.getNodeType() != Node.TEXT_NODE) {
-											// Special objects paste (e.g.: to create call steps)
+											// Special objects paste
 											if (!paste(node, targetTreeObject)) {
 												unauthorized = true; // Real unauthorized databaseObject paste
 											}
@@ -280,8 +280,20 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 									}
 									reloadTreeObject(explorerView, targetTreeObject);
 								}
+								else if (detail == DND.DROP_MOVE) {
+									for (int i = 0 ; i < len ; i++) {
+										node = (Node) nodeList.item(i);
+										if (node.getNodeType() != Node.TEXT_NODE) {
+											// Special objects move
+											if (!move(node, targetTreeObject)) {
+												unauthorized = true; // Real unauthorized databaseObject move
+											}
+										}
+									}
+									reloadTreeObject(explorerView, targetTreeObject);
+								}
 								else {
-									unauthorized = true; // Real unauthorized databaseObject paste
+									unauthorized = true; // Real unauthorized databaseObject
 								}
 								
 								if (unauthorized) {
@@ -506,6 +518,43 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						operation.add(parameter);
 						operation.hasChanged = true;
 					}
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private boolean move(Node node, TreeObject targetTreeObject) throws EngineException {
+		if (targetTreeObject instanceof DatabaseObjectTreeObject) {
+			DatabaseObject parent = ((DatabaseObjectTreeObject) targetTreeObject).getObject();
+			
+			DatabaseObject databaseObject = paste(node, null, true);
+			Element element = (Element)((Element)node).getElementsByTagName("dnd").item(0);
+			
+			// SEQUENCER
+			if (parent instanceof Sequence || parent instanceof StepWithExpressions) {
+				;
+			}
+			// URLMAPPER
+			else if (parent instanceof UrlMappingOperation) {
+				// Set associated requestable
+				if (databaseObject instanceof RequestableObject) {
+					String dboQName = "";
+					if (databaseObject instanceof Sequence) {
+						dboQName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name") +
+								"." + databaseObject.getName();
+					}
+					else if (databaseObject instanceof Transaction) {
+						dboQName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name") +
+								"." + ((Element)element.getElementsByTagName("connector").item(0)).getAttribute("name") +
+								"." + databaseObject.getName();
+					}
+					
+					UrlMappingOperation operation = (UrlMappingOperation) parent;
+					operation.setTargetRequestable(dboQName);
+					operation.hasChanged = true;
+					
 					return true;
 				}
 			}
