@@ -55,6 +55,16 @@ public class UrlMapper extends DatabaseObject {
 		this.models = models;
 	}
 
+	private String prefix = "";
+	
+	public String getPrefix() {
+		return prefix;
+	}
+
+	public void setPrefix(String prefix) {
+		this.prefix = prefix;
+	}
+
 	@Override
 	public List<DatabaseObject> getAllChildren() {	
 		List<DatabaseObject> rep = super.getAllChildren();

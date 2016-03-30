@@ -283,7 +283,7 @@ public class SwaggerUtils {
 					String s_method = umo.getMethod().toLowerCase();
 					swagger_path.set(s_method, s_operation);
 				}
-				swagger_paths.put(urlMapping.getPath(), swagger_path);
+				swagger_paths.put(urlMapping.getPathWithPrefix(), swagger_path);
 			}
 		}
 		catch (Exception e) {

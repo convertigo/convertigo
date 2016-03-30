@@ -120,6 +120,14 @@ public abstract class UrlMapping extends DatabaseObject {
 		throw new EngineException("There is no operation named \"" + operationName + "\" found into this mapping.");
 	}
 
+	public String getPathWithPrefix() {
+		String mapperPrefix = ((UrlMapper)getParent()).getPrefix();
+		mapperPrefix = mapperPrefix.isEmpty() || mapperPrefix.startsWith("/") ? mapperPrefix:"/"+mapperPrefix;
+		String mappingPath = getPath();
+		mappingPath = mappingPath.isEmpty() || mappingPath.startsWith("/") ? mappingPath:"/"+mappingPath;
+		return mapperPrefix + mappingPath;
+	}
+	
 	public List<String> getPathVariableNames(String path) {
 		List<String> varList = new ArrayList<String>();
 		Pattern pattern = Pattern.compile("\\{([a-zA-Z0-9_]+)\\}");
@@ -134,28 +142,18 @@ public abstract class UrlMapping extends DatabaseObject {
 	}
 	
 	public List<String> getPathVariableNames() {
-		/*List<String> varList = new ArrayList<String>();
-		Pattern pattern = Pattern.compile("\\{([a-zA-Z0-9_]+)\\}");
-		Matcher matcher = pattern.matcher(getPath());
-		while (matcher.find()) {
-			String path_varname = matcher.group(1);
-			if (!path_varname.isEmpty() && !varList.contains(path_varname)) {
-				varList.add(path_varname);
-			}
-		}
-		return varList;*/
 		return getPathVariableNames(getPath());
 	}
 	
 	public Map<String, String> getPathVariableValues(HttpServletRequest request) {
 		String requestPath = request.getPathInfo();
-		String url_regex = getPath().replaceAll("\\{([a-zA-Z0-9_]+)\\}", "([^/]+?)");
+		String url_regex = getPathWithPrefix().replaceAll("\\{([a-zA-Z0-9_]+)\\}", "([^/]+?)");
 		Pattern url_pattern = Pattern.compile(url_regex);
 		Matcher url_matcher = url_pattern.matcher(requestPath);
 		Map<String, String> varMap = new LinkedHashMap<String, String>();
 		if (url_matcher.matches()) {
 			Pattern var_pattern = Pattern.compile("\\{([a-zA-Z0-9_]+)\\}");
-			Matcher var_matcher = var_pattern.matcher(getPath());
+			Matcher var_matcher = var_pattern.matcher(getPathWithPrefix());
 			int i = 1;
 			while (var_matcher.find()) {
 				try {
@@ -175,7 +173,7 @@ public abstract class UrlMapping extends DatabaseObject {
 	
 	public boolean isMatching(HttpServletRequest request) {
 		String requestPath = request.getPathInfo();
-		String url_regex = getPath().replaceAll("\\{([a-zA-Z0-9_]+)\\}", "([^/]+?)");
+		String url_regex = getPathWithPrefix().replaceAll("\\{([a-zA-Z0-9_]+)\\}", "([^/]+?)");
 		Pattern url_pattern = Pattern.compile(url_regex);
 		Matcher url_matcher = url_pattern.matcher(requestPath);
 		return url_matcher.matches();
