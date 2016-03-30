@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -53,16 +52,15 @@ import com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhone7;
 import com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhone8;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.mobiles.MobileResourceHelper;
-import com.twinsoft.convertigo.engine.util.ImageUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public abstract class BuildLocally {
 
 	private static final String cordovaDir = "cordova";
 	/** know which icon goes with which name on ios platform in function of height and width */
-	private static final Map<String, String> iOSIconsCorrespondences;
+	// private static final Map<String, String> iOSIconsCorrespondences;
 	/** know which splash goes with which name on ios platform in function of height and width */
-	private static final Map<String, String> iOSSplashCorrespondences;
+	// private static final Map<String, String> iOSSplashCorrespondences;
 	
 	/** Mobile platform */
 	private MobilePlatform mobilePlatform = null;
@@ -89,55 +87,55 @@ public abstract class BuildLocally {
 	}
 	
 	static {
-		Map<String, String> m = new HashMap<String, String>();
-		// iOS 8.0+ 
-        // iPhone 6 Plus
-		m.put("180x180","icon-60@3x.png");
-		//iOS 7.0+ 
-		// iPhone/iPod Touch
-		m.put("60x60", "icon-60.png");
-		m.put("120x120", "icon-60@2x.png");
-		//iPad
-		m.put("76x76", "icon-76.png");
-		m.put("152x152", "icon-76@2x.png");
-		//iOS 6.1+
-		//Spotlight Icon
-		m.put("40x40", "icon-40.png");
-		m.put("80x80", "icon-40@2x.png");
-		//iPhone/iPod Touch
-		m.put("57x57", "icon.png");
-		m.put("114x114", "icon@2x.png");
-		//iPad
-		m.put("72x72", "icon-72.png");
-		m.put("144x144", "icon-72@2x.png");
-		//iPhone Spotlight and Settings Icon
-		m.put("29x29", "icon-small.png");
-		m.put("58x58", "icon-small@2x.png");
-		//iPad Spotlight and Settings Icon
-		m.put("50x50", "icon-50.png");
-		m.put("100x100", "icon-50@2x.png");
-		
-		iOSIconsCorrespondences = Collections.unmodifiableMap(m);		
+//		Map<String, String> m = new HashMap<String, String>();
+//		// iOS 8.0+ 
+//        // iPhone 6 Plus
+//		m.put("180x180","icon-60@3x.png");
+//		//iOS 7.0+ 
+//		// iPhone/iPod Touch
+//		m.put("60x60", "icon-60.png");
+//		m.put("120x120", "icon-60@2x.png");
+//		//iPad
+//		m.put("76x76", "icon-76.png");
+//		m.put("152x152", "icon-76@2x.png");
+//		//iOS 6.1+
+//		//Spotlight Icon
+//		m.put("40x40", "icon-40.png");
+//		m.put("80x80", "icon-40@2x.png");
+//		//iPhone/iPod Touch
+//		m.put("57x57", "icon.png");
+//		m.put("114x114", "icon@2x.png");
+//		//iPad
+//		m.put("72x72", "icon-72.png");
+//		m.put("144x144", "icon-72@2x.png");
+//		//iPhone Spotlight and Settings Icon
+//		m.put("29x29", "icon-small.png");
+//		m.put("58x58", "icon-small@2x.png");
+//		//iPad Spotlight and Settings Icon
+//		m.put("50x50", "icon-50.png");
+//		m.put("100x100", "icon-50@2x.png");
+//		
+//		iOSIconsCorrespondences = Collections.unmodifiableMap(m);		
 	}
 	
 	static {
-		Map<String, String> m = new HashMap<String, String>();
-		
-		// iPhone
-		m.put("1242x2208", "Default-736h.png");
-		m.put("750x1334", "Default-667h.png");
-		m.put("640x1136", "Default-568h@2x~iphone.png");
-		m.put("640x960", "Default@2x~iphone.png");
-		m.put("320x480", "Default~iphone.png");
-
-		// iPad
-		m.put("2208x1242", "Default-Landscape-736h.png");
-		m.put("2048x1496", "Default-Landscape@2x~ipad.png");
-		m.put("1024x748", "Default-Landscape~ipad.png");
-		m.put("768x1004", "Default-Portrait~ipad.png");
-		m.put("1536x2008", "Default-Portrait@2x~ipad.png");
-		
-		iOSSplashCorrespondences = Collections.unmodifiableMap(m);
+//		Map<String, String> m = new HashMap<String, String>();
+//		
+//		// iPhone
+//		m.put("1242x2208", "Default-736h.png");
+//		m.put("750x1334", "Default-667h.png");
+//		m.put("640x1136", "Default-568h@2x~iphone.png");
+//		m.put("640x960", "Default@2x~iphone.png");
+//		m.put("320x480", "Default~iphone.png");
+//
+//		// iPad
+//		m.put("2208x1242", "Default-Landscape-736h.png");
+//		m.put("2048x1496", "Default-Landscape@2x~ipad.png");
+//		m.put("1024x748", "Default-Landscape~ipad.png");
+//		m.put("768x1004", "Default-Portrait~ipad.png");
+//		m.put("1536x2008", "Default-Portrait@2x~ipad.png");
+//		
+//		iOSSplashCorrespondences = Collections.unmodifiableMap(m);
 	}
 	
 	public BuildLocally(MobilePlatform mobilePlatform) {
@@ -260,7 +258,7 @@ public abstract class BuildLocally {
 			File configFile = new File(cordovaDir, "config.xml");
 			Document doc = XMLUtils.loadXml(configFile);
 			CachedXPathAPI xpathApi = new CachedXPathAPI();
-			String platform = mobilePlatform.getCordovaPlatform();
+			// String platform = mobilePlatform.getCordovaPlatform();
 			
 //			File defaultSplash = null;
 //			File defaultIcon = null;
@@ -301,7 +299,11 @@ public abstract class BuildLocally {
 				singleElement = (Element) nodeIterator.nextNode();
 			}
 			
-			XMLUtils.saveXml(doc, configFile.getAbsolutePath());
+			singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/plugin[@name='couchbase-lite-phonegap-plugin']");
+			if (singleElement != null) {
+				singleElement.setAttribute("name", "com.couchbase.lite.phonegap");
+			}
+			
 			
 			
 //			for (Element plugin = (Element) plugins.nextNode(); plugin != null; plugin = (Element) plugins.nextNode()) {
@@ -468,7 +470,28 @@ public abstract class BuildLocally {
 //			}
 			
 			//WINPHONE
-//			if (mobilePlatform instanceof WindowsPhone7 || mobilePlatform instanceof WindowsPhone8) {
+			if (mobilePlatform instanceof WindowsPhone7 || mobilePlatform instanceof WindowsPhone8) {				
+
+				// Without these width and height the local build doesn't work but with these the remote build doesn't work
+				singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/platform[@name='wp8']/icon[not(@role)]");
+				if (singleElement != null) {
+					singleElement.setAttribute("width", "99");
+					singleElement.setAttribute("height", "99");	
+				}
+				
+				singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/platform[@name='wp8']/icon[@role='background']");
+				if (singleElement != null) {
+					singleElement.setAttribute("width", "159");
+					singleElement.setAttribute("height", "159");
+				}	
+				
+				singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/platform[@name='wp8']/splash");
+				if (singleElement != null) {
+					singleElement.setAttribute("width", "768");
+					singleElement.setAttribute("height", "1280");
+				}
+
+				
 //				File resFolder = new File(cordovaDir, "platforms" + File.separator + platform);
 //				File destIcon = new File(resFolder, "ApplicationIcon.png");
 //				File destBackground = new File(resFolder, "Background.png");
@@ -514,7 +537,7 @@ public abstract class BuildLocally {
 //					
 //					FileUtils.copyFile(splashSrc, destSplashScreen);
 //				}
-//			}
+			}
 
 
 			if (mobilePlatform instanceof BlackBerry10) {
@@ -524,6 +547,8 @@ public abstract class BuildLocally {
 			if (mobilePlatform instanceof Windows8) {
 				// TODO : Add platform Windows 8
 			}
+
+			XMLUtils.saveXml(doc, configFile.getAbsolutePath());
 			
 			// We have to add the root config.xml all our app's config.xml preferences.
 			// Cordova will use this file to generates the platform specific config.xml
@@ -819,11 +844,11 @@ public abstract class BuildLocally {
 			FileUtils.copyFile(new File(wwwDir, "config.xml"), new File(cordovaDir, "config.xml"));
 			FileUtils.deleteQuietly(new File(wwwDir, "config.xml"));
 						
-			if (mobilePlatform instanceof Android) {
-				runCordovaCommand(cordovaDir, "platform", "add", cordovaPlatform + "@4.1.1");
-			} else {
-				runCordovaCommand(cordovaDir, "platform", "add", cordovaPlatform);
-			}
+//			if (mobilePlatform instanceof Android) {
+//				runCordovaCommand(cordovaDir, "platform", "add", cordovaPlatform + "@4.1.1");
+//			} else {
+//				runCordovaCommand(cordovaDir, "platform", "add", cordovaPlatform);
+//			}
 			
 			
 			

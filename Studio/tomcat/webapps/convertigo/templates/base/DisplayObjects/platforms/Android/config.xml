@@ -31,6 +31,7 @@
     <preference name="SplashScreenDelay"          value="60000" />          <!-- android: sets the default delay of how long the splashscreen appears in milliseconds, this should be the maximum expected start time -->
     <preference name="android-minSdkVersion"      value="14" />             <!-- android: MIN SDK version supported on the target device. MAX version is blank by default. -->
     <preference name="android-installLocation"    value="auto" />           <!-- android: app install location. 'auto' will choose. 'internalOnly' is device memory. 'preferExternal' is SDCard. -->
+    <preference name="android-build-tool" 		  value="gradle" /> 
     
 	<!-- Mandatory preferences for FlashUpdate service -->
 	<preference name="AndroidPersistentFileLocation" value="Internal" />
@@ -87,7 +88,7 @@
 	        exclude 'META-INF/NOTICE'
 	    }
 	-->
-	<!-- <plugin name="couchbase-lite-phonegap-plugin" spec="~1.1.1"  /> -->
+<!-- 	<plugin name="couchbase-lite-phonegap-plugin" spec="~1.1.1"  /> -->
     
 	<!-- Other optional Core plugins, comment them out (ctrl+shit+c) if you want to reduce the package size and permissions -->
 <!--     <plugin name="cordova-plugin-battery-status" spec="~1.1.1" /> -->
@@ -106,8 +107,10 @@
 <!--     <plugin name="cordova-plugin-statusbar" spec="~2.1.2" /> -->
 
     <!-- Other optional plugins -->
-<!--     <plugin name="com.phonegap.plugins.pushplugin" spec="~" /> -->
-<!--     <plugin name="com.phonegap.plugins.barcodescanner" spec="~" /> -->
+<!-- 	<plugin name="phonegap-plugin-push" spec="~1.6.1"> -->
+<!--         <param name="SENDER_ID" value="xxxxxx" /> -->
+<!--     </plugin> -->
+<!-- 	<plugin name="phonegap-plugin-barcodescanner" spec="~3.0.0" /> -->
 	
 	<!-- Other plugins and documentation can be find here : https://build.phonegap.com/plugins -->
 	

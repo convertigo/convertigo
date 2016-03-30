@@ -27,19 +27,23 @@
     <preference name="orientation"                value="default" />        <!-- all: default means both landscape and portrait are enabled -->
     <preference name="target-device"              value="universal" />      <!-- all: possible values handset, tablet, or universal -->
     <preference name="fullscreen"                 value="true" />           <!-- all: hides the status bar at the top of the screen -->
-    <preference name="SplashScreen"    			  value="splash" />         <!-- all: the splash screen resource if built without phonegap build -->
+    <preference name="SplashScreen"    			  value="screen" />         <!-- all: the splash screen resource if built without phonegap build -->
     <preference name="AutoHideSplashScreen"       value="false" />          <!-- windows phone 8: set to false, the splash screen must be hidden using a JavaScript API (navigator.splashscreen API)  -->
     
 	<icon src="icon.png"/>
 	
 	<!-- Windows Phone 8 icons -->
-    <icon src="res/icon/icon48.png"      	platform="winphone" />
-    <icon src="res/icon/icon173tile.png" 	platform="winphone"   role="background" />
+	<platform name="wp8">
+	    <icon src="res/icon/icon48.png" />
+	    <icon src="res/icon/icon173tile.png" role="background" />
+    </platform>
 	
 	<splash src="splash.png" />
 	
 	<!-- Windows Phone 8 splash -->
-    <splash src="res/splash/splash.jpg" 		     platform="winphone" />
+	<platform name="wp8">
+    	<splash src="res/splash/splash.jpg" />
+    </platform>
 	
 	<!-- If you do not want any permissions to be added to your app, add the
     following tag to your config.xml; you will still have the INTERNET
@@ -56,8 +60,8 @@
 	<!-- Useful for debugging -->
 	<plugin name="cordova-plugin-console" spec="~1.0.2" />
 
-	<!-- Plugin for the local-cache feature, can be removed if not used. Install GIT for local build -->
-<!-- 	<plugin name="io.litehelpers.cordova.sqlite" git="https://github.com/litehelpers/Cordova-sqlite-storage"/> -->
+	<!-- Plugin for the local-cache feature, can be removed if not used. Install GIT for local build. Works only with local build. -->
+<!-- 	<plugin name="io.litehelpers.cordova.sqlite" spec="~0.7.7" /> -->
 	
 	<!-- Other optional Core plugins, comment them out (ctrl+shit+c) if you want to reduce the package size and permissions -->
 <!--     <plugin name="cordova-plugin-battery-status" spec="~1.1.1" /> -->
@@ -76,8 +80,10 @@
 <!--     <plugin name="cordova-plugin-statusbar" spec="~2.1.2" /> -->
 
     <!-- Other optional plugins -->
-<!--     <plugin name="com.phonegap.plugins.pushplugin" spec="~" /> -->
-<!--     <plugin name="com.phonegap.plugins.barcodescanner" spec="~" /> -->
+<!-- 	<plugin name="phonegap-plugin-push" spec="~1.6.1"> -->
+<!--         <param name="SENDER_ID" value="xxxxxx" /> -->
+<!--     </plugin> -->
+<!-- 	<plugin name="phonegap-plugin-barcodescanner" spec="~3.0.0" /> -->
 	
 	
 	<!-- Other plugins and documentation can be find here : https://build.phonegap.com/plugins -->
