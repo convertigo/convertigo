@@ -416,6 +416,9 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 					else if ((param.getType() == Type.Query || param.getType() == Type.Form)) {
 						paramValue = request.getParameterValues(paramName);
 					}
+					else if (param.getType() == Type.Path) {
+						paramValue = varMap.get(param.getName());
+					}
 					else if (param.getType() == Type.Body) {
 						if (request.getInputStream() != null) {
 							// Retrieve data

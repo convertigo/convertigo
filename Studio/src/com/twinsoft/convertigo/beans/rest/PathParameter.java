@@ -30,6 +30,7 @@ public class PathParameter extends UrlMappingParameter {
 
 	public PathParameter() {
 		super();
+		this.required = Boolean.TRUE;
 	}
 
 	@Override
@@ -41,6 +42,11 @@ public class PathParameter extends UrlMappingParameter {
 	@Override
 	public Type getType() {
 		return Type.Path;
+	}
+
+	@Override
+	public Boolean isRequired() {
+		return true;
 	}
 	
 }

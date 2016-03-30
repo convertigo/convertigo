@@ -95,7 +95,7 @@ public abstract class UrlMappingParameter extends DatabaseObject implements ITag
 
 	abstract public Type getType();
 	
-	private Boolean required = Boolean.TRUE;
+	protected Boolean required = Boolean.FALSE;
 	
 	public Boolean isRequired() {
 		return required;
