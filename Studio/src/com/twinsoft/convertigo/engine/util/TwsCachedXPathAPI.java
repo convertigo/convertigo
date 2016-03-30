@@ -59,13 +59,22 @@ public class TwsCachedXPathAPI {
 	
 	@SuppressWarnings("unchecked")
 	public List<Node> selectList(Node contextNode, String xpath) {
-		List<Node> nodes;
+		@SuppressWarnings("rawtypes")
+		List nodes;
 		try {
 			nodes = JXPathContext.newContext(contextNode).selectNodes(xpath);
+			int i = 0;
+			for (Object node: nodes) {
+				if (node instanceof String) {
+					node = contextNode.getOwnerDocument().createTextNode((String) node);
+					nodes.set(i, node);
+				}
+				i++;
+			}
 		} catch (Exception e) {
 			nodes = Collections.emptyList();
 		}
-		return nodes;
+		return (List<Node>) nodes;
 	}
 	
 	public Node selectNode(Node contextNode, String xpath) {
