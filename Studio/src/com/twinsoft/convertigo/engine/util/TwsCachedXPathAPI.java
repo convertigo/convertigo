@@ -28,6 +28,8 @@ import java.util.List;
 import javax.xml.transform.TransformerException;
 
 import org.apache.commons.jxpath.JXPathContext;
+import org.apache.xerces.dom.DocumentImpl;
+import org.apache.xerces.dom.events.MutationEventImpl;
 import org.apache.xml.utils.PrefixResolver;
 import org.apache.xpath.CachedXPathAPI;
 import org.apache.xpath.XPathContext;
@@ -37,14 +39,16 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.events.Event;
+import org.w3c.dom.events.EventListener;
 import org.w3c.dom.traversal.NodeFilter;
 import org.w3c.dom.traversal.NodeIterator;
 
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.enums.XPathEngine;
 
-public class TwsCachedXPathAPI {
-	protected Node lastContextNode = null;
+public class TwsCachedXPathAPI implements EventListener {
+	protected DocumentImpl lastDocument = null;
 	protected CachedXPathAPI xpathApi = null;
 	protected XPathEngine xpathEngine = XPathEngine.JXPath;
 	
@@ -182,10 +186,19 @@ public class TwsCachedXPathAPI {
 	}
 
 	protected void checkContextNode(Node contextNode) {
-		if (shouldReset(lastContextNode, contextNode)) {
+		if (shouldReset(contextNode)) {
 			// reset the cache
 			xpathApi = new CachedXPathAPI();
-			lastContextNode = contextNode;
+			resetCache();
+			Document doc = contextNode instanceof Document ? (Document) contextNode : contextNode.getOwnerDocument();
+			if (doc instanceof DocumentImpl) {
+				lastDocument = (DocumentImpl) doc;
+				lastDocument.addEventListener(MutationEventImpl.DOM_SUBTREE_MODIFIED, this, false);
+				lastDocument.addEventListener(MutationEventImpl.DOM_NODE_INSERTED, this, false);
+				lastDocument.addEventListener(MutationEventImpl.DOM_NODE_REMOVED, this, false);
+				lastDocument.addEventListener(MutationEventImpl.DOM_ATTR_MODIFIED, this, false);
+				lastDocument.addEventListener(MutationEventImpl.DOM_CHARACTER_DATA_MODIFIED, this, false);
+			}
 		}
 	}
 	
@@ -200,32 +213,28 @@ public class TwsCachedXPathAPI {
 	}
 	
 	public void resetCache() {
-		lastContextNode = null;
+		if (lastDocument != null) {
+			lastDocument.removeEventListener(MutationEventImpl.DOM_SUBTREE_MODIFIED, this, false);
+			lastDocument.removeEventListener(MutationEventImpl.DOM_NODE_INSERTED, this, false);
+			lastDocument.removeEventListener(MutationEventImpl.DOM_NODE_REMOVED, this, false);
+			lastDocument.removeEventListener(MutationEventImpl.DOM_ATTR_MODIFIED, this, false);
+			lastDocument.removeEventListener(MutationEventImpl.DOM_CHARACTER_DATA_MODIFIED, this, false);
+			lastDocument = null;
+		}
 	}
 	
-	private boolean shouldReset(Node last, Node current) {
-		boolean shouldReset = last == null || xpathApi == null;
+	private boolean shouldReset(Node current) {
+		boolean shouldReset = lastDocument == null || xpathApi == null;
 		if (!shouldReset) {
-		/* Does not work in all cases
-			int lastNodeType = last.getNodeType();
-			int currentNodeType = current.getNodeType();
-			
-			if (lastNodeType == Node.DOCUMENT_NODE && currentNodeType == Node.DOCUMENT_NODE) {
-				shouldReset = !last.equals(current);
-			}
-			else if (lastNodeType == Node.DOCUMENT_NODE && currentNodeType != Node.DOCUMENT_NODE) {
-				shouldReset = !last.equals(current.getOwnerDocument());
-			}
-			else if (lastNodeType != Node.DOCUMENT_NODE && currentNodeType == Node.DOCUMENT_NODE) {
-				shouldReset = !last.getOwnerDocument().equals(current);
-			}
-			else {
-				shouldReset = !last.getOwnerDocument().equals(current.getOwnerDocument());
-			}
-		*/
-			shouldReset = !last.equals(current);
+			Document doc = current instanceof Document ? (Document) current : current.getOwnerDocument();
+			shouldReset = !lastDocument.equals(doc);
 		}
 		return shouldReset;
+	}
+	
+	@Override
+	public void handleEvent(Event arg0) {
+		resetCache();
 	}
 	
 	protected class JXPathNodeList implements NodeList {
