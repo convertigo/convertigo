@@ -111,9 +111,11 @@ public class ChangeToMultiValuedVariableAction extends MyAbstractAction {
         					multi.setVisibility(simple.getVisibility());
         					
         					// Comment
-        					multi.setComment( simple.getComment() );
+        					multi.setComment(simple.getComment());
     						// Description
-        					multi.setDescription( simple.getDescription() );
+        					multi.setDescription(simple.getDescription());
+        					// Required
+        					multi.setRequired(simple.isRequired());
         					
         					multi.bNew = true;
         					multi.hasChanged = true;

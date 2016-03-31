@@ -74,7 +74,7 @@ public class StatementAddVariableToTransactionAction extends MyAbstractAction {
     				}
     				
     				String variableName, variableDescription, variableMethod;
-    				Boolean variableType;
+    				Boolean variableType, variableRequired;
     				Object variableValue;
     				int variableVisibility;
     				size = httpStatement.numberOfVariables();
@@ -83,6 +83,7 @@ public class StatementAddVariableToTransactionAction extends MyAbstractAction {
     					if (httpStatementVariable != null) {
         					variableName = httpStatementVariable.getName();
         					variableDescription = httpStatementVariable.getDescription();
+        					variableRequired = httpStatementVariable.isRequired();
         					variableValue = httpStatementVariable.getValueOrNull();
         					variableType = httpStatementVariable.isMultiValued();
         					variableMethod = httpStatementVariable.getHttpMethod();
@@ -92,6 +93,7 @@ public class StatementAddVariableToTransactionAction extends MyAbstractAction {
         						RequestableHttpVariable requestableVariable = (variableType ? new RequestableHttpMultiValuedVariable():new RequestableHttpVariable());
         						requestableVariable.setName(variableName);
         						requestableVariable.setDescription(variableDescription);
+        						requestableVariable.setRequired(variableRequired);
         						requestableVariable.setValueOrNull(variableValue);
         						requestableVariable.setWsdl(Boolean.TRUE);
         						requestableVariable.setPersonalizable(Boolean.FALSE);

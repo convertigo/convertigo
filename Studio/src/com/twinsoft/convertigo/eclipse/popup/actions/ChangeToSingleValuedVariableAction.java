@@ -113,9 +113,11 @@ public class ChangeToSingleValuedVariableAction extends MyAbstractAction {
         					simple.setVisibility(multi.getVisibility());
 
         					// Comment
-        					simple.setComment( multi.getComment() );
+        					simple.setComment(multi.getComment());
     						// Description
-        					simple.setDescription( multi.getDescription() );
+        					simple.setDescription(multi.getDescription());
+        					// Required
+        					simple.setRequired(multi.isRequired());
         					
         					simple.bNew = true;
         					simple.hasChanged = true;
