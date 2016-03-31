@@ -23,6 +23,7 @@ import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataContent;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataType;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter.Type;
 import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 
@@ -160,6 +161,7 @@ public class SwaggerUtils {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			Engine.logEngine.warn("Unexpected exception while reading UrlMapper defined models", e);
 		}
 		swagger.setDefinitions(swagger_models);
 		
@@ -312,6 +314,7 @@ public class SwaggerUtils {
 		}
 		catch (Exception e) {
 			e.printStackTrace();
+			Engine.logEngine.error("Unexpected exception while parsing UrlMapper to generate definition", e);
 		}
 		
 		swagger.setPaths(swagger_paths);
