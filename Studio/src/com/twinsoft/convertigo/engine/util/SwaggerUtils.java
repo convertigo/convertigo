@@ -19,6 +19,7 @@ import com.twinsoft.convertigo.beans.core.UrlMapping;
 import com.twinsoft.convertigo.beans.core.IMappingRefModel;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
+import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataContent;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataType;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter.Type;
 import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
@@ -172,11 +173,14 @@ public class SwaggerUtils {
 					s_operation.setOperationId(umo.getName());
 					s_operation.setProduces(Arrays.asList("application/json", "application/xml"));
 					
-					// Set operation tags
+					// Operation tags
 					List<String> list = Arrays.asList(""+ project.getName());
 					s_operation.setTags(list);
 					
-					// Set operation parameters
+					// Operation consumes
+					List<String> consumes = new ArrayList<String>();
+					
+					// Operation parameters
 					List<Parameter> s_parameters = new ArrayList<Parameter>();
 					// 1 - add path parameters
 					for (String pathVarName: urlMapping.getPathVariableNames()) {
@@ -251,10 +255,27 @@ public class SwaggerUtils {
 								}*/
 								
 							}
+							
+							DataContent dataInput = ump.getInputContent();
+							if (dataInput.equals(DataContent.toJson)) {
+								if (!consumes.contains("application/json")) {
+									consumes.add("application/json");
+								}
+							}
+							else if (dataInput.equals(DataContent.toXml)) {
+								if (!consumes.contains("application/xml")) {
+									consumes.add("application/xml");
+								}
+							}
+							
 							s_parameters.add(s_parameter);
 						}
 					}
 					s_operation.setParameters(s_parameters);
+					
+					if (!consumes.isEmpty()) {
+						s_operation.setConsumes(consumes);
+					}
 					
 					// Set operation responses
 					Map<String, Response> responses = new HashMap<String, Response>();
