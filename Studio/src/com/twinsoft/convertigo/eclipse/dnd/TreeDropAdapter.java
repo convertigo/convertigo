@@ -413,6 +413,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							stepVariable.setName(variable.getName());
 							stepVariable.setComment(variable.getComment());
 							stepVariable.setDescription(variable.getDescription());
+							stepVariable.setRequired(variable.isRequired());
 							stepVariable.setValueOrNull(variable.getValueOrNull());
 							stepVariable.setVisibility(variable.getVisibility());
 							transactionStep.addVariable(stepVariable);
@@ -435,6 +436,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						stepVariable.setName(variable.getName());
 						stepVariable.setComment(variable.getComment());
 						stepVariable.setDescription(variable.getDescription());
+						stepVariable.setRequired(variable.isRequired());
 						stepVariable.setValueOrNull(variable.getValueOrNull());
 						stepVariable.setVisibility(variable.getVisibility());
 						sequenceStep.addVariable(stepVariable);
