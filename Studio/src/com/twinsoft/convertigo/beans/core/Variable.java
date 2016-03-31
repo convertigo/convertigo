@@ -62,6 +62,16 @@ public abstract class Variable extends DatabaseObject implements IMultiValued, I
 		return clonedObject;
 	}
 
+	private Boolean required = Boolean.FALSE;
+	
+	public Boolean isRequired() {
+		return required;
+	}
+
+	public void setRequired(Boolean required) {
+		this.required = required;
+	}
+	
 	public boolean isMultiValued() {
 		return false;
 	}

@@ -33,7 +33,7 @@ public class VariableBeanInfo extends MySimpleBeanInfo {
 
 			resourceBundle = getResourceBundle("res/Variable");
 
-			properties = new PropertyDescriptor[4];
+			properties = new PropertyDescriptor[5];
 			
             properties[0] = new PropertyDescriptor("description", beanClass, "getDescription", "setDescription");
 			properties[0].setDisplayName(getExternalizedString("property.description.display_name"));
@@ -54,6 +54,10 @@ public class VariableBeanInfo extends MySimpleBeanInfo {
 			properties[3].setDisplayName(getExternalizedString("property.bsoaparray.display_name"));
 			properties[3].setShortDescription(getExternalizedString("property.bsoaparray.short_description"));
 			properties[3].setHidden(true);
+			
+            properties[4] = new PropertyDescriptor("required", beanClass, "isRequired", "setRequired");
+            properties[4].setDisplayName(getExternalizedString("property.required.display_name"));
+            properties[4].setShortDescription(getExternalizedString("property.required.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
