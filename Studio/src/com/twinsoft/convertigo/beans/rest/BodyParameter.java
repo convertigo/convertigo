@@ -31,6 +31,7 @@ public class BodyParameter extends UrlMappingParameter implements IMappingRefMod
 
 	public BodyParameter() {
 		super();
+		this.intputContent = DataContent.toJson;
 		this.inputType = DataType.Model.name();
 	}
 

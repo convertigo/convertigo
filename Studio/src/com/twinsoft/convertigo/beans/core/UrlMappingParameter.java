@@ -135,7 +135,7 @@ public abstract class UrlMappingParameter extends DatabaseObject implements ITag
 		this.mappedVariableName = mappedVariableName;
 	}
 	
-	private DataContent intputContent = DataContent.useHeader;
+	protected DataContent intputContent = DataContent.useHeader;
 	
 	public DataContent getInputContent() {
 		return intputContent;
