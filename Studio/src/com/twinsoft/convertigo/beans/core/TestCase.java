@@ -272,6 +272,7 @@ public class TestCase extends DatabaseObject implements IVariableContainer, ICon
 					TestCaseVariable testCaseVariable = variable.isMultiValued() ? new TestCaseMultiValuedVariable():new TestCaseVariable();
 					testCaseVariable.setName(variableName);
 					testCaseVariable.setDescription(variable.getDescription());
+					testCaseVariable.setRequired(variable.isRequired());
 					testCaseVariable.setValueOrNull(variable.getValueOrNull());
 					testCaseVariable.setVisibility(variable.getVisibility());
 					addVariable(testCaseVariable);
