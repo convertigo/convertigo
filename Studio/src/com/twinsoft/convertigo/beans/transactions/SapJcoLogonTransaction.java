@@ -119,7 +119,7 @@ public class SapJcoLogonTransaction extends SapJcoTransaction {
 	}
 
 	@Override
-	public Object getVariableValue(String requestedVariableName) {
+	public Object getVariableValue(String requestedVariableName) throws EngineException {
 		Object value =  super.getVariableValue(requestedVariableName);
 		if (value instanceof Document) {
 			Document var_doc = (Document)value;

@@ -219,7 +219,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 	
 	public abstract void abort();
 	
-	public void parseInputDocument(Context context){
+	public void parseInputDocument(Context context) throws EngineException{
 		this.context = context;
 	}
 

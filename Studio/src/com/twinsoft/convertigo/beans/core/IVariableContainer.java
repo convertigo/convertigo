@@ -24,11 +24,13 @@ package com.twinsoft.convertigo.beans.core;
 
 import java.util.List;
 
+import com.twinsoft.convertigo.engine.EngineException;
+
 public interface IVariableContainer {
 	public boolean hasVariables();
 	public int numberOfVariables();
 	public Variable getVariable(int index);
 	public Variable getVariable(String variableName);
-	public Object getVariableValue(String requestedVariableName);
+	public Object getVariableValue(String requestedVariableName) throws EngineException;
 	public List<? extends Variable> getVariables();
 }

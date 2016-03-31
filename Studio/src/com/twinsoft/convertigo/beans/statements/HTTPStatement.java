@@ -198,16 +198,23 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 		return null;
 	}
 	
-	public Object getVariableValue(String requestedVariableName) {
+	@Override
+	public Object getVariableValue(String requestedVariableName) throws EngineException {
 		Object value = null, valueToPrint = null;
 		Variable variable = getVariable(requestedVariableName);
 		if (variable != null) {
 			value = variable.getValueOrNull();
 			valueToPrint = Visibility.Logs.printValue(variable.getVisibility(), value);
-			if ((value != null) && (value instanceof String))
-				Engine.logBeans.debug("Default value: " + requestedVariableName + " = \"" + valueToPrint + "\"");
-			else
-				Engine.logBeans.debug("Default value: " + requestedVariableName + " = " + valueToPrint);
+			if (Engine.logBeans.isDebugEnabled()) {
+				if ((value != null) && (value instanceof String))
+					Engine.logBeans.debug("Default value: " + requestedVariableName + " = \"" + valueToPrint + "\"");
+				else
+					Engine.logBeans.debug("Default value: " + requestedVariableName + " = " + valueToPrint);
+			}
+			
+			if (value == null && variable.isRequired()) {
+				throw new EngineException("Variable named \""+requestedVariableName+"\" is required for statement \""+getName()+"\"");
+			}
 		}
 		return value;
 	}

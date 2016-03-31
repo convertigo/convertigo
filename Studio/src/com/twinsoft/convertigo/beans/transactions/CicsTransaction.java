@@ -123,7 +123,7 @@ public class CicsTransaction extends Transaction {
 		return null;
 	}
 	
-	public void parseInputDocument(Context context) {
+	public void parseInputDocument(Context context) throws EngineException {
 		super.parseInputDocument(context);
 		
 		if (cicsInput == null)

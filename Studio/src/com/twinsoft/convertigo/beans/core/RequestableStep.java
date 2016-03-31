@@ -351,16 +351,23 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 		return null;
 	}
 	
-	public Object getVariableValue(String requestedVariableName) {
+	@Override
+	public Object getVariableValue(String requestedVariableName) throws EngineException {
 		Object value = null, valueToPrint = null;
 		StepVariable stepVariable = (StepVariable)getVariable(requestedVariableName);
 		if (stepVariable != null) {
 			value = stepVariable.getValueOrNull();
 			valueToPrint = Visibility.Logs.printValue(stepVariable.getVisibility(), value);
-			if ((value != null) && (value instanceof String))
-				Engine.logBeans.debug("Default value: " + requestedVariableName + " = \"" + valueToPrint + "\"");
-			else
-				Engine.logBeans.debug("Default value: " + requestedVariableName + " = " + valueToPrint);
+			if (Engine.logBeans.isDebugEnabled()) {
+				if ((value != null) && (value instanceof String))
+					Engine.logBeans.debug("Default value: " + requestedVariableName + " = \"" + valueToPrint + "\"");
+				else
+					Engine.logBeans.debug("Default value: " + requestedVariableName + " = " + valueToPrint);
+			}
+			
+			if (value == null && stepVariable.isRequired()) {
+				throw new EngineException("Variable named \""+requestedVariableName+"\" is required for step \""+getName()+"\"");
+			}
 		}
 		return value;
 	}

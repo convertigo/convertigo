@@ -181,7 +181,7 @@ public class CouchDbConnector extends Connector {
 		
 	}
 	
-	public String getTargetDatabase(AbstractDatabaseTransaction couchDbTransaction) {
+	public String getTargetDatabase(AbstractDatabaseTransaction couchDbTransaction) throws EngineException {
 		String targetDbName = couchDbTransaction.getParameterStringValue(CouchParam.db);
 				
 		if (targetDbName == null || targetDbName.isEmpty()) {

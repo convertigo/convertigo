@@ -117,16 +117,23 @@ public class TestCase extends DatabaseObject implements IVariableContainer, ICon
 		return null;
 	}
 	
-	public Object getVariableValue(String requestedVariableName) {
+	@Override
+	public Object getVariableValue(String requestedVariableName) throws EngineException {
 		Object value = null, valueToPrint = null;
 		TestCaseVariable testCaseVariable = (TestCaseVariable)getVariable(requestedVariableName);
 		if (testCaseVariable != null) {
 			value = testCaseVariable.getValueOrNull();
 			valueToPrint = Visibility.Logs.printValue(testCaseVariable.getVisibility(), value);
-			if ((value != null) && (value instanceof String))
-				Engine.logBeans.debug("Default value: " + requestedVariableName + " = \"" + valueToPrint + "\"");
-			else
-				Engine.logBeans.debug("Default value: " + requestedVariableName + " = " + valueToPrint);
+			if (Engine.logBeans.isDebugEnabled()) {
+				if ((value != null) && (value instanceof String))
+					Engine.logBeans.debug("Default value: " + requestedVariableName + " = \"" + valueToPrint + "\"");
+				else
+					Engine.logBeans.debug("Default value: " + requestedVariableName + " = " + valueToPrint);
+			}
+			
+			if (value == null && testCaseVariable.isRequired()) {
+				throw new EngineException("Variable named \""+requestedVariableName+"\" is required for testcase \""+getName()+"\"");
+			}
 		}
 		return value;
 	}

@@ -424,7 +424,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		}
 	}
 	
-	public Object getParameterValue(String parameterName) {
+	public Object getParameterValue(String parameterName) throws EngineException {
 		Object variableValue = null;
 		
 		int variableVisibility = getVariableVisibility(parameterName);
@@ -467,11 +467,12 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		return variableValue;
 	}
 	
-	public String getParameterStringValue(String parameterName) {
+	public String getParameterStringValue(String parameterName) throws EngineException {
 		return ParameterUtils.toString(getParameterValue(parameterName));
 	}
 	
-	public Object getVariableValue(String requestedVariableName) {
+	@Override
+	public Object getVariableValue(String requestedVariableName) throws EngineException {
 		// Request parameter value (see parseInputDocument())
 		Object value = ((variables == null) ? null: variables.get(requestedVariableName));
 		
@@ -482,10 +483,16 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 			if (variable != null) {
 				value = variable.getValueOrNull();// new 5.0.3 (may return null)
 				valueToPrint = Visibility.Logs.printValue(variable.getVisibility(), value);
-				if ((value != null) && (value instanceof String))
-					Engine.logBeans.debug("Default value: " + requestedVariableName + " = \"" + valueToPrint + "\"");
-				else
-					Engine.logBeans.debug("Default value: " + requestedVariableName + " = " + valueToPrint);
+				if (Engine.logBeans.isDebugEnabled()) {
+					if ((value != null) && (value instanceof String))
+						Engine.logBeans.debug("Default value: " + requestedVariableName + " = \"" + valueToPrint + "\"");
+					else
+						Engine.logBeans.debug("Default value: " + requestedVariableName + " = " + valueToPrint);
+				}
+				
+				if (value == null && variable.isRequired()) {
+					throw new EngineException("Variable named \""+requestedVariableName+"\" is required for transaction \""+getName()+"\"");
+				}
 			}
 		}
 		
@@ -507,7 +514,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 	protected transient boolean needRestoreVariables = false;
 	
 	@Override
-	public void parseInputDocument(Context context) {
+	public void parseInputDocument(Context context) throws EngineException {
 		super.parseInputDocument(context);
 		if (context.inputDocument != null && Engine.logContext.isInfoEnabled()) {
 			Document printDoc = (Document) Visibility.Logs.replaceVariables(getVariablesList(), context.inputDocument);

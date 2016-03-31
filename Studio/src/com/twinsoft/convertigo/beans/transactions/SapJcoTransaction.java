@@ -94,7 +94,7 @@ public class SapJcoTransaction extends TransactionWithVariables {
 	}
 	
 	@Override
-	public Object getParameterValue(String parameterName) {
+	public Object getParameterValue(String parameterName) throws EngineException {
 		Object parameterValue = super.getParameterValue(parameterName);
 		if (parameterValue != null) {
 			Document doc = XMLUtils.getDefaultDocumentBuilder().newDocument();

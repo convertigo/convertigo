@@ -235,7 +235,7 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		return null;
 	}
 	
-	public String getParameterStringValue(CouchParam param) {
+	public String getParameterStringValue(CouchParam param) throws EngineException {
 		String value = null;
 		Variable variable = getVariable(param.param());
 		
@@ -254,7 +254,7 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		return value;
 	}
 	
-	public boolean getParameterBooleanValue(CouchParam param, boolean def) {
+	public boolean getParameterBooleanValue(CouchParam param, boolean def) throws EngineException {
 		String value = getParameterStringValue(param);
 		if ("true".equalsIgnoreCase(value)) {
 			return true;
@@ -302,7 +302,7 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		return map;
 	}
 	
-	public JSONObject getJsonBody(JSONObject jsonDocument) throws JSONException {
+	public JSONObject getJsonBody(JSONObject jsonDocument) throws JSONException, EngineException {
 		// add document members from variables
 		for (RequestableVariable variable: getAllVariables()) {
 			String variableName = variable.getName();

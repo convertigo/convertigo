@@ -261,7 +261,7 @@ public class HtmlTransaction extends HttpTransaction {
 	 * @see com.twinsoft.convertigo.beans.transactions.HttpTransaction#parseInputDocument(com.twinsoft.convertigo.engine.Context)
 	 */
     @Override
-	public void parseInputDocument(com.twinsoft.convertigo.engine.Context context) {
+	public void parseInputDocument(com.twinsoft.convertigo.engine.Context context) throws EngineException {
 		super.parseInputDocument(context);
 
 		// TODO : voir si on garde cela

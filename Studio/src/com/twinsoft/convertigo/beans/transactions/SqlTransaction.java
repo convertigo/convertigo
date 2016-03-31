@@ -217,15 +217,16 @@ public class SqlTransaction extends TransactionWithVariables {
 				type = SqlKeywords.unknown;
 		}
 		
-		public SqlQueryInfos(String thequery, SqlTransaction sqlTransaction, boolean updateDefinitions){
+		public SqlQueryInfos(String thequery, SqlTransaction sqlTransaction, boolean updateDefinitions) throws EngineException {
 			this.query = thequery.replaceAll("\n", " ").replaceAll("\r", "").trim();
 			this.sqlTransaction = sqlTransaction;
 			findType();
 			this.query = prepareParameters(updateDefinitions);
 		}
 		
-		/** We prepare the query and create lists **/
-		private String prepareParameters(boolean updateDefinitions){
+		/** We prepare the query and create lists 
+		 * @throws EngineException  **/
+		private String prepareParameters(boolean updateDefinitions) throws EngineException {
 			String preparedSqlQuery = "";
 			
 			if ( query != null && (bNew || updateDefinitions)) {
@@ -333,7 +334,7 @@ public class SqlTransaction extends TransactionWithVariables {
 		return super.getRequestString(context);
 	}
 	
-	public List<SqlQueryInfos> initializeQueries(boolean updateDefinitions){
+	public List<SqlQueryInfos> initializeQueries(boolean updateDefinitions) throws EngineException {
 		if (preparedSqlQueries != null ) {
 			preparedSqlQueries.clear();
 		} else {
@@ -357,7 +358,7 @@ public class SqlTransaction extends TransactionWithVariables {
 	}
 	
 	@Override
-	public Object getParameterValue(String parameterName){
+	public Object getParameterValue(String parameterName) throws EngineException {
 		Object variableValue = null;
 
 		int variableVisibility = getVariableVisibility(parameterName);
@@ -914,7 +915,7 @@ public class SqlTransaction extends TransactionWithVariables {
 		}
 	}
 	
-	private boolean checkVariables(List<SqlQueryInfos> sqlQueries) {
+	private boolean checkVariables(List<SqlQueryInfos> sqlQueries) throws EngineException {
 
 		if (sqlQueries != null) {
 			for(SqlQueryInfos sqlQuery : sqlQueries){

@@ -320,7 +320,7 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 	 * @see com.twinsoft.convertigo.beans.core.TransactionWithVariables#parseInputDocument(com.twinsoft.convertigo.engine.Context)
 	 */
     @Override
-	public void parseInputDocument(Context context) {
+	public void parseInputDocument(Context context) throws EngineException {
 		super.parseInputDocument(context);
 		
 		// Overrides uri using given __uri request parameter

@@ -220,7 +220,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		this.orderedVariables = orderedVariables;
 	}
 
-	public Object getVariableValue(String requestedVariableName) {
+	@Override
+	public Object getVariableValue(String requestedVariableName) throws EngineException {
 		// Request parameter value (see parseInputDocument())
 		Object value = variables.get(requestedVariableName);
 		
@@ -232,10 +233,14 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 				value = variable.getValueOrNull();// new 5.0.3 (may return null)
 				valueToPrint = Visibility.Logs.printValue(variable.getVisibility(), value);
 				if (Engine.logBeans.isDebugEnabled()) {
-				if ((value != null) && (value instanceof String))
-					Engine.logBeans.debug("Default value: " + requestedVariableName + " = \"" + valueToPrint + "\"");
-				else
-					Engine.logBeans.debug("Default value: " + requestedVariableName + " = " + valueToPrint);
+					if ((value != null) && (value instanceof String))
+						Engine.logBeans.debug("Default value: " + requestedVariableName + " = \"" + valueToPrint + "\"");
+					else
+						Engine.logBeans.debug("Default value: " + requestedVariableName + " = " + valueToPrint);
+				}
+				
+				if (value == null && variable.isRequired()) {
+					throw new EngineException("Variable named \""+requestedVariableName+"\" is required for sequence \""+getName()+"\"");
 				}
 			}
 		}
@@ -257,7 +262,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	public transient Map<String, Object> variables = new HashMap<String, Object>();
 
 	@Override
-	public void parseInputDocument(Context context) {
+	public void parseInputDocument(Context context) throws EngineException {
 		super.parseInputDocument(context);
 
 		if (context.inputDocument != null && Engine.logContext.isInfoEnabled()) {

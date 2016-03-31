@@ -21,6 +21,8 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
+import com.twinsoft.convertigo.engine.EngineException;
+
 
 public abstract class AbstractDatabaseTransaction extends AbstractCouchDbTransaction {
 
@@ -38,7 +40,7 @@ public abstract class AbstractDatabaseTransaction extends AbstractCouchDbTransac
 		return clonedObject;
 	}
 	
-	public String getTargetDatabase() {
+	public String getTargetDatabase() throws EngineException {
 		return getConnector().getTargetDatabase(this);
 	}
 
