@@ -85,6 +85,7 @@ public abstract class UrlMappingParameter extends DatabaseObject implements ITag
 	
 	public UrlMappingParameter() {
 		super();
+		databaseType = "UrlMappingParameter";
 	}
 	
 	@Override
