@@ -111,6 +111,52 @@ public class SwaggerUtils {
 		return swagger;
 	}
 	
+	public static Swagger parse(String projectName) {
+		Swagger swagger = new Swagger();
+		
+		Project project = null;
+		try {
+			project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
+			
+			Info info = new Info();
+			info.setTitle("Convertigo REST API for " + projectName);
+			info.setDescription(project.getComment());
+			info.setVersion(project.getVersion());
+			Contact contact = new Contact();
+			contact.setEmail("support@convertigo.com");
+			info.setContact(contact);
+			swagger.setInfo(info);
+			
+			String webAppPath = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
+			int index = webAppPath.indexOf("://") + 3;
+			String host = webAppPath.substring(index, webAppPath.indexOf('/', index));
+			String basePath = webAppPath.substring(index + host.length()) + "/api";
+			swagger.setHost(host);
+			swagger.setBasePath(basePath);
+			
+			List<Scheme> schemes = new ArrayList<Scheme>();
+			schemes.add(Scheme.HTTP);
+			schemes.add(Scheme.HTTPS);
+			swagger.setSchemes(schemes);
+			
+			swagger.setConsumes(Arrays.asList("multipart/form-data","application/x-www-form-urlencoded","application/json","application/xml"));
+			
+			swagger.setProduces(Arrays.asList("application/json", "application/xml"));
+			
+			List<Tag> tags = new ArrayList<Tag>();
+			Tag tag = new Tag();
+			tag.setName(projectName);
+			tag.setDescription(project.getComment());
+			tags.add(tag);
+			swagger.setTags(tags);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return swagger;
+	}
+	
 	public static Swagger parse(UrlMapper urlMapper) {
 		Swagger swagger = new Swagger();
 		
@@ -118,6 +164,7 @@ public class SwaggerUtils {
 		contact.setEmail("support@convertigo.com");
 		
 		Project project = urlMapper.getProject();
+		
 		Info info = new Info();
 		info.setTitle("Convertigo REST API for " + project.getName());
 		info.setDescription(project.getComment());
@@ -335,10 +382,13 @@ public class SwaggerUtils {
 	}
 	
 	public static String getYamlDefinition(Object object) throws JsonProcessingException {
-		if (object instanceof UrlMapper) {
+		if (object instanceof String) {	// project name
+			return prettyPrintYaml(parse((String)object));
+		}
+		if (object instanceof UrlMapper) {	// urlmapper of project
 			return prettyPrintYaml(parse((UrlMapper)object));
 		}
-		if (object instanceof Collection<?>) {
+		if (object instanceof Collection<?>) { // all projects urlmapper
 			Collection<UrlMapper> collection = GenericUtils.cast(object);
 			return prettyPrintYaml(parse(collection));
 		}
@@ -346,6 +396,9 @@ public class SwaggerUtils {
 	}
 
 	public static String getJsonDefinition(Object object) {
+		if (object instanceof String) {	// project name
+			return prettyPrintJson(parse((String)object));
+		}
 		if (object instanceof UrlMapper) {
 			return prettyPrintJson(parse((UrlMapper)object));
 		}

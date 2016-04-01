@@ -585,6 +585,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		Engine.logDatabaseObjectManager.debug("Saving project \"" + projectName + "\" to XML file ...");
 		String exportedProjectFileName = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml";
 		CarUtils.exportProject(project, exportedProjectFileName);
+		RestApiManager.getInstance().putUrlMapper(project);
 		Engine.logDatabaseObjectManager.info("Project \"" + projectName + "\" saved!");
 	}
 

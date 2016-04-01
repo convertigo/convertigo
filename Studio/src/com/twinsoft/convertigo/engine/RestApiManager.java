@@ -57,7 +57,7 @@ public class RestApiManager implements AbstractManager {
 		instance = null;
 	}
 
-	protected void putUrlMapper(Project project) {
+	public void putUrlMapper(Project project) {
 		if (project == null)
 			return;
 		
@@ -71,7 +71,7 @@ public class RestApiManager implements AbstractManager {
 		}
 	}
 	
-	protected void removeUrlMapper(String projectName) {
+	public void removeUrlMapper(String projectName) {
 		if (projectName == null)
 			return;
 		

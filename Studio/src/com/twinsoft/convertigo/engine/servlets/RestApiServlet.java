@@ -35,7 +35,8 @@ public class RestApiServlet extends HttpServlet {
 				definition = isYaml ? SwaggerUtils.getYamlDefinition(urlMapper): SwaggerUtils.getJsonDefinition(urlMapper);
 			}
 			else {
-				throw new EngineException("Project \""+projectName+"\" does not contain any UrlMapper.");
+				Engine.logEngine.warn("Project \""+projectName+"\" does not contain any UrlMapper.");
+				definition = isYaml ? SwaggerUtils.getYamlDefinition(projectName): SwaggerUtils.getJsonDefinition(projectName);
 			}
 		}
 		// Build all project definitions

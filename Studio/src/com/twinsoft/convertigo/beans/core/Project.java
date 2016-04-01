@@ -38,6 +38,7 @@ import org.w3c.dom.NodeList;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.RestApiManager;
 import com.twinsoft.convertigo.engine.enums.JsonOutput;
 import com.twinsoft.convertigo.engine.enums.XPathEngine;
 import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
@@ -547,11 +548,13 @@ public class Project extends DatabaseObject implements IInfoProperty {
     	}
     	this.urlMapper = urlMapper;
 		super.add(urlMapper);
+		RestApiManager.getInstance().putUrlMapper(this);
     }
     
     public void removeUrlMapper(UrlMapper urlMapper) {
     	if (urlMapper != null && urlMapper.equals(this.urlMapper)) {
     		this.urlMapper = null;
+    		RestApiManager.getInstance().removeUrlMapper(getName());
     	}
     }
     
