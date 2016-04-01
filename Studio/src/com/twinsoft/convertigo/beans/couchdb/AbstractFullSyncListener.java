@@ -46,6 +46,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -132,9 +133,17 @@ public abstract class AbstractFullSyncListener extends Listener {
 			return;
 		}
 		
+		String c8oAcl = null;
+		try {
+			c8oAcl = CouchKey.c8oAcl.String(docs.getJSONObject(0));
+		} catch (JSONException e) {
+			throw new EngineException("Fail to retrieve c8oAcl", e);
+		}
+		
 		for (int i = 0; i < len; i++) {
 			try {
 				CouchKey.c8oHash.remove(docs.getJSONObject(i));
+				CouchKey.c8oAcl.remove(docs.getJSONObject(i));
 			} catch (JSONException e) {
 				throw new EngineException("Incoming documents error", e);
 			}
@@ -153,25 +162,26 @@ public abstract class AbstractFullSyncListener extends Listener {
 			Engine.logBeans.debug("(FullSyncListener) Listener \""+ getName() +"\" : execute sequence \""+sequenceName+"\"");
 			if (isInternalRequest) {
 				try {
+//					HttpServletRequestTwsWrapper request = new HttpServletRequestTwsWrapper();
+//					request.addParameter(Parameter.Project.getName(), projectName);
+//			    	request.addParameter(Parameter.Sequence.getName(), sequenceName);
+//					new XmlServlet().processRequest(request);
 					Map<String, Object> request = new HashMap<String, Object>();
 			    	boolean maintainContext = false;
 			    	boolean maintainSession = false;
 					
 			    	request.put(Parameter.Project.getName(), new String[] { projectName });
 			    	request.put(Parameter.Sequence.getName(), new String[] { sequenceName });
-			    	request.put(Parameter.Context.getName(), new String[] { "" });
-			    	request.put(Parameter.SessionId.getName(), new String[] { "" });
 					if (!maintainContext) request.put(Parameter.RemoveContext.getName(), new String[] { "" });
 					if (!maintainSession) request.put(Parameter.RemoveSession.getName(), new String[] { "" });
 					//request.put("docs", itemsElement);
 					request.put("doc", docList);
 					
 		    		Engine.logBeans.debug("(FullSyncListener) Listener \""+ getName() +"\" : internal invoke requested");
-		        	InternalRequester internalRequester = new InternalRequester();
-		        	internalRequester.setStrictMode(getProject().isStrictMode());
-		        	
-		        	internalRequester.inputData = request;
-		    		Object result = internalRequester.processRequest(request);
+		        	InternalRequester internalRequester = new InternalRequester(request);
+		        	internalRequester.getHttpServletRequest();
+		        	SessionAttribute.authenticatedUser.set(internalRequester.getHttpServletRequest().getSession(), c8oAcl);
+		    		Object result = internalRequester.processRequest();
 		        	if (result != null) {
 		        		Document xmlHttpDocument = (Document) result;
 		        		String contents = XMLUtils.prettyPrintDOMWithEncoding(xmlHttpDocument, "UTF-8");
@@ -230,7 +240,7 @@ public abstract class AbstractFullSyncListener extends Listener {
 		for (int i = 0; i < len;) {
 			JSONArray docs = getChunk(deletedDocs, i);
 			i += docs.length();
-			executeSequence(docs, false);
+			executeSequence(docs, true);
 		}
 	}
 	
@@ -267,7 +277,7 @@ public abstract class AbstractFullSyncListener extends Listener {
 				docs.put(CouchKey.doc.JSONObject(rows.getJSONObject(i)));
 			}
 			
-			executeSequence(docs, false); // true: internal requester, false: http requester
+			executeSequence(docs, true); // true: internal requester, false: http requester
 		}
 	}
 	

@@ -383,10 +383,8 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 				}
 				
 				String contextName = request.getParameter(Parameter.Context.getName());
-				String sessionId = request.getSession().getId();
 				
 		    	map.put(Parameter.Context.getName(), new String[] { contextName });
-		    	map.put(Parameter.SessionId.getName(), new String[] { sessionId });
 
 		    	map.put(Parameter.Project.getName(), new String[] { projectName });
 				if (sequenceName.isEmpty()) {
@@ -494,9 +492,8 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 			
 			// Execute requestable
 			Engine.logBeans.debug("(AbstractRestOperation) \""+ getName() +"\" executing requestable \""+ targetRequestableQName +"\"");
-        	InternalRequester internalRequester = new InternalRequester(request);
-        	internalRequester.setStrictMode(getProject().isStrictMode());
-    		Object result = internalRequester.processRequest(map);
+        	InternalRequester internalRequester = new InternalRequester(map, request);
+    		Object result = internalRequester.processRequest();
         	if (result != null) {
         		Document xmlHttpDocument = (Document) result;
         		

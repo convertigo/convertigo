@@ -28,6 +28,7 @@ import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.NativeJavaObject;
 import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
@@ -44,64 +45,60 @@ import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.translators.DefaultInternalTranslator;
 import com.twinsoft.convertigo.engine.translators.Translator;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.InternalHttpServletRequest;
 
 public class InternalRequester extends GenericRequester {
 	
-	private HttpServletRequest httpServletRequest = null;
+	private HttpServletRequest httpServletRequest;
 	
 	boolean bStrictMode = false;
+
+    protected String subPath = null;
 	
-    public InternalRequester() {
-    	this(null);
+    public InternalRequester(Map<String, Object> request) throws EngineException {
+    	this(request, null);
     }
     
-    public InternalRequester(HttpServletRequest httpServletRequest) {
-    	this.httpServletRequest = httpServletRequest;
+    public InternalRequester(Map<String, Object> request, HttpServletRequest httpServletRequest) throws EngineException {
+    	String projectName = ((String[]) request.get(Parameter.Project.getName()))[0];
+    	bStrictMode = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName).isStrictMode();
+    	inputData = request;
+    	this.httpServletRequest = httpServletRequest == null ? new InternalHttpServletRequest(this) : httpServletRequest;
     }
-
-    public void setStrictMode(boolean strictMode) {
-		this.bStrictMode = strictMode;
-	}
+    
+    public Object processRequest() throws Exception {
+    	return processRequest(inputData);
+    }
     
     public String getName() {
         return "InternalRequester";
     }
-
-    protected String subPath = null;
     
     protected void initInternalVariables() throws EngineException {
 		Map<String, Object> request = GenericUtils.cast(inputData);
 
 		// Find the project name
-		try {
-			projectName = getParameterValue(request.get(Parameter.Project.getName()));
+		projectName = getParameterValue(request.get(Parameter.Project.getName()));
+		if (projectName != null) {
 			Engine.logContext.debug("(InternalRequester) project name: " + projectName);
-		} catch (NullPointerException e) {
-			// Just ignore
 		}
 
 		// Find the pool name
-		try {
-			poolName = getParameterValue(request.get(Parameter.Pool.getName()));
+		poolName = getParameterValue(request.get(Parameter.Pool.getName()));
+		if (poolName != null) {
 			Engine.logContext.debug("(InternalRequester) pool name: " + poolName);
-		} catch (NullPointerException e) {
-			// Just ignore
 		}
 
 		// Find the sequence name
-		try {
-			sequenceName = getParameterValue(request.get(Parameter.Sequence.getName()));
+		sequenceName = getParameterValue(request.get(Parameter.Sequence.getName()));
+		if (sequenceName != null) {
 			Engine.logContext.debug("(InternalRequester) sequence name: " + sequenceName);
-		} catch (NullPointerException e) {
-			// Just ignore
 		}
 
 		// Find the connector name
-		try {
-			connectorName = getParameterValue(request.get(Parameter.Connector.getName()));
+		connectorName = getParameterValue(request.get(Parameter.Connector.getName()));
+		if (connectorName != null) {
 			Engine.logContext.debug("(InternalRequester) connector name: " + connectorName);
-		} catch (NullPointerException e) {
-			// Just ignore
 		}
     }
     
@@ -112,7 +109,10 @@ public class InternalRequester extends GenericRequester {
 
 		initInternalVariables();
 		
-		String sessionID = request.get(Parameter.SessionId.getName())[0];
+		String sessionID = getParameterValue(request.get(Parameter.SessionId.getName()));
+		if (sessionID == null) {
+			sessionID = httpServletRequest.getSession().getId();
+		}
 		Engine.logContext.debug("(ServletRequester) Requested execution sessionID: " + sessionID);
 		
 		context = Engine.theApp.contextManager.get(this, contextName, sessionID, poolName, projectName, connectorName, sequenceName);
@@ -124,14 +124,14 @@ public class InternalRequester extends GenericRequester {
 		Map<String, String[]> request = GenericUtils.cast(inputData);
 
 		// Find the context name
-		String contextName = request.get(Parameter.Context.getName())[0];
+		String contextName = getParameterValue(request.get(Parameter.Context.getName()));
 		
-		if ((contextName == null) || (contextName.length() == 0)) 
+		if (StringUtils.isBlank(contextName)) { 
 			contextName = "default";
-		
-		else if (contextName.equals("*"))
+		} else if (contextName.equals("*")) {
 			contextName = "default*";
-
+		}
+		
 		Engine.logContext.debug("(InternalRequester) Context name: " + contextName);
 		return contextName;
 	}
@@ -180,6 +180,10 @@ public class InternalRequester extends GenericRequester {
 	}
 
 	private static String getParameterValue(Object parameterObjectValue) {
+		if (parameterObjectValue == null) {
+			return null;
+		}
+		
 		if (parameterObjectValue instanceof NativeJavaObject) {
 			parameterObjectValue = ((NativeJavaObject) parameterObjectValue).unwrap();
 		}
@@ -187,8 +191,10 @@ public class InternalRequester extends GenericRequester {
 		if (parameterObjectValue.getClass().isArray()) {
 			String[] parameterValues = (String[]) parameterObjectValue;
 			if (parameterValues.length > 0) {
-				return parameterValues[0];			}
-			else return null;
+				return parameterValues[0];
+			} else {
+				return null;
+			}
 		} else if (parameterObjectValue instanceof Node) {
 			Node node = (Node) parameterObjectValue;
 			return node instanceof Element ? ((Element) node).getTextContent() : node.getNodeValue();
@@ -197,14 +203,16 @@ public class InternalRequester extends GenericRequester {
 			if (nl.getLength() > 0) {
 				Node node = nl.item(0);
 				return node instanceof Element ? ((Element) node).getTextContent() : node.getNodeValue();
+			} else {
+				return null;
 			}
-			else return null;
 		} else if (parameterObjectValue instanceof XMLVector) {
 			XMLVector<Object> parameterValues = GenericUtils.cast(parameterObjectValue);
 			if (parameterValues.size() > 0) {
 				return getParameterValue(parameterValues.get(0));
+			} else {
+				return null;
 			}
-			else return null;
 		} else {
 			return parameterObjectValue.toString();
 		}
@@ -258,5 +266,9 @@ public class InternalRequester extends GenericRequester {
                 } 
         } 
         return result;
+	}
+
+	public HttpServletRequest getHttpServletRequest() {
+		return httpServletRequest;
 	} 
 }

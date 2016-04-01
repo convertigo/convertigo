@@ -134,7 +134,7 @@ $.extend(true, C8O, {
 			if (policy == "none") {
 				// don't modify
 				callback(document);
-			} if (policy == "create") {
+			} else if (policy == "create") {
 				delete document._id;
 				delete document._rev;
 				

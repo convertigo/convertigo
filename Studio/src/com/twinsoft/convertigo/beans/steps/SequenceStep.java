@@ -142,7 +142,6 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 					new String[] { sequence.context.contextID });
 	    	request.put(Parameter.Sequence.getName(), new String[] { targetSequence.getName() });
 	    	request.put(Parameter.Context.getName(), new String[] { sequence.addStepContextName(ctxName) });
-	    	request.put(Parameter.SessionId.getName(), new String[] { sequence.getSessionId() });
 	    	request.put(Parameter.SequenceInheritedTransactionContext.getName(), inheritContex ? new String[] { inheritedCxtName }:new String[] { "" });
 	    	if (!maintainContext) request.put(Parameter.RemoveContext.getName(), new String[] { "" });
 	    	if (!maintainSession) request.put(Parameter.RemoveSession.getName(), new String[] { "" });

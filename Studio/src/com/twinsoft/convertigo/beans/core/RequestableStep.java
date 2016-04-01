@@ -772,11 +772,9 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 	    			
 	            	if (bInternalInvoke) {
 	            		Engine.logBeans.debug("(RequestableStep) Internal invoke requested");
-		            	InternalRequester internalRequester = new InternalRequester();
-		            	internalRequester.setStrictMode(getProject().isStrictMode());
+		            	InternalRequester internalRequester = new InternalRequester(request, sequence.context.httpServletRequest);
 		            	
-		            	internalRequester.inputData = request;
-		        		Object result = internalRequester.processRequest(request);
+		        		Object result = internalRequester.processRequest();
 
 		        		// MDC log parameters must return to their original values, because
 		            	// the internal requester has been executed on the same thread as us.
