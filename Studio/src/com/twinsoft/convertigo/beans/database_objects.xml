@@ -151,36 +151,36 @@
 	<group name="URL Mapper">
 		<category>
 			<beans>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.core.UrlMapper">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.core.UrlMapper">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
                 </bean>
 			</beans>
 		</category>
 		<category name="REST API">
 			<beans groupname="Mappings">
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.rest.PathMapping">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.rest.PathMapping">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.UrlMapper"/>
 				</bean>
 			</beans>
 			<beans groupname="Operations">
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.rest.GetOperation">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.rest.GetOperation">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PathMapping"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.rest.PostOperation">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.rest.PostOperation">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PathMapping"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.rest.PutOperation">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.rest.PutOperation">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PathMapping"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.rest.DeleteOperation">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.rest.DeleteOperation">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PathMapping"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.rest.HeadOperation">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.rest.HeadOperation">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PathMapping"/>
 				</bean>
 			</beans>
 			<beans groupname="Responses">
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.rest.OperationResponse">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.rest.OperationResponse">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.GetOperation"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PostOperation"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PutOperation"/>
@@ -189,32 +189,32 @@
 				</bean>
 			</beans>
 			<beans groupname="Parameters">
-				<bean enable="false" documented="false" classname="com.twinsoft.convertigo.beans.rest.PathParameter">
+				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.rest.PathParameter">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.GetOperation"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PostOperation"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PutOperation"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.DeleteOperation"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.HeadOperation"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.rest.HeaderParameter">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.rest.HeaderParameter">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.GetOperation"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PostOperation"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PutOperation"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.DeleteOperation"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.HeadOperation"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.rest.QueryParameter">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.rest.QueryParameter">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.GetOperation"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PostOperation"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PutOperation"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.DeleteOperation"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.HeadOperation"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.rest.FormParameter">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.rest.FormParameter">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PostOperation"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PutOperation"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.rest.BodyParameter">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.rest.BodyParameter">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PostOperation"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.rest.PutOperation"/>
 				</bean>
