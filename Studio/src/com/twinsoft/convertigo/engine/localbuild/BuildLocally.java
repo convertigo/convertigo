@@ -254,7 +254,6 @@ public abstract class BuildLocally {
 	private void processConfigXMLResources(File wwwDir, File cordovaDir) throws Throwable {
 		try {
 			
-			// Est ce que ça doit être dans le dossier www ou cordova ???
 			File configFile = new File(cordovaDir, "config.xml");
 			Document doc = XMLUtils.loadXml(configFile);
 			CachedXPathAPI xpathApi = new CachedXPathAPI();
@@ -299,11 +298,12 @@ public abstract class BuildLocally {
 				singleElement = (Element) nodeIterator.nextNode();
 			}
 			
-			singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/plugin[@name='couchbase-lite-phonegap-plugin']");
-			if (singleElement != null) {
-				singleElement.setAttribute("name", "com.couchbase.lite.phonegap");
+			if (mobilePlatform instanceof Android) {
+				singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/plugin[@name='couchbase-lite-phonegap-plugin']");
+				if (singleElement != null) {
+					singleElement.setAttribute("name", "com.couchbase.lite.phonegap");
+				}
 			}
-			
 			
 			
 //			for (Element plugin = (Element) plugins.nextNode(); plugin != null; plugin = (Element) plugins.nextNode()) {
