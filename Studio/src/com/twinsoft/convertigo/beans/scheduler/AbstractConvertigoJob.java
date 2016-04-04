@@ -24,7 +24,7 @@ package com.twinsoft.convertigo.beans.scheduler;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -82,20 +82,23 @@ public abstract class AbstractConvertigoJob extends AbstractJob {
 	}
 	
 	protected void addParameters(Map<String, String[]> parameters) {
+		parameters.put(Parameter.Project.getName(), new String[]{projectName});
 		if (contextName != null && contextName.length() > 0) {
 			parameters.put(Parameter.Context.getName(), new String[]{contextName});
 		}
-		for (Map.Entry<String, String[]> entry : parameters.entrySet()) {
-			parameters.put(entry.getKey(), entry.getValue());
-		}
+	}
+	
+	public Map<String, String[]> getConvertigoParameters() {
+		Map<String, String[]> parameters = new HashMap<String, String[]>();
+		addParameters(parameters);
+		parameters.putAll(this.parameters);
+		return parameters;
 	}
 	
 	public String getConvertigoURL() {
-		Map<String, String[]> parameters = new LinkedHashMap<String, String[]>();
-		addParameters(parameters);
-		parameters.putAll(this.parameters);
+		Map<String, String[]> parameters = getConvertigoParameters();
 		StringBuffer sb = new StringBuffer();
-		sb.append("/projects/").append(projectName).append("/.xml?");
+		sb.append("/projects/").append(projectName).append("/.pxml?");
 		for (Entry<String, String[]> entry : parameters.entrySet()) {
 			try {
 				String[] val = entry.getValue();

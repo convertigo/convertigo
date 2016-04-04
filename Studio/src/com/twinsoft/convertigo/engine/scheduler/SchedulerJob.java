@@ -22,32 +22,26 @@
 
 package com.twinsoft.convertigo.engine.scheduler;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.httpclient.HostConfiguration;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpState;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.io.IOUtils;
 import org.quartz.Job;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.beans.scheduler.AbstractConvertigoJob;
 import com.twinsoft.convertigo.beans.scheduler.AbstractJob;
 import com.twinsoft.convertigo.beans.scheduler.JobGroupJob;
 import com.twinsoft.convertigo.beans.scheduler.ScheduledJob;
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.requesters.InternalRequester;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class SchedulerJob implements Job {
 	static Pattern encodingPattern = Pattern.compile(".*encoding=\"([^\"]*)\".*");;
@@ -73,49 +67,23 @@ public class SchedulerJob implements Job {
 			long start = System.currentTimeMillis();
 			if (job instanceof AbstractConvertigoJob) {
 				AbstractConvertigoJob convertigoJob = (AbstractConvertigoJob) job;
-
-				String targetUrl = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
-				if (targetUrl.endsWith("/")) {
-					targetUrl = targetUrl.substring(targetUrl.length() - 1, targetUrl.length());
-				}
-				targetUrl += convertigoJob.getConvertigoURL();
-
-				Engine.logScheduler.info("Prepare job " + jdName + " for " + targetUrl);
-
-				PostMethod method = new PostMethod(targetUrl);
-				method.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-
-				// Tells the method to automatically handle authentication.
-				method.setDoAuthentication(true);
-
-				// Tells the method to automatically handle redirection.
-				method.setFollowRedirects(false);
+				
 				try {
-					int statuscode = Engine.theApp.httpClient.executeMethod(HostConfiguration.ANY_HOST_CONFIGURATION,method, new HttpState());
-					String message = "Completed job " + jdName + " with status " + statuscode;
+					Engine.logScheduler.info("Prepare job " + jdName + " for " + convertigoJob.getProjectName());
+					
+					Map<String, String[]> parameters = convertigoJob.getConvertigoParameters();
+					Object response = new InternalRequester(GenericUtils.cast(parameters)).processRequest();
+					
+					String message = "Completed job " + jdName + " with success";
 					if (convertigoJob.isWriteOutput()) {
-						ByteArrayOutputStream baos = new ByteArrayOutputStream();
-						IOUtils.copy(method.getResponseBodyAsStream(), baos);
-						byte[] data = baos.toByteArray();
-						int len = Math.min(data.length, 128);
-						String encoding = "UTF-8";
-						Matcher encodingMatcher = encodingPattern.matcher(new String (data, 0, len, "ASCII"));
-						if (encodingMatcher.find()) {
-							encoding = encodingMatcher.group(1);
+						if (response instanceof Document) {
+							response = XMLUtils.prettyPrintDOM((Document) response);
 						}
-						try {
-							message += '\n' + new String(data, encoding);
-						} catch (UnsupportedEncodingException e) {
-							message += '\n' + new String(data, "ASCII");
-						}
+						message += "\n" + response;
 					}
 					Engine.logScheduler.info(message);
-				} catch (HttpException e) {
+				} catch (Exception e) {
 					Engine.logScheduler.error("Failed job " + jdName, e);
-				} catch (IOException e) {
-					Engine.logScheduler.error("Failed job " + jdName, e);
-				} finally {
-					method.releaseConnection();
 				}
 			} else if (job instanceof JobGroupJob) {
 				JobGroupJob jobGroupJob = (JobGroupJob) job;
