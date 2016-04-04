@@ -220,6 +220,8 @@ public class SwaggerUtils {
 				for (UrlMappingOperation umo : urlMapping.getOperationList()) {
 					Operation s_operation = new Operation();
 					s_operation.setOperationId(umo.getName());
+					s_operation.setDescription(umo.getComment());
+					s_operation.setSummary(umo.getComment());
 					s_operation.setProduces(Arrays.asList("application/json", "application/xml"));
 					
 					// Operation tags
@@ -333,6 +335,7 @@ public class SwaggerUtils {
 						if (!statusCode.isEmpty()) {
 							if (!responses.containsKey(statusCode)) {
 								Response response = new Response();
+								//response.setDescription(umr.getComment());
 								response.setDescription(umr.getStatusText());
 								if (umr instanceof IMappingRefModel) {
 									String modelreference = ((IMappingRefModel)umr).getModelReference();
