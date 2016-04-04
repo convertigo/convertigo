@@ -36,15 +36,13 @@ import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Set;
 
-import org.apache.commons.httpclient.HostConfiguration;
-import org.apache.commons.httpclient.HttpState;
-import org.apache.commons.httpclient.methods.PostMethod;
+import javax.servlet.http.HttpSession;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.core.resources.IProject;
@@ -136,8 +134,12 @@ import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.ProductVersion;
+import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest;
+import com.twinsoft.convertigo.engine.requesters.InternalRequester;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.SimpleCipher;
 import com.twinsoft.util.Log;
 
@@ -215,8 +217,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	//The shared instance.
 	private static ConvertigoPlugin plugin;
 	
-	private HostConfiguration runRequestableHostConfiguration;
-	private HttpState runRequestableHttpState;
+	private HttpSession session;
 	
 	//Resource bundle.
 	private ResourceBundle resourceBundle;
@@ -805,10 +806,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 								logError("Unable to start engine; see console for more details");
 								return;
 							}
-
-							runRequestableHostConfiguration = new HostConfiguration();
-							runRequestableHostConfiguration.setHost("localhost", embeddedTomcat.getHttpPort());
-							runRequestableHttpState = new  HttpState();
 							
 							// The console threads must be started AFTER the engine
 							consolePipes.startConsoleThreads();
@@ -1591,20 +1588,23 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		return this.shuttingDown;
 	}
 	
-	public void runRequestable(final String projectName, Map<String, String[]> parameters) {
-		if (runRequestableHostConfiguration != null) {
-			final PostMethod method = new PostMethod("/convertigo/projects/" + projectName + "/.pxml");
-			for (Entry<String, String[]> parameter : parameters.entrySet()) {
-				for (String value : parameter.getValue()) {
-					method.addParameter(parameter.getKey(), value);
-				}
-			}
+	public void runRequestable(final String projectName, final Map<String, String[]> parameters) {
+		if (!Engine.isStartFailed && Engine.isStarted) {
+			parameters.put(Parameter.Project.getName(), new String[] {projectName});
 			new Thread(new Runnable() {
 
 				@Override
 				public void run() {
 					try {
-						Engine.theApp.httpClient.executeMethod(runRequestableHostConfiguration, method, runRequestableHttpState);
+						InternalHttpServletRequest request;
+						if (session == null) {
+							request = new InternalHttpServletRequest();
+							session = request.getSession();
+						} else {
+							request = new InternalHttpServletRequest(session);
+						}
+						
+						new InternalRequester(GenericUtils.<Map<String, Object>>cast(parameters), request).processRequest();
 					} catch (Exception e) {
 						logException(e, "Failed to run the requestable of project " + projectName);
 					}

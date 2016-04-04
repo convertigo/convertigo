@@ -58,6 +58,10 @@ public class InternalHttpServletRequest implements HttpServletRequest {
 		
 	}
 	
+	public InternalHttpServletRequest(HttpSession session) {
+		this.session = session;
+	}
+	
 	public InternalHttpServletRequest(HttpServletRequest request) {
 		characterEncoding = request.getCharacterEncoding();
 		localAddr = request.getLocalAddr();
