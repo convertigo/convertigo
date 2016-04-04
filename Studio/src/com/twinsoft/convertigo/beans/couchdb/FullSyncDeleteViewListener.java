@@ -32,6 +32,7 @@ import org.codehaus.jettison.json.JSONObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
+import com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest;
 
 public class FullSyncDeleteViewListener extends AbstractFullSyncViewListener implements FullSyncDeleteListener {
 
@@ -48,8 +49,8 @@ public class FullSyncDeleteViewListener extends AbstractFullSyncViewListener imp
 	}
 	
 	@Override
-	protected void triggerSequence(JSONArray deletedDocs) throws EngineException, JSONException {		
-		onDeletedDocs(deletedDocs);
+	protected void triggerSequence(InternalHttpServletRequest request, JSONArray deletedDocs) throws EngineException, JSONException {		
+		onDeletedDocs(request, deletedDocs);
 	}
 
 	@Override

@@ -1,4 +1,4 @@
-package com.twinsoft.convertigo.engine.util;
+package com.twinsoft.convertigo.engine.requesters;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -30,18 +31,61 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionContext;
 import javax.servlet.http.Part;
 
-import com.twinsoft.convertigo.engine.requesters.InternalRequester;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 @SuppressWarnings("deprecation")
 public class InternalHttpServletRequest implements HttpServletRequest {
 	static long sessionID = System.currentTimeMillis();
-	private InternalRequester internalRequester;
-	private Map<String, Object> attributes;
-	private String characterEncoding = "UTF-8";
-	private InternalSession session = null;
 	
-	public InternalHttpServletRequest(InternalRequester internalRequester) {
-		this.internalRequester = internalRequester;
+	InternalRequester internalRequester;
+	
+	private Map<String, Object> attributes;
+	private HttpSession session = null;
+
+	private String characterEncoding = "UTF-8";
+	private String localAddr = "127.0.0.1";
+	private String localName = "localhost";
+	private int localPort = 18080;
+	private String remoteAddr = localAddr;
+	private String remoteHost = localName;
+	private int remotePort = 18081;
+	private String serverName = localAddr;
+	private int serverPort = localPort;
+	private ServletContext servletContext = null;
+	private Map<String, List<String>> headers = null;
+	
+	public InternalHttpServletRequest() {
+		
+	}
+	
+	public InternalHttpServletRequest(HttpServletRequest request) {
+		characterEncoding = request.getCharacterEncoding();
+		localAddr = request.getLocalAddr();
+		localName = request.getLocalName();
+		localPort = request.getLocalPort();
+		remoteAddr = request.getRemoteAddr();
+		remoteHost = request.getRemoteHost();
+		remotePort = request.getRemotePort();
+		serverName = request.getServerName();
+		serverPort = request.getServerPort();
+		servletContext = request.getServletContext();
+		session = request.getSession();
+		
+		headers = new HashMap<String, List<String>>();
+		for (Enumeration<String> i = request.getHeaderNames(); i.hasMoreElements();) {
+			String name = i.nextElement();
+			List<String> values = new ArrayList<String>();
+			for (Enumeration<String> j = request.getHeaders(name); j.hasMoreElements();) {
+				values.add(j.nextElement());
+			}
+			headers.put(name, values);
+		}
+		
+		for (Enumeration<String> i = request.getAttributeNames(); i.hasMoreElements();) {
+			String name = i.nextElement();
+			setAttribute(name, request.getAttribute(name));
+		}
+		
 	}
 	
 	private Map<String, Object> getAttributes() {
@@ -83,8 +127,7 @@ public class InternalHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public String getContentType() {
-		// TODO Auto-generated method stub
-		return null;
+		return "x-www-form-urlencoded";
 	}
 
 	@Override
@@ -100,17 +143,17 @@ public class InternalHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public String getLocalAddr() {
-		return "127.0.0.1";
+		return localAddr;
 	}
 
 	@Override
 	public String getLocalName() {
-		return "localhost";
+		return localName;
 	}
 
 	@Override
 	public int getLocalPort() {
-		return 18080;
+		return localPort;
 	}
 
 	@Override
@@ -202,17 +245,17 @@ public class InternalHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public String getRemoteAddr() {
-		return "127.0.0.1";
+		return remoteAddr;
 	}
 
 	@Override
 	public String getRemoteHost() {
-		return "localhost";
+		return remoteHost;
 	}
 
 	@Override
 	public int getRemotePort() {
-		return 18081;
+		return remotePort;
 	}
 
 	@Override
@@ -228,18 +271,17 @@ public class InternalHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public String getServerName() {
-		return "localhost";
+		return serverName;
 	}
 
 	@Override
 	public int getServerPort() {
-		return 18080;
+		return serverPort;
 	}
 
 	@Override
 	public ServletContext getServletContext() {
-		// TODO Auto-generated method stub
-		return null;
+		return servletContext;
 	}
 
 	@Override
@@ -320,33 +362,48 @@ public class InternalHttpServletRequest implements HttpServletRequest {
 	}
 
 	@Override
-	public String getHeader(String arg0) {
-		// TODO Auto-generated method stub
+	public String getHeader(String name) {
+		if (headers != null) {
+			List<String> values = headers.get(name);
+			if (values != null && !values.isEmpty()) {
+				return values.get(0);
+			}
+		}
 		return null;
 	}
 
 	@Override
 	public Enumeration<String> getHeaderNames() {
-		// TODO Auto-generated method stub
-		return null;
+		if (headers != null) {
+			Collections.enumeration(headers.keySet());
+		}
+		return Collections.enumeration(Collections.<String>emptyList());
 	}
 
 	@Override
-	public Enumeration<String> getHeaders(String arg0) {
-		// TODO Auto-generated method stub
-		return null;
+	public Enumeration<String> getHeaders(String name) {
+		if (headers != null) {
+			List<String> values = headers.get(name);
+			if (values != null) {
+				return Collections.enumeration(values);
+			}
+		}
+		return Collections.enumeration(Collections.<String>emptyList());
 	}
 
 	@Override
-	public int getIntHeader(String arg0) {
-		// TODO Auto-generated method stub
+	public int getIntHeader(String name) {
+		try {
+			return Integer.parseInt(getHeader(name));
+		} catch (Exception e) {
+			// ignore
+		}
 		return 0;
 	}
 
 	@Override
 	public String getMethod() {
-		// TODO Auto-generated method stub
-		return null;
+		return "POST";
 	}
 
 	@Override

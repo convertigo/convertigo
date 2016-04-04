@@ -45,7 +45,6 @@ import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.translators.DefaultInternalTranslator;
 import com.twinsoft.convertigo.engine.translators.Translator;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
-import com.twinsoft.convertigo.engine.util.InternalHttpServletRequest;
 
 public class InternalRequester extends GenericRequester {
 	
@@ -63,7 +62,11 @@ public class InternalRequester extends GenericRequester {
     	String projectName = ((String[]) request.get(Parameter.Project.getName()))[0];
     	bStrictMode = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName).isStrictMode();
     	inputData = request;
-    	this.httpServletRequest = httpServletRequest == null ? new InternalHttpServletRequest(this) : httpServletRequest;
+    	this.httpServletRequest = httpServletRequest == null ? new InternalHttpServletRequest() : httpServletRequest;
+    	
+    	if (this.httpServletRequest instanceof InternalHttpServletRequest) {
+    		((InternalHttpServletRequest) this.httpServletRequest).internalRequester = this;
+    	}
     }
     
     public Object processRequest() throws Exception {

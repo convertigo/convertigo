@@ -31,6 +31,7 @@ import org.codehaus.jettison.json.JSONObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
+import com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest;
 
 public class FullSyncFilterListener extends AbstractFullSyncFilterListener {
 
@@ -47,7 +48,7 @@ public class FullSyncFilterListener extends AbstractFullSyncFilterListener {
 	}
 	
 	@Override
-	protected void triggerSequence(JSONArray ids) throws EngineException {
+	protected void triggerSequence(InternalHttpServletRequest request, JSONArray ids) throws EngineException {
 		if (targetFilter == null || targetFilter.isEmpty()) {
 			throw new EngineException("No target view defined");
 		}
@@ -82,7 +83,7 @@ public class FullSyncFilterListener extends AbstractFullSyncFilterListener {
 						reason = reason == null ? "unknown" : reason;
 						throw new EngineException("Filter returned error: " + error + ", reason: " + reason);
 					}
-					runDocs(CouchKey.results.JSONArray(json));
+					runDocs(request, CouchKey.results.JSONArray(json));
 				}
 			}
 		} catch (Throwable t) {

@@ -22,14 +22,12 @@
 
 package com.twinsoft.convertigo.beans.couchdb;
 
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
 
-import org.apache.commons.httpclient.HostConfiguration;
-import org.apache.commons.httpclient.HttpState;
-import org.apache.commons.httpclient.methods.PostMethod;
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.xpath.XPathAPI;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
@@ -42,12 +40,10 @@ import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.core.Listener;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.enums.Parameter;
-import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
+import com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -101,15 +97,16 @@ public abstract class AbstractFullSyncListener extends Listener {
 		return getConnector().getDatabaseName();
 	}
 	
-	abstract protected void triggerSequence(JSONArray array) throws EngineException, JSONException;
+	abstract protected void triggerSequence(InternalHttpServletRequest request, JSONArray array) throws EngineException, JSONException;
 	
-	public void onBulkDocs(final JSONArray array) {
+	public void onBulkDocs(HttpServletRequest request, final JSONArray array) {
+		final InternalHttpServletRequest internalRequest = new InternalHttpServletRequest(request);
 		new Thread(new Runnable() {
 
 			@Override
 			public void run() {
 				try {
-					triggerSequence(array);
+					triggerSequence(internalRequest, array);
 				} catch (Exception e) {
 					Engine.logBeans.error("Unable to handle 'bulkDocs' event for \""+ getName() +"\" listener", e);
 				}
@@ -119,7 +116,7 @@ public abstract class AbstractFullSyncListener extends Listener {
 		
 	}
 	
-	protected void executeSequence(JSONArray docs, boolean isInternalRequest) throws EngineException {
+	protected void executeSequence(InternalHttpServletRequest request, JSONArray docs) throws EngineException {
 		if (targetSequence == null || targetSequence.isEmpty()) {
 			throw new EngineException("No target sequence defined");
 		}
@@ -131,13 +128,6 @@ public abstract class AbstractFullSyncListener extends Listener {
 		int len = docs.length(); 
 		if (len == 0) {
 			return;
-		}
-		
-		String c8oAcl = null;
-		try {
-			c8oAcl = CouchKey.c8oAcl.String(docs.getJSONObject(0));
-		} catch (JSONException e) {
-			throw new EngineException("Fail to retrieve c8oAcl", e);
 		}
 		
 		for (int i = 0; i < len; i++) {
@@ -160,87 +150,42 @@ public abstract class AbstractFullSyncListener extends Listener {
 			String sequenceName = st.nextToken();
 		
 			Engine.logBeans.debug("(FullSyncListener) Listener \""+ getName() +"\" : execute sequence \""+sequenceName+"\"");
-			if (isInternalRequest) {
-				try {
-//					HttpServletRequestTwsWrapper request = new HttpServletRequestTwsWrapper();
-//					request.addParameter(Parameter.Project.getName(), projectName);
-//			    	request.addParameter(Parameter.Sequence.getName(), sequenceName);
-//					new XmlServlet().processRequest(request);
-					Map<String, Object> request = new HashMap<String, Object>();
-			    	boolean maintainContext = false;
-			    	boolean maintainSession = false;
-					
-			    	request.put(Parameter.Project.getName(), new String[] { projectName });
-			    	request.put(Parameter.Sequence.getName(), new String[] { sequenceName });
-					if (!maintainContext) request.put(Parameter.RemoveContext.getName(), new String[] { "" });
-					if (!maintainSession) request.put(Parameter.RemoveSession.getName(), new String[] { "" });
-					//request.put("docs", itemsElement);
-					request.put("doc", docList);
-					
-		    		Engine.logBeans.debug("(FullSyncListener) Listener \""+ getName() +"\" : internal invoke requested");
-		        	InternalRequester internalRequester = new InternalRequester(request);
-		        	internalRequester.getHttpServletRequest();
-		        	SessionAttribute.authenticatedUser.set(internalRequester.getHttpServletRequest().getSession(), c8oAcl);
-		    		Object result = internalRequester.processRequest();
-		        	if (result != null) {
-		        		Document xmlHttpDocument = (Document) result;
-		        		String contents = XMLUtils.prettyPrintDOMWithEncoding(xmlHttpDocument, "UTF-8");
-		        		Engine.logBeans.debug("(FullSyncListener) Listener \""+ getName() +"\" : sequence successfully executed with following result\n"+ contents + "\n");
-		        	}
-				}
-				catch (Exception e) {
-					throw new EngineException("Sequence named \""+ sequenceName +"\" failed", e);
-				}
-			}
-			else {
-				String targetUrl = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
-				targetUrl += (targetUrl.endsWith("/") ? "":"/") + "projects/"+ projectName + "/.xml";
-	
-				PostMethod postMethod = null;
-				try {
-					URL url = new URL(targetUrl);
-					HostConfiguration hostConfiguration = new HostConfiguration();
-					hostConfiguration.setHost(url.getHost());
-					HttpState httpState = new HttpState();
-					
-					postMethod = new PostMethod(targetUrl);
-					postMethod.setRequestHeader("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
-					postMethod.addParameter(Parameter.Sequence.getName(), sequenceName);
-					postMethod.addParameter("__handleComplex", "true");
-					//postMethod.addParameter("docs", XMLUtils.prettyPrintElement(itemsElement, true, false));
-					for (int i=0; i< docList.getLength(); i++) {
-						Element itemElement = (Element) docList.item(i);
-						postMethod.addParameter("doc", XMLUtils.prettyPrintElement(itemElement, true, false));
-					}
-					
-					Engine.logBeans.debug("(FullSyncListener) Listener \""+ getName() +"\" : http invoke requested");
-					int statusCode = Engine.theApp.httpClient.executeMethod(hostConfiguration, postMethod, httpState);
-					
-					if (statusCode != -1) {
-						String contents = postMethod.getResponseBodyAsString();
-						Engine.logBeans.debug("(FullSyncListener) Listener \""+ getName() +"\" : sequence successfully executed with following result\n"+ contents + "\n");
-					}
-				} catch (Exception e) {
-					throw new EngineException("Sequence named \""+ sequenceName +"\" failed", e);
-				} finally {
-					if (postMethod != null) {
-						postMethod.releaseConnection();
-					}
-				}
+			try {
+				Map<String, Object> requestParams = new HashMap<String, Object>();
+		    	boolean maintainContext = false;
+		    	boolean maintainSession = false;
 				
+		    	requestParams.put(Parameter.Project.getName(), new String[] { projectName });
+		    	requestParams.put(Parameter.Sequence.getName(), new String[] { sequenceName });
+				if (!maintainContext) requestParams.put(Parameter.RemoveContext.getName(), new String[] { "" });
+				if (!maintainSession) requestParams.put(Parameter.RemoveSession.getName(), new String[] { "" });
+				//request.put("docs", itemsElement);
+				requestParams.put("doc", docList);
+				
+	    		Engine.logBeans.debug("(FullSyncListener) Listener \""+ getName() +"\" : internal invoke requested");
+	        	InternalRequester internalRequester = new InternalRequester(requestParams, request);
+	    		Object result = internalRequester.processRequest();
+	        	if (result != null) {
+	        		Document xmlHttpDocument = (Document) result;
+	        		String contents = XMLUtils.prettyPrintDOMWithEncoding(xmlHttpDocument, "UTF-8");
+	        		Engine.logBeans.debug("(FullSyncListener) Listener \""+ getName() +"\" : sequence successfully executed with following result\n"+ contents + "\n");
+	        	}
+			}
+			catch (Exception e) {
+				throw new EngineException("Sequence named \""+ sequenceName +"\" failed", e);
 			}
 		} catch (Exception e) {
 			throw new EngineException("Unable to execute sequence for \""+ getName() +"\" listener", e);
 		}
 	}
 	
-	protected void onDeletedDocs(JSONArray deletedDocs) throws EngineException, JSONException {		
+	protected void onDeletedDocs(InternalHttpServletRequest request, JSONArray deletedDocs) throws EngineException, JSONException {		
 		int len = deletedDocs.length();
 		
 		for (int i = 0; i < len;) {
 			JSONArray docs = getChunk(deletedDocs, i);
 			i += docs.length();
-			executeSequence(docs, true);
+			executeSequence(request, docs);
 		}
 	}
 	
@@ -268,7 +213,7 @@ public abstract class AbstractFullSyncListener extends Listener {
 		return sub;
 	}
 	
-	protected void runDocs(JSONArray rows) throws JSONException, EngineException {
+	protected void runDocs(InternalHttpServletRequest request, JSONArray rows) throws JSONException, EngineException {
 		if (rows != null && rows.length() > 0) {
 
 			// Retrieve the first results
@@ -277,7 +222,7 @@ public abstract class AbstractFullSyncListener extends Listener {
 				docs.put(CouchKey.doc.JSONObject(rows.getJSONObject(i)));
 			}
 			
-			executeSequence(docs, true); // true: internal requester, false: http requester
+			executeSequence(request, docs);
 		}
 	}
 	
