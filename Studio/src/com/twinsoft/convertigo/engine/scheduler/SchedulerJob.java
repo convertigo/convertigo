@@ -72,7 +72,7 @@ public class SchedulerJob implements Job {
 					Engine.logScheduler.info("Prepare job " + jdName + " for " + convertigoJob.getProjectName());
 					
 					Map<String, String[]> parameters = convertigoJob.getConvertigoParameters();
-					Object response = new InternalRequester(GenericUtils.cast(parameters)).processRequest();
+					Object response = new InternalRequester(GenericUtils.<Map<String, Object>>cast(parameters)).processRequest();
 					
 					String message = "Completed job " + jdName + " with success";
 					if (convertigoJob.isWriteOutput()) {
