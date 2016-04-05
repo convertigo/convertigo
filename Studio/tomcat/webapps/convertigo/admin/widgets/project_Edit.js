@@ -213,8 +213,30 @@ function loadElement(elementQName, $treeitem) {
 		$projectEditObjectPropertiesListTable.find(".projectEditObjectName").text($xml.find("property[name=name] > *").first().attr("value"));
 		$projectEditObjectPropertiesListTable.find(".projectEditObjectName").text($xml.find("property[name=name] > *").first().attr("value"));
 		
-		$xml.find("property[isHidden!=true]").each(
-				function() {					
+		var properties = $xml.find("property[isHidden!=true]").get().sort(function (p1, p2) {
+			var e1 = p1.getAttribute("isExpert") == "true";
+			var e2 = p2.getAttribute("isExpert") == "true";
+			if (e1 == e2) {
+				var n1 = p1.getAttribute("displayName");
+				var n2 = p2.getAttribute("displayName");
+				if (n1 == n2) {
+					return 0;
+				} else {
+					return n1 < n2 ? -1 : 1;
+				}
+			} else {
+				return e1 == true ? 1 : -1;
+			}
+		});
+		
+		var $expertLine = $projectEditObjectPropertiesListTable.find("tr:last");
+		
+		$(properties).each(
+				function() {
+					if ($expertLine != null && $(this).attr("isExpert") == "true") {
+						$expertLine = null;
+					}
+					
 					var $propertyLine_xml;					
 					$propertyLine_xml = $("#projectEditTemplate .projectEdit-propertyLine").clone();
 					if(caroleOdd)
@@ -258,8 +280,12 @@ function loadElement(elementQName, $treeitem) {
 					$propertyLine_xml.find("td").first().text($(this).attr("displayName"));
 					$propertyLine_xml.find("td").attr("title",short_description);
 					$propertyLine_xml.find("td > img").data("long_description",long_description);
-					$propertyLine_xml.append(addProperty($(this)));					
-					$projectEditObjectPropertiesListTable.append($propertyLine_xml);											
+					$propertyLine_xml.append(addProperty($(this)));
+					if ($expertLine != null) {
+						$expertLine.before($propertyLine_xml);	
+					} else {
+						$projectEditObjectPropertiesListTable.append($propertyLine_xml);
+					}										
 				});			
 		
 		$("#projectEditObjectPropertiesList").html($projectEditObjectPropertiesListTable);

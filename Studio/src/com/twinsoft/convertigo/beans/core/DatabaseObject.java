@@ -567,6 +567,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 					propertyElement.setAttribute("isHidden", Boolean.toString(propertyDescriptor.isHidden()));
 					propertyElement.setAttribute("isMasked",
 							isMaskedProperty(Visibility.Platform, name) ? "true" : "false");
+					propertyElement.setAttribute("isExpert", Boolean.toString(propertyDescriptor.isExpert()));
 				}
 				if (exportOptions.contains(ExportOption.bIncludeShortDescription)) {
 					propertyElement.setAttribute("shortDescription", shortDescription);
