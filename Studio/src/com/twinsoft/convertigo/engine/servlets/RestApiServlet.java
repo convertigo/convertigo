@@ -59,6 +59,15 @@ public class RestApiServlet extends HttpServlet {
 
 	@Override
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		if (request.getCharacterEncoding() == null) {
+			try {
+				request.setCharacterEncoding("UTF-8"); // Set encoding if needed
+    		}
+    		catch(Exception e) {
+    			throw new ServletException(e);
+    		}
+		}
+		
 		String method = request.getMethod();
 		Engine.logEngine.debug("(RestApiServlet) Requested URI: "+ method + " " + request.getRequestURI());
 		

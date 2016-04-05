@@ -111,190 +111,6 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 		this.outputContent = outputContent;
 	}
 	
-	
-/*
-	@Override
-	public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws EngineException {
-		String targetRequestableQName = getTargetRequestable();
-		if (targetRequestableQName.isEmpty()) {
-			throw new EngineException("Mapping operation \""+ getName() +"\" has no target requestable defined");
-		}
-		
-		StringTokenizer st = new StringTokenizer(targetRequestableQName,".");
-		int count = st.countTokens();
-		String projectName = st.nextToken();
-		String sequenceName = count == 2 ? st.nextToken():"";
-		String connectorName = count == 3 ? st.nextToken():"";
-		String transactionName = count == 3 ? st.nextToken():"";
-		
-		String h_Accept = request.getHeader(HeaderName.Accept.value());
-		
-		String targetUrl = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
-		targetUrl += (targetUrl.endsWith("/") ? "":"/") + "projects/"+ projectName + "/";
-		targetUrl += h_Accept.indexOf("application/json") != -1 ? ".json":".pxml";
-		
-		try {
-			PostMethod postMethod = null;
-			String responseContentType = null;
-			String content = null;
-			int statusCode = -1;
-			
-			// Prepare PostMethod
-			try {
-				postMethod = new PostMethod(targetUrl);
-
-				postMethod.setRequestHeader(HeaderName.ContentType.value(), "application/x-www-form-urlencoded;charset=UTF-8");
-				
-				// Add requestable parameter(s)
-				if (sequenceName.isEmpty()) {
-					postMethod.addParameter(Parameter.Connector.getName(), connectorName);
-					postMethod.addParameter(Parameter.Transaction.getName(), transactionName);
-				}
-				else {
-					postMethod.addParameter(Parameter.Sequence.getName(), sequenceName);
-				}
-				
-				// Add path variables parameters
-				Map<String, String> varMap = ((UrlMapping)getParent()).getPathVariableValues(request);
-				if (varMap != null) {
-					for (String varName: varMap.keySet()) {
-						String varValue = varMap.get(varName);
-						postMethod.addParameter(varName, varValue);
-					}
-				}
-				
-				// Add other parameters
-				for (UrlMappingParameter param :getParameterList()) {
-					String paramName = param.getName();
-					Object paramValue = null;
-					if (param.getType() == Type.Header) {
-						paramValue = request.getHeader(paramName);
-					}
-					if (param.getType() == Type.Body) {
-						if (request.getInputStream() != null) {
-							//String contentType = request.getContentType();
-							paramValue = IOUtils.toString(request.getInputStream(), "UTF-8");
-						}
-					}
-					if ((param.getType() == Type.Query || param.getType() == Type.Form)) {
-						paramValue = request.getParameterValues(paramName);
-					}
-					
-					if (paramValue != null) {
-						if (paramValue instanceof String) {
-							postMethod.addParameter(paramName, (String)paramValue);
-						}
-						else if (paramValue instanceof String[]) {
-							String[] values = (String[])paramValue;
-							for (int i=0; i<values.length; i++) {
-								postMethod.addParameter(paramName, values[i]);
-							}
-						}
-					}
-					else if (param.isRequired()) {
-						Engine.logBeans.warn("(AbstractRestOperation) \""+ getName() +"\" : missing parameter "+ param.getName());
-					}
-				}
-			}
-			catch (IOException ioe) {
-				Engine.logBeans.error("(AbstractRestOperation) \""+ getName() +"\" : invalid body", ioe);
-				throw ioe;
-			}
-			
-			// Execute POST
-			if (postMethod != null) {
-				try {
-					// Set HostConfiguration
-					URL url = new URL(targetUrl);
-					HostConfiguration hostConfiguration = new HostConfiguration();
-					hostConfiguration.setHost(url.getHost());
-					
-					// Set/Store HttpState
-					HttpState httpState = (HttpState) request.getSession().getAttribute("c8o_httpState");
-					if (httpState == null) {
-						httpState = new HttpState();
-						request.getSession().setAttribute("c8o_httpState", httpState);
-					}
-					
-					// Request Headers
-					if (Engine.logBeans.isTraceEnabled()) {
-						Header[] requestHeaders = postMethod.getRequestHeaders();
-						StringBuffer buf = new StringBuffer();
-						buf.append("(AbstractRestOperation) \""+ getName() +"\" requestable request headers:\n");
-						for (Header header: requestHeaders) {
-							buf.append(" " + header.getName() + "=" + header.getValue() + "\n");
-						}
-						Engine.logBeans.trace(buf.toString());
-					}
-					
-					// Invoke requestable
-					Engine.logBeans.debug("(AbstractRestOperation) \""+ getName() +"\" executing requestable \""+ targetRequestableQName +"\"");
-					statusCode = Engine.theApp.httpClient.executeMethod(hostConfiguration, postMethod, httpState);
-					Engine.logBeans.debug("(AbstractRestOperation) \""+ getName() +"\" requestable response status code: "+ statusCode);
-					
-					// Response Headers
-					if (Engine.logBeans.isTraceEnabled()) {
-						Header[] responseHeaders = postMethod.getResponseHeaders();
-						StringBuffer buf = new StringBuffer();
-						buf.append("(AbstractRestOperation) \""+ getName() +"\" requestable response headers:\n");
-						for (Header header: responseHeaders) {
-							buf.append(" " + header.getName() + "=" + header.getValue() + "\n");
-						}
-						Engine.logBeans.trace(buf.toString());
-					}
-					
-					// Retrieve response Content-Type
-					Header h_ContentType = postMethod.getResponseHeader(HeaderName.ContentType.value());
-					if (h_ContentType != null) {
-						responseContentType = h_ContentType.getValue();
-					}
-					
-					// Retrieve response content
-					if (statusCode != -1) {
-						content = postMethod.getResponseBodyAsString();
-					}
-					Engine.logBeans.trace("(AbstractRestOperation) \""+ getName() +"\" requestable response content:\n"+ content + "\n");
-					
-				}
-				catch (MalformedURLException e) {
-					Engine.logBeans.error("(AbstractRestOperation) \""+ getName() +"\" : invalid URL", e);
-					throw e;
-				} catch (HttpException e) {
-					Engine.logBeans.error("(AbstractRestOperation) \""+ getName() +"\" : http invoke failed", e);
-					throw e;
-				} catch (IOException e) {
-					Engine.logBeans.error("(AbstractRestOperation) \""+ getName() +"\" : get response body failed", e);
-					throw e;
-				}
-				finally {
-					if (postMethod != null) {
-						postMethod.releaseConnection();
-					}
-				}
-			}
-			
-			//TODO : analyse/modify status/content with Response beans
-			
-            // Set response status
-			response.setStatus(statusCode);
-			
-			// Set response content-type header
-			if (responseContentType != null) {
-				response.addHeader(HeaderName.ContentType.value(), responseContentType);
-			}
-			
-			// Set response content
-			if (content != null) {
-				Writer writer = response.getWriter();
-	            writer.write(content);
-			}
-		}
-		catch (Throwable t) {
-			throw new EngineException("Operation \""+ getName() +"\" failed to handle request", t);
-		}
-	}
-*/	
-	
 	@Override
 	@SuppressWarnings("deprecation")
 	public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws EngineException {
@@ -399,7 +215,7 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 				Map<String, String> varMap = ((UrlMapping)getParent()).getPathVariableValues(request);
 				for (String varName: varMap.keySet()) {
 					String varValue = varMap.get(varName);
-					map.put(varName, varValue);
+					map.put(varName, new String(varValue.getBytes(),"UTF-8"));
 				}
 				
 				// Add other parameters
@@ -412,10 +228,22 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 						paramValue = request.getHeader(paramName);
 					}
 					else if ((param.getType() == Type.Query || param.getType() == Type.Form)) {
-						paramValue = request.getParameterValues(paramName);
+						String[] pvalues = request.getParameterValues(paramName);
+						if (pvalues != null) {
+							paramValue = pvalues;
+							if (param.getType() == Type.Query) {
+								int len = pvalues.length;
+								String[] evalues = new String[len];
+								for (int i=0; i<len; i++) {
+									evalues[i] = new String(pvalues[i].getBytes(),"UTF-8");
+								}
+								paramValue = evalues;
+							}
+						}
 					}
 					else if (param.getType() == Type.Path) {
-						paramValue = varMap.get(param.getName());
+						String varValue = varMap.get(param.getName());
+						paramValue = new String(varValue.getBytes(),"UTF-8");
 					}
 					else if (param.getType() == Type.Body) {
 						if (request.getInputStream() != null) {
