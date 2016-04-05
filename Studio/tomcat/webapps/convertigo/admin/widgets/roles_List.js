@@ -154,7 +154,6 @@ function roles_List_init() {
 	});
 	
 	callService("roles.List", function(xml) {
-		$last_roles_list_xml = $(xml);
 		$("#roles").empty();
 		var $tr;
 		$(xml).find(">admin>roles>role").each(function (i) {
@@ -263,12 +262,13 @@ function roles_List_update() {
 }
 
 function updateUsersList(xml) {
-	if ($(xml).find("user")) {
+	$last_roles_list_xml = $(xml);
+	if ($last_roles_list_xml.find("user")) {
 		$("#usersList").jqGrid("clearGridData");
 	}
 	
 	var username = "";
-	$(xml).find("user").each(function(index) {
+	$last_roles_list_xml.find("user").each(function(index) {
 		var roles = $(this).find("role").map(function(){
 			return $(this).attr("name")
 		}).get();
@@ -276,14 +276,14 @@ function updateUsersList(xml) {
 			"addRowData",
 			"usersRow" + index,
 			{
-				checkboxes: "<input type='checkbox' class='selected-users' value='"+$(this).attr("name")+"'/>",
+				checkboxes: "<input type='checkbox' class='selected-users' value='" + $(this).attr("name") + "'/>",
 				name : $(this).attr("name"),
 				value : roles,
 				btnEdit : "<a class=\"userEdit\" href=\"#edit\"><img border=\"0\" title=\"Edit\" src=\"images/convertigo-administration-picto-edit.png\"></a>",
 				btnDelete : "<a class=\"userDelete\" href=\"#delete\"><img border=\"0\" title=\"Delete\" src=\"images/convertigo-administration-picto-delete.png\"></a>"
 			});
 	});
-	if($("#usersList tr:gt(0)").length) {
+	if ($("#usersList tr:gt(0)").length) {
 		$("#usersList_name .ui-jqgrid-sortable").click().click();
 		if ($("#exportUsersButtonAction").css("display") == "none"){
 			$("#usersListButtonDeleteAll").button("enable");
