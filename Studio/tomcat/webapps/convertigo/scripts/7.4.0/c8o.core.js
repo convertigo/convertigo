@@ -38,6 +38,7 @@ C8O = {
         log_line: "false",
         log_remote: "true",
         requester_prefix: "",
+        wait_threshold: "100",
         xsl_side: "none"
     },
     
@@ -109,8 +110,17 @@ C8O = {
             C8O.log.info("c8o.core: call: " + C8O.toJSON(data));
         }
 
-        C8O.log.trace("c8o.core: call show wait div");
-        C8O.waitShow(data);
+        var wait_threshold = C8O.vars.wait_threshold * 1;
+        var wait_function = function () {
+	        C8O.log.trace("c8o.core: call show wait div");
+	        C8O.waitShow(data);
+        };
+        
+        if (wait_threshold > 0) {
+            C8O._define.wait_timer = window.setTimeout(wait_function, wait_threshold);	
+        } else {
+        	wait_function();
+        }
         
         if (C8O.isUndefined(data)) {
             C8O.log.trace("c8o.core: call without data");
@@ -448,7 +458,8 @@ C8O = {
         re_requestable: new RegExp("^([^.]*)\\.(?:([^.]+)|(?:([^.]+)\\.([^.]+)))$"), // 1: project ; 2: sequence ; 3: connector ; 4: transaction > 1+2 | 1+3+4
         re_start_digit: new RegExp("^\\d"),
         start_time: new Date().getTime(),
-        uid: Math.round((new Date().getTime() * Math.random())).toString(36)
+        uid: Math.round((new Date().getTime() * Math.random())).toString(36),
+        wait_timer: null
     },
 
     _call: function (data) {
@@ -1013,6 +1024,7 @@ C8O = {
     },
     
     _onCallComplete: function (jqXHR, textStatus) {
+    	window.clearTimeout(C8O._define.wait_timer);
         if (--C8O._define.pendingXhrCpt <= 0) {
             C8O._define.pendingXhrCpt = 0;
         }

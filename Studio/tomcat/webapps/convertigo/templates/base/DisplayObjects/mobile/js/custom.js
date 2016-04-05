@@ -77,6 +77,7 @@ $.extend(true, C8O, {
 //        log_line: "false", /** true/false: add an extra line on Chrome console with a link to the log */
 //        log_remote: "true", /** true/false: send client log to the C8O "Devices" logger depending on its log level */
 //        requester_prefix: "", /** string prepend to the .xml or .cxml requester */
+//        wait_threshold: "100", /** integer: number of milliseconds before the wait div show up. 0 or negative value show it directly */
 /** c8o.cordova.device.js vars */
 //        local_cache_parallel_downloads: 5 /** for local cache response to store, set the maximum number of parallel downloads for attachments. 0 will disable download */
     },
