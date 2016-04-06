@@ -65,6 +65,7 @@ public abstract class UrlMappingOperation extends DatabaseObject {
 	public List<DatabaseObject> getAllChildren() {	
 		List<DatabaseObject> rep = super.getAllChildren();
 		rep.addAll(getParameterList());
+		rep.addAll(getResponseList());
 		return rep;
 	}
 	
