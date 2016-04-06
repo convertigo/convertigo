@@ -32,6 +32,7 @@ var serverDate;
 var serverOffset;
 var initialDiffClientServer;
 var engineVersion = "latest";
+var toasts = {};
 
 $(window).ready(function() {
 	$.ajaxSetup({
@@ -619,9 +620,13 @@ function getEncodedYamlUri(project) {
 }
 
 function toast(msg) {
-	var $div = $("<div/>").text(msg).prependTo("#toaster").fadeIn(300, function () {
-		$(this).fadeOut(5000, function () {
+	if (!toasts[msg]) {
+		toasts[msg] = true;
+		var $div = $("<div/>").text(msg).prependTo("#toaster").fadeIn(300).delay(3000).queue(function () {
+			delete toasts[msg];
+			$(this).dequeue();
+		}).fadeOut(1500).queue(function () {
 			$(this).remove();
 		});
-	});
+	}
 }

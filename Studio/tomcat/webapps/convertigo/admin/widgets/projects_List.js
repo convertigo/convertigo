@@ -209,7 +209,13 @@ function projectsDeploy(xml) {
 				clearInterval(this.tim_progress);
 				endWait();
 				if ($(response).find("error").length > 0) {
-					showError("<p>An unexpected error occurs.</p>", $(response).text());
+					var txt = $(response).text();
+					if (txt.trim && txt.trim().startsWith("Authentication")) {
+						showError(txt);
+						$("#dialog-deploy-project").dialog("close");
+					} else {
+						showError("<p>An unexpected error occurs.</p>", txt);
+					}
 				} else {
 					showInfo($(response).text());
 					$("").dialog("close");
