@@ -19,6 +19,7 @@ import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.twinsoft.convertigo.beans.core.IMappingRefModel;
 import com.twinsoft.convertigo.beans.core.UrlMapping;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
@@ -265,8 +266,13 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 			        		// Transform input data
 			        		try {
 				        		if (dataInput.equals(DataContent.toJson)) {
-				        			String objectName = variableName.isEmpty() ? paramName : variableName;
-				        			Document doc = XMLUtils.parseDOMFromString("<"+objectName+"/>");
+				        			String modelName = paramName;
+				        			if (param instanceof IMappingRefModel) {
+				        				modelName = ((IMappingRefModel)param).getModelReference();
+				        				modelName = modelName.isEmpty() ? paramName : modelName;
+				        			}
+				        			
+				        			Document doc = XMLUtils.parseDOMFromString("<"+modelName+"/>");
 				        			Element root = doc.getDocumentElement();
 				        			XMLUtils.JsonToXml(new JSONObject((String)paramValue), root);
 				        			paramValue = root.getChildNodes();
