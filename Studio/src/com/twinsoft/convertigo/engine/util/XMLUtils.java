@@ -244,7 +244,11 @@ public class XMLUtils {
 	public static String prettyPrintDOM(Document doc) {
 		return prettyPrintDOMWithEncoding(doc, "ISO-8859-1");
 	}
-
+	
+	public static String prettyPrintElement(Element elt) {
+		return prettyPrintElement(elt, true, true);
+	}
+	
 	public static String prettyPrintElement(Element elt, boolean omitXMLDeclaration, boolean bIndent) {
 		Node firstChild = elt;
 		String encoding = "ISO-8859-1"; // default Encoding char set if non is
@@ -775,9 +779,13 @@ public class XMLUtils {
 		return loadXml(new File(filePath));
 	}
 
-	public static Document createDom(String xmlEngine) throws ParserConfigurationException {
+	public static Document createDom() throws ParserConfigurationException {
 		Document document = getDefaultDocumentBuilder().newDocument();
 		return document;
+	}
+
+	public static Document createDom(String xmlEngine) throws ParserConfigurationException {
+		return createDom();
 	}
 
 	public static Document parseDOM(String xmlEngine, String xml) throws ParserConfigurationException,
