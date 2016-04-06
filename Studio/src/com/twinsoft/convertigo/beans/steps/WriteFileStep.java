@@ -144,12 +144,11 @@ public abstract class WriteFileStep extends Step implements IStepSourceContainer
 
 	@Override
 	public String toString() {
-		String text = this.getComment();
 		String label = "";
 		try {
 			label += getLabel();
 		} catch (EngineException e) {}
-		return "WriteFile" + label + (!text.equals("") ? " // "+text:"");
+		return "WriteFile" + label;
 	}
 
 	@Override

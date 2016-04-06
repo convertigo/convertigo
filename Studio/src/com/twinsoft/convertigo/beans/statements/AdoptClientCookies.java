@@ -51,8 +51,7 @@ public class AdoptClientCookies extends Statement {
 
 	@Override
 	public String toString() {
-		String text = this.getComment();
-		return "Adopt client cookies" + (!text.equals("") ? " // " + text : "");
+		return "Adopt client cookies";
 	}
 
 	@Override

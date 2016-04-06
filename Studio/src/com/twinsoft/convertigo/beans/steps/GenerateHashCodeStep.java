@@ -67,8 +67,7 @@ public class GenerateHashCodeStep extends Step implements ISchemaParticleGenerat
 
 	@Override
 	public String toString() {
-		String text = this.getComment();
-		return "<"+ nodeName +">" + getName()+ (!text.equals("") ? " // "+text:"");
+		return "<" + nodeName + ">" + getName();
 	}
 	
 	@Override

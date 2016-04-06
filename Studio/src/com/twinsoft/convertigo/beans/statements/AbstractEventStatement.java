@@ -86,8 +86,7 @@ abstract public class AbstractEventStatement extends XpathableStatement implemen
 
 	@Override
 	public String toString(){
-		String text = this.getComment();
-		return (!text.equals("") ? " // "+text.replace('\n', ';'):"");
+		return "";
 	}
 	
 	@Override

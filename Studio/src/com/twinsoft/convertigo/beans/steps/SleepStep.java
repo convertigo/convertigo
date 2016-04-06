@@ -83,8 +83,7 @@ public class SleepStep extends Step {
 	
 	@Override
 	public String toString() {
-		String text = this.getComment();
-		return "Sleep("+delay+")" + (!text.equals("") ? " // "+text:"");
+		return "Sleep(" + delay + ")";
 	}
 
 

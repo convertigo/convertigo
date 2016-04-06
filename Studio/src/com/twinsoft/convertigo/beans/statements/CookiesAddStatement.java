@@ -28,6 +28,7 @@ import java.util.Date;
 
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.HttpState;
+import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.NativeArray;
 import org.mozilla.javascript.Scriptable;
@@ -88,8 +89,7 @@ public class CookiesAddStatement extends Statement {
 	
 	@Override
 	public String toString() {
-		String text = this.getComment();
-		return "cookies.add(eval('"+(expression.length()<20?expression:expression.substring(0,20)+"...")+"'))"+(!text.equals("") ? " // "+text:"");
+		return "cookies.add(eval('" + StringUtils.abbreviate(expression, 25) + "'))";
 	}
 	
 	@Override

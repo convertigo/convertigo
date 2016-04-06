@@ -93,14 +93,13 @@ public abstract class ReadFileStep extends Step {
 	
 	@Override
 	public String toString() {
-		String text = this.getComment();
 		String label = "";
 		try {
 			label += getLabel();
 		} catch (EngineException e) {
 		}
 		
-		return "ReadFile:" + label + (!text.equals("") ? " // "+text:"");
+		return "ReadFile:" + label;
 	}
 	
 	@Override

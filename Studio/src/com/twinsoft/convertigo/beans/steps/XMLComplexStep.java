@@ -63,9 +63,8 @@ public class XMLComplexStep extends StepWithExpressions implements IComplexTypeA
 		XmlQName xmlQName = getXmlElementRefAffectation();
 		xmlQName = xmlQName.isEmpty() ? getXmlComplexTypeAffectation():xmlQName;
 		
-		String text = this.getComment();
 		String tag = "<"+ getStepNodeName() +"> " + xmlQName.getQName();
-		return tag + (!text.equals("") ? " // "+text:"");
+		return tag;
 	}
 	
 	public String getNodeName() {

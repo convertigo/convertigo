@@ -56,12 +56,11 @@ public class SourceStep extends Step implements IStepSourceContainer {
 
 	@Override
 	public String toString() {
-		String text = this.getComment();
 		String label = "";
 		try {
 			label += (sourceDefinition.size() > 0) ? " @("+ getLabel()+")":" @(??)";
 		} catch (EngineException e) {}
-		return variableName + label + (!text.equals("") ? " // "+text:"");
+		return variableName + label;
 	}
 	
 	public XMLVector<String> getSourceDefinition() {

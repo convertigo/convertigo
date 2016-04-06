@@ -24,6 +24,7 @@ package com.twinsoft.convertigo.beans.statements;
 
 import javax.xml.transform.TransformerException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Document;
@@ -46,8 +47,7 @@ public class GetNodesStatement extends XpathableStatement {
 	
 	@Override
 	public String toString() {
-		String text = this.getComment();
-		return (variableName.length()<10) ? variableName : variableName.substring(0, 10)+ "..."+ (!text.equals("") ? " // "+text:"");
+		return StringUtils.abbreviate(variableName, 20);
 	}
 
 	public String getVariableName() {

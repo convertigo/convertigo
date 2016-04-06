@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.beans.statements;
 
+import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
@@ -66,9 +67,8 @@ public class WaitTriggerStatement extends Statement implements ITriggerOwner{
 
 	@Override
 	public String toString() {
-		String text = this.getComment();
-		String msg = "Wait "+trigger.toString();
-		return  (msg.length()<40?msg:msg.substring(0, 38)+"...")+(!text.equals("") ? " // "+text:"");
+		String msg = "Wait " + trigger.toString();
+		return  StringUtils.abbreviate(msg, 30);
 	}
 	
 	@Override

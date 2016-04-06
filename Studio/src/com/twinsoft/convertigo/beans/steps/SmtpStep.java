@@ -123,12 +123,11 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 
 	@Override
 	public String toString() {
-		String text = this.getComment();
 		String label = "";
 		try {
 			label += (sourceDefinition.size() > 0) ? " @(" + getLabel() + ")" : " @(??)";
 		} catch (EngineException e) {}
-		return smtpServer + label + (!text.equals("") ? " // " + text : "");
+		return smtpServer + label;
 	}
 	
 	public XMLVector<String> getSourceDefinition() {

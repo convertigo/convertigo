@@ -99,8 +99,7 @@ public class RemoveContextStep extends Step {
 	
 	@Override
 	public String toString() {
-		String text = this.getComment();
-		return "removeContext("+ (contextName.equals("")?"??":contextName) +")" + (!text.equals("") ? " // "+text:"");
+		return "removeContext(" + (contextName.equals("") ? "??" : contextName) + ")";
 	}
 
 	@Override

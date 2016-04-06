@@ -1018,7 +1018,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	 * @return Value of property comment.
 	 */
 	public String getComment() {
-		return this.comment;
+		return comment;
 	}
 
 	/**

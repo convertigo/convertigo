@@ -58,8 +58,7 @@ public class ExceptionStep extends SimpleStep {
 	}
 	
 	public String toString() {
-		String text = this.getComment();
-		return "throw Exception; "+ (!text.equals("") ? " // "+text:"");
+		return "throw Exception;";
 	}
 
 	@Override

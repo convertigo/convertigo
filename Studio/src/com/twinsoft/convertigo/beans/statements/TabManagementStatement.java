@@ -94,11 +94,9 @@ public class TabManagementStatement extends Statement implements ITagsProperty{
 
     @Override
 	public String toString(){
-		String text = this.getComment();
-		return action+
-		((action.equals(TabManagementEvent.ACTION_GETINDEX)||(action.equals(TabManagementEvent.ACTION_GETNBTAB)))?" "+getIndexVarname:"")+
-		(action.equals(TabManagementEvent.ACTION_SETINDEX)?" "+jsIndex:"")+
-		(text.equalsIgnoreCase("")?"":" //"+text);
+		return action +
+		((action.equals(TabManagementEvent.ACTION_GETINDEX)||(action.equals(TabManagementEvent.ACTION_GETNBTAB)))?" "+getIndexVarname:"") +
+		(action.equals(TabManagementEvent.ACTION_SETINDEX)?" "+jsIndex:"");
 	}
 
     @Override

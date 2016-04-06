@@ -83,8 +83,7 @@ public class BreakStep extends SimpleStep {
 	
 	@Override
 	public String toString() {
-		String text = this.getComment();
-		return "break;" + (!text.equals("") ? " // "+text:"");
+		return "break;";
 	}
 
 }

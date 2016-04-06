@@ -130,8 +130,7 @@ public class CredentialsStatement extends Statement {
 
     @Override
 	public String toString() {
-		String text = this.getComment();
-		return "[user,password]" + (forceBasic?"*":"") + (!text.equals("") ? " // " + text : "");
+		return "[user,password]" + (forceBasic?"*":"");
 	}
 
     @Override

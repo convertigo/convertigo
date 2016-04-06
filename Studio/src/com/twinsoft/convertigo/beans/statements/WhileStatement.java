@@ -40,8 +40,7 @@ public class WhileStatement extends BlockStatement {
 	}
 
 	public String toString() {
-		String text = this.getComment();
-		return "while("+ getCondition() +")"+ (!text.equals("") ? " // "+text:"");
+		return "while(" + getCondition() + ")";
 	}
 
 	public String toJsString() {

@@ -99,8 +99,7 @@ public abstract class BlockStep extends StepWithExpressions {
 
 	@Override
 	public String toString() {
-		String text = this.getComment();
-		return getName() + (!text.equals("") ? " // "+text:"");
+		return getName();
 	}
 
 	public ThenStep getThenStep() {

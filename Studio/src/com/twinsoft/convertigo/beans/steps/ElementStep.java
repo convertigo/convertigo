@@ -89,14 +89,13 @@ public class ElementStep extends StepWithExpressions implements IComplexTypeAffe
 
 	@Override
 	public String toString() {
-		String text = this.getComment();
 		String label = "";
 		try {
 			label += " " + getLabel();
 		} catch (EngineException e) {}
 		XmlQName xmlQName = getXmlElementRefAffectation();
-		xmlQName = xmlQName.isEmpty() ? getXmlComplexTypeAffectation():xmlQName;
-		return "<"+ getStepNodeName() +">" + label + " " + xmlQName.getQName() + (!text.equals("") ? " // "+text:"");
+		xmlQName = xmlQName.isEmpty() ? getXmlComplexTypeAffectation() : xmlQName;
+		return "<" + getStepNodeName() + ">" + label + " " + xmlQName.getQName();
 	}
 
 	public String getNodeName() {

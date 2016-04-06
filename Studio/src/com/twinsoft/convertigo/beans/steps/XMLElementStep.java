@@ -71,15 +71,14 @@ public class XMLElementStep extends StepWithExpressions implements IStepSourceCo
 
 	@Override
 	public String toString() {
-		String text = this.getComment();
 		String label = "";
 		try {
 			label += (sourceDefinition.size() > 0) ? " @("+ getLabel()+")":" =\""+nodeText+"\"";
 		} catch (EngineException e) {
 		}
 		XmlQName xmlQName = getXmlElementRefAffectation();
-		xmlQName = xmlQName.isEmpty() ? getXmlComplexTypeAffectation():xmlQName;
-		return "<"+ getStepNodeName() +">" + label + " " + xmlQName.getQName() + (!text.equals("") ? " // "+text:"");
+		xmlQName = xmlQName.isEmpty() ? getXmlComplexTypeAffectation() : xmlQName;
+		return "<" + getStepNodeName() + ">" + label + " " + xmlQName.getQName();
 	}
 	
 	public String getNodeName() {

@@ -111,12 +111,11 @@ public class SimpleIteratorStep extends LoopStep {
 	
 	@Override
 	public String toString() {
-		String text = this.getComment();
 		String label = "";
 		try {
 			label += " " + getLabel();
 		} catch (EngineException e) {}
-		return getName() + label + (!text.equals("") ? " // "+text:"");
+		return getName() + label;
 	}
 
 	@Override

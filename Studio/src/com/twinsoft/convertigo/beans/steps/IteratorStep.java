@@ -82,12 +82,11 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 
 	@Override
 	public String toString() {
-		String text = this.getComment();
 		String label = "";
 		try {
 			label += (sourceDefinition.size() > 0) ? " @("+ getLabel()+")":" @(??)";
 		} catch (EngineException e) {}
-		return getName() + label + (!text.equals("") ? " // "+text:"");
+		return getName() + label;
 	}
 	
 	public XMLVector<String> getSourceDefinition() {

@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.beans.statements;
 
+import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
@@ -41,8 +42,7 @@ public class GetUrlStatement extends Statement {
 
     @Override		
 	public String toString() {
-		String text = this.getComment();
-		return (variableName.length()<10) ? variableName : variableName.substring(0, 10)+ "..."+ (!text.equals("") ? " // "+text:"");
+		return StringUtils.abbreviate(variableName, 20);
 	}
 
 	public String getVariableName() {

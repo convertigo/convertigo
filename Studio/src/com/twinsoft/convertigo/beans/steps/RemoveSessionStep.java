@@ -70,8 +70,7 @@ public class RemoveSessionStep extends Step {
 	
 	@Override
 	public String toString() {
-		String text = this.getComment();
-		return "removeSession" + (!text.equals("") ? " // "+text:"");
+		return "removeSession";
 	}
 
 	@Override

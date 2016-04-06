@@ -91,13 +91,12 @@ public class XMLSortStep extends XMLCopyStep implements IStepSourceContainer {
 
 	@Override
 	public String toString() {
-		String text = this.getComment();
 		String label = "";
 		try {
 			label += (sourceDefinition.size() > 0) ? " @("+ getLabel()+")":"";
 		} catch (EngineException e) {
 		}
-		return "sortOf" + label + (!text.equals("") ? " // "+text:"");
+		return "sortOf" + label;
 	}
 	
 	@Override

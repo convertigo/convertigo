@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.beans.statements;
 
+import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
@@ -47,11 +48,8 @@ public class ContextAddTextNodeStatement extends Statement {
 	}
 	
 	public String toString() {
-		String text = this.getComment();
-		String name = "<"+tagname+">eval('"+
-			(expression.length()>10?expression.substring(0,10):expression)+
-			"')</"+tagname+">";
-		return (name.length()>20?name.substring(0, 20)+"...":name)+(!text.equals("") ? " // "+text:"");
+		String name = "<" + tagname + ">eval('" + StringUtils.abbreviate(expression, 15) + "')</" + tagname + ">";
+		return name;
 	}
 	
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {

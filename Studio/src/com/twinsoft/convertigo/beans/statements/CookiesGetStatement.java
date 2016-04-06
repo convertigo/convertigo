@@ -49,8 +49,7 @@ public class CookiesGetStatement extends Statement {
 
 	@Override
 	public String toString() {
-		String text = this.getComment();
-		return variable + "=cookies.get()" + (!text.equals("") ? " // " + text : "");
+		return variable + "=cookies.get()";
 	}
 
 	@Override

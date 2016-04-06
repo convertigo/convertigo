@@ -59,8 +59,7 @@ public class ExceptionStatement extends SimpleStatement {
 	}
 
 	public String toString() {
-		String text = this.getComment();
-		return "throw Exception; "+ (!text.equals("") ? " // "+text:"");
+		return "throw Exception;";
 	}	
 
 }

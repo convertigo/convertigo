@@ -70,12 +70,10 @@ public abstract class BlockStatement extends StatementWithExpressions {
 	}
 	
 	public String toString() {
-		String text = this.getComment();
-		return getName() + (!text.equals("") ? " // "+text:"");
+		return getName();
 	}
 
-	public boolean executeNextStatement(Context javascriptContext, Scriptable scope) throws EngineException
-    {
+	public boolean executeNextStatement(Context javascriptContext, Scriptable scope) throws EngineException {
     	if (isEnable()) {
 	    	if (hasStatements()) {
 	    		if (currentChildStatement < numberOfStatements()) {

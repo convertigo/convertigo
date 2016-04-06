@@ -53,9 +53,8 @@ public class IfStep extends BlockStep {
 
     @Override
 	public String toString() {
-		String text = this.getComment();
 		String condition = getCondition();
-		return "if("+ (condition.equals("")?"??":condition) +")" + (!text.equals("") ? " // "+text:"");
+		return "if(" + (condition.equals("") ? "??" : condition) + ")";
 	}
 
     @Override

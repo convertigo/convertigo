@@ -105,14 +105,13 @@ public class MoveFileStep extends Step {
 
 	@Override
 	public String toString() {
-		String text = this.getComment();
 		String label = "";
 		try {
 			label += getLabel();
 		} catch (EngineException e) {
 		}
 		
-		return "MoveFile: " + label + (!text.equals("") ? " // "+text:"");
+		return "MoveFile: " + label;
 	}
 	
 	@Override

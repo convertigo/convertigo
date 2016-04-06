@@ -123,14 +123,13 @@ public class ReadCSVStep extends ReadFileStep {
 
 	@Override
 	public String toString() {
-		String text = this.getComment();
 		String label = "";
 		try {
 			label += getLabel();
 		} catch (EngineException e) {
 		}
 		
-		return "ReadCSV :" + label + (!text.equals("") ? " // "+text:"");
+		return "ReadCSV :" + label;
 	}
 
 	protected Document read(String filePath, boolean schema) throws EngineException {

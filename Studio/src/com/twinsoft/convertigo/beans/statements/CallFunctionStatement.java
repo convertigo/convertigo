@@ -60,8 +60,7 @@ public class CallFunctionStatement extends Statement implements ITagsProperty{
 
     @Override
 	public String toString(){
-		String text = this.getComment();
-		return "call " + ("".equals(functionName) ? "??" : functionName + "()") + ("".equals(text)  ? "" : " // " + text);
+		return "call " + ("".equals(functionName) ? "??" : functionName + "()");
 	}
 
     @Override

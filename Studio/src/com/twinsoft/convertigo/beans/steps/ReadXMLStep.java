@@ -60,14 +60,13 @@ public class ReadXMLStep extends ReadFileStep {
 	
 	@Override
 	public String toString() {
-		String text = this.getComment();
 		String label = "";
 		try {
 			label += getLabel();
 		} catch (EngineException e) {
 		}
 		
-		return "ReadXML: " + label + (!text.equals("") ? " // "+text:"");
+		return "ReadXML: " + label;
 	}
     
 	protected Document read(String filePath, boolean schema) {

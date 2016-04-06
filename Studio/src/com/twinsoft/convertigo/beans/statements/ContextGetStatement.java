@@ -45,8 +45,7 @@ public class ContextGetStatement extends Statement {
 	}
 	
 	public String toString() {
-		String text = this.getComment();
-		return variable+"=get("+key+")"+(!text.equals("") ? " // "+text:"");
+		return variable + "=get(" + key + ")";
 	}
 	
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {

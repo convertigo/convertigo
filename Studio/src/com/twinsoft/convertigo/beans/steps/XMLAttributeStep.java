@@ -87,12 +87,11 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer, ISch
 
 	@Override
 	public String toString() {
-		String text = this.getComment();
 		String label = "";
 		try {
 			label += (sourceDefinition.size() > 0) ? " @("+ getLabel()+")":"";
 		} catch (EngineException e) {}
-		return "@"+ nodeName + label + (!text.equals("") ? " // "+text:"");
+		return "@"+ nodeName + label;
 	}
 	
 	public String getNodeName() {

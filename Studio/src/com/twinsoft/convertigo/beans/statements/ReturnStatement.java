@@ -69,8 +69,7 @@ public class ReturnStatement extends SimpleStatement {
 	
 	@Override
 	public String toString() {
-		String text = this.getComment();
-		return "return "+ getExpression() + (!text.equals("") ? " // "+text:"");
+		return "return "+ getExpression();
 	}
 
 }

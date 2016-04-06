@@ -86,8 +86,7 @@ public class NavigationBarStatement extends Statement implements ITagsProperty, 
 
     @Override
 	public String toString(){
-		String text = this.getComment();
-		return action+(text.equalsIgnoreCase("")?"":" //"+text);
+		return action;
 	}
 
     @Override

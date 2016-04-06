@@ -40,8 +40,7 @@ public class DoWhileStatement extends BlockStatement {
 	}
 
 	public String toString() {
-		String text = this.getComment();
-		return "do...while("+ getCondition() +")" + (!text.equals("") ? " // "+text:"");
+		return "do...while(" + getCondition() + ")";
 	}
 	
 	public String toJsString() {

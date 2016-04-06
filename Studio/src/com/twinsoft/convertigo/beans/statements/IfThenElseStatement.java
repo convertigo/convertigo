@@ -137,9 +137,8 @@ public class IfThenElseStatement extends BlockStatement implements IThenElseStat
 	
 	@Override
 	public String toString() {
-		String text = this.getComment();
 		String condition = getCondition();
-		return "if("+ (condition.equals("")?"??":condition) +")" + (!text.equals("") ? " // "+text:"");
+		return "if(" + (condition.equals("") ? "??" : condition) + ")";
 	}
 	
 	@Override

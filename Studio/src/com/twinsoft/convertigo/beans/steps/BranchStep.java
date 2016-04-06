@@ -79,8 +79,7 @@ public abstract class BranchStep extends StepWithExpressions {
 
     @Override
 	public String toString() {
-		String text = this.getComment();
-		return getName() + (!text.equals("") ? " // "+text:"");
+		return getName();
 	}
 	
 	private void evaluateMaxNumberOfThreads(Context javascriptContext, Scriptable scope) throws EngineException {

@@ -61,9 +61,8 @@ public class InputVariablesStep extends Step implements ISchemaParticleGenerator
 
 	@Override
 	public String toString() {
-		String text = this.getComment();
 		String tag = "<" + nodeName + ">";
-		return tag + (!text.equals("") ? " // " + text : "");
+		return tag;
 	}
 
 	public String getNodeName() {

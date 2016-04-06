@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.beans.statements;
 
+import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
@@ -45,8 +46,7 @@ public class ContextSetStatement extends Statement {
 	}
 	
 	public String toString() {
-		String text = this.getComment();
-		return "set("+key+")="+(expression.length()>20?expression.substring(0,20)+"...":expression)+(!text.equals("") ? " // "+text:"");
+		return "set(" + key + ")=" + StringUtils.abbreviate(expression, 25);
 	}
 	
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {

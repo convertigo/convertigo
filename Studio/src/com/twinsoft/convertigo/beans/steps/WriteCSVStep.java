@@ -75,13 +75,12 @@ public class WriteCSVStep extends WriteFileStep {
 
 	@Override
 	public String toString() {
-		String text = this.getComment();
 		String label = "";
 		try {
 			label += super.getLabel();
 		} catch (EngineException e) {
 		}
-		return "WriteCSV" + label + (!text.equals("") ? " // " + text : "");
+		return "WriteCSV" + label;
 	}
 
 	@Override

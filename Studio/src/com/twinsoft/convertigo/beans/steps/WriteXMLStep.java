@@ -63,12 +63,11 @@ public class WriteXMLStep extends WriteFileStep {
 
 	@Override
 	public String toString() {
-		String text = this.getComment();
 		String label = "";
 		try {
 			label += super.getLabel();
 		} catch (EngineException e) {}
-		return "WriteXML" + label + (!text.equals("") ? " // "+text:"");
+		return "WriteXML" + label;
 	}
 
 	protected void writeFile(String filePath, NodeList nodeList) throws EngineException {

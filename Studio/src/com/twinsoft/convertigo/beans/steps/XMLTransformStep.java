@@ -108,7 +108,6 @@ public class XMLTransformStep extends XMLElementStep {
 	
 	@Override
 	public String toString() {
-		String text = this.getComment();
 		String label = "";
 		try {
 			XMLVector<String> sourceDefinition = getSourceDefinition();
@@ -116,7 +115,7 @@ public class XMLTransformStep extends XMLElementStep {
 		} catch (EngineException e) {
 		}
 		String nodeName = getNodeName();
-		return "<"+ nodeName +">" + "Transform("+ label +")"+ (!text.equals("") ? " // "+text:"");
+		return "<" + nodeName + "> Transform(" + label + ")";
 	}
 	
 }

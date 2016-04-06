@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.beans.statements;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.mozilla.javascript.Context;
@@ -61,8 +62,7 @@ public class LogStatement extends Statement implements ITagsProperty {
 
     @Override
 	public String toString() {
-		String text = this.getComment();
-		return "log."+level+"("+(expression.length()>20?expression.substring(0,20)+"...":expression)+")"+(!text.equals("") ? " // "+text:"");
+		return "log." + level + "(" +(StringUtils.abbreviate(expression, 25)) + ")";
 	}
 
     @Override

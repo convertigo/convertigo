@@ -178,7 +178,6 @@ public class XMLSplitStep extends XMLElementStep {
 	
 	@Override
 	public String toString() {
-		String text = this.getComment();
 		String label = "";
 		try {
 			XMLVector<String> sourceDefinition = getSourceDefinition();
@@ -186,7 +185,7 @@ public class XMLSplitStep extends XMLElementStep {
 		} catch (EngineException e) {
 		}
 		String nodeName = getNodeName();
-		return "<"+ nodeName +">" + "Split("+ label +")"+ (!text.equals("") ? " // "+text:"");
+		return "<" + nodeName + ">" + "Split(" + label + ")";
 	}
 	
 	@Override

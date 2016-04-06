@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.mozilla.javascript.Context;
@@ -65,8 +66,7 @@ public class LogStep extends Step implements ITagsProperty {
 
     @Override
 	public String toString() {
-		String text = this.getComment();
-		return "(" + logger + ") : log."+level+"("+(expression.length()>20?expression.substring(0,20)+"...":expression)+")"+(!text.equals("") ? " // "+text:"");
+		return "(" + logger + ") : log." + level + "(" + StringUtils.abbreviate(expression, 25) + ")";
 	}
     
 

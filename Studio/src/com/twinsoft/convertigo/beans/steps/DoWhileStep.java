@@ -53,9 +53,8 @@ public class DoWhileStep extends LoopStep {
 
 	@Override
 	public String toString() {
-		String text = this.getComment();
 		String condition = getCondition();
-		return "do...while("+ (condition.equals("")?"??":condition) +")" + (!text.equals("") ? " // "+text:"");
+		return "do...while(" + (condition.equals("") ? "??" : condition) + ")";
 	}
 
 	@Override

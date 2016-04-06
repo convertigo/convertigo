@@ -37,9 +37,8 @@ public class IfFileExistStep extends BlockStep {
 
 	@Override
 	public String toString() {
-		String text = this.getComment();
 		String condition = getCondition();
-		return "ifFileExists("+ (condition.equals("")?"??":condition) +")" + (!text.equals("") ? " // "+text:"");
+		return "ifFileExists(" + (condition.equals("") ? "??" : condition) + ")";
 	}
 
 	@Override

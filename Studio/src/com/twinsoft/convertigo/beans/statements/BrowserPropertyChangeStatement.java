@@ -265,15 +265,13 @@ public class BrowserPropertyChangeStatement extends Statement {
 
     @Override
 	public String toString(){
-		String text = this.getComment();
 		return ("props :" +
 				(javascriptMode != JavascriptMode.noChange ? " js" + (javascriptMode == JavascriptMode.forceOn ? "On" : "Off") : "") +
 				(imageMode != ImageMode.noChange ? " img" + (imageMode == ImageMode.forceOn ? "On" : "Off") : "") +
 				(pluginMode != PluginMode.noChange ? " pg" + (pluginMode == PluginMode.forceOn ? "On" : "Off") : "") +
 				(attachmentMode != AttachmentMode.noChange ? " attachment" + (attachmentMode == AttachmentMode.forceOn ? "On" : "Off") : "") +
 				(windowOpenMode != WindowOpenMode.noChange ? " wo" + (windowOpenMode == WindowOpenMode.forceOnNewWindow ? "New" : (windowOpenMode == WindowOpenMode.forceOnSameWindow ? "Same" : "Off")) : "") +
-				(bClearCookies ? " clearCookies" : "") +
-				(!text.equals("") ? " // " + text : ""));
+				(bClearCookies ? " clearCookies" : ""));
 	}
 
     @Override

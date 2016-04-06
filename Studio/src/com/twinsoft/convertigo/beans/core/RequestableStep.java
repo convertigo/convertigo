@@ -137,12 +137,16 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 	
 	@Override
 	public String toString() {
-		String text = this.getComment();
 		String label = "";
 		try {
 			label += getLabel();
 		} catch (EngineException e) { }
-		return getName() + (label.equals("") ? "":" ") + label + (!text.equals("") ? " // "+text:"");
+		
+		if (label.isEmpty()) {
+			return getName();
+		} else {
+			return getName() + " " + label;
+		}
 	}
 	
 	@Override

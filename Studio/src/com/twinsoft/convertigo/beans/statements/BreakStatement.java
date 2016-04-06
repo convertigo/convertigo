@@ -59,8 +59,7 @@ public class BreakStatement extends SimpleStatement {
 	}
 
 	public String toString() {
-		String text = this.getComment();
-		return "break;" + (!text.equals("") ? " // "+text:"");
+		return "break;";
 	}
 
 }

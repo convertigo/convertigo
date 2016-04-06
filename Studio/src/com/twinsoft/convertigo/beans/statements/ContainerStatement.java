@@ -38,7 +38,7 @@ public class ContainerStatement extends StatementWithExpressions {
 	}
 	
 	public String toString() {
-		return "container // " + getComment();
+		return "container";
 	}
 		
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {		

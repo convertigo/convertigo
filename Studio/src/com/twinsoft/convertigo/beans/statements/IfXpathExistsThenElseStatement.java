@@ -186,8 +186,7 @@ public class IfXpathExistsThenElseStatement extends BlockStatement implements IT
 	
 	@Override
 	public String toString() {
-		String text = this.getComment();
-		return "ifExists node at "+ getCondition() + (!text.equals("") ? " // "+text:"");
+		return "ifExists node at " + getCondition();
 	}
 	
 	@Override

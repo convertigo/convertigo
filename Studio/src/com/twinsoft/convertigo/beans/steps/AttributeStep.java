@@ -88,8 +88,7 @@ public class AttributeStep extends Step implements ISchemaAttributeGenerator, IS
 
 	@Override
 	public String toString() {
-		String text = this.getComment();
-		return "@"+ nodeName + (!text.equals("") ? " // "+text:"");
+		return "@" + nodeName;
 	}
 
 	@Override

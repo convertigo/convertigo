@@ -85,12 +85,11 @@ abstract public class XMLActionStep extends Step implements IStepSourcesContaine
 
 	@Override
 	public String toString() {
-		String text = this.getComment();
 		String label = "";
 		try {
 			label += getLabel();
 		} catch (EngineException e) {}
-		return "<"+ nodeName +"> " + getActionName() + label + (!text.equals("") ? " // "+text:"");
+		return "<" + nodeName + "> " + getActionName() + label;
 	}
     
 	public String toJsString() {

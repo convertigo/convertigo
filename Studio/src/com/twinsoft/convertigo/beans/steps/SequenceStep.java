@@ -465,12 +465,11 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 	
 	@Override
 	public String toString() {
-		String text = this.getComment();
 		String label = "";
 		try {
 			label += getLabel();
 		} catch (EngineException e) { }
-		return StringUtils.normalize("Call_"+getSourceSequence()) + (label.equals("") ? "":" ") + label + (!text.equals("") ? " // "+text:"");
+		return StringUtils.normalize("Call_" + getSourceSequence()) + (label.equals("") ? "" : " ") + label;
 	}
 	
 	public String getSourceSequence() {

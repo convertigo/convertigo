@@ -40,8 +40,7 @@ public class IfStatement extends BlockStatement {
 	}
 
 	public String toString() {
-		String text = this.getComment();
-		return "if("+ getCondition() +")" + (!text.equals("") ? " // "+text:"");
+		return "if(" + getCondition() + ")";
 	}
 	
 	public String toJsString() {

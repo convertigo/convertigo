@@ -56,12 +56,11 @@ public class WriteBase64Step extends WriteFileStep {
 
 	@Override
 	public String toString() {
-		String text = this.getComment();
 		String label = "";
 		try {
 			label += super.getLabel();
 		} catch (EngineException e) {}
-		return "WriteBase64" + label + (!text.equals("") ? " // "+text:"");
+		return "WriteBase64" + label;
 	}
 
 	protected void writeFile(String filePath, NodeList nodeList) throws EngineException {

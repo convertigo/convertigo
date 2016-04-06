@@ -92,8 +92,7 @@ public class IfXpathExistsStatement extends BlockStatement implements IXPathable
 	}
 	
 	public String toString() {
-		String text = this.getComment();
-		return "IfExists node at "+ getCondition() + (!text.equals("") ? " // "+text:"");
+		return "IfExists node at " + getCondition();
 	}
 	
 	public String toJsString() {
