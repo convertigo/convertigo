@@ -644,6 +644,14 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 		XmlSchemaSequence sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
 		cType.setParticle(sequence);
 		
+		
+		XmlSchemaElement errorMessage = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+		sequence.getItems().add(errorMessage);
+		errorMessage.setName("errorMessage");
+		errorMessage.setMinOccurs(0);
+		errorMessage.setMaxOccurs(1);
+		errorMessage.setSchemaTypeName(Constants.XSD_STRING);
+		
 		/**
 		 * create devices complextype tag
 		 */
@@ -651,7 +659,7 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 		sequence.getItems().add(devices);
 		devices.setName("devices");
 		devices.setMinOccurs(0);
-		devices.setMaxOccurs(Long.MAX_VALUE);
+		devices.setMaxOccurs(1);
 		cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
 		devices.setType(cType);
 		
