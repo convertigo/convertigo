@@ -266,13 +266,9 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 			        		// Transform input data
 			        		try {
 				        		if (dataInput.equals(DataContent.toJson)) {
-				        			String modelName = paramName;
-				        			if (param instanceof IMappingRefModel) {
-				        				modelName = ((IMappingRefModel)param).getModelReference();
-				        				modelName = modelName.isEmpty() ? paramName : modelName;
-				        			}
-				        			
-				        			Document doc = XMLUtils.parseDOMFromString("<"+modelName+"/>");
+				        			String modelName = param instanceof IMappingRefModel ? ((IMappingRefModel)param).getModelReference() : "";
+				        			String objectName = modelName.isEmpty() ? paramName : modelName;
+				        			Document doc = XMLUtils.parseDOMFromString("<"+objectName+"/>");
 				        			Element root = doc.getDocumentElement();
 				        			XMLUtils.JsonToXml(new JSONObject((String)paramValue), root);
 				        			paramValue = root.getChildNodes();
