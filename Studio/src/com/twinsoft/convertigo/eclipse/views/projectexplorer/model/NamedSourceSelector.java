@@ -64,15 +64,32 @@ public abstract class NamedSourceSelector {
 						newTokenPath = ((ITokenPath)nsTreeObject.getObject()).getTokenPath(null) +"."+ (String)newValue;
 					}
 				}
+
 				if (oldTokenPath != null && newTokenPath != null) {
-					for (String _propertyName : getPropertyNamesForSource(treeObject.getClass())) {
-						handleSourceRenamed(update, _propertyName, oldTokenPath, newTokenPath);
+					boolean shoudRename = (update == TreeObjectEvent.UPDATE_ALL) 
+							|| ((update == TreeObjectEvent.UPDATE_LOCAL) && fromSameProject(treeObject));
+					
+					if (shoudRename) {
+						for (String _propertyName : getPropertyNamesForSource(treeObject.getClass())) {
+							handleSourceRenamed(_propertyName, oldTokenPath, newTokenPath);
+						}
 					}
 				}
 			}
 		}
 	}
 	
+	private boolean fromSameProject(TreeObject treeObject) {
+		try {
+			Object ob = thisTreeObject();
+			if (ob instanceof DatabaseObjectTreeObject && treeObject instanceof DatabaseObjectTreeObject) {
+				return ((DatabaseObjectTreeObject)ob).getProjectTreeObject().equals(((DatabaseObjectTreeObject)treeObject).getProjectTreeObject());
+			}
+		}
+		catch (Throwable t) {}
+		return false;
+	}
+		
 	protected List<String> getPropertyNamesForSource(Class<?> c) {
 		return new ArrayList<String>();
 	}
@@ -89,7 +106,7 @@ public abstract class NamedSourceSelector {
 		
 	}
 	
-	protected void handleSourceRenamed(int update, String propertyName, String oldName, String newName) {
+	protected void handleSourceRenamed(String propertyName, String oldName, String newName) {
 		
 	}
 }
