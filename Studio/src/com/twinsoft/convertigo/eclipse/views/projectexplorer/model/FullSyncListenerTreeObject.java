@@ -32,7 +32,6 @@ import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.couchdb.AbstractFullSyncFilterListener;
 import com.twinsoft.convertigo.beans.couchdb.AbstractFullSyncListener;
 import com.twinsoft.convertigo.beans.couchdb.AbstractFullSyncViewListener;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 
 public class FullSyncListenerTreeObject extends ListenerTreeObject implements INamedSourceSelectorTreeObject {
 
@@ -106,15 +105,12 @@ public class FullSyncListenerTreeObject extends ListenerTreeObject implements IN
 			}
 
 			@Override
-			protected void handleSourceRenamed(int update, String propertyName, String oldName, String newName) {
+			protected void handleSourceRenamed(String propertyName, String oldName, String newName) {
 				if (isNamedSource(propertyName)) {
 					boolean hasBeenRenamed = false;
 					
-					boolean isLocal = oldName.startsWith(getProjectTreeObject().getName());
-					boolean shoudRename = (update == TreeObjectEvent.UPDATE_ALL) || ((update == TreeObjectEvent.UPDATE_LOCAL) && isLocal);
-					
 					String pValue = (String) getPropertyValue(propertyName);
-					if (shoudRename && pValue != null && pValue.startsWith(oldName)) {
+					if (pValue != null && pValue.startsWith(oldName)) {
 						String _pValue = newName + pValue.substring(oldName.length());
 						if (!pValue.equals(_pValue)) {
 							if ("targetSequence".equals(propertyName)) {

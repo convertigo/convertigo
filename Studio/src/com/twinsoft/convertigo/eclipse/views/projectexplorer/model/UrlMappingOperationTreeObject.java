@@ -30,7 +30,6 @@ import org.eclipse.jface.viewers.Viewer;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 
 public class UrlMappingOperationTreeObject extends DatabaseObjectTreeObject implements INamedSourceSelectorTreeObject {
 
@@ -97,15 +96,12 @@ public class UrlMappingOperationTreeObject extends DatabaseObjectTreeObject impl
 			}
 
 			@Override
-			protected void handleSourceRenamed(int update, String propertyName, String oldName, String newName) {
+			protected void handleSourceRenamed(String propertyName, String oldName, String newName) {
 				if (isNamedSource(propertyName)) {
 					boolean hasBeenRenamed = false;
 					
-					boolean isLocal = oldName.startsWith(getProjectTreeObject().getName());
-					boolean shoudRename = (update == TreeObjectEvent.UPDATE_ALL) || ((update == TreeObjectEvent.UPDATE_LOCAL) && isLocal);
-					
 					String pValue = (String) getPropertyValue(propertyName);
-					if (shoudRename && pValue != null && pValue.startsWith(oldName)) {
+					if (pValue != null && pValue.startsWith(oldName)) {
 						String _pValue = newName + pValue.substring(oldName.length());
 						if (!pValue.equals(_pValue)) {
 							if (getObject() instanceof UrlMappingOperation) {

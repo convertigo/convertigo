@@ -33,7 +33,6 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 
 public class MobileApplicationTreeObject extends DatabaseObjectTreeObject implements INamedSourceSelectorTreeObject {
@@ -125,15 +124,12 @@ public class MobileApplicationTreeObject extends DatabaseObjectTreeObject implem
 			}
 			
 			@Override
-			protected void handleSourceRenamed(int update, String propertyName, String oldName, String newName) {
+			protected void handleSourceRenamed(String propertyName, String oldName, String newName) {
 				if (isNamedSource(propertyName)) {
 					boolean hasBeenRenamed = false;
 					
-					boolean isLocal = oldName.startsWith(getProjectTreeObject().getName());
-					boolean shoudRename = (update == TreeObjectEvent.UPDATE_ALL) || ((update == TreeObjectEvent.UPDATE_LOCAL) && isLocal);
-					
 					String pValue = (String) getPropertyValue(propertyName);
-					if (shoudRename && pValue != null && pValue.startsWith(oldName)) {
+					if (pValue != null && pValue.startsWith(oldName)) {
 						String _pValue = newName + pValue.substring(oldName.length());
 						if (!pValue.equals(_pValue)) {
 							if ("fsConnector".equals(propertyName)) {

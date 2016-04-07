@@ -152,15 +152,12 @@ public class StepTreeObject extends DatabaseObjectTreeObject implements INamedSo
 			}
 
 			@Override
-			protected void handleSourceRenamed(int update, String propertyName, String oldName, String newName) {
+			protected void handleSourceRenamed(String propertyName, String oldName, String newName) {
 				if (isNamedSource(propertyName)) {
 					boolean hasBeenRenamed = false;
 					
-					boolean isLocal = oldName.startsWith(getProjectTreeObject().getName());
-					boolean shoudRename = (update == TreeObjectEvent.UPDATE_ALL) || ((update == TreeObjectEvent.UPDATE_LOCAL) && isLocal);
-					
 					String pValue = (String) getPropertyValue(propertyName);
-					if (shoudRename && pValue != null && pValue.startsWith(oldName)) {
+					if (pValue != null && pValue.startsWith(oldName)) {
 						String _pValue = newName + pValue.substring(oldName.length());
 						if (!pValue.equals(_pValue)) {
 							if (getObject() instanceof TransactionStep) {
