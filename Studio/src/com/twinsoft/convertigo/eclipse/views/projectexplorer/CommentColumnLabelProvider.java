@@ -2,6 +2,7 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.IToolTipProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
@@ -9,11 +10,12 @@ import org.eclipse.swt.widgets.Display;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 
-public class CommentColumnLabelProvider extends ColumnLabelProvider {
+public class CommentColumnLabelProvider extends ColumnLabelProvider implements IToolTipProvider {
 	@Override
 	public String getText(Object element) {
 		if (element instanceof DatabaseObjectTreeObject) {
-			DatabaseObject dbo = ((DatabaseObjectTreeObject) element).getObject();
+			DatabaseObjectTreeObject dbot = (DatabaseObjectTreeObject) element;
+			DatabaseObject dbo = dbot.getObject();
 			String comment = dbo.getComment();
 			if (!StringUtils.isBlank(comment)) {
 				int i = comment.indexOf('\n');
@@ -21,6 +23,9 @@ public class CommentColumnLabelProvider extends ColumnLabelProvider {
 					comment = comment.substring(0, i);
 				}
 				return "// " + comment;
+			}
+			if (dbot.isSelected()) {
+				return "…";
 			}
 		}
 		return "";

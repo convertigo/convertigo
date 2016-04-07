@@ -804,7 +804,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 	
 	//private TreeObject oldSelection = null;
-	final TreeItem lastItem[] = new TreeItem[1];
+	TreeItem lastItem[] = new TreeItem[0];
 	
 	private void hookDoubleClickAction() {
 		viewer.addDoubleClickListener(new IDoubleClickListener() {
@@ -833,11 +833,15 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 						ConvertigoPlugin.projectManager.setCurrentProject(projectTreeObject);
 					}
 					
-					//oldSelection = treeObject;
-					TreeItem[] items = viewer.getTree().getSelection();
-					if (items.length>0) {
-						lastItem[0] = items[0];
+					for (TreeItem item: lastItem) {
+						if (item != null) {
+							viewer.refresh(item.getData(), true);
+						}
 					}
+					viewer.refresh(treeObject, true);
+					
+					//oldSelection = treeObject;
+					lastItem = viewer.getTree().getSelection();
 				}
 			}
 		});	
@@ -935,7 +939,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			if (treeObject.getObject() instanceof HandlerStatement) {
 				return;
 			}
-			if ((item != null) && (item == lastItem[0])) {
+			if ((item != null) && lastItem.length > 0 && (item == lastItem[0])) {
 				boolean isCarbon = SWT.getPlatform().equals("carbon");
 				final Composite composite = new Composite (tree, SWT.NONE);
 				if (!isCarbon) {

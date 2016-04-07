@@ -27,6 +27,7 @@ import java.beans.BeanInfo;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
 import java.util.regex.Pattern;
@@ -38,6 +39,7 @@ import org.eclipse.jface.viewers.ICellEditorValidator;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
@@ -1289,5 +1291,15 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			}
 		}
 		return null;
+	}
+
+	public boolean isSelected() {
+		StructuredSelection selection = (StructuredSelection) viewer.getSelection();
+		for (Iterator<?> i = selection.iterator(); i.hasNext();) {
+			if (i.next() == this) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
