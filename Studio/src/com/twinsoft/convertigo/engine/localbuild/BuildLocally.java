@@ -298,36 +298,36 @@ public abstract class BuildLocally {
 			TwsCachedXPathAPI xpathApi = new TwsCachedXPathAPI();
 			
 			Element singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/preference[@name='phonegap-version']");
-			if (singleElement != null) {
-				String cliVersion = singleElement.getAttribute("value");
-				if (cliVersion != null) {
-					// Remove 'cli-' from 'cli-x.x.x'
-					cliVersion = cliVersion.substring(4);
-					String cordovaInstallPath = BuildLocally.cordovaInstallsPath + File.separator + 
-							"cordova" + cliVersion;
-					File cordovaBinFile = new File(cordovaInstallPath + File.separator + 
-							"node_modules" + File.separator + 
-							"cordova" + File.separator + 
-							"bin" + File.separator + "cordova"
-							);
-					// If cordova is not installed
-					if (!cordovaBinFile.exists()) {
-						File cordovaInstallDir = new File(cordovaInstallPath);
-						cordovaInstallDir.mkdir();
-						
-						List<String> parameters = new LinkedList<String>();
-						parameters.add("--prefix");
-						parameters.add(cordovaInstallDir.getAbsolutePath());
-						parameters.add("install");
-						parameters.add("cordova@" + cliVersion);
-						
-						this.runCommand(cordovaInstallDir, "npm", parameters, true);						
-					}
-					
-					this.cordovaBinPath = cordovaBinFile.getAbsolutePath();
-					
-				}
-			}
+//			if (singleElement != null) {
+//				String cliVersion = singleElement.getAttribute("value");
+//				if (cliVersion != null) {
+//					// Remove 'cli-' from 'cli-x.x.x'
+//					cliVersion = cliVersion.substring(4);
+//					String cordovaInstallPath = BuildLocally.cordovaInstallsPath + File.separator + 
+//							"cordova" + cliVersion;
+//					File cordovaBinFile = new File(cordovaInstallPath + File.separator + 
+//							"node_modules" + File.separator + 
+//							"cordova" + File.separator + 
+//							"bin" + File.separator + "cordova"
+//							);
+//					// If cordova is not installed
+//					if (!cordovaBinFile.exists()) {
+//						File cordovaInstallDir = new File(cordovaInstallPath);
+//						cordovaInstallDir.mkdir();
+//						
+//						List<String> parameters = new LinkedList<String>();
+//						parameters.add("--prefix");
+//						parameters.add(cordovaInstallDir.getAbsolutePath());
+//						parameters.add("install");
+//						parameters.add("cordova@" + cliVersion);
+//						
+//						this.runCommand(cordovaInstallDir, "npm", parameters, true);						
+//					}
+//					
+//					this.cordovaBinPath = cordovaBinFile.getAbsolutePath();
+//					
+//				}
+//			}
 			
 			// Changes icons and splashs src in config.xml file because it was moved to the parent folder
 			NodeIterator nodeIterator = xpathApi.selectNodeIterator(doc, "//*[local-name()='splash' or local-name()='icon']");
@@ -666,14 +666,14 @@ public abstract class BuildLocally {
 			
 			//Checks if npm is installed
 			File cordovaDir = getCordovaDir();
-			List<String> parameters = new LinkedList<String>();
-			parameters.add("--version");
-			String npmVersion = runCommand(cordovaDir, "npm", parameters, false);
-			Pattern pattern = Pattern.compile("^([0-9])+\\.([0-9])+\\.([0-9])+$");
-			Matcher matcher = pattern.matcher(npmVersion);			
-			if (!matcher.find()){
-				throw new Exception("node.js is not installed ('npm --version' returned '" + npmVersion + "')\nYou can download nodes.js from https://nodejs.org/en/download/");
-			}
+//			List<String> parameters = new LinkedList<String>();
+//			parameters.add("--version");
+//			String npmVersion = runCommand(cordovaDir, "npm", parameters, false);
+//			Pattern pattern = Pattern.compile("^([0-9])+\\.([0-9])+\\.([0-9])+$");
+//			Matcher matcher = pattern.matcher(npmVersion);			
+//			if (!matcher.find()){
+//				throw new Exception("node.js is not installed ('npm --version' returned '" + npmVersion + "')\nYou can download nodes.js from https://nodejs.org/en/download/");
+//			}
 			
 			// Cordova environment is already created, we have to build
 			// Step 1: Call Mobile packager to prepare the source package
@@ -740,6 +740,54 @@ public abstract class BuildLocally {
 
 		// Others OS
 		process.destroy();
+	}
+	
+	public void installCordova() throws Throwable {
+
+		File resourceFolder = mobilePlatform.getResourceFolder();
+		List<String> parameters = new LinkedList<String>();
+		parameters.add("--version");
+		String npmVersion = runCommand(resourceFolder, "npm", parameters, false);
+		Pattern pattern = Pattern.compile("^([0-9])+\\.([0-9])+\\.([0-9])+$");
+		Matcher matcher = pattern.matcher(npmVersion);			
+		if (!matcher.find()){
+			throw new Exception("node.js is not installed ('npm --version' returned '" + npmVersion + "')\nYou can download nodes.js from https://nodejs.org/en/download/");
+		}
+		
+		File configFile = new File(resourceFolder, "config.xml");
+		Document doc = XMLUtils.loadXml(configFile);
+		TwsCachedXPathAPI xpathApi = new TwsCachedXPathAPI();
+		
+		Element singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/preference[@name='phonegap-version']");
+		if (singleElement != null) {
+			String cliVersion = singleElement.getAttribute("value");
+			if (cliVersion != null) {
+				// Remove 'cli-' from 'cli-x.x.x'
+				cliVersion = cliVersion.substring(4);
+				String cordovaInstallPath = BuildLocally.cordovaInstallsPath + File.separator + 
+						"cordova" + cliVersion;
+				File cordovaBinFile = new File(cordovaInstallPath + File.separator + 
+						"node_modules" + File.separator + 
+						"cordova" + File.separator + 
+						"bin" + File.separator + "cordova"
+						);
+				// If cordova is not installed
+				if (!cordovaBinFile.exists()) {
+					File cordovaInstallDir = new File(cordovaInstallPath);
+					cordovaInstallDir.mkdir();
+					
+					parameters = new LinkedList<String>();
+					parameters.add("--prefix");
+					parameters.add(cordovaInstallDir.getAbsolutePath());
+					parameters.add("install");
+					parameters.add("cordova@" + cliVersion);
+					
+					this.runCommand(cordovaInstallDir, "npm", parameters, true);						
+				}
+				
+				this.cordovaBinPath = cordovaBinFile.getAbsolutePath();
+			}
+		}
 	}
 
 	public void createCordovaEnvironment(File mobilePlatformDir) throws Throwable {

@@ -88,6 +88,7 @@ import com.twinsoft.convertigo.engine.migration.Migration3_0_0;
 import com.twinsoft.convertigo.engine.migration.Migration5_0_0;
 import com.twinsoft.convertigo.engine.migration.Migration5_0_4;
 import com.twinsoft.convertigo.engine.migration.Migration7_0_0;
+import com.twinsoft.convertigo.engine.migration.Migration7_4_0;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
 import com.twinsoft.convertigo.engine.util.CarUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -1086,6 +1087,15 @@ public class DatabaseObjectsManager implements AbstractManager {
 			if (Engine.isStudioMode()) {
 				// Project's xsd/wsdl no more based on file (Since 7.0.0)
 				Migration7_0_0.migrate(projectName);
+			}
+		}
+		
+		if (VersionUtils.compare(version, "7.4.0") < 0) {
+			// !! Studio mode only !!
+			// Project must be migrated by hand through: Studio import
+			if (Engine.isStudioMode()) {
+				// Change MobilePlatform config.xml
+				Migration7_4_0.migrate(projectName);
 			}
 		}
 		
