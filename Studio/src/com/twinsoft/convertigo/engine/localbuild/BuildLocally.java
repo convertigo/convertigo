@@ -25,7 +25,6 @@ package com.twinsoft.convertigo.engine.localbuild;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -35,7 +34,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.xpath.CachedXPathAPI;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -52,6 +50,7 @@ import com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhone7;
 import com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhone8;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.mobiles.MobileResourceHelper;
+import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public abstract class BuildLocally {
@@ -78,6 +77,9 @@ public abstract class BuildLocally {
     
 	private OS osLocal = null;
 	
+	private final static String cordovaInstallsPath = Engine.USER_WORKSPACE_PATH + File.separator + "cordovas";
+	private String cordovaBinPath;
+	
 	private enum OS {
 		generic,
 		linux,
@@ -86,7 +88,7 @@ public abstract class BuildLocally {
 		solaris;
 	}
 	
-	static {
+//	static {
 //		Map<String, String> m = new HashMap<String, String>();
 //		// iOS 8.0+ 
 //        // iPhone 6 Plus
@@ -116,9 +118,9 @@ public abstract class BuildLocally {
 //		m.put("100x100", "icon-50@2x.png");
 //		
 //		iOSIconsCorrespondences = Collections.unmodifiableMap(m);		
-	}
+//	}
 	
-	static {
+//	static {
 //		Map<String, String> m = new HashMap<String, String>();
 //		
 //		// iPhone
@@ -136,12 +138,121 @@ public abstract class BuildLocally {
 //		m.put("1536x2008", "Default-Portrait@2x~ipad.png");
 //		
 //		iOSSplashCorrespondences = Collections.unmodifiableMap(m);
-	}
+//	}
 	
 	public BuildLocally(MobilePlatform mobilePlatform) {
 		this.mobilePlatform = mobilePlatform;
+		this.cordovaBinPath = null;
+		File cordovaInstallsDir = new File(BuildLocally.cordovaInstallsPath);
+		if (!cordovaInstallsDir.exists()) {
+			cordovaInstallsDir.mkdir();
+		}
 	}
 
+	private String runCommand(File launchDir, String command, List<String> parameters, boolean mergeError) throws Throwable {
+		if (is(OS.win32)) {
+			// Works for cordova and npm
+			command += ".cmd";
+		}
+		
+		String shellFullpath = command;
+		String paths = getLocalBuildAdditionalPath();
+		paths = (paths.length() > 0 ? paths + File.pathSeparator : "") + System.getenv("PATH");
+		// Checks if the command is already full path 
+		if (!(new File(shellFullpath).exists())) {
+			// Else search where the "exec" is and build the absolute path for this "exec"
+			shellFullpath = getFullPath(paths, command);
+			
+			// If the "exec" is not found then it search it elsewhere
+			if (shellFullpath == null) {
+				String defaultPaths = null;
+				if (is(OS.mac) || is(OS.linux)) {
+					defaultPaths = "/usr/local/bin";
+				} else if (is(OS.win32)) {
+					String programFiles = System.getenv("ProgramW6432");
+					if (programFiles != null && programFiles.length() > 0) {
+						defaultPaths = programFiles + File.separator + "nodejs";
+					}
+					
+					programFiles = System.getenv("ProgramFiles");
+					if (programFiles != null && programFiles.length() > 0) {
+						defaultPaths = (defaultPaths == null ? "" : defaultPaths + File.pathSeparator) + programFiles + File.separator + "nodejs";
+					}
+					
+					String appData = System.getenv("APPDATA");
+					if (appData != null && appData.length() > 0) {
+						defaultPaths = (defaultPaths == null ? "" : defaultPaths + File.pathSeparator) + appData + File.separator + "npm";
+					}
+				}
+				shellFullpath = defaultPaths == null ? null : getFullPath(defaultPaths, command);
+				if (shellFullpath == null) {
+					shellFullpath = command;
+				} else {
+					paths += File.pathSeparator + defaultPaths;
+				}
+			}
+		}
+		
+		// Prepares the command
+		parameters.add(0, shellFullpath);
+		ProcessBuilder pb = new ProcessBuilder(parameters);
+		// Set the directory from where the command will be executed
+		pb.directory(launchDir.getCanonicalFile());		
+		
+		Map<String, String> pbEnv = pb.environment();		
+		// must set "Path" for Windows 8.1 64
+		pbEnv.put(pbEnv.get("PATH") == null ? "Path" : "PATH", paths);
+		
+		pb.redirectErrorStream(mergeError);
+		
+		process = pb.start();
+		
+		cmdOutput = "";
+		// Logs the output
+		new Thread(new Runnable() {
+			@Override
+	        public void run() {
+				try {
+					String line;
+					processCanceled = false;
+					
+					BufferedReader bis = new BufferedReader(new InputStreamReader(process.getInputStream()));
+					while ((line = bis.readLine()) != null) {
+						Engine.logEngine.info(line);
+						BuildLocally.this.cmdOutput += line;
+					}
+				} catch (IOException e) {
+					Engine.logEngine.error("Error while executing command", e);
+				}
+			}
+		}).start();
+		
+		if (!mergeError) {
+			// Logs the error output
+			new Thread(new Runnable() {
+				@Override
+		        public void run() {
+					try {
+						String line;
+						processCanceled = false;
+						
+						BufferedReader bis = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+						while ((line = bis.readLine()) != null) {
+							Engine.logEngine.error(line);
+							errorLines += line;
+						}
+					} catch (IOException e) {
+						Engine.logEngine.error("Error while executing command", e);
+					}
+				}
+			}).start();			
+		}
+		
+		process.waitFor();		
+		
+		return cmdOutput;
+	}
+	
 	/***
 	 * Function which permit to run cordova command
 	 * @param projectDir
@@ -164,85 +275,13 @@ public abstract class BuildLocally {
 	 * @throws Throwable
 	 */
 	private String runCordovaCommand(File projectDir, List<String> cordovaCommands) throws Throwable {
-		String shell = is(OS.win32) ? "cordova.cmd" : "cordova";
 		
-		String paths = getLocalBuildAdditionalPath();
-		paths = (paths.length() > 0 ? paths + File.pathSeparator : "") + System.getenv("PATH");
-		
-		String shellFullpath = getFullPath(paths, shell);
-		
-		if (shellFullpath == null) {
-			String defaultPaths = null;
-			if (is(OS.mac) || is(OS.linux)) {
-				defaultPaths = "/usr/local/bin";
-			} else if (is(OS.win32)) {
-				String programFiles = System.getenv("ProgramW6432");
-				if (programFiles != null && programFiles.length() > 0) {
-					defaultPaths = programFiles + File.separator + "nodejs";
-				}
-				
-				programFiles = System.getenv("ProgramFiles");
-				if (programFiles != null && programFiles.length() > 0) {
-					defaultPaths = (defaultPaths == null ? "" : defaultPaths + File.pathSeparator) + programFiles + File.separator + "nodejs";
-				}
-				
-				String appData = System.getenv("APPDATA");
-				if (appData != null && appData.length() > 0) {
-					defaultPaths = (defaultPaths == null ? "" : defaultPaths + File.pathSeparator) + appData + File.separator + "npm";
-				}
-			}
-			shellFullpath = defaultPaths == null ? null : getFullPath(defaultPaths, shell);
-			if (shellFullpath == null) {
-				shellFullpath = shell;
-			} else {
-				paths += File.pathSeparator + defaultPaths;
-			}
+		String command = "cordova";
+		if (this.cordovaBinPath != null) {
+			command = this.cordovaBinPath;
 		}
 		
-		cordovaCommands.add(0, shellFullpath);
-		
-		ProcessBuilder processBuilder = new ProcessBuilder(cordovaCommands);
-		processBuilder.directory(projectDir.getCanonicalFile());
-		
-		Map<String, String> pbEnv = processBuilder.environment();
-		
-		// must set "Path" for Windows 8.1 64
-		pbEnv.put(pbEnv.get("PATH") == null ? "Path" : "PATH", paths);
-		
-		process = processBuilder.start();
-		
-		InputStream is = process.getInputStream();
-		InputStream es = process.getErrorStream();
-		
-		final BufferedReader bis = new BufferedReader(new InputStreamReader(is));
-		final BufferedReader bes = new BufferedReader(new InputStreamReader(es));
-
-		cmdOutput = "";
-		Thread readOutputThread = new Thread(new Runnable() {
-			@Override
-	        public void run() {
-				try {
-					String line;
-					processCanceled = false;
-					
-					while ((line = bis.readLine()) != null) {
-						Engine.logEngine.info(line);
-						BuildLocally.this.cmdOutput += line;
-					}
-					errorLines = "";
-					while ((line = bes.readLine()) != null) {
-						Engine.logEngine.error(line);
-						errorLines += new String(line.getBytes()) + "\n";
-					}
-				} catch (IOException e) {
-					Engine.logEngine.error("Error while executing cordova command", e);
-				}
-			}
-		});
-		readOutputThread.start();
-		process.waitFor();
-		
-		return cmdOutput;
+		return this.runCommand(projectDir, command, cordovaCommands, false);
 	}
 		
 	/***
@@ -256,37 +295,43 @@ public abstract class BuildLocally {
 			
 			File configFile = new File(cordovaDir, "config.xml");
 			Document doc = XMLUtils.loadXml(configFile);
-			CachedXPathAPI xpathApi = new CachedXPathAPI();
-			// String platform = mobilePlatform.getCordovaPlatform();
+			TwsCachedXPathAPI xpathApi = new TwsCachedXPathAPI();
 			
-//			File defaultSplash = null;
-//			File defaultIcon = null;
-			
-//			/** Handle plugins in the config.xml file and test to see if the plugin is not already installed */
-//			Engine.logEngine.info("Checking installed plugins... ");
-//			String installedPlugins = runCordovaCommand(cordovaDir, "plugin", "list").toLowerCase();
-			
-//			NodeIterator plugins = xpathApi.selectNodeIterator(doc, "//*[local-name()='plugin']");
-			
-//			Element singleElement = (Element) xpathApi.selectSingleNode(doc, "//*[local-name()='splash' and @src and not(@platform)]");
-//			if (singleElement != null) {
-//				defaultSplash = new File(wwwDir, singleElement.getAttribute("src"));
-//				if (!defaultSplash.exists()) {
-//					defaultSplash = null;
-//				}
-//			}
-//			
-//			singleElement = (Element) xpathApi.selectSingleNode(doc, "//*[local-name()='icon' and @src and not(@platform)]");
-//			if (singleElement != null) {
-//				defaultIcon = new File(wwwDir, singleElement.getAttribute("src"));
-//				if (!defaultIcon.exists()) {
-//					defaultIcon = null;
-//				}
-//			}
+			Element singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/preference[@name='phonegap-version']");
+			if (singleElement != null) {
+				String cliVersion = singleElement.getAttribute("value");
+				if (cliVersion != null) {
+					// Remove 'cli-' from 'cli-x.x.x'
+					cliVersion = cliVersion.substring(4);
+					String cordovaInstallPath = BuildLocally.cordovaInstallsPath + File.separator + 
+							"cordova" + cliVersion;
+					File cordovaBinFile = new File(cordovaInstallPath + File.separator + 
+							"node_modules" + File.separator + 
+							"cordova" + File.separator + 
+							"bin" + File.separator + "cordova"
+							);
+					// If cordova is not installed
+					if (!cordovaBinFile.exists()) {
+						File cordovaInstallDir = new File(cordovaInstallPath);
+						cordovaInstallDir.mkdir();
+						
+						List<String> parameters = new LinkedList<String>();
+						parameters.add("--prefix");
+						parameters.add(cordovaInstallDir.getAbsolutePath());
+						parameters.add("install");
+						parameters.add("cordova@" + cliVersion);
+						
+						this.runCommand(cordovaInstallDir, "npm", parameters, true);						
+					}
+					
+					this.cordovaBinPath = cordovaBinFile.getAbsolutePath();
+					
+				}
+			}
 			
 			// Changes icons and splashs src in config.xml file because it was moved to the parent folder
 			NodeIterator nodeIterator = xpathApi.selectNodeIterator(doc, "//*[local-name()='splash' or local-name()='icon']");
-			Element singleElement = (Element) nodeIterator.nextNode();
+			singleElement = (Element) nodeIterator.nextNode();
 			while (singleElement != null) {
 				String src = singleElement.getAttribute("src");
 				src = "www/" + src;
@@ -304,169 +349,13 @@ public abstract class BuildLocally {
 					singleElement.setAttribute("name", "com.couchbase.lite.phonegap");
 				}
 			}
-			
-			
-//			for (Element plugin = (Element) plugins.nextNode(); plugin != null; plugin = (Element) plugins.nextNode()) {
-//				List<String> options = new LinkedList<String>();
-//				String pluginName = plugin.getAttribute("name");
-//				String gitUrl = null;
-//				String version = null;
-//
-//				/** Build an optional --variable <NAME>=<VALUE> list */
-//				NodeIterator params = xpathApi.selectNodeIterator(plugin, "./param");
-//				for (Element param = (Element) params.nextNode(); param != null; param = (Element) params.nextNode()) {
-//					if (param.hasAttribute("name") && param.hasAttribute("value")) {
-//						options.add("--variable");
-//						options.add(param.getAttributes().getNamedItem("name").getTextContent() + "=" + param.getAttributes().getNamedItem("value").getTextContent());
-//					}
-//				}
-//				
-//				if (plugin.hasAttribute("git")) {
-//					gitUrl = plugin.getAttribute("git");
-//				}
-//				
-//				if (plugin.hasAttribute("version")) {
-//					version = plugin.getAttribute("version");
-//				}
-//				
-//				if (!installedPlugins.contains(pluginName.toLowerCase())) {
-//					Engine.logEngine.info("Adding plugin " + pluginName);
-//					// if we have a gitUrl use it in priority
-//					
-//					List<String> arguments = new LinkedList<String>();
-//					
-//					if (gitUrl != null) {
-//						arguments.add("plugin");
-//						arguments.add("add");
-//						arguments.add(gitUrl);
-//					} else {
-//						arguments.add("plugin");
-//						arguments.add("add");
-//						arguments.add(pluginName + (version != null ? "@" + version : ""));
-//					}
-//					
-//					arguments.addAll(options);
-//					
-//					runCordovaCommand(cordovaDir, arguments);
-//				}	
-//			}
 
 			//ANDROID
 //			if (mobilePlatform instanceof Android) {
-//				File resFolder = new File(cordovaDir, "platforms" + File.separator + platform + File.separator + "res");
-//				
-//				if (defaultIcon != null) {
-//					FileUtils.copyFile(defaultIcon, new File(resFolder, "drawable" + File.separator + "icon.png"));
-//				}
-//				
-//				// Copy the icons to the correct "res" directory
-//				NodeIterator icons = xpathApi.selectNodeIterator(doc, "//icon[@platform = 'android']");
-//				for (Element icon = (Element) icons.nextNode(); icon != null; icon = (Element) icons.nextNode()) {
-//					String source = icon.getAttribute("src");
-//					String gapAttrib = icon.getAttribute(icon.hasAttribute("gap:qualifier") ? "gap:qualifier" : "gap:density");
-//					
-//					File iconSrc = new File(wwwDir, source);
-//					File dest = new File(resFolder, "drawable-" + gapAttrib + File.separator + "icon.png");
-//					
-//					Engine.logEngine.debug("Copying " + iconSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
-//					
-//					FileUtils.copyFile(iconSrc, dest);
-//					if (gapAttrib.equalsIgnoreCase("ldpi")) {
-//						// special case for ldpi assume it goes also in the drawable folder
-//						dest = new File(resFolder, "drawable/icon.png");
-//						
-//						Engine.logEngine.debug("Copying " + iconSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
-//						
-//						FileUtils.copyFile(iconSrc, dest);
-//					}
-//				}
-//				
-//				if (defaultSplash != null) {
-//					FileUtils.copyFile(defaultSplash, new File(resFolder, "drawable" + File.separator + "splash.png"));
-//				}
-//				
-//				// now the stuff for splashes
-//				// for splashes, as there is the the 'gap:' name space use the local-name xpath function instead 
-//				NodeIterator splashes = xpathApi.selectNodeIterator(doc, "//*[local-name()='splash' and @platform = 'android']");
-//				for (Element splash = (Element) splashes.nextNode(); splash != null; splash = (Element) splashes.nextNode()) {
-//					String source = splash.getAttribute("src");
-//					String gapAttrib = splash.getAttribute(splash.hasAttribute("gap:qualifier") ? "gap:qualifier" : "gap:density");
-//					
-//					File splashSrc = new File(wwwDir, source);
-//					File dest = new File(resFolder, "drawable-" + gapAttrib + File.separator + "splash.png");
-//					
-//					Engine.logEngine.debug("Copying " + splashSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
-//					
-//					FileUtils.copyFile(splashSrc, dest);
-//					if (gapAttrib.equalsIgnoreCase("ldpi")) {
-//						// special case for ldpi assume it goes also in the drawable folder
-//						dest = new File(resFolder, "drawable" + File.separator + "splash.png");
-//						
-//						Engine.logEngine.debug("Copying " + splashSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
-//						
-//						FileUtils.copyFile(splashSrc, dest);
-//					}
-//				}
 //			}
 			
 			//iOS
-//			if (mobilePlatform instanceof  IOs) {
-//				String applicationName = mobilePlatform.getParent().getComputedApplicationName();
-//				
-//				File iconFolder = new File(cordovaDir, 
-//						"platforms" + File.separator + platform + File.separator + applicationName + File.separator + "Resources" + 
-//								File.separator + "icons");
-//				
-//				if (defaultIcon != null) {
-//					for (String iconName: iOSIconsCorrespondences.values()) {
-//						FileUtils.copyFile(defaultIcon, new File(iconFolder, iconName));
-//					}
-//				}
-//				
-//				// Copy the icons to the correct res directory
-//				NodeIterator icons = xpathApi.selectNodeIterator(doc, "//icon[@platform = 'ios']");
-//				for (Element icon = (Element) icons.nextNode(); icon != null; icon = (Element) icons.nextNode()) {
-//					String source = icon.getAttribute("src");
-//					String height = icon.getAttribute("height");
-//					String width = icon.getAttribute("width");
-//
-//					File iconSrc = new File(wwwDir, source);
-//					
-//					String iconName = iOSIconsCorrespondences.get(width + "x" + height);
-//					File dest = new File(iconFolder, iconName );
-//
-//					Engine.logEngine.debug("Copying " + iconSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
-//					
-//					FileUtils.copyFile(iconSrc, dest);
-//				}
-//				
-//				File splashFolder = new File(cordovaDir, 
-//						"platforms" + File.separator + platform + File.separator + applicationName + File.separator + "Resources" + 
-//								File.separator + "splash");
-//				
-//				if (defaultSplash != null) {
-//					for (String splashName: iOSSplashCorrespondences.values()) {
-//						FileUtils.copyFile(defaultSplash, new File(splashFolder, splashName));
-//					}
-//				}
-//				
-//				// now the stuff for splashes
-//				// for splashes, as there is the the 'gap:' name space use the local-name xpath function instead 
-//				NodeIterator splashes = xpathApi.selectNodeIterator(doc, "//*[local-name()='splash' and @platform = 'ios']");
-//				for (Element splash = (Element) splashes.nextNode(); splash != null; splash = (Element) splashes.nextNode()) {
-//					String source = splash.getAttribute("src");
-//					String height = splash.getAttribute("height");
-//					String width = splash.getAttribute("width");
-//					
-//					File splashSrc = new File(wwwDir, source);
-//					
-//					String splashName = iOSSplashCorrespondences.get(width + "x" + height);
-//					File dest = new File(splashFolder, splashName);
-//					
-//					Engine.logEngine.debug("Copying " + splashSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
-//					
-//					FileUtils.copyFile(splashSrc, dest);
-//				}
+//			if (mobilePlatform instanceof  IOs) {			
 //			}
 			
 			//WINPHONE
@@ -490,55 +379,7 @@ public abstract class BuildLocally {
 					singleElement.setAttribute("width", "768");
 					singleElement.setAttribute("height", "1280");
 				}
-
-				
-//				File resFolder = new File(cordovaDir, "platforms" + File.separator + platform);
-//				File destIcon = new File(resFolder, "ApplicationIcon.png");
-//				File destBackground = new File(resFolder, "Background.png");
-//				File destSplashScreen = new File(resFolder, "SplashScreenImage.jpg");
-//				
-//				if (defaultIcon != null) {
-//					FileUtils.copyFile(defaultIcon, destIcon);
-//					FileUtils.copyFile(defaultIcon, destBackground);
-//				}
-
-//				NodeIterator icons = xpathApi.selectNodeIterator(doc, "//icon[@platform = 'winphone']");
-//				for (Element icon = (Element) icons.nextNode(); icon != null; icon = (Element) icons.nextNode()) {
-//					String source = icon.getAttribute("src");
-//					String role = icon.hasAttribute("gap:role") ? icon.getAttribute("gap:role") : "";
-//					
-//					File iconSrc = new File(wwwDir, source);
-//					
-//					Engine.logEngine.debug("Copying " + iconSrc.getAbsolutePath() + " to " + destIcon.getAbsolutePath());
-//					
-//					FileUtils.copyFile(iconSrc, destIcon);
-//					
-//					if (role.equalsIgnoreCase("background")) {
-//						// special case for background 
-//						Engine.logEngine.debug("Copying " + iconSrc.getAbsolutePath() + " to " + destBackground.getAbsolutePath());
-//						
-//						FileUtils.copyFile(iconSrc, destBackground);
-//					}
-//				}
-				
-//				if (defaultSplash != null) {
-//					ImageUtils.pngToJpg(defaultSplash, destSplashScreen);
-//				}
-				
-				// now the stuff for splashes
-				// for splashes, as there is the the 'gap:' name space use the local-name xpath function instead 
-//				NodeIterator splashes = xpathApi.selectNodeIterator(doc, "//*[local-name()='splash' and @platform = 'winphone']");
-//				for (Element splash = (Element) splashes.nextNode(); splash != null; splash = (Element) splashes.nextNode()) {
-//					String source = splash.getAttribute("src");
-//					
-//					File splashSrc = new File(wwwDir, source);
-//					
-//					Engine.logEngine.debug("Copying " + splashSrc.getAbsolutePath() + " to " + destSplashScreen.getAbsolutePath());
-//					
-//					FileUtils.copyFile(splashSrc, destSplashScreen);
-//				}
 			}
-
 
 			if (mobilePlatform instanceof BlackBerry10) {
 				// TODO : Add platform BB10
@@ -821,12 +662,18 @@ public abstract class BuildLocally {
 	}
 	
 	public Status runBuild(String option, boolean run, String target) {
-		try {
+		try {		
 			
-			if (!getCordovaVersion().startsWith("5.2")) {
-				throw new Exception("Wrong Cordova version");
+			//Checks if npm is installed
+			File cordovaDir = getCordovaDir();
+			List<String> parameters = new LinkedList<String>();
+			parameters.add("--version");
+			String npmVersion = runCommand(cordovaDir, "npm", parameters, false);
+			Pattern pattern = Pattern.compile("^([0-9])+\\.([0-9])+\\.([0-9])+$");
+			Matcher matcher = pattern.matcher(npmVersion);			
+			if (!matcher.find()){
+				throw new Exception("node.js is not installed ('npm --version' returned '" + npmVersion + "')\nYou can download nodes.js from https://nodejs.org/en/download/");
 			}
-			
 			
 			// Cordova environment is already created, we have to build
 			// Step 1: Call Mobile packager to prepare the source package
@@ -837,26 +684,12 @@ public abstract class BuildLocally {
 			File wwwDir = mobileResourceHelper.preparePackage();
 
 			// Step 2: Add platform and read config.xml to copy needed icons and splash resources
-			File cordovaDir = getCordovaDir();
+			
 			String cordovaPlatform = mobilePlatform.getCordovaPlatform();
 			
 			//
 			FileUtils.copyFile(new File(wwwDir, "config.xml"), new File(cordovaDir, "config.xml"));
 			FileUtils.deleteQuietly(new File(wwwDir, "config.xml"));
-						
-//			if (mobilePlatform instanceof Android) {
-//				runCordovaCommand(cordovaDir, "platform", "add", cordovaPlatform + "@4.1.1");
-//			} else {
-//				runCordovaCommand(cordovaDir, "platform", "add", cordovaPlatform);
-//			}
-			
-			
-			
-			/*if (mobilePlatform instanceof Android && getCordovaVersion().startsWith("3.5.0")) {
-				runCordovaCommand(cordovaDir, "platform", "add", cordovaPlatform + "@3.5.1", "--usenpm");
-			} else {
-				runCordovaCommand(cordovaDir, "platform", "add", cordovaPlatform);
-			}*/
 
 			processConfigXMLResources(wwwDir, cordovaDir);
 
