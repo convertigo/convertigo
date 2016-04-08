@@ -10,7 +10,7 @@ import org.eclipse.swt.widgets.Display;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 
-public class CommentColumnLabelProvider extends ColumnLabelProvider implements IToolTipProvider {
+public class CommentColumnLabelProvider extends ColumnLabelProvider {
 	@Override
 	public String getText(Object element) {
 		if (element instanceof DatabaseObjectTreeObject) {
