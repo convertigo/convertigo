@@ -105,7 +105,7 @@ public class ChangeToFormParameterAction extends MyAbstractAction {
 	        				
 							// Add new parameter to parent operation
 	        				UrlMappingOperation operation = (UrlMappingOperation) parameter.getParent();
-	        				operation.add(formParameter);
+	        				operation.changeTo(formParameter);
 	        				
 	        				// Add new parameter in Tree
 	        				UrlMappingParameterTreeObject parameterTreeObject = new UrlMappingParameterTreeObject(explorerView.viewer,formParameter);

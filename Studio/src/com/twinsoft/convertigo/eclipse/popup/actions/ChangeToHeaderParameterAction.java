@@ -102,7 +102,7 @@ public class ChangeToHeaderParameterAction extends MyAbstractAction {
 	        				
 							// Add new parameter to parent operation
 	        				UrlMappingOperation operation = (UrlMappingOperation) parameter.getParent();
-	        				operation.add(headerParameter);
+	        				operation.changeTo(headerParameter);
 	        				
 	        				// Add new parameter in Tree
 	        				UrlMappingParameterTreeObject parameterTreeObject = new UrlMappingParameterTreeObject(explorerView.viewer,headerParameter);

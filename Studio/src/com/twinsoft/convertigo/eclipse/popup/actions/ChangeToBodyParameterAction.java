@@ -127,7 +127,7 @@ public class ChangeToBodyParameterAction extends MyAbstractAction {
 	        				
 							// Add new parameter to parent operation
 	        				UrlMappingOperation operation = (UrlMappingOperation) parameter.getParent();
-	        				operation.add(bodyParameter);
+	        				operation.changeTo(bodyParameter);
 	        				
 	        				// Add new parameter in Tree
 	        				UrlMappingParameterTreeObject parameterTreeObject = new UrlMappingParameterTreeObject(explorerView.viewer,bodyParameter);

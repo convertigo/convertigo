@@ -42,6 +42,7 @@ public abstract class UrlMappingOperation extends DatabaseObject {
 	@Override
 	public UrlMappingOperation clone() throws CloneNotSupportedException {
 		UrlMappingOperation clonedObject = (UrlMappingOperation)super.clone();
+		clonedObject.isChangeTo = false;
 		clonedObject.parameters = new LinkedList<UrlMappingParameter>();
 		clonedObject.responses = new LinkedList<UrlMappingResponse>();
 		return clonedObject;
@@ -51,6 +52,8 @@ public abstract class UrlMappingOperation extends DatabaseObject {
 	abstract protected boolean canAddParameter(UrlMappingParameter parameter);
 	abstract public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws EngineException;
 
+	protected transient boolean isChangeTo = false;
+	
 	private String targetRequestable = "";
 	
 	public String getTargetRequestable() {
@@ -67,6 +70,15 @@ public abstract class UrlMappingOperation extends DatabaseObject {
 		rep.addAll(getParameterList());
 		rep.addAll(getResponseList());
 		return rep;
+	}
+	
+	public void changeTo(DatabaseObject databaseObject) throws EngineException {
+		try {
+			isChangeTo = true;
+			add(databaseObject);
+		} finally {
+			isChangeTo = false;
+		}
 	}
 	
 	@Override

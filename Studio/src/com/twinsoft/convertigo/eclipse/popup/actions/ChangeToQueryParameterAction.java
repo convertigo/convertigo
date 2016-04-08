@@ -105,7 +105,7 @@ public class ChangeToQueryParameterAction extends MyAbstractAction {
 	        				
 							// Add new parameter to parent operation
 	        				UrlMappingOperation operation = (UrlMappingOperation) parameter.getParent();
-	        				operation.add(queryParameter);
+	        				operation.changeTo(queryParameter);
 	        				
 	        				// Add new parameter in Tree
 	        				UrlMappingParameterTreeObject parameterTreeObject = new UrlMappingParameterTreeObject(explorerView.viewer,queryParameter);

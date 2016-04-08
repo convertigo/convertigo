@@ -70,20 +70,27 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 	
 	@Override
 	protected void addParameter(UrlMappingParameter parameter) throws EngineException {
+		List<UrlMappingParameter> l = getParameterList();
 		if (hasBodyParameter) {
 			Type type = parameter.getType();
 			if (type != Type.Path && type != Type.Header) {
-				if (type == Type.Body)
+				if (type == Type.Body) {
 					throw new EngineException("The REST operation already contains a 'body' parameter");
-				else
-					throw new EngineException("The REST operation contains a 'body' parameter. You can only add 'header' parameters");
+				}
+				else {
+					if (!isChangeTo || (isChangeTo && l.size() != 1)) {
+						throw new EngineException("The REST operation contains a 'body' parameter. You can only add 'header' parameters");
+					}
+				}
 			}
 		}
 		else if (parameter.getType() == Type.Body) {
-			for (UrlMappingParameter param: getParameterList()) {
+			for (UrlMappingParameter param: l) {
 				Type type = param.getType();
 				if (type == Type.Query || type == Type.Form) {
-					throw new EngineException("The REST operation contains a '"+type+"' parameter. You can not add a 'body' parameter");
+					if (!isChangeTo || (isChangeTo && l.size() != 1)) {
+						throw new EngineException("The REST operation contains a '"+type+"' parameter. You can not add a 'body' parameter");
+					}
 				}
 			}
 		}
