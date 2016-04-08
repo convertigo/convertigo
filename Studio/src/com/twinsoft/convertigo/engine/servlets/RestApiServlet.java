@@ -124,10 +124,12 @@ public class RestApiServlet extends HttpServlet {
 						
 						// Handle request
 		                urlMappingOperation.handleRequest(request, response);
+		                
+		                // Set response status
 		                ServletUtils.applyCustomStatus(request, response);
 		                Engine.logEngine.debug("(RestApiServlet) Response status code: "+ response.getStatus());
 		                
-						// Response headers
+						// Set response headers
 		                ServletUtils.applyCustomHeaders(request, response);
 						if (Engine.logEngine.isDebugEnabled()) {
 			    			buf = new StringBuffer();
