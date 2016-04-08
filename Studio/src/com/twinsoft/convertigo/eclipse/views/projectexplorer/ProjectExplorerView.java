@@ -834,7 +834,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					}
 					
 					for (TreeItem item: lastItem) {
-						if (item != null) {
+						if (item != null && !item.isDisposed()) {
 							viewer.refresh(item.getData(), true);
 						}
 					}
