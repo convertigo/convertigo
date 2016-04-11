@@ -45,25 +45,37 @@ public class LDAPAuthenticationStepBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[3];
+			properties = new PropertyDescriptor[6];
 
             properties[0] = new PropertyDescriptor("server", beanClass, "getServer", "setServer");
             properties[0].setDisplayName(getExternalizedString("property.server.display_name"));
             properties[0].setShortDescription(getExternalizedString("property.server.short_description"));
             properties[0].setPropertyEditorClass(getEditorClass("SmartTypeCellEditor"));
             
-            
             properties[1] = new PropertyDescriptor("login", beanClass, "getLogin", "setLogin");
             properties[1].setDisplayName(getExternalizedString("property.login.display_name"));
             properties[1].setShortDescription(getExternalizedString("property.login.short_description"));
             properties[1].setPropertyEditorClass(getEditorClass("SmartTypeCellEditor"));
-            
             
             properties[2] = new PropertyDescriptor("password", beanClass, "getPassword", "setPassword");
             properties[2].setDisplayName(getExternalizedString("property.password.display_name"));
             properties[2].setShortDescription(getExternalizedString("property.password.short_description"));
             properties[2].setPropertyEditorClass(getEditorClass("SmartTypeCellEditor"));            
             
+            properties[3] = new PropertyDescriptor("adminLogin", beanClass, "getAdminLogin", "setAdminLogin");
+            properties[3].setDisplayName(getExternalizedString("property.adminLogin.display_name"));
+            properties[3].setShortDescription(getExternalizedString("property.adminLogin.short_description"));
+            properties[3].setPropertyEditorClass(getEditorClass("SmartTypeCellEditor"));
+            
+            properties[4] = new PropertyDescriptor("adminPassword", beanClass, "getAdminPassword", "setAdminPassword");
+            properties[4].setDisplayName(getExternalizedString("property.adminPassword.display_name"));
+            properties[4].setShortDescription(getExternalizedString("property.adminPassword.short_description"));
+            properties[4].setPropertyEditorClass(getEditorClass("SmartTypeCellEditor"));            
+
+            properties[5] = new PropertyDescriptor("basePath", beanClass, "getBasePath", "setBasePath");
+            properties[5].setDisplayName(getExternalizedString("property.basePath.display_name"));
+            properties[5].setShortDescription(getExternalizedString("property.basePath.short_description"));
+            properties[5].setPropertyEditorClass(getEditorClass("SmartTypeCellEditor"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

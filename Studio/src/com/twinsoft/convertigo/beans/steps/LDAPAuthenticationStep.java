@@ -48,6 +48,9 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 	private SmartType server = new SmartType();
 	private SmartType login = new SmartType();
 	private SmartType password = new SmartType();
+	private SmartType adminLogin = new SmartType();
+	private SmartType adminPassword = new SmartType();
+	private SmartType basePath = new SmartType();
 	
 	public LDAPAuthenticationStep() {
 		super();
@@ -83,6 +86,8 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 			evaluate(javascriptContext, scope, server);
 			evaluate(javascriptContext, scope, login);
 			evaluate(javascriptContext, scope, password);
+			evaluate(javascriptContext, scope, adminLogin);
+			evaluate(javascriptContext, scope, adminPassword);
 			return super.stepExecute(javascriptContext, scope);
 		}
 		return false;
@@ -93,14 +98,16 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 
 			TWSLDAP ldap = new TWSLDAP();
 
-			String ldapserver = server.getSingleString(this);
-			String ldaplogin = login.getSingleString(this);
-			String ldappassword = password.getSingleString(this);
+			String ldap_server = server.getSingleString(this);
+			String ldap_adminLogin = adminLogin.getSingleString(this);
+			String ldap_adminPassword = adminPassword.getSingleString(this);
+			String ldap_userLogin = login.getSingleString(this);
+			String ldap_userPassword = password.getSingleString(this);
 			
-			Boolean authenticated = ldap.bind(ldapserver, ldaplogin, ldappassword);
-			Engine.logBeans.debug("LDAP User \""+ldaplogin+"\" authenticated="+ authenticated.toString());
+			Boolean authenticated = ldap.bind(ldap_server, ldap_userLogin, ldap_userPassword);
+			Engine.logBeans.debug("LDAP User \""+ldap_userLogin+"\" authenticated="+ authenticated.toString());
 			if (authenticated) {
-				getSequence().context.setAuthenticatedUser(ldaplogin);
+				getSequence().context.setAuthenticatedUser(ldap_userLogin);
 			}
 			
 			Node text = doc.createTextNode(authenticated.toString());
@@ -139,4 +146,27 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 		this.password = password;
 	}	
 
+	public SmartType getAdminLogin() {
+		return adminLogin;
+	}
+
+	public void setAdminLogin(SmartType adminLogin) {
+		this.adminLogin = adminLogin;
+	}
+
+	public SmartType getAdminPassword() {
+		return adminPassword;
+	}
+
+	public void setAdminPassword(SmartType adminPassword) {
+		this.adminPassword = adminPassword;
+	}
+
+	public SmartType getBasePath() {
+		return basePath;
+	}
+
+	public void setBasePath(SmartType basePath) {
+		this.basePath = basePath;
+	}
 }
