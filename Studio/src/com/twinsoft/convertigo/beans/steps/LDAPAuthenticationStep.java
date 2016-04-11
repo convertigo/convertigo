@@ -37,6 +37,7 @@ import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
 import com.twinsoft.convertigo.beans.core.Step;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.util.TWSLDAP;
 
@@ -45,7 +46,6 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 	private static final long serialVersionUID = -1894558458026853410L;
 
 	private SmartType server = new SmartType();
-	//private SmartType password = new SmartType();
 	private SmartType login = new SmartType();
 	private SmartType password = new SmartType();
 	
@@ -80,12 +80,9 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable()) {
-			
 			evaluate(javascriptContext, scope, server);
 			evaluate(javascriptContext, scope, login);
-			//evaluate(javascriptContext, scope, password);
-			//evaluate(javascriptContext, scope, ldap);
-			
+			evaluate(javascriptContext, scope, password);
 			return super.stepExecute(javascriptContext, scope);
 		}
 		return false;
@@ -95,13 +92,13 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
 
 			TWSLDAP ldap = new TWSLDAP();
-			//ldap.bind(server.getSingleString(this), login.getSingleString(this), password.getSingleString(this));
 
 			String ldapserver = server.getSingleString(this);
 			String ldaplogin = login.getSingleString(this);
-			String ldappassword =password.getSingleString(this);
-			Boolean authenticated = ldap.bind(ldapserver, ldaplogin, ldappassword);
+			String ldappassword = password.getSingleString(this);
 			
+			Boolean authenticated = ldap.bind(ldapserver, ldaplogin, ldappassword);
+			Engine.logBeans.debug("LDAP User \""+ldaplogin+"\" authenticated="+ authenticated.toString());
 			if (authenticated) {
 				getSequence().context.setAuthenticatedUser(ldaplogin);
 			}
@@ -114,7 +111,6 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
 		element.setSchemaTypeName(getSimpleTypeAffectation());
-		
 		return element;
 	}
 	
