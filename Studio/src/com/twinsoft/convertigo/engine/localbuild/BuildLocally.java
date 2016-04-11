@@ -88,58 +88,6 @@ public abstract class BuildLocally {
 		solaris;
 	}
 	
-//	static {
-//		Map<String, String> m = new HashMap<String, String>();
-//		// iOS 8.0+ 
-//        // iPhone 6 Plus
-//		m.put("180x180","icon-60@3x.png");
-//		//iOS 7.0+ 
-//		// iPhone/iPod Touch
-//		m.put("60x60", "icon-60.png");
-//		m.put("120x120", "icon-60@2x.png");
-//		//iPad
-//		m.put("76x76", "icon-76.png");
-//		m.put("152x152", "icon-76@2x.png");
-//		//iOS 6.1+
-//		//Spotlight Icon
-//		m.put("40x40", "icon-40.png");
-//		m.put("80x80", "icon-40@2x.png");
-//		//iPhone/iPod Touch
-//		m.put("57x57", "icon.png");
-//		m.put("114x114", "icon@2x.png");
-//		//iPad
-//		m.put("72x72", "icon-72.png");
-//		m.put("144x144", "icon-72@2x.png");
-//		//iPhone Spotlight and Settings Icon
-//		m.put("29x29", "icon-small.png");
-//		m.put("58x58", "icon-small@2x.png");
-//		//iPad Spotlight and Settings Icon
-//		m.put("50x50", "icon-50.png");
-//		m.put("100x100", "icon-50@2x.png");
-//		
-//		iOSIconsCorrespondences = Collections.unmodifiableMap(m);		
-//	}
-	
-//	static {
-//		Map<String, String> m = new HashMap<String, String>();
-//		
-//		// iPhone
-//		m.put("1242x2208", "Default-736h.png");
-//		m.put("750x1334", "Default-667h.png");
-//		m.put("640x1136", "Default-568h@2x~iphone.png");
-//		m.put("640x960", "Default@2x~iphone.png");
-//		m.put("320x480", "Default~iphone.png");
-//
-//		// iPad
-//		m.put("2208x1242", "Default-Landscape-736h.png");
-//		m.put("2048x1496", "Default-Landscape@2x~ipad.png");
-//		m.put("1024x748", "Default-Landscape~ipad.png");
-//		m.put("768x1004", "Default-Portrait~ipad.png");
-//		m.put("1536x2008", "Default-Portrait@2x~ipad.png");
-//		
-//		iOSSplashCorrespondences = Collections.unmodifiableMap(m);
-//	}
-	
 	public BuildLocally(MobilePlatform mobilePlatform) {
 		this.mobilePlatform = mobilePlatform;
 		this.cordovaBinPath = null;
@@ -742,62 +690,91 @@ public abstract class BuildLocally {
 		process.destroy();
 	}
 	
-	public void installCordova() throws Throwable {
+	public Status installCordova() {
 
-		File resourceFolder = mobilePlatform.getResourceFolder();
-		List<String> parameters = new LinkedList<String>();
-		parameters.add("--version");
-		String npmVersion = runCommand(resourceFolder, "npm", parameters, false);
-		Pattern pattern = Pattern.compile("^([0-9])+\\.([0-9])+\\.([0-9])+$");
-		Matcher matcher = pattern.matcher(npmVersion);			
-		if (!matcher.find()){
-			throw new Exception("node.js is not installed ('npm --version' returned '" + npmVersion + "')\nYou can download nodes.js from https://nodejs.org/en/download/");
-		}
-		
-		File configFile = new File(resourceFolder, "config.xml");
-		Document doc = XMLUtils.loadXml(configFile);
-		TwsCachedXPathAPI xpathApi = new TwsCachedXPathAPI();
-		
-		Element singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/preference[@name='phonegap-version']");
-		if (singleElement != null) {
-			String cliVersion = singleElement.getAttribute("value");
-			if (cliVersion != null) {
-				// Remove 'cli-' from 'cli-x.x.x'
-				cliVersion = cliVersion.substring(4);
-				String cordovaInstallPath = BuildLocally.cordovaInstallsPath + File.separator + 
-						"cordova" + cliVersion;
-				File cordovaBinFile = new File(cordovaInstallPath + File.separator + 
-						"node_modules" + File.separator + 
-						"cordova" + File.separator + 
-						"bin" + File.separator + "cordova"
-						);
-				// If cordova is not installed
-				if (!cordovaBinFile.exists()) {
-					File cordovaInstallDir = new File(cordovaInstallPath);
-					cordovaInstallDir.mkdir();
-					
-					parameters = new LinkedList<String>();
-					parameters.add("--prefix");
-					parameters.add(cordovaInstallDir.getAbsolutePath());
-					parameters.add("install");
-					parameters.add("cordova@" + cliVersion);
-					
-					this.runCommand(cordovaInstallDir, "npm", parameters, true);						
-				}
-				
-				this.cordovaBinPath = cordovaBinFile.getAbsolutePath();
+		try {
+
+			Engine.logEngine.info("Checks if node.js is installed.");
+			File resourceFolder = mobilePlatform.getResourceFolder();
+			List<String> parameters = new LinkedList<String>();
+			parameters.add("--version");
+			String npmVersion = runCommand(resourceFolder, "npm", parameters, false);
+			Pattern pattern = Pattern.compile("^([0-9])+\\.([0-9])+\\.([0-9])+$");
+			Matcher matcher = pattern.matcher(npmVersion);			
+			if (!matcher.find()){
+				throw new Exception("node.js is not installed ('npm --version' returned '" + npmVersion + "')\nYou can download nodes.js from https://nodejs.org/en/download/");
 			}
+			Engine.logEngine.info("node.js is installed.");
+			
+			Engine.logEngine.info("Checks if cordova is installed.");
+			File configFile = new File(resourceFolder, "config.xml");
+			Document doc = XMLUtils.loadXml(configFile);
+			TwsCachedXPathAPI xpathApi = new TwsCachedXPathAPI();
+			
+			Element singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/preference[@name='phonegap-version']");
+			if (singleElement != null) {
+				String cliVersion = singleElement.getAttribute("value");
+				if (cliVersion != null) {
+					// Remove 'cli-' from 'cli-x.x.x'
+					cliVersion = cliVersion.substring(4);
+					String cordovaInstallPath = BuildLocally.cordovaInstallsPath + File.separator + 
+							"cordova" + cliVersion;
+					File cordovaBinFile = new File(cordovaInstallPath + File.separator + 
+							"node_modules" + File.separator + 
+							"cordova" + File.separator + 
+							"bin" + File.separator + "cordova"
+							);
+					// If cordova is not installed
+					if (!cordovaBinFile.exists()) {
+						
+						Engine.logEngine.info("Installs cordova " + cliVersion);
+						
+						File cordovaInstallDir = new File(cordovaInstallPath);
+						cordovaInstallDir.mkdir();
+						
+						parameters = new LinkedList<String>();
+						parameters.add("--prefix");
+						parameters.add(cordovaInstallDir.getAbsolutePath());
+						parameters.add("install");
+						parameters.add("cordova@" + cliVersion);
+						
+						this.runCommand(cordovaInstallDir, "npm", parameters, true);						
+					}
+					
+					Engine.logEngine.info("Cordova is installed.");
+					
+					this.cordovaBinPath = cordovaBinFile.getAbsolutePath();
+				}
+			} else {
+				throw new Exception("The cordova version is not specified in config.xml.");
+			}
+		
+		} catch (Throwable e) {
+			logException(e, "Error when installing Cordova");			
+			return Status.CANCEL;
 		}
+		
+		return Status.OK;
+	}
+	
+	public boolean isProcessCanceled() {
+		return this.processCanceled;
 	}
 
-	public void createCordovaEnvironment(File mobilePlatformDir) throws Throwable {
+	public Status createCordovaEnvironment(File mobilePlatformDir) {
 		
 		MobileApplication mobileApplication = mobilePlatform.getParent();
 		
-		runCordovaCommand(mobilePlatformDir, "create", 
-				cordovaDir, 
-				mobileApplication.getComputedApplicationId(), 
-				mobileApplication.getComputedApplicationName() );
+		try {
+			runCordovaCommand(mobilePlatformDir, "create", 
+					cordovaDir, 
+					mobileApplication.getComputedApplicationId(), 
+					mobileApplication.getComputedApplicationName() );
+		} catch (Throwable e) {
+			Engine.logEngine.error("Error when creating the cordova environment.", e);
+			return Status.CANCEL;
+		}
+		return Status.OK;
 	}
 	
 	/** 

@@ -23,7 +23,6 @@
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -150,35 +149,35 @@ public class BuildLocallyAction extends MyAbstractAction {
 				}
 
 				//Check compatibility with platform mobile and os where we build
-				if (!buildLocally.checkPlatformCompatibility()) {   					
-					MessageBox informDialog = new MessageBox(parentShell, SWT.ICON_INFORMATION | SWT.OK);
-					informDialog.setText("This platform cannot be built");
-					informDialog.setMessage(
-						"You need at least cordova 3.3\n"
-						+ "\n"
-						+ "On Windows workstations you can build:\n"
-						+ " - Android\n"
-						+ " - Windows Phone 8\n"
-						+ " - Windows Phone 7\n"
-						+ " - Windows 8 \n"
-						+ " - Blackberry 10 \n"
-						+ "\n"
-						+ "On Mac OS workstations you can build:\n"
-						+ " - iOS\n"
-						+ " - Blackberry 10 \n"
-						+ " - Android\n"
-						+ "\n"
-						+ "On Linux workstations you can build:\n"
-						+ " - Blackberry 10 \n"
-						+ " - Android\n"
-						+ "\n"
-						+ "For the moment, these platforms cannot be \"build locally\":\n"
-						+ " - Blackberry 10\n"
-						+ " - Windows 8\n");
-
-					informDialog.open();
-					return;
-				}
+//				if (!buildLocally.checkPlatformCompatibility()) {   					
+//					MessageBox informDialog = new MessageBox(parentShell, SWT.ICON_INFORMATION | SWT.OK);
+//					informDialog.setText("This platform cannot be built");
+//					informDialog.setMessage(
+//						"You need at least cordova 3.3\n"
+//						+ "\n"
+//						+ "On Windows workstations you can build:\n"
+//						+ " - Android\n"
+//						+ " - Windows Phone 8\n"
+//						+ " - Windows Phone 7\n"
+//						+ " - Windows 8 \n"
+//						+ " - Blackberry 10 \n"
+//						+ "\n"
+//						+ "On Mac OS workstations you can build:\n"
+//						+ " - iOS\n"
+//						+ " - Blackberry 10 \n"
+//						+ " - Android\n"
+//						+ "\n"
+//						+ "On Linux workstations you can build:\n"
+//						+ " - Blackberry 10 \n"
+//						+ " - Android\n"
+//						+ "\n"
+//						+ "For the moment, these platforms cannot be \"build locally\":\n"
+//						+ " - Blackberry 10\n"
+//						+ " - Windows 8\n");
+//
+//					informDialog.open();
+//					return;
+//				}
 
 				// Cordova Env will be created in the _private directory
 				final File privateDir = new File(Engine.PROJECTS_PATH + File.separator + 
@@ -208,43 +207,56 @@ public class BuildLocallyAction extends MyAbstractAction {
 				if (!mobilePlatformDir.exists()) {
 					mobilePlatformDir.mkdir();
 				}
-
+				
 				// Test to see if the Cordova application has been created		        
-				if (!new File(mobilePlatformDir, cordovaDir).exists()) {
-					
-					if (parentShell != null) {
-						// no Cordova directory has been found ask the user if he wants to create it
-						MessageBox customDialog = new MessageBox(parentShell, SWT.ICON_INFORMATION | SWT.YES | SWT.NO);
-						customDialog.setText("Create a Cordova environment");
-						customDialog.setMessage(
-								"The cordova environment for this project has not been created yet.\n" +
-								"Creating the environment must be done once by mobile platform.\n\n" +
-								/*"You have to install Cordova on your local machine to be able to build locally. " +
-								"If Cordova is not yet installed, click 'No' and download cordova from: " +
-								"http://cordova.apache.org \n\nBe sure to follow all instruction on Cordova's " +
-								"website to setup your local Cordova build system.\n\n" +*/
-								"Do you want to create a Cordova environment for your mobile platform now?");
-	
-						if (customDialog.open() == SWT.YES) {
-
-							buildLocally.installCordova();
-							buildLocally.createCordovaEnvironment(mobilePlatformDir);
-							
-							Engine.logEngine.info("Cordova environment is now ready.");
-						} else {
-							return;
-						}
-					} else {
-						//TODO
-					}
-				}
+//				if (!new File(mobilePlatformDir, cordovaDir).exists()) {
+//					
+//					if (parentShell != null) {
+//						// no Cordova directory has been found ask the user if he wants to create it
+//						MessageBox customDialog = new MessageBox(parentShell, SWT.ICON_INFORMATION | SWT.YES | SWT.NO);
+//						customDialog.setText("Create a Cordova environment");
+//						customDialog.setMessage(
+//								"The cordova environment for this project has not been created yet.\n" +
+//								"Creating the environment must be done once by mobile platform.\n\n" +
+//								/*"You have to install Cordova on your local machine to be able to build locally. " +
+//								"If Cordova is not yet installed, click 'No' and download cordova from: " +
+//								"http://cordova.apache.org \n\nBe sure to follow all instruction on Cordova's " +
+//								"website to setup your local Cordova build system.\n\n" +*/
+//								"Do you want to create a Cordova environment for your mobile platform now?");
+//	
+//						if (customDialog.open() == SWT.YES) {
+//							buildLocally.createCordovaEnvironment(mobilePlatformDir);
+//							
+//							Engine.logEngine.info("Cordova environment is now ready.");
+//						} else {
+//							return;
+//						}
+//					} else {
+//						//TODO
+//					}
+//				}
 
 				// OK we are sure we have a Cordova environment.. Start the build
 				Job buildJob = new Job("Local Cordova Build " + (run ? "and Run " : "") + "in progress...") {
 					
 					@Override
 					protected IStatus run(IProgressMonitor progressMonitor) {
-						BuildLocally.Status status = buildLocally.runBuild(option, run, target);
+						
+						BuildLocally.Status status = buildLocally.installCordova();
+						if (status == BuildLocally.Status.CANCEL) {
+							return org.eclipse.core.runtime.Status.CANCEL_STATUS;
+						}
+						
+						// Test to see if the Cordova application has been created		        
+						if (!new File(mobilePlatformDir, cordovaDir).exists()) {
+							status = buildLocally.createCordovaEnvironment(mobilePlatformDir);
+							if (status == BuildLocally.Status.CANCEL) {
+								return org.eclipse.core.runtime.Status.CANCEL_STATUS;
+							}		
+							Engine.logEngine.info("Cordova environment is now ready.");
+						}
+						
+						status = buildLocally.runBuild(option, run, target);
 						if (status == BuildLocally.Status.OK) {
 							return org.eclipse.core.runtime.Status.OK_STATUS;
 						}
@@ -262,20 +274,20 @@ public class BuildLocallyAction extends MyAbstractAction {
 				buildJob.schedule();
 
 			}
-		} catch (IOException ee) {
-			MessageBox customDialog = new MessageBox(
-					parentShell,
-					SWT.ICON_INFORMATION | SWT.OK);
-			customDialog.setText("Cordova installation not found");
-			customDialog.setMessage("In order to use local build you must install on your workstation a valid" +
-					"Cordova build system.\n You can download and install Cordova from: \n" +
-					"http://cordova.apache.org \nBe sure to follow all instruction on Cordova\n" +
-					"Website to setup your local Cordova build system. \n\n" +
-					"This message can also appear if cordova is not in your PATH."
-					);
-			customDialog.open();
+//		} catch (IOException ee) {
+//			MessageBox customDialog = new MessageBox(
+//					parentShell,
+//					SWT.ICON_INFORMATION | SWT.OK);
+//			customDialog.setText("Cordova installation not found");
+//			customDialog.setMessage("In order to use local build you must install on your workstation a valid" +
+//					"Cordova build system.\n You can download and install Cordova from: \n" +
+//					"http://cordova.apache.org \nBe sure to follow all instruction on Cordova\n" +
+//					"Website to setup your local Cordova build system. \n\n" +
+//					"This message can also appear if cordova is not in your PATH."
+//					);
+//			customDialog.open();
 		} catch (Throwable e) {
-			ConvertigoPlugin.logException(e, "Unable to build locally with Cordova");
+			ConvertigoPlugin.logException(e, "Unable to build locally with Cordova"/*, !buildLocally.isProcessCanceled()*/);
 		}
 		finally {
 			parentShell.setCursor(null);
