@@ -54,7 +54,7 @@ public class Migration7_4_0 {
 				List<XPathToCheck> xPathToCheckAndroid = new LinkedList<XPathToCheck>();
 				xPathToCheckAndroid.addAll(xPathToCheckDefault);
 				
-				xPathToCheckAndroid.add(new XPathToCheck("/widget/platform[@name='android']", "/widget/engine[@name='android']", true));
+				xPathToCheckAndroid.add(new XPathToCheck("/widget/platform[@name='android' and not(*)]", "/widget/engine[@name='android']", true));
 				
 				xPathToCheckAndroid.add(new XPathToCheck("/widget/preference[@name='android-minSdkVersion']", "", true));
 				xPathToCheckAndroid.add(new XPathToCheck("/widget/preference[@name='android-build-tool']", "", true));
@@ -136,8 +136,11 @@ public class Migration7_4_0 {
 						for (XPathToCheck xPathToCheck : xPathToCheckList) {
 							Element oldElement = (Element) xpathApi.selectSingleNode(oldDoc, xPathToCheck.oldXpath);
 							
+							// If the goal is to remove the old node
 							if (xPathToCheck.templateXpath == null) {
-								oldElement.getParentNode().removeChild(oldElement);
+								if (oldElement != null) {
+									oldElement.getParentNode().removeChild(oldElement);
+								}
 								continue;
 							}
 							
@@ -150,10 +153,17 @@ public class Migration7_4_0 {
 							
 							// Replace the old element by the template 
 							if (oldElement != null || xPathToCheck.required) {
+								
+								// If the template is already in the old config.xml
+								Element templateOldElement = (Element) xpathApi.selectSingleNode(oldDoc, xPathToCheck.templateXpath);
+								if (templateOldElement != null && templateElement.isEqualNode(templateOldElement)) {
+									continue;
+								}
+								
 								String xPathTemplateParent = xPathToCheck.templateXpath.substring(0, xPathToCheck.templateXpath.lastIndexOf('/'));
 								Node parentNode = createSameTree(oldDoc, templateElement.getParentNode(), xPathTemplateParent, xpathApi);
 								Node newNode = oldDoc.adoptNode(templateElement.cloneNode(true));
-								if (oldElement != null) {
+								if (oldElement != null) {									
 									if (parentNode.isSameNode(oldElement.getParentNode())) {
 										parentNode.replaceChild(newNode, oldElement);
 									} else {
@@ -171,7 +181,7 @@ public class Migration7_4_0 {
 							oldConfigFile.createNewFile();
 						}
 						FileUtils.copyFile(configFile, oldConfigFile);
-						File newConfigFile = new File(mobilePlatform.getResourceFolder(), "config_new.xml");
+						File newConfigFile = new File(mobilePlatform.getResourceFolder(), "config.xml");
 						if (!newConfigFile.exists()) {
 							newConfigFile.createNewFile();
 						}
@@ -223,6 +233,12 @@ class XPathToCheck {
 	public String oldXpath;
 	public boolean required;
 	
+	/**
+	 * 
+	 * @param oldXpath
+	 * @param templateXpath ("" same as oldXpath, null remove the node found with oldXpath)
+	 * @param required
+	 */
 	public XPathToCheck(String oldXpath, String templateXpath, boolean required) {
 		this.oldXpath = oldXpath;
 		if (templateXpath != null && templateXpath.equals("")) {
@@ -230,6 +246,11 @@ class XPathToCheck {
 		}
 		this.templateXpath = templateXpath;
 		this.required = required;
+	}
+	
+	@Override
+	public String toString() {
+		return "(" + oldXpath + "; " + templateXpath + "; " + required + ")";
 	}
 	
 }

@@ -88,7 +88,7 @@
 	        exclude 'META-INF/NOTICE'
 	    }
 	-->
-<!-- 	<plugin name="couchbase-lite-phonegap-plugin" spec="~1.1.1"  /> -->
+<!-- 	<plugin name="couchbase-lite-phonegap-plugin" spec="~1.2.0"  /> -->
     
 	<!-- Other optional Core plugins, comment them out (ctrl+shit+c) if you want to reduce the package size and permissions -->
 <!--     <plugin name="cordova-plugin-battery-status" spec="~1.1.1" /> -->
@@ -107,8 +107,8 @@
 <!--     <plugin name="cordova-plugin-statusbar" spec="~2.1.2" /> -->
 
     <!-- Other optional plugins -->
-<!-- 	<plugin name="phonegap-plugin-push" spec="~1.6.1"> -->
-<!--         <param name="SENDER_ID" value="xxxxxx" /> -->
+<!-- 	<plugin name="phonegap-plugin-push" spec="~1.6.2"> -->
+<!--         <variable name="SENDER_ID" value="xxxxxx" /> -->
 <!--     </plugin> -->
 <!-- 	<plugin name="phonegap-plugin-barcodescanner" spec="~3.0.0" /> -->
 	

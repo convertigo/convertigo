@@ -291,12 +291,12 @@ public abstract class BuildLocally {
 				singleElement = (Element) nodeIterator.nextNode();
 			}
 			
-			if (mobilePlatform instanceof Android) {
+			/*if (mobilePlatform instanceof Android) {
 				singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/plugin[@name='couchbase-lite-phonegap-plugin']");
 				if (singleElement != null) {
 					singleElement.setAttribute("name", "com.couchbase.lite.phonegap");
 				}
-			}
+			}*/
 
 			//ANDROID
 //			if (mobilePlatform instanceof Android) {
@@ -715,6 +715,13 @@ public abstract class BuildLocally {
 			if (singleElement != null) {
 				String cliVersion = singleElement.getAttribute("value");
 				if (cliVersion != null) {
+					
+					pattern = Pattern.compile("^cli-[0-9]+\\.[0-9]+\\.[0-9]+$");
+					matcher = pattern.matcher(cliVersion);			
+					if (!matcher.find()){
+						throw new Exception("The cordova version is specified but its value has not the right format.");
+					}
+					
 					// Remove 'cli-' from 'cli-x.x.x'
 					cliVersion = cliVersion.substring(4);
 					String cordovaInstallPath = BuildLocally.cordovaInstallsPath + File.separator + 
@@ -744,6 +751,8 @@ public abstract class BuildLocally {
 					Engine.logEngine.info("Cordova is now installed.");
 					
 					this.cordovaBinPath = cordovaBinFile.getAbsolutePath();
+				} else {
+					throw new Exception("The cordova version is not specified in config.xml.");
 				}
 			} else {
 				throw new Exception("The cordova version is not specified in config.xml.");
