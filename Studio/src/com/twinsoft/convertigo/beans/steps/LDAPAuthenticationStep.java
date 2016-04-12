@@ -29,16 +29,23 @@ package com.twinsoft.convertigo.beans.steps;
 import java.net.URL;
 
 import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaSimpleContent;
+import org.apache.ws.commons.schema.XmlSchemaSimpleContentExtension;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
 import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 import com.twinsoft.util.TWSLDAP;
 
 public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectation {
@@ -193,7 +200,22 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 	@Override
 	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
-		element.setSchemaTypeName(getSimpleTypeAffectation());
+		
+		XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+		element.setType(cType);
+		
+		XmlSchemaSimpleContent sContent = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSimpleContent());
+		cType.setContentModel(sContent);
+		
+		XmlSchemaSimpleContentExtension sContentExt = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSimpleContentExtension());
+		sContent.setContent(sContentExt);
+		sContentExt.setBaseTypeName(Constants.XSD_STRING);
+		
+		XmlSchemaAttribute attr = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
+		attr.setName("userDn");
+		attr.setSchemaTypeName(Constants.XSD_STRING);
+		sContentExt.getAttributes().add(attr);
+		
 		return element;
 	}
 	
