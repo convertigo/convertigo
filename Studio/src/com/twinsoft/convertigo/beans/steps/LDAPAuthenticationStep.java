@@ -26,6 +26,8 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
+import java.net.URL;
+
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaElement;
@@ -84,6 +86,7 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable()) {
 			evaluate(javascriptContext, scope, server);
+			evaluate(javascriptContext, scope, basePath);
 			evaluate(javascriptContext, scope, login);
 			evaluate(javascriptContext, scope, password);
 			evaluate(javascriptContext, scope, adminLogin);
@@ -95,25 +98,92 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 
 	@Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
-
-			TWSLDAP ldap = new TWSLDAP();
-
-			String ldap_server = server.getSingleString(this);
-			String ldap_adminLogin = adminLogin.getSingleString(this);
-			String ldap_adminPassword = adminPassword.getSingleString(this);
-			String ldap_userLogin = login.getSingleString(this);
-			String ldap_userPassword = password.getSingleString(this);
+			Boolean authenticated = false;
 			
-			Boolean authenticated = ldap.bind(ldap_server, ldap_userLogin, ldap_userPassword);
-			Engine.logBeans.debug("LDAP User \""+ldap_userLogin+"\" authenticated="+ authenticated.toString());
-			if (authenticated) {
-				getSequence().context.setAuthenticatedUser(ldap_userLogin);
+			// Remove currently authenticated user from session
+			getSequence().context.removeAuthenticatedUser();
+			
+			String ldap_server = server.getSingleString(this);
+			if (ldap_server != null && !ldap_server.isEmpty()) {
+				TWSLDAP twsLDAP = new TWSLDAP();
+				
+				// Search LDAP database for given user
+				String ldap_userLogin = login.getSingleString(this);
+				String ldap_userPassword = password.getSingleString(this);
+				if (ldap_userLogin != null) {
+					if (needLdapSearch(ldap_userLogin)) {
+						String ldap_adminLogin = adminLogin.getSingleString(this);
+						String ldap_adminPassword = adminPassword.getSingleString(this);
+						String ldap_basePath = basePath.getSingleString(this);
+						
+						if (ldap_adminLogin != null) {
+							int countLimit = 0, timeLimit = 0;
+							String searchBase = ldap_basePath;
+							String host = getHost(ldap_server);
+							String filter = getFilter(ldap_userLogin);
+							String[] attributes = null;
+							
+							if (host.isEmpty()) {
+								Engine.logBeans.warn("LDAP host is empty !");
+							}
+							ldap_adminPassword = ldap_adminPassword == null ? "":ldap_adminPassword;
+							
+							twsLDAP.search(host, ldap_adminLogin, ldap_adminPassword, searchBase, filter, attributes, timeLimit, countLimit);
+							if (twsLDAP.hasMoreResults()) {
+								ldap_userLogin = twsLDAP.getNextResult()+ (searchBase == null ? "":"," + searchBase);
+							}
+						}
+						else {
+							Engine.logBeans.warn("Invalid LDAP admin Login \""+ldap_adminLogin+"\" !");
+						}
+					}
+					
+					ldap_userPassword = ldap_userPassword == null ? "":ldap_userPassword; //avoid NPE in bind
+					
+					// Bind database with given/found user
+					authenticated = twsLDAP.bind(ldap_server, ldap_userLogin, ldap_userPassword);
+					Engine.logBeans.debug("LDAP User \""+ldap_userLogin+"\" authenticated="+ authenticated.toString());
+					
+					if (authenticated) {
+						// Set authenticated user on session
+						getSequence().context.setAuthenticatedUser(ldap_userLogin);
+					}
+				}
+				else {
+					Engine.logBeans.warn("Invalid LDAP user Login \""+ldap_userLogin+"\" !");
+				}
+			}
+			else {
+				Engine.logBeans.warn("Invalid LDAP server \""+ldap_server+"\" !");
 			}
 			
 			Node text = doc.createTextNode(authenticated.toString());
 			stepNode.appendChild(text);
 	}
-	
+
+	private boolean needLdapSearch(String ldap_userLogin) {
+		return ldap_userLogin != null;
+	}
+
+	private String getFilter(String username) {
+		if (username != null) {
+			if (username.toLowerCase().indexOf("cn=") == -1) {
+				return "cn="+ username;
+			}
+			return username;
+		}
+		return null;
+	}
+
+	private String getHost(String ldap_url) {
+		try {
+			URL ldapURL = new URL(ldap_url.replaceFirst("ldap:", "http:"));
+			return ldapURL.getHost();
+		} catch (Exception e) {
+		}
+		return null;
+	}
+
 	@Override
 	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
