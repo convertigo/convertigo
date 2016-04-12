@@ -111,7 +111,7 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 				String ldap_userLogin = login.getSingleString(this);
 				String ldap_userPassword = password.getSingleString(this);
 				if (ldap_userLogin != null) {
-					if (needLdapSearch(ldap_userLogin)) {
+					if (!isDistinguishedName(ldap_userLogin)) {
 						String ldap_adminLogin = adminLogin.getSingleString(this);
 						String ldap_adminPassword = adminPassword.getSingleString(this);
 						String ldap_basePath = basePath.getSingleString(this);
@@ -128,9 +128,15 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 							}
 							ldap_adminPassword = ldap_adminPassword == null ? "":ldap_adminPassword;
 							
+							// Search database for given user
+							Engine.logBeans.trace("Start LDAP search");
 							twsLDAP.search(host, ldap_adminLogin, ldap_adminPassword, searchBase, filter, attributes, timeLimit, countLimit);
-							if (twsLDAP.hasMoreResults()) {
-								ldap_userLogin = twsLDAP.getNextResult()+ (searchBase == null ? "":"," + searchBase);
+							Engine.logBeans.trace("End LDAP search");
+							
+							boolean bFound = twsLDAP.hasMoreResults();
+							Engine.logBeans.debug("LDAP User "+ (bFound ? "found":"NOT found") +" by database search; searchBase:"+searchBase+", filter:"+ filter);
+							if (bFound) {
+								ldap_userLogin = twsLDAP.getNextResult() + (searchBase == null ? "":"," + searchBase);
 							}
 						}
 						else {
@@ -141,11 +147,14 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 					ldap_userPassword = ldap_userPassword == null ? "":ldap_userPassword; //avoid NPE in bind
 					
 					// Bind database with given/found user
+					Engine.logBeans.trace("Start LDAP bind");
 					authenticated = twsLDAP.bind(ldap_server, ldap_userLogin, ldap_userPassword);
+					Engine.logBeans.trace("End LDAP bind");
+					
 					Engine.logBeans.debug("LDAP User \""+ldap_userLogin+"\" authenticated="+ authenticated.toString());
 					
+					// Set authenticated user on session
 					if (authenticated) {
-						// Set authenticated user on session
 						getSequence().context.setAuthenticatedUser(ldap_userLogin);
 					}
 				}
@@ -161,18 +170,15 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 			stepNode.appendChild(text);
 	}
 
-	private boolean needLdapSearch(String ldap_userLogin) {
-		return ldap_userLogin != null;
+	private Boolean isDistinguishedName(String username) {
+		return username != null && username.toLowerCase().indexOf("cn=") != -1;
 	}
-
+	
 	private String getFilter(String username) {
-		if (username != null) {
-			if (username.toLowerCase().indexOf("cn=") == -1) {
-				return "cn="+ username;
-			}
-			return username;
+		if (username != null && !isDistinguishedName(username)) {
+			return "cn="+ username;
 		}
-		return null;
+		return username;
 	}
 
 	private String getHost(String ldap_url) {
