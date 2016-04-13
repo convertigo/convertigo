@@ -27,6 +27,9 @@
 package com.twinsoft.convertigo.beans.steps;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
 
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaAttribute;
@@ -103,77 +106,90 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 
 	@Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
-		String serverUrl = null, userDn = null, userLogin = null, userPassword = null;	
-		Boolean authenticated = false;
-		
 		// Remove currently authenticated user from session
 		getSequence().context.removeAuthenticatedUser();
 		
-		serverUrl = server.getSingleString(this);
-		if (serverUrl == null) {
-			throw new EngineException("Invalid LDAP server : null");
+		String serverUrls = server.getSingleString(this);
+		if (serverUrls == null || serverUrls.isEmpty()) {
+			throw new EngineException("Invalid LDAP servers : null or empty");
 		}
 		
-		if (serverUrl.isEmpty()) {
-			throw new EngineException("Invalid LDAP server : empty");
+		// Server URL list
+		StringTokenizer st = new StringTokenizer(serverUrls, "," , false);
+		List<String> servers = new ArrayList<String>();
+		while (st.hasMoreTokens()) {
+			servers.add(st.nextToken().trim());
 		}
 		
-		String ldap_url = serverUrl.toLowerCase();
-		if (!ldap_url.startsWith("ldap://") && !ldap_url.startsWith("ldaps://")) {
-			throw new EngineException("Invalid LDAP server: URL must start with \"ldap://\"");
-		}
+		// Search/Bind LDAP database for given user
+		Boolean authenticated = false;
+		String userDn = null;
 		
-		// Create TWSLDAP object
-		TWSLDAP twsLDAP = new TWSLDAP();
-		
-		// Search LDAP database for given user
-		userLogin = login.getSingleString(this);
-		userPassword = password.getSingleString(this);
+		String userLogin = login.getSingleString(this);
+		String userPassword = password.getSingleString(this);
 		if (userLogin != null) {
-			if (!isDistinguishedName(userLogin)) {
-				String searchLogin = adminLogin.getSingleString(this);
-				String searchPassword = adminPassword.getSingleString(this);
-				String searchBase = basePath.getSingleString(this);
+			
+			// Create TWSLDAP object
+			TWSLDAP twsLDAP = new TWSLDAP();
+			
+			// Loop through server URLs
+			for (String serverUrl: servers) {
+				userDn = null;
 				
-				if (searchLogin != null) {
-					int countLimit = 0, timeLimit = 0;
-					String searchHost = getHost(serverUrl);
-					String searchFilter = getFilter(userLogin);
-					String[] searchAttributes = null;
+				if (serverUrl.isEmpty()) {
+					Engine.logBeans.warn("(LDAPAuthenticationStep) Ignoring invalid LDAP server: empty URL");
+					continue;
+				}
+				else if (!serverUrl.startsWith("ldap://") && !serverUrl.startsWith("ldaps://")) {
+					Engine.logBeans.warn("(LDAPAuthenticationStep) Ignoring invalid LDAP server \""+serverUrl+"\": URL must start with \"ldap://\"");
+					continue;
+				}
+				
+				if (!isDistinguishedName(userLogin)) {
+					String searchLogin = adminLogin.getSingleString(this);
+					String searchPassword = adminPassword.getSingleString(this);
+					String searchBase = basePath.getSingleString(this);
 					
-					if (searchHost.isEmpty()) {
-						Engine.logBeans.warn("LDAP host is empty !");
+					if (searchLogin != null) {
+						int countLimit = 0, timeLimit = 0;
+						String searchHost = getHost(serverUrl);
+						String searchFilter = getFilter(userLogin);
+						String[] searchAttributes = null;
+
+						// Avoid null password
+						searchPassword = searchPassword == null ? "":searchPassword;
+						
+						// Search database for given user
+						Engine.logBeans.trace("(LDAPAuthenticationStep) LDAP search start");
+						twsLDAP.search(searchHost, searchLogin, searchPassword, searchBase, searchFilter, searchAttributes, timeLimit, countLimit);
+						boolean bFound = twsLDAP.hasMoreResults();
+						Engine.logBeans.debug("(LDAPAuthenticationStep) LDAP search: host:"+searchHost+", searchBase:"+searchBase+", filter:"+ searchFilter + "; User "+ (bFound ? "found":"NOT found"));
+						Engine.logBeans.trace("(LDAPAuthenticationStep) LDAP search end");
+						
+						if (bFound) {
+							userDn = twsLDAP.getNextResult().toLowerCase() + (searchBase == null ? "":"," + searchBase.toLowerCase());
+						}
+						else {
+							continue; // loop
+						}
 					}
-					searchPassword = searchPassword == null ? "":searchPassword;
-					
-					// Search database for given user
-					Engine.logBeans.trace("Start LDAP search");
-					twsLDAP.search(searchHost, searchLogin, searchPassword, searchBase, searchFilter, searchAttributes, timeLimit, countLimit);
-					Engine.logBeans.trace("End LDAP search");
-					
-					boolean bFound = twsLDAP.hasMoreResults();
-					Engine.logBeans.debug("LDAP User "+ (bFound ? "found":"NOT found") +" by database search; searchBase:"+searchBase+", filter:"+ searchFilter);
-					if (bFound) {
-						userDn = twsLDAP.getNextResult() + (searchBase == null ? "":"," + searchBase);
+					else {
+						Engine.logBeans.warn("(LDAPAuthenticationStep) Invalid LDAP admin Login \""+searchLogin+"\" !");
 					}
 				}
-				else {
-					Engine.logBeans.warn("Invalid LDAP admin Login \""+searchLogin+"\" !");
+				
+				// Bind database with given/found user
+				Engine.logBeans.trace("(LDAPAuthenticationStep) LDAP bind start");
+				authenticated = twsLDAP.bind(serverUrl, userDn == null ? userLogin:userDn, userPassword == null ? "":userPassword);
+				Engine.logBeans.debug("(LDAPAuthenticationStep) LDAP bind: user \""+userLogin+"\" authenticated="+ authenticated.toString());
+				Engine.logBeans.trace("(LDAPAuthenticationStep) LDAP bind end");
+				
+				// Set authenticated user on session
+				if (authenticated) {
+					getSequence().context.setAuthenticatedUser(userLogin);
+					break; // exit loop
 				}
-			}
-			
-			userPassword = userPassword == null ? "":userPassword; //avoid NPE in bind
-			
-			// Bind database with given/found user
-			Engine.logBeans.trace("Start LDAP bind");
-			authenticated = twsLDAP.bind(serverUrl, userDn == null ? userLogin:userDn, userPassword);
-			Engine.logBeans.trace("End LDAP bind");
-			
-			Engine.logBeans.debug("LDAP User \""+userLogin+"\" authenticated="+ authenticated.toString());
-			
-			// Set authenticated user on session
-			if (authenticated) {
-				getSequence().context.setAuthenticatedUser(userLogin);
+				// else loop
 			}
 		}
 		else {
