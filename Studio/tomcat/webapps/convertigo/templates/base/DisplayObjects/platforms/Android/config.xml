@@ -107,8 +107,12 @@
 <!--     <plugin name="cordova-plugin-statusbar" spec="~2.1.2" /> -->
 
     <!-- Other optional plugins -->
+    <!-- 
+    	To use phonegap-plugin-push plugin you have to install the latest version of Android Support Repository, Android Support Library, 
+    	Google Repository and Google Play Services from the Android SDK Manager.
+    -->
 <!-- 	<plugin name="phonegap-plugin-push" spec="~1.6.2"> -->
-<!--         <variable name="SENDER_ID" value="xxxxxx" /> -->
+<!--         <param name="SENDER_ID" value="xxxxxx" /> -->
 <!--     </plugin> -->
 <!-- 	<plugin name="phonegap-plugin-barcodescanner" spec="~3.0.0" /> -->
 	

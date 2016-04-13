@@ -34,8 +34,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.traversal.NodeIterator;
@@ -243,39 +245,10 @@ public abstract class BuildLocally {
 			
 			File configFile = new File(cordovaDir, "config.xml");
 			Document doc = XMLUtils.loadXml(configFile);
+			
 			TwsCachedXPathAPI xpathApi = new TwsCachedXPathAPI();
 			
 			Element singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/preference[@name='phonegap-version']");
-//			if (singleElement != null) {
-//				String cliVersion = singleElement.getAttribute("value");
-//				if (cliVersion != null) {
-//					// Remove 'cli-' from 'cli-x.x.x'
-//					cliVersion = cliVersion.substring(4);
-//					String cordovaInstallPath = BuildLocally.cordovaInstallsPath + File.separator + 
-//							"cordova" + cliVersion;
-//					File cordovaBinFile = new File(cordovaInstallPath + File.separator + 
-//							"node_modules" + File.separator + 
-//							"cordova" + File.separator + 
-//							"bin" + File.separator + "cordova"
-//							);
-//					// If cordova is not installed
-//					if (!cordovaBinFile.exists()) {
-//						File cordovaInstallDir = new File(cordovaInstallPath);
-//						cordovaInstallDir.mkdir();
-//						
-//						List<String> parameters = new LinkedList<String>();
-//						parameters.add("--prefix");
-//						parameters.add(cordovaInstallDir.getAbsolutePath());
-//						parameters.add("install");
-//						parameters.add("cordova@" + cliVersion);
-//						
-//						this.runCommand(cordovaInstallDir, "npm", parameters, true);						
-//					}
-//					
-//					this.cordovaBinPath = cordovaBinFile.getAbsolutePath();
-//					
-//				}
-//			}
 			
 			// Changes icons and splashs src in config.xml file because it was moved to the parent folder
 			NodeIterator nodeIterator = xpathApi.selectNodeIterator(doc, "//*[local-name()='splash' or local-name()='icon']");
@@ -290,13 +263,6 @@ public abstract class BuildLocally {
 				
 				singleElement = (Element) nodeIterator.nextNode();
 			}
-			
-			/*if (mobilePlatform instanceof Android) {
-				singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/plugin[@name='couchbase-lite-phonegap-plugin']");
-				if (singleElement != null) {
-					singleElement.setAttribute("name", "com.couchbase.lite.phonegap");
-				}
-			}*/
 
 			//ANDROID
 //			if (mobilePlatform instanceof Android) {
@@ -322,12 +288,22 @@ public abstract class BuildLocally {
 					singleElement.setAttribute("height", "159");
 				}	
 				
-				singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/platform[@name='wp8']/splash");
+				// /widget/platform[@name='wp8']/splash
+				singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/platform/splash");
 				if (singleElement != null) {
 					singleElement.setAttribute("width", "768");
 					singleElement.setAttribute("height", "1280");
 				}
+				
+				singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/plugin[@name='phonegap-plugin-push']/param[@name='SENDER_ID']");
+				if (singleElement != null) {
+					// Remote build needs a node named 'param' and local build needs a node named 'variable'
+					singleElement.getParentNode().appendChild(cloneNode(singleElement, "variable"));
+					singleElement.getParentNode().removeChild(singleElement);
+				}
 			}
+			
+			
 
 			if (mobilePlatform instanceof BlackBerry10) {
 				// TODO : Add platform BB10
@@ -387,6 +363,20 @@ public abstract class BuildLocally {
 		} catch (Exception e) {
 			logException(e, "Unable to process config.xml in your project, check the file's validity");
 		}
+	}
+	
+	private static Element cloneNode(Node node, String newNodeName) {
+		
+		Element newElement = node.getOwnerDocument().createElement(newNodeName);
+		
+		NamedNodeMap attrs = node.getAttributes();
+	    for (int i = 0; i < attrs.getLength(); i++) {
+	    	Attr attr = (Attr) attrs.item(i);
+	    	newElement.setAttribute(attr.getName(), attr.getValue());
+	    }
+	    
+	    return newElement;
+		
 	}
 	
 	/**
