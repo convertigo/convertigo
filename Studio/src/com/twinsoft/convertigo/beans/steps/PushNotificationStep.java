@@ -89,6 +89,7 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 	
 	private String clientCertificate = "\".//<client certificate>.p12\"";
 	private String certificatePassword = "\"<your .p12 certificate password>\"";
+	private String useProductionAPNS = "false";
 	private String notificationTitle = "\"TITLE\"";
 	private String errorMessage = "";
 	private ApnsNotificationType apnsNotificationType = ApnsNotificationType.Message;
@@ -352,6 +353,10 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 		evaluate(javascriptContext, scope, this.certificatePassword, "certificatePassword", false);
 		sCertificatePassword = evaluated instanceof Undefined ? "" : evaluated.toString();
 
+		evaluate(javascriptContext, scope, this.useProductionAPNS, "ProductionCertificate", false);
+		String sUseProductionCertificate = evaluated instanceof Undefined ? "" : evaluated.toString();
+		boolean bUseProductionCertificate = "true".equalsIgnoreCase(sUseProductionCertificate);
+		
 		// get Token List
 		StepSource tokens = getTokenSource();
 		NodeList list;
@@ -367,8 +372,12 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 				}
 			}
 
-			if (devicesList.isEmpty())
+			if (devicesList.isEmpty()) {
+				Engine.logBeans.debug("Push notification, no iOS devices in the list");
 				return;
+			} else {
+				Engine.logBeans.debug("Push notification, " + devicesList.size() + " iOS devices in the list. Sending to the " + (bUseProductionCertificate ? "production" : "development") + " APNS server");
+			}
 			
 			try {
 				// Submit the push to JavaPN library...
@@ -378,33 +387,33 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 					/* Build a blank payload to customize */ 
 			        PushNotificationPayload payload = PushNotificationPayload.complex();
 			        
-			        for(int i=0; i<dictionary.size(); i++) {
+			        for (int i = 0; i < dictionary.size(); i++) {
 						// if plugin specified, check it and skip accordingly
-			        	if ((dictionary.get(i).plug.length() != 0) && !(dictionary.get(i).plug.equalsIgnoreCase("aps") || dictionary.get(i).plug.equalsIgnoreCase("all"))) 
+			        	if ((dictionary.get(i).plug.length() != 0) && !(dictionary.get(i).plug.equalsIgnoreCase("aps") || dictionary.get(i).plug.equalsIgnoreCase("all"))) { 
 							continue;
+			        	}
 			        	
 			        	String value = dictionary.get(i).value;
 			        	
-				        if (dictionary.get(i).name.equalsIgnoreCase("alert"))
+				        if (dictionary.get(i).name.equalsIgnoreCase("alert")) {
 				        	payload.addAlert(value);
-				        else
-			        	if (dictionary.get(i).name.equalsIgnoreCase("badge"))
+				        } else if (dictionary.get(i).name.equalsIgnoreCase("badge")) {
 				        	payload.addBadge(Integer.parseInt(value, 10));
-				        else
-			        	if (dictionary.get(i).name.equalsIgnoreCase("sound"))
+				        } else if (dictionary.get(i).name.equalsIgnoreCase("sound")) {
 				        	payload.addSound(value);
-			        	else {
-							if (dictionary.get(i).type.equalsIgnoreCase("int"))
+				        } else {
+							if (dictionary.get(i).type.equalsIgnoreCase("int")) {
 								payload.addCustomDictionary(dictionary.get(i).name, Integer.parseInt(value, 10));
-							else
+							} else {
 								payload.addCustomDictionary(dictionary.get(i).name, value);
+							}
 			        	}
 			        }
 	
 					pn = Push.payload(payload, 
 								sClientCertificate,
 								sCertificatePassword,
-								true,
+								bUseProductionCertificate,
 								devicesList);
 				}
 				else {
@@ -412,21 +421,21 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 						pn = Push.alert(dictionary.get(0).value,
 										sClientCertificate,
 										sCertificatePassword,
-										true,
+										bUseProductionCertificate,
 										devicesList);
 						
 					} else if (apnsNotificationType == ApnsNotificationType.Badge) {	// mod jmc 07/10/2015
 						pn = Push.badge(Integer.parseInt(dictionary.get(0).value, 10),
 										sClientCertificate,
 										sCertificatePassword,
-										true,
+										bUseProductionCertificate,
 										devicesList);
 						
 					} else { 
 						pn = Push.sound(dictionary.get(0).value,
 										sClientCertificate,
 										sCertificatePassword,
-										true,
+										bUseProductionCertificate,
 										devicesList);
 					}
 				}
@@ -716,5 +725,13 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 		sContentExt.getAttributes().add(attr);
 		
 		return element;
+	}
+
+	public String getUseProductionAPNS() {
+		return useProductionAPNS;
+	}
+
+	public void setUseProductionAPNS(String useProductionAPNS) {
+		this.useProductionAPNS = useProductionAPNS;
 	}
 }

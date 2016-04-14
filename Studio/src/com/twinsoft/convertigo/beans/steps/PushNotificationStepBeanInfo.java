@@ -46,19 +46,17 @@ public class PushNotificationStepBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
-			properties = new PropertyDescriptor[7];
+			properties = new PropertyDescriptor[8];
 			
 			properties[0] = new PropertyDescriptor("token", beanClass, "getTokens", "setTokens");
             properties[0].setDisplayName(getExternalizedString("property.token.display_name"));
             properties[0].setShortDescription(getExternalizedString("property.token.short_description"));
 			properties[0].setPropertyEditorClass(getEditorClass("StepSourceEditor"));
 
-
 			properties[1] = new PropertyDescriptor("GCMApiKey", beanClass, "getGCMApiKey", "setGCMApiKey");
             properties[1].setDisplayName(getExternalizedString("property.gcmapikey.display_name"));
             properties[1].setShortDescription(getExternalizedString("property.gcmapikey.short_description"));
             properties[1].setValue("scriptable", Boolean.TRUE);
-
 			
 			properties[2] = new PropertyDescriptor("clientCertificate", beanClass, "getClientCertificate", "setClientCertificate");
             properties[2].setDisplayName(getExternalizedString("property.clientcertificate.display_name"));
@@ -86,6 +84,11 @@ public class PushNotificationStepBeanInfo extends MySimpleBeanInfo {
 			properties[6].setDisplayName(getExternalizedString("property.androidTimeToLive.display_name"));
 			properties[6].setShortDescription(getExternalizedString("property.androidTimeToLive.short_description"));
             properties[6].setValue("scriptable", Boolean.TRUE);
+
+			properties[7] = new PropertyDescriptor("useProductionAPNS", beanClass, "getUseProductionAPNS", "setUseProductionAPNS");
+            properties[7].setDisplayName(getExternalizedString("property.useProductionAPNS.display_name"));
+            properties[7].setShortDescription(getExternalizedString("property.useProductionAPNS.short_description"));
+            properties[7].setValue("scriptable", Boolean.TRUE);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
