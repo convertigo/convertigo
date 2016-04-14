@@ -1389,4 +1389,25 @@ public class XMLUtils {
 		
 		return charset == null ? Charset.defaultCharset() : charset;
 	}
+	
+	public static String stripNonValidXMLCharacters(String text) {
+		if (text == null || ("".equals(text))) {
+			return "";
+		}
+		
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < text.length(); i++) {
+		    int codePoint = text.codePointAt(i);
+		    if (codePoint > 0xFFFF) {
+		        i++;
+		    }
+		    if ((codePoint == 0x9) || (codePoint == 0xA) || (codePoint == 0xD)
+		            || ((codePoint >= 0x20) && (codePoint <= 0xD7FF))
+		            || ((codePoint >= 0xE000) && (codePoint <= 0xFFFD))
+		            || ((codePoint >= 0x10000) && (codePoint <= 0x10FFFF))) {
+		        sb.appendCodePoint(codePoint);
+		    }
+		}
+		return sb.toString();
+	}
 }

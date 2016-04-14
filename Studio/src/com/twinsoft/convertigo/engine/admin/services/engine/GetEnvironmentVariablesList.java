@@ -33,6 +33,7 @@ import org.w3c.dom.Element;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 @ServiceDefinition(
 		name = "GetEnvironmentVariablesList",
@@ -53,13 +54,15 @@ public class GetEnvironmentVariablesList extends XmlService {
 		
 		while (environmentVariables.hasNext()) {
 			Entry<String, String> environmentVariable = environmentVariables.next();
-			
 			Element environmentVariableElement = document.createElement("environmentVariable");
-			environmentVariableElement.setAttribute("name", environmentVariable.getKey());
-			environmentVariableElement.setAttribute("value", environmentVariable.getValue());
+			String name = environmentVariable.getKey();
+			String value = environmentVariable.getValue();
+			name = XMLUtils.stripNonValidXMLCharacters(name);
+			value = XMLUtils.stripNonValidXMLCharacters(value);
+			environmentVariableElement.setAttribute("name", name);
+			environmentVariableElement.setAttribute("value", value);
 			environmentVariablesListElement.appendChild(environmentVariableElement);
 		}
-		
 	}
 
 }
