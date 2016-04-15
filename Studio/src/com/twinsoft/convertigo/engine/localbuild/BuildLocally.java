@@ -100,14 +100,45 @@ public abstract class BuildLocally {
 	}
 
 	private String runCommand(File launchDir, String command, List<String> parameters, boolean mergeError) throws Throwable {
-		if (is(OS.win32)) {
+		 if (is(OS.win32)) {
 			// Works for cordova and npm
 			command += ".cmd";
-		}
+		 }
 		
 		String shellFullpath = command;
 		String paths = getLocalBuildAdditionalPath();
 		paths = (paths.length() > 0 ? paths + File.pathSeparator : "") + System.getenv("PATH");
+		
+		
+		
+		String defaultPaths = null;
+		if (is(OS.mac) || is(OS.linux)) {
+			defaultPaths = "/usr/local/bin";
+		} else if (is(OS.win32)) {
+			String programFiles = System.getenv("ProgramW6432");
+			if (programFiles != null && programFiles.length() > 0) {
+				defaultPaths = programFiles + File.separator + "nodejs";
+			}
+			
+			programFiles = System.getenv("ProgramFiles");
+			if (programFiles != null && programFiles.length() > 0) {
+				defaultPaths = (defaultPaths == null ? "" : defaultPaths + File.pathSeparator) + programFiles + File.separator + "nodejs";
+			}
+			
+			String appData = System.getenv("APPDATA");
+			if (appData != null && appData.length() > 0) {
+				defaultPaths = (defaultPaths == null ? "" : defaultPaths + File.pathSeparator) + appData + File.separator + "npm";
+			}
+		}
+//		shellFullpath = defaultPaths == null ? null : getFullPath(defaultPaths, command);
+//		if (shellFullpath == null) {
+//			shellFullpath = command;
+//		} else {
+			paths += File.pathSeparator + defaultPaths;
+//		}
+		
+		
+		
 		// Checks if the command is already full path 
 		if (!(new File(shellFullpath).exists())) {
 			// Else search where the "exec" is and build the absolute path for this "exec"
@@ -115,31 +146,31 @@ public abstract class BuildLocally {
 			
 			// If the "exec" is not found then it search it elsewhere
 			if (shellFullpath == null) {
-				String defaultPaths = null;
-				if (is(OS.mac) || is(OS.linux)) {
-					defaultPaths = "/usr/local/bin";
-				} else if (is(OS.win32)) {
-					String programFiles = System.getenv("ProgramW6432");
-					if (programFiles != null && programFiles.length() > 0) {
-						defaultPaths = programFiles + File.separator + "nodejs";
-					}
-					
-					programFiles = System.getenv("ProgramFiles");
-					if (programFiles != null && programFiles.length() > 0) {
-						defaultPaths = (defaultPaths == null ? "" : defaultPaths + File.pathSeparator) + programFiles + File.separator + "nodejs";
-					}
-					
-					String appData = System.getenv("APPDATA");
-					if (appData != null && appData.length() > 0) {
-						defaultPaths = (defaultPaths == null ? "" : defaultPaths + File.pathSeparator) + appData + File.separator + "npm";
-					}
-				}
-				shellFullpath = defaultPaths == null ? null : getFullPath(defaultPaths, command);
-				if (shellFullpath == null) {
+//				String defaultPaths = null;
+//				if (is(OS.mac) || is(OS.linux)) {
+//					defaultPaths = "/usr/local/bin";
+//				} else if (is(OS.win32)) {
+//					String programFiles = System.getenv("ProgramW6432");
+//					if (programFiles != null && programFiles.length() > 0) {
+//						defaultPaths = programFiles + File.separator + "nodejs";
+//					}
+//					
+//					programFiles = System.getenv("ProgramFiles");
+//					if (programFiles != null && programFiles.length() > 0) {
+//						defaultPaths = (defaultPaths == null ? "" : defaultPaths + File.pathSeparator) + programFiles + File.separator + "nodejs";
+//					}
+//					
+//					String appData = System.getenv("APPDATA");
+//					if (appData != null && appData.length() > 0) {
+//						defaultPaths = (defaultPaths == null ? "" : defaultPaths + File.pathSeparator) + appData + File.separator + "npm";
+//					}
+//				}
+//				shellFullpath = defaultPaths == null ? null : getFullPath(defaultPaths, command);
+//				if (shellFullpath == null) {
 					shellFullpath = command;
-				} else {
-					paths += File.pathSeparator + defaultPaths;
-				}
+//				} else {
+//					paths += File.pathSeparator + defaultPaths;
+//				}
 			}
 		}
 		
@@ -198,7 +229,14 @@ public abstract class BuildLocally {
 			}).start();			
 		}
 		
-		process.waitFor();		
+		int exitCode = process.waitFor();
+		
+		if (exitCode != 0 && exitCode != 127) {
+			throw new Exception("Exit code " + exitCode + " when running the command '" + command + 
+					"' with parameters : '" + parameters + "'. The output of the command is : '" 
+					 + cmdOutput + "'");
+		}
+		
 		
 		return cmdOutput;
 	}
@@ -302,7 +340,6 @@ public abstract class BuildLocally {
 					singleElement.getParentNode().removeChild(singleElement);
 				}
 			}
-			
 			
 
 			if (mobilePlatform instanceof BlackBerry10) {
@@ -602,17 +639,7 @@ public abstract class BuildLocally {
 	public Status runBuild(String option, boolean run, String target) {
 		try {		
 			
-			//Checks if npm is installed
 			File cordovaDir = getCordovaDir();
-//			List<String> parameters = new LinkedList<String>();
-//			parameters.add("--version");
-//			String npmVersion = runCommand(cordovaDir, "npm", parameters, false);
-//			Pattern pattern = Pattern.compile("^([0-9])+\\.([0-9])+\\.([0-9])+$");
-//			Matcher matcher = pattern.matcher(npmVersion);			
-//			if (!matcher.find()){
-//				throw new Exception("node.js is not installed ('npm --version' returned '" + npmVersion + "')\nYou can download nodes.js from https://nodejs.org/en/download/");
-//			}
-			
 			// Cordova environment is already created, we have to build
 			// Step 1: Call Mobile packager to prepare the source package
 			MobileResourceHelper mobileResourceHelper = new MobileResourceHelper(mobilePlatform, 
@@ -735,7 +762,7 @@ public abstract class BuildLocally {
 						parameters.add("install");
 						parameters.add("cordova@" + cliVersion);
 						
-						this.runCommand(cordovaInstallDir, "npm", parameters, true);						
+						this.runCommand(cordovaInstallDir, "npm", parameters, true);	
 					}
 					
 					Engine.logEngine.info("Cordova is now installed.");
