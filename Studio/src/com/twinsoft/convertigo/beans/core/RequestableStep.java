@@ -64,6 +64,7 @@ import com.twinsoft.convertigo.beans.variables.RequestableMultiValuedVariable;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.beans.variables.StepMultiValuedVariable;
 import com.twinsoft.convertigo.beans.variables.StepVariable;
+import com.twinsoft.convertigo.engine.ConvertigoError;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.HttpPool;
@@ -772,8 +773,17 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 			if (super.stepExecute(javascriptContext, scope)) {
 	            try {
 	            	request = new HashMap<String, Object>();
-	    			prepareForRequestable(javascriptContext, scope);
-	    			
+	            	
+	            	try {
+	            		prepareForRequestable(javascriptContext, scope);
+	            	}
+	            	catch (Exception e) {
+	            		Engine.logBeans.error("An error occured while preparing transaction step \""+ RequestableStep.this.getName() +"\"", e);
+	            		xmlHttpDocument = ConvertigoError.get(e).buildErrorDocument(sequence.getRequester(), sequence.context, false);
+	            		flushDocument();
+	            		return true;
+	            	}
+	            	
 	            	if (bInternalInvoke) {
 	            		Engine.logBeans.debug("(RequestableStep) Internal invoke requested");
 		            	InternalRequester internalRequester = new InternalRequester(request, sequence.context.httpServletRequest);
