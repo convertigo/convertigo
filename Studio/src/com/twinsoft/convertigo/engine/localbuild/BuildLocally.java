@@ -556,6 +556,7 @@ public abstract class BuildLocally {
         if (cordovaDirectory.exists()) {
         	if (FileUtils.deleteQuietly(cordovaDirectory)){
 				Engine.logEngine.info("The Cordova environment of \"" + mobilePlatformName + "\" has been successfull removed.");
+				return;
 			}      		        	
         	Engine.logEngine.warn("The Cordova environment of \"" + mobilePlatformName + "\" has been partially removed.");			
         } else {
