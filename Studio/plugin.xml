@@ -1936,20 +1936,6 @@
                </objectState>
             </enablement>
          </action>
-         <action
-               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateListenerAction"
-               enablesFor="1"
-               icon="icons/studio/menu/listener_color_16x16.png"
-               id="convertigo.action.newListener"
-               label="Listener"
-               menubarPath="convertigo.menu.new/content">
-            <enablement>
-               <objectState
-                     name="folderType"
-                     value="16">
-               </objectState>
-            </enablement>
-         </action>
          <menu
                id="convertigo.menu.new"
                label="New"
