@@ -371,7 +371,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public void createPartControl(Composite parent) {
 		viewContentProvider = new ViewContentProvider(this);
 		
-		viewer = new TreeViewer(parent,  SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL) {
+		viewer = new TreeViewer(parent,  SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION) {
 			@Override
 			public void refresh(Object element) {
 				super.refresh(element);
@@ -833,14 +833,23 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 						ConvertigoPlugin.projectManager.setCurrentProject(projectTreeObject);
 					}
 					
-					for (TreeItem item: lastItem) {
-						if (item != null && !item.isDisposed()) {
-							viewer.refresh(item.getData(), true);
+					boolean doRefresh = true;
+										
+					if (treeObject instanceof DatabaseObjectTreeObject) {
+						DatabaseObjectTreeObject dbot = (DatabaseObjectTreeObject) treeObject;
+						if (dbot.isEditingComment) {
+							doRefresh = dbot.isEditingComment = false;
 						}
 					}
-					viewer.refresh(treeObject, true);
 					
-					//oldSelection = treeObject;
+					if (doRefresh) {
+						for (TreeItem item: lastItem) {
+							if (item != null && !item.isDisposed()) {
+								viewer.refresh(item.getData(), true);
+							}
+						}
+						viewer.refresh(treeObject, true);
+					}
 					lastItem = viewer.getTree().getSelection();
 				}
 			}

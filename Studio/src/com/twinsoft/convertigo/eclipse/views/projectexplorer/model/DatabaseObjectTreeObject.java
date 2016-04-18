@@ -152,6 +152,8 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
     
 	private boolean isValueInProcess = false;
 	
+	public boolean isEditingComment = false;
+	
     public DatabaseObjectTreeObject(Viewer viewer, DatabaseObject object) {
     	this(viewer,object,false);
 	}

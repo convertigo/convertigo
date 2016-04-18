@@ -31,6 +31,8 @@ public class CommentEditingSupport extends EditingSupport {
 	@Override
 	protected Object getValue(Object element) {
 		if (canEdit(element)) {
+			((DatabaseObjectTreeObject) element).isEditingComment = true;
+			
 			String comment = "" + ((DatabaseObjectTreeObject) element).getPropertyValue("comment");
 			int i = comment.indexOf('\n');
 			if (i != -1) {
