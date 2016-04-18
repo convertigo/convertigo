@@ -932,20 +932,25 @@ C8O = {
                 }
                 if (C8O.isDefined(e)) {
                     var err = "";
-                    if (C8O.isDefined(e.stack) && e.stack.length) {
-                        err += e.stack;
-                    } else if (typeof(e.toString) == "function") {
-                        err += e.toString();
-                    } else {
-                        if (C8O.isDefined(e.name)) {
-                            err += e.name + ": ";
-                        }
-                        if (C8O.isDefined(e.message)) {
-                            err += e.message;
-                        } else {
-                            err += C8O.toJSON(e);
-                        }
-                    }
+                	
+                    if ($.isPlainObject(e) || $.isArray(e)) {
+                    	err += C8O.toJSON(e);
+                	} else {
+	                    if (C8O.isDefined(e.stack) && e.stack.length) {
+	                        err += e.stack;
+	                    } else if (typeof(e.toString) == "function") {
+	                        err += e.toString();
+	                    } else {
+	                        if (C8O.isDefined(e.name)) {
+	                            err += e.name + ": ";
+	                        }
+	                        if (C8O.isDefined(e.message)) {
+	                            err += e.message;
+	                        } else {
+	                            err += C8O.toJSON(e);
+	                        }
+	                    }
+                	}
                     msg += "\n" + err;
                 }
                 if (C8O.isTrue(C8O.vars.log_line) && navigator.userAgent.indexOf("Chrome") != -1) {
