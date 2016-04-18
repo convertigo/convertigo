@@ -45,10 +45,8 @@ import org.w3c.dom.traversal.NodeIterator;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.beans.mobileplatforms.Android;
-import com.twinsoft.convertigo.beans.mobileplatforms.BlackBerry10;
 import com.twinsoft.convertigo.beans.mobileplatforms.IOs;
 import com.twinsoft.convertigo.beans.mobileplatforms.Windows8;
-import com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhone7;
 import com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhone8;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.mobiles.MobileResourceHelper;
@@ -186,6 +184,8 @@ public abstract class BuildLocally {
 		
 		pb.redirectErrorStream(mergeError);
 		
+		Engine.logEngine.debug("Executing command : " + shellFullpath);
+		
 		process = pb.start();
 		
 		cmdOutput = "";
@@ -311,7 +311,7 @@ public abstract class BuildLocally {
 //			}
 			
 			//WINPHONE
-			if (mobilePlatform instanceof WindowsPhone7 || mobilePlatform instanceof WindowsPhone8) {				
+			if (mobilePlatform instanceof WindowsPhone8) {				
 
 				// Without these width and height the local build doesn't work but with these the remote build doesn't work
 				singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/platform[@name='wp8']/icon[not(@role)]");
@@ -339,11 +339,6 @@ public abstract class BuildLocally {
 					singleElement.getParentNode().appendChild(cloneNode(singleElement, "variable"));
 					singleElement.getParentNode().removeChild(singleElement);
 				}
-			}
-			
-
-			if (mobilePlatform instanceof BlackBerry10) {
-				// TODO : Add platform BB10
 			}
 
 			if (mobilePlatform instanceof Windows8) {
@@ -502,15 +497,6 @@ public abstract class BuildLocally {
 			} else if (mobilePlatform instanceof WindowsPhone8) {
 				builtPath = builtPath + "Bin" + File.separator + buildMd + File.separator;
 				extension = "xap";
-				
-			// Windows Phone 7
-			} else if (mobilePlatform instanceof WindowsPhone7) {
-				builtPath = builtPath + "Bin" + File.separator + buildMd + File.separator;
-				extension = "xap";
-				
-			// Blackberry 10
-			} else if (mobilePlatform instanceof BlackBerry10) {
-				//TODO : Handle BB10
 				
 			// Windows 8
 			} else if (mobilePlatform instanceof Windows8){
@@ -685,7 +671,7 @@ public abstract class BuildLocally {
 	public void cancelBuild(boolean run){
 		//Only for the "Run On Device" action
 		if (run) {
-			if (is(OS.win32) && (mobilePlatform instanceof WindowsPhone7 || mobilePlatform instanceof WindowsPhone8) ) {
+			if (is(OS.win32) && (mobilePlatform instanceof WindowsPhone8) ) {
 				//kill the CordovaDeploy.exe program only for Windows Phone 7 & 8 build platform
 				try {
 					Runtime.getRuntime().exec("taskkill /IM CordovaDeploy.exe").waitFor();

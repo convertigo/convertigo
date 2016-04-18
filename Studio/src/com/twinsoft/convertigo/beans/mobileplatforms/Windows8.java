@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
  *
- * $URL: http://sourceus/svn/convertigo/CEMS_opensource/trunk/Studio/src/com/twinsoft/convertigo/beans/mobiledevices/WindowsPhone7.java $
+ * $URL: http://sourceus/svn/convertigo/CEMS_opensource/trunk/Studio/src/com/twinsoft/convertigo/beans/mobiledevices/Windows8.java $
  * $Author: julienda $
  * $Revision: 31472 $
  * $Date: 2012-08-23 17:53:27 +0200 (jeu., 23 août 2012) $
@@ -35,6 +35,6 @@ public class Windows8 extends MobilePlatform {
 
 	@Override
 	public String getCordovaPlatform() {
-		return "windows8";
+		return "windows";
 	}
 }

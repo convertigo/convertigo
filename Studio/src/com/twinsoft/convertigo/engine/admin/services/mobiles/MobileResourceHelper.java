@@ -25,7 +25,6 @@ import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobileApplication.FlashUpdateBuildMode;
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.beans.core.Project;
-import com.twinsoft.convertigo.beans.mobileplatforms.BlackBerry;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.MinificationManager.ResourceBundle;
@@ -119,18 +118,6 @@ public class MobileResourceHelper {
 			}
 			currentMobileDir = null;
 
-			
-			if (mobilePlatform instanceof BlackBerry) {
-				for (File file : FileUtils.listFilesAndDirs(destDir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE)) {
-					if (!alphaNumPattern.matcher(file.getName()).matches()) {
-						throw new ServiceException("The file or directory '" + file.getAbsolutePath()
-								+ "' contains non alpha-numeric characters. "
-								+ "BlackBerry build does not allow non alpha-numeric characters in file/directory names. "
-								+ "You must rename it with alpha-numeric characters only.");
-					}
-				}
-			}
-			
 			File serverJsFile = new File(destDir, "sources/server.js");
 			
 			if (serverJsFile.exists()) {

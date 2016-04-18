@@ -42,7 +42,6 @@ import org.w3c.dom.Element;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.beans.mobileplatforms.Android;
-import com.twinsoft.convertigo.beans.mobileplatforms.BlackBerryKeyProvider;
 import com.twinsoft.convertigo.beans.mobileplatforms.IOs;
 import com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhoneKeyProvider;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
@@ -130,23 +129,6 @@ public class LaunchBuild extends XmlService {
 				params.put("androidCertificateTitle", new String[]{title});
 				params.put("androidCertificatePw", new String[]{certificatePw});
 				params.put("androidKeystorePw", new String[]{keystorePw});
-			}
-			
-			//Blackberry
-			if (mobilePlatform instanceof BlackBerryKeyProvider) { 
-				BlackBerryKeyProvider blackberry = (BlackBerryKeyProvider) mobilePlatform;
-				
-				String pw, title = blackberry.getBbKeyTitle();
-				
-				if (!title.equals("")) {
-					pw = blackberry.getBbKeyPw();
-				} else {
-					title = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_BB_KEY_TITLE);
-					pw = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_BB_KEY_PW);
-				}
-				
-				params.put("bbKeyTitle", new String[]{title});
-				params.put("bbKeyPw", new String[]{pw});
 			}
 			
 			//Windows Phone
