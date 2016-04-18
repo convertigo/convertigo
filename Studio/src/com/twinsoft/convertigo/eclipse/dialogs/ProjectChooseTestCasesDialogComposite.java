@@ -59,7 +59,7 @@ public class ProjectChooseTestCasesDialogComposite extends MyAbstractDialogCompo
 		
 		Label label = new Label (this, SWT.NONE);
 		label.setText("You can choose test cases to export.\n" +
-				"If you wish, please choose yours test cases below :");
+				"Select one or more Sequences/Transactions test cases below :");
 		label.setLayoutData(labelData);
 		
 		label = new Label(this, SWT.NONE);

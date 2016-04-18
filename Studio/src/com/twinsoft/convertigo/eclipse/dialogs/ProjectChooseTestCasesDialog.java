@@ -92,7 +92,7 @@ public class ProjectChooseTestCasesDialog extends Dialog {
 	@Override
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
-		newShell.setText("Choose Test cases");
+		newShell.setText("Choose test cases");
 	}
 	
 	@Override

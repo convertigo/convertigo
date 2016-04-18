@@ -66,7 +66,7 @@ public class ProjectVersionUpdateDialogComposite extends MyAbstractDialogComposi
 		checkData.grabExcessHorizontalSpace = true;
 		
 		checkBoxTestCase = new Button(this, SWT.CHECK);
-		checkBoxTestCase.setText("Choose tests cases to export");
+		checkBoxTestCase.setText("Choose test cases to export");
 		checkBoxTestCase.setLayoutData(checkData);
 		
 		GridLayout gridLayout = new GridLayout();
