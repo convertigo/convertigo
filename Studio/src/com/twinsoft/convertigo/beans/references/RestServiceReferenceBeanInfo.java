@@ -30,6 +30,9 @@ public class RestServiceReferenceBeanInfo extends MySimpleBeanInfo {
 			beanClass = RestServiceReference.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.references.RestModelReference.class;
 
+			iconNameC16 = "/com/twinsoft/convertigo/beans/references/images/RestServiceReference_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/references/images/RestServiceReference_32x32.png";
+
 			resourceBundle = getResourceBundle("res/RestServiceReference");
 			
 			displayName = resourceBundle.getString("display_name");
