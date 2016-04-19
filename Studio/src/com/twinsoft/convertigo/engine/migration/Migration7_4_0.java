@@ -54,7 +54,7 @@ public class Migration7_4_0 {
 				List<XPathToCheck> xPathToCheckAndroid = new LinkedList<XPathToCheck>();
 				xPathToCheckAndroid.addAll(xPathToCheckDefault);
 				
-				xPathToCheckAndroid.add(new XPathToCheck("/widget/platform[@name='android' and not(*)]", "/widget/engine[@name='android']", true));
+				xPathToCheckAndroid.add(new XPathToCheck("/widget/platform[@name='android' and not(*)]", "/widget/engine[@name='$(CordovaPlatform)$']", true));
 				
 				xPathToCheckAndroid.add(new XPathToCheck("/widget/preference[@name='android-minSdkVersion']", "", true));
 				xPathToCheckAndroid.add(new XPathToCheck("/widget/preference[@name='android-build-tool']", "", true));

@@ -77,7 +77,7 @@ import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.mobileplatforms.Android;
 import com.twinsoft.convertigo.beans.mobileplatforms.IOs;
-import com.twinsoft.convertigo.beans.mobileplatforms.Windows8;
+import com.twinsoft.convertigo.beans.mobileplatforms.Windows;
 import com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhone8;
 import com.twinsoft.convertigo.beans.references.ImportXsdSchemaReference;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
@@ -136,7 +136,7 @@ public class Migration7_0_0 {
 				}
 				if (hasAndroid && hasIOs) {
 					mobileApplicationElement.appendChild(new WindowsPhone8().toXml(document));
-					mobileApplicationElement.appendChild(new Windows8().toXml(document));
+					mobileApplicationElement.appendChild(new Windows().toXml(document));
 				}
 				
 				String projectName = "" + XMLUtils.findPropertyValue(projectNode, "name");

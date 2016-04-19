@@ -20,7 +20,7 @@
 
 	<author href="$(ApplicationAuthorWebsite)$" email="$(ApplicationAuthorEmail)$">$(ApplicationAuthorName)$</author>
 	 
-	<engine name="android" spec="~4.1.1" />
+	<engine name="$(CordovaPlatform)$" spec="~4.1.1" />
 	
 	<!-- Customize your app and platform with the preference element. -->
     <preference name="phonegap-version"           value="cli-5.2.0" />      <!-- all: current version of PhoneGap -->

@@ -32,6 +32,11 @@ public class IOs extends MobilePlatform {
 	private String iOSCertificateTitle = "";
 	private String iOSCertificatePw = "";
 	
+	public IOs() {
+		super();
+		this.cordovaPlatform = "ios";
+	}
+	
 	public String getiOSCertificateTitle() {
 		return iOSCertificateTitle;
 	}

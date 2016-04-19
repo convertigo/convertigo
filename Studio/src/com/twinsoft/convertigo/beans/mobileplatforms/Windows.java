@@ -24,9 +24,14 @@ package com.twinsoft.convertigo.beans.mobileplatforms;
 
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
 
-public class Windows8 extends MobilePlatform {
+public class Windows extends MobilePlatform {
 
 	private static final long serialVersionUID = 1092999336588542620L;
+	
+	public Windows() {
+		super();
+		this.cordovaPlatform = "windows";
+	}
 
 	@Override
 	public String getPackageType() {

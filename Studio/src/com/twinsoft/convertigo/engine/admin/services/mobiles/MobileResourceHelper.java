@@ -401,7 +401,8 @@ public class MobileResourceHelper {
 				.replace("$(ApplicationAuthorEmail)$", mobileApplication.getApplicationAuthorEmail())
 				.replace("$(ApplicationAuthorWebsite)$", mobileApplication.getApplicationAuthorSite())
 				.replace("$(PlatformName)$", mobilePlatform.getName())
-				.replace("$(PlatformType)$", mobilePlatform.getType());
+				.replace("$(PlatformType)$", mobilePlatform.getType())
+				.replace("$(CordovaPlatform)$", mobilePlatform.getCordovaPlatform());
 
 		FileUtils.write(configFile, configText, "UTF-8");
 		

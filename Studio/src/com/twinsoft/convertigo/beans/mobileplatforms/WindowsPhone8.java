@@ -29,6 +29,11 @@ public class WindowsPhone8 extends MobilePlatform implements WindowsPhoneKeyProv
 	private static final long serialVersionUID = 1092999336588542622L;
 	
 	private String winphonePublisherIdTitle = "";
+	
+	public WindowsPhone8() {
+		super();
+		this.cordovaPlatform = "wp8";
+	}
 
 	public String getWinphonePublisherIdTitle() {
 		return winphonePublisherIdTitle;

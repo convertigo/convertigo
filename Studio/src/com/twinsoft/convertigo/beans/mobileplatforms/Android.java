@@ -32,6 +32,11 @@ public class Android extends MobilePlatform {
 	private String androidCertificateTitle = "";
 	private String androidCertificatePw = "";
 	private String androidKeystorePw = "";
+	
+	public Android() {
+		super();
+		this.cordovaPlatform = "android";
+	}
 
 	public String getAndroidCertificateTitle() {
 		return androidCertificateTitle;

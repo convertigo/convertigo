@@ -37,6 +37,8 @@ public abstract class MobilePlatform extends DatabaseObject {
 
 	private static final long serialVersionUID = 8006681009945420375L;
 	
+	protected String cordovaPlatform;
+	
 	public MobilePlatform() {
         super();
 		databaseType = "MobilePlatform";
@@ -114,6 +116,10 @@ public abstract class MobilePlatform extends DatabaseObject {
 	}
 	
 	public String getCordovaPlatform() {
-		return getClass().getSimpleName().toLowerCase();
+		return this.cordovaPlatform;
+	}
+	
+	public void setCordovaPlatform(String cordovaPlatform) {
+		this.cordovaPlatform = cordovaPlatform;
 	}
 }

@@ -46,7 +46,7 @@ import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.beans.mobileplatforms.Android;
 import com.twinsoft.convertigo.beans.mobileplatforms.IOs;
-import com.twinsoft.convertigo.beans.mobileplatforms.Windows8;
+import com.twinsoft.convertigo.beans.mobileplatforms.Windows;
 import com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhone8;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.mobiles.MobileResourceHelper;
@@ -341,7 +341,7 @@ public abstract class BuildLocally {
 				}
 			}
 
-			if (mobilePlatform instanceof Windows8) {
+			if (mobilePlatform instanceof Windows) {
 				// TODO : Add platform Windows 8
 			}
 
@@ -499,7 +499,7 @@ public abstract class BuildLocally {
 				extension = "xap";
 				
 			// Windows 8
-			} else if (mobilePlatform instanceof Windows8){
+			} else if (mobilePlatform instanceof Windows){
 				//TODO : Handle Windows 8
 				
 			} else {

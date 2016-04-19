@@ -129,7 +129,7 @@
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobileplatforms.IOs">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.MobileApplication"/>
 				</bean>
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobileplatforms.Windows8">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobileplatforms.Windows">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.MobileApplication"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhone8">

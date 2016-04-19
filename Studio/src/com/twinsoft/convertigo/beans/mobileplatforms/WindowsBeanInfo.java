@@ -26,17 +26,17 @@ import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
-public class Windows8BeanInfo extends MySimpleBeanInfo {
+public class WindowsBeanInfo extends MySimpleBeanInfo {
 
-	public Windows8BeanInfo() {
+	public WindowsBeanInfo() {
 		try {
-			beanClass = Windows8.class;
+			beanClass = Windows.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.MobilePlatform.class;
 
-		    iconNameC16 = "/com/twinsoft/convertigo/beans/mobileplatforms/images/windows8_color_16x16.png";
-		    iconNameC32 = "/com/twinsoft/convertigo/beans/mobileplatforms/images/windows8_color_32x32.png";
+		    iconNameC16 = "/com/twinsoft/convertigo/beans/mobileplatforms/images/windows_color_16x16.png";
+		    iconNameC32 = "/com/twinsoft/convertigo/beans/mobileplatforms/images/windows_color_32x32.png";
 
-			resourceBundle = getResourceBundle("res/Windows8");
+			resourceBundle = getResourceBundle("res/Windows");
 
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
