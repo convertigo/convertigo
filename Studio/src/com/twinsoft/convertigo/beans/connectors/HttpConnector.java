@@ -26,6 +26,7 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -41,6 +42,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
@@ -80,6 +82,10 @@ import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.httpclient.methods.TraceMethod;
+import org.apache.commons.httpclient.methods.multipart.FilePart;
+import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
+import org.apache.commons.httpclient.methods.multipart.Part;
+import org.apache.commons.httpclient.methods.multipart.StringPart;
 import org.apache.commons.httpclient.params.HttpConnectionParams;
 import org.apache.commons.httpclient.protocol.Protocol;
 import org.apache.commons.io.IOUtils;
@@ -165,6 +171,8 @@ public class HttpConnector extends Connector {
 	transient private Map<String, String> httpHeaderForwardMap = null;
 	
 	private String urlEncodingCharset = "UTF-8";
+
+	private boolean doMultipartFormData = false;
 	
 	public HttpConnector() {
 		super();
@@ -594,6 +602,18 @@ public class HttpConnector extends Connector {
 		boolean isLogHidden = false;
 		List<String> logHiddenValues = new ArrayList<String>();
 		
+		if (isFormUrlEncoded) {
+			doMultipartFormData = false;
+			for (int i = 0; i < len; i++) {
+				RequestableHttpVariable trVariable = (RequestableHttpVariable) httpTransaction.getVariable(i);
+				if (trVariable.getDoFileUploadMode() == DoFileUploadMode.multipartFormData) {
+					doMultipartFormData  = true;
+					postQuery = null;
+					return;
+				}
+			}
+		}
+		
 		for (int i = 0; i < len; i++) {
 			bIgnoreVariable = false;
 			RequestableHttpVariable trVariable = (RequestableHttpVariable) httpTransaction.getVariable(i);
@@ -993,11 +1013,10 @@ public class HttpConnector extends Connector {
 			Engine.logBeans.debug("(HttpConnector) Setting " + httpVerb + " data");
 			if (method instanceof EntityEnclosingMethod) {
 				EntityEnclosingMethod entityEnclosingMethod = (EntityEnclosingMethod) method;
+				AbstractHttpTransaction transaction = (AbstractHttpTransaction) context.requestedObject;
 				
 				if (content_type.equalsIgnoreCase("text/xml")) {
 					final MimeMultipart[] mp = {null};
-					
-					AbstractHttpTransaction transaction = (AbstractHttpTransaction) context.requestedObject;
 					
 					for (RequestableVariable variable : transaction.getVariablesList()) {
 						if (variable instanceof RequestableHttpVariable) {
@@ -1070,8 +1089,32 @@ public class HttpConnector extends Connector {
 							}
 						});
 					}
-				}
-				else {
+				} else if (doMultipartFormData) {
+					List<Part> parts = new LinkedList<Part>();
+					
+					for (RequestableVariable variable : transaction.getVariablesList()) {
+						if (variable instanceof RequestableHttpVariable) {
+							RequestableHttpVariable httpVariable = (RequestableHttpVariable) variable;
+							
+							if ("POST".equals(httpVariable.getHttpMethod())) {
+								Object httpObjectVariableValue = transaction.getVariableValue(httpVariable.getName());
+								
+								if (httpVariable.isMultiValued()) {
+									if (httpObjectVariableValue instanceof Collection<?>) {
+										for (Object httpVariableValue : (Collection<?>) httpObjectVariableValue) {
+											addFormDataPart(parts, httpVariable, httpVariableValue);
+										}
+									}
+								} else {
+									addFormDataPart(parts, httpVariable, httpObjectVariableValue);
+								}
+							}
+						}
+					}
+					MultipartRequestEntity mre = new MultipartRequestEntity(parts.toArray(new Part[parts.size()]), entityEnclosingMethod.getParams());
+					method.setRequestHeader("Content-Type", mre.getContentType());
+					entityEnclosingMethod.setRequestEntity(mre);
+				} else {
 					String charset = httpTransaction.getComputedUrlEncodingCharset();
 					entityEnclosingMethod.setRequestEntity(new StringRequestEntity(postQuery, content_type, charset));
 				}
@@ -1631,6 +1674,21 @@ public class HttpConnector extends Connector {
 		bp.attachFile(filepath);
 		bp.setContentID(cid);
 		mp.addBodyPart(bp);
+	}
+		
+	private void addFormDataPart(List<Part> parts, RequestableHttpVariable httpVariable, Object httpVariableValue) throws FileNotFoundException {
+		String stringValue = ParameterUtils.toString(httpVariableValue);
+		if (httpVariable.getDoFileUploadMode() == DoFileUploadMode.multipartFormData) {
+			String filepath = Engine.theApp.filePropertyManager.getFilepathFromProperty(stringValue, getProject().getName());
+			File file = new File(filepath);
+			if (file.exists()) {
+				parts.add(new FilePart(httpVariable.getHttpName(), file.getName(), file));
+			} else {
+				throw new FileNotFoundException(filepath);
+			}
+		} else {
+			parts.add(new StringPart(httpVariable.getHttpName(), stringValue));
+		}
 	}
 	
 	transient private boolean authenticationPropertiesHasChanged = false;
