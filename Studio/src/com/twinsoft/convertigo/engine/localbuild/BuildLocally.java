@@ -184,7 +184,7 @@ public abstract class BuildLocally {
 		
 		pb.redirectErrorStream(mergeError);
 		
-		Engine.logEngine.debug("Executing command : " + shellFullpath);
+		Engine.logEngine.info("Executing command : " + parameters);
 		
 		process = pb.start();
 		
@@ -644,15 +644,50 @@ public abstract class BuildLocally {
 			FileUtils.deleteQuietly(new File(wwwDir, "config.xml"));
 
 			processConfigXMLResources(wwwDir, cordovaDir);
+			
+			List<String> commandsList = new LinkedList<String>();
+			
+			if (mobilePlatform instanceof Windows) {
+				File configFile = new File(cordovaDir, "config.xml");
+				Document doc = XMLUtils.loadXml(configFile);
+				
+				TwsCachedXPathAPI xpathApi = new TwsCachedXPathAPI();
+				
+				Element singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/engine[@name='windows']");
+				
+				if (singleElement == null) {
+					throw new Exception("The tag 'engine' is not specified in the file config.xml.");
+				}
+				
+				String appx = singleElement.getAttribute("appx");
+				String archs = singleElement.getAttribute("archs");
+				
+				if (appx == null || archs == null || appx.isEmpty() || archs.isEmpty()) {
+					throw new Exception("The attributes 'appx' and 'archs' are not specified in the tag engine.");
+				}
+				
+				commandsList.add("--");
+				commandsList.add("--appx=" + appx);
+				commandsList.add("--archs=" + archs);
+			}
 
 			// Step 3: Build or Run using Cordova the specific platform.
 			if (run) {
-				runCordovaCommand(cordovaDir, "run", cordovaPlatform, "--" + option, "--" + target);
+				commandsList.add(0, "run");
+				commandsList.add(1, cordovaPlatform);
+				commandsList.add(2, "--" + option);
+				commandsList.add(3, "--" + target);
+				
+				runCordovaCommand(cordovaDir, commandsList);
 			} else {
 				
 				runCordovaCommand(cordovaDir, "prepare", cordovaPlatform);
 				
-				runCordovaCommand(cordovaDir, "build", cordovaPlatform, "--" + option);
+				commandsList.add(0, "build");
+				commandsList.add(0, cordovaPlatform);
+				commandsList.add(0, "--" + option);
+				
+				runCordovaCommand(cordovaDir, commandsList);
 
 				// Step 4: Show dialog with path to apk/ipa/xap
 				if (!processCanceled) {

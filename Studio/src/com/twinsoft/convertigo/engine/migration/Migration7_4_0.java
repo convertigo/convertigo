@@ -72,7 +72,7 @@ public class Migration7_4_0 {
 				List<XPathToCheck> xPathToCheckIOs = new LinkedList<XPathToCheck>();
 				xPathToCheckIOs.addAll(xPathToCheckDefault);
 
-				xPathToCheckIOs.add(new XPathToCheck("/widget/platform[@name='ios']", "/widget/engine[@name='ios']", true));
+				xPathToCheckIOs.add(new XPathToCheck("/widget/platform[@name='ios']", "/widget/engine[@name='$(CordovaPlatform)$']", true));
 
 				xPathToCheckIOs.add(new XPathToCheck("/widget/preference[@name='target-device' and @value='universal']", null, true));
 				
@@ -91,7 +91,7 @@ public class Migration7_4_0 {
 				List<XPathToCheck> xPathToCheckWinPhone8 = new LinkedList<XPathToCheck>();
 				xPathToCheckWinPhone8.addAll(xPathToCheckDefault);
 
-				xPathToCheckWinPhone8.add(new XPathToCheck("/widget/platform[@name='winphone' and not(*)]", "/widget/engine[@name='wp8']", true));
+				xPathToCheckWinPhone8.add(new XPathToCheck("/widget/platform[@name='winphone' and not(*)]", "/widget/engine[@name='$(CordovaPlatform)$']", true));
 				
 				xPathToCheckWinPhone8.add(new XPathToCheck("/widget/icon[@gap:platform='winphone' and not(@gap:role)]", "/widget/platform[@name='wp8']/icon[not(@role)]", false));
 				xPathToCheckWinPhone8.add(new XPathToCheck("/widget/icon[@gap:platform='winphone' and @gap:role='background']", "/widget/platform[@name='wp8']/icon[@role='background']", false));
