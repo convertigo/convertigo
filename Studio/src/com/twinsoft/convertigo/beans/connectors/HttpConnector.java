@@ -74,6 +74,7 @@ import org.apache.commons.httpclient.URI;
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.methods.DeleteMethod;
 import org.apache.commons.httpclient.methods.EntityEnclosingMethod;
+import org.apache.commons.httpclient.methods.FileRequestEntity;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.HeadMethod;
 import org.apache.commons.httpclient.methods.OptionsMethod;
@@ -172,7 +173,8 @@ public class HttpConnector extends Connector {
 	
 	private String urlEncodingCharset = "UTF-8";
 
-	private boolean doMultipartFormData = false;
+	transient private boolean doMultipartFormData;
+	transient private String contentType;
 	
 	public HttpConnector() {
 		super();
@@ -313,14 +315,13 @@ public class HttpConnector extends Connector {
 		}
 
 		handleCookie = httpTransaction.isHandleCookie();
-		if (!handleCookie && httpState != null)
-			httpState.clearCookies(); // remove cookies from previous
-										// transaction
-
+		if (!handleCookie && httpState != null) {
+			httpState.clearCookies(); // remove cookies from previous transaction
+		}
 
 		httpParameters = httpTransaction.getCurrentHttpParameters();
 		
-		String contentType = "application/x-www-form-urlencoded";
+		contentType = "application/x-www-form-urlencoded";
 		
 		for (List<String> httpParameter : httpParameters) {
 			String key = httpParameter.get(0);
@@ -345,8 +346,25 @@ public class HttpConnector extends Connector {
 				oAuthTokenSecret = value;
 			}
 		}
+		
+		{
+			String overrideContentType = ParameterUtils.toString(httpTransaction.getParameterValue(Parameter.HttpContentType.getName()));
+			if (overrideContentType != null) {
+				contentType = overrideContentType;
+			}
+		}
 
+		int len = httpTransaction.numberOfVariables();
 		boolean isFormUrlEncoded = contentType.equalsIgnoreCase("application/x-www-form-urlencoded");
+		
+		doMultipartFormData = false;
+		for (int i = 0; i < len; i++) {
+			RequestableHttpVariable trVariable = (RequestableHttpVariable) httpTransaction.getVariable(i);
+			if (trVariable.getDoFileUploadMode() == DoFileUploadMode.multipartFormData) {
+				doMultipartFormData = true;
+				isFormUrlEncoded = true;
+			}
+		}
 		
 		// Retrieve request template file if necessary
 		File requestTemplateFile = null;
@@ -411,8 +429,6 @@ public class HttpConnector extends Connector {
 		Object httpObjectVariableValue;
 		boolean isMultiValued = false;
 		boolean bIgnoreVariable = false;
-		
-		int len = httpTransaction.numberOfVariables();
 		
 		String urlEncodingCharset = httpTransaction.getComputedUrlEncodingCharset();
 
@@ -485,6 +501,11 @@ public class HttpConnector extends Connector {
 
 		if (Engine.logBeans.isDebugEnabled()) {
 			Engine.logBeans.debug("(HttpConnector) GET query: " + Visibility.Logs.replaceVariables(httpTransaction.getVariablesList(), queryString));
+		}
+		
+		if (doMultipartFormData) {
+			Engine.logBeans.debug("(HttpConnector) Skip postQuery computing and do a multipart/formData content");
+			return;
 		}
 
 		// Build body for POST/PUT
@@ -579,40 +600,21 @@ public class HttpConnector extends Connector {
 									+ httpTransaction.getName() + "\".", e);
 				}
 			}
-			else  {
-				RequestableHttpVariable body = (RequestableHttpVariable) httpTransaction.getVariable(Parameter.HttpBody.getName());
-				if (body != null) {
-					method = body.getHttpMethod();
-					httpObjectVariableValue = httpTransaction.getParameterValue(Parameter.HttpBody.getName());
-					if (method.equals("POST") && httpObjectVariableValue != null) {
-						String bodyContentType = ParameterUtils.toString(httpTransaction.getParameterValue(Parameter.HttpContentType.getName()));
-						if (bodyContentType != null) {
-							// TODO: body conversion
-							if (!contentType.equalsIgnoreCase(bodyContentType)) {
-								
-							}
-						}
-						postQuery = ParameterUtils.toString(httpObjectVariableValue);
-					}
-				}
+		}
+		
+		RequestableHttpVariable body = (RequestableHttpVariable) httpTransaction.getVariable(Parameter.HttpBody.getName());
+		if (body != null) {
+			method = body.getHttpMethod();
+			httpObjectVariableValue = httpTransaction.getParameterValue(Parameter.HttpBody.getName());
+			if (method.equals("POST") && httpObjectVariableValue != null) {
+				postQuery = ParameterUtils.toString(httpObjectVariableValue);
+				isFormUrlEncoded = false;
 			}
 		}
-
+		
 		// Add all input variables marked as POST
 		boolean isLogHidden = false;
 		List<String> logHiddenValues = new ArrayList<String>();
-		
-		if (isFormUrlEncoded) {
-			doMultipartFormData = false;
-			for (int i = 0; i < len; i++) {
-				RequestableHttpVariable trVariable = (RequestableHttpVariable) httpTransaction.getVariable(i);
-				if (trVariable.getDoFileUploadMode() == DoFileUploadMode.multipartFormData) {
-					doMultipartFormData  = true;
-					postQuery = null;
-					return;
-				}
-			}
-		}
 		
 		for (int i = 0; i < len; i++) {
 			bIgnoreVariable = false;
@@ -984,7 +986,6 @@ public class HttpConnector extends Connector {
 			
 			// Setting HTTP parameters
 			boolean hasUserAgent = false;
-			String content_type = "application/x-www-form-urlencoded";
 
 			for (List<String> httpParameter : httpParameters) {
 				String key = httpParameter.get(0);
@@ -999,9 +1000,6 @@ public class HttpConnector extends Connector {
 				if (key.equalsIgnoreCase("User-Agent")) {
 					hasUserAgent = true;
 				}
-				if (key.equalsIgnoreCase("Content-Type")) {
-					content_type = value;
-				}
 			}
 
 			// set user-agent header if not found
@@ -1015,7 +1013,45 @@ public class HttpConnector extends Connector {
 				EntityEnclosingMethod entityEnclosingMethod = (EntityEnclosingMethod) method;
 				AbstractHttpTransaction transaction = (AbstractHttpTransaction) context.requestedObject;
 				
-				if (content_type.equalsIgnoreCase("text/xml")) {
+				if (doMultipartFormData) {
+					RequestableHttpVariable body = (RequestableHttpVariable) httpTransaction.getVariable(Parameter.HttpBody.getName());
+					if (body != null && body.getDoFileUploadMode() == DoFileUploadMode.multipartFormData) {
+						String stringValue = httpTransaction.getParameterStringValue(Parameter.HttpBody.getName());
+						String filepath = Engine.theApp.filePropertyManager.getFilepathFromProperty(stringValue, getProject().getName());
+						File file = new File(filepath);
+						if (file.exists()) {
+							method.setRequestHeader("Content-Type", contentType);
+							entityEnclosingMethod.setRequestEntity(new FileRequestEntity(file, contentType));
+						} else {
+							throw new FileNotFoundException(file.getAbsolutePath());
+						}
+					} else {
+						List<Part> parts = new LinkedList<Part>();
+						
+						for (RequestableVariable variable : transaction.getVariablesList()) {
+							if (variable instanceof RequestableHttpVariable) {
+								RequestableHttpVariable httpVariable = (RequestableHttpVariable) variable;
+								
+								if ("POST".equals(httpVariable.getHttpMethod())) {
+									Object httpObjectVariableValue = transaction.getVariableValue(httpVariable.getName());
+									
+									if (httpVariable.isMultiValued()) {
+										if (httpObjectVariableValue instanceof Collection<?>) {
+											for (Object httpVariableValue : (Collection<?>) httpObjectVariableValue) {
+												addFormDataPart(parts, httpVariable, httpVariableValue);
+											}
+										}
+									} else {
+										addFormDataPart(parts, httpVariable, httpObjectVariableValue);
+									}
+								}
+							}
+						}
+						MultipartRequestEntity mre = new MultipartRequestEntity(parts.toArray(new Part[parts.size()]), entityEnclosingMethod.getParams());
+						method.setRequestHeader("Content-Type", mre.getContentType());
+						entityEnclosingMethod.setRequestEntity(mre);
+					}
+				} else if (contentType.equalsIgnoreCase("text/xml")) {
 					final MimeMultipart[] mp = {null};
 					
 					for (RequestableVariable variable : transaction.getVariablesList()) {
@@ -1033,7 +1069,7 @@ public class HttpConnector extends Connector {
 										mimeMultipart = new MimeMultipart("related; type=\"application/xop+xml\"");
 										MimeBodyPart bp = new MimeBodyPart();
 										bp.setText(postQuery, "UTF-8");
-										bp.setHeader("Content-Type", "text/xml");
+										bp.setHeader("Content-Type", contentType);
 										mimeMultipart.addBodyPart(bp);
 									}
 									
@@ -1089,34 +1125,10 @@ public class HttpConnector extends Connector {
 							}
 						});
 					}
-				} else if (doMultipartFormData) {
-					List<Part> parts = new LinkedList<Part>();
-					
-					for (RequestableVariable variable : transaction.getVariablesList()) {
-						if (variable instanceof RequestableHttpVariable) {
-							RequestableHttpVariable httpVariable = (RequestableHttpVariable) variable;
-							
-							if ("POST".equals(httpVariable.getHttpMethod())) {
-								Object httpObjectVariableValue = transaction.getVariableValue(httpVariable.getName());
-								
-								if (httpVariable.isMultiValued()) {
-									if (httpObjectVariableValue instanceof Collection<?>) {
-										for (Object httpVariableValue : (Collection<?>) httpObjectVariableValue) {
-											addFormDataPart(parts, httpVariable, httpVariableValue);
-										}
-									}
-								} else {
-									addFormDataPart(parts, httpVariable, httpObjectVariableValue);
-								}
-							}
-						}
-					}
-					MultipartRequestEntity mre = new MultipartRequestEntity(parts.toArray(new Part[parts.size()]), entityEnclosingMethod.getParams());
-					method.setRequestHeader("Content-Type", mre.getContentType());
-					entityEnclosingMethod.setRequestEntity(mre);
 				} else {
 					String charset = httpTransaction.getComputedUrlEncodingCharset();
-					entityEnclosingMethod.setRequestEntity(new StringRequestEntity(postQuery, content_type, charset));
+					method.setRequestHeader("Content-Type", contentType);
+					entityEnclosingMethod.setRequestEntity(new StringRequestEntity(postQuery, contentType, charset));
 				}
 			}
 
