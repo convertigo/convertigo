@@ -902,13 +902,6 @@
 	             id="convertigo.action.emulateLocally"
 	             label="Run on Emulator"
 	             menubarPath="convertigo.menu.action.cordova/run" />
-	   	   <action
-	             class="com.twinsoft.convertigo.eclipse.popup.actions.BuildLocallyAction"
-	             enablesFor="1"
-	             icon="icons/studio/remove_cordova_platform_16x16.png"
-	             id="convertigo.action.removeCordovaPlatform"
-	             label="Remove platform"
-	             menubarPath="convertigo.menu.action.cordova/clean" />
 	       <action
 	             class="com.twinsoft.convertigo.eclipse.popup.actions.BuildLocallyAction"
 	             enablesFor="1"

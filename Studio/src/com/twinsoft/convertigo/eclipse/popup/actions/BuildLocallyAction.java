@@ -106,9 +106,6 @@ public class BuildLocallyAction extends MyAbstractAction {
 		if (actionID.equals("convertigo.action.emulateLocally")){
 			build("debug", true, "emulator");
 		}
-        if (actionID.equals("convertigo.action.removeCordovaPlatform")){ 
-        	removeCordovaPlatform();
-        } 
 		if (actionID.equals("convertigo.action.removeCordovaDirectory")){
 			buildLocally.removeCordovaDirectory();
 		}
@@ -274,40 +271,6 @@ public class BuildLocallyAction extends MyAbstractAction {
 			}	
 		} else {
 			//TODO
-		}
-	}
-	
-	/**
-	 * Removes the CordovaPlatform... Used to clean a broken cordova
-	 * environment.
-	 */
-	private void removeCordovaPlatform() {
-		final MobilePlatform mobilePlatform = getMobilePlatform();
-
-		if (mobilePlatform != null && buildLocally.getCordovaDir().exists()) {
-			final String platformName = mobilePlatform.getCordovaPlatform();
-
-			Job removeCordovaPlatformJob = new Job("Remove " + platformName
-					+ " platform on cordova in progress...") {
-				@Override
-				protected IStatus run(IProgressMonitor arg0) {
-					BuildLocally.Status status = buildLocally.runRemoveCordovaPlatform(platformName);
-					if (status == BuildLocally.Status.OK) {
-						return org.eclipse.core.runtime.Status.OK_STATUS;
-					}
-					return org.eclipse.core.runtime.Status.CANCEL_STATUS;
-				}
-
-				@Override
-				protected void canceling() {
-					buildLocally.cancelRemoveCordovaPlatform();
-				}
-			};
-			removeCordovaPlatformJob.setUser(true);
-			removeCordovaPlatformJob.schedule();
-		} else {
-			Engine.logEngine
-					.error("The platform isn't removed because the Cordova environment doesn't exist.");
 		}
 	}
 }
