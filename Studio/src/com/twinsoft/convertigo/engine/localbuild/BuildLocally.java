@@ -684,8 +684,8 @@ public abstract class BuildLocally {
 				runCordovaCommand(cordovaDir, "prepare", cordovaPlatform);
 				
 				commandsList.add(0, "build");
-				commandsList.add(0, cordovaPlatform);
-				commandsList.add(0, "--" + option);
+				commandsList.add(1, cordovaPlatform);
+				commandsList.add(2, "--" + option);
 				
 				runCordovaCommand(cordovaDir, commandsList);
 
