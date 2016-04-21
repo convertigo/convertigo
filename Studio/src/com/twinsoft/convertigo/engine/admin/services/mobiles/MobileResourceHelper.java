@@ -331,7 +331,7 @@ public class MobileResourceHelper {
 		
 		FlashUpdateBuildMode buildMode = mobileApplication.getBuildMode();		
 		
-		String finalApplicationName = mobileApplication.getComputedApplicationName();		
+		String finalApplicationName = mobileApplication.getComputedEscapededApplicationName(mobilePlatform);
 		
 		JSONObject json = new JSONObject();
 		

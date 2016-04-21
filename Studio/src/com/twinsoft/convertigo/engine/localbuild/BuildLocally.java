@@ -816,8 +816,8 @@ public abstract class BuildLocally {
 		try {
 			runCordovaCommand(mobilePlatformDir, "create", 
 					cordovaDir, 
-					mobileApplication.getComputedApplicationId(), 
-					mobileApplication.getComputedApplicationName() );
+					mobileApplication.getComputedApplicationId(),
+					mobileApplication.getComputedEscapededApplicationName(mobilePlatform) );
 		} catch (Throwable e) {
 			Engine.logEngine.error("Error when creating the cordova environment.", e);
 			return Status.CANCEL;
