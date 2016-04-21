@@ -1,35 +1,5 @@
 package com.twinsoft.convertigo.engine.util;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.twinsoft.convertigo.beans.core.Project;
-import com.twinsoft.convertigo.beans.core.UrlMapper;
-import com.twinsoft.convertigo.beans.core.UrlMapping;
-import com.twinsoft.convertigo.beans.core.IMappingRefModel;
-import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
-import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
-import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataContent;
-import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataType;
-import com.twinsoft.convertigo.beans.core.UrlMappingParameter.Type;
-import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
-import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
-
-import io.swagger.parser.SwaggerParser;
-import io.swagger.util.Json;
-import io.swagger.util.Yaml;
 import io.swagger.models.Contact;
 import io.swagger.models.Info;
 import io.swagger.models.Model;
@@ -53,48 +23,100 @@ import io.swagger.models.properties.IntegerProperty;
 import io.swagger.models.properties.Property;
 import io.swagger.models.properties.RefProperty;
 import io.swagger.models.properties.StringProperty;
+import io.swagger.parser.SwaggerParser;
+import io.swagger.util.Json;
+import io.swagger.util.Yaml;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.twinsoft.convertigo.beans.core.IMappingRefModel;
+import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.UrlMapper;
+import com.twinsoft.convertigo.beans.core.UrlMapping;
+import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
+import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
+import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataContent;
+import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataType;
+import com.twinsoft.convertigo.beans.core.UrlMappingParameter.Type;
+import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
+import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 
 public class SwaggerUtils {
+	private static Pattern parseRequestUrl = Pattern.compile("http(s?)://(.*?)(/.*?api)");
 
 	public static Swagger read(String url) {
 		return new SwaggerParser().read(url);
 	}
 	
-	public static Swagger parse(Collection<UrlMapper> collection) {
+	private static Swagger parseCommon(String requestUrl, Project project) {
 		Swagger swagger = new Swagger();
 		
 		Contact contact = new Contact();
 		contact.setEmail("support@convertigo.com");
 		
 		Info info = new Info();
-		info.setTitle("Convertigo REST API");
-		info.setDescription("Find here all deployed projects");
-		info.setVersion(com.twinsoft.convertigo.engine.Version.fullProductVersion);
 		info.setContact(contact);
-		swagger.setInfo(info);
+		if (project != null) {
+			info.setTitle("Convertigo REST API for " + project.getName());
+			info.setDescription(project.getComment());
+			info.setVersion(project.getVersion());			
+		} else {
+			info.setTitle("Convertigo REST API");
+			info.setDescription("Find here all deployed projects");
+			info.setVersion(com.twinsoft.convertigo.engine.Version.fullProductVersion);
+		}
+
+		List<Scheme> schemes = new ArrayList<Scheme>();
+		String host;
+		String basePath;
 		
-		String webAppPath = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
-		int index = webAppPath.indexOf("://") + 3;
-		String host = webAppPath.substring(index, webAppPath.indexOf('/', index));
-		String basePath = webAppPath.substring(index + host.length()) + "/api";
+		Matcher matcher = parseRequestUrl.matcher(requestUrl);
+		if (matcher.find()) {
+			schemes.add(matcher.group(1) == null ? Scheme.HTTP : Scheme.HTTPS);
+			host = matcher.group(2);
+			basePath = matcher.group(3);
+		} else {
+			String webAppPath = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
+			int index = webAppPath.indexOf("://") + 3;
+			host = webAppPath.substring(index, webAppPath.indexOf('/', index));
+			basePath = webAppPath.substring(index + host.length()) + "/api";
+			schemes.add(Scheme.HTTP);
+			schemes.add(Scheme.HTTPS);
+		}
+		swagger.setSchemes(schemes);
 		swagger.setHost(host);
 		swagger.setBasePath(basePath);
-		
-		List<Scheme> schemes = new ArrayList<Scheme>();
-		schemes.add(Scheme.HTTP);
-		schemes.add(Scheme.HTTPS);
-		swagger.setSchemes(schemes);
 		
 		swagger.setConsumes(Arrays.asList("multipart/form-data","application/x-www-form-urlencoded","application/json","application/xml"));
 		
 		swagger.setProduces(Arrays.asList("application/json", "application/xml"));
+		return swagger;
+	}
+	
+	public static Swagger parse(String requestUrl, Collection<UrlMapper> collection) {
+		Swagger swagger = parseCommon(requestUrl, null);
 		
 		List<Tag> tags = new ArrayList<Tag>();
 		Map<String, Path> paths = new HashMap<String, Path>();
 		Map<String, Model> models = new HashMap<String, Model>();
 		for (UrlMapper urlMapper : collection) {
 			if (urlMapper != null) {
-				Swagger p_swagger = parse(urlMapper);
+				Swagger p_swagger = parse(requestUrl, urlMapper);
 				if (p_swagger != null) {
 					if (p_swagger != null) {
 						tags.addAll(p_swagger.getTags());
@@ -111,37 +133,13 @@ public class SwaggerUtils {
 		return swagger;
 	}
 	
-	public static Swagger parse(String projectName) {
-		Swagger swagger = new Swagger();
+	public static Swagger parse(String requestUrl, String projectName) {
+		Swagger swagger;
 		
 		Project project = null;
 		try {
 			project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
-			
-			Info info = new Info();
-			info.setTitle("Convertigo REST API for " + projectName);
-			info.setDescription(project.getComment());
-			info.setVersion(project.getVersion());
-			Contact contact = new Contact();
-			contact.setEmail("support@convertigo.com");
-			info.setContact(contact);
-			swagger.setInfo(info);
-			
-			String webAppPath = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
-			int index = webAppPath.indexOf("://") + 3;
-			String host = webAppPath.substring(index, webAppPath.indexOf('/', index));
-			String basePath = webAppPath.substring(index + host.length()) + "/api";
-			swagger.setHost(host);
-			swagger.setBasePath(basePath);
-			
-			List<Scheme> schemes = new ArrayList<Scheme>();
-			schemes.add(Scheme.HTTP);
-			schemes.add(Scheme.HTTPS);
-			swagger.setSchemes(schemes);
-			
-			swagger.setConsumes(Arrays.asList("multipart/form-data","application/x-www-form-urlencoded","application/json","application/xml"));
-			
-			swagger.setProduces(Arrays.asList("application/json", "application/xml"));
+			swagger = parseCommon(requestUrl, project);
 			
 			List<Tag> tags = new ArrayList<Tag>();
 			Tag tag = new Tag();
@@ -152,41 +150,15 @@ public class SwaggerUtils {
 			
 		} catch (Exception e) {
 			e.printStackTrace();
+			swagger = new Swagger();
 		}
 		
 		return swagger;
 	}
 	
-	public static Swagger parse(UrlMapper urlMapper) {
-		Swagger swagger = new Swagger();
-		
-		Contact contact = new Contact();
-		contact.setEmail("support@convertigo.com");
-		
+	public static Swagger parse(String requestUrl, UrlMapper urlMapper) {
 		Project project = urlMapper.getProject();
-		
-		Info info = new Info();
-		info.setTitle("Convertigo REST API for " + project.getName());
-		info.setDescription(project.getComment());
-		info.setVersion(project.getVersion());
-		info.setContact(contact);
-		swagger.setInfo(info);
-		
-		String webAppPath = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
-		int index = webAppPath.indexOf("://") + 3;
-		String host = webAppPath.substring(index, webAppPath.indexOf('/', index));
-		String basePath = webAppPath.substring(index + host.length()) + "/api";
-		swagger.setHost(host);
-		swagger.setBasePath(basePath);
-		
-		List<Scheme> schemes = new ArrayList<Scheme>();
-		schemes.add(Scheme.HTTP);
-		schemes.add(Scheme.HTTPS);
-		swagger.setSchemes(schemes);
-		
-		swagger.setConsumes(Arrays.asList("multipart/form-data","application/x-www-form-urlencoded","application/json","application/xml"));
-		
-		swagger.setProduces(Arrays.asList("application/json", "application/xml"));
+		Swagger swagger = parseCommon(requestUrl, project);
 		
 		List<Tag> tags = new ArrayList<Tag>();
 		Tag tag = new Tag();
@@ -384,30 +356,30 @@ public class SwaggerUtils {
 		return null;
 	}
 	
-	public static String getYamlDefinition(Object object) throws JsonProcessingException {
+	public static String getYamlDefinition(String requestUrl, Object object) throws JsonProcessingException {
 		if (object instanceof String) {	// project name
-			return prettyPrintYaml(parse((String)object));
+			return prettyPrintYaml(parse(requestUrl, (String) object));
 		}
 		if (object instanceof UrlMapper) {	// urlmapper of project
-			return prettyPrintYaml(parse((UrlMapper)object));
+			return prettyPrintYaml(parse(requestUrl, (UrlMapper) object));
 		}
 		if (object instanceof Collection<?>) { // all projects urlmapper
 			Collection<UrlMapper> collection = GenericUtils.cast(object);
-			return prettyPrintYaml(parse(collection));
+			return prettyPrintYaml(parse(requestUrl, collection));
 		}
 		return null;
 	}
 
-	public static String getJsonDefinition(Object object) {
+	public static String getJsonDefinition(String requestUrl, Object object) {
 		if (object instanceof String) {	// project name
-			return prettyPrintJson(parse((String)object));
+			return prettyPrintJson(parse(requestUrl, (String)object));
 		}
 		if (object instanceof UrlMapper) {
-			return prettyPrintJson(parse((UrlMapper)object));
+			return prettyPrintJson(parse(requestUrl, (UrlMapper)object));
 		}
 		if (object instanceof Collection<?>) {
 			Collection<UrlMapper> collection = GenericUtils.cast(object);
-			return prettyPrintJson(parse(collection));
+			return prettyPrintJson(parse(requestUrl, collection));
 		}
 		return null;
 	}

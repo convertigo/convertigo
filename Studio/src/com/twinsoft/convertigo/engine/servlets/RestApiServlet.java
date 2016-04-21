@@ -18,6 +18,8 @@ import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.RestApiManager;
+import com.twinsoft.convertigo.engine.enums.MimeType;
+import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.ServletUtils;
 import com.twinsoft.convertigo.engine.util.SwaggerUtils;
 
@@ -25,24 +27,24 @@ public class RestApiServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 6926586430359873778L;
 
-	private String buildSwaggerDefinition(String projectName, boolean isYaml) throws EngineException, JsonProcessingException {
+	private String buildSwaggerDefinition(String requestUrl, String projectName, boolean isYaml) throws EngineException, JsonProcessingException {
 		String definition = null;
 		
 		// Build a given project definition
 		if (projectName != null) {
 			UrlMapper urlMapper = RestApiManager.getInstance().getUrlMapper(projectName);
 			if (urlMapper != null) {
-				definition = isYaml ? SwaggerUtils.getYamlDefinition(urlMapper): SwaggerUtils.getJsonDefinition(urlMapper);
+				definition = isYaml ? SwaggerUtils.getYamlDefinition(requestUrl, urlMapper): SwaggerUtils.getJsonDefinition(requestUrl, urlMapper);
 			}
 			else {
 				Engine.logEngine.warn("Project \""+projectName+"\" does not contain any UrlMapper.");
-				definition = isYaml ? SwaggerUtils.getYamlDefinition(projectName): SwaggerUtils.getJsonDefinition(projectName);
+				definition = isYaml ? SwaggerUtils.getYamlDefinition(requestUrl, projectName): SwaggerUtils.getJsonDefinition(requestUrl, projectName);
 			}
 		}
 		// Build all project definitions
 		else {
 			Collection<UrlMapper> collection = RestApiManager.getInstance().getUrlMappers();
-			definition = isYaml ? SwaggerUtils.getYamlDefinition(collection): SwaggerUtils.getJsonDefinition(collection);
+			definition = isYaml ? SwaggerUtils.getYamlDefinition(requestUrl, collection): SwaggerUtils.getJsonDefinition(requestUrl, collection);
 		}
 		return definition;
 	}
@@ -77,7 +79,10 @@ public class RestApiServlet extends HttpServlet {
         // Generate YAML/JSON definition (swagger specific)
 		if ("GET".equalsIgnoreCase(method) && (isYaml || isJson)) {
     		try {
-    			String output = buildSwaggerDefinition(request.getParameter("__project"), isYaml);
+    			String requestUrl = HttpUtils.originalRequestURL(request);
+    			String output = buildSwaggerDefinition(requestUrl, request.getParameter("__project"), isYaml);
+    			response.setCharacterEncoding("UTF-8");    			
+    			response.setContentType((isYaml ? MimeType.Yaml : MimeType.Json).value());
                 Writer writer = response.getWriter();
                 writer.write(output);
 

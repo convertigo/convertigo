@@ -35,6 +35,7 @@ public enum MimeType {
 	Javascript ("application/javascript", new String[]{"js"}),
 	JavascriptDeprecated ("text/javascript", new String[]{"js"}),
 	Json ("application/json", new String[]{"json"}),
+	Yaml ("application/x-yaml", new String[]{"yaml"}),
 	Css ("text/css", new String[]{"css"}),
 	Plain ("text/plain", new String[]{"txt","text","conf","def","list","log","in"}),
 	VOID ("", new String[]{""}),
@@ -65,11 +66,11 @@ public enum MimeType {
 	}
 	
 	public String value() {
-		return this.value;
+		return value;
 	}
 	
 	public String[] getExtensions() {
-		return this.extensions;
+		return extensions;
 	}
 	
 	private static Map<String, MimeType> cache = new HashMap<String, MimeType>();
