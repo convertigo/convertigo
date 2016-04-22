@@ -87,8 +87,12 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 
 		@Override
 		public void init(DatabaseObject databaseObject) throws Exception {
-			this.databaseObject = databaseObject;
-			super.init(databaseObject);
+			try {
+				this.databaseObject = databaseObject;
+				super.init(databaseObject);
+			} finally {
+				this.databaseObject = null;
+			}
 		}
 		
 		@Override
