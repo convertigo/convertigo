@@ -116,8 +116,10 @@ import com.twinsoft.convertigo.engine.MySSLSocketFactory;
 import com.twinsoft.convertigo.engine.Version;
 import com.twinsoft.convertigo.engine.enums.AuthenticationMode;
 import com.twinsoft.convertigo.engine.enums.DoFileUploadMode;
+import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.HttpPool;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.oauth.HttpOAuthConsumer;
@@ -321,28 +323,28 @@ public class HttpConnector extends Connector {
 
 		httpParameters = httpTransaction.getCurrentHttpParameters();
 		
-		contentType = "application/x-www-form-urlencoded";
+		contentType = MimeType.WwwForm.value();
 		
 		for (List<String> httpParameter : httpParameters) {
-			String key = httpParameter.get(0);
+			String headerName = httpParameter.get(0);
 			String value = httpParameter.get(1);
 			
 			// Content-Type
-			if (key.equalsIgnoreCase("Content-Type")) {
+			if (HeaderName.ContentType.is(headerName)) {
 				contentType = value;
 			}
 			
 			// oAuth Parameters are passed as standard Headers
-			if (key.equalsIgnoreCase("oAuthKey")) {
+			if (HeaderName.OAuthKey.is(headerName)) {
 				oAuthKey = value;
 			}
-			if (key.equalsIgnoreCase("oAuthSecret")) {
+			if (HeaderName.OAuthSecret.is(headerName)) {
 				oAuthSecret = value;
 			}
-			if (key.equalsIgnoreCase("oAuthToken")) {
+			if (HeaderName.OAuthToken.is(headerName)) {
 				oAuthToken = value;
 			}
-			if (key.equalsIgnoreCase("oAuthTokenSecret")) {
+			if (HeaderName.OAuthTokenSecret.is(headerName)) {
 				oAuthTokenSecret = value;
 			}
 		}
@@ -355,7 +357,7 @@ public class HttpConnector extends Connector {
 		}
 
 		int len = httpTransaction.numberOfVariables();
-		boolean isFormUrlEncoded = contentType.equalsIgnoreCase("application/x-www-form-urlencoded");
+		boolean isFormUrlEncoded = MimeType.WwwForm.is(contentType);
 		
 		doMultipartFormData = false;
 		for (int i = 0; i < len; i++) {
@@ -997,14 +999,14 @@ public class HttpConnector extends Connector {
 				if (!key.startsWith(DYNAMIC_HEADER_PREFIX)) {
 					method.setRequestHeader(key, value);
 				}
-				if (key.equalsIgnoreCase("User-Agent")) {
+				if (HeaderName.UserAgent.is(key)) {
 					hasUserAgent = true;
 				}
 			}
 
 			// set user-agent header if not found
 			if (!hasUserAgent) {
-				method.setRequestHeader("User-Agent", getUserAgent(context));
+				HeaderName.UserAgent.setRequestHeader(method, getUserAgent(context));
 			}
 
 			// Setting POST or PUT parameters if any
@@ -1020,7 +1022,7 @@ public class HttpConnector extends Connector {
 						String filepath = Engine.theApp.filePropertyManager.getFilepathFromProperty(stringValue, getProject().getName());
 						File file = new File(filepath);
 						if (file.exists()) {
-							method.setRequestHeader("Content-Type", contentType);
+							HeaderName.ContentType.setRequestHeader(method, contentType);
 							entityEnclosingMethod.setRequestEntity(new FileRequestEntity(file, contentType));
 						} else {
 							throw new FileNotFoundException(file.getAbsolutePath());
@@ -1048,10 +1050,10 @@ public class HttpConnector extends Connector {
 							}
 						}
 						MultipartRequestEntity mre = new MultipartRequestEntity(parts.toArray(new Part[parts.size()]), entityEnclosingMethod.getParams());
-						method.setRequestHeader("Content-Type", mre.getContentType());
+						HeaderName.ContentType.setRequestHeader(method, mre.getContentType());
 						entityEnclosingMethod.setRequestEntity(mre);
 					}
-				} else if (contentType.equalsIgnoreCase("text/xml")) {
+				} else if (MimeType.TextXml.is(contentType)) {
 					final MimeMultipart[] mp = {null};
 					
 					for (RequestableVariable variable : transaction.getVariablesList()) {
@@ -1069,7 +1071,7 @@ public class HttpConnector extends Connector {
 										mimeMultipart = new MimeMultipart("related; type=\"application/xop+xml\"");
 										MimeBodyPart bp = new MimeBodyPart();
 										bp.setText(postQuery, "UTF-8");
-										bp.setHeader("Content-Type", contentType);
+										bp.setHeader(HeaderName.ContentType.value(), contentType);
 										mimeMultipart.addBodyPart(bp);
 									}
 									
@@ -1093,11 +1095,11 @@ public class HttpConnector extends Connector {
 					}
 					
 					if (mp[0] == null) {
-						entityEnclosingMethod.setRequestEntity(new StringRequestEntity(postQuery, "text/xml", "UTF-8"));
+						entityEnclosingMethod.setRequestEntity(new StringRequestEntity(postQuery, MimeType.TextXml.value(), "UTF-8"));
 					} else {
 						Engine.logBeans.debug("(HttpConnector) Commit the MTOM request with the ContentType: " + mp[0].getContentType());
 						
-						method.setRequestHeader("Content-Type", mp[0].getContentType());
+						HeaderName.ContentType.setRequestHeader(method, mp[0].getContentType());
 						entityEnclosingMethod.setRequestEntity(new RequestEntity() {
 							
 							@Override
@@ -1127,7 +1129,7 @@ public class HttpConnector extends Connector {
 					}
 				} else {
 					String charset = httpTransaction.getComputedUrlEncodingCharset();
-					method.setRequestHeader("Content-Type", contentType);
+					HeaderName.ContentType.setRequestHeader(method, contentType);
 					entityEnclosingMethod.setRequestEntity(new StringRequestEntity(postQuery, contentType, charset));
 				}
 			}
@@ -1223,7 +1225,7 @@ public class HttpConnector extends Connector {
 
 					for (int i = 0; i < responseHeaders.length && (charset == null || !checkGZip); i++) {
 						Header head = responseHeaders[i];
-						if (head.getName().equalsIgnoreCase("Content-Type")) {
+						if (HeaderName.ContentType.is(head)) {
 							context.contentType = head.getValue();
 							HeaderElement[] els = head.getElements();
 							for (int j = 0; j < els.length && charset == null; j++) {
@@ -1231,7 +1233,7 @@ public class HttpConnector extends Connector {
 								if (nvp != null)
 									charset = nvp.getValue();
 							}
-						} else if (head.getName().equalsIgnoreCase("Content-Encoding")) {
+						} else if (HeaderName.ContentEncoding.is(head)) {
 							checkGZip = true;
 							HeaderElement[] els = head.getElements();
 							for (int j = 0; j < els.length; j++)

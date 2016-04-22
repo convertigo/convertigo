@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.engine.servlets;
 
+import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.requesters.BinaryServletRequester;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 
@@ -37,7 +38,7 @@ public class BinaryServlet extends GenericServlet {
 
     @Override
     public String getDefaultContentType() {
-    	return "application/bin";
+    	return MimeType.OctetStream.value();
     }
 
     @Override

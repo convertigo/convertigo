@@ -282,7 +282,7 @@ public abstract class ServletRequester extends GenericRequester {
 		String queryString = request.getQueryString();
 		Engine.logContext.info("Query string: " + queryString);
 
-		String userAgent = request.getHeader("User-Agent");
+		String userAgent = request.getHeader(HeaderName.UserAgent.value());
 		Engine.logContext.info("User-Agent: \"" + userAgent + "\"");
 		context.userAgent = userAgent;
 

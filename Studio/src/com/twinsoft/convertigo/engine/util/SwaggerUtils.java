@@ -55,6 +55,7 @@ import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 
 public class SwaggerUtils {
 	private static Pattern parseRequestUrl = Pattern.compile("http(s?)://(.*?)(/.*?api)");
@@ -102,9 +103,9 @@ public class SwaggerUtils {
 		swagger.setHost(host);
 		swagger.setBasePath(basePath);
 		
-		swagger.setConsumes(Arrays.asList("multipart/form-data","application/x-www-form-urlencoded","application/json","application/xml"));
+		swagger.setConsumes(Arrays.asList("multipart/form-data", MimeType.WwwForm.value(), MimeType.Json.value(), MimeType.Xml.value()));
 		
-		swagger.setProduces(Arrays.asList("application/json", "application/xml"));
+		swagger.setProduces(Arrays.asList(MimeType.Json.value(), MimeType.Xml.value()));
 		return swagger;
 	}
 	
@@ -194,7 +195,7 @@ public class SwaggerUtils {
 					s_operation.setOperationId(umo.getName());
 					s_operation.setDescription(umo.getComment());
 					s_operation.setSummary(umo.getComment());
-					s_operation.setProduces(Arrays.asList("application/json", "application/xml"));
+					s_operation.setProduces(Arrays.asList(MimeType.Json.value(), MimeType.Xml.value()));
 					
 					// Operation tags
 					List<String> list = Arrays.asList(""+ project.getName());
@@ -281,13 +282,13 @@ public class SwaggerUtils {
 							
 							DataContent dataInput = ump.getInputContent();
 							if (dataInput.equals(DataContent.toJson)) {
-								if (!consumes.contains("application/json")) {
-									consumes.add("application/json");
+								if (!consumes.contains(MimeType.Json.value())) {
+									consumes.add(MimeType.Json.value());
 								}
 							}
 							else if (dataInput.equals(DataContent.toXml)) {
-								if (!consumes.contains("application/xml")) {
-									consumes.add("application/xml");
+								if (!consumes.contains(MimeType.Xml.value())) {
+									consumes.add(MimeType.Xml.value());
 								}
 							}
 							

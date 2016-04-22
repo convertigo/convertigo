@@ -95,6 +95,8 @@ import com.twinsoft.convertigo.engine.EngineListener;
 import com.twinsoft.convertigo.engine.KeyExpiredException;
 import com.twinsoft.convertigo.engine.MaxCvsExceededException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
+import com.twinsoft.convertigo.engine.enums.HeaderName;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.parsers.DocumentCompletedListener;
 import com.twinsoft.convertigo.engine.parsers.HtmlParser;
 import com.twinsoft.convertigo.engine.parsers.SelectionChangedListener;
@@ -785,14 +787,14 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 		}*/
 
 		Hashtable<String, String> headers = parseResponseString(responseString);
-		String	contentType = headers.get("content-type");
+		String	contentType = headers.get(HeaderName.ContentType.value().toLowerCase());
 
 		// record only text/html or null Content-Type ...
 		if (contentType == null) {
 			return;
 		}
 		
-		if ((contentType.indexOf("text/html") == -1) && (contentType.indexOf("text/plain") == -1)) {
+		if (MimeType.Html.is(contentType) && MimeType.Plain.is(contentType)) {
 			return;
 		}
 
@@ -950,9 +952,9 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 							host = httpValue;
 							httpStatement.setHost(host);
 						}
-						else if ((httpHeader.toLowerCase().startsWith("accept") && !httpHeader.equalsIgnoreCase("accept-encoding")) ||
-								httpHeader.equalsIgnoreCase("referer") ||
-								httpHeader.equalsIgnoreCase("content-type")) {
+						else if (HeaderName.Accept.is(httpHeader) && !HeaderName.AcceptEncoding.is(httpHeader) ||
+								HeaderName.Referer.is(httpHeader) ||
+								HeaderName.ContentType.is(httpHeader)) {
 							;// keep this header
 						}
 						else {

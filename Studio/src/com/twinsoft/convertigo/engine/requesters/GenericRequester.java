@@ -75,6 +75,7 @@ import com.twinsoft.convertigo.engine.JobManager;
 import com.twinsoft.convertigo.engine.NoSuchSecurityTokenException;
 import com.twinsoft.convertigo.engine.SecurityToken;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
@@ -795,13 +796,13 @@ public abstract class GenericRequester extends Requester {
 				
 				Document document = documentBuilder.parse(inputSource);
 				NodeList nodeList = document.getElementsByTagName("xsl:output");
-				String contentType = "text/html";
+				String contentType = MimeType.Html.value();
 				if (nodeList.getLength() != 0) {
 					Element element = (Element) nodeList.item(0);
 					contentType = element.getAttribute("media-type");
 					if (contentType.length() == 0) {
 						Engine.logContext.warn("No media type is specified into the XSL style sheet \"" + context.sheetUrl + "\"; using default (\"text/html\"). You should use <xsl:output media-type=\"...\" ...> directive.");
-						contentType = "text/html";
+						contentType = MimeType.Html.value();
 					}
 					Engine.logContext.debug("Content-type=" + contentType);
 				}

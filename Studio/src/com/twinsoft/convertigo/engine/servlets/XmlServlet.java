@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.engine.servlets;
 
+import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.requesters.XmlServletRequester;
 import com.twinsoft.convertigo.engine.servlets.GenericServlet;
@@ -39,7 +40,7 @@ public class XmlServlet extends GenericServlet {
 
     @Override
     public String getDefaultContentType() {
-    	return "text/xml";
+    	return MimeType.TextXml.value();
     }
 
     @Override

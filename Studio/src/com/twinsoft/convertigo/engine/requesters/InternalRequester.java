@@ -65,7 +65,7 @@ public class InternalRequester extends GenericRequester {
     	this.httpServletRequest = httpServletRequest == null ? new InternalHttpServletRequest() : httpServletRequest;
     	
     	if (this.httpServletRequest instanceof InternalHttpServletRequest) {
-    		((InternalHttpServletRequest) this.httpServletRequest).internalRequester = this;
+    		((InternalHttpServletRequest) this.httpServletRequest).setInternalRequester(this);
     	}
     }
     

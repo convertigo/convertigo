@@ -34,6 +34,7 @@ import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.twinj.Javelin;
 import com.twinsoft.twinj.dataAlteredListener;
@@ -55,7 +56,7 @@ public class JavelinServlet extends HttpServlet {
     }
 
     public String getDefaultContentType() {
-    	return "application/octet-stream";
+    	return MimeType.OctetStream.value();
     }
 
     public String getServletInfo() {

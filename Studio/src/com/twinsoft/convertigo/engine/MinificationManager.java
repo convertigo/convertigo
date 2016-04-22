@@ -35,6 +35,7 @@ import ro.isdc.wro.model.resource.processor.impl.js.JSMinProcessor;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.ComboEnum;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyCategory;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
@@ -330,7 +331,7 @@ public class MinificationManager implements AbstractManager, PropertyChangeEvent
 		ResourceBundle resourceBundle = process(requestURI);
 		if (resourceBundle != null) {
 			try {
-				response.setContentType(resourceBundle.getResourceType() == ResourceType.js ? "application/javascript" : "text/css");
+				response.setContentType(resourceBundle.getResourceType() == ResourceType.js ? MimeType.Javascript.value() : MimeType.Css.value());
 				response.setCharacterEncoding("utf-8");
 				response.getWriter().write(resourceBundle.getResult());
 			} catch (IOException e) {

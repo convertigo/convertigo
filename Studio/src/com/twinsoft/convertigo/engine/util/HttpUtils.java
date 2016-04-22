@@ -166,7 +166,7 @@ public class HttpUtils {
 		// Retrieve cookies
 		if (bNewSession) {
 			// Cookies from the new created session
-			String newCookies = urlConnection.getHeaderField("Set-Cookie");
+			String newCookies = urlConnection.getHeaderField(HeaderName.SetCookie.value());
 
 			if (newCookies != null) {
 				try {
@@ -202,11 +202,11 @@ public class HttpUtils {
 	}
 
 	public static String originalRequestURI(HttpServletRequest request) {
-		String uri = request.getHeader(HeaderName.XConvertigoRequestURI.value());
+		String uri = HeaderName.XConvertigoRequestURI.getHeader(request);
 		if (uri == null) {
 			uri = request.getRequestURI();
 		} else {
-			String frontal = request.getHeader(HeaderName.XConvertigoFrontal.value());
+			String frontal = HeaderName.XConvertigoFrontal.getHeader(request);
 			if ("apache".equalsIgnoreCase(frontal)) {
 				try {
 					uri = new URI(null, null, uri, null).toASCIIString();
@@ -221,8 +221,8 @@ public class HttpUtils {
 	
 	public static String originalRequestURL(HttpServletRequest request) {
 		String uri = originalRequestURI(request);
-		String host = request.getHeader(HeaderName.XConvertigoRequestHost.value());
-		String https_state = request.getHeader(HeaderName.XConvertigoHttpsState.value());
+		String host = HeaderName.XConvertigoRequestHost.getHeader(request);
+		String https_state = HeaderName.XConvertigoHttpsState.getHeader(request);
 		
 		if (uri != null && host != null && https_state != null) {
 			String url = "http" + (https_state.equalsIgnoreCase("on") ? "s" : "") + "://" + host + uri;

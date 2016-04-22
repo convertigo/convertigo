@@ -47,6 +47,7 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.CertificateManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class ServiceUtils {
@@ -119,7 +120,7 @@ public class ServiceUtils {
 		try {
 	        response.setStatus(500);
 	        // Bugfix IE #1622: do not forget to set the content type!
-	        response.setContentType("text/xml");
+	        response.setContentType(MimeType.TextXml.value());
 			response.setCharacterEncoding("UTF-8");
 			Writer writer;
 			try {

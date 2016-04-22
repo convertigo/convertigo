@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.fop.apps.FopFactory;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.requesters.PdfServletRequester;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 
@@ -62,7 +63,7 @@ public class PdfServlet extends GenericServlet {
     }
 
     public String getDefaultContentType() {
-    	return "application/pdf";
+    	return MimeType.Pdf.value();
     }
 
     public String getServletInfo() {

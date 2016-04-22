@@ -34,6 +34,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.JsonOutput;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
@@ -262,11 +263,10 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 			        		DataContent dataInput = param.getInputContent();
 			        		if (dataInput.equals(DataContent.useHeader)) {
 			        			String requestContentType = request.getContentType();
-			        			if (requestContentType == null || requestContentType.indexOf("application/json") != -1) {
-			        				dataInput = DataContent.toJson;
-			        			}
-			        			if (requestContentType == null || requestContentType.indexOf("application/xml") != -1) {
+			        			if (requestContentType == null || MimeType.Xml.is(requestContentType)) {
 			        				dataInput = DataContent.toXml;
+			        			} else if (MimeType.Json.is(requestContentType)) {
+			        				dataInput = DataContent.toJson;
 			        			}
 			        		}
 			        		
@@ -337,11 +337,10 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
         		// Get output content type
         		DataContent dataOutput = getOutputContent();
         		if (dataOutput.equals(DataContent.useHeader)) {
-            		String h_Accept = request.getHeader(HeaderName.Accept.value());
-        			if (h_Accept == null || h_Accept.indexOf("application/xml") != -1) {
-        				dataOutput = DataContent.toXml;
-        			}
-        			if (h_Accept == null || h_Accept.indexOf("application/json") != -1) {
+            		String h_Accept = HeaderName.Accept.getHeader(request);
+            		if (MimeType.Xml.is(h_Accept)) {
+            			dataOutput = DataContent.toXml;
+        			} else if (h_Accept == null || MimeType.Json.is(h_Accept)) {
         				dataOutput = DataContent.toJson;
         			}
         		}
@@ -372,11 +371,11 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
         			JsonRoot jsonRoot = getProject().getJsonRoot();
         			boolean useType = getProject().getJsonOutput() == JsonOutput.useType;
             		content = XMLUtils.XmlToJson(xmlHttpDocument.getDocumentElement(), true, useType, jsonRoot);
-            		responseContentType = "application/json";
+            		responseContentType = MimeType.Json.value();
         		}
         		else {
         			content = XMLUtils.prettyPrintDOMWithEncoding(xmlHttpDocument, "UTF-8");
-            		responseContentType = "application/xml";
+            		responseContentType = MimeType.Xml.value();
         		}
         	}
         	else {
@@ -385,7 +384,7 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 			
 			// Set response content-type header
 			if (responseContentType != null) {
-				response.addHeader(HeaderName.ContentType.value(), responseContentType);
+				HeaderName.ContentType.addHeader(response, responseContentType);
 			}
 			
 			// Set response content

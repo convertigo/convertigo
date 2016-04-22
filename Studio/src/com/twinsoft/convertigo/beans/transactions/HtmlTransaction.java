@@ -63,6 +63,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.IdToXpathManager;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
+import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.parsers.IDownloader;
 import com.twinsoft.convertigo.engine.parsers.events.AbstractEvent;
@@ -1167,11 +1168,13 @@ public class HtmlTransaction extends HttpTransaction {
 		String contentType = null;
 		Header[] heads = context.getResponseHeaders();
 
-		for(int i=0;i<heads.length && contentType==null ;i++)
-			if(heads[i].getName().equalsIgnoreCase("Content-Type"))
+		for (int i = 0; i < heads.length && contentType == null ;i++) {
+			if (HeaderName.ContentType.is(heads[i].getName())) {
 				contentType = heads[i].getValue();
+			}
+		}
 
-		return contentType==null?"":contentType;
+		return contentType == null ? "" : contentType;
 	}
 
 	protected boolean isContentTypeHTML(){
@@ -1191,9 +1194,9 @@ public class HtmlTransaction extends HttpTransaction {
 
 		Header[] heads = context.getResponseHeaders();
 
-		for(int i=0;i<heads.length;i++){
-			if(heads[i].getName().equals("Content-Type") ||
-					heads[i].getName().equals("Content-Length") ){
+		for (int i = 0; i < heads.length; i++) {
+			if (HeaderName.ContentType.is(heads[i].getName()) ||
+					HeaderName.ContentLength.is(heads[i].getName()) ) {
 				blob.setAttribute(heads[i].getName(), heads[i].getValue());
 			}
 		}

@@ -36,15 +36,20 @@ public enum MimeType {
 	JavascriptDeprecated ("text/javascript", new String[]{"js"}),
 	Json ("application/json", new String[]{"json"}),
 	Yaml ("application/x-yaml", new String[]{"yaml"}),
+	Xml ("application/xml", new String[]{"xml"}),
 	Css ("text/css", new String[]{"css"}),
+	TextJson ("text/json", new String[]{"json"}),
+	TextXml ("text/xml", new String[]{"xml"}),
 	Plain ("text/plain", new String[]{"txt","text","conf","def","list","log","in"}),
 	VOID ("", new String[]{""}),
 	
+	WwwForm ("application/x-www-form-urlencoded", null),
 	OctetStream ("application/octet-stream", new String[]{"bin","dms","lrf","mar","so","dist","distz","pkg","bpk","dump","elc","deploy"}),
 	Pdf ("application/pdf", new String[]{"pdf"}),
 	MsWord ("application/msword", new String[]{"doc","dot"}),
 	MsExcel ("application/vnd.ms-excel", new String[]{"xls","xlm","xla","xlc","xlt","xlw"}),
 	MsPowerpoint ("application/vnd.ms-powerpoint", new String[]{"ppt","pps","pot"}),
+	Zip ("application/zip", new String[]{"zip"}),
 	
 	Bmp ("image/bmp", new String[]{"bmp"}),
 	Cgm ("image/cgm", new String[]{"cgm"}),
@@ -92,5 +97,13 @@ public enum MimeType {
 			}
 		}
 		return false;
+	}
+
+	public boolean is(String contentType) {
+		boolean is = false;
+		if (contentType != null) {
+			is = contentType.toLowerCase().startsWith(value);
+		}
+		return is;
 	}
 }

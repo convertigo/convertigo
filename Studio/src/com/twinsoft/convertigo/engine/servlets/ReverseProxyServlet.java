@@ -76,6 +76,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.MySSLSocketFactory;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class ReverseProxyServlet extends HttpServlet {
@@ -118,7 +119,7 @@ public class ReverseProxyServlet extends HttpServlet {
 	}
 
 	public String getDefaultContentType() {
-		return "text/html";
+		return MimeType.Html.value();
 	}
 
 	public String getServletInfo() {
@@ -538,8 +539,7 @@ public class ReverseProxyServlet extends HttpServlet {
 			// }
 
 			// Send the content to the client
-			if (Engine.logEngine.isDebugEnabled() && contentType != null
-					&& contentType.toLowerCase().contains("text/html")) {
+			if (Engine.logEngine.isDebugEnabled() && MimeType.Html.is(contentType)) {
 				Engine.logEngine.debug("Data proxied:\n" + new String(bytesDataResult, pageCharset));
 			}
 

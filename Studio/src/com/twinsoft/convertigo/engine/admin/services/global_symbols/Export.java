@@ -30,6 +30,8 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.DownloadService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.enums.HeaderName;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 
 @ServiceDefinition(
 		name = "Export", 
@@ -63,9 +65,9 @@ public class Export extends DownloadService {
 				writedString += jo.getString("name") + "=" + symbolValue + "\n";
 			}
 
-			response.setHeader("Content-Disposition",
+			HeaderName.ContentDisposition.setHeader(response,
 					"attachment; filename=\"global_symbols.properties\"");
-			response.setContentType("text/plain");
+			response.setContentType(MimeType.Plain.value());
 			
 			//We directly write the concatenated string into the output stream of response
 			PrintStream printStream = new PrintStream(response.getOutputStream());

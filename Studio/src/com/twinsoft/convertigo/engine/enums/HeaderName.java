@@ -25,30 +25,46 @@ package com.twinsoft.convertigo.engine.enums;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.httpclient.HttpMethod;
+import org.apache.http.Header;
+import org.apache.http.HttpRequest;
+
 public enum HeaderName {
 	Accept("Accept"),
-	ContentType("Content-Type"),
-	ContentLength("Content-Length"),
-	Location("Location"),
-	ContentLocation("Content-Location"),
-	ContentEncoding("Content-Encoding"),
-	Destination("Destination"),
-	UserAgent("User-Agent"),
-	TransferEncoding("Transfer-Encoding"),
-	Cookie("Cookie"),
-	SetCookie("Set-Cookie"),
-	LastModified("Last-Modified"),
+	AcceptEncoding("Accept-Encoding"),
 	CacheControl("Cache-Control"),
+	ContentDisposition("Content-Disposition"),
+	ContentEncoding("Content-Encoding"),
+	ContentLength("Content-Length"),
+	ContentLocation("Content-Location"),
+	ContentType("Content-Type"),
+	Cookie("Cookie"),
+	Destination("Destination"),
 	ETag("ETag"),
+	Expires("Expires"),
 	IfMatch("If-Match"),
 	IfModifiedSince("If-Modified-Since"),
-	IfRange("If-Range"),
 	IfNoneMatch("If-None-Match"),
+	IfRange("If-Range"),
 	IfUnmodifiedSince("If-Unmodified-Since"),
+	LastModified("Last-Modified"),
+	Location("Location"),
+	OAuthKey("oAuthKey"),
+	OAuthSecret("oAuthSecret"),
+	OAuthToken("oAuthToken"),
+	OAuthTokenSecret("oAuthTokenSecret"),
+	Pragma("Pragma"),
+	Referer("Referer"),
+	SetCookie("Set-Cookie"),
+	TransferEncoding("Transfer-Encoding"),
+	UserAgent("User-Agent"),
+	XConvertigoFrontal("x-convertigo-frontal"),
+	XConvertigoHttpsState("x-convertigo-https-state"),
 	XConvertigoRequestURI("x-convertigo-request-uri"),
 	XConvertigoRequestHost("x-convertigo-request-host"),
-	XConvertigoHttpsState("x-convertigo-https-state"),
-	XConvertigoFrontal("x-convertigo-frontal"),
 	XConvertigoSDK("x-convertigo-sdk"),
 	VOID("");
 	
@@ -60,6 +76,38 @@ public enum HeaderName {
 	
 	public String value() {
 		return value;
+	}
+	
+	public boolean is(String headerName) {
+		return value.equalsIgnoreCase(headerName);
+	}
+	
+	public boolean is(Header header) {
+		return is(header.getName());
+	}
+
+	public boolean is(org.apache.commons.httpclient.Header header) {
+		return is(header.getName());
+	}
+	
+	public void setRequestHeader(HttpMethod method, String headerValue) {
+		method.setRequestHeader(value, headerValue);
+	}
+	
+	public String getHeader(HttpServletRequest request) {
+		return request.getHeader(value);
+	}
+	
+	public void addHeader(HttpServletResponse response, String headerValue) {
+		response.addHeader(value, headerValue);
+	}
+	
+	public void addHeader(HttpRequest request, String headerValue) {
+		request.addHeader(value, headerValue);
+	}	
+	
+	public void setHeader(HttpServletResponse response, String headerValue) {
+		response.setHeader(value, headerValue);
 	}
 	
 	private static Map<String, HeaderName> cache = new HashMap<String, HeaderName>();

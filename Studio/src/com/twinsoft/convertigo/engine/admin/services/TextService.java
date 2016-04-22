@@ -27,12 +27,13 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 
 public abstract class TextService implements Service {
 
 	public void run(String serviceName, HttpServletRequest request, HttpServletResponse response) throws ServiceException {
         try {
-        	response.setContentType("text/plain");
+        	response.setContentType(MimeType.Plain.value());
         	response.setCharacterEncoding("UTF-8");
 
             String sResponse = getServiceResult(request);

@@ -38,6 +38,7 @@ import org.w3c.dom.Element;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
@@ -116,7 +117,7 @@ public class WidgetsServlet extends HttpServlet {
             	
             	document.appendChild(e_module);
             	response.setCharacterEncoding("UTF-8");
-            	response.setContentType("text/xml");
+            	response.setContentType(MimeType.TextXml.value());
             	XMLUtils.prettyPrintDOMWithEncoding(document, "UTF-8", response.getWriter());
     		}
 

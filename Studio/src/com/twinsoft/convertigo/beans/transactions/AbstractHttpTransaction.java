@@ -49,8 +49,10 @@ import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
+import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.HttpPool;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -108,8 +110,8 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 		
 		XMLVector<String> line;
 		line = new XMLVector<String>();
-		line.add("Content-Type");
-		line.add("application/x-www-form-urlencoded");
+		line.add(HeaderName.ContentType.value());
+		line.add(MimeType.WwwForm.value());
 		httpParameters.add(line);
 
     }

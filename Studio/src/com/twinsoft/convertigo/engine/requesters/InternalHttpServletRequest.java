@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.DispatcherType;
@@ -31,21 +33,28 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionContext;
 import javax.servlet.http.Part;
 
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 @SuppressWarnings("deprecation")
 public class InternalHttpServletRequest implements HttpServletRequest {
-	static long sessionID = System.currentTimeMillis();
+	private static long sessionID = System.currentTimeMillis();
+	private static Pattern pC8oURL = Pattern.compile("(http(s?))://(.*?)(:(\\d+))?(/.*)");
 	
-	InternalRequester internalRequester;
+	private InternalRequester internalRequester;
 	
 	private Map<String, Object> attributes;
 	private HttpSession session = null;
 
-	private String characterEncoding = "UTF-8";
+	private String characterEncoding;
 	private String localAddr = "127.0.0.1";
 	private String localName = "localhost";
 	private int localPort = 18080;
+	private String scheme;
+	private String requestURI = "/convertigo";
+	private StringBuffer requestURL;
 	private String remoteAddr = localAddr;
 	private String remoteHost = localName;
 	private int remotePort = 18081;
@@ -55,10 +64,37 @@ public class InternalHttpServletRequest implements HttpServletRequest {
 	private Map<String, List<String>> headers = null;
 	
 	public InternalHttpServletRequest() {
+		localAddr = "127.0.0.1";
+		localPort = 18080;
+		characterEncoding = "UTF-8";
 		
+		String c8oURL = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
+		Matcher matcher = pC8oURL.matcher(c8oURL);
+		if (matcher.matches()) {
+			localName = matcher.group(3);
+			String sPort = matcher.group(5);
+			try {
+				localPort = Integer.parseInt(sPort);
+			} catch (Exception e) {
+			}
+			scheme = matcher.group(1);
+			requestURI = matcher.group(6);
+			requestURL = new StringBuffer(matcher.group(0));			
+		} else {
+			localName = "localhost";
+			scheme = "http";
+			requestURI = "/convertigo";
+			requestURL = new StringBuffer(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue());
+		}
+		remoteAddr = localAddr;
+		remoteHost = localName;
+		remotePort = localPort + 100;
+		serverName = localName;
+		serverPort = localPort;
 	}
 	
 	public InternalHttpServletRequest(HttpSession session) {
+		this();
 		this.session = session;
 	}
 	
@@ -67,6 +103,9 @@ public class InternalHttpServletRequest implements HttpServletRequest {
 		localAddr = request.getLocalAddr();
 		localName = request.getLocalName();
 		localPort = request.getLocalPort();
+		scheme = request.getScheme();
+		requestURI = request.getRequestURI();
+		requestURL = request.getRequestURL();
 		remoteAddr = request.getRemoteAddr();
 		remoteHost = request.getRemoteHost();
 		remotePort = request.getRemotePort();
@@ -270,7 +309,7 @@ public class InternalHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public String getScheme() {
-		return "http";
+		return scheme;
 	}
 
 	@Override
@@ -450,14 +489,12 @@ public class InternalHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public String getRequestURI() {
-		// TODO Auto-generated method stub
-		return null;
+		return requestURI;
 	}
 
 	@Override
 	public StringBuffer getRequestURL() {
-		// TODO Auto-generated method stub
-		return null;
+		return requestURL;
 	}
 
 	@Override
@@ -662,5 +699,16 @@ public class InternalHttpServletRequest implements HttpServletRequest {
 			this.maxInactiveTime = maxInactiveTime;
 		}
 		
+	}
+
+	public void setInternalRequester(InternalRequester internalRequester) {
+		if (this.internalRequester == null) {
+			this.internalRequester = internalRequester;
+			Map<String, String[]> request = GenericUtils.cast(internalRequester.inputData);
+			String projectName = request.get(Parameter.Project.getName())[0];
+			String uri = "/projects/" + projectName + "/.pxml";
+			requestURI += uri;
+			requestURL.append(uri);
+		}
 	}
 }

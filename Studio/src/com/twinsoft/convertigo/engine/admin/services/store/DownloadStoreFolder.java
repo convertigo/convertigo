@@ -15,6 +15,8 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.DownloadService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceParameterDefinition;
+import com.twinsoft.convertigo.engine.enums.HeaderName;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.StoreFiles;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
@@ -64,8 +66,8 @@ public class DownloadStoreFolder extends DownloadService {
 			try {
 				archiveInputStream = new FileInputStream(storeArchiveFile);
 				
-				response.setHeader("Content-Disposition", "attachment; filename=" + "\"" + StoreFiles.STORE_DIRECTORY_NAME + ".zip\"");
-				response.setContentType("application/octet-stream");
+				HeaderName.ContentDisposition.setHeader(response, "attachment; filename=" + "\"" + StoreFiles.STORE_DIRECTORY_NAME + ".zip\"");
+				response.setContentType(MimeType.OctetStream.value());
 				IOUtils.copy(archiveInputStream, response.getOutputStream());	
 			}
 			finally {

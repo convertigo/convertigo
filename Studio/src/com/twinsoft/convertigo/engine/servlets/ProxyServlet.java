@@ -32,6 +32,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.enums.HeaderName;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.proxy.translated.ParameterShuttle;
 import com.twinsoft.convertigo.engine.proxy.translated.ProxyServletRequester;
 import com.twinsoft.convertigo.engine.requesters.Requester;
@@ -45,7 +47,7 @@ public class ProxyServlet extends GenericServlet {
     }
 
     public String getDefaultContentType() {
-    	return "text/html";
+    	return MimeType.Html.value();
     }
 
     public String getServletInfo() {
@@ -104,9 +106,9 @@ public class ProxyServlet extends GenericServlet {
 			try {
 				// relay output
 				if (result instanceof String) {
-		    		response.addHeader("Expires", "-1");
-		    		response.addHeader("Pragma", "no-cache");
-		    		response.addHeader("Cache-control", "no-cache");
+		    		HeaderName.Expires.addHeader(response, "-1");
+		    		HeaderName.Pragma.addHeader(response, "no-cache");
+		    		HeaderName.CacheControl.addHeader(response, "no-cache");
 		    		Engine.logEngine.debug("(ProxyServlet) Response expires now");
 		    		response.getWriter().write((String) result);
 				}

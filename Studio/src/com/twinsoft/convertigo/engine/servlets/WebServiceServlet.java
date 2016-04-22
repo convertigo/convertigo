@@ -88,6 +88,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
 import com.ibm.wsdl.DefinitionImpl;
 import com.ibm.wsdl.extensions.PopulatedExtensionRegistry;
 import com.ibm.wsdl.extensions.schema.SchemaConstants;
@@ -105,6 +106,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.requesters.WebServiceServletRequester;
@@ -139,9 +141,9 @@ public class WebServiceServlet extends GenericServlet {
         Engine.logEngine.debug("(WebServiceServlet) Query string: " + queryString);
 
         if ("wsdl".equalsIgnoreCase(queryString) || "xwsdl".equalsIgnoreCase(queryString)) {
-    		response.addHeader("Expires", "-1");
-    		response.addHeader("Pragma", "no-cache");
-    		response.addHeader("Cache-control", "no-cache");
+    		HeaderName.Expires.addHeader(response, "-1");
+    		HeaderName.Pragma.addHeader(response, "no-cache");
+    		HeaderName.CacheControl.addHeader(response, "no-cache");
 			response.setContentType(getDefaultContentType());
 
     		try {
@@ -679,7 +681,7 @@ public class WebServiceServlet extends GenericServlet {
 			}
 			
 			MimeHeaders mimeHeaders = new MimeHeaders();
-			mimeHeaders.setHeader("Content-Type", isMTOM ? contentType:"text/xml; charset=\"UTF-8\"");
+			mimeHeaders.setHeader(HeaderName.ContentType.value(), isMTOM ? contentType:"text/xml; charset=\"UTF-8\"");
 			
 			InputStream is = null;
 			if (isMTOM) {

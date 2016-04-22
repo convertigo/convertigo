@@ -17,6 +17,7 @@ import org.mozilla.javascript.Scriptable;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 
 public class HTTPUploadStatement extends HTTPStatement {
@@ -102,7 +103,9 @@ public class HTTPUploadStatement extends HTTPStatement {
 		if (method instanceof PostMethod) {
 			try {
 				PostMethod uploadMethod = (PostMethod) method;
-				uploadMethod.setRequestEntity(new MultipartRequestEntity(parts.toArray(new Part[parts.size()]), uploadMethod.getParams()));
+				MultipartRequestEntity mp = new MultipartRequestEntity(parts.toArray(new Part[parts.size()]), uploadMethod.getParams());
+				HeaderName.ContentType.setRequestHeader(method, mp.getContentType());
+				uploadMethod.setRequestEntity(mp);
 			} catch (Exception e) {
 				throw new EngineException("(HTTPUploadStatement) failed to handleUpload", e);
 			}

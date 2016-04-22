@@ -33,6 +33,7 @@ import org.w3c.dom.Element;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.util.DOMUtils;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public abstract class XmlService implements Service {
@@ -49,7 +50,7 @@ public abstract class XmlService implements Service {
             getServiceResult(request, document);
 
             // Update servlet response and write result
-    		response.setContentType("text/xml");
+    		response.setContentType(MimeType.TextXml.value());
 			response.setCharacterEncoding("UTF-8");
 			Writer writer = response.getWriter();
 			XMLUtils.prettyPrintDOMWithEncoding(document, "UTF-8", writer);

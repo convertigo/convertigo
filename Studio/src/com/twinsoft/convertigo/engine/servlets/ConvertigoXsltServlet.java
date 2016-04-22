@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.engine.servlets;
 
+import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.requesters.ConvertigoXsltServletRequester;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 
@@ -37,7 +38,7 @@ public class ConvertigoXsltServlet extends GenericServlet {
     }
 
     public String getDefaultContentType() {
-    	return "text/html";
+    	return MimeType.Html.value();
     }
 
     public String getServletInfo() {

@@ -30,6 +30,7 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.CouchParam;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 
 public class PutDocumentAttachmentTransaction extends AbstractDocumentTransaction {
 
@@ -64,7 +65,7 @@ public class PutDocumentAttachmentTransaction extends AbstractDocumentTransactio
 			contentType = context.httpServletRequest.getServletContext().getMimeType(attpath);
 		} catch (Exception e) {
 			Engine.logBeans.warn("(PutDocumentAttachmentTransaction) Failed to detect contentType");
-			contentType = "application/octet-stream";
+			contentType = MimeType.OctetStream.value();
 		}
 		
 		JSONObject response = getCouchClient().putDocumentAttachment(db, docid, attname, query, new File(attpath), contentType);

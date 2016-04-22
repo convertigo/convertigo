@@ -49,6 +49,8 @@ import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.mobiles.MobileResourceHelper.Keys;
 import com.twinsoft.convertigo.engine.enums.Accessibility;
+import com.twinsoft.convertigo.engine.enums.HeaderName;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 
 @ServiceDefinition(
 		name = "GetBuildUrl",
@@ -92,7 +94,7 @@ public class GetPackage extends DownloadService {
 		method = new PostMethod(url.toString());
 
 		try {
-			method.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+			HeaderName.ContentType.setRequestHeader(method, MimeType.WwwForm.value());
 			method.setRequestBody(new NameValuePair[] {
 				new NameValuePair("application", finalApplicationName),
 				new NameValuePair("platformName", platformName),
@@ -110,16 +112,16 @@ public class GetPackage extends DownloadService {
 			}
 
 			try {
-				String contentDisposition = method.getResponseHeader("Content-Disposition").getValue();
-				response.setHeader("Content-Disposition", contentDisposition);
+				String contentDisposition = method.getResponseHeader(HeaderName.ContentDisposition.value()).getValue();
+				HeaderName.ContentDisposition.setHeader(response, contentDisposition);
 			} catch (Exception e) {
-				response.setHeader("Content-Disposition", "attachment; filename=\"" + project + "\"");
+				HeaderName.ContentDisposition.setHeader(response, "attachment; filename=\"" + project + "\"");
 			} 
 			
 			try {
-				response.setContentType(method.getResponseHeader("Content-Type").getValue());
+				response.setContentType(method.getResponseHeader(HeaderName.ContentType.value()).getValue());
 			} catch (Exception e) {
-				response.setContentType("application/octet-stream");
+				response.setContentType(MimeType.OctetStream.value());
 			} 
 			
 			OutputStream responseOutputStream = response.getOutputStream();

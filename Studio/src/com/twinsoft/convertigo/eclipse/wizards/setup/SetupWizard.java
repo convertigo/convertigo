@@ -29,6 +29,8 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.MySSLSocketFactory;
 import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.ProxyManager;
+import com.twinsoft.convertigo.engine.enums.HeaderName;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class SetupWizard extends Wizard {
@@ -340,9 +342,7 @@ public class SetupWizard extends Wizard {
 						String[] url = { registrationServiceUrl };
 						HttpClient client = prepareHttpClient(url);
 						PostMethod method = new PostMethod(url[0]);
-						method.setRequestHeader("Content-Type",
-								"application/x-www-form-urlencoded");
-
+						HeaderName.ContentType.setRequestHeader(method, MimeType.WwwForm.value());
 						// set parameters for POST method
 						method.setParameter("__sequence", "checkEmail");
 						method.setParameter("username", username);
@@ -426,8 +426,7 @@ public class SetupWizard extends Wizard {
 							String[] url = { "http://www.google-analytics.com/collect" };
 							HttpClient client = prepareHttpClient(url);
 							PostMethod method = new PostMethod(url[0]);
-							method.setRequestHeader("Content-Type",
-									"application/x-www-form-urlencoded");
+							HeaderName.ContentType.setRequestHeader(method, MimeType.WwwForm.value());
 
 							// set parameters for POST method
 							method.setParameter("v", "1");

@@ -24,6 +24,7 @@ package com.twinsoft.convertigo.engine.servlets;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.requesters.JsonPServletRequester;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 
@@ -44,7 +45,7 @@ public class JsonPServlet extends GenericServlet {
     
     @Override
     public String getDefaultContentType() {
-    	return "application/javascript";
+    	return MimeType.Javascript.value();
     }
 
     @Override

@@ -102,7 +102,9 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMode;
 import com.twinsoft.convertigo.engine.PacManager.PacInfos;
 import com.twinsoft.convertigo.engine.Version;
+import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 
 public class WsReference {
@@ -410,15 +412,15 @@ public class WsReference {
 					}
 					
 					String h_ContentType = null;
-					if (consumeList.contains("application/xml")) {
-						h_ContentType = "application/xml";
+					if (consumeList.contains(MimeType.Xml.value())) {
+						h_ContentType = MimeType.Xml.value();
 					}
-					else if (consumeList.contains("application/json")) {
-						h_ContentType = "application/json";
+					else if (consumeList.contains(MimeType.Json.value())) {
+						h_ContentType = MimeType.Json.value();
 					}
 					else {
 						h_ContentType = consumeList.size() > 0 ? 
-								consumeList.get(0):"application/x-www-form-urlencoded";
+								consumeList.get(0) : MimeType.WwwForm.value();
 					}
 					
 					JSONArray produces = verb.has("produces") ? verb.getJSONArray("produces"):_produces;
@@ -432,11 +434,11 @@ public class WsReference {
 						h_Accept = h_ContentType;
 					}
 					else {
-						if (produceList.contains("application/xml")) {
-							h_Accept = "application/xml";
+						if (produceList.contains(MimeType.Xml.value())) {
+							h_Accept = MimeType.Xml.value();
 						}
-						else if (produceList.contains("application/json")) {
-							h_Accept = "application/json";
+						else if (produceList.contains(MimeType.Json.value())) {
+							h_Accept = MimeType.Json.value();
 						}
 					}
 					
@@ -446,11 +448,11 @@ public class WsReference {
 						xmlv.addElement(h_Accept);
 			   			httpParameters.addElement(xmlv);
 			   			
-						if (h_Accept.equals("application/xml")) {
+						if (h_Accept.equals(MimeType.Xml.value())) {
 							transaction = new XmlHttpTransaction();
 							((XmlHttpTransaction)transaction).setXmlEncoding("UTF-8");
 						}
-						else if (h_Accept.equals("application/json")) {
+						else if (h_Accept.equals(MimeType.Json.value())) {
 							transaction = new JsonHttpTransaction();
 							((JsonHttpTransaction)transaction).setIncludeDataType(false);
 						}
@@ -459,7 +461,7 @@ public class WsReference {
 					
 					if (h_ContentType != null) {
 						XMLVector<String> xmlv = new XMLVector<String>();
-						xmlv.addElement("Content-Type");
+						xmlv.addElement(HeaderName.ContentType.value());
 						xmlv.addElement(h_ContentType);
 			   			httpParameters.addElement(xmlv);
 					}
@@ -667,31 +669,31 @@ public class WsReference {
 					XMLVector<XMLVector<String>> httpParameters = new XMLVector<XMLVector<String>>();
 					AbstractHttpTransaction transaction = new HttpTransaction();
 					
-					String h_ContentType = "application/x-www-form-urlencoded";
+					String h_ContentType = MimeType.WwwForm.value();
 					if (consumeList != null) {
-						if (consumeList.contains("application/xml")) {
-							h_ContentType = "application/xml";
+						if (consumeList.contains(MimeType.Xml.value())) {
+							h_ContentType = MimeType.Xml.value();
 						}
-						else if (consumeList.contains("application/json")) {
-							h_ContentType = "application/json";
+						else if (consumeList.contains(MimeType.Json.value())) {
+							h_ContentType = MimeType.Json.value();
 						}
 						else {
 							h_ContentType = consumeList.size() > 0 ? 
-									consumeList.get(0):"application/x-www-form-urlencoded";
+									consumeList.get(0) : MimeType.WwwForm.value();
 						}
 					}
 					
-					String h_Accept = "application/xml";
+					String h_Accept = MimeType.Xml.value();
 					if (produceList != null) {
 						if (produceList.contains(h_ContentType)) {
 							h_Accept = h_ContentType;
 						}
 						else {
-							if (produceList.contains("application/xml")) {
-								h_Accept = "application/xml";
+							if (produceList.contains(MimeType.Xml.value())) {
+								h_Accept = MimeType.Xml.value();
 							}
-							else if (produceList.contains("application/json")) {
-								h_Accept = "application/json";
+							else if (produceList.contains(MimeType.Json.value())) {
+								h_Accept = MimeType.Json.value();
 							}
 						}
 					}
@@ -702,11 +704,11 @@ public class WsReference {
 						xmlv.addElement(h_Accept);
 			   			httpParameters.addElement(xmlv);
 			   			
-						if (h_Accept.equals("application/xml")) {
+						if (h_Accept.equals(MimeType.Xml.value())) {
 							transaction = new XmlHttpTransaction();
 							((XmlHttpTransaction)transaction).setXmlEncoding("UTF-8");
 						}
-						else if (h_Accept.equals("application/json")) {
+						else if (h_Accept.equals(MimeType.Json.value())) {
 							transaction = new JsonHttpTransaction();
 							((JsonHttpTransaction)transaction).setIncludeDataType(false);
 						}
@@ -715,7 +717,7 @@ public class WsReference {
 					
 					if (h_ContentType != null) {
 						XMLVector<String> xmlv = new XMLVector<String>();
-						xmlv.addElement("Content-Type");
+						xmlv.addElement(HeaderName.ContentType.name());
 						xmlv.addElement(h_ContentType);
 			   			httpParameters.addElement(xmlv);
 					}
@@ -1041,8 +1043,8 @@ public class WsReference {
    			XMLVector<XMLVector<String>> parameters = new XMLVector<XMLVector<String>>();
    			XMLVector<String> xmlv;
    			xmlv = new XMLVector<String>();
-   			xmlv.addElement("Content-Type");
-   			xmlv.addElement("text/xml");
+   			xmlv.addElement(HeaderName.ContentType.value());
+   			xmlv.addElement(MimeType.TextXml.value());
    			parameters.addElement(xmlv);
    			
    			xmlv = new XMLVector<String>();

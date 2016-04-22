@@ -29,20 +29,19 @@ import java.util.StringTokenizer;
 import com.twinsoft.convertigo.eclipse.learnproxy.http.gui.HttpProxyEvent;
 import com.twinsoft.convertigo.eclipse.learnproxy.http.gui.HttpProxyEventListener;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.enums.HeaderName;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class HttpEventLogger implements  HttpProxyEventListener {
 
 	public void modelChanged(HttpProxyEvent event) {
 			Hashtable<String, Object> htResponse = parseHttpHeaders(event.getResponse(), false);
-			String	contentType = (String)htResponse.get("content-type");
+			String	contentType = (String)htResponse.get(HeaderName.ContentType.value().toLowerCase());
 			
 
 			// record only text/html or null Content-Type ...
-			if (contentType == null) {
-				return;
-			}
-			if (contentType.indexOf("text/html") == -1) {
+			if (!MimeType.Html.is(contentType)) {
 				return;
 			}
 			

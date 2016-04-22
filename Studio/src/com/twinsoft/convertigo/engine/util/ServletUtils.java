@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 
 public class ServletUtils {
@@ -37,9 +38,9 @@ public class ServletUtils {
 	    		// Serve static files if they exist in the projects repository.
 	    		String mimeType = filterConfig.getServletContext().getMimeType(file.getName());
 	        	Engine.logContext.debug("Found MIME type: " + mimeType);
-	        	response.setHeader("Content-type", mimeType);
-	    		response.setHeader("Cache-Control", "public");
-	    		response.setDateHeader("Last-Modified", file.lastModified());
+	        	HeaderName.ContentType.setHeader(response, mimeType);
+	    		HeaderName.CacheControl.setHeader(response, "public");
+	    		response.setDateHeader(HeaderName.LastModified.value(), file.lastModified());
 
 	    		FileInputStream fileInputStream = null;
 	    		OutputStream output = response.getOutputStream();

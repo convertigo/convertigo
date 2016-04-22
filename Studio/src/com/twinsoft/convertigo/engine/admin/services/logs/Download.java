@@ -43,6 +43,8 @@ import com.twinsoft.convertigo.engine.admin.logmanager.LogServiceHelper;
 import com.twinsoft.convertigo.engine.admin.logmanager.LogManager;
 import com.twinsoft.convertigo.engine.admin.services.DownloadService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.enums.HeaderName;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
@@ -72,8 +74,8 @@ public class Download extends DownloadService {
 			logmanager.setMaxLines(200);
 			logmanager.setContinue(false);
 			
-			response.setHeader("Content-Disposition", "attachment; filename=\"" + basename + "_log.zip\"");
-			response.setContentType("application/zip");
+			HeaderName.ContentDisposition.setHeader(response, "attachment; filename=\"" + basename + "_log.zip\"");
+			response.setContentType(MimeType.Zip.value());
 			
 			ZipOutputStream zop = new ZipOutputStream(response.getOutputStream());
 			Writer out = new OutputStreamWriter(zop, "UTF-8");

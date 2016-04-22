@@ -98,8 +98,8 @@ public class FullSyncServlet extends HttpServlet {
 			debug.append(method.name() + " URI: " + uri.toString() + "\n");
 
 			for (String headerName: Collections.list(request.getHeaderNames())) {
-				if (!HeaderName.TransferEncoding.value().equalsIgnoreCase(headerName)
-						&& !HeaderName.ContentLength.value().equalsIgnoreCase(headerName)) {
+				if (!HeaderName.TransferEncoding.is(headerName)
+						&& !HeaderName.ContentLength.is(headerName)) {
 					for (String headerValue: Collections.list(request.getHeaders(headerName))) {
 						debug.append("request Header: " + headerName + "=" + headerValue + "\n");
 						newRequest.addHeader(headerName, headerValue);
@@ -243,8 +243,8 @@ public class FullSyncServlet extends HttpServlet {
 			response.setStatus(code);
 			
 			for (Header header: newResponse.getAllHeaders()) {
-				if (!HeaderName.TransferEncoding.value().equalsIgnoreCase(header.getName())
-						&& !HeaderName.ContentLength.value().equalsIgnoreCase(header.getName())) {
+				if (!HeaderName.TransferEncoding.is(header)
+						&& !HeaderName.ContentLength.is(header)) {
 					response.addHeader(header.getName(), header.getValue());
 					debug.append("response Header: " + header.getName() + "=" + header.getValue() + "\n");
 				} else {

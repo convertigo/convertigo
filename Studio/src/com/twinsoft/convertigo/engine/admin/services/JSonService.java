@@ -29,12 +29,13 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 
 public abstract class JSonService implements Service {
 
 	public void run(String serviceName, HttpServletRequest request, HttpServletResponse response) throws ServiceException {
         try {
-        	response.setContentType("text/javascript");
+        	response.setContentType(MimeType.JavascriptDeprecated.value());
         	response.setCharacterEncoding("UTF-8");
         	
 			JSONObject json = new JSONObject();

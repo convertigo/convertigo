@@ -49,6 +49,8 @@ import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.mobiles.MobileResourceHelper.Keys;
 import com.twinsoft.convertigo.engine.enums.Accessibility;
+import com.twinsoft.convertigo.engine.enums.HeaderName;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 
 @ServiceDefinition(name = "GetBuildStatus", roles = { Role.ANONYMOUS }, parameters = {}, returnValue = "")
 public class GetBuildStatus extends XmlService {
@@ -83,7 +85,7 @@ public class GetBuildStatus extends XmlService {
 
 		JSONObject jsonResult;
 		try {
-			method.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+			HeaderName.ContentType.setRequestHeader(method, MimeType.WwwForm.value());
 			method.setRequestBody(new NameValuePair[] {
 				new NameValuePair("application", mobileApplication.getComputedApplicationName()),
 				new NameValuePair("platformName", platformName),

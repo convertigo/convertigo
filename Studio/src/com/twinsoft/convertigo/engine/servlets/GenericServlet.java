@@ -29,6 +29,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.List;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -45,6 +46,8 @@ import com.twinsoft.convertigo.engine.AttachmentManager.AttachmentDetails;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.enums.HeaderName;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.requesters.ServletRequester;
@@ -69,9 +72,9 @@ public abstract class GenericServlet extends HttpServlet {
 
 		// TODO: enhance to support content types according to file extension
 		if (resourceUri.endsWith(".xml") || resourceUri.endsWith(".cxml") || resourceUri.endsWith(".pxml"))
-			response.setContentType("text/xml");
+			response.setContentType(MimeType.TextXml.value());
 		else
-			response.setContentType("text/html");
+			response.setContentType(MimeType.Html.value());
 
 		try {
 			InputStream is = getServletContext().getResourceAsStream(resourceUri);
@@ -158,7 +161,7 @@ public abstract class GenericServlet extends HttpServlet {
 				response.addHeader("Expires", "-1");
 
 				if (getCacheControl(request).equals("false"))
-					response.addHeader("Cache-Control",
+					HeaderName.CacheControl.addHeader(response,
 							"no-store, no-cache, must-revalidate, post-check=0, pre-check=0");
 
 				/**
@@ -236,9 +239,9 @@ public abstract class GenericServlet extends HttpServlet {
 							
 							String name = attachment.getName();
 
-							response.setHeader("Content-Type", contentType);
-							response.setHeader("Content-Length", "" + data.length);
-							response.setHeader("Content-Disposition", "attachment; filename=" + name);
+							HeaderName.ContentType.setHeader(response, contentType);
+							HeaderName.ContentLength.setHeader(response, "" + data.length);
+							HeaderName.ContentDisposition.setHeader(response, "attachment; filename=" + name);
 							
 							applyCustomHeaders(request, response);
 							
@@ -252,7 +255,7 @@ public abstract class GenericServlet extends HttpServlet {
 								response.setContentType(getContentType(request));
 								response.setCharacterEncoding((String) request.getAttribute("convertigo.charset"));
 							}
-							response.addHeader("Content-Length", "" + ((byte[]) result).length);
+							HeaderName.ContentLength.addHeader(response, "" + ((byte[]) result).length);
 							
 							applyCustomHeaders(request, response);
 
@@ -400,7 +403,7 @@ public abstract class GenericServlet extends HttpServlet {
 					response.addHeader("Convertigo-Exception", "");
 				else
 					response.addHeader("Convertigo-Exception", e.getClass().getName());
-				response.setContentType("text/plain");
+				response.setContentType(MimeType.Plain.value());
 				PrintWriter out = response.getWriter();
 				if (hide_error) 
 					out.println("Convertigo error:");
@@ -544,7 +547,7 @@ public abstract class GenericServlet extends HttpServlet {
 	}
 
 	public String getDefaultContentType() {
-		return "text/html";
+		return MimeType.Html.value();
 	}
 
 	public abstract String getDocumentExtension();

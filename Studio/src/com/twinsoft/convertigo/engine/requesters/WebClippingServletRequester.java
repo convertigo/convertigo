@@ -45,6 +45,7 @@ import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.proxy.cache.CacheEntry;
 import com.twinsoft.convertigo.engine.proxy.cache.FileCacheManager;
 import com.twinsoft.convertigo.engine.translators.DefaultServletTranslator;
@@ -233,8 +234,7 @@ public class WebClippingServletRequester extends GenericRequester {
 	}
 	
 	public byte[] rewriteCSS(byte[] data, String webURL, String contentType, String charset) {
-		if (context.urlRewriter != null &&
-				(contentType != null && contentType.startsWith("text/css") || webURL.endsWith(".css"))) {
+		if (context.urlRewriter != null && (MimeType.Css.is(contentType) || webURL.endsWith(".css"))) {
 			String txt = null;				
 
 			List<String> al = new LinkedList<String>(Arrays.asList(new String[]{"ASCII", "ISO-8859-1", "UTF-8"}));

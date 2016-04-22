@@ -44,6 +44,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.util.DOMUtils;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 /**
@@ -172,7 +173,7 @@ public class AdminServletDoc extends HttpServlet {
 				int i = requestURL.lastIndexOf('/');
 				serviceName = requestURL.substring(i + 1);
 				
-	    		response.setContentType("text/plain");
+	    		response.setContentType(MimeType.Plain.value());
 	    		
 //		    		Class<? extends Service> serviceClass = Service.class;
 	    		

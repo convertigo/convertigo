@@ -16,6 +16,8 @@ import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.mobiles.MobileResourceHelper.Keys;
 import com.twinsoft.convertigo.engine.enums.Accessibility;
+import com.twinsoft.convertigo.engine.enums.HeaderName;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 
 @ServiceDefinition(
 		name = "GetSourcePackage",
@@ -45,8 +47,8 @@ public class GetSourcePackage extends DownloadService {
 				
 		FileInputStream archiveInputStream = new FileInputStream(mobileArchiveFile);		
 		
-		response.setHeader("Content-Disposition", "attachment; filename=\"" + project + "_" + platform + "_SourcePackage.zip\"");
-		response.setContentType("application/octet-stream");
+		HeaderName.ContentDisposition.setHeader(response, "attachment; filename=\"" + project + "_" + platform + "_SourcePackage.zip\"");
+		response.setContentType(MimeType.OctetStream.value());
 		
 		IOUtils.copy(archiveInputStream, response.getOutputStream());		
 		

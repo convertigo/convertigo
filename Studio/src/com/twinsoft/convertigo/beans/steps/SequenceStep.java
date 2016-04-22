@@ -54,6 +54,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.EngineStatistics;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
@@ -163,7 +164,7 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 	    	httpState = sequence.getNewHttpState();
 			
 			method = new PostMethod(targetUrl);
-			method.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+			method.setRequestHeader("Content-Type", MimeType.WwwForm.value());
 	
 			// Set transaction sessionId from context maintainer
 			String sessionId = getTransactionSessionId();

@@ -39,6 +39,8 @@ import org.apache.log4j.Logger;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.MySSLSocketFactory;
 import com.twinsoft.convertigo.engine.ProxyManager;
+import com.twinsoft.convertigo.engine.enums.HeaderName;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.util.UuidUtils;
 
 public class GoogleAnalyticsTicketManager implements ITicketManager {
@@ -107,7 +109,7 @@ public class GoogleAnalyticsTicketManager implements ITicketManager {
 			log.debug("(GoogleAnalyticsTicketManager) addTicket " + ticket);
 		}
 		PostMethod method = new PostMethod(urls[0]);
-		method.setRequestHeader("Content-Type",	"application/x-www-form-urlencoded");
+		HeaderName.ContentType.setRequestHeader(method, MimeType.WwwForm.value());
 
 		// set parameters for POST method
 		method.setParameter("v", "1");
