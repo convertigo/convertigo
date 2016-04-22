@@ -303,8 +303,16 @@ public abstract class BuildLocally {
 			}
 
 			//ANDROID
-//			if (mobilePlatform instanceof Android) {
-//			}
+			if (mobilePlatform instanceof Android) {
+				singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/name");
+				if (singleElement != null) {
+					String name = singleElement.getTextContent();
+					name = name.replace("\\", "\\\\");
+					name = name.replace("'", "\\'");
+					name = name.replace("\"", "\\\"");
+					singleElement.setTextContent(name);
+				}
+			}
 			
 			//iOS
 //			if (mobilePlatform instanceof  IOs) {			
@@ -341,11 +349,11 @@ public abstract class BuildLocally {
 				}
 			}
 
-			if (mobilePlatform instanceof Windows) {
+//			if (mobilePlatform instanceof Windows) {
 				// TODO : Add platform Windows 8
-			}
+//			}
 
-			XMLUtils.saveXml(doc, configFile.getAbsolutePath());
+			// XMLUtils.saveXml(doc, configFile.getAbsolutePath());
 			
 			// We have to add the root config.xml all our app's config.xml preferences.
 			// Cordova will use this file to generates the platform specific config.xml
@@ -354,7 +362,7 @@ public abstract class BuildLocally {
 			NodeIterator preferences = xpathApi.selectNodeIterator(doc, "//preference");
 			// File configFile = new File(cordovaDir, "config.xml");
 			
-			doc = XMLUtils.loadXml(configFile);  // The root config.xml
+			// doc = XMLUtils.loadXml(configFile);  // The root config.xml
 			
 			NodeList preferencesList = doc.getElementsByTagName("preference");
 			
@@ -817,7 +825,8 @@ public abstract class BuildLocally {
 			runCordovaCommand(mobilePlatformDir, "create", 
 					cordovaDir, 
 					mobileApplication.getComputedApplicationId(),
-					mobileApplication.getComputedEscapededApplicationName(mobilePlatform) );
+//					mobileApplication.getComputedEscapededApplicationName(mobilePlatform) );
+					"cordova");
 		} catch (Throwable e) {
 			Engine.logEngine.error("Error when creating the cordova environment.", e);
 			return Status.CANCEL;

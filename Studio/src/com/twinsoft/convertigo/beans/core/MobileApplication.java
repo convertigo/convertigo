@@ -34,7 +34,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
-import com.twinsoft.convertigo.beans.mobileplatforms.Android;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -256,18 +255,6 @@ public class MobileApplication extends DatabaseObject {
 	
 	public String getComputedApplicationName() {
 		return applicationName.length() > 0 ? applicationName : getProject().getName();
-	}
-	
-	public String getComputedEscapededApplicationName(MobilePlatform mobilePlatform) {
-		String applicationName = getComputedApplicationName();
-		
-		if (mobilePlatform instanceof Android) {
-			if (applicationName.contains("'")) {
-				applicationName = applicationName.replace("'", "\\'");
-			}
-		}
-		
-		return applicationName;
 	}
 	
 	public String getApplicationDescription() {
