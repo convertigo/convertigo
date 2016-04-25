@@ -34,12 +34,13 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.JsonOutput;
+import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.RequestAttribute;
-import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.HttpServletRequestTwsWrapper;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public abstract class AbstractRestOperation extends UrlMappingOperation {
@@ -122,7 +123,8 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 	
 	@Override
 	@SuppressWarnings("deprecation")
-	public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws EngineException {
+	public void handleRequest(HttpServletRequest _request, HttpServletResponse response) throws EngineException {
+		HttpServletRequestTwsWrapper request = new HttpServletRequestTwsWrapper(_request);
 		String targetRequestableQName = getTargetRequestable();
 		if (targetRequestableQName.isEmpty()) {
 			throw new EngineException("Mapping operation \""+ getName() +"\" has no target requestable defined");
@@ -240,14 +242,6 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 						String[] pvalues = request.getParameterValues(paramName);
 						if (pvalues != null) {
 							paramValue = pvalues;
-							if (param.getType() == Type.Query) {
-								int len = pvalues.length;
-								String[] evalues = new String[len];
-								for (int i=0; i<len; i++) {
-									evalues[i] = new String(pvalues[i].getBytes(),"UTF-8");
-								}
-								paramValue = evalues;
-							}
 						}
 					}
 					else if (param.getType() == Type.Path) {
