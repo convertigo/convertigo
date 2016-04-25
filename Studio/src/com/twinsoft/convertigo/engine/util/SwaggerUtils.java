@@ -58,7 +58,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 
 public class SwaggerUtils {
-	private static Pattern parseRequestUrl = Pattern.compile("http(s?)://(.*?)(/.*?api)");
+	private static Pattern parseRequestUrl = Pattern.compile("http(s)?://(.*?)(/.*?api)");
 
 	public static Swagger read(String url) {
 		return new SwaggerParser().read(url);
