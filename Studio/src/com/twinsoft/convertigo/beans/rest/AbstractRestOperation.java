@@ -52,7 +52,7 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 	@Override
 	public AbstractRestOperation clone() throws CloneNotSupportedException {
 		AbstractRestOperation clonedObject = (AbstractRestOperation) super.clone();
-		clonedObject.hasBodyParameter = hasBodyParameter;
+		clonedObject.hasBodyParameter = false;
 		return clonedObject;
 	}
 	
