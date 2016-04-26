@@ -249,7 +249,6 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 							&& s.indexOf(",") != -1;
 		}
 		return isDn;
-		//return username != null && username.toLowerCase().indexOf("cn=") != -1;
 	}
 	
 	private static boolean isFilter(String username) {
@@ -273,7 +272,6 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 			}
 		}
 		return username;
-		//return "cn="+ username;
 	}
 
 	private static String getHost(String ldap_url) {
