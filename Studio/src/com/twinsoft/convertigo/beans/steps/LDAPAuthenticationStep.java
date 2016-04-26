@@ -133,6 +133,7 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 			TWSLDAP twsLDAP = new TWSLDAP();
 			
 			// Loop through server URLs
+			int nbServers = servers.size();
 			for (String serverUrl: servers) {
 				userDn = null;
 				
@@ -145,7 +146,8 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 					continue;
 				}
 				
-				if (!isDistinguishedName(userLogin)) {
+				// Search database
+				if (needSearch(userLogin)) {
 					String searchLogin = adminLogin.getSingleString(this);
 					String searchPassword = adminPassword.getSingleString(this);
 					String searchBase = basePath.getSingleString(this);
@@ -162,15 +164,18 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 						// Search database for given user
 						Engine.logBeans.trace("(LDAPAuthenticationStep) LDAP search start");
 						twsLDAP.search(searchHost, searchLogin, searchPassword, searchBase, searchFilter, searchAttributes, timeLimit, countLimit);
+						String errorMsg = twsLDAP.errorMessage != null ? " (Error: "+twsLDAP.errorMessage+")":"";
 						boolean bFound = twsLDAP.hasMoreResults();
-						Engine.logBeans.debug("(LDAPAuthenticationStep) LDAP search: host:"+searchHost+", searchBase:"+searchBase+", filter:"+ searchFilter + "; User "+ (bFound ? "found":"NOT found"));
+						Engine.logBeans.debug("(LDAPAuthenticationStep) LDAP search: host:"+searchHost+", searchBase:"+searchBase+", filter:"+ searchFilter + "; user "+ (bFound ? "found":"NOT found") + errorMsg);
 						Engine.logBeans.trace("(LDAPAuthenticationStep) LDAP search end");
 						
 						if (bFound) {
 							userDn = twsLDAP.getNextResult().toLowerCase() + (searchBase == null ? "":"," + searchBase.toLowerCase());
 						}
 						else {
-							continue; // loop
+							if (nbServers > 1) {
+								continue; // loop
+							}
 						}
 					}
 					else {
@@ -180,13 +185,16 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 				
 				// Bind database with given/found user
 				Engine.logBeans.trace("(LDAPAuthenticationStep) LDAP bind start");
-				authenticated = twsLDAP.bind(serverUrl, userDn == null ? userLogin:userDn, userPassword == null ? "":userPassword);
-				Engine.logBeans.debug("(LDAPAuthenticationStep) LDAP bind: user \""+userLogin+"\" authenticated="+ authenticated.toString());
+				String bindLogin = userDn == null ? userLogin:userDn;
+				String bindPassword = userPassword == null ? "":userPassword;
+				authenticated = twsLDAP.bind(serverUrl, bindLogin, bindPassword);
+				String errorMsg = twsLDAP.errorMessage != null ? " (Error: "+twsLDAP.errorMessage+")":"";
+				Engine.logBeans.debug("(LDAPAuthenticationStep) LDAP bind: user \""+bindLogin+"\"; authenticated="+ authenticated.toString() + errorMsg);
 				Engine.logBeans.trace("(LDAPAuthenticationStep) LDAP bind end");
 				
 				// Set authenticated user on session
 				if (authenticated) {
-					getSequence().context.setAuthenticatedUser(userLogin);
+					getSequence().context.setAuthenticatedUser(bindLogin);
 					break; // exit loop
 				}
 				// else loop
@@ -202,18 +210,73 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 		}
 	}
 
-	private Boolean isDistinguishedName(String username) {
-		return username != null && username.toLowerCase().indexOf("cn=") != -1;
+	private static boolean needSearch(String username) {
+		if (isDistinguishedName(username)) {
+			return false;
+		}
+		if (isEMailAccount(username)) {
+			return false;
+		}
+		if (isNTAccount(username)) {
+			return false;
+		}
+		return true;
 	}
 	
-	private String getFilter(String username) {
-		if (username != null && !isDistinguishedName(username)) {
-			return "cn="+ username;
+	private static boolean isEMailAccount(String username) {
+		boolean isEMail = false;
+		if (username != null && !username.isEmpty()) {
+			isEMail = username.indexOf("@") != -1
+						&& username.indexOf(".") != -1;
+		}
+		return isEMail;
+	}
+	
+	private static boolean isNTAccount(String username) {
+		boolean isNT = false;
+		if (username != null && !username.isEmpty()) {
+			isNT = username.indexOf("\\\\") != -1;
+		}
+		return isNT;
+	}
+	
+	private static boolean isDistinguishedName(String username) {
+		boolean isDn = false;
+		if (username != null && !username.isEmpty()) {
+			String s = username.toLowerCase().replaceAll("\\s+","");
+			isDn = 	s.indexOf("cn=") != -1 
+						/*&& s.indexOf("dc=") != -1 */
+							&& s.indexOf(",") != -1;
+		}
+		return isDn;
+		//return username != null && username.toLowerCase().indexOf("cn=") != -1;
+	}
+	
+	private static boolean isFilter(String username) {
+		boolean isFilter = false;
+		if (username != null && !username.isEmpty()) {
+			String s = username.toLowerCase().replaceAll("\\s+","");
+			isFilter = 	s.indexOf("=") != -1 && s.indexOf(",") == -1;
+							/*&& (s.indexOf("*") != -1
+								|| s.indexOf("|") != -1 
+									|| s.indexOf("(") != -1 
+										|| s.indexOf(")") != -1)*/;
+		}
+		return isFilter;
+	}
+	
+	private static String getFilter(String username) {
+		if (username != null && !isFilter(username)) {
+			String s = username.toLowerCase().replaceAll("\\s+","");
+			if (s.indexOf("cn=") == -1) {
+				return "cn="+ username;
+			}
 		}
 		return username;
+		//return "cn="+ username;
 	}
 
-	private String getHost(String ldap_url) {
+	private static String getHost(String ldap_url) {
 		String host = "";
 		try {
 			URL ldapURL = new URL(ldap_url.toLowerCase().replaceFirst("ldap", "http"));
