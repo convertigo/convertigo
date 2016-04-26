@@ -147,7 +147,7 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 				}
 				
 				// Search database
-				if (needSearch(userLogin)) {
+				if (!isDistinguishedName(userLogin)) {
 					String searchLogin = adminLogin.getSingleString(this);
 					String searchPassword = adminPassword.getSingleString(this);
 					String searchBase = basePath.getSingleString(this);
@@ -210,19 +210,6 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 		}
 	}
 
-	private static boolean needSearch(String username) {
-		if (isDistinguishedName(username)) {
-			return false;
-		}
-		if (isEMailAccount(username)) {
-			return false;
-		}
-		if (isNTAccount(username)) {
-			return false;
-		}
-		return true;
-	}
-	
 	private static boolean isEMailAccount(String username) {
 		boolean isEMail = false;
 		if (username != null && !username.isEmpty()) {
@@ -235,7 +222,7 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 	private static boolean isNTAccount(String username) {
 		boolean isNT = false;
 		if (username != null && !username.isEmpty()) {
-			isNT = username.indexOf("\\\\") != -1;
+			isNT = username.indexOf("\\") != -1;
 		}
 		return isNT;
 	}
@@ -244,9 +231,7 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 		boolean isDn = false;
 		if (username != null && !username.isEmpty()) {
 			String s = username.toLowerCase().replaceAll("\\s+","");
-			isDn = 	s.indexOf("cn=") != -1 
-						/*&& s.indexOf("dc=") != -1 */
-							&& s.indexOf(",") != -1;
+			isDn = s.indexOf("cn=") != -1 && s.indexOf(",") != -1;
 		}
 		return isDn;
 	}
@@ -255,17 +240,23 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 		boolean isFilter = false;
 		if (username != null && !username.isEmpty()) {
 			String s = username.toLowerCase().replaceAll("\\s+","");
-			isFilter = 	s.indexOf("=") != -1 && s.indexOf(",") == -1;
-							/*&& (s.indexOf("*") != -1
-								|| s.indexOf("|") != -1 
-									|| s.indexOf("(") != -1 
-										|| s.indexOf(")") != -1)*/;
+			isFilter = 	s.indexOf("=") != -1;
 		}
 		return isFilter;
 	}
 	
 	private static String getFilter(String username) {
 		if (username != null && !isFilter(username)) {
+			// check for EMail account or UPN
+			if (isEMailAccount(username)) {
+				return "userPrincipalName="+username;
+			}
+			// check for NT account
+			if (isNTAccount(username)) {
+				int index = username.indexOf("\\");
+				return "samAccountName="+username.substring(index+1);
+			}
+			// simple username
 			String s = username.toLowerCase().replaceAll("\\s+","");
 			if (s.indexOf("cn=") == -1) {
 				return "cn="+ username;
