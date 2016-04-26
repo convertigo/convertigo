@@ -32,7 +32,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
-import java.util.Hashtable;
+import java.util.Map;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -231,7 +231,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	private static ILog log;
 	
 	//Get IProjects in memory 
-	private static Map<String, IProject> cacheIProject = new Hashtable<String, IProject>();
+	private static Map<String, IProject> cacheIProject = new HashMap<String, IProject>();
 	
 	public static void logException(Throwable e, String message) {
 		logException(e, message, true);

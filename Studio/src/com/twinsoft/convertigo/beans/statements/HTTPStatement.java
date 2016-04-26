@@ -129,7 +129,7 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 		HTTPStatement clonedObject = (HTTPStatement)super.clone();
 		clonedObject.vVariables = new Vector<HttpStatementVariable>();
 		clonedObject.vAllVariables = null;
-//		clonedObject.variables = new Hashtable(16);
+//		clonedObject.variables = new Map(16);
 		clonedObject.javascriptContext = null;
 		clonedObject.scope = null;
 		clonedObject.result = null;

@@ -23,9 +23,11 @@
 package com.twinsoft.convertigo.beans.core;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import org.apache.commons.httpclient.Cookie;
@@ -64,7 +66,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
     
     transient private String transactionSessionId = null;
     
-    transient protected Hashtable<String, Long> childrenSteps = null;
+    transient protected Map<String, Long> childrenSteps = null;
     
     transient protected int nbAsyncThreadRunning = 0;
     
@@ -104,7 +106,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
     @Override
 	public Object copy() throws CloneNotSupportedException {
 		StepWithExpressions copiedObject = (StepWithExpressions)super.copy();
-		copiedObject.childrenSteps = new Hashtable<String, Long>(10);
+		copiedObject.childrenSteps = new HashMap<String, Long>(10);
 		copiedObject.vSteps = vSteps;
 		return copiedObject;
 	}
@@ -171,7 +173,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 	protected void cleanChildren() {
 		if (childrenSteps != null) {
 			//Enumeration e = childrenSteps.elements();
-			Enumeration<String> e = childrenSteps.keys();
+			Enumeration<String> e = Collections.enumeration(childrenSteps.keySet());
 			while (e.hasMoreElements()) {
 				String timeID = (String)e.nextElement();
 				if (timeID != null) {

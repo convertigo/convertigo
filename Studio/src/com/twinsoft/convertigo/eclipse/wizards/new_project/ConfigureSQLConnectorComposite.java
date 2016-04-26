@@ -24,7 +24,7 @@ package com.twinsoft.convertigo.eclipse.wizards.new_project;
 
 import java.io.IOException;
 import java.sql.DriverManager;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -80,7 +80,7 @@ public class ConfigureSQLConnectorComposite extends Composite {
 			Properties properties = new Properties();
 			properties.load(getClass().getResourceAsStream("/jdbc_drivers.properties"));
 
-			jdbcDrivers = new Hashtable<String, String>(properties.size());
+			jdbcDrivers = new HashMap<String, String>(properties.size());
 			for (Object sDriverName : properties.values()) {
 				String[] t = ((String) sDriverName).split(",");
 				jdbcDriver.add(t[0]);

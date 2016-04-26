@@ -24,10 +24,11 @@ package com.twinsoft.convertigo.beans.core;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
@@ -85,7 +86,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
     
 	transient protected boolean xml = false;
     transient protected List<Sheet> vSheets = new LinkedList<Sheet>();
-	transient protected Hashtable<Long, String> executedSteps = null;
+	transient protected Map<Long, String> executedSteps = null;
 	transient protected TwsCachedXPathAPI xpathApi = null;
 	transient protected HttpState httpState = null;
 	transient protected boolean stepDone = false;
@@ -127,7 +128,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
     
 	public Object copy() throws CloneNotSupportedException {
 		Step copiedObject = (Step)clone();
-		copiedObject.executedSteps = new Hashtable<Long, String>(100);
+		copiedObject.executedSteps = new HashMap<Long, String>(100);
 		copiedObject.sequence = getSequence();
 		copiedObject.vSheets = vSheets;
 		copiedObject.isSubLoaded = isSubLoaded;

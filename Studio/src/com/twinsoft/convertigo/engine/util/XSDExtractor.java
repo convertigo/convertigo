@@ -27,8 +27,10 @@ import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -42,7 +44,7 @@ import org.w3c.dom.NodeList;
 public class XSDExtractor {
 
 	Document xsdDom = null;
-	Hashtable<String, XSDObject> items = new Hashtable<String, XSDObject>(10);
+	Map<String, XSDObject> items = new HashMap<String, XSDObject>(10);
 	
 	public static Document extractXSD(String prefixName, Document doc) throws Exception {
 		Document xsdDom = new XSDExtractor().parse(prefixName, doc);
@@ -81,7 +83,7 @@ public class XSDExtractor {
 				parse(list.item(i));
 			}
 			
-			Enumeration<XSDObject> e = items.elements();
+			Enumeration<XSDObject> e = Collections.enumeration(items.values());
 			while (e.hasMoreElements()) {
 				e.nextElement().toXML(prefixName, null, xsdDom.getDocumentElement());
 			}
@@ -213,9 +215,9 @@ public class XSDExtractor {
 	private class XSDElement extends XSDObject {
 		private ArrayList<String> nes = new ArrayList<String>();
 		private ArrayList<String> nas = new ArrayList<String>();
-		private Hashtable<String, XSDObject> elements = new Hashtable<String, XSDObject>(4);
-		private Hashtable<String, Integer> occurs = new Hashtable<String, Integer>(4);
-		private Hashtable<String, XSDObject> attributes = new Hashtable<String, XSDObject>();
+		private Map<String, XSDObject> elements = new HashMap<String, XSDObject>(4);
+		private Map<String, Integer> occurs = new HashMap<String, Integer>(4);
+		private Map<String, XSDObject> attributes = new HashMap<String, XSDObject>();
 		private Element source;
 
 		private XSDElement(Element element) {

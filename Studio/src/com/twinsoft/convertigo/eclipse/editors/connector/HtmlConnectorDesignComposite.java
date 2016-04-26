@@ -23,9 +23,11 @@
 package com.twinsoft.convertigo.eclipse.editors.connector;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.EventObject;
-import java.util.Hashtable;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
@@ -86,8 +88,8 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ConnectorTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TransactionTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
-import com.twinsoft.convertigo.eclipse.wizards.new_statement.StatementGeneratorWizard;
 import com.twinsoft.convertigo.eclipse.wizards.new_object.NewObjectWizard;
+import com.twinsoft.convertigo.eclipse.wizards.new_statement.StatementGeneratorWizard;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -786,7 +788,7 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 			return;
 		}*/
 
-		Hashtable<String, String> headers = parseResponseString(responseString);
+		Map<String, String> headers = parseResponseString(responseString);
 		String	contentType = headers.get(HeaderName.ContentType.value().toLowerCase());
 
 		// record only text/html or null Content-Type ...
@@ -1008,12 +1010,12 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 		StringTokenizer stData = new StringTokenizer(line, "&");
 		String left, right, name, value, dataName;
 		Object ob, dataValue;
-		Hashtable<String, Object> names;
+		Map<String, Object> names;
 		boolean bMulti;
 		Vector<String> v;
 
 		v = null;
-		names = new Hashtable<String, Object>();
+		names = new HashMap<String, Object>();
 
 		while (stData.hasMoreTokens()) {
 			String	dataElement = stData.nextToken();
@@ -1044,7 +1046,7 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 			}
 		}
 
-		for (Enumeration<String> e = names.keys() ; e.hasMoreElements() ;) {
+		for (Enumeration<String> e = Collections.enumeration(names.keySet()); e.hasMoreElements() ;) {
 			dataName = e.nextElement();
 			dataValue = names.get(dataName);
 			bMulti = dataValue instanceof Vector;
@@ -1052,8 +1054,8 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 		}
 	}
 
-	public Hashtable<String, String> parseResponseString(String responseString) {
-		Hashtable<String, String> htHeaders = new Hashtable<String, String>();
+	public Map<String, String> parseResponseString(String responseString) {
+		Map<String, String> htHeaders = new HashMap<String, String>();
 		String		httpHeader, httpValue;
 		String		line;
 		int			index, i = 0;

@@ -26,14 +26,14 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
 import java.util.Calendar;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Map;
 
 import com.twinsoft.convertigo.engine.migration.Migration3_0_0;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class MigrationManager {
-	private static Map<String, MigrationJob> jobs = new Hashtable<String, MigrationJob>(256);
+	private static Map<String, MigrationJob> jobs = new HashMap<String, MigrationJob>(256);
 	private static boolean jobsAdded = false;
 	
 	protected static void performProjectsMigration() {

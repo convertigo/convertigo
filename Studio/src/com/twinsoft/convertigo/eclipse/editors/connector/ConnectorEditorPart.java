@@ -27,7 +27,7 @@ import java.lang.reflect.Constructor;
 import java.text.MessageFormat;
 import java.util.EventObject;
 import java.util.HashMap;
-import java.util.Hashtable;
+import java.util.Map;
 import java.util.Map;
 
 import org.eclipse.jface.action.Action;
@@ -99,7 +99,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 	private Composite compositeDesign = null;
 	private Label labelNoDesign = null;
 	private ToolBar toolBar = null;
-	private Hashtable<String, Integer> toolItemsIds = null;
+	private Map<String, Integer> toolItemsIds = null;
 	private Action createScreenClassFromSelectionZoneAction = null;
 	private Action createTagNameFromSelectionZoneAction = null;
 
@@ -180,7 +180,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 		this.context = getStudioContext();
 		this.contextID = context.contextID;
 		this.projectName = context.projectName;
-		toolItemsIds = new Hashtable<String, Integer>();
+		toolItemsIds = new HashMap<String, Integer>();
 		initialize();
 
 		// Registering as Engine listener

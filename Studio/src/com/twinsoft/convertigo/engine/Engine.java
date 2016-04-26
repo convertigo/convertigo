@@ -30,7 +30,7 @@ import java.lang.reflect.Constructor;
 import java.security.Provider;
 import java.security.Security;
 import java.util.Date;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -493,7 +493,7 @@ public class Engine {
 						.getProperty(PropertyName.CARIOCA_DEFAULT_USER_NAME);
 				String cariocaPassword = EnginePropertiesManager
 						.getProperty(PropertyName.CARIOCA_DEFAULT_USER_PASSWORD);
-				Engine.theApp.authentications = new Hashtable<String, Authentication>();
+				Engine.theApp.authentications = new HashMap<String, Authentication>();
 
 				// Initialization of the default TAS properties
 				try {

@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.EventObject;
 import java.util.HashMap;
-import java.util.Hashtable;
+import java.util.Map;
 import java.util.Map;
 
 import org.eclipse.jface.text.Document;
@@ -100,7 +100,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		this.context = getStudioContext();
 		this.contextID = context.contextID;
 		this.projectName = context.projectName;
-		toolItemsIds = new Hashtable<String, Integer>();
+		toolItemsIds = new HashMap<String, Integer>();
 		initialize();
 		
 		// Registering as Engine listener
@@ -245,7 +245,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	private SashForm sashForm = null;
 	private Composite compositeOutput = null;
 	private ToolBar toolBar = null;
-	private Hashtable<String, Integer> toolItemsIds = null;
+	private Map<String, Integer> toolItemsIds = null;
 	private Composite compositeXml = null;
 	private Composite compositeOutputHeader = null;
 	private Composite compositeOutputFooter = null;

@@ -22,8 +22,10 @@
 
 package com.twinsoft.convertigo.eclipse.learnproxy;
 
+import java.util.Collections;
 import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 import com.twinsoft.convertigo.eclipse.learnproxy.http.gui.HttpProxyEvent;
@@ -36,7 +38,7 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 public class HttpEventLogger implements  HttpProxyEventListener {
 
 	public void modelChanged(HttpProxyEvent event) {
-			Hashtable<String, Object> htResponse = parseHttpHeaders(event.getResponse(), false);
+			Map<String, Object> htResponse = parseHttpHeaders(event.getResponse(), false);
 			String	contentType = (String)htResponse.get(HeaderName.ContentType.value().toLowerCase());
 			
 
@@ -45,7 +47,7 @@ public class HttpEventLogger implements  HttpProxyEventListener {
 				return;
 			}
 			
-			Hashtable<String, Object> htRequest  = parseHttpHeaders(event.getRequest(), true);
+			Map<String, Object> htRequest  = parseHttpHeaders(event.getRequest(), true);
 			Engine.logEngine.debug("________________________________ Request ______________________________________________________________");
 			Engine.logEngine.debug(event.getRequest());	
 			dumpHeaders(htRequest);	
@@ -69,17 +71,17 @@ public class HttpEventLogger implements  HttpProxyEventListener {
 	}
 
 	/**
-	 * Parses a HTTP request or response. The result is returned in a Hashtable containg all the headers and one element containg the POST
-	 * data named 'data'. The post data is also an Hashtable containg all the name/values couples.
+	 * Parses a HTTP request or response. The result is returned in a Map containg all the headers and one element containg the POST
+	 * data named 'data'. The post data is also an Map containg all the name/values couples.
 	 * Set bParseData to false to prevent parsing the http data (Usually set bParseData to true only for requests).
 	 *  
 	 * @param 	data
 	 * @param 	bParseData
-	 * @return	Hashtable containing the parsed data
+	 * @return	Map containing the parsed data
 	 */
-	private Hashtable<String, Object> parseHttpHeaders(String data, boolean bParseData)
+	private Map<String, Object> parseHttpHeaders(String data, boolean bParseData)
 	{
-		Hashtable<String, Object> ht = new Hashtable<String, Object>();
+		Map<String, Object> ht = new HashMap<String, Object>();
 		String		element;
 		int			index;
 		String		httpHeader;
@@ -101,7 +103,7 @@ public class HttpEventLogger implements  HttpProxyEventListener {
 					if (bParseData) {
 						element =  st.nextToken();
 						// now parse the data (This can be a POST)
-						Hashtable<String, String> htData = new Hashtable<String, String>();
+						Map<String, String> htData = new HashMap<String, String>();
 						StringTokenizer stData = new StringTokenizer(element, "&");
 						String	dataElement, dataName, dataValue;
 						while (stData.hasMoreTokens()) {
@@ -127,18 +129,18 @@ public class HttpEventLogger implements  HttpProxyEventListener {
 		return ht;
 	}
 	
-	void dumpHeaders(Hashtable<String, Object> ht)
+	void dumpHeaders(Map<String, Object> ht)
 	{
-		Enumeration<String> keys = ht.keys();
+		Enumeration<String> keys = Collections.enumeration(ht.keySet());
 		Engine.logEngine.debug("Headers");
-		Hashtable<String, String> htData;
+		Map<String, String> htData;
 		Enumeration<String> dataKeys;
 		String headerName, dataVariable;
 		while (keys.hasMoreElements()) {
 			headerName = keys.nextElement();
 			if (headerName.equalsIgnoreCase("data")) {
 				htData = GenericUtils.cast(ht.get("data"));
-				dataKeys = htData.keys();
+				dataKeys = Collections.enumeration(htData.keySet());
 				Engine.logEngine.debug("        POST Data:");
 				while (dataKeys.hasMoreElements()) {
 					dataVariable = (String)dataKeys.nextElement();

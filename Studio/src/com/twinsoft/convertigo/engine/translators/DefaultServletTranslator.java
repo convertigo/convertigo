@@ -46,7 +46,7 @@ public class DefaultServletTranslator implements Translator {
 		// the HTTP parameters parsing is not realized, and then parameterNames is empty. In
 		// such a case, a (bad) workaround is to decode by ourselves the query string in GET
 		// or the HTTP body in POST...
-//		Hashtable<String, String[]> reparsedParameters = (Hashtable<String, String[]>) request.getAttribute(ServletRequester.REPARSED_PARAMETERS_ATTRIBUTE);
+//		Map<String, String[]> reparsedParameters = (Map<String, String[]>) request.getAttribute(ServletRequester.REPARSED_PARAMETERS_ATTRIBUTE);
 //		boolean bReparsedParameters = (reparsedParameters != null); 
 //		if (bReparsedParameters) {
 //			parameterNames = reparsedParameters.keys();

@@ -23,7 +23,7 @@
 package com.twinsoft.convertigo.engine.util;
 
 import java.util.HashMap;
-import java.util.Hashtable;
+import java.util.Map;
 import java.util.Map;
 
 import com.twinsoft.convertigo.engine.Engine;
@@ -211,9 +211,9 @@ public class Statistics {
      * Resets the statistics object.
      */
     public static synchronized void reset() {
-        tasks = new Hashtable<String, String>(BUFFER_SIZE);
-        sums = new Hashtable<String, Long>(BUFFER_SIZE);
-        dividers = new Hashtable<String, Long>(BUFFER_SIZE);
+        tasks = new HashMap<String, String>(BUFFER_SIZE);
+        sums = new HashMap<String, Long>(BUFFER_SIZE);
+        dividers = new HashMap<String, Long>(BUFFER_SIZE);
         id = 0;
         System.gc();
     }

@@ -22,7 +22,7 @@
 
 package com.twinsoft.convertigo.engine;           
 
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 
@@ -37,7 +37,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class JobManager {
 
-    private static Map<String, Job> jobs = new Hashtable<String, Job>(256);
+    private static Map<String, Job> jobs = new HashMap<String, Job>(256);
     
     public static Document addJob(CacheManager cacheManager, DatabaseObject requestedObject, Requester requester, Context context) throws EngineException {
         Engine.logJobManager.debug("Adding job #" + context.contextID);

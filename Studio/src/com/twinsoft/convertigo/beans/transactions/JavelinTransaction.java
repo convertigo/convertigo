@@ -26,9 +26,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Vector;
 
@@ -62,8 +63,8 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
-import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
@@ -1114,7 +1115,7 @@ public class JavelinTransaction extends TransactionWithVariables {
 
         try {
             Enumeration<Collection<Block>> enumBlocks = vBlocks.elements();
-			Hashtable<String, String> types = null;
+			Map<String, String> types = null;
             int nPage = 0;
             Element page = null;
 
@@ -1127,7 +1128,7 @@ public class JavelinTransaction extends TransactionWithVariables {
 
 			boolean studioMode = Engine.isStudioMode();
 			if (studioMode) {
-				types = new Hashtable<String, String>(5);
+				types = new HashMap<String, String>(5);
 				xsdType = "";
 				xsdType += "<xsd:complexType name=\""+ prefix + transactionName +"Response\">\n";
 				xsdType += "\t<xsd:sequence>\n";
@@ -1213,7 +1214,7 @@ public class JavelinTransaction extends TransactionWithVariables {
     				xsdType += "</xsd:complexType>\n";
             	}
             	
-                Enumeration<String> e = types.elements();
+                Enumeration<String> e = Collections.enumeration(types.values());
                 while (e.hasMoreElements()) {
                 	xsdType += e.nextElement();
                 }

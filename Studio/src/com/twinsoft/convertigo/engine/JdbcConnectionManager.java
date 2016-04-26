@@ -25,8 +25,10 @@ package com.twinsoft.convertigo.engine;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.naming.NamingException;
 
@@ -36,17 +38,17 @@ import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 
 public class JdbcConnectionManager implements AbstractManager {
 
-	private Hashtable<String,BasicDataSource> databasePools;
+	private Map<String,BasicDataSource> databasePools;
 	
 	public JdbcConnectionManager() {
 	}
 
 	public void init() throws EngineException {
-		databasePools = new Hashtable<String,BasicDataSource>(2048);
+		databasePools = new HashMap<String,BasicDataSource>(2048);
 	}
 	
 	public void destroy() throws EngineException {
-		Enumeration<String> keysEnum = databasePools.keys();
+		Enumeration<String> keysEnum = Collections.enumeration(databasePools.keySet());
 		while(keysEnum.hasMoreElements()) {
 			String poolKey = (String)keysEnum.nextElement();
 			Engine.logEngine.debug("[SqlConnectionManager] Closing datasource '" + poolKey + "'...");

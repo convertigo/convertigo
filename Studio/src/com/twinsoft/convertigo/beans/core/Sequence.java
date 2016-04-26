@@ -29,7 +29,6 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -97,17 +96,17 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 
     transient protected TwsCachedXPathAPI xpathApi = null;
     
-	transient private Hashtable<String, Step> copies = null;
+	transient private Map<String, Step> copies = null;
 
-    transient public Hashtable<String, Project> loadedProjects = new Hashtable<String, Project>(10);
+    transient public Map<String, Project> loadedProjects = new HashMap<String, Project>(10);
     
-    transient public Hashtable<Long, Step> loadedSteps = new Hashtable<Long, Step>(10);
+    transient public Map<Long, Step> loadedSteps = new HashMap<Long, Step>(10);
     
-    transient protected Hashtable<String, Long> childrenSteps = null;
+    transient protected Map<String, Long> childrenSteps = null;
     
-    transient public Hashtable<Long, String> executedSteps = null;
+    transient public Map<Long, String> executedSteps = null;
     
-	transient private Hashtable<String, Node> workerElementMap = null;
+	transient private Map<String, Node> workerElementMap = null;
 	
     transient private List<Step> vAllSteps = null;
     
@@ -170,8 +169,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	clonedObject.stepHttpState = null;
     	clonedObject.transactionSessionId = null;
     	clonedObject.copies = null;
-    	clonedObject.loadedProjects = new Hashtable<String, Project>(10);
-    	clonedObject.loadedSteps = new Hashtable<Long, Step>(10);
+    	clonedObject.loadedProjects = new HashMap<String, Project>(10);
+    	clonedObject.loadedSteps = new HashMap<Long, Step>(10);
     	clonedObject.executedSteps = null;
     	clonedObject.childrenSteps = null;
     	clonedObject.workerElementMap = null;
@@ -1032,10 +1031,10 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	public void prepareForRequestable(Context context, org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException {
 		currentChildStep = 0;
 		xpathApi = new TwsCachedXPathAPI(getProject());
-		copies = new Hashtable<String, Step>(100);
-		childrenSteps = new Hashtable<String, Long>(100);
-		executedSteps = new Hashtable<Long, String>(1000);
-		workerElementMap = new Hashtable<String, Node>(1000);
+		copies = new HashMap<String, Step>(100);
+		childrenSteps = new HashMap<String, Long>(100);
+		executedSteps = new HashMap<Long, String>(1000);
+		workerElementMap = new HashMap<String, Node>(1000);
 		
 		insertObjectsInScope();
 	}
@@ -1043,7 +1042,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	private void clean() {
     	cleanCopies();
 
-		Enumeration<Long> e = loadedSteps.keys();
+		Enumeration<Long> e = Collections.enumeration(loadedSteps.keySet());
 		while (e.hasMoreElements()) {
 			Long stepPriority = (Long)e.nextElement();
 			resetLoadedStepAsyncThreadRunning(stepPriority);
@@ -1105,14 +1104,14 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	private void cleanCopies() {
 		Enumeration<String> e;
 		
-		e = childrenSteps.keys();
+		e = Collections.enumeration(childrenSteps.keySet());
 		while (e.hasMoreElements()) {
 			String timeID = (String)e.nextElement();
 			cleanCopie(timeID);
 		}
 		
 		//System.out.println("Sequence copies :" + copies.size());
-		e = copies.keys();
+		e = Collections.enumeration(copies.keySet());
 		while (e.hasMoreElements()) {
 			String timeID = (String)e.nextElement();
 			//System.out.println("Sequence needs to clean copy of "+step.name+" ("+timeID+")");

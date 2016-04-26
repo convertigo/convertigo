@@ -22,7 +22,7 @@
 
 package com.twinsoft.convertigo.engine.util;
 
-import java.util.Hashtable;
+import java.util.Map;
 
 import org.apache.log4j.MDC;
 
@@ -41,7 +41,7 @@ public class Log4jHelper {
 	}
 
 	static public void mdcClear() {
-		Hashtable<?, ?> context = MDC.getContext();
+		Map<?, ?> context = MDC.getContext();
 		if (context != null) {
 			context.clear();
 		}

@@ -24,16 +24,16 @@ package com.twinsoft.convertigo.eclipse;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Map;
 
 public class MashupInformation implements Serializable {
 
 	private static final long serialVersionUID = -5503096562853016022L;
 
-	private Map<String, MashupDataViewConfiguration> dataviewConfigurations = new Hashtable<String, MashupDataViewConfiguration>();
-	private Map<String, MashupActionConfiguration> actionConfigurations = new Hashtable<String, MashupActionConfiguration>();
-	private Map<String, MashupEventConfiguration> eventConfigurations = new Hashtable<String, MashupEventConfiguration>();
+	private Map<String, MashupDataViewConfiguration> dataviewConfigurations = new HashMap<String, MashupDataViewConfiguration>();
+	private Map<String, MashupActionConfiguration> actionConfigurations = new HashMap<String, MashupActionConfiguration>();
+	private Map<String, MashupEventConfiguration> eventConfigurations = new HashMap<String, MashupEventConfiguration>();
 	
 	public MashupInformation() {
 		
@@ -41,9 +41,9 @@ public class MashupInformation implements Serializable {
 	
 	private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
 		in.defaultReadObject();
-		if (dataviewConfigurations == null) dataviewConfigurations = new Hashtable<String, MashupDataViewConfiguration>();
-		if (actionConfigurations == null) actionConfigurations = new Hashtable<String, MashupActionConfiguration>();
-		if (eventConfigurations == null) eventConfigurations = new Hashtable<String, MashupEventConfiguration>();
+		if (dataviewConfigurations == null) dataviewConfigurations = new HashMap<String, MashupDataViewConfiguration>();
+		if (actionConfigurations == null) actionConfigurations = new HashMap<String, MashupActionConfiguration>();
+		if (eventConfigurations == null) eventConfigurations = new HashMap<String, MashupEventConfiguration>();
 	}
 
 	public void setDataViewConfiguration(String key, MashupDataViewConfiguration mdc) {

@@ -22,7 +22,7 @@
 
 package com.twinsoft.convertigo.engine;
 
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -206,7 +206,7 @@ public abstract class AbstractContext {
 	public AbstractContext() {
 	}
 	
-	private Map<String, Object> internalTable = new Hashtable<String, Object>(256);
+	private Map<String, Object> internalTable = new HashMap<String, Object>(256);
 	
 	/**
 	 * Gets a stored variable from the context.

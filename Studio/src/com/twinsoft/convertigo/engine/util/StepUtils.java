@@ -21,7 +21,8 @@
  */
 package com.twinsoft.convertigo.engine.util;
 
-import java.util.Hashtable;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
@@ -59,13 +60,13 @@ public class StepUtils {
 		if (mainSequence == null)
 			throw new EngineException("Unable to create step's structure : sequence is null");
 		
-		Hashtable<String, Step> stepsMap = new Hashtable<String, Step>(50);
+		Map<String, Step> stepsMap = new HashMap<String, Step>(50);
 		Step step = createStep(mainSequence, stepsMap, null, node, deepClone);
 		stepsMap.clear();
 		return step;
 	}
 	
-	private static Step createStep(Sequence mainSequence, Hashtable<String, Step> stepsMap, Object parent, Node node, boolean deepClone) throws EngineException {
+	private static Step createStep(Sequence mainSequence, Map<String, Step> stepsMap, Object parent, Node node, boolean deepClone) throws EngineException {
 		Step step = null;
 		
 		int nodeType = node.getNodeType();

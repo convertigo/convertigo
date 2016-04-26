@@ -27,8 +27,9 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -967,7 +968,7 @@ public class HtmlTransaction extends HttpTransaction {
 
 		// Retrieve extraction rules schemas
 		List<HtmlScreenClass> screenClasses = connector.getAllScreenClasses();
-		Map<String, ScreenClass> ht = new Hashtable<String, ScreenClass>(screenClasses.size());
+		Map<String, ScreenClass> ht = new HashMap<String, ScreenClass>(screenClasses.size());
 		String normalizedScreenClassName;
 		int i;
 
@@ -976,8 +977,8 @@ public class HtmlTransaction extends HttpTransaction {
 			ht.put(normalizedScreenClassName, screenClass);
 		}
 
-		Hashtable<String, String> names = new Hashtable<String, String>();
-		Hashtable<String, String> types = new Hashtable<String, String>();
+		Map<String, String> names = new HashMap<String, String>();
+		Map<String, String> types = new HashMap<String, String>();
 		
 		List<String> schemas = new LinkedList<String>();
 		screenClass = connector.getDefaultScreenClass();
@@ -1020,7 +1021,7 @@ public class HtmlTransaction extends HttpTransaction {
 			schema += "</xsd:complexType>\n";
 			
 			schema += group;
-			for (Enumeration<String> e = types.keys(); e.hasMoreElements();) {
+			for (Enumeration<String> e = Collections.enumeration(types.keySet()); e.hasMoreElements();) {
 				String typeSchema = (String) types.get(e.nextElement());
 				schema += typeSchema;
 			}

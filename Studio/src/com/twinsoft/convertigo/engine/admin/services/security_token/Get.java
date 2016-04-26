@@ -22,7 +22,7 @@
 
 package com.twinsoft.convertigo.engine.admin.services.security_token;
 
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -72,7 +72,7 @@ public class Get extends TextService {
 		Engine.logAdmin.debug("security_token.Get: userID=" + userID);
 		
 		// Get extra data if present
-		Map<String, String> data = new Hashtable<String, String>();
+		Map<String, String> data = new HashMap<String, String>();
 		Map<String, String> parameters = GenericUtils.cast(request.getParameterMap());
 		for (String parameter : parameters.keySet()) {
 			if (parameter.startsWith("data.")) {

@@ -23,7 +23,8 @@
 package com.twinsoft.convertigo.eclipse.dialogs;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
@@ -51,7 +52,7 @@ public class TransactionXSDTypesDialogComposite extends MyAbstractDialogComposit
 	private HtmlTransaction transaction = null;
 	private String xsdTypes = null;
 	protected List list = null;
-	private Hashtable<String, String> items = null;
+	private Map<String, String> items = null;
 	private ArrayList<String> currenTypes = null;
 	
 	public TransactionXSDTypesDialogComposite(Composite parent, int style, Object parentObject) {
@@ -104,7 +105,7 @@ public class TransactionXSDTypesDialogComposite extends MyAbstractDialogComposit
 						String[] types = sTypes.split("\\n");
 						int len = types.length;
 						if (len > 0) {
-							items = new Hashtable<String, String>();
+							items = new HashMap<String, String>();
 							for (int z = 0; z<len; z++) {
 								String type = types[z];
 								String s = type.replaceAll("\\r", "");

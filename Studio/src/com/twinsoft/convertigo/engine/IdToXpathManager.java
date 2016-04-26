@@ -22,7 +22,7 @@
 
 package com.twinsoft.convertigo.engine;
 
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -32,7 +32,7 @@ import org.w3c.dom.Node;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class IdToXpathManager {
-	protected Map<String, Node> idToNode = new Hashtable<String, Node>();
+	protected Map<String, Node> idToNode = new HashMap<String, Node>();
 	protected List<Object[]> transactionRange = new Vector<Object[]>();
 	protected int cpt = 0;
 

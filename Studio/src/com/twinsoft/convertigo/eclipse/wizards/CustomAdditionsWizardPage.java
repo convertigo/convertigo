@@ -23,7 +23,7 @@
 package com.twinsoft.convertigo.eclipse.wizards;
 
 import java.io.InputStream;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -60,7 +60,7 @@ public class CustomAdditionsWizardPage extends WizardPage {
     protected Cursor handCursor;
     protected CLabel currentSelectedItem = null;
     
-    private Map<String, Image> icons = new Hashtable<String, Image>(256);
+    private Map<String, Image> icons = new HashMap<String, Image>(256);
     
     public CustomAdditionsWizardPage(String pageName) {
 		super(pageName);
