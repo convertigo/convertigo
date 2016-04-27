@@ -601,13 +601,16 @@ public class WsReference {
 			HttpConnector httpConnector = new HttpConnector();
 			httpConnector.bNew = true;
 			
+			
 			Info info = swagger.getInfo();
-			httpConnector.setName(StringUtils.normalize(info.getTitle()));
+			String title = info != null ? info.getTitle():"";
+			title = title == null || title.isEmpty() ? "RestConnector":title;
+			httpConnector.setName(StringUtils.normalize(title));
 			
 			String host = swagger.getHost();
 			int index = host.indexOf(":");
 			String server = index == -1 ? host : host.substring(0, index);
-			int port = index == -1 ? 0 : Integer.parseInt(host.substring(index+1, 10));
+			int port = index == -1 ? 0 : Integer.parseInt(host.substring(index+1),10);
 			httpConnector.setServer(server);
 			httpConnector.setPort(port);
 			
@@ -730,7 +733,7 @@ public class WsReference {
 						//String p_in = parameter.getIn();
 						String p_name = parameter.getName();
 						//String p_pattern = parameter.getPattern();
-						//boolean p_required = parameter.getRequired();
+						boolean p_required = parameter.getRequired();
 						//Map<String,Object> p_extensions = parameter.getVendorExtensions();
 						
 						boolean isMultiValued = false;
@@ -750,6 +753,7 @@ public class WsReference {
 						
 						httpVariable.setName(p_name);
 						httpVariable.setHttpName(p_name);
+						httpVariable.setRequired(p_required);
 						
 						if (parameter instanceof QueryParameter || parameter instanceof PathParameter || parameter instanceof HeaderParameter) {
 							httpVariable.setHttpMethod(HttpMethodType.GET.name());
@@ -799,7 +803,7 @@ public class WsReference {
 								} catch (Exception e) {}
 							}
 						}
-						if (defaultValue == null && parameter.getRequired()) {
+						if (defaultValue == null && p_required) {
 							defaultValue = "";
 						}
 						httpVariable.setValueOrNull(defaultValue);
