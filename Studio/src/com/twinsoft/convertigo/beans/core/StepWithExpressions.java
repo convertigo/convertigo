@@ -84,7 +84,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 		super();
 		
 		orderedSteps = new XMLVector<XMLVector<Long>>();
-		orderedSteps.addElement(new XMLVector<Long>());
+		orderedSteps.add(new XMLVector<Long>());
 	}
 
 	@Override
@@ -244,7 +244,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
     }
 
     public void insertOrderedStep(Step step, Long after) {
-    	XMLVector<Long> ordered = orderedSteps.elementAt(0);
+    	XMLVector<Long> ordered = orderedSteps.get(0);
     	int size = ordered.size();
     	
     	Long value = new Long(step.priority);
@@ -278,8 +278,8 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
     }
     
     public void removeOrderedStep(Long value) {
-    	XMLVector<Long> ordered = orderedSteps.elementAt(0);
-        ordered.removeElement(value);
+    	XMLVector<Long> ordered = orderedSteps.get(0);
+        ordered.remove(value);
         hasChanged = true;
     }
     
@@ -361,7 +361,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 	}
 	
     private void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
-    	XMLVector<Long> ordered = orderedSteps.elementAt(0);
+    	XMLVector<Long> ordered = orderedSteps.get(0);
     	Long value = new Long(databaseObject.priority);
     	
     	if (!ordered.contains(value))
@@ -371,7 +371,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
     		return;
     	
     	if (before == null)
-    		before = (Long)ordered.elementAt(pos-1);
+    		before = (Long)ordered.get(pos-1);
     	int pos1 = ordered.indexOf(before);
     	
     	ordered.insertElementAt(value, pos1);
@@ -380,7 +380,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
     }
 	
     private void decreaseOrder(DatabaseObject databaseObject, Long after) throws EngineException {
-    	XMLVector<Long> ordered = orderedSteps.elementAt(0);
+    	XMLVector<Long> ordered = orderedSteps.get(0);
     	Long value = new Long(databaseObject.priority);
     	
     	if (!ordered.contains(value))
@@ -390,7 +390,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
     		return;
     	
     	if (after == null)
-    		after = (Long)ordered.elementAt(pos+1);
+    		after = (Long)ordered.get(pos+1);
     	int pos1 = ordered.indexOf(after);
     	
     	ordered.insertElementAt(value, pos1+1);
@@ -402,7 +402,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 		if (Engine.logBeans.isTraceEnabled()) {
 			String steps = "";
 			if (orderedSteps.size() > 0) {
-				XMLVector<Long> ordered = orderedSteps.elementAt(0);
+				XMLVector<Long> ordered = orderedSteps.get(0);
 				steps = Arrays.asList(ordered.toArray()).toString();
 			}
 			Engine.logBeans.trace("["+ getName() +"] Ordered Steps ["+ steps + "]");

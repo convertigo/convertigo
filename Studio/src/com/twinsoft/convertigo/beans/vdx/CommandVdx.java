@@ -123,11 +123,11 @@ public class CommandVdx extends com.twinsoft.convertigo.beans.common.Command {
         
         // test if the current block matches a keyword
         for (int i = 0; i < keywordTable.size(); i++) {
-            XMLVector<String> keyword = keywordTable.elementAt(i);
-            String textKeyword = keyword.elementAt(0);
-            String dataKeyword = keyword.elementAt(1);
-            String replaceTextKeyword = keyword.elementAt(2);
-            String actionKeyword = keyword.elementAt(3);
+            XMLVector<String> keyword = keywordTable.get(i);
+            String textKeyword = keyword.get(0);
+            String dataKeyword = keyword.get(1);
+            String replaceTextKeyword = keyword.get(2);
+            String actionKeyword = keyword.get(3);
             if (textBlock.equals(textKeyword) || (textBlock.equalsIgnoreCase(textKeyword) && !isCaseDependency())) {
                 // set its type to "keyword"
                 block.type = "keyword";

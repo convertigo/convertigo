@@ -127,7 +127,7 @@ abstract public class XMLActionStep extends Step implements IStepSourcesContaine
 	
 	protected StepSource getDefinitionsSource(int index) {
 		if (sourcesDefinition.size() > 0) {
-			List<Object> xmlv = sourcesDefinition.elementAt(index);
+			List<Object> xmlv = sourcesDefinition.get(index);
 			if (xmlv.size() > 0) {
 				StepSource source = new StepSource(this, GenericUtils.<XMLVector<String>>cast(xmlv.get(1)));
 				return source;
@@ -138,14 +138,14 @@ abstract public class XMLActionStep extends Step implements IStepSourcesContaine
 	
 	protected void setDefinitionsSource(int index, XMLVector<String> nxmlv) {
 		if (sourcesDefinition.size() > 0) {
-			List<Object> xmlv = sourcesDefinition.elementAt(index);
+			List<Object> xmlv = sourcesDefinition.get(index);
 			xmlv.set(1, nxmlv);
 		}
 	}
 	
 	protected String getDefinitionsDefaultValue(int index) {
 		if (sourcesDefinition.size() > 0) {
-			List<Object> xmlv = sourcesDefinition.elementAt(index);
+			List<Object> xmlv = sourcesDefinition.get(index);
 			if (xmlv != null)
 				return (String) xmlv.get(2);
 		}

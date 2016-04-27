@@ -514,7 +514,7 @@ public class Migration5_0_0 {
     		xmlv = GenericUtils.cast(XMLUtils.readObjectFromXml((Element) node));
     		ordered = new XMLVector<Long>();
 			for (int j=0; j<xmlv.size(); j++) {
-				row = (XMLVector<?>)xmlv.elementAt(j);
+				row = (XMLVector<?>)xmlv.get(j);
 				if (!row.isEmpty()) {
     				try {
     					variable = newVariable(elementClassName, row, j);
@@ -599,10 +599,10 @@ public class Migration5_0_0 {
 									
 									int len = xmlv.size();
 									for (int i = 0 ; i < len ; i++) {
-										XMLVector<Object> line = xmlv.elementAt(i);
+										XMLVector<Object> line = xmlv.get(i);
 										if (xmlv1.size()>0) {
-											line.add(xmlv1.elementAt(i).elementAt(1));
-											line.add(xmlv1.elementAt(i).elementAt(2));
+											line.add(xmlv1.get(i).get(1));
+											line.add(xmlv1.get(i).get(2));
 										}
 									}
 								}
@@ -610,7 +610,7 @@ public class Migration5_0_0 {
 							
 							int len = xmlv.size();
 							for (int i = 0 ; i < len ; i++) {
-								XMLVector<Object> line = xmlv.elementAt(i);
+								XMLVector<Object> line = xmlv.get(i);
 								if (line.size()>0) {
 									// Include in WSDL by default
 									line.add(Boolean.TRUE);
@@ -623,7 +623,7 @@ public class Migration5_0_0 {
 						if (VersionUtils.compare(version, "3.2.4") < 0) {
 							int len = xmlv.size();
 							for (int i = 0 ; i < len ; i++) {
-								XMLVector<Object> line = xmlv.elementAt(i);
+								XMLVector<Object> line = xmlv.get(i);
 								if (line.size()>0) {
 									// Defaults to non multivalued variable
 									line.insertElementAt(Boolean.FALSE, 3);
@@ -653,12 +653,12 @@ public class Migration5_0_0 {
 				    	if (VersionUtils.compare(version, "4.2.0") < 0) {
 							int len = xmlv.size();
 							for (int i = 0 ; i < len ; i++) {
-								XMLVector<Object> line = xmlv.elementAt(i);
+								XMLVector<Object> line = xmlv.get(i);
 								if (line.size()>0) {
 									// Do not set as Personalizable by default
 									line.insertElementAt(Boolean.FALSE, 4);
 									// Sets description to variable name by default
-									line.insertElementAt(line.elementAt(0), 1);
+									line.insertElementAt(line.get(0), 1);
 								}
 							}
 								
@@ -669,7 +669,7 @@ public class Migration5_0_0 {
 						if (VersionUtils.compare(version, "4.3.0") < 0) {
 							int len = xmlv.size();
 							for (int i = 0 ; i < len ; i++) {
-								XMLVector<Object> line = xmlv.elementAt(i);
+								XMLVector<Object> line = xmlv.get(i);
 								if (line.size()>0) {
 									// Set cached key
 									line.insertElementAt(Boolean.TRUE, 6);
@@ -735,60 +735,60 @@ public class Migration5_0_0 {
 			beanClass = GenericUtils.cast(Class.forName(classname));
 			
 	    	if (AbstractHttpTransaction.class.isAssignableFrom(beanClass)) {
-	    		Boolean isMulti = (Boolean)xmlv.elementAt(4);
+	    		Boolean isMulti = (Boolean)xmlv.get(4);
 	    		RequestableHttpVariable variable;
 	    		variable = (isMulti ? new RequestableHttpMultiValuedVariable():new RequestableHttpVariable());
-				variable.setName((String)xmlv.elementAt(0));
-				variable.setDescription((String)xmlv.elementAt(1));
-				variable.setValueOrNull(xmlv.elementAt(2));
-				variable.setWsdl(((Boolean)xmlv.elementAt(3)));
-				variable.setPersonalizable(((Boolean)xmlv.elementAt(5)));
-				variable.setCachedKey(((Boolean)xmlv.elementAt(6)));
-				variable.setHttpMethod((String)xmlv.elementAt(7));
-				variable.setHttpName((String)xmlv.elementAt(8));
+				variable.setName((String)xmlv.get(0));
+				variable.setDescription((String)xmlv.get(1));
+				variable.setValueOrNull(xmlv.get(2));
+				variable.setWsdl(((Boolean)xmlv.get(3)));
+				variable.setPersonalizable(((Boolean)xmlv.get(5)));
+				variable.setCachedKey(((Boolean)xmlv.get(6)));
+				variable.setHttpMethod((String)xmlv.get(7));
+				variable.setHttpName((String)xmlv.get(8));
 				variable.bNew = true;
 				variable.hasChanged = true;
 				return variable;
 			}
 	    	else if (TransactionWithVariables.class.isAssignableFrom(beanClass) ||
 	    			Sequence.class.isAssignableFrom(beanClass)) {
-	    		Boolean isMulti = (Boolean)xmlv.elementAt(4);
+	    		Boolean isMulti = (Boolean)xmlv.get(4);
 				RequestableVariable variable = (isMulti ? new RequestableMultiValuedVariable():new RequestableVariable());
-				variable.setName((String)xmlv.elementAt(0));
-				variable.setDescription((String)xmlv.elementAt(1));
-				variable.setValueOrNull(xmlv.elementAt(2));
-				variable.setWsdl(((Boolean)xmlv.elementAt(3)));
-				variable.setPersonalizable(((Boolean)xmlv.elementAt(5)));
-				variable.setCachedKey(((Boolean)xmlv.elementAt(6)));
+				variable.setName((String)xmlv.get(0));
+				variable.setDescription((String)xmlv.get(1));
+				variable.setValueOrNull(xmlv.get(2));
+				variable.setWsdl(((Boolean)xmlv.get(3)));
+				variable.setPersonalizable(((Boolean)xmlv.get(5)));
+				variable.setCachedKey(((Boolean)xmlv.get(6)));
 				variable.bNew = true;
 				variable.hasChanged = true;
 				return variable;
 	    	}
 	    	else if (RequestableStep.class.isAssignableFrom(beanClass)) {
 				StepVariable variable = new StepVariable();
-				variable.setName((String)xmlv.elementAt(0));
-				variable.setDescription((String)xmlv.elementAt(1));
-				variable.setSourceDefinition(GenericUtils.<XMLVector<String>>cast(xmlv.elementAt(2)));
-				variable.setValueOrNull(xmlv.elementAt(3));
+				variable.setName((String)xmlv.get(0));
+				variable.setDescription((String)xmlv.get(1));
+				variable.setSourceDefinition(GenericUtils.<XMLVector<String>>cast(xmlv.get(2)));
+				variable.setValueOrNull(xmlv.get(3));
 				variable.bNew = true;
 				variable.hasChanged = true;
 				return variable;
 	    	}
 	    	else if (com.twinsoft.convertigo.beans.statements.HTTPStatement.class.isAssignableFrom(beanClass)) {
-	    		Boolean isMulti = (Boolean)xmlv.elementAt(3);
+	    		Boolean isMulti = (Boolean)xmlv.get(3);
 	    		HttpStatementVariable variable;
 	    		variable = (isMulti ? new HttpStatementMultiValuedVariable():new HttpStatementVariable());
 				try {
-					variable.setName((String)xmlv.elementAt(0));
+					variable.setName((String)xmlv.get(0));
 				}
 				catch (Exception e) {
 					variable.setName("variable"+index);
 					Engine.logDatabaseObjectManager.warn("[Migration 4.6.0] For variable at index "+index+", empty name has been replaced by 'variable"+index+"'!");
 				}
-				variable.setDescription((String)xmlv.elementAt(1));
-				variable.setValueOrNull(xmlv.elementAt(2));
-				variable.setHttpMethod((String)xmlv.elementAt(4));
-				variable.setHttpName((String)xmlv.elementAt(5));
+				variable.setDescription((String)xmlv.get(1));
+				variable.setValueOrNull(xmlv.get(2));
+				variable.setHttpMethod((String)xmlv.get(4));
+				variable.setHttpName((String)xmlv.get(5));
 				variable.bNew = true;
 				variable.hasChanged = true;
 				return variable;

@@ -132,8 +132,8 @@ public class StepSourceEditorComposite extends AbstractDialogComposite {
 
 	private void addNewSource() {
 		XMLVector<String> stepSourceDefinition = new XMLVector<String>();
-		stepSourceDefinition.addElement("0");
-		stepSourceDefinition.addElement(".");
+		stepSourceDefinition.add("0");
+		stepSourceDefinition.add(".");
 		sourcePicker.setStepSourceDefinition(stepSourceDefinition);
 	}
 	
@@ -184,7 +184,7 @@ public class StepSourceEditorComposite extends AbstractDialogComposite {
 		XMLVector<String> stepSourceDefinition = sourcePicker.getStepSourceDefinition();
 		if (sourcePicker.getStepSourceDefinition().size() > 0) {
 			tree.setEnabled(true);
-			long priority = Long.parseLong(stepSourceDefinition.elementAt(0), 10);
+			long priority = Long.parseLong(stepSourceDefinition.get(0), 10);
 			TreeItem tItem = null;
 
 			try {

@@ -147,7 +147,7 @@ public class ArrayOrNullEditor extends ArrayEditor implements INullEditor {
 		labelCtrl.setEnabled(!isNull);
 		buttonOpenCtrl.setEnabled(!isNull);
 		XMLVector<Object> xmlv = new XMLVector<Object>();
-		if (isNull) xmlv.addElement("null");
+		if (isNull) xmlv.add("null");
 		doSetValue(xmlv);
 		fireApplyEditorValue();
 		deactivate();		

@@ -23,10 +23,12 @@
 package com.twinsoft.convertigo.beans.common;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.Enumeration;
 import java.util.List;
-import java.util.Vector;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -36,7 +38,7 @@ import org.w3c.dom.NodeList;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public class XMLVector<E> extends Vector<E> implements XMLizable, List<E> {
+public class XMLVector<E> extends ArrayList<E> implements XMLizable, List<E> {
 
 	private static final long serialVersionUID = 8052622891480541738L;
 
@@ -52,11 +54,12 @@ public class XMLVector<E> extends Vector<E> implements XMLizable, List<E> {
 	static{ Arrays.sort(classList, comparator); }
 	
 	public XMLVector() {
-		super();
+		super(10);
     }
     
     @SuppressWarnings({ "unchecked", "rawtypes" })
 	public XMLVector(XMLVector<E> v) {
+    	super(v.size());
     	for(E e : v){
     		if(Arrays.binarySearch(classList, e.getClass(), comparator)!=-1) add(e);
     		else if(e instanceof XMLVector)
@@ -93,4 +96,24 @@ public class XMLVector<E> extends Vector<E> implements XMLizable, List<E> {
             }
         }
     }
+
+	public void insertElementAt(E element, int i) {
+		add(i, element);
+	}
+
+	public E lastElement() {
+		return get(size() - 1);
+	}
+
+	public Enumeration<E> elements() {
+		return Collections.enumeration(this);
+	}
+
+	public void setElementAt(E element, int i) {
+		set(i, element);
+	}
+
+	public E firstElement() {
+		return get(0);
+	}
 }

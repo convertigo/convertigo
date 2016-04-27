@@ -253,7 +253,7 @@ public class Copybook {
 				cblvar.bytes = COBOLUtils.getSizeInBytes(cblvar.picture, cblvar.format);
 				offset += cblvar.bytes;
 				
-				v.addElement(cblvar.toXMLVector());
+				v.add(cblvar.toXMLVector());
 				
 				//System.out.println("\n"+ cblvar.line);
 				//System.out.println(cblvar.toString());
@@ -289,7 +289,7 @@ public class Copybook {
 				cblvar.bytes = COBOLUtils.getSizeInBytes(cblvar.picture, cblvar.format);
 				offset += cblvar.bytes;
 				
-				v.addElement(cblvar.toXMLVector2());
+				v.add(cblvar.toXMLVector2());
 				
 				//System.out.println("\n"+ cblvar.line);
 				//System.out.println(cblvar.toString());
@@ -324,13 +324,13 @@ public class Copybook {
 				while (rows.hasMoreElements()) {
 					XMLVector<Object> row = rows.nextElement();
 				
-					String sLevel = (String)row.elementAt(0);
-					String sName = (String)row.elementAt(1);
-					String sOccurs = (String)row.elementAt(2);
-					String sBytes = ((Integer)row.elementAt(3)).toString();
-					String sFormat = (String)row.elementAt(4);
-					String sPicture = (String)row.elementAt(5);
-					String sValue = (String)row.elementAt(6);
+					String sLevel = (String)row.get(0);
+					String sName = (String)row.get(1);
+					String sOccurs = (String)row.get(2);
+					String sBytes = ((Integer)row.get(3)).toString();
+					String sFormat = (String)row.get(4);
+					String sPicture = (String)row.get(5);
+					String sValue = (String)row.get(6);
 				
 					int level = Integer.parseInt(sLevel,10);
 					if (level > 0) {
@@ -438,11 +438,11 @@ public class Copybook {
 		public XMLVector<Object> toXMLVector() {
 			XMLVector<Object> v = new XMLVector<Object>();
 			
-			v.addElement(name);
-			v.addElement(new Integer(offset));
-			v.addElement(new Integer(bytes));
-			v.addElement(format);
-			v.addElement(picture);
+			v.add(name);
+			v.add(new Integer(offset));
+			v.add(new Integer(bytes));
+			v.add(format);
+			v.add(picture);
 			
 			return v;
 		}
@@ -450,24 +450,24 @@ public class Copybook {
 		public XMLVector<Object> toXMLVector2() {
 			XMLVector<Object> v = new XMLVector<Object>();
 			
-			v.addElement(level);
+			v.add(level);
 			name = (Character.isDigit(name.charAt(0)) ? "_":"") + name;
-			v.addElement(name.replaceAll("-","_"));
+			v.add(name.replaceAll("-","_"));
 			if (occurs[1]>0) {
 				if (!depends.equalsIgnoreCase(""))
-					v.addElement(""+ occurs[0] + ":" + occurs[1] + ":" + depends.replaceAll("-","_"));
+					v.add(""+ occurs[0] + ":" + occurs[1] + ":" + depends.replaceAll("-","_"));
 				else
-					v.addElement(""+ occurs[0] + ":" + occurs[1]);
+					v.add(""+ occurs[0] + ":" + occurs[1]);
 			}
 			else if (occurs[0]>0)
-				v.addElement(""+ occurs[0]);
+				v.add(""+ occurs[0]);
 			else
-				v.addElement("");
+				v.add("");
 			//v.addElement(new Integer(offset));
-			v.addElement(new Integer(bytes));
-			v.addElement(format);
-			v.addElement(picture);
-			v.addElement(defvalue);
+			v.add(new Integer(bytes));
+			v.add(format);
+			v.add(picture);
+			v.add(defvalue);
 			
 			return v;
 		}

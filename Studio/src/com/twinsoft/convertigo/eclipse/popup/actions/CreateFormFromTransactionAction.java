@@ -129,7 +129,7 @@ public class CreateFormFromTransactionAction extends MyAbstractAction {
         					newTrans.hasChanged = true;
         					newTrans.bNew = true;
         					XMLVector<XMLVector<Long>> orderedVariables = new XMLVector<XMLVector<Long>>();
-        					orderedVariables.addElement(new XMLVector<Long>());
+        					orderedVariables.add(new XMLVector<Long>());
         					newTrans.setOrderedVariables(orderedVariables);
         					newTrans.setSheetLocation(Transaction.SHEET_LOCATION_FROM_REQUESTABLE);
         					

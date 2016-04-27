@@ -128,7 +128,7 @@ public class SourcePickerHelper implements IStepSourceEditor {
 	}
 	
 	public String getSourceXPath() {
-		return stepSourceDefinition.elementAt(1);
+		return stepSourceDefinition.get(1);
 	}
 	
 	protected void clean() {
@@ -275,6 +275,6 @@ public class SourcePickerHelper implements IStepSourceEditor {
 	
 	@Override
 	public Object getDragData() {
-		return new StepSource(getStepSourceDefinition().elementAt(0), getSourceXPath());
+		return new StepSource(getStepSourceDefinition().get(0), getSourceXPath());
 	}
 }

@@ -57,8 +57,8 @@ public class StepDatesEditorComposite extends AbstractDialogComposite {
         
 		// Set start and stop dates
 		if (!xmlv.isEmpty()) {
-			XMLVector<String> dates = GenericUtils.cast(xmlv.elementAt(0));
-			String startDate = dates.elementAt(0);
+			XMLVector<String> dates = GenericUtils.cast(xmlv.get(0));
+			String startDate = dates.get(0);
 			String[] starts = startDate.split("/");
 			if (starts.length == 3) {
 				start.setDay(Integer.valueOf(starts[0]).intValue());
@@ -66,7 +66,7 @@ public class StepDatesEditorComposite extends AbstractDialogComposite {
 				start.setYear(Integer.valueOf(starts[2]).intValue());
 			}
 
-			String stopDate = dates.elementAt(1);
+			String stopDate = dates.get(1);
 			String[] stops = stopDate.split("/");
 			if (stops.length == 3) {
 				stop.setDay(Integer.valueOf(stops[0]).intValue());
@@ -77,14 +77,14 @@ public class StepDatesEditorComposite extends AbstractDialogComposite {
 
 		// Set days
 		if (!xmlv.isEmpty()) {
-			XMLVector<Boolean> days = GenericUtils.cast(xmlv.elementAt(1));
-	        checkMonday.setSelection(days.elementAt(0).booleanValue());
-	        checkTuesday.setSelection(days.elementAt(1).booleanValue());
-	        checkWednesday.setSelection(days.elementAt(2).booleanValue());
-	        checkThursday.setSelection(days.elementAt(3).booleanValue());
-	        checkFriday.setSelection(days.elementAt(4).booleanValue());
-	        checkSaturday.setSelection(days.elementAt(5).booleanValue());
-	        checkSunday.setSelection(days.elementAt(6).booleanValue());
+			XMLVector<Boolean> days = GenericUtils.cast(xmlv.get(1));
+	        checkMonday.setSelection(days.get(0).booleanValue());
+	        checkTuesday.setSelection(days.get(1).booleanValue());
+	        checkWednesday.setSelection(days.get(2).booleanValue());
+	        checkThursday.setSelection(days.get(3).booleanValue());
+	        checkFriday.setSelection(days.get(4).booleanValue());
+	        checkSaturday.setSelection(days.get(5).booleanValue());
+	        checkSunday.setSelection(days.get(6).booleanValue());
 		}
 		
 	}
@@ -104,20 +104,20 @@ public class StepDatesEditorComposite extends AbstractDialogComposite {
 		
 		// Add start and stop dates
 		XMLVector<String> dates = new XMLVector<String>();
-		dates.addElement(start.getDay() + "/" + String.valueOf(start.getMonth() + 1) + "/" + start.getYear());
-		dates.addElement(stop.getDay() + "/" + String.valueOf(stop.getMonth() + 1) + "/" + stop.getYear());
-		definitions.addElement(dates);
+		dates.add(start.getDay() + "/" + String.valueOf(start.getMonth() + 1) + "/" + start.getYear());
+		dates.add(stop.getDay() + "/" + String.valueOf(stop.getMonth() + 1) + "/" + stop.getYear());
+		definitions.add(dates);
 		
 		// Add day(s)
 		XMLVector<Boolean> days = new XMLVector<Boolean>();
-        days.addElement(checkMonday.getSelection() ? Boolean.TRUE:Boolean.FALSE);
-        days.addElement(checkTuesday.getSelection() ? Boolean.TRUE:Boolean.FALSE);
-        days.addElement(checkWednesday.getSelection() ? Boolean.TRUE:Boolean.FALSE);
-        days.addElement(checkThursday.getSelection() ? Boolean.TRUE:Boolean.FALSE);
-        days.addElement(checkFriday.getSelection() ? Boolean.TRUE:Boolean.FALSE);
-        days.addElement(checkSaturday.getSelection() ? Boolean.TRUE:Boolean.FALSE);
-        days.addElement(checkSunday.getSelection() ? Boolean.TRUE:Boolean.FALSE);
-        definitions.addElement(days);
+        days.add(checkMonday.getSelection() ? Boolean.TRUE:Boolean.FALSE);
+        days.add(checkTuesday.getSelection() ? Boolean.TRUE:Boolean.FALSE);
+        days.add(checkWednesday.getSelection() ? Boolean.TRUE:Boolean.FALSE);
+        days.add(checkThursday.getSelection() ? Boolean.TRUE:Boolean.FALSE);
+        days.add(checkFriday.getSelection() ? Boolean.TRUE:Boolean.FALSE);
+        days.add(checkSaturday.getSelection() ? Boolean.TRUE:Boolean.FALSE);
+        days.add(checkSunday.getSelection() ? Boolean.TRUE:Boolean.FALSE);
+        definitions.add(days);
         
         return definitions;
 	}

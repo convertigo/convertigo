@@ -173,10 +173,10 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 			int len = orderedVariables.size();
 			XMLVector<Long> line;
 			for (int i = 0 ; i < len ; i++) {
-				line = orderedVariables.elementAt(i);
+				line = orderedVariables.get(i);
 				if (httpVariables.size()>0) {
-					line.add(httpVariables.elementAt(i).elementAt(1));
-					line.add(httpVariables.elementAt(i).elementAt(2));
+					line.add(httpVariables.get(i).get(1));
+					line.add(httpVariables.get(i).get(2));
 				}
 			}
 			
@@ -207,17 +207,17 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
     			RequestableHttpVariable variable = (RequestableHttpVariable)getVariable(i);
     			
     			XMLVector<Object> v = new XMLVector<Object>();
-    			v.addElement(variable.getName());
-    			v.addElement(variable.getDescription());
-    			v.addElement(variable.getDefaultValue());
-    			v.addElement(variable.isWsdl());
-    			v.addElement(variable.isMultiValued());
-    			v.addElement(variable.isPersonalizable());
-    			v.addElement(variable.isCachedKey());
-    			v.addElement(variable.getHttpMethod());
-    			v.addElement(variable.getHttpName());
+    			v.add(variable.getName());
+    			v.add(variable.getDescription());
+    			v.add(variable.getDefaultValue());
+    			v.add(variable.isWsdl());
+    			v.add(variable.isMultiValued());
+    			v.add(variable.isPersonalizable());
+    			v.add(variable.isCachedKey());
+    			v.add(variable.getHttpMethod());
+    			v.add(variable.getHttpName());
     			
-    			xmlv.addElement(v);
+    			xmlv.add(v);
     		}
     	}
     	return xmlv;

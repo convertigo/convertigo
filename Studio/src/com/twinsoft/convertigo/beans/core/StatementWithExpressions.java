@@ -58,7 +58,7 @@ public abstract class StatementWithExpressions extends Statement implements ICon
 		super();
 		
 		orderedStatements = new XMLVector<XMLVector<Long>>();
-		orderedStatements.addElement(new XMLVector<Long>());
+		orderedStatements.add(new XMLVector<Long>());
 	}
 
 	@Override
@@ -104,7 +104,7 @@ public abstract class StatementWithExpressions extends Statement implements ICon
     }
 
     public void insertOrderedStatement(Statement statement, Long after) {
-    	XMLVector<Long> ordered = orderedStatements.elementAt(0);
+    	XMLVector<Long> ordered = orderedStatements.get(0);
     	int size = ordered.size();
     	
     	Long value = new Long(handlePriorities ? statement.priority : statement.newPriority);
@@ -133,8 +133,8 @@ public abstract class StatementWithExpressions extends Statement implements ICon
     }
     
     public void removeOrderedStatement(Long value) {
-    	XMLVector<Long> ordered = orderedStatements.elementAt(0);
-        ordered.removeElement(value);
+    	XMLVector<Long> ordered = orderedStatements.get(0);
+        ordered.remove(value);
         hasChanged = true;
     }
     
@@ -176,12 +176,12 @@ public abstract class StatementWithExpressions extends Statement implements ICon
 			Statement statement = (Statement)v.get(i);
 			if (statement.parent.equals(this)) statement.hasChanged = true;
     		s += "("+statement.getName()+":"+statement.priority+" -> "+statement.newPriority+")";
-			ordered.addElement(new Long(statement.newPriority));
+			ordered.add(new Long(statement.newPriority));
 		}
     	s += "]";
     	Engine.logBeans.debug("["+ getName() +"] " + s);
     	
-    	statements.addElement(ordered);
+    	statements.add(ordered);
 		setOrderedStatements(statements);
 		debugStatements();
 		hasChanged = true;
@@ -250,7 +250,7 @@ public abstract class StatementWithExpressions extends Statement implements ICon
 	}
 	
     private void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
-    	XMLVector<Long> ordered = orderedStatements.elementAt(0);
+    	XMLVector<Long> ordered = orderedStatements.get(0);
     	Long value = new Long(handlePriorities ? databaseObject.priority : databaseObject.newPriority);
     	
     	if (!ordered.contains(value))
@@ -260,7 +260,7 @@ public abstract class StatementWithExpressions extends Statement implements ICon
     		return;
     	
     	if (before == null)
-    		before = (Long)ordered.elementAt(pos-1);
+    		before = (Long)ordered.get(pos-1);
     	int pos1 = ordered.indexOf(before);
     	
     	ordered.insertElementAt(value, pos1);
@@ -269,7 +269,7 @@ public abstract class StatementWithExpressions extends Statement implements ICon
     }
 	
     private void decreaseOrder(DatabaseObject databaseObject, Long after) throws EngineException {
-    	XMLVector<Long> ordered = orderedStatements.elementAt(0);
+    	XMLVector<Long> ordered = orderedStatements.get(0);
     	Long value = new Long(handlePriorities ? databaseObject.priority : databaseObject.newPriority);
     	
     	if (!ordered.contains(value))
@@ -279,7 +279,7 @@ public abstract class StatementWithExpressions extends Statement implements ICon
     		return;
     	
     	if (after == null)
-    		after = (Long)ordered.elementAt(pos+1);
+    		after = (Long)ordered.get(pos+1);
     	int pos1 = ordered.indexOf(after);
     	
     	ordered.insertElementAt(value, pos1+1);
@@ -290,7 +290,7 @@ public abstract class StatementWithExpressions extends Statement implements ICon
 	public void debugStatements() {
 		String statements = "";
 		if (orderedStatements.size() > 0) {
-			XMLVector<Long> ordered = orderedStatements.elementAt(0);
+			XMLVector<Long> ordered = orderedStatements.get(0);
 			statements = Arrays.asList(ordered.toArray()).toString();
 		}
 		Engine.logBeans.trace("["+ getName() +"] Ordered Statements ["+ statements + "]");

@@ -432,10 +432,10 @@ public class ClipboardManager {
 						} else if (databaseObject instanceof ScreenClass) {
 							databaseObject.priority = screenClass.priority + 1;
 							XMLVector<XMLVector<Long>> orderedCriterias = new XMLVector<XMLVector<Long>>();
-							orderedCriterias.addElement(new XMLVector<Long>());
+							orderedCriterias.add(new XMLVector<Long>());
 							((ScreenClass) databaseObject).setOrderedCriterias(orderedCriterias);
 							XMLVector<XMLVector<Long>> orderedExtractionRules = new XMLVector<XMLVector<Long>>();
-							orderedExtractionRules.addElement(new XMLVector<Long>());
+							orderedExtractionRules.add(new XMLVector<Long>());
 							((ScreenClass) databaseObject).setOrderedExtractionRules(orderedExtractionRules);
 							screenClass.add(databaseObject);
 						}

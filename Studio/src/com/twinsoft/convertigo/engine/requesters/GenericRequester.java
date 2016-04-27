@@ -33,7 +33,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.Calendar;
 import java.util.Locale;
 import java.util.Map.Entry;
-import java.util.Vector;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.DocumentBuilder;
@@ -58,6 +57,7 @@ import org.w3c.dom.ProcessingInstruction;
 import org.xml.sax.InputSource;
 import org.xml.sax.XMLReader;
 
+import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.ISheetContainer;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -110,15 +110,14 @@ public abstract class GenericRequester extends Requester {
 	}
 
 	private String findBrowserFromUserAgent(Project project, String userAgent) {
-        Vector<?> browserDefinitions = project.getBrowserDefinitions();
+        XMLVector<XMLVector<String>> browserDefinitions = project.getBrowserDefinitions();
         if (browserDefinitions != null) {
-            browserDefinitions.trimToSize();
             int len = browserDefinitions.size();
             String keyword, browser;
             RE regexp;
             for (int i = 0 ; i < len ; i++) {
-                browser = (String) ((Vector<?>) browserDefinitions.elementAt(i)).elementAt(0);
-                keyword = (String) ((Vector<?>) browserDefinitions.elementAt(i)).elementAt(1);
+                browser = browserDefinitions.get(i).get(0);
+                keyword = browserDefinitions.get(i).get(1);
                 try {
                     regexp = REUtil.createRE(keyword);
                     if (regexp.match(userAgent)) {

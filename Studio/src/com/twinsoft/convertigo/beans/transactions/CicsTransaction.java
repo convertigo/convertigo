@@ -330,13 +330,13 @@ public class CicsTransaction extends Transaction {
 				while (rows.hasMoreElements()) {
 					XMLVector<Object> row = rows.nextElement();
 				
-					String sLevel = (String)row.elementAt(0);
-					String sName = (String)row.elementAt(1);
-					String sOccurs = (String)row.elementAt(2);
-					String sBytes = ((Integer)row.elementAt(3)).toString();
-					String sFormat = (String)row.elementAt(4);
-					String sPicture = (String)row.elementAt(5);
-					String sDefault = (String)row.elementAt(6);
+					String sLevel = (String)row.get(0);
+					String sName = (String)row.get(1);
+					String sOccurs = (String)row.get(2);
+					String sBytes = ((Integer)row.get(3)).toString();
+					String sFormat = (String)row.get(4);
+					String sPicture = (String)row.get(5);
+					String sDefault = (String)row.get(6);
 				
 					int level = Integer.parseInt(sLevel,10);
 					if (level > 0) {

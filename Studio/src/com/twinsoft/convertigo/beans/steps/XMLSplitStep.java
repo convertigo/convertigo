@@ -98,7 +98,7 @@ public class XMLSplitStep extends XMLElementStep {
 			
 			String tag =""; 
 			if(tags.size()>index)
-				tag=(tags.elementAt(index)).elementAt(0);
+				tag=(tags.get(index)).get(0);
 			return tag.equals("") ? "split":tag;
 		}
 		return "split";
@@ -164,7 +164,7 @@ public class XMLSplitStep extends XMLElementStep {
 			
 			// for all split string : create a node and add it
 			for (int j = 0 ; j < splitString.size() ; j++) {
-				String splitted = (String) splitString.elementAt(j);
+				String splitted = (String) splitString.get(j);
 				Element split = doc.createElement(getTag(j)); 
 				split.appendChild(doc.createTextNode(splitted));
 				if (withRoot)

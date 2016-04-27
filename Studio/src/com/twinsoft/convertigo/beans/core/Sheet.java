@@ -85,7 +85,7 @@ public class Sheet extends DatabaseObject implements ITagsProperty{
 	        browsers[0] = Sheet.BROWSER_ALL;
 	        int i = 1;
 	        for(XMLVector<String> browserDef : vBrowsers) {
-	        	browsers[i] = browserDef.elementAt(0);
+	        	browsers[i] = browserDef.get(0);
 	        	i++;
 	        }
 	        return browsers;

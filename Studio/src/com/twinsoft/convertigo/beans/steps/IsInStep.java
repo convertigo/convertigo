@@ -73,9 +73,9 @@ public class IsInStep extends TestStep {
 					if (nodeValue == null)
 						nodeValue = "";
 					for (int j=0; j<testDefinition.size(); j++) {
-						XMLVector<String> xmlv = testDefinition.elementAt(j);
-						String operator = (String)xmlv.elementAt(0);
-						String regexp = (String)xmlv.elementAt(1);
+						XMLVector<String> xmlv = testDefinition.get(j);
+						String operator = (String)xmlv.get(0);
+						String regexp = (String)xmlv.get(1);
 						
 						Pattern myPattern = Pattern.compile(regexp);
 						Matcher myMatcher = myPattern.matcher(nodeValue);

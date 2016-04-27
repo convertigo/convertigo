@@ -727,7 +727,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			            			value = "null";
 			            		if (value instanceof XMLVector) {
 			            			XMLVector<Object> xmlv = new XMLVector<Object>();
-			            			xmlv.addElement("null");
+			            			xmlv.add("null");
 			            			value = xmlv;
 			            		}
 			            	}

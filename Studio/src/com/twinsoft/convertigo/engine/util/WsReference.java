@@ -444,9 +444,9 @@ public class WsReference {
 					
 					if (h_Accept != null) {
 						XMLVector<String> xmlv = new XMLVector<String>();
-						xmlv.addElement("Accept");
-						xmlv.addElement(h_Accept);
-			   			httpParameters.addElement(xmlv);
+						xmlv.add("Accept");
+						xmlv.add(h_Accept);
+			   			httpParameters.add(xmlv);
 			   			
 						if (h_Accept.equals(MimeType.Xml.value())) {
 							transaction = new XmlHttpTransaction();
@@ -461,9 +461,9 @@ public class WsReference {
 					
 					if (h_ContentType != null) {
 						XMLVector<String> xmlv = new XMLVector<String>();
-						xmlv.addElement(HeaderName.ContentType.value());
-						xmlv.addElement(h_ContentType);
-			   			httpParameters.addElement(xmlv);
+						xmlv.add(HeaderName.ContentType.value());
+						xmlv.add(h_ContentType);
+			   			httpParameters.add(xmlv);
 					}
 					
 
@@ -700,9 +700,9 @@ public class WsReference {
 					
 					if (h_Accept != null) {
 						XMLVector<String> xmlv = new XMLVector<String>();
-						xmlv.addElement("Accept");
-						xmlv.addElement(h_Accept);
-			   			httpParameters.addElement(xmlv);
+						xmlv.add("Accept");
+						xmlv.add(h_Accept);
+			   			httpParameters.add(xmlv);
 			   			
 						if (h_Accept.equals(MimeType.Xml.value())) {
 							transaction = new XmlHttpTransaction();
@@ -717,9 +717,9 @@ public class WsReference {
 					
 					if (h_ContentType != null) {
 						XMLVector<String> xmlv = new XMLVector<String>();
-						xmlv.addElement(HeaderName.ContentType.name());
-						xmlv.addElement(h_ContentType);
-			   			httpParameters.addElement(xmlv);
+						xmlv.add(HeaderName.ContentType.name());
+						xmlv.add(h_ContentType);
+			   			httpParameters.add(xmlv);
 					}
 					
 					// Add variables
@@ -1043,24 +1043,24 @@ public class WsReference {
    			XMLVector<XMLVector<String>> parameters = new XMLVector<XMLVector<String>>();
    			XMLVector<String> xmlv;
    			xmlv = new XMLVector<String>();
-   			xmlv.addElement(HeaderName.ContentType.value());
-   			xmlv.addElement(MimeType.TextXml.value());
-   			parameters.addElement(xmlv);
+   			xmlv.add(HeaderName.ContentType.value());
+   			xmlv.add(MimeType.TextXml.value());
+   			parameters.add(xmlv);
    			
    			xmlv = new XMLVector<String>();
-   			xmlv.addElement("Host");
-   			xmlv.addElement(httpConnector.getServer());
-   			parameters.addElement(xmlv);
+   			xmlv.add("Host");
+   			xmlv.add(httpConnector.getServer());
+   			parameters.add(xmlv);
 
    			xmlv = new XMLVector<String>();
-   			xmlv.addElement("SOAPAction");
-   			xmlv.addElement(""); // fix #4215 - SOAPAction header must be empty
-   			parameters.addElement(xmlv);
+   			xmlv.add("SOAPAction");
+   			xmlv.add(""); // fix #4215 - SOAPAction header must be empty
+   			parameters.add(xmlv);
 
    			xmlv = new XMLVector<String>();
-   			xmlv.addElement("user-agent");
-   			xmlv.addElement("Convertigo EMS "+ Version.fullProductVersion);
-   			parameters.addElement(xmlv);
+   			xmlv.add("user-agent");
+   			xmlv.add("Convertigo EMS "+ Version.fullProductVersion);
+   			parameters.add(xmlv);
    			
    			xmlHttpTransaction.setHttpParameters(parameters);
    			

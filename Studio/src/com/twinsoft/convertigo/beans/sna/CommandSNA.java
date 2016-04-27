@@ -165,11 +165,11 @@ public class CommandSNA extends com.twinsoft.convertigo.beans.common.Command {
         
         // test if the current block matches a keyword
         for (int i = 0; i < keywordTable.size(); i++) {
-        	XMLVector<String> keyword = keywordTable.elementAt(i);
-            String textKeyword = keyword.elementAt(0);
-            String dataKeyword = keyword.elementAt(1);
-            String replaceTextKeyword = keyword.elementAt(2);
-            String actionKeyword = keyword.elementAt(3);
+        	XMLVector<String> keyword = keywordTable.get(i);
+            String textKeyword = keyword.get(0);
+            String dataKeyword = keyword.get(1);
+            String replaceTextKeyword = keyword.get(2);
+            String actionKeyword = keyword.get(3);
             
             if (labelLocation != CommandSNA.LABEL_LOCATION_WEST){
             	// key is the first element ex : PF3=EXIT
@@ -201,8 +201,8 @@ public class CommandSNA extends com.twinsoft.convertigo.beans.common.Command {
 		                        	// try to parse old label to see if the keyword is the only one of the block
 		                        	int index = -1;
 		                        	for (int k = 0 ; k < keywordTable.size() ; k++) {
-		                        		XMLVector<String> keywordBis = keywordTable.elementAt(k);
-		                                String textKeywordBis = keywordBis.elementAt(0);
+		                        		XMLVector<String> keywordBis = keywordTable.get(k);
+		                                String textKeywordBis = keywordBis.get(0);
 		                                if (oldLabel.indexOf(textKeywordBis) != -1 && (oldLabel.indexOf(textKeywordBis) < index || index == -1))
 		                                	index = oldLabel.indexOf(textKeywordBis);
 		                        	}
@@ -263,8 +263,8 @@ public class CommandSNA extends com.twinsoft.convertigo.beans.common.Command {
 										// try to parse old label to see if the keyword is the only one of the block
 			                        	int index = -1;
 			                        	for (int k = 0 ; k < keywordTable.size() ; k++) {
-			                        		XMLVector<String> keywordBis = keywordTable.elementAt(i);
-			                                String textKeywordBis = keywordBis.elementAt(0);
+			                        		XMLVector<String> keywordBis = keywordTable.get(i);
+			                                String textKeywordBis = keywordBis.get(0);
 			                                if (oldLabel.indexOf(textKeywordBis) != -1 && oldLabel.indexOf(textKeywordBis) < index)
 			                                	index = oldLabel.indexOf(textKeywordBis);
 			                        	}

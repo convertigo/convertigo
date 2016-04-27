@@ -96,9 +96,9 @@ public class XMLTransformStep extends XMLElementStep {
 		String transformed = nodeValue;
 		if (transformed != null) {
 			for (int i=0; i<replacements.size(); i++) {
-				XMLVector<String> xmlv = replacements.elementAt(i);
-				String regexp = xmlv.elementAt(0);
-				String replacement = xmlv.elementAt(1);
+				XMLVector<String> xmlv = replacements.get(i);
+				String regexp = xmlv.get(0);
+				String replacement = xmlv.get(1);
 				if (!regexp.equals(""))
 					transformed = transformed.replaceAll(regexp, replacement);
 			}

@@ -148,10 +148,10 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	public Sequence() {
         super();
 		orderedSteps = new XMLVector<XMLVector<Long>>();
-		orderedSteps.addElement(new XMLVector<Long>());
+		orderedSteps.add(new XMLVector<Long>());
         
 		orderedVariables = new XMLVector<XMLVector<Long>>();
-		orderedVariables.addElement(new XMLVector<Long>());
+		orderedVariables.add(new XMLVector<Long>());
 
 		databaseType = "Sequence";
 	}
@@ -613,15 +613,15 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     			RequestableVariable variable = (RequestableVariable)getVariable(i);
     			
     			XMLVector<Object> v = new XMLVector<Object>();
-    			v.addElement(variable.getName());
-    			v.addElement(variable.getDescription());
-    			v.addElement(variable.getDefaultValue());
-    			v.addElement(variable.isWsdl());
-    			v.addElement(variable.isMultiValued());
-    			v.addElement(variable.isPersonalizable());
-    			v.addElement(variable.isCachedKey());
+    			v.add(variable.getName());
+    			v.add(variable.getDescription());
+    			v.add(variable.getDefaultValue());
+    			v.add(variable.isWsdl());
+    			v.add(variable.isMultiValued());
+    			v.add(variable.isPersonalizable());
+    			v.add(variable.isCachedKey());
     			
-    			xmlv.addElement(v);
+    			xmlv.add(v);
     		}
     	}
     	return xmlv;
@@ -711,7 +711,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     }
 
     public void insertOrderedStep(Step step, Long after) {
-    	XMLVector<Long> ordered = orderedSteps.elementAt(0);
+    	XMLVector<Long> ordered = orderedSteps.get(0);
     	int size = ordered.size();
     	
     	Long value = new Long(step.priority);
@@ -731,7 +731,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     }
 	
     private void insertOrderedVariable(Variable variable, Long after) {
-    	XMLVector<Long> ordered = orderedVariables.elementAt(0);
+    	XMLVector<Long> ordered = orderedVariables.get(0);
     	int size = ordered.size();
     	
     	Long value = new Long(variable.priority);
@@ -775,14 +775,14 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     }
     
     private void removeOrderedStep(Long value) {
-    	XMLVector<Long> ordered = orderedSteps.elementAt(0);
-        ordered.removeElement(value);
+    	XMLVector<Long> ordered = orderedSteps.get(0);
+        ordered.remove(value);
         hasChanged = true;
     }
 
     private void removeOrderedVariable(Long value) {
-    	XMLVector<Long> ordered = orderedVariables.elementAt(0);
-        ordered.removeElement(value);
+    	XMLVector<Long> ordered = orderedVariables.get(0);
+        ordered.remove(value);
         hasChanged = true;
     }
 
@@ -790,7 +790,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	if (Engine.logBeans.isTraceEnabled()) {
     		String steps = "";
     		if (orderedSteps.size() > 0) {
-    			XMLVector<Long> ordered = orderedSteps.elementAt(0);
+    			XMLVector<Long> ordered = orderedSteps.get(0);
     			steps = Arrays.asList(ordered.toArray()).toString();
     		}
     		Engine.logBeans.trace("["+ getName() +"] Ordered Steps ["+ steps + "]");
@@ -816,9 +816,9 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	Long value = new Long(databaseObject.priority);
     	
     	if (databaseObject instanceof Step)
-    		ordered = orderedSteps.elementAt(0);
+    		ordered = orderedSteps.get(0);
     	else if (databaseObject instanceof Variable)
-    		ordered = orderedVariables.elementAt(0);
+    		ordered = orderedVariables.get(0);
     	
     	if (!ordered.contains(value))
     		return;
@@ -827,7 +827,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     		return;
     	
     	if (before == null)
-    		before = (Long)ordered.elementAt(pos-1);
+    		before = (Long)ordered.get(pos-1);
     	int pos1 = ordered.indexOf(before);
     	
     	ordered.insertElementAt(value, pos1);
@@ -840,9 +840,9 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	Long value = new Long(databaseObject.priority);
     	
     	if (databaseObject instanceof Step)
-    		ordered = orderedSteps.elementAt(0);
+    		ordered = orderedSteps.get(0);
     	else if (databaseObject instanceof Variable)
-    		ordered = orderedVariables.elementAt(0);
+    		ordered = orderedVariables.get(0);
     	
     	if (!ordered.contains(value))
     		return;
@@ -851,7 +851,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     		return;
     	
     	if (after == null)
-    		after = (Long)ordered.elementAt(pos+1);
+    		after = (Long)ordered.get(pos+1);
     	int pos1 = ordered.indexOf(after);
     	
     	ordered.insertElementAt(value, pos1+1);

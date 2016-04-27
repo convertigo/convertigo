@@ -77,7 +77,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
         super();
         
 		orderedVariables = new XMLVector<XMLVector<Long>>();
-		orderedVariables.addElement(new XMLVector<Long>());
+		orderedVariables.add(new XMLVector<Long>());
         
         databaseType = "Transaction";
     }
@@ -134,7 +134,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
     }
     
     private void insertOrderedVariable(Variable variable, Long after) {
-    	XMLVector<Long> ordered = orderedVariables.elementAt(0);
+    	XMLVector<Long> ordered = orderedVariables.get(0);
     	int size = ordered.size();
     	
     	Long value = new Long(variable.priority);
@@ -166,8 +166,8 @@ public abstract class TransactionWithVariables extends Transaction implements IV
     }
     
     private void removeOrderedVariable(Long value) {
-    	XMLVector<Long> ordered = orderedVariables.elementAt(0);
-        ordered.removeElement(value);
+    	XMLVector<Long> ordered = orderedVariables.get(0);
+        ordered.remove(value);
         hasChanged = true;
     }
     
@@ -180,7 +180,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
     	Long value = new Long(databaseObject.priority);
     	
     	if (databaseObject instanceof Variable)
-    		ordered = orderedVariables.elementAt(0);
+    		ordered = orderedVariables.get(0);
     	
     	if (!ordered.contains(value))
     		return;
@@ -189,7 +189,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
     		return;
     	
     	if (before == null)
-    		before = (Long)ordered.elementAt(pos-1);
+    		before = (Long)ordered.get(pos-1);
     	int pos1 = ordered.indexOf(before);
     	
     	ordered.insertElementAt(value, pos1);
@@ -202,7 +202,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
     	Long value = new Long(databaseObject.priority);
     	
     	if (databaseObject instanceof Variable)
-    		ordered = orderedVariables.elementAt(0);
+    		ordered = orderedVariables.get(0);
     	
     	if (!ordered.contains(value))
     		return;
@@ -211,7 +211,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
     		return;
     	
     	if (after == null)
-    		after = (Long)ordered.elementAt(pos+1);
+    		after = (Long)ordered.get(pos+1);
     	int pos1 = ordered.indexOf(after);
     	
     	ordered.insertElementAt(value, pos1+1);
@@ -277,15 +277,15 @@ public abstract class TransactionWithVariables extends Transaction implements IV
     			RequestableVariable variable = (RequestableVariable)getVariable(i);
     			
     			XMLVector<Object> v = new XMLVector<Object>();
-    			v.addElement(variable.getName());
-    			v.addElement(variable.getDescription());
-    			v.addElement(variable.getDefaultValue());
-    			v.addElement(variable.isWsdl());
-    			v.addElement(variable.isMultiValued());
-    			v.addElement(variable.isPersonalizable());
-    			v.addElement(variable.isCachedKey());
+    			v.add(variable.getName());
+    			v.add(variable.getDescription());
+    			v.add(variable.getDefaultValue());
+    			v.add(variable.isWsdl());
+    			v.add(variable.isMultiValued());
+    			v.add(variable.isPersonalizable());
+    			v.add(variable.isCachedKey());
     			
-    			xmlv.addElement(v);
+    			xmlv.add(v);
     		}
     	}
     	return xmlv;
@@ -818,7 +818,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 			int len = orderedVariables.size();
 			XMLVector line;
 			for (int i = 0 ; i < len ; i++) {
-				line = (XMLVector) orderedVariables.elementAt(i);
+				line = (XMLVector) orderedVariables.get(i);
 				if (line.size()>0) {
 					// Include in WSDL by default
 					line.add(Boolean.TRUE);
@@ -833,7 +833,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 			int len = orderedVariables.size();
 			XMLVector line;
 			for (int i = 0 ; i < len ; i++) {
-				line = (XMLVector) orderedVariables.elementAt(i);
+				line = (XMLVector) orderedVariables.get(i);
 				if (line.size()>0) {
 					// Defaults to non multivalued variable
 					line.insertElementAt(Boolean.FALSE, 3);
@@ -848,12 +848,12 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 			int len = orderedVariables.size();
 			XMLVector line;
 			for (int i = 0 ; i < len ; i++) {
-				line = (XMLVector) orderedVariables.elementAt(i);
+				line = (XMLVector) orderedVariables.get(i);
 				if (line.size()>0) {
 					// Do not set as Personalizable by default
 					line.insertElementAt(Boolean.FALSE, 4);
 					// Sets description to variable name by default
-					line.insertElementAt(line.elementAt(0), 1);
+					line.insertElementAt(line.get(0), 1);
 				}
 			}
 			
@@ -865,7 +865,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 			int len = orderedVariables.size();
 			XMLVector line;
 			for (int i = 0 ; i < len ; i++) {
-				line = (XMLVector) orderedVariables.elementAt(i);
+				line = (XMLVector) orderedVariables.get(i);
 				if (line.size()>0) {
 					// Set cached key
 					line.insertElementAt(Boolean.TRUE, 6);
