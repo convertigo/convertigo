@@ -25,23 +25,23 @@ package com.twinsoft.convertigo.engine.admin.services.certificates.mappings;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Properties;
-import java.util.Vector;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.CertificateManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
-import com.twinsoft.convertigo.engine.util.GenericUtils;
-import com.twinsoft.util.QuickSort;
 
 @ServiceDefinition(
 		name = "Configure",
@@ -63,8 +63,8 @@ public class Configure extends XmlService {
 		fis.close();
 
 		// Creation of the vector containing the certificates and the one containing the links
-		Vector<String> certifVector = new Vector<String>();
-		Vector<String> linksVector = new Vector<String>();
+		List<String> certifVector = new ArrayList<String>();
+		List<String> linksVector = new ArrayList<String>();
 		String tmp = "";
 		Enumeration<?> storesKeysEnum = storesProperties.propertyNames();
 		while(storesKeysEnum.hasMoreElements()) {
@@ -75,8 +75,7 @@ public class Configure extends XmlService {
 			} else
 				linksVector.add(tmp);
 		}
-		QuickSort quickSort = new QuickSort(linksVector);
-		linksVector = GenericUtils.cast(quickSort.perform(true));
+		Collections.sort(linksVector);
 				
 		String certifName = "";
 		//Properties newStoresProperties = new Properties();
@@ -113,7 +112,7 @@ public class Configure extends XmlService {
 		}
 
 		String group;
-		storesKeysEnum = certifVector.elements();
+		storesKeysEnum = Collections.enumeration(certifVector);
 		while (storesKeysEnum.hasMoreElements()) {
 			certifName = (String) storesKeysEnum.nextElement();
 			storesProperties.setProperty(certifName, storesProperties.getProperty(certifName));

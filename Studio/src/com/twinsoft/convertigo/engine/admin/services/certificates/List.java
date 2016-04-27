@@ -25,25 +25,23 @@ package com.twinsoft.convertigo.engine.admin.services.certificates;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Properties;
 import java.util.StringTokenizer;
-import java.util.Vector;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.CertificateManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.util.Crypto2;
-import com.twinsoft.convertigo.engine.util.GenericUtils;
-import com.twinsoft.util.QuickSort;
 
 @ServiceDefinition(
 		name = "List",
@@ -73,8 +71,8 @@ public class List extends XmlService {
 		}
         
         
-        Vector<String> certifVector = new Vector<String>();
-        Vector<String> linksVector = new Vector<String>();
+        java.util.List<String> certifVector = new ArrayList<String>();
+        java.util.List<String> linksVector = new ArrayList<String>();
         String tmp = "";
         Enumeration<?> storesKeysEnum = storesProperties.propertyNames();
         while(storesKeysEnum.hasMoreElements()) {
@@ -85,10 +83,9 @@ public class List extends XmlService {
         	} else
         		linksVector.add(tmp);
         }
-        QuickSort quickSort = new QuickSort(linksVector);
-		linksVector = GenericUtils.cast(quickSort.perform(true));
+        Collections.sort(linksVector);
 		
-        storesKeysEnum = certifVector.elements();
+        storesKeysEnum = Collections.enumeration(certifVector);
     	
 		Engine.logAdmin.debug("Analyzing certificates...");
 
@@ -156,7 +153,7 @@ public class List extends XmlService {
     	
     	boolean cariocaLinksExist = false;
     	String link = "";
-    	storesKeysEnum = linksVector.elements();
+    	storesKeysEnum = Collections.enumeration(linksVector);
     	while (storesKeysEnum.hasMoreElements()) {
     		// Entire link
     		link = (String) storesKeysEnum.nextElement();

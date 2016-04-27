@@ -22,7 +22,7 @@
 
 package com.twinsoft.convertigo.eclipse.dialogs;
 
-import java.util.Vector;
+import java.util.List;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
@@ -38,7 +38,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 public class CreateHandlerDialog extends Dialog {
 	private String dialogTitle;
 	private Object parentObject = null;
-	public Vector<?> result = null;
+	public List<?> result = null;
 	
 	public CreateHandlerDialog(Shell parentShell, Object parentObject) {
 		this(parentShell, ObjectsExplorerComposite.class, "New transaction handler", parentObject);

@@ -24,12 +24,13 @@ package com.twinsoft.convertigo.beans.steps;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
-import java.util.Vector;
 
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
@@ -253,7 +254,7 @@ public class XMLGenerateDatesStep extends XMLGenerateStep implements ITagsProper
 				String stop = getNodeValue(stopList.item(0));
 				String[] days = getNodeValue(dayList.item(0)).split(",");
 				
-				Vector<Integer> v = new Vector<Integer>();
+				List<Integer> v = new ArrayList<Integer>(days.length);
 				for (int i=0; i< days.length; i++) {
 					int day = Integer.parseInt(days[i],10);
 					if (!calendarCompatibility) {
@@ -297,8 +298,8 @@ public class XMLGenerateDatesStep extends XMLGenerateStep implements ITagsProper
 					bInvalid = true;
 				}
 				else {
-					Integer first = (Integer)v.firstElement();
-					Integer last = (Integer)v.lastElement();
+					Integer first = (Integer)v.get(0);
+					Integer last = (Integer)v.get(v.size() - 1);
 					
 					while (c1.before(c2)) {
 						int i = c1.get(Calendar.DAY_OF_WEEK);

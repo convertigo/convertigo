@@ -23,7 +23,7 @@
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
 import java.io.IOException;
-import java.util.Vector;
+import java.util.List;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
@@ -95,7 +95,7 @@ public class TransactionCreateHandlerAction extends MyAbstractAction {
 						CreateHandlerDialog createHandlerDialog = new CreateHandlerDialog(shell, transaction);
 						createHandlerDialog.open();
 			    		if (createHandlerDialog.getReturnCode() != Window.CANCEL) {
-			    			Vector<?> result = createHandlerDialog.result;
+			    			List<?> result = createHandlerDialog.result;
 			    			if (result != null) {
 			    				int len = result.size();
 			    				if (len > 0) {
@@ -103,7 +103,7 @@ public class TransactionCreateHandlerAction extends MyAbstractAction {
 				    					HtmlTransaction htmlTransaction = (HtmlTransaction)transaction;
 				    					Statement statement = null;
 				    					for (int i=0; i<len; i++) {
-				    						statement = (Statement)result.elementAt(i);
+				    						statement = (Statement)result.get(i);
 			    							htmlTransaction.addStatement(statement);
 				    					}
 				    					lastStatement = statement;
@@ -111,7 +111,7 @@ public class TransactionCreateHandlerAction extends MyAbstractAction {
 				    				else {
 				    					String handler = null;
 				    					for (int i=0; i<len; i++) {
-				    						handler = (String)result.elementAt(i);
+				    						handler = (String)result.get(i);
 					    					transaction.handlers += handler;
 					    					transaction.hasChanged = true;
 				    					}

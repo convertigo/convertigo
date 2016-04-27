@@ -27,9 +27,10 @@ import java.beans.BeanInfo;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
-import java.util.Vector;
 import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.CoreException;
@@ -272,7 +273,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	        return;
         }
         
-        Vector<PropertyDescriptor> vPropertyDescriptors = new Vector<PropertyDescriptor>(32);
+        List<PropertyDescriptor> vPropertyDescriptors = new ArrayList<PropertyDescriptor>(32);
         
         PropertyDescriptor propertyDescriptor;
         

@@ -22,7 +22,8 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
@@ -60,7 +61,7 @@ public class StatementAddVariableToTransactionAction extends MyAbstractAction {
     				HTTPStatement httpStatement = (HTTPStatement)databaseObject;
     				HtmlTransaction htmlTransaction = (HtmlTransaction)httpStatement.getParentTransaction();
     				
-    				Vector<String> variables = new Vector<String>();
+    				List<String> variables = new ArrayList<String>();
     				int i, size;
     				
     				/*size = htmlTransaction.getVariablesDefinitionSize();

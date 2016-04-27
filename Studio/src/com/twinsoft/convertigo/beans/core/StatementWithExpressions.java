@@ -22,9 +22,9 @@
 
 package com.twinsoft.convertigo.beans.core;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Vector;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
@@ -44,7 +44,7 @@ public abstract class StatementWithExpressions extends Statement implements ICon
      */
     private XMLVector<XMLVector<Long>> orderedStatements = null;
 	
-    transient private List<Statement> vStatements = new Vector<Statement>();
+    transient private List<Statement> vStatements = new ArrayList<Statement>();
     
     transient private List<Statement> vAllStatements = null;
     
@@ -169,7 +169,7 @@ public abstract class StatementWithExpressions extends Statement implements ICon
     	XMLVector<XMLVector<Long>> statements = new XMLVector<XMLVector<Long>>();
     	XMLVector<Long> ordered = new XMLVector<Long>();
     	
-    	List<Statement> v = new Vector<Statement>(vStatements);
+    	List<Statement> v = new ArrayList<Statement>(vStatements);
     	v = GenericUtils.cast(sort((List<?>) v, false));
     	String s = "Sorted Statements [";
 		for (int i=0;i<v.size();i++) {
@@ -218,7 +218,7 @@ public abstract class StatementWithExpressions extends Statement implements ICon
     @Override
     public StatementWithExpressions clone() throws CloneNotSupportedException {
     	StatementWithExpressions clonedObject = (StatementWithExpressions) super.clone();
-        clonedObject.vStatements = new Vector<Statement>();
+        clonedObject.vStatements = new ArrayList<Statement>();
         clonedObject.vAllStatements = null;
         clonedObject.bContinue = true;
         clonedObject.handlePriorities = handlePriorities;

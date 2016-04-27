@@ -22,8 +22,10 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
-import java.util.Vector;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
@@ -48,7 +50,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 
 public class DatabaseObjectDecreasePriorityAction extends MyAbstractAction implements IViewActionDelegate {
 	
-	private Vector<TreeParent> treeNodesToUpdate;
+	private List<TreeParent> treeNodesToUpdate;
 	private int counter = 1;
 	
 	public DatabaseObjectDecreasePriorityAction() {
@@ -69,7 +71,7 @@ public class DatabaseObjectDecreasePriorityAction extends MyAbstractAction imple
 		shell.setCursor(waitCursor);
 		
         try {
-        	treeNodesToUpdate = new Vector<TreeParent>();
+        	treeNodesToUpdate = new ArrayList<TreeParent>();
         	
     		ProjectExplorerView explorerView = getProjectExplorerView();
     		if (explorerView != null) {
@@ -85,7 +87,7 @@ public class DatabaseObjectDecreasePriorityAction extends MyAbstractAction imple
     				}
     				
     				// Updating the tree and the properties panel
-    				Enumeration<TreeParent> enumeration = treeNodesToUpdate.elements();
+    				Enumeration<TreeParent> enumeration = Collections.enumeration(treeNodesToUpdate);
     				TreeParent parentTreeObject = null;
     				while (enumeration.hasMoreElements()) {
     					parentTreeObject = enumeration.nextElement();

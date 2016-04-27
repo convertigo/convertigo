@@ -31,7 +31,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Vector;
 
 import org.mozilla.javascript.EcmaError;
 import org.mozilla.javascript.EvaluatorException;
@@ -178,7 +177,7 @@ public class JavelinTransaction extends TransactionWithVariables {
         super();
     }
     
-    transient private Vector<String> vExtractionRulesInited;
+    transient private List<String> vExtractionRulesInited;
     
     /** Holds value of property dataStableThreshold. */
     private int dataStableThreshold = 300;
@@ -201,7 +200,7 @@ public class JavelinTransaction extends TransactionWithVariables {
     transient private String normalizedScreenClassName = "";
     transient private boolean bNotFirstLoop1 = false;
     transient private boolean bNotFirstLoop2 = false;
-    transient private Vector<Collection<Block>> blocks;
+    transient private List<Collection<Block>> blocks;
     
     /** Holds value of property onlyOnePage. */
     private boolean onlyOnePage;
@@ -211,7 +210,7 @@ public class JavelinTransaction extends TransactionWithVariables {
         	JavelinConnector connector = (JavelinConnector) parent;
         	Javelin javelin = ((JavelinConnector) connector).javelin;
         	
-			vExtractionRulesInited = new Vector<String>(32);
+			vExtractionRulesInited = new ArrayList<String>(32);
 
 			boolean bDocumentLogScreenDumps = (EnginePropertiesManager.getProperty(PropertyName.DOCUMENT_LOG_SCREEN_DUMPS).equals("true") ? true : false);
 			
@@ -264,7 +263,7 @@ public class JavelinTransaction extends TransactionWithVariables {
 				applyUserRequest(javelin);
 			}
 
-            blocks = new Vector<Collection<Block>>(16);
+            blocks = new ArrayList<Collection<Block>>(16);
 
             bNotFirstLoop1 = false;
             bNotFirstLoop2 = false;
@@ -779,9 +778,9 @@ public class JavelinTransaction extends TransactionWithVariables {
     									String historyBlock = block.getOptionalAttribute("history");
     									if ((block.type.equals("field")) && (historyBlock != null) && (historyBlock.equals("true")) && (value.length() > 0)) {
     										// TODO: paramétrer la liste des tagname à historiser
-    										Vector<String> values = GenericUtils.cast(context.httpSession.getAttribute(block.tagName));
+    										List<String> values = GenericUtils.cast(context.httpSession.getAttribute(block.tagName));
     										if (values == null) {
-    											values = new Vector<String>(10);
+    											values = new ArrayList<String>(10);
     										}
     										if (!values.contains(value)) {
     											values.add(value);
@@ -1110,11 +1109,11 @@ public class JavelinTransaction extends TransactionWithVariables {
     
     private transient String xsdType = null;
     
-    private void renderBlocksToXml(Vector<Collection<Block>> vBlocks) throws EngineException {
+    private void renderBlocksToXml(List<Collection<Block>> vBlocks) throws EngineException {
     	String t = context.statistics.start(EngineStatistics.GENERATE_DOM);
 
         try {
-            Enumeration<Collection<Block>> enumBlocks = vBlocks.elements();
+            Enumeration<Collection<Block>> enumBlocks = Collections.enumeration(vBlocks);
 			Map<String, String> types = null;
             int nPage = 0;
             Element page = null;
@@ -1160,7 +1159,7 @@ public class JavelinTransaction extends TransactionWithVariables {
     			}
                 
     			Element xmlBlock, history, xmlValue;
-    			Vector<String> values;
+    			List<String> values;
     			String value;
     			for (Block block : enumBlocks.nextElement()) {
     				Engine.logContext.trace("(JavelinTransaction) Block: " + block.toString());
@@ -1179,7 +1178,7 @@ public class JavelinTransaction extends TransactionWithVariables {
 
     							int len = values.size();
     							for (int i = 0 ; i < len ; i++) {
-    								value = values.elementAt(i);
+    								value = values.get(i);
     								xmlValue = context.outputDocument.createElement("value");
     								xmlValue.appendChild(context.outputDocument.createTextNode(value));
     								history.appendChild(xmlValue);

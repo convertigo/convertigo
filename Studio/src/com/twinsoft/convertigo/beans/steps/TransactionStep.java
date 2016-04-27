@@ -327,7 +327,7 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 		try {
 			if (!projectName.equals("")) {
 				Project p = getTargetProject(projectName);
-				List<Connector> v = new Vector<Connector>(p.getConnectorsList());
+				List<Connector> v = new ArrayList<Connector>(p.getConnectorsList());
 				v = GenericUtils.cast(sort((Vector<?>) v, true));
 				String[] connectorNames = new String[v.size() + 1];
 				connectorNames[0] = "";
@@ -348,7 +348,7 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 			if (!projectName.equals("") && !connectorName.equals("")) {
 				Project p = getTargetProject(projectName);
 				Connector connector = p.getConnectorByName(connectorName);
-				List<Transaction> v = new Vector<Transaction>(connector.getTransactionsList());
+				List<Transaction> v = new ArrayList<Transaction>(connector.getTransactionsList());
 				v = GenericUtils.cast(sort((Vector<?>) v, true));
 				String[] transactionNames = new String[v.size() + 1];
 				transactionNames[0] = "";

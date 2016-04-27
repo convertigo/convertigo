@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.eclipse.editors.connector;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -30,7 +31,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
-import java.util.Vector;
 
 import javax.swing.event.EventListenerList;
 import javax.xml.transform.TransformerException;
@@ -1029,7 +1029,7 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 				if (names.containsKey(name)) {
 					ob = names.get(name);
 					if (ob instanceof String) {
-						v = new Vector<String>();
+						v = new ArrayList<String>();
 						v.add((String)ob);
 					}
 					else if (ob instanceof List) {

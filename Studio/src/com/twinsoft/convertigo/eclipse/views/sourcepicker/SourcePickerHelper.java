@@ -1,8 +1,9 @@
 package com.twinsoft.convertigo.eclipse.views.sourcepicker;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.List;
 
 import javax.xml.transform.TransformerException;
 
@@ -189,7 +190,7 @@ public class SourcePickerHelper implements IStepSourceEditor {
 			NodeList nl = twsCachedXPathAPI.selectNodeList(currentDom, xpath);
 			if (nl.getLength()>0) {
 				TreeItem tItem = twsDomTree.findTreeItem(nl.item(0));
-				Vector<TreeItem> v = new Vector<TreeItem>();
+				List<TreeItem> v = new ArrayList<TreeItem>();
 				while (tItem != null) {
 					v.add(tItem);
 					tItem = tItem.getParentItem();

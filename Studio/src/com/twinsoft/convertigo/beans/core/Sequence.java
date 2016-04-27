@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.Vector;
 
 import javax.swing.event.EventListenerList;
 import javax.xml.namespace.QName;
@@ -110,7 +109,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	
     transient private List<Step> vAllSteps = null;
     
-	transient private List<Step> vSteps = new Vector<Step>();
+	transient private List<Step> vSteps = new ArrayList<Step>();
 
 	transient public Step currentStep = null;
 	
@@ -124,7 +123,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	
 	transient private int nbAsyncThreadRunning = 0;
 	
-	transient private List<String> stepContextNames = new Vector<String>();
+	transient private List<String> stepContextNames = new ArrayList<String>();
 	
 	transient private int cloneNumber = 0;
 	
@@ -133,9 +132,9 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	transient private boolean skipSteps = false;
 	
 	transient private List<RequestableVariable> vAllVariables = null;
-	transient private List<RequestableVariable> vVariables = new Vector<RequestableVariable>();
+	transient private List<RequestableVariable> vVariables = new ArrayList<RequestableVariable>();
 	
-	transient private List<TestCase> vTestCases = new Vector<TestCase>();
+	transient private List<TestCase> vTestCases = new ArrayList<TestCase>();
 	
     /** The vector of ordered step objects which can be applied on the Sequence. */
 	private XMLVector<XMLVector<Long>> orderedSteps = null;
@@ -161,8 +160,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	Sequence clonedObject = (Sequence) super.clone();
     	clonedObject.variables = new HashMap<String, Object>();
     	clonedObject.cloneNumber = ++cloneNumber;
-    	clonedObject.vVariables = new Vector<RequestableVariable>();
-    	clonedObject.vTestCases = new Vector<TestCase>();
+    	clonedObject.vVariables = new ArrayList<RequestableVariable>();
+    	clonedObject.vTestCases = new ArrayList<TestCase>();
     	clonedObject.vAllVariables = null;
     	clonedObject.nbAsyncThreadRunning = 0;
     	clonedObject.xpathApi = null;
@@ -174,12 +173,12 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	clonedObject.executedSteps = null;
     	clonedObject.childrenSteps = null;
     	clonedObject.workerElementMap = null;
-    	clonedObject.vSteps = new Vector<Step>();
+    	clonedObject.vSteps = new ArrayList<Step>();
         clonedObject.vAllSteps = null;
         clonedObject.handlePriorities = handlePriorities;
         clonedObject.currentStep = null;
         clonedObject.currentChildStep = 0;
-        clonedObject.stepContextNames = new Vector<String>();
+        clonedObject.stepContextNames = new ArrayList<String>();
         clonedObject.arborting = false;
         clonedObject.skipSteps = false;
         clonedObject.sequenceListeners = new EventListenerList();
@@ -381,7 +380,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	public String getRequestString(Context context) {
 		checkSubLoaded();
 		
-		List<String> vVariables = new Vector<String>(variables.size());		
+		List<String> vVariables = new ArrayList<String>(variables.size());		
 		//Use authenticated user as cache key
 		if ( isAuthenticatedUserAsCacheKey() )
 			vVariables.add("userID="+context.getAuthenticatedUser());
@@ -627,8 +626,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	return xmlv;
     }
     
-    public Vector<RequestableVariable> getVariables() {
-    	return new Vector<RequestableVariable>(getVariablesList());
+    public List<RequestableVariable> getVariables() {
+    	return new ArrayList<RequestableVariable>(getVariablesList());
     }
     
     public List<RequestableVariable> getVariablesList() {
@@ -1250,7 +1249,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		arborting = false;
 		skipSteps = false;
     	nbAsyncThreadRunning = 0;
-    	stepContextNames = new Vector<String>();
+    	stepContextNames = new ArrayList<String>();
     	
     	// Retrieves HttpState of sequence
     	getHttpState();

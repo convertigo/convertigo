@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.beans.core;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
@@ -316,7 +317,7 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty{
 	/**
 	 * The vector of pools for this project.
 	 */
-	transient private List<Pool> vPools = new Vector<Pool>();
+	transient private List<Pool> vPools = new ArrayList<Pool>();
 	
 	public Pool getPoolByName(String poolName) {
 		checkSubLoaded();
@@ -354,7 +355,7 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty{
 	/**
 	 * The vector of documents for this connector.
 	 */
-	transient private List<com.twinsoft.convertigo.beans.core.Document> vDocuments = new Vector<com.twinsoft.convertigo.beans.core.Document>();
+	transient private List<com.twinsoft.convertigo.beans.core.Document> vDocuments = new ArrayList<com.twinsoft.convertigo.beans.core.Document>();
 	
 	public com.twinsoft.convertigo.beans.core.Document getDocumentByName(String documentName) {
 		checkSubLoaded();
@@ -392,7 +393,7 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty{
 	/**
 	 * The list of listeners for this connector.
 	 */
-	transient private List<com.twinsoft.convertigo.beans.core.Listener> vListeners = new Vector<com.twinsoft.convertigo.beans.core.Listener>();
+	transient private List<com.twinsoft.convertigo.beans.core.Listener> vListeners = new ArrayList<com.twinsoft.convertigo.beans.core.Listener>();
 	
 	public com.twinsoft.convertigo.beans.core.Listener getListenerByName(String listenerName) {
 		checkSubLoaded();
@@ -432,10 +433,10 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty{
 		Connector clonedObject = (Connector) super.clone();
 		clonedObject.defaultTransaction = null;
 		clonedObject.connectorListeners = new EventListenerList();
-		clonedObject.vTransactions = new Vector<Transaction>();
-		clonedObject.vPools = new Vector<Pool>();
-		clonedObject.vDocuments = new Vector<com.twinsoft.convertigo.beans.core.Document>();
-		clonedObject.vListeners = new Vector<com.twinsoft.convertigo.beans.core.Listener>();
+		clonedObject.vTransactions = new ArrayList<Transaction>();
+		clonedObject.vPools = new ArrayList<Pool>();
+		clonedObject.vDocuments = new ArrayList<com.twinsoft.convertigo.beans.core.Document>();
+		clonedObject.vListeners = new ArrayList<com.twinsoft.convertigo.beans.core.Listener>();
 		clonedObject.debugging = false;
 		return clonedObject;
 	}

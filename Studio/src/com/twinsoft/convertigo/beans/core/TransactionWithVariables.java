@@ -65,10 +65,10 @@ public abstract class TransactionWithVariables extends Transaction implements IV
     
 	private static final long serialVersionUID = -7348846395918560818L;
 	
-	transient private List<RequestableVariable> vVariables = new Vector<RequestableVariable>();
+	transient private List<RequestableVariable> vVariables = new ArrayList<RequestableVariable>();
 	transient private List<RequestableVariable> vAllVariables = null;
 	
-	transient private List<TestCase> vTestCases = new Vector<TestCase>();
+	transient private List<TestCase> vTestCases = new ArrayList<TestCase>();
 	
     /**
      * Constructs a TransactionWithVariables object.
@@ -86,8 +86,8 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 	public TransactionWithVariables clone() throws CloneNotSupportedException {
 		TransactionWithVariables clonedObject = (TransactionWithVariables) super.clone();
 		clonedObject.variables = new HashMap<String, Object>();
-		clonedObject.vVariables = new Vector<RequestableVariable>();
-		clonedObject.vTestCases = new Vector<TestCase>();
+		clonedObject.vVariables = new ArrayList<RequestableVariable>();
+		clonedObject.vTestCases = new ArrayList<TestCase>();
 		clonedObject.vAllVariables = null;
 		clonedObject.originalVariables = null;
 		clonedObject.needRestoreVariables = false;
@@ -364,7 +364,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 	
 	/** Stores value of property orderedVariables. */
 	//private transient XMLVector originalVariablesDefinition = null;
-	private transient Vector<RequestableVariable> originalVariables = null;
+	private transient List<RequestableVariable> originalVariables = null;
     
 	/** Getter for property orderedVariables.
 	 * @return Value of property orderedVariables.
@@ -388,7 +388,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		
 		if (needRestoreVariables) {
 			if (originalVariables != null) {
-				vVariables = new Vector<RequestableVariable>(originalVariables);
+				vVariables = new ArrayList<RequestableVariable>(originalVariables);
 			}
 			needRestoreVariables = false;
 		}
@@ -398,7 +398,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		checkSubLoaded();
 		
 		needRestoreVariables = true;
-		originalVariables = new Vector<RequestableVariable>(vVariables);
+		originalVariables = new ArrayList<RequestableVariable>(vVariables);
 		
 		RequestableVariable variable = (RequestableVariable)getVariable(variableName);
 		try {
@@ -607,9 +607,9 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 			
 			// Multivalued variable ?
 			if ((variable != null) && (variable.isMultiValued())) {
-				Vector<Object> current = GenericUtils.cast(variables.get(variableName));
+				List<Object> current = GenericUtils.cast(variables.get(variableName));
 				if (current == null) {
-					current = new Vector<Object>();
+					current = new ArrayList<Object>();
 					variables.put(variableName, current);
 				}
 				if (variableValue == null || valueAttrNode != null) {
@@ -672,7 +672,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 	public String getRequestString(Context context) {
 		checkSubLoaded();
 		
-		List<String> vVariables = new Vector<String>(variables.size());
+		List<String> vVariables = new ArrayList<String>(variables.size());
 		//Use authenticated user as cache key
 		if ( isAuthenticatedUserAsCacheKey() )
 			vVariables.add("userID="+context.getAuthenticatedUser());

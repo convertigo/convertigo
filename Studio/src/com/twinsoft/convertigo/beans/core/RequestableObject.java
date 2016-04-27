@@ -24,6 +24,7 @@ package com.twinsoft.convertigo.beans.core;
 
 import java.io.File;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
@@ -34,6 +35,7 @@ import java.util.Vector;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.transform.TransformerFactoryConfigurationError;
+
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
@@ -104,7 +106,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 	@Override
     public RequestableObject clone() throws CloneNotSupportedException {
     	RequestableObject clonedObject = (RequestableObject) super.clone();
-        clonedObject.vSheets = new Vector<Sheet>();
+        clonedObject.vSheets = new ArrayList<Sheet>();
         return clonedObject;
     }
     
@@ -749,7 +751,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
         public void run() {
         	context.statistics.stop(workerThreadCreationStatistic);
         	
-			context.steps = new Vector<String>(8, 8);
+			context.steps = new ArrayList<String>(8);
         	
             try {
 				// Creating scripting context

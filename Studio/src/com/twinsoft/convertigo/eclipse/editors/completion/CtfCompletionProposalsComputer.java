@@ -174,7 +174,7 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 
 	private List<String> getTransactionList(String projectName,
 			String connectorName) throws EngineException {
-		Vector<String> Transactions = new Vector<String>();
+		List<String> Transactions = new ArrayList<String>();
 
 		Project project = getProjectByName(projectName);
 		Connector connector = project.getConnectorByName(connectorName);
@@ -191,7 +191,7 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 
 	private List<String> getConnectorList(String projectName)
 			throws EngineException {
-		Vector<String> Connectors = new Vector<String>();
+		List<String> Connectors = new ArrayList<String>();
 
 		Project project = getProjectByName(projectName);
 		List<Connector> connectors = project.getConnectorsList();
@@ -206,7 +206,7 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 
 	private List<String> getSequenceList(String projectName)
 			throws EngineException {
-		Vector<String> Sequences = new Vector<String>();
+		List<String> Sequences = new ArrayList<String>();
 
 		Project project = getProjectByName(projectName);
 		List<Sequence> sequences = project.getSequencesList();
@@ -237,7 +237,7 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 		int offset = context.getInvocationOffset();
 
 		try {
-			Vector<CompletionProposal> lProposals = new Vector<CompletionProposal>();
+			List<CompletionProposal> lProposals = new ArrayList<CompletionProposal>();
 			boolean attributeMode = false;
 
 			int endTagOffset = findCharReverse('>', document, offset);

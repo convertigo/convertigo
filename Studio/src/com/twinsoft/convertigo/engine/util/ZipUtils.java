@@ -89,7 +89,7 @@ public class ZipUtils {
 	public static void makeZip(String archiveFileName, String sDir, String sRelativeDir, String[][] files) throws Exception {
 		FileOutputStream fos = new FileOutputStream(archiveFileName);
 		ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fos));
-		int nbZipEntries = ZipUtils.putEntries(zos, sDir, sRelativeDir, new Vector<File>());
+		int nbZipEntries = ZipUtils.putEntries(zos, sDir, sRelativeDir, new ArrayList<File>());
 		for (int i = 0 ; i < files.length ; i++){
 			if(files[i][0].endsWith(".jar"))
 				nbZipEntries += ZipUtils.addJarEntries(zos, files[i][0]);

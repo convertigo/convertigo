@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.beans.statements;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -107,7 +108,7 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
     
     private TriggerXMLizer trigger = new TriggerXMLizer(new DocumentCompletedTrigger(1,60000));
     
-    private transient List<HttpStatementVariable> vVariables = new Vector<HttpStatementVariable>();
+    private transient List<HttpStatementVariable> vVariables = new ArrayList<HttpStatementVariable>();
     transient private List<HttpStatementVariable> vAllVariables = null;
 
 	private String urlEncodingCharset = "";
@@ -127,7 +128,7 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
     @Override
 	public HTTPStatement clone() throws CloneNotSupportedException {
 		HTTPStatement clonedObject = (HTTPStatement)super.clone();
-		clonedObject.vVariables = new Vector<HttpStatementVariable>();
+		clonedObject.vVariables = new ArrayList<HttpStatementVariable>();
 		clonedObject.vAllVariables = null;
 //		clonedObject.variables = new Map(16);
 		clonedObject.javascriptContext = null;

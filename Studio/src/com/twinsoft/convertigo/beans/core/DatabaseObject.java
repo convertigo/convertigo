@@ -1104,7 +1104,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	}
 
 	public <E extends DatabaseObject> List<E> getAllChildren() {
-		return new Vector<E>();
+		return new ArrayList<E>();
 	}
 	
 	public void changed() {

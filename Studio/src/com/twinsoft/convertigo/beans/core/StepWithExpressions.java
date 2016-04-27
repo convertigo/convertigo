@@ -22,13 +22,13 @@
 
 package com.twinsoft.convertigo.beans.core;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.HttpState;
@@ -60,7 +60,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
      */
     private XMLVector<XMLVector<Long>> orderedSteps = null;
 	
-    transient private List<Step> vSteps = new Vector<Step>();
+    transient private List<Step> vSteps = new ArrayList<Step>();
     
     transient private List<Step> vAllSteps = null;
     
@@ -94,7 +94,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
     	clonedObject.haveToWait = Boolean.FALSE;
     	clonedObject.currentChildStep = 0;
     	clonedObject.childrenSteps = null;
-        clonedObject.vSteps = new Vector<Step>();
+        clonedObject.vSteps = new ArrayList<Step>();
         clonedObject.vAllSteps = null;
         clonedObject.bContinue = true;
         clonedObject.handlePriorities = handlePriorities;

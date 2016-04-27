@@ -22,8 +22,10 @@
 
 package com.twinsoft.convertigo.eclipse.dialogs;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
-import java.util.Vector;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
@@ -43,7 +45,7 @@ public class DatabaseObjectFindDialog extends MyAbstractDialog {
 	private String objectTextSubstring = null;
 	private boolean bMatchCase = false;
 	private int objectType;
-	private Vector<DatabaseObjectTreeObject> vDatabaseObjects = new Vector<DatabaseObjectTreeObject>(64);
+	private List<DatabaseObjectTreeObject> vDatabaseObjects = new ArrayList<DatabaseObjectTreeObject>(64);
 	
 	private DatabaseObjectFindDialogComposite databaseObjectFindDialogComposite = null;
 	
@@ -91,7 +93,7 @@ public class DatabaseObjectFindDialog extends MyAbstractDialog {
 	private Enumeration<DatabaseObjectTreeObject> enumDatabaseObjects;
 
 	protected void findDatabaseObject() {
-    	enumDatabaseObjects = vDatabaseObjects.elements();
+    	enumDatabaseObjects = Collections.enumeration(vDatabaseObjects);
         while (true) {
             while (enumDatabaseObjects.hasMoreElements()) {
             	DatabaseObjectTreeObject databaseObjectTreeObject = (DatabaseObjectTreeObject) enumDatabaseObjects.nextElement();

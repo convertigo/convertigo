@@ -24,8 +24,10 @@ package com.twinsoft.convertigo.eclipse.popup.actions;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
-import java.util.Vector;
+import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.eclipse.core.runtime.CoreException;
@@ -73,7 +75,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 
 public class DatabaseObjectDeleteAction extends MyAbstractAction {
 
-	private Vector<DatabaseObjectTreeObject> treeNodesToUpdate;
+	private List<DatabaseObjectTreeObject> treeNodesToUpdate;
 	
 	public DatabaseObjectDeleteAction() {
 		super();
@@ -87,7 +89,7 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 		shell.setCursor(waitCursor);
 		
         try {
-        	treeNodesToUpdate = new Vector<DatabaseObjectTreeObject>();
+        	treeNodesToUpdate = new ArrayList<DatabaseObjectTreeObject>();
         	
     		ProjectExplorerView explorerView = getProjectExplorerView();
     		if (explorerView != null) {
@@ -169,7 +171,7 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
     				}
     				
     				// Updating the tree and the properties panel
-    				Enumeration<DatabaseObjectTreeObject> enumeration = treeNodesToUpdate.elements();
+    				Enumeration<DatabaseObjectTreeObject> enumeration = Collections.enumeration(treeNodesToUpdate);
     				DatabaseObjectTreeObject parentTreeObject;
     				while (enumeration.hasMoreElements()) {
     					parentTreeObject = enumeration.nextElement();

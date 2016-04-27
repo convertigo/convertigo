@@ -25,12 +25,12 @@ package com.twinsoft.convertigo.beans.connectors;
 import java.awt.Rectangle;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Properties;
 import java.util.StringTokenizer;
-import java.util.Vector;
 
 import org.apache.regexp.RE;
 import org.apache.regexp.RESyntaxException;
@@ -665,7 +665,7 @@ public class JavelinConnector extends ConnectorWithScreenClasses {
 			try {
 				List<JavelinScreenClass> vScreenClasses = getAllScreenClasses();
 				List<Criteria> vCriterias;
-				List<Criteria> vAllCriterias = new Vector<Criteria>(128);
+				List<Criteria> vAllCriterias = new ArrayList<Criteria>(128);
 				RegularExpression regularExpression;
 				FindString findString;
 
@@ -784,7 +784,7 @@ public class JavelinConnector extends ConnectorWithScreenClasses {
 			try {
 				List<JavelinScreenClass> vScreenClasses = getAllScreenClasses();
 				List<Criteria> vCriterias;
-				List<Criteria> vAllCriterias = new Vector<Criteria>(128);
+				List<Criteria> vAllCriterias = new ArrayList<Criteria>(128);
 				RegularExpression regularExpression;
 				FindString findString;
 				int j = 0;

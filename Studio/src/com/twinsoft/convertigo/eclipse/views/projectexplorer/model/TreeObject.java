@@ -22,7 +22,8 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.Platform;
@@ -87,7 +88,7 @@ public abstract class TreeObject implements IAdaptable {
 		TreeParent[] parents = null;
 		try {
 			int i, j, size;
-			Vector<TreeObject> v = getParents();
+			List<TreeObject> v = getParents();
 			
 			if (addThis)
 				v.add(0, this);
@@ -96,7 +97,7 @@ public abstract class TreeObject implements IAdaptable {
 			j = size-1;
 			parents = new TreeParent[size];
 			for (i=0;i<size;i++) {
-				parents[i] = (TreeParent)v.elementAt(j--);				
+				parents[i] = (TreeParent)v.get(j--);				
 			}
 		}
 		catch (Exception e) {}
@@ -104,8 +105,8 @@ public abstract class TreeObject implements IAdaptable {
 		return parents;
 	}
 	
-	protected Vector<TreeObject> getParents() {
-		Vector<TreeObject> v = new Vector<TreeObject>();
+	protected List<TreeObject> getParents() {
+		List<TreeObject> v = new ArrayList<TreeObject>();
 		TreeParent treeParent = parent;
 		while (treeParent != null) {
 			v.add(treeParent);

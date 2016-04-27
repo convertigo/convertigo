@@ -22,7 +22,8 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
@@ -39,7 +40,7 @@ public abstract class LoopStep extends BlockStep {
 
 	transient public int loop = 1;
 	
-	transient private Vector<String> executedLoops = new Vector<String>();
+	transient private List<String> executedLoops = new ArrayList<String>();
 	
 	public LoopStep() {
 		super();
@@ -53,7 +54,7 @@ public abstract class LoopStep extends BlockStep {
     public LoopStep clone() throws CloneNotSupportedException {
     	LoopStep clonedObject = (LoopStep) super.clone();
     	clonedObject.loop = 1;
-    	clonedObject.executedLoops = new Vector<String>();
+    	clonedObject.executedLoops = new ArrayList<String>();
         return clonedObject;
     }
 
@@ -66,10 +67,10 @@ public abstract class LoopStep extends BlockStep {
 	@Override
 	protected void cleanCopy() {
 		for (int i=0; i<executedLoops.size(); i++) {
-			String timeID = executedLoops.elementAt(i);
+			String timeID = executedLoops.get(i);
 			sequence.removeCopy(timeID, new Long(priority));
 		}
-		executedLoops.removeAllElements();
+		executedLoops.clear();
 		super.cleanCopy();
 	}
 

@@ -23,10 +23,10 @@
 package com.twinsoft.convertigo.engine;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.Vector;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -196,7 +196,7 @@ public abstract class AbstractContext {
 	/**
 	 * The steps objects, useful for asynchronous transaction.
 	 */
-	public Vector<String> steps;
+	public List<String> steps;
 	
 	/**
 	 * The lang object, useful for translate the target application

@@ -23,8 +23,8 @@
 package com.twinsoft.convertigo.eclipse.dialogs;
 
 import java.awt.Toolkit;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -69,7 +69,7 @@ public class CreateHandlerDialogComposite extends MyAbstractDialogComposite {
 
 	private Transaction transaction = null;
 	private String handlers = null;
-	private Vector<Object> result = null;
+	private List<Object> result = null;
 	private boolean isScreenClassAware = false;
 	private boolean isDefaultHandlerAware = false;
 	
@@ -192,7 +192,7 @@ public class CreateHandlerDialogComposite extends MyAbstractDialogComposite {
 		}
 	}
 	
-	public Vector<Object> generateHandler() throws EngineException {
+	public List<Object> generateHandler() throws EngineException {
 		result = null;
 		if (transaction instanceof HtmlTransaction)
 			generateStatementHandler();
@@ -395,7 +395,7 @@ public class CreateHandlerDialogComposite extends MyAbstractDialogComposite {
 	
 	
 	private void addElement(Object object, String name) {
-		if (result == null) result = new Vector<Object>();
+		if (result == null) result = new ArrayList<Object>();
 		
 		if ((object != null) && (name != null)) {
 			try {
