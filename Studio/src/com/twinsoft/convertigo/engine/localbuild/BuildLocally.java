@@ -49,6 +49,9 @@ import com.twinsoft.convertigo.beans.mobileplatforms.IOs;
 import com.twinsoft.convertigo.beans.mobileplatforms.Windows;
 import com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhone8;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMethod;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMode;
 import com.twinsoft.convertigo.engine.admin.services.mobiles.MobileResourceHelper;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -107,8 +110,6 @@ public abstract class BuildLocally {
 		String paths = getLocalBuildAdditionalPath();
 		paths = (paths.length() > 0 ? paths + File.pathSeparator : "") + System.getenv("PATH");
 		
-		
-		
 		String defaultPaths = null;
 		if (is(OS.mac) || is(OS.linux)) {
 			defaultPaths = "/usr/local/bin";
@@ -128,14 +129,7 @@ public abstract class BuildLocally {
 				defaultPaths = (defaultPaths == null ? "" : defaultPaths + File.pathSeparator) + appData + File.separator + "npm";
 			}
 		}
-//		shellFullpath = defaultPaths == null ? null : getFullPath(defaultPaths, command);
-//		if (shellFullpath == null) {
-//			shellFullpath = command;
-//		} else {
-			paths += File.pathSeparator + defaultPaths;
-//		}
-		
-		
+		paths += File.pathSeparator + defaultPaths;
 		
 		// Checks if the command is already full path 
 		if (!(new File(shellFullpath).exists())) {
@@ -144,31 +138,7 @@ public abstract class BuildLocally {
 			
 			// If the "exec" is not found then it search it elsewhere
 			if (shellFullpath == null) {
-//				String defaultPaths = null;
-//				if (is(OS.mac) || is(OS.linux)) {
-//					defaultPaths = "/usr/local/bin";
-//				} else if (is(OS.win32)) {
-//					String programFiles = System.getenv("ProgramW6432");
-//					if (programFiles != null && programFiles.length() > 0) {
-//						defaultPaths = programFiles + File.separator + "nodejs";
-//					}
-//					
-//					programFiles = System.getenv("ProgramFiles");
-//					if (programFiles != null && programFiles.length() > 0) {
-//						defaultPaths = (defaultPaths == null ? "" : defaultPaths + File.pathSeparator) + programFiles + File.separator + "nodejs";
-//					}
-//					
-//					String appData = System.getenv("APPDATA");
-//					if (appData != null && appData.length() > 0) {
-//						defaultPaths = (defaultPaths == null ? "" : defaultPaths + File.pathSeparator) + appData + File.separator + "npm";
-//					}
-//				}
-//				shellFullpath = defaultPaths == null ? null : getFullPath(defaultPaths, command);
-//				if (shellFullpath == null) {
-					shellFullpath = command;
-//				} else {
-//					paths += File.pathSeparator + defaultPaths;
-//				}
+				shellFullpath = command;
 			}
 		}
 		
@@ -181,6 +151,33 @@ public abstract class BuildLocally {
 		Map<String, String> pbEnv = pb.environment();		
 		// must set "Path" for Windows 8.1 64
 		pbEnv.put(pbEnv.get("PATH") == null ? "Path" : "PATH", paths);
+		
+		// Specific to npm command
+		if (shellFullpath.endsWith("npm") || shellFullpath.endsWith("npm.cmd")) {
+			
+			// Set the proxy for npm
+			String proxyMode = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_MODE);
+			if (proxyMode.equals(ProxyMode.manual.getValue())) {
+				String proxyAuthMethod = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_METHOD);
+
+				if (proxyAuthMethod.equals(ProxyMethod.anonymous.getValue()) || proxyAuthMethod.equals(ProxyMethod.basic.getValue())) {
+					String proxyHost = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_HOST);
+					String proxyPort = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_PORT);
+					
+					String npmProxy = proxyHost + ":" + proxyPort;
+					
+					if (proxyAuthMethod.equals(ProxyMethod.basic.getValue())) {
+						String proxyUser = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_USER);
+						String proxyPassword = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_PASSWORD);
+						
+						npmProxy = proxyUser + ":" + proxyPassword + "@" + npmProxy;
+					}
+					
+					pbEnv.put("http-proxy", "http://" + npmProxy);
+					pbEnv.put("https-proxy", "http://" + npmProxy);
+				}
+			}
+		}
 		
 		pb.redirectErrorStream(mergeError);
 		
