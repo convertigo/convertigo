@@ -200,7 +200,9 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 					String sessionLogin = userLogin;
 					if (userDn != null && !isNTAccount(userLogin) && !isEMailAccount(userLogin) && !isDistinguishedName(userLogin)) {
 						// use found distinguished name
-						sessionLogin = userDn;
+						if (isFilter(userLogin)) {
+							sessionLogin = userDn;
+						}
 					}
 					getSequence().context.setAuthenticatedUser(sessionLogin);
 					break; // exit loop
