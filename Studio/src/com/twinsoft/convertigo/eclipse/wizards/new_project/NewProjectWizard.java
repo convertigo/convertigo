@@ -118,7 +118,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int TEMPLATE_SEQUENCE_CONNECTOR = 500;
 	public static final int TEMPLATE_WEB_SERVICE_REFERENCE = 700;
 	public static final int TEMPLATE_SQL_CONNECTOR = 701;
-	public static final int TEMPLATE_INTERACTION_HUB = 1000;
 	public static final int TEMPLATE_SITE_CLIPPER = 1100;
 	public static final int TEMPLATE_SAP_CONNECTOR = 1200;
 	public static final int TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE = 1300;
@@ -187,7 +186,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final String SEQUENCE_TEMPLATE_PROJECT_FILE_NAME = "template_sequence.car";
 	public static final String SQL_TEMPLATE_PROJECT_FILE_NAME = "template_SQL.car";
 	public static final String SAP_TEMPLATE_PROJECT_FILE_NAME = "template_SAP.car";
-	public static final String INTERACTION_HUB_TEMPLATE_PROJECT_FILE_NAME = "template_interactionHub.car";
 	public static final String SITE_CLIPPER_TEMPLATE_PROJECT_FILE_NAME = "template_siteClipper.car";
 	public static final String JQUERYMOBILE_MOBILE_EMPTY_TEMPLATE_PROJECT_FILE_NAME = "template_mobileJQueryMobile.car";
 	// documentation samples
@@ -365,7 +363,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 
 		case TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE:
 		case TEMPLATE_SEQUENCE_CONNECTOR:
-		case TEMPLATE_INTERACTION_HUB:
 			page1 = new NewProjectWizardPage1(selection);
 			addPage(page1);
 			break;
@@ -459,7 +456,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case TEMPLATE_SEQUENCE_CONNECTOR:
 			case TEMPLATE_SQL_CONNECTOR:
 			case TEMPLATE_SAP_CONNECTOR:
-			case TEMPLATE_INTERACTION_HUB:
 			case TEMPLATE_SITE_CLIPPER:
 			case TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE:
 				projectName = page1.getProjectName();
@@ -633,12 +629,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			oldProjectName = HTTP_INTEGRATION_TEMPLATE_PROJECT_FILE_NAME.substring(0,
 					HTTP_INTEGRATION_TEMPLATE_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
-		case TEMPLATE_INTERACTION_HUB:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/"
-					+ INTERACTION_HUB_TEMPLATE_PROJECT_FILE_NAME;
-			oldProjectName = INTERACTION_HUB_TEMPLATE_PROJECT_FILE_NAME.substring(0,
-					INTERACTION_HUB_TEMPLATE_PROJECT_FILE_NAME.indexOf(".car"));
-			break;
 		case TEMPLATE_SITE_CLIPPER:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SITE_CLIPPER_TEMPLATE_PROJECT_FILE_NAME;
 			oldProjectName = SITE_CLIPPER_TEMPLATE_PROJECT_FILE_NAME.substring(0,
@@ -738,7 +728,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			String newIbmTerminalType = "";
 			switch (templateId) {
 			case TEMPLATE_SEQUENCE_CONNECTOR:
-			case TEMPLATE_INTERACTION_HUB:
 			case TEMPLATE_EAI_HTML_WEB_SITE:
 			case TEMPLATE_EAI_HTTP:
 				break;
@@ -795,7 +784,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			switch (templateId) {
 			case TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE:
 			case TEMPLATE_SEQUENCE_CONNECTOR:
-			case TEMPLATE_INTERACTION_HUB:
 				newConnectorName = "void";
 				break;
 			default:
