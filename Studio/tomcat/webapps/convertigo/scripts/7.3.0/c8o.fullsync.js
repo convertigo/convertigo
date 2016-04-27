@@ -70,7 +70,7 @@ $.extend(true, C8O, {
 		
 		getDocumentRev: function (db, docid, callback) {
 			C8O._fs.getDb(db).get(docid, {}, function (err, doc) {
-				callback(doc._rev);
+				callback(doc ? doc._rev : null);
 			});
 		},
 		
