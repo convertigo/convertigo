@@ -115,7 +115,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int TEMPLATE_EAI_HTTP = 305;
 	public static final int TEMPLATE_EAI_CICS_COMMEAREA = 306;
 	public static final int TEMPLATE_EAI_HTML_WEB_SITE = 307;
-	public static final int TEMPLATE_WEB_CLIPPING_CONNECTOR = 400;
 	public static final int TEMPLATE_SEQUENCE_CONNECTOR = 500;
 	public static final int TEMPLATE_WEB_SERVICE_REFERENCE = 700;
 	public static final int TEMPLATE_SQL_CONNECTOR = 701;
@@ -181,7 +180,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	// to import blank project
 	public static final String JAVELIN_PUBLISHER_TEMPLATE_PROJECT_FILE_NAME = "template_javelin.car";
 	public static final String DKU_PUBLISHER_TEMPLATE_PROJECT_FILE_NAME = "template_javelinDKU.car";
-	public static final String WEB_CLIPPING_TEMPLATE_PROJECT_FILE_NAME = "template_webClipping.car";
 	public static final String JAVELIN_INTEGRATION_TEMPLATE_PROJECT_FILE_NAME = "template_javelinIntegration.car";
 	public static final String WEB_INTEGRATION_TEMPLATE_PROJECT_FILE_NAME = "template_webIntegration.car";
 	public static final String HTTP_INTEGRATION_TEMPLATE_PROJECT_FILE_NAME = "template_HTTP.car";
@@ -329,7 +327,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			break;
 
 		case TEMPLATE_EAI_HTML_WEB_SITE:
-		case TEMPLATE_WEB_CLIPPING_CONNECTOR:
 		case TEMPLATE_EAI_HTTP:
 			page1 = new NewProjectWizardPage1(selection);
 			page2 = new NewProjectWizardPage2(selection);
@@ -451,7 +448,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case TEMPLATE_WEB_HTML_BULL_DKU_7107:
 			case TEMPLATE_WEB_HTML_IBM_3270:
 			case TEMPLATE_WEB_HTML_IBM_5250:
-			case TEMPLATE_WEB_CLIPPING_CONNECTOR:
 			case TEMPLATE_EAI_BULL_DKU_7107:
 			case TEMPLATE_EAI_IBM_3270:
 			case TEMPLATE_EAI_IBM_5250:
@@ -589,11 +585,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SEQUENCE_TEMPLATE_PROJECT_FILE_NAME;
 			oldProjectName = SEQUENCE_TEMPLATE_PROJECT_FILE_NAME.substring(0,
 					SEQUENCE_TEMPLATE_PROJECT_FILE_NAME.indexOf(".car"));
-			break;
-		case TEMPLATE_WEB_CLIPPING_CONNECTOR:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + WEB_CLIPPING_TEMPLATE_PROJECT_FILE_NAME;
-			oldProjectName = WEB_CLIPPING_TEMPLATE_PROJECT_FILE_NAME.substring(0,
-					WEB_CLIPPING_TEMPLATE_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case TEMPLATE_EAI_HTML_WEB_SITE:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/"
@@ -748,7 +739,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			switch (templateId) {
 			case TEMPLATE_SEQUENCE_CONNECTOR:
 			case TEMPLATE_INTERACTION_HUB:
-			case TEMPLATE_WEB_CLIPPING_CONNECTOR:
 			case TEMPLATE_EAI_HTML_WEB_SITE:
 			case TEMPLATE_EAI_HTTP:
 				break;
@@ -875,8 +865,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				monitor.setTaskName("Emulator technology criteria renamed");
 				monitor.worked(1);
 				break;
-
-			case TEMPLATE_WEB_CLIPPING_CONNECTOR:
 			case TEMPLATE_EAI_HTML_WEB_SITE:
 			case TEMPLATE_EAI_HTTP:
 				// change connector server and port,

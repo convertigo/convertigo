@@ -416,16 +416,6 @@
              project="true">
           <description>Imports the web integration sample project to use with Convertigo Web Integrator Quick Guide documentation.</description>
        </wizard>
-       <!--<wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDocumentationSampleSiteClipperWizard"
-             icon="icons/studio/siteclipperconnector_color_32x32.gif"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleSiteClipperWizard"
-             name="Site clipping"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the Site clipper sample project to use with "My first Convertigo Site Clipper project" tutorial.</description>
-       </wizard>-->
 <!-- Reference Manual sample projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
@@ -476,16 +466,6 @@
              preferredPerspectives="convertigo"
              project="true">
           <description>Imports the sample project containing HTTP connector objects examples described in the Reference Manual.</description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewRefManualSampleWebClipperWizard"
-             icon="icons/studio/htmlconnector_color_32x32.gif"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleWebClipperWizard"
-             name="Web Clipper objects examples"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the sample project containing Web Clipper objects examples described in the Reference Manual.</description>
        </wizard>
 <!-- Mobile sample projects -->
        <wizard
