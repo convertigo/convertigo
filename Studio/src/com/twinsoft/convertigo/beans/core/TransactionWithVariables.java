@@ -497,7 +497,8 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		}
 		
 		if ((value != null) && (value instanceof List)) {
-			value = ((Vector<?>) value).toArray(new Object[] {});
+			List<?> lValue = GenericUtils.cast(value);
+			value = lValue.toArray(new Object[lValue.size()]);
 		}
 		return value;
 	}

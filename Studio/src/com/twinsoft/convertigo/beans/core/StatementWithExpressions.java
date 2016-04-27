@@ -170,7 +170,7 @@ public abstract class StatementWithExpressions extends Statement implements ICon
     	XMLVector<Long> ordered = new XMLVector<Long>();
     	
     	List<Statement> v = new Vector<Statement>(vStatements);
-    	v = GenericUtils.cast(sort((Vector<?>) v, false));
+    	v = GenericUtils.cast(sort((List<?>) v, false));
     	String s = "Sorted Statements [";
 		for (int i=0;i<v.size();i++) {
 			Statement statement = (Statement)v.get(i);
