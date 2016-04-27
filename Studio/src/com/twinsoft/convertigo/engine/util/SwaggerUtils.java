@@ -99,6 +99,7 @@ public class SwaggerUtils {
 			schemes.add(Scheme.HTTP);
 			schemes.add(Scheme.HTTPS);
 		}
+		swagger.setInfo(info);
 		swagger.setSchemes(schemes);
 		swagger.setHost(host);
 		swagger.setBasePath(basePath);
