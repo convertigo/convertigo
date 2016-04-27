@@ -117,6 +117,7 @@ C8O = {
         };
         
         if (wait_threshold > 0) {
+        	window.clearTimeout(C8O._define.wait_timer);
             C8O._define.wait_timer = window.setTimeout(wait_function, wait_threshold);	
         } else {
         	wait_function();
