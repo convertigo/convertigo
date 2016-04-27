@@ -48,6 +48,7 @@ import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.LdapBindingPolicy;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 import com.twinsoft.util.TWSLDAP;
 
@@ -61,6 +62,7 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 	private SmartType adminLogin = new SmartType();
 	private SmartType adminPassword = new SmartType();
 	private SmartType basePath = new SmartType();
+	private LdapBindingPolicy bindingPolicy = LdapBindingPolicy.Bind;
 	
 	public LDAPAuthenticationStep() {
 		super();
@@ -147,7 +149,7 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 				}
 				
 				// Search database
-				if (!isDistinguishedName(userLogin)) {
+				if (getBindingPolicy().equals(LdapBindingPolicy.SearchAndBind)) {
 					String searchLogin = adminLogin.getSingleString(this);
 					String searchPassword = adminPassword.getSingleString(this);
 					String searchBase = basePath.getSingleString(this);
@@ -194,7 +196,13 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 				
 				// Set authenticated user on session
 				if (authenticated) {
-					getSequence().context.setAuthenticatedUser(bindLogin);
+					// use given login
+					String sessionLogin = userLogin;
+					if (userDn != null && !isNTAccount(userLogin) && !isEMailAccount(userLogin) && !isDistinguishedName(userLogin)) {
+						// use found distinguished name
+						sessionLogin = userDn;
+					}
+					getSequence().context.setAuthenticatedUser(sessionLogin);
 					break; // exit loop
 				}
 				// else loop
@@ -345,5 +353,13 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 
 	public void setBasePath(SmartType basePath) {
 		this.basePath = basePath;
+	}
+
+	public LdapBindingPolicy getBindingPolicy() {
+		return bindingPolicy;
+	}
+
+	public void setBindingPolicy(LdapBindingPolicy bindingPolicy) {
+		this.bindingPolicy = bindingPolicy;
 	}
 }

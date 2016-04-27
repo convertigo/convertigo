@@ -29,6 +29,7 @@ package com.twinsoft.convertigo.beans.steps;
 import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
+import com.twinsoft.convertigo.engine.enums.LdapBindingPolicy;
 
 public class LDAPAuthenticationStepBeanInfo extends MySimpleBeanInfo {
     
@@ -45,7 +46,7 @@ public class LDAPAuthenticationStepBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[6];
+			properties = new PropertyDescriptor[7];
 
             properties[0] = new PropertyDescriptor("server", beanClass, "getServer", "setServer");
             properties[0].setDisplayName(getExternalizedString("property.server.display_name"));
@@ -76,6 +77,11 @@ public class LDAPAuthenticationStepBeanInfo extends MySimpleBeanInfo {
             properties[5].setDisplayName(getExternalizedString("property.basePath.display_name"));
             properties[5].setShortDescription(getExternalizedString("property.basePath.short_description"));
             properties[5].setPropertyEditorClass(getEditorClass("SmartTypeCellEditor"));
+
+            properties[6] = new PropertyDescriptor("bindingPolicy", beanClass, "getBindingPolicy", "setBindingPolicy");
+            properties[6].setDisplayName(getExternalizedString("property.bindingPolicy.display_name"));
+            properties[6].setShortDescription(getExternalizedString("property.bindingPolicy.short_description"));
+            properties[6].setPropertyEditorClass(LdapBindingPolicy.class);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
