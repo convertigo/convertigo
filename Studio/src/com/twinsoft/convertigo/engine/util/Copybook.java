@@ -74,7 +74,7 @@ public class Copybook {
 					//System.out.println(entireLine);
 					level = getLevel(entireLine);
 					if ((level < 88) && (level != 0))
-						lines.addElement(entireLine);
+						lines.add(entireLine);
 							
 					entireLine = "";
 				}
@@ -223,7 +223,7 @@ public class Copybook {
 			}
 		}
 		
-		variables.addElement(cblvar);
+		variables.add(cblvar);
 	}
 	
 	public XMLVector<XMLVector<Object>> importFromFile(Reader reader) throws IOException {
@@ -463,7 +463,7 @@ public class Copybook {
 				v.add(""+ occurs[0]);
 			else
 				v.add("");
-			//v.addElement(new Integer(offset));
+			//v.add(new Integer(offset));
 			v.add(new Integer(bytes));
 			v.add(format);
 			v.add(picture);

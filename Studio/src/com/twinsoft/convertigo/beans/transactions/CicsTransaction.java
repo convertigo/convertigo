@@ -495,8 +495,8 @@ public class CicsTransaction extends Transaction {
 		if (elt != null) {
 			if (v == null) {
 				v = new Vector<Integer>();
-				v.addElement(new Integer(0));
-				v.addElement(new Integer(0));
+				v.add(new Integer(0));
+				v.add(new Integer(0));
 			}
 			if (elt.getNodeType() == Node.ELEMENT_NODE) {
 				fillXMLElement(elt, stream, v);
@@ -623,8 +623,8 @@ public class CicsTransaction extends Transaction {
 				elt.appendChild((elt.getOwnerDocument()).createTextNode(value));
 				offset += bytes;
 				
-				v.setElementAt(new Integer(pos),0);
-				v.setElementAt(new Integer(offset),1);
+				v.set(0, new Integer(pos));
+				v.set(1, new Integer(offset));
 			}
 		}
 	}

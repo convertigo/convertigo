@@ -227,11 +227,11 @@ public class ColumnEditor extends JavelinPropertyTableEditor implements SwingVal
         } else { } // not a table => no columns
 // TODO trouver quelle colonne est sélectionnée dans la combo box et la mettre à jour
         /*Vector v = new XMLVector();
-        v.addElement(jTmp.javelin.getString(zone.x, zone.y, zone.width).trim());
-        v.addElement(new Integer(zone.x));
-        v.addElement(new Integer(zone.x + zone.width - 1));
-		v.addElement(new Integer(0));
-        vTmp.addElement(v);
+        v.add(jTmp.javelin.getString(zone.x, zone.y, zone.width).trim());
+        v.add(new Integer(zone.x));
+        v.add(new Integer(zone.x + zone.width - 1));
+		v.add(new Integer(0));
+        vTmp.add(v);
     	*/
     	try {
         	propertySetter.invoke(databaseObject, new Object[] { vTmp });
@@ -267,11 +267,11 @@ public class ColumnEditor extends JavelinPropertyTableEditor implements SwingVal
 // TODO trouver quelle colonne est sélectionnée dans la combo box et la mettre à jour
         
         /*Vector v = new XMLVector();
-        v.addElement(jTmp.javelin.getString(zone.x, zone.y, zone.width).trim());
-        v.addElement(new Integer(zone.x));
-        v.addElement(new Integer(zone.x + zone.width - 1));
-		v.addElement(new Integer(0));
-        vTmp.addElement(v);
+        v.add(jTmp.javelin.getString(zone.x, zone.y, zone.width).trim());
+        v.add(new Integer(zone.x));
+        v.add(new Integer(zone.x + zone.width - 1));
+		v.add(new Integer(0));
+        vTmp.add(v);
     	*/
 
         return vTmp;

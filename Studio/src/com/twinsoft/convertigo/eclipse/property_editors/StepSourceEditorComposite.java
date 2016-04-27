@@ -138,7 +138,7 @@ public class StepSourceEditorComposite extends AbstractDialogComposite {
 	}
 	
 	private void setSourcePriority(long priority) {
-		sourcePicker.getStepSourceDefinition().setElementAt(""+priority, 0);
+		sourcePicker.getStepSourceDefinition().set(0, ""+priority);
 	}
 	
 	public Object getValue() {

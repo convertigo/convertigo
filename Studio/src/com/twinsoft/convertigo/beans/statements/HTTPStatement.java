@@ -757,7 +757,7 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 								else if (evaluated instanceof NativeJavaObject) {
 									NativeJavaObject nativeJavaObject = (NativeJavaObject)evaluated;
 									Object javaObject = nativeJavaObject.unwrap();
-									if (javaObject instanceof Vector) {
+									if (javaObject instanceof List) {
 										Vector<String> v = GenericUtils.cast(javaObject);
 										for (int j=0; j<v.size(); j++) {
 											httpVariableValue = v.get(j);
@@ -777,7 +777,7 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 										query = addVariableToQuery(methodToAnalyse, httpVariable, httpVariableValue, query, urlEncodingCharset, j != 0);
 									}
 								}
-								else if (evaluated instanceof Vector) {
+								else if (evaluated instanceof List) {
 									Vector<String> v = GenericUtils.cast(evaluated);
 									for (int j=0; j<v.size(); j++) {
 										httpVariableValue = v.get(j);

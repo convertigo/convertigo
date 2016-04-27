@@ -411,7 +411,7 @@ public class CreateHandlerDialogComposite extends MyAbstractDialogComposite {
 					((Statement)object).priority = 0;
 					((Statement)object).newPriority = 0;
 				}
-				result.addElement(object);
+				result.add(object);
 			}
 			catch (EngineException e) {;}
 		}

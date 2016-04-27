@@ -137,7 +137,7 @@ public class DatabaseObjectFindDialog extends MyAbstractDialog {
 
                     if (text.indexOf(objectTextSubstring) != -1) { // Object found !!!
                     	ConvertigoPlugin.getDefault().getProjectExplorerView().objectSelected(new CompositeEvent(databaseObject));
-                    	vDatabaseObjects.removeElement(databaseObjectTreeObject);
+                    	vDatabaseObjects.remove(databaseObjectTreeObject);
                     	return;
                     }
                 }

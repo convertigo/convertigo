@@ -261,7 +261,7 @@ public class XMLGenerateDatesStep extends XMLGenerateStep implements ITagsProper
 						day = ((day == 8) ? 1:day);
 					}
 					if ((1 <= day) && (day <= 7)) {
-						v.addElement(new Integer(day));
+						v.add(new Integer(day));
 					}
 				}
 				

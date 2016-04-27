@@ -352,7 +352,7 @@ public class JavelinTransaction extends TransactionWithVariables {
                     
                     Engine.logContext.debug("(JavelinTransaction) Extraction rules executed ...");
 
-                    blocks.addElement(blockFactory.getAllBlocks());
+                    blocks.add(blockFactory.getAllBlocks());
                     Engine.logContext.debug("(JavelinTransaction) Blocks added to output");
                 }
 

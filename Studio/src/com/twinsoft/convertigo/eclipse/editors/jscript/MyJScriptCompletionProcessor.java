@@ -67,9 +67,9 @@ public class MyJScriptCompletionProcessor implements IJavaCompletionProposalComp
         try {
             if (clazz == null) {
                 Vector<String> vPublicObjects = new Vector<String>(3);
-                vPublicObjects.addElement("[entry] \"redetect\"");
-                vPublicObjects.addElement("[entry] \"skip\"");
-                vPublicObjects.addElement("[exit] \"accumulate\"");
+                vPublicObjects.add("[entry] \"redetect\"");
+                vPublicObjects.add("[entry] \"skip\"");
+                vPublicObjects.add("[exit] \"accumulate\"");
                 return vPublicObjects;
             }
 
@@ -96,7 +96,7 @@ public class MyJScriptCompletionProcessor implements IJavaCompletionProposalComp
 
                 if (fieldName.startsWith(objectNamePrefix)) {
                     fieldSignature = formatType(field.getType().getName()) + " " + fieldName;
-                    vPublicObjects.addElement(fieldSignature + "("+fieldDescription+")");
+                    vPublicObjects.add(fieldSignature + "("+fieldDescription+")");
                 }
             }
 
@@ -181,7 +181,7 @@ public class MyJScriptCompletionProcessor implements IJavaCompletionProposalComp
 	                    		sx.replaceAll("\n", " ");
 	
 	                            methodSignature = formatType(method.getReturnType().getName()) + " " + sx.toString();
-	                            vPublicObjects.addElement(methodSignature);
+	                            vPublicObjects.add(methodSignature);
 	
 	                            continue;
                     		}
@@ -203,7 +203,7 @@ public class MyJScriptCompletionProcessor implements IJavaCompletionProposalComp
 
                     methodSignature += ")";
 
-                    vPublicObjects.addElement(methodSignature);
+                    vPublicObjects.add(methodSignature);
                 }
             }
             return vPublicObjects;

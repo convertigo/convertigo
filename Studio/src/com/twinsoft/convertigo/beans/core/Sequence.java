@@ -726,7 +726,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	}
     	
    		int order = ordered.indexOf(after);
-    	ordered.insertElementAt(value, order+1);
+    	ordered.add(order+1, value);
     	hasChanged = true;
     }
 	
@@ -746,7 +746,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	}
     	
    		int order = ordered.indexOf(after);
-    	ordered.insertElementAt(value, order+1);
+    	ordered.add(order+1, value);
     	hasChanged = true;
     }
 
@@ -830,7 +830,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     		before = (Long)ordered.get(pos-1);
     	int pos1 = ordered.indexOf(before);
     	
-    	ordered.insertElementAt(value, pos1);
+    	ordered.add(pos1, value);
     	ordered.remove(pos+1);
     	hasChanged = true;
     }
@@ -854,7 +854,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     		after = (Long)ordered.get(pos+1);
     	int pos1 = ordered.indexOf(after);
     	
-    	ordered.insertElementAt(value, pos1+1);
+    	ordered.add(pos1+1, value);
     	ordered.remove(pos);
     	hasChanged = true;
     }

@@ -402,7 +402,7 @@ public class Migration5_0_0 {
 			xpath = xpath.replaceAll("./sequence/document/", "./");
 			if (xpathReplacements.containsKey(priority) && (xpath.startsWith("./"))) {
 				String newxpath = "./" + xpathReplacements.get(priority) + "/document/" + xpath.substring(2);
-				xmlv.setElementAt(newxpath, 1);
+				xmlv.set(1, newxpath);
 				definition.replaceChild(XMLUtils.writeObjectToXml(document, xmlv), node);
 			}
     	}
@@ -626,7 +626,7 @@ public class Migration5_0_0 {
 								XMLVector<Object> line = xmlv.get(i);
 								if (line.size()>0) {
 									// Defaults to non multivalued variable
-									line.insertElementAt(Boolean.FALSE, 3);
+									line.add(3, Boolean.FALSE);
 								}
 							}
 							
@@ -656,9 +656,9 @@ public class Migration5_0_0 {
 								XMLVector<Object> line = xmlv.get(i);
 								if (line.size()>0) {
 									// Do not set as Personalizable by default
-									line.insertElementAt(Boolean.FALSE, 4);
+									line.add(4, Boolean.FALSE);
 									// Sets description to variable name by default
-									line.insertElementAt(line.get(0), 1);
+									line.add(1, line.get(0));
 								}
 							}
 								
@@ -672,7 +672,7 @@ public class Migration5_0_0 {
 								XMLVector<Object> line = xmlv.get(i);
 								if (line.size()>0) {
 									// Set cached key
-									line.insertElementAt(Boolean.TRUE, 6);
+									line.add(6, Boolean.TRUE);
 								}
 							}
 							

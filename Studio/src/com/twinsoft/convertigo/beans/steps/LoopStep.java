@@ -76,7 +76,7 @@ public abstract class LoopStep extends BlockStep {
 	@Override
 	protected String getExecuteTimeID() {
 		String timeID = super.getExecuteTimeID() + loopSeparator + loop;
-		executedLoops.addElement(timeID);
+		executedLoops.add(timeID);
 		return timeID;
 	}
 

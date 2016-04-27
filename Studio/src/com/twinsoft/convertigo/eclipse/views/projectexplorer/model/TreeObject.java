@@ -90,7 +90,7 @@ public abstract class TreeObject implements IAdaptable {
 			Vector<TreeObject> v = getParents();
 			
 			if (addThis)
-				v.insertElementAt(this, 0);
+				v.add(0, this);
 			
 			size = v.size();
 			j = size-1;
@@ -108,7 +108,7 @@ public abstract class TreeObject implements IAdaptable {
 		Vector<TreeObject> v = new Vector<TreeObject>();
 		TreeParent treeParent = parent;
 		while (treeParent != null) {
-			v.addElement(treeParent);
+			v.add(treeParent);
 			treeParent = treeParent.getParent();
 		}
 		return v;

@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.EventObject;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -1012,7 +1013,7 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 		Object ob, dataValue;
 		Map<String, Object> names;
 		boolean bMulti;
-		Vector<String> v;
+		List<String> v;
 
 		v = null;
 		names = new HashMap<String, Object>();
@@ -1029,14 +1030,14 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 					ob = names.get(name);
 					if (ob instanceof String) {
 						v = new Vector<String>();
-						v.addElement((String)ob);
+						v.add((String)ob);
 					}
-					else if (ob instanceof Vector) {
+					else if (ob instanceof List) {
 						v = GenericUtils.cast(ob);
 					}
 
 					if (v != null) {
-						v.addElement(value);
+						v.add(value);
 						names.put(name,v);
 					}
 				}
@@ -1049,7 +1050,7 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 		for (Enumeration<String> e = Collections.enumeration(names.keySet()); e.hasMoreElements() ;) {
 			dataName = e.nextElement();
 			dataValue = names.get(dataName);
-			bMulti = dataValue instanceof Vector;
+			bMulti = dataValue instanceof List;
 			httpStatement.addData(dataName, dataValue, bMulti, method);
 		}
 	}

@@ -149,7 +149,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
     	}
     	
    		int order = ordered.indexOf(after);
-    	ordered.insertElementAt(value, order+1);
+    	ordered.add(order+1, value);
     	hasChanged = true;
     }
     
@@ -192,7 +192,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
     		before = (Long)ordered.get(pos-1);
     	int pos1 = ordered.indexOf(before);
     	
-    	ordered.insertElementAt(value, pos1);
+    	ordered.add(pos1, value);
     	ordered.remove(pos+1);
     	hasChanged = true;
     }
@@ -214,7 +214,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
     		after = (Long)ordered.get(pos+1);
     	int pos1 = ordered.indexOf(after);
     	
-    	ordered.insertElementAt(value, pos1+1);
+    	ordered.add(pos1+1, value);
     	ordered.remove(pos);
     	hasChanged = true;
     }
@@ -496,7 +496,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 			}
 		}
 		
-		if ((value != null) && (value instanceof Vector)) {
+		if ((value != null) && (value instanceof List)) {
 			value = ((Vector<?>) value).toArray(new Object[] {});
 		}
 		return value;
@@ -836,7 +836,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 				line = (XMLVector) orderedVariables.get(i);
 				if (line.size()>0) {
 					// Defaults to non multivalued variable
-					line.insertElementAt(Boolean.FALSE, 3);
+					line.add(3, Boolean.FALSE);
 				}
 			}
 			
@@ -851,9 +851,9 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 				line = (XMLVector) orderedVariables.get(i);
 				if (line.size()>0) {
 					// Do not set as Personalizable by default
-					line.insertElementAt(Boolean.FALSE, 4);
+					line.add(4, Boolean.FALSE);
 					// Sets description to variable name by default
-					line.insertElementAt(line.get(0), 1);
+					line.add(1, line.get(0));
 				}
 			}
 			
@@ -868,7 +868,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 				line = (XMLVector) orderedVariables.get(i);
 				if (line.size()>0) {
 					// Set cached key
-					line.insertElementAt(Boolean.TRUE, 6);
+					line.add(6, Boolean.TRUE);
 				}
 			}
 			

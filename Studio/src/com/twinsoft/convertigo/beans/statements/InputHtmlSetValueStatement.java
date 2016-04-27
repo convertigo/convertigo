@@ -76,7 +76,7 @@ public class InputHtmlSetValueStatement extends AbstractComplexeEventStatement {
 			} else if (evaluated instanceof NativeJavaObject) {
 				NativeJavaObject nativeJavaObject = (NativeJavaObject) evaluated;
 				Object javaObject = nativeJavaObject.unwrap();
-				if (javaObject instanceof Vector) {
+				if (javaObject instanceof List) {
 					Vector<String> v = GenericUtils.cast(javaObject);
 					for (int j = 0; j < v.size(); j++) {
 						value += v.get(j) + ",";
@@ -91,7 +91,7 @@ public class InputHtmlSetValueStatement extends AbstractComplexeEventStatement {
 					Object item = array.get(j,array);
 					value += item.toString() + ",";
 				}
-			} else if (evaluated instanceof Vector) {
+			} else if (evaluated instanceof List) {
 				Vector<String> v = GenericUtils.cast(evaluated);
 				for (int j = 0; j < v.size(); j++) {
 					value += v.get(j) + ",";

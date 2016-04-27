@@ -388,7 +388,7 @@ public class Context extends AbstractContext implements Cloneable {
 				sCookie +=	"path=" + cookie.getPath() + ";";
 				sCookie +=	"domain=" + cookie.getDomain() + ";";
 				sCookie +=	cookie.getSecure() ? "secure": "";
-				cookies.addElement(sCookie);
+				cookies.add(sCookie);
 			}
 		}
 		return cookies;

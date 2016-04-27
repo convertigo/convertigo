@@ -97,20 +97,12 @@ public class XMLVector<E> extends ArrayList<E> implements XMLizable, List<E> {
         }
     }
 
-	public void insertElementAt(E element, int i) {
-		add(i, element);
-	}
-
 	public E lastElement() {
 		return get(size() - 1);
 	}
 
 	public Enumeration<E> elements() {
 		return Collections.enumeration(this);
-	}
-
-	public void setElementAt(E element, int i) {
-		set(i, element);
 	}
 
 	public E firstElement() {

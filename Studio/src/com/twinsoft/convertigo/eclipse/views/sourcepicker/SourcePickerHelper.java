@@ -138,7 +138,7 @@ public class SourcePickerHelper implements IStepSourceEditor {
 	}
 	
 	private void setSourceXPath(String xpath) {
-		stepSourceDefinition.setElementAt(xpath, 1);
+		stepSourceDefinition.set(1, xpath);
 	}
 	
 	private Step getTargetStep(Step step) throws EngineException {
@@ -191,7 +191,7 @@ public class SourcePickerHelper implements IStepSourceEditor {
 				TreeItem tItem = twsDomTree.findTreeItem(nl.item(0));
 				Vector<TreeItem> v = new Vector<TreeItem>();
 				while (tItem != null) {
-					v.addElement(tItem);
+					v.add(tItem);
 					tItem = tItem.getParentItem();
 				}
 				items = v.toArray(new TreeItem[]{});

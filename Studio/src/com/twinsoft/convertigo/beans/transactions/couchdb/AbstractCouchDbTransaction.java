@@ -446,7 +446,7 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 			Element element = (Element)object;
 			return element.getParentNode().getNodeName().equals("transaction-variables");
 		}
-		if (object instanceof Vector) {
+		if (object instanceof List) {
 			Vector<Object> v = GenericUtils.cast(object);
 			return isInputDomVariable(v.isEmpty() ? false : v.firstElement());
 		}

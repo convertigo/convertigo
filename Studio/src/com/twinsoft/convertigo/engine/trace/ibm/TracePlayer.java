@@ -97,7 +97,7 @@ public class TracePlayer {
 			}
 			try {
 				sp = new SessionPlayer(socket, s);
-				sessions.addElement(sp);
+				sessions.add(sp);
 			} catch (Exception _ex) {
 				try {
 					socket.close();

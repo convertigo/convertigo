@@ -74,7 +74,7 @@ public class ChangeToIfStatementAction extends MyAbstractAction {
     						// Set correct order
     						if (parentDbo instanceof StatementWithExpressions) {
     							int index = ((StatementWithExpressions)parentDbo).getOrderedStatements().get(0).indexOf(ifThenElseStatement.priority);
-    		   				    ((StatementWithExpressions)parentDbo).getOrderedStatements().get(0).insertElementAt(ifStatement.priority, index);
+    		   				    ((StatementWithExpressions)parentDbo).getOrderedStatements().get(0).add(index, ifStatement.priority);
     						}
     						
     						// Add new If statement in Tree

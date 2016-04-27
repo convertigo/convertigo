@@ -61,7 +61,7 @@ public class ClientInstructionSetValue extends AbstractClientInstructionWithPath
 			} else if (ob instanceof NativeJavaObject) {
 				NativeJavaObject nativeJavaObject = (NativeJavaObject)ob;
 				Object javaObject = nativeJavaObject.unwrap();
-				if (javaObject instanceof Vector) {
+				if (javaObject instanceof List) {
 					Vector<String> v = GenericUtils.cast(javaObject);
 					for (int j=0; j<v.size(); j++) {
 						value += v.get(j) + ",";
@@ -76,7 +76,7 @@ public class ClientInstructionSetValue extends AbstractClientInstructionWithPath
 					Object item = array.get(j,array);
 					value += item.toString() + ",";
 				}
-			} else if (ob instanceof Vector) {
+			} else if (ob instanceof List) {
 				Vector<String> v = GenericUtils.cast(ob);
 				for (int j=0; j<v.size(); j++) {
 					value += v.get(j) + ",";
