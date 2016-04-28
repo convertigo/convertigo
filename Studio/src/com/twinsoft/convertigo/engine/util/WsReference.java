@@ -815,7 +815,7 @@ public class WsReference {
 					// Set Content-Type
 					if (h_ContentType != null) {
 						XMLVector<String> xmlv = new XMLVector<String>();
-						xmlv.add(HeaderName.ContentType.name());
+						xmlv.add(HeaderName.ContentType.value());
 						xmlv.add(hasBodyVariable ? h_ContentType:MimeType.WwwForm.value());
 			   			httpParameters.add(xmlv);
 					}
