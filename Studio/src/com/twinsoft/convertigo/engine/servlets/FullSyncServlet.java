@@ -215,7 +215,7 @@ public class FullSyncServlet extends HttpServlet {
 				} catch (JSONException e) {
 					debug.append("failed to parse [ " + e.getMessage() + "]: " + requestStringEntity);						
 				}
-			} else if (method == HttpMethodType.GET && "_changes".equals(special)) {
+			} else if ("_changes".equals(special)) {
 				uri = Engine.theApp.couchDbManager.handleChangesUri(dbName, uri, authenticatedUser);
 				debug.append("Changed to " + method.name() + " URI: " + uri.toString() + "\n");
 			}
