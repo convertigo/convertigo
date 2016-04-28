@@ -718,14 +718,8 @@ public class WsReference {
 						
 					}
 					
-					if (h_ContentType != null) {
-						XMLVector<String> xmlv = new XMLVector<String>();
-						xmlv.add(HeaderName.ContentType.name());
-						xmlv.add(h_ContentType);
-			   			httpParameters.add(xmlv);
-					}
-					
 					// Add variables
+					boolean hasBodyVariable = false;
 					List<io.swagger.models.parameters.Parameter> parameters = operation.getParameters();
 					for (io.swagger.models.parameters.Parameter parameter : parameters) {
 						//String p_access = parameter.getAccess();
@@ -762,21 +756,24 @@ public class WsReference {
 								httpVariable.setName(Parameter.HttpHeader.getName() + p_name);
 								httpVariable.setHttpName(""); // do not post on target server
 							}
+							if (parameter instanceof PathParameter) {
+								httpVariable.setHttpName(""); // do not post on target server
+							}
 						}
 						else if (parameter instanceof FormParameter || parameter instanceof BodyParameter) {
 							httpVariable.setHttpMethod(HttpMethodType.POST.name());
 							if (parameter instanceof BodyParameter) {
+								hasBodyVariable = true;
 								// overrides variable's name for internal use
 								httpVariable.setName(Parameter.HttpBody.getName());
 								
 								// add internal __contentType variable
-								RequestableHttpVariable ct = new RequestableHttpVariable();
+								/*RequestableHttpVariable ct = new RequestableHttpVariable();
 								ct.setName(Parameter.HttpContentType.getName());
-								ct.setHttpName(""); // do not post on target server
 								ct.setHttpMethod(HttpMethodType.POST.name());
 								ct.setValueOrNull(null);
 								ct.bNew = true;
-								transaction.addVariable(ct);
+								transaction.addVariable(ct);*/
 								
 								BodyParameter bodyParameter = (BodyParameter)parameter;
 								Model model = bodyParameter.getSchema();
@@ -814,6 +811,15 @@ public class WsReference {
 						
 						transaction.addVariable(httpVariable);
 					}
+					
+					// Set Content-Type
+					if (h_ContentType != null) {
+						XMLVector<String> xmlv = new XMLVector<String>();
+						xmlv.add(HeaderName.ContentType.name());
+						xmlv.add(hasBodyVariable ? h_ContentType:MimeType.WwwForm.value());
+			   			httpParameters.add(xmlv);
+					}
+					
 					
 					transaction.bNew =  true;
 					transaction.setName(name);
