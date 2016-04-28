@@ -52,6 +52,7 @@ import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataContent;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataType;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter.Type;
 import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
+import com.twinsoft.convertigo.beans.rest.AbstractRestOperation;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
@@ -196,7 +197,20 @@ public class SwaggerUtils {
 					s_operation.setOperationId(umo.getName());
 					s_operation.setDescription(umo.getComment());
 					s_operation.setSummary(umo.getComment());
-					s_operation.setProduces(Arrays.asList(MimeType.Json.value(), MimeType.Xml.value()));
+					
+					// Operation produces
+					if (umo instanceof AbstractRestOperation) {
+						DataContent dataOutput = ((AbstractRestOperation)umo).getOutputContent();
+						if (dataOutput.equals(DataContent.toJson)) {
+							s_operation.setProduces(Arrays.asList(MimeType.Json.value()));
+						}
+						else if (dataOutput.equals(DataContent.toXml)) {
+							s_operation.setProduces(Arrays.asList(MimeType.Xml.value()));
+						}
+						else {
+							s_operation.setProduces(Arrays.asList(MimeType.Json.value(), MimeType.Xml.value()));
+						}
+					}
 					
 					// Operation tags
 					List<String> list = Arrays.asList(""+ project.getName());
