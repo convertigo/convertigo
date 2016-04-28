@@ -186,11 +186,18 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 				}
 				
 				// Bind database with given/found user
+				String errorMsg = "";
 				Engine.logBeans.trace("(LDAPAuthenticationStep) LDAP bind start");
 				String bindLogin = userDn == null ? userLogin:userDn;
-				String bindPassword = userPassword == null ? "":userPassword;
-				authenticated = twsLDAP.bind(serverUrl, bindLogin, bindPassword);
-				String errorMsg = twsLDAP.errorMessage != null ? " (Error: "+twsLDAP.errorMessage+")":"";
+				String bindPassword = userPassword;
+				if (bindPassword != null && !bindPassword.isEmpty()) {
+					authenticated = twsLDAP.bind(serverUrl, bindLogin, bindPassword);
+					errorMsg = twsLDAP.errorMessage != null ? " (Error: "+twsLDAP.errorMessage+")":"";
+				}
+				else {
+					authenticated = false;
+					errorMsg = "; invalid password";
+				}
 				Engine.logBeans.debug("(LDAPAuthenticationStep) LDAP bind: user \""+bindLogin+"\"; authenticated="+ authenticated.toString() + errorMsg);
 				Engine.logBeans.trace("(LDAPAuthenticationStep) LDAP bind end");
 				
