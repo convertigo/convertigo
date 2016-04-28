@@ -25,14 +25,20 @@
 	<classpathentry kind="lib" path="lib/internal/comm.jar"/>
 	<classpathentry kind="lib" path="lib/MozillaGlue.jar"/>
 	<classpathentry kind="lib" path="lib/MozillaInterfaces.jar"/>
-	<classpathentry kind="lib" path="lib/jettison-1.2.jar"/>
+	<classpathentry kind="lib" path="lib/jettison-1.3.4.jar"/>
 	<classpathentry kind="lib" path="lib/ctgclient.jar"/>
 	<classpathentry kind="lib" path="lib/apache/commons/commons-lang-2.5.jar" sourcepath="/ExternalJavaSources/commons-lang-2.5-src.zip"/>
 	<classpathentry kind="lib" path="lib/apache/commons/commons-fileupload-1.2.2.jar"/>
-	<classpathentry kind="lib" path="lib/apache/commons/commons-io-2.2.jar" sourcepath="/ExternalJavaSources/commons-io-2.2-src.zip"/>
-	<classpathentry kind="lib" path="lib/apache/commons/commons-codec-1.6.jar" sourcepath="/ExternalJavaSources/commons-codec-1.6-sources.jar"/>
+	<classpathentry kind="lib" path="lib/apache/commons/commons-io-2.5.jar" sourcepath="/ExternalJavaSources/commons-io-2.5-src.zip"/>
+	<classpathentry kind="lib" path="lib/apache/commons/commons-codec-1.10.jar" sourcepath="/ExternalJavaSources/commons-codec-1.10-sources.jar"/>
 	<classpathentry kind="lib" path="lib/apache/commons/commons-jxpath-1.3.jar"/>
+	<classpathentry kind="lib" path="lib/apache/commons/commons-lang3-3.4.jar"/>
+	<classpathentry kind="lib" path="lib/apache/commons/commons-logging-1.2.jar"/>
+	<classpathentry kind="lib" path="lib/apache/commons/commons-pool-1.6.jar"/>
 	<classpathentry kind="lib" path="lib/apache/xmlgraphics/xmlgraphics-commons-1.4.jar"/>
+	<classpathentry kind="lib" path="lib/apache/log4j-1.2.17.jar" sourcepath="/ExternalJavaSources/apache-log4j-1.2.17-src.zip"/>
+	<classpathentry kind="lib" path="lib/apache/httpclient-4.5.2.jar"/>
+	<classpathentry kind="lib" path="lib/apache/httpcore-4.4.4.jar"/>
 	<classpathentry kind="lib" path="lib/internal/bull-v24323.jar"/>
 	<classpathentry kind="lib" path="lib/internal/phaos.jar"/>
 	<classpathentry kind="lib" path="lib/internal/tas-v41019.jar" sourcepath="/ConvertigoLibs/src"/>
@@ -47,14 +53,10 @@
 	<classpathentry kind="lib" path="lib/wro4j-core-1.6.3.jar"/>
 	<classpathentry kind="lib" path="lib/wro4j-extensions-1.6.3.jar"/>
 	<classpathentry kind="lib" path="lib/rhino-1.7-R5pre.jar"/>
-	<classpathentry kind="lib" path="lib/apache/commons/commons-lang3-3.1.jar"/>
-	<classpathentry kind="lib" path="lib/apache/commons/commons-pool-1.6.jar"/>
 	<classpathentry kind="lib" path="lib/jco/sapjco3.jar"/>
 	<classpathentry kind="lib" path="lib/engine-sapjcoprovider.jar"/>
 	<classpathentry kind="lib" path="lib/slf4j-api-1.7.7.jar"/>
 	<classpathentry kind="lib" path="lib/slf4j-simple-1.7.7.jar"/>
-	<classpathentry kind="lib" path="lib/apache/httpclient-4.3.6.jar"/>
-	<classpathentry kind="lib" path="lib/apache/httpcore-4.4.jar"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="lib" path="lib/jCharts-0.7.2.jar"/>
 	<classpathentry kind="lib" path="lib/tools.jar"/>
@@ -113,7 +115,6 @@
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/bcel-5.1.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/commons-cli-1.2.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/commons-httpclient-3.1.jar" sourcepath="/ExternalJavaSources/commons-httpclient-3.1-src.zip"/>
-	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/commons-logging-1.1.1.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/geronimo-annotation_1.0_spec-1.1.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/geronimo-jaxws_2.2_spec-1.0.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/geronimo-jta_1.1_spec-1.1.jar"/>
@@ -130,7 +131,6 @@
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/jibx-run-1.2.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/jsr311-api-1.0.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/juli-6.0.16.jar"/>
-	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/log4j-1.2.15.jar" sourcepath="/ExternalJavaSources/apache-log4j-1.2.15-src.zip"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/mail-1.4.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/mex-1.6.2-impl.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/neethi-3.0.2.jar"/>

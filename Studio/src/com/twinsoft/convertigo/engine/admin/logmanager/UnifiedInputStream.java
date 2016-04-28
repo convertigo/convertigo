@@ -31,6 +31,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.twinsoft.convertigo.engine.Engine;
+
 public class UnifiedInputStream extends InputStream {
 	private List<File> files;
 	private FileInputStream current_file;
@@ -91,7 +93,18 @@ public class UnifiedInputStream extends InputStream {
 		if (len > b.length) {
 			len = b.length;
 		}
-		int n = current_file.read(b, off, len);
+		int n;
+		try {
+			n = current_file.read(b, off, len);
+		} catch (Exception e1) {
+			try {
+				Engine.logEngine.info("Failed to read log: b.length=" + b.length + " off=" + off + " len=" + len, e1);
+				n = current_file.read(b, off, len);
+			} catch (Exception e2) {
+				Engine.logEngine.info("Failed the retry to read log: b.length=" + b.length + " off=" + off + " len=" + len, e2);
+				n = -1;
+			}
+		}
 		if (n != -1) {
 			current_position += n;
 			off += n;
