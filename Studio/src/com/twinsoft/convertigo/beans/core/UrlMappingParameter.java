@@ -59,7 +59,7 @@ public abstract class UrlMappingParameter extends DatabaseObject implements ITag
 	public enum DataContent {
 		noConvert("Do not convert"),
 		useHeader("Use header specific"),
-		toBinary("Binary"),
+		//toBinary("Binary"),
 		toJson("Json"),
 		toXml("Xml");
 		
