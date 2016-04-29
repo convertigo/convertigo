@@ -69,18 +69,17 @@ public class SwaggerUtils {
 		Swagger swagger = new Swagger();
 		
 		Contact contact = new Contact();
+		/*contact.setName("Convertigo Support");
 		contact.setEmail("support@convertigo.com");
+		contact.setUrl("http://www.convertigo.com/#developers");*/
 		
 		Info info = new Info();
 		info.setContact(contact);
+		info.setTitle("Convertigo REST API");
+		info.setDescription("Find here all deployed projects");
 		if (project != null) {
-			info.setTitle("Convertigo REST API for " + project.getName());
 			info.setDescription(project.getComment());
 			info.setVersion(project.getVersion());			
-		} else {
-			info.setTitle("Convertigo REST API");
-			info.setDescription("Find here all deployed projects");
-			info.setVersion(com.twinsoft.convertigo.engine.Version.fullProductVersion);
 		}
 
 		List<Scheme> schemes = new ArrayList<Scheme>();
