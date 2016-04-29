@@ -87,7 +87,7 @@ function getEncodedYamlUri(project) {
 	var yamlUrl = "";
 	try {
 		var location = document.location.href;
-		yamlUrl = location.substring(0,location.indexOf("/index.html"))+"/api?YAML";
+		yamlUrl = location.substring(0,location.lastIndexOf("/"))+"/api?YAML";
 		if (typeof(project) !== "undefined") {
 			yamlUrl += "&__project="+project;
 		}

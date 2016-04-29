@@ -514,6 +514,8 @@ $(document).ready(function() {
 		});
 	});
 	
+	$("#swaggerLink").attr("href", "swagger/ui/index.html?url="+getEncodedYamlUri(vars.projectName));
+	
 	$(window).resize(function () {
 		fixWidth();
 	});
