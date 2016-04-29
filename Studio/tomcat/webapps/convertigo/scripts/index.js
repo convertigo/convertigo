@@ -65,5 +65,7 @@ $(document).ready(function () {
 				$(".java_"+this.name).text(this.value);
 			});	
 		});
+		
+		$("#swaggerLink").attr("href", "swagger/ui/index.html?url="+getEncodedYamlUri());
 	});
 });

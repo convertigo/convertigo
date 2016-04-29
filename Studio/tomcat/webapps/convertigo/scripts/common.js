@@ -83,6 +83,19 @@ function checkRoleTestPlatform($xml) {
 	return $xml.find("roles>role[name=\"TEST_PLATFORM\"]").length > 0;
 }
 
+function getEncodedYamlUri(project) {
+	var yamlUrl = "";
+	try {
+		var location = document.location.href;
+		yamlUrl = location.substring(0,location.indexOf("/index.html"))+"/api?YAML";
+		if (typeof(project) !== "undefined") {
+			yamlUrl += "&__project="+project;
+		}
+	}
+	catch (e) {}
+	return encodeURIComponent(yamlUrl);
+}
+
 $.ajaxSetup({
 	type : "POST",
 	dataType : "xml"
