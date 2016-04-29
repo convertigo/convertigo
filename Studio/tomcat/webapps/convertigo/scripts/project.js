@@ -424,7 +424,7 @@ function variableEnableCheck($check) {
 
 function isC8oCall() {
 	var $c8o_call = $("#check_mode_c8o_call");
-	return !$c8o_call.prop("disabled") && $c8o_call.prop("checked");
+	return !$c8o_call.prop("disabled") && !$c8o_call.prop("checked");
 }
 
 function isFullscreen() {
