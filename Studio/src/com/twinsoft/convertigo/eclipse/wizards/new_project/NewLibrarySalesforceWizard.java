@@ -22,11 +22,11 @@
 
 package com.twinsoft.convertigo.eclipse.wizards.new_project;
 
-public class NewLibraryGoogleSpreadsheetsWizard extends NewProjectWizard {
+public class NewLibrarySalesforceWizard extends NewProjectWizard {
 	
-	public NewLibraryGoogleSpreadsheetsWizard() {
+	public NewLibrarySalesforceWizard() {
 		super();
-		this.templateId = NewProjectWizard.LIBRARY_GOOGLE_SPREADSHEETS;
+		this.templateId = NewProjectWizard.LIBRARY_SALESFORCE;
 	}
 
 }

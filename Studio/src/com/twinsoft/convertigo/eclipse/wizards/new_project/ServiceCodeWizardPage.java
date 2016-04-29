@@ -186,9 +186,6 @@ public class ServiceCodeWizardPage extends WizardPage {
 			case NewProjectWizard.TEMPLATE_EAI_UNIX_VT220:
 				connectionType = "DIR";
 				break;
-			case NewProjectWizard.TEMPLATE_EAI_MINITEL:
-				connectionType = "";
-				break;
 			default:
 				connectionType = "";
 				break;

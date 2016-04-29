@@ -110,7 +110,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int TEMPLATE_EAI_IBM_3270 = 300;
 	public static final int TEMPLATE_EAI_IBM_5250 = 301;
 	public static final int TEMPLATE_EAI_BULL_DKU_7107 = 302;
-	public static final int TEMPLATE_EAI_MINITEL = 303;
 	public static final int TEMPLATE_EAI_UNIX_VT220 = 304;
 	public static final int TEMPLATE_EAI_HTTP = 305;
 	public static final int TEMPLATE_EAI_CICS_COMMEAREA = 306;
@@ -144,8 +143,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int SAMPLE_SQL_XLS = 661;
 	// libraries
 	public static final int LIBRARY_GOOGLE_MAPS = 800;
-	public static final int LIBRARY_GOOGLE_SPREADSHEETS = 801;
-	public static final int LIBRARY_GOOGLE_DOCS = 802;
 	public static final int LIBRARY_KEYRING = 803;
 	public static final int LIBRARY_PUSH_MANAGER = 804;
 	public static final int LIBRARY_TWITTER = 805;
@@ -153,6 +150,8 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int LIBRARY_POLYMER = 807;
 	public static final int LIBRARY_FILE_TRANSFER = 808;
 	public static final int LIBRARY_SIGFOX = 809;
+	public static final int LIBRARY_SALESFORCE = 810;
+	
 	// demos
 	public static final int DEMOS_SALESFORCE = 900;
 	public static final int DEMOS_USDIRECTORY = 901;
@@ -208,8 +207,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final String SAMPLE_RETAILSTORE_PROJECT_FILE_NAME = "sampleMobileRetailStore.car";
 	// libraries
 	public static final String GOOGLE_MAPS_LIBRARY_PROJECT_FILE_NAME = "lib_GoogleMaps.car";
-	public static final String GOOGLE_SPREADSHEETS_LIBRARY_PROJECT_FILE_NAME = "lib_GoogleSpreadsheets.car";
-	public static final String GOOGLE_DOCS_LIBRARY_PROJECT_FILE_NAME = "lib_GoogleDocs.car";
 	public static final String KEYRING_LIBRARY_PROJECT_FILE_NAME = "lib_Keyring.car";
 	public static final String PUSH_MANAGER_LIBRARY_PROJECT_FILE_NAME = "lib_PushManager.car";
 	public static final String TWITTER_LIBRARY_PROJECT_FILE_NAME = "lib_Twitter.car";
@@ -217,6 +214,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final String POLYMER_LIBRARY_PROJECT_FILE_NAME = "lib_Polymer.car";
 	public static final String FILE_TRANSFER_LIBRARY_PROJECT_FILE_NAME = "lib_FileTransfer.car";
 	public static final String SIGFOX_LIBRARY_PROJECT_FILE_NAME = "lib_Sigfox.car";
+	public static final String SALESFORCE_LIBRARY_PROJECT_FILE_NAME = "lib_Salesforce.car";
 	// mashup demo
 	public static final String SALESFORCE_DEMO_PROJECT_FILE_NAME = "demo_SalesForce.car";
 	public static final String USDIRECTORY_DEMO_PROJECT_FILE_NAME = "demo_usDirectory.car";
@@ -278,8 +276,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case SAMPLE_OFFCHAT:
 		case SAMPLE_RETAILSTORE:
 		case LIBRARY_GOOGLE_MAPS:
-		case LIBRARY_GOOGLE_SPREADSHEETS:
-		case LIBRARY_GOOGLE_DOCS:
 		case LIBRARY_KEYRING:
 		case LIBRARY_PUSH_MANAGER:
 		case LIBRARY_TWITTER:
@@ -287,6 +283,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case LIBRARY_POLYMER:
 		case LIBRARY_FILE_TRANSFER:
 		case LIBRARY_SIGFOX:
+		case LIBRARY_SALESFORCE:
 		case DEMOS_SALESFORCE:
 		case DEMOS_USDIRECTORY:
 		case DEMOS_LEGACYCRM:
@@ -302,7 +299,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case TEMPLATE_EAI_IBM_5250:
 		case TEMPLATE_EAI_BULL_DKU_7107:
 		case TEMPLATE_EAI_UNIX_VT220:
-		case TEMPLATE_EAI_MINITEL:
 			page1 = new NewProjectWizardPage1(selection);
 			page2 = new NewProjectWizardPage2(selection);
 			page7 = new ServiceCodeWizardPage(selection);
@@ -448,7 +444,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case TEMPLATE_EAI_BULL_DKU_7107:
 			case TEMPLATE_EAI_IBM_3270:
 			case TEMPLATE_EAI_IBM_5250:
-			case TEMPLATE_EAI_MINITEL:
 			case TEMPLATE_EAI_UNIX_VT220:
 			case TEMPLATE_EAI_HTML_WEB_SITE:
 			case TEMPLATE_EAI_HTTP:
@@ -490,8 +485,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case SAMPLE_OFFCHAT:
 			case SAMPLE_RETAILSTORE:
 			case LIBRARY_GOOGLE_MAPS:
-			case LIBRARY_GOOGLE_SPREADSHEETS:
-			case LIBRARY_GOOGLE_DOCS:
+			case LIBRARY_SALESFORCE:
 			case LIBRARY_KEYRING:
 			case LIBRARY_PUSH_MANAGER:
 			case LIBRARY_TWITTER:
@@ -610,7 +604,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case TEMPLATE_EAI_BULL_DKU_7107:
 		case TEMPLATE_EAI_IBM_3270:
 		case TEMPLATE_EAI_IBM_5250:
-		case TEMPLATE_EAI_MINITEL:
 		case TEMPLATE_EAI_UNIX_VT220:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/"
 					+ JAVELIN_INTEGRATION_TEMPLATE_PROJECT_FILE_NAME;
@@ -748,10 +741,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				newIbmTerminalType = "IBM-3179";
 				emulatorTechnologyName = "IBM5250"; //$NON-NLS-1$
 				break;
-			case TEMPLATE_EAI_MINITEL:
-				newEmulatorTechnology = Session.VDX;
-				emulatorTechnologyName = "Minitel"; //$NON-NLS-1$
-				break;
 			case TEMPLATE_EAI_UNIX_VT220:
 				newEmulatorTechnology = Session.VT;
 				emulatorTechnologyName = "UnixVT220"; //$NON-NLS-1$
@@ -812,7 +801,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case TEMPLATE_EAI_BULL_DKU_7107:
 			case TEMPLATE_EAI_IBM_3270:
 			case TEMPLATE_EAI_IBM_5250:
-			case TEMPLATE_EAI_MINITEL:
 			case TEMPLATE_EAI_UNIX_VT220:
 				// change emulator technology
 				// and change service code
@@ -1233,13 +1221,9 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + GOOGLE_MAPS_LIBRARY_PROJECT_FILE_NAME;
 			projectName = GOOGLE_MAPS_LIBRARY_PROJECT_FILE_NAME.substring(0, GOOGLE_MAPS_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
-		case LIBRARY_GOOGLE_SPREADSHEETS:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + GOOGLE_SPREADSHEETS_LIBRARY_PROJECT_FILE_NAME;
-			projectName = GOOGLE_SPREADSHEETS_LIBRARY_PROJECT_FILE_NAME.substring(0, GOOGLE_SPREADSHEETS_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
-			break;
-		case LIBRARY_GOOGLE_DOCS:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + GOOGLE_DOCS_LIBRARY_PROJECT_FILE_NAME;
-			projectName = GOOGLE_DOCS_LIBRARY_PROJECT_FILE_NAME.substring(0, GOOGLE_DOCS_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
+		case LIBRARY_SALESFORCE:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SALESFORCE_LIBRARY_PROJECT_FILE_NAME;
+			projectName = SALESFORCE_LIBRARY_PROJECT_FILE_NAME.substring(0, SALESFORCE_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case LIBRARY_KEYRING:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + KEYRING_LIBRARY_PROJECT_FILE_NAME;

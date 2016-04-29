@@ -164,38 +164,9 @@
             name="Legacy integration"
             parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
       <category
-            id="com.twinsoft.convertigo.eclipse.convertigowebintegration"
-            name="Web integration"
-            parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
-      <category
-            id="com.twinsoft.convertigo.eclipse.convertigosequencer"
-            name="Sequencer"
-            parentCategory="com.twinsoft.convertigo.eclipse.convertigo">
-      </category>
-      <category
-            id="com.twinsoft.convertigo.eclipse.convertigowebservices"
-            name="Web services consumption"
-            parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
-      <category
             id="com.twinsoft.convertigo.eclipse.convertigolibraries"
             name="Libraries"
             parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
-      <category
-            id="com.twinsoft.convertigo.eclipse.convertigositeclipper"
-            name="Site clipping"
-            parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
-      <category
-            id="com.twinsoft.convertigo.eclipse.convertigosql"
-            name="SQL"
-            parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
-      <category
-            id="com.twinsoft.convertigo.eclipse.convertigosap"
-            name="SAP"
-            parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
-      <category
-            id="com.twinsoft.convertigo.eclipse.convertigomobile"
-            name="Mobile"
-            parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>  
 <!-- samples and demos categories -->
       <category
             id="com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
@@ -219,7 +190,7 @@
             parentCategory="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"/>
 <!-- Mobile projects -->
       <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigomobile"
+            category="com.twinsoft.convertigo.eclipse.convertigo"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewEmptyJQueryMobileWizard"
             icon="icons/studio/mobile_HighEnd_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewEmptyJQueryMobileWizard"
@@ -312,7 +283,7 @@
             </wizard>
 <!-- Web integration projects -->
       <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigowebintegration"
+            category="com.twinsoft.convertigo.eclipse.convertigo"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewHtmlConnectorWizard"
             icon="icons/studio/htmlconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewHtmlConnectorWizard"
@@ -323,7 +294,7 @@
             </wizard>
 <!-- Sequencer projects -->
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosequencer"
+             category="com.twinsoft.convertigo.eclipse.convertigo"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSequencerWizard"
              icon="icons/studio/sequence_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewSequencerWizard"
@@ -334,7 +305,7 @@
              </wizard>
 <!-- SQL projects -->
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosql"
+             category="com.twinsoft.convertigo.eclipse.convertigo"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSQLProjectWizard"
              icon="icons/studio/sqlconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewSQLProjectWizard"
@@ -345,7 +316,7 @@
              </wizard>
 <!-- SAP projects -->
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosap"
+             category="com.twinsoft.convertigo.eclipse.convertigo"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSAPProjectWizard"
              icon="icons/studio/sapconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewSAPProjectWizard"
@@ -356,7 +327,7 @@
              </wizard>
 <!-- Site Clipper connector projects -->
        <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigositeclipper"
+            category="com.twinsoft.convertigo.eclipse.convertigo"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSiteClipperProjectWizard"
             icon="icons/studio/siteclipperconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewSiteClipperProjectWizard"
@@ -365,6 +336,118 @@
             project="true">
             <description>Creates a Site Clipper connector project.</description> 
 	   </wizard>
+<!-- Web services projects -->
+       <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewHttpConnectorWizard"
+            icon="icons/studio/httpconnector_color_32x32.gif"
+            id="com.twinsoft.convertigo.eclipse.wizards.NewHttpConnectorWizard"
+            name="REST Web service"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Creates an HTTP based Web Service connector project to invoke a remote REST web service.</description> 
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewWebServiceReferenceWizard"
+             icon="icons/studio/httpconnector_color_32x32.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewWebServiceReferenceWizard"
+             name="SOAP Web service"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Creates an HTTP based Web Service connector project to invoke a remote SOAP web service, by importing its WSDL description file.</description>
+       </wizard>
+<!-- Libraries projects -->
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryGoogleMapsWizard"
+             icon="icons/studio/library_googleMaps_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryGoogleMapsWizard"
+             name="Google Maps"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the Convertigo Google Maps library project.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryKeyringWizard"
+             icon="icons/studio/library_keyring_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryKeyringWizard"
+             name="Keyring library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the Convertigo Keyring library project.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryPushManagerWizard"
+             icon="icons/studio/library_pushManager_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryPushManagerWizard"
+             name="Push manager library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the Convertigo Push manager library project.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryTwitterWizard"
+             icon="icons/studio/library_twitter_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryTwitterWizard"
+             name="Twitter library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the Convertigo Twitter library project.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryOAuthWizard"
+             icon="icons/studio/library_oauth_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryOAuthWizard"
+             name="OAuth library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the Convertigo OAuth library project.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryPolymerWizard"
+             icon="icons/studio/polymer_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryPolymerWizard"
+             name="Polymer library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the Convertigo Polymer library project.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryFileTransferWizard"
+             icon="icons/studio/library_filetransfer_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryFileTransferWizard"
+             name="FileTransfer library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the Convertigo FileTransfer library project.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibrarySigfoxWizard"
+             icon="icons/studio/library_sigfox_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibrarySigfoxWizard"
+             name="Sigfox library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the Convertigo Sigfox library project.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibrarySalesforceWizard"
+             icon="icons/studio/library_salesforce_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibrarySalesforceWizard"
+             name="Salesforce library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the Convertigo Salesforce library project.</description>
+       </wizard>
 <!-- Tutorials sample projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
@@ -589,108 +672,6 @@
              preferredPerspectives="convertigo"
              project="true">
           <description>Imports an Excel file database sample project.</description>
-       </wizard>
-<!-- Web services projects -->
-       <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigowebservices"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewHttpConnectorWizard"
-            icon="icons/studio/httpconnector_color_32x32.gif"
-            id="com.twinsoft.convertigo.eclipse.wizards.NewHttpConnectorWizard"
-            name="REST Web service"
-            preferredPerspectives="convertigo"
-            project="true">
-            <description>Creates an HTTP based Web Service connector project to invoke a remote REST web service.</description> 
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigowebservices"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewWebServiceReferenceWizard"
-             icon="icons/studio/httpconnector_color_32x32.gif"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewWebServiceReferenceWizard"
-             name="SOAP Web service"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Creates an HTTP based Web Service connector project to invoke a remote SOAP web service, by importing its WSDL description file.</description>
-       </wizard>
-<!-- Libraries projects -->
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryGoogleMapsWizard"
-             icon="icons/studio/library_googleMaps_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryGoogleMapsWizard"
-             name="Google Maps"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the Convertigo Google Maps library project.</description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryKeyringWizard"
-             icon="icons/studio/library_keyring_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryKeyringWizard"
-             name="Keyring library"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the Convertigo Keyring library project.</description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryPushManagerWizard"
-             icon="icons/studio/library_pushManager_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryPushManagerWizard"
-             name="Push manager library"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the Convertigo Push manager library project.</description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryTwitterWizard"
-             icon="icons/studio/library_twitter_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryTwitterWizard"
-             name="Twitter library"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the Convertigo Twitter library project.</description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryOAuthWizard"
-             icon="icons/studio/library_oauth_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryOAuthWizard"
-             name="OAuth library"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the Convertigo OAuth library project.</description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryPolymerWizard"
-             icon="icons/studio/polymer_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryPolymerWizard"
-             name="Polymer library"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the Convertigo Polymer library project.</description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryFileTransferWizard"
-             icon="icons/studio/library_filetransfer_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryFileTransferWizard"
-             name="FileTransfer library"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the Convertigo FileTransfer library project.</description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibrarySigfoxWizard"
-             icon="icons/studio/library_sigfox_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewLibrarySigfoxWizard"
-             name="Sigfox library"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the Convertigo Sigfox library project.</description>
        </wizard>
 <!-- Mashup demo projects -->
        <wizard
@@ -1066,13 +1047,6 @@
                label="Open"
                menubarPath="project"
                tooltip="Open a project"/>
-         <action
-               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectCreateAction"
-               enablesFor="1"
-               icon="icons/studio/project_create.gif"
-               id="convertigo.action.newProject"
-               label="New"
-               menubarPath="explorer"/>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.UnloadedProjectDeleteAction"
                enablesFor="+"
