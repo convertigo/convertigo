@@ -49,7 +49,6 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
 import com.twinsoft.convertigo.beans.core.IVariableContainer;
-import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Project.XsdForm;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Sequence;

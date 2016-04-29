@@ -26,8 +26,6 @@
 
 package com.twinsoft.convertigo.eclipse.views.references.model;
 
-import org.eclipse.swt.graphics.Image;
-
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 
 public abstract class AbstractNodeWithDatabaseObjectReference extends AbstractParentNode {

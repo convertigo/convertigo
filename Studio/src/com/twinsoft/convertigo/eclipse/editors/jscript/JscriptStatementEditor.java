@@ -22,7 +22,6 @@
 
 package com.twinsoft.convertigo.eclipse.editors.jscript;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import org.apache.commons.io.IOUtils;
@@ -44,6 +43,7 @@ import com.twinsoft.convertigo.beans.statements.SimpleStatement;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 
+@SuppressWarnings("restriction")
 public class JscriptStatementEditor extends EditorPart implements IPropertyListener {
 	private IFile file;
 	private IEditorSite eSite;

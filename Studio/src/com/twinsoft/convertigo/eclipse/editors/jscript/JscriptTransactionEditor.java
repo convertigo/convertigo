@@ -42,6 +42,7 @@ import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 
+@SuppressWarnings("restriction")
 public class JscriptTransactionEditor extends EditorPart implements IPropertyListener {
 	private IFile file;
 	private IEditorSite eSite;
@@ -162,7 +163,7 @@ public class JscriptTransactionEditor extends EditorPart implements IPropertyLis
 		
 		try {
 			// Create a temp  file to hold transaction's data
-			InputStream sbisHandlersStream = IOUtils.toInputStream(transaction.handlers);
+			InputStream sbisHandlersStream = IOUtils.toInputStream(transaction.handlers, "UTF-8");
 			
 			// Overrides temp file with transaction's handler data
 			if (file.exists()) {

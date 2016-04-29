@@ -42,6 +42,7 @@ import com.twinsoft.convertigo.beans.steps.SimpleStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 
+@SuppressWarnings("restriction")
 public class JscriptStepEditor extends EditorPart implements IPropertyListener {
 	private IFile file;
 	private IEditorSite eSite;

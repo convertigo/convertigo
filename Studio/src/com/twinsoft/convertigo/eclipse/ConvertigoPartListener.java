@@ -40,6 +40,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView
 import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
 
 
+@SuppressWarnings("restriction")
 public class ConvertigoPartListener implements IPartListener {
 
 	/**

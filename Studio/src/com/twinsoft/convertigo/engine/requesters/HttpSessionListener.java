@@ -69,7 +69,7 @@ public class HttpSessionListener implements HttpSessionBindingListener {
         	if (e.isOverflow()) {
         		String line = dateFormat.format(new Date()) + "\t" + e.getCvMax() + "\t" + e.getCvCurrent() + "\n";
         		try {
-					FileUtils.write(new File(Engine.LOG_PATH + "/Session License exceeded.log"), line, true);
+					FileUtils.write(new File(Engine.LOG_PATH + "/Session License exceeded.log"), line, "UTF-8", true);
 				} catch (IOException e1) {
 					Engine.logContext.error("Failed to write the 'Session License exceeded.log' file", e1);
 				}

@@ -43,6 +43,7 @@ import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 
+@SuppressWarnings("restriction")
 public class XMLSequenceEditor extends EditorPart implements IPropertyListener {
 	private IFile file;
 	private IEditorSite eSite;

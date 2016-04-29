@@ -307,6 +307,7 @@ public class HttpUtils {
 		return httpClient;
 	}
 	
+	@SuppressWarnings("deprecation")
 	public static CloseableHttpClient makeHttpClient4(boolean usePool) {
 		HttpClientBuilder httpClientBuilder = HttpClients.custom();
 		httpClientBuilder.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.BROWSER_COMPATIBILITY).build());

@@ -27,7 +27,6 @@ import java.lang.reflect.Constructor;
 import java.util.EventObject;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map;
 
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocumentPartitioner;

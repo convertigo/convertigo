@@ -92,7 +92,7 @@ public class GenerateHashCodeStep extends Step implements ISchemaParticleGenerat
 				if (hashAlgorithm == HashAlgorithm.MD5) {
 					hash = org.apache.commons.codec.digest.DigestUtils.md5Hex(path);
 				} else if (hashAlgorithm == HashAlgorithm.SHA1) {
-					hash = org.apache.commons.codec.digest.DigestUtils.shaHex(path);
+					hash = org.apache.commons.codec.digest.DigestUtils.sha1Hex(path);
 				}
 				Engine.logBeans.info("File \"" + sourceFilePath	+ "\" has been hashed.");
 				

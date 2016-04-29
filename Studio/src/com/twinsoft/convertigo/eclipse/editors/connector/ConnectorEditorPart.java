@@ -28,7 +28,6 @@ import java.text.MessageFormat;
 import java.util.EventObject;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.text.Document;

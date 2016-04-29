@@ -140,7 +140,7 @@ public class ColumnEditor extends JavelinPropertyTableEditor implements SwingVal
 //        firePropertyChange();
     }
     
-    private JComboBox jComboBoxColumns = new JComboBox();
+    private JComboBox<Object> jComboBoxColumns = new JComboBox<Object>();
     
     public void customizePanel(JPanel valuePanel, Container buttonsPanel) {
         valuePanel.setLayout(new BorderLayout());

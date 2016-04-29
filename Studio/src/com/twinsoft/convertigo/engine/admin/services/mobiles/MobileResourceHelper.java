@@ -44,8 +44,7 @@ public class MobileResourceHelper {
 		}
 	};
 	
-	private static final Pattern alphaNumPattern = Pattern.compile("[\\.\\w]*");
-	Pattern pScript = Pattern.compile("(?:(?:<script .*?src)|(?:<link .*?href))=\"(.*?)\"");
+	final Pattern pScript = Pattern.compile("(?:(?:<script .*?src)|(?:<link .*?href))=\"(.*?)\"");
 	
 	public static final IOFileFilter defaultFilter = new IOFileFilter() {
 		
@@ -124,9 +123,9 @@ public class MobileResourceHelper {
 				// Sencha 1 case
 				
 				File indexHtmlFile = new File(destDir, "index.html");
-				String sIndexHtml = FileUtils.readFileToString(indexHtmlFile);
+				String sIndexHtml = FileUtils.readFileToString(indexHtmlFile, "UTF-8");
 				
-				String sServerJsHtml = FileUtils.readFileToString(serverJsFile);
+				String sServerJsHtml = FileUtils.readFileToString(serverJsFile, "UTF-8");
 				sServerJsHtml = sServerJsHtml.replaceAll("/\\* DO NOT REMOVE THIS LINE endpoint \\: '' \\*/", "endpoint : '" + endPoint + "'");
 				writeStringToFile(serverJsFile, sServerJsHtml);
 				
@@ -153,7 +152,7 @@ public class MobileResourceHelper {
 				List<File> filesToDelete = new LinkedList<File>();
 				
 				for (File htmlFile : FileUtils.listFiles(destDir, new String[] {"html"}, true)) {
-					String htmlContent = FileUtils.readFileToString(htmlFile);
+					String htmlContent = FileUtils.readFileToString(htmlFile, "UTF-8");
 					StringBuffer sbIndexHtml = new StringBuffer();
 					BufferedReader br = new BufferedReader(new StringReader(htmlContent));
 					String includeChar = null;
@@ -179,11 +178,11 @@ public class MobileResourceHelper {
 									handleJQMcssFolder(inFile, outFile);
 									
 									if (file.matches(".*/jquery\\.mobilelib\\..*?js")) {
-										String sJs = FileUtils.readFileToString(outFile);
+										String sJs = FileUtils.readFileToString(outFile, "UTF-8");
 										sJs = sJs.replaceAll(Pattern.quote("url : \"../../\""), "url : \"" + endPoint + "\"");
 										writeStringToFile(outFile, sJs);
 									} else if (file.matches(".*/c8o\\.core\\..*?js")) {
-										String sJs = FileUtils.readFileToString(outFile);
+										String sJs = FileUtils.readFileToString(outFile, "UTF-8");
 										sJs = sJs.replaceAll(Pattern.quote("endpoint_url: \"\""), "endpoint_url: \"" + endPoint + "\"");
 										writeStringToFile(outFile, sJs);
 //									} else if (file.matches(".*/c8o\\.fullsync\\..*?js")) {
@@ -323,7 +322,7 @@ public class MobileResourceHelper {
 	
 	private void writeStringToFile(File file, String content) throws IOException {
 		long lastModified = file.exists() ? file.lastModified() : System.currentTimeMillis();
-		FileUtils.writeStringToFile(file, content);
+		FileUtils.writeStringToFile(file, content, "UTF-8");
 		file.setLastModified(lastModified);
 	}
 	

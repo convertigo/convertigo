@@ -43,6 +43,7 @@ import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 
+@SuppressWarnings("restriction")
 public class XMLTransactionStepEditor extends EditorPart implements IPropertyListener {
 	private IFile file;
 	private IEditorSite eSite;

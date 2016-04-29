@@ -68,12 +68,14 @@ public class SchedulerManager {
 		try {
 			sched = schedFact.getScheduler();
 			sched.start();
-			
+
+			XMLDecoder decoder = new XMLDecoder(new FileInputStream(getFileURL()));
 			try{
-				XMLDecoder decoder = new XMLDecoder(new FileInputStream(getFileURL()));
 				schedulerXML = (SchedulerXML) decoder.readObject();
-			}catch (Exception e) {
+			} catch (Exception e) {
 				schedulerXML = new SchedulerXML();
+			} finally {
+				decoder.close();
 			}
 		} catch (Exception e) {
 			schedulerOn = false;

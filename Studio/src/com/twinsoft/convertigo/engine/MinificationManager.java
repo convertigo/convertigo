@@ -151,7 +151,7 @@ public class MinificationManager implements AbstractManager, PropertyChangeEvent
 			this.resourceType= resourceType; 
 			this.virtualFile = virtualFile;
 			key = key.replaceFirst("(.*?)/_private/(?:flashupdate|mobile)/", "$1/DisplayObjects/mobile/");
-			key = DigestUtils.md5Hex(key) + DigestUtils.shaHex(key) + "." + resourceType.name();
+			key = DigestUtils.md5Hex(key) + DigestUtils.sha1Hex(key) + "." + resourceType.name();
 			cacheFile = new File(minificationCacheDirectory, key);
 		}
 		

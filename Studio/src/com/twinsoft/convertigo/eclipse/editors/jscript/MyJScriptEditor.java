@@ -22,7 +22,6 @@
 
 package com.twinsoft.convertigo.eclipse.editors.jscript;
 
-import org.eclipse.jface.text.IDocumentPartitioner;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.eclipse.wst.jsdt.internal.ui.javaeditor.CompilationUnitEditor;
 import org.eclipse.wst.jsdt.ui.text.JavaScriptTextTools;
@@ -35,6 +34,7 @@ import org.eclipse.wst.jsdt.ui.text.JavaScriptTextTools;
  *
  */
 
+@SuppressWarnings("restriction")
 public class MyJScriptEditor extends CompilationUnitEditor {
 	
 	public void setSourceViewerConfiguration()

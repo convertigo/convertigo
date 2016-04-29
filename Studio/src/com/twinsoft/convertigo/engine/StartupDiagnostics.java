@@ -174,7 +174,7 @@ public class StartupDiagnostics {
 						// Checking /etc/passwd file under linux
 						try {
 							File etcPasswdFile = new File("/etc/passwd");
-							List<String> lines = FileUtils.readLines(etcPasswdFile);
+							List<String> lines = FileUtils.readLines(etcPasswdFile, "UTF-8");
 	
 							String etcPasswdUserHome = null;
 							for (String line : lines) {

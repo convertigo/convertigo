@@ -79,7 +79,7 @@ public class PacManager {
 		try {
 			File file = (scriptUrl.indexOf(":/") == -1) ? new File(scriptUrl) : new File(new URL(scriptUrl).toURI());
 			
-			return IOUtils.toString(new FileInputStream(file));
+			return IOUtils.toString(new FileInputStream(file), "UTF-8");
 		} catch (Exception e) {
 			Engine.logProxyManager.error("(PacManager) Error reading proxy auto config file" + e);
 			return "";
@@ -101,7 +101,7 @@ public class PacManager {
 			throw new IOException("(PacManager) Method failed: " + method.getStatusLine());
 		}
 		
-		return IOUtils.toString(method.getResponseBodyAsStream());
+		return IOUtils.toString(method.getResponseBodyAsStream(), "UTF-8");
 	}
 
 	public String evaluate(String url, String host) {

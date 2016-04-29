@@ -41,6 +41,7 @@ import org.eclipse.ui.part.FileEditorInput;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IFunctionTreeObject;
 
+@SuppressWarnings("restriction")
 public class JscriptTreeFunctionEditor extends EditorPart implements IPropertyListener {
 	private IFile file;
 	private IEditorSite eSite;
