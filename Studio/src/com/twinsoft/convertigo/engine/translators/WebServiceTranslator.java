@@ -36,6 +36,7 @@ import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.soap.SOAPPart;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
@@ -63,7 +64,6 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.requesters.WebServiceServletRequester;
 import com.twinsoft.convertigo.engine.servlets.WebServiceServlet;
-import com.twinsoft.convertigo.engine.util.Base64v21;
 import com.twinsoft.convertigo.engine.util.SOAPUtils;
 
 public class WebServiceTranslator implements Translator {
@@ -516,7 +516,7 @@ public class WebServiceTranslator implements Translator {
 	    					AttachmentDetails attachment = AttachmentManager.getAttachment(element);
 	    					if (attachment != null){
 	    						byte[] raw = attachment.getData();
-	    						if(raw != null) soapElement.addTextNode(Base64v21.encodeBytes(raw));
+	    						if(raw != null) soapElement.addTextNode(Base64.encodeBase64String(raw));
 	    					}
 	    					
 	    					/* DON'T WORK YET *\
@@ -697,7 +697,7 @@ public class WebServiceTranslator implements Translator {
 				AttachmentDetails attachment = AttachmentManager.getAttachment(elementToAdd);
 				if(attachment!=null){
 					byte[] raw = attachment.getData();
-					if(raw != null) childSoapElement.addTextNode(Base64v21.encodeBytes(raw));
+					if(raw != null) childSoapElement.addTextNode(Base64.encodeBase64String(raw));
 				}
 				
 				/* DON'T WORK YET *\

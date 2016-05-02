@@ -24,6 +24,7 @@ package com.twinsoft.convertigo.beans.steps;
 
 import java.io.File;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -31,7 +32,6 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.util.Base64;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class WriteBase64Step extends WriteFileStep {
@@ -75,7 +75,7 @@ public class WriteBase64Step extends WriteFileStep {
 					try {
 						String content = node instanceof Element ? ((Element) node).getTextContent() : node.getNodeValue();
 						if (content != null && content.length() > 0) {
-							byte[] bytes = Base64.decode(content);
+							byte[] bytes = Base64.decodeBase64(content);
 							if (bytes != null && bytes.length > 0) {
 								FileUtils.writeByteArrayToFile(new File(fullPathName), bytes);
 								return;

@@ -22,48 +22,26 @@
 
 package com.twinsoft.convertigo.engine.util;
 
-import java.io.*;
-import java.util.*;
-import java.util.zip.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collections;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.io.IOUtils;
 
-import com.twinsoft.convertigo.engine.*;
+import com.twinsoft.convertigo.engine.Engine;
 
 public class ZipUtils {
-    
-	public static boolean checkFilesInZip(String path, List<String> filesNames, String zipFileNamesReplacmentRegex) throws IOException{
-		ZipInputStream zis = new ZipInputStream(
-	            new BufferedInputStream(new FileInputStream(path)));
-	    ZipEntry ze = null;	  
-	    String fileName = null;
-	    int nbFilesFound = 0;
-	    try {
-	        while(((ze = zis.getNextEntry()) != null)){
-	        	fileName = ze.getName().replaceAll(".*/","");  
-	        	
-	        	fileName = fileName.replaceAll(zipFileNamesReplacmentRegex,"");   
-	          	
-	            if (ze.isDirectory()) {
-	                continue;
-	            }
-	            
-	            for (String js : filesNames) {
-	            	if (js.equalsIgnoreCase(fileName)) {	
-	            		nbFilesFound++;
-	            	} 	
-	            }
-	        }
-	    }
-	    finally {
-	        zis.close();
-	    }
-		return (nbFilesFound == filesNames.size());
-	}
-	
-	public static boolean checkFilesInZip(String path, List<String> filesNames) throws IOException{
-		return checkFilesInZip(path, filesNames, "");
-	}	
 	
 	public static void makeZip(String archiveFileName, String sDir, String sRelativeDir) throws Exception {
 		FileOutputStream fos = new FileOutputStream(archiveFileName);
@@ -76,26 +54,6 @@ public class ZipUtils {
 		FileOutputStream fos = new FileOutputStream(archiveFileName);
 		ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fos));
 		int nbZipEntries = ZipUtils.putEntries(zos, sDir, sRelativeDir, excludedFiles);
-		if (nbZipEntries > 0) zos.close();
-	}
-    
-	public static void makeZip2(String archiveFileName, String sDir, String sRelativeDir, List<File> includedFiles) throws Exception {
-		FileOutputStream fos = new FileOutputStream(archiveFileName);
-		ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fos));
-		int nbZipEntries = ZipUtils.putEntries2(zos, sDir, sRelativeDir, includedFiles);
-		if (nbZipEntries > 0) zos.close();
-	}
-    
-	public static void makeZip(String archiveFileName, String sDir, String sRelativeDir, String[][] files) throws Exception {
-		FileOutputStream fos = new FileOutputStream(archiveFileName);
-		ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fos));
-		int nbZipEntries = ZipUtils.putEntries(zos, sDir, sRelativeDir, new ArrayList<File>());
-		for (int i = 0 ; i < files.length ; i++){
-			if(files[i][0].endsWith(".jar"))
-				nbZipEntries += ZipUtils.addJarEntries(zos, files[i][0]);
-			else
-				nbZipEntries += ZipUtils.addFileEntries(zos, files[i][0], files[i][1]);
-		}
 		if (nbZipEntries > 0) zos.close();
 	}
     
@@ -142,121 +100,6 @@ public class ZipUtils {
 		}
 		return nbe;
 	}
-
-	private static int putEntries2(ZipOutputStream zos, String sDir, String sRelativeDir, List<File> includedFiles) throws Exception {
-		Engine.logEngine.trace("==========================================================");
-		Engine.logEngine.trace("sDir=" + sDir);
-		Engine.logEngine.trace("sRelativeDir=" + sRelativeDir);
-		Engine.logEngine.trace("includedFiles=" + includedFiles);
-    	
-		final List<File> _includedFiles = includedFiles;
-		File dir = new File(sDir);
-		String[] files = dir.list(new FilenameFilter() {
-			public boolean accept(File dir, String name) {
-				File file = new File(dir, name);
-				return (file.isDirectory() || _includedFiles.contains(file));
-			}
-		});
-
-		Engine.logEngine.trace("files=" + files);
-
-		int len = files.length;
-		int nbe = 0, count;
-		ZipEntry entry;
-		FileInputStream fi;
-		BufferedInputStream origin;
-		byte data[] = new byte[4096];
-		String file;
-		File f;
-		String sDirEntry, sRelativeDirEntry;
-		for (int i = 0 ; i < len ; i++) {
-			file = files[i];
-			sDirEntry = sDir + "/" + file;
-			if (sRelativeDir != null) {
-				sRelativeDirEntry = sRelativeDir + "/" + file;
-			}
-			else {
-				sRelativeDirEntry = file;
-			}
-
-			f = new File(sDirEntry);
-			if (!f.isDirectory()) {
-				Engine.logEngine.trace("+ " + sDirEntry);
-				fi = new FileInputStream(sDirEntry);
-				origin = new BufferedInputStream(fi, 4096);
-
-				try {
-					entry = new ZipEntry(sRelativeDirEntry);
-					entry.setTime(f.lastModified());
-					zos.putNextEntry(entry);
-					while ((count = origin.read(data, 0, 4096)) != -1) {
-						zos.write(data, 0, count);
-					}
-					nbe++;
-				}
-				finally {
-					origin.close();
-				}
-			}
-			else {
-				nbe += putEntries2(zos, sDirEntry, sRelativeDirEntry, includedFiles);
-			}
-		}
-		return nbe;
-	}
-
-    public static int addJarEntries(ZipOutputStream zos, String classesToAdd) throws Exception {        
-        FileInputStream fis = new FileInputStream(classesToAdd);
-        ZipInputStream zis = new ZipInputStream(new BufferedInputStream(fis));
-
-        int nbe = 0;
-        try {
-            ZipEntry entry;
-            int count;
-            byte data[];
-            while((entry = zis.getNextEntry()) != null) {
-                // Ignoring directories
-                if (entry.isDirectory()) continue;
-                // adding just .class
-                if (entry.getName().toLowerCase().indexOf("meta-inf") != -1) continue;
-                
-                // Writing the files to the zip
-                data = new byte[512];
-                zos.putNextEntry(entry);
-                while ((count = zis.read(data, 0, data.length)) != -1) {
-                    zos.write(data, 0, count);
-                }
-                nbe++;
-            }
-        }
-        finally {
-        	zis.close();
-        }
-        return nbe;
-    }
-    
-    public static int addFileEntries(ZipOutputStream zos, String fileToAdd, String entryName) throws Exception {        
-        FileInputStream fis = new FileInputStream(fileToAdd);
-        BufferedInputStream origin = new BufferedInputStream(fis, 4096);
-
-        int nbe = 0;
-        try {
-            ZipEntry entry;
-            int count;
-            byte data[] = new byte[4096];
-            entry = new ZipEntry(entryName);
-            entry.setTime(new File(fileToAdd).lastModified());
-            zos.putNextEntry(entry);
-            while ((count = origin.read(data, 0, 4096)) != -1) {
-                zos.write(data, 0, count);
-            }
-            nbe++;
-        }
-        finally {
-            origin.close();
-        }
-        return nbe;
-    }
     
 	public static void expandZip(String zipFileName, String rootDir) throws FileNotFoundException, IOException {
 		expandZip(zipFileName, rootDir, null);

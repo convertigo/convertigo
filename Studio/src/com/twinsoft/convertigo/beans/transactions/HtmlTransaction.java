@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.Header;
 import org.mozilla.javascript.Context;
@@ -79,7 +80,6 @@ import com.twinsoft.convertigo.engine.parsers.triggers.AbstractTrigger;
 import com.twinsoft.convertigo.engine.parsers.triggers.DocumentCompletedTrigger;
 import com.twinsoft.convertigo.engine.parsers.triggers.TriggerXMLizer;
 import com.twinsoft.convertigo.engine.parsers.triggers.WaitTimeTrigger;
-import com.twinsoft.convertigo.engine.util.Base64v21;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.util.StringEx;
@@ -1203,7 +1203,7 @@ public class HtmlTransaction extends HttpTransaction {
 		}
 		blob.setAttribute("Referer", ((HtmlConnector)context.getConnector()).getReferer());
 
-		blob.appendChild(document.createTextNode(Base64v21.encodeBytes(data)));
+		blob.appendChild(document.createTextNode(Base64.encodeBase64String(data)));
 
 		return document;
 	}

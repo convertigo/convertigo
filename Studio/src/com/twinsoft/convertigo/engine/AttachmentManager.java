@@ -27,10 +27,10 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import org.apache.commons.codec.binary.Base64;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
-import com.twinsoft.convertigo.engine.util.Base64v21;
 
 public class AttachmentManager {
 	public interface AttachmentDetails {
@@ -83,7 +83,7 @@ public class AttachmentManager {
     	switch (policy) {
     		case base64:
     			eAttachment.setAttribute("encoding", "base64");
-				eAttachment.appendChild(transaction.context.outputDocument.createTextNode(Base64v21.encodeBytes(data)));
+				eAttachment.appendChild(transaction.context.outputDocument.createTextNode(Base64.encodeBase64String(data)));
     			break;
     		case localfile_override:
     		case localfile_increment:
@@ -145,7 +145,7 @@ public class AttachmentManager {
 					
 				} else if ((attr = eAttachment.getAttribute("encoding")) != null && attr.length() > 0) {
 					if ("base64".equals(attr)) {
-						data[0] = Base64v21.decode(eAttachment.getTextContent());
+						data[0] = Base64.decodeBase64(eAttachment.getTextContent());
 					}
 				}
 				if (data[0] != null) {

@@ -37,6 +37,8 @@ import java.util.Set;
 
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Pool;
@@ -51,7 +53,6 @@ import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.requesters.PoolRequester;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
-import com.twinsoft.convertigo.engine.util.Tuple.T2;
 import com.twinsoft.twinj.iJavelin;
 import com.twinsoft.util.DevicePool;
 
@@ -644,7 +645,7 @@ public class ContextManager extends AbstractRunnableManager {
 	private int pooledContextsLocked = 0;
 	private int pooledContextsZombie = 0;
 	private int pooledContextsToCreate = 0;
-	private Set<T2<Pool, Integer>> pooledContextsToCreateSet= new HashSet<T2<Pool,Integer>>();
+	private Set<Pair<Pool, Integer>> pooledContextsToCreateSet= new HashSet<Pair<Pool,Integer>>();
 
 	private void managePoolContexts() {
 		if (Engine.isStudioMode()) {
@@ -751,10 +752,10 @@ public class ContextManager extends AbstractRunnableManager {
 				}
 			}
 			
-			for (T2<Pool, Integer> pooledContextToCreate : pooledContextsToCreateSet) {
+			for (Pair<Pool, Integer> pooledContextToCreate : pooledContextsToCreateSet) {
 				if (!isRunning) return;
-	            String key = pooledContextToCreate.v1().getNameWithPath();
-				createPoolContext(pooledContextToCreate.v1(), pooledContextToCreate.v2());
+	            String key = pooledContextToCreate.getKey().getNameWithPath();
+				createPoolContext(pooledContextToCreate.getKey(), pooledContextToCreate.getValue());
 				counters.put(key, counters.get(key)+1);
 				if(timeout != -1 && (now = System.currentTimeMillis()) > timeout) break;
 			}
@@ -802,7 +803,7 @@ public class ContextManager extends AbstractRunnableManager {
 	
 		// Context not yet created or removed (detected as a zombie context)
 		pooledContextsToCreate++;
-		pooledContextsToCreateSet.add(new T2<Pool, Integer>(pool, contextNumber));
+		pooledContextsToCreateSet.add(Pair.<Pool, Integer>of(pool, contextNumber));
 	}
 	
 	private void createPoolContext(Pool pool, int contextNumber){

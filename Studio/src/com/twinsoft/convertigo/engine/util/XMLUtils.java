@@ -426,7 +426,7 @@ public class XMLUtils {
 
 			// Now, we retrieve the object bytes
 			objectBytes = outputStream.toByteArray();
-			objectBytesEncoded = Base64.encodeBytes(objectBytes);
+			objectBytesEncoded = org.apache.commons.codec.binary.Base64.encodeBase64String(objectBytes);
 
 			CDATASection cDATASection = document.createCDATASection(new String(objectBytesEncoded));
 			element.appendChild(cDATASection);
@@ -513,7 +513,7 @@ public class XMLUtils {
 			Node cdata = findChildNode(node, Node.CDATA_SECTION_NODE);
 			String objectSerializationData = cdata.getNodeValue();
 			Engine.logEngine.debug("Object serialization data:\n" + objectSerializationData);
-			byte[] objectBytes = Base64.decode(objectSerializationData);
+			byte[] objectBytes = org.apache.commons.codec.binary.Base64.decodeBase64(objectSerializationData);
 
 			// We read the object to a bytes array
 			ByteArrayInputStream inputStream = new ByteArrayInputStream(objectBytes);

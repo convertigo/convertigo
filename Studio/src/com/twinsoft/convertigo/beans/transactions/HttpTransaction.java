@@ -24,13 +24,13 @@ package com.twinsoft.convertigo.beans.transactions;
 
 import java.io.UnsupportedEncodingException;
 
+import org.apache.commons.codec.binary.Base64;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineStatistics;
-import com.twinsoft.convertigo.engine.util.Base64;
 
 public class HttpTransaction extends AbstractHttpTransaction {
     
@@ -77,7 +77,7 @@ public class HttpTransaction extends AbstractHttpTransaction {
             	}
         	}
         	else if (dataEncoding == HTTP_DATA_ENCODING_BASE64) {
-        		stringData = Base64.encodeBytes(httpData);
+        		stringData = Base64.encodeBase64String(httpData);
         	}
         	else {
         		throw new IllegalArgumentException("Unknown data encoding: " + dataEncoding);
