@@ -143,7 +143,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int SAMPLE_SQL_XLS = 661;
 	// libraries
 	public static final int LIBRARY_GOOGLE_MAPS = 800;
-	public static final int LIBRARY_KEYRING = 803;
 	public static final int LIBRARY_PUSH_MANAGER = 804;
 	public static final int LIBRARY_TWITTER = 805;
 	public static final int LIBRARY_OAUTH = 806;
@@ -207,7 +206,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final String SAMPLE_RETAILSTORE_PROJECT_FILE_NAME = "sampleMobileRetailStore.car";
 	// libraries
 	public static final String GOOGLE_MAPS_LIBRARY_PROJECT_FILE_NAME = "lib_GoogleMaps.car";
-	public static final String KEYRING_LIBRARY_PROJECT_FILE_NAME = "lib_Keyring.car";
 	public static final String PUSH_MANAGER_LIBRARY_PROJECT_FILE_NAME = "lib_PushManager.car";
 	public static final String TWITTER_LIBRARY_PROJECT_FILE_NAME = "lib_Twitter.car";
 	public static final String OAUTH_LIBRARY_PROJECT_FILE_NAME = "lib_OAuth.car";
@@ -276,7 +274,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case SAMPLE_OFFCHAT:
 		case SAMPLE_RETAILSTORE:
 		case LIBRARY_GOOGLE_MAPS:
-		case LIBRARY_KEYRING:
 		case LIBRARY_PUSH_MANAGER:
 		case LIBRARY_TWITTER:
 		case LIBRARY_OAUTH:
@@ -486,7 +483,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case SAMPLE_RETAILSTORE:
 			case LIBRARY_GOOGLE_MAPS:
 			case LIBRARY_SALESFORCE:
-			case LIBRARY_KEYRING:
 			case LIBRARY_PUSH_MANAGER:
 			case LIBRARY_TWITTER:
 			case LIBRARY_OAUTH:
@@ -1224,10 +1220,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case LIBRARY_SALESFORCE:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SALESFORCE_LIBRARY_PROJECT_FILE_NAME;
 			projectName = SALESFORCE_LIBRARY_PROJECT_FILE_NAME.substring(0, SALESFORCE_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
-			break;
-		case LIBRARY_KEYRING:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + KEYRING_LIBRARY_PROJECT_FILE_NAME;
-			projectName = KEYRING_LIBRARY_PROJECT_FILE_NAME.substring(0, KEYRING_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case LIBRARY_PUSH_MANAGER:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + PUSH_MANAGER_LIBRARY_PROJECT_FILE_NAME;
