@@ -588,7 +588,7 @@ public abstract class GenericRequester extends Requester {
 
 	@Override
 	public void makeInputDocument() throws Exception {
-		context.inputDocument = createDOM("ISO-8859-1");
+		context.inputDocument = createDOM("UTF-8");
     	getTranslator().buildInputDocument(context, inputData);
 	}
 	

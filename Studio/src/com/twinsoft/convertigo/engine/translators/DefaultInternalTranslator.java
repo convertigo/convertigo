@@ -88,13 +88,13 @@ public class DefaultInternalTranslator implements Translator {
 				}
 			}
 		} else if (parameterObject instanceof Node) {
-			Node node = doc.importNode((Node) parameterObject, true);
+			Node node = (Node) parameterObject;
 			Element item = doc.createElement("variable");
 			item.setAttribute("name", parameterName);
 			
 			if (bStrictMode) { // append full structured node
 				if (node.getNodeType() == Node.ELEMENT_NODE) {
-					item.appendChild(node);
+					item.appendChild(doc.importNode(node, true));
 				}
 				else {
 					item.setAttribute("value", node.getNodeValue());
@@ -108,6 +108,7 @@ public class DefaultInternalTranslator implements Translator {
 					if (nl.getLength() == 1 && nl.item(0).getNodeType() == Node.TEXT_NODE) {
 						item.setAttribute("value", nl.item(0).getNodeValue());
 					} else {
+						nl = doc.importNode(node, true).getChildNodes();
 						while (nl.getLength() > 0) {
 							item.appendChild(node.removeChild(nl.item(0)));
 						}
@@ -117,8 +118,24 @@ public class DefaultInternalTranslator implements Translator {
 			parentItem.appendChild(item);
 		} else if (parameterObject instanceof NodeList) {
 			NodeList nl = (NodeList) parameterObject;
-			for (int i = 0 ; i < nl.getLength() ; i++) {
-				addParameterObject(doc, parentItem, parameterName, nl.item(i));
+			int len = nl.getLength();
+			if (bStrictMode) {
+				Element item = doc.createElement("variable");
+				item.setAttribute("name", parameterName);
+
+				for (int i = 0; i < len; i++) {
+					Node node = nl.item(i);
+					if (node.getNodeType() == Node.ELEMENT_NODE) {
+						item.appendChild(doc.importNode(node, true));
+					} else {
+						item.setAttribute("value", node.getNodeValue());
+					}
+				}
+				parentItem.appendChild(item);
+			} else {
+				for (int i = 0; i < len; i++) {
+					addParameterObject(doc, parentItem, parameterName, nl.item(i));
+				}
 			}
 		} else if (parameterObject instanceof XMLVector) {
 			XMLVector<Object> values = GenericUtils.cast(parameterObject);

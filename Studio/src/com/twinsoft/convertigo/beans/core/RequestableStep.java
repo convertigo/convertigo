@@ -647,6 +647,9 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 				}
 				else {
 					if (bInternalInvoke) {
+						if (stepVariable.isMultiValued() && getProject().isStrictMode() && variableValue instanceof NodeList) {
+							variableValue = XMLUtils.toNodeArray((NodeList) variableValue);
+						}
 						request.put(variableName, variableValue);
 					} else {
 						String parameterValue;
