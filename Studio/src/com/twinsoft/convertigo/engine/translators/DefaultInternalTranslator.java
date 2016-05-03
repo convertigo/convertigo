@@ -108,7 +108,8 @@ public class DefaultInternalTranslator implements Translator {
 					if (nl.getLength() == 1 && nl.item(0).getNodeType() == Node.TEXT_NODE) {
 						item.setAttribute("value", nl.item(0).getNodeValue());
 					} else {
-						nl = doc.importNode(node, true).getChildNodes();
+						node = doc.importNode(node, true);
+						nl = node.getChildNodes();
 						while (nl.getLength() > 0) {
 							item.appendChild(node.removeChild(nl.item(0)));
 						}
