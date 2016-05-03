@@ -462,6 +462,9 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					
 					UrlMappingOperation operation = (UrlMappingOperation) parent;
 					operation.setTargetRequestable(dboQName);
+					if (operation.getComment().isEmpty()) {
+						operation.setComment(databaseObject.getComment());
+					}
 					operation.hasChanged = true;
 					try {
 						StringTokenizer st = new StringTokenizer(dboQName,".");
@@ -555,6 +558,9 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					
 					UrlMappingOperation operation = (UrlMappingOperation) parent;
 					operation.setTargetRequestable(dboQName);
+					if (operation.getComment().isEmpty()) {
+						operation.setComment(databaseObject.getComment());
+					}
 					operation.hasChanged = true;
 					
 					return true;
