@@ -234,6 +234,7 @@ public class SwaggerUtils {
 						} catch (Exception e) {}
 						if (ump != null && ump.getType() == Type.Path) {
 							s_parameter.setDescription(ump.getComment());
+							s_parameter.setType(ump.getInputType().toLowerCase());
 						}
 						
 						s_parameters.add(s_parameter);
