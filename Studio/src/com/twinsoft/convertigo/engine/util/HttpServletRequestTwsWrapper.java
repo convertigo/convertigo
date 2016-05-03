@@ -73,7 +73,7 @@ public class HttpServletRequestTwsWrapper extends HttpServletRequestWrapper {
 	@Override
 	public String[] getParameterValues(String key) {
 		String[] list = parameters.get(key);
-		return (list != null && list.length > 0) ? list.clone() : null;
+		return (list != null) ? list.clone() : null;
 	}
 	
 	public void addParameter(String key, String value) {
