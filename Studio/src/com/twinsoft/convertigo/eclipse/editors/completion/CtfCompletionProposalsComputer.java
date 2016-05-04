@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014 Convertigo. All Rights Reserved.
+* Copyright (c) 2016 Convertigo. All Rights Reserved.
 *
 * The copyright to the computer  program(s) herein  is the property
 * of Convertigo.
@@ -29,6 +29,7 @@ package com.twinsoft.convertigo.eclipse.editors.completion;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.core.filebuffers.FileBuffers;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -217,6 +218,15 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 		return Sequences;
 	}
 
+	private String getClosestProjectName(String projectName) {
+		for (int i = 0; i < projectNames.size(); i++) {
+			if (projectNames.get(i).startsWith(projectName.substring(0, 3)))
+				return projectNames.get(i); 
+		}
+		
+		return "";
+	}
+	
 	private Image imageCtf = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/completion_ctf.png"));
 
 	private Image imageJqm = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/completion_jqm.png"));
@@ -306,6 +316,10 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 								//this in the form 'xxx.' or '.' so handle sequence completion
 								//
 								String projectName = alreadyTyped.substring(0, alreadyTyped.indexOf('.'));
+
+								if (projectName.equalsIgnoreCase(""))								
+									projectName = FileBuffers.getTextFileBufferManager().getTextFileBuffer(document).getLocation().segment(0);
+
 								alreadyTyped = alreadyTyped.substring(alreadyTyped.indexOf('.') + 1);
 								if (alreadyTyped.contains(".")) {
 									//
@@ -315,10 +329,10 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 									alreadyTyped = alreadyTyped.substring(alreadyTyped.indexOf('.') + 1);
 									List<String> transactions = getTransactionList(projectName, connector);
 									for (int i = 0; i < transactions.size(); i++) {
-										if (transactions.get(i).startsWith(alreadyTyped)) {
+										if (alreadyTyped.equalsIgnoreCase("") || transactions.get(i).startsWith(alreadyTyped)) {
 											String entry = (String) transactions.get(i);
 											// Set additional information
-											String descr = entry + " : " + "Transaction Name";
+											String descr = entry + " : " + "Transaction name";
 											// Set the string to display
 											String showing = transactions.get(i);
 											// Set the replacement string
@@ -332,10 +346,10 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 
 								List<String> sequences = getSequenceList(projectName);
 								for (int i = 0; i < sequences.size(); i++) {
-									if (sequences.get(i).startsWith(alreadyTyped)) {
+									if (alreadyTyped.equalsIgnoreCase("") || sequences.get(i).startsWith(alreadyTyped)) {
 										String entry = (String) sequences.get(i);
 										// Set additional information
-										String descr = entry + " : " + "Sequence Name";
+										String descr = entry + " : Sequence name";
 										// Set the string to display
 										String showing = sequences.get(i);
 										// Set the replacement string
@@ -350,7 +364,7 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 									if (connectors.get(i).startsWith(alreadyTyped)) {
 										String entry = (String) connectors.get(i);
 										// Set additional information
-										String descr = entry + " : " + "Connector Name";
+										String descr = entry + " : " + "Connector name";
 										// Set the string to display
 										String showing = connectors.get(i);
 										// Set the replacement string
