@@ -49,6 +49,8 @@ import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -76,10 +78,19 @@ import org.w3c.dom.NodeList;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.connector.htmlconnector.TwsDomTree.KeyAccelerator;
 import com.twinsoft.convertigo.eclipse.editors.connector.htmlconnector.TwsDomTree.MenuMaker;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 abstract public class XpathEvaluatorComposite extends Composite {
+	static final int allowKeyInAnchor[] = {
+			SWT.ARROW_DOWN , SWT.ARROW_UP, SWT.ARROW_RIGHT, SWT.ARROW_LEFT, SWT.END, SWT.HOME, SWT.PAGE_UP, SWT.PAGE_DOWN
+	};
+	
+	static {
+		Arrays.sort(allowKeyInAnchor);
+	}
+	
 	private StyledText xpath = null;
 	private Label lab = null;
 	protected String lastEval = null;
@@ -101,7 +112,7 @@ abstract public class XpathEvaluatorComposite extends Composite {
 		nodesResult.addMenuMaker(makeShowInBrowserMenuMaker());
 		nodesResult.addMenuMaker(makeXPathMenuMaker(false));
 		nodesResult.addKeyAccelerator(makeXPathKeyAccelerator(false));
-		nodesResult.addSelectionListener(new SelectionListener(){
+		nodesResult.addSelectionListener(new SelectionListener() {
 			public void widgetDefaultSelected(SelectionEvent e) {}
 
 			public void widgetSelected(SelectionEvent e) {
@@ -115,10 +126,10 @@ abstract public class XpathEvaluatorComposite extends Composite {
 			}
 		});
 		
-		com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
+		ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
 		if (projectExplorerView != null) {
-			projectExplorerView.addSelectionChangedListener(new ISelectionChangedListener(){
-				public void selectionChanged(SelectionChangedEvent event){
+			projectExplorerView.addSelectionChangedListener(new ISelectionChangedListener() {
+				public void selectionChanged(SelectionChangedEvent event) {
 					refreshButtonsEnable();
 				}
 			});
@@ -127,27 +138,29 @@ abstract public class XpathEvaluatorComposite extends Composite {
 		refreshButtonsEnable();
 	}
 	
-	protected void refreshButtonsEnable(){
-		for(Button button : buttonsMap.values()){
-			if ((button != null) && !button.isDisposed()) {
+	protected void refreshButtonsEnable() {
+		for (Button button : buttonsMap.values()) {
+			if (button != null && !button.isDisposed()) {
 				boolean enable = true;
-				String name = (String)button.getData("name");
-				if (name.equals("anchor")){
-					enable = (lastEval!=null || currentAnchor != null) && !isAnchorDisabled;
-				} else if (name.equals("calcxpath")){
-					enable = lastEval==null&&xpath.getText().length()>0;
-				} else if (name.equals("forward")){
-					enable = currentHistory!=0;
-				} else if (name.equals("backward")){
+				String name = (String) button.getData("name");
+				if (name.equals("anchor")) {
+					enable = (lastEval != null || currentAnchor != null) && !isAnchorDisabled;
+				} else if (name.equals("calcxpath")) {
+					enable = lastEval == null && xpath.getText().length() > 0;
+				} else if (name.equals("forward")) {
+					enable = currentHistory != 0;
+				} else if (name.equals("backward")) {
 					int size = xpathHistory.size();
-					enable = size!=0 && currentHistory!=(size-1);
+					enable = size != 0 && currentHistory != (size - 1);
 				} else {
 					enable = isButtonEnabled(name);
 				}
 				
 				if (enable &&(name.equals("anchor"))) {
 					Node root = nodesResult.getDocument().getFirstChild();
-					enable = (root.getChildNodes().getLength()!=0)?true:root.getAttributes().getLength()!=0;
+					enable = root.getChildNodes().getLength() != 0 ?
+						true
+						: root.getAttributes().getLength() != 0;
 				}
 				
 				enableButton(button, enable);
@@ -157,15 +170,17 @@ abstract public class XpathEvaluatorComposite extends Composite {
 	
 	abstract protected boolean isButtonEnabled(String name);
 	
-	protected void enableButton(Button button, boolean enable){
+	protected void enableButton(Button button, boolean enable) {
 		Boolean b = Boolean.valueOf(enable);
-		if(button.getData("enable")==null||!button.getData("enable").equals(b)){
-			String imageURL =  ""+button.getData("image_url");
-			String tooltip = ""+button.getData("tooltip");
-			if(!enable){
-				if(button.getData("disable_msg")!=null) tooltip += " (To enable button, "+button.getData("disable_msg")+")";
+		if (button.getData("enable") == null || !button.getData("enable").equals(b)) {
+			String imageURL = "" + button.getData("image_url");
+			String tooltip = "" + button.getData("tooltip");
+			if (!enable) {
+				if (button.getData("disable_msg") != null) {
+					tooltip += " (To enable button, " + button.getData("disable_msg") + ")";
+				}
 				int index = imageURL.lastIndexOf('.');
-				imageURL = imageURL.substring(0, index)+".d"+imageURL.substring(index);
+				imageURL = imageURL.substring(0, index) + ".d" + imageURL.substring(index);
 			}
 			button.setImage(new Image(Display.getCurrent(), getClass().getResourceAsStream(imageURL)));
 			button.setToolTipText(tooltip);
@@ -173,7 +188,7 @@ abstract public class XpathEvaluatorComposite extends Composite {
 		}
 	}
 	
-	protected void enableButton(String name, boolean enable){
+	protected void enableButton(String name, boolean enable) {
 		enableButton(buttonsMap.get(name), enable);
 	}
 	
@@ -183,7 +198,7 @@ abstract public class XpathEvaluatorComposite extends Composite {
 		return new String[][][]{};
 	}
 	
-	protected void initialize(){
+	protected void initialize() {
 		GridLayoutFactory gdf = GridLayoutFactory.swtDefaults();
 		gdf.margins(1, 1).spacing(1, 1).equalWidth(false);
 		
@@ -196,8 +211,8 @@ abstract public class XpathEvaluatorComposite extends Composite {
 		String[] buttonsDefNames = new String[]{"name", "tooltip", "disable_msg", "image_url", "other"};
 		String [][][] buttonsDefinition = getButtonsDefinition();
 		int numButtonsDefinition = buttonsDefinition.length;
-		String [][][] buttonsDef = new String[numButtonsDefinition+1][][];
-		for (int i=0; i<numButtonsDefinition; i++) buttonsDef[i]= buttonsDefinition[i];
+		String [][][] buttonsDef = new String[numButtonsDefinition + 1][][];
+		for (int i = 0; i < numButtonsDefinition; i++) buttonsDef[i]= buttonsDefinition[i];
 		buttonsDef[numButtonsDefinition] = new String [][] {
 			//name			, tooltip					, disable_msg			, image_url																	, other
 			{"calcxpath"	, "Evaluate Xpath"			, "modify the Xpath"	, "/com/twinsoft/convertigo/eclipse/editors/images/calc_xpath.png", null},
@@ -206,19 +221,19 @@ abstract public class XpathEvaluatorComposite extends Composite {
 			{"anchor"		, "Set anchor"				, "evaluate the Xpath"	, "/com/twinsoft/convertigo/eclipse/editors/images/anchor.png", null}
 		};
 		
-		SelectionListener listener = new SelectionListener(){
+		SelectionListener listener = new SelectionListener() {
 			public void widgetDefaultSelected(SelectionEvent e) {}
 			public void widgetSelected(SelectionEvent e) {
 				boolean enable = ((Boolean)e.widget.getData("enable")).booleanValue();
 				if (enable) {
 					String name = (String)e.widget.getData("name");
-					if(name.equals("calcxpath")){
+					if (name.equals("calcxpath")) {
 						performCalcXpath();
-					}else if(name.equals("backward")){
+					} else if (name.equals("backward")) {
 						moveHistory(true);
-					}else if(name.equals("forward")){
+					} else if (name.equals("forward")) {
 						moveHistory(false);
-					}else if(name.equals("anchor")){
+					} else if (name.equals("anchor")) {
 						setAnchor(isAnchorDisabled);
 					}
 					else {
@@ -231,17 +246,19 @@ abstract public class XpathEvaluatorComposite extends Composite {
 		buttons.setLayout(gdf.numColumns(buttonsDef.length).create());
 
 		buttonsMap = new HashMap<String, Button>();
-		for(int i=0;i<buttonsDef.length;i++){
+		for (int i = 0; i < buttonsDef.length; i++) {
 			String[][] columnDef = buttonsDef[i];
 			Composite column = new Composite(buttons, SWT.NONE);
 			column.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_BEGINNING));
 			column.setLayout(new FillLayout(SWT.VERTICAL));
 			
-			for(int j=0;j<columnDef.length;j++){
+			for (int j = 0; j < columnDef.length; j++) {
 				String[] buttonDef = columnDef[j];
 				Button button = new Button(column, SWT.FLAT);
 				buttonsMap.put(buttonDef[0], button);
-				for(int k=0;k<buttonsDefNames.length;k++) button.setData(buttonsDefNames[k], buttonDef[k]);
+				for (int k = 0; k < buttonsDefNames.length; k++) {
+					button.setData(buttonsDefNames[k], buttonDef[k]);
+				}
 				button.addSelectionListener(listener);
 				enableButton(button, false);
 			}
@@ -265,30 +282,35 @@ abstract public class XpathEvaluatorComposite extends Composite {
 		xpath.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		xpath.setWordWrap(true);
-		xpath.addVerifyKeyListener(new VerifyKeyListener(){
+		xpath.addVerifyKeyListener(new VerifyKeyListener() {
 			public void verifyKey(VerifyEvent event) {
-				if(event.stateMask==SWT.CTRL){
-					if(event.keyCode==SWT.ARROW_DOWN)moveHistory(false);
-					else if(event.keyCode==SWT.ARROW_UP)moveHistory(true);
-				}else if(currentAnchor != null && xpath.getCaretOffset()<currentAnchor.length()){
-					final int allowKeyInAnchor[]={
-							SWT.ARROW_DOWN , SWT.ARROW_UP, SWT.ARROW_RIGHT, SWT.ARROW_LEFT, SWT.END, SWT.HOME, SWT.PAGE_UP, SWT.PAGE_DOWN
-					};
-					int i=0;
-					event.doit = false;
-					while(i<allowKeyInAnchor.length && !event.doit){
-						event.doit = event.keyCode == allowKeyInAnchor[i];
-						i++;
+				if (event.stateMask == SWT.CTRL) {
+					if (event.keyCode == SWT.ARROW_DOWN) {
+						moveHistory(false);
+						return;
+					} else if (event.keyCode == SWT.ARROW_UP) {
+						moveHistory(true);
+						return;
 					}
-				}else if(event.character == '\r'){
+				}
+				
+				if (event.character == '\r') {
 					event.doit = false;
 					performCalcXpath();
+				} else if (currentAnchor != null) {
+					int anchorStart = xpath.getText().indexOf(currentAnchor);
+					if (anchorStart >= 0) {
+						int caret = xpath.getCaretOffset();
+						if (caret > anchorStart && caret < anchorStart + currentAnchor.length()) {
+							event.doit = Arrays.binarySearch(allowKeyInAnchor, event.keyCode) >= 0;
+						}
+					}
 				}
 			}
 		});
 
-		xpath.addModifyListener(new org.eclipse.swt.events.ModifyListener() {
-			public void modifyText(org.eclipse.swt.events.ModifyEvent e) {
+		xpath.addModifyListener(new ModifyListener() {
+			public void modifyText(ModifyEvent e) {
 				lastEval = null;
 				refreshButtonsEnable();
 			}
@@ -302,26 +324,12 @@ abstract public class XpathEvaluatorComposite extends Composite {
 		new TreeColumn(nodesResult.getTree(), SWT.RIGHT).setText("Value");
 		nodesResult.setHeaderVisible(true);
 		
-		/* TODO : cause stackOverflow, view http://sourceus.twinsoft.fr/ticket/142
-
-		ControlListener ctrl = new ControlListener(){
-			public void controlMoved(ControlEvent e) {}
-			public void controlResized(ControlEvent e) {
-					Tree tree = (e.widget instanceof TreeColumn)?((TreeColumn)e.widget).getParent():(Tree)e.widget;
-					if(tree.getColumnCount()==2)
-						tree.getColumn(1).setWidth(tree.getSize().x - tree.getColumn(0).getWidth());
-			}
-		};
-		
-		nodesResult.addControlListener(ctrl);
-		nodesResult.getColumn(0).addControlListener(ctrl);
-		nodesResult.getColumn(1).addControlListener(ctrl);*/
 		nodesResult.getColumn(0).setWidth(400);
 		
 		nodeData = new Text(evaluator_down, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.BORDER);
 		nodeData.setEditable(false);
 		
-		evaluator_down.setWeights(new int[]{70,30});
+		evaluator_down.setWeights(new int[] {70, 30});
 	}
 	
 	protected void AddDndSupport() {
@@ -347,7 +355,9 @@ abstract public class XpathEvaluatorComposite extends Composite {
 			public void dragSetData(DragSourceEvent event) {
 		 	     // Provide the data of the requested type.
 		 	     if (TextTransfer.getInstance().isSupportedType(event.dataType)) {
-		 	    	 String XPath = (currentAnchor == null) ? xpath.getText():xpath.getText().substring(currentAnchor.length());
+		 	    	 String XPath = (currentAnchor == null) ?
+	 	    			 xpath.getText()
+	 	    			 : xpath.getText().substring(currentAnchor.length());
 		 	         event.data = XPath;
 		 	     }
 		 	}
@@ -364,7 +374,9 @@ abstract public class XpathEvaluatorComposite extends Composite {
 			public void dragSetData(DragSourceEvent event) {
 		 	     // Provide the data of the requested type.
 		 	     if (TextTransfer.getInstance().isSupportedType(event.dataType)) {
-		 	    	 String XPath = (currentAnchor == null) ? xpath.getText():xpath.getText().substring(currentAnchor.length());
+		 	    	 String XPath = currentAnchor == null ?
+	 	    			 xpath.getText()
+	 	    			 : xpath.getText().substring(currentAnchor.length());
 		 	         event.data = XPath;
 		 	     }
 		 	}
@@ -375,30 +387,35 @@ abstract public class XpathEvaluatorComposite extends Composite {
 		});
 	}
 	
-	public void setXpathText(String nodeXpath){
-		//TODO:if(currentAnchor != null) nodeXpath = currentAnchor + calcRelativeXpath(htmlDesign.getWebViewer().getDom(), currentAnchor, nodeXpath);
+	public void setXpathText(String nodeXpath) {
+		//TODO:if (currentAnchor != null) nodeXpath = currentAnchor + calcRelativeXpath(htmlDesign.getWebViewer().getDom(), currentAnchor, nodeXpath);
 		xpath.setText(nodeXpath);
 		lastEval = null;
 		refreshButtonsEnable();
-		if(currentAnchor != null) xpath.setStyleRange(new StyleRange(0,currentAnchor.length(),xpath.getForeground(),highlightColor));		
+		if (currentAnchor != null) {
+			int start = nodeXpath.indexOf(currentAnchor);
+			if (start >= 0) {
+				xpath.setStyleRange(new StyleRange(start, currentAnchor.length(), xpath.getForeground(), highlightColor));
+			}
+		}
 	}
 	
 	protected void removeAnchor() {
 		isAnchorDisabled = false;
 		currentAnchor = null;
-		lastEval=null;
+		lastEval = null;
 		xpath.setStyleRange(null);
 		refreshButtonsEnable();
 	}
 	
-	protected void setAnchor(boolean disabled){
+	protected void setAnchor(boolean disabled) {
 		//TODO:Button anchor = (Button) buttonsMap.get("anchor");
 		isAnchorDisabled = disabled;
-		if (currentAnchor == null){
+		if (currentAnchor == null) {
 			currentAnchor = xpath.getText();
 			xpath.setStyleRange(new StyleRange(0,currentAnchor.length(),xpath.getForeground(),highlightColor));
 			//TODO:anchor.setBackground(highlightColor);
-		}else if (!isAnchorDisabled){
+		} else if (!isAnchorDisabled) {
 			currentAnchor = null;
 			xpath.setStyleRange(null);
 			refreshButtonsEnable();
@@ -418,27 +435,16 @@ abstract public class XpathEvaluatorComposite extends Composite {
 			nodesResult.fillDomTree(nodesSelection);
 			lastEval = xpath.getText();
 			xpathHistory.add(lastEval);
-			currentHistory=0;
+			currentHistory = 0;
 			refreshButtonsEnable();
 			ConvertigoPlugin.logDebug3("Fill xpath node list dom tree end");
-		}
-		else {
+		} else {
 			ConvertigoPlugin.logDebug3("Remove all start");
 			nodesResult.removeAll();
 			ConvertigoPlugin.logDebug3("Remove all End");
 		}
 		nodeData.setText("");
 	}
-	
-	/*public String[] getSelectionXpath() {
-		String[] xpaths = new String[]{};		
-		StringTokenizer st = new StringTokenizer(xpath.getText(), "|");
-		int i=0;
-		xpaths = new String[st.countTokens()];
-		while (st.hasMoreTokens())
-			xpaths[i++] = st.nextToken();
-		return xpaths;
-	}*/
 
 	public String getSelectionXpath() {
 		return xpath.getText();
@@ -453,64 +459,59 @@ abstract public class XpathEvaluatorComposite extends Composite {
 		boolean	bRecurse, bFirstText = true, bFirstAttr = true;
 
 		int len = selection.length;
-		for (int i=0; i< len; i++) {
+		for (int i = 0; i< len; i++) {
 			treeItem = selection[i];
 			o = treeItem.getData();
 			if (o instanceof Node) {
-				Node node = (Node)o;
-				nodeName=XMLUtils.xpathEscapeColon(node.getNodeName());
+				Node node = (Node) o;
+				nodeName = XMLUtils.xpathEscapeColon(node.getNodeName());
 				if (node.getNodeType() == Node.ELEMENT_NODE) {
 					parentTreeItem = treeItem.getParentItem();
 					xpath = XMLUtils.calcXpath(node, null);
-					filter = getFilter((Element)node);
+					filter = getFilter((Element) node);
 					bRecurse = ((lastParentTreeItem == null) || (!parentTreeItem.equals(lastParentTreeItem)));
 					if (bRecurse) {
 						if (lastParentTreeItem == null) {
 							lastRootXPath = xpath;
 							lastRootNode = node;
-							/*TODO:if (currentAnchor != null)
-								selectionXpath = xpath;
-							else*/
-								selectionXpath = "//" +nodeName;
-						}
-						else {
-							if (!selectionXpath.equals("") && (!bFirstText || !bFirstAttr))
+							selectionXpath = "//" +nodeName;
+						} else {
+							if (!selectionXpath.equals("") && (!bFirstText || !bFirstAttr)) {
 								selectionXpath += "]";
-							if (!xpath.startsWith(lastRootXPath))
+							}
+							if (!xpath.startsWith(lastRootXPath)) {
 								selectionXpath += " | ";
-							else if ((lastFirstChildrenXPath != null) && (!xpath.startsWith(lastFirstChildrenXPath))) {
+							} else if ((lastFirstChildrenXPath != null) && (!xpath.startsWith(lastFirstChildrenXPath))) {
 								selectionXpath += " | //" + lastRootNode.getNodeName();
 								lastFirstChildrenXPath = xpath;
 							}
 							selectionXpath += "//" + nodeName;
 						}
-					}
-					else if (parentTreeItem.equals(lastParentTreeItem)){
-						if (!selectionXpath.equals("") && (!bFirstText || !bFirstAttr))
+					} else if (parentTreeItem.equals(lastParentTreeItem)) {
+						if (!selectionXpath.equals("") && (!bFirstText || !bFirstAttr)) {
 							selectionXpath += "]";
+						}
 						selectionXpath  += "/" + nodeName;
 					}
 					
 					selectionXpath  += filter;
 					
-					if ((lastParentTreeItem != null) && (lastFirstChildrenXPath == null))
+					if ((lastParentTreeItem != null) && (lastFirstChildrenXPath == null)) {
 						lastFirstChildrenXPath = xpath;
+					}
 					
 					lastParentTreeItem = treeItem;
 					if (filter.equals("")) {
 						bFirstText = true;
 						bFirstAttr = true;
-					}
-					else if (filter.indexOf("@") != -1) {
+					} else if (filter.indexOf("@") != -1) {
 						bFirstAttr = false;
-					}
-					else if (filter.indexOf("text()") != -1) {
+					} else if (filter.indexOf("text()") != -1) {
 						bFirstText = false;
 					}
-				}
-				else if (node.getNodeType() == Node.TEXT_NODE) {
+				} else if (node.getNodeType() == Node.TEXT_NODE) {
 					parentTreeItem = treeItem.getParentItem();
-					parentNode = (Node)parentTreeItem.getData();
+					parentNode = (Node) parentTreeItem.getData();
 					xpath = XMLUtils.calcXpath(parentNode, null) + "/text()";
 					parentNodeName = XMLUtils.xpathEscapeColon(parentNode.getNodeName());						
 					bRecurse = ((lastParentTreeItem == null) || (!parentTreeItem.equals(lastParentTreeItem)));
@@ -518,24 +519,20 @@ abstract public class XpathEvaluatorComposite extends Composite {
 						if (lastParentTreeItem == null) {
 							lastRootXPath = xpath;
 							lastRootNode = parentNode;
-							/*TODO:if (currentAnchor != null)
-								selectionXpath = xpath.substring(0, xpath.length()-7);
-							else*/
-								
-								selectionXpath = "//" + parentNodeName;
-						}
-						else {
-							if (!selectionXpath.equals("") && (!bFirstText || !bFirstAttr))
+							selectionXpath = "//" + parentNodeName;
+						} else {
+							if (!selectionXpath.equals("") && (!bFirstText || !bFirstAttr)) {
 								selectionXpath += "]";
-							if (!xpath.startsWith(lastRootXPath))
+							}
+							if (!xpath.startsWith(lastRootXPath)) {
 								selectionXpath += " | ";
+							}
 							selectionXpath += "//" + parentNodeName;
 						}
 						selectionXpath += "[";
 						lastParentTreeItem = parentTreeItem;
-					}
-					else if (parentTreeItem.equals(lastParentTreeItem)) {
-						selectionXpath += bFirstText && bFirstAttr ? "[":" and ";
+					} else if (parentTreeItem.equals(lastParentTreeItem)) {
+						selectionXpath += bFirstText && bFirstAttr ? "[" : " and ";
 					}
 					selectionXpath  += "contains(text()," + XMLUtils.xpathGenerateConcat(node.getNodeValue().trim()) + ")";
 					bFirstText = false;
@@ -548,38 +545,36 @@ abstract public class XpathEvaluatorComposite extends Composite {
 					//TODO: fix problems when we have simple or/and double quotes
 					String nodeValue = XMLUtils.xpathGenerateConcat(node.getNodeValue().trim());
 					
-					xpath = XMLUtils.calcXpath(parentNode, null) + "[@" + node.getNodeName().trim() + "=\""+nodeValue+"\"]";
+					xpath = XMLUtils.calcXpath(parentNode, null) + "[@" + node.getNodeName().trim() + "=\"" + nodeValue + "\"]";
 					bRecurse = ((lastParentTreeItem == null) || (!parentTreeItem.equals(lastParentTreeItem)));
 					if (bRecurse) {
 						if (lastParentTreeItem == null) {
 							lastRootXPath = xpath;
 							lastRootNode = parentNode;
-							/*TODO:if (currentAnchor != null)
-								selectionXpath = xpath;
-							else*/
-								selectionXpath = "//" + parentNodeName;
-						}
-						else {
-							if (!selectionXpath.equals("") && (!bFirstText || !bFirstAttr))
+							selectionXpath = "//" + parentNodeName;
+						} else {
+							if (!selectionXpath.equals("") && (!bFirstText || !bFirstAttr)) {
 								selectionXpath += "]";
-							if (!xpath.startsWith(lastRootXPath))
+							}
+							if (!xpath.startsWith(lastRootXPath)) {
 								selectionXpath += " | ";
+							}
 							selectionXpath += "//" + parentNodeName;
 						}
 						selectionXpath += "[";
 						lastParentTreeItem = parentTreeItem;
+					} else if (parentTreeItem.equals(lastParentTreeItem)) {
+						selectionXpath += bFirstAttr && bFirstText ? "[" : " and ";
 					}
-					else if (parentTreeItem.equals(lastParentTreeItem)) {
-						selectionXpath += bFirstAttr && bFirstText ? "[":" and ";
-					}
-					selectionXpath += "@" + node.getNodeName().trim() + "="+nodeValue;
+					selectionXpath += "@" + node.getNodeName().trim() + "=" + nodeValue;
 					bFirstAttr = false;
 				}
 			}
 
 		}
-		if (!selectionXpath.equals("") && (!bFirstText || !bFirstAttr))
+		if (!selectionXpath.equals("") && (!bFirstText || !bFirstAttr)) {
 			selectionXpath += "]";
+		}
 
 		return selectionXpath;
 	}
@@ -594,7 +589,7 @@ abstract public class XpathEvaluatorComposite extends Composite {
 				while (it.hasNext()) {
 					Attr attr = element.getAttributeNode(it.next());
 					if (filter.equals("") && (attr != null)) {
-						filter += "[@" + attr.getNodeName().trim() + "=\""+ attr.getNodeValue().trim()+"\"";
+						filter += "[@" + attr.getNodeName().trim() + "=\""+ attr.getNodeValue().trim() + "\"";
 						break;
 					}
 				}
@@ -605,15 +600,11 @@ abstract public class XpathEvaluatorComposite extends Composite {
 				
 			}
 		}
-
-		/*if (!filter.equals("") && (filter.startsWith("["))) {
-			filter += "]";
-		}*/
 		
 		return filter;
 	}
 	
-	public void dispose(){
+	public void dispose() {
 		/*TODO:imageAnchor.dispose();
 		imageCalcXpath.dispose();
 		imageScreenclass.dispose();
@@ -640,30 +631,35 @@ abstract public class XpathEvaluatorComposite extends Composite {
 			String res_sibling, res = null;
 			int level = 0;
 
-			while(res == null && parent_anchor != null){
+			while(res == null && parent_anchor != null) {
 				parent_node = ex_parent_node = node;
-				while(res == null && parent_node != null){
-					if(parent_anchor.equals(parent_node)){
+				while(res == null && parent_node != null) {
+					if (parent_anchor.equals(parent_node)) {
 						NodeList anchorList = parent_node.getChildNodes();
-						int i=0, j=0, i_anchor=-1, i_node=-1, anchorListLength=anchorList.getLength();
+						int i = 0, j = 0, i_anchor = -1, i_node = -1, anchorListLength = anchorList.getLength();
 						res = "";
-						while((i<anchorListLength) && (i_anchor == -1 || i_node == -1)){
+						while((i < anchorListLength) && (i_anchor == -1 || i_node == -1)) {
 							Node item = anchorList.item(i);
-							if(item.getNodeType()==Node.ELEMENT_NODE){
-								if(item == ex_parent_anchor)i_anchor = j;
-								if(item == ex_parent_node)i_node = j;
+							if (item.getNodeType() == Node.ELEMENT_NODE) {
+								if (item == ex_parent_anchor)i_anchor = j;
+								if (item == ex_parent_node)i_node = j;
 								j++;
 							}
 							i++;
 						}
-						for(i=0;i<level-1;i++) res += "/..";
-						if(i_anchor != -1 && i_node != -1) {
-							res_sibling = ((i_anchor<i_node)? "following-sibling::*["+(i_node-i_anchor)+"]":"preceding-sibling::*["+(i_anchor-i_node)+"]");
-							res += '/' + res_sibling;
+						for (i = 0; i < level - 1; i++) {
+							res += "/..";
 						}
-						else if(i_anchor != -1 || level==1) res += "/..";
+						if (i_anchor != -1 && i_node != -1) {
+							res_sibling = i_anchor < i_node ?
+									"following-sibling::*[" + (i_node - i_anchor) + "]"
+									: "preceding-sibling::*[" + (i_anchor - i_node) + "]";
+							res += '/' + res_sibling;
+						} else if (i_anchor != -1 || level == 1) {
+							res += "/..";
+						}
 						String xpathFromParent = XMLUtils.calcXpath(node, getParentOrOwner(getXpathApi().selectSingleNode(dom,anchor_s + res)));
-						return res + ((xpathFromParent.length()>0)? '/' + xpathFromParent : "");
+						return res + ((xpathFromParent.length() > 0)? '/' + xpathFromParent : "");
 					}
 					ex_parent_node = parent_node;
 					parent_node = getParentOrOwner(parent_node);
@@ -678,16 +674,17 @@ abstract public class XpathEvaluatorComposite extends Composite {
 		return "";
 	}
 	
-	private Node getParentOrOwner(Node node){
+	private Node getParentOrOwner(Node node) {
 		return (node instanceof Attr)?((Attr)node).getOwnerElement():node.getParentNode();
 	}
 	
-	private Document getXpathData(Document document, String xPath)
-	{
-		if (document == null)
+	private Document getXpathData(Document document, String xPath) {
+		if (document == null) {
 			return null;
-		if (xPath == null)
+		}
+		if (xPath == null) {
 			return null;
+		}
 
 		try {
 			Document doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
@@ -695,74 +692,90 @@ abstract public class XpathEvaluatorComposite extends Composite {
 			doc.appendChild(root);
 			
 			NodeList nl = getXpathApi().selectNodeList(document, xPath);
-			if(nl!=null)
-				for (int i=0; i< nl.getLength(); i++) {
+			if (nl != null)
+				for (int i = 0; i< nl.getLength(); i++) {
 					Node node = doc.importNode(nl.item(i), true);
 					Element elt = doc.getDocumentElement();
-					if (node.getNodeType() == Node.ELEMENT_NODE)
+					if (node.getNodeType() == Node.ELEMENT_NODE) {
 						elt.appendChild(node);
-					if (node.getNodeType() == Node.TEXT_NODE)
+					}
+					if (node.getNodeType() == Node.TEXT_NODE) {
 						elt.appendChild(node);
+					}
 					if (node.getNodeType() == Node.ATTRIBUTE_NODE) {
-						elt.setAttribute(node.getNodeName()+"_"+i, node.getNodeValue());
+						elt.setAttribute(node.getNodeName() + "_" + i, node.getNodeValue());
 					}
 				}
 
-			return (doc);
+			return doc;
 		} catch (TransformerException e) {
-			ConvertigoPlugin.logWarning("Error for xpath : '" + xPath + "'\r "+e.getMessage());
+			ConvertigoPlugin.logWarning("Error for xpath : '" + xPath + "'\r " + e.getMessage());
 			return null;
 		}
 	}
 
-	protected String makeAbsoluteXPath(Node node){
-		class Nodes{
+	protected String makeAbsoluteXPath(Node node) {
+		class Nodes {
 			Object obj;
-			Nodes(Object obj){ this.obj=obj; }
-			int getLength(){ return (obj instanceof NodeList)?((NodeList)obj).getLength():((NamedNodeMap)obj).getLength(); }
-			Node item(int index){ return (obj instanceof NodeList)?((NodeList)obj).item(index):((NamedNodeMap)obj).item(index);	}
+			Nodes(Object obj) {
+				this.obj = obj;
+			}
+			int getLength() {
+				return obj instanceof NodeList ?
+					((NodeList) obj).getLength()
+					: ((NamedNodeMap) obj).getLength();
+			}
+			Node item(int index) {
+				return obj instanceof NodeList ?
+					((NodeList) obj).item(index)
+					: ((NamedNodeMap)obj).item(index);
+			}
 		}
+		
 		String newXpath = XMLUtils.calcXpath(node);
 		Node root = node.getOwnerDocument().getFirstChild();
 		int len = 0;
-		for(int j=0;j<2&&len==0;j++){
-			Nodes nodes = new Nodes(j==0?(Object)root.getChildNodes():(Object)root.getAttributes());
+		for (int j = 0; j < 2 && len == 0; j++) {
+			Nodes nodes = new Nodes(j == 0 ? root.getChildNodes() : root.getAttributes());
 			len = nodes.getLength();
-			int index = newXpath.indexOf('/', 5); // "root/".length()
-			if(index != -1)newXpath = newXpath.substring(index); 
-			else newXpath = "";
+			int index = newXpath.indexOf('/', 5);
+			newXpath = index != -1 ? newXpath.substring(index) : "";
 			
-			if(len > 1){
+			if (len > 1) {
 				Node cur = node;
 				int i = len;
-				while(i == len && !cur.equals(root)){
-					for(i=0;i<len && !cur.equals(nodes.item(i));i++);
-					cur = (cur instanceof Attr)?((Attr)cur).getOwnerElement():cur.getParentNode();
+				while (i == len && !cur.equals(root)) {
+					for (i = 0; i < len && !cur.equals(nodes.item(i)); i++);
+					cur = cur instanceof Attr ? ((Attr) cur).getOwnerElement() : cur.getParentNode();
 				}
-				if(i!=len) newXpath = "(" + lastEval + ")[" + (i+1) + "]" + newXpath;
+				if (i != len) {
+					newXpath = "(" + lastEval + ")[" + (i + 1) + "]" + newXpath;
+				}
 			}
 		}
-		if(len==1) newXpath = lastEval + newXpath;
+		if (len == 1) {
+			newXpath = lastEval + newXpath;
+		}
 		
 		return newXpath;
 	}
 	
 	abstract public void setSelectedXpath(String newXpath);
 	
-	protected MenuMaker makeShowInBrowserMenuMaker(){
+	protected MenuMaker makeShowInBrowserMenuMaker() {
 		return new MenuMaker() {
 			public void makeMenu(final TwsDomTree tree, TreeItem treeItem, MouseEvent e, Menu menu) {
-				if (e.button == 3 && treeItem!=null){
+				if (e.button == 3 && treeItem != null) {
 					final Object object = treeItem.getData();
 					if (object instanceof Node) {
 						MenuItem item = new MenuItem(menu, SWT.NONE);
 						item.setText("Show in browser");
-						item.addSelectionListener(new org.eclipse.swt.events.SelectionListener() {
-							public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) { 
-								String newXpath = makeAbsoluteXPath((Node)object);
+						item.addSelectionListener(new SelectionListener() {
+							public void widgetSelected(SelectionEvent e) { 
+								String newXpath = makeAbsoluteXPath((Node) object);
 								setSelectedXpath(newXpath);
 							}
-							public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
+							public void widgetDefaultSelected(SelectionEvent e) {
 							}
 						});
 					}
@@ -771,65 +784,71 @@ abstract public class XpathEvaluatorComposite extends Composite {
 		};
 	}
 
-	protected void generateSelectionXpath(boolean overwrite, TwsDomTree tree){
+	protected void generateSelectionXpath(boolean overwrite, TwsDomTree tree) {
 		String newXpath = generateSelectionXpath(tree.getSelection());
-		if(!overwrite && lastEval!=null) newXpath = lastEval+newXpath;
+		if (!overwrite && lastEval != null) {
+			newXpath = lastEval + newXpath;
+		}
 		setXpathText(newXpath);
 		performCalcXpath();		
 	}
 	
-	protected void generateAbsoluteXpath(boolean overwrite, Node node){
-		String newXpath = overwrite?XMLUtils.calcXpath(node):makeAbsoluteXPath(node);
-		if(currentAnchor != null) newXpath = currentAnchor + calcRelativeXpath(getDom(), currentAnchor, newXpath);
+	protected void generateAbsoluteXpath(boolean overwrite, Node node) {
+		String newXpath = overwrite ? XMLUtils.calcXpath(node) : makeAbsoluteXPath(node);
+		if (currentAnchor != null) {
+			newXpath = currentAnchor + calcRelativeXpath(getDom(), currentAnchor, newXpath);
+		}
 		setXpathText(newXpath);
 		performCalcXpath();		
 	}
 	
-	private boolean canGenerateSelectionXpath(boolean overwrite, Node node){
-		boolean bSelectionMenu = (currentAnchor==null);
+	private boolean canGenerateSelectionXpath(boolean overwrite, Node node) {
+		boolean bSelectionMenu = (currentAnchor == null);
 		
-		if(bSelectionMenu && !overwrite){
-			Node curNode = (node instanceof Attr)?((Attr)node).getOwnerElement():node;
+		if (bSelectionMenu && !overwrite) {
+			Node curNode = node instanceof Attr ? ((Attr) node).getOwnerElement() : node;
 			Node root = node.getOwnerDocument().getFirstChild();
-			if(curNode.equals(root))bSelectionMenu = false;
-			else{
+			if (curNode.equals(root)) {
+				bSelectionMenu = false;
+			} else {
 				NodeList nodeList = root.getChildNodes();
-				for(int i=0;i<nodeList.getLength() && bSelectionMenu;i++)
+				for (int i = 0; i < nodeList.getLength() && bSelectionMenu; i++) {
 					bSelectionMenu = !nodeList.item(i).equals(curNode);
+				}
 			}
 		}
 		return bSelectionMenu;
 	}
 	
-	public MenuMaker makeXPathMenuMaker(final boolean overwrite){
+	public MenuMaker makeXPathMenuMaker(final boolean overwrite) {
 		return new MenuMaker() {
 			public void makeMenu(final TwsDomTree tree, TreeItem treeItem, MouseEvent e, Menu menu) {
-				if ((e.button == 3) && (treeItem!=null)){
+				if ((e.button == 3) && (treeItem != null)) {
 					Object object = treeItem.getData();
 					if (object instanceof Node) {
 						final Node node = (Node)object;
 						MenuItem item;
 						
-						if(overwrite || lastEval!=null){
-							if(canGenerateSelectionXpath(overwrite, node)){ // check if show SelectionMenu is necessary
+						if (overwrite || lastEval != null) {
+							if (canGenerateSelectionXpath(overwrite, node)) { // check if show SelectionMenu is necessary
 								item = new MenuItem(menu, SWT.NONE);
 								item.setText("Generate selection Xpath (Enter)");
-								item.addSelectionListener(new org.eclipse.swt.events.SelectionListener() {
-									public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
+								item.addSelectionListener(new SelectionListener() {
+									public void widgetSelected(SelectionEvent e) {
 										generateSelectionXpath(overwrite, tree);
 									}
-									public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
+									public void widgetDefaultSelected(SelectionEvent e) {
 									}
 								});
 							}
 							
 							item = new MenuItem(menu, SWT.NONE);
 							item.setText("Generate absolute Xpath (Shift+Enter)");
-							item.addSelectionListener(new org.eclipse.swt.events.SelectionListener() {
-								public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) { 
+							item.addSelectionListener(new SelectionListener() {
+								public void widgetSelected(SelectionEvent e) { 
 									generateAbsoluteXpath(overwrite, node);
 								}
-								public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
+								public void widgetDefaultSelected(SelectionEvent e) {
 								}
 							});
 						}
@@ -840,19 +859,19 @@ abstract public class XpathEvaluatorComposite extends Composite {
 		};
 	}
 	
-	public KeyAccelerator makeXPathKeyAccelerator(final boolean overwrite){
-		return new KeyAccelerator(){
+	public KeyAccelerator makeXPathKeyAccelerator(final boolean overwrite) {
+		return new KeyAccelerator() {
 			public boolean doAction(TwsDomTree tree, KeyEvent e) {
 				boolean doNext = true;
-				if(e.keyCode==SWT.CR||e.keyCode==SWT.KEYPAD_CR){
-					if(tree.getSelection().length>0){
+				if (e.keyCode == SWT.CR || e.keyCode == SWT.KEYPAD_CR) {
+					if (tree.getSelection().length > 0) {
 						Node node = (Node)tree.getSelection()[0].getData();
-						if((e.stateMask & SWT.SHIFT)==0){//without SHIFT > relative
-							if(canGenerateSelectionXpath(overwrite, node)){
+						if ((e.stateMask & SWT.SHIFT) == 0) {//without SHIFT > relative
+							if (canGenerateSelectionXpath(overwrite, node)) {
 								generateSelectionXpath(overwrite, tree);
 								doNext = false;
 							}
-						}else{//with SHIFT > absolute
+						} else {//with SHIFT > absolute
 							generateAbsoluteXpath(overwrite, node);
 							doNext = false;
 						}
@@ -863,13 +882,16 @@ abstract public class XpathEvaluatorComposite extends Composite {
 		};
 	}
 	
-	protected void moveHistory(boolean backward){
-		int max = xpathHistory.size()-1;
-		int inc = backward?(currentHistory!=max?1:0):(currentHistory!=0?-1:0);
-		if(inc!=0){
-			if (!isAnchorDisabled) currentAnchor = null;
-			currentHistory += inc;
-			setXpathText(xpathHistory.get(max-currentHistory));
+	protected void moveHistory(boolean backward) {
+		int newHistory = backward ?
+				Math.min(xpathHistory.size(), currentHistory + 1)
+				: Math.max(0, currentHistory - 1);
+		if (newHistory != currentHistory) {
+			currentHistory = newHistory;
+			if (!isAnchorDisabled) {
+				currentAnchor = null;
+			}
+			setXpathText(xpathHistory.get(xpathHistory.size() - 1 - currentHistory));
 			refreshButtonsEnable();
 		}
 	}

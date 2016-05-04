@@ -94,9 +94,12 @@ public class StepXpathEvaluatorComposite extends XpathEvaluatorComposite {
 		setAnchor(true);
 		
 		if (!xpath.equals("")) {
-			items = findTreeItems(currentAnchor + xpath.substring(1));
-			if (items.length > 0) stepSourceEditorComposite.selectItemsInTree(items);
-			setXpathText(currentAnchor + xpath.substring(1));
+			xpath = xpath.replaceFirst("\\.", anchor);
+			items = findTreeItems(xpath);
+			if (items.length > 0) {
+				stepSourceEditorComposite.selectItemsInTree(items);
+			}
+			setXpathText(xpath);
 		}
 	}
 	
