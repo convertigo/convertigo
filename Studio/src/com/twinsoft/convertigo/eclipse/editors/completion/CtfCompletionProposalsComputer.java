@@ -174,7 +174,7 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 	private List<String> getTransactionList(String projectName,
 			String connectorName) throws EngineException {
 		List<String> Transactions = new ArrayList<String>();
-
+		
 		Project project = getProjectByName(projectName);
 		Connector connector = project.getConnectorByName(connectorName);
 
@@ -226,7 +226,47 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 		
 		return "";
 	}
-	
+/*	
+	private int levenshteinDistance (CharSequence lhs, CharSequence rhs) {                          
+	    int len0 = lhs.length() + 1;                                                     
+	    int len1 = rhs.length() + 1;                                                     
+	                                                                                    
+	    // the array of distances                                                       
+	    int[] cost = new int[len0];                                                     
+	    int[] newcost = new int[len0];                                                  
+	                                                                                    
+	    // initial cost of skipping prefix in String s0                                 
+	    for (int i = 0; i < len0; i++) cost[i] = i;                                     
+	                                                                                    
+	    // dynamically computing the array of distances                                  
+	                                                                                    
+	    // transformation cost for each letter in s1                                    
+	    for (int j = 1; j < len1; j++) {                                                
+	        // initial cost of skipping prefix in String s1                             
+	        newcost[0] = j;                                                             
+	                                                                                    
+	        // transformation cost for each letter in s0                                
+	        for(int i = 1; i < len0; i++) {                                             
+	            // matching current letters in both strings                             
+	            int match = (lhs.charAt(i - 1) == rhs.charAt(j - 1)) ? 0 : 1;             
+	                                                                                    
+	            // computing cost for each transformation                               
+	            int cost_replace = cost[i - 1] + match;                                 
+	            int cost_insert  = cost[i] + 1;                                         
+	            int cost_delete  = newcost[i - 1] + 1;                                  
+	                                                                                    
+	            // keep minimum cost                                                    
+	            newcost[i] = Math.min(Math.min(cost_insert, cost_delete), cost_replace);
+	        }                                                                           
+	                                                                                    
+	        // swap cost/newcost arrays                                                 
+	        int[] swap = cost; cost = newcost; newcost = swap;                          
+	    }                                                                               
+	                                                                                    
+	    // the distance is the cost for transforming all letters in both strings        
+	    return cost[len0 - 1];                                                          
+	}
+*/	
 	private Image imageCtf = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/completion_ctf.png"));
 
 	private Image imageJqm = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/completion_jqm.png"));
@@ -317,9 +357,31 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 								//
 								String projectName = alreadyTyped.substring(0, alreadyTyped.indexOf('.'));
 
+								// if projectName is empty (ie current), get the fullname from context
 								if (projectName.equalsIgnoreCase(""))								
 									projectName = FileBuffers.getTextFileBufferManager().getTextFileBuffer(document).getLocation().segment(0);
+								
+								String currentProjectName = projectName; 
+								
+								// if the project has no sequences, try to find a related project
+								// by comparing names using levenshtein disatnce algorithm
+								// commented out for the moment
+/*								
+								if (getSequenceList(projectName).isEmpty()) {
+									String closest = projectName;
+									int	dist, smallestDist = 65535;	// some high number
+									for (int i = 0; i < projectNames.size(); i++) {
+										if (!projectName.equalsIgnoreCase(projectNames.get(i))) {
+											if ((dist = levenshteinDistance(projectName, projectNames.get(i))) < smallestDist) {
+												smallestDist = dist;
+												closest = projectNames.get(i);
+											}
+										}
+									}
 
+									projectName = closest;
+								}
+*/
 								alreadyTyped = alreadyTyped.substring(alreadyTyped.indexOf('.') + 1);
 								if (alreadyTyped.contains(".")) {
 									//
@@ -327,21 +389,27 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 									//
 									String connector = alreadyTyped.substring(0, alreadyTyped.indexOf('.'));
 									alreadyTyped = alreadyTyped.substring(alreadyTyped.indexOf('.') + 1);
-									List<String> transactions = getTransactionList(projectName, connector);
-									for (int i = 0; i < transactions.size(); i++) {
-										if (alreadyTyped.equalsIgnoreCase("") || transactions.get(i).startsWith(alreadyTyped)) {
-											String entry = (String) transactions.get(i);
-											// Set additional information
-											String descr = entry + " : " + "Transaction name";
-											// Set the string to display
-											String showing = transactions.get(i);
-											// Set the replacement string
-											String value = transactions.get(i).substring(alreadyTyped.length());
-											IContextInformation info = new ContextInformation(showing, descr);
-											lProposals.add(new CompletionProposal(value, offset, 0, value.length(), imageTransaction, showing, info, descr));
+									
+									try {
+										List<String> transactions = getTransactionList(projectName, connector);
+										for (int i = 0; i < transactions.size(); i++) {
+											if (alreadyTyped.equalsIgnoreCase("") || transactions.get(i).startsWith(alreadyTyped)) {
+												String entry = (String) transactions.get(i);
+												// Set additional information
+												String descr = entry + " : " + "Transaction name";
+												// Set the string to display
+												String showing = transactions.get(i);
+												// Set the replacement string
+												String value = transactions.get(i).substring(alreadyTyped.length());
+												IContextInformation info = new ContextInformation(showing, descr);
+												lProposals.add(new CompletionProposal(value, offset, 0, value.length(), imageTransaction, showing, info, descr));
+											}
 										}
+										return lProposals;
 									}
-									return lProposals;
+									catch(Exception ee) {
+										return lProposals;
+									}
 								}
 
 								List<String> sequences = getSequenceList(projectName);
@@ -349,7 +417,7 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 									if (alreadyTyped.equalsIgnoreCase("") || sequences.get(i).startsWith(alreadyTyped)) {
 										String entry = (String) sequences.get(i);
 										// Set additional information
-										String descr = entry + " : Sequence name";
+										String descr = (projectName.equalsIgnoreCase(currentProjectName) ? "":"WARNING ") + entry + " : Sequence name" + (projectName.equalsIgnoreCase(currentProjectName) ? "":" is from project " + projectName);
 										// Set the string to display
 										String showing = sequences.get(i);
 										// Set the replacement string
@@ -359,6 +427,8 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 									}
 								}
 
+								projectName = currentProjectName;
+								
 								List<String> connectors = getConnectorList(projectName);
 								for (int i = 0; i < connectors.size(); i++) {
 									if (connectors.get(i).startsWith(alreadyTyped)) {
