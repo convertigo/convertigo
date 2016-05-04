@@ -71,11 +71,17 @@ public class RestApiServlet extends HttpServlet {
 		}
 		
 		String method = request.getMethod();
-		Engine.logEngine.debug("(RestApiServlet) Requested URI: "+ method + " " + request.getRequestURI());
+		String uri = request.getRequestURI();
+		String query = request.getQueryString();
+		Engine.logEngine.debug("(RestApiServlet) Requested URI: "+ method + " " + uri);
 		
 		boolean isYaml = request.getParameter("YAML") != null;
 		boolean isJson = request.getParameter("JSON") != null;
-				
+		
+		if ("GET".equalsIgnoreCase(method) && uri.endsWith("/api") && (query == null || query.isEmpty())) {
+			isJson = true;
+		}
+		
         // Generate YAML/JSON definition (swagger specific)
 		if ("GET".equalsIgnoreCase(method) && (isYaml || isJson)) {
     		try {
