@@ -35,12 +35,14 @@
 	<engine name="$(CordovaPlatform)$" spec="~4.3.2" appx="uap" archs="x64" />
 	
 	<!-- Customize your app and platform with the preference element. -->
-    <preference name="phonegap-version"           	value="cli-6.1.1" />      <!-- all: current version of PhoneGap -->
-    <preference name="orientation"                	value="default" />        <!-- all: default means both landscape and portrait are enabled -->
-    <preference name="target-device"             	value="universal" />      <!-- all: possible values handset, tablet, or universal -->
-    <preference name="fullscreen"                	value="true" />           <!-- all: hides the status bar at the top of the screen -->
-    <preference name="SplashScreen"    			  	value="splash" />         <!-- all: the splash screen resource if built without phonegap build -->
-    <preference name="SplashScreenDelay"          	value="10000" />          <!-- all: sets the default delay of how long the splashscreen appears in milliseconds, this should be the maximum expected start time -->
+    <preference name="phonegap-version"             value="cli-6.1.1" />      <!-- all: current version of PhoneGap -->
+    <preference name="orientation"                  value="default" />        <!-- all: default means both landscape and portrait are enabled -->
+    <preference name="target-device"                value="universal" />      <!-- all: possible values handset, tablet, or universal -->
+    <preference name="fullscreen"                   value="true" />           <!-- all: hides the status bar at the top of the screen -->
+    <preference name="SplashScreen"                 value="splash" />         <!-- all: the splash screen resource if built without phonegap build -->
+    <preference name="SplashScreenDelay"            value="10000" />          <!-- all: sets the default delay of how long the splashscreen appears in milliseconds, this should be the maximum expected start time -->
+    <preference name="WindowsDefaultUriPrefix"      value="ms-appx://" />
+    <preference name="windows-target-version"       value="10.0" />
     
 	<!-- Windows icons -->
     <platform name="windows">

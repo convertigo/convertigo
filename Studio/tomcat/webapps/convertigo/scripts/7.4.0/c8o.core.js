@@ -1219,8 +1219,9 @@ C8O = {
 
 $.ajaxSettings.traditional = true;
 $.ajaxSetup({
-    type: C8O.vars.ajax_method,
-    dataType: "xml"
+	cache: false,
+    dataType: "xml",
+    type: C8O.vars.ajax_method
 });
 C8O.addRecallParameter("__uid", C8O._define.uid);
 

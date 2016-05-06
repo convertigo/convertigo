@@ -379,6 +379,7 @@ public class MobileResourceHelper {
 		json.put("currentRevision", destDir.lastModified());
 		json.put("currentVersion", mobileApplication.getComputedApplicationVersion());
 		json.put("endPoint", endpoint);
+		json.put("platform", mobilePlatform.getCordovaPlatform());
 		json.put("platformName", mobilePlatform.getName());
 		json.put("projectName", project.getName());
 		json.put("remoteBase", remoteBase);

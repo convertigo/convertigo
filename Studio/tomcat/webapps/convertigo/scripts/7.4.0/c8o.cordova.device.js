@@ -569,6 +569,7 @@ if ("cordova" in window) {
         
         $.ajax({
             dataType: "json",
+            type: "GET",
             url: url,
             success: function (data) {
                 try {

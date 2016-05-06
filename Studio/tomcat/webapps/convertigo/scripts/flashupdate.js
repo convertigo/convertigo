@@ -33,6 +33,8 @@ downloadFiles ?
 */
 
 var F = {
+	reDoubleSlash: new RegExp("(:/+)|(/)/*", "g"),
+	reLastSlash: new RegExp("/$"),
 	reTailUrl: new RegExp("([^#?]*)/.*"),
 	startTime: new Date().getTime(),
 	canCopyFromApp: false,
@@ -115,7 +117,7 @@ var F = {
 			// device feature disabled in config.xml
 		}
 		
-		if (F.env.platform == "blackberry10") {
+		if (F.env.platform == "blackberry10" || F.env.platform == "windows") {
 			// unsupported platform
 			F.redirectApp();
 		} else {
@@ -206,12 +208,12 @@ var F = {
 							F.env.webLocalBase = flashUpdateDir.fullPath;
 						}
 						
-						var reLastSlash = new RegExp("/$");
-						var reDoubleSlash = new RegExp("(:/+)|(/)/*","g");
+						F.env.webLocalBase = F.env.webLocalBase.replace(F.reDoubleSlash, "$1$2").replace(F.reLastSlash, "");
+
+						F.env.localBase = F.env.platform != "windows" ?
+							F.env.localBase.replace(F.reDoubleSlash, "$1$2").replace(F.reLastSlash, "") :
+							F.env.webLocalBase;
 						
-						F.env.localBase = F.env.localBase.replace(reDoubleSlash, "$1$2").replace(reLastSlash, "");
-						F.env.webLocalBase = F.env.webLocalBase.replace(reDoubleSlash, "$1$2").replace(reLastSlash, "");
-												
 						if (F.env.isLocal) {
 							F.isFlashUpdate();
 						} else {
