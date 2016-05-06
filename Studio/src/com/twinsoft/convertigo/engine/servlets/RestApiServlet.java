@@ -19,6 +19,8 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.RestApiManager;
 import com.twinsoft.convertigo.engine.enums.MimeType;
+import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.util.HttpServletRequestTwsWrapper;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.ServletUtils;
 import com.twinsoft.convertigo.engine.util.SwaggerUtils;
@@ -68,6 +70,16 @@ public class RestApiServlet extends HttpServlet {
     		catch(Exception e) {
     			throw new ServletException(e);
     		}
+		}
+		
+		HttpServletRequestTwsWrapper wrapped_request = new HttpServletRequestTwsWrapper(request);
+		request = wrapped_request;
+		
+		String encoded = request.getParameter(Parameter.RsaEncoded.getName());
+		if (encoded != null) {
+			String query = Engine.theApp.rsaManager.decrypt(encoded, request.getSession());
+			wrapped_request.clearParameters();
+			wrapped_request.addQuery(query);
 		}
 		
 		String method = request.getMethod();

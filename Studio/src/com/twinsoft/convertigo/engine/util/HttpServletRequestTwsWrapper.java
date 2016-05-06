@@ -34,6 +34,7 @@ import javax.servlet.http.HttpServletRequestWrapper;
 
 public class HttpServletRequestTwsWrapper extends HttpServletRequestWrapper {	
 	protected Map<String, String[]> parameters = new HashMap<String, String[]>();
+	protected String query = null;
 	
 	public HttpServletRequestTwsWrapper(HttpServletRequest request) {
 		super(request);
@@ -94,6 +95,14 @@ public class HttpServletRequestTwsWrapper extends HttpServletRequestWrapper {
 	public void addQuery(String query) {
 		if (query != null) {
 			parameters = URLUtils.queryToMap(query);
+			this.query = query;
 		}
 	}
+
+	@Override
+	public String getQueryString() {
+		return query != null ? query : super.getQueryString();
+	}
+	
+	
 }

@@ -217,7 +217,7 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 		}
 		return Sequences;
 	}
-
+/*
 	private String getClosestProjectName(String projectName) {
 		for (int i = 0; i < projectNames.size(); i++) {
 			if (projectNames.get(i).startsWith(projectName.substring(0, 3)))
@@ -226,7 +226,7 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 		
 		return "";
 	}
-/*	
+	
 	private int levenshteinDistance (CharSequence lhs, CharSequence rhs) {                          
 	    int len0 = lhs.length() + 1;                                                     
 	    int len1 = rhs.length() + 1;                                                     

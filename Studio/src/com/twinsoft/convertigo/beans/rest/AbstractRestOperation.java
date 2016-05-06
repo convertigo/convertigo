@@ -40,7 +40,6 @@ import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
-import com.twinsoft.convertigo.engine.util.HttpServletRequestTwsWrapper;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public abstract class AbstractRestOperation extends UrlMappingOperation {
@@ -123,8 +122,7 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 	
 	@Override
 	@SuppressWarnings("deprecation")
-	public void handleRequest(HttpServletRequest _request, HttpServletResponse response) throws EngineException {
-		HttpServletRequestTwsWrapper request = new HttpServletRequestTwsWrapper(_request);
+	public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws EngineException {
 		String targetRequestableQName = getTargetRequestable();
 		if (targetRequestableQName.isEmpty()) {
 			throw new EngineException("Mapping operation \""+ getName() +"\" has no target requestable defined");
