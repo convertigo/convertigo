@@ -170,6 +170,9 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int SAMPLE_OFFCHAT = 1317;
 	public static final int SAMPLE_RETAILSTORE = 1318;
 	
+	// rest samples
+	public static final int SAMPLE_MAPPERSHOP = 1330;
+	
 	// sequencer samples
 	public static final int SAMPLE_SEQUENCER_1 = 510;
 
@@ -204,6 +207,8 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final String SAMPLE_ANGULARJS_PROJECT_FILE_NAME = "sampleAngularJS.car";
 	public static final String SAMPLE_OFFCHAT_PROJECT_FILE_NAME = "sampleMobileOffChat.car";
 	public static final String SAMPLE_RETAILSTORE_PROJECT_FILE_NAME = "sampleMobileRetailStore.car";
+	// rest samples
+	public static final String SAMPLE_MAPPERSHOP_PROJECT_FILE_NAME = "sampleMapperShop.car";
 	// libraries
 	public static final String GOOGLE_MAPS_LIBRARY_PROJECT_FILE_NAME = "lib_GoogleMaps.car";
 	public static final String PUSH_MANAGER_LIBRARY_PROJECT_FILE_NAME = "lib_PushManager.car";
@@ -273,6 +278,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case SAMPLE_ANGULARJS:
 		case SAMPLE_OFFCHAT:
 		case SAMPLE_RETAILSTORE:
+		case SAMPLE_MAPPERSHOP:
 		case LIBRARY_GOOGLE_MAPS:
 		case LIBRARY_PUSH_MANAGER:
 		case LIBRARY_TWITTER:
@@ -481,6 +487,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case SAMPLE_ANGULARJS:
 			case SAMPLE_OFFCHAT:
 			case SAMPLE_RETAILSTORE:
+			case SAMPLE_MAPPERSHOP:
 			case LIBRARY_GOOGLE_MAPS:
 			case LIBRARY_SALESFORCE:
 			case LIBRARY_PUSH_MANAGER:
@@ -1296,6 +1303,10 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case SAMPLE_RETAILSTORE:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_RETAILSTORE_PROJECT_FILE_NAME;
 			projectName = SAMPLE_RETAILSTORE_PROJECT_FILE_NAME.substring(0, SAMPLE_RETAILSTORE_PROJECT_FILE_NAME.indexOf(".car"));
+			break;
+		case SAMPLE_MAPPERSHOP:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_MAPPERSHOP_PROJECT_FILE_NAME;
+			projectName = SAMPLE_MAPPERSHOP_PROJECT_FILE_NAME.substring(0, SAMPLE_MAPPERSHOP_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		default:
 			return null;
