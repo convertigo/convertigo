@@ -869,7 +869,7 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLErrorStep"/>
                 </bean>
-            	<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.steps.SetResponseHeaderStep">
+            	<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.SetResponseHeaderStep">
             	    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
@@ -879,7 +879,7 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLErrorStep"/>
             	</bean>
-            	<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.steps.SetResponseStatusStep">
+            	<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.SetResponseStatusStep">
             	    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
@@ -889,7 +889,7 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLErrorStep"/>
             	</bean>
-            	<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.steps.GetRequestHeaderStep">
+            	<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.GetRequestHeaderStep">
             	    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
