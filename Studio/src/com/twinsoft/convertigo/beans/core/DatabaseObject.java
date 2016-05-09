@@ -54,6 +54,7 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.Version;
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.steps.SmartType;
 import com.twinsoft.convertigo.engine.DatabaseObjectNotFoundException;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
@@ -909,25 +910,36 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		return true;
 	}
 
-	public static Object encryptPropertyValue(Object propertyValue) {
+	public static String encryptPropertyValue(String propertyValue) {
+		return Crypto2.encodeToHexString(propertyValue);
+	}
+	
+	public static <E> E encryptPropertyValue(E propertyValue) {
 		if (propertyValue == null) {
 			return null;
 		}
 
-		Object encryptedValue = null;
+		E encryptedValue = null;
 		if (propertyValue instanceof String) {
-			encryptedValue = Crypto2.encodeToHexString((String) propertyValue);
+			encryptedValue = GenericUtils.cast(Crypto2.encodeToHexString((String) propertyValue));
 		} else if (propertyValue instanceof XMLVector<?>) {
 			try {
 				XMLVector<Object> xmlv = new XMLVector<Object>(
-						GenericUtils.<XMLVector<Object>> cast(propertyValue));
+						GenericUtils.<XMLVector<Object>>cast(propertyValue));
 				for (int i = 0; i < xmlv.size(); i++) {
 					Object ob = xmlv.get(i);
 					xmlv.set(i, encryptPropertyValue(ob));
 				}
-				encryptedValue = xmlv;
+				encryptedValue = GenericUtils.cast(xmlv);
 			} catch (Exception e) {
 			}
+		} else if (propertyValue instanceof SmartType) {
+			SmartType st = (SmartType) propertyValue;
+			SmartType newSt = new SmartType();
+			newSt.setMode(st.getMode());
+			newSt.setExpression(encryptPropertyValue(st.getExpression()));
+			newSt.setSourceDefinition(encryptPropertyValue(st.getSourceDefinition()));
+			encryptedValue = GenericUtils.cast(newSt);
 		}
 
 		if (encryptedValue == null) {
@@ -936,14 +948,19 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		return encryptedValue;
 	}
 
-	public static Object decryptPropertyValue(Object encryptedValue) {
+	public static <E> E decryptPropertyValue(E encryptedValue) {
 		if (encryptedValue == null) {
 			return null;
 		}
 
-		Object propertyValue = null;
+		E propertyValue = null;
 		if (encryptedValue instanceof String) {
-			propertyValue = Crypto2.decodeFromHexString3((String) encryptedValue);
+			try {
+				propertyValue = GenericUtils.cast(Crypto2.decodeFromHexString3((String) encryptedValue));
+			} catch (Exception e) {
+				Engine.logBeans.trace("Failed to decode a property value", e);
+				propertyValue = encryptedValue;
+			}
 		} else if (encryptedValue instanceof XMLVector<?>) {
 			try {
 				XMLVector<Object> xmlv = new XMLVector<Object>(
@@ -952,9 +969,16 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 					Object ob = xmlv.get(i);
 					xmlv.set(i, decryptPropertyValue(ob));
 				}
-				propertyValue = xmlv;
+				propertyValue = GenericUtils.cast(xmlv);
 			} catch (Exception e) {
 			}
+		} else if (encryptedValue instanceof SmartType) {
+			SmartType st = (SmartType) encryptedValue;
+			SmartType newSt = new SmartType();
+			newSt.setMode(st.getMode());
+			newSt.setExpression(decryptPropertyValue(st.getExpression()));
+			newSt.setSourceDefinition(decryptPropertyValue(st.getSourceDefinition()));
+			propertyValue = GenericUtils.cast(newSt);
 		}
 
 		if (propertyValue == null) {

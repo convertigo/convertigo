@@ -49,6 +49,7 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.LdapBindingPolicy;
+import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 import com.twinsoft.util.TWSLDAP;
 
@@ -370,5 +371,21 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 
 	public void setBindingPolicy(LdapBindingPolicy bindingPolicy) {
 		this.bindingPolicy = bindingPolicy;
+	}
+	
+	@Override
+	public boolean isMaskedProperty(Visibility target, String propertyName) {
+		if ("adminPassword".equals(propertyName) || "password".equals(propertyName)) {
+			return true;
+		}
+		return super.isMaskedProperty(target, propertyName);
+	}
+
+	@Override
+	public boolean isCipheredProperty(String propertyName) {
+		if ("adminPassword".equals(propertyName) || "password".equals(propertyName)) {
+			return true;
+		}
+		return super.isCipheredProperty(propertyName);
 	}
 }
