@@ -1219,7 +1219,7 @@ C8O = {
 
 $.ajaxSettings.traditional = true;
 $.ajaxSetup({
-	cache: false,
+    cache: false,
     dataType: "xml",
     type: C8O.vars.ajax_method
 });
