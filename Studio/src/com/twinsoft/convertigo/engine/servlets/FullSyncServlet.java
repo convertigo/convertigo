@@ -79,7 +79,10 @@ public class FullSyncServlet extends HttpServlet {
 			
 			RequestParser requestParser = new RequestParser(request);
 			
+			Engine.theApp.couchDbManager.checkRequest(requestParser.getPath(), requestParser.getSpecial(), requestParser.getDocId());
+			
 			String authenticatedUser = SessionAttribute.authenticatedUser.string(request.getSession());
+			debug.append("Authenticated user: ").append(authenticatedUser).append('\n');
 			URI uri;
 			
 			try {
@@ -264,7 +267,10 @@ public class FullSyncServlet extends HttpServlet {
 				responseStringEntity = IOUtils.toString(newResponse.getEntity().getContent(), charset);
 
 				debug.append("response Entity:\n" + responseStringEntity + "\n");
-
+				
+				Engine.theApp.couchDbManager.handleDocResponse(method, requestParser.getSpecial(), requestParser.getDocId(), authenticatedUser, responseStringEntity);
+				
+				
 				IOUtils.write(responseStringEntity, os, charset);
 			} else if (responseEntity != null) {
 				InputStream is = responseEntity.getContent();
@@ -288,6 +294,8 @@ public class FullSyncServlet extends HttpServlet {
 			if (bulkDocsRequest != null && responseStringEntity != null) {
 				Engine.theApp.couchDbManager.handleBulkDocsResponse(request, listeners, bulkDocsRequest, responseStringEntity);
 			}
+		} catch (SecurityException e) {
+			Engine.logCouchDbManager.error("(FullSyncServlet) Failed to process request due to a security exception:\n" + e.getMessage() + "\n" + debug);
 		} catch (Exception e) {
 			Engine.logCouchDbManager.error("(FullSyncServlet) Failed to process request:\n" + debug, e);
 		}
