@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.engine.util;
 
+import java.io.OutputStream;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.Priority;
@@ -83,5 +85,19 @@ public class LogWrapper extends Log {
 		logger.trace(message);
 	}
 	
-	
+	static public void initWrapper(final Logger logger) {
+		Log.factory = new Factory() {
+
+			@Override
+			protected Log newLog() {
+				return new LogWrapper(logger);
+			}
+
+			@Override
+			protected Log newLog(OutputStream outputStream) {
+				return newLog();
+			}
+			
+		};
+	}
 }

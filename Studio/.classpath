@@ -42,8 +42,8 @@
 	<classpathentry kind="lib" path="lib/internal/bull-v24323.jar"/>
 	<classpathentry kind="lib" path="lib/internal/phaos.jar"/>
 	<classpathentry kind="lib" path="lib/internal/tas-v41019.jar" sourcepath="/ConvertigoLibs/src"/>
-	<classpathentry kind="lib" path="lib/internal/api-v39827.jar" sourcepath="/ConvertigoLibs/src"/>
-	<classpathentry kind="lib" path="lib/internal/twinj-v28353.jar"/>
+	<classpathentry kind="lib" path="lib/internal/api-v41019.jar" sourcepath="/ConvertigoLibs/src"/>
+	<classpathentry kind="lib" path="lib/internal/twinj-v41019.jar"/>
 	<classpathentry kind="lib" path="lib/internal/aviva-111119.jar"/>
 	<classpathentry kind="lib" path="lib/internal/externalbrowser.jar"/>
 	<classpathentry kind="lib" path="lib/engine-htmlparsers.jar"/>

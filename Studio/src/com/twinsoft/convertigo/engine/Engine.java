@@ -383,6 +383,7 @@ public class Engine {
 
 			// Logger for compatibility issues
 			Engine.log = new LogWrapper(Engine.logConvertigo);
+			LogWrapper.initWrapper(Engine.logEmulators);
 
 			try {
 				Engine.logEngine.info("===========================================================");
