@@ -131,11 +131,15 @@ public class NewProjectWizardComposite10 extends Composite implements IWsReferen
 				
 				if (urlPath.startsWith("file:/")) {
 					if (new File(url.getPath()).exists()) {
-						String[] filterExtensions = wsRefAuthenticated.getFilterExtension()[0].split(";");
+						String[] filterExtensions = wsRefAuthenticated.getFilterExtension();//wsRefAuthenticated.getFilterExtension()[0].split(";");
 						for (String fileFilter: filterExtensions) {
 							String fileExtension = fileFilter.substring(fileFilter.lastIndexOf("."));
 							if (!urlPath.endsWith(fileExtension)) {
 								message = "Please select a compatible file";
+							}
+							else {
+								message = null;
+								break;
 							}
 						}
 					}
@@ -153,11 +157,15 @@ public class NewProjectWizardComposite10 extends Composite implements IWsReferen
 			if (!file.exists()) {
 				message = "Please select an existing file";
 			} else {
-				String[] filterExtensions = wsRefAuthenticated.getFilterExtension()[0].split(";");
+				String[] filterExtensions = wsRefAuthenticated.getFilterExtension();//wsRefAuthenticated.getFilterExtension()[0].split(";");
 				for (String fileFilter: filterExtensions) {
 					String fileExtension = fileFilter.substring(fileFilter.lastIndexOf("."));
 					if (!filePath.endsWith(fileExtension)) {
 						message = "Please select a compatible file";
+					}
+					else {
+						message = null;
+						break;
 					}
 				}
 			}
