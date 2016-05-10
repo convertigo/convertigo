@@ -296,6 +296,7 @@ public class FullSyncServlet extends HttpServlet {
 			}
 		} catch (SecurityException e) {
 			Engine.logCouchDbManager.error("(FullSyncServlet) Failed to process request due to a security exception:\n" + e.getMessage() + "\n" + debug);
+			response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 		} catch (Exception e) {
 			Engine.logCouchDbManager.error("(FullSyncServlet) Failed to process request:\n" + debug, e);
 		}
