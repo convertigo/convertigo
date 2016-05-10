@@ -301,7 +301,18 @@ public class WsReference {
 			}
 			
 			// Try to parse as a Swagger definition
-			Swagger swagger = new SwaggerParser().read(restServiceReference.getUrlpath());
+			Swagger swagger = null;
+			String urlPath = restServiceReference.getUrlpath();
+			if (urlPath.startsWith("http")) {
+				swagger = new SwaggerParser().read(urlPath);
+			}
+			else if (urlPath.startsWith("file")) {
+				URL url = new URL(urlPath);
+				File f = new File(url.getPath());
+				String filePath = f.getAbsolutePath();
+				swagger = new SwaggerParser().read(filePath);
+			}
+				
 			if (swagger != null) {
 				httpConnector = createRestConnector(swagger);
 			}
