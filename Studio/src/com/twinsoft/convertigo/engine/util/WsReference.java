@@ -102,6 +102,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMode;
 import com.twinsoft.convertigo.engine.PacManager.PacInfos;
 import com.twinsoft.convertigo.engine.Version;
+import com.twinsoft.convertigo.engine.enums.DoFileUploadMode;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.MimeType;
@@ -762,7 +763,14 @@ public class WsReference {
 						}
 						else if (parameter instanceof FormParameter || parameter instanceof BodyParameter) {
 							httpVariable.setHttpMethod(HttpMethodType.POST.name());
-							if (parameter instanceof BodyParameter) {
+							if (parameter instanceof FormParameter) {
+								FormParameter formParameter = (FormParameter) parameter;
+								if (formParameter.getType().equalsIgnoreCase("file")) {
+									httpVariable.setIsFileUpload(true);
+									httpVariable.setDoFileUploadMode(DoFileUploadMode.multipartFormData);
+								}
+							}
+							else if (parameter instanceof BodyParameter) {
 								hasBodyVariable = true;
 								// overrides variable's name for internal use
 								httpVariable.setName(Parameter.HttpBody.getName());
