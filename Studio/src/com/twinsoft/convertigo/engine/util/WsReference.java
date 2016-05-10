@@ -700,6 +700,10 @@ public class WsReference {
 								h_Accept = MimeType.Json.value();
 							}
 						}
+						
+						if (consumeList == null && h_Accept != null) {
+							h_ContentType = h_Accept;
+						}
 					}
 					
 					if (h_Accept != null) {
