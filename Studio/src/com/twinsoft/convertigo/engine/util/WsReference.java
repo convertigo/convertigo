@@ -807,6 +807,7 @@ public class WsReference {
 						
 						if (p_description != null) {
 							httpVariable.setDescription(p_description);
+							httpVariable.setComment(p_description);
 						}
 						
 						transaction.addVariable(httpVariable);
