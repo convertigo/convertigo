@@ -18,6 +18,7 @@ import org.apache.commons.io.IOUtils;
 import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.beans.core.IMappingRefModel;
 import com.twinsoft.convertigo.beans.core.UrlMapping;
@@ -323,8 +324,21 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 			Engine.logBeans.debug("(AbstractRestOperation) \""+ getName() +"\" executing requestable \""+ targetRequestableQName +"\"");
         	InternalRequester internalRequester = new InternalRequester(map, request);
     		Object result = internalRequester.processRequest();
-        	if (result != null) {
+    		String encoding = "UTF-8";
+    		if (result != null) {
         		Document xmlHttpDocument = (Document) result;
+        		
+				// Extract the encoding Char Set from PI
+    			Node firstChild = xmlHttpDocument.getFirstChild();
+    			if ((firstChild.getNodeType() == Document.PROCESSING_INSTRUCTION_NODE)
+    					&& (firstChild.getNodeName().equals("xml"))) {
+    				String piValue = firstChild.getNodeValue();
+    				int encodingOffset = piValue.indexOf("encoding=\"");
+    				if (encodingOffset != -1) {
+    					encoding = piValue.substring(encodingOffset + 10);
+    					encoding = encoding.substring(0, encoding.length() - 1);
+    				}
+    			}
         		
         		// Get output content type
         		DataContent dataOutput = getOutputContent();
@@ -381,6 +395,7 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 			
 			// Set response content
 			if (content != null) {
+				response.setCharacterEncoding(encoding);
 				Writer writer = response.getWriter();
 	            writer.write(content);
 			}
