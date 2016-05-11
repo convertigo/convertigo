@@ -31,13 +31,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
-import org.apache.ws.commons.schema.XmlSchemaSimpleContent;
-import org.apache.ws.commons.schema.XmlSchemaSimpleContentExtension;
+import org.apache.ws.commons.schema.XmlSchemaSequence;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
@@ -63,6 +63,7 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 	private SmartType adminLogin = new SmartType();
 	private SmartType adminPassword = new SmartType();
 	private SmartType basePath = new SmartType();
+	private SmartType attributes = new SmartType();
 	private LdapBindingPolicy bindingPolicy = LdapBindingPolicy.Bind;
 	
 	public LDAPAuthenticationStep() {
@@ -102,6 +103,7 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 			evaluate(javascriptContext, scope, password);
 			evaluate(javascriptContext, scope, adminLogin);
 			evaluate(javascriptContext, scope, adminPassword);
+			evaluate(javascriptContext, scope, attributes);
 			return super.stepExecute(javascriptContext, scope);
 		}
 		return false;
@@ -159,8 +161,8 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 						int countLimit = 0, timeLimit = 0;
 						String searchHost = getHost(serverUrl);
 						String searchFilter = getFilter(userLogin);
-						String[] searchAttributes = null;
-
+						String[] searchAttributes = attributes.getStringArray(this);
+						
 						// Avoid null password
 						searchPassword = searchPassword == null ? "":searchPassword;
 						
@@ -174,6 +176,21 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 						
 						if (bFound) {
 							userDn = twsLDAP.getNextResult().toLowerCase() + (searchBase == null ? "":"," + searchBase.toLowerCase());
+							for (String attribute: searchAttributes) {
+								if (StringUtils.isNotBlank(attribute)) {
+									Element attr = doc.createElement("attribute");
+									attr.setAttribute("name", attribute);
+									String[] values = twsLDAP.getResultEx(attribute);
+									if (values != null) {
+										for (String value: values) {
+											Element val = doc.createElement("value");
+											val.setTextContent(value);
+											attr.appendChild(val);
+										}
+									}
+									stepNode.appendChild(attr);
+								}
+							}
 						}
 						else {
 							if (nbServers > 1) {
@@ -224,7 +241,7 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 		
 		stepNode.setAttribute("userDn", userDn == null ? "":userDn);
 		if (userLogin != null && authenticated) {
-			stepNode.appendChild(doc.createTextNode(userLogin));
+			stepNode.setAttribute("user", userLogin);
 		}
 	}
 
@@ -301,17 +318,43 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 		XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
 		element.setType(cType);
 		
-		XmlSchemaSimpleContent sContent = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSimpleContent());
-		cType.setContentModel(sContent);
-		
-		XmlSchemaSimpleContentExtension sContentExt = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSimpleContentExtension());
-		sContent.setContent(sContentExt);
-		sContentExt.setBaseTypeName(Constants.XSD_STRING);
-		
 		XmlSchemaAttribute attr = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
+		attr.setName("user");
+		attr.setSchemaTypeName(Constants.XSD_STRING);
+		cType.getAttributes().add(attr);
+		
+		attr = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
 		attr.setName("userDn");
 		attr.setSchemaTypeName(Constants.XSD_STRING);
-		sContentExt.getAttributes().add(attr);
+		cType.getAttributes().add(attr);
+		
+		
+		XmlSchemaSequence sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
+		sequence.setMinOccurs(0);
+		sequence.setMaxOccurs(Long.MAX_VALUE);
+		cType.setParticle(sequence);
+		
+		XmlSchemaElement subElement = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+		sequence.getItems().add(subElement);
+		subElement.setName("attribute");
+		
+		cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+		subElement.setType(cType);
+		
+		attr = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
+		attr.setName("name");
+		attr.setSchemaTypeName(Constants.XSD_STRING);
+		cType.getAttributes().add(attr);
+		
+		sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
+		sequence.setMinOccurs(0);
+		sequence.setMaxOccurs(Long.MAX_VALUE);
+		cType.setParticle(sequence);
+		
+		subElement = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+		sequence.getItems().add(subElement);
+		subElement.setName("value");
+		subElement.setSchemaTypeName(Constants.XSD_STRING);
 		
 		return element;
 	}
@@ -387,5 +430,13 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 			return true;
 		}
 		return super.isCipheredProperty(propertyName);
+	}
+
+	public SmartType getAttributes() {
+		return attributes;
+	}
+
+	public void setAttributes(SmartType attributes) {
+		this.attributes = attributes;
 	}
 }

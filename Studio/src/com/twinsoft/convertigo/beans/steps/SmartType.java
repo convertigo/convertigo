@@ -1,9 +1,11 @@
 package com.twinsoft.convertigo.beans.steps;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.apache.xpath.XPathAPI;
-import org.mozilla.javascript.NativeJavaObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -14,6 +16,7 @@ import com.twinsoft.convertigo.beans.common.XMLizable;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.ParameterUtils;
 
 public class SmartType implements XMLizable, Serializable, Cloneable {
 	private static final long serialVersionUID = 6063228569094166129L;
@@ -81,14 +84,7 @@ public class SmartType implements XMLizable, Serializable, Cloneable {
 		String result = null;
 		
 		if (isUseExpression() && evaluated != null) {
-			if (evaluated instanceof NativeJavaObject) {
-				evaluated = ((NativeJavaObject) evaluated).unwrap();
-			}
-			if (evaluated instanceof String) {
-				result = (String) evaluated;
-			} else {
-				result = evaluated.toString();
-			}
+			result = ParameterUtils.toString(evaluated);
 		} else if (isUseSource()) {
 			NodeList nodeList = new StepSource(owner, sourceDefinition).getContextValues();
 			if (nodeList != null && nodeList.getLength() > 0) {
@@ -98,6 +94,31 @@ public class SmartType implements XMLizable, Serializable, Cloneable {
 		}
 		
 		return result;
+	}
+	
+	public List<String> getStringList(Step owner) throws EngineException {
+		List<String> result;
+		
+		if (isUseExpression() && evaluated != null) {
+			result = ParameterUtils.toStringList(evaluated);
+		} else if (isUseSource()) {
+			NodeList nodeList = new StepSource(owner, sourceDefinition).getContextValues();
+			int len = nodeList == null ? 0 : nodeList.getLength();
+			result = new ArrayList<String>(len);
+			for (int i = 0; i < len; i++) {
+				Node node = nodeList.item(i);
+				result.add(node instanceof Element ? ((Element) node).getTextContent() : node.getNodeValue());
+			}
+		} else {
+			result = Collections.emptyList();
+		}
+		
+		return result;
+	}
+	
+	public String[] getStringArray(Step owner) throws EngineException {
+		List<String> list = getStringList(owner);
+		return list.toArray(new String[list.size()]);
 	}
 	
 	public Mode getMode() {

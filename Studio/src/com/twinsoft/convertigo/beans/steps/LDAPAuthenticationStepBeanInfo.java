@@ -46,7 +46,7 @@ public class LDAPAuthenticationStepBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[7];
+			properties = new PropertyDescriptor[8];
 
             properties[0] = new PropertyDescriptor("server", beanClass, "getServer", "setServer");
             properties[0].setDisplayName(getExternalizedString("property.server.display_name"));
@@ -61,7 +61,7 @@ public class LDAPAuthenticationStepBeanInfo extends MySimpleBeanInfo {
             properties[2] = new PropertyDescriptor("password", beanClass, "getPassword", "setPassword");
             properties[2].setDisplayName(getExternalizedString("property.password.display_name"));
             properties[2].setShortDescription(getExternalizedString("property.password.short_description"));
-            properties[2].setPropertyEditorClass(getEditorClass("SmartTypeCellEditor"));            
+            properties[2].setPropertyEditorClass(getEditorClass("SmartTypeCellEditor"));
             
             properties[3] = new PropertyDescriptor("adminLogin", beanClass, "getAdminLogin", "setAdminLogin");
             properties[3].setDisplayName(getExternalizedString("property.adminLogin.display_name"));
@@ -71,7 +71,7 @@ public class LDAPAuthenticationStepBeanInfo extends MySimpleBeanInfo {
             properties[4] = new PropertyDescriptor("adminPassword", beanClass, "getAdminPassword", "setAdminPassword");
             properties[4].setDisplayName(getExternalizedString("property.adminPassword.display_name"));
             properties[4].setShortDescription(getExternalizedString("property.adminPassword.short_description"));
-            properties[4].setPropertyEditorClass(getEditorClass("SmartTypeCellEditor"));            
+            properties[4].setPropertyEditorClass(getEditorClass("SmartTypeCellEditor"));
 
             properties[5] = new PropertyDescriptor("basePath", beanClass, "getBasePath", "setBasePath");
             properties[5].setDisplayName(getExternalizedString("property.basePath.display_name"));
@@ -82,6 +82,12 @@ public class LDAPAuthenticationStepBeanInfo extends MySimpleBeanInfo {
             properties[6].setDisplayName(getExternalizedString("property.bindingPolicy.display_name"));
             properties[6].setShortDescription(getExternalizedString("property.bindingPolicy.short_description"));
             properties[6].setPropertyEditorClass(LdapBindingPolicy.class);
+
+            properties[7] = new PropertyDescriptor("attributes", beanClass, "getAttributes", "setAttributes");
+            properties[7].setDisplayName(getExternalizedString("property.attributes.display_name"));
+            properties[7].setShortDescription(getExternalizedString("property.attributes.short_description"));
+            properties[7].setPropertyEditorClass(getEditorClass("SmartTypeCellEditor"));
+            properties[7].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

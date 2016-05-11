@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.engine.util;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import org.mozilla.javascript.NativeArray;
@@ -38,73 +39,58 @@ import org.w3c.dom.NodeList;
 public class ParameterUtils {
 
 	public static String toString(Object ob) {
-		String parameterToString = null;
+		String parameterToString;
 		if (ob != null) {
 			if (ob instanceof NativeJavaObject) {
-				NativeJavaObject nativeJavaObject = (NativeJavaObject)ob;
-				return toString(nativeJavaObject.unwrap());
-			}
-			
-			// container of objects
-			if (ob instanceof NativeJavaArray) {
-				return toStringList(ob).toString();
-			}
-			else if (ob instanceof NativeArray) {
-				return toStringList(ob).toString();
-			}
-			else if (ob.getClass().isArray()) {
-				return toStringList(ob).toString();
-			}
-			else if (ob instanceof Collection<?>) {
-				return toStringList(ob).toString();
-			}
-			
-			// supported objects
-			if (ob instanceof NodeList) {
+				NativeJavaObject nativeJavaObject = (NativeJavaObject) ob;
+				parameterToString = toString(nativeJavaObject.unwrap());
+			} else if (ob instanceof NativeJavaArray || ob instanceof NativeArray || ob.getClass().isArray() || ob instanceof Collection<?>) {
+				parameterToString = toStringList(ob).toString();
+			} else if (ob instanceof NodeList) {
 				parameterToString = "";
-				NodeList nl = (NodeList)ob;
-				for (int i=0; i<nl.getLength(); i++) {
+				NodeList nl = (NodeList) ob;
+				for (int i = 0; i < nl.getLength(); i++) {
 					parameterToString += nodeToString(nl.item(i));
 				}
-			}
-			else if (ob instanceof Node) {
+			} else if (ob instanceof Node) {
 				parameterToString = nodeToString((Node)ob);
-			}
-			else {
+			} else {
 				parameterToString = ob.toString();
 			}
+		} else {
+			parameterToString = null;
 		}
 		return parameterToString;
 	}
 	
 	public static List<String> toStringList(Object ob) {
-		List<String> list = new ArrayList<String>();
+		List<String> list;
 		if (ob != null) {
 			if (ob instanceof NativeJavaObject) {
-				NativeJavaObject nativeJavaObject = (NativeJavaObject)ob;
-				return toStringList(nativeJavaObject.unwrap());
-			}
-			else if (ob instanceof NativeJavaArray) {
-				Object object = ((NativeJavaArray)ob).unwrap();
-				return toStringList(Arrays.asList((Object[])object));
-			}
-			else if (ob.getClass().isArray()) {
-				return toStringList(Arrays.asList((Object[])ob));
-			}
-			else if (ob instanceof NativeArray) {
-				NativeArray array = (NativeArray)ob;
-				for (int j=0; j<array.getLength(); j++) {
-					list.add(toString(array.get(j,array)));
+				NativeJavaObject nativeJavaObject = (NativeJavaObject) ob;
+				list = toStringList(nativeJavaObject.unwrap());
+			} else if (ob instanceof NativeJavaArray) {
+				Object object = ((NativeJavaArray) ob).unwrap();
+				list = toStringList(object);
+			} else if (ob.getClass().isArray()) {
+				list = toStringList(Arrays.asList((Object[]) ob));
+			} else if (ob instanceof NativeArray) {
+				NativeArray array = (NativeArray) ob;
+				list = new ArrayList<String>((int) array.getLength());
+				for (java.util.Iterator<?> i = array.iterator(); i.hasNext();) {
+					list.add(toString(i.next()));
 				}
-			}
-			else if (ob instanceof Collection<?>) {
-				for (Object o : (Collection<?>) ob) {
+			} else if (ob instanceof Collection<?>) {
+				Collection<?> collection = GenericUtils.cast(ob);
+				list = new ArrayList<String>(collection.size());
+				for (Object o : collection) {
 					list.add(toString(o));
 				}
+			} else {
+				list = Arrays.asList(toString(ob));
 			}
-			else {
-				list.add(toString(ob));
-			}
+		} else {
+			list = Collections.emptyList();
 		}
 		return list;
 	}
@@ -113,9 +99,9 @@ public class ParameterUtils {
 		int nodeType = node.getNodeType();
 		switch (nodeType) {
 			case Node.DOCUMENT_NODE:
-				return XMLUtils.prettyPrintElement(((Document)node).getDocumentElement(), true, false);
+				return XMLUtils.prettyPrintElement(((Document) node).getDocumentElement(), true, false);
 			case Node.ELEMENT_NODE:
-				return XMLUtils.prettyPrintElement((Element)node, true, false);
+				return XMLUtils.prettyPrintElement((Element) node, true, false);
 			case Node.CDATA_SECTION_NODE:
 			case Node.TEXT_NODE:
 				int len = node.getChildNodes().getLength();
