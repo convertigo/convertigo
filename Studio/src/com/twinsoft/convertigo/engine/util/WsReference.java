@@ -379,7 +379,7 @@ public class WsReference {
 			String server = index == -1 ? host : host.substring(0, index);
 			int port = index == -1 ? 0 : Integer.parseInt(host.substring(index+1, 10));
 			httpConnector.setServer(server);
-			httpConnector.setPort(port);
+			httpConnector.setPort(port <= 0 ? 80:port);
 			
 			String basePath = json.getString("basePath");
 			httpConnector.setBaseDir(basePath);
@@ -624,7 +624,7 @@ public class WsReference {
 			String server = index == -1 ? host : host.substring(0, index);
 			int port = index == -1 ? 0 : Integer.parseInt(host.substring(index+1),10);
 			httpConnector.setServer(server);
-			httpConnector.setPort(port);
+			httpConnector.setPort(port <= 0 ? 80:port);
 			
 			String basePath = swagger.getBasePath();
 			httpConnector.setBaseDir(basePath);
