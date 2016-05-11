@@ -30,6 +30,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ws.commons.schema.XmlSchema;
@@ -38,6 +40,8 @@ import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaSequence;
+import org.apache.ws.commons.schema.XmlSchemaSimpleContent;
+import org.apache.ws.commons.schema.XmlSchemaSimpleContentExtension;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
@@ -56,6 +60,7 @@ import com.twinsoft.util.TWSLDAP;
 public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectation {
 
 	private static final long serialVersionUID = -1894558458026853410L;
+	private static final Pattern pRDN = Pattern.compile("(\\w+)=([^,]*),?");
 
 	private SmartType server = new SmartType();
 	private SmartType login = new SmartType();
@@ -176,19 +181,26 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 						
 						if (bFound) {
 							userDn = twsLDAP.getNextResult().toLowerCase() + (searchBase == null ? "":"," + searchBase.toLowerCase());
+							Matcher mRDN = pRDN.matcher(userDn);
+							
+							while (mRDN.find()) {
+								Element rdn = doc.createElement("rdn");
+								rdn.setAttribute("name", mRDN.group(1));
+								rdn.setTextContent(mRDN.group(2));
+								stepNode.appendChild(rdn);
+							}
+							
 							for (String attribute: searchAttributes) {
 								if (StringUtils.isNotBlank(attribute)) {
-									Element attr = doc.createElement("attribute");
-									attr.setAttribute("name", attribute);
 									String[] values = twsLDAP.getResultEx(attribute);
 									if (values != null) {
 										for (String value: values) {
-											Element val = doc.createElement("value");
-											val.setTextContent(value);
-											attr.appendChild(val);
+											Element attr = doc.createElement("attribute");
+											attr.setAttribute("name", attribute);
+											attr.setTextContent(value);
+											stepNode.appendChild(attr);
 										}
 									}
-									stepNode.appendChild(attr);
 								}
 							}
 						}
@@ -239,9 +251,15 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 			Engine.logBeans.warn("Invalid LDAP user Login \""+userLogin+"\" !");
 		}
 		
-		stepNode.setAttribute("userDn", userDn == null ? "":userDn);
+
+		Element user = doc.createElement("userDn");
+		user.setTextContent(userDn == null ? "" : userDn);
+		stepNode.appendChild(user);
+		
 		if (userLogin != null && authenticated) {
-			stepNode.setAttribute("user", userLogin);
+			user = doc.createElement("authenticatedUserID");
+			user.setTextContent(userLogin);
+			stepNode.appendChild(user);
 		}
 	}
 
@@ -316,28 +334,67 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
 		
 		XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
-		element.setType(cType);
-		
-		XmlSchemaAttribute attr = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
-		attr.setName("user");
-		attr.setSchemaTypeName(Constants.XSD_STRING);
-		cType.getAttributes().add(attr);
-		
-		attr = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
-		attr.setName("userDn");
-		attr.setSchemaTypeName(Constants.XSD_STRING);
-		cType.getAttributes().add(attr);
-		
+		element.setType(cType);		
 		
 		XmlSchemaSequence sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
-		sequence.setMinOccurs(0);
-		sequence.setMaxOccurs(Long.MAX_VALUE);
 		cType.setParticle(sequence);
 		
 		XmlSchemaElement subElement = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
 		sequence.getItems().add(subElement);
-		subElement.setName("attribute");
 		
+		subElement.setName("rdn");
+		subElement.setMinOccurs(0);
+		subElement.setMaxOccurs(Long.MAX_VALUE);
+		cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+		subElement.setType(cType);
+		
+		XmlSchemaSimpleContent sContent = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSimpleContent());
+		cType.setContentModel(sContent);
+		
+		XmlSchemaSimpleContentExtension sContentExt = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSimpleContentExtension());
+		sContent.setContent(sContentExt);
+		sContentExt.setBaseTypeName(Constants.XSD_STRING);
+		
+		XmlSchemaAttribute attr = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
+		attr.setName("name");
+		attr.setSchemaTypeName(Constants.XSD_STRING);
+		sContentExt.getAttributes().add(attr);
+		
+		subElement = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+		sequence.getItems().add(subElement);
+		
+		subElement.setName("attribute");
+		subElement.setMinOccurs(0);
+		subElement.setMaxOccurs(Long.MAX_VALUE);
+		cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+		subElement.setType(cType);
+		
+		sContent = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSimpleContent());
+		cType.setContentModel(sContent);
+		
+		sContentExt = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSimpleContentExtension());
+		sContent.setContent(sContentExt);
+		sContentExt.setBaseTypeName(Constants.XSD_STRING);
+		
+		attr = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
+		attr.setName("name");
+		attr.setSchemaTypeName(Constants.XSD_STRING);
+		sContentExt.getAttributes().add(attr);
+		
+		subElement = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+		sequence.getItems().add(subElement);
+		subElement.setName("userDn");
+		subElement.setMinOccurs(0);
+		subElement.setMaxOccurs(1);
+		subElement.setSchemaTypeName(Constants.XSD_STRING);
+		
+		subElement = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+		sequence.getItems().add(subElement);
+		subElement.setName("authenticatedUserID");
+		subElement.setMinOccurs(0);
+		subElement.setMaxOccurs(1);
+		subElement.setSchemaTypeName(Constants.XSD_STRING);
+		/*
 		cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
 		subElement.setType(cType);
 		
@@ -355,7 +412,7 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 		sequence.getItems().add(subElement);
 		subElement.setName("value");
 		subElement.setSchemaTypeName(Constants.XSD_STRING);
-		
+		*/
 		return element;
 	}
 	
