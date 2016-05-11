@@ -781,7 +781,6 @@ public class WsReference {
 							if (parameter instanceof FormParameter) {
 								FormParameter formParameter = (FormParameter) parameter;
 								if (formParameter.getType().equalsIgnoreCase("file")) {
-									httpVariable.setIsFileUpload(true);
 									httpVariable.setDoFileUploadMode(DoFileUploadMode.multipartFormData);
 								}
 							}
