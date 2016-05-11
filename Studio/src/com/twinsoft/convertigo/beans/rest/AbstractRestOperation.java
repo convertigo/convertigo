@@ -224,7 +224,7 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 				Map<String, String> varMap = ((UrlMapping)getParent()).getPathVariableValues(request);
 				for (String varName: varMap.keySet()) {
 					String varValue = varMap.get(varName);
-					map.put(varName, new String(varValue.getBytes(),"UTF-8"));
+					map.put(varName, varValue);
 				}
 				
 				// Add other parameters
@@ -244,7 +244,7 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 					}
 					else if (param.getType() == Type.Path) {
 						String varValue = varMap.get(param.getName());
-						paramValue = new String(varValue.getBytes(),"UTF-8");
+						paramValue = varValue;
 					}
 					else if (param.getType() == Type.Body) {
 						if (request.getInputStream() != null) {
