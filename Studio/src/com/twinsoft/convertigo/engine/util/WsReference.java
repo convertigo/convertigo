@@ -686,11 +686,11 @@ public class WsReference {
 					
 					String h_ContentType = MimeType.WwwForm.value();
 					if (consumeList != null) {
-						if (consumeList.contains(MimeType.Xml.value())) {
-							h_ContentType = MimeType.Xml.value();
-						}
-						else if (consumeList.contains(MimeType.Json.value())) {
+						if (consumeList.contains(MimeType.Json.value())) {
 							h_ContentType = MimeType.Json.value();
+						}
+						else if (consumeList.contains(MimeType.Xml.value())) {
+							h_ContentType = MimeType.Xml.value();
 						}
 						else {
 							h_ContentType = consumeList.size() > 0 ? 
@@ -698,17 +698,17 @@ public class WsReference {
 						}
 					}
 					
-					String h_Accept = MimeType.Xml.value();
+					String h_Accept = MimeType.Json.value();
 					if (produceList != null) {
 						if (produceList.contains(h_ContentType)) {
 							h_Accept = h_ContentType;
 						}
 						else {
-							if (produceList.contains(MimeType.Xml.value())) {
-								h_Accept = MimeType.Xml.value();
-							}
-							else if (produceList.contains(MimeType.Json.value())) {
+							if (produceList.contains(MimeType.Json.value())) {
 								h_Accept = MimeType.Json.value();
+							}
+							else if (produceList.contains(MimeType.Xml.value())) {
+								h_Accept = MimeType.Xml.value();
 							}
 						}
 						
@@ -731,7 +731,6 @@ public class WsReference {
 							transaction = new JsonHttpTransaction();
 							((JsonHttpTransaction)transaction).setIncludeDataType(false);
 						}
-						
 					}
 					
 					// Add variables
