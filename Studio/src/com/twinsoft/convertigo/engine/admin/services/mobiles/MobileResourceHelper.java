@@ -171,8 +171,10 @@ public class MobileResourceHelper {
 								if (inFile.exists()) {
 									file = file.replace("scripts/", "js/");
 									File outFile = new File(destDir, file);
-									outFile.getParentFile().mkdirs();
-									FileUtils.copyFile(inFile, outFile, true);
+									if (!outFile.exists()) {
+										outFile.getParentFile().mkdirs();
+										FileUtils.copyFile(inFile, outFile, true);
+									}
 									line = line.replaceFirst("\"\\.\\./\\.\\./\\.\\./\\.\\./.*?\"", "\"" + file + "\"");
 									
 									handleJQMcssFolder(inFile, outFile);

@@ -41,7 +41,7 @@
     <preference name="fullscreen"                   value="true" />           <!-- all: hides the status bar at the top of the screen -->
     <preference name="SplashScreen"                 value="splash" />         <!-- all: the splash screen resource if built without phonegap build -->
     <preference name="SplashScreenDelay"            value="10000" />          <!-- all: sets the default delay of how long the splashscreen appears in milliseconds, this should be the maximum expected start time -->
-    <preference name="WindowsDefaultUriPrefix"      value="ms-appx://" />
+    <preference name="WindowsDefaultUriPrefix"      value="ms-appx-web://" />
     <preference name="windows-target-version"       value="10.0" />
     
 	<!-- Windows icons -->

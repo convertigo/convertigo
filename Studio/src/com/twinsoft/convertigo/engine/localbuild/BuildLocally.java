@@ -675,6 +675,8 @@ public abstract class BuildLocally {
 				commandsList.add("--appx=" + appx);
 				commandsList.add("--archs=" + archs);
 			}
+			
+			runCordovaCommand(cordovaDir, "prepare", cordovaPlatform);
 
 			// Step 3: Build or Run using Cordova the specific platform.
 			if (run) {
@@ -685,8 +687,6 @@ public abstract class BuildLocally {
 				
 				runCordovaCommand(cordovaDir, commandsList);
 			} else {
-				
-				runCordovaCommand(cordovaDir, "prepare", cordovaPlatform);
 				
 				commandsList.add(0, "build");
 				commandsList.add(1, cordovaPlatform);
