@@ -505,31 +505,30 @@ C8O._init.tasks.push(function () {
 C8O.addHook("_call_fs", function (data) {
 	var db;
 	if ((db = C8O._define.re_fs_match_db.exec(data.__project)) != null) {
-		
-		var callback = function (json) {
-			if (C8O.canLog("trace")) {
-				C8O.log.trace("c8o.fs  : json response\n" + JSON.stringify(json));
-			}
-			
-			var xmlData = $.parseXML("<couchdb_output/>");
-			C8O._jsonToXml(undefined, json, xmlData.documentElement, function (keys, json) {
-				keys.sort();
-				return keys;
-			});
-			
-			if (C8O.canLog("debug")) {
-				C8O.log.debug("c8o.fs  : xml response\n" + C8O.serializeXML(xmlData));
-			}
-			
-			var fakeXHR = {
-				C8O_data: data
-			};
-			
-			C8O._onCallComplete(fakeXHR, "success");
-			C8O._onCallSuccess(xmlData, "success", fakeXHR);
+		var fakeXHR = {
+			C8O_data: data
 		};
-		
+
 		if (data.__sequence) {
+			var callback = function (json) {
+				if (C8O.canLog("trace")) {
+					C8O.log.trace("c8o.fs  : json response\n" + JSON.stringify(json));
+				}
+				
+				var xmlData = $.parseXML("<couchdb_output/>");
+				C8O._jsonToXml(undefined, json, xmlData.documentElement, function (keys, json) {
+					keys.sort();
+					return keys;
+				});
+				
+				if (C8O.canLog("debug")) {
+					C8O.log.debug("c8o.fs  : xml response\n" + C8O.serializeXML(xmlData));
+				}
+				
+				C8O._onCallComplete(fakeXHR, "success");
+				C8O._onCallSuccess(xmlData, "success", fakeXHR);
+			};
+		
 			var dbName = (db[1] ? db[1] : C8O.vars.fs_default_db);
 			db = dbName + "_device";
 			C8O.log.debug("c8o.fs  : database used '" + dbName + "'");
@@ -638,6 +637,9 @@ C8O.addHook("_call_fs", function (data) {
 					callback({error: "invalid command '" + data.__sequence + "'"});
 				}
 			}
+		} else {
+			C8O._onCallComplete(fakeXHR, "error");
+			C8O._onCallError(fakeXHR, "error", "fs:// needs a _sequence parameter (one dot in the requestable)");
 		}
 		return false;
 	}
