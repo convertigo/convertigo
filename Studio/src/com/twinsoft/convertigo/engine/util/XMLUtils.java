@@ -1358,7 +1358,7 @@ public class XMLUtils {
 			int len = array.length();
 
 			Element arrayElement = parentElement;
-			String arrayItemObjectKey = null;
+			String arrayItemObjectKey = "item";
 			if (!(compactArray || modifyElement)) {
 				arrayElement = doc.createElement(objectKey == null ? "array" : objectKey);
 				if (objectKey != null && !objectKey.equals(originalObjectKey)) {
