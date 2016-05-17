@@ -72,6 +72,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -1296,65 +1297,114 @@ public class XMLUtils {
 		return jsonString;
 	}
 	
-	public static void JsonToXml(Object object, Element parentElement) {
+	public static void jsonToXml(Object object, Element element) throws JSONException {
+		jsonToXml(object, null, element, true, true, false);
+	}
+	
+	public static void jsonToXml(Object object, String objectKey, Element parentElement, boolean includeDataType, boolean compactArray) throws JSONException {
+		jsonToXml(object, objectKey, parentElement, false, includeDataType, compactArray);
+	}
+	
+	private static void jsonToXml(Object object, String objectKey, Element parentElement, boolean modifyElement, boolean includeDataType, boolean compactArray) throws JSONException {
+		Engine.logBeans.trace("Converting JSON to XML: object=" + object + "; objectKey=\"" + objectKey + "\"");
+		
 		Document doc = parentElement.getOwnerDocument();
+
+		// Normalize object key
+		String originalObjectKey = objectKey;
+		if (objectKey != null) {
+			objectKey = StringUtils.normalize(objectKey);
+		}
+
+		// JSON object value case
 		if (object instanceof JSONObject) {
-			JSONObject jsonObject = (JSONObject) object;
-			String[] keys = new String[jsonObject.length()];
+			JSONObject json = (JSONObject) object;
+
+			Element element = doc.createElement(objectKey == null ? "object" : objectKey);
+			if (objectKey != null && !objectKey.equals(originalObjectKey)) {
+				element.setAttribute("originalKeyName", originalObjectKey);
+			}
+
+			if (compactArray || modifyElement) {
+				if (objectKey == null) {
+					element = parentElement;
+				} else {
+					parentElement.appendChild(element);
+				}
+			} else {
+				parentElement.appendChild(element);
+			}
+
+			if (includeDataType) {
+				element.setAttribute("type", "object");
+			}
+
+			String[] keys = new String[json.length()];
 			
 			int index = 0;
-			for (Iterator<String> i = GenericUtils.cast(jsonObject.keys()); i.hasNext();) {
+			for (Iterator<String> i = GenericUtils.cast(json.keys()); i.hasNext();) {
 				keys[index++] = i.next();
 			}
 			
 			Arrays.sort(keys);
 			
 			for (String key: keys) {
-				try {
-					JsonToXml(key, jsonObject.get(key), parentElement);
-				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				jsonToXml(json.get(key), key, element, false, includeDataType, compactArray);
 			}
 		}
+		// Array value case
 		else if (object instanceof JSONArray) {
-			JSONArray jsonArray = (JSONArray) object;
-			for (int i = 0; i < jsonArray.length(); i++) {
-				Element item = doc.createElement("item");
-				parentElement.appendChild(item);
-				try {
-					JsonToXml(jsonArray.get(i), item);
-				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+			JSONArray array = (JSONArray) object;
+			int len = array.length();
+
+			Element arrayElement = parentElement;
+			String arrayItemObjectKey = null;
+			if (!(compactArray || modifyElement)) {
+				arrayElement = doc.createElement(objectKey == null ? "array" : objectKey);
+				if (objectKey != null && !objectKey.equals(originalObjectKey)) {
+					arrayElement.setAttribute("originalKeyName", originalObjectKey);
 				}
+				parentElement.appendChild(arrayElement);
+
+				if (includeDataType) {
+					arrayElement.setAttribute("type", "array");
+					arrayElement.setAttribute("length", "" + len);
+				}
+			} else {
+				arrayItemObjectKey = objectKey;
 			}
-		}
-		else if (object != null && object != JSONObject.NULL) {
-			parentElement.setTextContent(object.toString());
-		}
-	}
-	
-	public static void JsonToXml(String key, Object value, Element parentElement) {
-		if (key == null || "".equals(key)) {
-			key = "object";
-		}
-		
-		if ("_attachments".equals(parentElement.getNodeName())) {
-			Element att = parentElement.getOwnerDocument().createElement("attachment");
-			Element att_name = parentElement.getOwnerDocument().createElement("name");
-			att_name.setTextContent(key);
-			att.appendChild(att_name);
-			parentElement.appendChild(att);
-			JsonToXml(value, att);
+
+			for (int i = 0; i < len; i++) {
+				Object itemArray = array.get(i);
+				jsonToXml(itemArray, arrayItemObjectKey, arrayElement, false, includeDataType, compactArray);
+			}
 		}
 		else {
-			String normalisedKey = StringUtils.normalize(key);
-			Element child = parentElement.getOwnerDocument().createElement(normalisedKey);
-			parentElement.appendChild(child);
-			JsonToXml(value, child);
+			Element element = doc.createElement(objectKey == null ? "value" : objectKey);
+			if (objectKey != null && !objectKey.equals(originalObjectKey)) {
+				element.setAttribute("originalKeyName", originalObjectKey);
+			}
+
+			parentElement.appendChild(element);
+
+			if (JSONObject.NULL.equals(object)) {
+				object = null;
+			}
+			
+			if (object != null) {
+				Text text = doc.createTextNode(object.toString());
+				element.appendChild(text);
+			}
+			
+			if (includeDataType) {
+				String objectType = object == null ? "null" : object.getClass().getCanonicalName();
+				if (objectType.startsWith("java.lang.")) {
+					objectType = objectType.substring(10);
+				}
+				element.setAttribute("type", objectType.toLowerCase());
+			}
 		}
+		
 	}
 	
 	public static Charset getEncoding(File file) {

@@ -179,9 +179,10 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		
 		if (result instanceof JSONObject) {
 			JSONObject jsonResult = (JSONObject) result;
-			Element couchdb_output = doc.createElement("couchdb_output");
-			XMLUtils.JsonToXml(jsonResult, couchdb_output);
-			root.appendChild(couchdb_output);
+//			Element couchdb_output = doc.createElement("couchdb_output");
+			XMLUtils.jsonToXml(jsonResult, "couchdb_output", root, getConnector().isJsonUseType(), false);
+//			XMLUtils.JsonToXml(jsonResult, couchdb_output);
+//			root.appendChild(couchdb_output);
 		}
 		
 		Engine.logBeans.debug("(CouchDBTransaction) Document generated!");
@@ -355,7 +356,7 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		return value;
 	}
 	
-	protected static Object toJson(Object object) throws JSONException {
+	protected Object toJson(Object object) throws JSONException {
 		if (object == null) return null;
 		
 		Object jsonElement = null;
@@ -408,9 +409,9 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		return jsonElement;
 	}
 	
-	private static JSONObject toJson(Element element) throws JSONException {
+	private JSONObject toJson(Element element) throws JSONException {
 		JSONObject jsonXml = new JSONObject();
-		XMLUtils.handleElement(element, jsonXml, true, false);
+		XMLUtils.handleElement(element, jsonXml, true, getConnector().isJsonUseType());
 		if (isInputDomVariable(element)) {
 			JSONObject jsonVariable = jsonXml.getJSONObject("variable");
 			JSONObject jsonAttr = jsonVariable.getJSONObject("attr");

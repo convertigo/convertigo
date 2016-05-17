@@ -41,7 +41,7 @@ public class CouchDbConnectorBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 
-			properties = new PropertyDescriptor[6];
+			properties = new PropertyDescriptor[7];
 			
 			properties[0] = new PropertyDescriptor("databaseName", beanClass, "getDatabaseName", "setDatabaseName");
 			properties[0].setDisplayName(getExternalizedString("property.databaseName.display_name"));
@@ -66,6 +66,10 @@ public class CouchDbConnectorBeanInfo extends MySimpleBeanInfo {
 			properties[5] = new PropertyDescriptor("couchPassword", beanClass, "getCouchPassword", "setCouchPassword");
 			properties[5].setDisplayName(getExternalizedString("property.couchPassword.display_name"));
 			properties[5].setShortDescription(getExternalizedString("property.couchPassword.short_description"));
+			
+			properties[6] = new PropertyDescriptor("jsonUseType", beanClass, "isJsonUseType", "setJsonUseType");
+			properties[6].setDisplayName(getExternalizedString("property.jsonUseType.display_name"));
+			properties[6].setShortDescription(getExternalizedString("property.jsonUseType.short_description"));
 		
 //			properties[4] = new PropertyDescriptor("trustAllServerCertificates", beanClass, "isTrustAllServerCertificates", "setTrustAllServerCertificates");
 //			properties[4].setDisplayName(getExternalizedString("property.trustAllServerCertificates.display_name"));

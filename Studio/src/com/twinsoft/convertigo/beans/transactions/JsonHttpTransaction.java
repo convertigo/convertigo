@@ -22,20 +22,17 @@
 
 package com.twinsoft.convertigo.beans.transactions;
 
-import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.codehaus.jettison.json.JSONArray;
-import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Element;
-import org.w3c.dom.Text;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class JsonHttpTransaction extends AbstractHttpTransaction {
 
@@ -159,7 +156,7 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 			}
 			
 			if (value != null || jsonData.equals("null")) {
-				jsonToXml(value, null, outputDocumentRootElement);
+				XMLUtils.jsonToXml(value, null, outputDocumentRootElement, includeDataType, jsonArrayTranslationPolicy == JSON_ARRAY_TRANSLATION_POLICY_COMPACT);
 			} else if (message == null) {
 				message = "no JSON delimitor [ or {, nor null, boolean, string or number";					
 			}
@@ -172,98 +169,5 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 				);				
 			}
 		}
-	}
-
-	private void jsonToXml(Object object, String objectKey, Element parentElement) throws JSONException {
-		Engine.logBeans.trace("Converting JSON to XML: object=" + object + "; objectKey=\""
-				+ objectKey + "\"");
-
-		// Normalize object key
-		String originalObjectKey = objectKey;
-		if (objectKey != null) {
-			objectKey = StringUtils.normalize(objectKey);
-		}
-
-		// JSON object value case
-		if (object instanceof JSONObject) {
-			JSONObject json = (JSONObject) object;
-
-			Element element = context.outputDocument.createElement(objectKey == null ? "object" : objectKey);
-			if (objectKey != null && !objectKey.equals(originalObjectKey)) {
-				element.setAttribute("originalKeyName", originalObjectKey);
-			}
-
-			if (jsonArrayTranslationPolicy == JSON_ARRAY_TRANSLATION_POLICY_COMPACT) {
-				if (objectKey == null) {
-					element = parentElement;
-				} else {
-					parentElement.appendChild(element);
-				}
-			} else {
-				parentElement.appendChild(element);
-			}
-
-			if (includeDataType) {
-				element.setAttribute("type", "object");
-			}
-
-			Iterator<String> keys = GenericUtils.cast(json.keys());
-			while (keys.hasNext()) {
-				String key = keys.next();
-				jsonToXml(json.get(key), key, element);
-			}
-		}
-		// Array value case
-		else if (object instanceof JSONArray) {
-			JSONArray array = (JSONArray) object;
-			int len = array.length();
-
-			Element arrayElement = parentElement;
-			String arrayItemObjectKey = null;
-			if (jsonArrayTranslationPolicy == JSON_ARRAY_TRANSLATION_POLICY_HIERARCHICAL) {
-				arrayElement = context.outputDocument.createElement(objectKey == null ? "array" : objectKey);
-				if (objectKey != null && !objectKey.equals(originalObjectKey)) {
-					arrayElement.setAttribute("originalKeyName", originalObjectKey);
-				}
-				parentElement.appendChild(arrayElement);
-
-				if (includeDataType) {
-					arrayElement.setAttribute("type", "array");
-					arrayElement.setAttribute("length", "" + len);
-				}
-			} else if (jsonArrayTranslationPolicy == JSON_ARRAY_TRANSLATION_POLICY_COMPACT) {
-				arrayItemObjectKey = objectKey;
-			}
-
-			for (int i = 0; i < len; i++) {
-				Object itemArray = array.get(i);
-				jsonToXml(itemArray, arrayItemObjectKey, arrayElement);
-			}
-		}
-		else {
-			Element element = context.outputDocument.createElement(objectKey == null ? "value" : objectKey);
-			if (objectKey != null && !objectKey.equals(originalObjectKey)) {
-				element.setAttribute("originalKeyName", originalObjectKey);
-			}
-
-			parentElement.appendChild(element);
-
-			if (JSONObject.NULL.equals(object)) {
-				object = null;
-			}
-			
-			if (object != null) {
-				Text text = context.outputDocument.createTextNode(object.toString());
-				element.appendChild(text);
-			}
-			
-			if (includeDataType) {
-				String objectType = object == null ? "null":object.getClass().toString();
-				if (objectType.startsWith("class java.lang."))
-					objectType = objectType.substring(16);
-				element.setAttribute("type", objectType.toLowerCase());
-			}
-		}
-		
 	}
 }

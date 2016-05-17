@@ -57,6 +57,7 @@ public class CouchDbConnector extends Connector {
 	private boolean https = false;
 	private String couchUsername = "";
 	private String couchPassword = "";
+	private boolean jsonUseType = true;
 	
 	private transient CouchClient couchClient = null;
 	
@@ -337,5 +338,13 @@ public class CouchDbConnector extends Connector {
 	
 	public void afterTransactionInvoke() {
 		
+	}
+
+	public boolean isJsonUseType() {
+		return jsonUseType;
+	}
+
+	public void setJsonUseType(boolean jsonUseType) {
+		this.jsonUseType = jsonUseType;
 	}
 }
