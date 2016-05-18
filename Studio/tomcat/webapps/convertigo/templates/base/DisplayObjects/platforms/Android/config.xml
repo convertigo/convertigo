@@ -88,7 +88,7 @@
 	        exclude 'META-INF/NOTICE'
 	    }
 	-->
-<!-- 	<plugin name="couchbase-lite-phonegap-plugin" spec="~1.2.0"  /> -->
+<!-- 	<plugin name="couchbase-lite-phonegap-plugin" spec="~1.1.1"  /> -->
     
 	<!-- Other optional Core plugins, comment them out (ctrl+shit+c) if you want to reduce the package size and permissions -->
 <!--     <plugin name="cordova-plugin-battery-status" spec="~1.1.1" /> -->
