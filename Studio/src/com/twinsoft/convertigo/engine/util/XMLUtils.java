@@ -1298,14 +1298,14 @@ public class XMLUtils {
 	}
 	
 	public static void jsonToXml(Object object, Element element) throws JSONException {
-		jsonToXml(object, null, element, true, true, false);
+		jsonToXml(object, null, element, true, true, "item");
 	}
 	
-	public static void jsonToXml(Object object, String objectKey, Element parentElement, boolean includeDataType, boolean compactArray) throws JSONException {
-		jsonToXml(object, objectKey, parentElement, false, includeDataType, compactArray);
+	public static void jsonToXml(Object object, String objectKey, Element parentElement, boolean includeDataType, String arrayChildrenTag) throws JSONException {
+		jsonToXml(object, objectKey, parentElement, false, includeDataType, arrayChildrenTag);
 	}
 	
-	private static void jsonToXml(Object object, String objectKey, Element parentElement, boolean modifyElement, boolean includeDataType, boolean compactArray) throws JSONException {
+	private static void jsonToXml(Object object, String objectKey, Element parentElement, boolean modifyElement, boolean includeDataType, String arrayChildrenTag) throws JSONException {
 		Engine.logBeans.trace("Converting JSON to XML: object=" + object + "; objectKey=\"" + objectKey + "\"");
 		
 		Document doc = parentElement.getOwnerDocument();
@@ -1325,7 +1325,7 @@ public class XMLUtils {
 				element.setAttribute("originalKeyName", originalObjectKey);
 			}
 
-			if (compactArray || modifyElement) {
+			if (arrayChildrenTag == null || modifyElement) {
 				if (objectKey == null) {
 					element = parentElement;
 				} else {
@@ -1349,7 +1349,7 @@ public class XMLUtils {
 			Arrays.sort(keys);
 			
 			for (String key: keys) {
-				jsonToXml(json.get(key), key, element, false, includeDataType, compactArray);
+				jsonToXml(json.get(key), key, element, false, includeDataType, arrayChildrenTag);
 			}
 		}
 		// Array value case
@@ -1358,8 +1358,8 @@ public class XMLUtils {
 			int len = array.length();
 
 			Element arrayElement = parentElement;
-			String arrayItemObjectKey = "item";
-			if (!(compactArray || modifyElement)) {
+			String arrayItemObjectKey = arrayChildrenTag;
+			if (!(arrayChildrenTag == null || modifyElement)) {
 				arrayElement = doc.createElement(objectKey == null ? "array" : objectKey);
 				if (objectKey != null && !objectKey.equals(originalObjectKey)) {
 					arrayElement.setAttribute("originalKeyName", originalObjectKey);
@@ -1376,7 +1376,7 @@ public class XMLUtils {
 
 			for (int i = 0; i < len; i++) {
 				Object itemArray = array.get(i);
-				jsonToXml(itemArray, arrayItemObjectKey, arrayElement, false, includeDataType, compactArray);
+				jsonToXml(itemArray, arrayItemObjectKey, arrayElement, false, includeDataType, arrayChildrenTag);
 			}
 		}
 		else {

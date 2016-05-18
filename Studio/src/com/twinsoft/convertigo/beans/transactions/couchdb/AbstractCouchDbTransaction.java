@@ -180,7 +180,7 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		if (result instanceof JSONObject) {
 			JSONObject jsonResult = (JSONObject) result;
 //			Element couchdb_output = doc.createElement("couchdb_output");
-			XMLUtils.jsonToXml(jsonResult, "couchdb_output", root, getConnector().isJsonUseType(), false);
+			XMLUtils.jsonToXml(jsonResult, "couchdb_output", root, getConnector().isJsonUseType(), "item");
 //			XMLUtils.JsonToXml(jsonResult, couchdb_output);
 //			root.appendChild(couchdb_output);
 		}

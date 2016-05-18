@@ -156,7 +156,7 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 			}
 			
 			if (value != null || jsonData.equals("null")) {
-				XMLUtils.jsonToXml(value, null, outputDocumentRootElement, includeDataType, jsonArrayTranslationPolicy == JSON_ARRAY_TRANSLATION_POLICY_COMPACT);
+				XMLUtils.jsonToXml(value, null, outputDocumentRootElement, includeDataType, jsonArrayTranslationPolicy == JSON_ARRAY_TRANSLATION_POLICY_COMPACT ? null : "object");
 			} else if (message == null) {
 				message = "no JSON delimitor [ or {, nor null, boolean, string or number";					
 			}
