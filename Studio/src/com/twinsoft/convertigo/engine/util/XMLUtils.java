@@ -1370,7 +1370,7 @@ public class XMLUtils {
 					arrayElement.setAttribute("type", "array");
 					arrayElement.setAttribute("length", "" + len);
 				}
-			} else {
+			} else if (objectKey != null) {
 				arrayItemObjectKey = objectKey;
 			}
 

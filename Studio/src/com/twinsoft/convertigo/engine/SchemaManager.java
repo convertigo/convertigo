@@ -1331,6 +1331,11 @@ public class SchemaManager implements AbstractManager {
 									}
 									mto.put(typeName, obj);
 									//System.out.print("; typeN="+typeName);
+								} else {
+									map.put(obj, map.get(mto.get(typeName)));
+									
+									// type already done
+									return;
 								}
 							}
 							else {

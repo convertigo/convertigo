@@ -143,7 +143,7 @@ public abstract class AbstractFullSyncListener extends Listener {
 			Document document = XMLUtils.getDefaultDocumentBuilder().newDocument();
 			Element itemsElement = document.createElement("items");
 			XMLUtils.jsonToXml(docs, itemsElement);
-			NodeList docList = XPathAPI.selectNodeList(itemsElement, "item");
+			NodeList docList = XPathAPI.selectNodeList(itemsElement, "./item");
 			
 			StringTokenizer st = new StringTokenizer(getTargetSequence(),".");
 			String projectName = st.nextToken();
