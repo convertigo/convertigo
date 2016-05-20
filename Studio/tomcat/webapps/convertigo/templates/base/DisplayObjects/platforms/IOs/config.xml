@@ -91,7 +91,7 @@
 	<plugin name="cordova-plugin-console" spec="~1.0.2" />
 	
 	<!-- Native plugin for fullsync project that speedup indexing of documents -->
-<!-- 	<plugin name="couchbase-lite-phonegap-plugin" spec="~1.2.0" /> -->
+<!-- 	<plugin name="couchbase-lite-phonegap-plugin" spec="~1.1.1" /> -->
 	
 	<!-- Status bar plugin for iOS 7+ -->
 	<plugin name="cordova-plugin-statusbar" spec="2.1.2"/>
