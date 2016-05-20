@@ -1310,6 +1310,12 @@ public class XMLUtils {
 		
 		Document doc = parentElement.getOwnerDocument();
 
+		if ("_attachments".equals(parentElement.getNodeName()) && "item".equals(arrayChildrenTag) && object instanceof JSONObject) {
+			// special case when retrieving attachments with Couch : attachment name is the object key
+			((JSONObject) object).put("name", objectKey);
+			objectKey = "attachment";
+		}
+		
 		// Normalize object key
 		String originalObjectKey = objectKey;
 		if (objectKey != null) {
