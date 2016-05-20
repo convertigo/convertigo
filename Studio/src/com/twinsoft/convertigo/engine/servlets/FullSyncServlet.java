@@ -25,7 +25,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpOptions;
@@ -37,6 +37,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -50,11 +51,19 @@ import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.util.ContentTypeDecoder;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.HttpUtils;
 
 public class FullSyncServlet extends HttpServlet {
 	private static final long serialVersionUID = -5147185931965387561L;
 	
 	private static final Pattern replace2F = Pattern.compile("(/_design)%2[fF]");
+	
+	transient private final static ThreadLocal<CloseableHttpClient> httpClient = new ThreadLocal<CloseableHttpClient>() {
+		@Override
+		protected CloseableHttpClient initialValue() {
+			return HttpUtils.makeHttpClient4(false);
+		}
+	};
 
 	@Override
 	protected void service(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -240,7 +249,7 @@ public class FullSyncServlet extends HttpServlet {
 			
 			newRequest.setURI(uri);
 
-			HttpResponse newResponse = Engine.theApp.httpClient4.execute(newRequest);
+			CloseableHttpResponse newResponse = httpClient.get().execute(newRequest);
 			int code = newResponse.getStatusLine().getStatusCode();
 			debug.append("response Code: " + code + "\n");
 			response.setStatus(code);
@@ -258,34 +267,43 @@ public class FullSyncServlet extends HttpServlet {
 			HttpEntity responseEntity = newResponse.getEntity();
 			ContentTypeDecoder contentType = new ContentTypeDecoder(responseEntity == null || responseEntity.getContentType() == null  ? "" : responseEntity.getContentType().getValue());
 			
-			boolean continuous = code == 200 && uri.getQuery() != null && uri.getQuery().contains("feed=continuous");
+			boolean continuous = code == 200;
+			if (continuous) {
+				String query = uri.getQuery();
+				continuous = query != null && query.contains("feed=continuous") || query.contains("feed=longpoll");
+			}
+			
 			OutputStream os = response.getOutputStream();
 			
 			String responseStringEntity = null;
-			if (!continuous && (contentType.mimeType().in(MimeType.Plain, MimeType.Json))) {
-				String charset = contentType.getCharset("UTF-8");
-				responseStringEntity = IOUtils.toString(newResponse.getEntity().getContent(), charset);
-
-				debug.append("response Entity:\n" + responseStringEntity + "\n");
-				
-				Engine.theApp.couchDbManager.handleDocResponse(method, requestParser.getSpecial(), requestParser.getDocId(), authenticatedUser, responseStringEntity);
-				
-				
-				IOUtils.write(responseStringEntity, os, charset);
-			} else if (responseEntity != null) {
-				InputStream is = responseEntity.getContent();
-				
-				if (continuous) {
-					Engine.logCouchDbManager.info("(FullSyncServlet) Entering in continuous loop:\n" + debug);
+			if (responseEntity != null) {
+				InputStream is = null;
+				try {
+					is = responseEntity.getContent();
 					
-					int read = is.read();
-					while (read >= 0) {
-						os.write(read);
-						os.flush();
-						read = is.read();
+					if (!continuous && (contentType.mimeType().in(MimeType.Plain, MimeType.Json))) {
+						String charset = contentType.getCharset("UTF-8");
+						responseStringEntity = IOUtils.toString(responseEntity.getContent(), charset);
+		
+						debug.append("response Entity:\n" + responseStringEntity + "\n");
+						
+						Engine.theApp.couchDbManager.handleDocResponse(method, requestParser.getSpecial(), requestParser.getDocId(), authenticatedUser, responseStringEntity);
+						
+						IOUtils.write(responseStringEntity, os, charset);
+					} else if (continuous) {
+						Engine.logCouchDbManager.info("(FullSyncServlet) Entering in continuous loop:\n" + debug);
+						
+						int read = is.read();
+						while (read >= 0) {
+							os.write(read);
+							os.flush();
+							read = is.read();
+						}
+					} else {
+						IOUtils.copy(is, os);
 					}
-				} else {
-					IOUtils.copy(is, os);
+				} finally {
+					newResponse.close();
 				}
 			}
 
@@ -298,7 +316,11 @@ public class FullSyncServlet extends HttpServlet {
 			Engine.logCouchDbManager.error("(FullSyncServlet) Failed to process request due to a security exception:\n" + e.getMessage() + "\n" + debug);
 			response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 		} catch (Exception e) {
-			Engine.logCouchDbManager.error("(FullSyncServlet) Failed to process request:\n" + debug, e);
+			if ("ClientAbortException".equals(e.getClass().getSimpleName())) {
+				Engine.logCouchDbManager.info("(FullSyncServlet) Client disconnected:\n" + debug);
+			} else {
+				Engine.logCouchDbManager.error("(FullSyncServlet) Failed to process request:\n" + debug, e);
+			}
 		}
 	}
 	
