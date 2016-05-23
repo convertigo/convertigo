@@ -1067,6 +1067,10 @@ public class Engine {
 
 			Project currentProject;
 			if (isStudioMode()) {
+				if (objectsProvider == null) {
+					throw new EngineException(
+							"Is the Projects view opened in the Studio? Failed to load: " + context.projectName);
+				}
 				currentProject = objectsProvider.getProject(context.projectName);
 				if (currentProject == null) {
 					throw new EngineException(

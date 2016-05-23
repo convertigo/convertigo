@@ -270,7 +270,7 @@ public class FullSyncServlet extends HttpServlet {
 			boolean continuous = code == 200;
 			if (continuous) {
 				String query = uri.getQuery();
-				continuous = query != null && query.contains("feed=continuous") || query.contains("feed=longpoll");
+				continuous = query != null && (query.contains("feed=continuous") || query.contains("feed=longpoll"));
 			}
 			
 			OutputStream os = response.getOutputStream();
