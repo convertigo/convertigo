@@ -265,10 +265,18 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 				err.setAttribute("class", e.getClass().getCanonicalName());
 				err.setTextContent(e.getLocalizedMessage());
 				try{
-					//if we have a text
 					String stringData;
+					//if we have a text
 					if (requester.context.contentType.contains("text")) {
-						stringData = new String ( httpData, requester.context.contentType.substring(requester.context.contentType.indexOf("=") + 1 ));
+						int index = requester.context.contentType.indexOf("=");
+						// a charset is given (Content-Type: text/plain; charset=utf-8)
+						if (index != -1) {
+							stringData = new String ( httpData, requester.context.contentType.substring(index + 1));
+						}
+						// no charset
+						else {
+							stringData = new String ( httpData );
+						}
 					//else a binary content
 					} else {
 						stringData = new String ( httpData );
