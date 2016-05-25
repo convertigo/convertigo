@@ -257,6 +257,7 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 			//If we have an error we put the pure HTTP data
 			if (httpData != null && getHttpInfo()) {
 				Engine.logEngine.warn("(AbstractHttpTransaction) EngineException during transaction execution", e);
+				Engine.logBeans.debug("(AbstractHttpTransaction) Adding pure Http Data in Http Info");
 				
 				Document document = connector.httpInfoElement.getOwnerDocument();
 				Element err = document.createElement("errors");
