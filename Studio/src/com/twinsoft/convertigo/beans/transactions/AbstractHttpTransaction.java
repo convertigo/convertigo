@@ -252,13 +252,13 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 					try {
 						contentType = requester.context.contentType;
 					}
-					catch (Exception ex) {
-						Engine.logBeans.debug("Exception occured retrieving response's content-type", ex);
+					catch (Throwable t) {
+						Engine.logBeans.debug("Exception occured retrieving response's content-type", t);
 						contentType = "";
 					}
 					
 					// if we have a text
-					if (contentType.contains("text")) {
+					if (contentType != null && contentType.contains("text")) {
 						int index = contentType.indexOf("=");
 						// a charset is given (Content-Type: text/plain; charset=utf-8)
 						if (index != -1) {
