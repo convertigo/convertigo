@@ -532,10 +532,11 @@ public class JavelinTransaction extends TransactionWithVariables {
      *
      * @param blockName the block name to analize
      * @param value the value of the field to be compared to
+     * @param modifiedFields the Json array of modified fields
      *
      * @return true if the value is different, false otherwise.
      */
-    private boolean isFieldValueDifferent(String blockName, String value) {
+    private boolean isFieldValueDifferent(String blockName, String value, String modifiedFields) {
     	Block block = context.previousFields.get(blockName);
 
     	if (block == null) {
@@ -546,6 +547,10 @@ public class JavelinTransaction extends TransactionWithVariables {
 			String text = block.getText();
 			text = DefaultBlockFactory.rightTrim(text);
 			if (value.compareTo(text) == 0) {
+	    		if (modifiedFields.indexOf(blockName) != -1) {
+	    			Engine.logContext.debug("(JavelinTransaction) Ignoring unchanged value for block '"+ blockName+"'");
+	    			return true;
+	    		}
 				return false;
 			}
 			else {
@@ -608,6 +613,15 @@ public class JavelinTransaction extends TransactionWithVariables {
                 return;
             }
 			
+            String modifiedFields = ""; // Json string of modified fields
+			nodeList = context.inputDocument.getElementsByTagName("modified-fields");
+			if (nodeList.getLength() > 0) {
+				node = nodeList.item(0);
+				nodeAttributes = node.getAttributes();
+				nodeAttribute = nodeAttributes.getNamedItem("value");
+				modifiedFields = nodeAttribute.getNodeValue();
+			}
+            
 			nodeList = context.inputDocument.getElementsByTagName("current-field");
 			if (nodeList.getLength() > 0) {
 				node = nodeList.item(0);
@@ -738,7 +752,7 @@ public class JavelinTransaction extends TransactionWithVariables {
 									continue;
 								}
     								
-    							if (isFieldValueDifferent(blockName, value)) {
+    							if (isFieldValueDifferent(blockName, value, modifiedFields)) {
     								javelin.moveCursor(column, line);
     								Engine.logContext.debug("(JavelinTransaction) Cursor moved to column:" + column + ", line: " + line);
     	

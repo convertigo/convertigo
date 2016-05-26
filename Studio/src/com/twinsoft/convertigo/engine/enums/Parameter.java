@@ -78,6 +78,7 @@ public enum Parameter {
 	JavelinField("__field_"), 			// __field_XX
 	JavelinAction("__javelin_action"),
 	JavelinCurrentField("__javelin_current_field"),
+	JavelinModifiedFields("__javelin_modified_fields"),
 	JavelinSignature("__signature"),
 	
 	WebEventAction("__event_action"),
