@@ -142,6 +142,14 @@ class InputDocumentBuilder {
 			
 			Engine.logContext.info("Javelin current field: '" + parameterValue + "'");
 		}
+		// This is the Javelin modified fields
+		else if (parameterName.equals(Parameter.JavelinModifiedFields.getName())) {
+			Element item = context.inputDocument.createElement("modified-fields");
+			item.setAttribute("value", parameterValue);
+			javelinActionElement.appendChild(item);
+			
+			Engine.logContext.info("Javelin modified fields: '" + parameterValue + "'");
+		}
 		// This is a transaction header
 		else if (parameterName.indexOf(Parameter.HttpHeader.getName()) == 0) {
 			String headerName = parameterName.substring(9);
