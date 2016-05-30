@@ -2,6 +2,7 @@ package com.twinsoft.convertigo.eclipse.views.references;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -27,6 +28,9 @@ import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.core.UrlMapper;
+import com.twinsoft.convertigo.beans.core.UrlMapping;
+import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.statements.ContinueWithSiteClipperStatement;
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
@@ -53,6 +57,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObjec
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TransactionTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UnloadedProjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UrlMappingOperationTreeObject;
 import com.twinsoft.convertigo.eclipse.views.references.model.AbstractNodeWithDatabaseObjectReference;
 import com.twinsoft.convertigo.eclipse.views.references.model.AbstractParentNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.CicsConnectorNode;
@@ -64,6 +69,9 @@ import com.twinsoft.convertigo.eclipse.views.references.model.HttpConnectorNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.InformationNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.IsUsedByNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.JavelinConnectorNode;
+import com.twinsoft.convertigo.eclipse.views.references.model.MapperNode;
+import com.twinsoft.convertigo.eclipse.views.references.model.MappingOperationNode;
+import com.twinsoft.convertigo.eclipse.views.references.model.MappingPathNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.ProjectNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.ProxyHttpConnectorNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.RequiresNode;
@@ -134,6 +142,8 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 					handleConnectorSelection(firstElement);
 				} else if (firstElement instanceof StepTreeObject) {
 					handleCallStepselection(firstElement);
+				} else if (firstElement instanceof UrlMappingOperationTreeObject) {
+					handleOperationSelection(firstElement);
 				} else {
 					InformationNode root = new InformationNode(null, "root");
 					root.addChild(new InformationNode(root, "References are not handled for this object"));
@@ -411,8 +421,31 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 				project = getProject(projectName, projectExplorerView);
 
 				projectFolder = new ProjectNode(isUsedByNode, project.getName(), project);
-				List<Sequence> sequences = project.getSequencesList();
 				
+				UrlMapper urlMapper = project.getUrlMapper();
+				if (urlMapper != null) {
+					MapperNode mapperNode = new MapperNode(projectFolder, urlMapper.getName(), urlMapper);
+					List<UrlMapping> mappings = urlMapper.getMappingList();
+					for (UrlMapping mapping: mappings) {
+						MappingPathNode pathNode = new MappingPathNode(mapperNode, mapping.getPath(), mapping);
+						List<UrlMappingOperation> operations = mapping.getOperationList();
+						for (UrlMappingOperation operation: operations) {
+							String targetRequestable = operation.getTargetRequestable();
+							if (targetRequestable.equals(transactionProjectName +"."+ transactionConnectorName +"."+ transactionName)) {
+								MappingOperationNode operationNode = new MappingOperationNode(pathNode, operation.getName(), operation);
+								pathNode.addChild(operationNode);
+							}
+						}
+						if (pathNode.hasChildren()) {
+							mapperNode.addChild(pathNode);
+						}
+					}
+					if (mapperNode.hasChildren()) {
+						projectFolder.addChild(mapperNode);
+					}
+				}
+				
+				List<Sequence> sequences = project.getSequencesList();
 				for (Sequence sequence : sequences) {
 					List<Step> stepList = sequence.getAllSteps();
 					SequenceNode sequenceNode = new SequenceNode(projectFolder, sequence.getName(), sequence);
@@ -446,6 +479,68 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 		}
 	}
 
+	private void handleOperationSelection(Object firstElement) {
+		UrlMappingOperationTreeObject operationTreeObject = (UrlMappingOperationTreeObject) firstElement;
+		UrlMappingOperation operationSelected = operationTreeObject.getObject();
+		String operationSelectedName = operationSelected.getName();
+		
+		ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
+		
+		treeViewer.setInput(null);
+		
+		RootNode root = new RootNode();
+		
+		MappingOperationNode operationFolder = new MappingOperationNode(root, operationSelectedName, operationSelected);
+		root.addChild(operationFolder);
+		
+		// Operation requires a sequence or a transaction
+		RequiresNode requiresNode = new RequiresNode(root, "Requires");
+		
+		try {
+			String targetRequestableName = operationSelected.getTargetRequestable();
+			if (!targetRequestableName.isEmpty()) {
+				StringTokenizer st = new StringTokenizer(targetRequestableName,".");
+				int count = st.countTokens();
+				String projectName = st.nextToken();
+				Project project = getProject(projectName, projectExplorerView);
+				ProjectNode projectNode = new ProjectNode(requiresNode, projectName, project);
+				if (count == 2) {
+					String sequenceName = count == 2 ? st.nextToken():"";
+					Sequence sequence = project.getSequenceByName(sequenceName);
+					SequenceNode sequenceNode = new SequenceNode(projectNode, sequenceName, sequence);
+					projectNode.addChild(sequenceNode);
+				}
+				else if (count == 3) {
+					String connectorName = count == 3 ? st.nextToken():"";
+					Connector connector = project.getConnectorByName(connectorName);
+					ConnectorNode connectorNode = new ConnectorNode(projectNode, connectorName, connector);
+					projectNode.addChild(connectorNode);
+					
+					String transactionName = count == 3 ? st.nextToken():"";
+					Transaction transaction = connector.getTransactionByName(transactionName);
+					TransactionNode transactionNode = new TransactionNode(connectorNode, transactionName, transaction);
+					connectorNode.addChild(transactionNode);
+				}
+				if (projectNode.hasChildren()) {
+					requiresNode.addChild(projectNode);
+				}
+			}
+			
+			if (requiresNode.hasChildren()) {
+				operationFolder.addChild(requiresNode);
+			}
+			if (!operationFolder.hasChildren()) {
+				operationFolder.addChild(new InformationNode(operationFolder, "This operation does not require any sequence or transaction"));
+			}
+			
+			treeViewer.setInput(root);
+			treeViewer.expandAll();
+			
+		} catch (Exception e) {
+			ConvertigoPlugin.logException(e, "Error while analyzing the projects hierarchy", true);
+		}
+	}
+	
 	private void handleSequenceSelection(Object firstElement) {
 		SequenceTreeObject sequenceTreeObject = (SequenceTreeObject) firstElement;
 		Sequence sequenceSelected = sequenceTreeObject.getObject();
@@ -477,6 +572,29 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 			List<Sequence> sequences = project.getSequencesList();
 			referencingSequence.clear();
 			
+			UrlMapper urlMapper = project.getUrlMapper();
+			if (urlMapper != null) {
+				MapperNode mapperNode = new MapperNode(projectFolder, urlMapper.getName(), urlMapper);
+				List<UrlMapping> mappings = urlMapper.getMappingList();
+				for (UrlMapping mapping: mappings) {
+					MappingPathNode pathNode = new MappingPathNode(mapperNode, mapping.getPath(), mapping);
+					List<UrlMappingOperation> operations = mapping.getOperationList();
+					for (UrlMappingOperation operation: operations) {
+						String targetRequestable = operation.getTargetRequestable();
+						if (targetRequestable.equals(projectName +"."+ sequenceSelectedName)) {
+							MappingOperationNode operationNode = new MappingOperationNode(pathNode, operation.getName(), operation);
+							pathNode.addChild(operationNode);
+						}
+					}
+					if (pathNode.hasChildren()) {
+						mapperNode.addChild(pathNode);
+					}
+				}
+				if (mapperNode.hasChildren()) {
+					projectFolder.addChild(mapperNode);
+				}
+			}
+			
 			for (Sequence sequence : sequences) {
 				List<Step> steps = sequence.getSteps();
 				
@@ -488,6 +606,7 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 					}
 				}
 			}
+			
 			if (projectFolder.hasChildren()) {
 				isUsedByNode.addChild(projectFolder);
 			}
