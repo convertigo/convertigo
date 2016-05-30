@@ -36,6 +36,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.RestApiManager;
@@ -647,10 +648,47 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	
 	public Set<String> getNeededProjects() {
 		Set<String> neededProjects = new HashSet<String>();
+		
+		// needed projects by mapping operations
+		getNeededProjects(neededProjects, getUrlMapper());
+		
+		//needed projects by references
+		for (Reference reference : getReferenceList()) {
+			getNeededProjects(neededProjects, reference);
+		}
+		
+		//needed projects by sequences
 		for (Sequence sequence : getSequencesList()) {
-			getNeededProjects(neededProjects, sequence.getSteps());
+			getNeededProjects(neededProjects, sequence);
 		}
 		return neededProjects;
+	}
+	
+	private void getNeededProjects(Set<String> projectList, DatabaseObject dbo) {
+		if (dbo instanceof UrlMapper) {
+			UrlMapper urlMapper = (UrlMapper)dbo;
+			if (urlMapper != null) {
+				for (UrlMapping mapping: urlMapper.getMappingList()) {
+					for (UrlMappingOperation operation: mapping.getOperationList()) {
+						String targetRequestableQName = operation.getTargetRequestable();
+						if (!targetRequestableQName.isEmpty()) {
+							int index = targetRequestableQName.indexOf(".");
+							if (index != -1) {
+								String targetProjectName = targetRequestableQName.substring(0, index);
+								projectList.add(targetProjectName);
+							}
+						}
+					}
+				}
+			}
+		}
+		else if (dbo instanceof ProjectSchemaReference) {
+			String targetProjectName = ((ProjectSchemaReference)dbo).getProjectName();
+			projectList.add(targetProjectName);
+		}
+		else if (dbo instanceof Sequence) {
+			getNeededProjects(projectList, ((Sequence)dbo).getSteps());
+		}
 	}
 	
 	private void getNeededProjects(Set<String> projectList, List<Step> steps) {
