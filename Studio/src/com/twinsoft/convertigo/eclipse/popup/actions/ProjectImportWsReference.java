@@ -30,10 +30,13 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.references.RemoteFileReference;
+import com.twinsoft.convertigo.beans.references.RestServiceReference;
 import com.twinsoft.convertigo.beans.references.WebServiceReference;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.WsReferenceImportDialog;
-import com.twinsoft.convertigo.eclipse.dialogs.WsReferenceImportDialogComposite;
+import com.twinsoft.convertigo.eclipse.dialogs.WsRestReferenceImportDialogComposite;
+import com.twinsoft.convertigo.eclipse.dialogs.WsSoapReferenceImportDialogComposite;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
@@ -43,9 +46,13 @@ import com.twinsoft.convertigo.engine.Engine;
 
 public class ProjectImportWsReference extends MyAbstractAction {
 
-	protected boolean updateMode = false;
+	public static final int TYPE_SOAP = 1;
+	public static final int TYPE_REST = 2;
 	
-	public ProjectImportWsReference() {
+	protected boolean updateMode = false;
+	protected int wsType = 2;
+	
+	protected ProjectImportWsReference() {
 		super();
 	}
 
@@ -62,14 +69,20 @@ public class ProjectImportWsReference extends MyAbstractAction {
 				TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
 				if (treeObject != null) {
 					ProjectTreeObject projectTreeObject = null;
-					WebServiceReference webServiceReference = null;
+					RemoteFileReference reference = null;
 					HttpConnector httpConnector = null;
 					
 					// Create a new  WS reference
 					if (treeObject instanceof ProjectTreeObject) {
 						projectTreeObject = (ProjectTreeObject)treeObject;
-						webServiceReference = new WebServiceReference();
-						webServiceReference.bNew = true;
+						if (wsType == TYPE_SOAP) {
+							reference = new WebServiceReference();
+							reference.bNew = true;
+						}
+						if (wsType == TYPE_REST) {
+							reference = new RestServiceReference();
+							reference.bNew = true;
+						}
 					}
 					// Update an existing WS reference
 					else if (treeObject instanceof ReferenceTreeObject) {
@@ -79,11 +92,16 @@ public class ProjectImportWsReference extends MyAbstractAction {
 						projectTreeObject = referenceTreeObject.getProjectTreeObject();*/
 					}
 					
-					if (webServiceReference != null) {
-						WsReferenceImportDialog wsReferenceImportDialog = new WsReferenceImportDialog(shell, WsReferenceImportDialogComposite.class, "Web service reference");
+					if (reference != null) {
+						WsReferenceImportDialog wsReferenceImportDialog = null;
+						if (wsType == TYPE_SOAP) {
+							wsReferenceImportDialog = new WsReferenceImportDialog(shell, WsSoapReferenceImportDialogComposite.class, "SOAP Web Service reference");
+						}
+						if (wsType == TYPE_REST) {
+							wsReferenceImportDialog = new WsReferenceImportDialog(shell, WsRestReferenceImportDialogComposite.class, "REST Web Service reference");
+						}
 						wsReferenceImportDialog.setProject(projectTreeObject.getObject());
-						wsReferenceImportDialog.setReference(webServiceReference);
-						
+						wsReferenceImportDialog.setReference(reference);
 						wsReferenceImportDialog.open();
 			    		if (wsReferenceImportDialog.getReturnCode() != Window.CANCEL) {
 			    			httpConnector = wsReferenceImportDialog.getHttpConnector();
@@ -98,9 +116,9 @@ public class ProjectImportWsReference extends MyAbstractAction {
 		    			if (httpConnector != null && httpConnector.getParent() != null) {
 							explorerView.objectSelected(new CompositeEvent(httpConnector));
 		    			}
-		    			else if (webServiceReference != null && webServiceReference.getParent() != null) {
-		    				if (webServiceReference.hasChanged) projectTreeObject.hasBeenModified(true);
-		    				explorerView.objectSelected(new CompositeEvent(webServiceReference));
+		    			else if (reference != null && reference.getParent() != null) {
+		    				if (reference.hasChanged) projectTreeObject.hasBeenModified(true);
+		    				explorerView.objectSelected(new CompositeEvent(reference));
 		    			}
 					}
 				}
@@ -108,7 +126,7 @@ public class ProjectImportWsReference extends MyAbstractAction {
 			
 		}
 		catch (Throwable e) {
-			ConvertigoPlugin.logException(e, "Unable to "+ (updateMode ? "update":"import")+ " from remote WSDL!");
+			ConvertigoPlugin.logException(e, "Unable to "+ (updateMode ? "update":"import")+ " from remote WS definition!");
 		}
         finally {
 			shell.setCursor(null);

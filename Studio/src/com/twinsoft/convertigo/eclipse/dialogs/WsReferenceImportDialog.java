@@ -28,8 +28,11 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
+
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.references.RemoteFileReference;
+import com.twinsoft.convertigo.beans.references.RestServiceReference;
 import com.twinsoft.convertigo.beans.references.WebServiceReference;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.util.ImportWsReference;
@@ -37,7 +40,7 @@ import com.twinsoft.convertigo.engine.util.ImportWsReference;
 public class WsReferenceImportDialog extends MyAbstractDialog implements Runnable {
 
 	private ProgressBar progressBar = null;
-	private WebServiceReference webServiceReference;
+	private RemoteFileReference wsReference;
 	private HttpConnector httpConnector = null;
 	private Project project = null;;
 	
@@ -72,7 +75,7 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 			thread.start();
 		}
 		catch (Throwable e) {
-			ConvertigoPlugin.logException(e, "Unable to import WSDL reference!");
+			ConvertigoPlugin.logException(e, "Unable to import WS reference!");
 		}
 	}
 
@@ -110,7 +113,12 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 		try {		
 			progressBarThread.start();
 			
-			ImportWsReference wsr = new ImportWsReference(webServiceReference);
+			ImportWsReference wsr = null;
+			if (wsReference instanceof WebServiceReference)
+				wsr = new ImportWsReference((WebServiceReference)wsReference);
+			if (wsReference instanceof RestServiceReference)
+				wsr = new ImportWsReference((RestServiceReference)wsReference);
+			
 			httpConnector = wsr.importInto(project);
 		}
 		catch (Throwable e) {
@@ -137,12 +145,12 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 		}
 	}
 	
-	public void setReference(WebServiceReference webServiceReference) {
-		this.webServiceReference = webServiceReference;
+	public void setReference(RemoteFileReference webServiceReference) {
+		this.wsReference = webServiceReference;
 	}
 	
-	protected WebServiceReference getReference() {
-		return this.webServiceReference;
+	protected RemoteFileReference getReference() {
+		return this.wsReference;
 	}
 	
 	public void setProject(Project project) {

@@ -60,6 +60,8 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 	private String filePath = "";
 	private String urlPath = "";
 	private WsReferenceComposite wsRefAuthenticated = null;
+	protected String[] filterExtension = new String[]{"*.*"};
+	protected String[] filterNames =  new String[]{"All files"};
 	
 	public Button useAuthentication = null;
 	public Text loginText = null, passwordText = null;
@@ -70,7 +72,7 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 	 * @param parent
 	 * @param style
 	 */
-	public WsReferenceImportDialogComposite(Composite parent, int style) {
+	protected WsReferenceImportDialogComposite(Composite parent, int style) {
 		super(parent, style);
 	}
 
@@ -119,6 +121,8 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 		
 		/* Authenticated Composite for import WS Reference */
 		wsRefAuthenticated = new WsReferenceComposite(this, SWT.NONE, data1);
+		wsRefAuthenticated.setFilterExtension(filterExtension);
+		wsRefAuthenticated.setFilterNames(filterNames);
 		
 		combo = wsRefAuthenticated.getCombo(); 
 		combo.addModifyListener(new ModifyListener(){

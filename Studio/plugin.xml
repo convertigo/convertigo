@@ -1239,10 +1239,16 @@
                label="Reload your project"
                menubarPath="project"/>
          <action
-               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectImportWsReference"
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectImportSoapWsReference"
                enablesFor="1"
-               id="convertigo.action.importWSReference"
-               label="Import WS reference"
+               id="convertigo.action.importSoapWsReference"
+               label="Import SOAP WS reference"
+               menubarPath="service" />      
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectImportRestWsReference"
+               enablesFor="1"
+               id="convertigo.action.importRestWsReference"
+               label="Import REST WS reference"
                menubarPath="service" />      
          <action
 	   	 	   class="com.twinsoft.convertigo.eclipse.popup.actions.DeclareGlobalSymbolsFromThisProjectAction"
@@ -1250,7 +1256,7 @@
 			   icon="icons/studio/declare_global_symbols_16x16.png"
 			   id="convertigo.action.declareGlobalSymbolsFromThisProject"
 			   label="Create Global Symbols"
-			   menubarPath="service"/>
+			   menubarPath="project"/>
 		 <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CustomStatisticsAction"
                icon="icons/studio/statistics.gif"
@@ -1344,7 +1350,7 @@
 	             icon="icons/studio/open_test_platform_16x16.png"
 	             id="convertigo.action.openProjectTestPlatform"
 	             label="Open Test Platform"
-	             menubarPath="stats">
+	             menubarPath="tools">
 	       </action>
 	  </objectContribution>
       <objectContribution
@@ -1356,7 +1362,7 @@
 	             icon="icons/studio/swagger_16x16.png"
 	             id="convertigo.action.openProjectSwaggerConsole"
 	             label="Open Swagger Console"
-	             menubarPath="stats">
+	             menubarPath="tools">
 	       </action>
 	  </objectContribution>
       <objectContribution
