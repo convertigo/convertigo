@@ -86,7 +86,7 @@ public class NewProjectWizardPage6 extends WizardPage {
 			updateStatus("Please enter the http server address, default port 80 will be used if no port specified");
 			return;
 		}
-		if (httpServer.toLowerCase().startsWith("http")) {
+		if (httpServer.toLowerCase().startsWith("http://") || httpServer.toLowerCase().startsWith("https://")) {
 			updateStatus("Please enter the http server address, without 'https://' or 'http://'");
 			return;
 		}
