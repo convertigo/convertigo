@@ -57,10 +57,12 @@ public class NewProjectWizardComposite10 extends Composite implements IWsReferen
 	private WsReferenceComposite wsRefAuthenticated = null;
 	public Button useAuthentication = null;
 	public Text loginText = null, passwordText = null;
+	private int templateId;
 	
-	public NewProjectWizardComposite10(Composite parent,  int style, WizardPage wizard) {
+	public NewProjectWizardComposite10(Composite parent,  int style, WizardPage page) {
 		super(parent, style);
-		this.parentWizard = wizard;
+		this.parentWizard = page;
+		this.templateId = ((NewProjectWizard)page.getWizard()).templateId;
 		initialize();
 	}
 
@@ -79,6 +81,8 @@ public class NewProjectWizardComposite10 extends Composite implements IWsReferen
 		
 		/* Authenticated Composite for import WS Reference */
 		wsRefAuthenticated = new WsReferenceComposite(this, SWT.NONE, data);
+		wsRefAuthenticated.setFilterExtension(getFilterExtension());
+		wsRefAuthenticated.setFilterNames(getFilterNames());
 		
 		combo = wsRefAuthenticated.getCombo();
 		combo.addModifyListener(new ModifyListener(){
@@ -121,7 +125,40 @@ public class NewProjectWizardComposite10 extends Composite implements IWsReferen
 		passwordText = wsRefAuthenticated.getPasswordText();
 		passwordText.addModifyListener(ml);
 	}
+
 	
+	protected String[] getFilterExtension() {
+		String[] filterExtension = new String[]{"*"};
+		switch (templateId) {
+			case NewProjectWizard.TEMPLATE_WEB_SERVICE_SOAP_REFERENCE:
+				filterExtension = new String[]{"*.wsdl", "*.xml"};
+				break;
+			case NewProjectWizard.TEMPLATE_WEB_SERVICE_SWAGGER_REFERENCE:
+				filterExtension = new String[]{"*.yaml", "*.json"};
+				break;
+			//case NewProjectWizard.TEMPLATE_WEB_SERVICE_REST_REFERENCE:
+			default:
+				break;
+		}
+		return filterExtension;
+	}
+
+	protected String[] getFilterNames() {
+		String[] filterNames = new String[]{"All files"};
+		switch (templateId) {
+			case NewProjectWizard.TEMPLATE_WEB_SERVICE_SOAP_REFERENCE:
+				filterNames = new String[]{"WSDL files", "XML files"};
+				break;
+			case NewProjectWizard.TEMPLATE_WEB_SERVICE_SWAGGER_REFERENCE:
+				filterNames = new String[]{"YAML files", "JSON files"};
+				break;
+			//case NewProjectWizard.TEMPLATE_WEB_SERVICE_REST_REFERENCE:
+			default:
+				break;
+		}
+		return filterNames;
+	}
+
 	@Override
 	public void dialogChanged() {
 		String message = null;

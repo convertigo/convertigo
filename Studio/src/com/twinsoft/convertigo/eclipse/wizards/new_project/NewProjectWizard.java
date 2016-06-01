@@ -57,6 +57,8 @@ import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.references.RemoteFileReference;
+import com.twinsoft.convertigo.beans.references.RestServiceReference;
 import com.twinsoft.convertigo.beans.references.WebServiceReference;
 import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -115,8 +117,10 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int TEMPLATE_EAI_CICS_COMMEAREA = 306;
 	public static final int TEMPLATE_EAI_HTML_WEB_SITE = 307;
 	public static final int TEMPLATE_SEQUENCE_CONNECTOR = 500;
-	public static final int TEMPLATE_WEB_SERVICE_REFERENCE = 700;
-	public static final int TEMPLATE_SQL_CONNECTOR = 701;
+	public static final int TEMPLATE_WEB_SERVICE_REST_REFERENCE = 700;
+	public static final int TEMPLATE_WEB_SERVICE_SOAP_REFERENCE = 701;
+	public static final int TEMPLATE_WEB_SERVICE_SWAGGER_REFERENCE = 702;
+	public static final int TEMPLATE_SQL_CONNECTOR = 400;
 	public static final int TEMPLATE_SITE_CLIPPER = 1100;
 	public static final int TEMPLATE_SAP_CONNECTOR = 1200;
 	public static final int TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE = 1300;
@@ -323,6 +327,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			addPage(page9);
 			break;
 
+		case TEMPLATE_WEB_SERVICE_REST_REFERENCE:
 		case TEMPLATE_EAI_HTML_WEB_SITE:
 		case TEMPLATE_EAI_HTTP:
 			page1 = new NewProjectWizardPage1(selection);
@@ -335,7 +340,8 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			addPage(page8);
 			break;
 
-		case TEMPLATE_WEB_SERVICE_REFERENCE:
+		case TEMPLATE_WEB_SERVICE_SWAGGER_REFERENCE:
+		case TEMPLATE_WEB_SERVICE_SOAP_REFERENCE:
 			page1 = new NewProjectWizardPage1(selection);
 			page10 = new NewProjectWizardPage10(selection);
 			addPage(page1);
@@ -456,6 +462,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case TEMPLATE_SAP_CONNECTOR:
 			case TEMPLATE_SITE_CLIPPER:
 			case TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE:
+			case TEMPLATE_WEB_SERVICE_REST_REFERENCE:
 				projectName = page1.getProjectName();
 				monitor.beginTask("Creating project " + projectName, 7);
 				createFromBlankProject(monitor);
@@ -504,25 +511,35 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				createFromArchiveProject(monitor);
 				return;
 
-			case TEMPLATE_WEB_SERVICE_REFERENCE:
+			case TEMPLATE_WEB_SERVICE_SWAGGER_REFERENCE:
+			case TEMPLATE_WEB_SERVICE_SOAP_REFERENCE:
 				try {
 					projectName = page1.getProjectName();
 					monitor.beginTask("Creating project " + projectName, 7);
 					Project project = createFromBlankProject(monitor);
 	
 					boolean needAuth = page10.useAuthentication();
-					String wsdlURL = page10.getWsdlURL().toString();
+					String wsURL = page10.getWsdlURL().toString();
 					String login = page10.getLogin();
 					String password = page10.getPassword();
 					
-					WebServiceReference reference = new WebServiceReference();
-				   	reference.setUrlpath(wsdlURL);
-				   	reference.setNeedAuthentication(needAuth);
-				   	reference.setAuthUser(login == null ? "":login);
-				   	reference.setAuthUser(password == null ? "":password);
-				   	reference.bNew = true;
+					WebServiceReference webWsReference = null;
+					RestServiceReference restWsReference = null;
+					RemoteFileReference reference = null;
+					
+					if (templateId == TEMPLATE_WEB_SERVICE_SOAP_REFERENCE)
+						reference = webWsReference = new WebServiceReference();
+					if (templateId == TEMPLATE_WEB_SERVICE_SWAGGER_REFERENCE)
+						reference = restWsReference = new RestServiceReference();
+					
+					reference.setUrlpath(wsURL);
+					reference.setNeedAuthentication(needAuth);
+					reference.setAuthUser(login == null ? "":login);
+					reference.setAuthUser(password == null ? "":password);
+					reference.bNew = true;
 				   	
-					ImportWsReference wsr = new ImportWsReference(reference);
+					ImportWsReference wsr = webWsReference != null ? 
+							new ImportWsReference(webWsReference) : new ImportWsReference(restWsReference);
 					
 					HttpConnector httpConnector = wsr.importInto(project);
 					if (httpConnector != null) {
@@ -542,7 +559,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 					} catch (Exception ex) {
 					}
 	
-					throw new Exception("Unable to create new project from given WSDL.", e);
+					throw new Exception("Unable to create new project from given WS file.", e);
 				}
 			default:
 				throw new EngineException("Attempt to create new project, with templateId " + templateId
@@ -619,7 +636,9 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			oldProjectName = CICS_INTEGRATION_TEMPLATE_PROJECT_FILE_NAME.substring(0,
 					CICS_INTEGRATION_TEMPLATE_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
-		case TEMPLATE_WEB_SERVICE_REFERENCE:
+		case TEMPLATE_WEB_SERVICE_REST_REFERENCE:
+		case TEMPLATE_WEB_SERVICE_SWAGGER_REFERENCE:
+		case TEMPLATE_WEB_SERVICE_SOAP_REFERENCE:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/"
 					+ HTTP_INTEGRATION_TEMPLATE_PROJECT_FILE_NAME;
 			oldProjectName = HTTP_INTEGRATION_TEMPLATE_PROJECT_FILE_NAME.substring(0,
@@ -844,6 +863,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				monitor.setTaskName("Emulator technology criteria renamed");
 				monitor.worked(1);
 				break;
+			case TEMPLATE_WEB_SERVICE_REST_REFERENCE:
 			case TEMPLATE_EAI_HTML_WEB_SITE:
 			case TEMPLATE_EAI_HTTP:
 				// change connector server and port,

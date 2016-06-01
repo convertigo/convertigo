@@ -14,19 +14,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
  *
- * $URL$
- * $Author$
- * $Revision$
- * $Date$
+ * $URL: $
+ * $Author: $
+ * $Revision: $
+ * $Date: $
  */
 
 package com.twinsoft.convertigo.eclipse.wizards.new_project;
 
-public class NewWebServiceReferenceWizard extends NewProjectWizard {
+public class NewWebServiceSwaggerReferenceWizard extends NewProjectWizard {
 
-	public NewWebServiceReferenceWizard() {
+	public NewWebServiceSwaggerReferenceWizard() {
 		super();
-		this.templateId = NewProjectWizard.TEMPLATE_WEB_SERVICE_REFERENCE;
+		this.templateId = NewProjectWizard.TEMPLATE_WEB_SERVICE_SWAGGER_REFERENCE;
 	}
 
 }

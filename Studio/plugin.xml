@@ -343,19 +343,29 @@
 <!-- Web services projects -->
        <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewHttpConnectorWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewWebServiceRestReferenceWizard"
             icon="icons/studio/httpconnector_color_32x32.gif"
-            id="com.twinsoft.convertigo.eclipse.wizards.NewHttpConnectorWizard"
-            name="REST Web service"
+            id="com.twinsoft.convertigo.eclipse.wizards.NewWebServiceRestReferenceWizard"
+            name="REST Empty Web service"
             preferredPerspectives="convertigo"
             project="true">
             <description>Creates an HTTP based Web Service connector project to invoke a remote REST web service.</description> 
        </wizard>
        <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewWebServiceSwaggerReferenceWizard"
+            icon="icons/studio/httpconnector_color_32x32.gif"
+            id="com.twinsoft.convertigo.eclipse.wizards.NewWebServiceSwaggerReferenceWizard"
+            name="REST Swagger Web service"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Creates an HTTP based Web Service connector project to invoke a remote REST web service, by importing its SWAGGER description file.</description> 
+       </wizard>
+       <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewWebServiceReferenceWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewWebServiceSoapReferenceWizard"
              icon="icons/studio/httpconnector_color_32x32.gif"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewWebServiceReferenceWizard"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewWebServiceSoapReferenceWizard"
              name="SOAP Web service"
              preferredPerspectives="convertigo"
              project="true">
