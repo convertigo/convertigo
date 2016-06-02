@@ -111,6 +111,7 @@ import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.requesters.WebServiceServletRequester;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.SOAPUtils;
 import com.twinsoft.convertigo.engine.util.SchemaUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaWalker;
@@ -204,11 +205,7 @@ public class WebServiceServlet extends GenericServlet {
 		String servletPath = request.getServletPath();
 		Engine.logEngine.debug("(WebServiceServlet) Servlet path: " + servletPath);
 		
-        String servletURI =
-            request.getScheme() + "://" +
-            request.getServerName() + ":" +
-            request.getServerPort() +
-            request.getRequestURI();
+        String servletURI = HttpUtils.originalRequestURL(request);
         Engine.logEngine.debug("(WebServiceServlet) Servlet uri: " + servletURI);
         
 		try {
