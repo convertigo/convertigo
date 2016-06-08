@@ -56,6 +56,7 @@ import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.traversal.DocumentTraversal;
@@ -1330,7 +1331,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 				
 				for (int i=0; i<len ; i++) {
 					node = nodeList.item(i);
-					root.appendChild(node.cloneNode(true)); // clone removes any userdata
+					root.appendChild(cloneNodeWithUserData(node, true));
 				}
 				
 	    		buildOutputDom(root, outputFilter);
@@ -1344,10 +1345,17 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	}
 	
 	private static void buildOutputDom(Element root, OutputFilter outputFilter) {
-		DocumentTraversal traversal = (DocumentTraversal)root.getOwnerDocument();
-		TreeWalker walker = traversal.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, outputFilter, false);	    		
-		traverseLevel(walker,null,"");
-        outputFilter.doOutPut();
+		try {
+			DocumentTraversal traversal = (DocumentTraversal)root.getOwnerDocument();
+			TreeWalker walker = traversal.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, outputFilter, false);	    		
+			traverseLevel(walker,null,"");
+	        outputFilter.doOutPut();
+		}
+		finally {
+			if (outputFilter != null) {
+				outputFilter.map.clear();
+			}
+		}
 	}
 	
 	public enum OutputOption {
@@ -1427,21 +1435,21 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		
 	    public short acceptNode(Node thisNode) { 
 	    	if (thisNode.getNodeType() == Node.ELEMENT_NODE) { 
-	    		Element e = (Element)thisNode;
+	    		Object node_output = thisNode.getUserData(Step.NODE_USERDATA_OUTPUT);
 	    		if (option.equals(OutputOption.VisibleOnly)) {
-		    		if ("false".equals(e.getUserData(Step.NODE_USERDATA_OUTPUT))) {
-		            	Element p = (Element) e.getParentNode();
-		            	getToRemoveList(p).add(e);
-		            	if (e.getTagName().equals("sequence") || e.getTagName().equals("transaction")) {
+		    		if ("false".equals(node_output) || "none".equals(node_output)) {
+		            	Element p = (Element) thisNode.getParentNode();
+		            	getToRemoveList(p).add((Element) thisNode);
+		            	if ("none".equals(node_output)) {
 		            		return NodeFilter.FILTER_REJECT;
 		            	}
 		            	return NodeFilter.FILTER_SKIP;
 		            }
 	    		}
 	    		else if (option.equals(OutputOption.UsefullOnly)) {
-	    			if (e.getTagName().equals("sequence") || e.getTagName().equals("transaction")) {
-		            	Element p = (Element) e.getParentNode();
-		            	getToRemoveList(p).add(e);
+	    			if ("none".equals(node_output)) {
+		            	Element p = (Element) thisNode.getParentNode();
+		            	getToRemoveList(p).add((Element) thisNode);
 		            	return NodeFilter.FILTER_REJECT;
 	    			}
 	    		}
@@ -1455,11 +1463,13 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	    Element current = (Element) walker.getCurrentNode();
 	    //System.out.println(indent + "- " + ((Element) current).getTagName());
 	    
-	    OutputFilter outputFilter = (OutputFilter)walker.getFilter();
+	    // store elements which need to be moved
 	    if (topParent != null) {
 	    	Element parent = (Element) current.getParentNode();
-	    	if (parent != null && !topParent.equals(parent))
+	    	if (parent != null && !topParent.equals(parent)) {
+	    	    OutputFilter outputFilter = (OutputFilter)walker.getFilter();
 	    		outputFilter.getToAddList(topParent).add(current);
+	    	}
 	    }
 	    
 	    // traverse children:
@@ -1639,6 +1649,40 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		return node;
 	}
 	
+	private static Node cloneNodeWithUserData(Node node, boolean recurse) {
+		if (node != null) {
+			Object node_output = node.getUserData(Step.NODE_USERDATA_OUTPUT);
+
+			Node clonedNode = node.cloneNode(false);
+			clonedNode.setUserData(Step.NODE_USERDATA_OUTPUT, node_output, null);
+			
+			if (node.getNodeType() == Node.ELEMENT_NODE) {
+				// attributes
+				NamedNodeMap attributeMap = clonedNode.getAttributes();
+				for (int i=0; i< attributeMap.getLength(); i++) {
+					Node clonedAttribute = attributeMap.item(i);
+					String attr_name = clonedAttribute.getNodeName();
+					Object attr_output = ((Element)node).getAttributeNode(attr_name).getUserData(Step.NODE_USERDATA_OUTPUT);
+					clonedAttribute.setUserData(Step.NODE_USERDATA_OUTPUT, attr_output, null);
+				}
+				
+				// recurse on element child nodes only
+				if (recurse && node.hasChildNodes()) {
+					NodeList list = node.getChildNodes();
+					for (int i=0; i<list.getLength(); i++) {
+						Node clonedChild = cloneNodeWithUserData(list.item(i), recurse);
+						if (clonedChild != null) {
+							clonedNode.appendChild(clonedChild);
+						}
+					}
+				}
+			}
+			
+			return clonedNode;
+		}
+		return null;
+	}
+	
 	private static void append(Element parent, Node node) {
 		if (parent != null) {
 			if (node.getNodeType() == Node.ELEMENT_NODE) {
@@ -1655,9 +1699,10 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 			stepElement = context.outputDocument.getDocumentElement();
 		}
 		
-		Node imported = context.outputDocument.importNode(doc.getDocumentElement(), true);
-		setOutputUserData(imported, stepElement.getUserData(Step.NODE_USERDATA_OUTPUT), true);
-		stepElement.appendChild(imported);
+		stepElement.appendChild(context.outputDocument.importNode(doc.getDocumentElement(), true));
+		if ("false".equals(stepElement.getUserData(Step.NODE_USERDATA_OUTPUT))) {
+			stepElement.setUserData(Step.NODE_USERDATA_OUTPUT, "none", null);
+		}
 	}
 
 	@Override
