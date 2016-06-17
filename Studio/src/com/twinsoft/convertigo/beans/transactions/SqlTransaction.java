@@ -652,7 +652,14 @@ public class SqlTransaction extends TransactionWithVariables {
 				Document doc = xsd_parent.getOwnerDocument();
 				Element xsd_output = getQueryXsd(doc, tables);
 				if (xsd_output != null) {
-					xsd_parent.appendChild(xsd_output);
+					Element xsd_appended = (Element) xsd_parent.appendChild(xsd_output);
+					
+					/* See if code below is needed */
+					// In case of procedure call : remove previous updatecount (not needed for function call)
+					Element xsd_previous = (Element) xsd_appended.getPreviousSibling();
+					if (xsd_previous != null) {
+						xsd_parent.removeChild(xsd_previous);
+					}/**/
 				}
 			}
 			
@@ -674,8 +681,17 @@ public class SqlTransaction extends TransactionWithVariables {
 			}
 			
 			if (sql_output != null) {
+				// Append output results
 				Element imported = (Element) context.outputDocument.importNode(sql_output,true);
-				context.outputDocument.getDocumentElement().appendChild(imported);
+				Element appended = (Element) context.outputDocument.getDocumentElement().appendChild(imported);
+				
+				/* See if code below is needed */
+				// In case of procedure call : remove previous updatecount (not needed for function call)
+				Element previous = (Element) appended.getPreviousSibling();
+				if (previous != null) {
+					context.outputDocument.getDocumentElement().removeChild(previous);
+				}/**/
+				
 				score +=1;
 			}
 		}
