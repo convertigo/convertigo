@@ -309,7 +309,7 @@ public class FullSyncServlet extends HttpServlet {
 
 			Engine.logCouchDbManager.info("(FullSyncServlet) Success to process request:\n" + debug);
 			
-			if (bulkDocsRequest != null && responseStringEntity != null) {
+			if (bulkDocsRequest != null && responseStringEntity != null && listeners != null) {
 				Engine.theApp.couchDbManager.handleBulkDocsResponse(request, listeners, bulkDocsRequest, responseStringEntity);
 			}
 		} catch (SecurityException e) {
