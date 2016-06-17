@@ -26,6 +26,11 @@
 
 package com.twinsoft.convertigo.beans.transactions;
 
+import java.io.UnsupportedEncodingException;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -102,7 +107,7 @@ public class SqlTransaction extends TransactionWithVariables {
 	private String maxResult = "";
 
 	private enum SqlKeywords {
-		select, update, insert, delete, replace, create_table, drop_table, truncate_table, commit, rollback, doubledash, unknown;
+		call, select, update, insert, delete, replace, create_table, drop_table, truncate_table, commit, rollback, doubledash, unknown;
 	}	
 
 	private enum AutoCommitMode {
@@ -163,7 +168,8 @@ public class SqlTransaction extends TransactionWithVariables {
 		}
 	}
 	
-	private String errorMessageSQL = "";
+	private transient boolean rollbackDone = false;
+	private transient String errorMessageSQL = "";
 
 	/** Holds value of property xmlGrouping. */
 	private boolean xmlGrouping = false;
@@ -213,6 +219,8 @@ public class SqlTransaction extends TransactionWithVariables {
 				type = SqlKeywords.commit;
 			else if (query.toUpperCase().indexOf("ROLLBACK") == 0)
 				type = SqlKeywords.rollback;
+			else if (query.toUpperCase().indexOf("CALL ") != -1)
+				type = SqlKeywords.call;
 			else 
 				type = SqlKeywords.unknown;
 		}
@@ -289,6 +297,19 @@ public class SqlTransaction extends TransactionWithVariables {
 			return type;
 		}
 		
+		public String getProcedure(){
+			if (isCallable()) {
+				int i = query.toLowerCase().indexOf("call ") + 5;
+				if (i >= 5) {
+					int j = query.toLowerCase().indexOf("(",i);
+					if (j != -1) {
+						return query.substring(i, j).trim();
+					}
+				}
+			}
+			return "";
+		}
+
 		public List<String> getOrderedParametersList(){
 			return orderedParametersList;
 		}
@@ -299,6 +320,11 @@ public class SqlTransaction extends TransactionWithVariables {
 		
 		public Map<String, String> getParametersMap(){
 			return parametersMap;
+		}
+		
+		public boolean isCallable() {
+			if (type == null) findType();
+			return SqlKeywords.call.equals(getType());
 		}
 	}
 	/** End of SqlQueryInfos class **/
@@ -313,6 +339,10 @@ public class SqlTransaction extends TransactionWithVariables {
     	clonedObject.connector = null;
     	clonedObject.preparedStatement = null;
     	clonedObject.type = type;
+    	clonedObject.preparedSqlQueries = null;
+    	clonedObject.errorMessageSQL = "";
+    	clonedObject.rollbackDone = false;
+    	clonedObject.xsdType = null;
         return clonedObject;
     }
 	
@@ -403,7 +433,7 @@ public class SqlTransaction extends TransactionWithVariables {
 		if (Engine.logBeans.isDebugEnabled())
 			Engine.logBeans.debug("(SqlTransaction) Preparing query '" + Visibility.Logs.replaceValues(logHiddenValues, preparedSqlQuery) + "'.");
 		
-		preparedStatement = connector.prepareStatement(preparedSqlQuery, sqlQueryInfos.getParametersMap(), sqlQueryInfos.getOrderedParametersList());
+		preparedStatement = connector.prepareStatement(preparedSqlQuery, sqlQueryInfos);
 		return preparedSqlQuery;
 	}
 	
@@ -429,26 +459,479 @@ public class SqlTransaction extends TransactionWithVariables {
 		}
 	}
 	
+	private int doCommit() {
+		int nb = -1;
+		try {
+			// We set the auto-commit in function of the SqlTransaction parameter
+			connector.connection.setAutoCommit(autoCommit == AutoCommitMode.autocommit_each.ordinal());
+
+			connector.connection.commit();
+			nb = 0;
+        } catch(SQLException excep) {
+        	if (Engine.logBeans.isTraceEnabled()) {
+				// We get the exception error message
+				errorMessageSQL = excep.getMessage();
+        	}
+        }
+		return nb;
+	}
+	
+	private boolean doExecute(String query, List<String> logHiddenValues, SqlQueryInfos sqlQueryInfos) throws EngineException, SQLException, ClassNotFoundException {
+		boolean isResultSet = false;
+		try {
+			// We set the auto-commit in function of the SqlTransaction parameter
+			connector.connection.setAutoCommit(autoCommit == AutoCommitMode.autocommit_each.ordinal());
+
+			// We execute the query
+			isResultSet = preparedStatement.execute();
+		}
+		// Retry once (should not happens)
+		catch(Exception e) {
+			if (runningThread.bContinue) {
+				if (Engine.logBeans.isTraceEnabled()) {
+					Engine.logBeans.trace("(SqlTransaction) An exception occured :" + e.getMessage());
+				}
+				if (Engine.logBeans.isDebugEnabled()) {
+					Engine.logBeans.debug("(SqlTransaction) Retry executing query '" + Visibility.Logs.replaceValues(logHiddenValues, query) + "'.");
+				}
+				if (e instanceof SQLNonTransientConnectionException) {
+					Engine.logBeans.debug("(SqlTransaction) SQLNonTransientConnectionException occurs, closing the connector's connection");
+					connector.close();
+				}
+				query = prepareQuery(logHiddenValues, sqlQueryInfos);
+				try {
+					// We execute the query
+					isResultSet = preparedStatement.execute();
+				} catch(Exception e1) {
+					// We get the exception error message
+					errorMessageSQL = e1.getMessage();
+
+					// We rollback if error and if in auto commit false mode
+					if (autoCommit != AutoCommitMode.autocommit_each.ordinal()) {
+						rollbackDone = doRollback(false);
+					}
+					
+					if (Engine.logBeans.isTraceEnabled())
+						Engine.logBeans.trace("(SqlTransaction) An exception occured :" + errorMessageSQL);
+				}
+			}
+		}
+		return isResultSet;
+	}
+	
+	private boolean doRollback(boolean setAutoCommit) {
+		boolean rollbackDone = false;
+		try {
+			// We set the auto-commit in function of the SqlTransaction parameter
+			if (setAutoCommit)
+				connector.connection.setAutoCommit(autoCommit == AutoCommitMode.autocommit_each.ordinal());
+
+			connector.connection.rollback();
+
+            if (Engine.logBeans.isTraceEnabled())
+				Engine.logBeans.trace("(SqlTransaction) Explicit rollback");
+            
+            rollbackDone = true;
+        } catch(SQLException excep) {
+        	if (Engine.logBeans.isTraceEnabled()) {
+				// We get the exception error message
+				errorMessageSQL = excep.getMessage();
+        	}
+        }										
+		
+		return rollbackDone;									
+	}
+	
+	private void getQueryOuts(Element xsd_parent, SqlQueryInfos sqlQueryInfos) throws SQLException {
+		if (sqlQueryInfos.isCallable()) {
+			Map<String,List<List<Object>>> tables = new LinkedHashMap<String, List<List<Object>>>();
+			List<List<Map<String,String>>> rows = new LinkedList<List<Map<String,String>>>();
+			List<List<String>> lines = new LinkedList<List<String>>();
+			List<String> columnHeaders = new LinkedList<String>();
+			
+			// Retrieve column names, class names
+			String procedure = sqlQueryInfos.getProcedure();
+			Connection connection = preparedStatement.getConnection();
+			DatabaseMetaData dmd = connection.getMetaData(); 
+			ResultSet infos = dmd.getProcedureColumns(connection.getCatalog(), null, procedure,"%"); 
+			
+			ParameterMetaData pmd = ((CallableStatement)preparedStatement).getParameterMetaData();
+			List<List<Object>> columns = new LinkedList<List<Object>>();
+			tables.put("TABLE", columns);
+			int numberOfColumns = 0;
+	        for (int i = 1; i <= pmd.getParameterCount(); i++) {
+	        	Integer columnIndex = i;
+	        	String columnLabel = "";
+	        	try {
+	        		infos.next();
+	        		columnLabel = infos.getString("COLUMN_NAME");
+	        	} catch (Exception e) {}
+	        	String columnName = columnLabel.isEmpty() ? (getColumnTagname() + i):columnLabel;
+	        	String columnClassName = pmd.getParameterClassName(i);
+	        	int param_mode = pmd.getParameterMode(i);
+	            switch(param_mode) {
+		  	    	case DatabaseMetaData.procedureColumnInOut :
+		  	    	case DatabaseMetaData.procedureColumnOut :
+		  	    	case DatabaseMetaData.procedureColumnReturn :
+		  	    	case DatabaseMetaData.procedureColumnResult :
+		    		{
+						columnHeaders.add(columnName);
+						
+						List<Object> column = new ArrayList<Object>(3);
+						column.add(columnIndex);
+						column.add(columnName);
+						column.add(columnClassName);
+						columns.add(column);
+						numberOfColumns++;
+		    		}
+		 	        	break; 
+		  	    	case DatabaseMetaData.procedureColumnUnknown : 
+		  	    	case DatabaseMetaData.procedureColumnIn :
+		  	    	default :
+		  	    		break;  
+	            }
+	        }
+	        
+	        try {
+	        	infos.close();
+	        } catch (Exception e) {}
+	        
+	        // Retrieve results
+			List<String> line = new ArrayList<String>(Collections.nCopies(numberOfColumns, ""));
+			List<Map<String,String>> row = new ArrayList<Map<String,String>>(tables.size());
+			int j = 0;
+			for(Entry<String,List<List<Object>>> entry : tables.entrySet()) {
+				String tableName = entry.getKey();
+				Map<String,String> elementTable = new LinkedHashMap<String, String>();
+				elementTable.put(keywords._tagname.name(), tableName);
+				elementTable.put(keywords._level.name(), (++j) + "0");
+				for (List<Object> col : entry.getValue()) {
+					String columnName = (String) col.get(1);
+					int index = (Integer) col.get(0);
+					Object ob = null;
+					try {
+						ob = ((CallableStatement)preparedStatement).getObject(index);
+					} catch (SQLException e) {
+						Engine.logBeans.error("(SqlTransaction) Exception while getting object for column " + index, e);
+					}
+					String resu = "";
+					if (ob != null) {
+						if (ob instanceof byte[]) {
+							try {
+								resu = new String((byte[]) ob, "UTF-8"); // See #3043
+							} catch (UnsupportedEncodingException e) {
+								Engine.logBeans.error("(SqlTransaction) Exception while getting value for column " + index, e);
+							} 
+						}
+						else {
+							resu = ob.toString();
+						}
+					}
+					Engine.logBeans.trace("(SqlTransaction) Retrieved value ("+resu+") for column " + columnName + ", line " + (j-1) + ".");
+					line.set(index-1, resu);
+					
+					int cpt = 1;
+					String t = "";
+					while (elementTable.containsKey(columnName + t)) {
+						t ="_" + String.valueOf(cpt);											
+						cpt++;
+					}										
+					
+					elementTable.put(columnName + t, resu);
+				}
+				row.add(elementTable);
+			}
+			Engine.logBeans.trace("(SqlTransaction) "+ line.toString());
+			lines.add(line);
+			rows.add(row);
+	        
+			Engine.logBeans.debug("(SqlTransaction) Query executed successfully (" + numberOfColumns + " result parameters)");
+			
+			// Append XSD
+			if (xsd_parent != null) {
+				Document doc = xsd_parent.getOwnerDocument();
+				Element xsd_output = getQueryXsd(doc, tables);
+				if (xsd_output != null) {
+					xsd_parent.appendChild(xsd_output);
+				}
+			}
+			
+			// Show results in connector view
+			connector.setData(lines, columnHeaders);
+				
+			// Build XML response
+			boolean inError = !errorMessageSQL.equals("");
+			Element sql_output = null;
+			if (inError) {
+				sql_output = parseResults(-1);
+			}
+			else if (rows != null) {
+				if (xmlMode.isFlat()) {
+					sql_output = parseResultsFlat(lines, columnHeaders);
+				} else {
+					sql_output = parseResultsHierarchical(rows, columnHeaders);
+				}					
+			}
+			
+			if (sql_output != null) {
+				Element imported = (Element) context.outputDocument.importNode(sql_output,true);
+				context.outputDocument.getDocumentElement().appendChild(imported);
+				score +=1;
+			}
+		}
+	}
+	
+	private void getQueryResults(ResultSet rs, int nb, Element xsd_parent, String query, List<String> logHiddenValues, SqlQueryInfos sqlQueryInfos) throws EngineException, SQLException, UnsupportedEncodingException {
+		Map<String,List<List<Object>>> tables = null;
+		List<List<Map<String,String>>> rows = null;
+		List<String> columnHeaders = null;
+		List<List<String>> lines = null;
+		
+		int numberOfResults = rs != null ? 0:nb;
+		
+		if (rs != null) {
+			tables = new LinkedHashMap<String, List<List<Object>>>();
+			columnHeaders = new LinkedList<String>();
+			lines = new LinkedList<List<String>>();
+			rows = new LinkedList<List<Map<String,String>>>();
+				
+			// Retrieve column names, class and table names
+			String tableNameToUse = "TABLE";
+			ResultSetMetaData rsmd = rs.getMetaData();
+			
+			if (rsmd == null) throw new EngineException("Invalid query '" + query + "'");
+			
+			int numberOfColumns = rsmd.getColumnCount();
+			for (int i=1; i <= numberOfColumns; i++) {
+				List<List<Object>> columns = null;
+				Integer columnIndex = new Integer(i);
+				String columnName = rsmd.getColumnLabel(i);
+				String columnClassName = rsmd.getColumnClassName(i);
+				String tableName = rsmd.getTableName(i);
+				tableNameToUse = (tableName.equals("") ? tableNameToUse:tableName);
+				if (tableNameToUse == null) throw new EngineException("Invalid query '" + query + "'");
+				
+				if (!tables.containsKey(tableNameToUse)) {
+					columns = new LinkedList<List<Object>>();
+					tables.put(tableNameToUse, columns);
+				}
+				else
+					columns = tables.get(tableNameToUse);
+				columnHeaders.add(columnName);
+				List<Object> column = new ArrayList<Object>(3);
+				column.add(columnIndex);
+				column.add(columnName);
+				column.add(columnClassName);
+				columns.add(column);
+				Engine.logBeans.trace("(SqlTransaction) "+ tableNameToUse+"."+columnName + " (" + columnClassName + ")");
+			}
+		
+			// Retrieve results
+			while (rs.next()) {
+				List<String> line = new ArrayList<String>(Collections.nCopies(numberOfColumns, ""));
+				
+				List<Map<String,String>> row = new ArrayList<Map<String,String>>(tables.size());
+				int j = 0;
+				for(Entry<String,List<List<Object>>> entry : tables.entrySet()) {
+					String tableName = entry.getKey();
+					Map<String,String> elementTable = new LinkedHashMap<String, String>();
+					elementTable.put(keywords._tagname.name(), tableName);
+					elementTable.put(keywords._level.name(), (++j) + "0");
+					for (List<Object> col : entry.getValue()) {
+						String columnName = (String) col.get(1);
+						int index = (Integer) col.get(0);
+						Object ob = null;
+						try {
+							ob = rs.getObject(index);
+						} catch (SQLException e) {
+							Engine.logBeans.error("(SqlTransaction) Exception while getting object for column " + index, e);
+						}
+						String resu = "";
+						if (ob != null) {
+							if (ob instanceof byte[]) {
+								resu = new String((byte[]) ob, "UTF-8"); // See #3043
+							}
+							else {
+								resu = ob.toString();
+							}
+						}
+						Engine.logBeans.trace("(SqlTransaction) Retrieved value ("+resu+") for column " + columnName + ", line " + (j-1) + ".");
+						line.set(index-1, resu);
+						
+						int cpt = 1;
+						String t = "";
+						while (elementTable.containsKey(columnName + t)) {
+							t ="_" + String.valueOf(cpt);											
+							cpt++;
+						}										
+						
+						elementTable.put(columnName + t, resu);
+					}
+					row.add(elementTable);
+				}
+				Engine.logBeans.trace("(SqlTransaction) "+ line.toString());
+				lines.add(line);
+				rows.add(row);
+				numberOfResults++;
+			}
+		}
+		
+		if ((rs == null) && (sqlQueryInfos.getType() == SqlKeywords.select)) {
+			Engine.logBeans.warn("(SqlTransaction) Could not execute query '" + Visibility.Logs.replaceValues(logHiddenValues, query) + "'"); 
+		} else {
+			Engine.logBeans.debug("(SqlTransaction) Query executed successfully (" + numberOfResults + " results)"); 
+		}
+		
+		// Append XSD
+		if (xsd_parent != null) {
+			Document doc = xsd_parent.getOwnerDocument();
+			Element xsd_output = getQueryXsd(doc, tables);
+			if (xsd_output != null) {
+				xsd_parent.appendChild(xsd_output);
+			}
+		}
+		
+		// Show results in connector view
+		connector.setData(lines, columnHeaders);
+			
+		// Build XML response
+		boolean inError = !errorMessageSQL.equals("");
+		Element sql_output = null;
+		if (inError) {
+			sql_output = parseResults(-1);
+		}
+		else {
+			if (rows != null) {
+				if (xmlMode.isFlat()) {
+					sql_output = parseResultsFlat(lines, columnHeaders);
+				} else {
+					sql_output = parseResultsHierarchical(rows, columnHeaders);
+				}					
+			}
+			else if (nb >= 0) {
+				sql_output = parseResults(nb);
+			}
+		}
+		
+		if (sql_output != null) {
+			Element outputDocumentRootElement = context.outputDocument.getDocumentElement();
+			outputDocumentRootElement.appendChild(sql_output);
+			score +=1;
+		}
+	}
+	
+	private Element getQueryXsd(Document doc, Map<String,List<List<Object>>> tables) {
+		Element xsd_sql_output = null;
+		if (Engine.isStudioMode()) {
+			xsd_sql_output = doc.createElement("xsd:element");
+			xsd_sql_output.setAttribute("name","sql_output");
+			xsd_sql_output.setAttribute("minOccurs","0");
+			xsd_sql_output.setAttribute("maxOccurs","1");
+			
+			if (tables == null) {
+				xsd_sql_output.setAttribute("type","xsd:string");
+			}
+			else {
+				Element parentElt = xsd_sql_output, child = null;
+				boolean firstLoop = true;
+				for(Entry<String,List<List<Object>>> entry : tables.entrySet()) {
+					if (firstLoop) {
+						parentElt = (Element)parentElt.appendChild(doc.createElement("xsd:complexType"));
+						parentElt = (Element)parentElt.appendChild(doc.createElement("xsd:sequence"));
+					} else if (xmlMode.is(XmlMode.auto)) {
+						parentElt = (Element)parentElt.appendChild(doc.createElement("xsd:sequence"));
+					}
+					
+					String tableName = entry.getKey();
+					child = doc.createElement("xsd:element");
+					child.setAttribute("name", xmlMode.useRowTagName() ? getRowTagname() : tableName);
+					child.setAttribute("minOccurs","0");
+					child.setAttribute("maxOccurs","unbounded");
+					if (!xmlMode.isFlat() || firstLoop) {
+						parentElt = (Element)parentElt.appendChild(child);
+						parentElt = (Element)parentElt.appendChild(doc.createElement("xsd:complexType"));
+						
+						if (xmlMode.is(XmlMode.element_with_attributes)) {
+							child = doc.createElement("xsd:attribute");
+							child.setAttribute("name", "name");
+							child.setAttribute("fixed", tableName);
+							parentElt.appendChild(child);
+						}
+					}
+					
+					boolean firstLoop_ = true;
+					for (List<Object> col : entry.getValue()) {
+						if (firstLoop_ && xmlMode.isElement()) {
+							child = doc.createElement("xsd:sequence");
+							parentElt = (Element) parentElt.appendChild(child);
+						}
+						String columnName = (String) col.get(1);
+						String columnClassName = (String) col.get(2);
+						String type = null;
+						
+						if (columnClassName.equalsIgnoreCase("java.lang.Integer")) {
+							type = "xsd:integer";
+						} else if (columnClassName.equalsIgnoreCase("java.lang.Double")) {
+							type = "xsd:double";
+						} else if (columnClassName.equalsIgnoreCase("java.lang.Long")) {
+							type = "xsd:long";
+						} else if (columnClassName.equalsIgnoreCase("java.lang.Short")) {
+							type = "xsd:short";
+						} else if (columnClassName.equalsIgnoreCase("java.sql.Timestamp")) {
+							type = "xsd:dateTime";
+						} else {
+							type = "xsd:string";
+						}
+						
+						if (xmlMode.useColumnName()) {
+							child = doc.createElement("xsd:element");
+							child.setAttribute("name",columnName);
+							child.setAttribute("type",type);
+							parentElt.appendChild(child);
+						} else if (xmlMode.is(XmlMode.element_with_attributes)) {
+							Element xsdElement = doc.createElement("xsd:element");
+							xsdElement.setAttribute("name",getColumnTagname());
+							parentElt.appendChild(xsdElement);
+							
+							Element xsdComplexType = doc.createElement("xsd:complexType");
+							xsdElement.appendChild(xsdComplexType);
+							
+							Element xsdSimpleContent = doc.createElement("xsd:simpleContent");
+							xsdComplexType.appendChild(xsdSimpleContent);
+							
+							Element xsdExtension = doc.createElement("xsd:extension");
+							xsdExtension.setAttribute("base", type);
+							xsdSimpleContent.appendChild(xsdExtension);
+							
+							Element xsdAttribute = doc.createElement("xsd:attribute");
+							xsdAttribute.setAttribute("name", "name");
+							xsdAttribute.setAttribute("fixed", columnName);
+							xsdAttribute.setAttribute("type", "xsd:string");
+							xsdExtension.appendChild(xsdAttribute);
+						} else {
+							child = doc.createElement("xsd:attribute");
+							child.setAttribute("name",columnName);
+							child.setAttribute("type",type);
+							parentElt.appendChild(child);
+						}
+						firstLoop_ = false;
+					}
+					firstLoop = false;
+				}
+			}
+		}
+		return xsd_sql_output;
+	}
+	
 	@Override
 	public void runCore() throws EngineException {
-		Document doc = null;
-		Element sql_output = null;
-		boolean studioMode = Engine.isStudioMode();
-		boolean rollbackDone = false;
-		String prefix = getXsdTypePrefix();
-		int numberOfResults = 0;
-		int nb = 0;
-		
-		// Create an empty list for hidden variable values
-		List<String> logHiddenValues = new ArrayList<String>();
-		
 		try {
-			List<List<String>> lines = null;
-			List<List<Map<String,String>>> rows = null;
-			List<String> columnHeaders = null;
+			// Create an empty list for hidden variable values
+			List<String> logHiddenValues = new ArrayList<String>();
 			
 			connector = ((SqlConnector) parent);
 			errorMessageSQL = "";
+			rollbackDone = false;
 			
 			if (!runningThread.bContinue)
 				return;
@@ -462,319 +945,38 @@ public class SqlTransaction extends TransactionWithVariables {
 				preparedSqlQueries.get(0).getParametersMap().get(preparedSqlQueries.get(0).getOrderedParametersList().get(0));
 			}
 
-			for (SqlQueryInfos sqlQueryInfos : preparedSqlQueries){
+			// Start generating the response schema
+			Element xsd_parent = getSchemaContainerElement();
+			
+			for (SqlQueryInfos sqlQueryInfos : preparedSqlQueries) {
 
 				if (errorMessageSQL.equals("")) {			
 					// Prepare the query and retrieve its type
 					String query = prepareQuery(logHiddenValues, sqlQueryInfos);
 					
-					// Build xsdType
-					if (studioMode) {
-						xsdType = "";
-						doc = createDOM(getEncodingCharSet());
-						Element element = doc.createElement("xsd:complexType");
-						element.setAttribute("name", prefix + getName() +"Response");
-						doc.appendChild(element);
-						
-						Element all = doc.createElement("xsd:all");
-						element.appendChild(all);
-		
-						Element cnv_error = doc.createElement("xsd:element");
-						cnv_error.setAttribute("name","error");
-						cnv_error.setAttribute("type", "p_ns:ConvertigoError");
-						cnv_error.setAttribute("minOccurs","0");
-						cnv_error.setAttribute("maxOccurs","1");
-						all.appendChild(cnv_error);
-						
-						sql_output = doc.createElement("xsd:element");
-						sql_output.setAttribute("name","sql_output");
-						sql_output.setAttribute("minOccurs","0");
-						sql_output.setAttribute("maxOccurs","1");
-						if ((sqlQueryInfos.getType() != SqlKeywords.select) && (sqlQueryInfos.getType() != SqlKeywords.unknown))
-							sql_output.setAttribute("type", "xsd:string");
-						all.appendChild(sql_output);
-					}
-					
 					if (!runningThread.bContinue)
 						return;
 					
 					// Execute the SELECT query
-					switch(sqlQueryInfos.getType()) {
+					SqlKeywords queryType = sqlQueryInfos.getType();
+					switch(queryType) {
 						case commit:
-							try {
-								// We set the auto-commit in function of the SqlTransaction parameter
-								connector.connection.setAutoCommit(autoCommit == AutoCommitMode.autocommit_each.ordinal());
-
-								connector.connection.commit();
-								nb = 0;
-				            } catch(SQLException excep) {
-				            	if (Engine.logBeans.isTraceEnabled()) {
-									// We get the exception error message
-									errorMessageSQL = excep.getMessage();
-				            	}
-				            }
+							{
+								Integer nb = doCommit();
+								parseResults(nb);
+							}
 							break;
 							
 						case rollback:
-							try {
-								// We set the auto-commit in function of the SqlTransaction parameter
-								connector.connection.setAutoCommit(autoCommit == AutoCommitMode.autocommit_each.ordinal());
-
-								connector.connection.rollback();
-
-				                if (Engine.logBeans.isTraceEnabled())
-									Engine.logBeans.trace("(SqlTransaction) Explicit rollback");
-				            } catch(SQLException excep) {
-				            	if (Engine.logBeans.isTraceEnabled()) {
-									// We get the exception error message
-									errorMessageSQL = excep.getMessage();
-				            	}
-				            }										
-							
-							rollbackDone = true;									
+							{
+								rollbackDone = doRollback(true);
+								Integer nb = rollbackDone ? 0:-1;
+								parseResults(nb);
+							}
 							break;
 					
+						case call:
 						case select:
-						case unknown:
-							ResultSet rs = null;
-							try {
-								// We set the auto-commit in function of the SqlTransaction parameter
-								connector.connection.setAutoCommit(autoCommit == AutoCommitMode.autocommit_each.ordinal());
-
-								// We execute the query
-								preparedStatement.execute();
-								rs = preparedStatement.getResultSet();
-							}
-							// Retry once (should not happens)
-							catch(Exception e) {
-								if (runningThread.bContinue) {
-									if (Engine.logBeans.isTraceEnabled()) {
-										Engine.logBeans.trace("(SqlTransaction) An exception occured :" + e.getMessage());
-									}
-									if (Engine.logBeans.isDebugEnabled()) {
-										Engine.logBeans.debug("(SqlTransaction) Retry executing query '" + Visibility.Logs.replaceValues(logHiddenValues, query) + "'.");
-									}
-									if (e instanceof SQLNonTransientConnectionException) {
-										Engine.logBeans.debug("(SqlTransaction) SQLNonTransientConnectionException occurs, closing the connector's connection");
-										connector.close();
-									}
-									query = prepareQuery(logHiddenValues, sqlQueryInfos);
-									try {
-										// We execute the query
-										preparedStatement.execute();
-										rs = preparedStatement.getResultSet();
-									} catch(Exception e1) {
-										// We get the exception error message
-										errorMessageSQL = e1.getMessage();
-
-										// We rollback if error and if in auto commit false mode
-										if (autoCommit != AutoCommitMode.autocommit_each.ordinal()) {
-											try {
-								                connector.connection.rollback();
-
-								                if (Engine.logBeans.isTraceEnabled())
-													Engine.logBeans.trace("(SqlTransaction) An exception occured : Transactions are being rolled back");
-								            } catch(SQLException excep) {
-								            	if (Engine.logBeans.isTraceEnabled()) {
-													// We get the exception error message
-													errorMessageSQL = excep.getMessage();
-								            	}
-								            }										
-											
-											rollbackDone = true;									
-										}
-										
-										if (Engine.logBeans.isTraceEnabled())
-											Engine.logBeans.trace("(SqlTransaction) An exception occured :" + errorMessageSQL);
-									}
-								}
-							}
-							
-							if (rs != null) {
-								Map<String,List<List<Object>>> tables = new LinkedHashMap<String, List<List<Object>>>();
-								columnHeaders = new LinkedList<String>();
-								lines = new LinkedList<List<String>>();
-								rows = new LinkedList<List<Map<String,String>>>();
-									
-								// Retrieve column names, class and table names
-								String tableNameToUse = "TABLE";
-								ResultSetMetaData rsmd = rs.getMetaData();
-								
-								if (rsmd == null) throw new EngineException("Invalid query '" + query + "'");
-								
-								int numberOfColumns = rsmd.getColumnCount();
-								for (int i=1; i <= numberOfColumns; i++) {
-									List<List<Object>> columns = null;
-									Integer columnIndex = new Integer(i);
-									String columnName = rsmd.getColumnLabel(i);
-									String columnClassName = rsmd.getColumnClassName(i);
-									String tableName = rsmd.getTableName(i);
-									tableNameToUse = (tableName.equals("") ? tableNameToUse:tableName);
-									if (tableNameToUse == null) throw new EngineException("Invalid query '" + query + "'");
-									
-									if (!tables.containsKey(tableNameToUse)) {
-										columns = new LinkedList<List<Object>>();
-										tables.put(tableNameToUse, columns);
-									}
-									else
-										columns = tables.get(tableNameToUse);
-									columnHeaders.add(columnName);
-									List<Object> column = new ArrayList<Object>(3);
-									column.add(columnIndex);
-									column.add(columnName);
-									column.add(columnClassName);
-									columns.add(column);
-									Engine.logBeans.trace("(SqlTransaction) "+ tableNameToUse+"."+columnName + " (" + columnClassName + ")");
-								}
-							
-								// Retrieve results
-								while (rs.next()) {
-									List<String> line = new ArrayList<String>(Collections.nCopies(numberOfColumns, ""));
-									
-									List<Map<String,String>> row = new ArrayList<Map<String,String>>(tables.size());
-									int j = 0;
-									for(Entry<String,List<List<Object>>> entry : tables.entrySet()) {
-										String tableName = entry.getKey();
-										Map<String,String> elementTable = new LinkedHashMap<String, String>();
-										elementTable.put(keywords._tagname.name(), tableName);
-										elementTable.put(keywords._level.name(), (++j) + "0");
-										for (List<Object> col : entry.getValue()) {
-											String columnName = (String) col.get(1);
-											int index = (Integer) col.get(0);
-											Object ob = null;
-											try {
-												ob = rs.getObject(index);
-											} catch (SQLException e) {
-												Engine.logBeans.error("(SqlTransaction) Exception while getting object for column " + index, e);
-											}
-											String resu = "";
-											if (ob != null) {
-												if (ob instanceof byte[]) {
-													resu = new String((byte[]) ob, "UTF-8"); // See #3043
-												}
-												else {
-													resu = ob.toString();
-												}
-											}
-											Engine.logBeans.trace("(SqlTransaction) Retrieved value ("+resu+") for column " + columnName + ", line " + (j-1) + ".");
-											line.set(index-1, resu);
-											
-											int cpt = 1;
-											String t = "";
-											while (elementTable.containsKey(columnName + t)) {
-												t ="_" + String.valueOf(cpt);											
-												cpt++;
-											}										
-											
-											elementTable.put(columnName + t, resu);
-										}
-										row.add(elementTable);
-									}
-									Engine.logBeans.trace("(SqlTransaction) "+ line.toString());
-									lines.add(line);
-									rows.add(row);
-									numberOfResults++;
-								}
-								
-								if (studioMode) {
-									Element parentElt = sql_output, child = null;
-									boolean firstLoop = true;
-									for(Entry<String,List<List<Object>>> entry : tables.entrySet()) {
-										if (firstLoop) {
-											parentElt = (Element)parentElt.appendChild(doc.createElement("xsd:complexType"));
-											parentElt = (Element)parentElt.appendChild(doc.createElement("xsd:sequence"));
-										} else if (xmlMode.is(XmlMode.auto)) {
-											parentElt = (Element)parentElt.appendChild(doc.createElement("xsd:sequence"));
-										}
-										
-										String tableName = entry.getKey();
-										child = doc.createElement("xsd:element");
-										child.setAttribute("name", xmlMode.useRowTagName() ? getRowTagname() : tableName);
-										child.setAttribute("minOccurs","0");
-										child.setAttribute("maxOccurs","unbounded");
-										if (!xmlMode.isFlat() || firstLoop) {
-											parentElt = (Element)parentElt.appendChild(child);
-											parentElt = (Element)parentElt.appendChild(doc.createElement("xsd:complexType"));
-											
-											if (xmlMode.is(XmlMode.element_with_attributes)) {
-												child = doc.createElement("xsd:attribute");
-												child.setAttribute("name", "name");
-												child.setAttribute("fixed", tableName);
-												parentElt.appendChild(child);
-											}
-										}
-										
-										boolean firstLoop_ = true;
-										for (List<Object> col : entry.getValue()) {
-											if (firstLoop_ && xmlMode.isElement()) {
-												child = doc.createElement("xsd:sequence");
-												parentElt = (Element) parentElt.appendChild(child);
-											}
-											String columnName = (String) col.get(1);
-											String columnClassName = (String) col.get(2);
-											String type = null;
-											
-											if (columnClassName.equalsIgnoreCase("java.lang.Integer")) {
-												type = "xsd:integer";
-											} else if (columnClassName.equalsIgnoreCase("java.lang.Double")) {
-												type = "xsd:double";
-											} else if (columnClassName.equalsIgnoreCase("java.lang.Long")) {
-												type = "xsd:long";
-											} else if (columnClassName.equalsIgnoreCase("java.lang.Short")) {
-												type = "xsd:short";
-											} else if (columnClassName.equalsIgnoreCase("java.sql.Timestamp")) {
-												type = "xsd:dateTime";
-											} else {
-												type = "xsd:string";
-											}
-											
-											if (xmlMode.useColumnName()) {
-												child = doc.createElement("xsd:element");
-												child.setAttribute("name",columnName);
-												child.setAttribute("type",type);
-												parentElt.appendChild(child);
-											} else if (xmlMode.is(XmlMode.element_with_attributes)) {
-												Element xsdElement = doc.createElement("xsd:element");
-												xsdElement.setAttribute("name",getColumnTagname());
-												parentElt.appendChild(xsdElement);
-												
-												Element xsdComplexType = doc.createElement("xsd:complexType");
-												xsdElement.appendChild(xsdComplexType);
-												
-												Element xsdSimpleContent = doc.createElement("xsd:simpleContent");
-												xsdComplexType.appendChild(xsdSimpleContent);
-												
-												Element xsdExtension = doc.createElement("xsd:extension");
-												xsdExtension.setAttribute("base", type);
-												xsdSimpleContent.appendChild(xsdExtension);
-												
-												Element xsdAttribute = doc.createElement("xsd:attribute");
-												xsdAttribute.setAttribute("name", "name");
-												xsdAttribute.setAttribute("fixed", columnName);
-												xsdAttribute.setAttribute("type", "xsd:string");
-												xsdExtension.appendChild(xsdAttribute);
-											} else {
-												child = doc.createElement("xsd:attribute");
-												child.setAttribute("name",columnName);
-												child.setAttribute("type",type);
-												parentElt.appendChild(child);
-											}
-											firstLoop_ = false;
-										}
-										firstLoop = false;
-									}
-								}
-							}
-									
-							if ((rs == null) && (sqlQueryInfos.getType() == SqlKeywords.select)) {
-								Engine.logBeans.warn("(SqlTransaction) Could not execute query '" + Visibility.Logs.replaceValues(logHiddenValues, query) + "'"); 
-								// We put the number of results at -1, because we have an error
-								numberOfResults = -1;
-							} else {
-								Engine.logBeans.debug("(SqlTransaction) Query executed successfully (" + numberOfResults + " results)"); 
-							}
-							break;
-							
 						case replace:
 						case create_table:
 						case drop_table:
@@ -782,100 +984,59 @@ public class SqlTransaction extends TransactionWithVariables {
 						case update:
 						case insert:
 						case delete:
-							try {
-								// We set the auto-commit in function of the SqlTransaction parameter
-								connector.connection.setAutoCommit(autoCommit == AutoCommitMode.autocommit_each.ordinal());
+						case unknown:
+							{
+								// execute query
+								doExecute(query, logHiddenValues, sqlQueryInfos);
 								
-								// We execute the query
-								nb = preparedStatement.executeUpdate();
-							}
-							// Retry once (should not happens)
-							catch (Exception e) {
-								if (runningThread.bContinue) {
-									if (Engine.logBeans.isTraceEnabled()) {
-										Engine.logBeans.trace("(SqlTransaction) An exception occured :" + e.getMessage());
-									}
-									if (Engine.logBeans.isDebugEnabled()) {
-										Engine.logBeans.debug("(SqlTransaction) Retry executing query '" + Visibility.Logs.replaceValues(logHiddenValues, query) + "'.");
-									}
-									if (e instanceof SQLNonTransientConnectionException) {
-										Engine.logBeans.debug("(SqlTransaction) SQLNonTransientConnectionException occurs, closing the connector's connection");
-										connector.close();
-									}
-									query = prepareQuery(logHiddenValues, sqlQueryInfos);
-									try {
-										nb = preparedStatement.executeUpdate();
-									} catch (Exception e1) {									
-										// We get the exception error message
-										errorMessageSQL = e1.getMessage();
-										nb = -1;
-										
-										// We rollback if error and if in auto commit false mode
-										if (autoCommit != AutoCommitMode.autocommit_each.ordinal()) {
-											try {
-								                connector.connection.rollback();
-
-								                if (Engine.logBeans.isTraceEnabled())
-													Engine.logBeans.trace("(SqlTransaction) An exception occured : Transactions are being rolled back");
-								            } catch(SQLException excep) {
-								            	if (Engine.logBeans.isTraceEnabled()) {
-													// We get the exception error message
-													errorMessageSQL = excep.getMessage();
-								            	}
-								            }										
+								// retrieve and append results/outputs, build inner xsd
+								try {
+									boolean bContinue = true;
+									ResultSet rs = null;
+									Integer nb = -1;
+									
+									// append query results (resulset or update count)
+									boolean shouldShow = true;//!sqlQueryInfos.isCallable();
+									if (shouldShow) {
+										do {
+											rs = preparedStatement.getResultSet();
+											if (rs == null) {
+												nb = preparedStatement.getUpdateCount();
+											}
 											
-											rollbackDone = true;									
-										}
-
-										if (Engine.logBeans.isTraceEnabled())
-											Engine.logBeans.trace("(SqlTransaction) An exception occured :" + errorMessageSQL);
+											if (rs != null || nb != -1) {
+												getQueryResults(rs, nb, xsd_parent, query, logHiddenValues, sqlQueryInfos);
+												preparedStatement.getMoreResults();
+												rs = null; nb = -1;
+											}
+											else {
+												bContinue = false;
+											}
+										} while (bContinue);
 									}
+									
+									// append procedure/function outputs (callable statement only)
+									getQueryOuts(xsd_parent, sqlQueryInfos);
+								}
+								catch (SQLException e) {
+						        	if (Engine.logBeans.isTraceEnabled()) {
+										// We get the exception error message
+										errorMessageSQL = e.getMessage();
+						        	}
 								}
 							}
-							
-							if (nb < 0)
-								Engine.logBeans.warn("(SqlTransaction) Could not execute query '" + Visibility.Logs.replaceValues(logHiddenValues, query) + "'.");
-							else
-								Engine.logBeans.debug("(SqlTransaction) Query executed successfully (returned " + nb + ").");
-							
 							break;
-							
 						default:
 							break;
 					}
 				}
 				
-				// Close statement and resulset if exist
-				if ( preparedStatement != null )
+				// Close statement and current resulset if exist
+				if (preparedStatement != null)
 					preparedStatement.close();
 					
 				if (!runningThread.bContinue)
 					return;
-	
-				// Show results in connector view
-				connector.setData(lines, columnHeaders);
-					
-				// Build XML response
-				Element sql;
-				if ((rows != null) && errorMessageSQL.equals("")){
-					if (xmlMode.isFlat()) {
-						sql = parseResultsFlat(lines, columnHeaders);
-					} else {
-						sql = parseResultsHierarchical(rows, columnHeaders);
-					}					
-					
-				//In case of error during the execution of the request we pull up the error node
-				} else if (!errorMessageSQL.equals("")) {
-					sql = parseResults(-1);
-				} else {
-					sql = parseResults(nb);
-				}
-				
-				if (sql != null) {
-	    			Element outputDocumentRootElement = context.outputDocument.getDocumentElement();
-					outputDocumentRootElement.appendChild(sql);
-					score +=1;
-				}
 				
 				if (!errorMessageSQL.equals(""))
 					break;
@@ -892,6 +1053,17 @@ public class SqlTransaction extends TransactionWithVariables {
 	            	}
 	            }										
 			}
+			
+			// Store learned schema
+			if (Engine.isStudioMode() && xsd_parent != null) {
+				Document doc = xsd_parent.getOwnerDocument();
+				if (doc != null) {
+					String prettyPrintedText = XMLUtils.prettyPrintDOM(doc);
+					prettyPrintedText = prettyPrintedText.substring(prettyPrintedText.indexOf("<xsd:"));
+					xsdType = prettyPrintedText;
+				}
+			}
+			
 		}
 		catch (Exception e) {
 			connector.setData(null,null);
@@ -905,16 +1077,31 @@ public class SqlTransaction extends TransactionWithVariables {
 			catch(SQLException e) {;}
 			preparedStatement = null;
 		}
-	
-		if (studioMode) {
-			if (doc != null) {
-				String prettyPrintedText = XMLUtils.prettyPrintDOM(doc);
-				prettyPrintedText = prettyPrintedText.substring(prettyPrintedText.indexOf("<xsd:"));
-				xsdType = prettyPrintedText;
-			}
-		}
 	}
 	
+	private Element getSchemaContainerElement() {
+		if (Engine.isStudioMode()) {
+			Document doc = createDOM(getEncodingCharSet());
+			xsdType = "";
+			Element element = doc.createElement("xsd:complexType");
+			element.setAttribute("name", getXsdTypePrefix() + getName() +"Response");
+			doc.appendChild(element);
+			
+			Element all = doc.createElement("xsd:all");
+			element.appendChild(all);
+
+			Element cnv_error = doc.createElement("xsd:element");
+			cnv_error.setAttribute("name","error");
+			cnv_error.setAttribute("type", "p_ns:ConvertigoError");
+			cnv_error.setAttribute("minOccurs","0");
+			cnv_error.setAttribute("maxOccurs","1");
+			all.appendChild(cnv_error);
+			
+			return all;
+		}
+		return null;
+	}
+
 	private boolean checkVariables(List<SqlQueryInfos> sqlQueries) throws EngineException {
 
 		if (sqlQueries != null) {
@@ -994,31 +1181,33 @@ public class SqlTransaction extends TransactionWithVariables {
 		Element sqlOutput = (Element) document.appendChild(doc.createElement("sql_output"));
 		Element element = null;
 		
-		for (List<String> line : lines) {
-			element = doc.createElement(getRowTagname());
-
-			Iterator<String> lineIterator = line.iterator();
-			for (String columnName : columnHeaders) {
-				String normalizedColumnName = StringUtils.normalize(columnName);
-				String value = lineIterator.next();
-
-				if (xmlMode.is(XmlMode.raw)) {
-					int x = 1;
-					String t = "";
-					while (!element.getAttribute(normalizedColumnName + t).equals("")) {
-						t ="_" + String.valueOf(x);											
-						x++;
+		if (columnHeaders.size() > 0) {
+			for (List<String> line : lines) {
+				element = doc.createElement(getRowTagname());
+	
+				Iterator<String> lineIterator = line.iterator();
+				for (String columnName : columnHeaders) {
+					String normalizedColumnName = StringUtils.normalize(columnName);
+					String value = lineIterator.next();
+	
+					if (xmlMode.is(XmlMode.raw)) {
+						int x = 1;
+						String t = "";
+						while (!element.getAttribute(normalizedColumnName + t).equals("")) {
+							t ="_" + String.valueOf(x);											
+							x++;
+						}
+	
+						element.setAttribute(normalizedColumnName + t,value);
+					} else if (xmlMode.is(XmlMode.flat_element)) {
+						Node node = doc.createElement(normalizedColumnName);
+						node.setTextContent(value);
+						element.appendChild(node);
 					}
-
-					element.setAttribute(normalizedColumnName + t,value);
-				} else if (xmlMode.is(XmlMode.flat_element)) {
-					Node node = doc.createElement(normalizedColumnName);
-					node.setTextContent(value);
-					element.appendChild(node);
 				}
+	
+				sqlOutput.appendChild(element);
 			}
-
-			sqlOutput.appendChild(element);
 		}
 		
 		doc.getDocumentElement().appendChild(sqlOutput);
@@ -1036,85 +1225,87 @@ public class SqlTransaction extends TransactionWithVariables {
 		Element element = null;
 		int i = -1;
 		
-		for(List<Map<String,String>> row : rows) {
-			Element parent = (Element)sqlOutput;
-			//int parentLevel = 0;
-			++i;
-			
-			for(Map<String,String> rowElt : row) {
-				String tag = "row" + i;
-				//int level = Integer.parseInt((String)rowElt.get(keywords._level.name()),10);
-				Engine.logBeans.trace("(SqlTransaction) row" + i + " " + rowElt.toString());
+		if (columnHeaders.size() > 0) {
+			for (List<Map<String,String>> row : rows) {
+				Element parent = (Element)sqlOutput;
+				//int parentLevel = 0;
+				++i;
 				
-				boolean exist = xmlMode.isFlat() ? elements.containsKey(tag) : elements.containsKey(rowElt);
-				
-				if (exist) {
-					element = (Element)elements.get(rowElt);
-					if (xmlGrouping) {
-						if (!parent.equals(sqlOutput)) {
-							Node topOfElement = element;
-							while (!topOfElement.getParentNode().equals(sqlOutput))
-								topOfElement = topOfElement.getParentNode();
-							Node topOfParent = parent;
-							while (!topOfParent.getParentNode().equals(sqlOutput))
-								topOfParent = topOfParent.getParentNode();
+				for(Map<String,String> rowElt : row) {
+					String tag = "row" + i;
+					//int level = Integer.parseInt((String)rowElt.get(keywords._level.name()),10);
+					Engine.logBeans.trace("(SqlTransaction) row" + i + " " + rowElt.toString());
 					
-							if (!topOfParent.equals(topOfElement))
-								exist = false;
+					boolean exist = xmlMode.isFlat() ? elements.containsKey(tag) : elements.containsKey(rowElt);
+					
+					if (exist) {
+						element = (Element)elements.get(rowElt);
+						if (xmlGrouping) {
+							if (!parent.equals(sqlOutput)) {
+								Node topOfElement = element;
+								while (!topOfElement.getParentNode().equals(sqlOutput))
+									topOfElement = topOfElement.getParentNode();
+								Node topOfParent = parent;
+								while (!topOfParent.getParentNode().equals(sqlOutput))
+									topOfParent = topOfParent.getParentNode();
+						
+								if (!topOfParent.equals(topOfElement))
+									exist = false;
+							}
+						} else exist = false;
+					}
+					if (!exist) {
+						String tagName;
+						
+						if (xmlMode.is(XmlMode.element_with_attributes)) {
+							tagName = getRowTagname();
 						}
-					} else exist = false;
-				}
-				if (!exist) {
-					String tagName;
-					
-					if (xmlMode.is(XmlMode.element_with_attributes)) {
-						tagName = getRowTagname();
-					}
-					else {
-						tagName = StringUtils.normalize(rowElt.get(keywords._tagname.name()));
-					}
-					
-					element = doc.createElement(tagName);
-
-					if (xmlMode.is(XmlMode.element_with_attributes)) {
-						element.setAttribute("name", rowElt.get(keywords._tagname.name()));
-					}
-					
-					for (String columnName : rowElt.keySet()) {
-						if (!keywords.contains(columnName)) {
-							
-							String value = rowElt.get(columnName);
-							if (xmlMode.is(XmlMode.auto)) {
-								element.setAttribute(StringUtils.normalize(columnName),value);
-							}
-							else if (xmlMode.is(XmlMode.element)) {
-								Node node = doc.createElement(StringUtils.normalize(columnName));
-								node.appendChild(doc.createTextNode(value));
-								element.appendChild(node);
-							}
-							else if (xmlMode.is(XmlMode.element_with_attributes)) {
-								Element node = doc.createElement(getColumnTagname());
-								node.setAttribute("name", columnName);
-								node.appendChild(doc.createTextNode(value));
-								element.appendChild(node);
+						else {
+							tagName = StringUtils.normalize(rowElt.get(keywords._tagname.name()));
+						}
+						
+						element = doc.createElement(tagName);
+	
+						if (xmlMode.is(XmlMode.element_with_attributes)) {
+							element.setAttribute("name", rowElt.get(keywords._tagname.name()));
+						}
+						
+						for (String columnName : rowElt.keySet()) {
+							if (!keywords.contains(columnName)) {
+								
+								String value = rowElt.get(columnName);
+								if (xmlMode.is(XmlMode.auto)) {
+									element.setAttribute(StringUtils.normalize(columnName),value);
+								}
+								else if (xmlMode.is(XmlMode.element)) {
+									Node node = doc.createElement(StringUtils.normalize(columnName));
+									node.appendChild(doc.createTextNode(value));
+									element.appendChild(node);
+								}
+								else if (xmlMode.is(XmlMode.element_with_attributes)) {
+									Element node = doc.createElement(getColumnTagname());
+									node.setAttribute("name", columnName);
+									node.appendChild(doc.createTextNode(value));
+									element.appendChild(node);
+								}
 							}
 						}
+						
+						if (xmlMode.is(XmlMode.element, XmlMode.element_with_attributes, XmlMode.auto)) {
+							elements.put(rowElt, element);
+						}
+						
+						parent.appendChild(element);			
+						Engine.logBeans.trace("(SqlTransaction) parent.appendChild(" + element.toString() + ")");
+						
 					}
 					
-					if (xmlMode.is(XmlMode.element, XmlMode.element_with_attributes, XmlMode.auto)) {
-						elements.put(rowElt, element);
-					}
-					
-					parent.appendChild(element);			
-					Engine.logBeans.trace("(SqlTransaction) parent.appendChild(" + element.toString() + ")");
-					
+					//parentLevel = level;
+					parent = element;
 				}
-				
-				//parentLevel = level;
-				parent = element;
 			}
 		}
-	
+		
 		doc.getDocumentElement().appendChild(sqlOutput);
 			
 		Document output = context.outputDocument;

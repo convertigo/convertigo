@@ -28,12 +28,16 @@ package com.twinsoft.convertigo.beans.connectors;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.CallableStatement;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.Driver;
 import java.sql.DriverManager;
+import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -52,6 +56,7 @@ import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.ConnectorEvent;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
+import com.twinsoft.convertigo.beans.transactions.SqlTransaction.SqlQueryInfos;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -272,8 +277,7 @@ public class SqlConnector extends Connector {
 		}
 	}
 	
-	// public PreparedStatement prepareStatement(String sqlQuery) throws SQLException, ClassNotFoundException, EngineException { 
-	public PreparedStatement prepareStatement(String sqlQuery, Map<String, String> params, List<String> paramsName) throws SQLException, ClassNotFoundException, EngineException {
+	public PreparedStatement prepareStatement(String sqlQuery, SqlQueryInfos sqlQueryInfos) throws SQLException, ClassNotFoundException, EngineException {
 		PreparedStatement preparedStatement = null;
 		if (isClosed() || needReset)
 			open();
@@ -281,9 +285,11 @@ public class SqlConnector extends Connector {
 		// In the case when we want to escape the bracket "\{id\}"
 		sqlQuery = sqlQuery.replace("\\{", "{").replace("\\}", "}");
 		
+		boolean isCallableStmt = sqlQueryInfos.isCallable();
+		
 		try {
 			Engine.logBeans.debug("[SqlConnector] Preparing statement...");
-			preparedStatement = connection.prepareStatement(sqlQuery);
+			preparedStatement = isCallableStmt ? connection.prepareCall(sqlQuery) : connection.prepareStatement(sqlQuery);
 		}
 		catch (SQLException e) {
 			//Retry once (the connector's connection may have been closed)
@@ -292,7 +298,7 @@ public class SqlConnector extends Connector {
 				Engine.logBeans.debug("[SqlConnector] Failure! Try again to prepare statement...");
 				try {
 					open();
-					preparedStatement = connection.prepareStatement(sqlQuery);
+					preparedStatement = isCallableStmt ? connection.prepareCall(sqlQuery) : connection.prepareStatement(sqlQuery);
 				}
 				catch (Exception e1) {
 					throw new EngineException("Unable to retrieve a prepared statement for the query on connection",e1);
@@ -301,19 +307,54 @@ public class SqlConnector extends Connector {
 		}
 		
 		// Call the method prepareParameters with the preparedStatement and the ArrayList 
-		prepareParameters(preparedStatement, params, paramsName); 
+		prepareParameters(preparedStatement, sqlQueryInfos); 
 		
 		return preparedStatement;
 	}
 	
-	private void prepareParameters(PreparedStatement preparedStatement, Map<String, String> params, List<String> paramsName) throws SQLException{ 
-		// We loop and set parameters of the preparedStatement 
-		for (int x = 0 ; x < paramsName.size() ; x++) {
-			preparedStatement.setString( x+1 , params.get( paramsName.get( x ) ) );
-		}
+	private void prepareParameters(PreparedStatement preparedStatement, SqlQueryInfos sqlQueryInfos) throws SQLException{ 
+		List<String> paramsName = sqlQueryInfos.getOrderedParametersList();
+		Map<String, String> params = sqlQueryInfos.getParametersMap();
+		boolean isCallable = sqlQueryInfos.isCallable();
+        
+		ParameterMetaData pmd = preparedStatement.getParameterMetaData();
+        int j = 0;
+        for (int i = 1; i <= pmd.getParameterCount(); i++) {
+        	boolean isIn = false, isOut = false;
+        	int param_mode = pmd.getParameterMode(i);
+            switch (param_mode) {
+	  	    	case DatabaseMetaData.procedureColumnIn :
+	  	    		isIn = true;
+	 	        	break; 
+	  	    	case DatabaseMetaData.procedureColumnInOut :
+	  	    		isIn = true; isOut = true;
+	 	        	break; 
+	  	    	case DatabaseMetaData.procedureColumnOut :
+	  	    	case DatabaseMetaData.procedureColumnReturn :
+	  	    	case DatabaseMetaData.procedureColumnResult :
+	  	    		isOut = true;
+	 	        	break; 
+	  	    	case DatabaseMetaData.procedureColumnUnknown : 
+	  	    	default :
+	  	    		break;  
+            }
+        	int param_type = isCallable ? pmd.getParameterType(i):Types.OTHER;
+            
+            if (isCallable && isOut) {
+            	Engine.logBeans.trace("[SqlConnector] Registering OUT parameter at index "+i);
+            	((CallableStatement)preparedStatement).registerOutParameter(i, param_type);
+            }
+            
+            if (isIn) {
+            	Engine.logBeans.trace("[SqlConnector] Setting IN parameter at index "+i);
+            	String paramName = paramsName.get(j);
+            	preparedStatement.setString(i , params.get(paramName));
+            	j++;
+            }
+        }
 		Engine.logBeans.trace("[SqlConnector] Preparing statement done");
 	}
-
+	
 	public void prepareForTransaction(Context context) throws EngineException {
 		SqlTransaction sqlTransaction = null;
 		try {
