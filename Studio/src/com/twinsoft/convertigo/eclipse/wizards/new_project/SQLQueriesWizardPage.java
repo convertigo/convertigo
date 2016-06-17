@@ -53,11 +53,13 @@ public class SQLQueriesWizardPage extends WizardPage {
 		label.setLayoutData(new GridData (GridData.FILL, GridData.CENTER, false, false, 2, 0) );
 		
 		label = new Label(container, SWT.NONE);
-		label.setText("SQL query syntax example:");
+		label.setText("SQL query syntax examples :");
 		label.setLayoutData( new GridData (GridData.FILL, GridData.CENTER, false, false) );
 		
 		label = new Label(container, SWT.NONE);
-		label.setText("SELECT * FROM EMPLOYEES WHERE (NAME='{parameter_name}')");
+		label.setText("SELECT * FROM EMPLOYEES WHERE (NAME='{parameter_name}')\n"
+				+ "{? = CALL STORED_FUNCTION({parameter_name})}\n"
+				+ "{CALL STORED_PROCEDURE({parameter_name})}");
 		FontData fontData = label.getFont().getFontData()[0];
 		Font font = new Font(container.getDisplay(), new FontData(fontData.getName(), fontData
 		    .getHeight(), SWT.BOLD));

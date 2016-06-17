@@ -52,11 +52,13 @@ public class SqlQueryEditorComposite extends AbstractDialogComposite {
 	private void initialize() {
 		labelSyntaxe = new Label(this, SWT.NONE);
 		
-		labelSyntaxe.setText("SQL query syntax example :\n");
+		labelSyntaxe.setText("SQL query syntax examples :\n");
 		labelSyntaxe.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,false));
 		labelSQLQuery = new Label(this, SWT.NONE);
 		labelSQLQuery.setFont(new Font(null,"Tahoma",8,1));
-		labelSQLQuery.setText("SELECT * FROM EMPLOYEES WHERE (NAME='{parameter_name}')\n\n");
+		labelSQLQuery.setText("SELECT * FROM EMPLOYEES WHERE (NAME='{parameter_name}')\n"
+								+ "{? = CALL STORED_FUNCTION({parameter_name})}\n"
+								+ "{CALL STORED_PROCEDURE({parameter_name})}\n\n");
 		labelSQLQuery.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,false));
 		textAreaSQLQuery = new Text(this, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
 		textAreaSQLQuery.setFont(new Font(null,"Tahoma",10,0));
