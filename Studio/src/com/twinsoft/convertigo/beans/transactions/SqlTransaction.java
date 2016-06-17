@@ -881,7 +881,7 @@ public class SqlTransaction extends TransactionWithVariables {
 							child = doc.createElement("xsd:sequence");
 							parentElt = (Element) parentElt.appendChild(child);
 						}
-						String columnName = (String) col.get(1);
+						String columnName = StringUtils.normalize((String) col.get(1));
 						String columnClassName = (String) col.get(2);
 						String type = null;
 						
