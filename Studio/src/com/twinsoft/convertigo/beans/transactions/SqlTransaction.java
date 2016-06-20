@@ -611,7 +611,7 @@ public class SqlTransaction extends TransactionWithVariables {
 					Object ob = null;
 					try {
 						ob = ((CallableStatement)preparedStatement).getObject(index);
-					} catch (SQLException e) {
+					} catch (Exception e) {
 						Engine.logBeans.error("(SqlTransaction) Exception while getting object for column " + index, e);
 					}
 					String resu = "";
@@ -759,7 +759,7 @@ public class SqlTransaction extends TransactionWithVariables {
 						Object ob = null;
 						try {
 							ob = rs.getObject(index);
-						} catch (SQLException e) {
+						} catch (Exception e) {
 							Engine.logBeans.error("(SqlTransaction) Exception while getting object for column " + index, e);
 						}
 						String resu = "";
