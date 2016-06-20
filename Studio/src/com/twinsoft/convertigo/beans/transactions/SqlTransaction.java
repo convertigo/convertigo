@@ -1329,7 +1329,7 @@ public class SqlTransaction extends TransactionWithVariables {
 		return elt;
 	}
 
-	public Document createDOM(String encodingCharSet) {
+	static public Document createDOM(String encodingCharSet) {
 		Engine.logBeans.debug("(SqlTransaction) XalanServlet: creating DOM");
 
 		Document document = XMLUtils.getDefaultDocumentBuilder().newDocument();

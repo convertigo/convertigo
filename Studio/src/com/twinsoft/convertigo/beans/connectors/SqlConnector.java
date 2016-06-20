@@ -35,6 +35,7 @@ import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
@@ -50,6 +51,7 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.Connector;
@@ -57,12 +59,14 @@ import com.twinsoft.convertigo.beans.core.ConnectorEvent;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
 import com.twinsoft.convertigo.beans.transactions.SqlTransaction.SqlQueryInfos;
+import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.util.StringEx;
@@ -579,5 +583,127 @@ public class SqlConnector extends Connector {
 
 	public void setTestOnBorrow(boolean testOnBorrow) {
 		this.testOnBorrow = testOnBorrow;
+	}
+	
+	static public Document executeSearch(SqlConnector sqlConnector, String pattern) throws EngineException, ClassNotFoundException, SQLException {
+		Document doc = SqlTransaction.createDOM("UTF-8");
+		if (sqlConnector != null) {
+			sqlConnector.open();
+			
+			Connection connection = sqlConnector.connection;
+			DatabaseMetaData dmd = connection.getMetaData();
+			
+			Element item, child;
+			Element root = (Element) doc.appendChild(doc.createElement("items"));
+			
+			// Retrieve all procedures
+			ResultSet rs = dmd.getProcedures(null, null, pattern);
+			while (rs.next()) {
+				item = (Element) root.appendChild(doc.createElement("item"));
+				String callableName = rs.getString("PROCEDURE_NAME");
+				child = (Element) item.appendChild(doc.createElement("NAME"));
+				child.appendChild(doc.createTextNode(callableName));
+				
+				String callableDesc = rs.getString("REMARKS");
+				child = (Element) item.appendChild(doc.createElement("REMARKS"));
+				child.appendChild(doc.createTextNode(callableDesc));
+				
+				child = (Element) item.appendChild(doc.createElement("TYPE"));
+				child.appendChild(doc.createTextNode("PROCEDURE"));
+			}
+			
+			// Retrieve all functions
+			rs = dmd.getFunctions(null, null, pattern);
+			while (rs.next()) {
+				item = (Element) root.appendChild(doc.createElement("item"));
+				String callableName = rs.getString("FUNCTION_NAME");
+				child = (Element) item.appendChild(doc.createElement("NAME"));
+				child.appendChild(doc.createTextNode(callableName));
+				
+				String callableDesc = rs.getString("REMARKS");
+				child = (Element) item.appendChild(doc.createElement("REMARKS"));
+				child.appendChild(doc.createTextNode(callableDesc));
+				
+				child = (Element) item.appendChild(doc.createElement("TYPE"));
+				child.appendChild(doc.createTextNode("FUNCTION"));
+			}
+			
+			rs.close();
+			sqlConnector.close();
+			
+			//System.out.println(XMLUtils.prettyPrintDOM(doc));
+		}
+		return doc;
+	}
+
+	public static SqlTransaction createSqlTransaction(SqlConnector sqlConnector, String callableName) throws EngineException, ClassNotFoundException, SQLException {
+		SqlTransaction sqlTransaction = null;
+		if (sqlConnector != null && !callableName.isEmpty()) {
+			// get a connection
+			sqlConnector.open();
+			
+			// Create transaction
+			sqlTransaction = sqlConnector.newTransaction();
+			sqlTransaction.setName("Call_"+StringUtils.normalize(callableName));
+			sqlTransaction.hasChanged = true;
+			sqlTransaction.bNew = true;
+			
+			// Build sqlQuery and retrieve parameters
+			Connection connection = sqlConnector.connection;
+			if (connection != null) {
+				String sqlQuery = "CALL "+ callableName +"(";
+				boolean isFunction = false;
+				DatabaseMetaData dmd = connection.getMetaData();
+				ResultSet rs = dmd.getProcedureColumns(connection.getCatalog(), null, callableName,"%");
+				while (rs.next()) {
+					try {
+			        	int param_mode = rs.getInt("COLUMN_TYPE");
+			            switch(param_mode) {
+				  	    	case DatabaseMetaData.procedureColumnReturn :
+				  	    	case DatabaseMetaData.procedureColumnResult :
+				  	    		isFunction = true;
+				  	    		break;
+			  	    		case DatabaseMetaData.procedureColumnIn :
+				  	    	case DatabaseMetaData.procedureColumnInOut :
+				  	    		// update query and create input variable
+				  	    		String columnLabel = rs.getString("COLUMN_NAME");
+				  	    		if (columnLabel != null && !columnLabel.isEmpty()) {
+				  	    			RequestableVariable variable = new RequestableVariable();
+				  	    			variable.setName(StringUtils.normalize(columnLabel));
+				  	    			variable.hasChanged = true;
+				  	    			variable.bNew = true;
+				  	    			
+					  	    		sqlQuery += sqlQuery.endsWith("(") ? "":",";
+					  	    		sqlQuery += "{"+ variable.getName()+"}";
+				  	    			
+				  	    			sqlTransaction.addVariable(variable);
+				  	    		}
+				  	    		else {
+					  	    		sqlQuery += sqlQuery.endsWith("(") ? "?":",?";
+				  	    		}
+				  	    		break;
+				  	    	case DatabaseMetaData.procedureColumnOut :
+				  	    		sqlQuery += sqlQuery.endsWith("(") ? "?":",?";
+				  	    		break;
+				  	    	case DatabaseMetaData.procedureColumnUnknown : 
+				  	    	default :
+				  	    		break;  
+			            }
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+				sqlQuery += ")";
+				if (isFunction) {
+					sqlQuery = "? = "+ sqlQuery;
+				}
+				sqlQuery = "{"+sqlQuery+"}";
+				sqlTransaction.setSqlQuery(sqlQuery);
+			}
+			
+			// close connection
+			sqlConnector.close();
+		}
+		return sqlTransaction;
 	}
 }
