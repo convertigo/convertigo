@@ -340,6 +340,7 @@ public class SqlConnector extends Connector {
 	 	        	break; 
 	  	    	case DatabaseMetaData.procedureColumnUnknown : 
 	  	    	default :
+	  	    		isIn = true;
 	  	    		break;  
             }
         	int param_type = isCallable ? pmd.getParameterType(i):Types.OTHER;
