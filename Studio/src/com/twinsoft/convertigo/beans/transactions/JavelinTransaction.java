@@ -923,7 +923,7 @@ public class JavelinTransaction extends TransactionWithVariables {
 			
 			for (int k = 1 ; k < len ; k++) {
 				c = s.charAt(k);
-				if (Character.isDigit(c) || (c == '.') || (c == ',') || (c == ' ')) {
+				if (Character.isDigit(c) || (c == '.') || (c == ',') || (c == ' ')|| (c == '-') || (c == '+')) {
 					result += c;
 				}
 			}
