@@ -30,7 +30,6 @@ import java.io.UnsupportedEncodingException;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -169,7 +168,6 @@ public class SqlTransaction extends TransactionWithVariables {
 	}
 	
 	private transient boolean rollbackDone = false;
-	private transient String errorMessageSQL = "";
 
 	/** Holds value of property xmlGrouping. */
 	private boolean xmlGrouping = false;
@@ -340,7 +338,6 @@ public class SqlTransaction extends TransactionWithVariables {
     	clonedObject.preparedStatement = null;
     	clonedObject.type = type;
     	clonedObject.preparedSqlQueries = null;
-    	clonedObject.errorMessageSQL = "";
     	clonedObject.rollbackDone = false;
     	clonedObject.xsdType = null;
         return clonedObject;
@@ -459,34 +456,47 @@ public class SqlTransaction extends TransactionWithVariables {
 		}
 	}
 	
-	private int doCommit() {
-		int nb = -1;
+	private boolean doCommit() {
+		boolean inError = false;
+		Element sql_output = null;
 		try {
 			// We set the auto-commit in function of the SqlTransaction parameter
 			connector.connection.setAutoCommit(autoCommit == AutoCommitMode.autocommit_each.ordinal());
 
 			connector.connection.commit();
-			nb = 0;
+			
+            if (Engine.logBeans.isTraceEnabled())
+				Engine.logBeans.trace("(SqlTransaction) Explicit commit");
+			
+			sql_output = parseResults(0);
+			
         } catch(SQLException excep) {
-        	if (Engine.logBeans.isTraceEnabled()) {
-				// We get the exception error message
-				errorMessageSQL = excep.getMessage();
-        	}
+        	inError = true;
+        	sql_output = parseResults(excep.getMessage());
         }
-		return nb;
+		
+		if (sql_output != null) {
+			Element outputDocumentRootElement = context.outputDocument.getDocumentElement();
+			outputDocumentRootElement.appendChild(sql_output);
+			score +=1;
+		}
+		
+		return inError;
 	}
 	
 	private boolean doExecute(String query, List<String> logHiddenValues, SqlQueryInfos sqlQueryInfos) throws EngineException, SQLException, ClassNotFoundException {
-		boolean isResultSet = false;
+		Element sql_output = null;
+		boolean inError = false;
 		try {
 			// We set the auto-commit in function of the SqlTransaction parameter
 			connector.connection.setAutoCommit(autoCommit == AutoCommitMode.autocommit_each.ordinal());
 
 			// We execute the query
-			isResultSet = preparedStatement.execute();
+			preparedStatement.execute();
 		}
 		// Retry once (should not happens)
 		catch(Exception e) {
+			inError = true;
 			if (runningThread.bContinue) {
 				if (Engine.logBeans.isTraceEnabled()) {
 					Engine.logBeans.trace("(SqlTransaction) An exception occured :" + e.getMessage());
@@ -501,45 +511,62 @@ public class SqlTransaction extends TransactionWithVariables {
 				query = prepareQuery(logHiddenValues, sqlQueryInfos);
 				try {
 					// We execute the query
-					isResultSet = preparedStatement.execute();
+					preparedStatement.execute();
+					
+					inError = false;
 				} catch(Exception e1) {
-					// We get the exception error message
-					errorMessageSQL = e1.getMessage();
-
+					inError = true;
+					sql_output = parseResults(e1.getMessage());
+					
 					// We rollback if error and if in auto commit false mode
 					if (autoCommit != AutoCommitMode.autocommit_each.ordinal()) {
-						rollbackDone = doRollback(false);
+						inError = doRollback(false);
 					}
 					
-					if (Engine.logBeans.isTraceEnabled())
-						Engine.logBeans.trace("(SqlTransaction) An exception occured :" + errorMessageSQL);
 				}
 			}
 		}
-		return isResultSet;
+		
+		if (sql_output != null) {
+			Element outputDocumentRootElement = context.outputDocument.getDocumentElement();
+			outputDocumentRootElement.appendChild(sql_output);
+			score +=1;
+		}
+		
+		return inError;
 	}
 	
 	private boolean doRollback(boolean setAutoCommit) {
-		boolean rollbackDone = false;
+		Element sql_output = null;
+		boolean inError = true;
 		try {
 			// We set the auto-commit in function of the SqlTransaction parameter
-			if (setAutoCommit)
+			if (setAutoCommit) {
 				connector.connection.setAutoCommit(autoCommit == AutoCommitMode.autocommit_each.ordinal());
-
+			}
+			
 			connector.connection.rollback();
 
-            if (Engine.logBeans.isTraceEnabled())
-				Engine.logBeans.trace("(SqlTransaction) Explicit rollback");
+            if (Engine.logBeans.isTraceEnabled()) {
+            	if (setAutoCommit)
+            		Engine.logBeans.trace("(SqlTransaction) Explicit rollback");
+            	else
+            		Engine.logBeans.trace("(SqlTransaction) Implicit rollback");
+            }
             
             rollbackDone = true;
+            sql_output = parseResults(0);
         } catch(SQLException excep) {
-        	if (Engine.logBeans.isTraceEnabled()) {
-				// We get the exception error message
-				errorMessageSQL = excep.getMessage();
-        	}
-        }										
+        	inError = true;
+        	sql_output = parseResults(excep.getMessage());
+        }
 		
-		return rollbackDone;									
+		if (sql_output != null && setAutoCommit) {
+			Element outputDocumentRootElement = context.outputDocument.getDocumentElement();
+			outputDocumentRootElement.appendChild(sql_output);
+		}
+		
+		return inError;
 	}
 	
 	private void getQueryOuts(Element xsd_parent, SqlQueryInfos sqlQueryInfos) throws SQLException {
@@ -550,26 +577,23 @@ public class SqlTransaction extends TransactionWithVariables {
 			List<String> columnHeaders = new LinkedList<String>();
 			
 			// Retrieve column names, class names
-			String procedure = sqlQueryInfos.getProcedure();
 			Connection connection = preparedStatement.getConnection();
-			DatabaseMetaData dmd = connection.getMetaData(); 
-			ResultSet infos = dmd.getProcedureColumns(connection.getCatalog(), null, procedure,"%"); 
 			
-			ParameterMetaData pmd = ((CallableStatement)preparedStatement).getParameterMetaData();
+			int i = 1;
 			List<List<Object>> columns = new LinkedList<List<Object>>();
 			tables.put("TABLE", columns);
 			int numberOfColumns = 0;
-	        for (int i = 1; i <= pmd.getParameterCount(); i++) {
-	        	Integer columnIndex = i;
-	        	String columnLabel = "";
-	        	try {
-	        		infos.next();
-	        		columnLabel = infos.getString("COLUMN_NAME");
-	        	} catch (Exception e) {}
-	        	String columnName = columnLabel.isEmpty() ? (getColumnTagname() + i):columnLabel;
-	        	String columnClassName = pmd.getParameterClassName(i);
-	        	int param_mode = pmd.getParameterMode(i);
-	            switch(param_mode) {
+			List<Map<String, Object>> parameterList = SqlConnector.getProcedureParameters(connection, sqlQueryInfos);
+			for (Map<String, Object> parameterMap : parameterList) {
+				Integer columnIndex = i;
+				String param_name = (String) parameterMap.get("COLUMN_NAME");
+				int param_mode = (Integer) parameterMap.get("COLUMN_TYPE");
+				int param_type = (Integer) parameterMap.get("DATA_TYPE");
+	        	
+				String columnName = param_name.isEmpty() ? (getColumnTagname() + i):param_name;
+				String columnClassName = SqlConnector.getParameterJavaClass(param_type).getName();
+	        	
+	            switch (param_mode) {
 		  	    	case DatabaseMetaData.procedureColumnInOut :
 		  	    	case DatabaseMetaData.procedureColumnOut :
 		  	    	case DatabaseMetaData.procedureColumnReturn :
@@ -590,12 +614,9 @@ public class SqlTransaction extends TransactionWithVariables {
 		  	    	default :
 		  	    		break;  
 	            }
-	        }
-	        
-	        try {
-	        	infos.close();
-	        } catch (Exception e) {}
-	        
+	            i++;
+			}
+			
 	        // Retrieve results
 			List<String> line = new ArrayList<String>(Collections.nCopies(numberOfColumns, ""));
 			List<Map<String,String>> row = new ArrayList<Map<String,String>>(tables.size());
@@ -667,12 +688,8 @@ public class SqlTransaction extends TransactionWithVariables {
 			connector.setData(lines, columnHeaders);
 				
 			// Build XML response
-			boolean inError = !errorMessageSQL.equals("");
 			Element sql_output = null;
-			if (inError) {
-				sql_output = parseResults(-1);
-			}
-			else if (rows != null) {
+			if (rows != null) {
 				if (xmlMode.isFlat()) {
 					sql_output = parseResultsFlat(lines, columnHeaders);
 				} else {
@@ -680,19 +697,17 @@ public class SqlTransaction extends TransactionWithVariables {
 				}					
 			}
 			
+			// Append output results
 			if (sql_output != null) {
-				// Append output results
-				Element imported = (Element) context.outputDocument.importNode(sql_output,true);
-				Element appended = (Element) context.outputDocument.getDocumentElement().appendChild(imported);
+				Element outputDocumentRootElement = context.outputDocument.getDocumentElement();
+				Element appended = (Element) outputDocumentRootElement.appendChild(sql_output);
 				
 				/* See if code below is needed */
 				// In case of procedure call : remove previous updatecount (not needed for function call)
 				Element previous = (Element) appended.getPreviousSibling();
 				if (previous != null) {
-					context.outputDocument.getDocumentElement().removeChild(previous);
+					outputDocumentRootElement.removeChild(previous);
 				}/**/
-				
-				score +=1;
 			}
 		}
 	}
@@ -811,28 +826,21 @@ public class SqlTransaction extends TransactionWithVariables {
 		connector.setData(lines, columnHeaders);
 			
 		// Build XML response
-		boolean inError = !errorMessageSQL.equals("");
 		Element sql_output = null;
-		if (inError) {
-			sql_output = parseResults(-1);
+		if (rows != null) {
+			if (xmlMode.isFlat()) {
+				sql_output = parseResultsFlat(lines, columnHeaders);
+			} else {
+				sql_output = parseResultsHierarchical(rows, columnHeaders);
+			}					
 		}
-		else {
-			if (rows != null) {
-				if (xmlMode.isFlat()) {
-					sql_output = parseResultsFlat(lines, columnHeaders);
-				} else {
-					sql_output = parseResultsHierarchical(rows, columnHeaders);
-				}					
-			}
-			else if (nb >= 0) {
-				sql_output = parseResults(nb);
-			}
+		else if (nb >= 0) {
+			sql_output = parseResults(nb);
 		}
 		
 		if (sql_output != null) {
 			Element outputDocumentRootElement = context.outputDocument.getDocumentElement();
 			outputDocumentRootElement.appendChild(sql_output);
-			score +=1;
 		}
 	}
 	
@@ -946,7 +954,6 @@ public class SqlTransaction extends TransactionWithVariables {
 			List<String> logHiddenValues = new ArrayList<String>();
 			
 			connector = ((SqlConnector) parent);
-			errorMessageSQL = "";
 			rollbackDone = false;
 			
 			if (!runningThread.bContinue)
@@ -956,56 +963,55 @@ public class SqlTransaction extends TransactionWithVariables {
 			if (!checkVariables(preparedSqlQueries)) {
 				preparedSqlQueries = initializeQueries(true);
 			}
-					
-			if (!preparedSqlQueries.get(0).getParametersMap().isEmpty()) {
-				preparedSqlQueries.get(0).getParametersMap().get(preparedSqlQueries.get(0).getOrderedParametersList().get(0));
+			
+			if (preparedSqlQueries.size() > 0) {
+				if (!preparedSqlQueries.get(0).getParametersMap().isEmpty()) {
+					preparedSqlQueries.get(0).getParametersMap().get(preparedSqlQueries.get(0).getOrderedParametersList().get(0));
+				}
 			}
-
+			
 			// Start generating the response schema
 			Element xsd_parent = getSchemaContainerElement();
 			
+			boolean inError = false;
 			for (SqlQueryInfos sqlQueryInfos : preparedSqlQueries) {
-
-				if (errorMessageSQL.equals("")) {			
-					// Prepare the query and retrieve its type
-					String query = prepareQuery(logHiddenValues, sqlQueryInfos);
-					
-					if (!runningThread.bContinue)
-						return;
-					
-					// Execute the SELECT query
-					SqlKeywords queryType = sqlQueryInfos.getType();
-					switch(queryType) {
-						case commit:
-							{
-								Integer nb = doCommit();
-								parseResults(nb);
-							}
-							break;
+				// Prepare the query and retrieve its type
+				String query = prepareQuery(logHiddenValues, sqlQueryInfos);
+				
+				if (!runningThread.bContinue)
+					return;
+				
+				// Execute the SELECT query
+				SqlKeywords queryType = sqlQueryInfos.getType();
+				switch(queryType) {
+					case commit:
+						{
+							inError = doCommit();
+						}
+						break;
+						
+					case rollback:
+						{
+							inError = doRollback(true);
+						}
+						break;
+				
+					case call:
+					case select:
+					case replace:
+					case create_table:
+					case drop_table:
+					case truncate_table:
+					case update:
+					case insert:
+					case delete:
+					case unknown:
+						{
+							// execute query
+							inError = doExecute(query, logHiddenValues, sqlQueryInfos);
 							
-						case rollback:
-							{
-								rollbackDone = doRollback(true);
-								Integer nb = rollbackDone ? 0:-1;
-								parseResults(nb);
-							}
-							break;
-					
-						case call:
-						case select:
-						case replace:
-						case create_table:
-						case drop_table:
-						case truncate_table:
-						case update:
-						case insert:
-						case delete:
-						case unknown:
-							{
-								// execute query
-								doExecute(query, logHiddenValues, sqlQueryInfos);
-								
-								// retrieve and append results/outputs, build inner xsd
+							// retrieve and append results/outputs, build inner xsd
+							if (!inError) {
 								try {
 									boolean bContinue = true;
 									ResultSet rs = null;
@@ -1015,6 +1021,9 @@ public class SqlTransaction extends TransactionWithVariables {
 									boolean shouldShow = true;//!sqlQueryInfos.isCallable();
 									if (shouldShow) {
 										do {
+											if (!runningThread.bContinue)
+												return;
+											
 											rs = preparedStatement.getResultSet();
 											if (rs == null) {
 												nb = preparedStatement.getUpdateCount();
@@ -1028,6 +1037,7 @@ public class SqlTransaction extends TransactionWithVariables {
 											else {
 												bContinue = false;
 											}
+											
 										} while (bContinue);
 									}
 									
@@ -1035,17 +1045,17 @@ public class SqlTransaction extends TransactionWithVariables {
 									getQueryOuts(xsd_parent, sqlQueryInfos);
 								}
 								catch (SQLException e) {
-						        	if (Engine.logBeans.isTraceEnabled()) {
-										// We get the exception error message
-										errorMessageSQL = e.getMessage();
-						        	}
+									inError = true;
+									parseResults(e.getMessage());
 								}
 							}
-							break;
-						default:
-							break;
-					}
+						}
+						break;
+					default:
+						break;
 				}
+				
+				score += 1;
 				
 				// Close statement and current resulset if exist
 				if (preparedStatement != null)
@@ -1054,7 +1064,7 @@ public class SqlTransaction extends TransactionWithVariables {
 				if (!runningThread.bContinue)
 					return;
 				
-				if (!errorMessageSQL.equals(""))
+				if (inError)
 					break;
 			}
 			
@@ -1063,10 +1073,11 @@ public class SqlTransaction extends TransactionWithVariables {
 				try {
 					connector.connection.commit();
 	            } catch(SQLException excep) {
-	            	if (Engine.logBeans.isTraceEnabled()) {
-						// We get the exception error message
-						errorMessageSQL = excep.getMessage();
-	            	}
+					Element sql_output = parseResults(excep.getMessage());
+					if (sql_output != null) {
+						Element outputDocumentRootElement = context.outputDocument.getDocumentElement();
+						outputDocumentRootElement.appendChild(sql_output);
+					}
 	            }										
 			}
 			
@@ -1173,24 +1184,34 @@ public class SqlTransaction extends TransactionWithVariables {
     	return xsdType;
     }
     
-	private Element parseResults(int num) {
+	private Element parseResults(String errorMessageSQL) {
+		if (Engine.logBeans.isTraceEnabled())
+			Engine.logBeans.trace("(SqlTransaction) An exception occured :" + errorMessageSQL);
+		
 		Document doc = createDOM(getEncodingCharSet());
 		Node document = doc.appendChild(doc.createElement("document"));
 		Node sqlOutput  = document.appendChild(doc.createElement("sql_output"));
-		if( num >= 0) {
-			sqlOutput.appendChild(doc.createElement("result").appendChild(doc.createTextNode(num+" row(s) updated")));
-		// We add the SQL error message into the XML output
-		} else {
-			sqlOutput = document.appendChild(doc.createElement("error"));
-			sqlOutput.appendChild(doc.createElement("result").appendChild(doc.createTextNode(errorMessageSQL)));
-		}
+		sqlOutput = document.appendChild(doc.createElement("error"));
+		sqlOutput.appendChild(doc.createElement("result").appendChild(doc.createTextNode(errorMessageSQL)));
 		doc.getDocumentElement().appendChild(sqlOutput);
 			
 		Document output = context.outputDocument;
 		Element elt = (Element)output.importNode(sqlOutput,true);
 		return elt;
 	}
-	
+    
+	private Element parseResults(int num) {
+		Document doc = createDOM(getEncodingCharSet());
+		Node document = doc.appendChild(doc.createElement("document"));
+		Node sqlOutput  = document.appendChild(doc.createElement("sql_output"));
+		sqlOutput.appendChild(doc.createElement("result").appendChild(doc.createTextNode(num+" row(s) updated")));
+		doc.getDocumentElement().appendChild(sqlOutput);
+			
+		Document output = context.outputDocument;
+		Element elt = (Element)output.importNode(sqlOutput,true);
+		return elt;
+	}
+
 	private Element parseResultsFlat(List<List<String>> lines, List<String> columnHeaders) {
 		Document doc = createDOM(getEncodingCharSet());
 		Element document = (Element) doc.appendChild(doc.createElement("document"));

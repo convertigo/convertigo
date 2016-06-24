@@ -28,17 +28,19 @@ package com.twinsoft.convertigo.beans.connectors;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Driver;
 import java.sql.DriverManager;
-import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -317,46 +319,58 @@ public class SqlConnector extends Connector {
 	}
 	
 	private void prepareParameters(PreparedStatement preparedStatement, SqlQueryInfos sqlQueryInfos) throws SQLException{ 
-		List<String> paramsName = sqlQueryInfos.getOrderedParametersList();
-		Map<String, String> params = sqlQueryInfos.getParametersMap();
-		boolean isCallable = sqlQueryInfos.isCallable();
-        
-		ParameterMetaData pmd = preparedStatement.getParameterMetaData();
-        int j = 0;
-        for (int i = 1; i <= pmd.getParameterCount(); i++) {
-        	boolean isIn = false, isOut = false;
-        	int param_mode = pmd.getParameterMode(i);
-            switch (param_mode) {
-	  	    	case DatabaseMetaData.procedureColumnIn :
-	  	    		isIn = true;
-	 	        	break; 
-	  	    	case DatabaseMetaData.procedureColumnInOut :
-	  	    		isIn = true; isOut = true;
-	 	        	break; 
-	  	    	case DatabaseMetaData.procedureColumnOut :
-	  	    	case DatabaseMetaData.procedureColumnReturn :
-	  	    	case DatabaseMetaData.procedureColumnResult :
-	  	    		isOut = true;
-	 	        	break; 
-	  	    	case DatabaseMetaData.procedureColumnUnknown : 
-	  	    	default :
-	  	    		isIn = true;
-	  	    		break;  
-            }
-        	int param_type = isCallable ? pmd.getParameterType(i):Types.OTHER;
-            
-            if (isCallable && isOut) {
-            	Engine.logBeans.trace("[SqlConnector] Registering OUT parameter at index "+i);
-            	((CallableStatement)preparedStatement).registerOutParameter(i, param_type);
-            }
-            
-            if (isIn) {
-            	Engine.logBeans.trace("[SqlConnector] Setting IN parameter at index "+i);
-            	String paramName = paramsName.get(j);
-            	preparedStatement.setString(i , params.get(paramName));
-            	j++;
-            }
-        }
+		Map<String, String> values = sqlQueryInfos.getParametersMap();
+//		if (sqlQueryInfos.isCallable()) {
+			int i = 1;
+			List<Map<String, Object>> parameterList = getProcedureParameters(connection, sqlQueryInfos);
+			for (Map<String, Object> parameterMap : parameterList) {
+				boolean isIn = false, isOut = false;
+				String param_name = (String) parameterMap.get("COLUMN_NAME");
+				int param_mode = (Integer) parameterMap.get("COLUMN_TYPE");
+				int param_type = (Integer) parameterMap.get("DATA_TYPE");
+	            switch (param_mode) {
+		  	    	case DatabaseMetaData.procedureColumnIn :
+		  	    		isIn = true;
+		 	        	break; 
+		  	    	case DatabaseMetaData.procedureColumnInOut :
+		  	    		isIn = true; isOut = true;
+		 	        	break; 
+		  	    	case DatabaseMetaData.procedureColumnOut :
+		  	    	case DatabaseMetaData.procedureColumnReturn :
+		  	    	case DatabaseMetaData.procedureColumnResult :
+		  	    		isOut = true;
+		 	        	break; 
+		  	    	case DatabaseMetaData.procedureColumnUnknown : 
+		  	    	default :
+		  	    		break;  
+	            }
+	            
+	            if (isOut) {
+	            	Engine.logBeans.trace("[SqlConnector] Registering OUT parameter at index "+i);
+	            	((CallableStatement)preparedStatement).registerOutParameter(i, param_type);
+	            }
+	            
+	            if (isIn) {
+	            	Engine.logBeans.trace("[SqlConnector] Setting IN parameter at index "+i);
+	            	String param_in = StringUtils.normalize(param_name);
+	            	Object java_value = null;
+					try {
+						java_value = getParameterJavaValue(param_type, values.get(param_in));
+						preparedStatement.setObject(i , java_value);
+					} catch (Exception e) {
+						Engine.logBeans.warn("[SqlConnector] Error generating value for parameter at index "+i, e);
+						preparedStatement.setNull(i, Types.OTHER);
+					}
+	            }
+	            i++;
+			}
+//		}
+//		else {
+//			List<String> params = sqlQueryInfos.getOrderedParametersList();
+//			for (int i=0; i <params.size(); i++) {
+//				preparedStatement.setString(i+1 , values.get(params.get(i)));
+//			}
+//		}
 		Engine.logBeans.trace("[SqlConnector] Preparing statement done");
 	}
 	
@@ -586,50 +600,231 @@ public class SqlConnector extends Connector {
 		this.testOnBorrow = testOnBorrow;
 	}
 	
+	static public Object getParameterJavaValue(int param_type, String value) throws UnsupportedEncodingException, MalformedURLException, SQLException {
+		if (value != null) {
+			switch (param_type) {
+		    	case Types.ARRAY: 
+		    		return value.split(",");
+		        case Types.BIGINT: 
+		        	return Long.valueOf(value);
+		        case Types.BINARY: 
+		        	return String.valueOf(value).getBytes("UTF-8");
+		        case Types.BIT: 
+		        	return Boolean.valueOf(value);
+		        case Types.BLOB:
+		        	return value;//connection.createBlob();//
+		        case Types.BOOLEAN:
+		        	return Boolean.valueOf(value);
+		        case Types.CHAR: 
+		        	return String.valueOf(value);
+		        case Types.CLOB: 
+		        	return value;//connection.createClob();//
+		        case Types.DATALINK: 
+		        	return new java.net.URL(value);
+		        case Types.DATE: 
+		        	return java.sql.Date.valueOf(value); 
+		        case Types.DECIMAL: 
+		        	return java.math.BigDecimal.valueOf(Double.valueOf(value)); 
+		        case Types.DISTINCT: 
+		        	return value;//Object.class; 
+		        case Types.DOUBLE: 
+		        	return Double.valueOf(value); 
+		        case Types.FLOAT: 
+		        	return Double.valueOf(value); 
+		        case Types.INTEGER: 
+		        	return Integer.valueOf(value, 10); 
+		        case Types.JAVA_OBJECT: 
+		        	return value;//Object.class; 
+		        case Types.LONGVARBINARY: 
+		        	return String.valueOf(value).getBytes("UTF-8"); 
+		        case Types.LONGVARCHAR: 
+		        	return String.valueOf(value);
+		        case Types.NCLOB: 
+		        	return value;//connection.createNClob();//
+		        case Types.NULL: 
+		        	return null;//Object.class; 
+		        case Types.NUMERIC: 
+		        	return java.math.BigDecimal.valueOf(Double.parseDouble(value));  
+		        case Types.NCHAR: 
+		        case Types.NVARCHAR: 
+		        case Types.LONGNVARCHAR: 
+		        	return String.valueOf(value);
+		        case Types.OTHER: 
+		        	return value;//Object.class; 
+		        case Types.REAL: 
+		        	return Float.parseFloat(value); 
+		        case Types.REF: 
+		        	return value;//java.sql.Ref.class;
+		        case Types.ROWID: 
+		        	return value;//java.sql.RowId.class; 
+		        case Types.SMALLINT: 
+		        	return Short.valueOf(value); 
+		        case Types.STRUCT: 
+		        	return value;//connection.createStruct(typeName, attributes);//
+		        case Types.SQLXML: 
+		        	return value;//connection.createSQLXML();//
+		        case Types.TIME: 
+		        	return java.sql.Time.valueOf(value); 
+		        case Types.TIMESTAMP: 
+		        	return java.sql.Timestamp.valueOf(value); 
+		        case Types.TINYINT: 
+		        	return Byte.valueOf(value); 
+		        case Types.VARBINARY: 
+		        	return String.valueOf(value).getBytes("UTF-8");
+		        case Types.VARCHAR: 
+		        	return String.valueOf(value);
+		        default: 
+		        	return value;
+	        }
+		}
+		return null;
+	}
+	
+	static public Class<?> getParameterJavaClass(int param_type) {
+		switch (param_type) {
+	    	case Types.ARRAY: 
+	    		return Object[].class; 
+	        case Types.BIGINT: 
+	        	return Long.class; 
+	        case Types.BINARY: 
+	        	return byte[].class; 
+	        case Types.BIT: 
+	        	return Boolean.class; 
+	        case Types.BLOB: 
+	        	return java.sql.Blob.class; 
+	        case Types.BOOLEAN:
+	        	return Boolean.class; 
+	        case Types.CHAR: 
+	        	return String.class; 
+	        case Types.CLOB: 
+	        	return java.sql.Clob.class; 
+	        case Types.DATALINK: 
+	        	return java.net.URL.class; 
+	        case Types.DATE: 
+	        	return java.sql.Date.class; 
+	        case Types.DECIMAL: 
+	        	return java.math.BigDecimal.class; 
+	        case Types.DISTINCT: 
+	        	return Object.class; 
+	        case Types.DOUBLE: 
+	        	return Double.class; 
+	        case Types.FLOAT: 
+	        	return Double.class; 
+	        case Types.INTEGER: 
+	        	return Integer.class; 
+	        case Types.JAVA_OBJECT: 
+	        	return Object.class; 
+	        case Types.LONGVARBINARY: 
+	        	return byte[].class; 
+	        case Types.LONGVARCHAR: 
+	        	return String.class; 
+	        case Types.NCLOB: 
+	        	return java.sql.NClob.class; 
+	        case Types.NULL: 
+	        	return Object.class; 
+	        case Types.NUMERIC: 
+	        	return java.math.BigDecimal.class; 
+	        case Types.NCHAR: 
+	        case Types.NVARCHAR: 
+	        case Types.LONGNVARCHAR: 
+	        	return String.class; 
+	        case Types.OTHER: 
+	        	return Object.class; 
+	        case Types.REAL: 
+	        	return Float.class; 
+	        case Types.REF: 
+	        	return java.sql.Ref.class; 
+	        case Types.ROWID: 
+	        	return java.sql.RowId.class; 
+	        case Types.SMALLINT: 
+	        	return Short.class; 
+	        case Types.STRUCT: 
+	        	return java.sql.Struct.class; 
+	        case Types.SQLXML: 
+	        	return java.sql.SQLXML.class; 
+	        case Types.TIME: 
+	        	return java.sql.Time.class; 
+	        case Types.TIMESTAMP: 
+	        	return java.sql.Timestamp.class; 
+	        case Types.TINYINT: 
+	        	return Byte.class; 
+	        case Types.VARBINARY: 
+	        	return byte[].class; 
+	        case Types.VARCHAR: 
+	        	return String.class; 
+	        default: 
+	        	return Object.class;
+        }
+	}
+	
 	static public Document executeSearch(SqlConnector sqlConnector, String pattern) throws EngineException, ClassNotFoundException, SQLException {
 		Document doc = SqlTransaction.createDOM("UTF-8");
 		if (sqlConnector != null) {
 			sqlConnector.open();
 			
-			Connection connection = sqlConnector.connection;
-			DatabaseMetaData dmd = connection.getMetaData();
-			
-			Element item, child;
-			Element root = (Element) doc.appendChild(doc.createElement("items"));
-			
-			// Retrieve all procedures
-			ResultSet rs = dmd.getProcedures(null, null, pattern);
-			while (rs.next()) {
-				item = (Element) root.appendChild(doc.createElement("item"));
-				String callableName = rs.getString("PROCEDURE_NAME");
-				child = (Element) item.appendChild(doc.createElement("NAME"));
-				child.appendChild(doc.createTextNode(callableName));
+			ResultSet rs = null;
+			try {
 				
-				String callableDesc = rs.getString("REMARKS");
-				child = (Element) item.appendChild(doc.createElement("REMARKS"));
-				child.appendChild(doc.createTextNode(callableDesc));
+				Connection connection = sqlConnector.connection;
+				DatabaseMetaData dmd = connection.getMetaData();
+				String catalog = connection.getCatalog();
 				
-				child = (Element) item.appendChild(doc.createElement("TYPE"));
-				child.appendChild(doc.createTextNode("PROCEDURE"));
+				Element item, child;
+				Element root = (Element) doc.appendChild(doc.createElement("items"));
+				
+				// Retrieve all stored procedures
+				rs = dmd.getProcedures(catalog, null, pattern);
+				if (rs != null) {
+					while (rs.next()) {
+						item = (Element) root.appendChild(doc.createElement("item"));
+						
+						String callableName = rs.getString("PROCEDURE_NAME");
+						child = (Element) item.appendChild(doc.createElement("NAME"));
+						child.appendChild(doc.createTextNode(callableName));
+						child.setAttribute("specific_name", rs.getString("SPECIFIC_NAME"));
+						
+						String callableDesc = rs.getString("REMARKS");
+						child = (Element) item.appendChild(doc.createElement("REMARKS"));
+						child.appendChild(doc.createTextNode(callableDesc));
+						
+						child = (Element) item.appendChild(doc.createElement("TYPE"));
+						child.appendChild(doc.createTextNode("PROCEDURE"));
+					}
+					rs.close();
+					rs = null;
+				}
+				
+				// Retrieve all stored functions
+				rs = dmd.getFunctions(catalog, null, pattern);
+				if (rs != null) {
+					while (rs.next()) {
+						item = (Element) root.appendChild(doc.createElement("item"));
+						String callableName = rs.getString(3);//"FUNCTION_NAME");
+						child = (Element) item.appendChild(doc.createElement("NAME"));
+						child.appendChild(doc.createTextNode(callableName));
+						child.setAttribute("specific_name", rs.getString("SPECIFIC_NAME"));
+						
+						String callableDesc = rs.getString("REMARKS");
+						child = (Element) item.appendChild(doc.createElement("REMARKS"));
+						child.appendChild(doc.createTextNode(callableDesc));
+						
+						child = (Element) item.appendChild(doc.createElement("TYPE"));
+						child.appendChild(doc.createTextNode("FUNCTION"));
+					}
+					rs.close();
+					rs = null;
+				}
+			}
+			catch (Throwable t) {
+				t.printStackTrace();
+			}
+			finally {
+				if (rs != null) {
+					rs.close();
+				}
+				rs = null;
 			}
 			
-			// Retrieve all functions
-			rs = dmd.getFunctions(null, null, pattern);
-			while (rs.next()) {
-				item = (Element) root.appendChild(doc.createElement("item"));
-				String callableName = rs.getString("FUNCTION_NAME");
-				child = (Element) item.appendChild(doc.createElement("NAME"));
-				child.appendChild(doc.createTextNode(callableName));
-				
-				String callableDesc = rs.getString("REMARKS");
-				child = (Element) item.appendChild(doc.createElement("REMARKS"));
-				child.appendChild(doc.createTextNode(callableDesc));
-				
-				child = (Element) item.appendChild(doc.createElement("TYPE"));
-				child.appendChild(doc.createTextNode("FUNCTION"));
-			}
-			
-			rs.close();
 			sqlConnector.close();
 			
 			//System.out.println(XMLUtils.prettyPrintDOM(doc));
@@ -637,7 +832,74 @@ public class SqlConnector extends Connector {
 		return doc;
 	}
 
-	public static SqlTransaction createSqlTransaction(SqlConnector sqlConnector, String callableName) throws EngineException, ClassNotFoundException, SQLException {
+	public static List<Map<String, Object>> getProcedureParameters(Connection connection, SqlQueryInfos sqlQueryInfos) {
+		if (sqlQueryInfos.isCallable()) {
+			return getProcedureParameters(connection, sqlQueryInfos.getProcedure());
+		}
+		else {
+			List<Map<String, Object>> parameterList = new ArrayList<Map<String, Object>>();
+			for (String param : sqlQueryInfos.getOrderedParametersList()) {
+				Map<String, Object> parameterMap = new HashMap<String, Object>();
+				parameterMap.put("COLUMN_NAME", param);
+				parameterMap.put("COLUMN_TYPE", DatabaseMetaData.procedureColumnIn);
+				parameterMap.put("DATA_TYPE", Types.VARCHAR);
+				parameterList.add(parameterMap);
+			}
+			return parameterList;
+		}
+	}
+	
+	public static List<Map<String, Object>> getProcedureParameters(Connection connection, String procedure) {
+		List<Map<String, Object>> parameterList = new ArrayList<Map<String, Object>>();
+		if (connection != null && procedure != null && !procedure.isEmpty()) {
+			try {
+				int i=1;
+				DatabaseMetaData dmd = connection.getMetaData();
+				ResultSet rs = dmd.getProcedureColumns(connection.getCatalog(), null, procedure,"%");
+				while (rs.next()) {
+					Map<String, Object> parameterMap = new HashMap<String, Object>();
+					try {
+						parameterMap.put("SPECIFIC_NAME", rs.getString("SPECIFIC_NAME"));
+					} catch (SQLException e) {
+						Engine.logBeans.warn("Unable to retrieve specific name for procedure '"+procedure+"'", e);
+						parameterMap.put("SPECIFIC_NAME", procedure);
+					}
+					try {
+						parameterMap.put("PROCEDURE_NAME", rs.getString("PROCEDURE_NAME"));
+					} catch (SQLException e) {
+						Engine.logBeans.warn("Unable to retrieve specific name for procedure '"+procedure+"'", e);
+						parameterMap.put("PROCEDURE_NAME", procedure);
+					}
+					try {
+						parameterMap.put("COLUMN_NAME", rs.getString("COLUMN_NAME"));
+					} catch (SQLException e) {
+						Engine.logBeans.warn("Unable to retrieve parameter name for procedure '"+procedure+"'", e);
+						parameterMap.put("COLUMN_NAME", "column"+i);
+					}
+					try {
+						parameterMap.put("COLUMN_TYPE", rs.getInt("COLUMN_TYPE"));
+					} catch (SQLException e) {
+						Engine.logBeans.warn("Unable to retrieve parameter type for procedure '"+procedure+"'", e);
+						parameterMap.put("COLUMN_TYPE", 0);
+					}
+					try {
+						parameterMap.put("DATA_TYPE", rs.getInt("DATA_TYPE"));
+					} catch (SQLException e) {
+						Engine.logBeans.warn("Unable to retrieve parameter data type for procedure '"+procedure+"'", e);
+						parameterMap.put("DATA_TYPE", 0);
+					}
+					parameterList.add(parameterMap);
+					i++;
+				}
+			}
+			catch (SQLException e) {
+				Engine.logBeans.error("Unable to retrieve parameters for procedure '"+procedure+"'", e);
+			}
+		}
+		return parameterList;
+	}
+	
+	public static SqlTransaction createSqlTransaction(SqlConnector sqlConnector, String callableName, String specific_name) throws EngineException, ClassNotFoundException, SQLException {
 		SqlTransaction sqlTransaction = null;
 		if (sqlConnector != null && !callableName.isEmpty()) {
 			// get a connection
@@ -650,57 +912,54 @@ public class SqlConnector extends Connector {
 			sqlTransaction.bNew = true;
 			
 			// Build sqlQuery and retrieve parameters
+			boolean isFunction = false;
+			String sqlQuery = "CALL "+ callableName +"(";
 			Connection connection = sqlConnector.connection;
-			if (connection != null) {
-				String sqlQuery = "CALL "+ callableName +"(";
-				boolean isFunction = false;
-				DatabaseMetaData dmd = connection.getMetaData();
-				ResultSet rs = dmd.getProcedureColumns(connection.getCatalog(), null, callableName,"%");
-				while (rs.next()) {
-					try {
-			        	int param_mode = rs.getInt("COLUMN_TYPE");
-			            switch(param_mode) {
-				  	    	case DatabaseMetaData.procedureColumnReturn :
-				  	    	case DatabaseMetaData.procedureColumnResult :
-				  	    		isFunction = true;
-				  	    		break;
-			  	    		case DatabaseMetaData.procedureColumnIn :
-				  	    	case DatabaseMetaData.procedureColumnInOut :
-				  	    		// update query and create input variable
-				  	    		String columnLabel = rs.getString("COLUMN_NAME");
-				  	    		if (columnLabel != null && !columnLabel.isEmpty()) {
-				  	    			RequestableVariable variable = new RequestableVariable();
-				  	    			variable.setName(StringUtils.normalize(columnLabel));
-				  	    			variable.hasChanged = true;
-				  	    			variable.bNew = true;
-				  	    			
-					  	    		sqlQuery += sqlQuery.endsWith("(") ? "":",";
-					  	    		sqlQuery += "{"+ variable.getName()+"}";
-				  	    			
-				  	    			sqlTransaction.addVariable(variable);
-				  	    		}
-				  	    		else {
-					  	    		sqlQuery += sqlQuery.endsWith("(") ? "?":",?";
-				  	    		}
-				  	    		break;
-				  	    	case DatabaseMetaData.procedureColumnOut :
+			List<Map<String, Object>> parameterList = getProcedureParameters(connection, callableName);
+			for (Map<String, Object> parameterMap : parameterList) {
+				String proc_specific_name = (String) parameterMap.get("SPECIFIC_NAME");
+				if (specific_name.equals(proc_specific_name)) {
+					String param_name = (String) parameterMap.get("COLUMN_NAME");
+					int param_mode = (Integer) parameterMap.get("COLUMN_TYPE");
+					//int param_type = (Integer) parameterMap.get("DATA_TYPE");
+		            switch(param_mode) {
+			  	    	case DatabaseMetaData.procedureColumnReturn :
+			  	    	case DatabaseMetaData.procedureColumnResult :
+			  	    		isFunction = true;
+			  	    		break;
+		  	    		case DatabaseMetaData.procedureColumnIn :
+			  	    	case DatabaseMetaData.procedureColumnInOut :
+			  	    		// update query and create input variable
+			  	    		if (param_name != null && !param_name.isEmpty()) {
+			  	    			RequestableVariable variable = new RequestableVariable();
+			  	    			variable.setName(StringUtils.normalize(param_name));
+			  	    			variable.hasChanged = true;
+			  	    			variable.bNew = true;
+			  	    			
+				  	    		sqlQuery += sqlQuery.endsWith("(") ? "":",";
+				  	    		sqlQuery += "{"+ variable.getName()+"}";
+			  	    			
+			  	    			sqlTransaction.addVariable(variable);
+			  	    		}
+			  	    		else {
 				  	    		sqlQuery += sqlQuery.endsWith("(") ? "?":",?";
-				  	    		break;
-				  	    	case DatabaseMetaData.procedureColumnUnknown : 
-				  	    	default :
-				  	    		break;  
-			            }
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
+			  	    		}
+			  	    		break;
+			  	    	case DatabaseMetaData.procedureColumnOut :
+			  	    		sqlQuery += sqlQuery.endsWith("(") ? "?":",?";
+			  	    		break;
+			  	    	case DatabaseMetaData.procedureColumnUnknown : 
+			  	    	default :
+			  	    		break;  
+		            }
 				}
-				sqlQuery += ")";
-				if (isFunction) {
-					sqlQuery = "? = "+ sqlQuery;
-				}
-				sqlQuery = "{"+sqlQuery+"}";
-				sqlTransaction.setSqlQuery(sqlQuery);
 			}
+			sqlQuery += ")";
+			if (isFunction) {
+				sqlQuery = "? = "+ sqlQuery;
+			}
+			sqlQuery = "{"+sqlQuery+"}";
+			sqlTransaction.setSqlQuery(sqlQuery);
 			
 			// close connection
 			sqlConnector.close();

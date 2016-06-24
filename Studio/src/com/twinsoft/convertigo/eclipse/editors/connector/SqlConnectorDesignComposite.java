@@ -207,7 +207,10 @@ public class SqlConnectorDesignComposite extends Composite {
 		        	for (int i=0; i<items.getLength(); i++) {
 		        		Element item = (Element) items.item(i);
 		        		
-		        	    String funcName = item.getElementsByTagName("NAME").item(0).getTextContent();
+		        		Element func = (Element) item.getElementsByTagName("NAME").item(0);
+		        	    String funcName = func.getTextContent();
+		        	    String specific_name = func.getAttribute("specific_name");
+		        	    
 		        	    String groupName ="";
 		        	    try {
 		        	    	groupName = item.getElementsByTagName("TYPE").item(0).getTextContent();
@@ -219,6 +222,7 @@ public class SqlConnectorDesignComposite extends Composite {
 		        	    
 	      				TableItem tableItem = new TableItem(this.table, SWT.NONE);
 	    			    tableItem.setText(new String[] {funcName,sText,groupName});
+	    			    tableItem.setData("specific_name", specific_name);
 		        	}
 		        }
 		        
@@ -242,8 +246,15 @@ public class SqlConnectorDesignComposite extends Composite {
 					TableItem item = items[i];
 					String callableName = item.getText(0);
 					String callableDesc = item.getText(1);
+					String specific_name = (String) item.getData("specific_name");
 					ConvertigoPlugin.logDebug("Creating transaction for CALL '"+callableName+"' ...");
-					SqlTransaction sqlTransaction = SqlConnector.createSqlTransaction(sqlConnector, callableName);
+					
+					int index = callableName.indexOf(";");
+					if (index != -1) {
+						callableName = callableName.substring(0, index);// seen for ms sql server
+					}
+					
+					SqlTransaction sqlTransaction = SqlConnector.createSqlTransaction(sqlConnector, callableName, specific_name);
 					if (sqlTransaction != null) {
 						Transaction transaction = sqlConnector.getTransactionByName(sqlTransaction.getName());
 						if (transaction != null) {
