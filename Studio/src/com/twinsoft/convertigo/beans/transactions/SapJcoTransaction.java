@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.beans.transactions;
 
+import java.util.ArrayList;
+
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
@@ -75,6 +77,12 @@ public class SapJcoTransaction extends TransactionWithVariables {
 				Object[] values = GenericUtils.cast(parameterValue);
 				for (int i=0; i<values.length; i++) {
 					appendParameterValue(parent, parameterName, values[i]);
+				}
+			}
+			else if (parameterValue instanceof ArrayList) {
+				ArrayList<?> list = (ArrayList<?>)parameterValue;
+				for (int i=0; i<list.size(); i++) {
+					appendParameterValue(parent, parameterName, list.get(i));
 				}
 			}
 			else if (parameterValue instanceof NodeList) {
