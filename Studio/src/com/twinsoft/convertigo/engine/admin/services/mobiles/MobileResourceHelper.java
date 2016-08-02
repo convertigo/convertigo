@@ -82,7 +82,7 @@ public class MobileResourceHelper {
 		mobileApplication = mobilePlatform.getParent();
 		project = mobileApplication.getProject();
 		
-		endpoint = mobileApplication.getEndpoint();
+		endpoint = mobileApplication.getComputedEndpoint();
 		
 		projectDir = new File(project.getDirPath());
 		destDir = new File(projectDir, destSubDir);

@@ -237,8 +237,12 @@ public class MobileApplication extends DatabaseObject {
 		return applicationId;
 	}
 	
+	public String getComputedEndpoint() {
+		return endpoint.replaceAll("/+$", "");
+	}
+	
 	public String getComputedEndpoint(HttpServletRequest request) {
-		String endpoint = this.endpoint;
+		String endpoint = getComputedEndpoint();
 		if ("".equals(endpoint)) {
 			endpoint = HttpUtils.convertigoRequestURL(request);
 		}

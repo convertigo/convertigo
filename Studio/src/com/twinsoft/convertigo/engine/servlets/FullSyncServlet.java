@@ -333,7 +333,12 @@ public class FullSyncServlet extends HttpServlet {
 		private String docId;
 		
 		RequestParser(HttpServletRequest request) throws UnsupportedEncodingException {
-			String request_path = request.getRequestURI().substring(request.getContextPath().length() + request.getServletPath().length());
+			String requestURI = request.getRequestURI();
+			String contextPath = request.getContextPath();
+			requestURI = requestURI.substring(contextPath.length());
+			
+			String servletPath = request.getServletPath();			
+			String request_path = requestURI.substring(requestURI.indexOf(servletPath) + servletPath.length());
 			
 			request_path = replace2F.matcher(request_path).replaceFirst("$1/");
 			
