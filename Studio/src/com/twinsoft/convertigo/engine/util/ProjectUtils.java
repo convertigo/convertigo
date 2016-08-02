@@ -106,7 +106,8 @@ public class ProjectUtils {
         	}else{
         		FileFilter fileFilterNoSVN = new FileFilter() {
     				public boolean accept(File pathname) {
-    					return !pathname.getName().startsWith(".svn");
+    					String name = pathname.getName();
+    					return !name.equals(".svn") || !name.equals("CVS");
     				}
     			};
         		FileUtils.copyFile(new File(templateBase+"/index.html"), indexPage);

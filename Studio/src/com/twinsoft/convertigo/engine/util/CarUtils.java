@@ -106,7 +106,7 @@ public class CarUtils {
 	}
 
 	private static List<File> getUndeployedFiles(String projectName){
-		List<File> undeployedFiles = new LinkedList<File>();
+		final List<File> undeployedFiles = new LinkedList<File>();
 		
 		File projectDir = new File(Engine.PROJECTS_PATH + "/" + projectName);
 		
@@ -123,10 +123,19 @@ public class CarUtils {
 			}
 		}
 		
-		List<File> svnFiles = CarUtils.deepListFiles(Engine.PROJECTS_PATH + "/" + projectName, ".svn");
-		if (svnFiles != null) {
-			undeployedFiles.addAll(svnFiles);
-		}
+		new FileWalker(){
+
+			@Override
+			public void walk(File file) {
+				String filename = file.getName(); 
+				if (filename.equals(".svn") || filename.equals("CVS")) {
+					undeployedFiles.add(file);
+				} else {
+					super.walk(file);					
+				}
+			}
+			
+		}.walk(projectDir);
 		
 		return undeployedFiles;
 	}
