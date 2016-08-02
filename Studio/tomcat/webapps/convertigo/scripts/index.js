@@ -38,15 +38,16 @@ $(document).ready(function () {
 				var $project = $(this);
 				var $project_div = $("#templates .project").clone();
 				$.each($project[0].attributes, function () {
-					if( this.name == "version" ){
-						if(this.value != ""){
-							$project_div.find(".project_" + this.name).text("(" + this.value + ")");
+					var $project_field = $project_div.find(".project_" + this.name);
+					if (this.name == "version") {
+						if (this.value != "") {
+							$project_field.text("(" + this.value + ")");
 						}
-					} else if (this.name == "comment") {
-						//format comment text to show it correctly
-						$project_div.find(".project_" + this.name).html(this.value.replace(new RegExp("\n", "g"), "<br/>"));
 					} else {
-						$project_div.find(".project_" + this.name).text(this.value);
+						$project_field.text(this.value);
+						if (this.name == "comment") {
+							$project_field.html($project_field.html().replace("\n", "<br/>"));
+						}
 					}
 				});
 				$project_div.find(".project_link").attr("href", "project.html#" + $project.attr("name"));
