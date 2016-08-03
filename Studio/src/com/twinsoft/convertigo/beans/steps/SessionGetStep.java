@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
@@ -70,18 +71,17 @@ public class SessionGetStep extends Step implements IComplexTypeAffectation {
 	
 	@Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
-		String string = key;
-		if (string != null && string.length() > 0) {
+		if (StringUtils.isNotEmpty(key)) {
 			Element keyElement = doc.createElement("key");
-			keyElement.setTextContent(string);
+			keyElement.setTextContent(key);
 			stepNode.appendChild(keyElement);
-		}
-		
-		string = (String) getSequence().context.httpSession.getAttribute(key);
-		if (string != null && string.length() > 0) {
-			Element expressionElement = doc.createElement("expression");
-			expressionElement.setTextContent(string);
-			stepNode.appendChild(expressionElement);
+			
+			Object value = getSequence().context.httpSession.getAttribute(key);
+			if (value != null) {
+				Element expressionElement = doc.createElement("expression");
+				expressionElement.setTextContent(value.toString());
+				stepNode.appendChild(expressionElement);
+			}
 		}
 	}
 	
