@@ -42,8 +42,8 @@ public class Migration7_4_0 {
 					 {"cordova-plugin-device", "cordova-plugin-file", "cordova-plugin-file-transfer", "cordova-plugin-splashscreen", 
 						 "cordova-plugin-whitelist", "cordova-plugin-console"}};
 				for (int i = 0; i < pluginList[0].length; i++) {
-					xPathToCheckDefault.add(new XPathToCheck("/widget/*[local-name()='plugin' and @name='" + pluginList[1][i] + "']", "/widget/plugin[@name='" + pluginList[1][i] + "']", true));
 					xPathToCheckDefault.add(new XPathToCheck("/widget/*[local-name()='plugin' and @name='" + pluginList[0][i] + "']", "/widget/plugin[@name='" + pluginList[1][i] + "']", true));
+					xPathToCheckDefault.add(new XPathToCheck("/widget/*[local-name()='plugin' and @name='" + pluginList[1][i] + "']", "/widget/plugin[@name='" + pluginList[1][i] + "']", true));
 				}
 
 				pluginList = new String[][] {	{"com.couchbase.lite.phonegap", "org.apache.cordova.battery-status", "org.apache.cordova.camera", 
@@ -182,7 +182,7 @@ public class Migration7_4_0 {
 						
 						for (int i = 0; i < pluginList[0].length; i++) {
 							Node comment = xpathApi.selectNode(oldDoc, "//comment()[contains(.,\"" + pluginList[1][i] + "\")]");
-							if (comment != null) {
+							if (comment == null) {
 								comment = xpathApi.selectNode(oldDoc, "//comment()[contains(.,\"" + pluginList[0][i] + "\")]");
 							}
 							if (comment != null) {
