@@ -35,20 +35,25 @@ public class Migration7_4_0 {
 				List<XPathToCheck> xPathToCheckDefault = new LinkedList<XPathToCheck>();
 				xPathToCheckDefault.add(new XPathToCheck("/widget/preference[@name='phonegap-version']", "", true));
 				xPathToCheckDefault.add(new XPathToCheck("/widget/preference[@name='SplashScreen']", "", true));
-				 
-				 String[][] pluginList = new String[][] {	{"cordova-plugin-device", "cordova-plugin-file", "cordova-plugin-file-transfer", "cordova-plugin-splashscreen", 
-					 "cordova-plugin-whitelist", "cordova-plugin-console", /*"couchbase-lite-phonegap-plugin", "cordova-plugin-battery-status", "cordova-plugin-camera", 
-					 "cordova-plugin-media-capture", "cordova-plugin-contacts", "cordova-plugin-device-motion", "cordova-plugin-device-orientation", "cordova-plugin-dialogs", 
-					 "cordova-plugin-geolocation", "cordova-plugin-globalization", "cordova-plugin-inappbrowser", "cordova-plugin-media", "cordova-plugin-network-information", 
-					 "cordova-plugin-vibration", "cordova-plugin-statusbar", "com.phonegap.plugins.pushplugin", "com.phonegap.plugins.barcodescanner"*/}, 
-						 									{"cordova-plugin-device", "cordova-plugin-file", "cordova-plugin-file-transfer", "cordova-plugin-splashscreen", 
-						 "cordova-plugin-whitelist", "cordova-plugin-console", /*"couchbase-lite-phonegap-plugin", "cordova-plugin-battery-status", "cordova-plugin-camera", 
+				xPathToCheckDefault.add(new XPathToCheck("/widget/preference[@name='ShowSplashScreenSpinner']", "", true));
+
+				String[][] pluginList = new String[][] {	{"org.apache.cordova.device", "org.apache.cordova.file", "org.apache.cordova.file-transfer", "org.apache.cordova.splashscreen", 
+					"cordova-plugin-whitelist", "org.apache.cordova.console"}, 
+					 {"cordova-plugin-device", "cordova-plugin-file", "cordova-plugin-file-transfer", "cordova-plugin-splashscreen", 
+						 "cordova-plugin-whitelist", "cordova-plugin-console"}};
+				for (int i = 0; i < pluginList[0].length; i++) {
+					xPathToCheckDefault.add(new XPathToCheck("/widget/*[local-name()='plugin' and @name='" + pluginList[1][i] + "']", "/widget/plugin[@name='" + pluginList[1][i] + "']", true));
+					xPathToCheckDefault.add(new XPathToCheck("/widget/*[local-name()='plugin' and @name='" + pluginList[0][i] + "']", "/widget/plugin[@name='" + pluginList[1][i] + "']", true));
+				}
+
+				pluginList = new String[][] {	{"com.couchbase.lite.phonegap", "org.apache.cordova.battery-status", "org.apache.cordova.camera", 
+					 "org.apache.cordova.media-capture", "org.apache.cordova.contacts", "org.apache.cordova.device-motion", "org.apache.cordova.device-orientation", "org.apache.cordova.dialogs", 
+					 "org.apache.cordova.geolocation", "org.apache.cordova.globalization", "org.apache.cordova.inappbrowser", "org.apache.cordova.media", "org.apache.cordova.network-information", 
+					 "org.apache.cordova.vibration", "org.apache.cordova.statusbar", "com.phonegap.plugins.pushplugin", "com.phonegap.plugins.barcodescanner"}, 
+					 {"couchbase-lite-phonegap-plugin", "cordova-plugin-battery-status", "cordova-plugin-camera", 
 						 "cordova-plugin-media-capture", "cordova-plugin-contacts", "cordova-plugin-device-motion", "cordova-plugin-device-orientation", "cordova-plugin-dialogs", 
 						 "cordova-plugin-geolocation", "cordova-plugin-globalization", "cordova-plugin-inappbrowser", "cordova-plugin-media", "cordova-plugin-network-information", 
-						 "cordova-plugin-vibration", "cordova-plugin-statusbar", "phonegap-plugin-push", "phonegap-plugin-barcodescanner"*/}};
-				 for (int i = 0; i < pluginList[0].length; i++) {
-						xPathToCheckDefault.add(new XPathToCheck("/widget/plugin[@name='" + pluginList[0][i] + "']", "/widget/plugin[@name='" + pluginList[1][i] + "']", false));
-				 }
+						 "cordova-plugin-vibration", "cordova-plugin-statusbar", "phonegap-plugin-push", "phonegap-plugin-barcodescanner"}};
 
 				// Tags to change only for Android
 				List<XPathToCheck> xPathToCheckAndroid = new LinkedList<XPathToCheck>();
@@ -132,7 +137,6 @@ public class Migration7_4_0 {
 						Document templateDoc = XMLUtils.loadXml(configTemplateFile);						
 						// String xmlStr = XMLUtils.prettyPrintDOM(templateDoc);
 						
-						
 						for (XPathToCheck xPathToCheck : xPathToCheckList) {
 							Element oldElement = (Element) xpathApi.selectSingleNode(oldDoc, xPathToCheck.oldXpath);
 							
@@ -174,6 +178,17 @@ public class Migration7_4_0 {
 									parentNode.appendChild(newNode);
 								}
 							}							
+						}
+						
+						for (int i = 0; i < pluginList[0].length; i++) {
+							Node comment = xpathApi.selectNode(oldDoc, "//comment()[contains(.,\"" + pluginList[1][i] + "\")]");
+							if (comment != null) {
+								comment = xpathApi.selectNode(oldDoc, "//comment()[contains(.,\"" + pluginList[0][i] + "\")]");
+							}
+							if (comment != null) {
+								Node newComment = xpathApi.selectNode(templateDoc, "//comment()[contains(.,\"" + pluginList[1][i] + "\")]");
+								comment.getParentNode().replaceChild(oldDoc.adoptNode(newComment), comment);
+							}
 						}
 						
 						File oldConfigFile = new File(configFile.getParent(), "config.xml.old");
