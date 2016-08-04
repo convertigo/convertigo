@@ -120,7 +120,7 @@ public class ReadXMLStep extends ReadFileStep {
 					if (Engine.logBeans.isTraceEnabled()) {
 						Engine.logBeans.trace("(ReadXML) XML File [" + xmlContent.length() + "] content '" + xmlContent + "'");
 					} else {
-						Engine.logBeans.debug("(ReadXML) XML File [" + xmlContent.length() + ", show max 5000] content '" + xmlContent.substring(0, Math.min(xmlContent.length(), 5000)) + "'");
+						Engine.logBeans.debug("(ReadXML) XML File [" + xmlContent.length() + ", show max 10000] content '" + xmlContent.substring(0, Math.min(xmlContent.length(), 10000)) + "'");
 					}
 				}
 			}
