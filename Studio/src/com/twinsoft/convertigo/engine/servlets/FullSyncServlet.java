@@ -20,6 +20,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
@@ -44,6 +45,10 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.couchdb.AbstractFullSyncListener;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.LogParameters;
+import com.twinsoft.convertigo.engine.admin.services.logs.Add;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
@@ -52,6 +57,8 @@ import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.util.ContentTypeDecoder;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
+import com.twinsoft.convertigo.engine.util.Log4jHelper;
+import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
 
 public class FullSyncServlet extends HttpServlet {
 	private static final long serialVersionUID = -5147185931965387561L;
@@ -90,7 +97,26 @@ public class FullSyncServlet extends HttpServlet {
 			
 			Engine.theApp.couchDbManager.checkRequest(requestParser.getPath(), requestParser.getSpecial(), requestParser.getDocId());
 			
+			HttpSession httpSession = request.getSession();
+			
+			LogParameters logParameters = GenericUtils.cast(httpSession.getAttribute(FullSyncServlet.class.getCanonicalName()));
+			
+			if (logParameters == null) {
+				httpSession.setAttribute(Add.class.getCanonicalName(), logParameters = new LogParameters());
+				logParameters.put(mdcKeys.ContextID.toString().toLowerCase(), httpSession.getId());
+			}
+
+			Log4jHelper.mdcSet(logParameters);
+			
+			logParameters.put(mdcKeys.ClientIP.toString().toLowerCase(), request.getRemoteAddr());
+
+			if (EnginePropertiesManager.getProperty(PropertyName.NET_REVERSE_DNS).equalsIgnoreCase("true")) {
+				Log4jHelper.mdcPut(mdcKeys.ClientHostName, request.getRemoteHost());
+			}
+
 			String authenticatedUser = SessionAttribute.authenticatedUser.string(request.getSession());
+			Log4jHelper.mdcPut(mdcKeys.User, authenticatedUser == null ? "(anonymous)" : "'" + authenticatedUser + "'");
+			
 			debug.append("Authenticated user: ").append(authenticatedUser).append('\n');
 			URI uri;
 			
@@ -321,6 +347,8 @@ public class FullSyncServlet extends HttpServlet {
 			} else {
 				Engine.logCouchDbManager.error("(FullSyncServlet) Failed to process request:\n" + debug, e);
 			}
+		} finally {
+			Log4jHelper.mdcClear();
 		}
 	}
 	

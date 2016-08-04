@@ -77,6 +77,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 		if (isEnable()) {
 			if (super.stepExecute(javascriptContext, scope)) {
 				evaluate(javascriptContext, scope, getExpression(), "expression", true);
+				sequence.context.updateUserInLog();
 				return true;
 			}
 		}

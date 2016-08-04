@@ -264,8 +264,8 @@ public abstract class GenericRequester extends Requester {
 			            		Log4jHelper.mdcPut(mdcKeys.Connector, context.connectorName);
 			            		Log4jHelper.mdcPut(mdcKeys.Transaction, context.transactionName);
 		                	}
-		            		Log4jHelper.mdcPut(mdcKeys.User, context.tasUserName == null ? "(anonymous)" : "'" + context.tasUserName + "'");
-	
+		                	
+		                	context.updateUserInLog();	
 		                }
 						
 						result = coreProcessRequest();

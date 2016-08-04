@@ -36,6 +36,8 @@ import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
+import com.twinsoft.convertigo.engine.util.Log4jHelper;
+import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
 
 public abstract class AbstractContext {
 
@@ -126,14 +128,20 @@ public abstract class AbstractContext {
 //			portalUserName = authenticatedUser;
 			SessionAttribute.authenticatedUser.set(httpSession, authenticatedUser);
 		}
+		updateUserInLog();
 	}
 	
 	public void removeAuthenticatedUser(){
 //		portalUserName = null;
 		tasUserName = null;
 		SessionAttribute.authenticatedUser.remove(httpSession);
+		updateUserInLog();
 	}
 	
+	public void updateUserInLog() {
+		String authenticatedUser = getAuthenticatedUser();
+		Log4jHelper.mdcPut(mdcKeys.User, authenticatedUser == null ? "(anonymous)" : "'" + authenticatedUser + "'");
+	}
 	/**
 	 * The portal user name.
 	 */
