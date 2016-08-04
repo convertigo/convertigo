@@ -15,7 +15,6 @@ $.extend(true, C8O, {
 	
 	_define: {
 		re_fs_match_db: new RegExp("^fs://([^/]*)"),
-		re_fs_seq: new RegExp("^(.*?)(?:#|$)"),
 		re_fs_task: new RegExp("(\\d+)[^\\d]*(\\d+)"),
 		re_fs_use: new RegExp("^(?:_use_(.*)$|__)")
 	},
@@ -547,7 +546,7 @@ C8O.addHook("_call_fs", function (data) {
 				}
 			}
 			
-			var seq = C8O._define.re_fs_seq.exec(data.__sequence)[1];
+			var seq = C8O._define.re_fs_req.exec(data.__sequence)[1];
 			C8O.log.info("c8o.fs  : calling " + seq);
 			
 			if (seq == "post") {

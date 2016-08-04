@@ -452,6 +452,7 @@ C8O = {
         project: null,
         recall_params: {__context: "", __connector: ""},
         re_format_time: new RegExp(" *(\\d*?)([\\d ]{4})((?:\\.[\\d ]{3})|(?: {4})) *"), // replace by "$1$2$3"
+		re_fs_req: new RegExp("^(.*?)(?:#|$)"),
         re_i18n: new RegExp("__MSG_(.*?)__"),
         re_not_normalized: new RegExp("[^a-zA-Z0-9_]", "g"),
         re_plus: new RegExp("\\+", "g"),
@@ -527,9 +528,16 @@ C8O = {
                     return;
                 }
                 
-                var netData = C8O._hook("_call_rsa", data);
-                if (typeof netData != "object") {
-                    netData = data;
+                var netData = C8O._obj_clone(data);
+                if (netData.__sequence) {
+                	netData.__sequence = C8O._define.re_fs_req.exec(netData.__sequence)[1];
+                }
+                if (netData.__transaction) {
+                	netData.__transaction = C8O._define.re_fs_req.exec(netData.__transaction)[1];
+                }
+                var rsaData = C8O._hook("_call_rsa", netData);
+                if (typeof rsaData == "object") {
+                    netData = rsaData;
                 }
                 
                 var url = C8O._getCallUrl();
