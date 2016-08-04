@@ -116,7 +116,12 @@ public class ReadXMLStep extends ReadFileStep {
 					newRoot.appendChild(xmlRoot);
 				}
 				if (Engine.logBeans.isDebugEnabled()) {
-					Engine.logBeans.debug("(ReadXML) XML File content '" + com.twinsoft.convertigo.engine.util.XMLUtils.prettyPrintDOM(xmlDoc) + "'");
+					String xmlContent = XMLUtils.prettyPrintDOM(xmlDoc);
+					if (Engine.logBeans.isTraceEnabled()) {
+						Engine.logBeans.trace("(ReadXML) XML File [" + xmlContent.length() + "] content '" + xmlContent + "'");
+					} else {
+						Engine.logBeans.debug("(ReadXML) XML File [" + xmlContent.length() + ", show max 5000] content '" + xmlContent.substring(0, Math.min(xmlContent.length(), 5000)) + "'");
+					}
 				}
 			}
 		} catch (Exception e1) {

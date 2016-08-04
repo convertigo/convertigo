@@ -28,6 +28,7 @@
     <preference name="target-device"              value="universal" />      <!-- all: possible values handset, tablet, or universal -->
     <preference name="fullscreen"                 value="true" />           <!-- all: hides the status bar at the top of the screen -->
     <preference name="SplashScreen"    			  value="screen" />         <!-- all: the splash screen resource if built without phonegap build -->
+    <preference name="ShowSplashScreenSpinner"    value="false"/>           <!-- all: show the splash screen spinner -->
     <preference name="AutoHideSplashScreen"       value="false" />          <!-- windows phone 8: set to false, the splash screen must be hidden using a JavaScript API (navigator.splashscreen API)  -->
     
 	<icon src="icon.png"/>

@@ -152,7 +152,7 @@ public class Migration7_4_0 {
 							
 							// Can't do anything if the element is not found in the template file
 							if (templateElement == null) {
-								throw new Exception("XPath incorrect : " + xPathToCheck.templateXpath);
+								continue;
 							}
 							
 							// Replace the old element by the template 
