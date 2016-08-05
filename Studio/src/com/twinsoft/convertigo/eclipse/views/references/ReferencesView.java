@@ -201,6 +201,24 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 			}
 		}
 		
+		UrlMapper urlMapper = projectSelected.getUrlMapper();
+		if (urlMapper != null) {
+			List<UrlMapping> mappings = urlMapper.getMappingList();
+			for (UrlMapping mapping: mappings) {
+				List<UrlMappingOperation> operations = mapping.getOperationList();
+				for (UrlMappingOperation operation: operations) {
+					try {
+						String targetRequestableName = operation.getTargetRequestable();
+						if (!targetRequestableName.isEmpty() && !targetRequestableName.startsWith(projectNameSelected)) {
+							handleTargetRequestable(targetRequestableName, projectExplorerView, requiresNode);
+						}
+					} catch (Exception e) {
+						ConvertigoPlugin.logException(e, "Error while analyzing the projects hierarchy", true);
+					}
+				}
+			}
+		}
+		
 		if (requiresNode.hasChildren()){
 			projectNode.addChild(requiresNode);
 		}
@@ -226,6 +244,29 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 				ProjectNode projectFolderExports = new ProjectNode(root,
 						projectName, project);
 
+				urlMapper = project.getUrlMapper();
+				if (urlMapper != null) {
+					MapperNode mapperNode = new MapperNode(projectFolderExports, urlMapper.getName(), urlMapper);
+					List<UrlMapping> mappings = urlMapper.getMappingList();
+					for (UrlMapping mapping: mappings) {
+						MappingPathNode pathNode = new MappingPathNode(mapperNode, mapping.getPath(), mapping);
+						List<UrlMappingOperation> operations = mapping.getOperationList();
+						for (UrlMappingOperation operation: operations) {
+							String targetRequestable = operation.getTargetRequestable();
+							if (targetRequestable.startsWith(projectNameSelected +".")) {
+								MappingOperationNode operationNode = new MappingOperationNode(pathNode, operation.getName(), operation);
+								pathNode.addChild(operationNode);
+							}
+						}
+						if (pathNode.hasChildren()) {
+							mapperNode.addChild(pathNode);
+						}
+					}
+					if (mapperNode.hasChildren()) {
+						projectFolderExports.addChild(mapperNode);
+					}
+				}
+				
 				List<Sequence> sequencesList = project.getSequencesList();
 				for (Sequence sequence : sequencesList) {
 					// Search for CallTransaction and CallSequence
@@ -499,31 +540,7 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 		try {
 			String targetRequestableName = operationSelected.getTargetRequestable();
 			if (!targetRequestableName.isEmpty()) {
-				StringTokenizer st = new StringTokenizer(targetRequestableName,".");
-				int count = st.countTokens();
-				String projectName = st.nextToken();
-				Project project = getProject(projectName, projectExplorerView);
-				ProjectNode projectNode = new ProjectNode(requiresNode, projectName, project);
-				if (count == 2) {
-					String sequenceName = count == 2 ? st.nextToken():"";
-					Sequence sequence = project.getSequenceByName(sequenceName);
-					SequenceNode sequenceNode = new SequenceNode(projectNode, sequenceName, sequence);
-					projectNode.addChild(sequenceNode);
-				}
-				else if (count == 3) {
-					String connectorName = count == 3 ? st.nextToken():"";
-					Connector connector = project.getConnectorByName(connectorName);
-					ConnectorNode connectorNode = new ConnectorNode(projectNode, connectorName, connector);
-					projectNode.addChild(connectorNode);
-					
-					String transactionName = count == 3 ? st.nextToken():"";
-					Transaction transaction = connector.getTransactionByName(transactionName);
-					TransactionNode transactionNode = new TransactionNode(connectorNode, transactionName, transaction);
-					connectorNode.addChild(transactionNode);
-				}
-				if (projectNode.hasChildren()) {
-					requiresNode.addChild(projectNode);
-				}
+				handleTargetRequestable(targetRequestableName, projectExplorerView, requiresNode);
 			}
 			
 			if (requiresNode.hasChildren()) {
@@ -729,6 +746,30 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 				
 				
 				projectFolder = new ProjectNode(isUsedByNode, projectName, project);
+				
+				UrlMapper urlMapper = project.getUrlMapper();
+				if (urlMapper != null) {
+					MapperNode mapperNode = new MapperNode(projectFolder, urlMapper.getName(), urlMapper);
+					List<UrlMapping> mappings = urlMapper.getMappingList();
+					for (UrlMapping mapping: mappings) {
+						MappingPathNode pathNode = new MappingPathNode(mapperNode, mapping.getPath(), mapping);
+						List<UrlMappingOperation> operations = mapping.getOperationList();
+						for (UrlMappingOperation operation: operations) {
+							String targetRequestable = operation.getTargetRequestable();
+							if (targetRequestable.startsWith(projectConnectorSelected +"."+ connectorSelectedName +".")) {
+								MappingOperationNode operationNode = new MappingOperationNode(pathNode, operation.getName(), operation);
+								pathNode.addChild(operationNode);
+							}
+						}
+						if (pathNode.hasChildren()) {
+							mapperNode.addChild(pathNode);
+						}
+					}
+					if (mapperNode.hasChildren()) {
+						projectFolder.addChild(mapperNode);
+					}
+				}
+				
 				List<Sequence> sequences = project.getSequencesList();
 				
 				for (Sequence sequence : sequences) {
@@ -1174,5 +1215,33 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 	
 	private boolean isStepContainer(Step step) {
 		return (step instanceof BlockStep || step instanceof BranchStep || step instanceof ThenStep || step instanceof ElseStep || step instanceof XMLComplexStep);
+	}
+	
+	private void handleTargetRequestable(String targetRequestableName, ProjectExplorerView projectExplorerView, RequiresNode requiresNode) throws EngineException {
+		StringTokenizer st = new StringTokenizer(targetRequestableName,".");
+		int count = st.countTokens();
+		String projectName = st.nextToken();
+		Project project = getProject(projectName, projectExplorerView);
+		ProjectNode requiresProjectNode = new ProjectNode(requiresNode, projectName, project);
+		if (count == 2) {
+			String sequenceName = count == 2 ? st.nextToken():"";
+			Sequence sequence = project.getSequenceByName(sequenceName);
+			SequenceNode sequenceNode = new SequenceNode(requiresProjectNode, sequenceName, sequence);
+			requiresProjectNode.addChild(sequenceNode);
+		}
+		else if (count == 3) {
+			String connectorName = count == 3 ? st.nextToken():"";
+			Connector connector = project.getConnectorByName(connectorName);
+			ConnectorNode connectorNode = new ConnectorNode(requiresProjectNode, connectorName, connector);
+			requiresProjectNode.addChild(connectorNode);
+			
+			String transactionName = count == 3 ? st.nextToken():"";
+			Transaction transaction = connector.getTransactionByName(transactionName);
+			TransactionNode transactionNode = new TransactionNode(connectorNode, transactionName, transaction);
+			connectorNode.addChild(transactionNode);
+		}
+		if (requiresProjectNode.hasChildren()) {
+			requiresNode.addChild(requiresProjectNode);
+		}
 	}
 }
