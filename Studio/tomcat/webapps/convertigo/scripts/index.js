@@ -46,7 +46,7 @@ $(document).ready(function () {
 					} else {
 						$project_field.text(this.value);
 						if (this.name == "comment") {
-							$project_field.html($project_field.html().replace("\n", "<br/>"));
+							$project_field.html($project_field.html().replace(new RegExp("\\n","g"), "<br/>"));
 						}
 					}
 				});

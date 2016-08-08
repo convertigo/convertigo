@@ -530,7 +530,7 @@ $(document).ready(function() {
 			var $project = $(xml).find("project:first");
 			
 			$(".project_comment").text($project.attr("comment"));
-			$(".project_comment").html($(".project_comment").html().replace("\n", "<br/>"));
+			$(".project_comment").html($(".project_comment").html().replace(new RegExp("\\n","g"), "<br/>"));
 			
 			if ($project.attr("version") != "") {
 				$(".project_version").text("(" + $project.attr("version") + ")");
