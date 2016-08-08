@@ -274,10 +274,15 @@ public class FullSyncServlet extends HttpServlet {
 			Map<AbstractFullSyncListener, JSONArray> listeners = Engine.theApp.couchDbManager.handleBulkDocsRequest(dbName, bulkDocsRequest);
 			
 			newRequest.setURI(uri);
-
+			long requestTime = System.currentTimeMillis();
+			
 			CloseableHttpResponse newResponse = httpClient.get().execute(newRequest);
+			
+			requestTime = System.currentTimeMillis() - requestTime;
+			
 			int code = newResponse.getStatusLine().getStatusCode();
-			debug.append("response Code: " + code + "\n");
+			debug.append("response Code: " + code + " in " + requestTime + " ms\n");
+			
 			response.setStatus(code);
 			
 			for (Header header: newResponse.getAllHeaders()) {
