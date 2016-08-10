@@ -25,6 +25,8 @@ package com.twinsoft.convertigo.beans.variables;
 public class StepMultiValuedVariable extends StepVariable {
 
 	private static final long serialVersionUID = 1983654203713441319L;
+	
+	private String subXPath = "";
 
 	public StepMultiValuedVariable() {
 		super();
@@ -34,5 +36,12 @@ public class StepMultiValuedVariable extends StepVariable {
 	public boolean isMultiValued() {
 		return true;
 	}
-	
+
+	public String getSubXPath() {
+		return subXPath;
+	}
+
+	public void setSubXPath(String subXPath) {
+		this.subXPath = subXPath;
+	}
 }

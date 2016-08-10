@@ -37,6 +37,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactoryConfigurationError;
 
 import org.apache.commons.httpclient.Cookie;
@@ -74,6 +75,7 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.StringUtils;
+import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.util.StringEx;
@@ -643,12 +645,27 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 				
 				// otherwise value not found
 				if (variableValue == null) {
-					Engine.logBeans.trace("(RequestableStep)  Did not find any value for \""+variableName+"\", ignore it");
+					Engine.logBeans.trace("(RequestableStep) Did not find any value for \""+variableName+"\", ignore it");
 				}
 				else {
 					if (bInternalInvoke) {
 						if (stepVariable.isMultiValued() && getProject().isStrictMode() && variableValue instanceof NodeList) {
-							variableValue = XMLUtils.toNodeArray((NodeList) variableValue);
+							String subXPath = ((StepMultiValuedVariable) stepVariable).getSubXPath();
+							if (subXPath.isEmpty()) {
+								variableValue = XMLUtils.toNodeArray((NodeList) variableValue);
+							} else {
+								TwsCachedXPathAPI xpathAPI = new TwsCachedXPathAPI(this.getProject());
+								NodeList nodeList = (NodeList) variableValue;
+								NodeList[] nodeLists = new NodeList[nodeList.getLength()];
+								for (int j = 0; j < nodeLists.length; j++) {
+									try {
+										nodeLists[j] = xpathAPI.selectNodeList(nodeList.item(j), subXPath);
+									} catch (TransformerException e) {
+										Engine.logBeans.debug("(RequestableStep) Failed to select subXpath", e);
+									}
+								}
+								variableValue = nodeLists;								
+							}
 						}
 						request.put(variableName, variableValue);
 					} else {

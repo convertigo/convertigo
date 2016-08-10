@@ -41,6 +41,13 @@ public class StepMultiValuedVariableBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 			
+			properties = new PropertyDescriptor[1];
+			
+            properties[0] = new PropertyDescriptor("subXPath", beanClass, "getSubXPath", "setSubXPath");
+			properties[0].setDisplayName(getExternalizedString("property.subXPath.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.subXPath.short_description"));
+			properties[0].setExpert(true);
+			
 			getPropertyDescriptor("bSoapArray").setHidden(false);
 			
 			PropertyDescriptor property = getPropertyDescriptor("sourceDefinition");
