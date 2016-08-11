@@ -197,7 +197,7 @@ public class SqlConnectorDesignComposite extends Composite {
 				shell.setCursor(waitCursor);
 				
 			    ConvertigoPlugin.logDebug("Searching repository...");
-				Document doc = SqlConnector.executeSearch(sqlConnector, pattern);
+				Document doc = null;// SqlConnector.executeSearch(sqlConnector, pattern);
 		        ConvertigoPlugin.logDebug("Search done.");
 		        
 		        if (doc != null) {
@@ -254,7 +254,7 @@ public class SqlConnectorDesignComposite extends Composite {
 						callableName = callableName.substring(0, index);// seen for ms sql server
 					}
 					
-					SqlTransaction sqlTransaction = SqlConnector.createSqlTransaction(sqlConnector, callableName, specific_name);
+					SqlTransaction sqlTransaction = null; //SqlConnector.createSqlTransaction(sqlConnector, callableName, specific_name);
 					if (sqlTransaction != null) {
 						Transaction transaction = sqlConnector.getTransactionByName(sqlTransaction.getName());
 						if (transaction != null) {
