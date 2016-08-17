@@ -892,6 +892,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			} else {
 				propertyObjectValue = Boolean.parseBoolean(propertyObjectValue.toString());
 			}
+		} else if (Enum.class.isAssignableFrom(propertyType) && propertyObjectValue instanceof String) {
+			propertyObjectValue = EnumUtils.valueOf(propertyType, propertyObjectValue);
 		}
 		return propertyObjectValue;
 	}
