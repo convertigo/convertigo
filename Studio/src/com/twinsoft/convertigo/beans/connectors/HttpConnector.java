@@ -1545,6 +1545,9 @@ public class HttpConnector extends Connector {
 		} catch (SocketTimeoutException e) {
 			throw new ConnectionException("Timeout reached (" + context.requestedObject.getResponseTimeout() + " sec)");
 		} catch (IOException e) {
+			if (!context.requestedObject.runningThread.bContinue)
+				return statuscode;
+
 			try {
 				HttpUtils.logCurrentHttpConnection(httpClient, hostConfiguration, httpPool);
 				Engine.logBeans.warn("(HttpConnector) HttpClient: connection error to " + sUrl + ": "
