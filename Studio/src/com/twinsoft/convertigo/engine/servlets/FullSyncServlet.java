@@ -5,6 +5,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CodingErrorAction;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
@@ -137,7 +142,13 @@ public class FullSyncServlet extends HttpServlet {
 
 			for (String headerName: Collections.list(request.getHeaderNames())) {
 				if (!HeaderName.TransferEncoding.is(headerName)
-						&& !HeaderName.ContentLength.is(headerName)) {
+						&& !HeaderName.ContentLength.is(headerName)
+						&& !HeaderName.UserAgent.is(headerName)
+						&& !HeaderName.Expect.is(headerName)
+						&& !HeaderName.Connection.is(headerName)
+						&& !HeaderName.Host.is(headerName)
+						&& !HeaderName.Cookie.is(headerName)
+						&& !HeaderName.ContentEncoding.is(headerName)) {
 					for (String headerValue: Collections.list(request.getHeaders(headerName))) {
 						debug.append("request Header: " + headerName + "=" + headerValue + "\n");
 						newRequest.addHeader(headerName, headerValue);
@@ -150,10 +161,10 @@ public class FullSyncServlet extends HttpServlet {
 			{
 				Header authBasicHeader = Engine.theApp.couchDbManager.getFullSyncClient().getAuthBasicHeader();
 				if (authBasicHeader != null) {
+					debug.append("request add BasicHeader");
 					newRequest.addHeader(authBasicHeader);
 				}
-			}
-			
+			}			
 			
 			String dbName = requestParser.getDbName();
 			
@@ -162,6 +173,7 @@ public class FullSyncServlet extends HttpServlet {
 			JSONObject bulkDocsRequest = null;
 			
 			String special = requestParser.getSpecial();
+			debug.append("dbName=" + dbName + " special=" + special + "\n");
 			
 			if (request.getInputStream() != null) {
 				String reqContentType = request.getContentType(); 
@@ -297,6 +309,7 @@ public class FullSyncServlet extends HttpServlet {
 			
 			HttpEntity responseEntity = newResponse.getEntity();
 			ContentTypeDecoder contentType = new ContentTypeDecoder(responseEntity == null || responseEntity.getContentType() == null  ? "" : responseEntity.getContentType().getValue());
+			debug.append("response ContentType charset=" + contentType.getCharset("n/a") + " mime=" + contentType.getMimeType() + "\n");
 			
 			boolean continuous = code == 200;
 			if (continuous) {
@@ -314,9 +327,29 @@ public class FullSyncServlet extends HttpServlet {
 					
 					if (!continuous && (contentType.mimeType().in(MimeType.Plain, MimeType.Json))) {
 						String charset = contentType.getCharset("UTF-8");
-						responseStringEntity = IOUtils.toString(responseEntity.getContent(), charset);
-		
-						debug.append("response Entity:\n" + responseStringEntity + "\n");
+						
+						int id = 0;
+						byte[] buf = new byte[64];
+						StringBuilder sb = new StringBuilder();
+						CharsetDecoder cd = Charset.forName(charset).newDecoder();
+						cd.onMalformedInput(CodingErrorAction.REPORT);
+						debug.append("response Entity:\n");
+						
+						int read = is.read();
+						while (read >= 0) {
+							buf[id++] = (byte) read;
+							try {
+								CharBuffer cb = cd.decode(ByteBuffer.wrap(buf, 0, id));
+								id = 0;
+								sb.append(cb);
+								debug.append(cb);
+							} catch (Throwable t) {
+								Engine.logCouchDbManager.trace("(FullSyncServlet) Buffer not decoded, retry with more byte. " + t);
+							}
+							read = is.read();
+						}
+						debug.append("\n");
+						responseStringEntity = sb.toString();
 						
 						Engine.theApp.couchDbManager.handleDocResponse(method, requestParser.getSpecial(), requestParser.getDocId(), authenticatedUser, responseStringEntity);
 						
