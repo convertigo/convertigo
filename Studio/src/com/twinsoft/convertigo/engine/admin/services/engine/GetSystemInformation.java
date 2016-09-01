@@ -55,14 +55,22 @@ public class GetSystemInformation extends XmlService{
         String hostName = "n/a";
 		String addresses = "n/a";
 
-		InetAddress address = InetAddress.getLocalHost();
-		hostName = address.getHostName();
+		try {
+			InetAddress address = InetAddress.getLocalHost();
+			hostName = address.getHostName();
+		} catch (Exception e) {
+			Engine.logAdmin.info("Cannot get localhost address: " + e);
+		}
 
-		InetAddress[] inetAddresses = InetAddress.getAllByName(hostName);
-		addresses = "";
-		addresses += inetAddresses[0].getHostAddress();
-		for (int i = 1 ; i < inetAddresses.length ; i++) {
-			addresses += ", " + inetAddresses[i].getHostAddress();
+		try {
+			InetAddress[] inetAddresses = InetAddress.getAllByName(hostName);
+			addresses = "";
+			addresses += inetAddresses[0].getHostAddress();
+			for (int i = 1 ; i < inetAddresses.length ; i++) {
+				addresses += ", " + inetAddresses[i].getHostAddress();
+			}
+		} catch (Exception e) {
+			Engine.logAdmin.info("Cannot get current IP address: " + e);
 		}
         
         Runtime runtime = Runtime.getRuntime();
