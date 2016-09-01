@@ -50,7 +50,7 @@ public class Create extends XmlService {
 			response.setAttribute("state", "success");
 			response.setAttribute("message","Global symbols have been successfully declared!");
 		} catch (Exception e) {
-			Engine.logBeans.error("Error during saving the global symbols file!\n"+e.getMessage());
+			Engine.logAdmin.error("Error during saving the global symbols file!\n"+e.getMessage());
 			
 			response.setAttribute("state", "error");
 			response.setAttribute("message","Error during saving the global symbols file!");

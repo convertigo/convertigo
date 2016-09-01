@@ -51,7 +51,7 @@ public class Delete extends XmlService {
 			response.setAttribute("state", "success");
 			response.setAttribute("message","User '" + username + "' have been successfully deleted!");
 		} catch (Exception e) {
-			Engine.logBeans.error("Error during deleting the user!\n" + e.getMessage());
+			Engine.logAdmin.error("Error during deleting the user!\n" + e.getMessage());
 			
 			response.setAttribute("state", "error");
 			response.setAttribute("message","Error during deleting the user!\n" + e.getMessage());

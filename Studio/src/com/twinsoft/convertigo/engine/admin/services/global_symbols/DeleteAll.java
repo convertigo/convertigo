@@ -49,7 +49,7 @@ public class DeleteAll extends XmlService {
 			response.setAttribute("state", "success");
 			response.setAttribute("message","All global symbols have been successfully deleted!");
 		} catch (Exception e) {
-			Engine.logBeans.error("Error during deleting the global symbols!\n" + e.getMessage());
+			Engine.logAdmin.error("Error during deleting the global symbols!\n" + e.getMessage());
 			
 			response.setAttribute("state", "error");
 			response.setAttribute("message","Error during deleting the global symbols!\n" + e.getMessage());

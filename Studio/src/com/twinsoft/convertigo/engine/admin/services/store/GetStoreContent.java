@@ -71,7 +71,7 @@ public class GetStoreContent extends XmlService {
     		}
     		catch (EngineException e) {
     			String message = "Unable to get project information ('" + projectName + "')";
-    			Engine.logEngine.error(message, e);
+    			Engine.logAdmin.error(message, e);
     		}
     	}
 	}

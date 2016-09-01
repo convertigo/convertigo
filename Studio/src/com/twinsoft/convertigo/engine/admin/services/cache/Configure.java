@@ -179,7 +179,7 @@ public class Configure extends XmlService {
 		try {
 			Engine.theApp.cacheManager.destroy();	
 			String cacheManagerClassName = EnginePropertiesManager.getProperty(PropertyName.CACHE_MANAGER_CLASS);
-			Engine.logEngine.debug("Cache manager class: " + cacheManagerClassName);
+			Engine.logAdmin.debug("Cache manager class: " + cacheManagerClassName);
 			Engine.theApp.cacheManager = (CacheManager) Class.forName(cacheManagerClassName).newInstance();
 			Engine.theApp.cacheManager.init();
 
@@ -191,7 +191,7 @@ public class Configure extends XmlService {
 		}
 		catch(Exception e) {
 			String message = "Unable to restart the cache manager.";
-			Engine.logEngine.error(message, e);
+			Engine.logAdmin.error(message, e);
 			throw new ServiceException(message,e);
 		}
 		

@@ -52,7 +52,7 @@ public class Add extends XmlService {
 			response.setAttribute("state", "success");
 			response.setAttribute("message","Global symbol '" + symbolName + "' have been successfully declared!");
 		} catch (Exception e) {
-			Engine.logBeans.error("Error during adding the global symbol!\n" + e.getMessage());
+			Engine.logAdmin.error("Error during adding the global symbol!\n" + e.getMessage());
 			
 			response.setAttribute("state", "error");
 			response.setAttribute("message","Error during adding the global symbol!\n" + e.getMessage());

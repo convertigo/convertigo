@@ -54,6 +54,10 @@ public class Edit extends XmlService {
 		Element root = document.getDocumentElement();
 		Element response = document.createElement("response");
 
+		if (roles == null) {
+			roles = new String[]{};
+		}
+		
 		try {
 			Set<Role> set = new HashSet<Role>(roles.length);
 			for (String role: roles) {
@@ -78,7 +82,7 @@ public class Edit extends XmlService {
 			response.setAttribute("state", "success");
 			response.setAttribute("message","User '" + username + "' have been successfully edited!");
 		} catch (Exception e) {
-			Engine.logBeans.error("Error during editing the user!\n" + e.getMessage());
+			Engine.logAdmin.error("Error during editing the user!\n" + e.getMessage());
 			
 			response.setAttribute("state", "error");
 			response.setAttribute("message","Error during editing the user!\n" + e.getMessage());

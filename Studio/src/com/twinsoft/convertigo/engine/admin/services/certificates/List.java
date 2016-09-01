@@ -66,7 +66,7 @@ public class List extends XmlService {
 	        fis.close();
 		} catch (Exception e) {
 			String message="Unexpected exception";
-			Engine.logEngine.error(message, e);
+			Engine.logAdmin.error(message, e);
 			throw new ServiceException(message,e);
 		}
         

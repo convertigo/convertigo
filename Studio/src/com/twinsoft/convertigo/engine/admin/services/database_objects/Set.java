@@ -150,7 +150,7 @@ public class Set extends XmlService {
 			response.setAttribute("state", "success");
 			response.setAttribute("message", "Project have been successfully updated!");
 		} catch(Exception e){
-			Engine.logBeans.error("Error during saving the properties!\n"+e.getMessage());
+			Engine.logAdmin.error("Error during saving the properties!\n"+e.getMessage());
 			response.setAttribute("state", "error");
 			response.setAttribute("message", "Error during saving the properties!");
 			Element stackTrace = document.createElement("stackTrace");

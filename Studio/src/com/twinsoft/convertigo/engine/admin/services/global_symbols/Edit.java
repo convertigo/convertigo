@@ -53,7 +53,7 @@ public class Edit extends XmlService {
 			response.setAttribute("state", "success");
 			response.setAttribute("message","Global symbol '" + symbolName + "' have been successfully edited!");
 		} catch (Exception e) {
-			Engine.logBeans.error("Error during editing the global symbol!\n" + e.getMessage());
+			Engine.logAdmin.error("Error during editing the global symbol!\n" + e.getMessage());
 			
 			response.setAttribute("state", "error");
 			response.setAttribute("message","Error during editing the global symbol!\n" + e.getMessage());
