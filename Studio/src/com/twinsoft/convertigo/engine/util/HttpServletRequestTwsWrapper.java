@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.engine.util;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -31,6 +32,11 @@ import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
+
+import org.apache.commons.io.IOUtils;
+
+import com.twinsoft.convertigo.engine.enums.HeaderName;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 
 public class HttpServletRequestTwsWrapper extends HttpServletRequestWrapper {	
 	protected Map<String, String[]> parameters = new HashMap<String, String[]>();
@@ -42,6 +48,16 @@ public class HttpServletRequestTwsWrapper extends HttpServletRequestWrapper {
 			if (request.getCharacterEncoding() == null) {
 				request.setCharacterEncoding("UTF-8");
 			}
+			
+			if (request.getMethod().equalsIgnoreCase("PUT") && MimeType.WwwForm.is(HeaderName.ContentType.getHeader(request))) {
+				try {
+					String content = IOUtils.toString(request.getInputStream(), request.getCharacterEncoding());
+					addQuery(content);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			
 			// parse GET parameters
 			addQuery(request.getQueryString());
 			
