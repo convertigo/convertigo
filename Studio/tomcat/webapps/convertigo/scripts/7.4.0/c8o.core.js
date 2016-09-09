@@ -147,6 +147,7 @@ C8O = {
                 }).appendTo("body").on("load", function () {
                     if (!triggered) {
                         C8O.log.debug("c8o.core: iframe load before submit");
+                        return;
                     }
                     
                     C8O.log.debug("c8o.core: call using a form response");
@@ -168,7 +169,7 @@ C8O = {
                 });
                 $iframe[0].contentWindow.name = targetName;
                 window.setTimeout(function () {
-                    var triggered = true;
+                    triggered = true;
                     $form.trigger("submit." + targetName);
                 }, 0);
                 return;
