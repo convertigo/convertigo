@@ -386,6 +386,7 @@ public class MobileResourceHelper {
 		json.put("projectName", project.getName());
 		json.put("remoteBase", remoteBase);
 		json.put("timeout", mobileApplication.getFlashUpdateTimeout());
+		json.put("splashRemoveMode", mobileApplication.getSplashRemoveMode().name());
 		
 		write("env.json", json.toString());
 		
