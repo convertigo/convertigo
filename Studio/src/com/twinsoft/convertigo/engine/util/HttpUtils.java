@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.engine.util;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.regex.Pattern;
@@ -38,12 +39,19 @@ import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.commons.httpclient.params.HttpClientParams;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 import org.apache.commons.httpclient.params.HttpMethodParams;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -209,5 +217,13 @@ public class HttpUtils {
 				httpSession.setMaxInactiveInterval(1);						
 			}
 		}
+	}
+	
+	public static JSONObject requestToJSON(CloseableHttpClient httpClient, HttpRequestBase request) throws ClientProtocolException, IOException, UnsupportedOperationException, JSONException {
+		CloseableHttpResponse response = httpClient.execute(request);
+		HttpEntity responseEntity = response.getEntity();
+		ContentTypeDecoder contentType = new ContentTypeDecoder(responseEntity == null || responseEntity.getContentType() == null  ? "" : responseEntity.getContentType().getValue());
+		JSONObject json = new JSONObject(IOUtils.toString(responseEntity.getContent(), contentType.charset("UTF-8")));
+		return json;
 	}
 }

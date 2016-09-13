@@ -17,6 +17,7 @@ public enum CouchKey {
 	continuous,
 	create_target,
 	data,
+	deleted,
 	doc,
 	docs,
 	doc_ids,

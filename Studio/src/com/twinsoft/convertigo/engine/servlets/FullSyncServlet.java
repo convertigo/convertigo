@@ -138,6 +138,7 @@ public class FullSyncServlet extends HttpServlet {
 				uri = builder.build();
 			}
 			
+			newRequest.setURI(uri);
 			debug.append(method.name() + " URI: " + uri.toString() + "\n");
 
 			for (String headerName: Collections.list(request.getHeaderNames())) {
@@ -266,26 +267,29 @@ public class FullSyncServlet extends HttpServlet {
 					debug.append("failed to parse [ " + e.getMessage() + "]: " + requestStringEntity);						
 				}
 			} else if ("_changes".equals(special)) {
-				uri = Engine.theApp.couchDbManager.handleChangesUri(dbName, uri, authenticatedUser);
-				debug.append("Changed to " + method.name() + " URI: " + uri.toString() + "\n");
+				newRequest = Engine.theApp.couchDbManager.handleChangesRequest(dbName, newRequest, httpClient.get(), authenticatedUser);
+				debug.append("Changed to " + newRequest.getMethod() + " URI: " + newRequest.getURI().toString() + "\n");
 			}
 			
 			if (newRequest instanceof HttpEntityEnclosingRequest) {
-				if (httpEntity != null) {
-					// already exists
-				} else if (requestStringEntity != null) {
-					debug.append("request new Entity:\n" + requestStringEntity + "\n");
-					httpEntity = new StringEntity(requestStringEntity, "UTF-8");
-				} else {
-					httpEntity = new InputStreamEntity(request.getInputStream());
-				}
+				HttpEntityEnclosingRequest entityRequest = ((HttpEntityEnclosingRequest) newRequest);
 				
-				((HttpEntityEnclosingRequest) newRequest).setEntity(httpEntity);
+				if (entityRequest.getEntity() == null) {
+					if (httpEntity != null) {
+						// already exists
+					} else if (requestStringEntity != null) {
+						debug.append("request new Entity:\n" + requestStringEntity + "\n");
+						httpEntity = new StringEntity(requestStringEntity, "UTF-8");
+					} else {
+						httpEntity = new InputStreamEntity(request.getInputStream());
+					}
+					
+					entityRequest.setEntity(httpEntity);
+				}
 			}
 			
 			Map<AbstractFullSyncListener, JSONArray> listeners = Engine.theApp.couchDbManager.handleBulkDocsRequest(dbName, bulkDocsRequest);
 			
-			newRequest.setURI(uri);
 			long requestTime = System.currentTimeMillis();
 			
 			CloseableHttpResponse newResponse = httpClient.get().execute(newRequest);
