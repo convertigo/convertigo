@@ -53,7 +53,6 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.LogParameters;
-import com.twinsoft.convertigo.engine.admin.services.logs.Add;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
@@ -107,7 +106,7 @@ public class FullSyncServlet extends HttpServlet {
 			LogParameters logParameters = GenericUtils.cast(httpSession.getAttribute(FullSyncServlet.class.getCanonicalName()));
 			
 			if (logParameters == null) {
-				httpSession.setAttribute(Add.class.getCanonicalName(), logParameters = new LogParameters());
+				httpSession.setAttribute(FullSyncServlet.class.getCanonicalName(), logParameters = new LogParameters());
 				logParameters.put(mdcKeys.ContextID.toString().toLowerCase(), httpSession.getId());
 			}
 
