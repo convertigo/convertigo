@@ -163,7 +163,12 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 					if (!".".equals(xpath)) {
 						Map<Node, XmlSchemaObject> references = new HashMap<Node, XmlSchemaObject>();
 						Document doc = XmlSchemaUtils.getDomInstance(object, references);
-						NodeList list = getXPathAPI().selectNodeList(doc.getDocumentElement(), anchor);
+						//String sDoc = XMLUtils.prettyPrintDOM(doc);
+						Element contextNode = doc.getDocumentElement();
+						if (anchor.startsWith("//"+contextNode.getNodeName()+"/")) {
+							anchor = anchor.replaceFirst("//"+contextNode.getNodeName()+"/", "./");
+						}
+						NodeList list = getXPathAPI().selectNodeList(contextNode, anchor);
 						if (list != null) {
 							boolean isList = false;
 							if (list.getLength() > 1) {
