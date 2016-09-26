@@ -1297,12 +1297,15 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	}
 
 	public boolean isSelected() {
-		StructuredSelection selection = (StructuredSelection) viewer.getSelection();
-		for (Iterator<?> i = selection.iterator(); i.hasNext();) {
-			if (i.next() == this) {
-				return true;
+		try {
+			StructuredSelection selection = (StructuredSelection) viewer.getSelection();
+			for (Iterator<?> i = selection.iterator(); i.hasNext();) {
+				if (i.next() == this) {
+					return true;
+				}
 			}
 		}
+		catch (Throwable t) {};
 		return false;
 	}
 }
