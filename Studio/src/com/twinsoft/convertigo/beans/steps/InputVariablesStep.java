@@ -90,7 +90,8 @@ public class InputVariablesStep extends Step implements ISchemaParticleGenerator
 		if (isEnable()) {
 			for (RequestableVariable var : getParentSequence().getAllVariables()) {
 				try {
-					evaluate(javascriptContext, scope, var.getName(), "expression", true);
+					//evaluate(javascriptContext, scope, var.getName(), "expression", true);
+					evaluated = scope.get(var.getName(), scope);
 					if (evaluated != null && !(evaluated instanceof Undefined)) {
 						variables.put(var.getName(), evaluated);
 					}
