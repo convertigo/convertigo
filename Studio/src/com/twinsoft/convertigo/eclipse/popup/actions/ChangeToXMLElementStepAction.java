@@ -32,6 +32,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.StepEvent;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
+import com.twinsoft.convertigo.beans.steps.ElementStep;
 import com.twinsoft.convertigo.beans.steps.XMLAttributeStep;
 import com.twinsoft.convertigo.beans.steps.XMLConcatStep;
 import com.twinsoft.convertigo.beans.steps.XMLElementStep;
@@ -195,6 +196,63 @@ public class ChangeToXMLElementStepAction extends MyAbstractAction {
 			                explorerView.setSelectedTreeObject(explorerView.findTreeObjectByUserObject(elementStep));
 						} else {
 							throw new EngineException("You cannot paste to a " + attributeStep.getParent().getClass().getSimpleName() + " a database object of type " + elementStep.getClass().getSimpleName());
+						}
+	        		}
+				}
+    			
+    			// JElement
+    			if ((databaseObject != null) && (databaseObject instanceof ElementStep)) {
+    				ElementStep jelementStep = (ElementStep)databaseObject;
+					
+					TreeParent treeParent = treeObject.getParent();
+					DatabaseObjectTreeObject parentTreeObject = null;
+					if (treeParent instanceof DatabaseObjectTreeObject)
+						parentTreeObject = (DatabaseObjectTreeObject)treeParent;
+					else
+						parentTreeObject = (DatabaseObjectTreeObject)treeParent.getParent();
+					
+	        		if (parentTreeObject != null) {
+	        			
+						// New XMLElement step
+	        			XMLElementStep elementStep = new XMLElementStep();
+	        			
+		        		if ( DatabaseObjectsManager.acceptDatabaseObjects(jelementStep.getParent(), elementStep) ) {
+	        				// Set properties	        			
+		        			elementStep.setOutput(jelementStep.isOutput());
+		        			elementStep.setEnable(jelementStep.isEnable());
+		        			elementStep.setComment(jelementStep.getComment());
+		        			//elementStep.setSourceDefinition(jelementStep.getSourceDefinition());
+		        			elementStep.setNodeText(jelementStep.getNodeText());
+		        			elementStep.setNodeName(jelementStep.getNodeName());
+		        			
+		        			elementStep.bNew = true;
+		        			elementStep.hasChanged = true;
+							
+							// Add new XMLElement step to parent
+							DatabaseObject parentDbo = jelementStep.getParent();
+						
+							parentDbo.add(elementStep);
+							
+							// Set correct order
+							if (parentDbo instanceof StepWithExpressions)
+								((StepWithExpressions)parentDbo).insertAtOrder(elementStep,jelementStep.priority);
+							else if (parentDbo instanceof Sequence)
+								((Sequence)parentDbo).insertAtOrder(elementStep,jelementStep.priority);
+						
+							// Add new XMLElement step in Tree
+							StepTreeObject stepTreeObject = new StepTreeObject(explorerView.viewer,jelementStep);
+							treeParent.addChild(stepTreeObject);
+							
+			   				// Delete XMLAttribute step
+							long oldPriority = jelementStep.priority;
+							jelementStep.delete();
+							elementStep.getSequence().fireStepMoved(new StepEvent(elementStep,String.valueOf(oldPriority)));
+							
+		        			parentTreeObject.hasBeenModified(true);
+			                explorerView.reloadTreeObject(parentTreeObject);
+			                explorerView.setSelectedTreeObject(explorerView.findTreeObjectByUserObject(elementStep));
+						} else {
+							throw new EngineException("You cannot paste to a " + jelementStep.getParent().getClass().getSimpleName() + " a database object of type " + elementStep.getClass().getSimpleName());
 						}
 	        		}
 				}

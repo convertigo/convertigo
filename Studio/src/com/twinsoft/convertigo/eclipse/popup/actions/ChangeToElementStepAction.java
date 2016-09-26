@@ -33,6 +33,7 @@ import com.twinsoft.convertigo.beans.core.StepEvent;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.steps.AttributeStep;
 import com.twinsoft.convertigo.beans.steps.ElementStep;
+import com.twinsoft.convertigo.beans.steps.XMLElementStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
@@ -79,30 +80,30 @@ public class ChangeToElementStepAction extends MyAbstractAction {
 	        		if (parentTreeObject != null) {
 	        			
 						// New Element step
-	        			ElementStep elementStep = new ElementStep();
+	        			ElementStep jelementStep = new ElementStep();
 	        			
-		        		if ( DatabaseObjectsManager.acceptDatabaseObjects(attributeStep.getParent(), elementStep) ) {
+		        		if ( DatabaseObjectsManager.acceptDatabaseObjects(attributeStep.getParent(), jelementStep) ) {
 	        				// Set properties
-		        			elementStep.setOutput(attributeStep.isOutput());
-		        			elementStep.setEnable(attributeStep.isEnable());
-		        			elementStep.setComment(attributeStep.getComment());
-		        			elementStep.setExpression(attributeStep.getExpression());
-		        			elementStep.setNodeText(attributeStep.getNodeText());
-		        			elementStep.setNodeName(attributeStep.getNodeName());
+		        			jelementStep.setOutput(attributeStep.isOutput());
+		        			jelementStep.setEnable(attributeStep.isEnable());
+		        			jelementStep.setComment(attributeStep.getComment());
+		        			jelementStep.setExpression(attributeStep.getExpression());
+		        			jelementStep.setNodeText(attributeStep.getNodeText());
+		        			jelementStep.setNodeName(attributeStep.getNodeName());
 		        			
-		        			elementStep.bNew = true;
-		        			elementStep.hasChanged = true;
+		        			jelementStep.bNew = true;
+		        			jelementStep.hasChanged = true;
 							
 							// Add new Element step to parent
 							DatabaseObject parentDbo = attributeStep.getParent();
 						
-							parentDbo.add(elementStep);
+							parentDbo.add(jelementStep);
 							
 							// Set correct order
 							if (parentDbo instanceof StepWithExpressions)
-								((StepWithExpressions)parentDbo).insertAtOrder(elementStep,attributeStep.priority);
+								((StepWithExpressions)parentDbo).insertAtOrder(jelementStep,attributeStep.priority);
 							else if (parentDbo instanceof Sequence)
-								((Sequence)parentDbo).insertAtOrder(elementStep,attributeStep.priority);
+								((Sequence)parentDbo).insertAtOrder(jelementStep,attributeStep.priority);
 						
 							// Add new Element step in Tree
 							StepTreeObject stepTreeObject = new StepTreeObject(explorerView.viewer,attributeStep);
@@ -111,13 +112,70 @@ public class ChangeToElementStepAction extends MyAbstractAction {
 			   				// Delete Attribute step
 							long oldPriority = attributeStep.priority;
 							attributeStep.delete();
-							elementStep.getSequence().fireStepMoved(new StepEvent(elementStep,String.valueOf(oldPriority)));
+							jelementStep.getSequence().fireStepMoved(new StepEvent(jelementStep,String.valueOf(oldPriority)));
 							
 		        			parentTreeObject.hasBeenModified(true);
 			                explorerView.reloadTreeObject(parentTreeObject);
-			                explorerView.setSelectedTreeObject(explorerView.findTreeObjectByUserObject(elementStep));
+			                explorerView.setSelectedTreeObject(explorerView.findTreeObjectByUserObject(jelementStep));
 						} else {
-							throw new EngineException("You cannot paste to a " + attributeStep.getParent().getClass().getSimpleName() + " a database object of type " + elementStep.getClass().getSimpleName());
+							throw new EngineException("You cannot paste to a " + attributeStep.getParent().getClass().getSimpleName() + " a database object of type " + jelementStep.getClass().getSimpleName());
+						}
+	        		}
+				}
+    			
+    			// XML Element
+    			if ((databaseObject != null) && (databaseObject instanceof XMLElementStep)) {
+    				XMLElementStep elementStep = (XMLElementStep)databaseObject;
+					
+					TreeParent treeParent = treeObject.getParent();
+					DatabaseObjectTreeObject parentTreeObject = null;
+					if (treeParent instanceof DatabaseObjectTreeObject)
+						parentTreeObject = (DatabaseObjectTreeObject)treeParent;
+					else
+						parentTreeObject = (DatabaseObjectTreeObject)treeParent.getParent();
+					
+	        		if (parentTreeObject != null) {
+	        			
+						// New Element step
+	        			ElementStep jelementStep = new ElementStep();
+	        			
+		        		if ( DatabaseObjectsManager.acceptDatabaseObjects(elementStep.getParent(), jelementStep) ) {
+	        				// Set properties	        			
+		        			jelementStep.setOutput(elementStep.isOutput());
+		        			jelementStep.setEnable(elementStep.isEnable());
+		        			jelementStep.setComment(elementStep.getComment());
+		        			//jelementStep.setSourceDefinition(elementStep.getSourceDefinition());
+		        			jelementStep.setNodeText(elementStep.getNodeText());
+		        			jelementStep.setNodeName(elementStep.getNodeName());
+		        			
+		        			jelementStep.bNew = true;
+		        			jelementStep.hasChanged = true;
+							
+							// Add new XMLElement step to parent
+							DatabaseObject parentDbo = elementStep.getParent();
+						
+							parentDbo.add(jelementStep);
+							
+							// Set correct order
+							if (parentDbo instanceof StepWithExpressions)
+								((StepWithExpressions)parentDbo).insertAtOrder(jelementStep,elementStep.priority);
+							else if (parentDbo instanceof Sequence)
+								((Sequence)parentDbo).insertAtOrder(jelementStep,elementStep.priority);
+						
+							// Add new Element step in Tree
+							StepTreeObject stepTreeObject = new StepTreeObject(explorerView.viewer,elementStep);
+							treeParent.addChild(stepTreeObject);
+							
+			   				// Delete XMLAttribute step
+							long oldPriority = elementStep.priority;
+							elementStep.delete();
+							jelementStep.getSequence().fireStepMoved(new StepEvent(jelementStep,String.valueOf(oldPriority)));
+							
+		        			parentTreeObject.hasBeenModified(true);
+			                explorerView.reloadTreeObject(parentTreeObject);
+			                explorerView.setSelectedTreeObject(explorerView.findTreeObjectByUserObject(jelementStep));
+						} else {
+							throw new EngineException("You cannot paste to a " + elementStep.getParent().getClass().getSimpleName() + " a database object of type " + jelementStep.getClass().getSimpleName());
 						}
 	        		}
 				}

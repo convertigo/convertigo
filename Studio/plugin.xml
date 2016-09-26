@@ -2407,7 +2407,7 @@
                   <enablement>
                      <objectState
                            name="objectClassName"
-                           value="com.twinsoft.convertigo.beans.steps.XMLConcatStep;com.twinsoft.convertigo.beans.steps.XMLAttributeStep">
+                           value="com.twinsoft.convertigo.beans.steps.XMLConcatStep;com.twinsoft.convertigo.beans.steps.XMLAttributeStep;com.twinsoft.convertigo.beans.steps.ElementStep">
                      </objectState>
                   </enablement>
                </action>
@@ -2449,7 +2449,7 @@
                   <enablement>
                      <objectState
                            name="objectClassName"
-                           value="com.twinsoft.convertigo.beans.steps.AttributeStep" />
+                           value="com.twinsoft.convertigo.beans.steps.AttributeStep;com.twinsoft.convertigo.beans.steps.XMLElementStep" />
                   </enablement>
                 </action>
             </objectContribution>
