@@ -48,7 +48,12 @@ public class SapJcoConnector extends Connector {
 	private String user = "SAP*";
 	private String password = "";
 	private String language = "en";
-
+	
+	private String systemId = "";
+	private String msService = "";
+	private String msHost = "";
+	private String group = "";
+			
 	private transient SapJcoProviderImpl provider = null;
 	
     public class SapJcoProviderImpl extends SapJCoProvider {
@@ -96,6 +101,26 @@ public class SapJcoConnector extends Connector {
 		@Override
 		protected Context getContext() {
 			return context;
+		}
+
+		@Override
+		protected String getDestinationSystemId() {
+			return getSystemId();
+		}
+
+		@Override
+		protected String getDestinationMsHost() {
+			return getMsHost();
+		}
+
+		@Override
+		protected String getDestinationMsService() {
+			return getMsService();
+		}
+
+		@Override
+		protected String getDestinationGroup() {
+			return getGroup();
 		}
 
     }	
@@ -251,6 +276,38 @@ public class SapJcoConnector extends Connector {
 
 	public void setLanguage(String language) {
 		this.language = language;
+	}
+	
+	public String getSystemId() {
+		return systemId;
+	}
+
+	public void setSystemId(String systemId) {
+		this.systemId = systemId;
+	}
+
+	public String getMsService() {
+		return msService;
+	}
+
+	public void setMsService(String msService) {
+		this.msService = msService;
+	}
+
+	public String getMsHost() {
+		return msHost;
+	}
+
+	public void setMsHost(String msHost) {
+		this.msHost = msHost;
+	}
+
+	public String getGroup() {
+		return group;
+	}
+
+	public void setGroup(String group) {
+		this.group = group;
 	}
 	
 	public SapJcoProviderImpl getSapJCoProvider() throws EngineException {
