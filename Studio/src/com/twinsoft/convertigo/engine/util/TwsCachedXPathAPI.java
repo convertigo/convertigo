@@ -70,7 +70,8 @@ public class TwsCachedXPathAPI implements EventListener {
 			int i = 0;
 			for (Object node: nodes) {
 				if (node instanceof String) {
-					node = contextNode.getOwnerDocument().createTextNode((String) node);
+					Document doc =  contextNode instanceof Document ? (Document)contextNode : contextNode.getOwnerDocument();
+					node = doc.createTextNode((String) node);
 					nodes.set(i, node);
 				}
 				i++;
