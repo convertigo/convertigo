@@ -40,6 +40,7 @@ import java.util.ResourceBundle;
 
 import org.apache.commons.lang.ArrayUtils;
 
+import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 
@@ -217,6 +218,18 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
     }
     
     public static String getIconName(DatabaseObject dbo, int iconType) {
+        if (dbo != null && dbo instanceof TransactionStep) { 
+        	TransactionStep ts = (TransactionStep) dbo; 
+	 	    try { 
+                Transaction t = ts.getTargetTransaction(); 
+                if (t != null) { 
+                	dbo = t; 
+                } 
+            } catch (Exception e) { 
+            	// cannot get the target transaction, use the call transaction icon 
+            } 
+	 	}
+        
     	String iconName;
 		try {
 			iconName = getIconName(CachedIntrospector.getBeanInfo(dbo), iconType);
