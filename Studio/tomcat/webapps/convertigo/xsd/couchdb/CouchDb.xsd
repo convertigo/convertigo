@@ -661,6 +661,14 @@
 		<xsd:attribute name="type" type="xsd:string" use="optional" />
 	</xsd:complexType>
 
+	<xsd:complexType name="postCompactType">
+		<xsd:sequence>
+			<xsd:group ref="tns:couchTransactionGroup" />
+			<xsd:element name="ok" minOccurs="0" type="tns:boolean-with-type" />
+		</xsd:sequence>
+		<xsd:attribute name="type" type="xsd:string" use="optional" />
+	</xsd:complexType>
+
 	<xsd:complexType name="deleteDocumentAttachmentType">
 		<xsd:sequence>
 			<xsd:group ref="tns:couchDocumentTransactionGroup" />
