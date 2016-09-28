@@ -50,6 +50,7 @@ import org.eclipse.wst.sse.ui.internal.StructuredTextViewer;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.sequences.GenericSequence;
 import com.twinsoft.convertigo.eclipse.AnimatedGif;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -677,12 +678,24 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		boolean isSourceFromSequence = false;
 		if (event instanceof RequestableEngineEvent) {
 			RequestableEngineEvent requestableEvent = (RequestableEngineEvent) event;
-			
 			String sequenceName = requestableEvent.getSequenceName();
 			if (sequenceName != null) {
 				if (sequenceName.equals(sequence.getName()) && requestableEvent.getProjectName().equals(sequence.getProject().getName())) {
 					isSourceFromSequence = true;
 				}
+			}
+		}
+		else if (event instanceof EngineEvent) {
+			Object ob = ((EngineEvent)event).getSource();
+			if (ob instanceof Step) {
+				try {
+					String projectName = ((Step)ob).getProject().getName();
+					String sequenceName =  ((Step)ob).getSequence().getName();
+					if (sequenceName.equals(sequence.getName()) && projectName.equals(sequence.getProject().getName())) {
+						isSourceFromSequence = true;
+					}
+				}
+				catch (Exception e){}
 			}
 		}
 		return isSourceFromSequence;

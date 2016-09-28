@@ -1244,6 +1244,19 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 				}
 			}
 		}
+		else if (event instanceof EngineEvent) {
+			Object ob = ((EngineEvent)event).getSource();
+			if (ob instanceof DatabaseObject) {
+				try {
+					String projectName = ((DatabaseObject)ob).getProject().getName();
+					String connectorName = ((DatabaseObject)ob).getConnector().getName();
+					if (connectorName.equals(connector.getName()) && projectName.equals(connector.getProject().getName())) {
+						isSourceFromConnector = true;
+					}
+				}
+				catch (Exception e){}
+			}
+		}
 		return isSourceFromConnector;
 	}
 
