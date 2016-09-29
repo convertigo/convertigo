@@ -105,7 +105,7 @@ public class NewProjectWizardPage1 extends WizardPage {
 		}
 		File templateFile = new File(Engine.TEMPLATES_PATH + "/project/" + projectName + ".car"); 
 		if (templateFile.exists()) {
-			updateStatus("Project name not authorized.\n Please, choose a valid project name.");
+			updateStatus("Project name not authorized.\n Please, choose a project name different from a template's one.");
 			return;
 		}
 		updateStatus(null);
