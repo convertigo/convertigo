@@ -409,15 +409,17 @@ C8O = {
     walk: function (node, data, fn, fn_validate) {
         if (node.nodeType && (typeof fn_validate != "function" || fn_validate(node, data))) {
             if (node.nodeType == Node.ELEMENT_NODE) {
-                for (var i = 0; i < node.attributes.length; i++) {
-                    var fnr = fn.call(node, node.attributes[i].value, data);
+            	var array = C8O._copyArray(node.attributes);
+                for (var i = 0; i < array.length; i++) {
+                    var fnr = fn.call(node, array[i].value, data);
                     
                     if (fnr != null) {
-                        node.attributes[i].value = fnr;
+                    	array[i].value = fnr;
                     }
                 }
-                for (var i = 0; i < node.childNodes.length; i++) {
-                    C8O.walk(node.childNodes[i], data, fn, fn_validate);
+                var array = C8O._copyArray(node.childNodes);
+                for (var i = 0; i < array.length; i++) {
+                    C8O.walk(array[i], data, fn, fn_validate);
                 }
             } else if (node.nodeType == Node.TEXT_NODE) {
                 var fnr = fn.call(node, node.nodeValue, data, fn_validate);
@@ -573,6 +575,15 @@ C8O = {
         return C8O.isTrue(C8O.vars.log_remote) &&
             C8O._define.log_remote_path != null &&
             $.inArray(level, C8O._define.log_levels) <= $.inArray(C8O._define.log_remote_level, C8O._define.log_levels);
+    },
+    
+    _copyArray: function (array) {
+    	var l = array.length;
+    	var a = Array(l);
+    	while (l--) {
+    		a[l] = array[l];
+    	}
+    	return a;
     },
     
     _findAndSelf: function ($elt, selector) {
