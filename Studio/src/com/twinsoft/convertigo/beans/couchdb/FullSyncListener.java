@@ -49,48 +49,50 @@ public class FullSyncListener extends AbstractFullSyncViewListener {
 	
 	@Override
 	protected void triggerSequence(InternalHttpServletRequest request, JSONArray ids) throws EngineException {
-		if (targetView == null || targetView.isEmpty()) {
-			throw new EngineException("No target view defined");
-		}
-		
-		String ddoc = getTargetDocName();
-		if (ddoc == null) {
-			throw new EngineException("Target design document name is null");
-		}
-		
-		String view = getTargetViewName();
-		if (view == null) {
-			throw new EngineException("Target view name is null");
-		}
-		
-		int len = ids.length();
-		
-		Map<String, String> query = new HashMap<String, String>(2);
-		query.put("reduce", "false");
-		query.put("include_docs", "true");
-
-		try {
-			for (int i = 0; i < len;) {
-				JSONArray doc_ids = getChunk(ids, i);
-				i += doc_ids.length();
-
-				Engine.logBeans.debug("(FullSyncListener) Listener \"" + getName() + "\" : post view for _id keys " + doc_ids);
-				JSONObject json = getCouchClient().postView(getDatabaseName(), ddoc, view, query, CouchKey.keys.put(new JSONObject(), doc_ids));
-				Engine.logBeans.debug("(FullSyncListener) Listener \"" + getName() + "\" : post view returned following documents :\n" + json.toString());
-
-				if (json != null) {
-					if (CouchKey.error.has(json)) {
-						String error = CouchKey.error.String(json);
-						error = error == null ? "unknown" : error;
-						String reason = CouchKey.reason.String(json);
-						reason = reason == null ? "unknown" : reason;
-						throw new EngineException("View returned error: " + error + ", reason: " + reason);
-					}
-					runDocs(request, CouchKey.rows.JSONArray(json));
-				}
+		if (isEnable()) {
+			if (targetView == null || targetView.isEmpty()) {
+				throw new EngineException("No target view defined");
 			}
-		} catch (Throwable t) {
-			throw new EngineException("Query view named \""+ view +"\" of \""+ ddoc +"\" design document failed", t);
+			
+			String ddoc = getTargetDocName();
+			if (ddoc == null) {
+				throw new EngineException("Target design document name is null");
+			}
+			
+			String view = getTargetViewName();
+			if (view == null) {
+				throw new EngineException("Target view name is null");
+			}
+			
+			int len = ids.length();
+			
+			Map<String, String> query = new HashMap<String, String>(2);
+			query.put("reduce", "false");
+			query.put("include_docs", "true");
+	
+			try {
+				for (int i = 0; i < len;) {
+					JSONArray doc_ids = getChunk(ids, i);
+					i += doc_ids.length();
+	
+					Engine.logBeans.debug("(FullSyncListener) Listener \"" + getName() + "\" : post view for _id keys " + doc_ids);
+					JSONObject json = getCouchClient().postView(getDatabaseName(), ddoc, view, query, CouchKey.keys.put(new JSONObject(), doc_ids));
+					Engine.logBeans.debug("(FullSyncListener) Listener \"" + getName() + "\" : post view returned following documents :\n" + json.toString());
+	
+					if (json != null) {
+						if (CouchKey.error.has(json)) {
+							String error = CouchKey.error.String(json);
+							error = error == null ? "unknown" : error;
+							String reason = CouchKey.reason.String(json);
+							reason = reason == null ? "unknown" : reason;
+							throw new EngineException("View returned error: " + error + ", reason: " + reason);
+						}
+						runDocs(request, CouchKey.rows.JSONArray(json));
+					}
+				}
+			} catch (Throwable t) {
+				throw new EngineException("Query view named \""+ view +"\" of \""+ ddoc +"\" design document failed", t);
+			}
 		}
 	}
 }

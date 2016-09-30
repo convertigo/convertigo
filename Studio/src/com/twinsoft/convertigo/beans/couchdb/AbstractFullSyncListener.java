@@ -100,103 +100,110 @@ public abstract class AbstractFullSyncListener extends Listener {
 	abstract protected void triggerSequence(InternalHttpServletRequest request, JSONArray array) throws EngineException, JSONException;
 	
 	public void onBulkDocs(HttpServletRequest request, final JSONArray array) {
-		final InternalHttpServletRequest internalRequest = new InternalHttpServletRequest(request);
-		new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					triggerSequence(internalRequest, array);
-				} catch (Exception e) {
-					Engine.logBeans.error("Unable to handle 'bulkDocs' event for \""+ getName() +"\" listener", e);
+		if (isEnable()) {
+			final InternalHttpServletRequest internalRequest = new InternalHttpServletRequest(request);
+			new Thread(new Runnable() {
+	
+				@Override
+				public void run() {
+					try {
+						triggerSequence(internalRequest, array);
+					} catch (Exception e) {
+						Engine.logBeans.error("Unable to handle 'bulkDocs' event for \""+ getName() +"\" listener", e);
+					}
 				}
-			}
-			
-		}).start();
-		
+				
+			}).start();
+		}
 	}
 	
 	protected void executeSequence(InternalHttpServletRequest request, JSONArray docs) throws EngineException {
-		if (targetSequence == null || targetSequence.isEmpty()) {
-			throw new EngineException("No target sequence defined");
-		}
-		
-		if (docs == null) {
-			throw new EngineException("Parameter 'docs' is null");
-		}
-		
-		int len = docs.length(); 
-		if (len == 0) {
-			return;
-		}
-		
-		for (int i = 0; i < len; i++) {
-			try {
-				CouchKey.c8oHash.remove(docs.getJSONObject(i));
-				CouchKey.c8oAcl.remove(docs.getJSONObject(i));
-			} catch (JSONException e) {
-				throw new EngineException("Incoming documents error", e);
+		if (isEnable()) {
+			if (targetSequence == null || targetSequence.isEmpty()) {
+				throw new EngineException("No target sequence defined");
 			}
-		}
-		
-		try {
-			Document document = XMLUtils.getDefaultDocumentBuilder().newDocument();
-			Element itemsElement = document.createElement("items");
-			XMLUtils.jsonToXml(docs, itemsElement);
-			NodeList docList = XPathAPI.selectNodeList(itemsElement, "./item");
 			
-			StringTokenizer st = new StringTokenizer(getTargetSequence(),".");
-			String projectName = st.nextToken();
-			String sequenceName = st.nextToken();
-		
-			Engine.logBeans.debug("(FullSyncListener) Listener \""+ getName() +"\" : execute sequence \""+sequenceName+"\"");
+			if (docs == null) {
+				throw new EngineException("Parameter 'docs' is null");
+			}
+			
+			int len = docs.length(); 
+			if (len == 0) {
+				return;
+			}
+			
+			for (int i = 0; i < len; i++) {
+				try {
+					CouchKey.c8oHash.remove(docs.getJSONObject(i));
+					CouchKey.c8oAcl.remove(docs.getJSONObject(i));
+				} catch (JSONException e) {
+					throw new EngineException("Incoming documents error", e);
+				}
+			}
+			
 			try {
-				Map<String, Object> requestParams = new HashMap<String, Object>();
-		    	boolean maintainContext = false;
-		    	boolean maintainSession = false;
+				Document document = XMLUtils.getDefaultDocumentBuilder().newDocument();
+				Element itemsElement = document.createElement("items");
+				XMLUtils.jsonToXml(docs, itemsElement);
+				NodeList docList = XPathAPI.selectNodeList(itemsElement, "./item");
 				
-		    	requestParams.put(Parameter.Project.getName(), new String[] { projectName });
-		    	requestParams.put(Parameter.Sequence.getName(), new String[] { sequenceName });
-				if (!maintainContext) requestParams.put(Parameter.RemoveContext.getName(), new String[] { "" });
-				if (!maintainSession) requestParams.put(Parameter.RemoveSession.getName(), new String[] { "" });
-				//request.put("docs", itemsElement);
-				requestParams.put("doc", docList);
-				
-	    		Engine.logBeans.debug("(FullSyncListener) Listener \""+ getName() +"\" : internal invoke requested");
-	        	InternalRequester internalRequester = new InternalRequester(requestParams, request);
-	    		Object result = internalRequester.processRequest();
-	        	if (result != null) {
-	        		Document xmlHttpDocument = (Document) result;
-	        		String contents = XMLUtils.prettyPrintDOMWithEncoding(xmlHttpDocument, "UTF-8");
-	        		Engine.logBeans.debug("(FullSyncListener) Listener \""+ getName() +"\" : sequence successfully executed with following result\n"+ contents + "\n");
-	        	}
+				StringTokenizer st = new StringTokenizer(getTargetSequence(),".");
+				String projectName = st.nextToken();
+				String sequenceName = st.nextToken();
+			
+				Engine.logBeans.debug("(FullSyncListener) Listener \""+ getName() +"\" : execute sequence \""+sequenceName+"\"");
+				try {
+					Map<String, Object> requestParams = new HashMap<String, Object>();
+			    	boolean maintainContext = false;
+			    	boolean maintainSession = false;
+					
+			    	requestParams.put(Parameter.Project.getName(), new String[] { projectName });
+			    	requestParams.put(Parameter.Sequence.getName(), new String[] { sequenceName });
+					if (!maintainContext) requestParams.put(Parameter.RemoveContext.getName(), new String[] { "" });
+					if (!maintainSession) requestParams.put(Parameter.RemoveSession.getName(), new String[] { "" });
+					//request.put("docs", itemsElement);
+					requestParams.put("doc", docList);
+					
+		    		Engine.logBeans.debug("(FullSyncListener) Listener \""+ getName() +"\" : internal invoke requested");
+		        	InternalRequester internalRequester = new InternalRequester(requestParams, request);
+		    		Object result = internalRequester.processRequest();
+		        	if (result != null) {
+		        		Document xmlHttpDocument = (Document) result;
+		        		String contents = XMLUtils.prettyPrintDOMWithEncoding(xmlHttpDocument, "UTF-8");
+		        		Engine.logBeans.debug("(FullSyncListener) Listener \""+ getName() +"\" : sequence successfully executed with following result\n"+ contents + "\n");
+		        	}
+				}
+				catch (Exception e) {
+					throw new EngineException("Sequence named \""+ sequenceName +"\" failed", e);
+				}
+			} catch (Exception e) {
+				throw new EngineException("Unable to execute sequence for \""+ getName() +"\" listener", e);
 			}
-			catch (Exception e) {
-				throw new EngineException("Sequence named \""+ sequenceName +"\" failed", e);
-			}
-		} catch (Exception e) {
-			throw new EngineException("Unable to execute sequence for \""+ getName() +"\" listener", e);
 		}
 	}
 	
 	protected void onDeletedDocs(InternalHttpServletRequest request, JSONArray deletedDocs) throws EngineException, JSONException {		
-		int len = deletedDocs.length();
-		
-		for (int i = 0; i < len;) {
-			JSONArray docs = getChunk(deletedDocs, i);
-			i += docs.length();
-			executeSequence(request, docs);
+		if (isEnable()) {
+			int len = deletedDocs.length();
+			
+			for (int i = 0; i < len;) {
+				JSONArray docs = getChunk(deletedDocs, i);
+				i += docs.length();
+				executeSequence(request, docs);
+			}
 		}
 	}
 	
 	protected JSONArray getDeletedDocs(JSONArray rows) throws JSONException {
-		if (rows.length() > 0) {
-			JSONArray deletedDocs = new JSONArray();
-			for (int i = 0; i < rows.length(); i++) {
-				JSONObject doc = CouchKey.doc.JSONObject(rows.getJSONObject(i));
-				deletedDocs.put(doc);
+		if (isEnable()) {
+			if (rows.length() > 0) {
+				JSONArray deletedDocs = new JSONArray();
+				for (int i = 0; i < rows.length(); i++) {
+					JSONObject doc = CouchKey.doc.JSONObject(rows.getJSONObject(i));
+					deletedDocs.put(doc);
+				}
+				return deletedDocs;
 			}
-			return deletedDocs;
 		}
 		return null;
 	}
@@ -214,19 +221,21 @@ public abstract class AbstractFullSyncListener extends Listener {
 	}
 	
 	protected void runDocs(InternalHttpServletRequest request, JSONArray rows) throws JSONException, EngineException {
-		if (rows != null && rows.length() > 0) {
-
-			// Retrieve the first results
-			JSONArray docs = new JSONArray();
-			for (int i = 0; i < rows.length(); i++) {
-				docs.put(CouchKey.doc.JSONObject(rows.getJSONObject(i)));
+		if (isEnable()) {
+			if (rows != null && rows.length() > 0) {
+	
+				// Retrieve the first results
+				JSONArray docs = new JSONArray();
+				for (int i = 0; i < rows.length(); i++) {
+					docs.put(CouchKey.doc.JSONObject(rows.getJSONObject(i)));
+				}
+				
+				executeSequence(request, docs);
 			}
-			
-			executeSequence(request, docs);
 		}
 	}
 	
 	public boolean isEnabled() {
-		return chunk > 0;
+		return isEnable() && (chunk > 0);
 	}
 }

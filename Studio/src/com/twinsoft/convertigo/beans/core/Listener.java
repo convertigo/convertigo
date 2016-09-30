@@ -26,6 +26,8 @@ public abstract class Listener extends DatabaseObject {
 
 	private static final long serialVersionUID = 9010595374464464408L;
 	
+	private boolean isEnable = true;
+	
 	public Listener() {
 		super();
 		databaseType = "Listener";
@@ -40,5 +42,12 @@ public abstract class Listener extends DatabaseObject {
 	public String getRenderer() {
 		return "ListenerTreeObject";
 	}
-		
+	
+	public boolean isEnable() {
+		return isEnable;
+	}
+
+	public void setEnable(boolean isEnable) {
+		this.isEnable = isEnable;
+	}
 }

@@ -35,6 +35,7 @@ public class ListenerTreeObject extends DatabaseObjectTreeObject {
 
 	public ListenerTreeObject(Viewer viewer, DatabaseObject object, boolean inherited) {
 		super(viewer, object, inherited);
+		setEnabled(getObject().isEnable());
 	}
 
 	@Override
@@ -42,4 +43,18 @@ public class ListenerTreeObject extends DatabaseObjectTreeObject {
 		return (Listener)super.getObject();
 	}
 	
+	@Override
+    public boolean isEnabled() {
+		setEnabled(getObject().isEnable());
+    	return super.isEnabled();
+    }
+	
+	@Override
+	public boolean testAttribute(Object target, String name, String value) {
+		if (name.equals("isEnable")) {
+			Boolean bool = Boolean.valueOf(value);
+			return bool.equals(Boolean.valueOf(isEnabled()));
+		}
+		return super.testAttribute(target, name, value);
+	}
 }

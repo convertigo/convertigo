@@ -49,45 +49,47 @@ public class FullSyncFilterListener extends AbstractFullSyncFilterListener {
 	
 	@Override
 	protected void triggerSequence(InternalHttpServletRequest request, JSONArray ids) throws EngineException {
-		if (targetFilter == null || targetFilter.isEmpty()) {
-			throw new EngineException("No target view defined");
-		}
-		
-		String filter = targetFilter;
-		
-		String ddoc = getTargetDocName();
-		String filterName = getTargetFilterName();
-		if (ddoc != null && filterName != null) {
-			filter = ddoc + "/" + filterName;
-		}
-		
-		int len = ids.length();
-		
-		Map<String, String> query = new HashMap<String, String>(2);
-		query.put("filter", filter);
-		query.put("include_docs", "true");
-		try {
-			for (int i = 0; i < len;) {
-				JSONArray doc_ids = getChunk(ids, i);
-				i += doc_ids.length();
-
-				Engine.logBeans.debug("(FullSyncFilterListener) Listener \"" + getName() + "\" : post filter for _id keys " + doc_ids);
-				JSONObject json = getCouchClient().postChange(getDatabaseName(), query, CouchKey.doc_ids.put(new JSONObject(), doc_ids));
-				Engine.logBeans.debug("(FullSyncFilterListener) Listener \"" + getName() + "\" : post filter returned following documents :\n" + json.toString());
-
-				if (json != null) {
-					if (CouchKey.error.has(json)) {
-						String error = CouchKey.error.String(json);
-						error = error == null ? "unknown" : error;
-						String reason = CouchKey.reason.String(json);
-						reason = reason == null ? "unknown" : reason;
-						throw new EngineException("Filter returned error: " + error + ", reason: " + reason);
-					}
-					runDocs(request, CouchKey.results.JSONArray(json));
-				}
+		if (isEnable()) {
+			if (targetFilter == null || targetFilter.isEmpty()) {
+				throw new EngineException("No target filter defined");
 			}
-		} catch (Throwable t) {
-			throw new EngineException("Query filter named \""+ filter +"\" design document failed", t);
+			
+			String filter = targetFilter;
+			
+			String ddoc = getTargetDocName();
+			String filterName = getTargetFilterName();
+			if (ddoc != null && filterName != null) {
+				filter = ddoc + "/" + filterName;
+			}
+			
+			int len = ids.length();
+			
+			Map<String, String> query = new HashMap<String, String>(2);
+			query.put("filter", filter);
+			query.put("include_docs", "true");
+			try {
+				for (int i = 0; i < len;) {
+					JSONArray doc_ids = getChunk(ids, i);
+					i += doc_ids.length();
+	
+					Engine.logBeans.debug("(FullSyncFilterListener) Listener \"" + getName() + "\" : post filter for _id keys " + doc_ids);
+					JSONObject json = getCouchClient().postChange(getDatabaseName(), query, CouchKey.doc_ids.put(new JSONObject(), doc_ids));
+					Engine.logBeans.debug("(FullSyncFilterListener) Listener \"" + getName() + "\" : post filter returned following documents :\n" + json.toString());
+	
+					if (json != null) {
+						if (CouchKey.error.has(json)) {
+							String error = CouchKey.error.String(json);
+							error = error == null ? "unknown" : error;
+							String reason = CouchKey.reason.String(json);
+							reason = reason == null ? "unknown" : reason;
+							throw new EngineException("Filter returned error: " + error + ", reason: " + reason);
+						}
+						runDocs(request, CouchKey.results.JSONArray(json));
+					}
+				}
+			} catch (Throwable t) {
+				throw new EngineException("Query filter named \""+ filter +"\" design document failed", t);
+			}
 		}
 	}
 }

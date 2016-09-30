@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.beans.core;
 
+import java.beans.PropertyDescriptor;
+
 public class ListenerBeanInfo extends MySimpleBeanInfo {
 
 	public ListenerBeanInfo() {
@@ -32,7 +34,13 @@ public class ListenerBeanInfo extends MySimpleBeanInfo {
 			resourceBundle = getResourceBundle("res/Listener");
 			
 			displayName = getExternalizedString("display_name");
-			shortDescription = getExternalizedString("short_description");			
+			shortDescription = getExternalizedString("short_description");
+			
+			properties = new PropertyDescriptor[1];
+			
+            properties[0] = new PropertyDescriptor("isEnable", Listener.class, "isEnable", "setEnable");
+			properties[0].setDisplayName(getExternalizedString("property.isEnabled.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.isEnabled.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
