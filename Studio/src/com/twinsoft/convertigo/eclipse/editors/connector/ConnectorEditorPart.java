@@ -1294,14 +1294,8 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 	}
 
 	public void blocksChanged(EngineEvent engineEvent) {
-		/**
-		 * This code has been commented out to solve #4716. For No obvious reasons we should prevent block factory events to be triggered
-		 * when blocks changes.
-		 * 
-		 *   
 		if (!checkEventSource(engineEvent))
 			return;
-		*/
 
 		if (bDebug) {
 			try {
