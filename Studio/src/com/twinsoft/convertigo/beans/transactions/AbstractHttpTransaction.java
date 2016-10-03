@@ -398,7 +398,8 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
     
     public XMLVector<XMLVector<String>> getCurrentHttpParameters() {
     	if (currentHttpParameters == null) {
-    		currentHttpParameters = GenericUtils.cast(httpParameters.clone());
+    		//currentHttpParameters = GenericUtils.cast(httpParameters.clone());
+    		currentHttpParameters = new XMLVector<XMLVector<String>>(httpParameters);
     	}
         return currentHttpParameters;
     }
