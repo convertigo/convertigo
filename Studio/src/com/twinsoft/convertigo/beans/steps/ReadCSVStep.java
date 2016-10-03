@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 
@@ -157,9 +158,10 @@ public class ReadCSVStep extends ReadFileStep {
 			StringTokenizer st;
 			
 			// Reads file line by line
-			fichier = new BufferedReader(new InputStreamReader(
-                    new FileInputStream(getAbsoluteFilePath(filePath)), (encoding.length() > 0)? encoding : "iso-8859-1"));
-			while ((str = fichier.readLine()) != null) {
+			Scanner scanner = new Scanner(new File(getAbsoluteFilePath(filePath)));
+			scanner.useDelimiter("\r\n");
+			while (scanner.hasNext()) {
+				str = scanner.next();
 				if (str.startsWith(separator)) {
 					str = "_empty_"+str;
 				}
