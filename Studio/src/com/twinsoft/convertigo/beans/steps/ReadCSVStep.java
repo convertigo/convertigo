@@ -158,7 +158,8 @@ public class ReadCSVStep extends ReadFileStep {
 			StringTokenizer st;
 			
 			// Reads file line by line
-			Scanner scanner = new Scanner(new File(getAbsoluteFilePath(filePath)));
+			Scanner scanner = new Scanner(new InputStreamReader(
+                    new FileInputStream(getAbsoluteFilePath(filePath)),(encoding.length() > 0)? encoding : "iso-8859-1"));
 			scanner.useDelimiter("\r\n");
 			while (scanner.hasNext()) {
 				str = scanner.next();
