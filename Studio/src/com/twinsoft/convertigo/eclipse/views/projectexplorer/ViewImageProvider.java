@@ -98,6 +98,13 @@ public class ViewImageProvider {
 		
 		Image image = imagesCache.get(imageName);
 		if (image == null) {
+			if (iconName == null) {
+				iconName = imageName;
+				if (iconName == null) {
+					iconName = "/com/twinsoft/convertigo/beans/core/images/default_color_16x16.png";
+				}
+			}
+			
 			Device device = Display.getCurrent();
 			InputStream inputStream = ConvertigoPlugin.class.getResourceAsStream(iconName);
 			image = new Image(device, inputStream);
