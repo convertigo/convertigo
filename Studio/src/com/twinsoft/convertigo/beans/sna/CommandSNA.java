@@ -223,12 +223,6 @@ public class CommandSNA extends com.twinsoft.convertigo.beans.common.Command {
 		                        	} else {
 		                        		block.setText(oldLabel);
 		                        	}
-		                        } else {
-		                        	if (separatorMendatory) {
-		                        		xrs.hasMatched = false;
-		            	                xrs.newCurrentBlock = block;
-		            	                return (xrs);
-		                        	}
 		                        }
 		                    } else {
 								// The label should be in the east block
@@ -275,15 +269,15 @@ public class CommandSNA extends com.twinsoft.convertigo.beans.common.Command {
 			                        		block.setText(oldLabel.substring(0, index));
 			                        		eastBlock.setText(oldLabel.substring(index));
 			                        	}	
-									} else {
-										if (separatorMendatory) {
-			                        		xrs.hasMatched = false;
-			            	                xrs.newCurrentBlock = block;
-			            	                return (xrs);
-			                        	}
 									}
 								}
 		                    }
+		                    
+							if (isSeparatorMendatory() && !separatorFound) {
+	                    		xrs.hasMatched = false;
+	        	                xrs.newCurrentBlock = block;
+	        	                return (xrs);
+	                    	}
 	            		}
 	            		
 	            		// if replace text is specified
@@ -398,24 +392,28 @@ public class CommandSNA extends com.twinsoft.convertigo.beans.common.Command {
 							int keywordLen = textKeyword.length();
 		                    	
 							// Searching the separator char in the current block
-							if ( textBlock.length() == keywordLen+1 )
-								for (int j = 0; j < keywordSeparator.length(); j++)
-									if (textBlock.charAt(0) == keywordSeparator.charAt(j))
+							if ( textBlock.length() == keywordLen+1 ) {
+								for (int j = 0; j < keywordSeparator.length(); j++) {
+									if (textBlock.charAt(0) == keywordSeparator.charAt(j)) {
 										// Found the separator char at the beginning of the current block
 										separatorCharFound=true;
+									}
+								}
+							}
 
 							Block westBlock = blockFactory.getWestBlock(block);
-
 							if (westBlock != null) {
 								// Searching the separator char in the west block
 								String westBlockText = westBlock.getText().trim();
-								for (int j = 0; j < keywordSeparator.length(); j++)
+								for (int j = 0; j < keywordSeparator.length(); j++) {
 									if (!westBlockText.equals("") && westBlockText.charAt(westBlockText.length()-1) == keywordSeparator.charAt(j)) { 
 										// Found the separator char at the end of the east block
 										separatorCharFound=true;
-										if (westBlockText.length() > 1)
+										if (westBlockText.length() > 1) {
 											westBlockText = westBlockText.substring(0,westBlockText.length()-1).trim();
+										}
 									}
+								}
 	
 								if (westBlock != null && westBlock.getText().length()!=0 && separatorCharFound) {
 									block.setText(westBlockText); //setText changes the length!
@@ -432,9 +430,10 @@ public class CommandSNA extends com.twinsoft.convertigo.beans.common.Command {
 					}
 					// else set to "" if the attribute doesn't exist
 					// otherwise it keeps the old value
-					else if (block.getOptionalAttribute("action") == null)
+					else if (block.getOptionalAttribute("action") == null) {
 						block.setOptionalAttribute("action", "");
-	                
+					}
+					
 					addMashupAttribute(block);
 					
 					xrs.hasMatched = true;
