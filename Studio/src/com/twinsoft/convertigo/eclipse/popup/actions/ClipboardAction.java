@@ -40,6 +40,7 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.statements.ElseStatement;
 import com.twinsoft.convertigo.beans.statements.ThenStatement;
+import com.twinsoft.convertigo.beans.steps.AttributeStep;
 import com.twinsoft.convertigo.beans.steps.ElementStep;
 import com.twinsoft.convertigo.beans.steps.ElseStep;
 import com.twinsoft.convertigo.beans.steps.IThenElseContainer;
@@ -359,7 +360,7 @@ public class ClipboardAction extends MyAbstractAction {
 						return null;
 					}
 					// Else, only accept paste of XMLAttributeStep
-					else if (!(ob instanceof XMLAttributeStep)) {
+					else if (!(ob instanceof XMLAttributeStep || ob instanceof AttributeStep)) {
 						return null;
 					}
 				}
