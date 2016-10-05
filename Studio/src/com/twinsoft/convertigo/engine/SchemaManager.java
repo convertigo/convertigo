@@ -148,6 +148,7 @@ public class SchemaManager implements AbstractManager {
 				schema.setElementFormDefault(new XmlSchemaForm(project.getSchemaElementForm().name()));
 				schema.setAttributeFormDefault(new XmlSchemaForm(project.getSchemaElementForm().name()));
 				ConvertigoError.addXmlSchemaObjects(schema);
+				EngineStatistics.addXmlSchemaObjects(schema);
 				
 				// static and read-only generation : references, transactions, sequences declaration
 				new WalkHelper() {
@@ -280,6 +281,20 @@ public class SchemaManager implements AbstractManager {
 								if (nsURI.equals(Constants.URI_2001_SCHEMA_XSD)) continue;
 								addXmlSchemaImport(collection, schema, nsURI);
 							}
+							
+							// add the 'statistics' element
+							if (transaction.getAddStatistics()) {
+								XmlSchemaComplexType xmlSchemaComplexType = (XmlSchemaComplexType) schema.getTypeByName(transaction.getXsdResponseTypeName());
+								XmlSchemaGroupBase xmlSchemaGroupBase = (XmlSchemaGroupBase)xmlSchemaComplexType.getParticle();
+								XmlSchemaType statisticsType = schema.getTypeByName("ConvertigoStatsType");
+								XmlSchemaElement eStatistics = XmlSchemaUtils.makeDynamicReadOnly(databaseObject, new XmlSchemaElement());
+								eStatistics.setName("statistics");
+								eStatistics.setMinOccurs(0);
+								eStatistics.setMaxOccurs(1);
+								eStatistics.setSchemaTypeName(statisticsType.getQName());
+								xmlSchemaGroupBase.getItems().add(eStatistics);
+								SchemaMeta.getReferencedDatabaseObjects(statisticsType).add(transaction);
+							}
 						}
 						// Sequence case
 						else if (databaseObject instanceof Sequence) {
@@ -307,10 +322,10 @@ public class SchemaManager implements AbstractManager {
 							}
 							
 							// add the 'error' element if needed
-							XmlSchemaType eType = schema.getTypeByName("ConvertigoError");
-							if (eType != null) {
+							XmlSchemaType errorType = schema.getTypeByName("ConvertigoError");
+							if (errorType != null) {
 								boolean found = false;
-								Set<DatabaseObject> dbos = SchemaMeta.getReferencedDatabaseObjects(eType);
+								Set<DatabaseObject> dbos = SchemaMeta.getReferencedDatabaseObjects(errorType);
 								for (DatabaseObject dbo : dbos) {
 									if (dbo instanceof Step) {
 										Step errorStep = (Step)dbo;
@@ -325,19 +340,30 @@ public class SchemaManager implements AbstractManager {
 									eError.setName("error");
 									eError.setMinOccurs(0);
 									eError.setMaxOccurs(1);
-									eError.setSchemaTypeName(eType.getQName());
+									eError.setSchemaTypeName(errorType.getQName());
 									xmlSeq.getItems().add(eError);
-									SchemaMeta.getReferencedDatabaseObjects(eType).add(sequence);
+									SchemaMeta.getReferencedDatabaseObjects(errorType).add(sequence);
 								}
 							}
 							
-						//--------------------------- For Further Use -------------------------------------------------//
+							// add the 'statistics' element
+							if (sequence.getAddStatistics()) {
+								XmlSchemaType statisticsType = schema.getTypeByName("ConvertigoStatsType");
+								XmlSchemaElement eStatistics = XmlSchemaUtils.makeDynamicReadOnly(databaseObject, new XmlSchemaElement());
+								eStatistics.setName("statistics");
+								eStatistics.setMinOccurs(0);
+								eStatistics.setMaxOccurs(1);
+								eStatistics.setSchemaTypeName(statisticsType.getQName());
+								xmlSeq.getItems().add(eStatistics);
+								SchemaMeta.getReferencedDatabaseObjects(statisticsType).add(sequence);
+							}
+
+							//--------------------------- For Further Use -------------------------------------------------//
 							//Modify schema to avoid 'cosamb' (same tagname&type in different groupBase at same level)
 							//TODO : IfThenElse steps must be modified for xsd:sequence instead of xsd:choice
 							//TODO : Then/Else steps must be modified to add minOccurs=0 on xsd:sequence
 							//TODO : review/improve cosnoamb(XmlSchema, XmlSchemaGroupBase, XmlSchemaGroupBase) method
-						//---------------------------------------------------------------------------------------------//
-							
+							//---------------------------------------------------------------------------------------------//
 						}
 						// Step case
 						else if (databaseObject instanceof Step) {

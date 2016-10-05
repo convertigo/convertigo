@@ -30,6 +30,12 @@ import javax.xml.soap.SOAPEnvelope;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.soap.SOAPPart;
 
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaAttribute;
+import org.apache.ws.commons.schema.XmlSchemaComplexType;
+import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaSequence;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -532,5 +538,78 @@ public class EngineStatistics extends Statistics {
 		}catch(Exception e){
 			Engine.logEngine.error("Unable to append SOAP statistics into the generated message!", e);
 		}
+	}
+	
+	private static XmlSchemaElement addXmlSchemaStatItem(XmlSchema schema, String name, int minOccurs) {
+		XmlSchemaComplexType itemType = new XmlSchemaComplexType(schema);
+		itemType.setName("ConvertigoStatsItemType");
+		XmlSchemaAttribute averageAttribute = new XmlSchemaAttribute();
+		averageAttribute.setName("average");
+		averageAttribute.setSchemaTypeName(Constants.XSD_STRING);
+		itemType.getAttributes().add(averageAttribute);
+		XmlSchemaAttribute currentAttribute = new XmlSchemaAttribute();
+		currentAttribute.setName("current");
+		currentAttribute.setSchemaTypeName(Constants.XSD_STRING);
+		itemType.getAttributes().add(currentAttribute);
+		XmlSchemaUtils.add(schema, itemType);
+
+		XmlSchemaElement hostElement = new XmlSchemaElement();
+		hostElement.setName(name);
+		hostElement.setMinOccurs(minOccurs);
+		hostElement.setMaxOccurs(1);
+		hostElement.setSchemaTypeName(itemType.getQName());
+		return hostElement;
+	}
+	
+	public static void addXmlSchemaObjects(XmlSchema schema) {
+		XmlSchemaSequence taskSequence = new XmlSchemaSequence();
+		taskSequence.getItems().add(addXmlSchemaStatItem(schema, WORKER_THREAD_START.toLowerCase(), 0));
+		taskSequence.getItems().add(addXmlSchemaStatItem(schema, HTTP_CONNECT.toLowerCase(), 0));
+		taskSequence.getItems().add(addXmlSchemaStatItem(schema, GET_XUL_DOCUMENT.toLowerCase(), 0));
+		taskSequence.getItems().add(addXmlSchemaStatItem(schema, WAIT_HTML_TRIGGER.toLowerCase(), 0));
+		taskSequence.getItems().add(addXmlSchemaStatItem(schema, GET_JAVELIN_OBJECT.toLowerCase(), 0));
+		taskSequence.getItems().add(addXmlSchemaStatItem(schema, GET_CURRENT_SCREEN_CLASS.toLowerCase(), 0));
+		taskSequence.getItems().add(addXmlSchemaStatItem(schema, APPLY_USER_REQUEST.toLowerCase(), 0));
+		taskSequence.getItems().add(addXmlSchemaStatItem(schema, APPLY_BLOCK_FACTORY.toLowerCase(), 0));
+		taskSequence.getItems().add(addXmlSchemaStatItem(schema, APPLY_EXTRACTION_RULES.toLowerCase(), 0));
+		taskSequence.getItems().add(addXmlSchemaStatItem(schema, APPLY_SCREENCLASS_HANDLERS.toLowerCase(), 0));
+		taskSequence.getItems().add(addXmlSchemaStatItem(schema, EXECUTE_SEQUENCE_STEPS.toLowerCase(), 0));
+		taskSequence.getItems().add(addXmlSchemaStatItem(schema, EXECUTE_SEQUENCE_CALLS.toLowerCase(), 0));
+		taskSequence.getItems().add(addXmlSchemaStatItem(schema, GENERATE_DOM.toLowerCase(), 0));
+		taskSequence.getItems().add(addXmlSchemaStatItem(schema, "others", 1));
+		taskSequence.getItems().add(addXmlSchemaStatItem(schema, GET_DOCUMENT.toLowerCase(), 1));
+		XmlSchemaComplexType taskType = new XmlSchemaComplexType(schema);
+		taskType.setName("ConvertigoStatsTaskType");
+		taskType.setParticle(taskSequence);
+		XmlSchemaUtils.add(schema, taskType);
+		
+		XmlSchemaSequence requestSequence = new XmlSchemaSequence();
+		requestSequence.getItems().add(addXmlSchemaStatItem(schema, "host", 1));
+		requestSequence.getItems().add(addXmlSchemaStatItem(schema, "convertigo", 1));
+		requestSequence.getItems().add(addXmlSchemaStatItem(schema, "xsltstats", 0));
+		requestSequence.getItems().add(addXmlSchemaStatItem(schema, "totalstat", 1));
+		XmlSchemaComplexType requestType = new XmlSchemaComplexType(schema);
+		requestType.setName("ConvertigoStatsRequestType");
+		requestType.setParticle(requestSequence);
+		XmlSchemaUtils.add(schema, requestType);
+		
+		XmlSchemaElement taskElement = new XmlSchemaElement();
+		taskElement.setName("task");
+		taskElement.setSchemaTypeName(taskType.getQName());
+		XmlSchemaElement requestElement = new XmlSchemaElement();
+		requestElement.setName("request");
+		requestElement.setSchemaTypeName(requestType.getQName());
+		XmlSchemaSequence statisticsSequence = new XmlSchemaSequence();
+		statisticsSequence.getItems().add(taskElement);
+		statisticsSequence.getItems().add(requestElement);
+		XmlSchemaComplexType statisticsType = new XmlSchemaComplexType(schema);
+		statisticsType.setName("ConvertigoStatsType");
+		statisticsType.setParticle(statisticsSequence);
+		XmlSchemaUtils.add(schema, statisticsType);
+		
+//		XmlSchemaElement statisticsElement = new XmlSchemaElement();
+//		statisticsElement.setName("statistics");
+//		statisticsElement.setSchemaTypeName(statisticsType.getQName());
+//		XmlSchemaUtils.add(schema, statisticsElement);
 	}
 }
