@@ -55,8 +55,8 @@ public class EngineServlet extends HttpServlet {
     public String getServletInfo() {
         return "Convertigo Enterprise Mobility Server Engine Startup Servlet";
     }
-
-    private void walkDataSources(Context context, String path) {
+    
+	private static void walkDataSources(javax.naming.Context context, String path) {
     	try {
     		NamingEnumeration<NameClassPair> list = context.list(path);
     		while (list.hasMore()) {
@@ -66,11 +66,11 @@ public class EngineServlet extends HttpServlet {
     					subpath += "/";
     				}
     				subpath += list.next().getName();
-    				System.out.println(" * " + subpath);
+    				Engine.logEngine.debug(" * " + subpath);
     				Object object = context.lookup(subpath);
 
     				if (object instanceof DataSource) {
-    					System.out.println(" X " + subpath + " is a DataSource");
+    					Engine.logEngine.info(" X " + subpath + " is a DataSource");
     					dataSources.put(subpath, (DataSource) object);
     				} else if (object instanceof DirContext) {
     					//skip
@@ -79,10 +79,12 @@ public class EngineServlet extends HttpServlet {
     				}
     			} catch (NamingException e) {
     				// skip it
+    				Engine.logEngine.trace("Engine.walkDataSources namingException", e);
     			}
     		}
     	} catch (NamingException e) {
     		// skip it
+    		Engine.logEngine.trace("Engine.walkDataSources namingException", e);
     	}
     }
     
@@ -91,9 +93,6 @@ public class EngineServlet extends HttpServlet {
 		
 		try {
 			System.out.println("C-EMS Engine Startup servlet");
-			System.out.println("C-EMS Engine search for JNDI datasources:");
-			walkDataSources(new InitialContext(), "java:");
-			System.out.println("C-EMS Engine found " + dataSources.size() + " DataSource(s).");
 			
 			ServletContext servletContext = servletConfig.getServletContext();
 		
@@ -101,6 +100,10 @@ public class EngineServlet extends HttpServlet {
 			System.out.println("C-EMS web application home: " + webAppPath);
 			Engine.initPaths(webAppPath);
 			Engine.start();
+			
+			Engine.logEngine.info("Search for JNDI datasources:");
+			walkDataSources(new InitialContext(), "java:");
+			Engine.logEngine.info("Search for JNDI found " + dataSources.size() + " DataSource(s): " + dataSources.keySet());
 		}
 		catch(EngineException e) {
 			System.out.println("Unable to start the Convertigo engine.");
