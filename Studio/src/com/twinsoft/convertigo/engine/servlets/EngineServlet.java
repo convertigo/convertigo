@@ -22,10 +22,20 @@
 
 package com.twinsoft.convertigo.engine.servlets;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NameClassPair;
+import javax.naming.NamingEnumeration;
+import javax.naming.NamingException;
+import javax.naming.directory.DirContext;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
+import javax.sql.DataSource;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -34,6 +44,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 public class EngineServlet extends HttpServlet {
 
 	private static final long serialVersionUID = -8111472586297582952L;
+	private static Map<String, DataSource> dataSources = new HashMap<String, DataSource>(); 
 
 	/** Creates new EngineServlet */
     public EngineServlet() {
@@ -44,12 +55,45 @@ public class EngineServlet extends HttpServlet {
     public String getServletInfo() {
         return "Convertigo Enterprise Mobility Server Engine Startup Servlet";
     }
+
+    private void walkDataSources(Context context, String path) {
+    	try {
+    		NamingEnumeration<NameClassPair> list = context.list(path);
+    		while (list.hasMore()) {
+    			try {
+    				String subpath = path;
+    				if (!path.endsWith(":")) {
+    					subpath += "/";
+    				}
+    				subpath += list.next().getName();
+    				System.out.println(" * " + subpath);
+    				Object object = context.lookup(subpath);
+
+    				if (object instanceof DataSource) {
+    					System.out.println(" X " + subpath + " is a DataSource");
+    					dataSources.put(subpath, (DataSource) object);
+    				} else if (object instanceof DirContext) {
+    					//skip
+    				} else if (object instanceof Context) {
+    					walkDataSources(context, subpath);
+    				}
+    			} catch (NamingException e) {
+    				// skip it
+    			}
+    		}
+    	} catch (NamingException e) {
+    		// skip it
+    	}
+    }
     
 	public void init(ServletConfig servletConfig) throws ServletException {
 		super.init(servletConfig);
 		
 		try {
 			System.out.println("C-EMS Engine Startup servlet");
+			System.out.println("C-EMS Engine search for JNDI datasources:");
+			walkDataSources(new InitialContext(), "java:");
+			System.out.println("C-EMS Engine found " + dataSources.size() + " DataSource(s).");
 			
 			ServletContext servletContext = servletConfig.getServletContext();
 		
@@ -58,9 +102,6 @@ public class EngineServlet extends HttpServlet {
 			Engine.initPaths(webAppPath);
 			Engine.start();
 		}
-//		catch(IOException e) {
-//			System.out.println("Unable to configure the Convertigo engine.", e);
-//		}
 		catch(EngineException e) {
 			System.out.println("Unable to start the Convertigo engine.");
 			e.printStackTrace();
@@ -80,5 +121,9 @@ public class EngineServlet extends HttpServlet {
 		catch(Throwable e) {
 			Engine.logEngine.info("Unexpected exception while executing the stop request of the Convertigo engine.", e);
 		}
+	}
+	
+	public static DataSource getDataSource(String path) {
+		return dataSources.get(path);
 	}
 }

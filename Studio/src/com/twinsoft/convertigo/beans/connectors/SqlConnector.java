@@ -42,7 +42,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
@@ -57,6 +56,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
+import com.twinsoft.convertigo.engine.servlets.EngineServlet;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -115,13 +115,16 @@ public class SqlConnector extends Connector {
 	public Connection getJNDIConnection() throws NamingException, SQLException {
 		Connection conn = null;
 		if (jdbcDriverClassName.equals("JNDI")) {
-				javax.naming.Context initContext = new InitialContext();
-				javax.naming.Context envCtx = (javax.naming.Context) initContext.lookup("java:comp/env");
-
-				// Look up our data source
-				DataSource ds = (DataSource) envCtx.lookup(jdbcURL);
+			String path = jdbcURL;
+			if (!path.startsWith("java:")) {
+				path = "java:comp/env/" + path;
+			}
+			DataSource ds = EngineServlet.getDataSource(path);
+			if (ds == null) {
+				throw new NamingException(path + " not found in context");
+			}
 				
-				conn = ds.getConnection();
+			conn = ds.getConnection();
 		}
 		return conn;
 	}
