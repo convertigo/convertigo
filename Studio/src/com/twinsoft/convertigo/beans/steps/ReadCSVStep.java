@@ -22,7 +22,6 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -138,7 +137,7 @@ public class ReadCSVStep extends ReadFileStep {
 			throw new EngineException("The separator is empty");
 		
 		Document csvDoc = null;
-		BufferedReader fichier = null;
+		Scanner scanner = null;
 		try {
 			File csvFile = new File(getAbsoluteFilePath(filePath));
 			if (!csvFile.exists()) {
@@ -158,7 +157,7 @@ public class ReadCSVStep extends ReadFileStep {
 			StringTokenizer st;
 			
 			// Reads file line by line
-			Scanner scanner = new Scanner(new InputStreamReader(
+			scanner = new Scanner(new InputStreamReader(
                     new FileInputStream(getAbsoluteFilePath(filePath)),(encoding.length() > 0)? encoding : "iso-8859-1"));
 			scanner.useDelimiter("\r\n");
 			while (scanner.hasNext()) {
@@ -173,6 +172,9 @@ public class ReadCSVStep extends ReadFileStep {
 				StringEx tmp = new StringEx(str);
 				while(tmp.toString().contains(separator+separator)){
 					tmp.replaceAll(separator+separator, separator+ "_empty_" + separator);
+				}
+				if (lines == 0) {
+					tmp.replaceAll("\n",""); // remove any LF
 				}
 				str = tmp.toString();
 				
@@ -284,10 +286,10 @@ public class ReadCSVStep extends ReadFileStep {
 		} catch (Exception e) {
 			throw new EngineException("An error occured while creating dom of csv file",e);
 		} finally {
-			if (fichier != null) {
+			if (scanner != null) {
 				try {
-					fichier.close();
-				} catch (IOException e) {
+					scanner.close();
+				} catch (Exception e) {
 					throw new EngineException("An error occured while creating dom of csv file",e);
 				}
 			}
@@ -334,20 +336,25 @@ public class ReadCSVStep extends ReadFileStep {
 			File file = getFile();
 			String[] cols = null;
 			if (file != null && file.exists()) {
-				BufferedReader reader = null;
+				Scanner scanner = null;
 				try {
-					reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), encoding.length() > 0 ? encoding : "iso-8859-1"));
-					String line = reader.readLine();
-					if (line != null) {
-						cols = line.split(Pattern.quote(separator));
+					scanner = new Scanner(new InputStreamReader(
+		                    new FileInputStream(file),(encoding.length() > 0)? encoding : "iso-8859-1"));
+					scanner.useDelimiter("\r\n");
+					if (scanner.hasNext()) {
+						String line = scanner.next(); // retrieve title line
+						if (line != null) {
+							line = line.replaceAll("\n", ""); // remove any LF
+							cols = line.split(Pattern.quote(separator));
+						}
 					}
 				} catch (IOException e) {
 					e.printStackTrace();
 				} finally {
-					if (reader != null) {
+					if (scanner != null) {
 						try {
-							reader.close();
-						} catch (IOException e) {
+							scanner.close();
+						} catch (Exception e) {
 						}
 					}
 				}
