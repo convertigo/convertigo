@@ -22,6 +22,9 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
@@ -49,6 +52,26 @@ import com.twinsoft.convertigo.engine.EngineException;
 public class ChangeToXMLElementStepAction extends MyAbstractAction {
 
 	public ChangeToXMLElementStepAction() {
+	}
+	
+	public void selectionChanged(IAction action, ISelection selection) {
+		try {
+			boolean enable = false;
+			super.selectionChanged(action, selection);
+			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
+			TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
+			if (treeObject instanceof DatabaseObjectTreeObject) {
+				DatabaseObject dbo = (DatabaseObject)treeObject.getObject();
+				DatabaseObject dboParent = dbo.getParent();
+				if (DatabaseObjectsManager.acceptDatabaseObjects(dboParent, new XMLElementStep())) {
+					enable = (dbo instanceof XMLConcatStep) ||
+								(dbo instanceof XMLAttributeStep) ||
+									(dbo instanceof ElementStep);
+				}
+			}
+			action.setEnabled(enable);
+		}
+		catch (Exception e) {}
 	}
 	
 	/* (non-Javadoc)

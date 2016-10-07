@@ -22,6 +22,9 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
@@ -31,6 +34,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.StepEvent;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
+import com.twinsoft.convertigo.beans.steps.AttributeStep;
 import com.twinsoft.convertigo.beans.steps.XMLAttributeStep;
 import com.twinsoft.convertigo.beans.steps.XMLElementStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -47,10 +51,28 @@ public class ChangeToXMLAttributeStepAction extends MyAbstractAction {
 	public ChangeToXMLAttributeStepAction() {
 	}
 
+	public void selectionChanged(IAction action, ISelection selection) {
+		try {
+			boolean enable = false;
+			super.selectionChanged(action, selection);
+			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
+			TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
+			if (treeObject instanceof DatabaseObjectTreeObject) {
+				DatabaseObject dbo = (DatabaseObject)treeObject.getObject();
+				DatabaseObject dboParent = dbo.getParent();
+				if (DatabaseObjectsManager.acceptDatabaseObjects(dboParent, new XMLAttributeStep())) {
+					enable = (dbo instanceof AttributeStep) ||
+									(dbo instanceof XMLElementStep);
+				}
+			}
+			action.setEnabled(enable);
+		}
+		catch (Exception e) {}
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.twinsoft.convertigo.eclipse.popup.actions.MyAbstractAction#run()
 	 */
-	
 	@Override
 	public void run() {
 		Display display = Display.getDefault();
@@ -64,9 +86,10 @@ public class ChangeToXMLAttributeStepAction extends MyAbstractAction {
     		if (explorerView != null) {
     			TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
     			Object databaseObject = treeObject.getObject();
-    			// XML Element
-    			if ((databaseObject != null) && (databaseObject instanceof XMLElementStep)) {
-    				XMLElementStep elementStep = (XMLElementStep)databaseObject;
+
+    			// Attribute
+    			if ((databaseObject != null) && (databaseObject instanceof AttributeStep)) {
+    				AttributeStep attributeStep = (AttributeStep)databaseObject;
 					
 					TreeParent treeParent = treeObject.getParent();
 					DatabaseObjectTreeObject parentTreeObject = null;
@@ -78,45 +101,102 @@ public class ChangeToXMLAttributeStepAction extends MyAbstractAction {
 	        		if (parentTreeObject != null) {
 	        			
 						// New XMLAttribute step
-	        			XMLAttributeStep attributeStep = new XMLAttributeStep();
+	        			XMLAttributeStep xmlAttributeStep = new XMLAttributeStep();
 	        			
-		        		if ( DatabaseObjectsManager.acceptDatabaseObjects(elementStep.getParent(), attributeStep) ) {
+		        		if ( DatabaseObjectsManager.acceptDatabaseObjects(attributeStep.getParent(), xmlAttributeStep) ) {
 	        				// Set properties
-		        			attributeStep.setOutput(elementStep.isOutput());
-		        			attributeStep.setEnable(elementStep.isEnable());
-		        			attributeStep.setComment(elementStep.getComment());
-		        			attributeStep.setSourceDefinition(elementStep.getSourceDefinition());
-		        			attributeStep.setNodeText(elementStep.getNodeText());
-		        			attributeStep.setNodeName(elementStep.getNodeName());
+		        			xmlAttributeStep.setOutput(attributeStep.isOutput());
+		        			xmlAttributeStep.setEnable(attributeStep.isEnable());
+		        			xmlAttributeStep.setComment(attributeStep.getComment());
+		        			//xmlAttributeStep.setSourceDefinition(xmlElementStep.getSourceDefinition());
+		        			xmlAttributeStep.setNodeText(attributeStep.getNodeText());
+		        			xmlAttributeStep.setNodeName(attributeStep.getNodeName());
 		        			
-		        			attributeStep.bNew = true;
-		        			attributeStep.hasChanged = true;
+		        			xmlAttributeStep.bNew = true;
+		        			xmlAttributeStep.hasChanged = true;
 							
 							// Add new XMLAttribute step to parent
-							DatabaseObject parentDbo = elementStep.getParent();
+							DatabaseObject parentDbo = attributeStep.getParent();
 						
-							parentDbo.add(attributeStep);
+							parentDbo.add(xmlAttributeStep);
 							
 							// Set correct order
 							if (parentDbo instanceof StepWithExpressions)
-								((StepWithExpressions)parentDbo).insertAtOrder(attributeStep,elementStep.priority);
+								((StepWithExpressions)parentDbo).insertAtOrder(xmlAttributeStep,attributeStep.priority);
 							else if (parentDbo instanceof Sequence)
-								((Sequence)parentDbo).insertAtOrder(attributeStep,elementStep.priority);
+								((Sequence)parentDbo).insertAtOrder(xmlAttributeStep,attributeStep.priority);
 						
 							// Add new XMLAttribute step in Tree
-							StepTreeObject stepTreeObject = new StepTreeObject(explorerView.viewer,elementStep);
+							StepTreeObject stepTreeObject = new StepTreeObject(explorerView.viewer,attributeStep);
 							treeParent.addChild(stepTreeObject);
 							
 			   				// Delete XMLElement step
-							long oldPriority = elementStep.priority;
-							elementStep.delete();
-							attributeStep.getSequence().fireStepMoved(new StepEvent(attributeStep,String.valueOf(oldPriority)));
+							long oldPriority = attributeStep.priority;
+							attributeStep.delete();
+							xmlAttributeStep.getSequence().fireStepMoved(new StepEvent(xmlAttributeStep,String.valueOf(oldPriority)));
 							
 		        			parentTreeObject.hasBeenModified(true);
 			                explorerView.reloadTreeObject(parentTreeObject);
-			                explorerView.setSelectedTreeObject(explorerView.findTreeObjectByUserObject(attributeStep));
+			                explorerView.setSelectedTreeObject(explorerView.findTreeObjectByUserObject(xmlAttributeStep));
 						} else {
-							throw new EngineException("You cannot paste to a " + elementStep.getParent().getClass().getSimpleName() + " a database object of type " + attributeStep.getClass().getSimpleName());
+							throw new EngineException("You cannot paste to a " + attributeStep.getParent().getClass().getSimpleName() + " a database object of type " + xmlAttributeStep.getClass().getSimpleName());
+						}
+	        		}
+				}
+    			
+    			// XML Element
+    			if ((databaseObject != null) && (databaseObject instanceof XMLElementStep)) {
+    				XMLElementStep xmlElementStep = (XMLElementStep)databaseObject;
+					
+					TreeParent treeParent = treeObject.getParent();
+					DatabaseObjectTreeObject parentTreeObject = null;
+					if (treeParent instanceof DatabaseObjectTreeObject)
+						parentTreeObject = (DatabaseObjectTreeObject)treeParent;
+					else
+						parentTreeObject = (DatabaseObjectTreeObject)treeParent.getParent();
+					
+	        		if (parentTreeObject != null) {
+	        			
+						// New XMLAttribute step
+	        			XMLAttributeStep xmlAttributeStep = new XMLAttributeStep();
+	        			
+		        		if ( DatabaseObjectsManager.acceptDatabaseObjects(xmlElementStep.getParent(), xmlAttributeStep) ) {
+	        				// Set properties
+		        			xmlAttributeStep.setOutput(xmlElementStep.isOutput());
+		        			xmlAttributeStep.setEnable(xmlElementStep.isEnable());
+		        			xmlAttributeStep.setComment(xmlElementStep.getComment());
+		        			xmlAttributeStep.setSourceDefinition(xmlElementStep.getSourceDefinition());
+		        			xmlAttributeStep.setNodeText(xmlElementStep.getNodeText());
+		        			xmlAttributeStep.setNodeName(xmlElementStep.getNodeName());
+		        			
+		        			xmlAttributeStep.bNew = true;
+		        			xmlAttributeStep.hasChanged = true;
+							
+							// Add new XMLAttribute step to parent
+							DatabaseObject parentDbo = xmlElementStep.getParent();
+						
+							parentDbo.add(xmlAttributeStep);
+							
+							// Set correct order
+							if (parentDbo instanceof StepWithExpressions)
+								((StepWithExpressions)parentDbo).insertAtOrder(xmlAttributeStep,xmlElementStep.priority);
+							else if (parentDbo instanceof Sequence)
+								((Sequence)parentDbo).insertAtOrder(xmlAttributeStep,xmlElementStep.priority);
+						
+							// Add new XMLAttribute step in Tree
+							StepTreeObject stepTreeObject = new StepTreeObject(explorerView.viewer,xmlElementStep);
+							treeParent.addChild(stepTreeObject);
+							
+			   				// Delete XMLElement step
+							long oldPriority = xmlElementStep.priority;
+							xmlElementStep.delete();
+							xmlAttributeStep.getSequence().fireStepMoved(new StepEvent(xmlAttributeStep,String.valueOf(oldPriority)));
+							
+		        			parentTreeObject.hasBeenModified(true);
+			                explorerView.reloadTreeObject(parentTreeObject);
+			                explorerView.setSelectedTreeObject(explorerView.findTreeObjectByUserObject(xmlAttributeStep));
+						} else {
+							throw new EngineException("You cannot paste to a " + xmlElementStep.getParent().getClass().getSimpleName() + " a database object of type " + xmlAttributeStep.getClass().getSimpleName());
 						}
 	        		}
 				}

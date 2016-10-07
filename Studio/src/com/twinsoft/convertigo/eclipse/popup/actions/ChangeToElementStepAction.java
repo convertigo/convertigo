@@ -22,6 +22,9 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
@@ -49,6 +52,25 @@ public class ChangeToElementStepAction extends MyAbstractAction {
 	public ChangeToElementStepAction() {
 	}
 
+	public void selectionChanged(IAction action, ISelection selection) {
+		try {
+			boolean enable = false;
+			super.selectionChanged(action, selection);
+			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
+			TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
+			if (treeObject instanceof DatabaseObjectTreeObject) {
+				DatabaseObject dbo = (DatabaseObject)treeObject.getObject();
+				DatabaseObject dboParent = dbo.getParent();
+				if (DatabaseObjectsManager.acceptDatabaseObjects(dboParent, new ElementStep())) {
+					enable = (dbo instanceof AttributeStep) ||
+									(dbo instanceof XMLElementStep);
+				}
+			}
+			action.setEnabled(enable);
+		}
+		catch (Exception e) {}
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.twinsoft.convertigo.eclipse.popup.actions.MyAbstractAction#run()
 	 */
