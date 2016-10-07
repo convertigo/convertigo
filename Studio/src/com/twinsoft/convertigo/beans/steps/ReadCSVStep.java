@@ -159,7 +159,7 @@ public class ReadCSVStep extends ReadFileStep {
 			// Reads file line by line
 			scanner = new Scanner(new InputStreamReader(
                     new FileInputStream(getAbsoluteFilePath(filePath)),(encoding.length() > 0)? encoding : "iso-8859-1"));
-			scanner.useDelimiter("\r\n");
+			scanner.useDelimiter(System.getProperty("line.separator"));
 			while (scanner.hasNext()) {
 				str = scanner.next();
 				if (str.startsWith(separator)) {
@@ -340,7 +340,7 @@ public class ReadCSVStep extends ReadFileStep {
 				try {
 					scanner = new Scanner(new InputStreamReader(
 		                    new FileInputStream(file),(encoding.length() > 0)? encoding : "iso-8859-1"));
-					scanner.useDelimiter("\r\n");
+					scanner.useDelimiter(System.getProperty("line.separator"));
 					if (scanner.hasNext()) {
 						String line = scanner.next(); // retrieve title line
 						if (line != null) {

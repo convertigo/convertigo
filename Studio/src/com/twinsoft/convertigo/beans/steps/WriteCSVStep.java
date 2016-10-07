@@ -165,6 +165,7 @@ public class WriteCSVStep extends WriteFileStep {
 						}
 					}
 
+					String lineSeparator = System.getProperty("line.separator");
 					if (!skipTitle) {
 						// Writes titles
 						List<String> v = (verticalDirection ? titlesY : titlesX);
@@ -175,7 +176,7 @@ public class WriteCSVStep extends WriteFileStep {
 									sortie.write(separator);
 								}
 							}
-							sortie.write("\r\n");
+							sortie.write(lineSeparator);
 						}
 					}
 
@@ -187,7 +188,7 @@ public class WriteCSVStep extends WriteFileStep {
 								if (j + 1 < dimY)
 									sortie.write(separator);
 							}
-							sortie.write("\r\n");
+							sortie.write(lineSeparator);
 						}
 					} else {
 						for (int i = 0; i < dimY; i++) {
@@ -197,7 +198,7 @@ public class WriteCSVStep extends WriteFileStep {
 									sortie.write(separator);
 								}
 							}
-							sortie.write("\r\n");
+							sortie.write(lineSeparator);
 						}
 					}
 				}
