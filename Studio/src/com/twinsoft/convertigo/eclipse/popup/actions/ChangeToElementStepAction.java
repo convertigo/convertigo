@@ -29,6 +29,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepEvent;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.steps.AttributeStep;
@@ -51,7 +52,6 @@ public class ChangeToElementStepAction extends MyAbstractAction {
 	/* (non-Javadoc)
 	 * @see com.twinsoft.convertigo.eclipse.popup.actions.MyAbstractAction#run()
 	 */
-	
 	@Override
 	public void run() {
 		Display display = Display.getDefault();
@@ -155,6 +155,12 @@ public class ChangeToElementStepAction extends MyAbstractAction {
 							DatabaseObject parentDbo = elementStep.getParent();
 						
 							parentDbo.add(jelementStep);
+							
+							for (Step step : elementStep.getAllSteps()) {
+								try {
+									jelementStep.addStep(step);
+								} catch (Throwable t) {}
+							}
 							
 							// Set correct order
 							if (parentDbo instanceof StepWithExpressions)

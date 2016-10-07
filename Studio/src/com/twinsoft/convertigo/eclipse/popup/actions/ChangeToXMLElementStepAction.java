@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.Shell;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepEvent;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.steps.ElementStep;
@@ -49,11 +50,10 @@ public class ChangeToXMLElementStepAction extends MyAbstractAction {
 
 	public ChangeToXMLElementStepAction() {
 	}
-
+	
 	/* (non-Javadoc)
 	 * @see com.twinsoft.convertigo.eclipse.popup.actions.MyAbstractAction#run()
 	 */
-	
 	@SuppressWarnings("unchecked")
 	@Override
 	public void run() {
@@ -232,6 +232,12 @@ public class ChangeToXMLElementStepAction extends MyAbstractAction {
 							DatabaseObject parentDbo = jelementStep.getParent();
 						
 							parentDbo.add(elementStep);
+							
+							for (Step step : jelementStep.getAllSteps()) {
+								try {
+									elementStep.addStep(step);
+								} catch (Throwable t) {}
+							}
 							
 							// Set correct order
 							if (parentDbo instanceof StepWithExpressions)

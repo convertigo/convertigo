@@ -80,9 +80,11 @@ public class SequenceTreeObject extends DatabaseObjectTreeObject implements IEdi
 			DatabaseObjectTreeObject databaseObjectTreeObject = (DatabaseObjectTreeObject)treeObjectEvent.getSource();
 			DatabaseObject databaseObject = (DatabaseObject)databaseObjectTreeObject.getObject();
 			if (!databaseObject.equals(getObject())) {
-				if ((databaseObject instanceof Project) || (!databaseObject.getProject().getName().equals(getObject().getProject().getName()))) {
-					updateLoadedProjects();
-				}
+				try {
+					if ((databaseObject instanceof Project) || (!databaseObject.getProject().getName().equals(getObject().getProject().getName()))) {
+						updateLoadedProjects();
+					}
+				} catch (Exception e) {}
 			}
 		}
 	}
