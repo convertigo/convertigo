@@ -94,12 +94,12 @@ public class EngineServlet extends HttpServlet {
     				}
     			} catch (NamingException e) {
     				// skip it
-    				Engine.logEngine.trace("Engine.walkDataSources namingException", e);
+    				Engine.logEngine.trace("Engine.walkDataSources NamingException: " + e.getMessage());
     			}
     		}
     	} catch (NamingException e) {
     		// skip it
-    		Engine.logEngine.trace("Engine.walkDataSources namingException", e);
+    		Engine.logEngine.trace("Engine.walkDataSources NamingException: " + e.getMessage());
     	}
     }
     
