@@ -175,7 +175,7 @@ public class WriteCSVStep extends WriteFileStep {
 									sortie.write(separator);
 								}
 							}
-							sortie.write("\n");
+							sortie.write("\r\n");
 						}
 					}
 
@@ -187,7 +187,7 @@ public class WriteCSVStep extends WriteFileStep {
 								if (j + 1 < dimY)
 									sortie.write(separator);
 							}
-							sortie.write("\n");
+							sortie.write("\r\n");
 						}
 					} else {
 						for (int i = 0; i < dimY; i++) {
@@ -197,7 +197,7 @@ public class WriteCSVStep extends WriteFileStep {
 									sortie.write(separator);
 								}
 							}
-							sortie.write("\n");
+							sortie.write("\r\n");
 						}
 					}
 				}
