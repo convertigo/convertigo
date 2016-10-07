@@ -891,7 +891,7 @@ public class JavelinTransaction extends TransactionWithVariables {
 	                        	boolean bTimedOut = javelin.waitForDataStable(timeoutForDataStable, dataStableThreshold);
 	                    		Engine.logContext.debug("(JavelinTransaction) WaitForDataStable() returned " + bTimedOut);
                         	} else 
-	                    		Engine.logContext.debug("(JavelinTransaction) Action was KEY_FIELDPLUS, do not perform waitForDataStable" );
+	                    		Engine.logContext.debug("(JavelinTransaction) Action was KEY_FIELDPLUS or KEY_FIELDMINUS, do not perform waitForDataStable" );
                     	} else {
                     		Engine.logContext.debug("(JavelinTransaction) Empty action string => action aborted");
                     	}
