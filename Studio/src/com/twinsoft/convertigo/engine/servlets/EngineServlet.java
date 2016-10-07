@@ -62,12 +62,27 @@ public class EngineServlet extends HttpServlet {
     		while (list.hasMore()) {
     			try {
     				String subpath = path;
+    				NameClassPair item = list.next();
+    				boolean tryFirstSlash = false;
     				if (!path.endsWith(":")) {
     					subpath += "/";
+    				} else {
+    					tryFirstSlash = true;
     				}
-    				subpath += list.next().getName();
+    				subpath += item.getName();
     				Engine.logEngine.debug(" * " + subpath);
-    				Object object = context.lookup(subpath);
+    				Object object;
+    				try {
+    					object = context.lookup(subpath);
+    				} catch (NamingException e) {
+    					if (tryFirstSlash) {
+    						subpath = subpath.replaceFirst(":", ":/");
+    						Engine.logEngine.debug(" * " + subpath);
+    						object = context.lookup(subpath);
+    					} else {
+    						throw e;
+    					}
+    				}
 
     				if (object instanceof DataSource) {
     					Engine.logEngine.info(" X " + subpath + " is a DataSource");
