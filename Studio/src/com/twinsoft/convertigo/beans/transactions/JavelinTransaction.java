@@ -887,11 +887,11 @@ public class JavelinTransaction extends TransactionWithVariables {
                 		} else 	if (action.length() != 0) {
                         	javelin.doAction(action);
                         	Engine.logContext.debug("(JavelinTransaction) Action performed on the Javelin object: '" + action + "'");
-                        	if (!action.equalsIgnoreCase("KEY_FIELDPLUS")) {
+                        	if (!(action.equalsIgnoreCase("KEY_FIELDPLUS") || action.equalsIgnoreCase("KEY_FIELDMINUS"))) {
 	                        	boolean bTimedOut = javelin.waitForDataStable(timeoutForDataStable, dataStableThreshold);
 	                    		Engine.logContext.debug("(JavelinTransaction) WaitForDataStable() returned " + bTimedOut);
                         	} else 
-	                    		Engine.logContext.debug("(JavelinTransaction) Action was KEY_FIELDPLUS, do not perform waitForDataStable" );
+	                    		Engine.logContext.debug("(JavelinTransaction) Action was KEY_FIELDPLUS or KEY_FIELDMINUS, do not perform waitForDataStable" );
                     	} else {
                     		Engine.logContext.debug("(JavelinTransaction) Empty action string => action aborted");
                     	}
