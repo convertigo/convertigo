@@ -174,7 +174,9 @@ public class ReadCSVStep extends ReadFileStep {
 					tmp.replaceAll(separator+separator, separator+ "_empty_" + separator);
 				}
 				if (lines == 0) {
-					tmp.replaceAll("\n",""); // remove any LF
+					// remove any LF
+					tmp.replaceAll("\r\n","");
+					tmp.replaceAll("\n","");
 				}
 				str = tmp.toString();
 				
@@ -344,7 +346,10 @@ public class ReadCSVStep extends ReadFileStep {
 					if (scanner.hasNext()) {
 						String line = scanner.next(); // retrieve title line
 						if (line != null) {
-							line = line.replaceAll("\n", ""); // remove any LF
+							// remove any LF
+							line = line.replaceAll("\r\n", "");
+							line = line.replaceAll("\n", "");
+							
 							cols = line.split(Pattern.quote(separator));
 						}
 					}
