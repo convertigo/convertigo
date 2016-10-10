@@ -128,7 +128,7 @@ public class CarUtils {
 			@Override
 			public void walk(File file) {
 				String filename = file.getName(); 
-				if (filename.equals(".svn") || filename.equals("CVS")) {
+				if (filename.equals(".svn") || filename.equals("CVS") || filename.equals("node_modules")) {
 					undeployedFiles.add(file);
 				} else {
 					super.walk(file);					

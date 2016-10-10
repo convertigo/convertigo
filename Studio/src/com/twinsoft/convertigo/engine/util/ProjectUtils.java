@@ -95,24 +95,26 @@ import com.twinsoft.convertigo.engine.proxy.translated.ProxyTransaction;
 public class ProjectUtils {
 
 	public static void copyIndexFile(String projectName) throws Exception {
-    	String projectRoot = Engine.PROJECTS_PATH+'/'+ projectName;
-    	String templateBase = Engine.TEMPLATES_PATH+"/base";
-    	File indexPage = new File(projectRoot+"/index.html");
-    	if(!indexPage.exists()){
-    		if(new File(projectRoot+"/sna.xsl").exists()){ /** webization javelin */
-        		if(new File(projectRoot+"/templates/status.xsl").exists()) /** not DKU / DKU */
-        			FileUtils.copyFile(new File(templateBase+"/index_javelin.html"), indexPage);
-        		else FileUtils.copyFile(new File(templateBase+"/index_javelinDKU.html"), indexPage);
-        	}else{
+    	String projectRoot = Engine.PROJECTS_PATH + '/' +  projectName;
+    	String templateBase = Engine.TEMPLATES_PATH + "/base";
+    	File indexPage = new File(projectRoot + "/index.html");
+    	if (!indexPage.exists()) {
+    		if (new File(projectRoot + "/sna.xsl").exists()) { /** webization javelin */
+        		if (new File(projectRoot + "/templates/status.xsl").exists()) { /** not DKU / DKU */
+        			FileUtils.copyFile(new File(templateBase + "/index_javelin.html"), indexPage);
+        		} else {
+        			FileUtils.copyFile(new File(templateBase + "/index_javelinDKU.html"), indexPage);
+        		}
+        	} else {
         		FileFilter fileFilterNoSVN = new FileFilter() {
     				public boolean accept(File pathname) {
     					String name = pathname.getName();
-    					return !name.equals(".svn") || !name.equals("CVS");
+    					return !name.equals(".svn") || !name.equals("CVS") || !name.equals("node_modules");
     				}
     			};
-        		FileUtils.copyFile(new File(templateBase+"/index.html"), indexPage);
-        		FileUtils.copyDirectory(new File(templateBase+"/js"), new File(projectRoot+"/js"), fileFilterNoSVN);
-        		FileUtils.copyDirectory(new File(templateBase+"/css"), new File(projectRoot+"/css"), fileFilterNoSVN);
+        		FileUtils.copyFile(new File(templateBase + "/index.html"), indexPage);
+        		FileUtils.copyDirectory(new File(templateBase + "/js"), new File(projectRoot + "/js"), fileFilterNoSVN);
+        		FileUtils.copyDirectory(new File(templateBase + "/css"), new File(projectRoot + "/css"), fileFilterNoSVN);
         	}
     	}
 	}
