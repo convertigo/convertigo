@@ -132,6 +132,22 @@ public class ReadCSVStep extends ReadFileStep {
 		return "ReadCSV :" + label;
 	}
 
+	private String removeCRLF(String line) {
+		if (line != null) {
+			int len = line.length();
+			if (line.endsWith("\r\n")) {
+				line = line.substring(0, len-2);
+			}
+			else if (line.endsWith("\n")) {
+				line = line.substring(0, len-1);
+			}
+			else if (line.endsWith("\r")) {
+				line = line.substring(0, len-1);
+			}
+		}
+		return line;
+	}
+	
 	protected Document read(String filePath, boolean schema) throws EngineException {
 		if (separator.equals(""))
 			throw new EngineException("The separator is empty");
@@ -162,6 +178,8 @@ public class ReadCSVStep extends ReadFileStep {
 			scanner.useDelimiter(System.getProperty("line.separator"));
 			while (scanner.hasNext()) {
 				str = scanner.next();
+				str = removeCRLF(str);
+				
 				if (str.startsWith(separator)) {
 					str = "_empty_"+str;
 				}
@@ -173,11 +191,11 @@ public class ReadCSVStep extends ReadFileStep {
 				while(tmp.toString().contains(separator+separator)){
 					tmp.replaceAll(separator+separator, separator+ "_empty_" + separator);
 				}
-				if (lines == 0) {
-					// remove any LF
-					tmp.replaceAll("\r\n","");
-					tmp.replaceAll("\n","");
+				
+				if (titleLine && (lines == 0)) {
+					tmp.replaceAll("\n",""); // remove any LF in title line
 				}
+				
 				str = tmp.toString();
 				
 				st = new StringTokenizer(str, separator, true);
@@ -345,11 +363,8 @@ public class ReadCSVStep extends ReadFileStep {
 					scanner.useDelimiter(System.getProperty("line.separator"));
 					if (scanner.hasNext()) {
 						String line = scanner.next(); // retrieve title line
+						line = removeCRLF(line);
 						if (line != null) {
-							// remove any LF
-							line = line.replaceAll("\r\n", "");
-							line = line.replaceAll("\n", "");
-							
 							cols = line.split(Pattern.quote(separator));
 						}
 					}
