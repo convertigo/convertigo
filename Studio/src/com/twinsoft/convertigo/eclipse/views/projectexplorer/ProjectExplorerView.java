@@ -34,9 +34,12 @@ import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
 
 import javax.swing.event.EventListenerList;
@@ -815,6 +818,31 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		});
 	}
 	
+	private Set<TreeObject> reduceWithCommonParents(Set<TreeObject> items) {
+		Map<TreeObject, TreeObject> parents = new HashMap<TreeObject, TreeObject>();
+		Set<TreeObject> newSet = new HashSet<TreeObject>();
+		boolean addParent = false;
+		for (TreeObject item: items) {
+			TreeObject parent = item.getParent();
+			if (!newSet.contains(parent)) {
+				if (parents.containsKey(parent)) {
+					newSet.add(parent);
+					newSet.remove(parents.get(parent));
+					addParent = true;
+				} else {
+					parents.put(parent, item);
+					newSet.add(item);
+				}
+			}
+		}
+		
+		if (addParent) {
+			newSet = reduceWithCommonParents(newSet);
+		}
+		
+		return newSet;
+	}
+	
 	private void hookSelectionChangedEvent() {
 		addSelectionChangedListener(new ISelectionChangedListener() {
 			public void selectionChanged(SelectionChangedEvent event) {
@@ -843,13 +871,20 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					}
 					
 					if (doRefresh) {
+						Set<TreeObject> items = new HashSet<TreeObject>();
 						for (TreeItem item: lastItem) {
 							if (item != null && !item.isDisposed()) {
-								viewer.refresh(item.getData(), true);
+								items.add((TreeParent) item.getData());
 							}
 						}
-						viewer.refresh(treeObject, true);
+						items.add(treeObject);
+						
+						items = reduceWithCommonParents(items);
+						for (TreeObject item: items) {
+							viewer.refresh(item, true);							
+						}
 					}
+					
 					lastItem = viewer.getTree().getSelection();
 				}
 			}
@@ -2005,6 +2040,11 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	
 	public void refreshTree() {
 		viewer.refresh();
+	}
+	
+	public void refreshSelectedTreeObjects() {
+		ISelection selection = viewer.getSelection();
+		if(!selection.isEmpty()) viewer.setSelection(selection, false);
 	}
 	
 	public void refreshFirstSelectedTreeObject() {

@@ -62,12 +62,11 @@ public class DisableStatementAction extends MyAbstractAction {
 						statement.setEnable(false);
 						
 						statementTreeObject.setEnabled(false);
-						statementTreeObject.hasBeenModified(true);
-						
-		                // Updating the tree
-		                explorerView.refreshTreeObject(statementTreeObject);						
+						statementTreeObject.hasBeenModified(true);				
 					}
 				}
+				
+				explorerView.refreshSelectedTreeObjects();
     		}
         }
         catch (Throwable e) {

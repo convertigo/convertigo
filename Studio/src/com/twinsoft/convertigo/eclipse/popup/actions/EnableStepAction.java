@@ -64,14 +64,13 @@ public class EnableStepAction extends MyAbstractAction {
 						
 						stepTreeObject.setEnabled(true);
 						stepTreeObject.hasBeenModified(true);
-
-		                // Updating the tree
-		                explorerView.refreshTreeObject(stepTreeObject);
 		                
 		                TreeObjectEvent treeObjectEvent = new TreeObjectEvent(stepTreeObject, "isEnable", false, true);
 		                explorerView.fireTreeObjectPropertyChanged(treeObjectEvent);
 					}
 				}
+				
+				explorerView.refreshSelectedTreeObjects();
     		}
         }
         catch (Throwable e) {
