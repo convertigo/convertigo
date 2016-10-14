@@ -874,7 +874,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 						Set<TreeObject> items = new HashSet<TreeObject>();
 						for (TreeItem item: lastItem) {
 							if (item != null && !item.isDisposed()) {
-								items.add((TreeParent) item.getData());
+								items.add((TreeObject) item.getData());
 							}
 						}
 						items.add(treeObject);
