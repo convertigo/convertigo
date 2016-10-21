@@ -35,13 +35,13 @@ import org.w3c.dom.Text;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.RegexpUtils;
 import com.twinsoft.twinj.iJavelin;
 
 /**
  * This class represents an entity used to be exported to a XML block.
  */
 public class Block implements Cloneable {
-	
     private final String colors[] = {"black", "red", "green", "yellow", "blue", "magenta", "cyan", "white"};
 
     /**
@@ -187,7 +187,12 @@ public class Block implements Cloneable {
         	for(Map.Entry<String, String> entry : optionalAttributes.entrySet())
         		item.setAttribute(entry.getKey(), entry.getValue());
 
-        if (text == null) text = "";
+        if (text == null) {
+        	text = "";
+        } else {
+        	// Fix #5089 No legacy webization if XML contains Low-Order ASCII Characters
+        	text = RegexpUtils.pattern_invalidChar.matcher(text).replaceAll("");
+        }
         
         Text textNode = document.createTextNode(text);
         item.appendChild(textNode);                    

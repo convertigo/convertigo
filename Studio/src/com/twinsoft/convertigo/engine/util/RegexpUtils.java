@@ -26,6 +26,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class RegexpUtils {
+	public final static Pattern pattern_invalidChar = Pattern.compile("[\u0000-\u0008\u000b\u000c\u000e-\u001f]");
 	public final static Pattern pattern_and = Pattern.compile("&");
 	public final static Pattern pattern_equals = Pattern.compile("=");
 	
