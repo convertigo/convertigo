@@ -80,6 +80,15 @@ public class SmartType implements XMLizable, Serializable, Cloneable {
 		return self;
 	}
 	
+	public Object getObject(Step owner) throws EngineException {
+		if (isUseExpression()) {
+			return evaluated;
+		} else if (isUseSource()) {
+			return new StepSource(owner, sourceDefinition).getContextValues();
+		}
+		return null;
+	}
+	
 	public String getSingleString(Step owner) throws EngineException {
 		String result = null;
 		

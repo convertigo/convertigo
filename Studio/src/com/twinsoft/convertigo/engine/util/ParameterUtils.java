@@ -26,11 +26,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.mozilla.javascript.NativeArray;
 import org.mozilla.javascript.NativeJavaArray;
 import org.mozilla.javascript.NativeJavaObject;
+import org.mozilla.javascript.NativeObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -41,7 +44,10 @@ public class ParameterUtils {
 	public static String toString(Object ob) {
 		String parameterToString;
 		if (ob != null) {
-			if (ob instanceof NativeJavaObject) {
+			if (ob instanceof NativeObject) {
+				NativeObject nativeObject = (NativeObject) ob;
+				parameterToString = nativeToString(nativeObject);
+			} else if (ob instanceof NativeJavaObject) {
 				NativeJavaObject nativeJavaObject = (NativeJavaObject) ob;
 				parameterToString = toString(nativeJavaObject.unwrap());
 			} else if (ob instanceof NativeJavaArray || ob instanceof NativeArray || ob.getClass().isArray() || ob instanceof Collection<?>) {
@@ -113,6 +119,24 @@ public class ParameterUtils {
 		}
 	}
 	
+    private static String nativeToString(NativeObject nativeObject) { 
+        Object[] ids = nativeObject.getIds(); 
+        Map<Object,String> map = new HashMap<Object, String>(ids.length); 
+        for (Object id : ids) { 
+            if (id instanceof String) { 
+                Object object = nativeObject.get((String) id, nativeObject); 
+                map.put(id, toString(object)); 
+            } 
+            else if (id instanceof Integer) { 
+                Object object = nativeObject.get((Integer) id, nativeObject); 
+                map.put(id, toString(object));
+            } 
+            else { 
+            	; 
+            }
+        } 
+        return map.toString(); 
+    }	
 /*
 	private static void testCollections() {
 		List<String> l1 = new ArrayList<String>();
