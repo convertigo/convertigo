@@ -1077,6 +1077,14 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 				e.printStackTrace();
 			}
 		}
+		else if (connector instanceof SqlConnector) {
+			try {
+				compositeDesign = new SqlConnectorDesignComposite(connector, tabFolderOutputDesign, SWT.NONE);
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 		else {
 			compositeDesign = new Composite(tabFolderOutputDesign, SWT.NONE);
 			labelNoDesign = new Label(compositeDesign, SWT.NONE | SWT.WRAP);
