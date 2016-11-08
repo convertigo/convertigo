@@ -1022,35 +1022,38 @@ public class SqlTransaction extends TransactionWithVariables {
 									Integer nb = -1;
 									
 									// append query results (resulset or update count)
-									boolean shouldShow = true;//!sqlQueryInfos.isCallable();
-									if (shouldShow) {
-										do {
-											if (!runningThread.bContinue)
-												return;
-											
-											rs = preparedStatement.getResultSet();
-											if (rs == null) {
-												nb = preparedStatement.getUpdateCount();
+									do {
+										if (!runningThread.bContinue)
+											return;
+										
+										rs = preparedStatement.getResultSet();
+										if (rs == null) {
+											nb = preparedStatement.getUpdateCount();
+										}
+										
+										if (rs != null || nb != -1) {
+											getQueryResults(rs, nb, xsd_parent, query, logHiddenValues, sqlQueryInfos);
+											if (!preparedStatement.getMoreResults()) {
+												bContinue = preparedStatement.getUpdateCount() != -1;
 											}
-											
-											if (rs != null || nb != -1) {
-												getQueryResults(rs, nb, xsd_parent, query, logHiddenValues, sqlQueryInfos);
-												preparedStatement.getMoreResults();
-												rs = null; nb = -1;
-											}
-											else {
-												bContinue = false;
-											}
-											
-										} while (bContinue);
-									}
+											rs = null; nb = -1;
+										}
+										else {
+											bContinue = false;
+										}
+										
+									} while (bContinue);
 									
 									// append procedure/function outputs (callable statement only)
 									getQueryOuts(xsd_parent, sqlQueryInfos);
 								}
 								catch (SQLException e) {
 									inError = true;
-									parseResults(e.getMessage());
+									Element sql_output = parseResults(e.getMessage());
+									if (sql_output != null) {
+										Element outputDocumentRootElement = context.outputDocument.getDocumentElement();
+										outputDocumentRootElement.appendChild(sql_output);
+									}
 								}
 							}
 						}
@@ -1195,8 +1198,7 @@ public class SqlTransaction extends TransactionWithVariables {
 		Document doc = createDOM(getEncodingCharSet());
 		Node document = doc.appendChild(doc.createElement("document"));
 		Node sqlOutput  = document.appendChild(doc.createElement("sql_output"));
-		sqlOutput = document.appendChild(doc.createElement("error"));
-		sqlOutput.appendChild(doc.createElement("result").appendChild(doc.createTextNode(errorMessageSQL)));
+		sqlOutput.appendChild(doc.createElement("error").appendChild(doc.createTextNode(errorMessageSQL)));
 		doc.getDocumentElement().appendChild(sqlOutput);
 			
 		Document output = context.outputDocument;
