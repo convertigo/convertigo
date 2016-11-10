@@ -256,6 +256,9 @@ public class FullSyncServlet extends HttpServlet {
 					debug.append("request Entity:\n" + requestStringEntity + "\n");
 				}
 			}
+
+			String query = uri.getQuery();
+			boolean continuous = query != null && (query.contains("feed=continuous") || query.contains("feed=longpoll") || query.contains("feed=eventsource"));
 			
 			if (method == HttpMethodType.POST && "_bulk_docs".equals(special)) {
 				try {
@@ -266,8 +269,14 @@ public class FullSyncServlet extends HttpServlet {
 					debug.append("failed to parse [ " + e.getMessage() + "]: " + requestStringEntity);						
 				}
 			} else if ("_changes".equals(special)) {
-				newRequest = Engine.theApp.couchDbManager.handleChangesRequest(dbName, newRequest, httpClient.get(), authenticatedUser);
-				debug.append("Changed to " + newRequest.getMethod() + " URI: " + newRequest.getURI().toString() + "\n");
+				if (continuous) {
+					uri = Engine.theApp.couchDbManager.handleChangesUri(dbName, uri, authenticatedUser);
+					newRequest.setURI(uri);
+				} else {
+					newRequest = Engine.theApp.couchDbManager.handleChangesRequest(dbName, newRequest, httpClient.get(), authenticatedUser);
+					uri = newRequest.getURI();
+				}
+				debug.append("Changed to " + newRequest.getMethod() + " URI: " + uri + "\n");
 			}
 			
 			if (newRequest instanceof HttpEntityEnclosingRequest) {
@@ -313,12 +322,6 @@ public class FullSyncServlet extends HttpServlet {
 			HttpEntity responseEntity = newResponse.getEntity();
 			ContentTypeDecoder contentType = new ContentTypeDecoder(responseEntity == null || responseEntity.getContentType() == null  ? "" : responseEntity.getContentType().getValue());
 			debug.append("response ContentType charset=" + contentType.getCharset("n/a") + " mime=" + contentType.getMimeType() + "\n");
-			
-			boolean continuous = code == 200;
-			if (continuous) {
-				String query = uri.getQuery();
-				continuous = query != null && (query.contains("feed=continuous") || query.contains("feed=longpoll"));
-			}
 			
 			OutputStream os = response.getOutputStream();
 			
