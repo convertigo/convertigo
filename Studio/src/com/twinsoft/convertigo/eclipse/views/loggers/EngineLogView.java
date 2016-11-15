@@ -30,9 +30,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Appender;
@@ -97,11 +96,12 @@ public class EngineLogView extends ViewPart {
 	private Thread logViewThread;
 	private LogManager logManager;
 	private long lastLogTime = -1;
-	private Queue<LogLine> logLines = new ConcurrentLinkedQueue<LogLine>();
+	private List<LogLine> logLines = new ArrayList<LogLine>(1000);
 	private Appender appender;
 	private int counter = 0;
 	
 	private long charMeter = 0;
+	private int curLine = 0;
 
 	private boolean scrollLock = false;
 	private boolean activateOnNewEvents = true;
@@ -110,7 +110,7 @@ public class EngineLogView extends ViewPart {
 	private int limitLogChars = DEFAULT_MAX_LOG_CHARS;
 	
 	private static final int DEFAULT_MAX_LOG_CHARS = 100000;
-	private static final int MAX_BUFFER_LINES = 50;
+	private static final int MAX_BUFFER_LINES = Integer.MAX_VALUE;
 	
 	private Action activateOnNewEventsAction, clearLogsAction, restoreDefaultsAction, selectColumnsAction, settingsEngine, limitLogCharsAction;
 	private RetargetAction scrollLockAction, optionsAction, searchAction;	
@@ -770,6 +770,7 @@ public class EngineLogView extends ViewPart {
 		lastLogTime = -1;
 		counter = 0;
 		charMeter = 0;
+		curLine = 0;
 	}
 
 	private void createToolbar() {
@@ -1025,31 +1026,44 @@ public class EngineLogView extends ViewPart {
 					logManager.setContinue(true);
 					logManager.setDateStart(new Date(Engine.startStopDate - 10000));
 					logManager.setMaxLines(MAX_BUFFER_LINES);
-
+					
+					curLine = 0;
+					
 					// Get the newest available lines
 					while (getLogs()) {
+						final int[] rmRow = {-1};
+						
+						int nbRow = curLine - 1;
+						while (limitLogChars > 0 && charMeter > limitLogChars && rmRow[0] < nbRow) {
+							rmRow[0]++;
+							LogLine line = logLines.remove(0);
+							curLine--;
+							charMeter -= line.getMessage().length();
+						}
+						
+						while (logLines.size() > 0 && limitLogChars > 0 && charMeter > limitLogChars) {
+							LogLine line = logLines.remove(curLine = 0);
+							charMeter -= line.getMessage().length();
+						}
+						
+						final Object[][] buf = new Object[1][];
+						buf[0] = logLines.subList(curLine, logLines.size()).toArray();
+						curLine = logLines.size();
+						
 						// Refresh the list view
-						Display.getDefault().asyncExec(new Runnable() {
+						Display.getDefault().syncExec(new Runnable() {
 						
 							public void run() {
-								try {
-									while (true && !tableViewer.getTable().isDisposed()) {
-										LogLine line = logLines.remove();
-										charMeter += line.getMessage().length();
-										tableViewer.add(line);
+								int topIndex = tableViewer.getTable().getTopIndex();
+								if (!tableViewer.getTable().isDisposed()) {
+									if (rmRow[0] > -1) {
+										topIndex -= rmRow[0] + 1;
+										tableViewer.getTable().remove(0, rmRow[0]);
 									}
-								} catch (NoSuchElementException e) {}
-
-								if (!tableViewer.getTable().isDisposed()) {									
-									while (limitLogChars > 0 && !tableViewer.getTable().isDisposed() && charMeter > limitLogChars) {
-										LogLine line = (LogLine) tableViewer.getElementAt(0);
-										charMeter -= line.getMessage().length();
-										tableViewer.getTable().remove(0);
-										
-									}									
+									tableViewer.add(buf[0]);
 									
-									if (!scrollLock && !tableViewer.getTable().isDisposed()) {
-										tableViewer.getTable().setTopIndex(tableViewer.getTable().getItemCount() - 1);
+									if (!tableViewer.getTable().isDisposed()) {
+										tableViewer.getTable().setTopIndex(!scrollLock ? tableViewer.getTable().getItemCount() - 1 : Math.max(topIndex, 0));
 									}
 								}
 								
@@ -1143,16 +1157,20 @@ public class EngineLogView extends ViewPart {
 					for (String messageLine : messageLines) {
 						logLines.add(new LogLine(logLine.getString(0), date, time, deltaTime, logLine
 								.getString(2), logLine.getString(3), messageLine, !firstLine, counter,
-								logLine.getString(4), allExtras));
+								message, allExtras));
 						counter++;
 						firstLine = false;
+
+						charMeter += messageLine.length();
 					}
 				}
 				else {
 					logLines.add(new LogLine(logLine.getString(0), date, time, deltaTime, logLine
-							.getString(2), logLine.getString(3), logLine.getString(4), false, counter,
-							logLine.getString(4), allExtras));
+							.getString(2), logLine.getString(3), message, false, counter,
+							message, allExtras));
 					counter++;
+					
+					charMeter += message.length();
 				}
 			}
 		} catch (JSONException e) {
@@ -1163,7 +1181,6 @@ public class EngineLogView extends ViewPart {
 				Thread.sleep(5000);
 			} catch (InterruptedException e1) { }
 		}
-		logManager.setContinue(true);
 		return true;
 	}
 }
