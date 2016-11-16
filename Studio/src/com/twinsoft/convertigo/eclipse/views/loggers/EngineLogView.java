@@ -1056,15 +1056,20 @@ public class EngineLogView extends ViewPart {
 							public void run() {
 								int topIndex = tableViewer.getTable().getTopIndex();
 								if (!tableViewer.getTable().isDisposed()) {
+									tableViewer.getTable().setVisible(false);
 									if (rmRow[0] > -1) {
 										topIndex -= rmRow[0] + 1;
 										tableViewer.getTable().remove(0, rmRow[0]);
 									}
+								}
+								
+								if (!tableViewer.getTable().isDisposed()) {
 									tableViewer.add(buf[0]);
-									
-									if (!tableViewer.getTable().isDisposed()) {
-										tableViewer.getTable().setTopIndex(!scrollLock ? tableViewer.getTable().getItemCount() - 1 : Math.max(topIndex, 0));
-									}
+									tableViewer.getTable().setVisible(true);
+								}
+								
+								if (!tableViewer.getTable().isDisposed()) {
+									tableViewer.getTable().setTopIndex(!scrollLock ? tableViewer.getTable().getItemCount() - 1 : Math.max(topIndex, 0));
 								}
 								
 								if (activateOnNewEvents) {
