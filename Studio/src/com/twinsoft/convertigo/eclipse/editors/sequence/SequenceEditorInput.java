@@ -26,14 +26,17 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IPersistableElement;
 
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
 
 public class SequenceEditorInput implements IEditorInput {
 
-	public Sequence sequence;
+	Sequence sequence;
+	private String qname;
 	
 	public SequenceEditorInput(Sequence sequence) {
 		this.sequence = sequence;
+		qname = sequence.getQName();
 	}
 	
 	public boolean exists() {
@@ -58,5 +61,13 @@ public class SequenceEditorInput implements IEditorInput {
 
 	public Object getAdapter(@SuppressWarnings("rawtypes") Class adapter) {
 		return null;
+	}
+	
+	public boolean is(Sequence sequence) {
+		return sequence.equals(this.sequence) && sequence.getQName().equals(qname);
+	}
+	
+	public boolean is(Project project) {
+		return qname.startsWith(project.getQName());
 	}
 }

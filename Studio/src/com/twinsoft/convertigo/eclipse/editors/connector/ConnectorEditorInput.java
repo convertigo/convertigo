@@ -27,13 +27,16 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IPersistableElement;
 
 import com.twinsoft.convertigo.beans.core.Connector;
+import com.twinsoft.convertigo.beans.core.Project;
 
 public class ConnectorEditorInput implements IEditorInput {
 
 	public Connector connector;
+	private String qname;
 	
 	public ConnectorEditorInput(Connector connector) {
 		this.connector = connector;
+		qname = connector.getQName();
 	}
 	
 	public boolean exists() {
@@ -58,5 +61,13 @@ public class ConnectorEditorInput implements IEditorInput {
 
 	public Object getAdapter(@SuppressWarnings("rawtypes") Class adapter) {
 		return null;
+	}
+	
+	public boolean is(Connector connector) {
+		return connector.equals(this.connector) && connector.getQName().equals(qname);
+	}
+	
+	public boolean is(Project project) {
+		return qname.startsWith(project.getQName());
 	}
 }

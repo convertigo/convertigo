@@ -1432,7 +1432,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					try {
 						IEditorInput editorInput = editorRef.getEditorInput();
 						if ((editorInput != null) && (editorInput instanceof ConnectorEditorInput)) {
-							if (((ConnectorEditorInput)editorInput).connector.equals(connector)) {
+							if (((ConnectorEditorInput)editorInput).is(connector)) {
 								connectorEditor = (ConnectorEditor)editorRef.getEditor(true);
 								break;
 							}

@@ -792,7 +792,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					try {
 						IEditorInput editorInput = editorRef.getEditorInput();
 						if ((editorInput != null) && (editorInput instanceof ConnectorEditorInput)) {
-							if (((ConnectorEditorInput) editorInput).connector.equals(connector)) {
+							if (((ConnectorEditorInput) editorInput).is(connector)) {
 								editorPart = editorRef.getEditor(false);
 								break;
 							}

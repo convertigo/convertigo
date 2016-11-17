@@ -584,7 +584,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 					try {
 						IEditorInput editorInput = editorRef.getEditorInput();
 						if ((editorInput != null) && (editorInput instanceof ConnectorEditorInput)) {
-							if (((ConnectorEditorInput)editorInput).connector.equals(connector)) {
+							if (((ConnectorEditorInput)editorInput).is(connector)) {
 								connectorEditor = (ConnectorEditor)editorRef.getEditor(true);
 								break;
 							}
@@ -613,7 +613,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 					try {
 						IEditorInput editorInput = editorRef.getEditorInput();
 						if ((editorInput != null) && (editorInput instanceof SequenceEditorInput)) {
-							if (((SequenceEditorInput)editorInput).sequence.equals(sequence)) {
+							if (((SequenceEditorInput)editorInput).is(sequence)) {
 								sequenceEditor = (SequenceEditor)editorRef.getEditor(true);
 								break;
 							}
@@ -642,13 +642,13 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 					if (editorInput != null) {
 						// close connector editor
 						if (editorInput instanceof ConnectorEditorInput) {
-							if (((ConnectorEditorInput)editorInput).connector.getParent().equals(project)) {
+							if (((ConnectorEditorInput)editorInput).is(project)) {
 								closeEditor(activePage, editorRef);
 							}
 						}
 						// close sequence editors
 						else if (editorInput instanceof SequenceEditorInput) {
-							if (((SequenceEditorInput)editorInput).sequence.getProject().equals(project)) {
+							if (((SequenceEditorInput) editorInput).is(project)) {
 								closeEditor(activePage, editorRef);
 							}
 						}						
@@ -731,7 +731,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 				try {
 					IEditorInput editorInput = editorRef.getEditorInput();
 					if ((editorInput != null) && (editorInput instanceof ConnectorEditorInput)) {
-						if (((ConnectorEditorInput)editorInput).connector.getParent().equals(getObject()))
+						if (((ConnectorEditorInput)editorInput).is(getObject()))
 							activePage.closeEditor(editorRef.getEditor(false),true);
 					}
 				}
@@ -755,7 +755,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 					try {
 						IEditorInput editorInput = editorRef.getEditorInput();
 						if ((editorInput != null) && (editorInput instanceof ConnectorEditorInput)) {
-							if (((ConnectorEditorInput)editorInput).connector.equals(connector)) {
+							if (((ConnectorEditorInput)editorInput).is(connector)) {
 								activePage.closeEditor(editorRef.getEditor(false),true);
 								break;
 							}
@@ -782,7 +782,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 					try {
 						IEditorInput editorInput = editorRef.getEditorInput();
 						if ((editorInput != null) && (editorInput instanceof SequenceEditorInput)) {
-							if (((SequenceEditorInput)editorInput).sequence.equals(sequence)) {
+							if (((SequenceEditorInput)editorInput).is(sequence)) {
 								activePage.closeEditor(editorRef.getEditor(false),true);
 								break;
 							}

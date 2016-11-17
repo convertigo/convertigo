@@ -126,7 +126,7 @@ public abstract class MyAbstractAction extends Action implements IObjectActionDe
 					try {
 						IEditorInput editorInput = editorRef.getEditorInput();
 						if ((editorInput != null) && (editorInput instanceof ConnectorEditorInput)) {
-							if (((ConnectorEditorInput)editorInput).connector.equals(connector)) {
+							if (((ConnectorEditorInput)editorInput).is(connector)) {
 								editorPart = editorRef.getEditor(false);
 								break;
 							}

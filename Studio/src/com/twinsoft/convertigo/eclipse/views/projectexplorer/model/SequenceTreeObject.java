@@ -234,7 +234,7 @@ public class SequenceTreeObject extends DatabaseObjectTreeObject implements IEdi
 					try {
 						IEditorInput editorInput = editorRef.getEditorInput();
 						if ((editorInput != null) && (editorInput instanceof SequenceEditorInput)) {
-							if (((SequenceEditorInput)editorInput).sequence.equals(sequence)) {
+							if (((SequenceEditorInput)editorInput).is(sequence)) {
 								editorPart = editorRef.getEditor(false);
 								break;
 							}
