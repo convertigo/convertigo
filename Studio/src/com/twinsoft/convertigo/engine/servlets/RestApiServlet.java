@@ -146,7 +146,7 @@ public class RestApiServlet extends HttpServlet {
 						}
 						
 						// Handle request
-		                urlMappingOperation.handleRequest(request, response);
+		                String content = urlMappingOperation.handleRequest(request, response);
 		                
 		                // Set response status
 		                ServletUtils.applyCustomStatus(request, response);
@@ -163,6 +163,11 @@ public class RestApiServlet extends HttpServlet {
 		    					buf.append(" " + headerName + "=" + headerValue + "\n");
 			    			}
 			    			Engine.logEngine.debug(buf.toString());
+						}
+						
+						if (content != null) {
+							Writer writer = response.getWriter();
+				            writer.write(content);
 						}
 						
 						Engine.logEngine.debug("(RestApiServlet) Request successfully handled");

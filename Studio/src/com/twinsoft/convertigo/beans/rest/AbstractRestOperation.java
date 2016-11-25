@@ -2,7 +2,6 @@ package com.twinsoft.convertigo.beans.rest;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Writer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -123,7 +122,7 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 	
 	@Override
 	@SuppressWarnings("deprecation")
-	public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws EngineException {
+	public String handleRequest(HttpServletRequest request, HttpServletResponse response) throws EngineException {
 		String targetRequestableQName = getTargetRequestable();
 		if (targetRequestableQName.isEmpty()) {
 			throw new EngineException("Mapping operation \""+ getName() +"\" has no target requestable defined");
@@ -397,9 +396,8 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 			// Set response content
 			if (content != null) {
 				response.setCharacterEncoding(encoding);
-				Writer writer = response.getWriter();
-	            writer.write(content);
 			}
+			return content;
 		}
 		catch (Throwable t) {
 			throw new EngineException("Operation \""+ getName() +"\" failed to handle request", t);
