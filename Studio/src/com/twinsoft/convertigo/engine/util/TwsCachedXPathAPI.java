@@ -69,6 +69,17 @@ public class TwsCachedXPathAPI implements EventListener {
 			nodes = JXPathContext.newContext(contextNode).selectNodes(xpath);
 			int i = 0;
 			for (Object node: nodes) {
+				if (node instanceof Number) {
+					Number num = (Number) node;
+					if (num.intValue() == num.doubleValue()) {
+						node = Integer.toString(num.intValue());
+					} else {
+						node = Double.toString(num.doubleValue());
+					}
+				} else if (node instanceof Boolean) {
+					node = node.toString();
+				}
+				
 				if (node instanceof String) {
 					Document doc =  contextNode instanceof Document ? (Document)contextNode : contextNode.getOwnerDocument();
 					node = doc.createTextNode((String) node);
