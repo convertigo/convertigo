@@ -48,21 +48,25 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.api.Session;
 import com.twinsoft.convertigo.beans.couchdb.AbstractFullSyncListener;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.KeyExpiredException;
 import com.twinsoft.convertigo.engine.LogParameters;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
+import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.util.ContentTypeDecoder;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
+import com.twinsoft.tas.KeyManager;
 
 public class FullSyncServlet extends HttpServlet {
 	private static final long serialVersionUID = -5147185931965387561L;
@@ -78,8 +82,26 @@ public class FullSyncServlet extends HttpServlet {
 
 	@Override
 	protected void service(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		try {
+			HttpSessionListener.checkSession(request);
+			
+			String c8oSDK;
+			
+			if (Engine.isEngineMode() && (c8oSDK = request.getHeader(HeaderName.XConvertigoSDK.value())) != null) {
+				if (!KeyManager.hasExpired(Session.EmulIDSE)) {
+					Engine.logCouchDbManager.debug("Convertigo-SDK allowed: \"" + c8oSDK + "\"");
+				} else {
+					KeyExpiredException e = new KeyExpiredException("Convertigo Community Edition isn't licenced to accept Convertigo SDK calls, please check your licences keys.");
+					Engine.logCouchDbManager.error("Convertigo-SDK not allowed: \"" + c8oSDK + "\"\n" + e.getMessage());
+					throw e;
+				}
+			}
+		} catch (Throwable e) {
+//			e.setStackTrace(new StackTraceElement[0]);
+			throw new ServletException(e);
+		}
+		
 		StringBuffer debug = new StringBuffer();
-
 		try {
 			HttpRequestBase newRequest;
 

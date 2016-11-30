@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionBindingEvent;
 import javax.servlet.http.HttpSessionBindingListener;
@@ -54,13 +55,13 @@ public class HttpSessionListener implements HttpSessionBindingListener {
     
     public void valueBound(HttpSessionBindingEvent event) {
         try {
-            Engine.logContext.debug("HTTP session starting...");
+            Engine.logEngine.debug("HTTP session starting...");
             HttpSession httpSession = event.getSession();
             String httpSessionID = httpSession.getId();
             synchronized (httpSessions) {
                 httpSessions.put(httpSessionID, httpSession);				
 			}
-            Engine.logContext.debug("HTTP session started [" + httpSessionID + "]");
+            Engine.logEngine.debug("HTTP session started [" + httpSessionID + "]");
             
             if (Engine.isEngineMode()) {
             	KeyManager.start(com.twinsoft.api.Session.EmulIDSE);
@@ -71,14 +72,14 @@ public class HttpSessionListener implements HttpSessionBindingListener {
         		try {
 					FileUtils.write(new File(Engine.LOG_PATH + "/Session License exceeded.log"), line, "UTF-8", true);
 				} catch (IOException e1) {
-					Engine.logContext.error("Failed to write the 'Session License exceeded.log' file", e1);
+					Engine.logEngine.error("Failed to write the 'Session License exceeded.log' file", e1);
 				}
         	} else {
 	        	event.getSession().setAttribute("__exception", e);
 	        	HttpUtils.terminateSession(event.getSession());
         	}
         } catch(Exception e) {
-            Engine.logContext.error("Exception during binding HTTP session listener", e);
+            Engine.logEngine.error("Exception during binding HTTP session listener", e);
         }
     }
     
@@ -118,5 +119,23 @@ public class HttpSessionListener implements HttpSessionBindingListener {
         		removeSession(entry.getKey());        		
         	}
         }
+    }
+    
+    static public void checkSession(HttpServletRequest request) throws TASException {
+    	HttpSession httpSession = request.getSession();
+		if (httpSession.getAttribute("__sessionListener") == null) {
+			Engine.logContext.trace("Inserting HTTP session listener into the HTTP session");
+			httpSession.setAttribute("__sessionListener", new HttpSessionListener());
+			Object t;
+			if ((t = httpSession.getAttribute("__exception")) != null) {
+				if (t instanceof Throwable) {
+					((Throwable) t).setStackTrace(new StackTraceElement[0]);
+					if (t instanceof TASException) {
+						throw (TASException) t;
+					}
+					throw new RuntimeException((Throwable) t);
+				}
+			}
+		}
     }
 }

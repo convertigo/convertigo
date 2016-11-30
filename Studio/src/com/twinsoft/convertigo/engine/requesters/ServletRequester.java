@@ -44,6 +44,7 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
 import com.twinsoft.tas.KeyManager;
+import com.twinsoft.tas.TASException;
 
 public abstract class ServletRequester extends GenericRequester {
 	
@@ -250,8 +251,6 @@ public abstract class ServletRequester extends GenericRequester {
 				throw e;
 			}
 		}
-		
-		HttpSession httpSession = request.getSession();
 
 		String remoteAddr = request.getRemoteAddr();
 		Engine.logContext.info("Remote-Addr: \"" + remoteAddr + "\"");
@@ -286,17 +285,10 @@ public abstract class ServletRequester extends GenericRequester {
 		Engine.logContext.info("User-Agent: \"" + userAgent + "\"");
 		context.userAgent = userAgent;
 
-		if (httpSession.getAttribute("__sessionListener") == null) {
-			Engine.logContext.trace("Inserting HTTP session listener into the HTTP session");
-			httpSession.setAttribute("__sessionListener", new HttpSessionListener());
-			Object t;
-			if ((t = httpSession.getAttribute("__exception")) != null) {
-				if (t instanceof EngineException) {
-					throw (EngineException) t;
-				} else if (t instanceof Throwable) {
-					throw new RuntimeException((Throwable) t);
-				}
-			}
+		try {
+			HttpSessionListener.checkSession(request);
+		} catch (TASException e) {
+			throw new RuntimeException(e);
 		}
 	}
 }
