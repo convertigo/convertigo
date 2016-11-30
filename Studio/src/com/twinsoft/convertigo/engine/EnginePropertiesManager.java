@@ -915,11 +915,15 @@ public class EnginePropertiesManager {
 			// Add special properties needed for substitution
 			properties.put("user.workspace", Engine.USER_WORKSPACE_PATH);
 			System.out.println("  Adding user workspace path: " + Engine.USER_WORKSPACE_PATH);
+
+			properties.put("log.directory", Engine.USER_WORKSPACE_PATH + "/logs");
 			
-			Engine.LOG_PATH = Engine.USER_WORKSPACE_PATH + "/logs";
+			File logEngine = new File(getProperty(PropertyName.LOG4J_APPENDER_CEMSAPPENDER_FILE));
+			
+			Engine.LOG_PATH = logEngine.getParent();
+			Engine.LOG_ENGINE_NAME = logEngine.getName();
 
 			String logDirectory = Engine.LOG_PATH;
-			properties.put("log.directory", logDirectory);
 			System.out.println("  Adding log directory: " + logDirectory);
 
 			String webappPath = Engine.WEBAPP_PATH;

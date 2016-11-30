@@ -52,8 +52,6 @@ public class LogManager {
 	public static final Date date_last = new Date(Long.MAX_VALUE);
 	public static final DateFormat date_format = new SimpleDateFormat(" yyyy-MM-dd HH:mm:ss,SSS ");
 	public static final int date_format_offset = 31;
-	private static final File log_directory = new File(Engine.LOG_PATH);
-	private static final String log_name = "engine.log";
 	
 	private final Matcher delim = Pattern.compile("[! ]([^\\|]*[^|\\s])\\|?").matcher("");
 	private final Matcher delim_extra = Pattern.compile("([^=]*)=(.*)").matcher("");
@@ -277,7 +275,7 @@ public class LogManager {
 		if (is != null) {
 			is.close();
 		}
-		is = new TemporalInputStream(log_directory, log_name, date_format, date_format_offset, date_start, date_end, EnginePropertiesManager.getProperty(PropertyName.LOG4J_APPENDER_CEMSAPPENDER_ENCODING));
+		is = new TemporalInputStream(new File(Engine.LOG_PATH), Engine.LOG_ENGINE_NAME, date_format, date_format_offset, date_start, date_end, EnginePropertiesManager.getProperty(PropertyName.LOG4J_APPENDER_CEMSAPPENDER_ENCODING));
 		reset();
 		need_renew = false;
 	}

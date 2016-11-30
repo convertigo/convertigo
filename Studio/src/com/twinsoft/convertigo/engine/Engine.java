@@ -84,6 +84,7 @@ public class Engine {
 	public static String PROJECTS_PATH = "";
 	public static String CERTIFICATES_PATH = "";
 	public static String LOG_PATH = "";
+	public static String LOG_ENGINE_NAME = "";
 	public static String XSL_PATH = "";
 	public static String DTD_PATH = "";
 	public static String TEMPLATES_PATH = "";

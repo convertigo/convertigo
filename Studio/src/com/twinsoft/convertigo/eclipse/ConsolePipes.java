@@ -115,7 +115,7 @@ public class ConsolePipes {
 						if (Engine.logEngine != null) {
 							if (ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_SHOW_ENGINE_INTO_CONSOLE).equalsIgnoreCase("true")) {
 								alertOnSettings = false;
-								String logFileName = Engine.LOG_PATH + "/engine.log";
+								String logFileName = Engine.LOG_PATH + "/" + Engine.LOG_ENGINE_NAME;
 								File logFile = new File(logFileName);
 								long logFileSizeCurrent = logFile.length();
 								if (logFileSize > logFileSizeCurrent) {
