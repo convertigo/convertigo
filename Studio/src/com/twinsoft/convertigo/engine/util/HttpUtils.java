@@ -213,7 +213,7 @@ public class HttpUtils {
 	
 	public static void terminateSession(HttpSession httpSession) {
 		if (httpSession != null) {
-			if (!"true".equals("" + httpSession.getAttribute("administration"))) {
+			if (Engine.authenticatedSessionManager.isAnonymous(httpSession)) {
 				httpSession.setMaxInactiveInterval(1);						
 			}
 		}

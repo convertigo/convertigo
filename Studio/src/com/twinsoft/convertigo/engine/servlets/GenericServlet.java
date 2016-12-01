@@ -371,7 +371,7 @@ public abstract class GenericServlet extends HttpServlet {
 			Engine.logContext.debug("[GenericServlet] End of session required => try to invalidate session");
 			try {
 				HttpSession httpSession = request.getSession();
-				boolean isAdminSession = "true".equals((String) httpSession.getAttribute("administration"));
+				boolean isAdminSession = Engine.authenticatedSessionManager.isAuthenticated(httpSession);
 				if (!isAdminSession && Engine.theApp.contextManager.isSessionEmtpy(httpSession.getId())) {
 					Engine.logContext
 							.debug("[GenericServlet] The owner HTTP session is empty => invalidating HTTP session in "
