@@ -337,12 +337,27 @@ public class XSDExtractor {
 					}
 					complex.appendChild(sequence);
 				}*/
+				
+				Element parentForAttributes;
 				if (!nes.isEmpty()) {
 					Element sequence = xsdDom.createElement("xsd:sequence");
 					for (String key: nes) {
 						((XSDElement)elements.get(key)).toXML(prefixName, this, sequence);
 					}
 					complex.appendChild(sequence);
+					
+					parentForAttributes = complex; //
+				}
+				else {
+					Element extension = xsdDom.createElement("xsd:extension");
+					extension.setAttribute("base", getSchemaType());
+					
+					Element simpleContent = xsdDom.createElement("xsd:simpleContent");
+					simpleContent.appendChild(extension);
+					
+					complex.appendChild(simpleContent);
+					
+					parentForAttributes = extension; //
 				}
 				
 				/*e = attributes.elements();
@@ -351,7 +366,7 @@ public class XSDExtractor {
 				}*/
 				if (!nas.isEmpty()) {
 					for (String key: nas) {
-						((XSDAttribute)attributes.get(key)).toXML(prefixName, this, complex);
+						((XSDAttribute)attributes.get(key)).toXML(prefixName, this, parentForAttributes);
 					}
 				}
 				xsdDom.getDocumentElement().appendChild(complex);
