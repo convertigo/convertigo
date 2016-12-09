@@ -25,12 +25,14 @@ package com.twinsoft.convertigo.beans.transactions;
 import java.io.UnsupportedEncodingException;
 
 import org.apache.commons.codec.binary.Base64;
-import org.w3c.dom.CDATASection;
+import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineStatistics;
+import com.twinsoft.convertigo.engine.util.VersionUtils;
 
 public class HttpTransaction extends AbstractHttpTransaction {
     
@@ -40,6 +42,8 @@ public class HttpTransaction extends AbstractHttpTransaction {
     private static int HTTP_DATA_ENCODING_BASE64 = 1;
     
     private int dataEncoding = HTTP_DATA_ENCODING_STRING;
+    private String dataStringCharset = "UTF-8";
+    private boolean responseInCDATA = false;
     
     public int getDataEncoding() {
 		return dataEncoding;
@@ -49,7 +53,23 @@ public class HttpTransaction extends AbstractHttpTransaction {
 		this.dataEncoding = dataEncoding;
 	}
 
-    public HttpTransaction() {
+    public String getDataStringCharset() {
+		return dataStringCharset;
+	}
+
+	public void setDataStringCharset(String dataStringCharset) {
+		this.dataStringCharset = dataStringCharset;
+	}
+
+	public boolean isResponseInCDATA() {
+		return responseInCDATA;
+	}
+
+	public void setResponseInCDATA(boolean responseInCDATA) {
+		this.responseInCDATA = responseInCDATA;
+	}
+
+	public HttpTransaction() {
 		super();
     }
 
@@ -64,10 +84,16 @@ public class HttpTransaction extends AbstractHttpTransaction {
         		// nothing to do
         	}
         	else if (dataEncoding == HTTP_DATA_ENCODING_STRING) {
-            	String charset  = ((HttpConnector) parent).getCharset();
-
+        		String charset = dataStringCharset;
+        		
+        		if (StringUtils.isBlank(charset)) {
+        			charset  = ((HttpConnector) parent).getCharset();
+        			Engine.logBeans.debug("(HttpTransaction) 'HTTP string charset' is blank, use detected charset: " + charset);
+        		}
+        		
             	if (charset == null) {
             		charset = "ascii";
+            		Engine.logBeans.info("(HttpTransaction) No valid charset defined, use basic charset: " + charset);
             	}
             	try {
             		stringData = new String(httpData, charset);
@@ -83,12 +109,31 @@ public class HttpTransaction extends AbstractHttpTransaction {
         		throw new IllegalArgumentException("Unknown data encoding: " + dataEncoding);
         	}
     		
-        	CDATASection cdata = context.outputDocument.createCDATASection(stringData); // remove TextCodec.UTF8Encode for #453
+        	Node child = responseInCDATA ?
+        		context.outputDocument.createCDATASection(stringData) // remove TextCodec.UTF8Encode for #453
+        		: context.outputDocument.createTextNode(stringData);
+        	
         	Element outputDocumentRootElement = context.outputDocument.getDocumentElement();
-        	outputDocumentRootElement.appendChild(cdata);
+        	outputDocumentRootElement.appendChild(child);
         }
         finally {
     		context.statistics.stop(t);
         }
     }
+
+	@Override
+	public void configure(Element element) throws Exception {
+		super.configure(element);
+
+		String version = element.getAttribute("version");
+
+		if (version!= null) {			
+			if (VersionUtils.compare(version, "7.4.3") < 0) {
+				responseInCDATA = true;
+				dataStringCharset = "";
+			}
+		}
+	}
+	
+	
 }

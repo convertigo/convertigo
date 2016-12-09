@@ -36,7 +36,7 @@ public class HttpTransactionBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/images/httptransaction_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/images/httptransaction_color_32x32.png";
 
-			properties = new PropertyDescriptor[1];
+			properties = new PropertyDescriptor[3];
 			
 			resourceBundle = getResourceBundle("res/HttpTransaction");
 
@@ -47,6 +47,14 @@ public class HttpTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[0].setDisplayName(getExternalizedString("property.dataEncoding.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.dataEncoding.short_description"));
 			properties[0].setPropertyEditorClass(getEditorClass("HttpDataEncodingEditor"));
+			
+			properties[1] = new PropertyDescriptor("dataStringCharset", HttpTransaction.class, "getDataStringCharset", "setDataStringCharset");
+			properties[1].setDisplayName(getExternalizedString("property.dataStringCharset.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.dataStringCharset.short_description"));
+			
+			properties[2] = new PropertyDescriptor("responseInCDATA", HttpTransaction.class, "isResponseInCDATA", "setResponseInCDATA");
+			properties[2].setDisplayName(getExternalizedString("property.responseInCDATA.display_name"));
+			properties[2].setShortDescription(getExternalizedString("property.responseInCDATA.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
