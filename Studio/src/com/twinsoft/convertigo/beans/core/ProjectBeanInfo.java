@@ -45,7 +45,7 @@ public class ProjectBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
-			properties = new PropertyDescriptor[12];
+			properties = new PropertyDescriptor[13];
 			
 			properties[0] = new PropertyDescriptor("browserDefinitions", beanClass, "getBrowserDefinitions", "setBrowserDefinitions");
 			properties[0].setExpert(true);
@@ -53,9 +53,9 @@ public class ProjectBeanInfo extends MySimpleBeanInfo {
 			properties[0].setShortDescription(getExternalizedString("property.browserDefinitions.short_description"));
 			properties[0].setPropertyEditorClass(getEditorClass("BrowserDefinitionEditor"));
 
-			properties[1] = new PropertyDescriptor("httpSessionTimeout", beanClass, "getHttpSessionTimeout", "setHttpSessionTimeout");
-			properties[1].setDisplayName(getExternalizedString("property.httpSessionTimeout.display_name"));
-			properties[1].setShortDescription(getExternalizedString("property.httpSessionTimeout.short_description"));
+			properties[1] = new PropertyDescriptor("contextTimeout", beanClass, "getContextTimeout", "setContextTimeout");
+			properties[1].setDisplayName(getExternalizedString("property.contextTimeout.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.contextTimeout.short_description"));
 			
 			properties[2] = new PropertyDescriptor("wsdlStyle", beanClass, "getWsdlStyle", "setWsdlStyle");
 			properties[2].setDisplayName(getExternalizedString("property.wsdlStyle.display_name"));
@@ -114,6 +114,10 @@ public class ProjectBeanInfo extends MySimpleBeanInfo {
             properties[11].setShortDescription(getExternalizedString("property.xpathEngine.short_description"));
             properties[11].setPropertyEditorClass(XPathEngine.class);
             properties[11].setExpert(true);
+            
+			properties[12] = new PropertyDescriptor("httpSessionTimeout", beanClass, "getHttpSessionTimeout", "setHttpSessionTimeout");
+			properties[12].setDisplayName(getExternalizedString("property.httpSessionTimeout.display_name"));
+			properties[12].setShortDescription(getExternalizedString("property.httpSessionTimeout.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

@@ -33,6 +33,7 @@ import java.util.Locale;
 import java.util.Set;
 
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
@@ -84,10 +85,15 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	public final static String CONVERTIGO_PROJECTS_NAMESPACEURI = "http://www.convertigo.com/convertigo/projects/";
 	
     /**
-     * The HTTP session timeout.
+     * The Context timeout in seconds.
      */
-    private int httpSessionTimeout = 300;
+    private int contextTimeout = 300;
     
+    /**
+     * The HTTP session timeout in seconds.
+     */
+    private int httpSessionTimeout = 1800;
+
     /** Holds value of property browserTypes. */
     private XMLVector<XMLVector<String>> browserDefinitions = new XMLVector<XMLVector<String>>();
     
@@ -204,6 +210,14 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		return getName();
 	}
 	
+    public int getContextTimeout() {
+        return contextTimeout;
+    }
+    
+    public void setContextTimeout(int contextTimeout) {
+        this.contextTimeout = contextTimeout;
+    }
+    
     public int getHttpSessionTimeout() {
         return httpSessionTimeout;
     }
@@ -211,7 +225,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
     public void setHttpSessionTimeout(int httpSessionTimeout) {
         this.httpSessionTimeout = httpSessionTimeout;
     }
-    
+
     /** Getter for property browserDefinitions.
      * @return Value of property browserDefinitions.
      */
@@ -467,6 +481,28 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		clonedObject.mobileApplication = null;
 		clonedObject.urlMapper = null;
 		return clonedObject;
+	}
+	
+	@Override
+	public void preconfigure(Element element) throws Exception {
+		super.preconfigure(element);
+		
+		String version = element.getAttribute("version");
+		
+		if (VersionUtils.compare(version, "7.5.0") < 0) {
+			NodeList properties = element.getElementsByTagName("property");
+			
+			Element propName = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "name");
+			String objectName = (String) XMLUtils.readObjectFromXml((Element) XMLUtils.findChildNode(propName, Node.ELEMENT_NODE));
+			
+			Element propVarDef1 = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "contextTimeout");
+			Element propVarDef2 = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "httpSessionTimeout");
+			if (propVarDef1 == null && propVarDef2 != null) {
+				propVarDef2.setAttribute("name", "contextTimeout");
+				hasChanged = true;
+				Engine.logBeans.warn("[Project] The object \""+objectName+"\" has been updated to version 7.5.0 (property \"httpSessionTimeout\" changed to \"contextTimeout\")");
+			}
+		}
 	}
 	
 	@Override

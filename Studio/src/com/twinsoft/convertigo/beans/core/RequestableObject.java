@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -33,6 +34,7 @@ import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.transform.TransformerFactoryConfigurationError;
 
@@ -754,7 +756,44 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 			context.steps = new ArrayList<String>(8);
         	
             try {
-				// Creating scripting context
+    			// Set HTTP session timeout using front project defined value
+            	// - the front project is the project for which the session has been created at first request
+            	// - the timeout is set before requestable execution in case of inner requestable calls
+    			if (context.httpServletRequest != null) {
+    				HttpServletRequest request = context.httpServletRequest;
+    				int maxInactiveInterval = request.getSession().getMaxInactiveInterval();
+    				try {
+    					Engine.logContext.debug("(RequestableObject) Http session : is new " + request.getSession().isNew());
+    					Engine.logContext.debug("(RequestableObject) Http session : created at " + new Date(request.getSession().getCreationTime()));
+    					Engine.logContext.debug("(RequestableObject) Http session : last accessed at " + new Date(request.getSession().getLastAccessedTime()));
+    					if (request.getSession().getAttribute("convertigo.session.timeout") == null) {
+    						int contextTimeout = context.project.getContextTimeout();
+    						int httpSessionTimeout = context.project.getHttpSessionTimeout();
+    						// Check with contextTimeout
+    						if (httpSessionTimeout < contextTimeout) {
+    							httpSessionTimeout = contextTimeout + 60;
+    							Engine.logContext.warn("(RequestableObject) Http session : invalid timeout value for front project "+ context.projectName +"."
+    									+ " Should be greater than context timeout !");
+    						}
+    						// Check for infinite timeout
+    						if (httpSessionTimeout <= 0) {
+    							httpSessionTimeout = maxInactiveInterval;
+    							Engine.logContext.warn("(RequestableObject) Http session : invalid timeout value for front project "+ context.projectName +"."
+    									+ " Infinite value not allowed !");
+    						}
+    						request.getSession().setMaxInactiveInterval(httpSessionTimeout);
+    						request.getSession().setAttribute("convertigo.session.timeout", httpSessionTimeout);
+    						Engine.logContext.info("(RequestableObject) Http session : timeout set to "+ httpSessionTimeout +"(s)"
+    									+ " on front project "+ context.projectName);
+    					}
+    				}
+    				catch (Exception e) {
+    					request.getSession().setAttribute("convertigo.session.timeout", maxInactiveInterval);
+    					Engine.logContext.error("(RequestableObject) Unable to set HTTP session timeout. Default value will be used ("+maxInactiveInterval+"s)", e);
+    				}
+    			}
+            	
+            	// Creating scripting context
     			javascriptContext = org.mozilla.javascript.Context.enter();
     			scope = javascriptContext.initStandardObjects();
     			

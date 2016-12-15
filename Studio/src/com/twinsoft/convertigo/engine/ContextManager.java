@@ -623,7 +623,7 @@ public class ContextManager extends AbstractRunnableManager {
 				
                 if ((context.project == null) || (context.lastAccessTime == 0))
 					continue; // The context has not been completely created, so we ignore this context...
-                else expirationTime = context.lastAccessTime + context.project.getHttpSessionTimeout() * 1000;
+                else expirationTime = context.lastAccessTime + context.project.getContextTimeout() * 1000;
 
                 // Engine mode (studio contexts don't expire)
                 if (Engine.isEngineMode()) {
