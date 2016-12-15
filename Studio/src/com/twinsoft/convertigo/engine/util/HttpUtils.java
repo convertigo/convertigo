@@ -222,8 +222,14 @@ public class HttpUtils {
 	public static JSONObject requestToJSON(CloseableHttpClient httpClient, HttpRequestBase request) throws ClientProtocolException, IOException, UnsupportedOperationException, JSONException {
 		CloseableHttpResponse response = httpClient.execute(request);
 		HttpEntity responseEntity = response.getEntity();
-		ContentTypeDecoder contentType = new ContentTypeDecoder(responseEntity == null || responseEntity.getContentType() == null  ? "" : responseEntity.getContentType().getValue());
-		JSONObject json = new JSONObject(IOUtils.toString(responseEntity.getContent(), contentType.charset("UTF-8")));
+		JSONObject json;
+		if (responseEntity != null) {
+			ContentTypeDecoder contentType = new ContentTypeDecoder(responseEntity.getContentType() == null  ? "" : responseEntity.getContentType().getValue());
+			json = new JSONObject(IOUtils.toString(responseEntity.getContent(), contentType.charset("UTF-8")));
+		} else {
+			json = new JSONObject();
+		}
+		
 		return json;
 	}
 }
