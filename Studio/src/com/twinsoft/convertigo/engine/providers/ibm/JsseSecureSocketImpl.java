@@ -88,12 +88,6 @@ public class JsseSecureSocketImpl extends SecureSocket implements HandshakeCompl
 		        Engine.logEmulators.trace("[JsseSesureSocketImpl] Start handshake...");
 		        socket.startHandshake();
 			    
-			    if (adr.getHostName().equals("portail-test.banque-france.org")) {
-				    // Request data on IIS Pobi server
-				    // Will make a second handshake with client certificate request !
-			    	sendPobiRequest(socket);
-			    }
-		    	
 		    	isTrusted = true;
 		    	isExpired = false;
 			    secureSocket = socket;
@@ -128,6 +122,7 @@ public class JsseSecureSocketImpl extends SecureSocket implements HandshakeCompl
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private void sendPobiRequest(Socket socket) throws IOException {
 		Engine.logEmulators.trace("[JsseSesureSocketImpl] Retrieving Pobi Fiben Home page...");
 	    PrintWriter out = new PrintWriter(
