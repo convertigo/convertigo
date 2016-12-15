@@ -161,16 +161,30 @@ public class FullSyncServlet extends HttpServlet {
 			
 			newRequest.setURI(uri);
 			debug.append(method.name() + " URI: " + uri.toString() + "\n");
-
+			
+			String dbName = requestParser.getDbName();
+			
+			String requestStringEntity = null;
+			HttpEntity httpEntity = null;
+			JSONObject bulkDocsRequest = null;
+			
+			String special = requestParser.getSpecial();
+			
+			boolean isChanges = "_changes".equals(special);
+			
 			for (String headerName: Collections.list(request.getHeaderNames())) {
-				if (!HeaderName.TransferEncoding.is(headerName)
-						&& !HeaderName.ContentLength.is(headerName)
-						&& !HeaderName.UserAgent.is(headerName)
-						&& !HeaderName.Expect.is(headerName)
-						&& !HeaderName.Connection.is(headerName)
-						&& !HeaderName.Host.is(headerName)
-						&& !HeaderName.Cookie.is(headerName)
-						&& !HeaderName.ContentEncoding.is(headerName)) {
+				if (!(HeaderName.TransferEncoding.is(headerName)
+						|| HeaderName.ContentLength.is(headerName)
+						|| HeaderName.UserAgent.is(headerName)
+						|| HeaderName.Expect.is(headerName)
+						|| HeaderName.Connection.is(headerName)
+						|| HeaderName.Host.is(headerName)
+						|| HeaderName.Cookie.is(headerName)
+						|| HeaderName.ContentEncoding.is(headerName)
+						|| (isChanges && (HeaderName.IfNoneMatch.is(headerName)
+								|| HeaderName.IfModifiedSince.is(headerName)
+								|| HeaderName.CacheControl.is(headerName)
+								)))) {
 					for (String headerValue: Collections.list(request.getHeaders(headerName))) {
 						debug.append("request Header: " + headerName + "=" + headerValue + "\n");
 						newRequest.addHeader(headerName, headerValue);
@@ -186,15 +200,8 @@ public class FullSyncServlet extends HttpServlet {
 					debug.append("request add BasicHeader");
 					newRequest.addHeader(authBasicHeader);
 				}
-			}			
+			}
 			
-			String dbName = requestParser.getDbName();
-			
-			String requestStringEntity = null;
-			HttpEntity httpEntity = null;
-			JSONObject bulkDocsRequest = null;
-			
-			String special = requestParser.getSpecial();
 			debug.append("dbName=" + dbName + " special=" + special + "\n");
 			
 			if (request.getInputStream() != null) {
@@ -290,7 +297,7 @@ public class FullSyncServlet extends HttpServlet {
 				} catch (JSONException e) {
 					debug.append("failed to parse [ " + e.getMessage() + "]: " + requestStringEntity);						
 				}
-			} else if ("_changes".equals(special)) {
+			} else if (isChanges) {
 				if (continuous) {
 					uri = Engine.theApp.couchDbManager.handleChangesUri(dbName, uri, authenticatedUser);
 					newRequest.setURI(uri);
@@ -332,8 +339,12 @@ public class FullSyncServlet extends HttpServlet {
 			response.setStatus(code);
 			
 			for (Header header: newResponse.getAllHeaders()) {
-				if (!HeaderName.TransferEncoding.is(header)
-						&& !HeaderName.ContentLength.is(header)) {
+				if (!(HeaderName.TransferEncoding.is(header)
+						|| HeaderName.ContentLength.is(header)
+						|| (isChanges && (HeaderName.ETag.is(header)
+								|| HeaderName.LastModified.is(header)
+								|| HeaderName.CacheControl.is(header)
+						)))) {
 					response.addHeader(header.getName(), header.getValue());
 					debug.append("response Header: " + header.getName() + "=" + header.getValue() + "\n");
 				} else {
