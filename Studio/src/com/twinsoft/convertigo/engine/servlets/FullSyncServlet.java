@@ -304,6 +304,10 @@ public class FullSyncServlet extends HttpServlet {
 				} else {
 					newRequest = Engine.theApp.couchDbManager.handleChangesRequest(dbName, newRequest, httpClient.get(), authenticatedUser);
 					uri = newRequest.getURI();
+					Header authBasicHeader = Engine.theApp.couchDbManager.getFullSyncClient().getAuthBasicHeader();
+					if (authBasicHeader != null) {
+						newRequest.addHeader(authBasicHeader);
+					}
 				}
 				debug.append("Changed to " + newRequest.getMethod() + " URI: " + uri + "\n");
 			}
