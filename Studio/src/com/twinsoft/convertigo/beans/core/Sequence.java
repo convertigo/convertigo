@@ -59,7 +59,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.w3c.dom.traversal.DocumentTraversal;
 import org.w3c.dom.traversal.NodeFilter;
 import org.w3c.dom.traversal.TreeWalker;
 
@@ -83,6 +82,7 @@ import com.twinsoft.convertigo.engine.requesters.GenericRequester;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
+import com.twinsoft.convertigo.engine.util.TwsTreeWalker;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
@@ -1346,8 +1346,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	
 	private static void buildOutputDom(Element root, OutputFilter outputFilter) {
 		try {
-			DocumentTraversal traversal = (DocumentTraversal)root.getOwnerDocument();
-			TreeWalker walker = traversal.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, outputFilter, false);	    		
+			TreeWalker walker = new TwsTreeWalker(root, NodeFilter.SHOW_ELEMENT, outputFilter, false);
 			traverseLevel(walker,null,"");
 	        outputFilter.doOutPut();
 		}
