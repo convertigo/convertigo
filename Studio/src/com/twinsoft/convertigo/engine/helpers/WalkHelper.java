@@ -30,6 +30,9 @@ import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
 import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
+import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.statements.HTTPStatement;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
@@ -88,6 +91,37 @@ public class WalkHelper {
 			if (before(databaseObject, MobilePlatform.class)) {
 				for (MobilePlatform device : mobileApplication.getMobilePlatformList()) {
 					walk(device);
+				}
+			}
+			
+			if (before(databaseObject, ApplicationComponent.class)) {
+				ApplicationComponent component = mobileApplication.getApplicationComponent();
+				if (component != null) {
+					walk(component);
+				}
+			}
+		} else if (databaseObject instanceof ApplicationComponent) {
+			ApplicationComponent applicationComponent = (ApplicationComponent) databaseObject;
+			
+			if (before(databaseObject, PageComponent.class)) {
+				for (PageComponent page : applicationComponent.getPageComponentList()) {
+					walk(page);
+				}
+			}
+		} else if (databaseObject instanceof PageComponent) {
+			PageComponent pageComponent = (PageComponent) databaseObject;
+			
+			if (before(databaseObject, UIComponent.class)) {
+				for (UIComponent ui : pageComponent.getUIComponentList()) {
+					walk(ui);
+				}
+			}
+		} else if (databaseObject instanceof UIComponent) {
+			UIComponent uiComponent = (UIComponent) databaseObject;
+			
+			if (before(databaseObject, UIComponent.class)) {
+				for (UIComponent ui : uiComponent.getUIComponentList()) {
+					walk(ui);
 				}
 			}
 		} else if (databaseObject instanceof UrlMapper) {

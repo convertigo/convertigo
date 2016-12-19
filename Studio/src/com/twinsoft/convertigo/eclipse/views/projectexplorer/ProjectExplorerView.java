@@ -145,6 +145,9 @@ import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
 import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
+import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
 import com.twinsoft.convertigo.beans.statements.HandlerStatement;
@@ -197,7 +200,10 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IEditableTree
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IPropertyTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ListenerTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplicationTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplicationComponentTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobilePageComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobilePlatformTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileUIComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableColumnTreeObject;
@@ -272,7 +278,11 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public static final int TREE_OBJECT_TYPE_DBO_URLMAPPINGOPERATION = 0x117;
 	public static final int TREE_OBJECT_TYPE_DBO_URLMAPPINGPARAMETER = 0x118;
 	public static final int TREE_OBJECT_TYPE_DBO_URLMAPPINGRESPONSE = 0x119;
-
+	
+	public static final int TREE_OBJECT_TYPE_DBO_MOBILE_APPLICATIONCOMPONENT = 0x11A;
+	public static final int TREE_OBJECT_TYPE_DBO_MOBILE_PAGECOMPONENT = 0x11B;
+	public static final int TREE_OBJECT_TYPE_DBO_MOBILE_UICOMPONENT = 0x11C;
+	
 	public static final int TREE_OBJECT_TYPE_DBO_PROPERTY_TABLE = 0x300;
 	public static final int TREE_OBJECT_TYPE_DBO_PROPERTY_TABLE_ROW = 0x301;
 	public static final int TREE_OBJECT_TYPE_DBO_PROPERTY_TABLE_COLUMN = 0x302;
@@ -1424,6 +1434,15 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 						} else if (databaseObject instanceof MobilePlatform) {
 							databaseObjectTreeObject = new MobilePlatformTreeObject(viewer, (MobilePlatform) databaseObject, false);
 							
+						} else if (databaseObject instanceof ApplicationComponent) {
+							databaseObjectTreeObject = new MobileApplicationComponentTreeObject(viewer, (ApplicationComponent) databaseObject, false);
+							
+						} else if (databaseObject instanceof PageComponent) {
+							databaseObjectTreeObject = new MobilePageComponentTreeObject(viewer, (PageComponent) databaseObject, false);
+							
+						} else if (databaseObject instanceof UIComponent) {
+							databaseObjectTreeObject = new MobileUIComponentTreeObject(viewer, (UIComponent) databaseObject, false);
+							
 						} else if (databaseObject instanceof UrlMapper) {
 							databaseObjectTreeObject = new UrlMapperTreeObject(viewer, (UrlMapper) databaseObject, false);
 							
@@ -2357,6 +2376,15 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			}
 			else if (databaseObject instanceof MobilePlatform) {
 				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILEPLATFORM;
+			}
+			else if (databaseObject instanceof ApplicationComponent) {
+				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_APPLICATIONCOMPONENT;
+			}
+			else if (databaseObject instanceof PageComponent) {
+				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_PAGECOMPONENT;
+			}
+			else if (databaseObject instanceof UIComponent) {
+				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_UICOMPONENT;
 			}
 			else if (databaseObject instanceof UrlMapper) {
 				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_URLMAPPER;

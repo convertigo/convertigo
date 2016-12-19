@@ -137,6 +137,24 @@
 				</bean>
 			</beans>
 		</category>
+		<category name="Components">
+			<beans groupname="Application Components">
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.MobileApplication"/>
+				</bean>
+			</beans>
+			<beans groupname="Page Components">
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent"/>
+				</bean>
+			</beans>
+			<beans groupname="UI Components">
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIComponent">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIComponent"/>
+				</bean>
+			</beans>
+		</category>
 	</group>
 	
 	<group name="URL Mapper">

@@ -34,6 +34,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
+import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -160,6 +161,7 @@ public class MobileApplication extends DatabaseObject {
 	public MobileApplication clone() throws CloneNotSupportedException {
 		MobileApplication clonedObject = (MobileApplication) super.clone();
 		clonedObject.vMobilePlatforms = new LinkedList<MobilePlatform>();
+		clonedObject.applicationComponent = null;
 		return clonedObject;
 	}
 
@@ -167,6 +169,7 @@ public class MobileApplication extends DatabaseObject {
 	public List<DatabaseObject> getAllChildren() {	
 		List<DatabaseObject> rep = super.getAllChildren();
 		rep.addAll(getMobilePlatformList());
+		if (applicationComponent != null) rep.add(applicationComponent);
 		return rep;
 	}
 
@@ -174,6 +177,8 @@ public class MobileApplication extends DatabaseObject {
     public void add(DatabaseObject databaseObject) throws EngineException {
 		if (databaseObject instanceof MobilePlatform) {
 			addMobilePlatform((MobilePlatform) databaseObject);
+		} else if (databaseObject instanceof ApplicationComponent) {
+			addApplicationComponent((ApplicationComponent) databaseObject);
 		} else {
 			throw new EngineException("You cannot add to a mobile application a database object of type " + databaseObject.getClass().getName());
 		}
@@ -183,6 +188,8 @@ public class MobileApplication extends DatabaseObject {
     public void remove(DatabaseObject databaseObject) throws EngineException {
 		if (databaseObject instanceof MobilePlatform) {
 			removeMobilePlatform((MobilePlatform) databaseObject);
+		} else if (databaseObject instanceof ApplicationComponent) {
+			removeApplicationComponent((ApplicationComponent) databaseObject);
 		} else {
 			throw new EngineException("You cannot remove from a mobile application a database object of type " + databaseObject.getClass().getName());
 		}
@@ -218,6 +225,29 @@ public class MobileApplication extends DatabaseObject {
 			if (mobilePlatform.getName().equalsIgnoreCase(platformName)) return mobilePlatform;
 		throw new EngineException("There is no mobile platform named \"" + platformName + "\" found into this project.");
 	}
+	
+	/*
+	 * The application component
+	 */
+	private transient ApplicationComponent applicationComponent = null;
+	
+	public ApplicationComponent getApplicationComponent() {
+		return applicationComponent;
+	}
+	
+    public void addApplicationComponent(ApplicationComponent applicationComponent) throws EngineException {
+    	if (this.applicationComponent != null) {
+    		throw new EngineException("The mobile application \"" + getName() + "\" already contains an application component! Please delete it first.");
+    	}
+    	this.applicationComponent = applicationComponent;
+		super.add(applicationComponent);
+    }
+    
+    public void removeApplicationComponent(ApplicationComponent applicationComponent) {
+    	if (applicationComponent != null && applicationComponent.equals(this.applicationComponent)) {
+    		this.applicationComponent = null;
+    	}
+    }
 	
 	public String getComputedApplicationId() {
 		String applicationId = this.applicationId;

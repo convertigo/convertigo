@@ -76,6 +76,9 @@ import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
 import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
+import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.references.ImportXsdSchemaReference;
 import com.twinsoft.convertigo.beans.references.RestServiceReference;
 import com.twinsoft.convertigo.beans.references.WebServiceReference;
@@ -229,6 +232,18 @@ public class NewObjectWizard extends Wizard {
 			else if (beanClass.equals(MobilePlatform.class)) {
 				objectExplorerPageTitle = "New Mobile Platform";
 				objectExplorerPageMessage = "Please select a mobile platform template.";
+			}
+			else if (beanClass.equals(ApplicationComponent.class)) {
+				objectExplorerPageTitle = "New Application Component";
+				objectExplorerPageMessage = "Please select a application component template.";
+			}
+			else if (beanClass.equals(PageComponent.class)) {
+				objectExplorerPageTitle = "New Page Component";
+				objectExplorerPageMessage = "Please select a page component template.";
+			}
+			else if (beanClass.equals(UIComponent.class)) {
+				objectExplorerPageTitle = "New UI Component";
+				objectExplorerPageMessage = "Please select a UI component template.";
 			}
 			else if (beanClass.equals(com.twinsoft.convertigo.beans.core.Document.class)) {
 				objectExplorerPageTitle = "New Document";
