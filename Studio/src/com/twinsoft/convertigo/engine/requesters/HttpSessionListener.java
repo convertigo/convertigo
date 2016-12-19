@@ -39,6 +39,7 @@ import javax.servlet.http.HttpSessionBindingListener;
 
 import org.apache.commons.io.FileUtils;
 
+import com.twinsoft.api.Session;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.tas.KeyManager;
@@ -67,17 +68,21 @@ public class HttpSessionListener implements HttpSessionBindingListener {
             	KeyManager.start(com.twinsoft.api.Session.EmulIDSE);
             }
         } catch(TASException e) {
-        	if (e.isOverflow()) {
+			if (KeyManager.hasExpired((long) Session.EmulIDSE)) {
+				Engine.logEngine.warn("The Standard Edition key is expired");
+			} else if (e.isOverflow()) {
         		String line = dateFormat.format(new Date()) + "\t" + e.getCvMax() + "\t" + e.getCvCurrent() + "\n";
         		try {
 					FileUtils.write(new File(Engine.LOG_PATH + "/Session License exceeded.log"), line, "UTF-8", true);
 				} catch (IOException e1) {
 					Engine.logEngine.error("Failed to write the 'Session License exceeded.log' file", e1);
 				}
-        	} else {
-	        	event.getSession().setAttribute("__exception", e);
-	        	HttpUtils.terminateSession(event.getSession());
+        		return;
         	}
+        	
+			Engine.logEngine.info("No more HTTP session available for this Standard Edition.");
+        	event.getSession().setAttribute("__exception", e);
+        	HttpUtils.terminateSession(event.getSession());
         } catch(Exception e) {
             Engine.logEngine.error("Exception during binding HTTP session listener", e);
         }
