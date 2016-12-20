@@ -26,7 +26,7 @@ import org.eclipse.jface.viewers.Viewer;
 
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 
-public class MobileUIComponentTreeObject extends DatabaseObjectTreeObject implements IOrderableTreeObject {
+public class MobileUIComponentTreeObject extends MobileComponentTreeObject implements IOrderableTreeObject {
 
 	public MobileUIComponentTreeObject(Viewer viewer, UIComponent object) {
 		super(viewer, object);

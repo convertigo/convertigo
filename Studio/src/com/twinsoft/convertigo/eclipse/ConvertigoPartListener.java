@@ -26,6 +26,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.widgets.Tree;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.console.ConsolePlugin;
@@ -33,8 +34,10 @@ import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.internal.console.ConsoleView;
 import org.eclipse.ui.views.properties.PropertySheet;
+import org.eclipse.wst.sse.ui.StructuredTextEditor;
 
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
+import com.twinsoft.convertigo.eclipse.editors.html.MobileComponentEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
@@ -105,6 +108,15 @@ public class ConvertigoPartListener implements IPartListener {
 				}
 
 				ConvertigoPlugin.setProperty(ConvertigoPlugin.PREFERENCE_OPENED_CONSOLES, openedConsoles);
+			}
+		}
+		
+		if (part instanceof StructuredTextEditor) {
+			IEditorInput input = ((StructuredTextEditor)part).getEditorInput();
+			if (input instanceof MobileComponentEditorInput) {
+				try {
+					((MobileComponentEditorInput)input).getFile().delete(true, null);
+				} catch (Exception e) {}
 			}
 		}
 	}
