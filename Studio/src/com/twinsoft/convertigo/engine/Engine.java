@@ -54,7 +54,6 @@ import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.cache.CacheManager;
 import com.twinsoft.convertigo.engine.enums.Parameter;
-import com.twinsoft.convertigo.engine.externalbrowser.ExternalBrowserManager;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
 import com.twinsoft.convertigo.engine.providers.sapjco.SapJcoDestinationDataProvider;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
@@ -182,13 +181,9 @@ public class Engine {
 	 */
 	public ProxyManager proxyManager;
 	
-	/**
-	 * The external browser manager
-	 */
-	public ExternalBrowserManager externalBrowserManager;
 	
 	/**
-	 * The external browser manager
+	 * The schema manager
 	 */
 	public SchemaManager schemaManager;
 	
@@ -234,7 +229,6 @@ public class Engine {
 	public static Logger logStatistics;
 	public static Logger logScheduler;
 	public static Logger logSiteClipper;
-	public static Logger logExternalBrowser;
 	public static Logger logAudit;
 	public static Logger logDevices;
 	public static Logger logCouchDbManager;
@@ -365,9 +359,6 @@ public class Engine {
 			Engine.logStatistics = Logger.getLogger("cems.Statistics");
 			Engine.logScheduler = Logger.getLogger("cems.Scheduler");
 			Engine.logSiteClipper = Logger.getLogger("cems.SiteClipper");
-			/** #3437 : Disabled ExternalBrowser feature because it's not terminated
-			Engine.logExternalBrowser = Logger.getLogger("cems.ExternalBrowser");
-			*/
 			Engine.logAudit = Logger.getLogger("cems.Context.Audit");
 			
 			// Managers
@@ -648,12 +639,6 @@ public class Engine {
 				// Initialization of the RSA manager
 				Engine.theApp.rsaManager = new RsaManager();
 				Engine.theApp.rsaManager.init();
-
-				// Initialization of the External Browser manager
-				/** #3437 : Disabled ExternalBrowser feature because it's not terminated
-				Engine.theApp.externalBrowserManager = new ExternalBrowserManager();
-				Engine.theApp.externalBrowserManager.init();
-				*/
 				
 				// Initialization of the Schema manager
 				Engine.theApp.schemaManager = new SchemaManager();
@@ -814,11 +799,6 @@ public class Engine {
 				if (Engine.theApp.rsaManager != null) {
 					Engine.logEngine.info("Removing the rsa manager");
 					Engine.theApp.rsaManager.destroy();
-				}
-				
-				if (Engine.theApp.externalBrowserManager != null) {
-					Engine.logEngine.info("Removing the external browser manager");
-					Engine.theApp.externalBrowserManager.destroy();
 				}
 				
 				if (Engine.theApp.schemaManager != null) {

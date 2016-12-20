@@ -243,9 +243,7 @@ public class EnginePropertiesManager {
     	Notifications ("Notifications"),
     	Minification ("Minification"),
     	MobileBuilder ("Mobile builder"),
-    	FullSync ("Full sync"),
-    	@CategoryOptions(visibility = Visibility.HIDDEN)
-    	ExternalBrowser ("External browser")
+    	FullSync ("Full sync")
     	;
     	
     	final String displayName;
@@ -388,11 +386,7 @@ public class EnginePropertiesManager {
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_EMULATORS ("log4j.logger.cems.Emulators", LogLevels.INFO.getValue(), "Log4J emulators output logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
-		LOG4J_LOGGER_CEMS_ENGINE ("log4j.logger.cems.Engine", LogLevels.INHERITED.getValue(), "Log4J engine logger", PropertyCategory.Logs),		
-		/** #3437 : Disabled ExternalBrowser feature because it's not terminated
-		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
-		LOG4J_LOGGER_CEMS_EXTERNALBROWSER ("log4j.logger.cems.ExternalBrowser", LogLevels.INFO.getValue(), "Log4J external browser output logger", PropertyCategory.Logs),
-		*/
+		LOG4J_LOGGER_CEMS_ENGINE ("log4j.logger.cems.Engine", LogLevels.INHERITED.getValue(), "Log4J engine logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_JOBMANAGER ("log4j.logger.cems.JobManager", LogLevels.WARN.getValue(), "Log4J job manager logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
@@ -622,12 +616,6 @@ public class EnginePropertiesManager {
 		FULLSYNC_COUCH_USERNAME ("fullsync.couch.username", "", "Couch DB username for FullSync", PropertyCategory.FullSync),
 		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
 		FULLSYNC_COUCH_PASSWORD ("fullsync.couch.password", "", "Couch DB password for FullSync", PropertyCategory.FullSync),
-		
-		/** EXTERNAL BROWSER */
-		@PropertyOptions(propertyType = PropertyType.Array)
-		EBA_LIST ("externalbrowser.agent.list", "", "External Browser Agent list", PropertyCategory.ExternalBrowser),
-		@PropertyOptions(propertyType = PropertyType.Array)
-		EBM_POOL ("externalbrowser.manager.pool", "", "External Browser Manager pool", PropertyCategory.ExternalBrowser),
 		
 		/* End of configuration keys definition */;
 		
