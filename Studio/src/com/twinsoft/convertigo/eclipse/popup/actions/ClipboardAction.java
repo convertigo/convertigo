@@ -196,6 +196,25 @@ public class ClipboardAction extends MyAbstractAction {
 	    					}
     					}
     				}
+    				else if (clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_UICOMPONENT) {
+    					if (!clipboardManager.isCut) {
+	    					CustomDialog customDialog = new CustomDialog(
+	    							shell,
+	    							"Paste a Component",
+	    							"Do you want to paste the Component as a sibling or as a child component?",
+	    							500, 150,
+	    							new ButtonSpec("As a sibling", true),
+	    							new ButtonSpec("As a child", false),
+	    							new ButtonSpec(IDialogConstants.CANCEL_LABEL, false)
+	    					);
+	    					int response = customDialog.open();
+	    					if (response == 0) {
+	    						targetObject = ((DatabaseObject)targetObject).getParent();
+	    					} else if (response == 2) {
+	    						return;
+	    					}
+    					}
+    				}
     				else if (clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STEP_WITH_EXPRESSIONS ||
     						clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STEP) {
     					targetObject = pasteStep(shell, source, (DatabaseObject)targetObject);
