@@ -146,7 +146,7 @@ public class ReadXMLStep extends ReadFileStep {
 		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
 		
 		File file = getFile();
-		if (file != null && file.exists()) {
+		if (file != null && file.exists() && file.length() <= 10000000) {
 			try {
 				Document doc = XMLUtils.parseDOM(file);
 				if (!hasXmlRoot(doc)) {
