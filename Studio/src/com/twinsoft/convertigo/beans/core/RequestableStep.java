@@ -50,6 +50,7 @@ import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaParticle;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.NativeJavaArray;
+import org.mozilla.javascript.NativeJavaObject;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.Undefined;
 import org.mozilla.javascript.UniqueTag;
@@ -610,22 +611,27 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 			try {
 				// Source value
 				Object variableValue = stepVariable.getSourceValue();
-				if (variableValue != null)
+				if (variableValue != null) {
 					Engine.logBeans.trace("(RequestableStep) found value from source: " + Visibility.Logs.printValue(variableVisibility,variableValue));
+				}
 				
 				// Otherwise Scope parameter
 				if (variableValue == null) {
 					Scriptable searchScope = scope;
 					while ((variableValue == null) && (searchScope != null)) {
 						variableValue = searchScope.get(variableName,searchScope);
-						Engine.logBeans.trace("(RequestableStep) found value from scope: " + Visibility.Logs.printValue(variableVisibility,variableValue));
-						if (variableValue instanceof Undefined)
-							variableValue = null;
-						if (variableValue instanceof UniqueTag && ((UniqueTag) variableValue).equals(UniqueTag.NOT_FOUND)) 
-							variableValue = null;
 						
-						if (variableValue == null)
+						Engine.logBeans.trace("(RequestableStep) found value from scope: " + Visibility.Logs.printValue(variableVisibility,variableValue));
+						if (variableValue instanceof Undefined) {
+							variableValue = null;
+						} else if (variableValue instanceof UniqueTag && ((UniqueTag) variableValue).equals(UniqueTag.NOT_FOUND)) { 
+							variableValue = null;
+						} else if (variableValue instanceof NativeJavaObject) {
+							variableValue = ((NativeJavaObject) variableValue).unwrap(); 
+						}
+						if (variableValue == null) {
 							searchScope = searchScope.getParentScope();// looks up in parent's scope
+						}
 					}
 				}
 				
