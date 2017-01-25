@@ -360,8 +360,10 @@ function scheduler_ListTasks_init () {
 							var $variable_value_type = $("#schedulerTemplate .single_valued").filter(isFileUpload ? ".value_file" : isMasked ? ".value_password" : ".value_text").clone();
 							if ($last_element_xml !== null) {
 								var value = "";
-								if ($last_element_xml.find("> parameter[name='" + $variable.attr("name") + "']").has("value")) {
+								if ($last_element_xml.find("> parameter[name='" + $variable.attr("name") + "']").length) {
 									value = $last_element_xml.find("> parameter[name='" + $variable.attr("name") + "']").find("> value").text();
+								} else {
+									$variable_div.find(".variable_enable").prop("checked", false);
 								}
 								$variable_value_type.find(".variable_value").attr("name", "requestable_parameter_" + $variable.attr("name")).not("[type=file]").val(value);
 							}
