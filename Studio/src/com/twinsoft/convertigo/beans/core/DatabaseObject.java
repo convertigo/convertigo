@@ -1092,7 +1092,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	}
 
 	protected <E extends Object> List<E> sort(List<E> list, boolean ascending) {
-		Collections.sort(list, new Comparator<Object>() {
+		List<E> res = new ArrayList<E>(list);
+		Collections.sort(res, new Comparator<Object>() {
 			@SuppressWarnings("unchecked")
 			public int compare(Object o1, Object o2) {
 				try {
@@ -1102,7 +1103,6 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 				}
 			}
 		});
-		List<E> res = new ArrayList<E>(list);
 		if (!ascending) {
 			Collections.reverse(res);
 		}
