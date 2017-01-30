@@ -108,6 +108,29 @@
                 "IconPosition":false
             }
         },
+        "ButtonSet":{
+            "tag":"ion-buttons",
+            "label":"ButtonSet",
+            "description":"Defines a set of buttons",
+            "group":"Buttons",
+            "icon16":"buttonset_color_16x16.png",
+            "icon32":"buttonset_color_32x32.png",
+            "properties":{
+                "SetPosition":{
+                    "label":"position",
+                    "description":"Specifies the position",
+                    "category":"Attributes",
+                    "value":false,
+                    "values":[
+                        false,
+                        "start",
+                        "end",
+                        "left",
+                        "right"
+                    ]
+                }
+            }
+        },
         "Content":{
             "tag":"ion-content",
             "label":"Content",
@@ -259,6 +282,16 @@
             "properties":{
                 "IonColor":false,
                 "BarMode":false
+            }
+        },
+        "BarTitle":{
+            "tag":"ion-title",
+            "label":"BarTitle",
+            "description":"Defines a bar title",
+            "group":"Others",
+            "icon16":"bartitle_color_16x16.png",
+            "icon32":"bartitle_color_32x32.png",
+            "properties":{
             }
         }
     }
