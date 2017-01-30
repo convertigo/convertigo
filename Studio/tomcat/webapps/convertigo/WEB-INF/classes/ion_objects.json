@@ -11,6 +11,61 @@
                 "ion-button"
             ]
         },
+        "BarMode":{
+            "label":"mode",
+            "description":"Specifies ionic bar mode",
+            "category":"Attributes",
+            "attr":"mode",
+            "values":[
+                false,
+                "ios",
+                "wp",
+                "md"
+            ]
+        },
+        "IonColor":{
+            "label":"color",
+            "description":"Specifies ionic color",
+            "category":"Attributes",
+            "attr":"color",
+            "values":[
+                false,
+                "danger",
+                "dark",
+                "light",
+                "secondary"
+            ]
+        },
+        "IonShape":{
+            "label":"shape",
+            "description":"Specifies ionic shape",
+            "category":"Attributes",
+            "values":[
+                false,
+                "block",
+                "full",
+                "round"
+            ]
+        },
+        "IonOutline":{
+            "label":"outline",
+            "description":"Specifies ionic outline mode",
+            "category":"Attributes",
+            "values":[
+                false,
+                "outline"
+            ]
+        },
+        "IonSize":{
+            "label":"size",
+            "description":"Specifies ionic size",
+            "category":"Attributes",
+            "values":[
+                false,
+                "large",
+                "small"
+            ]
+        },
         "IconPosition":{
             "label":"icon position",
             "description":"Specifies ionic icon position",
@@ -46,7 +101,53 @@
             "icon32":"button_color_32x32.png",
             "properties":{
                 "ButtonType":"ion-button",
+                "IonColor":false,
+                "IonShape":false,
+                "IonOutline":false,
+                "IonSize":false,
                 "IconPosition":false
+            }
+        },
+        "Content":{
+            "tag":"ion-content",
+            "label":"Content",
+            "description":"Defines a content area",
+            "group":"Others",
+            "icon16":"content_color_16x16.png",
+            "icon32":"content_color_32x32.png",
+            "properties":{
+                "Fullscreen":{
+                    "attr":"fullscreen",
+                    "label":"full screen",
+                    "description":"Specifies a fullscreen scrollable content",
+                    "category":"Attributes",
+                    "value":false,
+                    "values":[
+                        false,
+                        "false",
+                        "true"
+                    ]
+                }
+            }
+        },
+        "Footer":{
+            "tag":"ion-footer",
+            "label":"Footer",
+            "description":"Defines a page footer",
+            "group":"Others",
+            "icon16":"footer_color_16x16.png",
+            "icon32":"footer_color_32x32.png",
+            "properties":{
+            }
+        },
+        "Header":{
+            "tag":"ion-header",
+            "label":"Header",
+            "description":"Defines a page header",
+            "group":"Others",
+            "icon16":"header_color_16x16.png",
+            "icon32":"header_color_32x32.png",
+            "properties":{
             }
         },
         "Icon":{
@@ -102,6 +203,10 @@
             "icon32":"mybutton_color_32x32.png",
             "properties":{
                 "ButtonType":"ion-button",
+                "IonColor":false,
+                "IonShape":"round",
+                "IonOutline":false,
+                "IonSize":false,
                 "IconPosition":false,
                 "MyColor":{
                     "attr":"my-color",
@@ -118,6 +223,42 @@
                         true
                     ]
                 }
+            }
+        },
+        "NavBar":{
+            "tag":"ion-navbar",
+            "label":"NavBar",
+            "description":"Defines a navigation bar",
+            "group":"Others",
+            "icon16":"navbar_color_16x16.png",
+            "icon32":"navbar_color_32x32.png",
+            "properties":{
+                "IonColor":false,
+                "BarMode":false,
+                "BackButtonHidden":{
+                    "attr":"hideBackButton",
+                    "label":"back button",
+                    "description":"Specifies whether back button is hidden",
+                    "category":"Attributes",
+                    "value":false,
+                    "values":[
+                        false,
+                        "false",
+                        "true"
+                    ]
+                }
+            }
+        },
+        "ToolBar":{
+            "tag":"ion-toolbar",
+            "label":"ToolBar",
+            "description":"Defines a tool bar",
+            "group":"Others",
+            "icon16":"toolbar_color_16x16.png",
+            "icon32":"toolbar_color_32x32.png",
+            "properties":{
+                "IonColor":false,
+                "BarMode":false
             }
         }
     }
