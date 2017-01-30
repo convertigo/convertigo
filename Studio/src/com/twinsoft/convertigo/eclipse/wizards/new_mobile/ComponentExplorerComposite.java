@@ -123,6 +123,8 @@ public class ComponentExplorerComposite extends Composite {
 			try {
 				//Class<? extends DatabaseObject> parentObjectClass = parentObject.getClass();
 				
+				ComponentManager.refresh(); //TODO: to remove when models file is complete
+				
 				List<String> categories = ComponentManager.getGroups();
 				List<Component> components = ComponentManager.getComponents();
 				
