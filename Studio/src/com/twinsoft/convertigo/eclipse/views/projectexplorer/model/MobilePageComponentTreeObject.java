@@ -23,10 +23,19 @@
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.editors.mobile.PageComponentEditorInput;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 
-public class MobilePageComponentTreeObject extends MobileComponentTreeObject {
+public class MobilePageComponentTreeObject extends MobileComponentTreeObject implements IEditableTreeObject {
 
 	public MobilePageComponentTreeObject(Viewer viewer, PageComponent object) {
 		super(viewer, object);
@@ -42,8 +51,76 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject {
 	}
 
 	@Override
+	public void setParent(TreeParent parent) {
+		super.setParent(parent);
+	}
+
+	@Override
 	public boolean testAttribute(Object target, String name, String value) {
 		return super.testAttribute(target, name, value);
 	}
 
+	@Override
+	public void launchEditor(String editorType) {
+		openPageEditor();
+	}
+
+	private void openPageEditor() {
+		PageComponent page = (PageComponent)getObject();
+		synchronized (page) {
+			IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+			if (activePage != null) {
+				IEditorPart editorPart = getPageEditor(activePage, page);
+				
+				if (editorPart != null) {
+					activePage.activate(editorPart);
+				}
+				else {
+					try {
+						editorPart = activePage.openEditor(new PageComponentEditorInput(page),
+										"com.twinsoft.convertigo.eclipse.editors.mobile.PageComponentEditor");
+					} catch (PartInitException e) {
+						ConvertigoPlugin.logException(e,
+								"Error while loading the page editor '"
+										+ page.getName() + "'");
+					}
+				}
+			}
+		}
+	}
+	
+	private IEditorPart getPageEditor(IWorkbenchPage activePage, PageComponent page) {
+		IEditorPart editorPart = null;
+		if (activePage != null) {
+			if (page != null) {
+				IEditorReference[] editorRefs = activePage.getEditorReferences();
+				for (int i=0;i<editorRefs.length;i++) {
+					IEditorReference editorRef = (IEditorReference)editorRefs[i];
+					try {
+						IEditorInput editorInput = editorRef.getEditorInput();
+						if ((editorInput != null) && (editorInput instanceof PageComponentEditorInput)) {
+							if (((PageComponentEditorInput)editorInput).is(page)) {
+								editorPart = editorRef.getEditor(false);
+								break;
+							}
+						}
+					} catch(PartInitException e) {
+					}
+				}
+			}
+		}
+		return editorPart;
+	}
+	
+	@Override
+	public void hasBeenModified(boolean bModified) {
+		super.hasBeenModified(bModified);
+		if (bModified && !isInherited) {
+			markAsDirty();
+		}
+	}
+		
+	protected void markAsDirty() {
+		getObject().doCompute();
+	}
 }

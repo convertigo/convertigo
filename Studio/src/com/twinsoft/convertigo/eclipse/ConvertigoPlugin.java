@@ -1047,6 +1047,20 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 
     private Map<String, Image> icons = new HashMap<String, Image>();
 
+    public synchronized Image getIconFromPath(String iconPath, int iconKind) throws IOException {
+    	Image image = icons.get(iconPath);
+    	if (image == null) {
+			Device device = getDisplay();
+			InputStream inputStream = ConvertigoPlugin.class.getResourceAsStream(iconPath);
+			if (inputStream != null)
+				image = new Image(device, inputStream);
+			if (image == null)
+				image = getDefaultBeanIcon(null, iconKind);
+           	icons.put(iconPath, image);
+    	}
+    	return image;
+    }
+    
     public synchronized Image getStudioIcon(String iconPath) throws IOException {
     	Image image = icons.get(iconPath);
     	if (image == null) {
@@ -1090,32 +1104,32 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
     private Image getDefaultBeanIcon(Class<?> beanClass, int iconKind) {
         String iconBaseName, iconType;
         
-        if (Criteria.class.isAssignableFrom(beanClass)) {
-            iconBaseName = "criteria";
-        }
-        else if (ExtractionRule.class.isAssignableFrom(beanClass)) {
-            iconBaseName = "extractionrule";
-        }
-        else if (Transaction.class.isAssignableFrom(beanClass)) {
-            iconBaseName = "transaction";
-        }
-        else if (BlockFactory.class.isAssignableFrom(beanClass)) {
-            iconBaseName = "blockfactory";
-        }
-        else if (Project.class.isAssignableFrom(beanClass)) {
-            iconBaseName = "project";
-        }
-        else if (ScreenClass.class.isAssignableFrom(beanClass)) {
-            iconBaseName = "screenclass";
-        }
-		else if (Sheet.class.isAssignableFrom(beanClass)) {
-			iconBaseName = "sheet";
-		}
-		else if (Pool.class.isAssignableFrom(beanClass)) {
-			iconBaseName = "pool";
-		}
-        else {
-            iconBaseName = "default";
+        iconBaseName = "default";
+        if (beanClass != null) {
+	        if (Criteria.class.isAssignableFrom(beanClass)) {
+	            iconBaseName = "criteria";
+	        }
+	        else if (ExtractionRule.class.isAssignableFrom(beanClass)) {
+	            iconBaseName = "extractionrule";
+	        }
+	        else if (Transaction.class.isAssignableFrom(beanClass)) {
+	            iconBaseName = "transaction";
+	        }
+	        else if (BlockFactory.class.isAssignableFrom(beanClass)) {
+	            iconBaseName = "blockfactory";
+	        }
+	        else if (Project.class.isAssignableFrom(beanClass)) {
+	            iconBaseName = "project";
+	        }
+	        else if (ScreenClass.class.isAssignableFrom(beanClass)) {
+	            iconBaseName = "screenclass";
+	        }
+			else if (Sheet.class.isAssignableFrom(beanClass)) {
+				iconBaseName = "sheet";
+			}
+			else if (Pool.class.isAssignableFrom(beanClass)) {
+				iconBaseName = "pool";
+			}
         }
         
         switch (iconKind) {

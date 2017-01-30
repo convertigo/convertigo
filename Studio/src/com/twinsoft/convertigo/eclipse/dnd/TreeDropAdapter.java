@@ -103,6 +103,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTable
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ScreenClassTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.eclipse.wizards.new_object.NewObjectWizard;
+import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
@@ -136,6 +137,10 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					event.data = StepSourceTransfer.getInstance().getStepSource();
 					break;
 				}
+				if (PaletteSourceTransfer.getInstance().isSupportedType(transferData)) {
+					event.data = PaletteSourceTransfer.getInstance().getPaletteSource();
+					break;
+				}
 			}
 			if (event.data == null) {
 				return;
@@ -159,8 +164,13 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		// Overrides feedback: by default is DND.FEEDBACK_SELECT
 		feedback = DND.FEEDBACK_SELECT | DND.FEEDBACK_SCROLL | DND.FEEDBACK_EXPAND;
 		
+		boolean shouldFeedBack = true;
+		if (PaletteSourceTransfer.getInstance().isSupportedType(event.currentDataType)) {
+			shouldFeedBack = false;
+		}
+		
 		// Handles feedback for objects that can be ordered
-		if (getCurrentOperation() == DND.DROP_MOVE) {
+		if (shouldFeedBack && getCurrentOperation() == DND.DROP_MOVE) {
 			Object targetObject = getCurrentTarget();
 			Object sourceObject = getSelectedObject();
 			if ((sourceObject != null) && (targetObject != null)) {
@@ -209,24 +219,26 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 	public boolean performDrop(Object data) {
 		Object targetObject = getCurrentTarget();
 		
-		// Handle objects reordering with Drag and Drop
-		boolean insertBefore = (feedback & DND.FEEDBACK_INSERT_BEFORE) != 0;
-		boolean insertAfter = (feedback & DND.FEEDBACK_INSERT_AFTER) != 0;
-		if (insertBefore || insertAfter) {
-			Object sourceObject = getSelectedObject();
-			TreeParent targetTreeParent = ((TreeObject)targetObject).getParent();
-			List<? extends TreeObject> children = targetTreeParent.getChildren();
-			int destPosition = children.indexOf(targetObject);
-			int srcPosition = children.indexOf(sourceObject);
-			int delta = destPosition - srcPosition;
-			int count = (delta < 0) ? (insertBefore ? delta:delta+1):(insertBefore ? delta-1:delta);
-			if (count != 0) {
-				if (count < 0)
-					new DatabaseObjectIncreasePriorityAction(Math.abs(count)).run();
-				else
-					new DatabaseObjectDecreasePriorityAction(Math.abs(count)).run();
+		// Handle tree objects reordering with Drag and Drop
+		if (data instanceof String) {
+			boolean insertBefore = (feedback & DND.FEEDBACK_INSERT_BEFORE) != 0;
+			boolean insertAfter = (feedback & DND.FEEDBACK_INSERT_AFTER) != 0;
+			if (insertBefore || insertAfter) {
+				Object sourceObject = getSelectedObject();
+				TreeParent targetTreeParent = ((TreeObject)targetObject).getParent();
+				List<? extends TreeObject> children = targetTreeParent.getChildren();
+				int destPosition = children.indexOf(targetObject);
+				int srcPosition = children.indexOf(sourceObject);
+				int delta = destPosition - srcPosition;
+				int count = (delta < 0) ? (insertBefore ? delta:delta+1):(insertBefore ? delta-1:delta);
+				if (count != 0) {
+					if (count < 0)
+						new DatabaseObjectIncreasePriorityAction(Math.abs(count)).run();
+					else
+						new DatabaseObjectDecreasePriorityAction(Math.abs(count)).run();
+				}
+				return true;
 			}
-			return true;
 		}
 		
 		// Handle objects copy or move with Drag and drop
@@ -369,6 +381,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					!(childNodeName.equalsIgnoreCase("handlers")) &&
 					!(childNodeName.equalsIgnoreCase("wsdltype")) &&
 					!(childNodeName.equalsIgnoreCase("docdata")) &&
+					!(childNodeName.equalsIgnoreCase("beandata")) &&
 					!(childNodeName.equalsIgnoreCase("dnd"))) {
 					paste(childNode, databaseObject, bChangeName);
 				}
@@ -616,6 +629,26 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				}
 			}
 		}
+		if (PaletteSourceTransfer.getInstance().isSupportedType(transferType)) {
+			if (target instanceof DatabaseObjectTreeObject) {
+				DatabaseObject parentDatabaseObject = ((DatabaseObjectTreeObject)target).getObject();
+				PaletteSource paletteSource = PaletteSourceTransfer.getInstance().getPaletteSource();
+				if (paletteSource != null) {
+					try {
+						String xmlData = paletteSource.getXmlData();
+						List<Object> list = ConvertigoPlugin.clipboardManagerDND.read(xmlData);
+						DatabaseObject databaseObject = (DatabaseObject) list.get(0);
+						if (!DatabaseObjectsManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
+							//TODO: Modify DatabaseObjectsManager.acceptDatabaseObjects for pseudo beans
+							return false;
+						}
+						return true;
+					} catch (Exception e) {
+						e.printStackTrace(System.out);
+					}
+				}
+			}
+		}
 		return false;
 	}
 	
@@ -846,6 +879,36 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		                dropMenu.setVisible(true);
 					}
 				}				
+			}
+		}
+		else if (data instanceof PaletteSource) {
+			try {
+				if (targetTreeObject instanceof DatabaseObjectTreeObject) {
+					DatabaseObject parent = (DatabaseObject)targetTreeObject.getObject();
+					String xmlData = ((PaletteSource)data).getXmlData();
+					Document document = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(new StringReader(xmlData)));
+					Element rootElement = document.getDocumentElement();
+					NodeList nodeList = rootElement.getChildNodes();
+					int len = nodeList.getLength();
+					Node node;
+					// Special objects move from palette
+					if (detail == DND.DROP_MOVE) {
+						for (int i = 0 ; i < len ; i++) {
+							node = (Node) nodeList.item(i);
+							if (node.getNodeType() != Node.TEXT_NODE) {
+								if (paste(node, parent, true) == null) {
+									throw new Exception();
+								}
+							}
+						}
+						reloadTreeObject(explorerView, targetTreeObject);
+					}
+				}
+				else {
+					throw new Exception();
+				}
+			} catch (Exception ex) {
+				ConvertigoPlugin.logError("failed to add from palette");
 			}
 		}
 	}

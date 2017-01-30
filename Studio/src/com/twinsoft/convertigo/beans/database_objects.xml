@@ -144,11 +144,32 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent"/>
 				</bean>
 			</beans>
-			<beans groupname="UI Components">
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIComponent">
+			<beans groupname="Custom Components">
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UICustom">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIComponent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement"/>
 				</bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIText">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement"/>
+				</bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIAttribute">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement"/>
+				</bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement"/>
+				</bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement"/>
+				</bean>
+			</beans>
+			<beans groupname="Defined Components">
 			</beans>
 		</category>
 	</group>

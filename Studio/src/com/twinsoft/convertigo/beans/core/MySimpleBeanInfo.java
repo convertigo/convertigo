@@ -243,6 +243,12 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
 			iconName = "/com/twinsoft/convertigo/beans/core/images/default_color_16x16.png";
 		}
 		
+		if (dbo != null && dbo instanceof IDynamicBean) {
+			String dynamicIconName = ((IDynamicBean)dbo).getDynamicIconName(iconType);
+			if (dynamicIconName != null) {
+				iconName = dynamicIconName;
+			}
+		}
 		return iconName;
     }
     

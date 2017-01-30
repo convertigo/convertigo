@@ -99,5 +99,10 @@ public class ApplicationComponent extends MobileComponent {
 		}
 		super.remove(databaseObject);
     }
-	
+
+	@Override
+	protected String computeTemplate() {
+		return "";
+	}
+    
 }

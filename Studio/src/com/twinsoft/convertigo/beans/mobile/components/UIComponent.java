@@ -35,12 +35,14 @@ import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.engine.EngineException;
 
-public class UIComponent extends MobileComponent implements IContainerOrdered {
+public abstract class UIComponent extends MobileComponent implements IContainerOrdered {
 
 	private static final long serialVersionUID = -1872010547443624681L;
 
 	private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();
 	
+	protected abstract String computeTemplate();
+		
 	public UIComponent() {
 		super();
 		
@@ -102,7 +104,7 @@ public class UIComponent extends MobileComponent implements IContainerOrdered {
     	if (databaseObject instanceof UIComponent)
     		ordered = orderedComponents.get(0);
     	
-    	if (!ordered.contains(value))
+    	if (ordered == null || !ordered.contains(value))
     		return;
     	int pos = ordered.indexOf(value);
     	if (pos == 0)
@@ -124,7 +126,7 @@ public class UIComponent extends MobileComponent implements IContainerOrdered {
     	if (databaseObject instanceof UIComponent)
     		ordered = orderedComponents.get(0);
     	
-    	if (!ordered.contains(value))
+    	if (ordered == null || !ordered.contains(value))
     		return;
     	int pos = ordered.indexOf(value);
     	if (pos+1 == ordered.size())
@@ -244,5 +246,5 @@ public class UIComponent extends MobileComponent implements IContainerOrdered {
 		
 		return element;
 	}
-	
+
 }

@@ -76,6 +76,17 @@ public class ClipboardAction extends MyAbstractAction {
 		this.clipboardManager = clipboardManager;
 	}
 
+	public String copy(DatabaseObject dbo) throws EngineException, ParserConfigurationException {
+		String sXml = null;
+		if (dbo != null) {
+			clipboardManager.reset();
+			//clipboardManager.objectsType = type;
+			clipboardManager.isCopy = true;
+			sXml = clipboardManager.copy(dbo);
+		}
+		return sXml;
+	}
+	
 	public String copy(ProjectExplorerView explorerView) throws EngineException, ParserConfigurationException {
 		String sXml = null;
 		if (explorerView != null) {

@@ -247,6 +247,18 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
     	getDescriptors();
     }
     
+    protected List<PropertyDescriptor> getDynamicPropertyDescriptors() {
+    	/*List<PropertyDescriptor> l = new ArrayList<PropertyDescriptor>();
+    	if (this instanceof IDynamicPropertyProvider) {
+    		IDynamicPropertyProvider provider = (IDynamicPropertyProvider)this;
+           	l.addAll(provider.getDynamicPropertyDescriptorProvider().
+           								getDynamicPropertyDescriptors());
+    	}
+    	return l;*/
+    	return new ArrayList<PropertyDescriptor>();
+    }
+    
+    
     protected void getDescriptors() {
     	if (propertyDescriptors != null && databaseObjectBeanDescriptor != null &&
     			databaseObjectPropertyDescriptors != null) {
@@ -301,6 +313,12 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
         propertyDescriptor = new PropertyDescriptor(P_EXPORTED, "Exported");
         propertyDescriptor.setCategory("Information");
         vPropertyDescriptors.add(propertyDescriptor);
+        
+        // Get Dynamic properties
+        List<PropertyDescriptor> dynamicPropertyDescriptors = getDynamicPropertyDescriptors();
+        for (PropertyDescriptor dynamicPropertyDescriptor : dynamicPropertyDescriptors) {
+        	vPropertyDescriptors.add(dynamicPropertyDescriptor);
+        }
         
         // Get properties
         boolean isExtractionRule = ( databaseObject instanceof com.twinsoft.convertigo.beans.core.ExtractionRule) ;

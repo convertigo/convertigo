@@ -27,5 +27,4 @@ public class CreateMobilePageComponentAction extends DatabaseObjectCreateAction 
 	public CreateMobilePageComponentAction() {
 		super("com.twinsoft.convertigo.beans.mobile.components.PageComponent");
 	}
-
 }

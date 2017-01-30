@@ -112,11 +112,16 @@ public class ConvertigoPartListener implements IPartListener {
 		}
 		
 		if (part instanceof StructuredTextEditor) {
-			IEditorInput input = ((StructuredTextEditor)part).getEditorInput();
+			StructuredTextEditor editor = (StructuredTextEditor)part;
+			IEditorInput input = editor.getEditorInput();
 			if (input instanceof MobileComponentEditorInput) {
 				try {
+					editor.dispose();// added because html editor throw a ConcurentModificationException (bug)
 					((MobileComponentEditorInput)input).getFile().delete(true, null);
-				} catch (Exception e) {}
+					
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 		}
 	}

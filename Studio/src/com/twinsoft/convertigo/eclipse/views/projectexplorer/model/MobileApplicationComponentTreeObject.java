@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 import org.eclipse.jface.viewers.Viewer;
 
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 
 public class MobileApplicationComponentTreeObject extends MobileComponentTreeObject {
 
@@ -37,6 +38,11 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 	}
 
 	@Override
+	public void setParent(TreeParent parent) {
+		super.setParent(parent);
+	}
+
+	@Override
 	public ApplicationComponent getObject() {
 		return (ApplicationComponent) super.getObject();
 	}
@@ -44,6 +50,18 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 	@Override
 	public boolean testAttribute(Object target, String name, String value) {
 		return super.testAttribute(target, name, value);
+	}
+
+	@Override
+	public void hasBeenModified(boolean bModified) {
+		super.hasBeenModified(bModified);
+		if (bModified && !isInherited) {
+			markAsDirty();
+		}
+	}
+	
+	protected void markAsDirty() {
+		;
 	}
 
 }

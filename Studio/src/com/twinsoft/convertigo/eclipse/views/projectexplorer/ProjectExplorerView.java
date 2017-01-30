@@ -159,6 +159,7 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.actions.ProjectExplorerSaveAllAction;
 import com.twinsoft.convertigo.eclipse.dialogs.ButtonSpec;
 import com.twinsoft.convertigo.eclipse.dialogs.CustomDialog;
+import com.twinsoft.convertigo.eclipse.dnd.PaletteSourceTransfer;
 import com.twinsoft.convertigo.eclipse.dnd.StepSourceTransfer;
 import com.twinsoft.convertigo.eclipse.dnd.TreeDragListener;
 import com.twinsoft.convertigo.eclipse.dnd.TreeDropAdapter;
@@ -402,7 +403,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		// DND support
 		int ops = DND.DROP_COPY | DND.DROP_MOVE ;
 		Transfer[] dragtfs = new Transfer[] {TextTransfer.getInstance()};
-		Transfer[] droptfs = new Transfer[] {TextTransfer.getInstance(), StepSourceTransfer.getInstance()};
+		Transfer[] droptfs = new Transfer[] {TextTransfer.getInstance(), StepSourceTransfer.getInstance(), PaletteSourceTransfer.getInstance()};
 		viewer.addDragSupport(ops, dragtfs, new TreeDragListener(viewer));
 		viewer.addDropSupport(ops, droptfs, new TreeDropAdapter(viewer));
 		

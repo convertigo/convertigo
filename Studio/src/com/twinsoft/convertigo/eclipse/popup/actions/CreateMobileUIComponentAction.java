@@ -22,10 +22,35 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
-public class CreateMobileUIComponentAction extends DatabaseObjectCreateAction {
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.mobile.components.UIAttribute;
+import com.twinsoft.convertigo.beans.mobile.components.UICustom;
+import com.twinsoft.convertigo.beans.mobile.components.UIText;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+
+public class CreateMobileUIComponentAction extends MobileComponentCreateAction {
 	public CreateMobileUIComponentAction() {
 		super("com.twinsoft.convertigo.beans.mobile.components.UIComponent");
 	}
 
+	public void selectionChanged(IAction action, ISelection selection) {
+		try {
+			boolean enable = true;
+			super.selectionChanged(action, selection);
+			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
+			TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
+			if (treeObject instanceof DatabaseObjectTreeObject) {
+				DatabaseObject dbo = (DatabaseObject)treeObject.getObject();
+				enable = !(dbo instanceof UICustom || dbo instanceof UIText || dbo instanceof UIAttribute);
+			}
+			action.setEnabled(enable);
+		}
+		catch (Exception e) {}
+	}
+	
 }

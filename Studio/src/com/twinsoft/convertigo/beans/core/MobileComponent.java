@@ -22,10 +22,10 @@
 package com.twinsoft.convertigo.beans.core;
 
 
-public class MobileComponent extends MobileObject {
+public abstract class MobileComponent extends MobileObject {
 
 	private static final long serialVersionUID = 5069650793367687807L;
-
+	
 	public MobileComponent() {
 		super();
 		databaseType = "MobileComponent";
@@ -36,15 +36,6 @@ public class MobileComponent extends MobileObject {
 		MobileComponent cloned = (MobileComponent) super.clone();
 		return cloned;
 	}
-
-	private String htmlTemplate = "";
-
-	public String getHtmlTemplate() {
-		return htmlTemplate;
-	}
-
-	public void setHtmlTemplate(String htmlTemplate) {
-		this.htmlTemplate = htmlTemplate;
-	}
 	
+	protected abstract String computeTemplate();
 }

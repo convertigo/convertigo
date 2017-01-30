@@ -1,0 +1,124 @@
+{
+ /*  Property models  */
+ "Props":{
+        "ButtonType":{
+            "label":"button type",								
+            "description":"Specifies ionic button style",		
+			"category":"Attributes",
+            "value":"ion-button",								// optional value (default is false)
+			"values":[											// possible values (false means do no set)
+                false,
+                "ion-button"
+            ]
+        },
+        "IconPosition":{
+            "label":"icon position",
+            "description":"Specifies ionic icon position",
+            "category":"Attributes",
+            "values":[
+                false,
+                "icon-left",
+                "icon-right",
+                "icon-only"
+            ]
+        },
+        "IconName":{
+            "attr":"name",										
+            "label":"icon name",
+            "description":"Specifies ionic icon name",
+            "category":"Attributes",
+            "values":[											// todo: add all missing
+                false,
+                "android",
+                "apple",
+                "windows"
+            ]
+        }
+    },
+ /*  Beans models  */
+ "Beans":{
+        "Button":{
+            "tag":"button",
+            "label":"Button",
+            "description":"Defines a simple button",
+            "group":"Buttons",
+            "icon16":"button_color_16x16.png",
+            "icon32":"button_color_32x32.png",
+            "properties":{
+                "ButtonType":"ion-button",
+                "IconPosition":false
+            }
+        },
+        "Icon":{
+            "tag":"ion-icon",
+            "label":"Icon",
+            "description":"Defines a simple icon",
+            "group":"Others",
+            "icon16":"icon_color_16x16.png",
+            "icon32":"icon_color_32x32.png",
+            "properties":{
+                "IconName":"android"
+            }
+        },
+        "Heading1":{
+            "tag":"h1",
+            "label":"H1",
+            "description":"Defines a heading 1",
+            "group":"Headings",
+            "icon16":"heading1_color_16x16.png",
+            "icon32":"heading1_color_32x32.png",
+            "properties":{
+
+            }
+        },
+        "Heading2":{
+            "tag":"h2",
+            "label":"H2",
+            "description":"Defines a heading 2",
+            "group":"Headings",
+            "icon16":"heading2_color_16x16.png",
+            "icon32":"heading2_color_32x32.png",
+            "properties":{
+
+            }
+        },
+        "Heading3":{
+            "tag":"h3",
+            "label":"H3",
+            "description":"Defines a heading 3",
+            "group":"Headings",
+            "icon16":"heading3_color_16x16.png",
+            "icon32":"heading3_color_32x32.png",
+            "properties":{
+
+            }
+        },
+        "MyButton":{
+            "tag":"button",
+            "label":"My Button",
+            "description":"Defines a custom colored button",
+            "group":"Buttons",
+            "icon16":"mybutton_color_16x16.png",
+            "icon32":"mybutton_color_32x32.png",
+            "properties":{
+                "ButtonType":"ion-button",
+                "IconPosition":false,
+                "MyColor":{
+                    "attr":"my-color",
+                    "label":"my color",
+                    "description":"Specifies a custom color",
+                    "category":"Attributes",
+                    "value":"blue",
+                    "values":[
+                        false,
+                        "blue",
+                        "red",
+                        "white",
+                        "yellow",
+                        true
+                    ]
+                }
+            }
+        }
+    }
+}

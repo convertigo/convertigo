@@ -107,6 +107,23 @@ public class ClipboardManager {
 		isCopy = false;
 	}
 
+	public String copy(DatabaseObject dbo) throws EngineException {
+		clipboardDocument = XMLUtils.getDefaultDocumentBuilder().newDocument();
+		
+		ProcessingInstruction pi = clipboardDocument.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"ISO-8859-1\"");
+		clipboardDocument.appendChild(pi);
+		
+		clipboardRootElement = clipboardDocument.createElement("convertigo-clipboard");
+		clipboardDocument.appendChild(clipboardRootElement);
+		
+		if (dbo != null) {
+			copyDatabaseObject(dbo);
+		}
+		
+		String strObject = XMLUtils.prettyPrintDOM(clipboardDocument);
+		return strObject;
+	}
+	
 	public String copy(TreePath[] treePaths) throws EngineException {
 		ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
 		

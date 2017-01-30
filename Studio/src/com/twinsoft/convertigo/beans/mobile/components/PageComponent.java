@@ -23,6 +23,7 @@
 package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -95,7 +96,7 @@ public class PageComponent extends MobileComponent implements IContainerOrdered 
     	if (databaseObject instanceof UIComponent)
     		ordered = orderedComponents.get(0);
     	
-    	if (!ordered.contains(value))
+    	if (ordered == null || !ordered.contains(value))
     		return;
     	int pos = ordered.indexOf(value);
     	if (pos == 0)
@@ -117,7 +118,7 @@ public class PageComponent extends MobileComponent implements IContainerOrdered 
     	if (databaseObject instanceof UIComponent)
     		ordered = orderedComponents.get(0);
     	
-    	if (!ordered.contains(value))
+    	if (ordered == null || !ordered.contains(value))
     		return;
     	int pos = ordered.indexOf(value);
     	if (pos+1 == ordered.size())
@@ -220,4 +221,51 @@ public class PageComponent extends MobileComponent implements IContainerOrdered 
 		}
 		super.remove(databaseObject);
     }
+    
+    private String segment = "";
+
+	public String getSegment() {
+		return segment;
+	}
+
+	public void setSegment(String segment) {
+		this.segment = segment;
+	}
+
+	public synchronized void doCompute() {
+		long t0 = System.currentTimeMillis();
+		String computedTemplate = computeTemplate();
+		long t1 = System.currentTimeMillis() - t0;
+		if (bNew) {
+			System.out.println("Created page \""+getName()+"\": template computed in "+t1+" ms");
+		}
+		else {
+			System.out.println("Modified page \""+getName()+"\": template computed in "+t1+" ms");
+		}
+		System.out.println(computedTemplate);
+		
+		/*try {
+			String filepath = Engine.PROJECTS_PATH + "/"+ getProject().getName() 
+								+ "/ionic/src/pages/preview/preview.html";
+			long t2 = System.currentTimeMillis();
+			FileUtils.writeStringToFile(new File(filepath), computedTemplate, "UTF-8", false);
+			long t3 = System.currentTimeMillis() - t2;
+			System.out.println("Page \""+getName()+"\" written in "+t3+" ms");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}*/
+	}
+	
+	@Override
+	protected String computeTemplate() {
+		StringBuilder sb = new StringBuilder();
+		Iterator<UIComponent> it = getUIComponentList().iterator();
+		while (it.hasNext()) {
+			UIComponent component = (UIComponent)it.next();
+			sb.append(component.computeTemplate())
+				.append(System.getProperty("line.separator"));
+		}
+		return sb.toString();
+	}
+
 }

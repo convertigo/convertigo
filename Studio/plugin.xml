@@ -81,6 +81,13 @@
             id="com.twinsoft.convertigo.eclipse.editors.xml.XMLSequenceEditor"
             name="Xml sequence Editor">
       </editor>
+      <editor
+            class="com.twinsoft.convertigo.eclipse.editors.mobile.PageComponentEditor"
+            default="false"
+            icon="icons/convertigo_doc_16x16.gif"
+            id="com.twinsoft.convertigo.eclipse.editors.mobile.PageComponentEditor"
+            name="Page Editor">
+      </editor>
    </extension>
    <extension
          point="org.eclipse.ui.actionSets">
@@ -789,6 +796,12 @@
                relative="org.eclipse.ui.editorss"/>
          <view
                id="com.twinsoft.convertigo.eclipse.views.references.ReferencesView"
+               minimized="false"
+               relationship="stack"
+               relative="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView">
+         </view>
+         <view
+               id="com.twinsoft.convertigo.eclipse.views.mobile.MobilePaletteView"
                minimized="false"
                relationship="stack"
                relative="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView">
@@ -3275,6 +3288,14 @@
             icon="icons/schema_16x16.gif"
             id="com.twinsoft.convertigo.eclipse.views.schema.SchemaView"
             name="Schema"
+            restorable="true">
+      </view>
+      <view
+            category="convertigo"
+            class="com.twinsoft.convertigo.eclipse.views.mobile.MobilePaletteView"
+            icon="icons/palette_16x16.png"
+            id="com.twinsoft.convertigo.eclipse.views.mobile.MobilePaletteView"
+            name="Mobile Palette"
             restorable="true">
       </view>
       <!--view
