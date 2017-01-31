@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -31,7 +32,9 @@ import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.FileUtils;
 
 public class PageComponent extends MobileComponent implements IContainerOrdered {
 
@@ -244,16 +247,17 @@ public class PageComponent extends MobileComponent implements IContainerOrdered 
 		}
 		System.out.println(computedTemplate);
 		
-		/*try {
+		//TODO: Need a MobilePreviewBuilder to handle 'pageComputed' event -> write file
+		try {
 			String filepath = Engine.PROJECTS_PATH + "/"+ getProject().getName() 
-								+ "/ionic/src/pages/preview/preview.html";
+								+ "/ionic/src/pages/Login/login.html";
 			long t2 = System.currentTimeMillis();
 			FileUtils.writeStringToFile(new File(filepath), computedTemplate, "UTF-8", false);
 			long t3 = System.currentTimeMillis() - t2;
 			System.out.println("Page \""+getName()+"\" written in "+t3+" ms");
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
-		}*/
+		}
 	}
 	
 	@Override

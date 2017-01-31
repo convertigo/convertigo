@@ -148,7 +148,7 @@ public class PageComponentEditor extends EditorPart implements ISelectionChanged
 				if (treeObject instanceof MobilePageComponentTreeObject) {
 					if (pageEditorInput.is(((MobilePageComponentTreeObject)treeObject).getObject())) {
 						//System.out.println(pageEditorInput.getQName() +" has been selected");
-						getEditorSite().getPage().activate(this);
+						//getEditorSite().getPage().activate(this);
 					}
 				}
 			}
