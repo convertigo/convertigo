@@ -37,9 +37,12 @@ import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.EditorPart;
 
+import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobilePageComponentTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileUIComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
@@ -145,10 +148,23 @@ public class PageComponentEditor extends EditorPart implements ISelectionChanged
 			IStructuredSelection selection = (IStructuredSelection) event.getSelection();
 			TreeObject treeObject = (TreeObject) selection.getFirstElement();
 			if (treeObject != null) {
-				if (treeObject instanceof MobilePageComponentTreeObject) {
-					if (pageEditorInput.is(((MobilePageComponentTreeObject)treeObject).getObject())) {
-						//System.out.println(pageEditorInput.getQName() +" has been selected");
-						//getEditorSite().getPage().activate(this);
+				if (treeObject instanceof MobileUIComponentTreeObject) {
+					TreeParent treeParent = treeObject.getParent();
+					while (treeParent != null) {
+						if (treeParent instanceof MobilePageComponentTreeObject) {
+							PageComponent page = ((MobilePageComponentTreeObject)treeParent).getObject();
+							if (pageEditorInput.is(page)) {
+								getEditorSite().getPage().bringToTop(this);
+							}
+							break;
+						}
+						treeParent = treeParent.getParent();
+					}
+				}
+				else if (treeObject instanceof MobilePageComponentTreeObject) {
+					PageComponent page = ((MobilePageComponentTreeObject)treeObject).getObject();
+					if (pageEditorInput.is(page)) {
+						getEditorSite().getPage().bringToTop(this);
 					}
 				}
 			}
