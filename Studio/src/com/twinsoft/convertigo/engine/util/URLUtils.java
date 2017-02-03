@@ -183,7 +183,7 @@ public class URLUtils {
 	}
 	
 	public static String mapToQuery(Map<String, String[]> map, String andString, String equalString) {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		for (Entry<String, String[]> entry : map.entrySet()) {
 			try {
 				String key = URLEncoder.encode(entry.getKey(), "UTF-8");

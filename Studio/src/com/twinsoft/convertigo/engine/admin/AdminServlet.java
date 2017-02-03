@@ -83,6 +83,8 @@ public class AdminServlet extends HttpServlet {
 				response.addHeader("Expires", "-1");
     			response.addHeader("Pragma", "no-cache");
 	    		
+    			request.setCharacterEncoding("UTF-8");
+    			
 				String requestURL = request.getRequestURL().toString();
 				int i = requestURL.lastIndexOf('/');
 				serviceName = requestURL.substring(i + 1); 

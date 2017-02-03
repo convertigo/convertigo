@@ -34,6 +34,7 @@ public enum CouchKey {
 	results,
 	rev,
 	rows,
+	seq,
 	source,
 	target,
 	total_rows,

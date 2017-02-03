@@ -1,8 +1,12 @@
 package com.twinsoft.convertigo.engine.servlets;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.nio.ByteBuffer;
@@ -31,6 +35,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
+import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
@@ -82,10 +87,9 @@ public class FullSyncServlet extends HttpServlet {
 
 	@Override
 	protected void service(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		String c8oSDK = null;
 		try {
 			HttpSessionListener.checkSession(request);
-			
-			String c8oSDK;
 			
 			if (Engine.isEngineMode() && (c8oSDK = request.getHeader(HeaderName.XConvertigoSDK.value())) != null) {
 				if (!KeyManager.hasExpired(Session.EmulIDSE)) {
@@ -144,20 +148,12 @@ public class FullSyncServlet extends HttpServlet {
 			Log4jHelper.mdcPut(mdcKeys.User, authenticatedUser == null ? "(anonymous)" : "'" + authenticatedUser + "'");
 			
 			debug.append("Authenticated user: ").append(authenticatedUser).append('\n');
-			URI uri;
-			
-			try {
-				uri = URI.create(
-						Engine.theApp.couchDbManager.getFullSyncUrl() + requestParser.getPath() + 
-						(request.getQueryString() == null ? "" : "?" + request.getQueryString())
-						);
-			} catch (Exception e) {
-				URIBuilder builder = new URIBuilder(Engine.theApp.couchDbManager.getFullSyncUrl() + requestParser.getPath());
-				if (request.getQueryString() != null) {
-					builder.setCustomQuery(request.getQueryString());
-				}
-				uri = builder.build();
+
+			URIBuilder builder = new URIBuilder(Engine.theApp.couchDbManager.getFullSyncUrl() + requestParser.getPath());
+			if (request.getQueryString() != null) {
+				builder.setCustomQuery(request.getQueryString());
 			}
+			URI uri = builder.build();
 			
 			newRequest.setURI(uri);
 			debug.append(method.name() + " URI: " + uri.toString() + "\n");
@@ -285,9 +281,6 @@ public class FullSyncServlet extends HttpServlet {
 					debug.append("request Entity:\n" + requestStringEntity + "\n");
 				}
 			}
-
-			String query = uri.getQuery();
-			boolean continuous = query != null && (query.contains("feed=continuous") || query.contains("feed=longpoll") || query.contains("feed=eventsource"));
 			
 			if (method == HttpMethodType.POST && "_bulk_docs".equals(special)) {
 				try {
@@ -298,17 +291,8 @@ public class FullSyncServlet extends HttpServlet {
 					debug.append("failed to parse [ " + e.getMessage() + "]: " + requestStringEntity);						
 				}
 			} else if (isChanges) {
-				if (continuous) {
-					uri = Engine.theApp.couchDbManager.handleChangesUri(dbName, uri, authenticatedUser);
-					newRequest.setURI(uri);
-				} else {
-					newRequest = Engine.theApp.couchDbManager.handleChangesRequest(dbName, newRequest, httpClient.get(), authenticatedUser);
-					uri = newRequest.getURI();
-					Header authBasicHeader = Engine.theApp.couchDbManager.getFullSyncClient().getAuthBasicHeader();
-					if (authBasicHeader != null) {
-						newRequest.addHeader(authBasicHeader);
-					}
-				}
+				uri = Engine.theApp.couchDbManager.handleChangesUri(dbName, uri, requestStringEntity, authenticatedUser, c8oSDK);
+				newRequest.setURI(uri);
 				debug.append("Changed to " + newRequest.getMethod() + " URI: " + uri + "\n");
 			}
 			
@@ -333,7 +317,12 @@ public class FullSyncServlet extends HttpServlet {
 			
 			long requestTime = System.currentTimeMillis();
 			
-			CloseableHttpResponse newResponse = httpClient.get().execute(newRequest);
+			CloseableHttpResponse newResponse = null;
+			try {
+				newResponse = httpClient.get().execute(newRequest);
+			} catch (NoHttpResponseException e) {
+				newResponse = httpClient.get().execute(newRequest);
+			}
 			
 			requestTime = System.currentTimeMillis() - requestTime;
 			
@@ -368,43 +357,42 @@ public class FullSyncServlet extends HttpServlet {
 				try {
 					is = responseEntity.getContent();
 					
-					if (!continuous && (contentType.mimeType().in(MimeType.Plain, MimeType.Json))) {
+					if (contentType.mimeType().in(MimeType.Plain, MimeType.Json)) {
 						String charset = contentType.getCharset("UTF-8");
 						
-						int id = 0;
-						byte[] buf = new byte[64];
-						StringBuilder sb = new StringBuilder();
-						CharsetDecoder cd = Charset.forName(charset).newDecoder();
-						cd.onMalformedInput(CodingErrorAction.REPORT);
-						debug.append("response Entity:\n");
-						
-						int read = is.read();
-						while (read >= 0) {
-							buf[id++] = (byte) read;
-							try {
-								CharBuffer cb = cd.decode(ByteBuffer.wrap(buf, 0, id));
-								id = 0;
-								sb.append(cb);
-								debug.append(cb);
-							} catch (Throwable t) {
-								Engine.logCouchDbManager.trace("(FullSyncServlet) Buffer not decoded, retry with more byte. " + t);
+						if (isChanges && code == 200) {
+							Engine.logCouchDbManager.info("(FullSyncServlet) Entering in continuous loop:\n" + debug);
+							BufferedReader br = new BufferedReader(new InputStreamReader(new BufferedInputStream(is), charset));
+							OutputStreamWriter writer = new OutputStreamWriter(os, charset);
+							String query = uri.getQuery();
+							boolean initial = query != null && query.contains("since=0");
+							Engine.theApp.couchDbManager.filterChanges(dbName, initial, authenticatedUser, br, writer);
+						} else {
+							int id = 0;
+							byte[] buf = new byte[64];
+							StringBuilder sb = new StringBuilder();
+							CharsetDecoder cd = Charset.forName(charset).newDecoder();
+							cd.onMalformedInput(CodingErrorAction.REPORT);
+							debug.append("response Entity:\n");
+
+							int read = is.read();
+							while (read >= 0) {
+								buf[id++] = (byte) read;
+								try {
+									CharBuffer cb = cd.decode(ByteBuffer.wrap(buf, 0, id));
+									id = 0;
+									sb.append(cb);
+									//								debug.append(cb);
+								} catch (Throwable t) {
+									Engine.logCouchDbManager.trace("(FullSyncServlet) Buffer not decoded, retry with more byte. " + t);
+								}
+								read = is.read();
 							}
-							read = is.read();
-						}
-						debug.append("\n");
-						responseStringEntity = sb.toString();
-						
-						Engine.theApp.couchDbManager.handleDocResponse(method, requestParser.getSpecial(), requestParser.getDocId(), authenticatedUser, responseStringEntity);
-						
-						IOUtils.write(responseStringEntity, os, charset);
-					} else if (continuous) {
-						Engine.logCouchDbManager.info("(FullSyncServlet) Entering in continuous loop:\n" + debug);
-						
-						int read = is.read();
-						while (read >= 0) {
-							os.write(read);
-							os.flush();
-							read = is.read();
+							debug.append("\n");
+							responseStringEntity = sb.toString();
+
+							Engine.theApp.couchDbManager.handleDocResponse(method, requestParser.getSpecial(), requestParser.getDocId(), authenticatedUser, responseStringEntity);
+							IOUtils.write(responseStringEntity, os, charset);
 						}
 					} else {
 						IOUtils.copy(is, os);
