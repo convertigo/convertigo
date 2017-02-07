@@ -1,298 +1,674 @@
 {
- /*  Property models  */
- "Props":{
-        "ButtonType":{
-            "label":"button type",								
-            "description":"Specifies ionic button style",		
-			"category":"Attributes",
-            "value":"ion-button",								// optional value (default is false)
-			"values":[											// possible values (false means do no set)
-                false,
-                "ion-button"
-            ]
-        },
-        "BarMode":{
-            "label":"mode",
-            "description":"Specifies ionic bar mode",
-            "category":"Attributes",
-            "attr":"mode",
-            "values":[
-                false,
-                "ios",
-                "wp",
-                "md"
-            ]
-        },
-        "IonColor":{
-            "label":"color",
-            "description":"Specifies ionic color",
-            "category":"Attributes",
-            "attr":"color",
-            "values":[
-                false,
-                "danger",
-                "dark",
-                "light",
-                "secondary"
-            ]
-        },
-        "IonShape":{
-            "label":"shape",
-            "description":"Specifies ionic shape",
-            "category":"Attributes",
-            "values":[
-                false,
-                "block",
-                "full",
-                "round"
-            ]
-        },
-        "IonOutline":{
-            "label":"outline",
-            "description":"Specifies ionic outline mode",
-            "category":"Attributes",
-            "values":[
-                false,
-                "outline"
-            ]
-        },
-        "IonSize":{
-            "label":"size",
-            "description":"Specifies ionic size",
-            "category":"Attributes",
-            "values":[
-                false,
-                "large",
-                "small"
-            ]
-        },
-        "IconPosition":{
-            "label":"icon position",
-            "description":"Specifies ionic icon position",
-            "category":"Attributes",
-            "values":[
-                false,
-                "icon-left",
-                "icon-right",
-                "icon-only"
-            ]
-        },
-        "IconName":{
-            "attr":"name",										
-            "label":"icon name",
-            "description":"Specifies ionic icon name",
-            "category":"Attributes",
-            "values":[											// todo: add all missing
-                false,
-                "android",
-                "apple",
-                "windows"
-            ]
-        }
+  /*  Property models  */
+  "Props": {
+    "ButtonType": {
+      "label": "button type",
+      "description": "Specifies ionic button style",
+      "category": "Attributes",
+      "value": "ion-button", // optional value (default is false)
+      "values": [ // possible values (false means do no set)
+        false,
+        "ion-button"
+      ]
     },
- /*  Beans models  */
- "Beans":{
-        "Button":{
-            "tag":"button",
-            "label":"Button",
-            "description":"Defines a simple button",
-            "group":"Buttons",
-            "icon16":"button_color_16x16.png",
-            "icon32":"button_color_32x32.png",
-            "properties":{
-                "ButtonType":"ion-button",
-                "IonColor":false,
-                "IonShape":false,
-                "IonOutline":false,
-                "IonSize":false,
-                "IconPosition":false
-            }
-        },
-        "ButtonSet":{
-            "tag":"ion-buttons",
-            "label":"ButtonSet",
-            "description":"Defines a set of buttons",
-            "group":"Buttons",
-            "icon16":"buttonset_color_16x16.png",
-            "icon32":"buttonset_color_32x32.png",
-            "properties":{
-                "SetPosition":{
-                    "label":"position",
-                    "description":"Specifies the position",
-                    "category":"Attributes",
-                    "value":false,
-                    "values":[
-                        false,
-                        "start",
-                        "end",
-                        "left",
-                        "right"
-                    ]
-                }
-            }
-        },
-        "Content":{
-            "tag":"ion-content",
-            "label":"Content",
-            "description":"Defines a content area",
-            "group":"Others",
-            "icon16":"content_color_16x16.png",
-            "icon32":"content_color_32x32.png",
-            "properties":{
-                "Fullscreen":{
-                    "attr":"fullscreen",
-                    "label":"full screen",
-                    "description":"Specifies a fullscreen scrollable content",
-                    "category":"Attributes",
-                    "value":false,
-                    "values":[
-                        false,
-                        "false",
-                        "true"
-                    ]
-                }
-            }
-        },
-        "Footer":{
-            "tag":"ion-footer",
-            "label":"Footer",
-            "description":"Defines a page footer",
-            "group":"Others",
-            "icon16":"footer_color_16x16.png",
-            "icon32":"footer_color_32x32.png",
-            "properties":{
-            }
-        },
-        "Header":{
-            "tag":"ion-header",
-            "label":"Header",
-            "description":"Defines a page header",
-            "group":"Others",
-            "icon16":"header_color_16x16.png",
-            "icon32":"header_color_32x32.png",
-            "properties":{
-            }
-        },
-        "Icon":{
-            "tag":"ion-icon",
-            "label":"Icon",
-            "description":"Defines a simple icon",
-            "group":"Others",
-            "icon16":"icon_color_16x16.png",
-            "icon32":"icon_color_32x32.png",
-            "properties":{
-                "IconName":"android"
-            }
-        },
-        "Heading1":{
-            "tag":"h1",
-            "label":"H1",
-            "description":"Defines a heading 1",
-            "group":"Headings",
-            "icon16":"heading1_color_16x16.png",
-            "icon32":"heading1_color_32x32.png",
-            "properties":{
-
-            }
-        },
-        "Heading2":{
-            "tag":"h2",
-            "label":"H2",
-            "description":"Defines a heading 2",
-            "group":"Headings",
-            "icon16":"heading2_color_16x16.png",
-            "icon32":"heading2_color_32x32.png",
-            "properties":{
-
-            }
-        },
-        "Heading3":{
-            "tag":"h3",
-            "label":"H3",
-            "description":"Defines a heading 3",
-            "group":"Headings",
-            "icon16":"heading3_color_16x16.png",
-            "icon32":"heading3_color_32x32.png",
-            "properties":{
-
-            }
-        },
-        "MyButton":{
-            "tag":"button",
-            "label":"My Button",
-            "description":"Defines a custom colored button",
-            "group":"Buttons",
-            "icon16":"mybutton_color_16x16.png",
-            "icon32":"mybutton_color_32x32.png",
-            "properties":{
-                "ButtonType":"ion-button",
-                "IonColor":false,
-                "IonShape":"round",
-                "IonOutline":false,
-                "IonSize":false,
-                "IconPosition":false,
-                "MyColor":{
-                    "attr":"my-color",
-                    "label":"my color",
-                    "description":"Specifies a custom color",
-                    "category":"Attributes",
-                    "value":"blue",
-                    "values":[
-                        false,
-                        "blue",
-                        "red",
-                        "white",
-                        "yellow",
-                        true
-                    ]
-                }
-            }
-        },
-        "NavBar":{
-            "tag":"ion-navbar",
-            "label":"NavBar",
-            "description":"Defines a navigation bar",
-            "group":"Others",
-            "icon16":"navbar_color_16x16.png",
-            "icon32":"navbar_color_32x32.png",
-            "properties":{
-                "IonColor":false,
-                "BarMode":false,
-                "BackButtonHidden":{
-                    "attr":"hideBackButton",
-                    "label":"back button",
-                    "description":"Specifies whether back button is hidden",
-                    "category":"Attributes",
-                    "value":false,
-                    "values":[
-                        false,
-                        "false",
-                        "true"
-                    ]
-                }
-            }
-        },
-        "ToolBar":{
-            "tag":"ion-toolbar",
-            "label":"ToolBar",
-            "description":"Defines a tool bar",
-            "group":"Others",
-            "icon16":"toolbar_color_16x16.png",
-            "icon32":"toolbar_color_32x32.png",
-            "properties":{
-                "IonColor":false,
-                "BarMode":false
-            }
-        },
-        "BarTitle":{
-            "tag":"ion-title",
-            "label":"BarTitle",
-            "description":"Defines a bar title",
-            "group":"Others",
-            "icon16":"bartitle_color_16x16.png",
-            "icon32":"bartitle_color_32x32.png",
-            "properties":{
-            }
-        }
+    "BarMode": {
+      "label": "mode",
+      "description": "Specifies ionic bar mode",
+      "category": "Attributes",
+      "attr": "mode",
+      "values": [
+        false,
+        "ios",
+        "wp",
+        "md"
+      ]
+    },
+    "IonColor": {
+      "label": "color",
+      "description": "Specifies ionic color",
+      "category": "Attributes",
+      "attr": "color",
+      "values": [
+        false,
+        "danger",
+        "dark",
+        "light",
+        "secondary"
+      ]
+    },
+    "IonShape": {
+      "label": "shape",
+      "description": "Specifies ionic shape",
+      "category": "Attributes",
+      "values": [
+        false,
+        "block",
+        "full",
+        "round"
+      ]
+    },
+    "IonOutline": {
+      "label": "outline",
+      "description": "Specifies ionic outline mode",
+      "category": "Attributes",
+      "values": [
+        false,
+        "outline"
+      ]
+    },
+    "IonClear": {
+      "attr": "clear",
+      "label": "clear",
+      "description": "if set make a 'clear' component",
+      "category": "Attributes",
+      "values": [ // todo: add all missing
+        false,
+        "clear"
+      ]
+    },
+    "IonSize": {
+      "label": "size",
+      "description": "Specifies ionic size",
+      "category": "Attributes",
+      "values": [
+        false,
+        "large",
+        "small"
+      ]
+    },
+    "IconPosition": {
+      "label": "icon position",
+      "description": "Specifies ionic icon position",
+      "category": "Attributes",
+      "values": [
+        false,
+        "icon-left",
+        "icon-right",
+        "icon-only"
+      ]
+    },
+    "ItemPosition": {
+      "label": "Item position",
+      "description": "Specifies item position",
+      "category": "Attributes",
+      "values": [
+        false,
+        "item-left",
+        "item-right"
+      ]
+    },
+    "IconName": {
+      "attr": "name",
+      "label": "icon name",
+      "description": "Specifies ionic icon name",
+      "category": "Attributes",
+      "values": [ // todo: add all missing
+        false,
+        "add",
+        "add-circle",
+        "alarm",
+        "albums",
+        "alert",
+        "american-football",
+        "analytics",
+        "android",
+        "angular",
+        "aperture",
+        "apple",
+        "apps",
+        "appstore",
+        "archive",
+        "arrow-back",
+        "arrow-down",
+        "arrow-dropdown",
+        "arrow-dropdown-circle",
+        "arrow-dropleft",
+        "arrow-dropleft-circle",
+        "arrow-dropright",
+        "arrow-dropright-circle",
+        "arrow-dropup",
+        "arrow-dropup-circle",
+        "arrow-forward",
+        "arrow-round-back",
+        "arrow-round-down",
+        "arrow-round-forward",
+        "arrow-round-up",
+        "arrow-up",
+        "at",
+        "attach",
+        "backspace",
+        "barcode",
+        "baseball",
+        "basket",
+        "basketball",
+        "battery-charging",
+        "battery-dead",
+        "battery-full",
+        "beaker",
+        "beer",
+        "bicycle",
+        "bitcoin",
+        "bluetooth",
+        "boat",
+        "body",
+        "bonfire",
+        "book",
+        "bookmark",
+        "bookmarks",
+        "bowtie",
+        "briefcase",
+        "browsers",
+        "brush",
+        "buffer",
+        "bug",
+        "build",
+        "bulb",
+        "bus",
+        "cafe",
+        "calculator",
+        "calendar",
+        "call",
+        "camera",
+        "car",
+        "card",
+        "cart",
+        "cash",
+        "chatboxes",
+        "chatbubbles",
+        "checkbox",
+        "checkbox-outline",
+        "checkmark",
+        "checkmark-circle",
+        "checkmark-circle-outline",
+        "chrome",
+        "clipboard",
+        "clock",
+        "close",
+        "close-circle",
+        "closed-captioning",
+        "cloud",
+        "cloud-circle",
+        "cloud-done",
+        "cloud-download",
+        "cloud-outline",
+        "cloud-upload",
+        "cloudy",
+        "cloudy-night",
+        "code",
+        "code-download",
+        "code-working",
+        "codepen",
+        "cog",
+        "color-fill",
+        "color-filter",
+        "color-palette",
+        "color-wand",
+        "compass",
+        "construct",
+        "contact",
+        "contacts",
+        "contract",
+        "contrast",
+        "copy",
+        "create",
+        "crop",
+        "css3",
+        "cube",
+        "cut",
+        "designernews",
+        "desktop",
+        "disc",
+        "document",
+        "done-all",
+        "download",
+        "dribbble",
+        "dropbox",
+        "easel",
+        "egg",
+        "euro",
+        "exit",
+        "expand",
+        "eye",
+        "eye-off",
+        "facebook",
+        "fastforward",
+        "female",
+        "filing",
+        "film",
+        "finger-print",
+        "flag",
+        "flame",
+        "flash",
+        "flask",
+        "flower",
+        "folder",
+        "folder-open",
+        "football",
+        "foursquare",
+        "freebsd-devil",
+        "funnel",
+        "game-controller-a",
+        "game-controller-b",
+        "git-branch",
+        "git-commit",
+        "git-compare",
+        "git-merge",
+        "git-network",
+        "git-pull-request",
+        "github",
+        "glasses",
+        "globe",
+        "google",
+        "googleplus",
+        "grid",
+        "hackernews",
+        "hammer",
+        "hand",
+        "happy",
+        "headset",
+        "heart",
+        "heart-outline",
+        "help",
+        "help-buoy",
+        "help-circle",
+        "home",
+        "html5",
+        "ice-cream",
+        "image",
+        "images",
+        "infinite",
+        "information",
+        "information-circle",
+        "instagram",
+        "ionic",
+        "ionitron",
+        "javascript",
+        "jet",
+        "key",
+        "keypad",
+        "laptop",
+        "leaf",
+        "link",
+        "linkedin",
+        "list",
+        "list-box",
+        "locate",
+        "lock",
+        "log-in",
+        "log-out",
+        "magnet",
+        "mail",
+        "mail-open",
+        "male",
+        "man",
+        "map",
+        "markdown",
+        "medal",
+        "medical",
+        "medkit",
+        "megaphone",
+        "menu",
+        "mic",
+        "mic-off",
+        "microphone",
+        "moon",
+        "more",
+        "move",
+        "musical-note",
+        "musical-notes",
+        "navigate",
+        "no-smoking",
+        "nodejs",
+        "notifications",
+        "notifications-off",
+        "notifications-outline",
+        "nuclear",
+        "nutrition",
+        "octocat",
+        "open",
+        "options",
+        "outlet",
+        "paper",
+        "paper-plane",
+        "partly-sunny",
+        "pause",
+        "paw",
+        "people",
+        "person",
+        "person-add",
+        "phone-landscape",
+        "phone-portrait",
+        "photos",
+        "pie",
+        "pin",
+        "pint",
+        "pinterest",
+        "pizza",
+        "plane",
+        "planet",
+        "play",
+        "playstation",
+        "podium",
+        "power",
+        "pricetag",
+        "pricetags",
+        "print",
+        "pulse",
+        "python",
+        "qr-scanner",
+        "quote",
+        "radio",
+        "radio-button-off",
+        "radio-button-on",
+        "rainy",
+        "recording",
+        "reddit",
+        "redo",
+        "refresh",
+        "refresh-circle",
+        "remove",
+        "remove-circle",
+        "reorder",
+        "repeat",
+        "resize",
+        "restaurant",
+        "return-left",
+        "return-right",
+        "reverse-camera",
+        "rewind",
+        "ribbon",
+        "rose",
+        "rss",
+        "sad",
+        "sass",
+        "school",
+        "search",
+        "send",
+        "settings",
+        "share",
+        "share-alt",
+        "shirt",
+        "shuffle",
+        "skip-backward",
+        "skip-forward",
+        "skype",
+        "snapchat",
+        "snow",
+        "speedometer",
+        "square",
+        "square-outline",
+        "star",
+        "star-half",
+        "star-outline",
+        "stats",
+        "steam",
+        "stopwatch",
+        "subway",
+        "sunny",
+        "swap",
+        "switch",
+        "sync",
+        "tablet-landscape",
+        "tablet-portrait",
+        "tennisball",
+        "text",
+        "thermometer",
+        "thumbs-down",
+        "thumbs-up",
+        "thunderstorm",
+        "time",
+        "timer",
+        "train",
+        "transgender",
+        "trash",
+        "trending-down",
+        "trending-up",
+        "trophy",
+        "tumblr",
+        "tux",
+        "twitch",
+        "twitter",
+        "umbrella",
+        "undo",
+        "unlock",
+        "usd",
+        "videocam",
+        "vimeo",
+        "volume-down",
+        "volume-mute",
+        "volume-off",
+        "volume-up",
+        "walk",
+        "warning",
+        "watch",
+        "water",
+        "whatsapp",
+        "wifi",
+        "windows",
+        "wine",
+        "woman",
+        "wordpress",
+        "xbox",
+        "yahoo",
+        "yen",
+        "youtube"
+      ]
     }
+  },
+
+  /*  Beans models  */
+  "Beans": {
+      "Button": {
+        "tag": "button",
+        "label": "Button",
+        "description": "Buttons are an essential way to interact with and navigate through an app, and should clearly communicate what action will occur after the user taps them. Buttons can consist of text and/or an icon, and can be enhanced with a wide variety of attributes",
+        "group": "Buttons",
+        "icon16": "button_color_16x16.png",
+        "icon32": "button_color_32x32.png",
+        "properties": {
+          "ButtonType": "ion-button",
+          "IonColor": false,
+          "IonShape": false,
+          "IonOutline": false,
+          "IonSize": false,
+          "IconPosition": false
+        }
+      },
+      "ButtonSet": {
+        "tag": "ion-buttons",
+        "label": "ButtonSet",
+        "description": "Defines a set of buttons",
+        "group": "Buttons",
+        "icon16": "buttonset_color_16x16.png",
+        "icon32": "buttonset_color_32x32.png",
+        "properties": {
+          "SetPosition": {
+            "label": "position",
+            "description": "Specifies the position",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+              false,
+              "start",
+              "end",
+              "left",
+              "right"
+            ]
+          }
+        }
+      },
+      "Content": {
+        "tag": "ion-content",
+        "label": "Content",
+        "description": "Defines a content area",
+        "group": "Others",
+        "icon16": "content_color_16x16.png",
+        "icon32": "content_color_32x32.png",
+        "properties": {
+          "Fullscreen": {
+            "attr": "fullscreen",
+            "label": "full screen",
+            "description": "Specifies a fullscreen scrollable content",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+              false,
+              "false",
+              "true"
+            ]
+          }
+        }
+      },
+      "Footer": {
+        "tag": "ion-footer",
+        "label": "Footer",
+        "description": "Defines a page footer",
+        "group": "Others",
+        "icon16": "footer_color_16x16.png",
+        "icon32": "footer_color_32x32.png",
+        "properties": {
+        }
+      },
+      "Header": {
+        "tag": "ion-header",
+        "label": "Header",
+        "description": "Defines a page header",
+        "group": "Others",
+        "icon16": "header_color_16x16.png",
+        "icon32": "header_color_32x32.png",
+        "properties": {
+        }
+      },
+      "Icon": {
+        "tag": "ion-icon",
+        "label": "Icon",
+        "description": "More than 700+ Ionicons icons we’ve all come to know and love.",
+        "group": "Others",
+        "icon16": "icon_color_16x16.png",
+        "icon32": "icon_color_32x32.png",
+        "properties": {
+          "IconName": "add"
+        }
+      },
+      "Heading1": {
+        "tag": "h1",
+        "label": "H1",
+        "description": "Defines a heading 1",
+        "group": "Headings",
+        "icon16": "HTML_color_16x16.png",
+        "icon32": "HTML_color_32x32.png",
+        "properties": {
+        }
+      },
+      "Heading2": {
+        "tag": "h2",
+        "label": "H2",
+        "description": "Defines a heading 2",
+        "group": "Headings",
+        "icon16": "HTML_color_16x16.png",
+        "icon32": "HTML_color_32x32.png",
+        "properties": {
+        }
+      },
+      "Heading3": {
+        "tag": "h3",
+        "label": "H3",
+        "description": "Defines a heading 3",
+        "group": "Headings",
+        "icon16": "HTML_color_16x16.png",
+        "icon32": "HTML_color_32x32.png",
+        "properties": {
+                  }
+      },
+      "MyButton": {
+        "tag": "button",
+        "label": "My Button",
+        "description": "Defines a custom colored button",
+        "group": "Buttons",
+        "icon16": "mybutton_color_16x16.png",
+        "icon32": "mybutton_color_32x32.png",
+        "properties": {
+          "ButtonType": "ion-button",
+          "IonColor": false,
+          "IonShape": "round",
+          "IonOutline": false,
+          "IonSize": false,
+          "IconPosition": false,
+          "MyColor": {
+            "attr": "my-color",
+            "label": "my color",
+            "description": "Specifies a custom color",
+            "category": "Attributes",
+            "value": "blue",
+            "values": [
+              false,
+              "blue",
+              "red",
+              "white",
+              "yellow",
+              true
+            ]
+          }
+        }
+      },
+      "NavBar": {
+        "tag": "ion-navbar",
+        "label": "NavBar",
+        "description": "If your page has an <ion-navbar>, a back button will automatically be added to it if it is not a root page, and the title of the Nav Bar will be updated.",
+        "group": "Others",
+        "icon16": "navbar_color_16x16.png",
+        "icon32": "navbar_color_32x32.png",
+        "properties": {
+          "IonColor": false,
+          "BarMode": false,
+          "BackButtonHidden": {
+            "attr": "hideBackButton",
+            "label": "back button",
+            "description": "Specifies whether back button is hidden",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+              false,
+              "false",
+              "true"
+            ]
+          }
+        }
+      },
+      "ToolBar": {
+        "tag": "ion-toolbar",
+        "label": "ToolBar",
+        "description": "A toolbar is a generic bar that can be used in an app as a header, sub-header, footer, or even sub-footer. Since ion-toolbar is based on flexbox, no matter how many toolbars you have in your page, they will be displayed correctly and ion-content will adjust accordingly.",
+        "group": "Others",
+        "icon16": "toolbar_color_16x16.png",
+        "icon32": "toolbar_color_32x32.png",
+        "properties": {
+          "IonColor": false,
+          "BarMode": false
+        }
+      },
+      "BarTitle": {
+        "tag": "ion-title",
+        "label": "BarTitle",
+        "description": "Defines a bar title",
+        "group": "Others",
+        "icon16": "bartitle_color_16x16.png",
+        "icon32": "bartitle_color_32x32.png",
+        "properties": {
+        }
+      },
+      "Badge": {
+        "tag": "ion-badge",
+        "label": "Badge",
+        "description": "Badges are small components that typically communicate a numerical value to the user. They are typically used within an item.",
+        "group": "Others",
+        "icon16": "badge_color_16x16.png",
+        "icon32": "badge_color_32x32.png",
+        "properties": {
+          "IonColor": false,
+          "ItemPosition": false
+        }
+      }
+    }
+  
 }
