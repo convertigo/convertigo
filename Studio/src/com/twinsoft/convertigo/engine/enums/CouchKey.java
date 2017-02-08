@@ -42,6 +42,7 @@ public enum CouchKey {
 	value,
 	views,
 	c8oAcl("~c8oAcl"),
+	c8oGrp,
 	c8oHash("~c8oHash");
 	
 	String key;
@@ -99,6 +100,15 @@ public enum CouchKey {
 	public String String(JSONObject json) {
 		try {
 			return json.getString(key);
+		} catch (JSONException e) {
+			onJSONException(e);
+			return null;
+		}
+	}
+
+	public Object Object(JSONObject json) {
+		try {
+			return json.get(key);
 		} catch (JSONException e) {
 			onJSONException(e);
 			return null;
