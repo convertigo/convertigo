@@ -64,7 +64,7 @@ import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.MimeType;
-import com.twinsoft.convertigo.engine.enums.SessionAttribute;
+import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager.FullSyncAuthentication;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.util.ContentTypeDecoder;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -91,7 +91,7 @@ public class FullSyncServlet extends HttpServlet {
 		try {
 			HttpSessionListener.checkSession(request);
 			
-			if (Engine.isEngineMode() && (c8oSDK = request.getHeader(HeaderName.XConvertigoSDK.value())) != null) {
+			if ((c8oSDK = request.getHeader(HeaderName.XConvertigoSDK.value())) != null && Engine.isEngineMode()) {
 				if (!KeyManager.hasExpired(Session.EmulIDSE)) {
 					Engine.logCouchDbManager.debug("Convertigo-SDK allowed: \"" + c8oSDK + "\"");
 				} else {
@@ -101,7 +101,6 @@ public class FullSyncServlet extends HttpServlet {
 				}
 			}
 		} catch (Throwable e) {
-//			e.setStackTrace(new StackTraceElement[0]);
 			throw new ServletException(e);
 		}
 		
@@ -143,12 +142,17 @@ public class FullSyncServlet extends HttpServlet {
 			if (EnginePropertiesManager.getProperty(PropertyName.NET_REVERSE_DNS).equalsIgnoreCase("true")) {
 				Log4jHelper.mdcPut(mdcKeys.ClientHostName, request.getRemoteHost());
 			}
-
-			String authenticatedUser = SessionAttribute.authenticatedUser.string(request.getSession());
-			Log4jHelper.mdcPut(mdcKeys.User, authenticatedUser == null ? "(anonymous)" : "'" + authenticatedUser + "'");
 			
-			debug.append("Authenticated user: ").append(authenticatedUser).append('\n');
-
+			FullSyncAuthentication fsAuth = Engine.theApp.couchDbManager.getFullSyncAuthentication(request.getSession());
+			if (fsAuth == null) {
+				Log4jHelper.mdcPut(mdcKeys.User, "(anonymous)");
+				debug.append("Anonymous user\n");
+			} else {
+				Log4jHelper.mdcPut(mdcKeys.User, "'" + fsAuth.getAuthenticatedUser() + "'");
+				debug.append("Authenticated user: ").append(fsAuth.getAuthenticatedUser()).append('\n')
+					.append("Authenticated groups: ").append(fsAuth.getGroups()).append('\n');
+			}
+			
 			URIBuilder builder = new URIBuilder(Engine.theApp.couchDbManager.getFullSyncUrl() + requestParser.getPath());
 			if (request.getQueryString() != null) {
 				builder.setCustomQuery(request.getQueryString());
@@ -228,7 +232,7 @@ public class FullSyncServlet extends HttpServlet {
 							String json = new String(buf, charset);
 							try {
 								JSONObject docRequest = new JSONObject(json);
-								Engine.theApp.couchDbManager.handleDocRequest(dbName, docRequest, authenticatedUser);
+								Engine.theApp.couchDbManager.handleDocRequest(dbName, docRequest, fsAuth);
 								bulkDocsArray.put(docRequest);
 								json = docRequest.toString();
 							} catch (JSONException e) {
@@ -285,13 +289,13 @@ public class FullSyncServlet extends HttpServlet {
 			if (method == HttpMethodType.POST && "_bulk_docs".equals(special)) {
 				try {
 					bulkDocsRequest = new JSONObject(requestStringEntity);
-					Engine.theApp.couchDbManager.handleBulkDocsRequest(dbName, bulkDocsRequest, authenticatedUser);
+					Engine.theApp.couchDbManager.handleBulkDocsRequest(dbName, bulkDocsRequest, fsAuth);
 					requestStringEntity = bulkDocsRequest.toString();
 				} catch (JSONException e) {
 					debug.append("failed to parse [ " + e.getMessage() + "]: " + requestStringEntity);						
 				}
 			} else if (isChanges) {
-				uri = Engine.theApp.couchDbManager.handleChangesUri(dbName, uri, requestStringEntity, authenticatedUser, c8oSDK);
+				uri = Engine.theApp.couchDbManager.handleChangesUri(dbName, uri, requestStringEntity, fsAuth, c8oSDK);
 				newRequest.setURI(uri);
 				debug.append("Changed to " + newRequest.getMethod() + " URI: " + uri + "\n");
 			}
@@ -365,8 +369,8 @@ public class FullSyncServlet extends HttpServlet {
 							BufferedReader br = new BufferedReader(new InputStreamReader(new BufferedInputStream(is), charset));
 							OutputStreamWriter writer = new OutputStreamWriter(os, charset);
 							String query = uri.getQuery();
-							boolean initial = query != null && query.contains("since=0");
-							Engine.theApp.couchDbManager.filterChanges(dbName, initial, authenticatedUser, br, writer);
+							boolean initial = query != null && (query.contains("since=0") || !query.contains("since="));
+							Engine.theApp.couchDbManager.filterChanges(dbName, initial, fsAuth, br, writer);
 						} else {
 							int id = 0;
 							byte[] buf = new byte[64];
@@ -391,7 +395,7 @@ public class FullSyncServlet extends HttpServlet {
 							debug.append("\n");
 							responseStringEntity = sb.toString();
 
-							Engine.theApp.couchDbManager.handleDocResponse(method, requestParser.getSpecial(), requestParser.getDocId(), authenticatedUser, responseStringEntity);
+							Engine.theApp.couchDbManager.handleDocResponse(method, requestParser.getSpecial(), requestParser.getDocId(), fsAuth, responseStringEntity);
 							IOUtils.write(responseStringEntity, os, charset);
 						}
 					} else {

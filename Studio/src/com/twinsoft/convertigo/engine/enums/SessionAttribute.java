@@ -4,13 +4,15 @@ import javax.servlet.http.HttpSession;
 
 public enum SessionAttribute {
 	authenticatedUser,
+	authenticatedUserGrp,
+	authenticatedUserGrpCheck,
 	httpClient3("__httpClient3__"),
 	httpClient4("__httpClient4__");
 	
 	String value;
 	
 	SessionAttribute() {
-		value = name();
+		value = "__c8o:" + name() + "__";
 	}
 	
 	SessionAttribute(String value) {
@@ -42,8 +44,9 @@ public enum SessionAttribute {
 	}
 	
 	public String string(HttpSession session) {
-		if (session != null && session.getAttribute(value()) != null) {
-			return session.getAttribute(value()).toString();
+		Object obj;
+		if (session != null && (obj = session.getAttribute(value())) != null) {
+			return obj.toString();
 		} else {
 			return null;
 		}
