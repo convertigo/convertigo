@@ -224,7 +224,7 @@ public class ProcessExecStep extends Step {
 			if (isWaitForProcessEnd()) {
 				// Launch a thread to handle sequence abortion
 				final Sequence s = sequence;
-				Thread th = new Thread(new Runnable() { 
+				Engine.execute(new Runnable() { 
 					public void run() {
 						try {
 							while (s.isRunning()) {
@@ -236,8 +236,6 @@ public class ProcessExecStep extends Step {
 						}
 					}
 				});
-				th.setDaemon(true);
-				th.start();
 
 				// Wait for process end
 				process.waitFor();

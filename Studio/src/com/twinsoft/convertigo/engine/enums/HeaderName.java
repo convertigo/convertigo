@@ -100,6 +100,15 @@ public enum HeaderName {
 	public String getHeader(HttpServletRequest request) {
 		return request.getHeader(value);
 	}
+
+	public String getHeader(HttpServletResponse response) {
+		return response.getHeader(value);
+	}
+
+	public String getResponseHeader(HttpMethod httpMethod) {
+		org.apache.commons.httpclient.Header header = httpMethod.getResponseHeader(value);
+		return header == null ? null : header.getValue();		
+	}
 	
 	public void addHeader(HttpServletResponse response, String headerValue) {
 		response.addHeader(value, headerValue);

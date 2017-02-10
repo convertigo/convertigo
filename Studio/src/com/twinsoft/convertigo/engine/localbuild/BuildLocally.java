@@ -187,7 +187,7 @@ public abstract class BuildLocally {
 		
 		cmdOutput = "";
 		// Logs the output
-		new Thread(new Runnable() {
+		Engine.execute(new Runnable() {
 			@Override
 	        public void run() {
 				try {
@@ -203,7 +203,7 @@ public abstract class BuildLocally {
 					Engine.logEngine.error("Error while executing command", e);
 				}
 			}
-		}).start();
+		});
 		
 		if (!mergeError) {
 			// Logs the error output
