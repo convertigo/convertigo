@@ -71,6 +71,7 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
+import com.twinsoft.convertigo.engine.util.StreamUtils;
 import com.twinsoft.tas.KeyManager;
 
 public class FullSyncServlet extends HttpServlet {
@@ -399,7 +400,7 @@ public class FullSyncServlet extends HttpServlet {
 							IOUtils.write(responseStringEntity, os, charset);
 						}
 					} else {
-						IOUtils.copy(is, os);
+						StreamUtils.copyAutoFlush(is, os);
 					}
 				} finally {
 					newResponse.close();

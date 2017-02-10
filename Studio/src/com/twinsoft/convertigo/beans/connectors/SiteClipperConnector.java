@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.beans.connectors;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -114,6 +115,7 @@ import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.RegexpUtils;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
+import com.twinsoft.convertigo.engine.util.StreamUtils;
 import com.twinsoft.convertigo.engine.util.URLUtils;
 import com.twinsoft.convertigo.engine.util.UrlParser;
 import com.twinsoft.convertigo.engine.util.UrlParser.UrlFields;
@@ -182,7 +184,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 		private Scriptable sharedScope = null;
 		private Scriptable clonedScope = null;
 		private List<IClientInstruction> postInstructions = null;
-		private HttpPool httpPool = HttpPool.global;
+		private HttpPool httpPool = HttpPool.context;
 		
 		private Shuttle(HttpServletRequest request, HttpServletResponse response, Matcher url_matcher) {
 			this.request = request;
@@ -858,6 +860,8 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 					shuttle.responseCustomHeaders.put(name, value);
 				}
 			}
+			
+			String contentLength = HeaderName.ContentLength.getResponseHeader(httpMethod);
 
 			Engine.logSiteClipper.debug("(SiteClipperConnector) applying response rules for the screenclass " + screenClass.getName());
 			for (IResponseRule rule : screenClass.getResponseRules()) {
@@ -905,8 +909,12 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			}
 
 			long nbBytes = 0L;
+			String responseContentLength = HeaderName.ContentLength.getHeader(shuttle.response);
+			
 			if (shuttle.responseAsString != null && shuttle.responseAsString.hashCode() != shuttle.responseAsStringOriginal.hashCode()) {
 				OutputStream os = shuttle.response.getOutputStream();
+				shuttle.responseAsByte = shuttle.responseAsString.getBytes(shuttle.getResponseCharset());
+				nbBytes = shuttle.responseAsByte.length;
 				switch(shuttle.getResponseContentEncoding()) {
 				case gzip:
 					os = new GZIPOutputStream(os);
@@ -915,25 +923,30 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 					os = new DeflaterOutputStream(os, new Deflater(Deflater.DEFAULT_COMPRESSION|Deflater.DEFAULT_STRATEGY, true));
 					break;
 				default:
+					if (responseContentLength == null) {
+						HeaderName.ContentLength.setHeader(shuttle.response, "" + nbBytes);
+					}
 					break;
 				}
-				nbBytes = shuttle.responseAsByte.length;
-				IOUtils.write(shuttle.responseAsString, os, shuttle.getResponseCharset());
+				IOUtils.write(shuttle.responseAsByte, os);
 				os.close();
 			} else {
-				InputStream is = (shuttle.responseAsByte == null)? httpMethod.getResponseBodyAsStream() : new ByteArrayInputStream(shuttle.responseAsByte);
-				if (is != null) {
-					nbBytes = 0;
-					OutputStream os = shuttle.response.getOutputStream();
-					int read = is.read();
-					while (read >= 0) {
-						os.write(read);
-						os.flush();
-						read = is.read();
-						nbBytes++;
+				InputStream is;
+				if (shuttle.responseAsByte == null) {
+					if (responseContentLength == null && contentLength != null) {
+						HeaderName.ContentLength.setHeader(shuttle.response, contentLength);
 					}
-					is.close();
-//					nbBytes = IOUtils.copyLarge(is, shuttle.response.getOutputStream());
+					is = new BufferedInputStream(httpMethod.getResponseBodyAsStream());
+				} else {
+					if (responseContentLength == null) {
+						HeaderName.ContentLength.setHeader(shuttle.response, "" + shuttle.responseAsByte.length);
+					}
+					is = new ByteArrayInputStream(shuttle.responseAsByte);
+				}
+				
+				if (is != null) {
+//					nbBytes = IOUtils.copy(is, shuttle.response.getOutputStream());
+					nbBytes = StreamUtils.copyAutoFlush(is, shuttle.response.getOutputStream());
 					Engine.logSiteClipper.trace("(SiteClipperConnector) Response body copyied (" + nbBytes + " bytes)");
 				}
 			}

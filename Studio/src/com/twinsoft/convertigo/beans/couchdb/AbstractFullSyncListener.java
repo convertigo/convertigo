@@ -102,7 +102,7 @@ public abstract class AbstractFullSyncListener extends Listener {
 	public void onBulkDocs(HttpServletRequest request, final JSONArray array) {
 		if (isEnable()) {
 			final InternalHttpServletRequest internalRequest = new InternalHttpServletRequest(request);
-			new Thread(new Runnable() {
+			Engine.execute(new Runnable() {
 	
 				@Override
 				public void run() {
@@ -113,7 +113,7 @@ public abstract class AbstractFullSyncListener extends Listener {
 					}
 				}
 				
-			}).start();
+			});
 		}
 	}
 	

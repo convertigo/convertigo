@@ -410,7 +410,7 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 	private boolean sendMess() {
 		boolean ret = true;
 		try {
-			new Thread(new Runnable(){
+			Engine.execute(new Runnable(){
 				public void run() {
 					Properties props = new Properties();
 					try {
@@ -499,7 +499,7 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 						Engine.logBeans.error("(SmtpStep) An error occured while trying to send e-mail : " + e1.getStackTrace().toString(), e1);
 					}
 				}
-			}).start();
+			});
 		} catch (Exception e2) {
 			Engine.logBeans.error("(SmtpStep) An error occured while trying to send e-mail : " + e2.getStackTrace().toString(), e2);
 		}

@@ -34,6 +34,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.swing.event.EventListenerList;
@@ -104,7 +107,18 @@ public class Engine {
 	 * This is the application reference.
 	 */
 	public static Engine theApp;
-
+	
+	private final static ExecutorService executor = Executors.newCachedThreadPool(new ThreadFactory() {
+		
+		@Override
+		public Thread newThread(Runnable r) {
+			Thread thread = new Thread(r);
+			thread.setName("ConvertigoExecutor-" + thread.getId());
+			thread.setDaemon(true);
+			return thread;
+		}
+	});
+	
 	public static AuthenticatedSessionManager authenticatedSessionManager;
 
 	/**
@@ -1587,5 +1601,24 @@ public class Engine {
 
 	public static boolean isLinux() {
 		return System.getProperty("os.name").indexOf("Linux") != -1;
+	}
+	
+	public static void execute(final Runnable runnable) {
+		executor.execute(new Runnable() {
+			
+			@Override
+			public void run() {
+				Thread th = Thread.currentThread();
+				String name = th.getName();
+				try {
+					runnable.run();
+				} finally {
+					if (!name.equals(th.getName())) {
+						th.setName(name);
+					}
+				}
+			}
+			
+		});
 	}
 }
