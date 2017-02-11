@@ -135,8 +135,9 @@ public class TwsCachedXPathAPI implements EventListener {
 		case Xalan:
 			checkContextNode(contextNode);
 			return xpathApi.selectNodeIterator(contextNode, xpath);
+		default:
+			return new JXPathNodeIterator(selectList(contextNode, xpath));
 		}
-		return new JXPathNodeIterator(selectList(contextNode, xpath));
 	}
 
 	public NodeList selectNodeList(Node contextNode, String xpath, Node namespaceNode) throws TransformerException {
@@ -178,8 +179,9 @@ public class TwsCachedXPathAPI implements EventListener {
 					}
 			}
 			return null;
+		default:
+			return new JXPathNodeList(selectList(contextNode, xpath));
 		}
-		return new JXPathNodeList(selectList(contextNode, xpath));
 
 	}
 
@@ -193,8 +195,9 @@ public class TwsCachedXPathAPI implements EventListener {
 		case Xalan:
 			checkContextNode(contextNode);
 			return xpathApi.selectSingleNode(contextNode, xpath);
+		default:
+			return selectNode(contextNode, xpath);
 		}
-		return selectNode(contextNode, xpath);
 	}
 
 	protected void checkContextNode(Node contextNode) {
