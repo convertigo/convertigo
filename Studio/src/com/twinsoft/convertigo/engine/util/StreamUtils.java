@@ -21,9 +21,9 @@ public class StreamUtils {
 					byte[] buf = new byte[512];
 					int read = is.read(buf);
 					while (read >= 0 && running[0]) {
+						nbBytes[0] += read;
 						os.write(buf, 0, read);
 						read = is.read(buf);
-						nbBytes[0] += read;
 					}
 				} catch (Throwable t) {
 					if (throwable[0] == null) {

@@ -22,7 +22,6 @@
 
 package com.twinsoft.convertigo.beans.connectors;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -936,7 +935,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 					if (responseContentLength == null && contentLength != null) {
 						HeaderName.ContentLength.setHeader(shuttle.response, contentLength);
 					}
-					is = new BufferedInputStream(httpMethod.getResponseBodyAsStream());
+					is = httpMethod.getResponseBodyAsStream();
 				} else {
 					if (responseContentLength == null) {
 						HeaderName.ContentLength.setHeader(shuttle.response, "" + shuttle.responseAsByte.length);
@@ -945,7 +944,6 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 				}
 				
 				if (is != null) {
-//					nbBytes = IOUtils.copy(is, shuttle.response.getOutputStream());
 					nbBytes = StreamUtils.copyAutoFlush(is, shuttle.response.getOutputStream());
 					Engine.logSiteClipper.trace("(SiteClipperConnector) Response body copyied (" + nbBytes + " bytes)");
 				}
