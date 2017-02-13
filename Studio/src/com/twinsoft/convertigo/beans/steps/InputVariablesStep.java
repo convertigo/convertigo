@@ -93,6 +93,9 @@ public class InputVariablesStep extends Step implements ISchemaParticleGenerator
 					//evaluate(javascriptContext, scope, var.getName(), "expression", true);
 					evaluated = scope.get(var.getName(), scope);
 					if (evaluated != null && !(evaluated instanceof Undefined)) {
+						if (evaluated instanceof NativeJavaObject) {
+							evaluated = ((NativeJavaObject) evaluated).unwrap();
+						}
 						variables.put(var.getName(), evaluated);
 					}
 				} catch (Exception e) {
