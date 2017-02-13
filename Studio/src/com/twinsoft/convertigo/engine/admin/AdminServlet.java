@@ -39,6 +39,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.admin.services.Service;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
+import com.twinsoft.convertigo.engine.enums.HeaderName;
 
 /**
  * Servlet implementation class AdminServlet
@@ -106,6 +107,13 @@ public class AdminServlet extends HttpServlet {
 					Engine.logAdmin.debug("Is service forbidden for Cloud ? : " + cloud_forbidden);
 					if (cloud_forbidden) {
 						throw new EngineException("The service '" + serviceName + "' cannot be acceded on Cloud.");
+					}
+				}
+				
+				if (serviceDefinition.allow_cors()) {
+					String origin = HeaderName.Origin.getHeader(request);
+					if (origin != null) {
+						HeaderName.AccessControlAllowOrigin.setHeader(response, origin);
 					}
 				}
 				

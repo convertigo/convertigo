@@ -107,6 +107,14 @@ public class FullSyncServlet extends HttpServlet {
 		
 		StringBuffer debug = new StringBuffer();
 		try {
+			{
+				String origin = HeaderName.Origin.getHeader(request);
+				if (origin != null) {
+					debug.append("Allow Origin: " + origin + "\n");
+					HeaderName.AccessControlAllowOrigin.setHeader(response, origin);
+				}
+			}
+			
 			HttpRequestBase newRequest;
 
 			HttpMethodType method = HttpMethodType.valueOf(request.getMethod());
@@ -182,6 +190,7 @@ public class FullSyncServlet extends HttpServlet {
 						|| HeaderName.Host.is(headerName)
 						|| HeaderName.Cookie.is(headerName)
 						|| HeaderName.ContentEncoding.is(headerName)
+						|| HeaderName.Origin.is(headerName)
 						|| (isChanges && (HeaderName.IfNoneMatch.is(headerName)
 								|| HeaderName.IfModifiedSince.is(headerName)
 								|| HeaderName.CacheControl.is(headerName)
@@ -339,6 +348,7 @@ public class FullSyncServlet extends HttpServlet {
 			for (Header header: newResponse.getAllHeaders()) {
 				if (!(HeaderName.TransferEncoding.is(header)
 						|| HeaderName.ContentLength.is(header)
+						|| HeaderName.AccessControlAllowOrigin.is(header)
 						|| (isChanges && (HeaderName.ETag.is(header)
 								|| HeaderName.LastModified.is(header)
 								|| HeaderName.CacheControl.is(header)
