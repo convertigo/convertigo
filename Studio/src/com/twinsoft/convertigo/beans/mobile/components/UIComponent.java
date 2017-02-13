@@ -41,6 +41,8 @@ public abstract class UIComponent extends MobileComponent implements IContainerO
 
 	private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();
 	
+	private boolean isEnabled = true;
+	
 	protected abstract String computeTemplate();
 		
 	public UIComponent() {
@@ -174,6 +176,15 @@ public abstract class UIComponent extends MobileComponent implements IContainerO
         else return super.getOrder(object);
     }
     
+	
+	public boolean isEnabled() {
+		return isEnabled;
+	}
+
+	public void setEnabled(boolean isEnabled) {
+		this.isEnabled = isEnabled;
+	}
+	
 	/**
 	 * The list of available page component for this application.
 	 */

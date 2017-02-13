@@ -122,44 +122,48 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 	
 	@Override
 	protected String computeTemplate() {
-		StringBuilder attributes = new StringBuilder();
-		StringBuilder children = new StringBuilder();
-		
-    	if (ionBean != null) {
-			for (IonProperty property : ionBean.getProperties().values()) {
-				String attr = property.getAttr();
-				Object value = property.getValue();
-				if (!value.equals(false)) {
-					attributes.append(" ");
-					if (attr.isEmpty()){
-						attributes.append(value);
-					}
-					else {
-						attributes.append(attr).append("=");
-						attributes.append("\"").append(value).append("\"");
+		if (isEnabled()) {
+			StringBuilder attributes = new StringBuilder();
+			StringBuilder children = new StringBuilder();
+			
+	    	if (ionBean != null) {
+				for (IonProperty property : ionBean.getProperties().values()) {
+					String attr = property.getAttr();
+					Object value = property.getValue();
+					if (!value.equals(false)) {
+						attributes.append(" ");
+						if (attr.isEmpty()){
+							attributes.append(value);
+						}
+						else {
+							attributes.append(attr).append("=");
+							attributes.append("\"").append(value).append("\"");
+						}
 					}
 				}
+	    	}
+	    	
+			Iterator<UIComponent> it = getUIComponentList().iterator();
+			while (it.hasNext()) {
+				UIComponent component = (UIComponent)it.next();
+				if (component instanceof UIAttribute)
+					attributes.append(component.computeTemplate());
+				else
+					children.append(component.computeTemplate());
 			}
-    	}
-    	
-		Iterator<UIComponent> it = getUIComponentList().iterator();
-		while (it.hasNext()) {
-			UIComponent component = (UIComponent)it.next();
-			if (component instanceof UIAttribute)
-				attributes.append(component.computeTemplate());
-			else
-				children.append(component.computeTemplate());
+			
+			StringBuilder sb = new StringBuilder();
+			sb.append("<").append(getTagName())
+				.append(attributes.length()>0 ? attributes:"")
+			  .append(">").append(System.getProperty("line.separator"))
+				.append(children.length()>0 ? children:"")
+			  .append("</").append(getTagName())
+			  	.append(">").append(System.getProperty("line.separator"));
+			
+			return sb.toString();
 		}
-		
-		StringBuilder sb = new StringBuilder();
-		sb.append("<").append(getTagName())
-			.append(attributes.length()>0 ? attributes:"")
-		  .append(">").append(System.getProperty("line.separator"))
-			.append(children.length()>0 ? children:"")
-		  .append("</").append(getTagName())
-		  	.append(">").append(System.getProperty("line.separator"));
-		
-		return sb.toString();
+		else
+			return "";
 	}
 
 }

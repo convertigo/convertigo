@@ -60,27 +60,31 @@ public class UIElement extends UIComponent {
 
 	@Override
 	protected String computeTemplate() {
-		StringBuilder attributes = new StringBuilder();
-		StringBuilder children = new StringBuilder();
-		
-		Iterator<UIComponent> it = getUIComponentList().iterator();
-		while (it.hasNext()) {
-			UIComponent component = (UIComponent)it.next();
-			if (component instanceof UIAttribute)
-				attributes.append(component.computeTemplate());
-			else
-				children.append(component.computeTemplate());
+		if (isEnabled()) {
+			StringBuilder attributes = new StringBuilder();
+			StringBuilder children = new StringBuilder();
+			
+			Iterator<UIComponent> it = getUIComponentList().iterator();
+			while (it.hasNext()) {
+				UIComponent component = (UIComponent)it.next();
+				if (component instanceof UIAttribute)
+					attributes.append(component.computeTemplate());
+				else
+					children.append(component.computeTemplate());
+			}
+			
+			StringBuilder sb = new StringBuilder();
+			sb.append("<").append(getTagName())
+				.append(attributes.length()>0 ? attributes:"")
+			  .append(">").append(System.getProperty("line.separator"))
+				.append(children.length()>0 ? children:"")
+			  .append("</").append(getTagName())
+			  	.append(">").append(System.getProperty("line.separator"));
+			
+			return sb.toString();
 		}
-		
-		StringBuilder sb = new StringBuilder();
-		sb.append("<").append(getTagName())
-			.append(attributes.length()>0 ? attributes:"")
-		  .append(">").append(System.getProperty("line.separator"))
-			.append(children.length()>0 ? children:"")
-		  .append("</").append(getTagName())
-		  	.append(">").append(System.getProperty("line.separator"));
-		
-		return sb.toString();
+		else
+			return "";
 	}
 
 

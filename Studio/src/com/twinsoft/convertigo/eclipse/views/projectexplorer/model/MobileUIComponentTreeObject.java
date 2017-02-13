@@ -73,9 +73,19 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 
 	@Override
 	public boolean testAttribute(Object target, String name, String value) {
+		if (name.equals("isEnabled")) {
+			Boolean bool = Boolean.valueOf(value);
+			return bool.equals(Boolean.valueOf(isEnabled()));
+		}
 		return super.testAttribute(target, name, value);
 	}
 
+	@Override
+    public boolean isEnabled() {
+		setEnabled(getObject().isEnabled());
+    	return super.isEnabled();
+    }
+	
 	@Override
 	public void launchEditor(String editorType) {
 		MobileComponent mc = (MobileComponent)getObject();

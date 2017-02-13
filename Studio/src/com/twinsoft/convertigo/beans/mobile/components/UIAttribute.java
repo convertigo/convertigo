@@ -58,15 +58,19 @@ public class UIAttribute extends UIComponent {
 	
 	@Override
 	protected String computeTemplate() {
-        if (attrName.isEmpty()) { 
-        	return "";
-        }
-        else if (attrValue.isEmpty()) {
-        	return " "+attrName;
-        }
-        else {
-        	return (" "+attrName+"=\""+attrValue+"\"");
-        }
+		if (isEnabled()) {
+	        if (attrName.isEmpty()) { 
+	        	return "";
+	        }
+	        else if (attrValue.isEmpty()) {
+	        	return " "+attrName;
+	        }
+	        else {
+	        	return (" "+attrName+"=\""+attrValue+"\"");
+	        }
+		}
+		else
+			return "";
 	}
 
 }

@@ -982,6 +982,32 @@
                label="UI component"
                menubarPath="convertigo.menu.new/content">
          </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.EnableMobileUIComponentAction"
+                     enablesFor="+"
+                     id="convertigo.action.enableComponent"
+                     label="Enable"
+                     menubarPath="enable">
+                  <enablement>
+                     <objectState
+                           name="isEnabled"
+                           value="false">
+                     </objectState>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.DisableMobileUIComponentAction"
+                     enablesFor="+"
+                     id="convertigo.action.disableComponent"
+                     label="Disable"
+                     menubarPath="enable">
+                  <enablement>
+                     <objectState
+                           name="isEnabled"
+                           value="true">
+                     </objectState>
+                  </enablement>
+               </action>
       </objectContribution>
       <objectContribution
             id="convertigo.screenclassContribution"
