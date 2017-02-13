@@ -289,55 +289,7 @@ public abstract class GenericServlet extends HttpServlet {
 							.warn("[GenericServlet] The connection has probably been reset by peer (IOException): "
 									+ e.getMessage());
 				} finally {
-					// Supervision mode
-					String supervision = request.getParameter(Parameter.Supervision.getName());
-					if (supervision != null) {
-						Engine.logContext
-								.debug("[GenericServlet] Supervision mode => invalidating HTTP session in 30s.");
-						removeSession(request, 30);
-					}
-
-					// Removes context and session when finished
-					// Note: case of context.requireEndOfContext has been set in
-					// scope
-					if (request.getAttribute("convertigo.requireEndOfContext") != null) {
-						removeContext(request);
-						removeSession(request, 1);
-					}
-
-					// Removes context when finished
-					String removeContextParam = request.getParameter(Parameter.RemoveContext.getName());
-					if (removeContextParam == null) {
-						// case of a mother sequence (context is removed by
-						// default)
-						Boolean removeContextAttr = (Boolean) request
-								.getAttribute("convertigo.context.removalRequired");
-						if ((removeContextAttr != null) && removeContextAttr.booleanValue()) {
-							removeContext(request);
-						}
-					} else {
-						// other cases (remove context if exist __removeContext
-						// or __removeContext=true/false)
-						if (!("false".equals(removeContextParam))) {
-							removeContext(request);
-						}
-					}
-
-					// Removes session when finished
-					String removeSessionParam = request.getParameter(Parameter.RemoveSession.getName());
-					if (removeSessionParam != null) {
-						// __removeSession or __removeSession=true/false
-						// or __removeSession=xx (where xx is a number of seconds)
-						if (!("false".equals(removeSessionParam))) {
-							int interval = 1;
-							try {
-								interval = Integer.parseInt(removeSessionParam, 10);
-							}
-							catch (Exception e) {}
-							removeSession(request, interval);
-						}
-					}
-
+					onFinally(request);
 				}
 			} catch (Exception e) {
 				Engine.logContext.error("Unable to process the request!", e);
@@ -355,6 +307,57 @@ public abstract class GenericServlet extends HttpServlet {
 		}
 	}
 
+	void onFinally(HttpServletRequest request) {
+		// Supervision mode
+		String supervision = request.getParameter(Parameter.Supervision.getName());
+		if (supervision != null) {
+			Engine.logContext
+					.debug("[GenericServlet] Supervision mode => invalidating HTTP session in 30s.");
+			removeSession(request, 30);
+		}
+
+		// Removes context and session when finished
+		// Note: case of context.requireEndOfContext has been set in
+		// scope
+		if (request.getAttribute("convertigo.requireEndOfContext") != null) {
+			removeContext(request);
+			removeSession(request, 1);
+		}
+
+		// Removes context when finished
+		String removeContextParam = request.getParameter(Parameter.RemoveContext.getName());
+		if (removeContextParam == null) {
+			// case of a mother sequence (context is removed by
+			// default)
+			Boolean removeContextAttr = (Boolean) request
+					.getAttribute("convertigo.context.removalRequired");
+			if ((removeContextAttr != null) && removeContextAttr.booleanValue()) {
+				removeContext(request);
+			}
+		} else {
+			// other cases (remove context if exist __removeContext
+			// or __removeContext=true/false)
+			if (!("false".equals(removeContextParam))) {
+				removeContext(request);
+			}
+		}
+
+		// Removes session when finished
+		String removeSessionParam = request.getParameter(Parameter.RemoveSession.getName());
+		if (removeSessionParam != null) {
+			// __removeSession or __removeSession=true/false
+			// or __removeSession=xx (where xx is a number of seconds)
+			if (!("false".equals(removeSessionParam))) {
+				int interval = 1;
+				try {
+					interval = Integer.parseInt(removeSessionParam, 10);
+				}
+				catch (Exception e) {}
+				removeSession(request, interval);
+			}
+		}
+	}
+	
 	protected void removeContext(HttpServletRequest request) {
 		if (Engine.isEngineMode()) {
 			String contextID = (String) request.getAttribute("convertigo.context.contextID");
@@ -484,40 +487,7 @@ public abstract class GenericServlet extends HttpServlet {
 	
 			Object result = requester.processRequest(request);
 	
-			request.setAttribute("convertigo.cookies", requester.context.getCookieStrings());
-	
-			String trSessionId = requester.context.getSequenceTransactionSessionId();
-			if (trSessionId != null) {
-				request.setAttribute("sequence.transaction.sessionid", trSessionId);
-			}
-	
-			if (requester.context.requireEndOfContext) {
-				// request.setAttribute("convertigo.requireEndOfContext",
-				// requester);
-				request.setAttribute("convertigo.requireEndOfContext", Boolean.TRUE);
-			}
-	
-			if (request.getAttribute("convertigo.contentType") == null) { // if
-				// contentType
-				// set by
-				// webclipper
-				// servlet
-				// (#320)
-				request.setAttribute("convertigo.contentType", requester.context.contentType);
-			}
-			
-			request.setAttribute("convertigo.cacheControl", requester.context.cacheControl);
-			request.setAttribute("convertigo.context.contextID", requester.context.contextID);
-			request.setAttribute("convertigo.isErrorDocument", new Boolean(requester.context.isErrorDocument));
-			request.setAttribute("convertigo.context.removalRequired", new Boolean(requester.context.removalRequired()));
-			if (requester.context.requestedObject != null) { // #397 : charset HTTP
-				// header missing
-				request.setAttribute("convertigo.charset", requester.context.requestedObject.getEncodingCharSet());
-			}
-			else { // #3803
-				Engine.logEngine.warn("(GenericServlet) requestedObject is null. Set encoding to UTF-8 for processRequest.");
-				request.setAttribute("convertigo.charset", "UTF-8");
-			}
+			processRequestEnd(request, requester);
 			
 			return result;
 		} finally {
@@ -529,7 +499,45 @@ public abstract class GenericServlet extends HttpServlet {
 			}
 		}
 	}
+	
+	void processRequestEnd(HttpServletRequest request, Requester requester) {		
+		request.setAttribute("convertigo.cookies", requester.context.getCookieStrings());
+		
+		String trSessionId = requester.context.getSequenceTransactionSessionId();
+		if (trSessionId != null) {
+			request.setAttribute("sequence.transaction.sessionid", trSessionId);
+		}
 
+		if (requester.context.requireEndOfContext) {
+			// request.setAttribute("convertigo.requireEndOfContext",
+			// requester);
+			request.setAttribute("convertigo.requireEndOfContext", Boolean.TRUE);
+		}
+
+		if (request.getAttribute("convertigo.contentType") == null) { // if
+			// contentType
+			// set by
+			// webclipper
+			// servlet
+			// (#320)
+			request.setAttribute("convertigo.contentType", requester.context.contentType);
+		}
+		
+		request.setAttribute("convertigo.cacheControl", requester.context.cacheControl);
+		request.setAttribute("convertigo.context.contextID", requester.context.contextID);
+		request.setAttribute("convertigo.isErrorDocument", new Boolean(requester.context.isErrorDocument));
+		request.setAttribute("convertigo.context.removalRequired", new Boolean(requester.context.removalRequired()));
+		
+		if (requester.context.requestedObject != null) { // #397 : charset HTTP
+			// header missing
+			request.setAttribute("convertigo.charset", requester.context.requestedObject.getEncodingCharSet());
+		}
+		else { // #3803
+			Engine.logEngine.warn("(GenericServlet) requestedObject is null. Set encoding to UTF-8 for processRequest.");
+			request.setAttribute("convertigo.charset", "UTF-8");
+		}
+	}
+	
 	public abstract Requester getRequester();
 
 	public String getContentType(HttpServletRequest request) {
