@@ -49,7 +49,8 @@ import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
 	name = "Add",
 	roles = { Role.ANONYMOUS },
 	parameters = {},
-	returnValue = ""
+	returnValue = "",
+	allow_cors = true
 )
 public class Add extends JSonService {
 

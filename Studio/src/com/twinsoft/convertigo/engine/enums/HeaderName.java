@@ -35,6 +35,7 @@ import org.apache.http.HttpRequest;
 public enum HeaderName {
 	Accept("Accept"),
 	AcceptEncoding("Accept-Encoding"),
+	AccessControlAllowOrigin("Access-Control-Allow-Origin"),
 	CacheControl("Cache-Control"),
 	Connection("Connection"),
 	ContentDisposition("Content-Disposition"),
@@ -59,6 +60,7 @@ public enum HeaderName {
 	OAuthSecret("oAuthSecret"),
 	OAuthToken("oAuthToken"),
 	OAuthTokenSecret("oAuthTokenSecret"),
+	Origin("Origin"),
 	Pragma("Pragma"),
 	Referer("Referer"),
 	SetCookie("Set-Cookie"),

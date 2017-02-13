@@ -56,6 +56,7 @@ import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.cache.CacheManager;
+import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
 import com.twinsoft.convertigo.engine.providers.sapjco.SapJcoDestinationDataProvider;
@@ -1092,7 +1093,7 @@ public class Engine {
 			
 			String corsOrigin = context.project.getCorsOrigin();
 			if (StringUtils.isNotBlank(corsOrigin)) {
-				context.setResponseHeader("Access-Control-Allow-Origin", corsOrigin);
+				context.setResponseHeader(HeaderName.AccessControlAllowOrigin.value(), corsOrigin);
 			}
 			
 			// Loading sequence

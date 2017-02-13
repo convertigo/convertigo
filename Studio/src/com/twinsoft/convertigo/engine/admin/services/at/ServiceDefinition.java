@@ -34,4 +34,5 @@ public @interface ServiceDefinition {
     ServiceParameterDefinition[] parameters();
     String returnValue();
     boolean cloud_forbidden() default false;
+    boolean allow_cors() default false;
 }
