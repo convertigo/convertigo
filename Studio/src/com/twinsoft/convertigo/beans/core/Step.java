@@ -47,6 +47,7 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.EcmaError;
 import org.mozilla.javascript.EvaluatorException;
 import org.mozilla.javascript.JavaScriptException;
+import org.mozilla.javascript.NativeJavaObject;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.Undefined;
 import org.w3c.dom.Document;
@@ -749,6 +750,9 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		evaluated = null;
 		try {
 			evaluated = javascriptContext.evaluateString(scope, source, sourceName, 1, null);
+			if (evaluated != null && evaluated instanceof NativeJavaObject) {
+				evaluated = ((NativeJavaObject) evaluated).unwrap();
+			}
 		}
 		catch(EcmaError e) {
 			message = "Unable to evaluate step expression code for '"+ sourceName +"' property or variable.\n" +
