@@ -25,6 +25,8 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -263,7 +265,7 @@ public class StepTreeObject extends DatabaseObjectTreeObject implements INamedSo
 		Step step = (Step) this.getObject();
 
 
-		IFile file = project.getFile("/_private/" + step.getQName() + " " + step.getName());
+		IFile file = project.getFile("/_private/" + Base64.encodeBase64URLSafeString(DigestUtils.sha1(step.getQName())) + " " + step.getName());
 		
 		IWorkbenchPage activePage = PlatformUI
 										.getWorkbench()
