@@ -8,7 +8,6 @@ import java.util.Enumeration;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -20,12 +19,13 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.RestApiManager;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.util.HttpServletRequestTwsWrapper;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.ServletUtils;
 import com.twinsoft.convertigo.engine.util.SwaggerUtils;
 
-public class RestApiServlet extends HttpServlet {
+public class RestApiServlet extends GenericServlet {
 
 	private static final long serialVersionUID = 6926586430359873778L;
 
@@ -171,20 +171,35 @@ public class RestApiServlet extends HttpServlet {
 						}
 						
 						Engine.logEngine.debug("(RestApiServlet) Request successfully handled");
-					}
-					else {
+					} else {
 						Engine.logEngine.debug("(RestApiServlet) No matching operation for request");
 						super.service(request, response);
 					}
-				}
-				else {
+				} else {
 					Engine.logEngine.debug("(RestApiServlet) No mapping defined");
 					super.service(request, response);
 				}
-			}
-    		catch (Exception e) {
+			} catch (Exception e) {
     			throw new ServletException(e);
+    		} finally {
+    			Requester requester = (Requester) request.getAttribute("convertigo.requester");
+    			if (requester != null) {
+	                processRequestEnd(request, requester);
+	    			onFinally(request);
+    			}
     		}
 		}
+	}
+
+	@Override
+	public Requester getRequester() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getDocumentExtension() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

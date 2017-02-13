@@ -323,6 +323,7 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 			// Execute requestable
 			Engine.logBeans.debug("(AbstractRestOperation) \""+ getName() +"\" executing requestable \""+ targetRequestableQName +"\"");
         	InternalRequester internalRequester = new InternalRequester(map, request);
+			request.setAttribute("convertigo.requester", internalRequester);
     		Object result = internalRequester.processRequest();
     		String encoding = "UTF-8";
     		if (result != null) {
