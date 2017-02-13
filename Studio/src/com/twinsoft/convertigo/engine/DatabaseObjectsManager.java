@@ -75,6 +75,7 @@ import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.steps.XMLActionStep;
 import com.twinsoft.convertigo.beans.steps.XMLGenerateDatesStep;
 import com.twinsoft.convertigo.beans.variables.StepVariable;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboBean;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboBeans;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboCategory;
@@ -407,7 +408,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	public void deleteProject(String projectName, boolean bCreateBackup, boolean bDataOnly)
 			throws EngineException {
 		try {
-			if (bCreateBackup) {
+			if (bCreateBackup && EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ZIP_BACKUP_OLD_PROJECT)) {
 				Engine.logDatabaseObjectManager.info("Making backup of project \"" + projectName + "\"");
 				makeProjectBackup(projectName);
 			}
