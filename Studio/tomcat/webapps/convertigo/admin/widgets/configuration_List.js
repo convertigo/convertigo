@@ -129,6 +129,7 @@ function configuration_List_init () {
 				var type = $x_property.attr("type");
 				var $property = $template.find(".config-property" + (type === "Boolean" ? "-boolean" : "") + ":first").clone();
 				$property.find(".config-property-name:first").text($x_property.attr("description")).attr("for", id);
+				$property.find(".config-property-name:first").html($property.find(".config-property-name:first").html().replace(new RegExp("\\n","g"), "<br/>"));
 				
 				var $property_value;
 				var value = $x_property.attr("value");

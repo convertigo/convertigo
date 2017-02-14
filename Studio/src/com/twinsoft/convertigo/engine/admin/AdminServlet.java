@@ -31,15 +31,15 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.AuthenticationException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.Service;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
-import com.twinsoft.convertigo.engine.enums.HeaderName;
+import com.twinsoft.convertigo.engine.util.HttpUtils;
 
 /**
  * Servlet implementation class AdminServlet
@@ -111,9 +111,9 @@ public class AdminServlet extends HttpServlet {
 				}
 				
 				if (serviceDefinition.allow_cors()) {
-					String origin = HeaderName.Origin.getHeader(request);
-					if (origin != null) {
-						HeaderName.AccessControlAllowOrigin.setHeader(response, origin);
+					String corsOrigin = HttpUtils.filterCorsOrigin(request, response);
+					if (corsOrigin != null) {
+						Engine.logAdmin.trace("Add CORS header for: " + corsOrigin);
 					}
 				}
 				

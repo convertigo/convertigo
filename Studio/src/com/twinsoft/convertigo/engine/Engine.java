@@ -43,7 +43,6 @@ import javax.swing.event.EventListenerList;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.auth.AuthPolicy;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
@@ -1091,9 +1090,14 @@ public class Engine {
 			}
 			context.project.checkSymbols();
 			
-			String corsOrigin = context.project.getCorsOrigin();
-			if (StringUtils.isNotBlank(corsOrigin)) {
-				context.setResponseHeader(HeaderName.AccessControlAllowOrigin.value(), corsOrigin);
+			if (context.httpServletRequest != null) {
+				String origin = HeaderName.Origin.getHeader(context.httpServletRequest);
+				String corsOrigin = HttpUtils.filterCorsOrigin(context.project.getCorsOrigin(), origin);
+				if (corsOrigin != null) {
+					context.setResponseHeader(HeaderName.AccessControlAllowOrigin.value(), corsOrigin);
+					context.setResponseHeader(HeaderName.AccessControlAllowCredentials.value(), "true");
+					Engine.logContext.trace("Add CORS header for: " + corsOrigin);
+				}
 			}
 			
 			// Loading sequence
@@ -1105,7 +1109,7 @@ public class Engine {
 				context.loadConnector();
 
 				// Loading transaction
-				// Load default transaction if no overidden transaction is
+				// Load default transaction if no overridden transaction is
 				// provided
 				if (context.transactionName == null) {
 					context.requestedObject = context.getConnector().getDefaultTransaction();
