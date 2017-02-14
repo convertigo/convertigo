@@ -320,7 +320,7 @@ public class EnginePropertiesManager {
 		APPLICATION_SERVER_MASHUP_URL ("application_server.mashup.url", "http://localhost:18080/convertigo", "Mashup composer server base URL", PropertyCategory.Main),
 		DOCUMENT_THREADING_MAX_WORKER_THREADS ("document.threading.max_worker_threads", "100", "Maximum number of worker threads", PropertyCategory.Main),
 		CONVERTIGO_MAX_CONTEXTS ("convertigo.max_context", "750", "Maximum number of contexts", PropertyCategory.Main),
-		CORS_POLICY ("cors.policy", "=Origin", "CORS Policy\n• empty: disallow all\n• '=Origin' use client 'Origin' header\n• 'url1#url2#url3' allow if 'Origin' one of 'url'", PropertyCategory.Main),
+		CORS_POLICY ("cors.policy", "=Origin", "CORS Policy\n• empty: disallow all\n• '=Origin': use client 'Origin' header\n• 'url1#url2#url3': allow if 'Origin' one of 'url'", PropertyCategory.Main),
 
 		/** MAIN ADVANCE */
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
