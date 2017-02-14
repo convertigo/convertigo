@@ -125,7 +125,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	
 	private boolean bStrictMode = true;
 	
-	private String corsOrigin = "";
+	private String corsOrigin = "=Global";
 	
 	private XPathEngine xpathEngine = XPathEngine.JXPath;
 	

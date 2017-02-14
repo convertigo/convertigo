@@ -35,6 +35,7 @@ import org.apache.http.HttpRequest;
 public enum HeaderName {
 	Accept("Accept"),
 	AcceptEncoding("Accept-Encoding"),
+	AccessControlAllowCredentials("Access-Control-Allow-Credentials"),
 	AccessControlAllowOrigin("Access-Control-Allow-Origin"),
 	CacheControl("Cache-Control"),
 	Connection("Connection"),

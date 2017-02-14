@@ -28,6 +28,7 @@ import java.net.URISyntaxException;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
@@ -40,6 +41,7 @@ import org.apache.commons.httpclient.params.HttpClientParams;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.config.CookieSpecs;
@@ -231,5 +233,42 @@ public class HttpUtils {
 		}
 		
 		return json;
+	}
+	
+	public static String filterCorsOrigin(HttpServletRequest request, HttpServletResponse response) {
+		String globalCorsPolicy = EnginePropertiesManager.getOriginalProperty(PropertyName.CORS_POLICY);
+
+		String origin = HeaderName.Origin.getHeader(request);
+		String corsOrigin = filterCorsOrigin(globalCorsPolicy, origin);
+		if (corsOrigin != null) {
+			HeaderName.AccessControlAllowOrigin.setHeader(response, corsOrigin);
+			HeaderName.AccessControlAllowCredentials.setHeader(response, "true");
+		}
+		return corsOrigin;
+	}
+	
+	public static String filterCorsOrigin(String corsPolicy, String origin) {
+		String corsOrigin = null;
+		if (origin != null && StringUtils.isNotBlank(corsPolicy)) {
+			if (corsPolicy.equals("=Global")) {
+				String globalCorsPolicy = EnginePropertiesManager.getOriginalProperty(PropertyName.CORS_POLICY);
+				if (!globalCorsPolicy.equals(corsPolicy)) {
+					corsOrigin = filterCorsOrigin(globalCorsPolicy, origin);
+				}
+			} else if (corsPolicy.equals("=Origin")) {
+				corsOrigin = origin;
+			} else if (corsPolicy.equals("*")) {
+				corsOrigin = "*";
+			} else {
+				String[] urls = corsPolicy.split("#");
+				for (String url: urls) {
+					if (url.equals(origin)) {
+						corsOrigin = origin;
+						break;
+					}
+				}
+			}
+		}
+		return corsOrigin;
 	}
 }

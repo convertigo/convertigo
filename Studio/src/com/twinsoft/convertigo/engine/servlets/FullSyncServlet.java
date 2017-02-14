@@ -108,10 +108,9 @@ public class FullSyncServlet extends HttpServlet {
 		StringBuffer debug = new StringBuffer();
 		try {
 			{
-				String origin = HeaderName.Origin.getHeader(request);
-				if (origin != null) {
-					debug.append("Allow Origin: " + origin + "\n");
-					HeaderName.AccessControlAllowOrigin.setHeader(response, origin);
+				String corsOrigin = HttpUtils.filterCorsOrigin(request, response);
+				if (corsOrigin != null) {
+					debug.append("Add CORS header for: " + corsOrigin + "\n");
 				}
 			}
 			
