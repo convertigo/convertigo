@@ -161,7 +161,7 @@ public class TemporalInputStream extends InputStream {
 		if (len > available) {
 			len = available;
 		}
-		if (len == 0) {
+		if (len <= 0) {
 			return -1;
 		} else {
 			return is.read(b, off, len);
