@@ -93,6 +93,9 @@ public class UnifiedInputStream extends InputStream {
 		if (len > b.length) {
 			len = b.length;
 		}
+		if (len < 0) {
+			len = 0;
+		}
 		int n;
 		try {
 			n = current_file.read(b, off, len);
