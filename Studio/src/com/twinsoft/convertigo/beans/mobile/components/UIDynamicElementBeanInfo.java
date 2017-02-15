@@ -33,6 +33,11 @@ public class UIDynamicElementBeanInfo extends MySimpleBeanInfo {
 			beanClass = UIDynamicElement.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.mobile.components.UIElement.class;
 
+			resourceBundle = getResourceBundle("res/UIDynamicElement");
+
+			displayName = resourceBundle.getString("display_name");
+			shortDescription = resourceBundle.getString("short_description");
+			
 			properties = new PropertyDescriptor[1];
 			
 			properties[0] = new PropertyDescriptor("beanData", beanClass, "getBeanData", "setBeanData");

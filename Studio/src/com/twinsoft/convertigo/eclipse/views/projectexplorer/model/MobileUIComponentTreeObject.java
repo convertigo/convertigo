@@ -213,6 +213,9 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 	        	if (ionBean.hasProperty((String)id)) {
 	        		return ionBean.getPropertyValue((String)id);
 	        	}
+	        	if (((String)id).equals(P_TYPE)) {
+	        		return ionBean.getName();
+	        	}
         	}
         }
 		return super.getPropertyValue(id);
