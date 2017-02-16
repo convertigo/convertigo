@@ -82,7 +82,7 @@ public class List extends XmlService{
         rootElement.appendChild(connectionsListElement);
         
         Element contextsInUseElement = document.createElement("contextsInUse");
-        contextsInUseElement.setTextContent("" + Engine.theApp.contextManager.getNumberOfContexts());
+        contextsInUseElement.setTextContent("" + Math.max(0, Engine.theApp.contextManager.getNumberOfContexts()));
         rootElement.appendChild(contextsInUseElement);
         
         Element contextsNumberElement = document.createElement("contextsNumber");
@@ -90,7 +90,7 @@ public class List extends XmlService{
         rootElement.appendChild(contextsNumberElement);
         
         Element sessionsInUseElement = document.createElement("sessionsInUse");
-        sessionsInUseElement.setTextContent("" + (KeyManager.getMaxCV(Session.EmulIDSE) - KeyManager.getCV(Session.EmulIDSE)));
+        sessionsInUseElement.setTextContent("" + Math.max(0, KeyManager.getMaxCV(Session.EmulIDSE) - KeyManager.getCV(Session.EmulIDSE)));
         rootElement.appendChild(sessionsInUseElement);
         
         Element sessionsIsOverflowElement = document.createElement("sessionsIsOverflow");
@@ -98,11 +98,11 @@ public class List extends XmlService{
         rootElement.appendChild(sessionsIsOverflowElement);
         
         Element sessionsNumberElement = document.createElement("sessionsNumber");
-        sessionsNumberElement.setTextContent("" + KeyManager.getMaxCV(Session.EmulIDSE));
+        sessionsNumberElement.setTextContent("" + Math.max(0, KeyManager.getMaxCV(Session.EmulIDSE)));
         rootElement.appendChild(sessionsNumberElement);
         
         Element threadsInUseElement = document.createElement("threadsInUse");
-        threadsInUseElement.setTextContent("" + com.twinsoft.convertigo.beans.core.RequestableObject.nbCurrentWorkerThreads);
+        threadsInUseElement.setTextContent("" + Math.max(0, com.twinsoft.convertigo.beans.core.RequestableObject.nbCurrentWorkerThreads));
         rootElement.appendChild(threadsInUseElement);
         
         Element threadsNumberElement = document.createElement("threadsNumber");
