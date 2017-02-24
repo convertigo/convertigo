@@ -34,6 +34,7 @@ import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.mobile.PageComponentEditorInput;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
+import com.twinsoft.convertigo.engine.EngineException;
 
 public class MobilePageComponentTreeObject extends MobileComponentTreeObject implements IEditableTreeObject {
 
@@ -113,14 +114,36 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 	}
 	
 	@Override
+	public boolean rename(String newName, boolean bDialog) {
+		PageComponent page = getObject();
+		String oldName = page.getName();
+		boolean renamed = super.rename(newName, bDialog);
+		if (renamed) {
+			try {
+				page.getProject().getMobileBuilder().pageRenamed(page, oldName);
+			} catch (EngineException e) {
+				ConvertigoPlugin.logException(e,
+						"Error while writting source files for page '" + page.getName() + "'");
+			}
+		}
+		return renamed;
+	}
+
+	@Override
 	public void hasBeenModified(boolean bModified) {
 		super.hasBeenModified(bModified);
 		if (bModified && !isInherited) {
-			markAsDirty();
+			markTemplateAsDirty();
 		}
 	}
 		
-	protected void markAsDirty() {
-		getObject().doCompute();
+	protected void markTemplateAsDirty() {
+		PageComponent page = getObject();
+		try {
+			page.doCompute();
+			page.getProject().getMobileBuilder().pageComputed(page);
+		} catch (EngineException e) {
+			ConvertigoPlugin.logException(e,
+					"Error while writing the html template for page '" + page.getName() + "'");	}
 	}
 }

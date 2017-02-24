@@ -11,6 +11,16 @@
         "ion-button"
       ]
     },
+    "MenuMode": {
+      "label": "menu mode",
+      "description": "Specifies menu mode",
+      "category": "Attributes",
+      "values": [ // possible values (false means do no set)
+        false,
+        "menuClose",
+        "menuToggle"
+      ]
+    },
     "BarMode": {
       "label": "mode",
       "description": "Specifies ionic bar mode",
@@ -21,6 +31,15 @@
         "ios",
         "wp",
         "md"
+      ]
+    },
+    "IonPadding": {
+      "label": "padding",
+      "description": "Specifies ionic padding mode",
+      "category": "Attributes",
+      "values": [
+        false,
+        "padding"
       ]
     },
     "IonColor": {
@@ -467,6 +486,7 @@
         "icon32": "button_color_32x32.png",
         "properties": {
           "ButtonType": "ion-button",
+          "MenuMode": false,
           "IonColor": false,
           "IonShape": false,
           "IonOutline": false,
@@ -505,6 +525,7 @@
         "icon16": "content_color_16x16.png",
         "icon32": "content_color_32x32.png",
         "properties": {
+          "IonPadding": "padding",
           "Fullscreen": {
             "attr": "fullscreen",
             "label": "full screen",
@@ -542,7 +563,7 @@
       "Icon": {
         "tag": "ion-icon",
         "label": "Icon",
-        "description": "More than 700+ Ionicons icons we’ve all come to know and love.",
+        "description": "More than 700+ Ionicons icons weï¿½ve all come to know and love.",
         "group": "Others",
         "icon16": "icon_color_16x16.png",
         "icon32": "icon_color_32x32.png",

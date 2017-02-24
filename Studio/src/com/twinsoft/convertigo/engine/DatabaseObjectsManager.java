@@ -90,6 +90,7 @@ import com.twinsoft.convertigo.engine.migration.Migration5_0_0;
 import com.twinsoft.convertigo.engine.migration.Migration5_0_4;
 import com.twinsoft.convertigo.engine.migration.Migration7_0_0;
 import com.twinsoft.convertigo.engine.migration.Migration7_4_0;
+import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
 import com.twinsoft.convertigo.engine.util.CarUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -354,14 +355,16 @@ public class DatabaseObjectsManager implements AbstractManager {
 			if (projects.get(name) == project) {
 				projects.remove(name);
 				RestApiManager.getInstance().removeUrlMapper(name);
+				MobileBuilder.releaseBuilder(project);
 			}
 		}
 	}
 	
 	public void clearCache(String projectName) {
 		synchronized (projects) {
-			projects.remove(projectName);
+			Project project = projects.remove(projectName);
 			RestApiManager.getInstance().removeUrlMapper(projectName);
+			MobileBuilder.releaseBuilder(project);
 		}
 	}
 	
@@ -369,8 +372,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 		synchronized (projects) {
 			if(projects.containsKey(projectName)) {
 				if (symbolsProjectCheckUndefined(projectName)) {
-					projects.remove(projectName);
+					Project project = projects.remove(projectName);
 					RestApiManager.getInstance().removeUrlMapper(projectName);
+					MobileBuilder.releaseBuilder(project);
 				}
 			}	
 		}
@@ -948,6 +952,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			synchronized (projects) {
 				projects.put(project.getName(), project);
 				RestApiManager.getInstance().putUrlMapper(project);
+				MobileBuilder.initBuilder(project);
 			}
 
 			// Creates xsd/wsdl files (Since 4.6.0)
@@ -1237,7 +1242,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 				if ((!childNodeName.equalsIgnoreCase("property"))
 					&& (!childNodeName.equalsIgnoreCase("handlers"))
 					&& (!childNodeName.equalsIgnoreCase("wsdltype"))
-					&& (!childNodeName.equalsIgnoreCase("docdata"))) {
+					&& (!childNodeName.equalsIgnoreCase("docdata"))
+					&& (!childNodeName.equalsIgnoreCase("beandata"))) {
 						importDatabaseObject(childNode, databaseObject);
 				}
 			}

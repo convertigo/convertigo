@@ -56,11 +56,11 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 	public void hasBeenModified(boolean bModified) {
 		super.hasBeenModified(bModified);
 		if (bModified && !isInherited) {
-			markAsDirty();
+			markTemplateAsDirty();
 		}
 	}
 	
-	protected void markAsDirty() {
+	protected void markTemplateAsDirty() {
 		;
 	}
 

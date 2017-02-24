@@ -26,6 +26,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -41,8 +42,16 @@ public class ApplicationComponent extends MobileComponent {
 	public ApplicationComponent clone() throws CloneNotSupportedException {
 		ApplicationComponent cloned = (ApplicationComponent) super.clone();
 		cloned.vPageComponents = new LinkedList<PageComponent>();
+		cloned.computedTemplate = null;
 		return cloned;
 	}
+
+	
+	@Override
+	public MobileApplication getParent() {
+		return (MobileApplication) super.getParent();
+	}
+
 
 	/**
 	 * The list of available page component for this application.
@@ -55,11 +64,17 @@ public class ApplicationComponent extends MobileComponent {
 		pageComponent.setName(newDatabaseObjectName);
 		vPageComponents.add(pageComponent);
 		super.add(pageComponent);
+		
+		if (pageComponent.bNew) {
+			getProject().getMobileBuilder().pageAdded(pageComponent);
+		}
 	}
 
 	public void removePageComponent(PageComponent pageComponent) throws EngineException {
 		checkSubLoaded();
 		vPageComponents.remove(pageComponent);
+		
+		getProject().getMobileBuilder().pageRemoved(pageComponent);
 	}
 
 	public List<PageComponent> getPageComponentList() {
@@ -100,6 +115,19 @@ public class ApplicationComponent extends MobileComponent {
 		super.remove(databaseObject);
     }
 
+	transient private String computedTemplate = null;
+	
+	public String getComputedTemplate() {
+		if (computedTemplate == null) {
+			doCompute();
+		}
+		return computedTemplate;
+	}
+    
+	public synchronized void doCompute() {
+		computedTemplate = computeTemplate();
+	}
+	
 	@Override
 	protected String computeTemplate() {
 		return "";

@@ -44,6 +44,7 @@ import com.twinsoft.convertigo.engine.RestApiManager;
 import com.twinsoft.convertigo.engine.enums.JsonOutput;
 import com.twinsoft.convertigo.engine.enums.XPathEngine;
 import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
+import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -480,6 +481,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		clonedObject.vSequences = new LinkedList<Sequence>();
 		clonedObject.mobileApplication = null;
 		clonedObject.urlMapper = null;
+		clonedObject.mobileBuilder = null;
 		return clonedObject;
 	}
 	
@@ -553,6 +555,15 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		}
     }
     
+	private transient MobileBuilder mobileBuilder = null;
+	
+	public MobileBuilder getMobileBuilder() {
+		if (mobileBuilder == null) {
+			mobileBuilder = new MobileBuilder(this);
+		}
+		return mobileBuilder;
+	}
+	
     private transient MobileApplication mobileApplication = null;
     
     public MobileApplication getMobileApplication() {

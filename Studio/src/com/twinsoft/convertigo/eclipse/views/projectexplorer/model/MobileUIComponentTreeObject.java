@@ -250,11 +250,11 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		TreeParent treeParent = parent;
 		while (treeParent != null) {
 			if (treeParent instanceof MobileApplicationComponentTreeObject) {
-				((MobileApplicationComponentTreeObject) treeParent).markAsDirty();
+				((MobileApplicationComponentTreeObject) treeParent).markTemplateAsDirty();
 				break;
 			}
 			if (treeParent instanceof MobilePageComponentTreeObject) {
-				((MobilePageComponentTreeObject) treeParent).markAsDirty();
+				((MobilePageComponentTreeObject) treeParent).markTemplateAsDirty();
 				break;
 			}
 			treeParent = treeParent.getParent();

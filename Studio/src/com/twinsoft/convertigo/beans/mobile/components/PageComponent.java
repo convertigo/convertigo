@@ -22,7 +22,6 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -32,9 +31,7 @@ import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
-import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.util.FileUtils;
 
 public class PageComponent extends MobileComponent implements IContainerOrdered {
 
@@ -53,6 +50,7 @@ public class PageComponent extends MobileComponent implements IContainerOrdered 
 	public PageComponent clone() throws CloneNotSupportedException {
 		PageComponent cloned = (PageComponent) super.clone();
 		cloned.vUIComponents = new LinkedList<UIComponent>();
+		cloned.computedTemplate = null;
 		return cloned;
 	}
 
@@ -235,29 +233,17 @@ public class PageComponent extends MobileComponent implements IContainerOrdered 
 		this.segment = segment;
 	}
 
+	transient private String computedTemplate = null;
+	
+	public String getComputedTemplate() {
+		if (computedTemplate == null) {
+			doCompute();
+		}
+		return computedTemplate;
+	}
+	
 	public synchronized void doCompute() {
-		long t0 = System.currentTimeMillis();
-		String computedTemplate = computeTemplate();
-		long t1 = System.currentTimeMillis() - t0;
-		if (bNew) {
-			System.out.println("Created page \""+getName()+"\": template computed in "+t1+" ms");
-		}
-		else {
-			System.out.println("Modified page \""+getName()+"\": template computed in "+t1+" ms");
-		}
-		System.out.println(computedTemplate);
-		
-		//TODO: Need a MobilePreviewBuilder to handle 'pageComputed' event -> write file
-		try {
-			String filepath = Engine.PROJECTS_PATH + "/"+ getProject().getName() 
-								+ "/ionic/src/pages/Login/login.html";
-			long t2 = System.currentTimeMillis();
-			FileUtils.writeStringToFile(new File(filepath), computedTemplate, "UTF-8", false);
-			long t3 = System.currentTimeMillis() - t2;
-			System.out.println("Page \""+getName()+"\" written in "+t3+" ms");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		computedTemplate = computeTemplate();
 	}
 	
 	@Override
