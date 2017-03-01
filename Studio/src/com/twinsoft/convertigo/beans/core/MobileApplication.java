@@ -23,7 +23,6 @@
 package com.twinsoft.convertigo.beans.core;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -31,7 +30,6 @@ import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
