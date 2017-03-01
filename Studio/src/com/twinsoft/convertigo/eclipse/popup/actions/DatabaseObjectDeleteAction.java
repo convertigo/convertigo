@@ -50,6 +50,7 @@ import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.statements.ElseStatement;
 import com.twinsoft.convertigo.beans.statements.ThenStatement;
 import com.twinsoft.convertigo.beans.steps.ElseStep;
@@ -306,6 +307,11 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 				if (messageBox.open() == SWT.YES) {
 					FileUtils.deleteQuietly(resourceFolder);
 				}
+			}
+		}
+		else if (databaseObject instanceof PageComponent) {
+			if (((PageComponent) databaseObject).isRoot) {
+				throw new EngineException("Cannot delete the root page!");
 			}
 		}
 		

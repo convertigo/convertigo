@@ -27,6 +27,9 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
@@ -51,9 +54,32 @@ public class PageComponent extends MobileComponent implements IContainerOrdered 
 		PageComponent cloned = (PageComponent) super.clone();
 		cloned.vUIComponents = new LinkedList<UIComponent>();
 		cloned.computedTemplate = null;
+		cloned.isRoot = false;
 		return cloned;
 	}
 
+	transient public boolean isRoot = false;
+	
+	@Override
+	public Element toXml(Document document) throws EngineException {
+		Element element = super.toXml(document);
+        
+		// Storing the page "isRoot" flag
+		element.setAttribute("isRoot", new Boolean(isRoot).toString());
+        
+		return element;
+	}
+	
+	@Override
+	public void configure(Element element) throws Exception {
+		super.configure(element);
+		try {
+			isRoot = new Boolean(element.getAttribute("isRoot")).booleanValue();
+		}catch(Exception e) {
+			throw new EngineException("Unable to configure the property 'isRoot' of the page \"" + getName() + "\".", e);
+		}
+	}
+	
 	public XMLVector<XMLVector<Long>> getOrderedComponents() {
 		return orderedComponents;
 	}

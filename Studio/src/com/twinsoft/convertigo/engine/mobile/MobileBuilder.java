@@ -141,6 +141,19 @@ public class MobileBuilder {
 		}
 	}
 	
+	public synchronized void appChanged() throws EngineException {
+		if (initDone) {
+			MobileApplication mobileApplication = project.getMobileApplication();
+			if (mobileApplication != null) {
+				ApplicationComponent application = mobileApplication.getApplicationComponent();
+				if (application != null) {
+					writeAppSourceFiles(application);
+					Engine.logEngine.debug("(MobileBuilder) Handled 'appChanged'");
+				}
+			}
+		}
+	}
+	
 	public synchronized void pageAdded(final PageComponent page) throws EngineException {
 		if (page != null && initDone) {
 			if (!page.bNew) return;
@@ -331,7 +344,7 @@ public class MobileBuilder {
 				List<PageComponent> pages = application.getPageComponentList();
 				for (PageComponent page : pages) {
 					String pageName = page.getName();
-					boolean isRootPage = i == 1;// <-- to be changed
+					boolean isRootPage = page.isRoot;
 					boolean isLastPage = i == pages.size();
 					if (isRootPage) c8o_RootPage = pageName;
 					c8o_PagesImport += "import { "+pageName+" } from \"../pages/"+pageName+"/"+pageName.toLowerCase()+"\";\n";

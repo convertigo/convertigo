@@ -445,6 +445,12 @@ public class NewObjectWizard extends Wizard {
 							this.setupConnector(newBean);
 						}
 						
+						if (newBean instanceof PageComponent) {
+							ApplicationComponent application = (ApplicationComponent)parentObject;
+							if (application.getRootPage() == null)
+								application.setRootPage((PageComponent)newBean);
+						}
+						
 						if (newBean instanceof SequenceStep) {
 							Project project = newBean.getProject();
 							

@@ -62,6 +62,7 @@ import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
@@ -394,6 +395,13 @@ public class ClipboardManager {
 						connector.isDefault = false;
 					}
 				}
+				// Disable the isRoot boolean flag when the page is pasted
+				if (databaseObject instanceof PageComponent) {
+					PageComponent page = (PageComponent) databaseObject;
+					if (page.isRoot) {
+						page.isRoot = false;
+					}
+				}
 				if (objectsType != ProjectExplorerView.TREE_OBJECT_TYPE_DBO_CONNECTOR) {
 					// Disable the isDefault boolean flag when the transaction is pasted
 					if (databaseObject instanceof Transaction) {
@@ -712,6 +720,10 @@ public class ClipboardManager {
 						} else if (databaseObject instanceof ScreenClass) {
 							if (object instanceof Criteria && databaseObject.getParent() instanceof Connector) {
 								throw new EngineException("You cannot cut the criterion of default screen class");
+							}
+						} else if (databaseObject instanceof ApplicationComponent) {
+							if (object instanceof PageComponent && ((PageComponent) object).isRoot) {
+								throw new EngineException("You cannot cut the root page to another application");
 							}
 						}
 						

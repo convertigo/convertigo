@@ -28,6 +28,7 @@ import java.util.List;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
 public class ApplicationComponent extends MobileComponent {
@@ -43,6 +44,7 @@ public class ApplicationComponent extends MobileComponent {
 		ApplicationComponent cloned = (ApplicationComponent) super.clone();
 		cloned.vPageComponents = new LinkedList<PageComponent>();
 		cloned.computedTemplate = null;
+		cloned.rootPage = null;
 		return cloned;
 	}
 
@@ -63,6 +65,7 @@ public class ApplicationComponent extends MobileComponent {
 		String newDatabaseObjectName = getChildBeanName(vPageComponents, pageComponent.getName(), pageComponent.bNew);
 		pageComponent.setName(newDatabaseObjectName);
 		vPageComponents.add(pageComponent);
+		if (pageComponent.isRoot) setRootPage(pageComponent);
 		super.add(pageComponent);
 		
 		if (pageComponent.bNew) {
@@ -87,6 +90,42 @@ public class ApplicationComponent extends MobileComponent {
 		for (PageComponent pageComponent : vPageComponents)
 			if (pageComponent.getName().equalsIgnoreCase(pageName)) return pageComponent;
 		throw new EngineException("There is no page component named \"" + pageName + "\" found into this application.");
+	}
+	
+	transient private PageComponent rootPage = null;
+	
+	public PageComponent getRootPage() throws EngineException {
+		if (rootPage == null) {
+			checkSubLoaded();
+			for (PageComponent pageComponent : vPageComponents) {
+				if (pageComponent.isRoot) {
+					rootPage = pageComponent;
+					break;
+				}
+			}
+		}
+		if (rootPage == null) {
+			if (Engine.isEngineMode()) {
+				// Fire exception in Engine mode only!
+				throw new EngineException("There is no root page defined for application \"" + getName() + "\".");
+			}
+			else {
+				// In Studio mode we must be able to set a root page!
+			}
+		}
+		return rootPage;
+	}
+	
+	public synchronized void setRootPage(PageComponent pageComponent) throws EngineException {
+		if (pageComponent == null)
+			throw new IllegalArgumentException("The value of argument 'pageComponent' is null");
+		checkSubLoaded();
+		if (vPageComponents.contains(pageComponent)) {
+			if (rootPage == null) getRootPage();
+			if (rootPage != null) rootPage.isRoot = false;
+			pageComponent.isRoot = true;
+			rootPage = pageComponent;
+		} else throw new IllegalArgumentException("The value of argument 'pageComponent' is invalid: the page does not belong to the application");
 	}
 	
 	@Override

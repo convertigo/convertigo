@@ -984,6 +984,19 @@
                label="UI component"
                menubarPath="convertigo.menu.new/content">
          </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.SetMobileRootPageAction"
+               enablesFor="1"
+               id="convertigo.action.setMobileRootPage"
+               label="Root page"
+               menubarPath="default"
+               style="toggle">
+            <enablement>
+               <objectState
+                     name="isRoot"
+                     value="false"/>
+            </enablement>
+         </action>
       </objectContribution>
       <objectContribution
             id="convertigo.mobileUIComponentContribution"
