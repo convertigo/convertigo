@@ -146,6 +146,9 @@
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.RouteListenerComponent">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.RoutingTableComponent"/>
 				</bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.RouteListenerComponent"/>
+				</bean>
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.RouteComponent">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.RouteListenerComponent"/>
 				</bean>

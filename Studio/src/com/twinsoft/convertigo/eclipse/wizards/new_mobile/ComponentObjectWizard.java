@@ -34,6 +34,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
+import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteListenerComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RoutingTableComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
@@ -81,6 +82,10 @@ public class ComponentObjectWizard extends Wizard {
 			else if (beanClass.equals(RouteComponent.class)) {
 				objectExplorerPageTitle = "New Route Component";
 				objectExplorerPageMessage = "Please select a route component template.";
+			}
+			else if (beanClass.equals(RouteEventComponent.class)) {
+				objectExplorerPageTitle = "New Route Event Component";
+				objectExplorerPageMessage = "Please select a route event component template.";
 			}
 			else if (beanClass.equals(PageComponent.class)) {
 				objectExplorerPageTitle = "New Page Component";

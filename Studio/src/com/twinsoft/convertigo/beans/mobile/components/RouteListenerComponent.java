@@ -40,6 +40,7 @@ public class RouteListenerComponent extends MobileComponent {
 	@Override
 	public RouteListenerComponent clone() throws CloneNotSupportedException {
 		RouteListenerComponent cloned = (RouteListenerComponent)super.clone();
+		cloned.vRouteEventComponents = new LinkedList<RouteEventComponent>();
 		cloned.vRouteComponents = new LinkedList<RouteComponent>();
 		return cloned;
 	}
@@ -47,6 +48,29 @@ public class RouteListenerComponent extends MobileComponent {
 	@Override
 	public RoutingTableComponent getParent() {
 		return (RoutingTableComponent) super.getParent();
+	}
+	
+	/**
+	 * The list of available events for this listener.
+	 */
+	transient private List<RouteEventComponent> vRouteEventComponents = new LinkedList<RouteEventComponent>();
+	
+	protected void addRouteEventComponent(RouteEventComponent routeEventComponent) throws EngineException {
+		checkSubLoaded();
+		String newDatabaseObjectName = getChildBeanName(vRouteEventComponents, routeEventComponent.getName(), routeEventComponent.bNew);
+		routeEventComponent.setName(newDatabaseObjectName);
+		vRouteEventComponents.add(routeEventComponent);
+		super.add(routeEventComponent);
+	}
+
+	public void removeRouteEventComponent(RouteEventComponent routeEventComponent) throws EngineException {
+		checkSubLoaded();
+		vRouteEventComponents.remove(routeEventComponent);
+	}
+
+	public List<RouteEventComponent> getRouteEventComponentList() {
+		checkSubLoaded();
+		return sort(vRouteEventComponents);
 	}
 	
 	/**
@@ -75,24 +99,33 @@ public class RouteListenerComponent extends MobileComponent {
 	@Override
 	public List<DatabaseObject> getAllChildren() {	
 		List<DatabaseObject> rep = super.getAllChildren();
+		rep.addAll(getRouteEventComponentList());
 		rep.addAll(getRouteComponentList());
 		return rep;
 	}
 
 	@Override
     public void add(DatabaseObject databaseObject) throws EngineException {
-		if (databaseObject instanceof RouteComponent) {
+		if (databaseObject instanceof RouteEventComponent) {
+			addRouteEventComponent((RouteEventComponent) databaseObject);
+		}
+		else if (databaseObject instanceof RouteComponent) {
 			addRouteComponent((RouteComponent) databaseObject);
-		} else {
+		}
+		else {
 			throw new EngineException("You cannot add to a route component a database object of type " + databaseObject.getClass().getName());
 		}
     }
 
     @Override
     public void remove(DatabaseObject databaseObject) throws EngineException {
-		if (databaseObject instanceof RouteComponent) {
+		if (databaseObject instanceof RouteEventComponent) {
+			removeRouteEventComponent((RouteEventComponent) databaseObject);
+		}
+		else if (databaseObject instanceof RouteComponent) {
 			removeRouteComponent((RouteComponent) databaseObject);
-		} else {
+		}
+		else {
 			throw new EngineException("You cannot remove from a route component a database object of type " + databaseObject.getClass().getName());
 		}
 		super.remove(databaseObject);

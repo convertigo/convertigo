@@ -78,6 +78,7 @@ import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
+import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteListenerComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RoutingTableComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
@@ -245,6 +246,10 @@ public class NewObjectWizard extends Wizard {
 			else if (beanClass.equals(RouteListenerComponent.class)) {
 				objectExplorerPageTitle = "New Route Listener Component";
 				objectExplorerPageMessage = "Please select a route listener component template.";
+			}
+			else if (beanClass.equals(RouteEventComponent.class)) {
+				objectExplorerPageTitle = "New Route Event Component";
+				objectExplorerPageMessage = "Please select a route event component template.";
 			}
 			else if (beanClass.equals(RouteComponent.class)) {
 				objectExplorerPageTitle = "New Route Component";

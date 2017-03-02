@@ -148,6 +148,7 @@ import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
+import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteListenerComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RoutingTableComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
@@ -208,6 +209,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplica
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobilePageComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobilePlatformTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteComponentTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteEventComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteListenerComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRoutingTableComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileUIComponentTreeObject;
@@ -291,7 +293,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public static final int TREE_OBJECT_TYPE_DBO_MOBILE_UICOMPONENT = 0x11C;
 	public static final int TREE_OBJECT_TYPE_DBO_MOBILE_ROUTINGTABLECOMPONENT = 0x11D;
 	public static final int TREE_OBJECT_TYPE_DBO_MOBILE_ROUTELISTENERCOMPONENT = 0x11E;
-	public static final int TREE_OBJECT_TYPE_DBO_MOBILE_ROUTECOMPONENT = 0x11F;
+	public static final int TREE_OBJECT_TYPE_DBO_MOBILE_ROUTEEVENTCOMPONENT = 0x11F;
+	public static final int TREE_OBJECT_TYPE_DBO_MOBILE_ROUTECOMPONENT = 0x120;
 	
 	public static final int TREE_OBJECT_TYPE_DBO_PROPERTY_TABLE = 0x300;
 	public static final int TREE_OBJECT_TYPE_DBO_PROPERTY_TABLE_ROW = 0x301;
@@ -317,7 +320,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public static final int TREE_OBJECT_TYPE_FOLDER_LISTENERS = 0x20E;
 	public static final int TREE_OBJECT_TYPE_FOLDER_MAPPINGS = 0x20F;
 	public static final int TREE_OBJECT_TYPE_FOLDER_OPERATIONS = 0x210;
-	public static final int TREE_OBJECT_TYPE_FOLDER_PARAMETERS = 0x210;
+	public static final int TREE_OBJECT_TYPE_FOLDER_PARAMETERS = 0x211;
+	public static final int TREE_OBJECT_TYPE_FOLDER_EVENTS = 0x212;
+	public static final int TREE_OBJECT_TYPE_FOLDER_ROUTES = 0x213;
 
 	public static final int TREE_OBJECT_TYPE_MISC = 0x8000;						// 1000 0000 0000 0000
 
@@ -1442,6 +1447,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							databaseObjectTreeObject = new MobileApplicationTreeObject(viewer, (MobileApplication) databaseObject, false);
 
 						} else if (databaseObject instanceof MobilePlatform) {
+							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_PLATFORMS;
 							databaseObjectTreeObject = new MobilePlatformTreeObject(viewer, (MobilePlatform) databaseObject, false);
 							
 						} else if (databaseObject instanceof ApplicationComponent) {
@@ -1453,10 +1459,16 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 						} else if (databaseObject instanceof RouteListenerComponent) {
 							databaseObjectTreeObject = new MobileRouteListenerComponentTreeObject(viewer, (RouteListenerComponent) databaseObject, false);
 							
+						} else if (databaseObject instanceof RouteEventComponent) {
+							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_EVENTS;
+							databaseObjectTreeObject = new MobileRouteEventComponentTreeObject(viewer, (RouteEventComponent) databaseObject, false);
+							
 						} else if (databaseObject instanceof RouteComponent) {
+							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_ROUTES;
 							databaseObjectTreeObject = new MobileRouteComponentTreeObject(viewer, (RouteComponent) databaseObject, false);
 							
 						} else if (databaseObject instanceof PageComponent) {
+							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_PAGES;
 							databaseObjectTreeObject = new MobilePageComponentTreeObject(viewer, (PageComponent) databaseObject, false);
 							
 						} else if (databaseObject instanceof UIComponent) {
@@ -2347,6 +2359,15 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			else if (folderType == ObjectsFolderTreeObject.FOLDER_TYPE_PARAMETERS) {
 				return ProjectExplorerView.TREE_OBJECT_TYPE_FOLDER_PARAMETERS;
 			}
+			else if (folderType == ObjectsFolderTreeObject.FOLDER_TYPE_EVENTS) {
+				return ProjectExplorerView.TREE_OBJECT_TYPE_FOLDER_EVENTS;
+			}
+			else if (folderType == ObjectsFolderTreeObject.FOLDER_TYPE_ROUTES) {
+				return ProjectExplorerView.TREE_OBJECT_TYPE_FOLDER_ROUTES;
+			}
+			else if (folderType == ObjectsFolderTreeObject.FOLDER_TYPE_PLATFORMS) {
+				return ProjectExplorerView.TREE_OBJECT_TYPE_FOLDER_MOBILEPLATFORMS;
+			}
 		}
 		else if (treeNode instanceof HandlersDeclarationTreeObject) {
 			return ProjectExplorerView.TREE_OBJECT_TYPE_HANDLERS_DECLARATION;
@@ -2404,6 +2425,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			}
 			else if (databaseObject instanceof RouteListenerComponent) {
 				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_ROUTELISTENERCOMPONENT;
+			}
+			else if (databaseObject instanceof RouteEventComponent) {
+				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_ROUTEEVENTCOMPONENT;
 			}
 			else if (databaseObject instanceof RouteComponent) {
 				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_ROUTECOMPONENT;

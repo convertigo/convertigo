@@ -50,6 +50,11 @@ public class ObjectsFolderTreeObject extends FolderTreeObject implements IAction
 	public static final int FOLDER_TYPE_OPERATIONS = 18;
 	public static final int FOLDER_TYPE_PARAMETERS = 19;
 	public static final int FOLDER_TYPE_RESPONSES = 20;
+	public static final int FOLDER_TYPE_PLATFORMS = 21;
+	public static final int FOLDER_TYPE_EVENTS = 22;
+	public static final int FOLDER_TYPE_ROUTES = 23;
+	public static final int FOLDER_TYPE_PAGES = 24;
+	
 	
 	public int folderType;
 	
@@ -122,6 +127,18 @@ public class ObjectsFolderTreeObject extends FolderTreeObject implements IAction
 				break;
 			case FOLDER_TYPE_RESPONSES:
 				folderName = "Responses";
+				break;
+			case FOLDER_TYPE_PLATFORMS:
+				folderName = "Platforms";
+				break;
+			case FOLDER_TYPE_EVENTS:
+				folderName = "Events";
+				break;
+			case FOLDER_TYPE_ROUTES:
+				folderName = "Routes";
+				break;
+			case FOLDER_TYPE_PAGES:
+				folderName = "Pages";
 				break;
 		}
 

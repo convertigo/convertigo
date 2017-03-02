@@ -55,17 +55,6 @@ public class ApplicationComponent extends MobileComponent {
 		return (MobileApplication) super.getParent();
 	}
 
-	@Override
-	public Object getOrder(Object object) throws EngineException {
-		if (object instanceof RoutingTableComponent) {
-			return new Long(1);
-		}
-		if (object instanceof PageComponent) {
-			return new Long(2);
-		}
-		return super.getOrder(object);
-	}
-	
 	/*
 	 * The routing table
 	 */
