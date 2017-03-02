@@ -951,6 +951,14 @@
             id="convertigo.mobileApplicationComponentContribution"
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplicationComponentTreeObject">
          <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileRoutingTableComponentAction"
+               enablesFor="1"
+               icon="icons/studio/menu/routingtablecomponent_color_16x16.png"
+               id="convertigo.action.newRoutingTableComponent"
+               label="Routing Table component"
+               menubarPath="convertigo.menu.new/content">
+         </action>
+         <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobilePageComponentAction"
                enablesFor="1"
                icon="icons/studio/menu/pagecomponent_color_16x16.png"
@@ -972,6 +980,30 @@
 	           label="Stop watch"
 	           menubarPath="npm">
 	     </action>
+      </objectContribution>
+      <objectContribution
+            id="convertigo.mobileRoutingTableComponentContribution"
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRoutingTableComponentTreeObject">
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileRouteListenerComponentAction"
+               enablesFor="1"
+               icon="icons/studio/menu/routelistenercomponent_color_16x16.png"
+               id="convertigo.action.newRouteListenerComponent"
+               label="Route Listener component"
+               menubarPath="convertigo.menu.new/content">
+         </action>            
+      </objectContribution>
+      <objectContribution
+            id="convertigo.mobileRouteListenerComponentContribution"
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteListenerComponentTreeObject">
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileRouteComponentAction"
+               enablesFor="1"
+               icon="icons/studio/menu/routecomponent_color_16x16.png"
+               id="convertigo.action.newRouteComponent"
+               label="Route component"
+               menubarPath="convertigo.menu.new/content">
+         </action>            
       </objectContribution>
       <objectContribution
             id="convertigo.mobilePageComponentContribution"

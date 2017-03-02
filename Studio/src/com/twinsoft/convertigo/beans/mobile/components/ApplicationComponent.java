@@ -43,6 +43,7 @@ public class ApplicationComponent extends MobileComponent {
 	public ApplicationComponent clone() throws CloneNotSupportedException {
 		ApplicationComponent cloned = (ApplicationComponent) super.clone();
 		cloned.vPageComponents = new LinkedList<PageComponent>();
+		cloned.routingTableComponent = null;
 		cloned.computedTemplate = null;
 		cloned.rootPage = null;
 		return cloned;
@@ -54,6 +55,40 @@ public class ApplicationComponent extends MobileComponent {
 		return (MobileApplication) super.getParent();
 	}
 
+	@Override
+	public Object getOrder(Object object) throws EngineException {
+		if (object instanceof RoutingTableComponent) {
+			return new Long(1);
+		}
+		if (object instanceof PageComponent) {
+			return new Long(2);
+		}
+		return super.getOrder(object);
+	}
+	
+	/*
+	 * The routing table
+	 */
+	private transient RoutingTableComponent routingTableComponent = null;
+	
+	public RoutingTableComponent getRoutingTableComponent() {
+		return routingTableComponent;
+	}
+	
+    public void addRoutingTableComponent(RoutingTableComponent routingTableComponent) throws EngineException {
+    	if (this.routingTableComponent != null) {
+    		throw new EngineException("The mobile application \"" + getName() + "\" already contains a routing table! Please delete it first.");
+    	}
+    	this.routingTableComponent = routingTableComponent;
+		super.add(routingTableComponent);
+    }
+    
+    public void removeRoutingTableComponent(RoutingTableComponent routingTableComponent) {
+    	if (routingTableComponent != null && routingTableComponent.equals(this.routingTableComponent)) {
+    		this.routingTableComponent = null;
+    	}
+    }
+	
 
 	/**
 	 * The list of available page component for this application.
@@ -131,6 +166,7 @@ public class ApplicationComponent extends MobileComponent {
 	@Override
 	public List<DatabaseObject> getAllChildren() {	
 		List<DatabaseObject> rep = super.getAllChildren();
+		if (routingTableComponent != null) rep.add(routingTableComponent);		
 		rep.addAll(getPageComponentList());
 		return rep;
 	}
@@ -139,6 +175,8 @@ public class ApplicationComponent extends MobileComponent {
     public void add(DatabaseObject databaseObject) throws EngineException {
 		if (databaseObject instanceof PageComponent) {
 			addPageComponent((PageComponent) databaseObject);
+		} else if (databaseObject instanceof RoutingTableComponent) {
+			addRoutingTableComponent((RoutingTableComponent)databaseObject);
 		} else {
 			throw new EngineException("You cannot add to an application component a database object of type " + databaseObject.getClass().getName());
 		}
@@ -148,6 +186,8 @@ public class ApplicationComponent extends MobileComponent {
     public void remove(DatabaseObject databaseObject) throws EngineException {
 		if (databaseObject instanceof PageComponent) {
 			removePageComponent((PageComponent) databaseObject);
+		} else if (databaseObject instanceof RoutingTableComponent) {
+			removeRoutingTableComponent((RoutingTableComponent)databaseObject);
 		} else {
 			throw new EngineException("You cannot remove from an application component a database object of type " + databaseObject.getClass().getName());
 		}

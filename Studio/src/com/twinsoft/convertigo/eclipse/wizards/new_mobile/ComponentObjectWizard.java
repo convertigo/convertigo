@@ -23,6 +23,7 @@
 package com.twinsoft.convertigo.eclipse.wizards.new_mobile;
 
 import java.lang.reflect.InvocationTargetException;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -32,6 +33,9 @@ import org.eclipse.jface.wizard.Wizard;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
+import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
+import com.twinsoft.convertigo.beans.mobile.components.RouteListenerComponent;
+import com.twinsoft.convertigo.beans.mobile.components.RoutingTableComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.statements.HandlerStatement;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -65,6 +69,18 @@ public class ComponentObjectWizard extends Wizard {
 			if (beanClass.equals(ApplicationComponent.class)) {
 				objectExplorerPageTitle = "New Application Component";
 				objectExplorerPageMessage = "Please select a application component template.";
+			}
+			else if (beanClass.equals(RoutingTableComponent.class)) {
+				objectExplorerPageTitle = "New Routing Table Component";
+				objectExplorerPageMessage = "Please select a routing table component template.";
+			}
+			else if (beanClass.equals(RouteListenerComponent.class)) {
+				objectExplorerPageTitle = "New Route Listener Component";
+				objectExplorerPageMessage = "Please select a route listener component template.";
+			}
+			else if (beanClass.equals(RouteComponent.class)) {
+				objectExplorerPageTitle = "New Route Component";
+				objectExplorerPageMessage = "Please select a route component template.";
 			}
 			else if (beanClass.equals(PageComponent.class)) {
 				objectExplorerPageTitle = "New Page Component";

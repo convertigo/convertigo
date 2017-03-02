@@ -32,6 +32,9 @@ import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
+import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
+import com.twinsoft.convertigo.beans.mobile.components.RouteListenerComponent;
+import com.twinsoft.convertigo.beans.mobile.components.RoutingTableComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.statements.HTTPStatement;
@@ -103,9 +106,32 @@ public class WalkHelper {
 		} else if (databaseObject instanceof ApplicationComponent) {
 			ApplicationComponent applicationComponent = (ApplicationComponent) databaseObject;
 			
+			if (before(databaseObject, RoutingTableComponent.class)) {
+				RoutingTableComponent component = applicationComponent.getRoutingTableComponent();
+				if (component != null) {
+					walk(component);
+				}
+			}
+			
 			if (before(databaseObject, PageComponent.class)) {
 				for (PageComponent page : applicationComponent.getPageComponentList()) {
 					walk(page);
+				}
+			}
+		} else if (databaseObject instanceof RoutingTableComponent) {
+			RoutingTableComponent routingTableComponent = (RoutingTableComponent) databaseObject;
+			
+			if (before(databaseObject, RouteListenerComponent.class)) {
+				for (RouteListenerComponent listener : routingTableComponent.getRouteListenerComponentList()) {
+					walk(listener);
+				}
+			}
+		} else if (databaseObject instanceof RouteListenerComponent) {
+			RouteListenerComponent routingListenerComponent = (RouteListenerComponent) databaseObject;
+			
+			if (before(databaseObject, RouteComponent.class)) {
+				for (RouteComponent route : routingListenerComponent.getRouteComponentList()) {
+					walk(route);
 				}
 			}
 		} else if (databaseObject instanceof PageComponent) {
