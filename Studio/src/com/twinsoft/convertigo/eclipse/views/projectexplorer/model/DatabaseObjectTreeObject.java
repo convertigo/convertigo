@@ -92,6 +92,7 @@ import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithDynamicTagsE
 import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithTagsEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithTagsEditorAdvance;
 import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithValidatorEditor;
+import com.twinsoft.convertigo.eclipse.property_editors.StringComboBoxPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.StringOrNullEditor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.InfoPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ScriptablePropertyDescriptor;
@@ -434,6 +435,11 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
     				propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, tags);
     			}
    	        }
+        	else if (StringComboBoxPropertyDescriptor.class.isAssignableFrom(pec)) {
+				Method getTags = pec.getDeclaredMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
+				String[] tags = (String[]) getTags.invoke(null, new Object[] { this, name } );
+				propertyDescriptor = new StringComboBoxPropertyDescriptor(name, displayName, tags, false);
+        	}
         	else if (PropertyWithDynamicInfoEditor.class.isAssignableFrom(pec)) {
         		Method getInfo = pec.getMethod("getInfo", new Class[] { DatabaseObjectTreeObject.class, String.class });
         		propertyDescriptor = new DynamicInfoPropertyDescriptor(name, displayName, getInfo, this, name);
@@ -714,6 +720,8 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	        				}
 		        		} else if (Enum.class.isAssignableFrom(pec)) {
 		        			value = new Integer(((Enum<?>) value).ordinal());
+		        		} else if (StringComboBoxPropertyDescriptor.class.isAssignableFrom(pec)) {
+		        			// nothing to do: value is a string
 		        		}
 	            	}
 	        		if ((EmulatorTechnologyEditor.class.equals(pec))) {

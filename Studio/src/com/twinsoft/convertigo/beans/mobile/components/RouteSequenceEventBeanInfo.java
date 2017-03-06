@@ -26,31 +26,25 @@ import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
-public class RouteEventComponentBeanInfo extends MySimpleBeanInfo {
+public class RouteSequenceEventBeanInfo extends MySimpleBeanInfo {
 
-	public RouteEventComponentBeanInfo() {
+	public RouteSequenceEventBeanInfo() {
 		try {
-			beanClass = RouteEventComponent.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.core.MobileComponent.class;
+			beanClass = RouteSequenceEvent.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/mobile/components/images/routeeventcomponent_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/mobile/components/images/routeeventcomponent_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/mobile/components/images/routesequenceevent_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/mobile/components/images/routesequenceevent_color_32x32.png";
 
-			resourceBundle = getResourceBundle("res/RouteEventComponent");
+			resourceBundle = getResourceBundle("res/RouteSequenceEvent");
 
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[2];
+			properties = new PropertyDescriptor[0];
 			
-			properties[0] = new PropertyDescriptor("source", beanClass, "getSource", "setSource");
-			properties[0].setDisplayName(getExternalizedString("property.source.display_name"));
-			properties[0].setShortDescription(getExternalizedString("property.source.short_description"));
-			
-			properties[1] = new PropertyDescriptor("marker", beanClass, "getMarker", "setMarker");
-			properties[1].setDisplayName(getExternalizedString("property.marker.display_name"));
-			properties[1].setShortDescription(getExternalizedString("property.marker.short_description"));
-			
+			getPropertyDescriptor("source").setPropertyEditorClass(getEditorClass("NamedSourceSelectorEditor"));
+
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

@@ -49,4 +49,47 @@ public class RouteEventComponent extends MobileComponent {
 		return null;
 	}
 
+	/*
+	 * The event source
+	 */
+	protected String source = "*";
+
+	public String getSource() {
+		return source;
+	}
+
+	public void setSource(String source) {
+		this.source = source;
+	}
+	
+	/*
+	 * The marker for mobile client application
+	 */
+	private String marker = "";
+	
+	public String getMarker() {
+		return marker;
+	}
+
+	public void setMarker(String marker) {
+		this.marker = marker;
+	}
+	
+	/*
+	 * The 'requestable' used by mobile client application
+	 */
+	protected String getRequestableSource() {
+		return getSource();
+	}
+	
+	public String getRequestableString() {
+		return getRequestableSource() + (marker.isEmpty() ? "" : "#" + marker);
+	}
+
+	@Override
+	public String toString() {
+		String label = getSource();
+		return "on_" + (label.equals("") ? "?" : label);
+	}
+	
 }

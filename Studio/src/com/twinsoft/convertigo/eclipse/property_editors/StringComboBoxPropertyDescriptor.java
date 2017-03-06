@@ -41,6 +41,10 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.views.properties.PropertyDescriptor;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.ITagsProperty;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
+
 public class StringComboBoxPropertyDescriptor extends PropertyDescriptor {
 
 	private String[] labels;
@@ -211,5 +215,20 @@ public class StringComboBoxPropertyDescriptor extends PropertyDescriptor {
 			comboBox.setText(text);
 		}
     	
+    }
+    
+    public static String[] getTags(DatabaseObjectTreeObject databaseObjectTreeObject, String propertyName) {
+    	DatabaseObject bean = (DatabaseObject) databaseObjectTreeObject.getObject();
+    	ITagsProperty tagsProperty = null;
+		
+		if (bean instanceof ITagsProperty) {
+			tagsProperty = (ITagsProperty) bean;
+		}
+		else {
+			return new String[] { "" };
+		}
+
+		String[] sResults = tagsProperty.getTagsForProperty(propertyName);
+		return sResults;
     }
 }
