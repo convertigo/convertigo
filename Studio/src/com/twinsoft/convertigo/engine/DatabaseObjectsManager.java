@@ -1776,4 +1776,14 @@ public class DatabaseObjectsManager implements AbstractManager {
 	public boolean canOpenProject(String projectName) {
 		return openableProject == null || openableProject.canOpen(projectName);
 	}
+	
+	public DatabaseObject getDatabaseObjectByQName(String qname) throws Exception {
+		String[] name = qname.split("\\.");
+		String project = name[0];
+		DatabaseObject dbo = getOriginalProjectByName(project);
+		for (int i = 1; i < name.length; i++) {
+			dbo = dbo.getDatabaseObjectChild(name[i]);
+		}
+		return dbo;
+	}
 }

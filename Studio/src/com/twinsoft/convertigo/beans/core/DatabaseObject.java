@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -1184,5 +1185,32 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 				propertyDescriptor.getWriteMethod().invoke(this, newValue);
 			}
 		}
+	}
+	
+	public List<DatabaseObject> getDatabaseObjectChildren() throws Exception {
+		final List<DatabaseObject> children = new LinkedList<DatabaseObject>();
+		new WalkHelper() {
+
+			@Override
+			protected void walk(DatabaseObject databaseObject) throws Exception {
+				if (databaseObject == DatabaseObject.this) {
+					super.walk(databaseObject);
+				} else {
+					children.add(databaseObject);
+				}
+			}
+			
+		}.init(this);
+		return children;
+	}
+	
+	public DatabaseObject getDatabaseObjectChild(String name) throws Exception {
+		List<DatabaseObject> children = getDatabaseObjectChildren();
+		for (DatabaseObject child: children) {
+			if (child.getName().equals(name)) {
+				return child;
+			}
+		}
+		return null;
 	}
 }

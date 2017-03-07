@@ -54,6 +54,7 @@ public class CachedIntrospector {
 	
 	private final static Map<Class<? extends DatabaseObject>, BeanInfo> cacheBeanInfo = Collections.synchronizedMap(new WeakHashMap<Class<? extends DatabaseObject>, BeanInfo>());
 	private final static Map<Class<? extends DatabaseObject>, Map<Property, Set<PropertyDescriptor>>> cacheProperties = Collections.synchronizedMap(new WeakHashMap<Class<? extends DatabaseObject>, Map<Property, Set<PropertyDescriptor>>>());
+	private final static Set<String> cacheClassNames = Collections.synchronizedSet(new HashSet<String>());
 
 	public static <T> Set<T> getPropertyValues(DatabaseObject databaseObject, Property property) {
 		Set<PropertyDescriptor> propertyDescriptors = getPropertyDescriptors(databaseObject, property);
@@ -142,6 +143,10 @@ public class CachedIntrospector {
 		return beanInfo;
 	}
 	
+	public static Set<String> getClassNames() {
+		return cacheClassNames;
+	}
+	
 	public static void prefetchDatabaseObjects() {
 		long time = System.currentTimeMillis();
 		final long[] count = {0};
@@ -157,6 +162,7 @@ public class CachedIntrospector {
 						String classname = attributes.getValue("classname");
 						if (classname != null) {
 							try {
+								cacheClassNames.add(classname);
 								Class<? extends DatabaseObject> cl = (Class<? extends DatabaseObject>) Class.forName(classname);
 								getBeanInfo(cl);
 								count[0]++;
