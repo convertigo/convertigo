@@ -45,7 +45,6 @@
 				
 				// Inject CSS
 				INJ.injectLinkStyle(PTV.url.baseUrlConvertigoStudio + "project-tree-view/css/jstree/themes/default-dark/style.min.css");
-				INJ.injectLinkStyle(PTV.createConvertigoServiceUrl("studio.database_objects.GetCSS"));
 				INJ.injectLinkStyle(PTV.url.baseUrlConvertigoStudio + "project-tree-view/css/style.css");
 				
 				// Load jQuery library
@@ -155,6 +154,9 @@
 						authType: "login"
 					},
 					success: function (data, textStatus, jqXHR) {
+						// Inject CSS for icon
+						INJ.injectLinkStyle(PTV.createConvertigoServiceUrl("studio.database_objects.GetCSS"));
+						
 						// User is authenticated : we can create project nodes
 						if ($(data).find("role[name='AUTHENTICATED']").length !== 0) {
 							PTV.createProjectNodes();
