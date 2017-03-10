@@ -42,8 +42,8 @@ public class ApplicationComponent extends MobileComponent {
 	@Override
 	public ApplicationComponent clone() throws CloneNotSupportedException {
 		ApplicationComponent cloned = (ApplicationComponent) super.clone();
+		cloned.vRouteComponents = new LinkedList<RouteComponent>();
 		cloned.vPageComponents = new LinkedList<PageComponent>();
-		cloned.routingTableComponent = null;
 		cloned.computedTemplate = null;
 		cloned.rootPage = null;
 		return cloned;
@@ -55,35 +55,35 @@ public class ApplicationComponent extends MobileComponent {
 		return (MobileApplication) super.getParent();
 	}
 
-	/*
-	 * The routing table
+	/**
+	 * The list of available routes for this application.
 	 */
-	private transient RoutingTableComponent routingTableComponent = null;
+	transient private List<RouteComponent> vRouteComponents = new LinkedList<RouteComponent>();
 	
-	public RoutingTableComponent getRoutingTableComponent() {
-		return routingTableComponent;
-	}
-	
-    public void addRoutingTableComponent(RoutingTableComponent routingTableComponent) throws EngineException {
-    	if (this.routingTableComponent != null) {
-    		throw new EngineException("The mobile application \"" + getName() + "\" already contains a routing table! Please delete it first.");
-    	}
-    	this.routingTableComponent = routingTableComponent;
-		super.add(routingTableComponent);
+	protected void addRouteComponent(RouteComponent routeComponent) throws EngineException {
+		checkSubLoaded();
+		String newDatabaseObjectName = getChildBeanName(vRouteComponents, routeComponent.getName(), routeComponent.bNew);
+		routeComponent.setName(newDatabaseObjectName);
+		vRouteComponents.add(routeComponent);
+		super.add(routeComponent);
 		
-		if (routingTableComponent.bNew) {
+		if (routeComponent.bNew) {
 			getProject().getMobileBuilder().appChanged();
 		}
 		
-    }
-    
-    public void removeRoutingTableComponent(RoutingTableComponent routingTableComponent) throws EngineException {
-    	if (routingTableComponent != null && routingTableComponent.equals(this.routingTableComponent)) {
-    		this.routingTableComponent = null;
-    		
-    		getProject().getMobileBuilder().appChanged();
-    	}
-    }
+	}
+
+	public void removeRouteComponent(RouteComponent routeComponent) throws EngineException {
+		checkSubLoaded();
+		vRouteComponents.remove(routeComponent);
+		
+		getProject().getMobileBuilder().appChanged();
+	}
+
+	public List<RouteComponent> getRouteComponentList() {
+		checkSubLoaded();
+		return sort(vRouteComponents);
+	}
 	
 
 	/**
@@ -162,17 +162,17 @@ public class ApplicationComponent extends MobileComponent {
 	@Override
 	public List<DatabaseObject> getAllChildren() {	
 		List<DatabaseObject> rep = super.getAllChildren();
-		if (routingTableComponent != null) rep.add(routingTableComponent);		
+		rep.addAll(getRouteComponentList());
 		rep.addAll(getPageComponentList());
 		return rep;
 	}
 
 	@Override
     public void add(DatabaseObject databaseObject) throws EngineException {
-		if (databaseObject instanceof PageComponent) {
+		if (databaseObject instanceof RouteComponent) {
+			addRouteComponent((RouteComponent) databaseObject);
+		} else if (databaseObject instanceof PageComponent) {
 			addPageComponent((PageComponent) databaseObject);
-		} else if (databaseObject instanceof RoutingTableComponent) {
-			addRoutingTableComponent((RoutingTableComponent)databaseObject);
 		} else {
 			throw new EngineException("You cannot add to an application component a database object of type " + databaseObject.getClass().getName());
 		}
@@ -180,10 +180,10 @@ public class ApplicationComponent extends MobileComponent {
 
     @Override
     public void remove(DatabaseObject databaseObject) throws EngineException {
-		if (databaseObject instanceof PageComponent) {
+		if (databaseObject instanceof RouteComponent) {
+			removeRouteComponent((RouteComponent) databaseObject);
+		} else if (databaseObject instanceof PageComponent) {
 			removePageComponent((PageComponent) databaseObject);
-		} else if (databaseObject instanceof RoutingTableComponent) {
-			removeRoutingTableComponent((RoutingTableComponent)databaseObject);
 		} else {
 			throw new EngineException("You cannot remove from an application component a database object of type " + databaseObject.getClass().getName());
 		}

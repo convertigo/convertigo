@@ -80,7 +80,6 @@ import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
-import com.twinsoft.convertigo.beans.mobile.components.RoutingTableComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.references.ImportXsdSchemaReference;
 import com.twinsoft.convertigo.beans.references.RestServiceReference;
@@ -238,10 +237,6 @@ public class NewObjectWizard extends Wizard {
 			else if (beanClass.equals(ApplicationComponent.class)) {
 				objectExplorerPageTitle = "New Application Component";
 				objectExplorerPageMessage = "Please select an application component template.";
-			}
-			else if (beanClass.equals(RoutingTableComponent.class)) {
-				objectExplorerPageTitle = "New Routing Table Component";
-				objectExplorerPageMessage = "Please select a routing table component template.";
 			}
 			else if (beanClass.equals(RouteComponent.class)) {
 				objectExplorerPageTitle = "New Route Component";

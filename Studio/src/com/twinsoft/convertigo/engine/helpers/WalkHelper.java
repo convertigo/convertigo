@@ -35,7 +35,6 @@ import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
-import com.twinsoft.convertigo.beans.mobile.components.RoutingTableComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.statements.HTTPStatement;
@@ -107,24 +106,15 @@ public class WalkHelper {
 		} else if (databaseObject instanceof ApplicationComponent) {
 			ApplicationComponent applicationComponent = (ApplicationComponent) databaseObject;
 			
-			if (before(databaseObject, RoutingTableComponent.class)) {
-				RoutingTableComponent component = applicationComponent.getRoutingTableComponent();
-				if (component != null) {
-					walk(component);
+			if (before(databaseObject, RouteComponent.class)) {
+				for (RouteComponent route : applicationComponent.getRouteComponentList()) {
+					walk(route);
 				}
 			}
 			
 			if (before(databaseObject, PageComponent.class)) {
 				for (PageComponent page : applicationComponent.getPageComponentList()) {
 					walk(page);
-				}
-			}
-		} else if (databaseObject instanceof RoutingTableComponent) {
-			RoutingTableComponent routingTableComponent = (RoutingTableComponent) databaseObject;
-			
-			if (before(databaseObject, RouteComponent.class)) {
-				for (RouteComponent route : routingTableComponent.getRouteListenerComponentList()) {
-					walk(route);
 				}
 			}
 		} else if (databaseObject instanceof RouteComponent) {
@@ -137,7 +127,7 @@ public class WalkHelper {
 			}
 			
 			if (before(databaseObject, RouteActionComponent.class)) {
-				for (RouteActionComponent action : routingListenerComponent.getRouteComponentList()) {
+				for (RouteActionComponent action : routingListenerComponent.getRouteActionComponentList()) {
 					walk(action);
 				}
 			}

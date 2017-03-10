@@ -140,11 +140,8 @@
 				</bean>
 			</beans>
 			<beans groupname="Route Components">
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.RoutingTableComponent">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent"/>
-				</bean>
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.RouteComponent">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.RoutingTableComponent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent"/>
 				</bean>
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.RouteComponent"/>

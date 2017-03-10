@@ -41,13 +41,13 @@ public class RouteComponent extends MobileComponent {
 	public RouteComponent clone() throws CloneNotSupportedException {
 		RouteComponent cloned = (RouteComponent)super.clone();
 		cloned.vRouteEventComponents = new LinkedList<RouteEventComponent>();
-		cloned.vRouteComponents = new LinkedList<RouteActionComponent>();
+		cloned.vRouteActionComponents = new LinkedList<RouteActionComponent>();
 		return cloned;
 	}
 
 	@Override
-	public RoutingTableComponent getParent() {
-		return (RoutingTableComponent) super.getParent();
+	public ApplicationComponent getParent() {
+		return (ApplicationComponent) super.getParent();
 	}
 	
 	/**
@@ -82,38 +82,38 @@ public class RouteComponent extends MobileComponent {
 	/**
 	 * The list of available routes for this application.
 	 */
-	transient private List<RouteActionComponent> vRouteComponents = new LinkedList<RouteActionComponent>();
+	transient private List<RouteActionComponent> vRouteActionComponents = new LinkedList<RouteActionComponent>();
 	
-	protected void addRouteComponent(RouteActionComponent routeComponent) throws EngineException {
+	protected void addRouteActionComponent(RouteActionComponent routeActionComponent) throws EngineException {
 		checkSubLoaded();
-		String newDatabaseObjectName = getChildBeanName(vRouteComponents, routeComponent.getName(), routeComponent.bNew);
-		routeComponent.setName(newDatabaseObjectName);
-		vRouteComponents.add(routeComponent);
-		super.add(routeComponent);
+		String newDatabaseObjectName = getChildBeanName(vRouteActionComponents, routeActionComponent.getName(), routeActionComponent.bNew);
+		routeActionComponent.setName(newDatabaseObjectName);
+		vRouteActionComponents.add(routeActionComponent);
+		super.add(routeActionComponent);
 		
-		if (routeComponent.bNew) {
+		if (routeActionComponent.bNew) {
 			getProject().getMobileBuilder().appChanged();
 		}
 		
 	}
 
-	public void removeRouteComponent(RouteActionComponent routeComponent) throws EngineException {
+	public void removeRouteActionComponent(RouteActionComponent routeActionComponent) throws EngineException {
 		checkSubLoaded();
-		vRouteComponents.remove(routeComponent);
+		vRouteActionComponents.remove(routeActionComponent);
 		
 		getProject().getMobileBuilder().appChanged();
 	}
 
-	public List<RouteActionComponent> getRouteComponentList() {
+	public List<RouteActionComponent> getRouteActionComponentList() {
 		checkSubLoaded();
-		return sort(vRouteComponents);
+		return sort(vRouteActionComponents);
 	}
 	
 	@Override
 	public List<DatabaseObject> getAllChildren() {	
 		List<DatabaseObject> rep = super.getAllChildren();
 		rep.addAll(getRouteEventComponentList());
-		rep.addAll(getRouteComponentList());
+		rep.addAll(getRouteActionComponentList());
 		return rep;
 	}
 
@@ -123,7 +123,7 @@ public class RouteComponent extends MobileComponent {
 			addRouteEventComponent((RouteEventComponent) databaseObject);
 		}
 		else if (databaseObject instanceof RouteActionComponent) {
-			addRouteComponent((RouteActionComponent) databaseObject);
+			addRouteActionComponent((RouteActionComponent) databaseObject);
 		}
 		else {
 			throw new EngineException("You cannot add to a route component a database object of type " + databaseObject.getClass().getName());
@@ -136,7 +136,7 @@ public class RouteComponent extends MobileComponent {
 			removeRouteEventComponent((RouteEventComponent) databaseObject);
 		}
 		else if (databaseObject instanceof RouteActionComponent) {
-			removeRouteComponent((RouteActionComponent) databaseObject);
+			removeRouteActionComponent((RouteActionComponent) databaseObject);
 		}
 		else {
 			throw new EngineException("You cannot remove from a route component a database object of type " + databaseObject.getClass().getName());

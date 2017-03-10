@@ -951,11 +951,11 @@
             id="convertigo.mobileApplicationComponentContribution"
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplicationComponentTreeObject">
          <action
-               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileRoutingTableComponentAction"
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileRouteComponentAction"
                enablesFor="1"
-               icon="icons/studio/menu/routingtablecomponent_color_16x16.png"
-               id="convertigo.action.newRoutingTableComponent"
-               label="Routing Table"
+               icon="icons/studio/menu/routecomponent_color_16x16.png"
+               id="convertigo.action.newRouteComponent"
+               label="Route"
                menubarPath="convertigo.menu.new/content">
          </action>
          <action
@@ -982,19 +982,7 @@
 	     </action>
       </objectContribution>
       <objectContribution
-            id="convertigo.mobileRoutingTableComponentContribution"
-            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRoutingTableComponentTreeObject">
-         <action
-               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileRouteComponentAction"
-               enablesFor="1"
-               icon="icons/studio/menu/routecomponent_color_16x16.png"
-               id="convertigo.action.newRouteComponent"
-               label="Route"
-               menubarPath="convertigo.menu.new/content">
-         </action>            
-      </objectContribution>
-      <objectContribution
-            id="convertigo.mobileRouteListenerComponentContribution"
+            id="convertigo.mobileRouteComponentContribution"
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteComponentTreeObject">
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileRouteActionComponentAction"
