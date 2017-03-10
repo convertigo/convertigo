@@ -29,7 +29,7 @@ import org.eclipse.jface.viewers.Viewer;
 
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
-import com.twinsoft.convertigo.beans.mobile.components.RouteDataComponent;
+import com.twinsoft.convertigo.beans.mobile.components.RouteDataActionComponent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 
 public class MobileRouteActionComponentTreeObject extends MobileComponentTreeObject implements INamedSourceSelectorTreeObject {
@@ -115,7 +115,7 @@ public class MobileRouteActionComponentTreeObject extends MobileComponentTreeObj
 				if (getObject() instanceof RouteActionComponent) {
 					if ("page".equals(propertyName)) {
 						RouteActionComponent rc = getObject();
-						if (rc instanceof RouteDataComponent) {
+						if (rc instanceof RouteDataActionComponent) {
 							return nsObject instanceof PageComponent;
 						}
 					}

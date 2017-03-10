@@ -22,17 +22,17 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
-public class RouteDataComponent extends RouteActionComponent {
+public class RouteDataActionComponent extends RouteActionComponent {
 
 	private static final long serialVersionUID = -1240983643118635049L;
 
-	public RouteDataComponent() {
+	public RouteDataActionComponent() {
 		super();
 	}
 	
 	@Override
-	public RouteDataComponent clone() throws CloneNotSupportedException {
-		RouteDataComponent cloned = (RouteDataComponent)super.clone();
+	public RouteDataActionComponent clone() throws CloneNotSupportedException {
+		RouteDataActionComponent cloned = (RouteDataActionComponent)super.clone();
 		return cloned;
 	}
 

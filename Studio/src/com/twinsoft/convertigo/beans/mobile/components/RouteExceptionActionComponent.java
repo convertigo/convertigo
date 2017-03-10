@@ -22,18 +22,18 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
-public class RouteExceptionComponent extends RouteActionComponent {
+public class RouteExceptionActionComponent extends RouteActionComponent {
 
 	private static final long serialVersionUID = -8882933502852801495L;
 
-	public RouteExceptionComponent() {
+	public RouteExceptionActionComponent() {
 		super();
 		this.action = Action.toast.name();
 	}
 	
 	@Override
-	public RouteExceptionComponent clone() throws CloneNotSupportedException {
-		RouteExceptionComponent cloned = (RouteExceptionComponent)super.clone();
+	public RouteExceptionActionComponent clone() throws CloneNotSupportedException {
+		RouteExceptionActionComponent cloned = (RouteExceptionActionComponent)super.clone();
 		return cloned;
 	}
 

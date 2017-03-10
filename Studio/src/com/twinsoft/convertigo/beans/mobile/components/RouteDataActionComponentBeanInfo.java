@@ -26,26 +26,22 @@ import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
-public class RouteExceptionComponentBeanInfo extends MySimpleBeanInfo {
+public class RouteDataActionComponentBeanInfo extends MySimpleBeanInfo {
 
-	public RouteExceptionComponentBeanInfo() {
+	public RouteDataActionComponentBeanInfo() {
 		try {
-			beanClass = RouteExceptionComponent.class;
+			beanClass = RouteDataActionComponent.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/mobile/components/images/routeexceptioncomponent_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/mobile/components/images/routeexceptioncomponent_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/mobile/components/images/routedataactioncomponent_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/mobile/components/images/routedataactioncomponent_color_32x32.png";
 
-			resourceBundle = getResourceBundle("res/RouteExceptionComponent");
+			resourceBundle = getResourceBundle("res/RouteDataActionComponent");
 
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
 			properties = new PropertyDescriptor[0];
-			
-			getPropertyDescriptor("condition").setHidden(true);
-			getPropertyDescriptor("action").setHidden(true);
-			getPropertyDescriptor("page").setHidden(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
