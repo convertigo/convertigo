@@ -2122,7 +2122,7 @@
             </enablement>
          </action>
          <action
-               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileRouteActionComponentAction"
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileRouteComponentAction"
                enablesFor="1"
                icon="icons/studio/menu/routecomponent_color_16x16.png"
                id="convertigo.action.newRouteComponent"
