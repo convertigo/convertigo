@@ -25,7 +25,9 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 import org.eclipse.jface.viewers.Viewer;
 
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
+import com.twinsoft.convertigo.engine.EngineException;
 
 public class MobileApplicationComponentTreeObject extends MobileComponentTreeObject {
 
@@ -56,12 +58,23 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 	public void hasBeenModified(boolean bModified) {
 		super.hasBeenModified(bModified);
 		if (bModified && !isInherited) {
-			markTemplateAsDirty();
+			markScriptsAsDirty();
 		}
 	}
 	
-	protected void markTemplateAsDirty() {
-		;
+	protected void markScriptsAsDirty() {
+		ApplicationComponent ac = getObject();
+		if (ac != null) {
+			try {
+				ac.getProject().getMobileBuilder().appChanged();
+			} catch (EngineException e) {
+				ConvertigoPlugin.logException(e,
+						"Error while writing the script file for app '" + ac.getName() + "'");	}
+		}
 	}
 
+	protected void markTemplateAsDirty() {
+		;// TODO
+	}
+	
 }

@@ -61,11 +61,17 @@ public class RouteListenerComponent extends MobileComponent {
 		routeEventComponent.setName(newDatabaseObjectName);
 		vRouteEventComponents.add(routeEventComponent);
 		super.add(routeEventComponent);
+		
+		if (routeEventComponent.bNew) {
+			getProject().getMobileBuilder().appChanged();
+		}
 	}
 
 	public void removeRouteEventComponent(RouteEventComponent routeEventComponent) throws EngineException {
 		checkSubLoaded();
 		vRouteEventComponents.remove(routeEventComponent);
+		
+		getProject().getMobileBuilder().appChanged();
 	}
 
 	public List<RouteEventComponent> getRouteEventComponentList() {
@@ -84,11 +90,18 @@ public class RouteListenerComponent extends MobileComponent {
 		routeComponent.setName(newDatabaseObjectName);
 		vRouteComponents.add(routeComponent);
 		super.add(routeComponent);
+		
+		if (routeComponent.bNew) {
+			getProject().getMobileBuilder().appChanged();
+		}
+		
 	}
 
 	public void removeRouteComponent(RouteComponent routeComponent) throws EngineException {
 		checkSubLoaded();
 		vRouteComponents.remove(routeComponent);
+		
+		getProject().getMobileBuilder().appChanged();
 	}
 
 	public List<RouteComponent> getRouteComponentList() {

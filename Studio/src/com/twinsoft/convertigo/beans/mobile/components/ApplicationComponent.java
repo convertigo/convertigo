@@ -70,11 +70,18 @@ public class ApplicationComponent extends MobileComponent {
     	}
     	this.routingTableComponent = routingTableComponent;
 		super.add(routingTableComponent);
+		
+		if (routingTableComponent.bNew) {
+			getProject().getMobileBuilder().appChanged();
+		}
+		
     }
     
-    public void removeRoutingTableComponent(RoutingTableComponent routingTableComponent) {
+    public void removeRoutingTableComponent(RoutingTableComponent routingTableComponent) throws EngineException {
     	if (routingTableComponent != null && routingTableComponent.equals(this.routingTableComponent)) {
     		this.routingTableComponent = null;
+    		
+    		getProject().getMobileBuilder().appChanged();
     	}
     }
 	

@@ -86,10 +86,20 @@ public class RouteEventComponent extends MobileComponent {
 		return getRequestableSource() + (marker.isEmpty() ? "" : "#" + marker);
 	}
 
+	protected String getSourceName() {
+		String sourceName = getSource();
+		if (!sourceName.isEmpty() && sourceName.startsWith(getProject().getName())) {
+			try {
+				sourceName = sourceName.substring(sourceName.lastIndexOf('.')+1);
+			} catch (IndexOutOfBoundsException e) {}
+		}
+		return sourceName;
+	}
+	
 	@Override
 	public String toString() {
-		String label = getSource();
-		return "on_" + (label.equals("") ? "?" : label);
+		String label = getSourceName();
+		return "on " + (label.equals("") ? "?" : label);
 	}
 	
 }

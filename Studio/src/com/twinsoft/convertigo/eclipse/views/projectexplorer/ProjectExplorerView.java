@@ -1107,7 +1107,13 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							boolean updateReferences = false;
 							int update = 0;
 							// Updates references to object if needed
-							if ((theTreeObject instanceof ProjectTreeObject) || (theTreeObject instanceof SequenceTreeObject) || (theTreeObject instanceof ConnectorTreeObject) || (theTreeObject instanceof TransactionTreeObject) || (theTreeObject instanceof VariableTreeObject2) || (theTreeObject instanceof IDesignTreeObject)) {
+							if ((theTreeObject instanceof ProjectTreeObject) || 
+									(theTreeObject instanceof SequenceTreeObject) || 
+									(theTreeObject instanceof ConnectorTreeObject) || 
+									(theTreeObject instanceof TransactionTreeObject) || 
+									(theTreeObject instanceof VariableTreeObject2) || 
+									(theTreeObject instanceof IDesignTreeObject) ||
+									(theTreeObject instanceof MobilePageComponentTreeObject)) {								
 								String objectType = "";
 								if (theTreeObject instanceof ProjectTreeObject) {
 									objectType = "project";
@@ -1129,6 +1135,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 									updateDlg = true;
 								} else if (theTreeObject instanceof DesignDocumentViewTreeObject) {
 									objectType = "view";
+									updateDlg = true;
+								} else if (theTreeObject instanceof MobilePageComponentTreeObject) {
+									objectType = "page";
 									updateDlg = true;
 								}
 								

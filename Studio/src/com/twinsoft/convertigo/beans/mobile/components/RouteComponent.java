@@ -22,12 +22,21 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
+import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
+import com.twinsoft.convertigo.engine.util.EnumUtils;
 
-public class RouteComponent extends MobileComponent {
+public abstract class RouteComponent extends MobileComponent implements ITagsProperty {
 
 	private static final long serialVersionUID = 2529010701434894046L;
 
+	public enum Action {
+		push,
+		root,
+		setRoot,
+		toast,
+	}
+	
 	public RouteComponent() {
 		super();
 	}
@@ -43,6 +52,52 @@ public class RouteComponent extends MobileComponent {
 		return (RouteListenerComponent) super.getParent();
 	}	
 
+	/*
+	 * The condition to be verified on data 
+	 */
+	private String condition = "";
+	
+	public String getCondition() {
+		return condition;
+	}
+
+	public void setCondition(String condition) {
+		this.condition = condition;
+	}
+	
+	/*
+	 * The action to trigger
+	 */
+	protected String action = "";
+	
+	public String getAction() {
+		return action;
+	}
+
+	public void setAction(String action) {
+		this.action = action;
+	}
+
+	/*
+	 * The page associated with action
+	 */
+	private String page = "";
+	
+	public String getPage() {
+		return page;
+	}
+
+	public void setPage(String page) {
+		this.page = page;
+	}
+	
+	public String[] getTagsForProperty(String propertyName) {
+		if (propertyName.equals("action")) {
+			return EnumUtils.toNames(Action.class);
+		}
+		return new String[0];
+	}
+	
 	@Override
 	protected String computeTemplate() {
 		// TODO Auto-generated method stub

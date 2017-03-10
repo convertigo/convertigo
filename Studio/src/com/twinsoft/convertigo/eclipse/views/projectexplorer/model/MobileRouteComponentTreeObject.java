@@ -22,12 +22,17 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.jface.viewers.Viewer;
 
+import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
+import com.twinsoft.convertigo.beans.mobile.components.RouteDataComponent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 
-public class MobileRouteComponentTreeObject extends MobileComponentTreeObject {
+public class MobileRouteComponentTreeObject extends MobileComponentTreeObject implements INamedSourceSelectorTreeObject {
 
 	public MobileRouteComponentTreeObject(Viewer viewer, RouteComponent object) {
 		super(viewer, object);
@@ -56,12 +61,100 @@ public class MobileRouteComponentTreeObject extends MobileComponentTreeObject {
 	public void hasBeenModified(boolean bModified) {
 		super.hasBeenModified(bModified);
 		if (bModified && !isInherited) {
-			markTemplateAsDirty();
+			markScriptsAsDirty();
 		}
 	}
 	
-	protected void markTemplateAsDirty() {
-		;
+	protected void markScriptsAsDirty() {
+		TreeParent treeParent = parent;
+		while (treeParent != null) {
+			if (treeParent instanceof MobileApplicationComponentTreeObject) {
+				((MobileApplicationComponentTreeObject) treeParent).markScriptsAsDirty();
+				break;
+			}
+			treeParent = treeParent.getParent();
+		}
+	}
+
+	@Override
+	public NamedSourceSelector getNamedSourceSelector() {
+		return new NamedSourceSelector() {
+
+			@Override
+			Object thisTreeObject() {
+				return MobileRouteComponentTreeObject.this;
+			}
+			
+			@Override
+			protected List<String> getPropertyNamesForSource(Class<?> c) {
+				List<String> list = new ArrayList<String>();
+				
+				if (getObject() instanceof RouteComponent) {
+					if (ProjectTreeObject.class.isAssignableFrom(c) ||
+						MobileApplicationTreeObject.class.isAssignableFrom(c) ||
+						MobileApplicationComponentTreeObject.class.isAssignableFrom(c) ||
+						MobilePageComponentTreeObject.class.isAssignableFrom(c))
+					{
+						list.add("page");
+					}
+				}
+				
+				return list;
+			}
+			
+			@Override
+			protected boolean isNamedSource(String propertyName) {
+				if (getObject() instanceof RouteComponent) {
+					return "page".equals(propertyName);
+				}
+				return false;
+			}
+			
+			@Override
+			public boolean isSelectable(String propertyName, Object nsObject) {
+				if (getObject() instanceof RouteComponent) {
+					if ("page".equals(propertyName)) {
+						RouteComponent rc = getObject();
+						if (rc instanceof RouteDataComponent) {
+							return nsObject instanceof PageComponent;
+						}
+					}
+				}
+				return false;
+			}
+			
+			@Override
+			protected void handleSourceCleared(String propertyName) {
+				// nothing to do
+			}
+
+			@Override
+			protected void handleSourceRenamed(String propertyName, String oldName, String newName) {
+				if (isNamedSource(propertyName)) {
+					boolean hasBeenRenamed = false;
+					
+					String pValue = (String) getPropertyValue(propertyName);
+					if (pValue != null && pValue.startsWith(oldName)) {
+						String _pValue = newName + pValue.substring(oldName.length());
+						if (!pValue.equals(_pValue)) {
+							if (getObject() instanceof RouteComponent) {
+								if ("page".equals(propertyName)) {
+									getObject().setPage(_pValue);
+									hasBeenRenamed = true;
+								}
+							}
+						}
+					}
+			
+					if (hasBeenRenamed) {
+						hasBeenModified(true);
+						viewer.refresh();
+						
+						getDescriptors();// refresh editors (e.g labels in combobox)
+					}
+				}
+			}
+		};
 	}
 
 }

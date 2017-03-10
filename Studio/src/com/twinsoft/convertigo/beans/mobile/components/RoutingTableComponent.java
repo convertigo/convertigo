@@ -60,11 +60,18 @@ public class RoutingTableComponent extends MobileComponent {
 		routeListenerComponent.setName(newDatabaseObjectName);
 		vRouteListenerComponents.add(routeListenerComponent);
 		super.add(routeListenerComponent);
+		
+		if (routeListenerComponent.bNew) {
+			getProject().getMobileBuilder().appChanged();
+		}
+		
 	}
 
 	public void removeRouteListenerComponent(RouteListenerComponent routeListenerComponent) throws EngineException {
 		checkSubLoaded();
 		vRouteListenerComponents.remove(routeListenerComponent);
+		
+		getProject().getMobileBuilder().appChanged();
 	}
 
 	public List<RouteListenerComponent> getRouteListenerComponentList() {

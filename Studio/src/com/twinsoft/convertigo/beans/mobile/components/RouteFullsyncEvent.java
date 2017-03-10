@@ -86,8 +86,8 @@ public class RouteFullsyncEvent extends RouteEventComponent implements ITagsProp
 
 	@Override
 	public String toString() {
-		String label = getSource();
-		return "on_" + (label.equals("") ? "?" : label + "." + getVerb());
+		String label = getSourceName();
+		return "on " + (label.equals("") ? "?" : label + "." + getVerb());
 	}
 	
 	public String[] getTagsForProperty(String propertyName) {

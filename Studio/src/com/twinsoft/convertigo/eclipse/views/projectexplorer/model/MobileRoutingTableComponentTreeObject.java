@@ -56,12 +56,19 @@ public class MobileRoutingTableComponentTreeObject extends MobileComponentTreeOb
 	public void hasBeenModified(boolean bModified) {
 		super.hasBeenModified(bModified);
 		if (bModified && !isInherited) {
-			markTemplateAsDirty();
+			//markScriptsAsDirty();
 		}
 	}
 	
-	protected void markTemplateAsDirty() {
-		;
+	protected void markScriptsAsDirty() {
+		TreeParent treeParent = parent;
+		while (treeParent != null) {
+			if (treeParent instanceof MobileApplicationComponentTreeObject) {
+				((MobileApplicationComponentTreeObject) treeParent).markScriptsAsDirty();
+				break;
+			}
+			treeParent = treeParent.getParent();
+		}
 	}
 
 }

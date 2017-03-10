@@ -46,12 +46,15 @@ import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Document;
 import com.twinsoft.convertigo.beans.core.Listener;
+import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.couchdb.AbstractFullSyncFilterListener;
 import com.twinsoft.convertigo.beans.couchdb.AbstractFullSyncViewListener;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
+import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
+import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewContentProvider;
@@ -130,11 +133,26 @@ public class NamedSourceSelectorEditorComposite extends AbstractDialogComposite 
 					TVObject tvObject = add(new TVObject(dbo.getName(), isSelectable(dbo)));
 					
 					if (object instanceof Project) {
+						MobileApplication mba = ((Project)object).getMobileApplication();
+						if (mba != null) {
+							tvObject.addObject(mba);
+						}
 						for (Connector connector : ((Project)object).getConnectorsList()) {
 							tvObject.addObject(connector);
 						}
 						for (Sequence sequence : ((Project)object).getSequencesList()) {
 							tvObject.addObject(sequence);
+						}
+					}
+					else if (object instanceof MobileApplication) {
+						ApplicationComponent ac = ((MobileApplication)object).getApplicationComponent();
+						if (ac != null) {
+							tvObject.addObject(ac);
+						}
+					}
+					else if (object instanceof ApplicationComponent) {
+						for (PageComponent page: ((ApplicationComponent)object).getPageComponentList()) {
+							tvObject.addObject(page);
 						}
 					}
 					else if (object instanceof Connector) {

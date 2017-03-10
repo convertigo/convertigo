@@ -41,7 +41,22 @@ public class RouteComponentBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[0];
+			properties = new PropertyDescriptor[3];
+			
+			properties[0] = new PropertyDescriptor("condition", beanClass, "getCondition", "setCondition");
+			properties[0].setDisplayName(getExternalizedString("property.condition.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.condition.short_description"));
+			
+			properties[1] = new PropertyDescriptor("action", beanClass, "getAction", "setAction");
+			properties[1].setDisplayName(getExternalizedString("property.action.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.action.short_description"));
+			properties[1].setPropertyEditorClass(getEditorClass("StringComboBoxPropertyDescriptor"));
+			
+			properties[2] = new PropertyDescriptor("page", beanClass, "getPage", "setPage");
+			properties[2].setDisplayName(getExternalizedString("property.page.display_name"));
+			properties[2].setShortDescription(getExternalizedString("property.page.short_description"));
+			properties[2].setPropertyEditorClass(getEditorClass("NamedSourceSelectorEditor"));
+			
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

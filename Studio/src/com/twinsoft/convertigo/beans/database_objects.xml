@@ -155,7 +155,10 @@
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.RouteFullsyncEvent">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.RouteListenerComponent"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.RouteComponent">
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.RouteDataComponent">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.RouteListenerComponent"/>
+				</bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.RouteExceptionComponent">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.RouteListenerComponent"/>
 				</bean>
 			</beans>
