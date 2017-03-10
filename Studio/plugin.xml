@@ -2094,6 +2094,20 @@
             </enablement>
          </action>
          <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileRouteActionComponentAction"
+               enablesFor="1"
+               icon="icons/studio/menu/routeactioncomponent_color_16x16.png"
+               id="convertigo.action.newRouteActionComponent"
+               label="Action"
+               menubarPath="convertigo.menu.new/content">
+            <enablement>
+               <objectState
+                     name="folderType"
+                     value="25">
+               </objectState>
+            </enablement>
+         </action>
+         <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileRouteEventComponentAction"
                enablesFor="1"
                icon="icons/studio/menu/routeeventcomponent_color_16x16.png"
