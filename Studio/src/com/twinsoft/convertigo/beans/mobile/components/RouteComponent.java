@@ -29,17 +29,17 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.engine.EngineException;
 
-public class RouteListenerComponent extends MobileComponent {
+public class RouteComponent extends MobileComponent {
 
 	private static final long serialVersionUID = -8928033403518219727L;
 
-	public RouteListenerComponent() {
+	public RouteComponent() {
 		super();
 	}
 	
 	@Override
-	public RouteListenerComponent clone() throws CloneNotSupportedException {
-		RouteListenerComponent cloned = (RouteListenerComponent)super.clone();
+	public RouteComponent clone() throws CloneNotSupportedException {
+		RouteComponent cloned = (RouteComponent)super.clone();
 		cloned.vRouteEventComponents = new LinkedList<RouteEventComponent>();
 		cloned.vRouteComponents = new LinkedList<RouteActionComponent>();
 		return cloned;

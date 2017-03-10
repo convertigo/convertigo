@@ -24,16 +24,16 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
 import org.eclipse.jface.viewers.Viewer;
 
-import com.twinsoft.convertigo.beans.mobile.components.RouteListenerComponent;
+import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 
-public class MobileRouteListenerComponentTreeObject extends MobileComponentTreeObject {
+public class MobileRouteComponentTreeObject extends MobileComponentTreeObject {
 
-	public MobileRouteListenerComponentTreeObject(Viewer viewer, RouteListenerComponent object) {
+	public MobileRouteComponentTreeObject(Viewer viewer, RouteComponent object) {
 		super(viewer, object);
 	}
 
-	public MobileRouteListenerComponentTreeObject(Viewer viewer, RouteListenerComponent object, boolean inherited) {
+	public MobileRouteComponentTreeObject(Viewer viewer, RouteComponent object, boolean inherited) {
 		super(viewer, object, inherited);
 	}
 
@@ -43,8 +43,8 @@ public class MobileRouteListenerComponentTreeObject extends MobileComponentTreeO
 	}
 
 	@Override
-	public RouteListenerComponent getObject() {
-		return (RouteListenerComponent) super.getObject();
+	public RouteComponent getObject() {
+		return (RouteComponent) super.getObject();
 	}
 
 	@Override

@@ -22,10 +22,10 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
-public class CreateMobileRouteListenerComponentAction extends DatabaseObjectCreateAction {
+public class CreateMobileRouteComponentAction extends DatabaseObjectCreateAction {
 
-	public CreateMobileRouteListenerComponentAction() {
-		super("com.twinsoft.convertigo.beans.mobile.components.RouteListenerComponent");
+	public CreateMobileRouteComponentAction() {
+		super("com.twinsoft.convertigo.beans.mobile.components.RouteComponent");
 	}
 
 }

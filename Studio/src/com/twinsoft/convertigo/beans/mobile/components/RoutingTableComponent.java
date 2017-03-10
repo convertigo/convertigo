@@ -40,7 +40,7 @@ public class RoutingTableComponent extends MobileComponent {
 	@Override
 	public RoutingTableComponent clone() throws CloneNotSupportedException {
 		RoutingTableComponent cloned = (RoutingTableComponent) super.clone();
-		cloned.vRouteListenerComponents = new LinkedList<RouteListenerComponent>();
+		cloned.vRouteListenerComponents = new LinkedList<RouteComponent>();
 		return cloned;
 	}
 
@@ -52,9 +52,9 @@ public class RoutingTableComponent extends MobileComponent {
 	/**
 	 * The list of available route listener for this application.
 	 */
-	transient private List<RouteListenerComponent> vRouteListenerComponents = new LinkedList<RouteListenerComponent>();
+	transient private List<RouteComponent> vRouteListenerComponents = new LinkedList<RouteComponent>();
 	
-	protected void addRouteListenerComponent(RouteListenerComponent routeListenerComponent) throws EngineException {
+	protected void addRouteListenerComponent(RouteComponent routeListenerComponent) throws EngineException {
 		checkSubLoaded();
 		String newDatabaseObjectName = getChildBeanName(vRouteListenerComponents, routeListenerComponent.getName(), routeListenerComponent.bNew);
 		routeListenerComponent.setName(newDatabaseObjectName);
@@ -67,14 +67,14 @@ public class RoutingTableComponent extends MobileComponent {
 		
 	}
 
-	public void removeRouteListenerComponent(RouteListenerComponent routeListenerComponent) throws EngineException {
+	public void removeRouteListenerComponent(RouteComponent routeListenerComponent) throws EngineException {
 		checkSubLoaded();
 		vRouteListenerComponents.remove(routeListenerComponent);
 		
 		getProject().getMobileBuilder().appChanged();
 	}
 
-	public List<RouteListenerComponent> getRouteListenerComponentList() {
+	public List<RouteComponent> getRouteListenerComponentList() {
 		checkSubLoaded();
 		return sort(vRouteListenerComponents);
 	}
@@ -88,8 +88,8 @@ public class RoutingTableComponent extends MobileComponent {
 
 	@Override
     public void add(DatabaseObject databaseObject) throws EngineException {
-		if (databaseObject instanceof RouteListenerComponent) {
-			addRouteListenerComponent((RouteListenerComponent) databaseObject);
+		if (databaseObject instanceof RouteComponent) {
+			addRouteListenerComponent((RouteComponent) databaseObject);
 		} else {
 			throw new EngineException("You cannot add to a routing table component a database object of type " + databaseObject.getClass().getName());
 		}
@@ -97,8 +97,8 @@ public class RoutingTableComponent extends MobileComponent {
 
     @Override
     public void remove(DatabaseObject databaseObject) throws EngineException {
-		if (databaseObject instanceof RouteListenerComponent) {
-			removeRouteListenerComponent((RouteListenerComponent) databaseObject);
+		if (databaseObject instanceof RouteComponent) {
+			removeRouteListenerComponent((RouteComponent) databaseObject);
 		} else {
 			throw new EngineException("You cannot remove from a routing table component a database object of type " + databaseObject.getClass().getName());
 		}

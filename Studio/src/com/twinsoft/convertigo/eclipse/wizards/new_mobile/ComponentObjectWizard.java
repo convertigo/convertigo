@@ -35,7 +35,7 @@ import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
-import com.twinsoft.convertigo.beans.mobile.components.RouteListenerComponent;
+import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RoutingTableComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.statements.HandlerStatement;
@@ -75,17 +75,17 @@ public class ComponentObjectWizard extends Wizard {
 				objectExplorerPageTitle = "New Routing Table Component";
 				objectExplorerPageMessage = "Please select a routing table component template.";
 			}
-			else if (beanClass.equals(RouteListenerComponent.class)) {
-				objectExplorerPageTitle = "New Route Listener Component";
-				objectExplorerPageMessage = "Please select a route listener component template.";
-			}
-			else if (beanClass.equals(RouteActionComponent.class)) {
+			else if (beanClass.equals(RouteComponent.class)) {
 				objectExplorerPageTitle = "New Route Component";
 				objectExplorerPageMessage = "Please select a route component template.";
 			}
+			else if (beanClass.equals(RouteActionComponent.class)) {
+				objectExplorerPageTitle = "New Action Component";
+				objectExplorerPageMessage = "Please select an action component template.";
+			}
 			else if (beanClass.equals(RouteEventComponent.class)) {
-				objectExplorerPageTitle = "New Route Event Component";
-				objectExplorerPageMessage = "Please select a route event component template.";
+				objectExplorerPageTitle = "New Event Component";
+				objectExplorerPageMessage = "Please select an event component template.";
 			}
 			else if (beanClass.equals(PageComponent.class)) {
 				objectExplorerPageTitle = "New Page Component";

@@ -39,8 +39,8 @@ public class RouteEventComponent extends MobileComponent {
 	}
 
 	@Override
-	public RouteListenerComponent getParent() {
-		return (RouteListenerComponent) super.getParent();
+	public RouteComponent getParent() {
+		return (RouteComponent) super.getParent();
 	}	
 
 	@Override

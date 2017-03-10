@@ -48,8 +48,8 @@ public abstract class RouteActionComponent extends MobileComponent implements IT
 	}
 
 	@Override
-	public RouteListenerComponent getParent() {
-		return (RouteListenerComponent) super.getParent();
+	public RouteComponent getParent() {
+		return (RouteComponent) super.getParent();
 	}	
 
 	/*

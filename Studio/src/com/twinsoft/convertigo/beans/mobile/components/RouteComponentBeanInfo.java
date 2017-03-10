@@ -26,17 +26,17 @@ import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
-public class RouteListenerComponentBeanInfo extends MySimpleBeanInfo {
+public class RouteComponentBeanInfo extends MySimpleBeanInfo {
 
-	public RouteListenerComponentBeanInfo() {
+	public RouteComponentBeanInfo() {
 		try {
-			beanClass = RouteListenerComponent.class;
+			beanClass = RouteComponent.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.MobileComponent.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/mobile/components/images/routelistenercomponent_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/mobile/components/images/routelistenercomponent_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/mobile/components/images/routecomponent_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/mobile/components/images/routecomponent_color_32x32.png";
 
-			resourceBundle = getResourceBundle("res/RouteListenerComponent");
+			resourceBundle = getResourceBundle("res/RouteComponent");
 
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");

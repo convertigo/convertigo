@@ -143,23 +143,23 @@
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.RoutingTableComponent">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.RouteListenerComponent">
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.RouteComponent">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.RoutingTableComponent"/>
 				</bean>
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.RouteListenerComponent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.RouteComponent"/>
 				</bean>
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.RouteSequenceEvent">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.RouteListenerComponent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.RouteComponent"/>
 				</bean>
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.RouteFullsyncEvent">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.RouteListenerComponent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.RouteComponent"/>
 				</bean>
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.RouteDataActionComponent">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.RouteListenerComponent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.RouteComponent"/>
 				</bean>
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.RouteExceptionActionComponent">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.RouteListenerComponent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.RouteComponent"/>
 				</bean>
 			</beans>
 			<beans groupname="Page Components">

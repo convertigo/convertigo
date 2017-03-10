@@ -34,7 +34,7 @@ import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
-import com.twinsoft.convertigo.beans.mobile.components.RouteListenerComponent;
+import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RoutingTableComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
@@ -122,13 +122,13 @@ public class WalkHelper {
 		} else if (databaseObject instanceof RoutingTableComponent) {
 			RoutingTableComponent routingTableComponent = (RoutingTableComponent) databaseObject;
 			
-			if (before(databaseObject, RouteListenerComponent.class)) {
-				for (RouteListenerComponent listener : routingTableComponent.getRouteListenerComponentList()) {
-					walk(listener);
+			if (before(databaseObject, RouteComponent.class)) {
+				for (RouteComponent route : routingTableComponent.getRouteListenerComponentList()) {
+					walk(route);
 				}
 			}
-		} else if (databaseObject instanceof RouteListenerComponent) {
-			RouteListenerComponent routingListenerComponent = (RouteListenerComponent) databaseObject;
+		} else if (databaseObject instanceof RouteComponent) {
+			RouteComponent routingListenerComponent = (RouteComponent) databaseObject;
 			
 			if (before(databaseObject, RouteEventComponent.class)) {
 				for (RouteEventComponent event : routingListenerComponent.getRouteEventComponentList()) {
@@ -137,8 +137,8 @@ public class WalkHelper {
 			}
 			
 			if (before(databaseObject, RouteActionComponent.class)) {
-				for (RouteActionComponent route : routingListenerComponent.getRouteComponentList()) {
-					walk(route);
+				for (RouteActionComponent action : routingListenerComponent.getRouteComponentList()) {
+					walk(action);
 				}
 			}
 		} else if (databaseObject instanceof PageComponent) {
