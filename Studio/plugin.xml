@@ -997,11 +997,11 @@
             id="convertigo.mobileRouteListenerComponentContribution"
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteListenerComponentTreeObject">
          <action
-               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileRouteComponentAction"
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileRouteActionComponentAction"
                enablesFor="1"
-               icon="icons/studio/menu/routecomponent_color_16x16.png"
-               id="convertigo.action.newRouteComponent"
-               label="Route"
+               icon="icons/studio/menu/routeactioncomponent_color_16x16.png"
+               id="convertigo.action.newRouteActionComponent"
+               label="Action"
                menubarPath="convertigo.menu.new/content">
          </action>            
          <action
@@ -2120,7 +2120,7 @@
             </enablement>
          </action>
          <action
-               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileRouteComponentAction"
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileRouteActionComponentAction"
                enablesFor="1"
                icon="icons/studio/menu/routecomponent_color_16x16.png"
                id="convertigo.action.newRouteComponent"

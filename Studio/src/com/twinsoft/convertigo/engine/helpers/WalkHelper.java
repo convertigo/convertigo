@@ -32,7 +32,7 @@ import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
-import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
+import com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteListenerComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RoutingTableComponent;
@@ -136,8 +136,8 @@ public class WalkHelper {
 				}
 			}
 			
-			if (before(databaseObject, RouteComponent.class)) {
-				for (RouteComponent route : routingListenerComponent.getRouteComponentList()) {
+			if (before(databaseObject, RouteActionComponent.class)) {
+				for (RouteActionComponent route : routingListenerComponent.getRouteComponentList()) {
 					walk(route);
 				}
 			}

@@ -26,7 +26,7 @@ import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
-public abstract class RouteComponent extends MobileComponent implements ITagsProperty {
+public abstract class RouteActionComponent extends MobileComponent implements ITagsProperty {
 
 	private static final long serialVersionUID = 2529010701434894046L;
 
@@ -37,13 +37,13 @@ public abstract class RouteComponent extends MobileComponent implements ITagsPro
 		toast,
 	}
 	
-	public RouteComponent() {
+	public RouteActionComponent() {
 		super();
 	}
 	
 	@Override
-	public RouteComponent clone() throws CloneNotSupportedException {
-		RouteComponent cloned = (RouteComponent)super.clone();
+	public RouteActionComponent clone() throws CloneNotSupportedException {
+		RouteActionComponent cloned = (RouteActionComponent)super.clone();
 		return cloned;
 	}
 

@@ -28,17 +28,17 @@ import java.util.List;
 import org.eclipse.jface.viewers.Viewer;
 
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
-import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
+import com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteDataComponent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 
-public class MobileRouteComponentTreeObject extends MobileComponentTreeObject implements INamedSourceSelectorTreeObject {
+public class MobileRouteActionComponentTreeObject extends MobileComponentTreeObject implements INamedSourceSelectorTreeObject {
 
-	public MobileRouteComponentTreeObject(Viewer viewer, RouteComponent object) {
+	public MobileRouteActionComponentTreeObject(Viewer viewer, RouteActionComponent object) {
 		super(viewer, object);
 	}
 
-	public MobileRouteComponentTreeObject(Viewer viewer, RouteComponent object, boolean inherited) {
+	public MobileRouteActionComponentTreeObject(Viewer viewer, RouteActionComponent object, boolean inherited) {
 		super(viewer, object, inherited);
 	}
 
@@ -48,8 +48,8 @@ public class MobileRouteComponentTreeObject extends MobileComponentTreeObject im
 	}
 
 	@Override
-	public RouteComponent getObject() {
-		return (RouteComponent) super.getObject();
+	public RouteActionComponent getObject() {
+		return (RouteActionComponent) super.getObject();
 	}
 
 	@Override
@@ -82,14 +82,14 @@ public class MobileRouteComponentTreeObject extends MobileComponentTreeObject im
 
 			@Override
 			Object thisTreeObject() {
-				return MobileRouteComponentTreeObject.this;
+				return MobileRouteActionComponentTreeObject.this;
 			}
 			
 			@Override
 			protected List<String> getPropertyNamesForSource(Class<?> c) {
 				List<String> list = new ArrayList<String>();
 				
-				if (getObject() instanceof RouteComponent) {
+				if (getObject() instanceof RouteActionComponent) {
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
 						MobileApplicationTreeObject.class.isAssignableFrom(c) ||
 						MobileApplicationComponentTreeObject.class.isAssignableFrom(c) ||
@@ -104,7 +104,7 @@ public class MobileRouteComponentTreeObject extends MobileComponentTreeObject im
 			
 			@Override
 			protected boolean isNamedSource(String propertyName) {
-				if (getObject() instanceof RouteComponent) {
+				if (getObject() instanceof RouteActionComponent) {
 					return "page".equals(propertyName);
 				}
 				return false;
@@ -112,9 +112,9 @@ public class MobileRouteComponentTreeObject extends MobileComponentTreeObject im
 			
 			@Override
 			public boolean isSelectable(String propertyName, Object nsObject) {
-				if (getObject() instanceof RouteComponent) {
+				if (getObject() instanceof RouteActionComponent) {
 					if ("page".equals(propertyName)) {
-						RouteComponent rc = getObject();
+						RouteActionComponent rc = getObject();
 						if (rc instanceof RouteDataComponent) {
 							return nsObject instanceof PageComponent;
 						}
@@ -137,7 +137,7 @@ public class MobileRouteComponentTreeObject extends MobileComponentTreeObject im
 					if (pValue != null && pValue.startsWith(oldName)) {
 						String _pValue = newName + pValue.substring(oldName.length());
 						if (!pValue.equals(_pValue)) {
-							if (getObject() instanceof RouteComponent) {
+							if (getObject() instanceof RouteActionComponent) {
 								if ("page".equals(propertyName)) {
 									getObject().setPage(_pValue);
 									hasBeenRenamed = true;

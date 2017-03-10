@@ -31,7 +31,7 @@ public class RouteDataComponentBeanInfo extends MySimpleBeanInfo {
 	public RouteDataComponentBeanInfo() {
 		try {
 			beanClass = RouteDataComponent.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.mobile.components.RouteComponent.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent.class;
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/mobile/components/images/routedatacomponent_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/mobile/components/images/routedatacomponent_color_32x32.png";

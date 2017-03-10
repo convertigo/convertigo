@@ -33,7 +33,7 @@ import org.eclipse.jface.wizard.Wizard;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
-import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
+import com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteListenerComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RoutingTableComponent;
@@ -79,7 +79,7 @@ public class ComponentObjectWizard extends Wizard {
 				objectExplorerPageTitle = "New Route Listener Component";
 				objectExplorerPageMessage = "Please select a route listener component template.";
 			}
-			else if (beanClass.equals(RouteComponent.class)) {
+			else if (beanClass.equals(RouteActionComponent.class)) {
 				objectExplorerPageTitle = "New Route Component";
 				objectExplorerPageMessage = "Please select a route component template.";
 			}

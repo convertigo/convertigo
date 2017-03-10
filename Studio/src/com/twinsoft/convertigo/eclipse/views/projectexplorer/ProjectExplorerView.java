@@ -147,7 +147,7 @@ import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
-import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
+import com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteListenerComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RoutingTableComponent;
@@ -208,7 +208,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplica
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplicationComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobilePageComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobilePlatformTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteComponentTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteActionComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteEventComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteListenerComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRoutingTableComponentTreeObject;
@@ -1472,9 +1472,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_EVENTS;
 							databaseObjectTreeObject = new MobileRouteEventComponentTreeObject(viewer, (RouteEventComponent) databaseObject, false);
 							
-						} else if (databaseObject instanceof RouteComponent) {
+						} else if (databaseObject instanceof RouteActionComponent) {
 							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_ROUTES;
-							databaseObjectTreeObject = new MobileRouteComponentTreeObject(viewer, (RouteComponent) databaseObject, false);
+							databaseObjectTreeObject = new MobileRouteActionComponentTreeObject(viewer, (RouteActionComponent) databaseObject, false);
 							
 						} else if (databaseObject instanceof PageComponent) {
 							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_PAGES;
@@ -2438,7 +2438,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			else if (databaseObject instanceof RouteEventComponent) {
 				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_ROUTEEVENTCOMPONENT;
 			}
-			else if (databaseObject instanceof RouteComponent) {
+			else if (databaseObject instanceof RouteActionComponent) {
 				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_ROUTECOMPONENT;
 			}
 			else if (databaseObject instanceof PageComponent) {
