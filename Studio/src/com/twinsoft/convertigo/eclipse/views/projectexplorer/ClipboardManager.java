@@ -64,6 +64,7 @@ import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
+import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.statements.ElseStatement;
@@ -543,6 +544,13 @@ public class ClipboardManager {
 							databaseObject.priority = databaseObject.getNewOrderValue();
 							databaseObject.newPriority = databaseObject.priority;
 							testCase.add(databaseObject);
+						}
+					} else if (parentDatabaseObject instanceof ApplicationComponent) {
+						ApplicationComponent app = (ApplicationComponent) parentDatabaseObject;
+						if (databaseObject instanceof RouteComponent) {
+							databaseObject.priority = databaseObject.getNewOrderValue();
+							databaseObject.newPriority = databaseObject.priority;
+							app.add(databaseObject);
 						}
 					} else if (parentDatabaseObject instanceof PageComponent) {
 						PageComponent page = (PageComponent) parentDatabaseObject;

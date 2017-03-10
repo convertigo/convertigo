@@ -41,7 +41,12 @@ public class ApplicationComponentBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[0];
+			properties = new PropertyDescriptor[1];
+			
+			properties[0] = new PropertyDescriptor("orderedRoutes", beanClass, "getOrderedRoutes", "setOrderedRoutes");
+			properties[0].setDisplayName(getExternalizedString("property.orderedRoutes.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.orderedRoutes.short_description"));
+			properties[0].setHidden(true);
 			
 		}
 		catch(Exception e) {

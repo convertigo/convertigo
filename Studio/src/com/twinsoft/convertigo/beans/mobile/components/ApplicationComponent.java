@@ -22,21 +22,27 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
-public class ApplicationComponent extends MobileComponent {
+public class ApplicationComponent extends MobileComponent implements IContainerOrdered {
 
 	private static final long serialVersionUID = 6142350115354549719L;
 
 	public ApplicationComponent() {
 		super();
+		
+		orderedRoutes = new XMLVector<XMLVector<Long>>();
+		orderedRoutes.add(new XMLVector<Long>());
 	}
 
 	@Override
@@ -55,6 +61,112 @@ public class ApplicationComponent extends MobileComponent {
 		return (MobileApplication) super.getParent();
 	}
 
+	private XMLVector<XMLVector<Long>> orderedRoutes = new XMLVector<XMLVector<Long>>();
+	
+	public XMLVector<XMLVector<Long>> getOrderedRoutes() {
+		return orderedRoutes;
+	}
+    
+	public void setOrderedRoutes(XMLVector<XMLVector<Long>> orderedRoutes) {
+		this.orderedRoutes = orderedRoutes;
+	}
+	
+    private void insertOrderedRoute(RouteComponent component, Long after) {
+    	List<Long> ordered = orderedRoutes.get(0);
+    	int size = ordered.size();
+    	
+    	if (ordered.contains(component.priority))
+    		return;
+    	
+    	if (after == null) {
+    		after = new Long(0);
+    		if (size>0)
+    			after = ordered.get(ordered.size()-1);
+    	}
+    	
+   		int order = ordered.indexOf(after);
+    	ordered.add(order+1, component.priority);
+    	hasChanged = true;
+    }
+    
+    private void removeOrderedRoute(Long value) {
+        Collection<Long> ordered = orderedRoutes.get(0);
+        ordered.remove(value);
+        hasChanged = true;
+    }
+    
+	public void insertAtOrder(DatabaseObject databaseObject, long priority) throws EngineException {
+		increaseOrder(databaseObject, new Long(priority));
+	}
+    
+    private void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
+    	List<Long> ordered = null;
+    	Long value = new Long(databaseObject.priority);
+    	
+    	if (databaseObject instanceof RouteComponent)
+    		ordered = orderedRoutes.get(0);
+    	
+    	if (ordered == null || !ordered.contains(value))
+    		return;
+    	int pos = ordered.indexOf(value);
+    	if (pos == 0)
+    		return;
+    	
+    	if (before == null)
+    		before = ordered.get(pos-1);
+    	int pos1 = ordered.indexOf(before);
+    	
+    	ordered.add(pos1, value);
+    	ordered.remove(pos+1);
+    	hasChanged = true;
+    }
+    
+    private void decreaseOrder(DatabaseObject databaseObject, Long after) throws EngineException {
+    	List<Long> ordered = null;
+    	long value = databaseObject.priority;
+    	
+    	if (databaseObject instanceof RouteComponent)
+    		ordered = orderedRoutes.get(0);
+    	
+    	if (ordered == null || !ordered.contains(value))
+    		return;
+    	int pos = ordered.indexOf(value);
+    	if (pos+1 == ordered.size())
+    		return;
+    	
+    	if (after == null)
+    		after = ordered.get(pos+1);
+    	int pos1 = ordered.indexOf(after);
+    	
+    	ordered.add(pos1+1, value);
+    	ordered.remove(pos);
+    	hasChanged = true;
+    }
+    
+	public void increasePriority(DatabaseObject databaseObject) throws EngineException {
+		if (databaseObject instanceof RouteComponent)
+			increaseOrder(databaseObject,null);
+	}
+
+	public void decreasePriority(DatabaseObject databaseObject) throws EngineException {
+		if (databaseObject instanceof RouteComponent)
+			decreaseOrder(databaseObject,null);
+	}
+    
+    /**
+     * Get representation of order for quick sort of a given database object.
+     */
+	@Override
+    public Object getOrder(Object object) throws EngineException	{
+        if (object instanceof RouteComponent) {
+        	List<Long> ordered = orderedRoutes.get(0);
+        	long time = ((RouteComponent)object).priority;
+        	if (ordered.contains(time))
+        		return (long)ordered.indexOf(time);
+        	else throw new EngineException("Corrupted route for application \""+ getName() +"\". RouteComponent \""+ ((RouteComponent)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
+        }
+        else return super.getOrder(object);
+    }
 	/**
 	 * The list of available routes for this application.
 	 */
@@ -67,6 +179,8 @@ public class ApplicationComponent extends MobileComponent {
 		vRouteComponents.add(routeComponent);
 		super.add(routeComponent);
 		
+		insertOrderedRoute(routeComponent,null);
+		
 		if (routeComponent.bNew) {
 			getProject().getMobileBuilder().appChanged();
 		}
@@ -76,6 +190,8 @@ public class ApplicationComponent extends MobileComponent {
 	public void removeRouteComponent(RouteComponent routeComponent) throws EngineException {
 		checkSubLoaded();
 		vRouteComponents.remove(routeComponent);
+		
+		removeOrderedRoute(routeComponent.priority);
 		
 		getProject().getMobileBuilder().appChanged();
 	}

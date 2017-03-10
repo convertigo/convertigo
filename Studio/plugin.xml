@@ -1179,6 +1179,7 @@
                   <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StatementTreeObject"/>
                   <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject"/>
                   <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileUIComponentTreeObject"/>
+                  <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteComponentTreeObject"/>
                </or>
             </and>
          </visibility>
@@ -3558,6 +3559,7 @@
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableRowTreeObject"/>
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableColumnTreeObject"/>
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileUIComponentTreeObject"/>
+            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteComponentTreeObject"/>
          </action>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectDecreasePriorityAction"
@@ -3579,6 +3581,7 @@
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableRowTreeObject"/>
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableColumnTreeObject"/>
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileUIComponentTreeObject"/>
+            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteComponentTreeObject"/>
          </action>
          <action
                class="com.twinsoft.convertigo.eclipse.actions.ProjectExplorerFindAction"

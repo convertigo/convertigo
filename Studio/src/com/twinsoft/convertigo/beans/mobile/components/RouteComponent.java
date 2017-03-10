@@ -25,6 +25,9 @@ package com.twinsoft.convertigo.beans.mobile.components;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -35,16 +38,34 @@ public class RouteComponent extends MobileComponent {
 
 	public RouteComponent() {
 		super();
+		
+		this.priority = getNewOrderValue();
+		this.newPriority = priority;
 	}
 	
 	@Override
 	public RouteComponent clone() throws CloneNotSupportedException {
 		RouteComponent cloned = (RouteComponent)super.clone();
+		cloned.newPriority = newPriority;
 		cloned.vRouteEventComponents = new LinkedList<RouteEventComponent>();
 		cloned.vRouteActionComponents = new LinkedList<RouteActionComponent>();
 		return cloned;
 	}
 
+	@Override
+	public Element toXml(Document document) throws EngineException {
+		Element element =  super.toXml(document);
+		
+        element.setAttribute("newPriority", new Long(newPriority).toString());
+		
+		return element;
+	}
+	
+    @Override
+    public Object getOrderedValue() {
+    	return new Long(priority);
+    }
+    
 	@Override
 	public ApplicationComponent getParent() {
 		return (ApplicationComponent) super.getParent();
