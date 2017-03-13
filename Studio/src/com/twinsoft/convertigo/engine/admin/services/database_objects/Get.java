@@ -32,6 +32,7 @@ import org.w3c.dom.Element;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.ExportOption;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
@@ -43,14 +44,17 @@ import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 		returnValue = ""
 	)
 public class Get extends XmlService {
+	public static void addProperties(DatabaseObject dbo, Document document, Element root, String qname) throws EngineException {
+		Element elt = dbo.toXml(document, ExportOption.bIncludeBlackListedElements, ExportOption.bIncludeCompiledValue, ExportOption.bIncludeDisplayName, ExportOption.bIncludeEditorClass, ExportOption.bIncludeShortDescription, ExportOption.bHidePassword);
+		elt.setAttribute("qname", qname);
+		root.appendChild(elt);
+	}
+	
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		Element root = document.getDocumentElement();
 		String qname = ServiceUtils.getRequiredParameter(request, "qname");
 		Map<String, DatabaseObject> map = com.twinsoft.convertigo.engine.admin.services.projects.Get.getDatabaseObjectByQName(request);
 		DatabaseObject res = map.get(qname);
-		Element elt = res.toXml(document, ExportOption.bIncludeBlackListedElements, ExportOption.bIncludeCompiledValue, ExportOption.bIncludeDisplayName, ExportOption.bIncludeEditorClass, ExportOption.bIncludeShortDescription, ExportOption.bHidePassword);
-		elt.setAttribute("qname", qname);
-		root.appendChild(elt);
+		addProperties(res, document, root, qname);
 	}
-
 }

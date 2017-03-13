@@ -2,3 +2,35 @@
 	background-image: url(../../../admin/images/folder.gif) !important;
 }
 
+#propertyView tbody>tr:first-child>td:first-child {
+	color: red;
+}
+
+#propertyView tbody>tr>td {
+	color: green;
+	/* overflow-x: hidden; */
+	/* white-space: nowrap; */
+	user-select: initial;
+}
+
+#propertyView tbody>tr>td>input {
+	background-color: rgb(51, 55, 59);
+	color: white;
+    border: none;
+}
+
+#propertyView thead>tr>th {
+	text-align: left
+}
+
+.comment {
+	color: rgb(4, 234, 34);
+}
+
+.jstree-rename-input {
+	width: 100% !important;	
+}
+
+.jstree-default-dark {
+	background-color: none;
+}
