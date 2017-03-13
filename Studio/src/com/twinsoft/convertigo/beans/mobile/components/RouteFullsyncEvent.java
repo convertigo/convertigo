@@ -73,15 +73,11 @@ public class RouteFullsyncEvent extends RouteEventComponent implements ITagsProp
 	
 	@Override
 	protected String getRequestableSource() {
-		String fullsyncDb = getSource();
-		int index = fullsyncDb.indexOf('.');
-		if (index != -1) {
-			try {
-				fullsyncDb = fullsyncDb.substring(index+1);
-			} catch (Exception e) {}
+		String requestableSource = super.getRequestableSource();
+		if (!requestableSource.isEmpty()) {
+			requestableSource = "fs://" + requestableSource + "." + getVerb();
 		}
-		
-		return "fs://" + fullsyncDb + "." + getVerb();
+		return requestableSource;
 	}
 
 	@Override

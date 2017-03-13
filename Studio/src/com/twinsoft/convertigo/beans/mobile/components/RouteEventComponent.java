@@ -95,14 +95,22 @@ public class RouteEventComponent extends MobileComponent implements IRouteGenera
 	 * The 'requestable' used by mobile client application
 	 */
 	protected String getRequestableSource() {
-		return getSource();
+		String requestableSource = getSource();
+		int index = requestableSource.indexOf('.');
+		if (index != -1) {
+			try {
+				requestableSource = requestableSource.substring(index+1);
+			} catch (Exception e) {}
+		}
+		return requestableSource;
 	}
 	
 	public String getRequestableString() {
 		String requestableSource = getRequestableSource();
-		if (requestableSource.isEmpty())
-			return "";
-		return requestableSource + (marker.isEmpty() ? "" : "#" + marker);
+		if (!requestableSource.isEmpty()) {
+			requestableSource = "." + requestableSource + (marker.isEmpty() ? "" : "#" + marker);
+		}
+		return requestableSource;
 	}
 
 	protected String getSourceName() {

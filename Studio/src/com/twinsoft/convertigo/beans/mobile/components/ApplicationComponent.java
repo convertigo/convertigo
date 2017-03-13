@@ -357,7 +357,7 @@ public class ApplicationComponent extends MobileComponent implements ITemplateGe
 				String tpl = route.computeRoute();
 				if (!tpl.isEmpty()) {
 					sb.append("this.router.addRouteListener(").append(tpl).append(")")
-						.append(System.getProperty("line.separator")).append(";");
+						.append(";").append(System.getProperty("line.separator"));
 				}
 			}
 		}
