@@ -22,7 +22,11 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import com.twinsoft.convertigo.beans.core.MobileComponent;
+import com.twinsoft.convertigo.engine.EngineException;
 
 public class RouteEventComponent extends MobileComponent {
 
@@ -30,14 +34,32 @@ public class RouteEventComponent extends MobileComponent {
 
 	public RouteEventComponent() {
 		super();
+		
+		this.priority = getNewOrderValue();
+		this.newPriority = priority;
 	}
 	
 	@Override
 	public RouteEventComponent clone() throws CloneNotSupportedException {
 		RouteEventComponent cloned = (RouteEventComponent)super.clone();
+		cloned.newPriority = newPriority;
 		return cloned;
 	}
 
+	@Override
+	public Element toXml(Document document) throws EngineException {
+		Element element =  super.toXml(document);
+		
+        element.setAttribute("newPriority", new Long(newPriority).toString());
+		
+		return element;
+	}
+	
+    @Override
+    public Object getOrderedValue() {
+    	return new Long(priority);
+    }
+	
 	@Override
 	public RouteComponent getParent() {
 		return (RouteComponent) super.getParent();

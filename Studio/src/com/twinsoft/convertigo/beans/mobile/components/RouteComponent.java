@@ -22,17 +22,20 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.engine.EngineException;
 
-public class RouteComponent extends MobileComponent {
+public class RouteComponent extends MobileComponent implements IContainerOrdered {
 
 	private static final long serialVersionUID = -8928033403518219727L;
 
@@ -41,6 +44,12 @@ public class RouteComponent extends MobileComponent {
 		
 		this.priority = getNewOrderValue();
 		this.newPriority = priority;
+		
+		orderedActions = new XMLVector<XMLVector<Long>>();
+		orderedActions.add(new XMLVector<Long>());
+
+		orderedEvents = new XMLVector<XMLVector<Long>>();
+		orderedEvents.add(new XMLVector<Long>());
 	}
 	
 	@Override
@@ -71,6 +80,157 @@ public class RouteComponent extends MobileComponent {
 		return (ApplicationComponent) super.getParent();
 	}
 	
+	private XMLVector<XMLVector<Long>> orderedActions = new XMLVector<XMLVector<Long>>();
+	private XMLVector<XMLVector<Long>> orderedEvents = new XMLVector<XMLVector<Long>>();
+	
+	public XMLVector<XMLVector<Long>> getOrderedActions() {
+		return orderedActions;
+	}
+    
+	public void setOrderedActions(XMLVector<XMLVector<Long>> orderedActions) {
+		this.orderedActions = orderedActions;
+	}
+	
+    private void insertOrderedAction(RouteActionComponent component, Long after) {
+    	List<Long> ordered = orderedActions.get(0);
+    	int size = ordered.size();
+    	
+    	if (ordered.contains(component.priority))
+    		return;
+    	
+    	if (after == null) {
+    		after = new Long(0);
+    		if (size>0)
+    			after = ordered.get(ordered.size()-1);
+    	}
+    	
+   		int order = ordered.indexOf(after);
+    	ordered.add(order+1, component.priority);
+    	hasChanged = true;
+    }
+    
+    private void removeOrderedAction(Long value) {
+        Collection<Long> ordered = orderedActions.get(0);
+        ordered.remove(value);
+        hasChanged = true;
+    }
+    
+	public XMLVector<XMLVector<Long>> getOrderedEvents() {
+		return orderedEvents;
+	}
+    
+	public void setOrderedEvents(XMLVector<XMLVector<Long>> orderedEvents) {
+		this.orderedEvents = orderedEvents;
+	}
+	
+    private void insertOrderedEvent(RouteEventComponent component, Long after) {
+    	List<Long> ordered = orderedEvents.get(0);
+    	int size = ordered.size();
+    	
+    	if (ordered.contains(component.priority))
+    		return;
+    	
+    	if (after == null) {
+    		after = new Long(0);
+    		if (size>0)
+    			after = ordered.get(ordered.size()-1);
+    	}
+    	
+   		int order = ordered.indexOf(after);
+    	ordered.add(order+1, component.priority);
+    	hasChanged = true;
+    }
+    
+    private void removeOrderedEvent(Long value) {
+        Collection<Long> ordered = orderedEvents.get(0);
+        ordered.remove(value);
+        hasChanged = true;
+    }
+	
+	public void insertAtOrder(DatabaseObject databaseObject, long priority) throws EngineException {
+		increaseOrder(databaseObject, new Long(priority));
+	}
+    
+    private void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
+    	List<Long> ordered = null;
+    	Long value = new Long(databaseObject.priority);
+    	
+    	if (databaseObject instanceof RouteActionComponent)
+    		ordered = orderedActions.get(0);
+    	else if (databaseObject instanceof RouteEventComponent)
+    		ordered = orderedEvents.get(0);
+    	
+    	if (ordered == null || !ordered.contains(value))
+    		return;
+    	int pos = ordered.indexOf(value);
+    	if (pos == 0)
+    		return;
+    	
+    	if (before == null)
+    		before = ordered.get(pos-1);
+    	int pos1 = ordered.indexOf(before);
+    	
+    	ordered.add(pos1, value);
+    	ordered.remove(pos+1);
+    	hasChanged = true;
+    }
+    
+    private void decreaseOrder(DatabaseObject databaseObject, Long after) throws EngineException {
+    	List<Long> ordered = null;
+    	long value = databaseObject.priority;
+    	
+    	if (databaseObject instanceof RouteActionComponent)
+    		ordered = orderedActions.get(0);
+    	else if (databaseObject instanceof RouteEventComponent)
+    		ordered = orderedEvents.get(0);
+    	
+    	if (ordered == null || !ordered.contains(value))
+    		return;
+    	int pos = ordered.indexOf(value);
+    	if (pos+1 == ordered.size())
+    		return;
+    	
+    	if (after == null)
+    		after = ordered.get(pos+1);
+    	int pos1 = ordered.indexOf(after);
+    	
+    	ordered.add(pos1+1, value);
+    	ordered.remove(pos);
+    	hasChanged = true;
+    }
+    
+	public void increasePriority(DatabaseObject databaseObject) throws EngineException {
+		if (databaseObject instanceof RouteActionComponent || databaseObject instanceof RouteEventComponent)
+			increaseOrder(databaseObject,null);
+	}
+
+	public void decreasePriority(DatabaseObject databaseObject) throws EngineException {
+		if (databaseObject instanceof RouteActionComponent || databaseObject instanceof RouteEventComponent)
+			decreaseOrder(databaseObject,null);
+	}
+    
+    /**
+     * Get representation of order for quick sort of a given database object.
+     */
+	@Override
+    public Object getOrder(Object object) throws EngineException	{
+        if (object instanceof RouteActionComponent) {
+        	List<Long> ordered = orderedActions.get(0);
+        	long time = ((RouteActionComponent)object).priority;
+        	if (ordered.contains(time))
+        		return (long)ordered.indexOf(time);
+        	else throw new EngineException("Corrupted action for application \""+ getName() +"\". RouteActionComponent \""+ ((RouteActionComponent)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
+        }
+        else if (object instanceof RouteEventComponent) {
+        	List<Long> ordered = orderedEvents.get(0);
+        	long time = ((RouteEventComponent)object).priority;
+        	if (ordered.contains(time))
+        		return (long)ordered.indexOf(time);
+        	else throw new EngineException("Corrupted event for application \""+ getName() +"\". RouteEventComponent \""+ ((RouteEventComponent)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
+        }
+        else return super.getOrder(object);
+    }
+		
 	/**
 	 * The list of available events for this listener.
 	 */
@@ -83,6 +243,8 @@ public class RouteComponent extends MobileComponent {
 		vRouteEventComponents.add(routeEventComponent);
 		super.add(routeEventComponent);
 		
+		insertOrderedEvent(routeEventComponent, null);
+		
 		if (routeEventComponent.bNew) {
 			getProject().getMobileBuilder().appChanged();
 		}
@@ -91,6 +253,8 @@ public class RouteComponent extends MobileComponent {
 	public void removeRouteEventComponent(RouteEventComponent routeEventComponent) throws EngineException {
 		checkSubLoaded();
 		vRouteEventComponents.remove(routeEventComponent);
+		
+		removeOrderedEvent(routeEventComponent.priority);
 		
 		getProject().getMobileBuilder().appChanged();
 	}
@@ -112,6 +276,8 @@ public class RouteComponent extends MobileComponent {
 		vRouteActionComponents.add(routeActionComponent);
 		super.add(routeActionComponent);
 		
+		insertOrderedAction(routeActionComponent, null);
+		
 		if (routeActionComponent.bNew) {
 			getProject().getMobileBuilder().appChanged();
 		}
@@ -121,6 +287,8 @@ public class RouteComponent extends MobileComponent {
 	public void removeRouteActionComponent(RouteActionComponent routeActionComponent) throws EngineException {
 		checkSubLoaded();
 		vRouteActionComponents.remove(routeActionComponent);
+		
+		removeOrderedAction(routeActionComponent.priority);
 		
 		getProject().getMobileBuilder().appChanged();
 	}
