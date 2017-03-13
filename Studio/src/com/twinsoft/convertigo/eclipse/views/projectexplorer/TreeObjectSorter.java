@@ -39,7 +39,12 @@ class TreeObjectSorter extends ViewerSorter {
 	public int category(Object element) {
 		if (element instanceof UnloadedProjectTreeObject) return 10;
 		if (element instanceof DatabaseObjectTreeObject) return 10;
-		if (element instanceof ObjectsFolderTreeObject) return 20;
+		if (element instanceof ObjectsFolderTreeObject) {
+			if (((ObjectsFolderTreeObject)element).folderType == ObjectsFolderTreeObject.FOLDER_TYPE_ACTIONS) {
+				return 21;
+			}
+			return 20;
+		}
 		return 0;
 	}
 
