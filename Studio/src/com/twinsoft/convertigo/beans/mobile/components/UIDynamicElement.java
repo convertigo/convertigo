@@ -121,7 +121,7 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 	}
 	
 	@Override
-	protected String computeTemplate() {
+	public String computeTemplate() {
 		if (isEnabled()) {
 			StringBuilder attributes = new StringBuilder();
 			StringBuilder children = new StringBuilder();

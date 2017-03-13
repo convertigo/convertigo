@@ -30,7 +30,7 @@ import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
-public abstract class RouteActionComponent extends MobileComponent implements ITagsProperty {
+public abstract class RouteActionComponent extends MobileComponent implements IRouteGenerator, ITagsProperty {
 
 	private static final long serialVersionUID = 2529010701434894046L;
 
@@ -120,10 +120,4 @@ public abstract class RouteActionComponent extends MobileComponent implements IT
 		return new String[0];
 	}
 	
-	@Override
-	protected String computeTemplate() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 }

@@ -59,7 +59,7 @@ public class UIElement extends UIComponent {
 	}
 
 	@Override
-	protected String computeTemplate() {
+	public String computeTemplate() {
 		if (isEnabled()) {
 			StringBuilder attributes = new StringBuilder();
 			StringBuilder children = new StringBuilder();

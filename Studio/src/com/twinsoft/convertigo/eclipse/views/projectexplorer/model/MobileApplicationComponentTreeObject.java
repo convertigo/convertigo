@@ -58,18 +58,19 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 	public void hasBeenModified(boolean bModified) {
 		super.hasBeenModified(bModified);
 		if (bModified && !isInherited) {
-			markScriptsAsDirty();
+			;
 		}
 	}
 	
-	protected void markScriptsAsDirty() {
+	protected void markRouteAsDirty() {
 		ApplicationComponent ac = getObject();
 		if (ac != null) {
 			try {
-				ac.getProject().getMobileBuilder().appChanged();
+				ac.doComputeRoute();
+				ac.getProject().getMobileBuilder().routeChanged();
 			} catch (EngineException e) {
 				ConvertigoPlugin.logException(e,
-						"Error while writing the script file for app '" + ac.getName() + "'");	}
+						"Error while writing the component.ts file for app '" + ac.getName() + "'");	}
 		}
 	}
 

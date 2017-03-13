@@ -146,15 +146,15 @@ public class MobileRouteEventComponentTreeObject extends MobileComponentTreeObje
 	public void hasBeenModified(boolean bModified) {
 		super.hasBeenModified(bModified);
 		if (bModified && !isInherited) {
-			markScriptsAsDirty();
+			markRouteAsDirty();
 		}
 	}
 	
-	protected void markScriptsAsDirty() {
+	protected void markRouteAsDirty() {
 		TreeParent treeParent = parent;
 		while (treeParent != null) {
 			if (treeParent instanceof MobileApplicationComponentTreeObject) {
-				((MobileApplicationComponentTreeObject) treeParent).markScriptsAsDirty();
+				((MobileApplicationComponentTreeObject) treeParent).markRouteAsDirty();
 				break;
 			}
 			treeParent = treeParent.getParent();

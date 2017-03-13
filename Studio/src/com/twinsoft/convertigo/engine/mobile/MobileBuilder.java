@@ -153,6 +153,19 @@ public class MobileBuilder {
 			}
 		}
 	}
+
+	public synchronized void routeChanged() throws EngineException {
+		if (initDone) {
+			MobileApplication mobileApplication = project.getMobileApplication();
+			if (mobileApplication != null) {
+				ApplicationComponent application = mobileApplication.getApplicationComponent();
+				if (application != null) {
+					writeAppSourceFiles(application);
+					Engine.logEngine.debug("(MobileBuilder) Handled 'routeChanged'");
+				}
+			}
+		}
+	}
 	
 	public synchronized void pageAdded(final PageComponent page) throws EngineException {
 		if (page != null && initDone) {
@@ -362,11 +375,13 @@ public class MobileBuilder {
 				File appModuleTsFile = new File(ionicWorkDir, "src/app/app.module.ts");
 				FileUtils.write(appModuleTsFile, mContent, "UTF-8");
 		
+				String computedRoute = application.getComputedRoute();
 				File appComponentTpl = new File(ionicTplDir, "src/app/app.component.ts");
 				String cContent = FileUtils.readFileToString(appComponentTpl, "UTF-8");
 				cContent = cContent.replaceAll("/\\*\\=c8o_PagesImport\\*/",c8o_PagesImport);
 				cContent = cContent.replaceAll("/\\*\\=c8o_RootPage\\*/",c8o_RootPage);
 				cContent = cContent.replaceAll("/\\*\\=c8o_PagesVariables\\*/",c8o_PagesVariables);
+				cContent = cContent.replaceAll("/\\*\\=c8o_RoutingTable\\*/",computedRoute);
 				File appComponentTsFile = new File(ionicWorkDir, "src/app/app.component.ts");
 				FileUtils.write(appComponentTsFile, cContent, "UTF-8");
 				

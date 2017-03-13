@@ -19,21 +19,9 @@
  * $Revision$
  * $Date$
  */
-package com.twinsoft.convertigo.beans.core;
 
+package com.twinsoft.convertigo.beans.mobile.components;
 
-public abstract class MobileComponent extends MobileObject {
-
-	private static final long serialVersionUID = 5069650793367687807L;
-	
-	public MobileComponent() {
-		super();
-		databaseType = "MobileComponent";
-	}
-	
-	@Override
-	public MobileComponent clone() throws CloneNotSupportedException {
-		MobileComponent cloned = (MobileComponent) super.clone();
-		return cloned;
-	}
+public interface ITemplateGenerator {
+	public abstract String computeTemplate();
 }

@@ -36,7 +36,7 @@ import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.engine.EngineException;
 
-public class PageComponent extends MobileComponent implements IContainerOrdered {
+public class PageComponent extends MobileComponent implements ITemplateGenerator, IContainerOrdered {
 
 	private static final long serialVersionUID = 188562781669238824L;
 
@@ -263,17 +263,17 @@ public class PageComponent extends MobileComponent implements IContainerOrdered 
 	
 	public String getComputedTemplate() {
 		if (computedTemplate == null) {
-			doCompute();
+			doComputeTemplate();
 		}
 		return computedTemplate;
 	}
 	
-	public synchronized void doCompute() {
+	public synchronized void doComputeTemplate() {
 		computedTemplate = computeTemplate();
 	}
 	
 	@Override
-	protected String computeTemplate() {
+	public String computeTemplate() {
 		StringBuilder sb = new StringBuilder();
 		Iterator<UIComponent> it = getUIComponentList().iterator();
 		while (it.hasNext()) {

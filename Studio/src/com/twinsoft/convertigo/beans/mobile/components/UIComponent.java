@@ -35,7 +35,7 @@ import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.engine.EngineException;
 
-public abstract class UIComponent extends MobileComponent implements IContainerOrdered {
+public abstract class UIComponent extends MobileComponent implements ITemplateGenerator, IContainerOrdered {
 
 	private static final long serialVersionUID = -1872010547443624681L;
 
@@ -43,8 +43,6 @@ public abstract class UIComponent extends MobileComponent implements IContainerO
 	
 	private boolean isEnabled = true;
 	
-	protected abstract String computeTemplate();
-		
 	public UIComponent() {
 		super();
 		

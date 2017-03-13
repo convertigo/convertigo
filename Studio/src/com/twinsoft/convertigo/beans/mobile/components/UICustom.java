@@ -55,7 +55,7 @@ public class UICustom extends UIComponent {
 	}
 	
 	@Override
-	protected String computeTemplate() {
+	public String computeTemplate() {
 		if (isEnabled())
 			return getCustomTemplate();
 		else

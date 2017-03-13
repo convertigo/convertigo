@@ -23,6 +23,7 @@
 package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -34,7 +35,7 @@ import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
-public class ApplicationComponent extends MobileComponent implements IContainerOrdered {
+public class ApplicationComponent extends MobileComponent implements ITemplateGenerator, IRouteGenerator, IContainerOrdered {
 
 	private static final long serialVersionUID = 6142350115354549719L;
 
@@ -51,6 +52,7 @@ public class ApplicationComponent extends MobileComponent implements IContainerO
 		cloned.vRouteComponents = new LinkedList<RouteComponent>();
 		cloned.vPageComponents = new LinkedList<PageComponent>();
 		cloned.computedTemplate = null;
+		cloned.computedRoute = null;
 		cloned.rootPage = null;
 		return cloned;
 	}
@@ -306,6 +308,9 @@ public class ApplicationComponent extends MobileComponent implements IContainerO
 		super.remove(databaseObject);
     }
 
+    /*
+     * The computed template (see app.html)
+     */
 	transient private String computedTemplate = null;
 	
 	public String getComputedTemplate() {
@@ -320,8 +325,43 @@ public class ApplicationComponent extends MobileComponent implements IContainerO
 	}
 	
 	@Override
-	protected String computeTemplate() {
+	public String computeTemplate() {
+		//TODO
 		return "";
+	}
+
+	/*
+	 * The computed routing table (see app.component.ts)
+	 */
+	transient private String computedRoute = null;
+	
+	public String getComputedRoute() {
+		if (computedRoute == null) {
+			doComputeRoute();
+		}
+		return computedRoute;
+	}
+	
+	public synchronized void doComputeRoute() {
+		computedRoute = computeRoute();
+	}
+    
+	@Override
+	public String computeRoute() {
+		StringBuilder sb = new StringBuilder();
+		int size = orderedRoutes.size();
+		if (size > 0) {
+			Iterator<RouteComponent> itr = getRouteComponentList().iterator();
+			while (itr.hasNext()) {
+				RouteComponent route = itr.next();
+				String tpl = route.computeRoute();
+				if (!tpl.isEmpty()) {
+					sb.append("this.router.addRouteListener(").append(tpl).append(")")
+						.append(System.getProperty("line.separator")).append(";");
+				}
+			}
+		}
+		return sb.toString();
 	}
     
 }

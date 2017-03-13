@@ -43,9 +43,14 @@ public class RouteExceptionActionComponent extends RouteActionComponent {
 	}
 	
 	@Override
-	protected String computeTemplate() {
-		// TODO Auto-generated method stub
-		return null;
+	public String computeRoute() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("new C8oRoute((exception:any)=>{return true})")
+			.append(".setTarget(\""+Action.toast.name()+"\")")
+			.append(".setToastMesage(\""+ "Exception" +"\")")
+			.append(".setToastPosition(\""+ "bottom" +"\")")
+			.append(".setToastDuration("+ "5000" +")");
+		return sb.toString();
 	}
 
 }

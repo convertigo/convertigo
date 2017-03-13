@@ -23,6 +23,7 @@
 package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -35,7 +36,7 @@ import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.engine.EngineException;
 
-public class RouteComponent extends MobileComponent implements IContainerOrdered {
+public class RouteComponent extends MobileComponent implements IRouteGenerator, IContainerOrdered {
 
 	private static final long serialVersionUID = -8928033403518219727L;
 
@@ -334,9 +335,45 @@ public class RouteComponent extends MobileComponent implements IContainerOrdered
     }
 
 	@Override
-	protected String computeTemplate() {
-		// TODO Auto-generated method stub
-		return null;
+	public String computeRoute() {
+		StringBuilder sb = new StringBuilder();
+		int size = orderedEvents.size();
+		if (size > 0) {
+			// Add events to listener
+			boolean hasEvents = false;
+			sb.append("new C8oRouteListener([");
+			Iterator<RouteEventComponent> ite = getRouteEventComponentList().iterator();
+			while (ite.hasNext()) {
+				RouteEventComponent event = ite.next();
+				String tpl = event.computeRoute();
+				if (!tpl.isEmpty()) {
+					hasEvents = true;
+					sb.append("\""+ tpl +"\",");
+				}
+			}
+			sb.append("])");
+			
+			// Add route actions
+			if (hasEvents) {
+				size = orderedActions.size();
+				if (size > 0) {
+					Iterator<RouteActionComponent> ita = getRouteActionComponentList().iterator();
+					while (ita.hasNext()) {
+						RouteActionComponent action = ita.next();
+						String tpl = action.computeRoute();
+						if (!tpl.isEmpty()) {
+							if (action instanceof RouteDataActionComponent) {
+								sb.append(".addRoute("+ tpl +")");
+							}
+							else if (action instanceof RouteExceptionActionComponent) {
+								sb.append(".addFailedRoute("+ tpl +")");
+							}
+						}
+					}
+				}
+			}
+		}
+		return sb.toString();
 	}
 
 }

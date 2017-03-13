@@ -57,7 +57,7 @@ public class UIText extends UIComponent {
 	}
 
 	@Override
-	protected String computeTemplate() {
+	public String computeTemplate() {
 		if (isEnabled())
 			return StringEscapeUtils.escapeHtml4(getTextValue()) + System.getProperty("line.separator");
 		else

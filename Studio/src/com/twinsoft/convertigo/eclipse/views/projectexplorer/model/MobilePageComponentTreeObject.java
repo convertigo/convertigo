@@ -147,7 +147,7 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 	protected void markTemplateAsDirty() {
 		PageComponent page = getObject();
 		try {
-			page.doCompute();
+			page.doComputeTemplate();
 			page.getProject().getMobileBuilder().pageComputed(page);
 		} catch (EngineException e) {
 			ConvertigoPlugin.logException(e,

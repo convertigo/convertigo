@@ -28,7 +28,7 @@ import org.w3c.dom.Element;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.engine.EngineException;
 
-public class RouteEventComponent extends MobileComponent {
+public class RouteEventComponent extends MobileComponent implements IRouteGenerator {
 
 	private static final long serialVersionUID = -5879576200562937068L;
 
@@ -65,12 +65,6 @@ public class RouteEventComponent extends MobileComponent {
 		return (RouteComponent) super.getParent();
 	}	
 
-	@Override
-	protected String computeTemplate() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	/*
 	 * The event source
 	 */
@@ -105,7 +99,10 @@ public class RouteEventComponent extends MobileComponent {
 	}
 	
 	public String getRequestableString() {
-		return getRequestableSource() + (marker.isEmpty() ? "" : "#" + marker);
+		String requestableSource = getRequestableSource();
+		if (requestableSource.isEmpty())
+			return "";
+		return requestableSource + (marker.isEmpty() ? "" : "#" + marker);
 	}
 
 	protected String getSourceName() {
@@ -123,5 +120,11 @@ public class RouteEventComponent extends MobileComponent {
 		String label = getSourceName();
 		return "on " + (label.equals("") ? "?" : label);
 	}
+	
+	@Override
+	public String computeRoute() {
+		return getRequestableString();
+	}
+
 	
 }

@@ -53,7 +53,7 @@ public class RouteDataActionComponent extends RouteActionComponent {
 		if (!targetAction.isEmpty()) {
 			String targetPage = getPageName();
 			if (targetPage.isEmpty()) {
-				label = targetAction + " ?";
+				label = targetAction + " " + (targetAction.equals(Action.toast.name()) ? "'Your message'":"?");
 			}
 			else {
 				label = targetAction + " " + targetPage;
@@ -63,9 +63,29 @@ public class RouteDataActionComponent extends RouteActionComponent {
 	}
 	
 	@Override
-	protected String computeTemplate() {
-		// TODO Auto-generated method stub
-		return null;
+	public String computeRoute() {
+		StringBuilder sb = new StringBuilder();
+		String condition = getCondition();
+		String targetPage = getPageName();
+		String targetAction = getAction();
+		if (!condition.isEmpty()) {
+			sb.append("new C8oRoute((data:any)=>{return "+ condition +"})");
+			if (!targetAction.isEmpty()) {
+				if (!targetPage.isEmpty()) {
+					sb.append(".setTarget(\""+targetAction+"\", "+targetPage+")");
+				}
+				else {
+					sb.append(".setTarget(\""+targetAction+"\")");
+				}
+				
+				if (targetAction.equals(Action.toast.name())) {
+					sb.append(".setToastMesage(\""+ "Your message" +"\")")
+						.append(".setToastPosition(\""+ "bottom" +"\")")
+						.append(".setToastDuration("+ "5000" +")");
+				}
+			}
+		}
+		return sb.toString();
 	}
 
 }
