@@ -53,7 +53,9 @@ public class RouteDataActionComponent extends RouteActionComponent {
 		if (!targetAction.isEmpty()) {
 			String targetPage = getPageName();
 			if (targetPage.isEmpty()) {
-				label = targetAction + " " + (targetAction.equals(Action.toast.name()) ? "'Your message'":"?");
+				String message = getToastMessage();
+				message = message.isEmpty() ? "?":message;
+				label = targetAction + " " + (targetAction.equals(Action.toast.name()) ? "'"+message+"'":"?");
 			}
 			else {
 				label = targetAction + " " + targetPage;
@@ -79,9 +81,14 @@ public class RouteDataActionComponent extends RouteActionComponent {
 				}
 				
 				if (targetAction.equals(Action.toast.name())) {
-					sb.append(".setToastMesage(\""+ "Your message" +"\")")
-						.append(".setToastPosition(\""+ "bottom" +"\")")
-						.append(".setToastDuration("+ "5000" +")");
+					String message = getToastMessage();
+					sb.append(".setToastMesage(\""+ (message.isEmpty() ? "Your message":message) +"\")");
+					
+					String position = getToastPosition();
+					sb.append(".setToastPosition(\""+ (position.isEmpty() ? "bottom":position) +"\")");
+					
+					String duration = ""+ getToastDuration();
+					sb.append(".setToastDuration("+ (duration.isEmpty() ? "5000":duration) +")");
 				}
 			}
 		}

@@ -113,6 +113,46 @@ public abstract class RouteActionComponent extends MobileComponent implements IR
 		this.page = page;
 	}
 	
+	/*
+	 * The toast message
+	 */
+	private String toastMessage = "Your message";
+	
+	public String getToastMessage() {
+		return toastMessage;
+	}
+
+	public void setToastMessage(String toastMessage) {
+		this.toastMessage = toastMessage;
+	}
+
+	/*
+	 * The toast duration
+	 */
+	private int toastDuration = 5000;
+	
+	public int getToastDuration() {
+		return toastDuration;
+	}
+
+	public void setToastDuration(int toastDuration) {
+		this.toastDuration = toastDuration;
+	}
+
+	/*
+	 * The toast position
+	 */
+	private String toastPosition = "bottom";
+	
+	public String getToastPosition() {
+		return toastPosition;
+	}
+
+	public void setToastPosition(String toastPosition) {
+		this.toastPosition = toastPosition;
+	}
+
+	
 	public String[] getTagsForProperty(String propertyName) {
 		if (propertyName.equals("action")) {
 			return EnumUtils.toNames(Action.class);

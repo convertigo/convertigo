@@ -41,7 +41,7 @@ public class RouteActionComponentBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[3];
+			properties = new PropertyDescriptor[6];
 			
 			properties[0] = new PropertyDescriptor("condition", beanClass, "getCondition", "setCondition");
 			properties[0].setDisplayName(getExternalizedString("property.condition.display_name"));
@@ -56,6 +56,18 @@ public class RouteActionComponentBeanInfo extends MySimpleBeanInfo {
 			properties[2].setDisplayName(getExternalizedString("property.page.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.page.short_description"));
 			properties[2].setPropertyEditorClass(getEditorClass("NamedSourceSelectorEditor"));
+			
+			properties[3] = new PropertyDescriptor("toastMessage", beanClass, "getToastMessage", "setToastMessage");
+			properties[3].setDisplayName(getExternalizedString("property.toastMessage.display_name"));
+			properties[3].setShortDescription(getExternalizedString("property.toastMessage.short_description"));
+			
+			properties[4] = new PropertyDescriptor("toastDuration", beanClass, "getToastDuration", "setToastDuration");
+			properties[4].setDisplayName(getExternalizedString("property.toastDuration.display_name"));
+			properties[4].setShortDescription(getExternalizedString("property.toastDuration.short_description"));
+			
+			properties[5] = new PropertyDescriptor("toastPosition", beanClass, "getToastPosition", "setToastPosition");
+			properties[5].setDisplayName(getExternalizedString("property.toastPosition.display_name"));
+			properties[5].setShortDescription(getExternalizedString("property.toastPosition.short_description"));
 			
 		}
 		catch(Exception e) {
