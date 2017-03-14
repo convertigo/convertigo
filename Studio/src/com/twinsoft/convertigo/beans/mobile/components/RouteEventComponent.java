@@ -92,6 +92,19 @@ public class RouteEventComponent extends MobileComponent implements IRouteGenera
 	}
 	
 	/*
+	 * The enabled state
+	 */
+	private boolean isEnabled = true;
+	
+	public boolean isEnabled() {
+		return isEnabled;
+	}
+
+	public void setEnabled(boolean isEnabled) {
+		this.isEnabled = isEnabled;
+	}
+	
+	/*
 	 * The 'requestable' used by mobile client application
 	 */
 	protected String getRequestableSource() {
@@ -131,7 +144,10 @@ public class RouteEventComponent extends MobileComponent implements IRouteGenera
 	
 	@Override
 	public String computeRoute() {
-		return getRequestableString();
+		if (isEnabled()) {
+			return getRequestableString();
+		}
+		return "";
 	}
 
 	

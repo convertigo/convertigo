@@ -41,7 +41,7 @@ public class RouteEventComponentBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[2];
+			properties = new PropertyDescriptor[3];
 			
 			properties[0] = new PropertyDescriptor("source", beanClass, "getSource", "setSource");
 			properties[0].setDisplayName(getExternalizedString("property.source.display_name"));
@@ -51,6 +51,9 @@ public class RouteEventComponentBeanInfo extends MySimpleBeanInfo {
 			properties[1].setDisplayName(getExternalizedString("property.marker.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.marker.short_description"));
 			
+            properties[2] = new PropertyDescriptor("isEnabled", beanClass, "isEnabled", "setEnabled");
+			properties[2].setDisplayName(getExternalizedString("property.isEnabled.display_name"));
+			properties[2].setShortDescription(getExternalizedString("property.isEnabled.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

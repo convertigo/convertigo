@@ -1058,6 +1058,36 @@
          </action>
       </objectContribution>
       <objectContribution
+            id="convertigo.mobileRouteEventComponentContribution"
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteEventComponentTreeObject">
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.EnableMobileRouteEventComponentAction"
+               enablesFor="+"
+               id="convertigo.action.enableRouteEvent"
+               label="Enable"
+               menubarPath="enable">
+            <enablement>
+               <objectState
+                   name="isEnabled"
+                   value="false">
+               </objectState>
+            </enablement>
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.DisableMobileRouteEventComponentAction"
+               enablesFor="+"
+               id="convertigo.action.disableRouteEvent"
+               label="Disable"
+               menubarPath="enable">
+            <enablement>
+               <objectState
+                   name="isEnabled"
+                   value="true">
+               </objectState>
+            </enablement>
+         </action>
+      </objectContribution>
+      <objectContribution
             id="convertigo.mobilePageComponentContribution"
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobilePageComponentTreeObject">
          <action
