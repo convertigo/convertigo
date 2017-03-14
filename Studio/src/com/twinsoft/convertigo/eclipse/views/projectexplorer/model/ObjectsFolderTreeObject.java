@@ -136,7 +136,7 @@ public class ObjectsFolderTreeObject extends FolderTreeObject implements IAction
 				folderName = "Events";
 				break;
 			case FOLDER_TYPE_ROUTES:
-				folderName = "Routes";
+				folderName = "Navigation Routes";
 				break;
 			case FOLDER_TYPE_PAGES:
 				folderName = "Pages";
