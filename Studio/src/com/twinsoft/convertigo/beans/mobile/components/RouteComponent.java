@@ -81,6 +81,16 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
 		return (ApplicationComponent) super.getParent();
 	}
 	
+	private boolean isEnabled = true;
+	
+	public boolean isEnabled() {
+		return isEnabled;
+	}
+
+	public void setEnabled(boolean isEnabled) {
+		this.isEnabled = isEnabled;
+	}
+	
 	private XMLVector<XMLVector<Long>> orderedActions = new XMLVector<XMLVector<Long>>();
 	private XMLVector<XMLVector<Long>> orderedEvents = new XMLVector<XMLVector<Long>>();
 	
@@ -337,36 +347,38 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
 	@Override
 	public String computeRoute() {
 		StringBuilder sb = new StringBuilder();
-		int size = orderedEvents.size();
-		if (size > 0) {
-			// Add events to listener
-			boolean hasEvents = false;
-			sb.append("new C8oRouteListener([");
-			Iterator<RouteEventComponent> ite = getRouteEventComponentList().iterator();
-			while (ite.hasNext()) {
-				RouteEventComponent event = ite.next();
-				String tpl = event.computeRoute();
-				if (!tpl.isEmpty()) {
-					hasEvents = true;
-					sb.append("\""+ tpl +"\",");
+		if (isEnabled()) {
+			int size = orderedEvents.size();
+			if (size > 0) {
+				// Add events to listener
+				boolean hasEvents = false;
+				sb.append("new C8oRouteListener([");
+				Iterator<RouteEventComponent> ite = getRouteEventComponentList().iterator();
+				while (ite.hasNext()) {
+					RouteEventComponent event = ite.next();
+					String tpl = event.computeRoute();
+					if (!tpl.isEmpty()) {
+						hasEvents = true;
+						sb.append("\""+ tpl +"\",");
+					}
 				}
-			}
-			sb.append("])");
-			
-			// Add route actions
-			if (hasEvents) {
-				size = orderedActions.size();
-				if (size > 0) {
-					Iterator<RouteActionComponent> ita = getRouteActionComponentList().iterator();
-					while (ita.hasNext()) {
-						RouteActionComponent action = ita.next();
-						String tpl = action.computeRoute();
-						if (!tpl.isEmpty()) {
-							if (action instanceof RouteDataActionComponent) {
-								sb.append(".addRoute("+ tpl +")");
-							}
-							else if (action instanceof RouteExceptionActionComponent) {
-								sb.append(".addFailedRoute("+ tpl +")");
+				sb.append("])");
+				
+				// Add route actions
+				if (hasEvents) {
+					size = orderedActions.size();
+					if (size > 0) {
+						Iterator<RouteActionComponent> ita = getRouteActionComponentList().iterator();
+						while (ita.hasNext()) {
+							RouteActionComponent action = ita.next();
+							String tpl = action.computeRoute();
+							if (!tpl.isEmpty()) {
+								if (action instanceof RouteDataActionComponent) {
+									sb.append(".addRoute("+ tpl +")");
+								}
+								else if (action instanceof RouteExceptionActionComponent) {
+									sb.append(".addFailedRoute("+ tpl +")");
+								}
 							}
 						}
 					}

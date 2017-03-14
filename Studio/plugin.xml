@@ -999,7 +999,33 @@
                id="convertigo.action.newRouteEventComponent"
                label="Event"
                menubarPath="convertigo.menu.new/content">
-         </action>            
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.EnableMobileRouteComponentAction"
+               enablesFor="+"
+               id="convertigo.action.enableRoute"
+               label="Enable"
+               menubarPath="enable">
+            <enablement>
+               <objectState
+                   name="isEnabled"
+                   value="false">
+               </objectState>
+            </enablement>
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.DisableMobileRouteComponentAction"
+               enablesFor="+"
+               id="convertigo.action.disableRoute"
+               label="Disable"
+               menubarPath="enable">
+            <enablement>
+               <objectState
+                   name="isEnabled"
+                   value="true">
+               </objectState>
+            </enablement>
+         </action>
       </objectContribution>
       <objectContribution
             id="convertigo.mobilePageComponentContribution"
