@@ -67,12 +67,14 @@ public class RouteDataActionComponent extends RouteActionComponent {
 	@Override
 	public String computeRoute() {
 		StringBuilder sb = new StringBuilder();
-		String condition = getCondition();
-		String targetPage = getPageName();
-		String targetAction = getAction();
-		if (!condition.isEmpty()) {
-			sb.append("new C8oRoute((data:any)=>{return "+ condition +"})");
+		if (isEnabled()) {
+			String condition = getCondition();
+			String targetPage = getPageName();
+			String targetAction = getAction();
+			
 			if (!targetAction.isEmpty()) {
+				sb.append("new C8oRoute((data:any)=>{return "+ (condition.isEmpty() ? "true":condition) +"})");
+				
 				if (!targetPage.isEmpty()) {
 					sb.append(".setTarget(\""+targetAction+"\", "+targetPage+")");
 				}

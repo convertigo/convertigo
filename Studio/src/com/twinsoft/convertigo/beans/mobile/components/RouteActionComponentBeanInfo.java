@@ -41,7 +41,7 @@ public class RouteActionComponentBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[6];
+			properties = new PropertyDescriptor[7];
 			
 			properties[0] = new PropertyDescriptor("condition", beanClass, "getCondition", "setCondition");
 			properties[0].setDisplayName(getExternalizedString("property.condition.display_name"));
@@ -68,6 +68,10 @@ public class RouteActionComponentBeanInfo extends MySimpleBeanInfo {
 			properties[5] = new PropertyDescriptor("toastPosition", beanClass, "getToastPosition", "setToastPosition");
 			properties[5].setDisplayName(getExternalizedString("property.toastPosition.display_name"));
 			properties[5].setShortDescription(getExternalizedString("property.toastPosition.short_description"));
+			
+            properties[6] = new PropertyDescriptor("isEnabled", beanClass, "isEnabled", "setEnabled");
+			properties[6].setDisplayName(getExternalizedString("property.isEnabled.display_name"));
+			properties[6].setShortDescription(getExternalizedString("property.isEnabled.short_description"));
 			
 		}
 		catch(Exception e) {

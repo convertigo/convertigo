@@ -45,16 +45,17 @@ public class RouteExceptionActionComponent extends RouteActionComponent {
 	@Override
 	public String computeRoute() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("new C8oRoute((exception:any)=>{return true})")
-			.append(".setTarget(\""+Action.toast.name()+"\")")
-			.append(".setToastMesage(\""+ "Exception" +"\")");
-		
-		String position = getToastPosition();
-		sb.append(".setToastPosition(\""+ (position.isEmpty() ? "bottom":position) +"\")");
-		
-		String duration = ""+ getToastDuration();
-		sb.append(".setToastDuration("+ (duration.isEmpty() ? "5000":duration) +")");
-		
+		if (isEnabled()) {
+			sb.append("new C8oRoute((exception:any)=>{return true})")
+				.append(".setTarget(\""+Action.toast.name()+"\")")
+				.append(".setToastMesage(\""+ "Exception" +"\")");
+			
+			String position = getToastPosition();
+			sb.append(".setToastPosition(\""+ (position.isEmpty() ? "bottom":position) +"\")");
+			
+			String duration = ""+ getToastDuration();
+			sb.append(".setToastDuration("+ (duration.isEmpty() ? "5000":duration) +")");
+		}
 		return sb.toString();
 	}
 

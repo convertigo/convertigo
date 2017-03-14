@@ -152,6 +152,19 @@ public abstract class RouteActionComponent extends MobileComponent implements IR
 		this.toastPosition = toastPosition;
 	}
 
+	/*
+	 * The enabled state
+	 */
+	private boolean isEnabled = true;
+	
+	public boolean isEnabled() {
+		return isEnabled;
+	}
+
+	public void setEnabled(boolean isEnabled) {
+		this.isEnabled = isEnabled;
+	}
+	
 	
 	public String[] getTagsForProperty(String propertyName) {
 		if (propertyName.equals("action")) {
