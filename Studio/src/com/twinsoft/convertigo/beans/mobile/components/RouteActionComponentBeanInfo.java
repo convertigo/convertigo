@@ -46,6 +46,7 @@ public class RouteActionComponentBeanInfo extends MySimpleBeanInfo {
 			properties[0] = new PropertyDescriptor("condition", beanClass, "getCondition", "setCondition");
 			properties[0].setDisplayName(getExternalizedString("property.condition.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.condition.short_description"));
+			properties[0].setValue("scriptable", Boolean.TRUE);
 			
 			properties[1] = new PropertyDescriptor("action", beanClass, "getAction", "setAction");
 			properties[1].setDisplayName(getExternalizedString("property.action.display_name"));
