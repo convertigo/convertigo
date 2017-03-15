@@ -1,0 +1,55 @@
+.folder {
+	background-image: url(../../admin/images/folder.gif) !important;
+}
+
+#propertyView tbody>tr:first-child>td:first-child {
+	color: red;
+}
+
+#propertyView tbody>tr>td {
+	color: green;
+	/* overflow-x: hidden; */
+	/* white-space: nowrap; */
+	user-select: initial;
+}
+
+#propertyView tbody>tr>td>input {
+	background-color: rgb(51, 55, 59);
+	color: white;
+    border: none;
+}
+
+#propertyView thead>tr>th {
+	text-align: left
+}
+
+.comment {
+	color: rgb(4, 234, 34);
+}
+
+.jstree-rename-input {
+	width: 100% !important;	
+}
+
+.jstree-default-dark {
+	background-color: none;
+}
+
+/* 
+	If on the same page we have several jstrees using the jstree grid plugin and that one of them
+	does not show headers, the headers of all others jstrees will not be displayed. So we have to
+	add this special css property to fix this.
+	
+	NOTE: In the selector 'div.jstree-grid-column-root-bottomPanel', bottomPanel is the ID of the
+	  	  panel defined with GWT. So if you change the ID of the panel, don't forget to update the
+	  	  selector.
+*/
+.jstree-grid-wrapper div.jstree-grid-column-root-bottomPanel .jstree-grid-header-regular {
+	display: block !important;
+	background: none;
+}
+
+/* Header separator of the jstree grid plugin */
+.jstree-grid-separator-regular {
+/* 	border-style: none !important; */
+}

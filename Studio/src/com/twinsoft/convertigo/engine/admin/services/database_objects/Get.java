@@ -44,10 +44,10 @@ import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 		returnValue = ""
 	)
 public class Get extends XmlService {
-	public static void addProperties(DatabaseObject dbo, Document document, Element root, String qname) throws EngineException {
+	public static Element getProperties(DatabaseObject dbo, Document document, String qname) throws EngineException {
 		Element elt = dbo.toXml(document, ExportOption.bIncludeBlackListedElements, ExportOption.bIncludeCompiledValue, ExportOption.bIncludeDisplayName, ExportOption.bIncludeEditorClass, ExportOption.bIncludeShortDescription, ExportOption.bHidePassword);
 		elt.setAttribute("qname", qname);
-		root.appendChild(elt);
+		return elt;
 	}
 	
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
@@ -55,6 +55,6 @@ public class Get extends XmlService {
 		String qname = ServiceUtils.getRequiredParameter(request, "qname");
 		Map<String, DatabaseObject> map = com.twinsoft.convertigo.engine.admin.services.projects.Get.getDatabaseObjectByQName(request);
 		DatabaseObject res = map.get(qname);
-		addProperties(res, document, root, qname);
+		root.appendChild(getProperties(res, document, qname));
 	}
 }
