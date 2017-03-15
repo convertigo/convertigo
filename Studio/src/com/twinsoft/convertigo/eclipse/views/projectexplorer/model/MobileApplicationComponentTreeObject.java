@@ -58,7 +58,7 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 	public void hasBeenModified(boolean bModified) {
 		super.hasBeenModified(bModified);
 		if (bModified && !isInherited) {
-			;
+			markRouteAsDirty();
 		}
 	}
 	

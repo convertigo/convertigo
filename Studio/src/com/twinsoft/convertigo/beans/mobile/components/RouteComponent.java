@@ -350,7 +350,7 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
 		if (isEnabled()) {
 			int size = orderedEvents.size();
 			if (size > 0) {
-				// Add events to listener
+				// Add events
 				boolean hasEvents = false;
 				sb.append("new C8oRouteListener([");
 				Iterator<RouteEventComponent> ite = getRouteEventComponentList().iterator();
@@ -358,8 +358,8 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
 					RouteEventComponent event = ite.next();
 					String tpl = event.computeRoute();
 					if (!tpl.isEmpty()) {
+						sb.append((hasEvents ? ",":"") + "\""+ tpl + "\"");
 						hasEvents = true;
-						sb.append("\""+ tpl +"\",");
 					}
 				}
 				sb.append("])");
