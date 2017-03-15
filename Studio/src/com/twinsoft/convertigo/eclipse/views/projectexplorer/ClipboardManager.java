@@ -557,7 +557,7 @@ public class ClipboardManager {
 							databaseObject.newPriority = databaseObject.priority;
 							app.add(databaseObject);
 						}
-					} else if (databaseObject instanceof RouteComponent) {
+					} else if (parentDatabaseObject instanceof RouteComponent) {
 						RouteComponent route = (RouteComponent)parentDatabaseObject;
 						if (databaseObject instanceof RouteActionComponent) {
 							databaseObject.priority = databaseObject.getNewOrderValue();
