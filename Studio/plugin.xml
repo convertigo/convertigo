@@ -955,7 +955,7 @@
                enablesFor="1"
                icon="icons/studio/menu/routecomponent_color_16x16.png"
                id="convertigo.action.newRouteComponent"
-               label="Route"
+               label="Navigation Route"
                menubarPath="convertigo.menu.new/content">
          </action>
          <action
