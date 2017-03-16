@@ -118,6 +118,17 @@ public class FullSyncServlet extends HttpServlet {
 
 			HttpMethodType method = HttpMethodType.valueOf(request.getMethod());
 
+			if(method == HttpMethodType.OPTIONS){
+				for (String headerName: Collections.list(request.getHeaderNames())) {
+					if (HeaderName.AccessControlRequestMethod.is(headerName)){
+						response.setHeader(HeaderName.AccessControlAllowMethods.value(), "GET, PUT, POST, HEAD, DELETE");
+						response.setHeader(HeaderName.AccessControlAllowHeaders.value(), "content-type");
+						response.setStatus(204);
+						return;
+					}
+				}
+			}
+			
 			switch (method) {
 //			case DELETE: newRequest = new HttpDelete(); break; //disabled to prevent db delete
 			case GET: newRequest = new HttpGet(); break;
