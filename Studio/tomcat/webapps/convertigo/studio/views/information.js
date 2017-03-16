@@ -1,13 +1,12 @@
-// Property View
-var PV = {
+var PropertiesView = {
 	// Variables
 	tree: null,
 	
 	// Functions
 	init: function (jstreeId) {
-		PV.tree = $(jstreeId);
+		PropertiesView.tree = $(jstreeId);
 		
-		PV.tree
+		PropertiesView.tree
 			.jstree({
 				core: {
 					check_callback: true,
@@ -45,11 +44,21 @@ var PV = {
 				    resizable: true
 				}
 			})
-			.one("loaded.jstree", function () {				
+			.one("loaded.jstree", function (event, data) {				
 				// 'Hack CSS' part 2: Delete the useless empty node which allowed to generate the right CSS
-				PV.removeTreeData();
+				PropertiesView.removeTreeData();
+			})
+			.on("loaded_grid.jstree", function (event, data) {
+				/* 
+				* If on the same page we have several jstrees using the jstree grid plugin and that one of them
+				* does not show headers, the headers of all others jstrees will not be displayed. So we have to
+				* add this special CSS class property.
+				*/
+				PropertiesView.tree
+					.parents(".jstree-grid-wrapper")
+					.find(".jstree-grid-header-regular")
+					.addClass("jstree-header");
 			});
-		
 	},
 	createNodeJsonPropertyCategory: function (textNode) {
 		return {
@@ -61,19 +70,24 @@ var PV = {
 		};
 	},
 	removeTreeData: function () {
-		PV.updateTreeData([]);
+		PropertiesView.updateTreeData([]);
 	},
 	update: function ($dboElt) {
-		var isExtractionRule = $dboElt.attr("isExtractionRule") == "true";
-		
-		// Create the different categories (Base properties, Expert, ...)
+		// Different categories (Base properties, Expert, etc.)
 		var propertyCategories = {};
-		propertyCategories["false"] = PV.createNodeJsonPropertyCategory(isExtractionRule ? "Configuration" : "Base properties");
-		propertyCategories["true"] = PV.createNodeJsonPropertyCategory(isExtractionRule ? "Selection" : "Expert");
+		var isExtractionRule = $dboElt.attr("isExtractionRule") == "true";
 
 		// Add property to the right category
 		$dboElt.find("property[isHidden!=true]").each(function () {
 			var key = $(this).attr("isExpert");
+			// Create the category if it does not exist yet
+			if (!propertyCategories[key]) {
+				propertyCategories[key] = key == "true" ?
+					    PropertiesView.createNodeJsonPropertyCategory(isExtractionRule ? "Selection" : "Expert") :
+					    PropertiesView.createNodeJsonPropertyCategory(isExtractionRule ? "Configuration" : "Base properties");
+			}
+			
+			// Add the property to the category
 			propertyCategories[key].children.push({
 				text: $(this).attr("displayName"),
 				data: {
@@ -92,7 +106,7 @@ var PV = {
 		}
 		
 		// Create information category
-		var informationCategory = PV.createNodeJsonPropertyCategory("Information");
+		var informationCategory = PropertiesView.createNodeJsonPropertyCategory("Information");
 		informationCategory.children.push({
 			text: "Depth",
 			data: {
@@ -138,10 +152,10 @@ var PV = {
 		propertyViewTreeNodes.push(informationCategory);
 		
 		// Update the property view with the new data
-		PV.updateTreeData(propertyViewTreeNodes);
+		PropertiesView.updateTreeData(propertyViewTreeNodes);
 	},
 	updateTreeData: function (data) {
-		PV.tree.jstree().settings.core.data = data;
-		PV.tree.jstree().refresh(true);
+		PropertiesView.tree.jstree().settings.core.data = data;
+		PropertiesView.tree.jstree().refresh(true);
 	}
 };

@@ -1,5 +1,4 @@
-// Injector
-var INJ = {
+var Injector = {
 	// Inject a CSS
 	injectLinkStyle: function (cssUrl, callback) {
 		var linkStyleTag = document.createElement("link");
@@ -45,8 +44,7 @@ var StringUtils = {
 	}
 };
 
-// Project Tree View
-var PTV = {
+var ProjectsView = {
 		// Variables
 		tree: null,
 		url: {
@@ -59,23 +57,23 @@ var PTV = {
 		// Functions
 		init: function (baseUrl, jstreeId, authUserName, authPassword) {
 			// Initialize URLs
-			PTV.url.baseUrl = baseUrl;
-			PTV.url.baseUrlConvertigo = PTV.url.baseUrl + "convertigo/";
-			PTV.url.baseUrlConvertigoStudio = PTV.url.baseUrlConvertigo + "studio/";
-			PTV.url.baseUrlConvertigoServices = PTV.url.baseUrlConvertigo + "admin/services/";
+			ProjectsView.url.baseUrl = baseUrl;
+			ProjectsView.url.baseUrlConvertigo = ProjectsView.url.baseUrl + "convertigo/";
+			ProjectsView.url.baseUrlConvertigoStudio = ProjectsView.url.baseUrlConvertigo + "studio/";
+			ProjectsView.url.baseUrlConvertigoServices = ProjectsView.url.baseUrlConvertigo + "admin/services/";
 			
 			// Inject CSS
-			INJ.injectLinkStyle(PTV.url.baseUrlConvertigoStudio + "css/jstree/themes/default-dark/style.min.css");
-			INJ.injectLinkStyle(PTV.url.baseUrlConvertigoStudio + "css/style.css");
+			Injector.injectLinkStyle(ProjectsView.url.baseUrlConvertigoStudio + "css/jstree/themes/default-dark/style.min.css");
+			Injector.injectLinkStyle(ProjectsView.url.baseUrlConvertigoStudio + "css/style.css");
 			
 			// Load jQuery library
-			INJ.injectScript(PTV.url.baseUrlConvertigo + "scripts/jquery-2.1.4.js", function () {
+			Injector.injectScript(ProjectsView.url.baseUrlConvertigo + "scripts/jquery-2.1.4.js", function () {
 				// Inject jstree library
-				INJ.injectScript(PTV.url.baseUrlConvertigoStudio + "js/jstree/jstree.min.js", function () {
+				Injector.injectScript(ProjectsView.url.baseUrlConvertigoStudio + "js/jstree/jstree.min.js", function () {
 					// Delay because jstree.min.js is not correctly loaded sometimes...
 					setTimeout(function () {
 						// Inject jstree grid plugin
-						INJ.injectScript(PTV.url.baseUrlConvertigoStudio + "js/jstree/jstreegrid-3.5.14.js", function () {
+						Injector.injectScript(ProjectsView.url.baseUrlConvertigoStudio + "js/jstree/jstreegrid-3.5.14.js", function () {
 							// Define AJAX setup
 							$.ajaxSetup({
 								type: "POST",
@@ -86,8 +84,8 @@ var PTV = {
 							});
 							
 							// Create first level of the tree : project nodes
-							PTV.loadProjects(authUserName, authPassword, function () {
-								PTV.initJstree(jstreeId);
+							ProjectsView.loadProjects(authUserName, authPassword, function () {
+								ProjectsView.initJstree(jstreeId);
 							});									
 						});
 					}, 1000);
@@ -100,7 +98,7 @@ var PTV = {
 			var nodeType = classname.replace(/\./g, "-");
 			
 			// Add the node type and specify the icon for these nodes
-			PTV.tree.jstree().settings.types[nodeType] = {
+			ProjectsView.tree.jstree().settings.types[nodeType] = {
 				icon: nodeType
 			}
 			
@@ -118,7 +116,7 @@ var PTV = {
 					var categoryPlural = category + "s";
 					// Check if one of the parents of the selected node is a category
 					var parentCategoryFound = node.parents.find(function (parent) {
-						return categoryPlural === PTV.tree.jstree().get_text(parent);
+						return categoryPlural === ProjectsView.tree.jstree().get_text(parent);
 					});
 
 					// If category not found, we create it
@@ -134,7 +132,7 @@ var PTV = {
 				}
 				
 				// Create the node and "set" its parent: the new category or the selected node
-				var dboNode = PTV.createNodeJsonDbo(this);
+				var dboNode = ProjectsView.createNodeJsonDbo(this);
 				if (categories[category]) {
 					categories[category].children.push(dboNode);
 				}
@@ -146,7 +144,7 @@ var PTV = {
 			return nodes;
 		},
 		createConvertigoServiceUrl: function (serviceName) {
-			return PTV.url.baseUrlConvertigoServices + serviceName;
+			return ProjectsView.url.baseUrlConvertigoServices + serviceName;
 		},
 		createNodeJsonDbo: function (dboElt) {
 			var dboEltComment = StringUtils.escapeHTML($(dboElt).attr("comment"));
@@ -172,7 +170,7 @@ var PTV = {
 			return {
 				text: $(dboElt).attr("name"),
 				// Add a new type for icons
-				type: PTV.addJstreeNodeType($(dboElt).attr("classname")),
+				type: ProjectsView.addJstreeNodeType($(dboElt).attr("classname")),
 				children: $(dboElt).attr("hasChildren") === "true",
 				data: {
 					qname: $(dboElt).attr("qname"),
@@ -202,8 +200,8 @@ var PTV = {
 			    // need to find the element - later
 			    return false;
 			}
-			var rtl = PTV.tree.jstree()._data.core.rtl,
-			    w = PTV.tree.jstree().element.width(),
+			var rtl = ProjectsView.tree.jstree()._data.core.rtl,
+			    w = ProjectsView.tree.jstree().element.width(),
 			    t = editText,
 			    h1 = $("<div/>", {
 			        css: {
@@ -221,8 +219,8 @@ var PTV = {
 			            "border": "1px solid silver",
 			            "box-sizing": "border-box",
 			            "display": "inline-block",
-			            "height": (PTV.tree.jstree()._data.core.li_height) + "px",
-			            "lineHeight": (PTV.tree.jstree()._data.core.li_height) + "px",
+			            "height": (ProjectsView.tree.jstree()._data.core.li_height) + "px",
+			            "lineHeight": (ProjectsView.tree.jstree()._data.core.li_height) + "px",
 			            "width": "150px" // will be set a bit further down
 			        },
 			        "blur": $.proxy(function() {
@@ -235,17 +233,17 @@ var PTV = {
 			            else {
 			            	// New value of the comment
 			                obj.data[col.value] = v.length ? StringUtils.addDoubleSlash(StringUtils.escapeHTML(v)) : v;
-			                PTV.tree.jstree().element.trigger('update_cell.jstree-grid', {
+			                ProjectsView.tree.jstree().element.trigger('update_cell.jstree-grid', {
 			                    node: obj,
 			                    col: col.value,
 			                    value: v,
 			                    old: t
 			                });
-			                PTV.tree.jstree()._prepare_grid(this.get_node(obj, true));
+			                ProjectsView.tree.jstree()._prepare_grid(this.get_node(obj, true));
 			            }
 			            h2.remove();
 			            element.show();
-			        }, PTV.tree.jstree()),
+			        }, ProjectsView.tree.jstree()),
 			        "keydown": function(event) {
 			            var key = event.which;
 			            if (key === 27) {
@@ -292,28 +290,28 @@ var PTV = {
 			if (node.type !== "default") {
 				// Get properties of the object
 				$.ajax({
-					url: PTV.createConvertigoServiceUrl("studio.database_objects.Get"),
+					url: ProjectsView.createConvertigoServiceUrl("studio.database_objects.Get"),
 					data: {
 						qname: node.data.qname
 					},
 					success: function (data, textStatus, jqXHR) {
 						// Update the property view
-						PV.update($(data).find("admin > *").first());
+						PropertiesView.update($(data).find("admin > *").first());
 					}
 				});
 			}
 			else {
 				// Remove all data from the property view
-				PV.removeTreeData();
+				PropertiesView.removeTreeData();
 			}
 		},
 		initJstree: function (jstreeId) {
 			// Inject CSS the icons of each type of nodes
-			INJ.injectLinkStyle(PTV.createConvertigoServiceUrl("studio.database_objects.GetCSS"));
+			Injector.injectLinkStyle(ProjectsView.createConvertigoServiceUrl("studio.database_objects.GetCSS"));
 			
 			// Initialize jstree
-			PTV.tree = $(jstreeId);
-			$(PTV.tree)
+			ProjectsView.tree = $(jstreeId);
+			$(ProjectsView.tree)
 				.jstree({
 					core: {
 						check_callback: true,
@@ -325,7 +323,7 @@ var PTV = {
 						data: function (node, cb) {
 							var isRoot = node.id == "#";
 							$.ajax({
-								url: PTV.createConvertigoServiceUrl("studio.database_objects.GetChildren"),
+								url: ProjectsView.createConvertigoServiceUrl("studio.database_objects.GetChildren"),
 								data: isRoot ? {} : {qname: node.data.qname},
 								success: function (data, textStatus, jqXHR) {
 									// Node is root : we creates project nodes
@@ -333,11 +331,11 @@ var PTV = {
 										var nodes = [];
 										// Create the nodes for each project
 										$(data).find("admin>dbo").each(function () {
-											nodes.push(PTV.createNodeJsonDbo(this));
+											nodes.push(ProjectsView.createNodeJsonDbo(this));
 										});
 									}
 									else {
-										var nodes = PTV.createChildNodes($(data).find("admin>dbo"), node);
+										var nodes = ProjectsView.createChildNodes($(data).find("admin>dbo"), node);
 									}
 									
 									// Creation of the nodes
@@ -371,16 +369,16 @@ var PTV = {
 					}
 				})
 				.on("select_node.jstree", function (event, data) {
-					PTV.handleSelectNodeEvent(data.node);
+					ProjectsView.handleSelectNodeEvent(data.node);
 				})
 				.on("select_cell.jstree-grid", function (event, data) {
-					var node = PTV.tree.jstree().get_node(data.node[0].id);
+					var node = ProjectsView.tree.jstree().get_node(data.node[0].id);
 					// Check if the node has a comment (node.data(.comment))
 					// If it haven't, it is a folder
 					if (node.data) {
 						// Removes "// "
 						var editComment = StringUtils.unescapeHTML(node.data.comment.substr(3));
-						PTV.editCell(node, {
+						ProjectsView.editCell(node, {
 						    value: data.sourceName
 						}, data.grid, editComment);
 					}
@@ -399,12 +397,12 @@ var PTV = {
 				});
 				
 			// Property view jstree
-			PV.init("#bottomPanel");
+			PropertiesView.init(".informationView");
 		},
 		loadProjects: function (userName, password, callback) {
 			// We first have to authenticate to get the projects
 			$.ajax({
-				url: PTV.createConvertigoServiceUrl("engine.Authenticate"),
+				url: ProjectsView.createConvertigoServiceUrl("engine.Authenticate"),
 				data: {
 					authUserName: userName,
 					authPassword: password,
@@ -421,7 +419,7 @@ var PTV = {
 	};
 
 var convertigoMachineUrl = "http://localhost:18080/";
-var jstreeId = "#projectTreeView";
+var jstreeId = ".projectsView";
 var authUserName = "admin";
 var authPassword = "admin";
-PTV.init(convertigoMachineUrl, jstreeId, authUserName, authPassword);
+ProjectsView.init(convertigoMachineUrl, jstreeId, authUserName, authPassword);

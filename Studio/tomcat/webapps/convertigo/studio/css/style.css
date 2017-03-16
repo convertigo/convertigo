@@ -35,18 +35,9 @@
 	background-color: none;
 }
 
-/* 
-	If on the same page we have several jstrees using the jstree grid plugin and that one of them
-	does not show headers, the headers of all others jstrees will not be displayed. So we have to
-	add this special css property to fix this.
-	
-	NOTE: In the selector 'div.jstree-grid-column-root-bottomPanel', bottomPanel is the ID of the
-	  	  panel defined with GWT. So if you change the ID of the panel, don't forget to update the
-	  	  selector.
-*/
-.jstree-grid-wrapper div.jstree-grid-column-root-bottomPanel .jstree-grid-header-regular {
+.jstree-header {
 	display: block !important;
-	background: none;
+	background: none !important;
 }
 
 /* Header separator of the jstree grid plugin */
