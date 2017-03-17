@@ -115,12 +115,6 @@
                label="&amp;Print project"
                menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator"/>
          <action
-               class="com.twinsoft.convertigo.eclipse.actions.OpenDiscoveryConnectorsAction"
-               icon="icons/svn_add_connector.gif"
-               id="com.twinsoft.convertigo.OpenDiscoveryConnectorsAction"
-               label="&amp;Open SVN Discovery Connectors"
-               menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator"/>
-         <action
                class="com.twinsoft.convertigo.eclipse.actions.AdministrationAction"
                icon="icons/administration_16x16.gif"
                id="com.twinsoft.convertigo.Administration"
@@ -3702,14 +3696,6 @@
             name="convertigo4.context1"/>
    </extension>
    <extension
-         id="convertigoStartup"
-         name="convertigoStartup"
-         point="org.eclipse.ui.startup">
-   </extension>
-   <extension
-         point="org.eclipse.ui.cheatsheets.cheatSheetContent">    
-   </extension>
-   <extension
          point="org.eclipse.ui.importWizards">
       <category
             id="com.twinsoft.convertigo.eclipse.wizards.ConvertigoCategory"
@@ -3787,5 +3773,11 @@
        	   </proposalComputer>
 		           
 	</extension>
+ <extension
+       point="org.eclipse.ui.startup">
+    <startup
+          class="com.twinsoft.convertigo.eclipse.ConvertigoPlugin">
+    </startup>
+ </extension>
    
 </plugin>

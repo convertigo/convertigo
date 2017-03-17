@@ -20,11 +20,6 @@
 			<arguments>
 			</arguments>
 		</buildCommand>
-		<buildCommand>
-			<name>net.sourceforge.metrics.builder</name>
-			<arguments>
-			</arguments>
-		</buildCommand>
 	</buildSpec>
 	<natures>
 		<nature>org.eclipse.jem.workbench.JavaEMFNature</nature>
@@ -57,7 +52,7 @@
 	</linkedResources>
 	<filteredResources>
 		<filter>
-			<id>1486482436144</id>
+			<id>0</id>
 			<name>src/com/twinsoft/convertigo/engine/plugins</name>
 			<type>6</type>
 			<matcher>
@@ -66,7 +61,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1486482436144</id>
+			<id>0</id>
 			<name>src/com/twinsoft/convertigo/engine/plugins</name>
 			<type>6</type>
 			<matcher>
@@ -75,7 +70,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1486482436175</id>
+			<id>0</id>
 			<name>src/com/twinsoft/convertigo/engine/plugins</name>
 			<type>6</type>
 			<matcher>
@@ -84,7 +79,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1486482436191</id>
+			<id>0</id>
 			<name>src/com/twinsoft/convertigo/engine/plugins</name>
 			<type>6</type>
 			<matcher>

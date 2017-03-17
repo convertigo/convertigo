@@ -762,13 +762,19 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					String xulrunner_url = System.getProperty("org.eclipse.swt.browser.XULRunnerPath");
 					if (xulrunner_url == null || xulrunner_url.equals("")) {
 						Bundle[] bundles = Platform.getFragments(context.getBundle());
-						for (Bundle bundle : bundles) {
-							String symbolicName = bundle.getSymbolicName();
-							if (symbolicName.startsWith("com.twinsoft.convertigo.studio.xulrunner")) {
-								URL url = FileLocator.find(bundle, new Path("xulrunner"), null);
-								xulrunner_url = FileLocator.toFileURL(url).getPath();
-								System.setProperty("org.eclipse.swt.browser.XULRunnerPath", xulrunner_url);
-								break;
+						if (bundles != null) {
+							studioLog.message("Fragments bundles: " + bundles.length);
+							for (Bundle bundle : bundles) {
+								String symbolicName = bundle.getSymbolicName();
+								studioLog.message("Fragment bundle symbolic name: " + symbolicName);
+								if (symbolicName.startsWith("com.twinsoft.convertigo.studio.xulrunner")) {
+									URL url = FileLocator.find(bundle, new Path("xulrunner"), null);
+									studioLog.message("Xulrunner url: " + url);
+									xulrunner_url = FileLocator.toFileURL(url).getPath();
+									studioLog.message("Xulrunner xulrunner_url: " + xulrunner_url);
+									System.setProperty("org.eclipse.swt.browser.XULRunnerPath", xulrunner_url);
+									break;
+								}
 							}
 						}
 					}
