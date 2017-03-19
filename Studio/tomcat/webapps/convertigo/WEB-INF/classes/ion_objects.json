@@ -8,7 +8,8 @@
       "value": "ion-button", // optional value (default is false)
       "values": [ // possible values (false means do no set)
         false,
-        "ion-button"
+        "ion-button",
+        "ion-fab"
       ]
     },
     "MenuMode": {
