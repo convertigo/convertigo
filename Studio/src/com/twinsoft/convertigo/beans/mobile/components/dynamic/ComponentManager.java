@@ -40,6 +40,11 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIAttribute;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlAttr;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlAttrValue;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlCallFullSync;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlCallSequence;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UICustom;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIElement;
@@ -221,6 +226,9 @@ public class ComponentManager {
 				groups.add(bean.getGroup());
 			}
 		}
+		
+		groups.add("Controls");
+		groups.add("Bindings");
 		return Collections.unmodifiableList(groups);
 	}
 	
@@ -228,10 +236,18 @@ public class ComponentManager {
 		List<Component> components = new ArrayList<Component>(10);
 		
 		try {
+			// Add Customs
 			components.add(getCustom(UIElement.class));
 			components.add(getCustom(UIAttribute.class));
 			components.add(getCustom(UICustom.class));
 			components.add(getCustom(UIText.class));
+			
+			components.add(getControl(UIControlEvent.class));
+			
+			// Add Bindings
+			components.add(getBinding(UIControlCallSequence.class));
+			components.add(getBinding(UIControlCallFullSync.class));
+			
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		} catch (InstantiationException e) {
@@ -361,4 +377,132 @@ public class ComponentManager {
 		};
 	}
 	
+	protected static Component getControl(final Class<? extends DatabaseObject> dboClass) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+		String className = dboClass.getName();
+		String beanInfoClassName = className + "BeanInfo";
+		
+		Class<BeanInfo> beanInfoClass = GenericUtils.cast(Class.forName(beanInfoClassName));
+		final BeanInfo bi = beanInfoClass.newInstance();
+		final BeanDescriptor bd = bi.getBeanDescriptor();
+		
+		return new Component() {
+
+			@Override
+			public String getDescription() {
+				String description = bd.getShortDescription().split("\\|")[0];
+				return bd != null ? description : dboClass.getSimpleName();
+			}
+
+			@Override
+			public String getGroup() {
+				return "Controls";
+			}
+
+			@Override
+			public String getLabel() {
+				return bd != null ? bd.getDisplayName() : dboClass.getSimpleName();
+			}
+
+			@Override
+			public String getImagePath() {
+				return MySimpleBeanInfo.getIconName(bi, BeanInfo.ICON_COLOR_32x32);
+			}
+
+			@Override
+			public boolean isAllowedIn(DatabaseObject parent) {
+				if (UIControlAttr.class.isAssignableFrom(dboClass)) {
+					if (parent instanceof UIDynamicElement)
+						return true;
+					if (parent instanceof UIElement)
+						return true;
+				}
+				return false;
+			}
+
+			@Override
+			protected DatabaseObject createBean() {
+				try {
+					DatabaseObject dbo = null;
+					if (UIControlAttr.class.isAssignableFrom(dboClass)) {
+						dbo = dboClass.newInstance();
+					}
+					if (UIControlAttrValue.class.isAssignableFrom(dboClass)) {
+						dbo = dboClass.newInstance();
+					}
+					dbo.bNew = true;
+					dbo.hasChanged = true;
+					return dbo;
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+				return null;
+			}
+			
+		};
+	}
+
+	protected static Component getBinding(final Class<? extends DatabaseObject> dboClass) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+		String className = dboClass.getName();
+		String beanInfoClassName = className + "BeanInfo";
+		
+		Class<BeanInfo> beanInfoClass = GenericUtils.cast(Class.forName(beanInfoClassName));
+		final BeanInfo bi = beanInfoClass.newInstance();
+		final BeanDescriptor bd = bi.getBeanDescriptor();
+		
+		return new Component() {
+
+			@Override
+			public String getDescription() {
+				String description = bd.getShortDescription().split("\\|")[0];
+				return bd != null ? description : dboClass.getSimpleName();
+			}
+
+			@Override
+			public String getGroup() {
+				return "Bindings";
+			}
+
+			@Override
+			public String getLabel() {
+				return bd != null ? bd.getDisplayName() : dboClass.getSimpleName();
+			}
+
+			@Override
+			public String getImagePath() {
+				return MySimpleBeanInfo.getIconName(bi, BeanInfo.ICON_COLOR_32x32);
+			}
+
+			@Override
+			public boolean isAllowedIn(DatabaseObject parent) {
+				if (UIControlAttrValue.class.isAssignableFrom(dboClass)) {
+					if (parent instanceof UIControlEvent) {
+						return true;
+					}
+				}
+				return false;
+			}
+
+			@Override
+			protected DatabaseObject createBean() {
+				try {
+					DatabaseObject dbo = null;
+					if (UIControlAttr.class.isAssignableFrom(dboClass)) {
+						dbo = dboClass.newInstance();
+					}
+					if (UIControlAttrValue.class.isAssignableFrom(dboClass)) {
+						dbo = dboClass.newInstance();
+					}
+					dbo.bNew = true;
+					dbo.hasChanged = true;
+					return dbo;
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+				return null;
+			}
+			
+		};
+	}
 }

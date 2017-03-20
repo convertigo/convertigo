@@ -25,21 +25,20 @@ package com.twinsoft.convertigo.beans.mobile.components;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
-public class RouteFullsyncEvent extends RouteEventComponent implements ITagsProperty {
+public class UIControlCallFullSync extends UIControlCall implements ITagsProperty {
 
-	private static final long serialVersionUID = 5883194866752109784L;
+	private static final long serialVersionUID = -5796622953379062045L;
 
-	public RouteFullsyncEvent() {
+	public UIControlCallFullSync() {
 		super();
-		source = "";
 	}
 
 	@Override
-	public RouteFullsyncEvent clone() throws CloneNotSupportedException {
-		RouteFullsyncEvent cloned = (RouteFullsyncEvent)super.clone();
+	public UIControlCallFullSync clone() throws CloneNotSupportedException {
+		UIControlCallFullSync cloned = (UIControlCallFullSync) super.clone();
 		return cloned;
 	}
-	
+
 	/*
 	 * The fullsync verb
 	 */
@@ -55,18 +54,18 @@ public class RouteFullsyncEvent extends RouteEventComponent implements ITagsProp
 	
 	
 	@Override
-	protected String getRequestableSource() {
-		String requestableSource = super.getRequestableSource();
-		if (!requestableSource.isEmpty()) {
-			requestableSource = "fs://" + requestableSource + "." + getVerb();
+	protected String getRequestableTarget() {
+		String requestableTarget = super.getRequestableTarget();
+		if (!requestableTarget.isEmpty()) {
+			requestableTarget = "fs://" + requestableTarget + "." + getVerb();
 		}
-		return requestableSource;
+		return requestableTarget;
 	}
 
 	@Override
 	public String toString() {
-		String label = getSourceName();
-		return "on " + (label.equals("") ? "?" : label + "." + getVerb());
+		String label = getTargetName();
+		return "call " + (label.equals("") ? "?" : label + "." + getVerb());
 	}
 	
 	public String[] getTagsForProperty(String propertyName) {
@@ -75,4 +74,5 @@ public class RouteFullsyncEvent extends RouteEventComponent implements ITagsProp
 		}
 		return new String[0];
 	}
+	
 }

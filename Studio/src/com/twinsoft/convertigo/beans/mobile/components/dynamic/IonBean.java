@@ -53,7 +53,7 @@ public class IonBean {
 				.put(Key.name.name(), "bean")
 				.put(Key.tag.name(), "tag")
 				.put(Key.label.name(), "label")
-				.put(Key.group.name(), "Others")
+				.put(Key.group.name(), "Components")
 				.put(Key.description.name(), "description")
 				.put(Key.icon16.name(), "default_color_16x16.png")
 				.put(Key.icon32.name(), "default_color_32x32.png")
