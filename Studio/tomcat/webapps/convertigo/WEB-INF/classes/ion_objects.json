@@ -122,7 +122,7 @@
       "label": "icon name",
       "description": "Specifies ionic icon name",
       "category": "Attributes",
-      "values": [ // todo: add all missing
+      "values": [ 
         false,
         "add",
         "add-circle",
@@ -482,7 +482,7 @@
         "tag": "button",
         "label": "Button",
         "description": "Buttons are an essential way to interact with and navigate through an app, and should clearly communicate what action will occur after the user taps them. Buttons can consist of text and/or an icon, and can be enhanced with a wide variety of attributes",
-        "group": "Buttons",
+        "group": "Components",
         "icon16": "button_color_16x16.png",
         "icon32": "button_color_32x32.png",
         "properties": {
@@ -499,7 +499,7 @@
         "tag": "ion-buttons",
         "label": "ButtonSet",
         "description": "Defines a set of buttons",
-        "group": "Buttons",
+        "group": "Containers",
         "icon16": "buttonset_color_16x16.png",
         "icon32": "buttonset_color_32x32.png",
         "properties": {
@@ -522,7 +522,7 @@
         "tag": "ion-content",
         "label": "Content",
         "description": "Defines a content area",
-        "group": "Others",
+        "group": "Containers",
         "icon16": "content_color_16x16.png",
         "icon32": "content_color_32x32.png",
         "properties": {
@@ -545,7 +545,7 @@
         "tag": "ion-footer",
         "label": "Footer",
         "description": "Defines a page footer",
-        "group": "Others",
+        "group": "Containers",
         "icon16": "footer_color_16x16.png",
         "icon32": "footer_color_32x32.png",
         "properties": {
@@ -555,7 +555,7 @@
         "tag": "ion-header",
         "label": "Header",
         "description": "Defines a page header",
-        "group": "Others",
+        "group": "Containers",
         "icon16": "header_color_16x16.png",
         "icon32": "header_color_32x32.png",
         "properties": {
@@ -565,7 +565,7 @@
         "tag": "ion-icon",
         "label": "Icon",
         "description": "More than 700+ Ionicons icons we�ve all come to know and love.",
-        "group": "Others",
+        "group": "Components",
         "icon16": "icon_color_16x16.png",
         "icon32": "icon_color_32x32.png",
         "properties": {
@@ -576,7 +576,7 @@
         "tag": "h1",
         "label": "H1",
         "description": "Defines a heading 1",
-        "group": "Headings",
+        "group": "HTML",
         "icon16": "HTML_color_16x16.png",
         "icon32": "HTML_color_32x32.png",
         "properties": {
@@ -586,7 +586,7 @@
         "tag": "h2",
         "label": "H2",
         "description": "Defines a heading 2",
-        "group": "Headings",
+        "group": "HTML",
         "icon16": "HTML_color_16x16.png",
         "icon32": "HTML_color_32x32.png",
         "properties": {
@@ -596,17 +596,49 @@
         "tag": "h3",
         "label": "H3",
         "description": "Defines a heading 3",
-        "group": "Headings",
+        "group": "HTML",
         "icon16": "HTML_color_16x16.png",
         "icon32": "HTML_color_32x32.png",
         "properties": {
                   }
       },
+      "Image": {
+        "tag": "img",
+        "label": "img",
+        "autoClose": true,
+        "description": "Defines an Image resource",
+        "group": "HTML",
+        "icon16": "HTML_color_16x16.png",
+        "icon32": "HTML_color_32x32.png",
+        "properties": {
+			"url": {
+	            "attr": "src",
+	            "label": "src",
+	            "description": "The immage url. Can be absolute (http(s)://) or relative to project (../assets/myimage.png)",
+	            "category": "Attributes",
+	            "value": ""
+          	},
+			"with": {
+	            "attr": "width",
+	            "label": "width",
+	            "description": "The image width (in pixels add px eg: 200px, in points add pt eg: 20pt)",
+	            "category": "Attributes",
+	            "value": ""
+          	},
+			"height": {
+	            "attr": "height",
+	            "label": "height",
+	            "description": "The image height (in pixels add px eg: 200px, in points add pt eg: 20pt)",
+	            "category": "Attributes",
+	            "value": ""
+          	}
+         }
+      },
       "MyButton": {
         "tag": "button",
         "label": "My Button",
         "description": "Defines a custom colored button",
-        "group": "Buttons",
+        "group": "Components",
         "icon16": "mybutton_color_16x16.png",
         "icon32": "mybutton_color_32x32.png",
         "properties": {
@@ -637,7 +669,7 @@
         "tag": "ion-navbar",
         "label": "NavBar",
         "description": "If your page has an <ion-navbar>, a back button will automatically be added to it if it is not a root page, and the title of the Nav Bar will be updated.",
-        "group": "Others",
+        "group": "Components",
         "icon16": "navbar_color_16x16.png",
         "icon32": "navbar_color_32x32.png",
         "properties": {
@@ -661,7 +693,7 @@
         "tag": "ion-toolbar",
         "label": "ToolBar",
         "description": "A toolbar is a generic bar that can be used in an app as a header, sub-header, footer, or even sub-footer. Since ion-toolbar is based on flexbox, no matter how many toolbars you have in your page, they will be displayed correctly and ion-content will adjust accordingly.",
-        "group": "Others",
+        "group": "Containers",
         "icon16": "toolbar_color_16x16.png",
         "icon32": "toolbar_color_32x32.png",
         "properties": {
@@ -673,7 +705,7 @@
         "tag": "ion-title",
         "label": "BarTitle",
         "description": "Defines a bar title",
-        "group": "Others",
+        "group": "Components",
         "icon16": "bartitle_color_16x16.png",
         "icon32": "bartitle_color_32x32.png",
         "properties": {
@@ -683,7 +715,7 @@
         "tag": "ion-badge",
         "label": "Badge",
         "description": "Badges are small components that typically communicate a numerical value to the user. They are typically used within an item.",
-        "group": "Others",
+        "group": "Components",
         "icon16": "badge_color_16x16.png",
         "icon32": "badge_color_32x32.png",
         "properties": {
