@@ -29,7 +29,7 @@ public class UIControlEvent extends UIControlAttr {
 	private static final long serialVersionUID = 4756891044178409988L;
 
 	public enum BindEvent {
-		onClic("clic"),
+		onClick("click"),
 		onInput("input"),
 		;
 		
@@ -69,7 +69,7 @@ public class UIControlEvent extends UIControlAttr {
 	/*
 	 * The event to bind
 	 */
-	private String eventName = BindEvent.onClic.name();
+	private String eventName = BindEvent.onClick.name();
 
 	public String getEventName() {
 		return eventName;
