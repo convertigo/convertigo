@@ -618,7 +618,7 @@
 	            "category": "Attributes",
 	            "value": ""
           	},
-			"with": {
+			"width": {
 	            "attr": "width",
 	            "label": "width",
 	            "description": "The image width (in pixels add px eg: 200px, in points add pt eg: 20pt)",
