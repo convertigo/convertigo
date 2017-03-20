@@ -73,4 +73,11 @@ public class UIAttribute extends UIComponent {
 			return "";
 	}
 
+	@Override
+	public String toString() {
+		String label = (attrName.isEmpty() ? "?":attrName) + "=" + (attrValue.isEmpty() ? "''":"'"+attrValue+"'");
+		return label;
+	}
+
+	
 }
