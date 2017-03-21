@@ -562,7 +562,14 @@ public class ClipboardManager {
 						if (databaseObject instanceof RouteActionComponent) {
 							databaseObject.priority = databaseObject.getNewOrderValue();
 							databaseObject.newPriority = databaseObject.priority;
-							route.add(databaseObject);
+							RouteActionComponent rac = (RouteActionComponent)databaseObject;
+							int i = rac.getPage().lastIndexOf(".");
+							if (i != -1) {
+								String pageName = rac.getPage().substring(i);
+								String pageQName = route.getParent().getQName() + pageName;
+								rac.setPage(pageQName);
+							}
+							route.add(rac);
 						}
 						else if (databaseObject instanceof RouteEventComponent) {
 							databaseObject.priority = databaseObject.getNewOrderValue();
