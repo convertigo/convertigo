@@ -30,12 +30,6 @@ public abstract class UIControlAttr extends UIAttribute implements ITagsProperty
 
 	private static final long serialVersionUID = -1131663200389122563L;
 
-	public enum BindType {
-		event,		// (event)="expression"
-		directive,	// *directive="expression"
-		property	// [property]="expression"
-	}
-	
 	public UIControlAttr() {
 		super();
 	}
@@ -45,9 +39,6 @@ public abstract class UIControlAttr extends UIAttribute implements ITagsProperty
 		UIControlAttr cloned = (UIControlAttr) super.clone();
 		return cloned;
 	}
-
-	abstract protected BindType getBindType();
-	
 	
 	@Override
 	public String getAttrValue() {
@@ -75,16 +66,7 @@ public abstract class UIControlAttr extends UIAttribute implements ITagsProperty
 	        	return "";
 	        }
 	        else {
-	        	BindType bindType = getBindType();
-	        	if (bindType.equals(BindType.event)) {
-	        		return (" ("+attr+")=\""+val+"\"");
-	        	}
-	        	if (bindType.equals(BindType.directive)) {
-	        		return (" *"+attr+"=\""+val+"\"");
-	        	}
-	        	if (bindType.equals(BindType.property)) {
-	        		return (" ["+attr+"]=\""+val+"\"");
-	        	}
+	        	return (" "+attr+"=\""+val+"\"");
 	        }
 		}
 		return "";

@@ -44,6 +44,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIControlAttr;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlAttrValue;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlCallFullSync;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlCallSequence;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UICustom;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
@@ -244,8 +245,10 @@ public class ComponentManager {
 			
 			// Add Controls
 			components.add(getControl(UIControlEvent.class));
+			components.add(getControl(UIControlDirective.class));
 			
 			// Add Actions
+			components.add(getAction(UIControlAttrValue.class));
 			components.add(getAction(UIControlCallSequence.class));
 			components.add(getAction(UIControlCallFullSync.class));
 			
@@ -477,7 +480,8 @@ public class ComponentManager {
 			@Override
 			public boolean isAllowedIn(DatabaseObject parent) {
 				if (UIControlAttrValue.class.isAssignableFrom(dboClass)) {
-					if (parent instanceof UIControlEvent) {
+					//if (parent instanceof UIControlEvent) {
+					if (parent instanceof UIControlAttr) {
 						return true;
 					}
 				}

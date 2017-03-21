@@ -24,59 +24,62 @@ package com.twinsoft.convertigo.beans.mobile.components;
 
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
-public class UIControlEvent extends UIControlAttr {
-	
-	private static final long serialVersionUID = 4756891044178409988L;
+public class UIControlDirective extends UIControlAttr {
 
-	public enum AttrEvent {
-		onClick("(click)"),
-		onInput("(input)"),
+	private static final long serialVersionUID = 2750008565134796761L;
+
+	public enum AttrDirective {
+		Each("*ngFor"),
+		If("*ngIf"),
+		Switch("[ngSwitch]"),
+		SwitchCase("*ngSwitchCase"),
+		SwitchDefault("*ngSwitchDefault"),
 		;
 		
-		String event;
-		AttrEvent(String event) {
-			this.event = event;
+		String directive;
+		AttrDirective(String directive) {
+			this.directive = directive;
 		}
 		
-		String event() {
-			return event;
+		String directive() {
+			return directive;
 		}
 		
-		public static String getEvent(String eventName) {
-			AttrEvent bindEvent = null;
+		public static String getDirective(String directiveName) {
+			AttrDirective bindDirective = null;
 			try {
-				bindEvent = AttrEvent.valueOf(eventName);
+				bindDirective = AttrDirective.valueOf(directiveName);
 			} catch (Exception e) {};
-			return bindEvent != null ? bindEvent.event():eventName;
+			return bindDirective != null ? bindDirective.directive():directiveName;
 		}
 	}
 	
-	public UIControlEvent() {
+	public UIControlDirective() {
 		super();
 	}
 
 	@Override
-	public UIControlEvent clone() throws CloneNotSupportedException {
-		UIControlEvent cloned = (UIControlEvent) super.clone();
+	public UIControlDirective clone() throws CloneNotSupportedException {
+		UIControlDirective cloned = (UIControlDirective) super.clone();
 		return cloned;
 	}
-
+	
 	/*
-	 * The event to bind
+	 * The directive to bind
 	 */
-	private String eventName = AttrEvent.onClick.name();
+	private String directiveName = AttrDirective.If.name();
 
-	public String getEventName() {
-		return eventName;
+	public String getDirectiveName() {
+		return directiveName;
 	}
 
-	public void setEventName(String eventName) {
-		this.eventName = eventName;
+	public void setDirectiveName(String directiveName) {
+		this.directiveName = directiveName;
 	}
 
 	@Override
 	public String getAttrName() {
-		return AttrEvent.getEvent(eventName);
+		return AttrDirective.getDirective(directiveName);
 	}
 
 	@Override
@@ -86,16 +89,15 @@ public class UIControlEvent extends UIControlAttr {
 
 	@Override
 	public String[] getTagsForProperty(String propertyName) {
-		if (propertyName.equals("eventName")) {
-			return EnumUtils.toNames(AttrEvent.class);
+		if (propertyName.equals("directiveName")) {
+			return EnumUtils.toNames(AttrDirective.class);
 		}
 		return new String[0];
 	}
 
 	@Override
 	public String toString() {
-		String label = getEventName();
+		String label = getDirectiveName();
 		return label.isEmpty() ? "?":label;
 	}
-
 }
