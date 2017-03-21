@@ -881,7 +881,7 @@
             ]
           },
           "JustifyContentBeteween": {
-            "label": "Justify content beteween",
+            "label": "Justify content between",
             "description": "All columns will be horizontally aligned with a half-size space on either end.",
             "category": "Attributes",
             "value": false,
