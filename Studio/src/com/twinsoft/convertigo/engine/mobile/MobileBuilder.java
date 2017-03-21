@@ -389,7 +389,7 @@ public class MobileBuilder {
 				//String computedTemplate = application.getComputedTemplate();
 				//FileUtils.write(appHtmlFile, computedTemplate, "UTF-8");
 				
-				Engine.logEngine.debug("(MobileBuilder) Ionic source files written for application 'app'");
+				Engine.logEngine.debug("(MobileBuilder) Ionic source files generated for application 'app'");
 			}
 		}
 		catch (Exception e) {
@@ -423,7 +423,7 @@ public class MobileBuilder {
 			String computedTemplate = page.getComputedTemplate();
 			FileUtils.write(pageHtmlFile, computedTemplate, "UTF-8");
 			
-			Engine.logEngine.debug("(MobileBuilder) Ionic source files written for page '"+pageName+"'");
+			Engine.logEngine.debug("(MobileBuilder) Ionic source files generated for page '"+pageName+"'");
 		}
 		catch (Exception e) {
 			throw new EngineException("Unable to write source files for page '"+pageName+"'",e);
