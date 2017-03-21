@@ -9,7 +9,8 @@
       "values": [ // possible values (false means do no set)
         false,
         "ion-button",
-        "ion-fab"
+        "ion-fab",
+        "ion-item"
       ]
     },
     "MenuMode": {
