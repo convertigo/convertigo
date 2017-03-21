@@ -62,9 +62,9 @@ public class UIAttribute extends UIComponent {
 	        if (attrName.isEmpty()) { 
 	        	return "";
 	        }
-	        else if (attrValue.isEmpty()) {
+	        /*else if (attrValue.isEmpty()) {
 	        	return " "+attrName;
-	        }
+	        }*/
 	        else {
 	        	return (" "+attrName+"=\""+attrValue+"\"");
 	        }
