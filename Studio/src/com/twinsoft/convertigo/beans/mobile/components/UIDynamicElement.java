@@ -140,6 +140,9 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 						if (attr.isEmpty()){
 							attributes.append(value);
 						}
+						else if (attr.indexOf("%%") != -1){
+							attributes.append(attr.replaceFirst("%%", value.toString()));
+						}
 						else {
 							attributes.append(attr).append("=");
 							attributes.append("\"").append(value).append("\"");
