@@ -37,6 +37,7 @@ public class IonBean {
 		tag,
 		name,
 		label,
+		autoClose,
 		group,
 		description,
 		icon16,
@@ -53,6 +54,7 @@ public class IonBean {
 				.put(Key.name.name(), "bean")
 				.put(Key.tag.name(), "tag")
 				.put(Key.label.name(), "label")
+				.put(Key.autoClose.name(), false)
 				.put(Key.group.name(), "Components")
 				.put(Key.description.name(), "description")
 				.put(Key.icon16.name(), "default_color_16x16.png")
@@ -116,6 +118,14 @@ public class IonBean {
 		} catch (JSONException e) {
 			e.printStackTrace();
 			return "Others";
+		}
+	}
+	public boolean isSelfClose() {
+		try {
+			return jsonBean.getBoolean(Key.autoClose.name());
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return false;
 		}
 	}
 	public String getLabel() {
@@ -227,6 +237,7 @@ public class IonBean {
 		try {
 			dbo = new UIDynamicElement(getTag());
 			dbo.setName(getName());
+			dbo.setSelfClose(isSelfClose());
 			dbo.setBeanData(getJSONObject().toString());			
 			dbo.bNew = true;
 			dbo.hasChanged = true;
