@@ -28,7 +28,6 @@ import java.util.List;
 import org.eclipse.jface.viewers.Viewer;
 
 import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
-import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteFullsyncEvent;
@@ -93,15 +92,11 @@ public class MobileRouteEventComponentTreeObject extends MobileComponentTreeObje
 				if (getObject() instanceof RouteEventComponent) {
 					if ("source".equals(propertyName)) {
 						RouteEventComponent rec = getObject();
-						if (nsObject instanceof DatabaseObject) {
-							if (((DatabaseObject)nsObject).getProject().equals(rec.getProject())) {
-								if (rec instanceof RouteSequenceEvent) {
-									return nsObject instanceof Sequence;
-								}
-								if (rec instanceof RouteFullsyncEvent) {
-									return nsObject instanceof FullSyncConnector;
-								}
-							}
+						if (rec instanceof RouteSequenceEvent) {
+							return nsObject instanceof Sequence;
+						}
+						if (rec instanceof RouteFullsyncEvent) {
+							return nsObject instanceof FullSyncConnector;
 						}
 					}
 				}

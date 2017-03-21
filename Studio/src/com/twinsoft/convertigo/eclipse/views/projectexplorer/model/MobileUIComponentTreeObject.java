@@ -305,15 +305,11 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 				if (getObject() instanceof UIControlCall) {
 					if ("target".equals(propertyName)) {
 						UIControlCall cc = (UIControlCall) getObject();
-						if (nsObject instanceof DatabaseObject) {
-							if (((DatabaseObject)nsObject).getProject().equals(cc.getProject())) {
-								if (cc instanceof UIControlCallSequence) {
-									return nsObject instanceof Sequence;
-								}
-								if (cc instanceof UIControlCallFullSync) {
-									return nsObject instanceof FullSyncConnector;
-								}
-							}
+						if (cc instanceof UIControlCallSequence) {
+							return nsObject instanceof Sequence;
+						}
+						if (cc instanceof UIControlCallFullSync) {
+							return nsObject instanceof FullSyncConnector;
 						}
 					}
 				}
