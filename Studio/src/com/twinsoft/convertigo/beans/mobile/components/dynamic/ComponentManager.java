@@ -228,7 +228,7 @@ public class ComponentManager {
 		}
 		
 		groups.add("Controls");
-		groups.add("Bindings");
+		groups.add("Actions");
 		return Collections.unmodifiableList(groups);
 	}
 	
@@ -242,11 +242,12 @@ public class ComponentManager {
 			components.add(getCustom(UICustom.class));
 			components.add(getCustom(UIText.class));
 			
+			// Add Controls
 			components.add(getControl(UIControlEvent.class));
 			
-			// Add Bindings
-			components.add(getBinding(UIControlCallSequence.class));
-			components.add(getBinding(UIControlCallFullSync.class));
+			// Add Actions
+			components.add(getAction(UIControlCallSequence.class));
+			components.add(getAction(UIControlCallFullSync.class));
 			
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
@@ -442,7 +443,7 @@ public class ComponentManager {
 		};
 	}
 
-	protected static Component getBinding(final Class<? extends DatabaseObject> dboClass) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	protected static Component getAction(final Class<? extends DatabaseObject> dboClass) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 		String className = dboClass.getName();
 		String beanInfoClassName = className + "BeanInfo";
 		
@@ -460,7 +461,7 @@ public class ComponentManager {
 
 			@Override
 			public String getGroup() {
-				return "Bindings";
+				return "Actions";
 			}
 
 			@Override
