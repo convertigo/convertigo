@@ -616,21 +616,33 @@
 	            "label": "src",
 	            "description": "The immage url. Can be absolute (http(s)://) or relative to project (../assets/myimage.png)",
 	            "category": "Attributes",
-	            "value": ""
+	            "value": "",
+	            "values": [
+	              false,
+	              true
+	            ]
           	},
 			"width": {
 	            "attr": "width",
 	            "label": "width",
 	            "description": "The image width (in pixels add px eg: 200px, in points add pt eg: 20pt)",
 	            "category": "Attributes",
-	            "value": ""
+	            "value": "",
+	            "values": [
+	              false,
+	              true
+	            ]
           	},
 			"height": {
 	            "attr": "height",
 	            "label": "height",
 	            "description": "The image height (in pixels add px eg: 200px, in points add pt eg: 20pt)",
 	            "category": "Attributes",
-	            "value": ""
+	            "value": "",
+	            "values": [
+	              false,
+	              true
+	            ]
           	}
          }
       },
