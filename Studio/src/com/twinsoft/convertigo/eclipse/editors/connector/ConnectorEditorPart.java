@@ -1033,7 +1033,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 	 * 
 	 */
 	private void createCompositeDesign() {
-		if (connector instanceof HtmlConnector) {
+		if (Engine.hasXulRunner() && connector instanceof HtmlConnector) {
 			try {
 				compositeDesign = new HtmlConnectorDesignComposite(connector, tabFolderOutputDesign, SWT.NONE);
 			} catch (MaxCvsExceededException e) {

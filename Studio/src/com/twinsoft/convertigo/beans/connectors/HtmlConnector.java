@@ -239,6 +239,10 @@ public class HtmlConnector extends HttpConnector implements IScreenClassContaine
 	 */
 	@Override
 	public void prepareForTransaction(Context context) throws EngineException {
+		if (!Engine.hasXulRunner()) {
+			throw new EngineException("This configuration doesn't have XulRunner for the HTML Connector (32 bits version have).");
+		}
+		
 		Engine.logBeans.trace("(HtmlConnector) Retrieving or Initializing HtmlParser");
 		
 		// Engine mode : retrieve HtmlParser from context

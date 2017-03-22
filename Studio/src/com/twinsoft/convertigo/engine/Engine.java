@@ -140,6 +140,8 @@ public class Engine {
 	 */
 	private static boolean bStudioMode = false;
 
+	private static boolean bXulRunner = false;
+	
 	/**
 	 * The database objects manager.
 	 */
@@ -669,6 +671,7 @@ public class Engine {
 					xulrunner_url = f.getAbsolutePath();
 					Engine.logEngine.debug("initMozillaSWT: org.eclipse.swt.browser.XULRunnerPath=" + xulrunner_url);
 					System.setProperty("org.eclipse.swt.browser.XULRunnerPath", xulrunner_url);
+					Engine.bXulRunner = true;
 				} else {
 					if (Engine.isLinux() && "i386".equals(System.getProperty("os.arch"))) {
 						Engine.logEngine.error("Error in initMozillaSWT: " + xulrunner_url + " doesn't exist, fix it with xulrunner.url");
@@ -1589,6 +1592,10 @@ public class Engine {
 
 	public static boolean isLinux() {
 		return System.getProperty("os.name").indexOf("Linux") != -1;
+	}
+
+	public static boolean hasXulRunner() {
+		return bXulRunner;
 	}
 	
 	public static void execute(final Runnable runnable) {
