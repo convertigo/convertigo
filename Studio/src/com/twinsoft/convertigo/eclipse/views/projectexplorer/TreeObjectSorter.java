@@ -89,7 +89,12 @@ class TreeObjectSorter extends ViewerSorter {
 			int i2 = c2.getParent().indexOf(c2);
 			return i1 - i2;
 		}
-		
+		else if ((e1 instanceof ObjectsFolderTreeObject) && !(e2 instanceof ObjectsFolderTreeObject)) {
+			return -1;
+		}
+		else if (!(e1 instanceof ObjectsFolderTreeObject) && (e2 instanceof ObjectsFolderTreeObject)) {
+			return 1;
+		}
 		return super.compare(viewer, e1, e2);
 	}
 }
