@@ -43,9 +43,9 @@ public class UIControlAttrValueBeanInfo extends MySimpleBeanInfo {
 			
 			properties = new PropertyDescriptor[1];
 			
-			properties[0] = new PropertyDescriptor("eventValue", beanClass, "getEventValue", "setEventValue");
-			properties[0].setDisplayName(getExternalizedString("property.eventValue.display_name"));
-			properties[0].setShortDescription(getExternalizedString("property.eventValue.short_description"));
+			properties[0] = new PropertyDescriptor("attrValue", beanClass, "getAttrValue", "setAttrValue");
+			properties[0].setDisplayName(getExternalizedString("property.attrValue.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.attrValue.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

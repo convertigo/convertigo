@@ -39,19 +39,19 @@ public class UIControlAttrValue extends UIComponent {
 	/*
 	 * The event value
 	 */
-	private String eventValue = "";
+	private String attrValue = "";
 	
-	public String getEventValue() {
-		return eventValue;
+	public String getAttrValue() {
+		return attrValue;
 	}
 
-	public void setEventValue(String eventValue) {
-		this.eventValue = eventValue;
+	public void setAttrValue(String eventValue) {
+		this.attrValue = eventValue;
 	}
 
 	
 	@Override
 	public String computeTemplate() {
-		return isEnabled() ? getEventValue():"";
+		return isEnabled() ? getAttrValue():"";
 	}	
 }

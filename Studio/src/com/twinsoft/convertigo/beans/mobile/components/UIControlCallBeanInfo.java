@@ -51,7 +51,7 @@ public class UIControlCallBeanInfo extends MySimpleBeanInfo {
 			properties[1].setDisplayName(getExternalizedString("property.marker.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.marker.short_description"));
 			
-			getPropertyDescriptor("eventValue").setHidden(true);
+			getPropertyDescriptor("attrValue").setHidden(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
