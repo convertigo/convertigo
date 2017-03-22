@@ -121,8 +121,7 @@ public class RouteEventComponent extends MobileComponent implements IRouteGenera
 	public String getRequestableString() {
 		String requestableSource = getRequestableSource();
 		if (!requestableSource.isEmpty()) {
-			requestableSource = (requestableSource.startsWith("fs://")? "":".") 
-					+ requestableSource + (marker.isEmpty() ? "" : "#" + marker);
+			requestableSource = "." + requestableSource + (marker.isEmpty() ? "" : "#" + marker);
 		}
 		return requestableSource;
 	}

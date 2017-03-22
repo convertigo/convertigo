@@ -25,7 +25,6 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.resources.IFile;
@@ -44,14 +43,9 @@ import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.views.properties.PropertyDescriptor;
 import org.eclipse.ui.views.properties.TextPropertyDescriptor;
 
-import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
-import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlCall;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlCallFullSync;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlCallSequence;
 import com.twinsoft.convertigo.beans.mobile.components.UICustom;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
@@ -62,7 +56,7 @@ import com.twinsoft.convertigo.eclipse.property_editors.StringComboBoxPropertyDe
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 
-public class MobileUIComponentTreeObject extends MobileComponentTreeObject implements IEditableTreeObject, IOrderableTreeObject, INamedSourceSelectorTreeObject {
+public class MobileUIComponentTreeObject extends MobileComponentTreeObject implements IEditableTreeObject, IOrderableTreeObject {
 
 	public MobileUIComponentTreeObject(Viewer viewer, UIComponent object) {
 		super(viewer, object);
@@ -265,88 +259,5 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			}
 			treeParent = treeParent.getParent();
 		}
-	}
-
-	@Override
-	public NamedSourceSelector getNamedSourceSelector() {
-		return new NamedSourceSelector() {
-
-			@Override
-			Object thisTreeObject() {
-				return MobileUIComponentTreeObject.this;
-			}
-			
-			@Override
-			protected List<String> getPropertyNamesForSource(Class<?> c) {
-				List<String> list = new ArrayList<String>();
-				
-				if (getObject() instanceof UIControlCall) {
-					if (ProjectTreeObject.class.isAssignableFrom(c) ||
-						SequenceTreeObject.class.isAssignableFrom(c) ||
-						ConnectorTreeObject.class.isAssignableFrom(c))
-					{
-						list.add("target");
-					}
-				}
-				
-				return list;
-			}
-			
-			@Override
-			protected boolean isNamedSource(String propertyName) {
-				if (getObject() instanceof UIControlCall) {
-					return "target".equals(propertyName);
-				}
-				return false;
-			}
-			
-			@Override
-			public boolean isSelectable(String propertyName, Object nsObject) {
-				if (getObject() instanceof UIControlCall) {
-					if ("target".equals(propertyName)) {
-						UIControlCall cc = (UIControlCall) getObject();
-						if (cc instanceof UIControlCallSequence) {
-							return nsObject instanceof Sequence;
-						}
-						if (cc instanceof UIControlCallFullSync) {
-							return nsObject instanceof FullSyncConnector;
-						}
-					}
-				}
-				return false;
-			}
-
-			@Override
-			protected void handleSourceCleared(String propertyName) {
-				// nothing to do
-			}
-
-			@Override
-			protected void handleSourceRenamed(String propertyName, String oldName, String newName) {
-				if (isNamedSource(propertyName)) {
-					boolean hasBeenRenamed = false;
-					
-					String pValue = (String) getPropertyValue(propertyName);
-					if (pValue != null && pValue.startsWith(oldName)) {
-						String _pValue = newName + pValue.substring(oldName.length());
-						if (!pValue.equals(_pValue)) {
-							if (getObject() instanceof UIControlCall) {
-								if ("target".equals(propertyName)) {
-									((UIControlCall)getObject()).setTarget(_pValue);
-									hasBeenRenamed = true;
-								}
-							}
-						}
-					}
-			
-					if (hasBeenRenamed) {
-						hasBeenModified(true);
-						viewer.refresh();
-						
-						getDescriptors();// refresh editors (e.g labels in combobox)
-					}
-				}
-			}
-		};
 	}
 }

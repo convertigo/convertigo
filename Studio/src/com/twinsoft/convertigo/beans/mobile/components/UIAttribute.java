@@ -59,8 +59,11 @@ public class UIAttribute extends UIComponent {
 	@Override
 	public String computeTemplate() {
 		if (isEnabled()) {
-	        if (attrName.isEmpty()) {
-	        	return attrValue.isEmpty() ? "":" "+ attrValue;
+	        if (attrName.isEmpty()) { 
+	        	return "";
+	        }
+	        else if (attrValue.isEmpty()) {
+	        	return " "+attrName;
 	        }
 	        else {
 	        	return (" "+attrName+"=\""+attrValue+"\"");
@@ -70,12 +73,4 @@ public class UIAttribute extends UIComponent {
 			return "";
 	}
 
-	@Override
-	public String toString() {
-		String label = attrName;
-		label = label + (label.isEmpty() ? "":"=") + attrValue;
-		return label;
-	}
-
-	
 }

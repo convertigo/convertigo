@@ -151,7 +151,6 @@ import com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlAttr;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
 import com.twinsoft.convertigo.beans.statements.HandlerStatement;
@@ -322,7 +321,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public static final int TREE_OBJECT_TYPE_FOLDER_EVENTS = 0x212;
 	public static final int TREE_OBJECT_TYPE_FOLDER_ROUTES = 0x213;
 	public static final int TREE_OBJECT_TYPE_FOLDER_ACTIONS = 0x214;
-	public static final int TREE_OBJECT_TYPE_FOLDER_CONTROLS = 0x215;
 
 	public static final int TREE_OBJECT_TYPE_MISC = 0x8000;						// 1000 0000 0000 0000
 
@@ -1479,9 +1477,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							databaseObjectTreeObject = new MobilePageComponentTreeObject(viewer, (PageComponent) databaseObject, false);
 							
 						} else if (databaseObject instanceof UIComponent) {
-							if (databaseObject instanceof UIControlAttr) {
-								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_CONTROLS;
-							}
 							databaseObjectTreeObject = new MobileUIComponentTreeObject(viewer, (UIComponent) databaseObject, false);
 							
 						} else if (databaseObject instanceof UrlMapper) {
@@ -2377,9 +2372,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			}
 			else if (folderType == ObjectsFolderTreeObject.FOLDER_TYPE_ROUTES) {
 				return ProjectExplorerView.TREE_OBJECT_TYPE_FOLDER_ROUTES;
-			}
-			else if (folderType == ObjectsFolderTreeObject.FOLDER_TYPE_CONTROLS) {
-				return ProjectExplorerView.TREE_OBJECT_TYPE_FOLDER_CONTROLS;
 			}
 			else if (folderType == ObjectsFolderTreeObject.FOLDER_TYPE_PLATFORMS) {
 				return ProjectExplorerView.TREE_OBJECT_TYPE_FOLDER_MOBILEPLATFORMS;

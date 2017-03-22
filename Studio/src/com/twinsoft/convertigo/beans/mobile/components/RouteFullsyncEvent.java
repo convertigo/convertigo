@@ -29,6 +29,23 @@ public class RouteFullsyncEvent extends RouteEventComponent implements ITagsProp
 
 	private static final long serialVersionUID = 5883194866752109784L;
 
+	public enum Verb {
+		all,
+		create,
+		get,
+		delete,
+		delete_attachment,
+		destroy,
+		post,
+		put_attachment,
+		replicate_pull,
+		replicate_push,
+		reset,
+		sync,
+		view,
+		
+	}
+	
 	public RouteFullsyncEvent() {
 		super();
 		source = "";
@@ -43,7 +60,7 @@ public class RouteFullsyncEvent extends RouteEventComponent implements ITagsProp
 	/*
 	 * The fullsync verb
 	 */
-	private String verb = FullSyncVerb.get.name();
+	private String verb = Verb.get.name();
 	
 	public String getVerb() {
 		return verb;
@@ -71,7 +88,7 @@ public class RouteFullsyncEvent extends RouteEventComponent implements ITagsProp
 	
 	public String[] getTagsForProperty(String propertyName) {
 		if (propertyName.equals("verb")) {
-			return EnumUtils.toNames(FullSyncVerb.class);
+			return EnumUtils.toNames(Verb.class);
 		}
 		return new String[0];
 	}

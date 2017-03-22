@@ -189,28 +189,6 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement"/>
 				</bean>
 			</beans>
-			<beans groupname="Control Components">
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement"/>
-				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlDirective">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement"/>
-				</bean>
-			</beans>
-			<beans groupname="Action Components">
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlAttrValue">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlDirective"/>
-				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlCallSequence">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent"/>
-				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlCallFullSync">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent"/>
-				</bean>
-			</beans>
 			<beans groupname="Defined Components">
 			</beans>
 		</category>

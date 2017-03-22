@@ -670,14 +670,17 @@ public class Engine {
 					Engine.logEngine.debug("initMozillaSWT: org.eclipse.swt.browser.XULRunnerPath=" + xulrunner_url);
 					System.setProperty("org.eclipse.swt.browser.XULRunnerPath", xulrunner_url);
 				} else {
-					Engine.logEngine.error("Error in initMozillaSWT: " + xulrunner_url + " doesn't exist, fix it with xulrunner.url");
+					if (Engine.isLinux() && "i386".equals(System.getProperty("os.arch"))) {
+						Engine.logEngine.error("Error in initMozillaSWT: " + xulrunner_url + " doesn't exist, fix it with xulrunner.url");
+					} else {
+						Engine.logEngine.debug("No XulRunner to init.");
+					}
 				}
 
 				if (Engine.isEngineMode() && Engine.isLinux()
 						&& "true".equals(EnginePropertiesManager.getProperty(PropertyName.LINUX_LAUNCH_XVNC))) {
-					
-					Engine.logEngine.debug("initMozillaSWT: org.eclipse.swt.browser.XULRunnerPath=" + xulrunner_url);
 					final String display = System.getenv("DISPLAY");
+					Engine.logEngine.debug("Linux launch XVNC on display: " + display);
 					if (display != null) {
 						try {
 							String port = System.getProperty("xvnc.port");

@@ -126,9 +126,7 @@ public class MobileRouteActionComponentTreeObject extends MobileComponentTreeObj
 					if ("page".equals(propertyName)) {
 						RouteActionComponent rc = getObject();
 						if (rc instanceof RouteDataActionComponent) {
-							if (nsObject instanceof PageComponent) {
-								return (((PageComponent)nsObject).getProject().equals(rc.getProject()));
-							}
+							return nsObject instanceof PageComponent;
 						}
 					}
 				}
