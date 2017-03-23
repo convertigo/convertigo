@@ -1,11 +1,15 @@
 package com.twinsoft.convertigo.engine.admin.services.studio.database_objects;
 
+import java.util.Collection;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.IEnableAble;
+import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
@@ -35,6 +39,15 @@ public class GetChildren extends XmlService {
 	
 	private void getChildren(String qname, Element parent, int depth) throws Exception {
 		DatabaseObject dbo = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
+		Collection<DatabaseObject> children = dbo.getDatabaseObjectChildren();
+		
+		if (dbo instanceof ScreenClass) {
+			ScreenClass sc = (ScreenClass) dbo;
+			children.iterator().remove();
+			sc.getCriterias();
+			sc.getExtractionRules();
+		}
+		
 		Element elt = parent.getOwnerDocument().createElement("dbo");
 		elt.setAttribute("qname", qname);
 		elt.setAttribute("classname", dbo.getClass().getName());
@@ -42,6 +55,9 @@ public class GetChildren extends XmlService {
 		elt.setAttribute("category", dbo.getDatabaseType());
 		elt.setAttribute("comment", dbo.getComment());
 		elt.setAttribute("hasChildren", Boolean.toString(!dbo.getDatabaseObjectChildren().isEmpty()));
+		elt.setAttribute("isEnabled", dbo instanceof IEnableAble ? Boolean.toString(((IEnableAble) dbo).isEnabled()) : "null");
+		elt.setAttribute("isScreenClass",  Boolean.toString(dbo instanceof ScreenClass));
+
 		parent.appendChild(elt);
 		if (depth > 0) {
 			for (DatabaseObject child: dbo.getDatabaseObjectChildren()) {

@@ -59,7 +59,7 @@ public class EnableListenerAction extends MyAbstractAction {
 					if (treeObject instanceof ListenerTreeObject) {
 						ListenerTreeObject listenerTreeObject = (ListenerTreeObject)treeObject;
 						listener = (Listener)listenerTreeObject.getObject();
-						listener.setEnable(true);
+						listener.setEnabled(true);
 						
 						listenerTreeObject.setEnabled(true);
 						listenerTreeObject.hasBeenModified(true);

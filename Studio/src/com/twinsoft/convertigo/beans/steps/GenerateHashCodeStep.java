@@ -72,7 +72,7 @@ public class GenerateHashCodeStep extends Step implements ISchemaParticleGenerat
 	
 	@Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			try {
 				Engine.logBeans.info("Hashing file \"" + sourceFilePath + "\"");
 
@@ -112,7 +112,7 @@ public class GenerateHashCodeStep extends Step implements ISchemaParticleGenerat
 	
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			try {
 				sourceFilePath = getAbsoluteFilePath(evaluateToString(javascriptContext, scope, sourcePath, "sourcePath", false));
 

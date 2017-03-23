@@ -368,7 +368,7 @@ public class SchemaManager implements AbstractManager {
 						// Step case
 						else if (databaseObject instanceof Step) {
 							Step step = (Step) databaseObject;
-							if (!step.isEnable()) {
+							if (!step.isEnabled()) {
 								// stop walking for disabled steps
 								return;
 							}

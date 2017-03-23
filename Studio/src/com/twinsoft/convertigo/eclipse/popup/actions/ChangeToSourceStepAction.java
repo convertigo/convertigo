@@ -78,7 +78,7 @@ public class ChangeToSourceStepAction extends MyAbstractAction {
 						jSourceStep.setSourceDefinition(jSimpleSourceStep.getSourceDefinition());
 						jSourceStep.setComment(jSimpleSourceStep.getComment());
 						jSourceStep.setVariableName(jSimpleSourceStep.getVariableName());
-						jSourceStep.setEnable(jSimpleSourceStep.isEnable());
+						jSourceStep.setEnabled(jSimpleSourceStep.isEnabled());
 						jSourceStep.setOutput(jSimpleSourceStep.isOutput());
 						jSourceStep.setName(jSimpleSourceStep.getName());
 						

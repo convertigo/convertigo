@@ -92,7 +92,7 @@ public class ChangeToIfXpathExistsThenElseStatementAction extends MyAbstractActi
 						// Set properties
 						ifThenElseStatement.setCondition(ifStatement.getCondition());
 						ifThenElseStatement.setComment(ifStatement.getComment());
-						ifThenElseStatement.setEnable(ifStatement.isEnable());
+						ifThenElseStatement.setEnabled(ifStatement.isEnabled());
 						ifThenElseStatement.setVersion(ifStatement.getVersion());
 						
 		   				// Delete If statement

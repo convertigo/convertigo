@@ -141,7 +141,7 @@ public class XMLElementStep extends StepWithExpressions implements IStepSourceCo
 
 	@Override
 	protected boolean executeNextStep(Context javascriptContext, Scriptable scope) throws EngineException {
-    	if (isEnable()) {
+    	if (isEnabled()) {
 			if (inError()) {
 				Engine.logBeans.info("Skipping step "+ this +" ("+ hashCode()+") because its source is in error");
 				return true;

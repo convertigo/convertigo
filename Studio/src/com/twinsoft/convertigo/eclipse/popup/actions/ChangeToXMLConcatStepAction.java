@@ -89,7 +89,7 @@ public class ChangeToXMLConcatStepAction extends MyAbstractAction {
 	        				sources.add(source);
 		        			
 		        			concatStep.setOutput(elementStep.isOutput());
-	        				concatStep.setEnable(elementStep.isEnable());
+	        				concatStep.setEnabled(elementStep.isEnabled());
 		        			concatStep.setComment(elementStep.getComment());
 		        			//elementStep.getNodeText();
 		        			concatStep.setNodeName(elementStep.getNodeName());

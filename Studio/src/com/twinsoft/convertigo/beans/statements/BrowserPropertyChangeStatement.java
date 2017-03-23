@@ -214,7 +214,7 @@ public class BrowserPropertyChangeStatement extends Statement {
 
     @Override
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			if (super.execute(javascriptContext, scope)) {
 				if(convertigoMode == ConvertigoMode.both ||
 				   convertigoMode == ConvertigoMode.studio && Engine.isStudioMode() ||

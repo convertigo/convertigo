@@ -322,7 +322,7 @@ public abstract class StatementWithExpressions extends Statement implements ICon
 	public abstract boolean executeNextStatement(Context javascriptContext, Scriptable scope) throws EngineException;
 	
 	protected void executeNextStatement(Statement st, Context javascriptContext, Scriptable scope) throws EngineException {
-		if (st.isEnable()) {
+		if (st.isEnabled()) {
 			st.checkSymbols();
 			st.execute(javascriptContext, scope);
 		}

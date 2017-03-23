@@ -39,7 +39,7 @@ public class CallFunctionStatement extends Statement implements ITagsProperty{
 
 	@Override
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			if (super.execute(javascriptContext, scope)) {
 				for (FunctionStatement function : getFunctions()) {
 					if (function.getName().equals(functionName)) {

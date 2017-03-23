@@ -80,7 +80,7 @@ public class ChangeToIfXpathExistsStatementAction extends MyAbstractAction {
     						// Set properties
     						ifStatement.setCondition(ifThenElseStatement.getCondition());
     						ifStatement.setComment(ifThenElseStatement.getComment());
-    						ifStatement.setEnable(ifThenElseStatement.isEnable());
+    						ifStatement.setEnabled(ifThenElseStatement.isEnabled());
     						ifStatement.setVersion(ifThenElseStatement.getVersion());
     						
     						String name = ifThenElseStatement.getName();

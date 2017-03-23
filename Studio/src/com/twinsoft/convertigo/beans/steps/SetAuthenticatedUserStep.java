@@ -80,7 +80,7 @@ public class SetAuthenticatedUserStep extends Step implements IStepSmartTypeCont
 	
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			evaluate(javascriptContext, scope, userid);			
 			return super.stepExecute(javascriptContext, scope);
 		}

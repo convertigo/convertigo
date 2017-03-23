@@ -43,9 +43,8 @@ public class Get extends XmlService {
 		for (Map.Entry<String, String> infoProperty : infoProperties.entrySet()) {
 			elt.setAttribute(infoProperty.getKey(), infoProperty.getValue());
 		}
-        boolean isExtractionRule = dbo instanceof com.twinsoft.convertigo.beans.core.ExtractionRule;
-        elt.setAttribute("isExtractionRule", Boolean.toString(isExtractionRule));
-
+        elt.setAttribute("isExtractionRule", Boolean.toString(dbo instanceof com.twinsoft.convertigo.beans.core.ExtractionRule));
+        
 		document.getDocumentElement().appendChild(elt);
 	}
 }

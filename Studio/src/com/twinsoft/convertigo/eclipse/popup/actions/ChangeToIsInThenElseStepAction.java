@@ -98,7 +98,7 @@ public class ChangeToIsInThenElseStepAction extends MyAbstractAction {
 	        			ifThenElseStep.setTestDefinition(isIn.getTestDefinition());
 	        			ifThenElseStep.setComment(isIn.getComment());
 	        			ifThenElseStep.setCondition(isIn.getCondition());
-	        			ifThenElseStep.setEnable(isIn.isEnable());
+	        			ifThenElseStep.setEnabled(isIn.isEnabled());
 	        			ifThenElseStep.setOutput(isIn.isOutput());
 	        			ifThenElseStep.setName(isIn.getName());
 	        			
@@ -178,7 +178,7 @@ public class ChangeToIsInThenElseStepAction extends MyAbstractAction {
 		        			isInThenElse.setSourceDefinition(ifExistThenElse.getSourceDefinition());
 		        			isInThenElse.setComment(ifExistThenElse.getComment());
 		        			isInThenElse.setCondition(ifExistThenElse.getCondition());
-		        			isInThenElse.setEnable(ifExistThenElse.isEnable());
+		        			isInThenElse.setEnabled(ifExistThenElse.isEnabled());
 		        			isInThenElse.setOutput(ifExistThenElse.isOutput());
 		        			isInThenElse.setName(ifExistThenElse.getName());
 		        			

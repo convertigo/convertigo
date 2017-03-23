@@ -188,7 +188,7 @@ public abstract class BlockStep extends StepWithExpressions {
 
 	@Override
 	protected boolean executeNextStep(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			if (hasToEvaluateBeforeNextStep()) {// e.g. While case
 				if (evaluateStep(javascriptContext, scope)) {
 					return super.executeNextStep(javascriptContext, scope);
@@ -210,7 +210,7 @@ public abstract class BlockStep extends StepWithExpressions {
 	
 	protected boolean executeNextStep(boolean isTrue, Context javascriptContext, Scriptable scope) throws EngineException
     {
-    	if (isEnable()) {
+    	if (isEnabled()) {
     		if (hasThenElseSteps()) {
     	    	if (hasSteps()) {
         			if (bContinue && sequence.isRunning()) {

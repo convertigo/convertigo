@@ -107,7 +107,7 @@ public class SequenceExecuteSelectedAction extends MyAbstractAction {
 	
 	private void openEditors(ProjectExplorerView explorerView, List<Step> steps, Set<SequenceStep> alreadyOpened) {
 		for (Step step: steps) {
-			if (step.isEnable()) {
+			if (step.isEnabled()) {
 				if (step instanceof SequenceStep) {
 					SequenceStep sequenceStep = (SequenceStep)step;
 					String projectName = sequenceStep.getProjectName();

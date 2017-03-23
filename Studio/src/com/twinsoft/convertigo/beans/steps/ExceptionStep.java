@@ -38,7 +38,7 @@ public class ExceptionStep extends SimpleStep {
 	}
 
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			if (super.stepExecute(javascriptContext, scope)) {
 				evaluate(javascriptContext, scope, getExpression(), "message", true);
 				Object evMessage = evaluated;

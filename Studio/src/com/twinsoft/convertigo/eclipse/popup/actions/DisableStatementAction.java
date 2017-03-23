@@ -59,7 +59,7 @@ public class DisableStatementAction extends MyAbstractAction {
 					if (treeObject instanceof StatementTreeObject) {
 						StatementTreeObject statementTreeObject = (StatementTreeObject)treeObject;
 						statement = (Statement)statementTreeObject.getObject();
-						statement.setEnable(false);
+						statement.setEnabled(false);
 						
 						statementTreeObject.setEnabled(false);
 						statementTreeObject.hasBeenModified(true);				

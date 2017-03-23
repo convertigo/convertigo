@@ -73,7 +73,7 @@ public class SessionRemoveStep extends Step {
 	
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			if (getSequence().context != null) {
 				return super.stepExecute(javascriptContext, scope);
 			}

@@ -88,7 +88,7 @@ public abstract class BranchStep extends StepWithExpressions {
 
     @Override
 	protected boolean executeNextStep(Context javascriptContext, Scriptable scope) throws EngineException {
-    	if (isEnable()) {
+    	if (isEnabled()) {
 	    	if (hasSteps()) {
 	    		int num = numberOfSteps();
 	    		for (int i=0; i < num; i++) {

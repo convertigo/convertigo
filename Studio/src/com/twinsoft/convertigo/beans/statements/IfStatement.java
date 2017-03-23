@@ -55,7 +55,7 @@ public class IfStatement extends BlockStatement {
 	}
 	
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {		
-		if (isEnable()) {
+		if (isEnabled()) {
 			if (super.execute(javascriptContext, scope)) {
 				evaluate(javascriptContext, scope, getCondition(), "condition", true);
 				if (evaluated instanceof Boolean) {

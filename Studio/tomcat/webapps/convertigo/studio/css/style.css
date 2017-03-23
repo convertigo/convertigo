@@ -44,3 +44,15 @@
 .jstree-grid-separator-regular {
 /* 	border-style: none !important; */
 }
+
+li.nodeDisable > a {
+	color: rgb(255, 0, 0) !important;
+}
+
+.nodeDisable a {
+	color: #ffb300 !important;
+}
+
+.jstree-default-dark .jstree-anchor>.jstree-icon {
+    opacity: 1;
+}

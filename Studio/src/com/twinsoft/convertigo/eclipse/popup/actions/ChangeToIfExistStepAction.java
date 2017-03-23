@@ -99,7 +99,7 @@ public class ChangeToIfExistStepAction extends MyAbstractAction {
 		        			ifStep.setSourceDefinition(ifThenElseStep.getSourceDefinition());
 		        			ifStep.setComment(ifThenElseStep.getComment());
 		        			ifStep.setCondition(ifThenElseStep.getCondition());
-		        			ifStep.setEnable(ifThenElseStep.isEnable());
+		        			ifStep.setEnabled(ifThenElseStep.isEnabled());
 		        			ifStep.setOutput(ifThenElseStep.isOutput());
 		        			ifStep.setName(ifThenElseStep.getName());
 		        			
@@ -172,7 +172,7 @@ public class ChangeToIfExistStepAction extends MyAbstractAction {
 	        			ifStep.setSourceDefinition(isInStep.getSourceDefinition());
 	        			ifStep.setComment(isInStep.getComment());
 	        			ifStep.setCondition(isInStep.getCondition());
-	        			ifStep.setEnable(isInStep.isEnable());
+	        			ifStep.setEnabled(isInStep.isEnabled());
 	        			ifStep.setOutput(isInStep.isOutput());
 	        			ifStep.setName(isInStep.getName());
 	        			

@@ -131,7 +131,7 @@ public class ListDirStep extends Step {
 	
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			evaluate(javascriptContext, scope, getSourceDirectory(), "sourceDirectory", true);
 			if (super.stepExecute(javascriptContext, scope)) {
 				return true;

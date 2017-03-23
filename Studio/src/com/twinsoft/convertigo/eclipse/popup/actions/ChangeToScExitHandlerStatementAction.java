@@ -81,7 +81,7 @@ public class ChangeToScExitHandlerStatementAction extends MyAbstractAction {
 	        			
 	        			scExitHandlerStatement.setHandlerResult(handlerResult);
 	        			scExitHandlerStatement.setComment(scEntryHandlerStatement.getComment());
-	        			scExitHandlerStatement.setEnable(scEntryHandlerStatement.isEnable());
+	        			scExitHandlerStatement.setEnabled(scEntryHandlerStatement.isEnabled());
 	        			scExitHandlerStatement.setPreventFromLoops(scEntryHandlerStatement.preventFromLoops());
 	        			scExitHandlerStatement.setParent(scEntryHandlerStatement.getParent());
 	        			scExitHandlerStatement.setReturnedValue(scEntryHandlerStatement.getReturnedValue());

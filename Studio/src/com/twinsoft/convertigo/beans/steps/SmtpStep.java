@@ -228,7 +228,7 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			if (super.stepExecute(javascriptContext, scope)) {
 				try {
 					evaluate(javascriptContext, scope, this.smtpSubject, "smtpSubject", false);

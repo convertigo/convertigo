@@ -423,7 +423,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
     
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			if (bContinue && sequence.isRunning()) {
 				if (super.stepExecute(javascriptContext, scope)) {
 					return executeNextStep(javascriptContext, scope);
@@ -621,7 +621,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 	
 	protected boolean executeNextStep(Context javascriptContext, Scriptable scope) throws EngineException
     {
-    	if (isEnable()) {
+    	if (isEnabled()) {
 	    	if (hasSteps()) {
 	    		for (int i=0; i<numberOfSteps(); i++) {
 	    			if (bContinue && sequence.isRunning())
@@ -638,7 +638,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 		step.checkSubLoaded();
 		
     	Step stepCopy = null;
-    	if (step.isEnable()) {
+    	if (step.isEnabled()) {
     		Object ob = null;
 			try {
 				ob = step.copy();

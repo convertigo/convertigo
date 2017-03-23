@@ -77,7 +77,7 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 	
 	@Override
 	public boolean isPickable() {
-		return isEnable();
+		return isEnabled();
 	}
 
 	@Override
@@ -131,7 +131,7 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			try {
 				iterator.init();
 			} catch (TransformerException e) {

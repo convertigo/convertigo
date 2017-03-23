@@ -81,7 +81,7 @@ public class SourceStep extends Step implements IStepSourceContainer {
 
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			if (super.stepExecute(javascriptContext, scope)) {
 				NodeList list = getSource().getContextValues();
 				if (list != null) {

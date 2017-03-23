@@ -72,7 +72,7 @@ public class StepTreeObject extends DatabaseObjectTreeObject implements INamedSo
 	
 	public StepTreeObject(Viewer viewer, Step object, boolean inherited) {
 		super(viewer, object, inherited);
-		setEnabled(getObject().isEnable());
+		setEnabled(getObject().isEnabled());
 	}
 	
 	@Override
@@ -82,7 +82,7 @@ public class StepTreeObject extends DatabaseObjectTreeObject implements INamedSo
 
 	@Override
     public boolean isEnabled() {
-		setEnabled(getObject().isEnable());
+		setEnabled(getObject().isEnabled());
     	return super.isEnabled();
     }
 

@@ -59,7 +59,7 @@ public class DisableListenerAction extends MyAbstractAction {
 					if (treeObject instanceof ListenerTreeObject) {
 						ListenerTreeObject listenerTreeObject = (ListenerTreeObject)treeObject;
 						listener = (Listener)listenerTreeObject.getObject();
-						listener.setEnable(false);
+						listener.setEnabled(false);
 						
 						listenerTreeObject.setEnabled(false);
 						listenerTreeObject.hasBeenModified(true);

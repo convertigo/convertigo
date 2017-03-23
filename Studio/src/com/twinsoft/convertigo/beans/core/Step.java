@@ -71,7 +71,7 @@ import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 /**
  * The Step class is the base class for all steps.
  */
-public abstract class Step extends DatabaseObject implements StepListener, ISheetContainer, ITagsProperty, ISchemaGenerator {
+public abstract class Step extends DatabaseObject implements StepListener, ISheetContainer, ITagsProperty, ISchemaGenerator, IEnableAble {
 	private static final long serialVersionUID = 1600450851360946365L;
 	private String schemaDataType = "xsd:string"; // since beans version 5.0.2
 	
@@ -79,7 +79,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
     
     public static final String NODE_USERDATA_OUTPUT = "step_output";
     
-    private boolean isEnable = true;
+    private boolean isEnabled = true;
     private boolean output = false;
     private XmlQName xmlComplexTypeAffectation = new XmlQName();
     private XmlQName xmlSimpleTypeAffectation = new XmlQName(Constants.XSD_STRING);
@@ -134,6 +134,25 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		copiedObject.vSheets = vSheets;
 		copiedObject.isSubLoaded = isSubLoaded;
 		return copiedObject;
+	}
+
+	@Override
+	public void preconfigure(Element element) throws Exception {
+		super.preconfigure(element);
+		
+		String version = element.getAttribute("version");
+		
+//		if (VersionUtils.compare(version, "7.5.0") < 0) {
+			NodeList properties = element.getElementsByTagName("property");
+			
+			Element propName = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "isEnable");
+			if (propName != null) {
+				propName.setAttribute("name", "isEnabled");
+				hasChanged = true;
+			}
+
+//				Engine.logBeans.warn("[RequestableStep] The object \""+objectName+"\" has been updated to version 4.6.0 (property \"variablesDefinition\" changed to \"orderedVariables\")");
+//		}
 	}
 
 	/* (non-Javadoc)
@@ -236,7 +255,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	}
 	
 	public boolean isPickable() {
-		return isXml() && isEnable();
+		return isXml() && isEnabled();
 	}
 	
 	public boolean isXmlOrOutput() {
@@ -599,7 +618,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	}
 	
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable && sequence.isRunning()) {
+		if (isEnabled && sequence.isRunning()) {
 			if (Engine.logBeans.isDebugEnabled())
 				Engine.logBeans.debug("Executing step named '"+ this +"' ("+ this.getName() +")");
 			
@@ -642,12 +661,14 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		return priority + "." + cloneNumber + "-" + System.currentTimeMillis();
 	}
 	
-	public boolean isEnable() {
-		return isEnable;
+	@Override
+	public boolean isEnabled() {
+		return isEnabled;
 	}
 
-	public void setEnable(boolean isEnable) {
-		this.isEnable = isEnable;
+	@Override
+	public void setEnabled(boolean isEnabled) {
+		this.isEnabled = isEnabled;
 	}
 
 	public boolean isOutput() {

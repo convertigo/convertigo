@@ -33,10 +33,11 @@ import org.w3c.dom.Element;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
+import com.twinsoft.convertigo.beans.core.IEnableAble;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.engine.EngineException;
 
-public class RouteComponent extends MobileComponent implements IRouteGenerator, IContainerOrdered {
+public class RouteComponent extends MobileComponent implements IRouteGenerator, IContainerOrdered, IEnableAble {
 	
 	private static final long serialVersionUID = -8928033403518219727L;
 
@@ -83,10 +84,12 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
 	
 	private boolean isEnabled = true;
 	
+	@Override
 	public boolean isEnabled() {
 		return isEnabled;
 	}
 
+	@Override
 	public void setEnabled(boolean isEnabled) {
 		this.isEnabled = isEnabled;
 	}

@@ -87,7 +87,7 @@ public class InputVariablesStep extends Step implements ISchemaParticleGenerator
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		variables.clear();
 
-		if (isEnable()) {
+		if (isEnabled()) {
 			for (RequestableVariable var : getParentSequence().getAllVariables()) {
 				try {
 					//evaluate(javascriptContext, scope, var.getName(), "expression", true);

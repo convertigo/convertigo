@@ -64,7 +64,7 @@ public class RemoveAuthenticatedUserStep extends Step implements IComplexTypeAff
 	
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			
 			getSequence().context.removeAuthenticatedUser();
 			

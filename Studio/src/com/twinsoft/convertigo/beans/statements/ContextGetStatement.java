@@ -49,7 +49,7 @@ public class ContextGetStatement extends Statement {
 	}
 	
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			if (super.execute(javascriptContext, scope)) {
 				String code = variable+"=context.get('"+key+"')";
 				evaluate(javascriptContext, scope, code, "ContextGet", true);

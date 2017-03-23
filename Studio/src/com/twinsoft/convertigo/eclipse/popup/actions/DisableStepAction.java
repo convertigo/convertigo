@@ -60,7 +60,7 @@ public class DisableStepAction extends MyAbstractAction {
 					if (treeObject instanceof StepTreeObject) {
 						StepTreeObject stepTreeObject = (StepTreeObject)treeObject;
 						step = (Step)stepTreeObject.getObject();
-						step.setEnable(false);
+						step.setEnabled(false);
 						
 						stepTreeObject.setEnabled(false);
 						stepTreeObject.hasBeenModified(true);

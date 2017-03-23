@@ -99,7 +99,7 @@ public class ChangeToIsInStepAction extends MyAbstractAction {
 		        			ifStep.setTestDefinition(ifThenElseStep.getTestDefinition());
 		        			ifStep.setComment(ifThenElseStep.getComment());
 		        			ifStep.setCondition(ifThenElseStep.getCondition());
-		        			ifStep.setEnable(ifThenElseStep.isEnable());
+		        			ifStep.setEnabled(ifThenElseStep.isEnabled());
 		        			ifStep.setOutput(ifThenElseStep.isOutput());
 		        			ifStep.setName(ifThenElseStep.getName());
 		        			
@@ -174,7 +174,7 @@ public class ChangeToIsInStepAction extends MyAbstractAction {
 	        			ifStep.setSourceDefinition(ifExistStep.getSourceDefinition());
 	        			ifStep.setComment(ifExistStep.getComment());
 	        			ifStep.setCondition(ifExistStep.getCondition());
-	        			ifStep.setEnable(ifExistStep.isEnable());
+	        			ifStep.setEnabled(ifExistStep.isEnabled());
 	        			ifStep.setOutput(ifExistStep.isOutput());
 	        			ifStep.setName(ifExistStep.getName());
 	        			

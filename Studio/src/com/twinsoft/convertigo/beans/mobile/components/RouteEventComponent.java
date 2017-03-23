@@ -25,10 +25,11 @@ package com.twinsoft.convertigo.beans.mobile.components;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.twinsoft.convertigo.beans.core.IEnableAble;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.engine.EngineException;
 
-public class RouteEventComponent extends MobileComponent implements IRouteGenerator {
+public class RouteEventComponent extends MobileComponent implements IRouteGenerator, IEnableAble {
 
 	private static final long serialVersionUID = -5879576200562937068L;
 	
@@ -96,10 +97,12 @@ public class RouteEventComponent extends MobileComponent implements IRouteGenera
 	 */
 	private boolean isEnabled = true;
 	
+	@Override
 	public boolean isEnabled() {
 		return isEnabled;
 	}
 
+	@Override
 	public void setEnabled(boolean isEnabled) {
 		this.isEnabled = isEnabled;
 	}

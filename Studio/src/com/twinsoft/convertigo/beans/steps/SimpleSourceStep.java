@@ -41,7 +41,7 @@ public class SimpleSourceStep extends SourceStep {
 	
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			if (super.stepExecute(javascriptContext, scope)) {
 				String variableName = getVariableName();
 				NodeList list = (NodeList) scope.get(variableName, scope);

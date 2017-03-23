@@ -101,7 +101,7 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 	
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			evaluate(javascriptContext, scope, server);
 			evaluate(javascriptContext, scope, basePath);
 			evaluate(javascriptContext, scope, login);

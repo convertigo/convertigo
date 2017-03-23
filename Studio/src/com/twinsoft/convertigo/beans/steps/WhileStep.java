@@ -76,7 +76,7 @@ public class WhileStep extends LoopStep {
 
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			do {
 				if (!super.stepExecute(javascriptContext, scope)) {
 					break;

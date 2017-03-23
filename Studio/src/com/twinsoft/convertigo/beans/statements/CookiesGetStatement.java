@@ -54,7 +54,7 @@ public class CookiesGetStatement extends Statement {
 
 	@Override
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			if (super.execute(javascriptContext, scope)) {
 				if (this.getConnector().handleCookie) {
 					HttpState httpState = this.getParentTransaction().context.httpState;

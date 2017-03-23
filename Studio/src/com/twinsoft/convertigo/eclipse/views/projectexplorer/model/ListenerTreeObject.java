@@ -35,7 +35,7 @@ public class ListenerTreeObject extends DatabaseObjectTreeObject {
 
 	public ListenerTreeObject(Viewer viewer, DatabaseObject object, boolean inherited) {
 		super(viewer, object, inherited);
-		setEnabled(getObject().isEnable());
+		setEnabled(getObject().isEnabled());
 	}
 
 	@Override
@@ -45,7 +45,7 @@ public class ListenerTreeObject extends DatabaseObjectTreeObject {
 	
 	@Override
     public boolean isEnabled() {
-		setEnabled(getObject().isEnable());
+		setEnabled(getObject().isEnabled());
     	return super.isEnabled();
     }
 	

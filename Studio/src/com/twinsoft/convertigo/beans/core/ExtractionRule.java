@@ -34,7 +34,7 @@ import com.twinsoft.convertigo.engine.EngineException;
  * <p>An extraction rule is seen as a JavaBean. So it is serializable,
  * and can have its own properties editor.</p>
  */
-public abstract class ExtractionRule extends DatabaseObject {
+public abstract class ExtractionRule extends DatabaseObject implements IEnableAble {
 	private static final long serialVersionUID = -7322067869844724239L;
     
     /**
@@ -42,10 +42,12 @@ public abstract class ExtractionRule extends DatabaseObject {
      */
     private boolean isEnabled = true;
     
+    @Override
 	public boolean isEnabled() {
 		return isEnabled;
 	}
     
+	@Override
 	public void setEnabled(boolean isEnabled) {
 		this.isEnabled = isEnabled;
 	}

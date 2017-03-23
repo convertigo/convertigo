@@ -1,9 +1,26 @@
 var PropertiesView = {
 	// Variables
+	refNode: null,
 	tree: null,
 	
 	// Functions
 	init: function (jstreeId) {
+		$(PropertiesView).on("set_property.database-object-manager", function (event, data, property, value) {
+			$(PropertiesView.tree.jstree().get_json(PropertiesView.tree, {
+			    flat: true
+			}))
+			.each(function () {
+			    if (this.data.name == property) {
+			    	var node = PropertiesView.tree.jstree().get_node(this.id);
+			    	node.data.value = value.toString();
+			    	PropertiesView.tree.jstree().redraw_node(node.id);
+			    	
+			    	return false;
+			    }
+			});
+			
+		});
+		
 		PropertiesView.tree = $(jstreeId);
 		
 		PropertiesView.tree
@@ -11,6 +28,7 @@ var PropertiesView = {
 				core: {
 					check_callback: true,
 					force_text: true,
+					animation : 0,
 					themes: {
 						name: "default-dark",
 						dots: false,
@@ -48,7 +66,7 @@ var PropertiesView = {
 				// 'Hack CSS' part 2: Delete the useless empty node which allowed to generate the right CSS
 				PropertiesView.removeTreeData();
 			})
-			.on("loaded_grid.jstree", function (event, data) {
+			.one("loaded_grid.jstree", function (event, data) {
 				/* 
 				* If on the same page we have several jstrees using the jstree grid plugin and that one of them
 				* does not show headers, the headers of all others jstrees will not be displayed. So we have to
@@ -58,13 +76,143 @@ var PropertiesView = {
 					.parents(".jstree-grid-wrapper")
 					.find(".jstree-grid-header-regular")
 					.addClass("jstree-header");
+			})
+			.on("select_cell.jstree-grid", function (event, data) {
+				var node = PropertiesView.tree.jstree().get_node(data.node[0].id);
+				var parent = PropertiesView.tree.jstree().get_node(node.parent);
+				/* 
+				 * Check if the node has a value : if it does not have a value, it is a folder.
+				 * We also need to check if the property is editable by checking the parent category.
+				 * Information properties are not editable.
+			     */
+				if (node.data.value && parent.data.isEditable) {
+					var editComment = StringUtils.unescapeHTML(node.data.value);
+					PropertiesView.editCell(node, {
+					    value: data.sourceName
+					}, data.grid, editComment);
+				}
+				
+		        event.preventDefault();
+			})
+			.on("update_cell.jstree-grid", function (event, data) {
+				DatabaseObjectManager.setProperty(PropertiesView.refNode.data.qname, data.node.data.name, data.value);
 			});
 	},
-	createNodeJsonPropertyCategory: function (textNode) {
+	/* 
+	 * Function highly inspired from the _edit(...) function of jstree-grid plugin.
+	 * 
+	 * NOTE : If you use another version of the jstree-grid plugin, you migh have
+     *        to update this function as it uses functions defined in the jstree-grid
+	 *        plugin.
+	*/
+	editCell: function (obj, col, element, editText) {
+		if (!obj) {
+		    return false;
+		}
+		if (element) {
+		    element = $(element);
+		    if (element.prop("tagName").toLowerCase() === "div") {
+		        element = element.children("span:first");
+		    }
+		}
+		else {
+		    // need to find the element - later
+		    return false;
+		}
+		var rtl = PropertiesView.tree.jstree()._data.core.rtl,
+		    w = PropertiesView.tree.jstree().element.width(),
+		    t = editText,
+		    h1 = $("<div/>", {
+		        css: {
+		            "position": "absolute",
+		            "top": "-200px",
+		            "left": (rtl ? "0px" : "-1000px"),
+		            "visibility": "hidden"
+		        }
+		    }).appendTo("body"),
+		    h2 = $("<input/>", {
+		        "value": t,
+		        "class": "jstree-rename-input",
+		        "css": {
+		            "padding": "0",
+		            "border": "1px solid silver",
+		            "box-sizing": "border-box",
+		            "display": "inline-block",
+		            "height": (PropertiesView.tree.jstree()._data.core.li_height) + "px",
+		            "lineHeight": (PropertiesView.tree.jstree()._data.core.li_height) + "px",
+		            "width": "150px" // will be set a bit further down
+		        },
+		        "blur": $.proxy(function() {
+		            var v = h2.val();
+
+		            // save the value if changed
+		            if (v === t) {
+		                v = t;
+		            }
+		            else {
+		            	// New value of the comment
+		                obj.data[col.value] = v.length ? StringUtils.escapeHTML(v) : v;
+		                PropertiesView.tree.jstree().element.trigger('update_cell.jstree-grid', {
+		                    node: obj,
+		                    col: col.value,
+		                    value: v,
+		                    old: t
+		                });
+		                PropertiesView.tree.jstree()._prepare_grid(this.get_node(obj, true));
+		            }
+		            h2.remove();
+		            element.show();
+		        }, PropertiesView.tree.jstree()),
+		        "keydown": function(event) {
+		            var key = event.which;
+		            if (key === 27) {
+		                this.value = t;
+		            }
+		            if (key === 27 || key === 13 || key === 37 || key === 38 || key === 39 || key === 40 || key === 32) {
+		                event.stopImmediatePropagation();
+		            }
+		            if (key === 27 || key === 13) {
+		                event.preventDefault();
+		                this.blur();
+		            }
+		        },
+		        "click": function(e) {
+		            e.stopImmediatePropagation();
+		        },
+		        "mousedown": function(e) {
+		            e.stopImmediatePropagation();
+		        },
+		        "keyup": function(event) {
+		            h2.width(Math.min(h1.text("pW" + this.value).width(), w));
+		        },
+		        "keypress": function(event) {
+		            if (event.which === 13) {
+		                return false;
+		            }
+		        }
+		    }),
+		    fn = {
+		        fontFamily: element.css('fontFamily') || '',
+		        fontSize: element.css('fontSize') || '',
+		        fontWeight: element.css('fontWeight') || '',
+		        fontStyle: element.css('fontStyle') || '',
+		        fontStretch: element.css('fontStretch') || '',
+		        fontVariant: element.css('fontVariant') || '',
+		        letterSpacing: element.css('letterSpacing') || '',
+		        wordSpacing: element.css('wordSpacing') || ''
+		    };
+		element.hide();
+		element.parent().append(h2);
+		h2.css(fn).width("100%")[0].select();
+	},
+	createNodeJsonPropertyCategory: function (textNode, editable) {
 		return {
 			text: textNode,
 			state: {
 				opened: true // Expand the node by default
+			},
+			data: {
+				isEditable: editable
 			},
 			children: [] // Properties - Values
 		};
@@ -72,7 +220,27 @@ var PropertiesView = {
 	removeTreeData: function () {
 		PropertiesView.updateTreeData([]);
 	},
-	update: function ($dboElt) {
+	updateProperties2: function (node) {
+		if (node.type !== "default") {
+			// Get properties of the object
+			$.ajax({
+				url: ProjectsView.createConvertigoServiceUrl("studio.database_objects.Get"),
+				data: {
+					qname: node.data.qname
+				},
+				success: function (data, textStatus, jqXHR) {
+					// Update the property view
+					PropertiesView.updateProperties($(data).find("admin>*").first(), node);
+				}
+			});
+		}
+		else {
+			// Remove all data from the property view
+			PropertiesView.removeTreeData();
+		}
+	},
+	updateProperties: function ($dboElt, refNode) {
+		PropertiesView.refNode = refNode;
 		// Different categories (Base properties, Expert, etc.)
 		var propertyCategories = {};
 		var isExtractionRule = $dboElt.attr("isExtractionRule") == "true";
@@ -83,15 +251,16 @@ var PropertiesView = {
 			// Create the category if it does not exist yet
 			if (!propertyCategories[key]) {
 				propertyCategories[key] = key == "true" ?
-					    PropertiesView.createNodeJsonPropertyCategory(isExtractionRule ? "Selection" : "Expert") :
-					    PropertiesView.createNodeJsonPropertyCategory(isExtractionRule ? "Configuration" : "Base properties");
+					    PropertiesView.createNodeJsonPropertyCategory(isExtractionRule ? "Selection" : "Expert", true) :
+					    PropertiesView.createNodeJsonPropertyCategory(isExtractionRule ? "Configuration" : "Base properties", true);
 			}
 			
 			// Add the property to the category
 			propertyCategories[key].children.push({
 				text: $(this).attr("displayName"),
 				data: {
-					value: StringUtils.escapeHTML($(this).find("[value]").attr("value"))
+					value: StringUtils.escapeHTML($(this).find("[value]").attr("value")),
+					name: $(this).attr("name")
 				}
 			});
 		});
@@ -106,7 +275,7 @@ var PropertiesView = {
 		}
 		
 		// Create information category
-		var informationCategory = PropertiesView.createNodeJsonPropertyCategory("Information");
+		var informationCategory = PropertiesView.createNodeJsonPropertyCategory("Information", false);
 		informationCategory.children.push({
 			text: "Depth",
 			data: {

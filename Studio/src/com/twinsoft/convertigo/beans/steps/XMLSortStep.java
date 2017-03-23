@@ -234,7 +234,7 @@ public class XMLSortStep extends XMLCopyStep implements IStepSourceContainer {
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope)
 			throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			evaluate(javascriptContext, scope, getOptionSort(), "optionSort", true);
 			return super.stepExecute(javascriptContext, scope);
 		}

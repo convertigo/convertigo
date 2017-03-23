@@ -56,7 +56,7 @@ public class AdoptClientCookies extends Statement {
 
 	@Override
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			HttpConnector connector = this.getConnector();
 			com.twinsoft.convertigo.engine.Context context = this.getParentTransaction().context;
 			if (connector.handleCookie) {

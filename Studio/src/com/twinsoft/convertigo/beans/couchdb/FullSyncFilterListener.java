@@ -49,7 +49,7 @@ public class FullSyncFilterListener extends AbstractFullSyncFilterListener {
 	
 	@Override
 	protected void triggerSequence(InternalHttpServletRequest request, JSONArray ids) throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			if (targetFilter == null || targetFilter.isEmpty()) {
 				throw new EngineException("No target filter defined");
 			}

@@ -55,7 +55,7 @@ public class FullSyncDeleteViewListener extends AbstractFullSyncViewListener imp
 
 	@Override
 	public JSONArray onPreBulkDocs(JSONArray deletedIds) throws EngineException, JSONException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			if (targetView == null || targetView.isEmpty()) {
 				throw new EngineException("No target view defined");
 			}

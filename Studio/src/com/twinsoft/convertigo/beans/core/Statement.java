@@ -31,20 +31,22 @@ import org.mozilla.javascript.JavaScriptException;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 /**
  * The Statement class is the base class for all statements.
  */
-public abstract class Statement extends DatabaseObject {
+public abstract class Statement extends DatabaseObject implements IEnableAble {
 	private static final long serialVersionUID = 1113997185686423262L;
     
-	private boolean isEnable = true;
+	private boolean isEnabled = true;
     
     public Statement() {
         super();
@@ -90,7 +92,7 @@ public abstract class Statement extends DatabaseObject {
 	{
 		reset();
 		HtmlTransaction htmlTransaction = (HtmlTransaction)getParentTransaction();
-		if (isEnable && htmlTransaction.runningThread.bContinue) {
+		if (isEnabled && htmlTransaction.runningThread.bContinue) {
 			htmlTransaction.currentStatement = this;
 			Engine.logBeans.debug("Executing statement named '"+ this.getName() +"' ("+ this.getClass().getName() +")");
 			
@@ -103,12 +105,14 @@ public abstract class Statement extends DatabaseObject {
 		return false;
 	}
     
-	public boolean isEnable() {
-		return isEnable;
+	@Override
+	public boolean isEnabled() {
+		return isEnabled;
 	}
 
-	public void setEnable(boolean isEnable) {
-		this.isEnable = isEnable;
+	@Override
+	public void setEnabled(boolean isEnabled) {
+		this.isEnabled = isEnabled;
 	}
 
 	protected transient Object evaluated = null;
@@ -220,6 +224,25 @@ public abstract class Statement extends DatabaseObject {
 		return clonedObject;
 	}
     
+	@Override
+	public void preconfigure(Element element) throws Exception {
+		super.preconfigure(element);
+		
+		String version = element.getAttribute("version");
+		
+//		if (VersionUtils.compare(version, "7.5.0") < 0) {
+			NodeList properties = element.getElementsByTagName("property");
+			
+			Element propName = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "isEnable");
+			if (propName != null) {
+				propName.setAttribute("name", "isEnabled");
+				hasChanged = true;
+			}
+
+//				Engine.logBeans.warn("[RequestableStep] The object \""+objectName+"\" has been updated to version 4.6.0 (property \"variablesDefinition\" changed to \"orderedVariables\")");
+//		}
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.twinsoft.convertigo.beans.core.DatabaseObject#configure(org.w3c.dom.Element)
 	 */

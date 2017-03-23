@@ -848,7 +848,7 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 
     @Override
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			if (super.execute(javascriptContext, scope)) {
 				this.javascriptContext = javascriptContext;
 				this.scope = scope;

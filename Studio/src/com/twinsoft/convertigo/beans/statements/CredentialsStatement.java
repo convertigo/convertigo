@@ -86,7 +86,7 @@ public class CredentialsStatement extends Statement {
 		String _user = null;
 		String _password = null;
 		
-		if (isEnable()) {
+		if (isEnabled()) {
 			if (super.execute(javascriptContext, scope)) {
 				if (user != null && user.length() != 0) {
 					// evaluate user

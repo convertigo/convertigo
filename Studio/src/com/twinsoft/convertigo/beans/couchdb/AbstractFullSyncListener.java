@@ -100,7 +100,7 @@ public abstract class AbstractFullSyncListener extends Listener {
 	abstract protected void triggerSequence(InternalHttpServletRequest request, JSONArray array) throws EngineException, JSONException;
 	
 	public void onBulkDocs(HttpServletRequest request, final JSONArray array) {
-		if (isEnable()) {
+		if (isEnabled()) {
 			final InternalHttpServletRequest internalRequest = new InternalHttpServletRequest(request);
 			Engine.execute(new Runnable() {
 	
@@ -118,7 +118,7 @@ public abstract class AbstractFullSyncListener extends Listener {
 	}
 	
 	protected void executeSequence(InternalHttpServletRequest request, JSONArray docs) throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			if (targetSequence == null || targetSequence.isEmpty()) {
 				throw new EngineException("No target sequence defined");
 			}
@@ -183,7 +183,7 @@ public abstract class AbstractFullSyncListener extends Listener {
 	}
 	
 	protected void onDeletedDocs(InternalHttpServletRequest request, JSONArray deletedDocs) throws EngineException, JSONException {		
-		if (isEnable()) {
+		if (isEnabled()) {
 			int len = deletedDocs.length();
 			
 			for (int i = 0; i < len;) {
@@ -195,7 +195,7 @@ public abstract class AbstractFullSyncListener extends Listener {
 	}
 	
 	protected JSONArray getDeletedDocs(JSONArray rows) throws JSONException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			if (rows.length() > 0) {
 				JSONArray deletedDocs = new JSONArray();
 				for (int i = 0; i < rows.length(); i++) {
@@ -221,7 +221,7 @@ public abstract class AbstractFullSyncListener extends Listener {
 	}
 	
 	protected void runDocs(InternalHttpServletRequest request, JSONArray rows) throws JSONException, EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			if (rows != null && rows.length() > 0) {
 	
 				// Retrieve the first results
@@ -236,6 +236,6 @@ public abstract class AbstractFullSyncListener extends Listener {
 	}
 	
 	public boolean isEnabled() {
-		return isEnable() && (chunk > 0);
+		return isEnabled() && (chunk > 0);
 	}
 }

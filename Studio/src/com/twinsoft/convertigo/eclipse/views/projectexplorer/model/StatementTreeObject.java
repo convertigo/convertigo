@@ -67,7 +67,7 @@ public class StatementTreeObject extends DatabaseObjectTreeObject implements IEd
 	
 	public StatementTreeObject(Viewer viewer, Statement object, boolean inherited) {
 		super(viewer, object, inherited);
-		setEnabled(getObject().isEnable());
+		setEnabled(getObject().isEnabled());
 		
 		if ((!object.bNew) && (object instanceof HandlerStatement)) {
 			String normalizedScreenClassName =((object instanceof ScHandlerStatement) ? ((ScHandlerStatement)object).getNormalizedScreenClassName():"");
@@ -94,7 +94,7 @@ public class StatementTreeObject extends DatabaseObjectTreeObject implements IEd
 
 	@Override
     public boolean isEnabled() {
-		setEnabled(getObject().isEnable());
+		setEnabled(getObject().isEnabled());
     	return super.isEnabled();
     }
 	

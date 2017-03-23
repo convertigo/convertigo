@@ -127,7 +127,7 @@ public class ChangeToXMLElementStepAction extends MyAbstractAction {
 		        					}
 		        				}
 		        				elementStep.setOutput(concatStep.isOutput());
-			        			elementStep.setEnable(concatStep.isEnable());
+			        			elementStep.setEnabled(concatStep.isEnabled());
 			        			elementStep.setComment(concatStep.getComment());
 			        			elementStep.setNodeName(concatStep.getNodeName());
 		        				elementStep.setNodeText(defaultValue);
@@ -185,7 +185,7 @@ public class ChangeToXMLElementStepAction extends MyAbstractAction {
 		        		if ( DatabaseObjectsManager.acceptDatabaseObjects(attributeStep.getParent(), elementStep) ) {
 	        				// Set properties	        			
 		        			elementStep.setOutput(attributeStep.isOutput());
-		        			elementStep.setEnable(attributeStep.isEnable());
+		        			elementStep.setEnabled(attributeStep.isEnabled());
 		        			elementStep.setComment(attributeStep.getComment());
 		        			elementStep.setSourceDefinition(attributeStep.getSourceDefinition());
 		        			elementStep.setNodeText(attributeStep.getNodeText());
@@ -242,7 +242,7 @@ public class ChangeToXMLElementStepAction extends MyAbstractAction {
 		        		if ( DatabaseObjectsManager.acceptDatabaseObjects(jelementStep.getParent(), elementStep) ) {
 	        				// Set properties	        			
 		        			elementStep.setOutput(jelementStep.isOutput());
-		        			elementStep.setEnable(jelementStep.isEnable());
+		        			elementStep.setEnabled(jelementStep.isEnabled());
 		        			elementStep.setComment(jelementStep.getComment());
 		        			//elementStep.setSourceDefinition(jelementStep.getSourceDefinition());
 		        			elementStep.setNodeText(jelementStep.getNodeText());

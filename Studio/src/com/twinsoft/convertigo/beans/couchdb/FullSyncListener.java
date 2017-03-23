@@ -49,7 +49,7 @@ public class FullSyncListener extends AbstractFullSyncViewListener {
 	
 	@Override
 	protected void triggerSequence(InternalHttpServletRequest request, JSONArray ids) throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			if (targetView == null || targetView.isEmpty()) {
 				throw new EngineException("No target view defined");
 			}

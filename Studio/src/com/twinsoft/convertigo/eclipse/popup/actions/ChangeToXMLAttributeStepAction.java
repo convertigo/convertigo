@@ -106,7 +106,7 @@ public class ChangeToXMLAttributeStepAction extends MyAbstractAction {
 		        		if ( DatabaseObjectsManager.acceptDatabaseObjects(attributeStep.getParent(), xmlAttributeStep) ) {
 	        				// Set properties
 		        			xmlAttributeStep.setOutput(attributeStep.isOutput());
-		        			xmlAttributeStep.setEnable(attributeStep.isEnable());
+		        			xmlAttributeStep.setEnabled(attributeStep.isEnabled());
 		        			xmlAttributeStep.setComment(attributeStep.getComment());
 		        			//xmlAttributeStep.setSourceDefinition(xmlElementStep.getSourceDefinition());
 		        			xmlAttributeStep.setNodeText(attributeStep.getNodeText());
@@ -163,7 +163,7 @@ public class ChangeToXMLAttributeStepAction extends MyAbstractAction {
 		        		if ( DatabaseObjectsManager.acceptDatabaseObjects(xmlElementStep.getParent(), xmlAttributeStep) ) {
 	        				// Set properties
 		        			xmlAttributeStep.setOutput(xmlElementStep.isOutput());
-		        			xmlAttributeStep.setEnable(xmlElementStep.isEnable());
+		        			xmlAttributeStep.setEnabled(xmlElementStep.isEnabled());
 		        			xmlAttributeStep.setComment(xmlElementStep.getComment());
 		        			xmlAttributeStep.setSourceDefinition(xmlElementStep.getSourceDefinition());
 		        			xmlAttributeStep.setNodeText(xmlElementStep.getNodeText());

@@ -45,7 +45,7 @@ public class DuplicateStep extends Step {
 
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			if (super.stepExecute(javascriptContext, scope)) {
 				try {
 					String sSourcePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));

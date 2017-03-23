@@ -503,7 +503,7 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 	
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			 errorList = new JSONArray();
 				
 			// get Source data as a string to payload

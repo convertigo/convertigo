@@ -1567,7 +1567,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		step.checkSubLoaded();
 		
 		Step stepToExecute = null;
-		if (step.isEnable()) {
+		if (step.isEnabled()) {
 			Object ob = null;
 			try {
 				ob = step.copy();

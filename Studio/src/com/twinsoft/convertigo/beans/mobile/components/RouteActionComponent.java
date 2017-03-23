@@ -25,12 +25,13 @@ package com.twinsoft.convertigo.beans.mobile.components;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.twinsoft.convertigo.beans.core.IEnableAble;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
-public abstract class RouteActionComponent extends MobileComponent implements IRouteGenerator, ITagsProperty {
+public abstract class RouteActionComponent extends MobileComponent implements IRouteGenerator, ITagsProperty, IEnableAble {
 	
 	private static final long serialVersionUID = 2529010701434894046L;
 
@@ -157,14 +158,15 @@ public abstract class RouteActionComponent extends MobileComponent implements IR
 	 */
 	private boolean isEnabled = true;
 	
+	@Override
 	public boolean isEnabled() {
 		return isEnabled;
 	}
-
+	
+	@Override
 	public void setEnabled(boolean isEnabled) {
 		this.isEnabled = isEnabled;
 	}
-	
 	
 	public String[] getTagsForProperty(String propertyName) {
 		if (propertyName.equals("action")) {

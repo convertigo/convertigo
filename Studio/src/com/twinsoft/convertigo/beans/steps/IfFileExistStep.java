@@ -65,7 +65,7 @@ public class IfFileExistStep extends BlockStep {
 
 	@Override
 	protected boolean executeNextStep(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			boolean test = evaluateStep(javascriptContext, scope);
 			return super.executeNextStep(test, javascriptContext, scope);
 		}

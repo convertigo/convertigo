@@ -729,7 +729,7 @@ public class HtmlTransaction extends HttpTransaction {
 
 		HandlerStatement handlerStatement = getHandlerStatement(handlerName);
 
-		if ((handlerStatement == null) || ((handlerStatement != null) && !handlerStatement.isEnable())) {
+		if ((handlerStatement == null) || ((handlerStatement != null) && !handlerStatement.isEnabled())) {
 			if (handlerStatement == null)
 				Engine.logBeans.debug("(HtmlTransaction) No " + handlerType + " handler (" + handlerName + ") found for the screen class '" + screenClass.getName() + "'; searching for the transaction default handler...");
 			else
@@ -743,7 +743,7 @@ public class HtmlTransaction extends HttpTransaction {
 				return;
 			}
 
-			if (!handlerStatement.isEnable()) {
+			if (!handlerStatement.isEnabled()) {
 				Engine.logBeans.debug("(HtmlTransaction) " + handlerType + " transaction default handler disabled");
 				return;
 			}
@@ -828,7 +828,7 @@ public class HtmlTransaction extends HttpTransaction {
 		handlerResult = "";
 		if (handlerStatement != null) {
 			
-			if (!handlerStatement.isEnable())
+			if (!handlerStatement.isEnabled())
 				return;
 			
 			Engine.logBeans.debug("(HtmlTransaction) Execution of the " + handlerType + " handler  (" + handlerName + ") for the transaction '" + getName() + "'");
@@ -1046,7 +1046,7 @@ public class HtmlTransaction extends HttpTransaction {
 	}
 
     private void addStatementSchemas(List<String> schemas, Statement statement) {
-		if (statement.isEnable()) {
+		if (statement.isEnabled()) {
 			if (statement instanceof ContextAddTextNodeStatement) {
 				String eltName = ((ContextAddTextNodeStatement)statement).getTagName();
 				String stSchema = "<xsd:element minOccurs=\"0\" maxOccurs=\"1\" name=\""+eltName+"\" type=\"xsd:string\"/>\n";

@@ -32,10 +32,11 @@ import org.w3c.dom.Element;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
+import com.twinsoft.convertigo.beans.core.IEnableAble;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.engine.EngineException;
 
-public abstract class UIComponent extends MobileComponent implements ITemplateGenerator, IContainerOrdered {
+public abstract class UIComponent extends MobileComponent implements ITemplateGenerator, IContainerOrdered, IEnableAble {
 	
 	private static final long serialVersionUID = -1872010547443624681L;
 
@@ -174,11 +175,12 @@ public abstract class UIComponent extends MobileComponent implements ITemplateGe
         else return super.getOrder(object);
     }
     
-	
+	@Override
 	public boolean isEnabled() {
 		return isEnabled;
 	}
 
+	@Override
 	public void setEnabled(boolean isEnabled) {
 		this.isEnabled = isEnabled;
 	}

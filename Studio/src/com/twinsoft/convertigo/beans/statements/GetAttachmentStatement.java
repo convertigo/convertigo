@@ -44,7 +44,7 @@ public class GetAttachmentStatement extends Statement {
 	
 	@Override
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			if (super.execute(javascriptContext, scope)) {
 				HtmlTransaction htmlTransaction = (HtmlTransaction)getParentTransaction();
 				HtmlConnector htmlConnector = (HtmlConnector)htmlTransaction.getParent();

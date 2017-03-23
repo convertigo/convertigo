@@ -39,7 +39,7 @@ public class DeleteStep extends Step {
 
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			if (super.stepExecute(javascriptContext, scope)) {
 				try {
 					String sourceFilePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));

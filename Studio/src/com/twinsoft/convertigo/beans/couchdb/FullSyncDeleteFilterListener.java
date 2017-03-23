@@ -55,7 +55,7 @@ public class FullSyncDeleteFilterListener extends AbstractFullSyncFilterListener
 
 	@Override
 	public JSONArray onPreBulkDocs(JSONArray deletedIds) throws EngineException, JSONException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			if (targetFilter == null || targetFilter.isEmpty()) {
 				throw new EngineException("No target filter defined");
 			}

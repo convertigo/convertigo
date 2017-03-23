@@ -107,7 +107,7 @@ public class ChangeToElementStepAction extends MyAbstractAction {
 		        		if ( DatabaseObjectsManager.acceptDatabaseObjects(attributeStep.getParent(), jelementStep) ) {
 	        				// Set properties
 		        			jelementStep.setOutput(attributeStep.isOutput());
-		        			jelementStep.setEnable(attributeStep.isEnable());
+		        			jelementStep.setEnabled(attributeStep.isEnabled());
 		        			jelementStep.setComment(attributeStep.getComment());
 		        			jelementStep.setExpression(attributeStep.getExpression());
 		        			jelementStep.setNodeText(attributeStep.getNodeText());
@@ -164,7 +164,7 @@ public class ChangeToElementStepAction extends MyAbstractAction {
 		        		if ( DatabaseObjectsManager.acceptDatabaseObjects(elementStep.getParent(), jelementStep) ) {
 	        				// Set properties	        			
 		        			jelementStep.setOutput(elementStep.isOutput());
-		        			jelementStep.setEnable(elementStep.isEnable());
+		        			jelementStep.setEnabled(elementStep.isEnabled());
 		        			jelementStep.setComment(elementStep.getComment());
 		        			//jelementStep.setSourceDefinition(elementStep.getSourceDefinition());
 		        			jelementStep.setNodeText(elementStep.getNodeText());

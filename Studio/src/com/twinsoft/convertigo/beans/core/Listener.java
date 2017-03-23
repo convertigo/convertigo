@@ -22,17 +22,41 @@
 
 package com.twinsoft.convertigo.beans.core;
 
-public abstract class Listener extends DatabaseObject {
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
+import com.twinsoft.convertigo.engine.util.XMLUtils;
+
+public abstract class Listener extends DatabaseObject implements IEnableAble {
 
 	private static final long serialVersionUID = 9010595374464464408L;
 	
-	private boolean isEnable = true;
+	private boolean isEnabled = true;
 	
 	public Listener() {
 		super();
 		databaseType = "Listener";
 	}
 
+	@Override
+	public void preconfigure(Element element) throws Exception {
+		super.preconfigure(element);
+		
+		String version = element.getAttribute("version");
+		
+//		if (VersionUtils.compare(version, "7.5.0") < 0) {
+			NodeList properties = element.getElementsByTagName("property");
+			
+			Element propName = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "isEnable");
+			if (propName != null) {
+				propName.setAttribute("name", "isEnabled");
+				hasChanged = true;
+			}
+
+//				Engine.logBeans.warn("[RequestableStep] The object \""+objectName+"\" has been updated to version 4.6.0 (property \"variablesDefinition\" changed to \"orderedVariables\")");
+//		}
+	}
+	
 	@Override
 	public Listener clone() throws CloneNotSupportedException {
 		Listener clonedObject =  (Listener) super.clone();
@@ -43,11 +67,13 @@ public abstract class Listener extends DatabaseObject {
 		return "ListenerTreeObject";
 	}
 	
-	public boolean isEnable() {
-		return isEnable;
+	@Override
+	public boolean isEnabled() {
+		return isEnabled;
 	}
 
-	public void setEnable(boolean isEnable) {
-		this.isEnable = isEnable;
+	@Override
+	public void setEnabled(boolean isEnabled) {
+		this.isEnabled = isEnabled;
 	}
 }

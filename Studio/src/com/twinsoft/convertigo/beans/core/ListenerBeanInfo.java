@@ -38,7 +38,7 @@ public class ListenerBeanInfo extends MySimpleBeanInfo {
 			
 			properties = new PropertyDescriptor[1];
 			
-            properties[0] = new PropertyDescriptor("isEnable", Listener.class, "isEnable", "setEnable");
+            properties[0] = new PropertyDescriptor("isEnabled", Listener.class, "isEnabled", "setEnabled");
 			properties[0].setDisplayName(getExternalizedString("property.isEnabled.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.isEnabled.short_description"));
 		}

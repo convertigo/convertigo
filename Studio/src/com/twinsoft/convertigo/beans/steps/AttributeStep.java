@@ -183,7 +183,7 @@ public class AttributeStep extends Step implements ISchemaAttributeGenerator, IS
 
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			try {
 				evaluate(javascriptContext, scope, getExpression(), "expression", true);
 				if (evaluated instanceof org.mozilla.javascript.Undefined) {

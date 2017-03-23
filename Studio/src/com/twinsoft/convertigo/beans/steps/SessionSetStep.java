@@ -76,7 +76,7 @@ public class SessionSetStep extends Step implements IStepSmartTypeContainer, ICo
 	
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable()) {
+		if (isEnabled()) {
 			if (getSequence().context != null) {
 				evaluate(javascriptContext, scope, expression);
 				return super.stepExecute(javascriptContext, scope);
