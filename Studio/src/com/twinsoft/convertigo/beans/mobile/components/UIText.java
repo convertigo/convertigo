@@ -28,7 +28,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.engine.EngineException;
 
 public class UIText extends UIComponent {
-
+	
 	private static final long serialVersionUID = 4062617301596626610L;
 
 	public UIText() {

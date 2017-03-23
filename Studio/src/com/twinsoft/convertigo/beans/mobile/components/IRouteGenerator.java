@@ -23,5 +23,5 @@
 package com.twinsoft.convertigo.beans.mobile.components;
 
 public interface IRouteGenerator {
-	public abstract String computeRoute();
+	public abstract String computeRoute(); 
 }

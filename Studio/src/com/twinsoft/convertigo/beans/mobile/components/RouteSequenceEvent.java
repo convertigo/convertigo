@@ -23,7 +23,7 @@
 package com.twinsoft.convertigo.beans.mobile.components;
 
 public class RouteSequenceEvent extends RouteEventComponent {
-
+	
 	private static final long serialVersionUID = 5763924948972036500L;
 
 	public RouteSequenceEvent() {

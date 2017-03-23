@@ -25,7 +25,7 @@ package com.twinsoft.convertigo.beans.mobile.components;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
 public class UIControlEvent extends UIControlAttr {
-	
+
 	private static final long serialVersionUID = 4756891044178409988L;
 
 	public enum AttrEvent {

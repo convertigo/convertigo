@@ -26,7 +26,7 @@ import org.eclipse.jface.viewers.Viewer;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 
 public class MobileComponentTreeObject extends DatabaseObjectTreeObject {
-
+	
 	public MobileComponentTreeObject(Viewer viewer, MobileComponent object) {
 		super(viewer, object);
 	}

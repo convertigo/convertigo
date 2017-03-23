@@ -23,7 +23,7 @@
 package com.twinsoft.convertigo.beans.mobile.components;
 
 public class UIControlAttrValue extends UIComponent {
-
+	
 	private static final long serialVersionUID = 1629185375344957613L;
 
 	public UIControlAttrValue() {

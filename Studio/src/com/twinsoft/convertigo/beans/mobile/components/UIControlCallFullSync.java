@@ -26,7 +26,7 @@ import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
 public class UIControlCallFullSync extends UIControlCall implements ITagsProperty {
-
+	
 	private static final long serialVersionUID = -5796622953379062045L;
 
 	public UIControlCallFullSync() {

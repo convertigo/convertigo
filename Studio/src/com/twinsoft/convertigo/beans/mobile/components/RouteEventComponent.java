@@ -31,7 +31,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 public class RouteEventComponent extends MobileComponent implements IRouteGenerator {
 
 	private static final long serialVersionUID = -5879576200562937068L;
-
+	
 	public RouteEventComponent() {
 		super();
 		
@@ -121,7 +121,8 @@ public class RouteEventComponent extends MobileComponent implements IRouteGenera
 	public String getRequestableString() {
 		String requestableSource = getRequestableSource();
 		if (!requestableSource.isEmpty()) {
-			requestableSource = "." + requestableSource + (marker.isEmpty() ? "" : "#" + marker);
+			requestableSource = (requestableSource.startsWith("fs://")? "":".") 
+					+ requestableSource + (marker.isEmpty() ? "" : "#" + marker);
 		}
 		return requestableSource;
 	}

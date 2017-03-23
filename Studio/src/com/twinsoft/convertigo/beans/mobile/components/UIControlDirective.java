@@ -25,7 +25,7 @@ package com.twinsoft.convertigo.beans.mobile.components;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
 public class UIControlDirective extends UIControlAttr {
-
+	
 	private static final long serialVersionUID = 2750008565134796761L;
 
 	public enum AttrDirective {

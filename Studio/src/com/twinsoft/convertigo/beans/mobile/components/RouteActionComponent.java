@@ -31,7 +31,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
 public abstract class RouteActionComponent extends MobileComponent implements IRouteGenerator, ITagsProperty {
-
+	
 	private static final long serialVersionUID = 2529010701434894046L;
 
 	public enum Action {

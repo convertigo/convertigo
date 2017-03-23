@@ -27,7 +27,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class UICustomBeanInfo extends MySimpleBeanInfo {
-
+	
 	public UICustomBeanInfo() {
 		try {
 			beanClass = UICustom.class;

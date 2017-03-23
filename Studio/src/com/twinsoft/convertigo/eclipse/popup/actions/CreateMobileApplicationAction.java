@@ -23,7 +23,7 @@
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
 public class CreateMobileApplicationAction extends DatabaseObjectCreateAction {
-
+	
 	public CreateMobileApplicationAction() {
 		super("com.twinsoft.convertigo.beans.core.MobileApplication");
 	}

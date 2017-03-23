@@ -25,7 +25,7 @@ package com.twinsoft.convertigo.beans.mobile.components;
 public class RouteDataActionComponent extends RouteActionComponent {
 
 	private static final long serialVersionUID = -1240983643118635049L;
-
+	
 	public RouteDataActionComponent() {
 		super();
 	}

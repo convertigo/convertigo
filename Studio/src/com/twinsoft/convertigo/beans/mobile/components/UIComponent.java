@@ -36,7 +36,7 @@ import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.engine.EngineException;
 
 public abstract class UIComponent extends MobileComponent implements ITemplateGenerator, IContainerOrdered {
-
+	
 	private static final long serialVersionUID = -1872010547443624681L;
 
 	private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();

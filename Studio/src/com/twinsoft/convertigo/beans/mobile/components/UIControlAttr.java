@@ -27,7 +27,7 @@ import java.util.Iterator;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 
 public abstract class UIControlAttr extends UIAttribute implements ITagsProperty {
-
+	
 	private static final long serialVersionUID = -1131663200389122563L;
 
 	public UIControlAttr() {

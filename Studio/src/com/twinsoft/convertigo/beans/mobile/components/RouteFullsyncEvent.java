@@ -28,23 +28,6 @@ import com.twinsoft.convertigo.engine.util.EnumUtils;
 public class RouteFullsyncEvent extends RouteEventComponent implements ITagsProperty {
 
 	private static final long serialVersionUID = 5883194866752109784L;
-
-	public enum Verb {
-		all,
-		create,
-		get,
-		delete,
-		delete_attachment,
-		destroy,
-		post,
-		put_attachment,
-		replicate_pull,
-		replicate_push,
-		reset,
-		sync,
-		view,
-		
-	}
 	
 	public RouteFullsyncEvent() {
 		super();
@@ -60,7 +43,7 @@ public class RouteFullsyncEvent extends RouteEventComponent implements ITagsProp
 	/*
 	 * The fullsync verb
 	 */
-	private String verb = Verb.get.name();
+	private String verb = FullSyncVerb.get.name();
 	
 	public String getVerb() {
 		return verb;
@@ -88,7 +71,7 @@ public class RouteFullsyncEvent extends RouteEventComponent implements ITagsProp
 	
 	public String[] getTagsForProperty(String propertyName) {
 		if (propertyName.equals("verb")) {
-			return EnumUtils.toNames(Verb.class);
+			return EnumUtils.toNames(FullSyncVerb.class);
 		}
 		return new String[0];
 	}

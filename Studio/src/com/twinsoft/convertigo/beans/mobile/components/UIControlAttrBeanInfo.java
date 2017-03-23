@@ -27,7 +27,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class UIControlAttrBeanInfo extends MySimpleBeanInfo {
-
+	
 	public UIControlAttrBeanInfo() {
 		try {
 			beanClass = UIControlAttr.class;

@@ -24,8 +24,10 @@ package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.util.Iterator;
 
-public class UIElement extends UIComponent {
+import com.twinsoft.convertigo.engine.EngineException;
 
+public class UIElement extends UIComponent {
+	
 	private static final long serialVersionUID = -8671694717057158581L;
 
 	public UIElement() {
@@ -43,6 +45,9 @@ public class UIElement extends UIComponent {
 		return cloned;
 	}
 
+	/*
+	 * The tagname
+	 */
 	private String tagName = "tag";
 	
 	public String getTagName() {
@@ -53,9 +58,34 @@ public class UIElement extends UIComponent {
 		this.tagName = tagName;
 	}
 
+	/*
+	 * the self-closing state
+	 */
+	private boolean selfClose = false;
+	
+	public boolean isSelfClose() {
+		return selfClose;
+	}
+
+	public void setSelfClose(boolean selfClose) {
+		this.selfClose = selfClose;
+	}
+	
+	
+	@Override
+	public void addUIComponent(UIComponent uiComponent) throws EngineException {
+		if (isSelfClose() && !(uiComponent instanceof UIAttribute)) {
+			throw new EngineException("You cannot add component to this self-closing tag");
+		}
+		else {
+			super.addUIComponent(uiComponent);
+		}
+	}
+
 	@Override
 	public String toString() {
-		return super.toString();
+		String label = getTagName();
+		return label.isEmpty() ? super.toString() : label;
 	}
 
 	@Override
@@ -75,11 +105,17 @@ public class UIElement extends UIComponent {
 			
 			StringBuilder sb = new StringBuilder();
 			sb.append("<").append(getTagName())
-				.append(attributes.length()>0 ? attributes:"")
-			  .append(">").append(System.getProperty("line.separator"))
-				.append(children.length()>0 ? children:"")
-			  .append("</").append(getTagName())
-			  	.append(">").append(System.getProperty("line.separator"));
+				.append(attributes.length()>0 ? attributes:"");
+			
+			if (isSelfClose()) {
+				sb.append("/>").append(System.getProperty("line.separator"));
+			}
+			else {
+				sb.append(">").append(System.getProperty("line.separator"))
+					.append(children.length()>0 ? children:"")
+				  .append("</").append(getTagName())
+				  	.append(">").append(System.getProperty("line.separator"));
+			}
 			
 			return sb.toString();
 		}

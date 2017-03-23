@@ -27,7 +27,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class RouteFullsyncEventBeanInfo extends MySimpleBeanInfo {
-
+	
 	public RouteFullsyncEventBeanInfo() {
 		try {
 			beanClass = RouteFullsyncEvent.class;

@@ -25,7 +25,7 @@ package com.twinsoft.convertigo.beans.mobile.components;
 public class UIAttribute extends UIComponent {
 
 	private static final long serialVersionUID = 4407761661788130893L;
-
+	
 	public UIAttribute() {
 		super();
 	}
@@ -59,11 +59,8 @@ public class UIAttribute extends UIComponent {
 	@Override
 	public String computeTemplate() {
 		if (isEnabled()) {
-	        if (attrName.isEmpty()) { 
-	        	return "";
-	        }
-	        else if (attrValue.isEmpty()) {
-	        	return " "+attrName;
+	        if (attrName.isEmpty()) {
+	        	return attrValue.isEmpty() ? "":" "+ attrValue;
 	        }
 	        else {
 	        	return (" "+attrName+"=\""+attrValue+"\"");
@@ -73,4 +70,12 @@ public class UIAttribute extends UIComponent {
 			return "";
 	}
 
+	@Override
+	public String toString() {
+		String label = attrName;
+		label = label + (label.isEmpty() ? "":"=") + attrValue;
+		return label;
+	}
+
+	
 }

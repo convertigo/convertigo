@@ -26,9 +26,9 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.ui.IActionFilter;
 
 public class ObjectsFolderTreeObject extends FolderTreeObject implements IActionFilter {
-
+	
 	public static final int FOLDER_TYPE_INVISIBLE_ROOT = -1; 
-
+	
 	public static final int FOLDER_TYPE_TRANSACTIONS = 0; 
 	public static final int FOLDER_TYPE_SHEETS = 1; 
 	public static final int FOLDER_TYPE_FUNCTIONS = 2; 
@@ -55,6 +55,7 @@ public class ObjectsFolderTreeObject extends FolderTreeObject implements IAction
 	public static final int FOLDER_TYPE_ROUTES = 23;
 	public static final int FOLDER_TYPE_PAGES = 24;
 	public static final int FOLDER_TYPE_ACTIONS = 25;
+	public static final int FOLDER_TYPE_CONTROLS = 26;
 	
 	
 	public int folderType;
@@ -143,6 +144,9 @@ public class ObjectsFolderTreeObject extends FolderTreeObject implements IAction
 				break;
 			case FOLDER_TYPE_ACTIONS:
 				folderName = "Actions";
+				break;
+			case FOLDER_TYPE_CONTROLS:
+				folderName = "Controls";
 				break;
 		}
 

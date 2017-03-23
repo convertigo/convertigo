@@ -27,7 +27,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class UIControlCallFullSyncBeanInfo extends MySimpleBeanInfo {
-
+	
 	public UIControlCallFullSyncBeanInfo() {
 		try {
 			beanClass = UIControlCallFullSync.class;

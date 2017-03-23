@@ -27,7 +27,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class RouteDataActionComponentBeanInfo extends MySimpleBeanInfo {
-
+	
 	public RouteDataActionComponentBeanInfo() {
 		try {
 			beanClass = RouteDataActionComponent.class;

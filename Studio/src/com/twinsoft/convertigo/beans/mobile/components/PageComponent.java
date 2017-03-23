@@ -39,7 +39,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 public class PageComponent extends MobileComponent implements ITemplateGenerator, IContainerOrdered {
 
 	private static final long serialVersionUID = 188562781669238824L;
-
+	
 	private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();
 	
 	public PageComponent() {

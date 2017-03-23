@@ -27,7 +27,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class PageComponentBeanInfo extends MySimpleBeanInfo {
-
+	
 	public PageComponentBeanInfo() {
 		try {
 			beanClass = PageComponent.class;

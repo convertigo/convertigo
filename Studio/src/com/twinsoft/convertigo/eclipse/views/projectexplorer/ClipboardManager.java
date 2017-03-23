@@ -90,7 +90,7 @@ import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class ClipboardManager {
-
+	
 	public int objectsType = ProjectExplorerView.TREE_OBJECT_TYPE_UNKNOWN;
 	public Object[] objects;
 	public TreeObject[] parentTreeNodeOfCutObjects;
@@ -562,7 +562,14 @@ public class ClipboardManager {
 						if (databaseObject instanceof RouteActionComponent) {
 							databaseObject.priority = databaseObject.getNewOrderValue();
 							databaseObject.newPriority = databaseObject.priority;
-							route.add(databaseObject);
+							RouteActionComponent rac = (RouteActionComponent)databaseObject;
+							int i = rac.getPage().lastIndexOf(".");
+							if (i != -1) {
+								String pageName = rac.getPage().substring(i);
+								String pageQName = route.getParent().getQName() + pageName;
+								rac.setPage(pageQName);
+							}
+							route.add(rac);
 						}
 						else if (databaseObject instanceof RouteEventComponent) {
 							databaseObject.priority = databaseObject.getNewOrderValue();

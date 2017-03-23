@@ -37,7 +37,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.engine.EngineException;
 
 public class MobilePageComponentTreeObject extends MobileComponentTreeObject implements IEditableTreeObject {
-
+	
 	public MobilePageComponentTreeObject(Viewer viewer, PageComponent object) {
 		super(viewer, object);
 		isDefault = getObject().isRoot;

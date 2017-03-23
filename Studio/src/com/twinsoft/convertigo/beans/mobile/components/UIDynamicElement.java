@@ -37,7 +37,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 public class UIDynamicElement extends UIElement implements IDynamicBean {
 
 	private static final long serialVersionUID = -614143305710906263L;
-
+	
 	public UIDynamicElement() {
 		super();
 	}
@@ -121,6 +121,11 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 	}
 	
 	@Override
+	public String toString() {
+		return getName();
+	}
+	
+	@Override
 	public String computeTemplate() {
 		if (isEnabled()) {
 			StringBuilder attributes = new StringBuilder();
@@ -134,6 +139,9 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 						attributes.append(" ");
 						if (attr.isEmpty()){
 							attributes.append(value);
+						}
+						else if (attr.indexOf("%%") != -1){
+							attributes.append(attr.replaceFirst("%%", value.toString()));
 						}
 						else {
 							attributes.append(attr).append("=");
@@ -154,11 +162,17 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 			
 			StringBuilder sb = new StringBuilder();
 			sb.append("<").append(getTagName())
-				.append(attributes.length()>0 ? attributes:"")
-			  .append(">").append(System.getProperty("line.separator"))
-				.append(children.length()>0 ? children:"")
-			  .append("</").append(getTagName())
-			  	.append(">").append(System.getProperty("line.separator"));
+				.append(attributes.length()>0 ? attributes:"");
+			
+			if (isSelfClose()) {
+				sb.append("/>").append(System.getProperty("line.separator"));
+			}
+			else {
+				sb.append(">").append(System.getProperty("line.separator"))
+					.append(children.length()>0 ? children:"")
+				  .append("</").append(getTagName())
+				  	.append(">").append(System.getProperty("line.separator"));
+			}
 			
 			return sb.toString();
 		}

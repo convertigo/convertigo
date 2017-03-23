@@ -23,5 +23,5 @@
 package com.twinsoft.convertigo.beans.mobile.components;
 
 public interface ITemplateGenerator {
-	public abstract String computeTemplate();
+	public abstract String computeTemplate(); 
 }

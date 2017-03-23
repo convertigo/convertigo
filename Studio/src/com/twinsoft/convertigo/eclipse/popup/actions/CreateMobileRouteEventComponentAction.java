@@ -23,7 +23,7 @@
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
 public class CreateMobileRouteEventComponentAction extends DatabaseObjectCreateAction {
-
+	
 	public CreateMobileRouteEventComponentAction() {
 		super("com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent");
 	}

@@ -27,7 +27,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class RouteSequenceEventBeanInfo extends MySimpleBeanInfo {
-
+	
 	public RouteSequenceEventBeanInfo() {
 		try {
 			beanClass = RouteSequenceEvent.class;

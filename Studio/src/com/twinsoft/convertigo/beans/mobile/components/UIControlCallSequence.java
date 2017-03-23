@@ -23,7 +23,7 @@
 package com.twinsoft.convertigo.beans.mobile.components;
 
 public class UIControlCallSequence extends UIControlCall {
-
+	
 	private static final long serialVersionUID = 237124673723392698L;
 
 	public UIControlCallSequence() {

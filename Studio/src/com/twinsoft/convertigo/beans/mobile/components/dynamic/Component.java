@@ -23,7 +23,7 @@
 package com.twinsoft.convertigo.beans.mobile.components.dynamic;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-
+	
 public abstract class Component {
 	public abstract String getDescription();
 	public abstract String getGroup();

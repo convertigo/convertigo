@@ -23,7 +23,7 @@
 package com.twinsoft.convertigo.beans.mobile.components.dynamic;
 
 public class IonTemplate {
-
+	
 	public IonTemplate() {
 		
 	}

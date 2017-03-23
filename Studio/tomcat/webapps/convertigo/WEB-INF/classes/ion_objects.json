@@ -1,5 +1,5 @@
 {
-  /*  Property models  */
+  /*  Property models   */
   "Props": {
     "ButtonType": {
       "label": "button type",
@@ -8,7 +8,9 @@
       "value": "ion-button", // optional value (default is false)
       "values": [ // possible values (false means do no set)
         false,
-        "ion-button"
+        "ion-button",
+        "ion-fab",
+        "ion-item"
       ]
     },
     "MenuMode": {
@@ -121,7 +123,7 @@
       "label": "icon name",
       "description": "Specifies ionic icon name",
       "category": "Attributes",
-      "values": [ // todo: add all missing
+      "values": [ 
         false,
         "add",
         "add-circle",
@@ -481,7 +483,7 @@
         "tag": "button",
         "label": "Button",
         "description": "Buttons are an essential way to interact with and navigate through an app, and should clearly communicate what action will occur after the user taps them. Buttons can consist of text and/or an icon, and can be enhanced with a wide variety of attributes",
-        "group": "Buttons",
+        "group": "Components",
         "icon16": "button_color_16x16.png",
         "icon32": "button_color_32x32.png",
         "properties": {
@@ -498,7 +500,7 @@
         "tag": "ion-buttons",
         "label": "ButtonSet",
         "description": "Defines a set of buttons",
-        "group": "Buttons",
+        "group": "Containers",
         "icon16": "buttonset_color_16x16.png",
         "icon32": "buttonset_color_32x32.png",
         "properties": {
@@ -521,7 +523,7 @@
         "tag": "ion-content",
         "label": "Content",
         "description": "Defines a content area",
-        "group": "Others",
+        "group": "Containers",
         "icon16": "content_color_16x16.png",
         "icon32": "content_color_32x32.png",
         "properties": {
@@ -544,7 +546,7 @@
         "tag": "ion-footer",
         "label": "Footer",
         "description": "Defines a page footer",
-        "group": "Others",
+        "group": "Containers",
         "icon16": "footer_color_16x16.png",
         "icon32": "footer_color_32x32.png",
         "properties": {
@@ -554,7 +556,7 @@
         "tag": "ion-header",
         "label": "Header",
         "description": "Defines a page header",
-        "group": "Others",
+        "group": "Containers",
         "icon16": "header_color_16x16.png",
         "icon32": "header_color_32x32.png",
         "properties": {
@@ -564,7 +566,7 @@
         "tag": "ion-icon",
         "label": "Icon",
         "description": "More than 700+ Ionicons icons we�ve all come to know and love.",
-        "group": "Others",
+        "group": "Components",
         "icon16": "icon_color_16x16.png",
         "icon32": "icon_color_32x32.png",
         "properties": {
@@ -575,7 +577,7 @@
         "tag": "h1",
         "label": "H1",
         "description": "Defines a heading 1",
-        "group": "Headings",
+        "group": "HTML",
         "icon16": "HTML_color_16x16.png",
         "icon32": "HTML_color_32x32.png",
         "properties": {
@@ -585,7 +587,7 @@
         "tag": "h2",
         "label": "H2",
         "description": "Defines a heading 2",
-        "group": "Headings",
+        "group": "HTML",
         "icon16": "HTML_color_16x16.png",
         "icon32": "HTML_color_32x32.png",
         "properties": {
@@ -595,17 +597,61 @@
         "tag": "h3",
         "label": "H3",
         "description": "Defines a heading 3",
-        "group": "Headings",
+        "group": "HTML",
         "icon16": "HTML_color_16x16.png",
         "icon32": "HTML_color_32x32.png",
         "properties": {
                   }
       },
+      "Image": {
+        "tag": "img",
+        "label": "img",
+        "autoClose": true,
+        "description": "Defines an Image resource",
+        "group": "HTML",
+        "icon16": "HTML_color_16x16.png",
+        "icon32": "HTML_color_32x32.png",
+        "properties": {
+			"url": {
+	            "attr": "src",
+	            "label": "src",
+	            "description": "The immage url. Can be absolute (http(s)://) or relative to project (../assets/myimage.png)",
+	            "category": "Attributes",
+	            "value": "",
+	            "values": [
+	              false,
+	              true
+	            ]
+          	},
+			"width": {
+	            "attr": "width",
+	            "label": "width",
+	            "description": "The image width (in pixels add px eg: 200px, in points add pt eg: 20pt)",
+	            "category": "Attributes",
+	            "value": "",
+	            "values": [
+	              false,
+	              true
+	            ]
+          	},
+			"height": {
+	            "attr": "height",
+	            "label": "height",
+	            "description": "The image height (in pixels add px eg: 200px, in points add pt eg: 20pt)",
+	            "category": "Attributes",
+	            "value": "",
+	            "values": [
+	              false,
+	              true
+	            ]
+          	}
+         }
+      },
       "MyButton": {
         "tag": "button",
         "label": "My Button",
         "description": "Defines a custom colored button",
-        "group": "Buttons",
+        "group": "Components",
         "icon16": "mybutton_color_16x16.png",
         "icon32": "mybutton_color_32x32.png",
         "properties": {
@@ -636,7 +682,7 @@
         "tag": "ion-navbar",
         "label": "NavBar",
         "description": "If your page has an <ion-navbar>, a back button will automatically be added to it if it is not a root page, and the title of the Nav Bar will be updated.",
-        "group": "Others",
+        "group": "Components",
         "icon16": "navbar_color_16x16.png",
         "icon32": "navbar_color_32x32.png",
         "properties": {
@@ -660,7 +706,7 @@
         "tag": "ion-toolbar",
         "label": "ToolBar",
         "description": "A toolbar is a generic bar that can be used in an app as a header, sub-header, footer, or even sub-footer. Since ion-toolbar is based on flexbox, no matter how many toolbars you have in your page, they will be displayed correctly and ion-content will adjust accordingly.",
-        "group": "Others",
+        "group": "Containers",
         "icon16": "toolbar_color_16x16.png",
         "icon32": "toolbar_color_32x32.png",
         "properties": {
@@ -672,24 +718,309 @@
         "tag": "ion-title",
         "label": "BarTitle",
         "description": "Defines a bar title",
-        "group": "Others",
+        "group": "Components",
         "icon16": "bartitle_color_16x16.png",
         "icon32": "bartitle_color_32x32.png",
         "properties": {
         }
       },
+      
       "Badge": {
         "tag": "ion-badge",
         "label": "Badge",
         "description": "Badges are small components that typically communicate a numerical value to the user. They are typically used within an item.",
-        "group": "Others",
+        "group": "Components",
         "icon16": "badge_color_16x16.png",
         "icon32": "badge_color_32x32.png",
         "properties": {
           "IonColor": false,
           "ItemPosition": false
         }
+      },
+      
+      "Grid": {
+        "tag": "ion-grid",
+        "label": "Grid",
+        "description": "Grid system is based on flexbox, a CSS feature supported by all devices. The grid is composed of three units : grid, rows and columns.",
+        "group": "Containers",
+        "icon16": "grid_color_16x16.png",
+        "icon32": "grid_color_32x32.png",
+        "properties": {
+          "NoPadding": {
+            "attr": "no-padding",
+            "label": "No padding",
+            "description": "Removes padding from the grid and immediate children columns.",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+              false,
+              "false",
+              "true"
+            ]
+          },
+          "Fixed": {
+            "attr": "fixed",
+            "label": "Fixed",
+            "description": "Set a max width based on the screen size.",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+              false,
+              "false",
+              "true"
+            ]
+          }
+        }
+      },
+      
+      "GridRow": {
+        "tag": "ion-row",
+        "label": "Grid Row",
+        "description": "A grid row. Must be inserted in a Grid and contains Columns. A row is composed of 12 slots that can be filled with columns",
+        "group": "Containers",
+        "icon16": "grid_color_16x16.png",
+        "icon32": "grid_color_32x32.png",
+        "properties": {
+          "Nowrap": {
+            "label": "No wrap",
+            "description": "Forces the columns to a single row",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "nowrap"
+            ]
+          },
+          "WrapReverse": {
+            "label": "Wrap reverse",
+            "description": "The columns will wrap in reverse.",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "wrap-reverse"
+            ]
+          },
+          "AlignItemsStart": {
+            "label": "Align items start",
+            "description": "All columns will be vertically aligned at the top, unless they specify their own alignment.",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "align-items-start"
+            ]
+          },
+          "AlignItemsCenter": {
+            "label": "Align items center",
+            "description": "All columns will be vertically aligned in the center, unless they specify their own alignment.",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "align-items-center"
+            ]
+          },
+          "AlignItemsEnd": {
+            "label": "Align items bottom",
+            "description": "All columns will be vertically aligned at the bottom, unless they specify their own alignment.",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "align-items-end"
+            ]
+          },
+          "AlignItemsStrech": {
+            "label": "Align items strech",
+            "description": "All columns will be stretched to take up the entire height of the row, unless they specify their own alignment.",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "align-items-stretch"
+            ]
+          },
+          "AlignItemsBaseline": {
+            "label": "Align items baseline",
+            "description": "All columns will be vertically aligned at their baselines, unless they specify their own alignment.",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "align-items-baseline"
+            ]
+          },
+          "JustifyContentStart": {
+            "label": "Justify content start",
+            "description": "All columns will be horizontally aligned at the start.",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "justify-content-start"
+            ]
+          },
+          "JustifyContentCenter": {
+            "label": "Justify content center",
+            "description": "All columns will be horizontally aligned at the center.",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "justify-content-center"
+            ]
+          },
+          "JustifyContentEnd": {
+            "label": "Justify content end",
+            "description": "All columns will be horizontally aligned at the end.",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "justify-content-end"
+            ]
+          },
+          "JustifyContentAround": {
+            "label": "Justify content around",
+            "description": "All columns will be horizontally aligned with equal space around them.",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "justify-content-around"
+            ]
+          },
+          "JustifyContentBeteween": {
+            "label": "Justify content between",
+            "description": "All columns will be horizontally aligned with a half-size space on either end.",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "justify-content-between"
+            ]
+          }
+        }
+      },
+      
+      "GridCol": {
+        "tag": "ion-col",
+        "label": "Grid Column",
+        "description": "A grid column. Must be inserted in a Grid row and contains components or HTML",
+        "group": "Containers",
+        "icon16": "grid_color_16x16.png",
+        "icon32": "grid_color_32x32.png",
+        "properties": {
+          "Columns": {
+            "attr": "col-%%",
+            "label": "Column span",
+            "description": "Number of slots this column spans on",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "auto", "1","2","3","4","5","6","7","8","9","10","11","12"
+            ]
+          },
+          "ColumnsXSmall": {
+            "attr": "col-xs-%%",
+            "label": "Span (X-Small)",
+            "description": "Number of slots this column spans on for Xtra small devices (Witdh <  576px)",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "auto", "1","2","3","4","5","6","7","8","9","10","11","12"
+            ]
+          },
+          "ColumnsSmall": {
+            "attr": "col-sm-%%",
+            "label": "Span (Small)",
+            "description": "Number of slots this column spans on for small devices (Width >  576px and <  768px)",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "auto", "1","2","3","4","5","6","7","8","9","10","11","12"
+            ]
+          },
+          "ColumnsMedium": {
+            "attr": "col-md-%%",
+            "label": "Span (Medium)",
+            "description": "Number of slots this column spans on for medium devices (Width >  768px and <  992px)",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "auto", "1","2","3","4","5","6","7","8","9","10","11","12"
+            ]
+          },
+          "ColumnsLarge": {
+            "attr": "col-lg-%%",
+            "label": "Span (Large)",
+            "description": "Number of slots this column spans on for large devices (Width >  992px and <  1200px)",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "auto", "1","2","3","4","5","6","7","8","9","10","11","12"
+            ]
+          },
+          "ColumnsXLarge": {
+            "attr": "col-xl-%%",
+            "label": "Span (X-Large)",
+            "description": "Number of slots this column spans on for Xtra large devices (Width >  1200px)",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "auto", "1","2","3","4","5","6","7","8","9","10","11","12"
+            ]
+          },
+           "Offset": {
+            "attr": "offset-%%",
+            "label": "Column offset",
+            "description": "Number of slots for this column offset",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "1","2","3","4","5","6","7","8","9","10","11","12"
+            ]
+          },
+          "OffsetXSmall": {
+            "attr": "offset-xs-%%",
+            "label": "Offset (X-Small)",
+            "description": "Number of slots for this column offset for Xtra small devices (Witdh <  576px)",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "1","2","3","4","5","6","7","8","9","10","11","12"
+            ]
+          },
+          "OffsetSmall": {
+            "attr": "offset-sm-%%",
+            "label": "Offset (Small)",
+            "description": "Number of slots for this column offset for small devices (Width >  576px and <  768px)",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "1","2","3","4","5","6","7","8","9","10","11","12"
+            ]
+          },
+          "OffsetMedium": {
+            "attr": "offset-md-%%",
+            "label": "Offset (Medium)",
+            "description": "Number of slots for this column offset for medium devices (Width >  768px and <  992px)",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "1","2","3","4","5","6","7","8","9","10","11","12"
+            ]
+          },
+          "OffsetLarge": {
+            "attr": "offset-lg-%%",
+            "label": "Offset (Large)",
+            "description": "Number of slots for this column offset for large devices (Width >  992px and <  1200px)",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "1","2","3","4","5","6","7","8","9","10","11","12"
+            ]
+          },
+          "OffsetXLarge": {
+            "attr": "offset-xl-%%",
+            "label": "Offset (X-Large)",
+            "description": "Number of slots for this column offset for Xtra large devices (Width >  1200px)",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "1","2","3","4","5","6","7","8","9","10","11","12"
+            ]
+          }
+        }
       }
     }
-  
 }

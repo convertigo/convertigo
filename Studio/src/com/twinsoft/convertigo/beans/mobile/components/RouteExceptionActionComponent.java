@@ -23,7 +23,7 @@
 package com.twinsoft.convertigo.beans.mobile.components;
 
 public class RouteExceptionActionComponent extends RouteActionComponent {
-
+	
 	private static final long serialVersionUID = -8882933502852801495L;
 
 	public RouteExceptionActionComponent() {

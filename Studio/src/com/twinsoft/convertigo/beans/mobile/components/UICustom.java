@@ -26,7 +26,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.engine.EngineException;
 
 public class UICustom extends UIComponent {
-
+	
 	private static final long serialVersionUID = -6407500310571517432L;
 
 	public UICustom() {

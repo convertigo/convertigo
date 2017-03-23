@@ -27,7 +27,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class UIDynamicElementBeanInfo extends MySimpleBeanInfo {
-
+	
 	public UIDynamicElementBeanInfo() {
 		try {
 			beanClass = UIDynamicElement.class;
@@ -44,6 +44,7 @@ public class UIDynamicElementBeanInfo extends MySimpleBeanInfo {
 			properties[0].setHidden(true);
 			
 			getPropertyDescriptor("tagName").setValue("disable", Boolean.TRUE);
+			getPropertyDescriptor("selfClose").setHidden(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

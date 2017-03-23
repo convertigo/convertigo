@@ -28,6 +28,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.mobile.components.UIAttribute;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlAttr;
 import com.twinsoft.convertigo.beans.mobile.components.UICustom;
 import com.twinsoft.convertigo.beans.mobile.components.UIText;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
@@ -37,7 +38,7 @@ public class CreateMobileUIComponentAction extends MobileComponentCreateAction {
 	public CreateMobileUIComponentAction() {
 		super("com.twinsoft.convertigo.beans.mobile.components.UIComponent");
 	}
-
+	
 	public void selectionChanged(IAction action, ISelection selection) {
 		try {
 			boolean enable = true;
@@ -47,6 +48,9 @@ public class CreateMobileUIComponentAction extends MobileComponentCreateAction {
 			if (treeObject instanceof DatabaseObjectTreeObject) {
 				DatabaseObject dbo = (DatabaseObject)treeObject.getObject();
 				enable = !(dbo instanceof UICustom || dbo instanceof UIText || dbo instanceof UIAttribute);
+				if (!enable && dbo instanceof UIControlAttr) {
+					enable = true;
+				}
 			}
 			action.setEnabled(enable);
 		}
