@@ -235,7 +235,8 @@ public abstract class AbstractFullSyncListener extends Listener {
 		}
 	}
 	
+	@Override
 	public boolean isEnabled() {
-		return isEnabled() && (chunk > 0);
+		return super.isEnabled() && (chunk > 0);
 	}
 }
