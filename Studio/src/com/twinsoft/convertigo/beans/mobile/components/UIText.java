@@ -64,4 +64,10 @@ public class UIText extends UIComponent {
 			return "";
 	}
 
+	@Override
+	public String toString() {
+		String label = getTextValue();
+		return label.isEmpty() ? "?" : label;
+	}
+
 }
