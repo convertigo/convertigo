@@ -103,6 +103,10 @@ public class UIElement extends UIComponent {
 					children.append(component.computeTemplate());
 			}
 			
+			if (parent != null && parent instanceof UIControlDirective) {
+				attributes.append(((UIControlDirective)parent).getDirectiveTpl());
+			}
+			
 			StringBuilder sb = new StringBuilder();
 			sb.append("<").append(getTagName())
 				.append(attributes.length()>0 ? attributes:"");
@@ -119,8 +123,7 @@ public class UIElement extends UIComponent {
 			
 			return sb.toString();
 		}
-		else
-			return "";
+		return "";
 	}
 
 

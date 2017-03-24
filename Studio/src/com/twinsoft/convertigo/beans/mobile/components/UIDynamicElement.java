@@ -160,6 +160,10 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 					children.append(component.computeTemplate());
 			}
 			
+			if (parent != null && parent instanceof UIControlDirective) {
+				attributes.append(((UIControlDirective)parent).getDirectiveTpl());
+			}
+			
 			StringBuilder sb = new StringBuilder();
 			sb.append("<").append(getTagName())
 				.append(attributes.length()>0 ? attributes:"");
@@ -176,8 +180,7 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 			
 			return sb.toString();
 		}
-		else
-			return "";
+		return "";
 	}
 
 }

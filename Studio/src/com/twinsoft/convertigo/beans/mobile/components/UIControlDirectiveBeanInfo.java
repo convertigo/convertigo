@@ -31,7 +31,7 @@ public class UIControlDirectiveBeanInfo extends MySimpleBeanInfo {
 	public UIControlDirectiveBeanInfo() {
 		try {
 			beanClass = UIControlDirective.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.mobile.components.UIControlAttr.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.mobile.components.UIComponent.class;
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/mobile/components/images/uicontroldirective_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/mobile/components/images/uicontroldirective_color_32x32.png";
@@ -41,15 +41,16 @@ public class UIControlDirectiveBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[1];
+			properties = new PropertyDescriptor[2];
 			
 			properties[0] = new PropertyDescriptor("directiveName", beanClass, "getDirectiveName", "setDirectiveName");
 			properties[0].setDisplayName(getExternalizedString("property.directiveName.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.directiveName.short_description"));
 			properties[0].setPropertyEditorClass(getEditorClass("StringComboBoxPropertyDescriptor"));
 			
-			getPropertyDescriptor("attrName").setHidden(true);
-			getPropertyDescriptor("attrValue").setHidden(true);
+			properties[1] = new PropertyDescriptor("directiveValue", beanClass, "getDirectiveValue", "setDirectiveValue");
+			properties[1].setDisplayName(getExternalizedString("property.directiveValue.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.directiveValue.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

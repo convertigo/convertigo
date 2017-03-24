@@ -46,7 +46,7 @@ public class UIAttribute extends UIComponent {
 		this.attrName = attrName;
 	}
 	
-	private String attrValue = "";
+	private String attrValue = "value";
 	
 	public String getAttrValue() {
 		return attrValue;

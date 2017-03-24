@@ -22,14 +22,17 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
+import java.util.Iterator;
+
+import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
-public class UIControlDirective extends UIControlAttr {
+public class UIControlDirective extends UIComponent implements ITagsProperty {
 	
 	private static final long serialVersionUID = 2750008565134796761L;
 
 	public enum AttrDirective {
-		Each("*ngFor"),
+		RepeatForEach("*ngFor"),
 		If("*ngIf"),
 		Switch("[ngSwitch]"),
 		SwitchCase("*ngSwitchCase"),
@@ -77,16 +80,31 @@ public class UIControlDirective extends UIControlAttr {
 		this.directiveName = directiveName;
 	}
 
-	@Override
-	public String getAttrName() {
-		return AttrDirective.getDirective(directiveName);
+	private String directiveValue = "";
+	
+
+	public String getDirectiveValue() {
+		return directiveValue;
 	}
 
-	@Override
-	public String getAttrValue() {
-		return super.getAttrValue();
+	public void setDirectiveValue(String directiveValue) {
+		this.directiveValue = directiveValue;
 	}
 
+	public String getDirectiveTpl() {
+		if (isEnabled()) {
+			String directiveTpl = AttrDirective.getDirective(getDirectiveName());
+			if (!directiveTpl.isEmpty()) {
+				directiveTpl = " "+ directiveTpl + "=" + "\""+ getDirectiveValue()+"\"";
+			}
+			if (parent != null && parent instanceof UIControlDirective) {
+				directiveTpl = ((UIControlDirective)parent).getDirectiveTpl() + directiveTpl;
+			}
+			return directiveTpl;
+		}
+		return "";
+	}
+	
 	@Override
 	public String[] getTagsForProperty(String propertyName) {
 		if (propertyName.equals("directiveName")) {
@@ -98,6 +116,25 @@ public class UIControlDirective extends UIControlAttr {
 	@Override
 	public String toString() {
 		String label = getDirectiveName();
-		return label.isEmpty() ? "?":label;
+		return label = (label.isEmpty() ? "?":label) + " " + getDirectiveValue();
+	}
+
+	@Override
+	public String computeTemplate() {
+		if (isEnabled()) {
+			StringBuilder children = new StringBuilder();
+			
+			Iterator<UIComponent> it = getUIComponentList().iterator();
+			while (it.hasNext()) {
+				UIComponent component = (UIComponent)it.next();
+				children.append(component.computeTemplate());
+			}
+			
+			StringBuilder sb = new StringBuilder();
+			sb.append(children.length()>0 ? children:"");
+			
+			return sb.toString();
+		}
+		return "";
 	}
 }

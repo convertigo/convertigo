@@ -237,20 +237,24 @@ public class ComponentManager {
 		List<Component> components = new ArrayList<Component>(10);
 		
 		try {
+			String group;
 			// Add Customs
-			components.add(getCustom(UIElement.class));
-			components.add(getCustom(UIAttribute.class));
-			components.add(getCustom(UICustom.class));
-			components.add(getCustom(UIText.class));
+			group = "Customs";
+			components.add(getDboComponent(UIElement.class,group));
+			components.add(getDboComponent(UIAttribute.class,group));
+			components.add(getDboComponent(UICustom.class,group));
+			components.add(getDboComponent(UIText.class,group));
 			
 			// Add Controls
-			components.add(getControl(UIControlEvent.class));
-			components.add(getControl(UIControlDirective.class));
+			group = "Controls";
+			components.add(getDboComponent(UIControlEvent.class,group));
+			components.add(getDboComponent(UIControlDirective.class,group));
 			
 			// Add Actions
-			components.add(getAction(UIControlAttrValue.class));
-			components.add(getAction(UIControlCallSequence.class));
-			components.add(getAction(UIControlCallFullSync.class));
+			group = "Actions";
+			components.add(getDboComponent(UIControlAttrValue.class,group));
+			components.add(getDboComponent(UIControlCallSequence.class,group));
+			components.add(getDboComponent(UIControlCallFullSync.class,group));
 			
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
@@ -270,6 +274,8 @@ public class ComponentManager {
 					if (parent instanceof UIDynamicElement)
 						return true;
 					if (parent instanceof UIElement)
+						return true;
+					if (parent instanceof UIControlDirective)
 						return true;
 					return false;
 				}
@@ -302,86 +308,8 @@ public class ComponentManager {
 		}
 		return Collections.unmodifiableList(components);
 	}
-
-	protected static Component getCustom(final Class<? extends DatabaseObject> dboClass) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-		String className = dboClass.getName();
-		String beanInfoClassName = className + "BeanInfo";
-		
-		Class<BeanInfo> beanInfoClass = GenericUtils.cast(Class.forName(beanInfoClassName));
-		final BeanInfo bi = beanInfoClass.newInstance();
-		final BeanDescriptor bd = bi.getBeanDescriptor();
-		
-		return new Component() {
-
-			@Override
-			public String getDescription() {
-				String description = bd.getShortDescription().split("\\|")[0];
-				return bd != null ? description : dboClass.getSimpleName();
-			}
-
-			@Override
-			public String getGroup() {
-				return "Customs";
-			}
-
-			@Override
-			public String getLabel() {
-				return bd != null ? bd.getDisplayName() : dboClass.getSimpleName();
-			}
-
-			@Override
-			public String getImagePath() {
-				return MySimpleBeanInfo.getIconName(bi, BeanInfo.ICON_COLOR_32x32);
-			}
-
-			@Override
-			public boolean isAllowedIn(DatabaseObject parent) {
-				if (parent instanceof PageComponent)
-					return true;
-				if (parent instanceof UIDynamicElement)
-					return true;
-				if (parent instanceof UIElement)
-					return true;
-				return false;
-			}
-
-			@Override
-			protected DatabaseObject createBean() {
-				try {
-					DatabaseObject dbo = null;
-					if (dboClass.equals(UIElement.class)) {
-						dbo = new UIElement();
-						((UIElement)dbo).setName("Tag");
-						((UIElement)dbo).setTagName("tag");
-					}
-					if (dboClass.equals(UICustom.class)) {
-						dbo = new UICustom();
-						dbo.setName("Fragment");
-					}
-					if (dboClass.equals(UIText.class)) {
-						dbo = new UIText();
-						dbo.setName("Text");
-					}
-					if (dboClass.equals(UIAttribute.class)) {
-						dbo = new UIAttribute();
-						dbo.setName("Attr");
-						((UIAttribute)dbo).setAttrName("attr");
-						((UIAttribute)dbo).setAttrValue("value");
-					}
-					dbo.bNew = true;
-					dbo.hasChanged = true;
-					return dbo;
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
-				return null;
-			}
-			
-		};
-	}
 	
-	protected static Component getControl(final Class<? extends DatabaseObject> dboClass) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	protected static Component getDboComponent(final Class<? extends DatabaseObject> dboClass, final String group) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 		String className = dboClass.getName();
 		String beanInfoClassName = className + "BeanInfo";
 		
@@ -399,7 +327,7 @@ public class ComponentManager {
 
 			@Override
 			public String getGroup() {
-				return "Controls";
+				return group;
 			}
 
 			@Override
@@ -414,11 +342,32 @@ public class ComponentManager {
 
 			@Override
 			public boolean isAllowedIn(DatabaseObject parent) {
-				if (UIControlAttr.class.isAssignableFrom(dboClass)) {
-					if (parent instanceof UIDynamicElement)
+				if (parent instanceof PageComponent) {
+					if (!UIAttribute.class.isAssignableFrom(dboClass) &&
+						!UIControlAttrValue.class.isAssignableFrom(dboClass)) {
 						return true;
-					if (parent instanceof UIElement)
+					}
+				}
+				if (parent instanceof UIDynamicElement) {
+					if (!UIControlAttrValue.class.isAssignableFrom(dboClass)) {
 						return true;
+					}
+				}
+				if (parent instanceof UIElement) {
+					if (!UIControlAttrValue.class.isAssignableFrom(dboClass)) {
+						return true;
+					}
+				}
+				if (parent instanceof UIControlAttr) {
+					if (UIControlAttrValue.class.isAssignableFrom(dboClass)) {
+						return true;
+					}
+				}
+				if (parent instanceof UIControlDirective) {
+					if (UIElement.class.isAssignableFrom(dboClass) ||
+						UIControlDirective.class.isAssignableFrom(dboClass)) {
+						return true;
+					}
 				}
 				return false;
 			}
@@ -426,13 +375,7 @@ public class ComponentManager {
 			@Override
 			protected DatabaseObject createBean() {
 				try {
-					DatabaseObject dbo = null;
-					if (UIControlAttr.class.isAssignableFrom(dboClass)) {
-						dbo = dboClass.newInstance();
-					}
-					if (UIControlAttrValue.class.isAssignableFrom(dboClass)) {
-						dbo = dboClass.newInstance();
-					}
+					DatabaseObject dbo = dboClass.newInstance();
 					dbo.bNew = true;
 					dbo.hasChanged = true;
 					return dbo;
@@ -446,68 +389,4 @@ public class ComponentManager {
 		};
 	}
 
-	protected static Component getAction(final Class<? extends DatabaseObject> dboClass) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-		String className = dboClass.getName();
-		String beanInfoClassName = className + "BeanInfo";
-		
-		Class<BeanInfo> beanInfoClass = GenericUtils.cast(Class.forName(beanInfoClassName));
-		final BeanInfo bi = beanInfoClass.newInstance();
-		final BeanDescriptor bd = bi.getBeanDescriptor();
-		
-		return new Component() {
-
-			@Override
-			public String getDescription() {
-				String description = bd.getShortDescription().split("\\|")[0];
-				return bd != null ? description : dboClass.getSimpleName();
-			}
-
-			@Override
-			public String getGroup() {
-				return "Actions";
-			}
-
-			@Override
-			public String getLabel() {
-				return bd != null ? bd.getDisplayName() : dboClass.getSimpleName();
-			}
-
-			@Override
-			public String getImagePath() {
-				return MySimpleBeanInfo.getIconName(bi, BeanInfo.ICON_COLOR_32x32);
-			}
-
-			@Override
-			public boolean isAllowedIn(DatabaseObject parent) {
-				if (UIControlAttrValue.class.isAssignableFrom(dboClass)) {
-					//if (parent instanceof UIControlEvent) {
-					if (parent instanceof UIControlAttr) {
-						return true;
-					}
-				}
-				return false;
-			}
-
-			@Override
-			protected DatabaseObject createBean() {
-				try {
-					DatabaseObject dbo = null;
-					if (UIControlAttr.class.isAssignableFrom(dboClass)) {
-						dbo = dboClass.newInstance();
-					}
-					if (UIControlAttrValue.class.isAssignableFrom(dboClass)) {
-						dbo = dboClass.newInstance();
-					}
-					dbo.bNew = true;
-					dbo.hasChanged = true;
-					return dbo;
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
-				return null;
-			}
-			
-		};
-	}
 }
