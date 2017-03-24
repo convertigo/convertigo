@@ -110,7 +110,7 @@
 	<classpathentry kind="lib" path="lib/internal/bull-v24323.jar"/>
 	<classpathentry kind="lib" path="lib/internal/comm.jar"/>
 	<classpathentry kind="lib" path="lib/internal/crysec-090918.jar"/>
-	<classpathentry kind="lib" path="lib/internal/ibm-v42641.jar"/>
+	<classpathentry kind="lib" path="lib/internal/ibm-v42995.jar"/>
 	<classpathentry kind="lib" path="lib/internal/ms.jar"/>
 	<classpathentry kind="lib" path="lib/internal/netscape.jar"/>
 	<classpathentry kind="lib" path="lib/internal/phaos.jar"/>
