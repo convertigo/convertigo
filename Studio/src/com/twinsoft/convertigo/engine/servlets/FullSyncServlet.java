@@ -117,6 +117,18 @@ public class FullSyncServlet extends HttpServlet {
 			HttpRequestBase newRequest;
 
 			HttpMethodType method = HttpMethodType.valueOf(request.getMethod());
+			
+			if (method == HttpMethodType.OPTIONS) {
+				for (String headerName: Collections.list(request.getHeaderNames())) {
+					if (HeaderName.AccessControlRequestMethod.is(headerName)) {
+						// expected response for PouchDB with CORS
+						HeaderName.AccessControlAllowMethods.setHeader(response, "GET, PUT, POST, HEAD, DELETE");
+						HeaderName.AccessControlAllowHeaders.setHeader(response, "content-type");
+						response.setStatus(204);
+						return;
+					}
+				}
+			}
 
 			switch (method) {
 //			case DELETE: newRequest = new HttpDelete(); break; //disabled to prevent db delete
