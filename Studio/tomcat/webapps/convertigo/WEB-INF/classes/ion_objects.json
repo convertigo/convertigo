@@ -647,51 +647,7 @@
           	}
          }
       },
-      "Image": {
-        "tag": "img",
-        "label": "img",
-        "autoClose": true,
-        "description": "Defines an Image resource",
-        "group": "HTML",
-        "icon16": "HTML_color_16x16.png",
-        "icon32": "HTML_color_32x32.png",
-        "properties": {
-			"url": {
-	            "attr": "src",
-	            "label": "src",
-	            "description": "The immage url. Can be absolute (http(s)://) or relative to project (../assets/myimage.png)",
-	            "category": "Attributes",
-	            "value": "",
-	            "values": [
-	              false,
-	              true
-	            ]
-          	},
-			"width": {
-	            "attr": "width",
-	            "label": "width",
-	            "description": "The image width (in pixels add px eg: 200px, in points add pt eg: 20pt)",
-	            "category": "Attributes",
-	            "value": "",
-	            "values": [
-	              false,
-	              true
-	            ]
-          	},
-			"height": {
-	            "attr": "height",
-	            "label": "height",
-	            "description": "The image height (in pixels add px eg: 200px, in points add pt eg: 20pt)",
-	            "category": "Attributes",
-	            "value": "",
-	            "values": [
-	              false,
-	              true
-	            ]
-          	}
-         }
-      },
-      
+            
       "MyButton": {
         "tag": "button",
         "label": "My Button",
@@ -1110,81 +1066,81 @@
         "icon32": "textformat_color_32x32.png",
         "properties": {
           "TextLeft": {
-            "label": "Text left",
+            "label": "Align left",
             "description": "Aligns the text of the element to its left",
-            "category": "Attributes",
+            "category": "@Alignments",
             "value": false,
             "values": [
             	false, "text-left"
             ]
           },
           "TextRight": {
-            "label": "Text right",
+            "label": "Align right",
             "description": "Aligns the text of the element to its Right",
-            "category": "Attributes",
+            "category": "@Alignments",
             "value": false,
             "values": [
             	false, "text-right"
             ]
           },
           "TextCenter": {
-            "label": "Text center",
+            "label": "Align Center",
             "description": "Aligns the text of the element to its center",
-            "category": "Attributes",
+            "category": "@Alignments",
             "value": false,
             "values": [
             	false, "text-center"
             ]
           },
           "TextJustify": {
-            "label": "Text justify",
+            "label": "Justify",
             "description": "Justify text by stretching the lines so that each line has equal width",
-            "category": "Attributes",
+            "category": "@Alignments",
             "value": false,
             "values": [
             	false, "text-justify"
             ]
           },
           "TextWrap": {
-            "label": "Text wrap",
+            "label": "Wrap",
             "description": "Wraps text",
-            "category": "Attributes",
+            "category": "@Wrapping",
             "value": false,
             "values": [
             	false, "text-wrap"
             ]
           },
           "TextNoWrap": {
-            "label": "Text no wrap",
+            "label": "No wrap",
             "description": "Dont't wrap text",
-            "category": "Attributes",
+            "category": "@Wrapping",
             "value": false,
             "values": [
             	false, "text-nowrap"
             ]
           },
           "TextUpperCase": {
-            "label": "Text upper case",
+            "label": "To upper case",
             "description": "Transforms text to all caps",
-            "category": "Attributes",
+            "category": "@Transformations",
             "value": false,
             "values": [
             	false, "text-uppercase"
             ]
           },
           "TextLowerCase": {
-            "label": "Text lower case",
+            "label": "To lower case",
             "description": "Transforms text to all lowercase",
-            "category": "Attributes",
+            "category": "@Transformations",
             "value": false,
             "values": [
             	false, "text-lowercase"
             ]
           },
           "TextCapitalize": {
-            "label": "Text capitalize",
+            "label": "Capitalize",
             "description": "Transforms the first letter of the text to capitals",
-            "category": "Attributes",
+            "category": "@Transformations",
             "value": false,
             "values": [
             	false, "text-capitalize"
@@ -1192,6 +1148,5 @@
           }
         }
       }
-      
     }
 }
