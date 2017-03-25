@@ -603,6 +603,16 @@
         "properties": {
                   }
       },
+      "Paragraph": {
+        "tag": "p",
+        "label": "Paragraph (P)",
+        "description": "Defines a paragraph",
+        "group": "HTML",
+        "icon16": "HTML_color_16x16.png",
+        "icon32": "HTML_color_32x32.png",
+        "properties": {
+        }
+      },
       "Image": {
         "tag": "img",
         "label": "img",
@@ -747,6 +757,16 @@
         "icon16": "grid_color_16x16.png",
         "icon32": "grid_color_32x32.png",
         "properties": {
+          "Height": {
+          	"attr":"style",
+            "label": "Height",
+            "description": "Hight of the grid, pixel (px) or percentage (%). Use 100% to set a grid full screen, usefull for vertical centering",
+            "category": "Attribute",
+            "value": false,
+            "values": [
+            	false, "height:100%"
+            ]
+          },
           "NoPadding": {
             "attr": "no-padding",
             "label": "No padding",
@@ -858,7 +878,7 @@
           "JustifyContentStart": {
             "label": "Justify content start",
             "description": "All columns will be horizontally aligned at the start.",
-            "category": "@Vertical justifications",
+            "category": "@Justifications",
             "value": false,
             "values": [
             	false, "justify-content-start"
@@ -867,7 +887,7 @@
           "JustifyContentCenter": {
             "label": "Justify content center",
             "description": "All columns will be horizontally aligned at the center.",
-            "category": "@Vertical justifications",
+            "category": "@Justifications",
             "value": false,
             "values": [
             	false, "justify-content-center"
@@ -876,7 +896,7 @@
           "JustifyContentEnd": {
             "label": "Justify content end",
             "description": "All columns will be horizontally aligned at the end.",
-            "category": "@Vertical justifications",
+            "category": "@Justifications",
             "value": false,
             "values": [
             	false, "justify-content-end"
@@ -885,7 +905,7 @@
           "JustifyContentAround": {
             "label": "Justify content around",
             "description": "All columns will be horizontally aligned with equal space around them.",
-            "category": "@Vertical justifications",
+            "category": "@Justifications",
             "value": false,
             "values": [
             	false, "justify-content-around"
@@ -894,7 +914,7 @@
           "JustifyContentBeteween": {
             "label": "Justify content between",
             "description": "All columns will be horizontally aligned with a half-size space on either end.",
-            "category": "@Vertical justifications",
+            "category": "@Justifications",
             "value": false,
             "values": [
             	false, "justify-content-between"
@@ -911,11 +931,57 @@
         "icon16": "grid_color_16x16.png",
         "icon32": "grid_color_32x32.png",
         "properties": {
+          "AlignItemsStart": {
+            "label": "Align column top",
+            "description": "Column will be vertically aligned at the top.",
+            "category": "@Vertical alignments",
+            "value": false,
+            "values": [
+            	false, "align-self-start"
+            ]
+          },
+          "AlignItemsCenter": {
+            "label": "Align column center",
+            "description": "Column will be vertically aligned in the center.",
+            "category": "@Vertical alignments",
+            "value": false,
+            "values": [
+            	false, "align-self-center"
+            ]
+          },
+          "AlignItemsEnd": {
+            "label": "Align column bottom",
+            "description": "Column will be vertically aligned at the bottom.",
+            "category": "@Vertical alignments",
+            "value": false,
+            "values": [
+            	false, "align-self-end"
+            ]
+          },
+          "AlignItemsStrech": {
+            "label": "Align column strech",
+            "description": "Column will be stretched to take up the entire height of the row.",
+            "category": "@Vertical alignments",
+            "value": false,
+            "values": [
+            	false, "align-self-stretch"
+            ]
+          },
+          "AlignItemsBaseline": {
+            "label": "Align column baseline",
+            "description": "Column will be vertically aligned at the baseline.",
+            "category": "@Vertical alignments",
+            "value": false,
+            "values": [
+            	false, "align-self-baseline"
+            ]
+          },
+        
           "Columns": {
             "attr": "col-%%",
-            "label": "Column span",
+            "label": "Column slots (Any devices)",
             "description": "Number of slots this column spans on",
-            "category": "Attributes",
+            "category": "@Widths",
             "value": false,
             "values": [
             	false, "auto", "1","2","3","4","5","6","7","8","9","10","11","12"
@@ -925,7 +991,7 @@
             "attr": "col-xs-%%",
             "label": "Span (X-Small)",
             "description": "Number of slots this column spans on for Xtra small devices (Witdh <  576px)",
-            "category": "Attributes",
+            "category": "@Widths",
             "value": false,
             "values": [
             	false, "auto", "1","2","3","4","5","6","7","8","9","10","11","12"
@@ -935,7 +1001,7 @@
             "attr": "col-sm-%%",
             "label": "Span (Small)",
             "description": "Number of slots this column spans on for small devices (Width >  576px and <  768px)",
-            "category": "Attributes",
+            "category": "@Widths",
             "value": false,
             "values": [
             	false, "auto", "1","2","3","4","5","6","7","8","9","10","11","12"
@@ -945,7 +1011,7 @@
             "attr": "col-md-%%",
             "label": "Span (Medium)",
             "description": "Number of slots this column spans on for medium devices (Width >  768px and <  992px)",
-            "category": "Attributes",
+            "category": "@Widths",
             "value": false,
             "values": [
             	false, "auto", "1","2","3","4","5","6","7","8","9","10","11","12"
@@ -955,7 +1021,7 @@
             "attr": "col-lg-%%",
             "label": "Span (Large)",
             "description": "Number of slots this column spans on for large devices (Width >  992px and <  1200px)",
-            "category": "Attributes",
+            "category": "@Widths",
             "value": false,
             "values": [
             	false, "auto", "1","2","3","4","5","6","7","8","9","10","11","12"
@@ -965,7 +1031,7 @@
             "attr": "col-xl-%%",
             "label": "Span (X-Large)",
             "description": "Number of slots this column spans on for Xtra large devices (Width >  1200px)",
-            "category": "Attributes",
+            "category": "@Widths",
             "value": false,
             "values": [
             	false, "auto", "1","2","3","4","5","6","7","8","9","10","11","12"
@@ -975,7 +1041,7 @@
             "attr": "offset-%%",
             "label": "Column offset",
             "description": "Number of slots for this column offset",
-            "category": "Attributes",
+            "category": "@Offsets",
             "value": false,
             "values": [
             	false, "1","2","3","4","5","6","7","8","9","10","11","12"
@@ -985,7 +1051,7 @@
             "attr": "offset-xs-%%",
             "label": "Offset (X-Small)",
             "description": "Number of slots for this column offset for Xtra small devices (Witdh <  576px)",
-            "category": "Attributes",
+            "category": "@Offsets",
             "value": false,
             "values": [
             	false, "1","2","3","4","5","6","7","8","9","10","11","12"
@@ -995,7 +1061,7 @@
             "attr": "offset-sm-%%",
             "label": "Offset (Small)",
             "description": "Number of slots for this column offset for small devices (Width >  576px and <  768px)",
-            "category": "Attributes",
+            "category": "@Offsets",
             "value": false,
             "values": [
             	false, "1","2","3","4","5","6","7","8","9","10","11","12"
@@ -1005,7 +1071,7 @@
             "attr": "offset-md-%%",
             "label": "Offset (Medium)",
             "description": "Number of slots for this column offset for medium devices (Width >  768px and <  992px)",
-            "category": "Attributes",
+            "category": "@Offsets",
             "value": false,
             "values": [
             	false, "1","2","3","4","5","6","7","8","9","10","11","12"
@@ -1015,7 +1081,7 @@
             "attr": "offset-lg-%%",
             "label": "Offset (Large)",
             "description": "Number of slots for this column offset for large devices (Width >  992px and <  1200px)",
-            "category": "Attributes",
+            "category": "@Offsets",
             "value": false,
             "values": [
             	false, "1","2","3","4","5","6","7","8","9","10","11","12"
@@ -1025,7 +1091,7 @@
             "attr": "offset-xl-%%",
             "label": "Offset (X-Large)",
             "description": "Number of slots for this column offset for Xtra large devices (Width >  1200px)",
-            "category": "Attributes",
+            "category": "@Offsets",
             "value": false,
             "values": [
             	false, "1","2","3","4","5","6","7","8","9","10","11","12"
