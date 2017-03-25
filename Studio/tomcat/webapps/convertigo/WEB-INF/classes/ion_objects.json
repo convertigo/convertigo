@@ -782,10 +782,20 @@
         "icon16": "grid_color_16x16.png",
         "icon32": "grid_color_32x32.png",
         "properties": {
+          "Height": {
+          	"attr":"style",
+            "label": "Height",
+            "description": "Hight of the row, pixel (px) or percentage (%). Use 100% to set a row full screen, usefull for centering",
+            "category": "@Size",
+            "value": false,
+            "values": [
+            	false, "height:100%"
+            ]
+          },
           "Nowrap": {
             "label": "No wrap",
             "description": "Forces the columns to a single row",
-            "category": "Attributes",
+            "category": "@Wrapping",
             "value": false,
             "values": [
             	false, "nowrap"
@@ -794,7 +804,7 @@
           "WrapReverse": {
             "label": "Wrap reverse",
             "description": "The columns will wrap in reverse.",
-            "category": "Attributes",
+            "category": "@Wrapping",
             "value": false,
             "values": [
             	false, "wrap-reverse"
@@ -803,7 +813,7 @@
           "AlignItemsStart": {
             "label": "Align items start",
             "description": "All columns will be vertically aligned at the top, unless they specify their own alignment.",
-            "category": "Attributes",
+            "category": "@Vertical alignments",
             "value": false,
             "values": [
             	false, "align-items-start"
@@ -812,7 +822,7 @@
           "AlignItemsCenter": {
             "label": "Align items center",
             "description": "All columns will be vertically aligned in the center, unless they specify their own alignment.",
-            "category": "Attributes",
+            "category": "@Vertical alignments",
             "value": false,
             "values": [
             	false, "align-items-center"
@@ -821,7 +831,7 @@
           "AlignItemsEnd": {
             "label": "Align items bottom",
             "description": "All columns will be vertically aligned at the bottom, unless they specify their own alignment.",
-            "category": "Attributes",
+            "category": "@Vertical alignments",
             "value": false,
             "values": [
             	false, "align-items-end"
@@ -830,7 +840,7 @@
           "AlignItemsStrech": {
             "label": "Align items strech",
             "description": "All columns will be stretched to take up the entire height of the row, unless they specify their own alignment.",
-            "category": "Attributes",
+            "category": "@Vertical alignments",
             "value": false,
             "values": [
             	false, "align-items-stretch"
@@ -839,7 +849,7 @@
           "AlignItemsBaseline": {
             "label": "Align items baseline",
             "description": "All columns will be vertically aligned at their baselines, unless they specify their own alignment.",
-            "category": "Attributes",
+            "category": "@Vertical alignments",
             "value": false,
             "values": [
             	false, "align-items-baseline"
@@ -848,7 +858,7 @@
           "JustifyContentStart": {
             "label": "Justify content start",
             "description": "All columns will be horizontally aligned at the start.",
-            "category": "Attributes",
+            "category": "@Vertical justifications",
             "value": false,
             "values": [
             	false, "justify-content-start"
@@ -857,7 +867,7 @@
           "JustifyContentCenter": {
             "label": "Justify content center",
             "description": "All columns will be horizontally aligned at the center.",
-            "category": "Attributes",
+            "category": "@Vertical justifications",
             "value": false,
             "values": [
             	false, "justify-content-center"
@@ -866,7 +876,7 @@
           "JustifyContentEnd": {
             "label": "Justify content end",
             "description": "All columns will be horizontally aligned at the end.",
-            "category": "Attributes",
+            "category": "@Vertical justifications",
             "value": false,
             "values": [
             	false, "justify-content-end"
@@ -875,7 +885,7 @@
           "JustifyContentAround": {
             "label": "Justify content around",
             "description": "All columns will be horizontally aligned with equal space around them.",
-            "category": "Attributes",
+            "category": "@Vertical justifications",
             "value": false,
             "values": [
             	false, "justify-content-around"
@@ -884,7 +894,7 @@
           "JustifyContentBeteween": {
             "label": "Justify content between",
             "description": "All columns will be horizontally aligned with a half-size space on either end.",
-            "category": "Attributes",
+            "category": "@Vertical justifications",
             "value": false,
             "values": [
             	false, "justify-content-between"
