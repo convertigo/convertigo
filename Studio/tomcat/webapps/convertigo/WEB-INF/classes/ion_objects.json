@@ -647,6 +647,51 @@
           	}
          }
       },
+      "Image": {
+        "tag": "img",
+        "label": "img",
+        "autoClose": true,
+        "description": "Defines an Image resource",
+        "group": "HTML",
+        "icon16": "HTML_color_16x16.png",
+        "icon32": "HTML_color_32x32.png",
+        "properties": {
+			"url": {
+	            "attr": "src",
+	            "label": "src",
+	            "description": "The immage url. Can be absolute (http(s)://) or relative to project (../assets/myimage.png)",
+	            "category": "Attributes",
+	            "value": "",
+	            "values": [
+	              false,
+	              true
+	            ]
+          	},
+			"width": {
+	            "attr": "width",
+	            "label": "width",
+	            "description": "The image width (in pixels add px eg: 200px, in points add pt eg: 20pt)",
+	            "category": "Attributes",
+	            "value": "",
+	            "values": [
+	              false,
+	              true
+	            ]
+          	},
+			"height": {
+	            "attr": "height",
+	            "label": "height",
+	            "description": "The image height (in pixels add px eg: 200px, in points add pt eg: 20pt)",
+	            "category": "Attributes",
+	            "value": "",
+	            "values": [
+	              false,
+	              true
+	            ]
+          	}
+         }
+      },
+      
       "MyButton": {
         "tag": "button",
         "label": "My Button",
@@ -1021,6 +1066,132 @@
             ]
           }
         }
+      },
+      
+      "Card":{
+ 		"tag": "ion-card",
+        "label": "Card",
+        "description": "Cards are a great way to display important pieces of content, and are quickly emerging as a core design pattern for apps. They're are a great way to contain and organize information, while also setting up predictable expectations for the user. With so much content to display at once, and often so little screen realestate, cards have fast become the design pattern of choice for many companies, including the likes of Google, Twitter, and Spotify.",
+        "group": "Containers",
+        "icon16": "card_color_16x16.png",
+        "icon32": "card_color_32x32.png",
+        "properties": {
+        }
+      },
+
+      "CardHeader":{
+ 		"tag": "ion-card-header",
+        "label": "Card Header",
+        "description": "Just like a normal page, cards can be customized to include headers. To add a header to a card, add the <ion-card-header> component inside of your card",
+        "group": "Containers",
+        "icon16": "cardheader_color_16x16.png",
+        "icon32": "cardheader_color_32x32.png",
+        "properties": {
+        }
+      },  	
+      
+      "CardContent":{
+ 		"tag": "ion-card-content",
+        "label": "Card Content",
+        "description": "The content part of the card",
+        "group": "Containers",
+        "icon16": "cardcontent_color_16x16.png",
+        "icon32": "cardcontent_color_32x32.png",
+        "properties": {
+        }
+      },
+      
+      "TextFormat":{
+ 		"tag": "div",
+        "label": "Text format",
+        "description": "Text formatting such as alignments to left right and center or text transformations. Will be applied to all underlying text nodes.",
+        "group": "Formatting",
+        "icon16": "textformat_color_16x16.png",
+        "icon32": "textformat_color_32x32.png",
+        "properties": {
+          "TextLeft": {
+            "label": "Text left",
+            "description": "Aligns the text of the element to its left",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "text-left"
+            ]
+          },
+          "TextRight": {
+            "label": "Text right",
+            "description": "Aligns the text of the element to its Right",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "text-right"
+            ]
+          },
+          "TextCenter": {
+            "label": "Text center",
+            "description": "Aligns the text of the element to its center",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "text-center"
+            ]
+          },
+          "TextJustify": {
+            "label": "Text justify",
+            "description": "Justify text by stretching the lines so that each line has equal width",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "text-justify"
+            ]
+          },
+          "TextWrap": {
+            "label": "Text wrap",
+            "description": "Wraps text",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "text-wrap"
+            ]
+          },
+          "TextNoWrap": {
+            "label": "Text no wrap",
+            "description": "Dont't wrap text",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "text-nowrap"
+            ]
+          },
+          "TextUpperCase": {
+            "label": "Text upper case",
+            "description": "Transforms text to all caps",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "text-uppercase"
+            ]
+          },
+          "TextLowerCase": {
+            "label": "Text lower case",
+            "description": "Transforms text to all lowercase",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "text-lowercase"
+            ]
+          },
+          "TextCapitalize": {
+            "label": "Text capitalize",
+            "description": "Transforms the first letter of the text to capitals",
+            "category": "Attributes",
+            "value": false,
+            "values": [
+            	false, "text-capitalize"
+            ]
+          }
+        }
       }
+      
     }
 }
