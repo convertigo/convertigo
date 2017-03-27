@@ -45,8 +45,8 @@ public class UIControlAttrValue extends UIComponent {
 		return attrValue;
 	}
 
-	public void setAttrValue(String eventValue) {
-		this.attrValue = eventValue;
+	public void setAttrValue(String attrValue) {
+		this.attrValue = attrValue;
 	}
 
 	
