@@ -613,6 +613,17 @@
         "properties": {
         }
       },
+      "Break": {
+        "tag": "br",
+        "label": "Break",
+        "autoClose": true,
+        "description": "Defines a break as a line return",
+        "group": "HTML",
+        "icon16": "HTML_color_16x16.png",
+        "icon32": "HTML_color_32x32.png",
+        "properties": {
+        }
+      },
       "Image": {
         "tag": "img",
         "label": "img",
@@ -749,6 +760,191 @@
         }
       },
       
+	  /* Forms */
+	  "Label": {
+        "tag": "ion-label",
+        "label": "Label",
+        "description": "Field labels.",
+        "group": "Forms",
+        "icon16": "label_color_16x16.png",
+        "icon32": "label_color_32x32.png",
+        "properties": {
+          "Fixed": {
+            "label": "Fixed",
+            "description": "Use fixed to place a label to the left of the input element. The label does not hide when text is entered. The input will align on the same position, regardless of the length of the label. Placeholder text can be used in conjunction with a fixed label.",
+            "category": "@Position",
+            "value": false,
+            "values": [
+              false,
+              "fixed"
+            ]
+          },
+          "Floating": {
+            "label": "Floating",
+            "description": "Floating labels are labels that animate or 'float' up when the input is selected. Add the floating attribute to an ion-label to use",
+            "category": "@Position",
+            "value": false,
+            "values": [
+              false,
+              "floating"
+            ]
+          },
+          "Stacked": {
+            "label": "Stacked",
+            "description": "A stacked label will always appear on top of the input. Add the stacked attribute to an ion-label to use. Placeholder text can be used in conjunction with an stacked label.",
+            "category": "@Position",
+            "value": false,
+            "values": [
+              false,
+              "stacked"
+            ]
+          }
+        
+        }
+      },
+      
+      /**************************************************/
+      /* Form Input 									*/
+      /**************************************************/
+	  "Input": {
+        "tag": "ion-input",
+        "label": "Input",
+        "description": "ion-input is meant for text type inputs only, such as text, password, email, number, search, tel, and url.",
+        "group": "Forms",
+        "icon16": "input_color_16x16.png",
+        "icon32": "input_color_32x32.png",
+        "properties": {
+          "ClearInput": {
+          	"attr":"clearInput",
+            "label": "ClearInput",
+            "description": "If true, a clear icon will appear in the input when there is a value. Clicking it clears the input.",
+            "category": "@Properties",
+            "value": false,
+            "values": [
+              false,
+              "false",
+              "true"
+            ]
+          },
+          "ClearOnEdit": {
+          	"attr":"clearOnEdit",
+            "label": "ClearOnEdit",
+            "description": "If true, the value will be cleared after focus upon edit. Defaults to true when type is 'password', false for all other types.",
+            "category": "@Properties",
+            "value": false,
+            "values": [
+              false,
+              "false",
+              "true"
+            ]
+          },
+          "Disabled": {
+          	"attr":"disabled",
+            "label": "Disabled",
+            "description": "If true, the user cannot interact with this element.",
+            "category": "@Properties",
+            "value": false,
+            "values": [
+              false,
+              "false",
+              "true"
+            ]
+          },
+          "Max": {
+          	"attr":"max",
+            "label": "Maximum",
+            "description": "The maximum value, which must not be less than its minimum (min attribute) value",
+            "category": "@Properties",
+            "value": false,
+            "values": [
+              false,
+              true
+            ]
+          },
+          "Min": {
+          	"attr":"min",
+            "label": "Minimum",
+            "description": "The minimum value, which must not be greater than its maximum (max attribute) value.",
+            "category": "@Properties",
+            "value": false,
+            "values": [
+              false,
+              true
+            ]
+          },
+          "Mode": {
+          	"attr":"mode",
+            "label": "Mode",
+            "description": "The mode determines which platform styles to use. Possible values are: 'ios', 'md' (Material Design) , or 'wp' (Windows). For more information, see Platform Styles",
+            "category": "@Properties",
+            "value": false,
+            "values": [
+              false,
+              "ios",
+              "md",
+              "wp"
+            ]
+          },
+          "Placeholder": {
+          	"attr":"placeholder",
+            "label": "Placeholder",
+            "description": "Instructional text that shows before the input has a value.",
+            "category": "@Properties",
+            "value": false,
+            "values": [
+              false,
+              true
+            ]
+          },
+          "Readonly": {
+          	"attr":"readonly",
+            "label": "Readonly",
+            "description": "If true, the user cannot modify the value.",
+            "category": "@Properties",
+            "value": false,
+            "values": [
+              false,
+              "false",
+              "true"
+            ]
+          },
+          "Step": {
+          	"attr":"step",
+            "label": "Step",
+            "description": "Works with the min and max attributes to limit the increments at which a value can be set.",
+            "category": "@Properties",
+            "value": false,
+            "values": [
+              false,
+              true
+            ]
+          },
+          "Type": {
+          	"attr":"type",
+            "label": "Type",
+            "description": "The type of control to display. The default type is text. Possible values are: 'text', 'password', 'email', 'number', 'search', 'tel', or 'url'.",
+            "category": "@Properties",
+            "value": false,
+            "values": [
+              false, "text", "password", "email", "number", "search", "tel", "url", true
+            ]
+          },
+          "Value": {
+          	"attr":"value",
+            "label": "Value",
+            "description": "The text value of the input.",
+            "category": "@Properties",
+            "value": false,
+            "values": [
+              false,
+              true
+            ]
+          }
+        }
+      },
+	  
+      
+      /*    Grid System     */
       "Grid": {
         "tag": "ion-grid",
         "label": "Grid",
