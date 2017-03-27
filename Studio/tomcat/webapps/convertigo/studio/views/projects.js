@@ -41,6 +41,9 @@ var StringUtils = {
 	unescapeHTML: function (text) {
 		var unescapedHTML = $.parseHTML(text);
 		return unescapedHTML ? unescapedHTML[0].nodeValue : "";
+	},
+	replaceDotByMinus: function (text) {
+		return text.replace(/\./g, "-");
 	}
 };
 
@@ -71,25 +74,28 @@ var ProjectsView = {
 				// Load jQuery library
 				Injector.injectScript(ProjectsView.url.baseUrlConvertigo + "scripts/jquery-2.1.4.js", function () {
 					// Inject jstree library
-					Injector.injectScript(ProjectsView.url.baseUrlConvertigoStudio + "js/jstree/jstree.js", function () {
+					Injector.injectScript(ProjectsView.url.baseUrlConvertigoStudio + "js/jstree/jstree-3.3.3.min.js", function () {
 						// Delay because jstree.min.js is not correctly loaded sometimes...
 						setTimeout(function () {
-							// Inject jstree grid plugin
-							Injector.injectScript(ProjectsView.url.baseUrlConvertigoStudio + "js/jstree/jstreegrid-3.5.14.js", function () {
-								// Define AJAX setup
-								$.ajaxSetup({
-									type: "POST",
-									dataType: "xml",
-									xhrFields: {
-										withCredentials: true
-									}
+							// jstreeutils plugins to generate ID for nodes
+							Injector.injectScript(ProjectsView.url.baseUrlConvertigoStudio + "js/jstree/jstreeutils.js", function () {
+								// Inject jstree grid plugin
+								Injector.injectScript(ProjectsView.url.baseUrlConvertigoStudio + "js/jstree/jstreegrid-3.5.14.js", function () {
+									// Define AJAX setup
+									$.ajaxSetup({
+										type: "POST",
+										dataType: "xml",
+										xhrFields: {
+											withCredentials: true
+										}
+									});
+									
+									// Create first level of the tree : project nodes
+									ProjectsView.loadProjects(authUserName, authPassword, function () {
+										ProjectsView.initJstree(jstreeId);
+									});									
 								});
-								
-								// Create first level of the tree : project nodes
-								ProjectsView.loadProjects(authUserName, authPassword, function () {
-									ProjectsView.initJstree(jstreeId);
-								});									
-							});
+							});	
 						}, 1500);
 					});
 				});
@@ -97,8 +103,7 @@ var ProjectsView = {
 		},
 		// Add a new node type for jstree
 		addJstreeNodeType: function (classname) {
-			// Replace all "." by "-"
-			var nodeType = classname.replace(/\./g, "-");
+			var nodeType = StringUtils.replaceDotByMinus(classname);
 			
 			// Add the node type and specify the icon for these nodes
 			ProjectsView.tree.jstree().settings.types[nodeType] = {
@@ -114,37 +119,39 @@ var ProjectsView = {
 			$dbo.children().each(function () {
 				var categoryName = $(this).attr("category");
 				
-				// Check if category (=Steps, Connector, Sequence, etc.) exists
-				if (!categories[categoryName]) {
-					var newCategoryName = ProjectsView.computeCategoryName(categoryName);
-					// Check if one of the parents of the selected node is a category
-					var parentCategoryFound = node.parents.find(function (parent) {
-						return newCategoryName === ProjectsView.tree.jstree().get_text(parent);
-					});
-					
-					var createCategory = false;
-
-					// If the dbo is a screen class, create adequate category : Screen classes/Inherited screen classes
-					if ($dbo.attr("isScreenClass") == "true") {
-						var categoryNode = {
-							text: parentCategoryFound ? "Inherited screen classes" : newCategoryName,
-							children: []
-						};
-						createCategory = true;
-					}
-					// If category not found, we create it
-					else if (!parentCategoryFound) {
-						var categoryNode = {
-							text: newCategoryName,
-							children: []
-						};
-						createCategory = true;
-					}
-					
-					// Create category if needed
-					if (createCategory) {
-						categories[categoryName] = categoryNode;
-						nodes.push(categoryNode);
+				if (categoryName != "BlockFactory") {
+					// Check if category (=Steps, Connector, Sequence, etc.) exists
+					if (!categories[categoryName]) {
+						var newCategoryName = ProjectsView.computeCategoryName(categoryName);
+						// Check if one of the parents of the selected node is a category
+						var parentCategoryFound = node.parents.find(function (parent) {
+							return newCategoryName === ProjectsView.tree.jstree().get_text(parent);
+						});
+						
+						var createCategory = false;
+	
+						// If the dbo is a screen class, create adequate category : Screen classes/Inherited screen classes
+						if (categoryName == "ScreenClass") {
+							var categoryNode = {
+								text: parentCategoryFound ? "Inherited screen classes" : newCategoryName,
+								children: []
+							};
+							createCategory = true;
+						}
+						// If category not found, we create it
+						else if (!parentCategoryFound) {
+							var categoryNode = {
+								text: newCategoryName,
+								children: []
+							};
+							createCategory = true;
+						}
+						
+						// Create category if needed
+						if (createCategory) {
+							categories[categoryName] = categoryNode;
+							nodes.push(categoryNode);
+						}
 					}
 				}
 				
@@ -164,24 +171,35 @@ var ProjectsView = {
 			return ProjectsView.url.baseUrlConvertigoServices + serviceName;
 		},
 		createNodeJsonDbo: function (dboElt) {
+			var qname = $(dboElt).attr("qname");
 			var comments = ProjectsView.computeComment($(dboElt).attr("comment"));
 			var enabled = ProjectsView.computeEnabled($(dboElt).attr("isEnabled"));
+			var inherited = ProjectsView.computeInherited($(dboElt).attr("isInherited"));
 
-			return {
+			var nodeId = ProjectsView.computeNodeId(qname);
+			var classes = ProjectsView.computeLiClasses(enabled.liClass, inherited.liClass);
+			
+			var nodeJsonDbo = {
+				id: ProjectsView.tree.jstree().generateId(nodeId),
 				text: $(dboElt).attr("name"),
 				// Add a new type for icons
 				type: ProjectsView.addJstreeNodeType($(dboElt).attr("classname")),
 				li_attr: {
-					"class": enabled.liClass,
+					"class": classes,
 				},
 				children: $(dboElt).attr("hasChildren") === "true",
 				data: {
-					qname: $(dboElt).attr("qname"),
+					qname: qname,
 					comment: comments.comment,
-					restOfComment: comments.restOfComment,
-					isEnabled: enabled.isEnabled
+					restOfComment: comments.restOfComment
 				}
 			};
+			
+			if (typeof enabled.isEnabled !== "undefined") {
+				nodeJsonDbo.data.isEnabled = enabled.isEnabled;
+			}
+			
+			return nodeJsonDbo;
 		},
 		/* 
 		 * Function highly inspired from the _edit(...) function of jstree-grid plugin.
@@ -323,47 +341,49 @@ var ProjectsView = {
 			return newName;
 		},
 		handleSelectNodeEvent: function (node) {
+			// Don't update properties view if we select the same node again
 			if (ProjectsView.lastSelectedNode != node) {
 				ProjectsView.lastSelectedNode = node;
-				PropertiesView.updateProperties2(node);
+				PropertiesView.refresh(node);
 			}
 		},
 		initJstree: function (jstreeId) {
 			// Inject CSS the icons of each type of nodes
 			Injector.injectLinkStyle(ProjectsView.createConvertigoServiceUrl("studio.database_objects.GetCSS"));
 			
-			$(ProjectsView).on("set_property.database-object-manager", function (event, data, property, value) {
-				var selectedNode = ProjectsView.tree.jstree().get_selected(true)[0];
+			$(ProjectsView).on("set_property.database-object-manager", function (event, qname, property, value, data) {				
+				var nodeId = ProjectsView.computeNodeId(qname);				
+				var idNodes = ProjectsView.tree.jstree().getIdNodes(nodeId);
 				
-				// Comment
-				var comments = ProjectsView.computeComment($(data).find("[name='comment']>[value]").attr("value"));
-				selectedNode.data.comment = comments.comment;
-				selectedNode.data.restOfComment = comments.restOfComment;
-
-				// Text node
-				selectedNode.text = $(data).attr("name");
-				
-				// Enabled
-				var isEnabled = $(data).find("[name='isEnabled']>[value]").attr("value");
-				if (isEnabled == "null") {
-					selectedNode.data.isEnabled = null;
-				}
-				// Database object can be enabled or not
-				else {
-					selectedNode.data.isEnabled = isEnabled == "false" ? false : true;
-					if (!selectedNode.data.isEnabled) {
-						// Node is disable
-						selectedNode.li_attr = {
-							"class": "nodeDisable"
-						};
+				// Do update for each nodes
+				for (var i = 0; i < idNodes.length; ++i) {
+					var node = ProjectsView.tree.jstree().get_node(idNodes[i]);
+					
+					// Text node
+					node.text = $(data).attr("name");
+					
+					// Comment
+					if (property == "comment") {
+						var comments = ProjectsView.computeComment(value);
+						node.data.comment = comments.comment;
+						node.data.restOfComment = comments.restOfComment;
 					}
-					else {
-						delete selectedNode.li_attr["class"];
+					// Enabled
+					else if (property == "isEnabled") {
+						var enabled = ProjectsView.computeEnabled(value.toString());
+						if (typeof enabled.isEnabled !== "undefined") {
+							node.data.isEnabled = enabled.isEnabled;
+							node.li_attr["class"] = !node.data.isEnabled ?
+									// Add
+								    node.li_attr["class"] + " nodeDisable" :
+								    // Remove
+								    node.li_attr["class"].replace(/\s*nodeDisable\s*/, "");
+						}
 					}
+					
+					// Redraw node
+					ProjectsView.tree.jstree().redraw_node(node.id);
 				}
-				
-				// Redraw node
-				ProjectsView.tree.jstree().redraw_node(selectedNode.id);
 			});
 			
 			// Initialize jstree
@@ -406,13 +426,14 @@ var ProjectsView = {
 						"grid",
 						"contextmenu",
 						"dnd",
-						"types"
+						"types",
+						"utils"
 					],
 					contextmenu: {
 						items: function (node) {
 							var items = {};
 							
-							if (node.data && node.data.isEnabled != null) {
+							if (node.data && typeof node.data.isEnabled !== "undefined") {
 								items.enable = {
 									label: "Enable",
 									_disabled: node.data.isEnabled,
@@ -543,11 +564,7 @@ var ProjectsView = {
 				liClass: ""
 			};
 			
-			if (isEnabled == "null") {
-				enabled.isEnabled = null;
-			}
-			// Database object can be enabled or not
-			else {
+			if (typeof isEnabled !== "undefined") {
 				var realIsEnabled = isEnabled == "false" ? false : true;
 				if (!realIsEnabled) {
 					// Node is disable
@@ -558,6 +575,25 @@ var ProjectsView = {
 			}
 			
 			return enabled;
+		},
+		computeInherited: function (isInherited) {
+			var inherited = {
+				liClass: ""
+			};
+			
+			if (typeof isInherited !== "undefined") {
+				if (isInherited === "true") {
+					inherited.liClass = "nodeIsInherited";
+				}
+			}
+			
+			return inherited;
+		},
+		computeLiClasses: function (...classes) {
+		    return $.grep(classes, Boolean).join(" ");
+		},
+		computeNodeId: function (qname) {
+			return "qn-" + StringUtils.replaceDotByMinus(qname);
 		}
 	};
 
@@ -566,5 +602,4 @@ var jstreeId = ".projectsView";
 var authUserName = "admin";
 var authPassword = "admin";
 
-//var dbos = {};
 ProjectsView.init(convertigoMachineUrl, jstreeId, authUserName, authPassword);

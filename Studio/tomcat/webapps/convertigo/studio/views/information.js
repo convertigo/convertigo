@@ -1,24 +1,15 @@
 var PropertiesView = {
 	// Variables
-	refNode: null,
+	refNodeProjectsView: null,
 	tree: null,
 	
 	// Functions
 	init: function (jstreeId) {
-		$(PropertiesView).on("set_property.database-object-manager", function (event, data, property, value) {
-			$(PropertiesView.tree.jstree().get_json(PropertiesView.tree, {
-			    flat: true
-			}))
-			.each(function () {
-			    if (this.data.name == property) {
-			    	var node = PropertiesView.tree.jstree().get_node(this.id);
-			    	node.data.value = value.toString();
-			    	PropertiesView.tree.jstree().redraw_node(node.id);
-			    	
-			    	return false;
-			    }
-			});
-			
+		$(PropertiesView).on("set_property.database-object-manager", function (event, qname, property, value, data) {
+			var idNode = PropertiesView.tree.jstree().getIdNodes("pr-" + property.replace(/\s/g, "-"))[0];
+	    	var node = PropertiesView.tree.jstree().get_node(idNode);
+	    	node.data.value = StringUtils.escapeHTML(value.toString());
+	    	PropertiesView.tree.jstree().redraw_node(node.id);
 		});
 		
 		PropertiesView.tree = $(jstreeId);
@@ -49,7 +40,8 @@ var PropertiesView = {
 				},
 				plugins: [
 					"grid",
-					"sort"
+					"sort",
+					"utils"
 				],
 				grid: {
 				    columns: [{
@@ -85,7 +77,7 @@ var PropertiesView = {
 				 * We also need to check if the property is editable by checking the parent category.
 				 * Information properties are not editable.
 			     */
-				if (node.data.value && parent.data.isEditable) {
+				if (typeof node.data.value !== "undefined" && parent.data.isEditable) {
 					var editComment = StringUtils.unescapeHTML(node.data.value);
 					PropertiesView.editCell(node, {
 					    value: data.sourceName
@@ -95,7 +87,7 @@ var PropertiesView = {
 		        event.preventDefault();
 			})
 			.on("update_cell.jstree-grid", function (event, data) {
-				DatabaseObjectManager.setProperty(PropertiesView.refNode.data.qname, data.node.data.name, data.value);
+				DatabaseObjectManager.setProperty(PropertiesView.refNodeProjectsView.data.qname, data.node.data.name, data.value);
 			});
 	},
 	/* 
@@ -220,27 +212,26 @@ var PropertiesView = {
 	removeTreeData: function () {
 		PropertiesView.updateTreeData([]);
 	},
-	updateProperties2: function (node) {
-		if (node.type !== "default") {
+	refresh: function (refNodeProjectsView) {
+		if (refNodeProjectsView.type !== "default") {
 			// Get properties of the object
 			$.ajax({
 				url: ProjectsView.createConvertigoServiceUrl("studio.database_objects.Get"),
 				data: {
-					qname: node.data.qname
+					qname: refNodeProjectsView.data.qname
 				},
 				success: function (data, textStatus, jqXHR) {
-					// Update the property view
-					PropertiesView.updateProperties($(data).find("admin>*").first(), node);
+					PropertiesView.refNodeProjectsView = refNodeProjectsView;
+					PropertiesView.removeTreeData();
+					PropertiesView.updateProperties($(data).find("admin>*").first());
 				}
 			});
 		}
 		else {
-			// Remove all data from the property view
 			PropertiesView.removeTreeData();
 		}
 	},
-	updateProperties: function ($dboElt, refNode) {
-		PropertiesView.refNode = refNode;
+	updateProperties: function ($dboElt) {	
 		// Different categories (Base properties, Expert, etc.)
 		var propertyCategories = {};
 		var isExtractionRule = $dboElt.attr("isExtractionRule") == "true";
@@ -255,12 +246,14 @@ var PropertiesView = {
 					    PropertiesView.createNodeJsonPropertyCategory(isExtractionRule ? "Configuration" : "Base properties", true);
 			}
 			
+			var propertyName = $(this).attr("name");
 			// Add the property to the category
 			propertyCategories[key].children.push({
+				id: PropertiesView.tree.jstree().generateId("pr-" + propertyName.replace(/\s/g, "-")),
 				text: $(this).attr("displayName"),
 				data: {
 					value: StringUtils.escapeHTML($(this).find("[value]").attr("value")),
-					name: $(this).attr("name")
+					name: propertyName
 				}
 			});
 		});
@@ -320,10 +313,10 @@ var PropertiesView = {
 		});
 		propertyViewTreeNodes.push(informationCategory);
 		
-		// Update the property view with the new data
+		// Update the properties view with the new data
 		PropertiesView.updateTreeData(propertyViewTreeNodes);
 	},
-	updateTreeData: function (data) {
+	updateTreeData: function (data) {		
 		PropertiesView.tree.jstree().settings.core.data = data;
 		PropertiesView.tree.jstree().refresh(true);
 	}

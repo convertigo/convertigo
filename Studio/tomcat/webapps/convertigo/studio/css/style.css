@@ -53,6 +53,10 @@ li.nodeDisable > a {
 	color: #ffb300 !important;
 }
 
+.nodeIsInherited a {
+	color: pink !important;
+}
+
 .jstree-default-dark .jstree-anchor>.jstree-icon {
     opacity: 1;
 }

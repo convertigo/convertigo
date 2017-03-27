@@ -17,7 +17,7 @@ var DatabaseObjectManager = {
 				
 				// Update the property view
 				$.each(DatabaseObjectManager.listeners, function () {
-					$(this).trigger("set_property.database-object-manager", [$(data).find("admin > *").first(), property, value]);
+					$(this).trigger("set_property.database-object-manager", [qname, property, value, $(data).find("admin > *").first()]);
 				});
 			}
 		});
