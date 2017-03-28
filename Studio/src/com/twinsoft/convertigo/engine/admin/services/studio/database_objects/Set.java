@@ -37,97 +37,101 @@ public class Set extends XmlService {
 
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		Element root = document.getDocumentElement();
-		Element response = document.createElement("response");
 		
-		try {			
-			String objectQName = request.getParameter("qname");
-			String value = request.getParameter("value");
-			String property = request.getParameter("property");
+		String[] qnames = request.getParameterValues("qnames[]");
+		for (String objectQName : qnames) {
+			Element response = document.createElement("response");
+			response.setAttribute("qname", objectQName);
 
-			DatabaseObject object = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(objectQName);
-
-			// Check if we try to update project name
-			if (object instanceof Project && "name".equals(property)) {
-				Project project = (Project) object;
-				
-				String objectNewName = getPropertyValue(object, property, value).toString();
-				
-				Engine.theApp.databaseObjectsManager.renameProject(project, objectNewName);
-			}
-
-			BeanInfo bi = CachedIntrospector.getBeanInfo(object.getClass());
-
-			PropertyDescriptor[] propertyDescriptors = bi.getPropertyDescriptors();
-			
-			boolean propertyFound = false;
-			for (int i = 0; !propertyFound && i < propertyDescriptors.length; ++i) {
-				String propertyName = propertyDescriptors[i].getName();
-				
-				// Find the property we want to change
-				if (propertyName.equals(property)) {
-					Method setter = propertyDescriptors[i].getWriteMethod();
-					
-					Class<?> propertyTypeClass = propertyDescriptors[i].getReadMethod().getReturnType();
-					if (propertyTypeClass.isPrimitive()) {
-						propertyTypeClass = ClassUtils.primitiveToWrapper(propertyTypeClass);
-					}
-					
-					try{
-						String propertyValue = getPropertyValue(object, propertyName, value).toString(); 
+			try {
+				String value = request.getParameter("value");
+				String property = request.getParameter("property");
 	
-						Object oPropertyValue = createObject(propertyTypeClass, propertyValue);
-		
-						if (object.isCipheredProperty(propertyName)) {
-							
-							Method getter = propertyDescriptors[i].getReadMethod();
-							String initialValue = (String) getter.invoke(object, (Object[]) null);
-							
-							if (oPropertyValue.equals(initialValue) || 
-									DatabaseObject.encryptPropertyValue(initialValue).equals(oPropertyValue)) {
-								oPropertyValue = initialValue;
-							}else{
-								object.hasChanged = true;
-							}
-						}
-						
-						if (oPropertyValue != null) {
-							Object args[] = { oPropertyValue };
-							setter.invoke(object, args);
-						}
-						
-					} catch(IllegalArgumentException e){}
+				DatabaseObject dbo = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(objectQName);
+	
+				// Check if we try to update project name
+				if (dbo instanceof Project && "name".equals(property)) {
+					Project project = (Project) dbo;
+					String objectNewName = getPropertyValue(dbo, property, value).toString();
 					
-					propertyFound = true;
+					Engine.theApp.databaseObjectsManager.renameProject(project, objectNewName);
 				}
+	
+				BeanInfo bi = CachedIntrospector.getBeanInfo(dbo.getClass());
+				PropertyDescriptor[] propertyDescriptors = bi.getPropertyDescriptors();
+				
+				boolean propertyFound = false;
+				for (int i = 0; !propertyFound && i < propertyDescriptors.length; ++i) {
+					String propertyName = propertyDescriptors[i].getName();
+					
+					// Find the property we want to change
+					if (propertyName.equals(property)) {
+						Method setter = propertyDescriptors[i].getWriteMethod();
+						
+						Class<?> propertyTypeClass = propertyDescriptors[i].getReadMethod().getReturnType();
+						if (propertyTypeClass.isPrimitive()) {
+							propertyTypeClass = ClassUtils.primitiveToWrapper(propertyTypeClass);
+						}
+						
+						try {
+							String propertyValue = getPropertyValue(dbo, propertyName, value).toString(); 
+							Object oPropertyValue = createObject(propertyTypeClass, propertyValue);
+			
+							if (dbo.isCipheredProperty(propertyName)) {
+								Method getter = propertyDescriptors[i].getReadMethod();
+								String initialValue = (String) getter.invoke(dbo, (Object[]) null);
+								
+								if (oPropertyValue.equals(initialValue) || 
+										DatabaseObject.encryptPropertyValue(initialValue).equals(oPropertyValue)) {
+									oPropertyValue = initialValue;
+								}
+								else {
+									dbo.hasChanged = true;
+								}
+							}
+							
+							if (oPropertyValue != null) {
+								Object args[] = { oPropertyValue };
+								setter.invoke(dbo, args);
+							}
+							
+						}
+						catch(IllegalArgumentException e) {}
+						finally {
+							propertyFound = true;
+						}
+					}
+				}
+				
+				// Invalid given property parameter
+				if (!propertyFound) {
+					throw new IllegalArgumentException("Property '" + property
+							+ "' not found for object '" + dbo.getQName() + "'");
+				}
+				
+				response.setAttribute("state", "success");
+				response.setAttribute("message", "Project has been successfully updated!");
+				
+				Element elt = com.twinsoft.convertigo.engine.admin.services.database_objects.Get.getProperties(dbo, document, dbo.getQName());
+				elt.setAttribute("classname", dbo.getClass().getName());
+				elt.setAttribute("name", dbo.toString());
+				elt.setAttribute("hasChanged", Boolean.toString(dbo.hasChanged));
+				elt.setAttribute("isEnabled", dbo instanceof IEnableAble ? Boolean.toString(((IEnableAble) dbo).isEnabled()) : "null");
+	
+				response.appendChild(elt);
 			}
-			
-			// Invalid given property parameter
-			if (!propertyFound) {
-				throw new IllegalArgumentException("Property '" + property
-						+ "' not found for object '" + object.getQName() + "'");
+			catch(Exception e) {
+				Engine.logAdmin.error("Error during saving the properties!\n"+e.getMessage());
+				response.setAttribute("state", "error");
+				response.setAttribute("message", "Error during saving the properties!");
+				Element stackTrace = document.createElement("stackTrace");
+				stackTrace.setTextContent(e.getMessage());
+				root.appendChild(stackTrace);
 			}
-			
-			Engine.theApp.databaseObjectsManager.exportProject(object.getProject());
-			response.setAttribute("state", "success");
-			response.setAttribute("message", "Project have been successfully updated!");
-			
-			Element elt = com.twinsoft.convertigo.engine.admin.services.database_objects.Get.getProperties(object, document, object.getQName());
-			elt.setAttribute("classname", object.getClass().getName());
-			elt.setAttribute("name", object.toString());
-			elt.setAttribute("hasChanged", Boolean.toString(object.hasChanged));
-			elt.setAttribute("isEnabled", object instanceof IEnableAble ? Boolean.toString(((IEnableAble) object).isEnabled()) : "null");
-
-			root.appendChild(elt);
-		} catch(Exception e){
-			Engine.logAdmin.error("Error during saving the properties!\n"+e.getMessage());
-			response.setAttribute("state", "error");
-			response.setAttribute("message", "Error during saving the properties!");
-			Element stackTrace = document.createElement("stackTrace");
-			stackTrace.setTextContent(e.getMessage());
-			root.appendChild(stackTrace);
+			finally {
+				root.appendChild(response);
+			}
 		}
-
-		root.appendChild(response);
 	}
 	
 	private Object createObject(Class<?> propertyClass, String value) throws ServiceException {

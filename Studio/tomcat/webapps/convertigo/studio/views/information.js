@@ -5,7 +5,7 @@ var PropertiesView = {
 	
 	// Functions
 	init: function (jstreeId) {
-		$(PropertiesView).on("set_property.database-object-manager", function (event, qname, property, value, data) {
+		$(PropertiesView).on("set_property.database-object-manager", function (event, qnames, property, value, data) {
 			var idNode = PropertiesView.tree.jstree().getIdNodes("pr-" + property.replace(/\s/g, "-"))[0];
 	    	var node = PropertiesView.tree.jstree().get_node(idNode);
 	    	node.data.value = StringUtils.escapeHTML(value.toString());
@@ -87,7 +87,7 @@ var PropertiesView = {
 		        event.preventDefault();
 			})
 			.on("update_cell.jstree-grid", function (event, data) {
-				DatabaseObjectManager.setProperty(PropertiesView.refNodeProjectsView.data.qname, data.node.data.name, data.value);
+				DatabaseObjectManager.setProperty([PropertiesView.refNodeProjectsView.data.qname], data.node.data.name, data.value);
 			});
 	},
 	/* 

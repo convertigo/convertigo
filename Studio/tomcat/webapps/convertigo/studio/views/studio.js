@@ -4,11 +4,11 @@ var DatabaseObjectManager = {
 	addListener: function (listener) {
 		DatabaseObjectManager.listeners.push(listener);
 	},
-	setProperty: function (qname, property, value) {
+	setProperty: function (qnames, property, value) {
 		$.ajax({
 			url: ProjectsView.createConvertigoServiceUrl("studio.database_objects.Set"),
 			data: {
-				qname: qname,
+				qnames: qnames,
 				property: property,
 				value: value
 			},
@@ -17,7 +17,7 @@ var DatabaseObjectManager = {
 				
 				// Update the property view
 				$.each(DatabaseObjectManager.listeners, function () {
-					$(this).trigger("set_property.database-object-manager", [qname, property, value, $(data).find("admin > *").first()]);
+					$(this).trigger("set_property.database-object-manager", [qnames, property, value, $(data).find("admin > *")]);
 				});
 			}
 		});

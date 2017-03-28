@@ -351,38 +351,45 @@ var ProjectsView = {
 			// Inject CSS the icons of each type of nodes
 			Injector.injectLinkStyle(ProjectsView.createConvertigoServiceUrl("studio.database_objects.GetCSS"));
 			
-			$(ProjectsView).on("set_property.database-object-manager", function (event, qname, property, value, data) {				
-				var nodeId = ProjectsView.computeNodeId(qname);				
-				var idNodes = ProjectsView.tree.jstree().getIdNodes(nodeId);
-				
-				// Do update for each nodes
-				for (var i = 0; i < idNodes.length; ++i) {
-					var node = ProjectsView.tree.jstree().get_node(idNodes[i]);
+			$(ProjectsView).on("set_property.database-object-manager", function (event, qnames, property, value, data) {
+				for (var j = 0; j < qnames.length; ++j) {
+					var nodeId = ProjectsView.computeNodeId(qnames[j]);				
+					var idNodes = ProjectsView.tree.jstree().getIdNodes(nodeId);
 					
-					// Text node
-					node.text = $(data).attr("name");
-					
-					// Comment
-					if (property == "comment") {
-						var comments = ProjectsView.computeComment(value);
-						node.data.comment = comments.comment;
-						node.data.restOfComment = comments.restOfComment;
-					}
-					// Enabled
-					else if (property == "isEnabled") {
-						var enabled = ProjectsView.computeEnabled(value.toString());
-						if (typeof enabled.isEnabled !== "undefined") {
-							node.data.isEnabled = enabled.isEnabled;
-							node.li_attr["class"] = !node.data.isEnabled ?
-									// Add
-								    node.li_attr["class"] + " nodeDisable" :
-								    // Remove
-								    node.li_attr["class"].replace(/\s*nodeDisable\s*/, "");
+					// Do update for each nodes
+					for (var i = 0; i < idNodes.length; ++i) {
+						var node = ProjectsView.tree.jstree().get_node(idNodes[i]);
+						var nodeData = $(data).find("[qname='" + qnames[j] + "']");
+						
+						// Text node
+						node.text = $(nodeData).attr("name");
+						
+						// Comment
+						if (property == "comment") {
+							var comments = ProjectsView.computeComment(value);
+							node.data.comment = comments.comment;
+							node.data.restOfComment = comments.restOfComment;
 						}
+						// Enabled
+						else if (property == "isEnabled") {
+							var enabled = ProjectsView.computeEnabled(value.toString());
+							if (typeof enabled.isEnabled !== "undefined") {
+								node.data.isEnabled = enabled.isEnabled;
+								
+								// Remove CSS -> node is enable
+								if (node.data.isEnabled) {
+									node.li_attr["class"] = node.li_attr["class"].replace(/\s*nodeDisable\s*/, "");
+								}
+								// Add CSS -> node is disable
+								else if (!/nodeDisable/.test(node.li_attr["class"])) {
+								    node.li_attr["class"] += " nodeDisable";
+								}
+							}
+						}
+						
+						// Redraw node
+						ProjectsView.tree.jstree().redraw_node(node.id);
 					}
-					
-					// Redraw node
-					ProjectsView.tree.jstree().redraw_node(node.id);
 				}
 			});
 			
@@ -433,23 +440,31 @@ var ProjectsView = {
 						items: function (node) {
 							var items = {};
 							
-							if (node.data && typeof node.data.isEnabled !== "undefined") {
+							var selectedNodes = ProjectsView.tree.jstree().get_selected();
+							var qnames = [];
+							for (var i = 0; i < selectedNodes.length; ++i) {
+								var node = ProjectsView.tree.jstree().get_node(selectedNodes[i]);
+								qnames.push(node.data.qname);
+							}
+							
+							
+							//if (node.data && typeof node.data.isEnabled !== "undefined") {
 								items.enable = {
 									label: "Enable",
-									_disabled: node.data.isEnabled,
+									//_disabled: node.data.isEnabled,
 									action: function () {
-										DatabaseObjectManager.setProperty(node.data.qname, "isEnabled", true);
+										DatabaseObjectManager.setProperty(qnames, "isEnabled", true);
 									}
-								}
+								};
 								
 								items.disable = {
 									label: "Disable",
-									_disabled: !node.data.isEnabled,
+									//_disabled: !node.data.isEnabled,
 									action: function () {
-										DatabaseObjectManager.setProperty(node.data.qname, "isEnabled", false);
+										DatabaseObjectManager.setProperty(qnames, "isEnabled", false);
 									}
-								}
-							}
+								};
+							//}
 
 							return items;
 						}
@@ -493,7 +508,7 @@ var ProjectsView = {
 						newComment += data.node.data.restOfComment;
 					}
 					
-					DatabaseObjectManager.setProperty(data.node.data.qname, "comment", newComment);
+					DatabaseObjectManager.setProperty([data.node.data.qname], "comment", newComment);
 				})
 				.on("ready.jstree", function (event, data) {
 					ProjectsView.tree.jstree().element.on('keydown.jstree', '.jstree-anchor', $.proxy(function (e) {

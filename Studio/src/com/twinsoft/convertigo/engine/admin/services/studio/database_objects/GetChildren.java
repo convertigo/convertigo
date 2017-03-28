@@ -1,6 +1,5 @@
 package com.twinsoft.convertigo.engine.admin.services.studio.database_objects;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -29,8 +28,7 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 		returnValue = ""
 	)
 public class GetChildren extends XmlService {
-	List<String> qnames = new ArrayList<>();
-	
+
 	@Override
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		String qname = request.getParameter("qname");
@@ -114,4 +112,5 @@ public class GetChildren extends XmlService {
 		
 		return attr;
 	}
+
 }
