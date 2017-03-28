@@ -3,6 +3,8 @@ package com.twinsoft.convertigo.engine.admin.services.studio.database_objects;
 import java.beans.BeanInfo;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.HashSet;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.transform.TransformerException;
@@ -12,15 +14,12 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.IEnableAble;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
-import com.twinsoft.convertigo.engine.util.EnumUtils;
 
 @ServiceDefinition(
 	name = "Set",
@@ -37,9 +36,13 @@ public class Set extends XmlService {
 
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		Element root = document.getDocumentElement();
-		
 		String[] qnames = request.getParameterValues("qnames[]");
-		for (String objectQName : qnames) {
+		
+		// Remove duplicates if someone sends the qname more than once
+		java.util.Set<String> uniqueQnames = new HashSet<>(Arrays.asList(qnames));
+		
+		for (String objectQName : uniqueQnames) {
+			// Create the response : success or fail
 			Element response = document.createElement("response");
 			response.setAttribute("qname", objectQName);
 
@@ -48,7 +51,7 @@ public class Set extends XmlService {
 				String property = request.getParameter("property");
 	
 				DatabaseObject dbo = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(objectQName);
-	
+				
 				// Check if we try to update project name
 				if (dbo instanceof Project && "name".equals(property)) {
 					Project project = (Project) dbo;
@@ -65,7 +68,7 @@ public class Set extends XmlService {
 					String propertyName = propertyDescriptors[i].getName();
 					
 					// Find the property we want to change
-					if (propertyName.equals(property)) {
+					if (propertyFound = propertyName.equals(property)) {
 						Method setter = propertyDescriptors[i].getWriteMethod();
 						
 						Class<?> propertyTypeClass = propertyDescriptors[i].getReadMethod().getReturnType();
@@ -74,8 +77,8 @@ public class Set extends XmlService {
 						}
 						
 						try {
-							String propertyValue = getPropertyValue(dbo, propertyName, value).toString(); 
-							Object oPropertyValue = createObject(propertyTypeClass, propertyValue);
+							String propertyValue = getPropertyValue(dbo, propertyName, value).toString();
+							Object oPropertyValue = com.twinsoft.convertigo.engine.admin.services.database_objects.Set.createObject(propertyTypeClass, propertyValue);
 			
 							if (dbo.isCipheredProperty(propertyName)) {
 								Method getter = propertyDescriptors[i].getReadMethod();
@@ -90,16 +93,14 @@ public class Set extends XmlService {
 								}
 							}
 							
+							// Update property value
 							if (oPropertyValue != null) {
 								Object args[] = { oPropertyValue };
 								setter.invoke(dbo, args);
 							}
 							
 						}
-						catch(IllegalArgumentException e) {}
-						finally {
-							propertyFound = true;
-						}
+						catch (IllegalArgumentException e) {}
 					}
 				}
 				
@@ -112,15 +113,13 @@ public class Set extends XmlService {
 				response.setAttribute("state", "success");
 				response.setAttribute("message", "Project has been successfully updated!");
 				
-				Element elt = com.twinsoft.convertigo.engine.admin.services.database_objects.Get.getProperties(dbo, document, dbo.getQName());
-				elt.setAttribute("classname", dbo.getClass().getName());
+				Element elt = dbo.toXml(document, property);
 				elt.setAttribute("name", dbo.toString());
 				elt.setAttribute("hasChanged", Boolean.toString(dbo.hasChanged));
-				elt.setAttribute("isEnabled", dbo instanceof IEnableAble ? Boolean.toString(((IEnableAble) dbo).isEnabled()) : "null");
 	
 				response.appendChild(elt);
 			}
-			catch(Exception e) {
+			catch (Exception e) {
 				Engine.logAdmin.error("Error during saving the properties!\n"+e.getMessage());
 				response.setAttribute("state", "error");
 				response.setAttribute("message", "Error during saving the properties!");
@@ -133,22 +132,5 @@ public class Set extends XmlService {
 			}
 		}
 	}
-	
-	private Object createObject(Class<?> propertyClass, String value) throws ServiceException {
-		Object oPropertyValue = null;
 
-		if (Number.class.isAssignableFrom(propertyClass) ||
-				Boolean.class.isAssignableFrom(propertyClass) ||
-				String.class.isAssignableFrom(propertyClass)) {
-			try {
-				oPropertyValue = propertyClass.getConstructor(String.class).newInstance(value);	
-			} catch (Exception e) {
-				throw new ServiceException("Error when create the object:\n"+e.getMessage());
-			}
-		} else if (Enum.class.isAssignableFrom(propertyClass)) {
-			oPropertyValue = EnumUtils.valueOf(propertyClass, value);
-		}
-		
-		return oPropertyValue;
-	}
 }

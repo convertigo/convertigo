@@ -163,7 +163,7 @@ public class Set extends XmlService {
 		root.appendChild(response);
 	}
 	
-	private Object createObject(Class<?> propertyClass, String value) throws ServiceException {
+	public static Object createObject(Class<?> propertyClass, String value) throws ServiceException {
 		Object oPropertyValue = null;
 
 		if (Number.class.isAssignableFrom(propertyClass) ||

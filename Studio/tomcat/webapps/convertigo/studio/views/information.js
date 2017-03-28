@@ -8,7 +8,11 @@ var PropertiesView = {
 		$(PropertiesView).on("set_property.database-object-manager", function (event, qnames, property, value, data) {
 			var idNode = PropertiesView.tree.jstree().getIdNodes("pr-" + property.replace(/\s/g, "-"))[0];
 	    	var node = PropertiesView.tree.jstree().get_node(idNode);
-	    	node.data.value = StringUtils.escapeHTML(value.toString());
+			
+	    	var $nodeData = $(data).find(">*[qname='" + PropertiesView.refNodeProjectsView.data.qname + "']").children();
+			var newValue = StringUtils.escapeHTML($nodeData.find("[value]").attr("value").toString());
+	    	
+	    	node.data.value = newValue;
 	    	PropertiesView.tree.jstree().redraw_node(node.id);
 		});
 		

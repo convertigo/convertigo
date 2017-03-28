@@ -483,7 +483,6 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		int len;
 		PropertyDescriptor[] propertyDescriptors;
 		PropertyDescriptor propertyDescriptor;
-		Element propertyElement;
 
 		try {
 			BeanInfo bi = CachedIntrospector.getBeanInfo(getClass());
@@ -498,148 +497,198 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 
 		for (int i = 0; i < len; i++) {
 			propertyDescriptor = propertyDescriptors[i];
-			String name = propertyDescriptor.getName();
-			String displayName = propertyDescriptor.getDisplayName();
-			String shortDescription = propertyDescriptor.getShortDescription();
-
-			Method getter = propertyDescriptor.getReadMethod();
-
-			// Only analyze read propertyDescriptors.
-			if (getter == null) {
-				continue;
-			}
-			
-			if (checkBlackListParentClass(propertyDescriptor)) {
-				continue;
-			}
-
-			try {
-				// Storing the database object bean properties
-				Object uncompiledValue = getCompilablePropertySourceValue(name);
-				Object compiledValue = null;
-				Object cypheredValue = null;
-				Object value = getter.invoke(this);
-
-				if (uncompiledValue != null) {
-					compiledValue = value;
-					value = uncompiledValue;
-				}
-
-				// Only write non-null values
-				if (value == null) {
-					Engine.logBeans.warn("Attempting to store null property (\"" + name + "\"); skipping...");
-					continue;
-				}
-
-				propertyElement = document.createElement("property");
-				propertyElement.setAttribute("name", name);
-
-				// Encrypts value if needed
-				//if (isCipheredProperty(name) && !this.exportOptions.contains(ExportOption.bIncludeDisplayName)) {
-				if (isCipheredProperty(name) && 
-						( this.exportOptions.contains(ExportOption.bHidePassword) || 
-								!this.exportOptions.contains(ExportOption.bIncludeDisplayName))) {
-					cypheredValue = encryptPropertyValue(value);
-					if (!value.equals(cypheredValue)) {
-						value = cypheredValue;
-						propertyElement.setAttribute("ciphered", "true");
-					}
-				}
-
-				// Stores the value
-				Node node = null;
-				if (exportOptions.contains(ExportOption.bIncludeCompiledValue)) {
-					node = XMLUtils.writeObjectToXml(document, value, compiledValue);
-				} else {
-					node = XMLUtils.writeObjectToXml(document, value);
-				}
-				propertyElement.appendChild(node);
-
-				// Add visibility for logs
-				if (!isTraceableProperty(name)) {
-					propertyElement.setAttribute("traceable", "false");
-				}
-
-				if (exportOptions.contains(ExportOption.bIncludeBlackListedElements)) {
-					Object propertyDescriptorBlackListValue = propertyDescriptor
-							.getValue(MySimpleBeanInfo.BLACK_LIST_NAME);
-					if (propertyDescriptorBlackListValue != null && (Boolean) propertyDescriptorBlackListValue) {
-						propertyElement.setAttribute("blackListed", "blackListed");
-					}
-				}
-				if (exportOptions.contains(ExportOption.bIncludeDisplayName)) {
-					propertyElement.setAttribute("displayName", displayName);
-					propertyElement.setAttribute("isHidden", Boolean.toString(propertyDescriptor.isHidden()));
-					propertyElement.setAttribute("isMasked",
-							isMaskedProperty(Visibility.Platform, name) ? "true" : "false");
-					propertyElement.setAttribute("isExpert", Boolean.toString(propertyDescriptor.isExpert()));
-				}
-				if (exportOptions.contains(ExportOption.bIncludeShortDescription)) {
-					propertyElement.setAttribute("shortDescription", shortDescription);
-				}
-
-				if (exportOptions.contains(ExportOption.bIncludeEditorClass)) {
-					Class<?> pec = propertyDescriptor.getPropertyEditorClass();
-					String message = "";
-					if (pec != null) {
-						message = propertyDescriptor.getPropertyEditorClass().toString()
-								.replaceFirst("(.)*\\.", "");
-					} else {
-						message = "null";
-					}
-					if (this instanceof ITagsProperty || (pec != null && Enum.class.isAssignableFrom(pec))) {
-						String[] sResults = null;
-						try {
-							if (this instanceof ITagsProperty) {
-								sResults = ((ITagsProperty) this).getTagsForProperty(name);
-							} else {
-								sResults = EnumUtils.toNames(pec);
-							}
-						} catch (Exception ex) {
-							sResults = new String[0];
-						}
-						
-						if (sResults != null) {
-							if (sResults.length > 0) {
-								Element possibleValues = document.createElement("possibleValues");
-								Element possibleValue = null;
-								for (int j = 0; j < sResults.length; j++) {
-									possibleValue = document.createElement("value");
-									possibleValue.setTextContent(sResults[j]);
-									possibleValues.appendChild(possibleValue);
-								}
-								propertyElement.appendChild(possibleValues);
-							}
-						}
-					}
-					propertyElement.setAttribute("editorClass", message);
-				}
-
-				element.appendChild(propertyElement);
-
-				if (Boolean.TRUE.equals(propertyDescriptor.getValue("nillable"))) {
-					try {
-						Method method = this.getClass().getMethod("isNullProperty",
-								new Class[] { String.class });
-						Object isNull = method.invoke(this, new Object[] { name });
-						propertyElement.setAttribute("isNull", isNull.toString());
-					} catch (Exception ex) {
-						Engine.logBeans.error("[Serialization] Skipping 'isNull' attribute for property \""
-								+ name + "\".", ex);
-					}
-				}
-			} catch (Exception e) {
-				Engine.logBeans.error("[Serialization] Skipping property \"" + name + "\".", e);
-			}
+			String propertyDescriptorName = propertyDescriptor.getName();
+			addProperty(document, element, propertyDescriptor, propertyDescriptorName);
 		}
 
 		return element;
 	}
 
+	public Element toXml(Document document, String propertyName) throws EngineException {
+		Element element = document.createElement(getDatabaseType().toLowerCase());
+
+		if (exportOptions.contains(ExportOption.bIncludeVersion)) {
+			element.setAttribute("version", com.twinsoft.convertigo.beans.Version.version);
+		}
+
+		int len;
+		PropertyDescriptor[] propertyDescriptors;
+		PropertyDescriptor propertyDescriptor;
+
+		try {
+			BeanInfo bi = CachedIntrospector.getBeanInfo(getClass());
+			propertyDescriptors = bi.getPropertyDescriptors();
+			len = propertyDescriptors.length;
+			if (exportOptions.contains(ExportOption.bIncludeDisplayName)) {
+				element.setAttribute("displayName", bi.getBeanDescriptor().getDisplayName());
+			}
+		} catch (IntrospectionException e) {
+			throw new EngineException("Couldn't introspect the bean \"" + getName() + "\"", e);
+		}
+
+		boolean found = false;
+
+		for (int i = 0; !found && i < len; i++) {
+			propertyDescriptor = propertyDescriptors[i];
+			String propertyDescriptorName = propertyDescriptor.getName();
+			
+			if (found = propertyDescriptorName.equals(propertyName)) {			
+				addProperty(document, element, propertyDescriptor, propertyDescriptorName);
+			}
+		}
+
+		return element;
+	}
+	
+	private void addProperty(Document document, Element root, PropertyDescriptor propertyDescriptor, String propertyDescriptorName) {
+		String displayName = propertyDescriptor.getDisplayName();
+		String shortDescription = propertyDescriptor.getShortDescription();
+
+		Method getter = propertyDescriptor.getReadMethod();
+
+		// Only analyze read propertyDescriptors.
+		if (getter == null) {
+			return;
+		}
+		
+		if (checkBlackListParentClass(propertyDescriptor)) {
+			return;
+		}
+
+		try {
+			// Storing the database object bean properties
+			Object uncompiledValue = getCompilablePropertySourceValue(propertyDescriptorName);
+			Object compiledValue = null;
+			Object cypheredValue = null;
+			Object value = getter.invoke(this);
+
+			if (uncompiledValue != null) {
+				compiledValue = value;
+				value = uncompiledValue;
+			}
+
+			// Only write non-null values
+			if (value == null) {
+				Engine.logBeans.warn("Attempting to store null property (\"" + propertyDescriptorName + "\"); skipping...");
+				return;
+			}
+
+			Element propertyElement = document.createElement("property");
+			propertyElement.setAttribute("name", propertyDescriptorName);
+
+			// Encrypts value if needed
+			//if (isCipheredProperty(propertyDescriptorName) && !this.exportOptions.contains(ExportOption.bIncludeDisplayName)) {
+			if (isCipheredProperty(propertyDescriptorName) && 
+					( this.exportOptions.contains(ExportOption.bHidePassword) || 
+							!this.exportOptions.contains(ExportOption.bIncludeDisplayName))) {
+				cypheredValue = encryptPropertyValue(value);
+				if (!value.equals(cypheredValue)) {
+					value = cypheredValue;
+					propertyElement.setAttribute("ciphered", "true");
+				}
+			}
+
+			// Stores the value
+			Node node = null;
+			if (exportOptions.contains(ExportOption.bIncludeCompiledValue)) {
+				node = XMLUtils.writeObjectToXml(document, value, compiledValue);
+			} else {
+				node = XMLUtils.writeObjectToXml(document, value);
+			}
+			propertyElement.appendChild(node);
+
+			// Add visibility for logs
+			if (!isTraceableProperty(propertyDescriptorName)) {
+				propertyElement.setAttribute("traceable", "false");
+			}
+
+			if (exportOptions.contains(ExportOption.bIncludeBlackListedElements)) {
+				Object propertyDescriptorBlackListValue = propertyDescriptor
+						.getValue(MySimpleBeanInfo.BLACK_LIST_NAME);
+				if (propertyDescriptorBlackListValue != null && (Boolean) propertyDescriptorBlackListValue) {
+					propertyElement.setAttribute("blackListed", "blackListed");
+				}
+			}
+			if (exportOptions.contains(ExportOption.bIncludeDisplayName)) {
+				propertyElement.setAttribute("displayName", displayName);
+				propertyElement.setAttribute("isHidden", Boolean.toString(propertyDescriptor.isHidden()));
+				propertyElement.setAttribute("isMasked",
+						isMaskedProperty(Visibility.Platform, propertyDescriptorName) ? "true" : "false");
+				propertyElement.setAttribute("isExpert", Boolean.toString(propertyDescriptor.isExpert()));
+			}
+			if (exportOptions.contains(ExportOption.bIncludeShortDescription)) {
+				propertyElement.setAttribute("shortDescription", shortDescription);
+			}
+
+			if (exportOptions.contains(ExportOption.bIncludeEditorClass)) {
+				Class<?> pec = propertyDescriptor.getPropertyEditorClass();
+				String message = "";
+				if (pec != null) {
+					message = propertyDescriptor.getPropertyEditorClass().toString()
+							.replaceFirst("(.)*\\.", "");
+				} else {
+					message = "null";
+				}
+				if (this instanceof ITagsProperty || (pec != null && Enum.class.isAssignableFrom(pec))) {
+					String[] sResults = null;
+					try {
+						if (this instanceof ITagsProperty) {
+							sResults = ((ITagsProperty) this).getTagsForProperty(propertyDescriptorName);
+						} else {
+							sResults = EnumUtils.toNames(pec);
+						}
+					} catch (Exception ex) {
+						sResults = new String[0];
+					}
+					
+					if (sResults != null) {
+						if (sResults.length > 0) {
+							Element possibleValues = document.createElement("possibleValues");
+							Element possibleValue = null;
+							for (int j = 0; j < sResults.length; j++) {
+								possibleValue = document.createElement("value");
+								possibleValue.setTextContent(sResults[j]);
+								possibleValues.appendChild(possibleValue);
+							}
+							propertyElement.appendChild(possibleValues);
+						}
+					}
+				}
+				propertyElement.setAttribute("editorClass", message);
+			}
+
+			root.appendChild(propertyElement);
+
+			if (Boolean.TRUE.equals(propertyDescriptor.getValue("nillable"))) {
+				try {
+					Method method = this.getClass().getMethod("isNullProperty",
+							new Class[] { String.class });
+					Object isNull = method.invoke(this, new Object[] { propertyDescriptorName });
+					propertyElement.setAttribute("isNull", isNull.toString());
+				} catch (Exception ex) {
+					Engine.logBeans.error("[Serialization] Skipping 'isNull' attribute for property \""
+							+ propertyDescriptorName + "\".", ex);
+				}
+			}
+		} catch (Exception e) {
+			Engine.logBeans.error("[Serialization] Skipping property \"" + propertyDescriptorName + "\".", e);
+		}
+	}
+
+	
 	public Element toXml(Document document, ExportOption... exportOptions) throws EngineException {
 		try {
 			this.exportOptions.addAll(Arrays.asList(exportOptions));
 			return toXml(document);
+		} finally {
+			this.exportOptions.clear();
+		}
+	}
+	
+	public Element toXml(Document document, String propertyName, ExportOption... exportOptions) throws EngineException {
+		try {
+			this.exportOptions.addAll(Arrays.asList(exportOptions));
+			return toXml(document, propertyName);
 		} finally {
 			this.exportOptions.clear();
 		}

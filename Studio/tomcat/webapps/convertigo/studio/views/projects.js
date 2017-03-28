@@ -75,9 +75,9 @@ var ProjectsView = {
 				Injector.injectScript(ProjectsView.url.baseUrlConvertigo + "scripts/jquery-2.1.4.js", function () {
 					// Inject jstree library
 					Injector.injectScript(ProjectsView.url.baseUrlConvertigoStudio + "js/jstree/jstree-3.3.3.min.js", function () {
-						// Delay because jstree.min.js is not correctly loaded sometimes...
+						// Delay because jstree library is not correctly loaded sometimes...
 						setTimeout(function () {
-							// jstreeutils plugins to generate ID for nodes
+							// jstreeutils plugin to generate ID for nodes
 							Injector.injectScript(ProjectsView.url.baseUrlConvertigoStudio + "js/jstree/jstreeutils.js", function () {
 								// Inject jstree grid plugin
 								Injector.injectScript(ProjectsView.url.baseUrlConvertigoStudio + "js/jstree/jstreegrid-3.5.14.js", function () {
@@ -359,20 +359,25 @@ var ProjectsView = {
 					// Do update for each nodes
 					for (var i = 0; i < idNodes.length; ++i) {
 						var node = ProjectsView.tree.jstree().get_node(idNodes[i]);
-						var nodeData = $(data).find("[qname='" + qnames[j] + "']");
+						var $nodeData = $(data).find(">*[qname='" + qnames[j] + "']").children();
 						
 						// Text node
-						node.text = $(nodeData).attr("name");
+						var textNode = $nodeData.attr("name");
+						if (typeof textNode !== "undefined") {
+							node.text = textNode;
+						}
+						
+						var newValue = $nodeData.find("[value]").attr("value").toString();
 						
 						// Comment
 						if (property == "comment") {
-							var comments = ProjectsView.computeComment(value);
+							var comments = ProjectsView.computeComment(newValue);
 							node.data.comment = comments.comment;
 							node.data.restOfComment = comments.restOfComment;
 						}
 						// Enabled
 						else if (property == "isEnabled") {
-							var enabled = ProjectsView.computeEnabled(value.toString());
+							var enabled = ProjectsView.computeEnabled(newValue);
 							if (typeof enabled.isEnabled !== "undefined") {
 								node.data.isEnabled = enabled.isEnabled;
 								
