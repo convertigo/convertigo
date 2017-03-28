@@ -330,8 +330,12 @@ function scheduler_ListTasks_init () {
 						var isFileUpload = $variable.attr("isFileUpload") === "true";
 						
 						var $variable_div = $("#schedulerTemplate .variable").clone();
+						var description = $variable.attr("description");
+						if (description == "new variable") {
+							description = "";
+						}
 						$variable_div.find(".variable_name").text($variable.attr("name")).attr("title", $variable.attr("comment"));	
-						$variable_div.find(".variable_desc").text($variable.attr("description"));	
+						$variable_div.find(".variable_desc").text(description);	
 						
 						var $variable_type = $variable_div.find(".variable_type").data({
 							name : $variable.attr("name"),
@@ -347,27 +351,34 @@ function scheduler_ListTasks_init () {
 							if ($last_element_xml !== null) {
 								$last_element_xml.find("> parameter[name='" + $variable.attr("name") + "']").each(function () {
 									var $param = $(this);								
-									$param.find("> value").each(function(){
+									$param.find("> value").each(function() {
 										var $value = $(this);
 										$variable_value_type = $("#schedulerTemplate .new_multi_valued").filter(isFileUpload ? ".value_file" : isMasked ? ".value_password" : ".value_text").clone();
 										$variable_value_type.find(".variable_value").attr("ismultivalued", "true").attr("name", "requestable_parameter_" + $variable.attr("name")).not("[type=file]").val($value.text());
 										$variable_type.append($variable_value_type);
+										$variable_div.find(".variable_enable").prop("checked", true);
 									});
 								});
 							}
 							
 						} else {
 							var $variable_value_type = $("#schedulerTemplate .single_valued").filter(isFileUpload ? ".value_file" : isMasked ? ".value_password" : ".value_text").clone();
+							var $variable_input = $variable_value_type.find(".variable_value").attr("name", "requestable_parameter_" + $variable.attr("name"));
+							var value = "";
 							if ($last_element_xml !== null) {
-								var value = "";
 								if ($last_element_xml.find("> parameter[name='" + $variable.attr("name") + "']").length) {
 									value = $last_element_xml.find("> parameter[name='" + $variable.attr("name") + "']").find("> value").text();
-								} else {
-									$variable_div.find(".variable_enable").prop("checked", false);
+									$variable_div.find(".variable_enable").prop("checked", true);
 								}
-								$variable_value_type.find(".variable_value").attr("name", "requestable_parameter_" + $variable.attr("name")).not("[type=file]").val(value);
 							}
 							
+							$variable_div.find(".variable_enable").change(function () {
+								if ($(this).prop("checked")) {
+									$variable_input.prop("disabled", false).not("[type=file]").val(value);
+								} else {
+									$variable_input.prop("disabled", true).not("[type=file]").val($variable.attr("value"));
+								}
+							}).change();
 							$variable_type.append($variable_value_type);
 						}
 
