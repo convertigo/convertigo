@@ -23,6 +23,7 @@
 package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.util.Iterator;
+import java.util.List;
 
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
@@ -80,25 +81,37 @@ public class UIControlDirective extends UIComponent implements ITagsProperty {
 		this.directiveName = directiveName;
 	}
 
-	private String directiveValue = "";
-	
-
-	public String getDirectiveValue() {
-		return directiveValue;
+	protected String getDirectiveValue() {
+		StringBuilder children = new StringBuilder();
+		
+		List<UIComponent> list = getUIComponentList();
+		Iterator<UIComponent> it = list.iterator();
+		while (it.hasNext()) {
+			UIComponent component = (UIComponent)it.next();
+			if (component instanceof UIControlDirectiveValue) {
+				UIControlDirectiveValue source = (UIControlDirectiveValue)component;
+				String value = source.computeTemplate();
+				boolean needComma = list.size() > 0;
+				if (!value.isEmpty()) {
+					children.append(value).append(needComma ? ";":"");
+				}
+			}
+		}
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append(children.length()>0 ? children:"");
+		
+		return sb.toString();
 	}
 
-	public void setDirectiveValue(String directiveValue) {
-		this.directiveValue = directiveValue;
-	}
-
-	public String getDirectiveTpl() {
+	public String getDirectiveTemplate() {
 		if (isEnabled()) {
 			String directiveTpl = AttrDirective.getDirective(getDirectiveName());
 			if (!directiveTpl.isEmpty()) {
 				directiveTpl = " "+ directiveTpl + "=" + "\""+ getDirectiveValue()+"\"";
 			}
 			if (parent != null && parent instanceof UIControlDirective) {
-				directiveTpl = ((UIControlDirective)parent).getDirectiveTpl() + directiveTpl;
+				directiveTpl = ((UIControlDirective)parent).getDirectiveTemplate() + directiveTpl;
 			}
 			return directiveTpl;
 		}
@@ -127,7 +140,9 @@ public class UIControlDirective extends UIComponent implements ITagsProperty {
 			Iterator<UIComponent> it = getUIComponentList().iterator();
 			while (it.hasNext()) {
 				UIComponent component = (UIComponent)it.next();
-				children.append(component.computeTemplate());
+				if (!(component instanceof UIControlDirectiveValue)) {
+					children.append(component.computeTemplate());
+				}
 			}
 			
 			StringBuilder sb = new StringBuilder();

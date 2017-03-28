@@ -205,13 +205,24 @@
 			<beans groupname="Action Components">
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlAttrValue">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent"/>
-					<!--<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlDirective"/>-->
 				</bean>
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlCallSequence">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent"/>
 				</bean>
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlCallFullSync">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent"/>
+				</bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlDirectiveValue">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlDirective"/>
+				</bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlListen">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlDirective"/>
+				</bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlListenSequenceSource">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlListen"/>
+				</bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlListenFullSyncSource">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlListen"/>
 				</bean>
 			</beans>
 			<beans groupname="Defined Components">

@@ -26,27 +26,31 @@ import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
-public class UIControlDirectiveBeanInfo extends MySimpleBeanInfo {
+public class UIControlListenSourceBeanInfo extends MySimpleBeanInfo {
 	
-	public UIControlDirectiveBeanInfo() {
+	public UIControlListenSourceBeanInfo() {
 		try {
-			beanClass = UIControlDirective.class;
+			beanClass = UIControlListenSource.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.mobile.components.UIComponent.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/mobile/components/images/uicontroldirective_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/mobile/components/images/uicontroldirective_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/mobile/components/images/uicontrollistensource_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/mobile/components/images/uicontrollistensource_color_32x32.png";
 
-			resourceBundle = getResourceBundle("res/UIControlDirective");
+			resourceBundle = getResourceBundle("res/UIControlListenSource");
 
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[1];
+			properties = new PropertyDescriptor[2];
 			
-			properties[0] = new PropertyDescriptor("directiveName", beanClass, "getDirectiveName", "setDirectiveName");
-			properties[0].setDisplayName(getExternalizedString("property.directiveName.display_name"));
-			properties[0].setShortDescription(getExternalizedString("property.directiveName.short_description"));
-			properties[0].setPropertyEditorClass(getEditorClass("StringComboBoxPropertyDescriptor"));
+			properties[0] = new PropertyDescriptor("target", beanClass, "getTarget", "setTarget");
+			properties[0].setDisplayName(getExternalizedString("property.target.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.target.short_description"));
+			
+			properties[1] = new PropertyDescriptor("marker", beanClass, "getMarker", "setMarker");
+			properties[1].setDisplayName(getExternalizedString("property.marker.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.marker.short_description"));
+			
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

@@ -161,7 +161,7 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 			}
 			
 			if (parent != null && parent instanceof UIControlDirective) {
-				attributes.append(((UIControlDirective)parent).getDirectiveTpl());
+				attributes.append(((UIControlDirective)parent).getDirectiveTemplate());
 			}
 			
 			StringBuilder sb = new StringBuilder();

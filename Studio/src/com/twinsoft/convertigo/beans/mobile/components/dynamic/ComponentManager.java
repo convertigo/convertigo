@@ -46,6 +46,11 @@ import com.twinsoft.convertigo.beans.mobile.components.UIControlCallFullSync;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlCallSequence;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlListen;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlListenFullSyncSource;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlListenSequenceSource;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlListenSource;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlDirectiveValue;
 import com.twinsoft.convertigo.beans.mobile.components.UICustom;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIElement;
@@ -255,6 +260,10 @@ public class ComponentManager {
 			components.add(getDboComponent(UIControlAttrValue.class,group));
 			components.add(getDboComponent(UIControlCallSequence.class,group));
 			components.add(getDboComponent(UIControlCallFullSync.class,group));
+			components.add(getDboComponent(UIControlDirectiveValue.class,group));
+			components.add(getDboComponent(UIControlListen.class,group));
+			components.add(getDboComponent(UIControlListenSequenceSource.class,group));
+			components.add(getDboComponent(UIControlListenFullSyncSource.class,group));
 			
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
@@ -365,7 +374,13 @@ public class ComponentManager {
 				}
 				if (parent instanceof UIControlDirective) {
 					if (UIElement.class.isAssignableFrom(dboClass) ||
-						UIControlDirective.class.isAssignableFrom(dboClass)) {
+						UIControlDirective.class.isAssignableFrom(dboClass) ||
+						UIControlDirectiveValue.class.isAssignableFrom(dboClass)) {
+						return true;
+					}
+				}
+				if (parent instanceof UIControlListen) {
+					if (UIControlListenSource.class.isAssignableFrom(dboClass)) {
 						return true;
 					}
 				}

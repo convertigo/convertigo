@@ -52,6 +52,9 @@ import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlCall;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlCallFullSync;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlCallSequence;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlListenFullSyncSource;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlListenSequenceSource;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlListenSource;
 import com.twinsoft.convertigo.beans.mobile.components.UICustom;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
@@ -288,6 +291,14 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 						list.add("target");
 					}
 				}
+				if (getObject() instanceof UIControlListenSource) {
+					if (ProjectTreeObject.class.isAssignableFrom(c) ||
+						SequenceTreeObject.class.isAssignableFrom(c) ||
+						ConnectorTreeObject.class.isAssignableFrom(c))
+					{
+						list.add("target");
+					}
+				}
 				
 				return list;
 			}
@@ -295,6 +306,9 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			@Override
 			protected boolean isNamedSource(String propertyName) {
 				if (getObject() instanceof UIControlCall) {
+					return "target".equals(propertyName);
+				}
+				if (getObject() instanceof UIControlListenSource) {
 					return "target".equals(propertyName);
 				}
 				return false;
@@ -309,6 +323,17 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 							return nsObject instanceof Sequence;
 						}
 						if (cc instanceof UIControlCallFullSync) {
+							return nsObject instanceof FullSyncConnector;
+						}
+					}
+				}
+				if (getObject() instanceof UIControlListenSource) {
+					if ("target".equals(propertyName)) {
+						UIControlListenSource cc = (UIControlListenSource) getObject();
+						if (cc instanceof UIControlListenSequenceSource) {
+							return nsObject instanceof Sequence;
+						}
+						if (cc instanceof UIControlListenFullSyncSource) {
 							return nsObject instanceof FullSyncConnector;
 						}
 					}
@@ -333,6 +358,12 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 							if (getObject() instanceof UIControlCall) {
 								if ("target".equals(propertyName)) {
 									((UIControlCall)getObject()).setTarget(_pValue);
+									hasBeenRenamed = true;
+								}
+							}
+							if (getObject() instanceof UIControlListenSource) {
+								if ("target".equals(propertyName)) {
+									((UIControlListenSource)getObject()).setTarget(_pValue);
 									hasBeenRenamed = true;
 								}
 							}
