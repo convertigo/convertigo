@@ -305,7 +305,7 @@ public class MobileBuilder {
 				String computedTemplate = page.getComputedTemplate();
 				FileUtils.write(pageHtmlFile, computedTemplate, "UTF-8");
 				
-				Engine.logEngine.debug("(MobileBuilder) Ionic template file written for page '"+pageName+"'");
+				Engine.logEngine.debug("(MobileBuilder) Ionic template file generated for page '"+pageName+"'");
 			}
 		}
 		catch (Exception e) {
