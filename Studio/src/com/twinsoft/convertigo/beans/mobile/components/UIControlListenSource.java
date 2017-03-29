@@ -98,7 +98,7 @@ public abstract class UIControlListenSource extends UIComponent {
 	@Override
 	public String toString() {
 		String label = getTargetName();
-		return label.isEmpty() ? "?":label;
+		return "listen " + (label.isEmpty() ? "?":label);
 	}
 	
 	@Override

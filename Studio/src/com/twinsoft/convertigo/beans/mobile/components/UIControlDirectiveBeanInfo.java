@@ -41,12 +41,24 @@ public class UIControlDirectiveBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[1];
+			properties = new PropertyDescriptor[4];
 			
 			properties[0] = new PropertyDescriptor("directiveName", beanClass, "getDirectiveName", "setDirectiveName");
 			properties[0].setDisplayName(getExternalizedString("property.directiveName.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.directiveName.short_description"));
 			properties[0].setPropertyEditorClass(getEditorClass("StringComboBoxPropertyDescriptor"));
+			
+			properties[1] = new PropertyDescriptor("directiveValue", beanClass, "getDirectiveValue", "setDirectiveValue");
+			properties[1].setDisplayName(getExternalizedString("property.directiveValue.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.directiveValue.short_description"));
+			
+			properties[2] = new PropertyDescriptor("itemName", beanClass, "getItemName", "setItemName");
+			properties[2].setDisplayName(getExternalizedString("property.itemName.display_name"));
+			properties[2].setShortDescription(getExternalizedString("property.itemName.short_description"));
+			
+			properties[3] = new PropertyDescriptor("itemPath", beanClass, "getItemPath", "setItemPath");
+			properties[3].setDisplayName(getExternalizedString("property.itemPath.display_name"));
+			properties[3].setShortDescription(getExternalizedString("property.itemPath.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

@@ -260,8 +260,8 @@ public class ComponentManager {
 			components.add(getDboComponent(UIControlAttrValue.class,group));
 			components.add(getDboComponent(UIControlCallSequence.class,group));
 			components.add(getDboComponent(UIControlCallFullSync.class,group));
+			
 			components.add(getDboComponent(UIControlDirectiveValue.class,group));
-			components.add(getDboComponent(UIControlListen.class,group));
 			components.add(getDboComponent(UIControlListenSequenceSource.class,group));
 			components.add(getDboComponent(UIControlListenFullSyncSource.class,group));
 			
@@ -375,7 +375,8 @@ public class ComponentManager {
 				if (parent instanceof UIControlDirective) {
 					if (UIElement.class.isAssignableFrom(dboClass) ||
 						UIControlDirective.class.isAssignableFrom(dboClass) ||
-						UIControlDirectiveValue.class.isAssignableFrom(dboClass)) {
+						UIControlDirectiveValue.class.isAssignableFrom(dboClass) ||
+						UIControlListenSource.class.isAssignableFrom(dboClass)) {
 						return true;
 					}
 				}

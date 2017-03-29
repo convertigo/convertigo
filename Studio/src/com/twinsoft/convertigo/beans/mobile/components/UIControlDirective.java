@@ -23,8 +23,6 @@
 package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.util.Iterator;
-import java.util.List;
-
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
@@ -49,13 +47,22 @@ public class UIControlDirective extends UIComponent implements ITagsProperty {
 			return directive;
 		}
 		
-		public static String getDirective(String directiveName) {
+		public static AttrDirective getDirective(String directiveName) {
+			AttrDirective bindDirective = null;
+			try {
+				bindDirective = AttrDirective.valueOf(directiveName);
+			} catch (Exception e) {};
+			return bindDirective;
+		}
+		
+		public static String getDirectiveAttr(String directiveName) {
 			AttrDirective bindDirective = null;
 			try {
 				bindDirective = AttrDirective.valueOf(directiveName);
 			} catch (Exception e) {};
 			return bindDirective != null ? bindDirective.directive():directiveName;
 		}
+		
 	}
 	
 	public UIControlDirective() {
@@ -81,34 +88,101 @@ public class UIControlDirective extends UIComponent implements ITagsProperty {
 		this.directiveName = directiveName;
 	}
 
-	protected String getDirectiveValue() {
-		StringBuilder children = new StringBuilder();
+	/*
+	 * The directive value
+	 */
+	private String directiveValue = "";
+
+	public String getDirectiveValue() {
+		return directiveValue;
+	}
+
+	public void setDirectiveValue(String directiveValue) {
+		this.directiveValue = directiveValue;
+	}
+	
+	/*
+	 * The iteratable item name
+	 */
+	private String itemName = "item";
+	
+	public String getItemName() {
+		return itemName;
+	}
+
+	public void setItemName(String itemName) {
+		this.itemName = itemName;
+	}
+	
+	
+	/*
+	 * The iteratable item path
+	 */
+	private String itemPath = "";
+	
+	public String getItemPath() {
+		return itemPath;
+	}
+
+	public void setItemPath(String itemPath) {
+		this.itemPath = itemPath;
+	}
+	
+	protected String getComputedValue() {
+		StringBuilder listeners = new StringBuilder();
+		//StringBuilder values = new StringBuilder();
 		
-		List<UIComponent> list = getUIComponentList();
-		Iterator<UIComponent> it = list.iterator();
+		Iterator<UIComponent> it = getUIComponentList().iterator();
 		while (it.hasNext()) {
 			UIComponent component = (UIComponent)it.next();
-			if (component instanceof UIControlDirectiveValue) {
-				UIControlDirectiveValue source = (UIControlDirectiveValue)component;
-				String value = source.computeTemplate();
-				boolean needComma = list.size() > 0;
-				if (!value.isEmpty()) {
-					children.append(value).append(needComma ? ";":"");
+			if (component instanceof UIControlListenSource) {
+				String tpl = component.computeTemplate();
+				if (!tpl.isEmpty()) {
+					listeners.append(listeners.length() > 0 ? ",":"");
+					listeners.append(tpl);
 				}
 			}
+			/*if (component instanceof UIControlDirectiveValue) {
+				String tpl = component.computeTemplate();
+				boolean needComma = true;
+				if (!tpl.isEmpty()) {
+					values.append(tpl).append(needComma ? ";":"");
+				}
+			}*/
+		}
+		
+		StringBuilder sbListen = new StringBuilder();
+		if (listeners.length() > 0) {
+			String path = getItemPath();
+			sbListen.append("listen([").append(listeners).append("])").append(path);
 		}
 		
 		StringBuilder sb = new StringBuilder();
-		sb.append(children.length()>0 ? children:"");
+		if (listeners.length() > 0) {
+			AttrDirective attrDirective = AttrDirective.getDirective(getDirectiveName());
+			if (attrDirective.equals(AttrDirective.RepeatForEach)) {
+				String item = getItemName();
+				sb.append("let "+ (item.isEmpty() ? "item":item)).append(" of ").append(sbListen);
+				sb.append(!directiveValue.isEmpty() ? ";":"").append(directiveValue);
+			}
+			else {
+				sb.append(sbListen).append(directiveValue);
+			}
+		}
+		else {
+			sb.append(directiveValue);
+		}
 		
 		return sb.toString();
 	}
 
 	public String getDirectiveTemplate() {
 		if (isEnabled()) {
-			String directiveTpl = AttrDirective.getDirective(getDirectiveName());
-			if (!directiveTpl.isEmpty()) {
-				directiveTpl = " "+ directiveTpl + "=" + "\""+ getDirectiveValue()+"\"";
+			String directiveTpl = "";
+			String value = getComputedValue().replaceAll("\"", "'");
+			String attr = AttrDirective.getDirectiveAttr(getDirectiveName());
+			if (!attr.isEmpty()) {
+				directiveTpl = " "+ attr + "=" + "\""+ value +"\"";
 			}
 			if (parent != null && parent instanceof UIControlDirective) {
 				directiveTpl = ((UIControlDirective)parent).getDirectiveTemplate() + directiveTpl;
@@ -129,7 +203,7 @@ public class UIControlDirective extends UIComponent implements ITagsProperty {
 	@Override
 	public String toString() {
 		String label = getDirectiveName();
-		return label = (label.isEmpty() ? "?":label) + " " + getDirectiveValue();
+		return label = (label.isEmpty() ? "?":label) + " " + getComputedValue();
 	}
 
 	@Override
@@ -140,7 +214,8 @@ public class UIControlDirective extends UIComponent implements ITagsProperty {
 			Iterator<UIComponent> it = getUIComponentList().iterator();
 			while (it.hasNext()) {
 				UIComponent component = (UIComponent)it.next();
-				if (!(component instanceof UIControlDirectiveValue)) {
+				if (!(component instanceof UIControlDirectiveValue) &&
+						!(component instanceof UIControlListenSource)) {
 					children.append(component.computeTemplate());
 				}
 			}

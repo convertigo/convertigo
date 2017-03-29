@@ -219,10 +219,10 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlDirective"/>
 				</bean>
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlListenSequenceSource">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlListen"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlDirective"/>
 				</bean>
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlListenFullSyncSource">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlListen"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlDirective"/>
 				</bean>
 			</beans>
 			<beans groupname="Defined Components">
