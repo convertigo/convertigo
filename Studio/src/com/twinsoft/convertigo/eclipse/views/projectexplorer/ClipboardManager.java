@@ -85,6 +85,7 @@ import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.InvalidOperationException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -643,15 +644,24 @@ public class ClipboardManager {
 	}
 
 	public void cutAndPaste(Object object, TreeObject targetTreeObject) throws ConvertigoException {
+		// Ignore cut paste on itself
+		if (object.equals(targetTreeObject)) {
+			return;
+		}
+		// Check for cut paste into itself
+		if (object instanceof TreeObject) {
+			if (targetTreeObject.isChildOf((TreeObject)object)) {
+				throw new InvalidOperationException("You cannot cut and paste this object into itself");
+			}
+		}
+		
 		if (object instanceof DatabaseObjectTreeObject) {
 			if (targetTreeObject instanceof DatabaseObjectTreeObject) {
 				DatabaseObject databaseObject = (DatabaseObject) ((DatabaseObjectTreeObject) object).getObject();
-				cutAndPaste(databaseObject, (DatabaseObject) targetTreeObject.getObject());
+				DatabaseObject targetObject = (DatabaseObject) targetTreeObject.getObject();
+				cutAndPaste(databaseObject, targetObject);
 			}
 		} else if (object instanceof IPropertyTreeObject) {
-			if (object.equals(targetTreeObject)) {
-				return;
-			}
 			if (targetTreeObject instanceof IPropertyTreeObject) {
 				IPropertyTreeObject tpo = (IPropertyTreeObject) object;
 				IPropertyTreeObject ttpo = (IPropertyTreeObject) targetTreeObject;
@@ -665,9 +675,6 @@ public class ClipboardManager {
 				ttpo.add(object,false);
 			}
 		} else if (object instanceof IDesignTreeObject) {
-			if (object.equals(targetTreeObject)) {
-				return;
-			}
 			if (targetTreeObject instanceof IDesignTreeObject) {
 				IDesignTreeObject tpo = (IDesignTreeObject) object;
 				IDesignTreeObject ttpo = (IDesignTreeObject) targetTreeObject;

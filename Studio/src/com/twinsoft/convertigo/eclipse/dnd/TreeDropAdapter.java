@@ -106,6 +106,7 @@ import com.twinsoft.convertigo.eclipse.wizards.new_object.NewObjectWizard;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.InvalidOperationException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
@@ -264,8 +265,12 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						return true;
 				    }
 				} catch (Exception e) {
-					if (e instanceof ObjectWithSameNameException)
+					if (e instanceof ObjectWithSameNameException) {
 						document = null;
+					}
+					if (e instanceof InvalidOperationException) {
+						document = null;
+					}
 					
 					// Case of unauthorized databaseObject paste
 					if (document != null) {
@@ -599,6 +604,32 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 	@Override
 	public boolean validateDrop(Object target, int operation, TransferData transferType) {
 		if (TextTransfer.getInstance().isSupportedType(transferType)) {
+			if (getCurrentOperation() == DND.DROP_MOVE) {
+				Object targetObject = getCurrentTarget();
+				Object sourceObject = getSelectedObject();
+				if ((sourceObject != null) && (targetObject != null)) {
+					if ((sourceObject instanceof TreeObject) && (targetObject instanceof TreeObject)) {
+						if (((TreeObject)targetObject).isChildOf((TreeObject)sourceObject)) {
+							return false;
+						}
+						if ((sourceObject instanceof DatabaseObjectTreeObject) && (targetObject instanceof DatabaseObjectTreeObject)) {
+							try {
+								String xmlData = TextTransfer.getInstance().nativeToJava(transferType).toString();
+								List<Object> list = ConvertigoPlugin.clipboardManagerDND.read(xmlData);
+								DatabaseObject databaseObject = (DatabaseObject) list.get(0);
+								DatabaseObject parentDatabaseObject = ((DatabaseObjectTreeObject)target).getObject();
+								if (!DatabaseObjectsManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
+									//TODO: Modify DatabaseObjectsManager.acceptDatabaseObjects for pseudo beans
+									return false;
+								}
+								return true;
+							} catch (Exception e) {
+								e.printStackTrace(System.out);
+							}
+						}
+					}
+				}
+			}
 			return true;
 		}
 		if (StepSourceTransfer.getInstance().isSupportedType(transferType)) {

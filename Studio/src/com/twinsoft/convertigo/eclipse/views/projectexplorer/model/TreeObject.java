@@ -115,6 +115,13 @@ public abstract class TreeObject implements IAdaptable {
 		return v;
 	}
 	
+	public boolean isChildOf(TreeObject treeObject) {
+		if (treeObject != null) {
+			return getParents().contains(treeObject);
+		}
+		return false;
+	}
+	
 	public ProjectTreeObject getProjectTreeObject() {
 		ProjectTreeObject projectTreeObject = null;
 		
