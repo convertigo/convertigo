@@ -167,7 +167,7 @@ public class ComponentExplorerComposite extends Composite {
 				}
 
 				// We select by default the first item if no default dbo found.
-				if (currentSelectedObject == null) {
+				if (currentSelectedObject == null && composites[0].getChildren().length > 0) {
 					currentSelectedObject = (CLabel) composites[0].getChildren()[0];
 					currentSelectedObject.setForeground(FOREGROUND_SELECTED_COLOR);
 					currentSelectedObject.setBackground(BACKGROUND_SELECTED_COLOR);

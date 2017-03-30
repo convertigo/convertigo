@@ -152,8 +152,7 @@ import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlAttr;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlDirectiveValue;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlListenSource;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlSource;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
 import com.twinsoft.convertigo.beans.statements.HandlerStatement;
@@ -1485,7 +1484,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							if (databaseObject instanceof UIControlAttr) {
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_CONTROLS;
 							}
-							if (databaseObject instanceof UIControlDirectiveValue || databaseObject instanceof UIControlListenSource) {
+							if (databaseObject instanceof UIControlSource) {
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_SOURCES;
 							}
 							databaseObjectTreeObject = new MobileUIComponentTreeObject(viewer, (UIComponent) databaseObject, false);

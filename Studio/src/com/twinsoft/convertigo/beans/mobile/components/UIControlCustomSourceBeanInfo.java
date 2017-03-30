@@ -26,24 +26,26 @@ import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
-public class UIControlCallSequenceBeanInfo extends MySimpleBeanInfo {
+public class UIControlCustomSourceBeanInfo extends MySimpleBeanInfo {
 	
-	public UIControlCallSequenceBeanInfo() {
+	public UIControlCustomSourceBeanInfo() {
 		try {
-			beanClass = UIControlCallSequence.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.mobile.components.UIControlCallAction.class;
+			beanClass = UIControlCustomSource.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.mobile.components.UIControlSource.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/mobile/components/images/uicontrolcallsequence_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/mobile/components/images/uicontrolcallsequence_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/mobile/components/images/uicontrolcustomsource_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/mobile/components/images/uicontrolcustomsource_color_32x32.png";
 
-			resourceBundle = getResourceBundle("res/UIControlCallSequence");
+			resourceBundle = getResourceBundle("res/UIControlCustomSource");
 
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[0];
+			properties = new PropertyDescriptor[1];
 			
-			getPropertyDescriptor("target").setPropertyEditorClass(getEditorClass("NamedSourceSelectorEditor"));
+			properties[0] = new PropertyDescriptor("sourceValue", beanClass, "getSourceValue", "setSourceValue");
+			properties[0].setDisplayName(getExternalizedString("property.sourceValue.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.sourceValue.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

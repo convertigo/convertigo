@@ -26,26 +26,22 @@ import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
-public class UIControlDirectiveValueBeanInfo extends MySimpleBeanInfo {
+public class UIControlActionBeanInfo extends MySimpleBeanInfo {
 	
-	public UIControlDirectiveValueBeanInfo() {
+	public UIControlActionBeanInfo() {
 		try {
-			beanClass = UIControlDirectiveValue.class;
+			beanClass = UIControlAction.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.mobile.components.UIComponent.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/mobile/components/images/uicontroldirectivevalue_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/mobile/components/images/uicontroldirectivevalue_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/mobile/components/images/uicontrolaction_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/mobile/components/images/uicontrolaction_color_32x32.png";
 
-			resourceBundle = getResourceBundle("res/UIControlDirectiveValue");
+			resourceBundle = getResourceBundle("res/UIControlAction");
 
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[1];
-			
-			properties[0] = new PropertyDescriptor("directiveValue", beanClass, "getDirectiveValue", "setDirectiveValue");
-			properties[0].setDisplayName(getExternalizedString("property.directiveValue.display_name"));
-			properties[0].setShortDescription(getExternalizedString("property.directiveValue.short_description"));
+			properties = new PropertyDescriptor[0];
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

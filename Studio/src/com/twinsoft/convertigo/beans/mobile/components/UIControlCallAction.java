@@ -22,17 +22,17 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
-public abstract class UIControlCall extends UIControlAttrValue {
+public abstract class UIControlCallAction extends UIControlAction {
 	
 	private static final long serialVersionUID = 952743867765987510L;
 
-	public UIControlCall() {
+	public UIControlCallAction() {
 		super();
 	}
 
 	@Override
-	public UIControlCall clone() throws CloneNotSupportedException {
-		UIControlCall cloned = (UIControlCall)super.clone();
+	public UIControlCallAction clone() throws CloneNotSupportedException {
+		UIControlCallAction cloned = (UIControlCallAction)super.clone();
 		return cloned;
 	}
 	
@@ -76,7 +76,7 @@ public abstract class UIControlCall extends UIControlAttrValue {
 		return requestableTarget;
 	}
 	
-	public String getRequestableString() {
+	protected String getRequestableString() {
 		String requestableTarget = getRequestableTarget();
 		if (!requestableTarget.isEmpty()) {
 			requestableTarget = (requestableTarget.startsWith("fs://")? "":".") 

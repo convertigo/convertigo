@@ -43,15 +43,16 @@ public abstract class UIControlAttr extends UIAttribute implements ITagsProperty
 	@Override
 	public String getAttrValue() {
 		if (isEnabled()) {
-			StringBuilder sb = new StringBuilder();
+			StringBuilder children = new StringBuilder();
 			Iterator<UIComponent> it = getUIComponentList().iterator();
 			while (it.hasNext()) {
 				UIComponent component = (UIComponent)it.next();
-				if (component instanceof UIControlAttrValue) {
-					sb.append(component.computeTemplate()).append(";");
+				if (component instanceof UIControlAction) {
+					children.append(children.length() > 0 ? ";":"");
+					children.append(component.computeTemplate());
 				}
 			}
-			return sb.toString();
+			return children.toString();
 		}
 		return "";
 	}

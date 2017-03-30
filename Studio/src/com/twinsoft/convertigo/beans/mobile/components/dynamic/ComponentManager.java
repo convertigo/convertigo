@@ -40,17 +40,16 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIAttribute;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlAttr;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlAttrValue;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlCustomAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlCallFullSync;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlCallSequence;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlListen;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlListenFullSyncSource;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlListenSequenceSource;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlListenSource;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlDirectiveValue;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlCustomSource;
 import com.twinsoft.convertigo.beans.mobile.components.UICustom;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIElement;
@@ -235,6 +234,7 @@ public class ComponentManager {
 		
 		groups.add("Controls");
 		groups.add("Actions");
+		groups.add("Sources");
 		return Collections.unmodifiableList(groups);
 	}
 	
@@ -257,11 +257,13 @@ public class ComponentManager {
 			
 			// Add Actions
 			group = "Actions";
-			components.add(getDboComponent(UIControlAttrValue.class,group));
+			components.add(getDboComponent(UIControlCustomAction.class,group));
 			components.add(getDboComponent(UIControlCallSequence.class,group));
 			components.add(getDboComponent(UIControlCallFullSync.class,group));
 			
-			components.add(getDboComponent(UIControlDirectiveValue.class,group));
+			// Add Sources
+			group = "Sources";
+			components.add(getDboComponent(UIControlCustomSource.class,group));
 			components.add(getDboComponent(UIControlListenSequenceSource.class,group));
 			components.add(getDboComponent(UIControlListenFullSyncSource.class,group));
 			
@@ -353,34 +355,18 @@ public class ComponentManager {
 			public boolean isAllowedIn(DatabaseObject parent) {
 				if (parent instanceof PageComponent) {
 					if (!UIAttribute.class.isAssignableFrom(dboClass) &&
-						!UIControlAttrValue.class.isAssignableFrom(dboClass)) {
-						return true;
-					}
-				}
-				if (parent instanceof UIDynamicElement) {
-					if (!UIControlAttrValue.class.isAssignableFrom(dboClass)) {
+						!UIControlAction.class.isAssignableFrom(dboClass)) {
 						return true;
 					}
 				}
 				if (parent instanceof UIElement) {
-					if (!UIControlAttrValue.class.isAssignableFrom(dboClass)) {
-						return true;
+					if (!UIControlAttr.class.isAssignableFrom(dboClass) &&
+						!(UIControlAction.class.isAssignableFrom(dboClass))) {
+							return true;
 					}
 				}
 				if (parent instanceof UIControlAttr) {
-					if (UIControlAttrValue.class.isAssignableFrom(dboClass)) {
-						return true;
-					}
-				}
-				if (parent instanceof UIControlDirective) {
-					if (UIElement.class.isAssignableFrom(dboClass) ||
-						UIControlDirectiveValue.class.isAssignableFrom(dboClass) ||
-						UIControlListenSource.class.isAssignableFrom(dboClass)) {
-						return true;
-					}
-				}
-				if (parent instanceof UIControlListen) {
-					if (UIControlListenSource.class.isAssignableFrom(dboClass)) {
+					if (UIControlAction.class.isAssignableFrom(dboClass)) {
 						return true;
 					}
 				}

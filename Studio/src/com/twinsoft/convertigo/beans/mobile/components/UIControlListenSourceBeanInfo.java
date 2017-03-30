@@ -31,7 +31,7 @@ public class UIControlListenSourceBeanInfo extends MySimpleBeanInfo {
 	public UIControlListenSourceBeanInfo() {
 		try {
 			beanClass = UIControlListenSource.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.mobile.components.UIComponent.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.mobile.components.UIControlSource.class;
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/mobile/components/images/uicontrollistensource_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/mobile/components/images/uicontrollistensource_color_32x32.png";

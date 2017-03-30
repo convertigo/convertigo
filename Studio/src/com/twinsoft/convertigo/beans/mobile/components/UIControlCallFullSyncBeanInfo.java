@@ -31,7 +31,7 @@ public class UIControlCallFullSyncBeanInfo extends MySimpleBeanInfo {
 	public UIControlCallFullSyncBeanInfo() {
 		try {
 			beanClass = UIControlCallFullSync.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.mobile.components.UIControlCall.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.mobile.components.UIControlCallAction.class;
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/mobile/components/images/uicontrolcallfullsync_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/mobile/components/images/uicontrolcallfullsync_color_32x32.png";

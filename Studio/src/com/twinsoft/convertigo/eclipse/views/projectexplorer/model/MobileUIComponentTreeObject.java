@@ -49,7 +49,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlCall;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlCallAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlCallFullSync;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlCallSequence;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlListenFullSyncSource;
@@ -283,7 +283,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			protected List<String> getPropertyNamesForSource(Class<?> c) {
 				List<String> list = new ArrayList<String>();
 				
-				if (getObject() instanceof UIControlCall) {
+				if (getObject() instanceof UIControlCallAction) {
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
 						SequenceTreeObject.class.isAssignableFrom(c) ||
 						ConnectorTreeObject.class.isAssignableFrom(c))
@@ -305,7 +305,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			
 			@Override
 			protected boolean isNamedSource(String propertyName) {
-				if (getObject() instanceof UIControlCall) {
+				if (getObject() instanceof UIControlCallAction) {
 					return "target".equals(propertyName);
 				}
 				if (getObject() instanceof UIControlListenSource) {
@@ -316,9 +316,9 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			
 			@Override
 			public boolean isSelectable(String propertyName, Object nsObject) {
-				if (getObject() instanceof UIControlCall) {
+				if (getObject() instanceof UIControlCallAction) {
 					if ("target".equals(propertyName)) {
-						UIControlCall cc = (UIControlCall) getObject();
+						UIControlCallAction cc = (UIControlCallAction) getObject();
 						if (cc instanceof UIControlCallSequence) {
 							return nsObject instanceof Sequence;
 						}
@@ -355,9 +355,9 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 					if (pValue != null && pValue.startsWith(oldName)) {
 						String _pValue = newName + pValue.substring(oldName.length());
 						if (!pValue.equals(_pValue)) {
-							if (getObject() instanceof UIControlCall) {
+							if (getObject() instanceof UIControlCallAction) {
 								if ("target".equals(propertyName)) {
-									((UIControlCall)getObject()).setTarget(_pValue);
+									((UIControlCallAction)getObject()).setTarget(_pValue);
 									hasBeenRenamed = true;
 								}
 							}

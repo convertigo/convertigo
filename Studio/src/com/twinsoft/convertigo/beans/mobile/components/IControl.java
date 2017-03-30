@@ -22,18 +22,6 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
-public class UIControlCallSequence extends UIControlCallAction {
-	
-	private static final long serialVersionUID = 237124673723392698L;
-
-	public UIControlCallSequence() {
-		super();
-	}
-
-	@Override
-	public UIControlCallSequence clone() throws CloneNotSupportedException {
-		UIControlCallSequence cloned = (UIControlCallSequence) super.clone();
-		return cloned;
-	}
+public interface IControl {
 
 }

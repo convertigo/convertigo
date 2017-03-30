@@ -22,36 +22,6 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
-public class UIControlAttrValue extends UIComponent {
-	
-	private static final long serialVersionUID = 1629185375344957613L;
+public interface ISource {
 
-	public UIControlAttrValue() {
-		super();
-	}
-	
-	@Override
-	public UIControlAttrValue clone() throws CloneNotSupportedException {
-		UIControlAttrValue cloned = (UIControlAttrValue)super.clone();
-		return cloned;
-	}
-	
-	/*
-	 * The event value
-	 */
-	private String attrValue = "";
-	
-	public String getAttrValue() {
-		return attrValue;
-	}
-
-	public void setAttrValue(String attrValue) {
-		this.attrValue = attrValue;
-	}
-
-	
-	@Override
-	public String computeTemplate() {
-		return isEnabled() ? getAttrValue():"";
-	}	
 }

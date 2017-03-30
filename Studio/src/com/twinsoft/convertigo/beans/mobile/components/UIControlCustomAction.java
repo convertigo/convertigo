@@ -22,5 +22,36 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
-public interface IIteratable {
+public class UIControlCustomAction extends UIControlAction {
+	
+	private static final long serialVersionUID = 1629185375344957613L;
+
+	public UIControlCustomAction() {
+		super();
+	}
+	
+	@Override
+	public UIControlCustomAction clone() throws CloneNotSupportedException {
+		UIControlCustomAction cloned = (UIControlCustomAction)super.clone();
+		return cloned;
+	}
+	
+	/*
+	 * The event value
+	 */
+	private String actionValue = "";
+	
+	public String getActionValue() {
+		return actionValue;
+	}
+
+	public void setActionValue(String actionValue) {
+		this.actionValue = actionValue;
+	}
+
+	
+	@Override
+	public String computeTemplate() {
+		return isEnabled() ? getActionValue():"";
+	}	
 }

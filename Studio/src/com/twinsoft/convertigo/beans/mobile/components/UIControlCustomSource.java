@@ -22,37 +22,37 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
-public class UIControlDirectiveValue extends UIComponent {
+public class UIControlCustomSource extends UIControlSource {
 	
 	private static final long serialVersionUID = 6307932237163058850L;
 
-	public UIControlDirectiveValue() {
+	public UIControlCustomSource() {
 		super();
 	}
 	
 	@Override
-	public UIControlDirectiveValue clone() throws CloneNotSupportedException {
-		UIControlDirectiveValue cloned = (UIControlDirectiveValue)super.clone();
+	public UIControlCustomSource clone() throws CloneNotSupportedException {
+		UIControlCustomSource cloned = (UIControlCustomSource)super.clone();
 		return cloned;
 	}
 	
 	/*
 	 * The directive value
 	 */
-	private String directiveValue = "";
+	private String sourceValue = "";
 	
-	public String getDirectiveValue() {
-		return directiveValue;
+	public String getSourceValue() {
+		return sourceValue;
 	}
 
-	public void setDirectiveValue(String directiveValue) {
-		this.directiveValue = directiveValue;
+	public void setSourceValue(String sourceValue) {
+		this.sourceValue = sourceValue;
 	}
 
 	@Override
 	public String computeTemplate() {
 		if (isEnabled()) {
-			String computedTemplate = getDirectiveValue();
+			String computedTemplate = getSourceValue();
 			return computedTemplate.isEmpty() ? "":computedTemplate;
 		}
 		return "";
@@ -60,7 +60,7 @@ public class UIControlDirectiveValue extends UIComponent {
 	
 	@Override
 	public String toString() {
-		String label = getDirectiveValue();
+		String label = getSourceValue();
 		return label.isEmpty() ? "?":label;
 	}
 }

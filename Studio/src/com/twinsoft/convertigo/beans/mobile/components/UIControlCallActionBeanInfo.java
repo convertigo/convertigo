@@ -26,17 +26,17 @@ import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
-public class UIControlCallBeanInfo extends MySimpleBeanInfo {
+public class UIControlCallActionBeanInfo extends MySimpleBeanInfo {
 	
-	public UIControlCallBeanInfo() {
+	public UIControlCallActionBeanInfo() {
 		try {
-			beanClass = UIControlCall.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.mobile.components.UIControlAttrValue.class;
+			beanClass = UIControlCallAction.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.mobile.components.UIControlAction.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/mobile/components/images/uicontrolcall_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/mobile/components/images/uicontrolcall_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/mobile/components/images/uicontrolcallaction_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/mobile/components/images/uicontrolcallaction_color_32x32.png";
 
-			resourceBundle = getResourceBundle("res/UIControlCall");
+			resourceBundle = getResourceBundle("res/UIControlCallAction");
 
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
@@ -50,8 +50,6 @@ public class UIControlCallBeanInfo extends MySimpleBeanInfo {
 			properties[1] = new PropertyDescriptor("marker", beanClass, "getMarker", "setMarker");
 			properties[1].setDisplayName(getExternalizedString("property.marker.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.marker.short_description"));
-			
-			getPropertyDescriptor("attrValue").setHidden(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

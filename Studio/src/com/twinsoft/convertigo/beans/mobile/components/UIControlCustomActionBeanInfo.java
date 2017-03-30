@@ -26,26 +26,26 @@ import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
-public class UIControlAttrValueBeanInfo extends MySimpleBeanInfo {
+public class UIControlCustomActionBeanInfo extends MySimpleBeanInfo {
 	
-	public UIControlAttrValueBeanInfo() {
+	public UIControlCustomActionBeanInfo() {
 		try {
-			beanClass = UIControlAttrValue.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.mobile.components.UIComponent.class;
+			beanClass = UIControlCustomAction.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.mobile.components.UIControlAction.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/mobile/components/images/uicontrolattrvalue_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/mobile/components/images/uicontrolattrvalue_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/mobile/components/images/uicontrolcustomaction_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/mobile/components/images/uicontrolcustomaction_color_32x32.png";
 
-			resourceBundle = getResourceBundle("res/UIControlAttrValue");
+			resourceBundle = getResourceBundle("res/UIControlCustomAction");
 
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
 			properties = new PropertyDescriptor[1];
 			
-			properties[0] = new PropertyDescriptor("attrValue", beanClass, "getAttrValue", "setAttrValue");
-			properties[0].setDisplayName(getExternalizedString("property.attrValue.display_name"));
-			properties[0].setShortDescription(getExternalizedString("property.attrValue.short_description"));
+			properties[0] = new PropertyDescriptor("actionValue", beanClass, "getActionValue", "setActionValue");
+			properties[0].setDisplayName(getExternalizedString("property.actionValue.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.actionValue.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

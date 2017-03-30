@@ -22,7 +22,7 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
-public abstract class UIControlListenSource extends UIComponent {
+public abstract class UIControlListenSource extends UIControlSource {
 
 	private static final long serialVersionUID = 4176597213482241515L;
 
@@ -98,7 +98,7 @@ public abstract class UIControlListenSource extends UIComponent {
 	@Override
 	public String toString() {
 		String label = getTargetName();
-		return "listen " + (label.isEmpty() ? "?":label);
+		return (label.isEmpty() ? "?":label);
 	}
 	
 	@Override

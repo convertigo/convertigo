@@ -160,10 +160,6 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 					children.append(component.computeTemplate());
 			}
 			
-			if (parent != null && parent instanceof UIControlDirective) {
-				attributes.append(((UIControlDirective)parent).getDirectiveTemplate());
-			}
-			
 			StringBuilder sb = new StringBuilder();
 			sb.append("<").append(getTagName())
 				.append(attributes.length()>0 ? attributes:"");

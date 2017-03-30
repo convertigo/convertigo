@@ -26,7 +26,7 @@ import java.util.Iterator;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
-public class UIControlDirective extends UIComponent implements ITagsProperty {
+public class UIControlDirective extends UIElement implements IControl, ITagsProperty {
 	
 	private static final long serialVersionUID = 2750008565134796761L;
 
@@ -56,17 +56,14 @@ public class UIControlDirective extends UIComponent implements ITagsProperty {
 		}
 		
 		public static String getDirectiveAttr(String directiveName) {
-			AttrDirective bindDirective = null;
-			try {
-				bindDirective = AttrDirective.valueOf(directiveName);
-			} catch (Exception e) {};
+			AttrDirective bindDirective = getDirective(directiveName);
 			return bindDirective != null ? bindDirective.directive():directiveName;
 		}
 		
 	}
 	
 	public UIControlDirective() {
-		super();
+		super("ng-container");
 	}
 
 	@Override
@@ -91,20 +88,20 @@ public class UIControlDirective extends UIComponent implements ITagsProperty {
 	/*
 	 * The directive value
 	 */
-	private String directiveValue = "";
+	private String directiveExpression = "";
 
-	public String getDirectiveValue() {
-		return directiveValue;
+	public String getDirectiveExpression() {
+		return directiveExpression;
 	}
 
-	public void setDirectiveValue(String directiveValue) {
-		this.directiveValue = directiveValue;
+	public void setDirectiveExpression(String directiveExpression) {
+		this.directiveExpression = directiveExpression;
 	}
 	
 	/*
-	 * The iteratable item name
+	 * The iterative item name
 	 */
-	private String itemName = "item";
+	private String itemName = "";
 	
 	public String getItemName() {
 		return itemName;
@@ -114,9 +111,13 @@ public class UIControlDirective extends UIComponent implements ITagsProperty {
 		this.itemName = itemName;
 	}
 	
+	protected String getItemVariable() {
+		String varItem = itemName.isEmpty() ? "item":itemName;
+		return varItem + String.valueOf(this.priority);
+	}
 	
 	/*
-	 * The iteratable item path
+	 * The iterative item path
 	 */
 	private String itemPath = "";
 	
@@ -130,25 +131,27 @@ public class UIControlDirective extends UIComponent implements ITagsProperty {
 	
 	protected String getComputedValue() {
 		StringBuilder listeners = new StringBuilder();
-		//StringBuilder values = new StringBuilder();
+		StringBuilder customs = new StringBuilder();
 		
 		Iterator<UIComponent> it = getUIComponentList().iterator();
 		while (it.hasNext()) {
 			UIComponent component = (UIComponent)it.next();
-			if (component instanceof UIControlListenSource) {
-				String tpl = component.computeTemplate();
-				if (!tpl.isEmpty()) {
-					listeners.append(listeners.length() > 0 ? ",":"");
-					listeners.append(tpl);
+			if (component instanceof UIControlSource) {
+				if (component instanceof UIControlListenSource) {
+					String tpl = component.computeTemplate();
+					if (!tpl.isEmpty()) {
+						listeners.append(listeners.length() > 0 ? ",":"");
+						listeners.append(tpl);
+					}
+				}
+				if (component instanceof UIControlCustomSource) {
+					String tpl = component.computeTemplate();
+					if (!tpl.isEmpty()) {
+						customs.append(customs.length() > 0 ? ";":"");
+						customs.append(tpl);
+					}
 				}
 			}
-			/*if (component instanceof UIControlDirectiveValue) {
-				String tpl = component.computeTemplate();
-				boolean needComma = true;
-				if (!tpl.isEmpty()) {
-					values.append(tpl).append(needComma ? ";":"");
-				}
-			}*/
 		}
 		
 		StringBuilder sbListen = new StringBuilder();
@@ -157,26 +160,25 @@ public class UIControlDirective extends UIComponent implements ITagsProperty {
 			sbListen.append("listen([").append(listeners).append("])").append(path);
 		}
 		
-		StringBuilder sb = new StringBuilder();
-		if (listeners.length() > 0) {
+		StringBuilder children = new StringBuilder();
+		if (sbListen.length() > 0) {
 			AttrDirective attrDirective = AttrDirective.getDirective(getDirectiveName());
-			if (attrDirective.equals(AttrDirective.RepeatForEach)) {
+			if (AttrDirective.RepeatForEach.equals(attrDirective)) {
 				String item = getItemName();
-				sb.append("let "+ (item.isEmpty() ? "item":item)).append(" of ").append(sbListen);
-				sb.append(!directiveValue.isEmpty() ? ";":"").append(directiveValue);
+				children.append("let "+ (item.isEmpty() ? "item":item)).append(" of ").append(sbListen);
 			}
 			else {
-				sb.append(sbListen).append(directiveValue);
+				children.append(sbListen);
 			}
 		}
-		else {
-			sb.append(directiveValue);
-		}
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append(children).append(directiveExpression);
 		
 		return sb.toString();
 	}
 
-	public String getDirectiveTemplate() {
+	protected String getDirectiveTemplate() {
 		if (isEnabled()) {
 			String directiveTpl = "";
 			String value = getComputedValue().replaceAll("\"", "'");
@@ -206,19 +208,36 @@ public class UIControlDirective extends UIComponent implements ITagsProperty {
 	@Override
 	public String computeTemplate() {
 		if (isEnabled()) {
+			StringBuilder attributes = new StringBuilder();
 			StringBuilder children = new StringBuilder();
+			
+			attributes.append(getDirectiveTemplate());
 			
 			Iterator<UIComponent> it = getUIComponentList().iterator();
 			while (it.hasNext()) {
 				UIComponent component = (UIComponent)it.next();
-				if (!(component instanceof UIControlDirectiveValue) &&
-						!(component instanceof UIControlListenSource)) {
+				if (component instanceof UIControlSource) {
+					;// ignore
+				} else if (component instanceof UIAttribute) {
+					attributes.append(component.computeTemplate());
+				} else {
 					children.append(component.computeTemplate());
 				}
 			}
 			
 			StringBuilder sb = new StringBuilder();
-			sb.append(children.length()>0 ? children:"");
+			sb.append("<").append(getTagName())
+				.append(attributes.length()>0 ? attributes:"");
+			
+			if (isSelfClose()) {
+				sb.append("/>").append(System.getProperty("line.separator"));
+			}
+			else {
+				sb.append(">").append(System.getProperty("line.separator"))
+					.append(children.length()>0 ? children:"")
+				  .append("</").append(getTagName())
+				  	.append(">").append(System.getProperty("line.separator"));
+			}
 			
 			return sb.toString();
 		}

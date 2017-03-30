@@ -26,33 +26,22 @@ import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
-public class UIControlListenBeanInfo extends MySimpleBeanInfo {
+public class UIControlSourceBeanInfo extends MySimpleBeanInfo {
 	
-	public UIControlListenBeanInfo() {
+	public UIControlSourceBeanInfo() {
 		try {
-			beanClass = UIControlListen.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.mobile.components.UIControlDirectiveValue.class;
+			beanClass = UIControlSource.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.mobile.components.UIComponent.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/mobile/components/images/uicontrollisten_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/mobile/components/images/uicontrollisten_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/mobile/components/images/uicontrolsource_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/mobile/components/images/uicontrolsource_color_32x32.png";
 
-			resourceBundle = getResourceBundle("res/UIControlListen");
+			resourceBundle = getResourceBundle("res/UIControlSource");
 
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[2];
-			
-			properties[0] = new PropertyDescriptor("itemName", beanClass, "getItemName", "setItemName");
-			properties[0].setDisplayName(getExternalizedString("property.itemName.display_name"));
-			properties[0].setShortDescription(getExternalizedString("property.itemName.short_description"));
-			
-			properties[1] = new PropertyDescriptor("itemPath", beanClass, "getItemPath", "setItemPath");
-			properties[1].setDisplayName(getExternalizedString("property.itemPath.display_name"));
-			properties[1].setShortDescription(getExternalizedString("property.itemPath.short_description"));
-			
-			getPropertyDescriptor("directiveValue").setHidden(true);
-			
+			properties = new PropertyDescriptor[0];
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
