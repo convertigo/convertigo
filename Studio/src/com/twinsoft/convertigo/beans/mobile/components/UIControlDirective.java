@@ -184,9 +184,6 @@ public class UIControlDirective extends UIComponent implements ITagsProperty {
 			if (!attr.isEmpty()) {
 				directiveTpl = " "+ attr + "=" + "\""+ value +"\"";
 			}
-			if (parent != null && parent instanceof UIControlDirective) {
-				directiveTpl = ((UIControlDirective)parent).getDirectiveTemplate() + directiveTpl;
-			}
 			return directiveTpl;
 		}
 		return "";

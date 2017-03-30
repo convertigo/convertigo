@@ -199,7 +199,6 @@
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlDirective">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlDirective"/>
 				</bean>
 			</beans>
 			<beans groupname="Action Components">

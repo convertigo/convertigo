@@ -374,7 +374,6 @@ public class ComponentManager {
 				}
 				if (parent instanceof UIControlDirective) {
 					if (UIElement.class.isAssignableFrom(dboClass) ||
-						UIControlDirective.class.isAssignableFrom(dboClass) ||
 						UIControlDirectiveValue.class.isAssignableFrom(dboClass) ||
 						UIControlListenSource.class.isAssignableFrom(dboClass)) {
 						return true;
