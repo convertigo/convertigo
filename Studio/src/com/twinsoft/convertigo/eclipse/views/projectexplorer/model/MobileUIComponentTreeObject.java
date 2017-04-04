@@ -178,7 +178,8 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		DatabaseObject parentDbo = ms.getParent();
 		if (parentDbo != null) {
 			if (parentDbo instanceof UIElement) {
-				formated = String.format(".style {%n%s%n}", formated);
+				String dboId = ((UIElement)parentDbo).getId();
+				formated = String.format("#"+ dboId +" {%n%s%n}", formated);
 			}
 		}
 		return formated;
@@ -190,7 +191,8 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		if (parentDbo != null) {
 			try {
 				if (parentDbo instanceof UIElement) {
-					Pattern p = Pattern.compile("\\.style \\{\\r\\n([^\\{\\}]*)\\r\\n\\}");
+					String dboId = ((UIElement)parentDbo).getId();
+					Pattern p = Pattern.compile("#"+ dboId +" \\{\\r\\n([^\\{\\}]*)\\r\\n\\}");
 					Matcher m = p.matcher(s);
 					if (m.matches()) {
 						unformated = m.group(1);
@@ -267,12 +269,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		if (bModified && !isInherited) {
 			UIComponent uic = getObject();
 			if (uic instanceof UIStyle) {
-				if (uic.getParent() instanceof UIElement) {
-					markTemplateAsDirty();
-				}
-				else {
-					markStyleAsDirty();
-				}
+				markStyleAsDirty();
 			}
 			else {
 				markTemplateAsDirty();

@@ -348,6 +348,12 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 					sb.append(tpl).append(System.getProperty("line.separator"));
 				}
 			}
+			else if (component instanceof UIElement) {
+				String tpl = ((UIElement)component).computeStyle();
+				if (!tpl.isEmpty()) {
+					sb.append(tpl).append(System.getProperty("line.separator"));
+				}
+			}
 		}
 		
 		sb.append("}")

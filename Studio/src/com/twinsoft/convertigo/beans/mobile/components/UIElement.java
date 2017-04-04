@@ -26,7 +26,7 @@ import java.util.Iterator;
 
 import com.twinsoft.convertigo.engine.EngineException;
 
-public class UIElement extends UIComponent {
+public class UIElement extends UIComponent implements IStyleGenerator {
 	
 	private static final long serialVersionUID = -8671694717057158581L;
 
@@ -88,33 +88,34 @@ public class UIElement extends UIComponent {
 		return label.isEmpty() ? super.toString() : label;
 	}
 
+	public String getId() {
+		return "tag"+priority;
+	}
+	
 	@Override
 	public String computeTemplate() {
 		if (isEnabled()) {
-			StringBuilder styles = new StringBuilder();
 			StringBuilder attributes = new StringBuilder();
 			StringBuilder children = new StringBuilder();
 			
 			Iterator<UIComponent> it = getUIComponentList().iterator();
 			while (it.hasNext()) {
 				UIComponent component = (UIComponent)it.next();
-				if (component instanceof UIAttribute) {
+				if (component instanceof UIStyle) {
+					;// ignore
+				} else if (component instanceof UIAttribute) {
 					attributes.append(component.computeTemplate());
-				} else if (component instanceof UIStyle) {
-					styles.append(component.computeTemplate());
 				} else {
 					children.append(component.computeTemplate());
 				}
 			}
 			
-			String attrId = " id=\"tag"+ priority +"\"";
+			String attrId = " id=\""+ getId() +"\"";
 			
 			StringBuilder sb = new StringBuilder();
 			sb.append("<").append(getTagName())
 				.append(attrId)
-				.append(attributes.length()>0 ? attributes:"")
-				.append(styles.length()>0 ? " style=\""+styles+"\"":"");
-			
+				.append(attributes.length()>0 ? attributes:"");
 			
 			if (isSelfClose()) {
 				sb.append("/>").append(System.getProperty("line.separator"));
@@ -129,6 +130,40 @@ public class UIElement extends UIComponent {
 			return sb.toString();
 		}
 		return "";
+	}
+
+	@Override
+	public String computeStyle() {
+		StringBuilder styles = new StringBuilder();
+		StringBuilder others = new StringBuilder();
+		
+		Iterator<UIComponent> it = getUIComponentList().iterator();
+		while (it.hasNext()) {
+			UIComponent component = (UIComponent)it.next();
+			if (component instanceof UIStyle) {
+				String tpl = component.computeTemplate();
+				if (!tpl.isEmpty()) {
+					styles.append(tpl).append(";").append(System.getProperty("line.separator"));
+				}
+			}
+			else if (component instanceof UIElement) {
+				String tpl = ((UIElement)component).computeStyle();
+				if (!tpl.isEmpty()) {
+					others.append(tpl);
+				}
+			}
+		}
+		
+		StringBuilder sb = new StringBuilder();
+		if (styles.length()>0) {
+			sb.append("#"+ getId()).append(" {").append(System.getProperty("line.separator"));
+			sb.append(styles);
+			sb.append("}").append(System.getProperty("line.separator"));
+		}
+		if (others.length()>0) {
+			sb.append(others);
+		}
+		return sb.toString();
 	}
 
 
