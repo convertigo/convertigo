@@ -46,7 +46,7 @@ public class RouteExceptionActionComponent extends RouteActionComponent {
 	public String computeRoute() {
 		StringBuilder sb = new StringBuilder();
 		if (isEnabled()) {
-			sb.append("new C8oRoute((exception:any)=>{return true})")
+			sb.append("new C8oRoute((exception:any)=>{return true}, tableOptions)")
 				.append(".setTarget(\""+Action.toast.name()+"\")")
 				.append(".setToastMesage(\""+ "Exception" +"\")");
 			

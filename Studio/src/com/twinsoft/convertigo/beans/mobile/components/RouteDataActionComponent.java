@@ -73,7 +73,7 @@ public class RouteDataActionComponent extends RouteActionComponent {
 			String targetAction = getAction();
 			
 			if (!targetAction.isEmpty()) {
-				sb.append("new C8oRoute((data:any)=>{return "+ (condition.isEmpty() ? "true":condition) +"})");
+				sb.append("new C8oRoute((data:any)=>{return "+ (condition.isEmpty() ? "true":condition) +"}, tableOptions)");
 				
 				if (!targetPage.isEmpty()) {
 					sb.append(".setTarget(\""+targetAction+"\", "+targetPage+")");
