@@ -225,6 +225,13 @@ public class MobileBuilder {
 		}
 	}
 	
+	public synchronized void appStyleChanged(final ApplicationComponent app) throws EngineException {
+		if (app != null && initDone) {
+			writeAppStyle(app);
+			Engine.logEngine.debug("(MobileBuilder) Handled 'appStyleChanged'");
+		}
+	}
+
 	private boolean isIonicTemplateBased() {
 		return ionicTplDir.exists();
 	}
@@ -337,6 +344,22 @@ public class MobileBuilder {
 		}
 	}
 	
+	private void writeAppStyle(ApplicationComponent app) throws EngineException {
+		try {
+			if (app != null) {
+				String appName = app.getName();
+				File appScssFile = new File(ionicWorkDir, "src/app/app.scss");
+				String computedScss = app.getComputedStyle();
+				FileUtils.write(appScssFile, computedScss, "UTF-8");
+				
+				Engine.logEngine.debug("(MobileBuilder) Ionic scss file generated for app '"+appName+"'");
+			}
+		}
+		catch (Exception e) {
+			throw new EngineException("Unable to write ionic app scss file",e);
+		}
+	}
+
 	private void removeUselessPage(String pageName) {
 		File pageDir = new File(ionicWorkDir,"src/pages/"+ pageName);
 		try {
@@ -413,6 +436,10 @@ public class MobileBuilder {
 				//String computedTemplate = application.getComputedTemplate();
 				//FileUtils.write(appHtmlFile, computedTemplate, "UTF-8");
 				
+				File appScssFile = new File(ionicWorkDir, "src/app/app.scss");
+				String computedScss = application.getComputedStyle();
+				FileUtils.write(appScssFile, computedScss, "UTF-8");
+
 				Engine.logEngine.debug("(MobileBuilder) Ionic source files generated for application 'app'");
 			}
 		}

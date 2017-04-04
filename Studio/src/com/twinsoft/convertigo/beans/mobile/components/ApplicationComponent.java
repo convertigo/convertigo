@@ -35,15 +35,20 @@ import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
-public class ApplicationComponent extends MobileComponent implements ITemplateGenerator, IRouteGenerator, IContainerOrdered {
+public class ApplicationComponent extends MobileComponent implements IStyleGenerator, ITemplateGenerator, IRouteGenerator, IContainerOrdered {
 	
 	private static final long serialVersionUID = 6142350115354549719L;
 
+	private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();
+	
 	public ApplicationComponent() {
 		super();
 		
 		orderedRoutes = new XMLVector<XMLVector<Long>>();
 		orderedRoutes.add(new XMLVector<Long>());
+		
+		orderedComponents = new XMLVector<XMLVector<Long>>();
+		orderedComponents.add(new XMLVector<Long>());
 	}
 
 	@Override
@@ -51,7 +56,9 @@ public class ApplicationComponent extends MobileComponent implements ITemplateGe
 		ApplicationComponent cloned = (ApplicationComponent) super.clone();
 		cloned.vRouteComponents = new LinkedList<RouteComponent>();
 		cloned.vPageComponents = new LinkedList<PageComponent>();
+		cloned.vUIComponents = new LinkedList<UIComponent>();
 		cloned.computedTemplate = null;
+		cloned.computedStyle = null;
 		cloned.computedRoute = null;
 		cloned.rootPage = null;
 		return cloned;
@@ -97,6 +104,38 @@ public class ApplicationComponent extends MobileComponent implements ITemplateGe
         hasChanged = true;
     }
     
+	public XMLVector<XMLVector<Long>> getOrderedComponents() {
+		return orderedComponents;
+	}
+    
+	public void setOrderedComponents(XMLVector<XMLVector<Long>> orderedComponents) {
+		this.orderedComponents = orderedComponents;
+	}
+	
+    private void insertOrderedComponent(UIComponent component, Long after) {
+    	List<Long> ordered = orderedComponents.get(0);
+    	int size = ordered.size();
+    	
+    	if (ordered.contains(component.priority))
+    		return;
+    	
+    	if (after == null) {
+    		after = new Long(0);
+    		if (size>0)
+    			after = ordered.get(ordered.size()-1);
+    	}
+    	
+   		int order = ordered.indexOf(after);
+    	ordered.add(order+1, component.priority);
+    	hasChanged = true;
+    }
+    
+    private void removeOrderedComponent(Long value) {
+        Collection<Long> ordered = orderedComponents.get(0);
+        ordered.remove(value);
+        hasChanged = true;
+    }
+    
 	public void insertAtOrder(DatabaseObject databaseObject, long priority) throws EngineException {
 		increaseOrder(databaseObject, new Long(priority));
 	}
@@ -107,6 +146,8 @@ public class ApplicationComponent extends MobileComponent implements ITemplateGe
     	
     	if (databaseObject instanceof RouteComponent)
     		ordered = orderedRoutes.get(0);
+    	if (databaseObject instanceof UIComponent)
+    		ordered = orderedComponents.get(0);
     	
     	if (ordered == null || !ordered.contains(value))
     		return;
@@ -121,6 +162,13 @@ public class ApplicationComponent extends MobileComponent implements ITemplateGe
     	ordered.add(pos1, value);
     	ordered.remove(pos+1);
     	hasChanged = true;
+    	
+    	if (databaseObject instanceof UIStyle) {
+    		markStyleAsDirty();
+    	}
+    	else {
+    		markTemplateAsDirty();
+    	}
     }
     
     private void decreaseOrder(DatabaseObject databaseObject, Long after) throws EngineException {
@@ -129,6 +177,8 @@ public class ApplicationComponent extends MobileComponent implements ITemplateGe
     	
     	if (databaseObject instanceof RouteComponent)
     		ordered = orderedRoutes.get(0);
+    	if (databaseObject instanceof UIComponent)
+    		ordered = orderedComponents.get(0);
     	
     	if (ordered == null || !ordered.contains(value))
     		return;
@@ -143,6 +193,13 @@ public class ApplicationComponent extends MobileComponent implements ITemplateGe
     	ordered.add(pos1+1, value);
     	ordered.remove(pos);
     	hasChanged = true;
+    	
+    	if (databaseObject instanceof UIStyle) {
+    		markStyleAsDirty();
+    	}
+    	else {
+    		markTemplateAsDirty();
+    	}
     }
     
 	public void increasePriority(DatabaseObject databaseObject) throws EngineException {
@@ -167,8 +224,16 @@ public class ApplicationComponent extends MobileComponent implements ITemplateGe
         		return (long)ordered.indexOf(time);
         	else throw new EngineException("Corrupted route for application \""+ getName() +"\". RouteComponent \""+ ((RouteComponent)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
         }
+        if (object instanceof UIComponent) {
+        	List<Long> ordered = orderedComponents.get(0);
+        	long time = ((UIComponent)object).priority;
+        	if (ordered.contains(time))
+        		return (long)ordered.indexOf(time);
+        	else throw new EngineException("Corrupted component for application \""+ getName() +"\". UIComponent \""+ ((UIComponent)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
+        }
         else return super.getOrder(object);
     }
+	
 	/**
 	 * The list of available routes for this application.
 	 */
@@ -277,11 +342,67 @@ public class ApplicationComponent extends MobileComponent implements ITemplateGe
 		} else throw new IllegalArgumentException("The value of argument 'pageComponent' is invalid: the page does not belong to the application");
 	}
 	
+	
+	/**
+	 * The list of available ui components for this application.
+	 */
+	transient private List<UIComponent> vUIComponents = new LinkedList<UIComponent>();
+	
+	public void addUIComponent(UIComponent uiComponent) throws EngineException {
+		checkSubLoaded();
+		
+		String newDatabaseObjectName = getChildBeanName(vUIComponents, uiComponent.getName(), uiComponent.bNew);
+		uiComponent.setName(newDatabaseObjectName);
+		
+		vUIComponents.add(uiComponent);
+		uiComponent.setParent(this);
+		
+        insertOrderedComponent(uiComponent,null);
+        
+        if (uiComponent.bNew) {
+        	if (uiComponent instanceof UIStyle) {
+        		markStyleAsDirty();
+        	}
+        	else {
+        		markTemplateAsDirty();
+        	}
+        }
+	}
+
+	public void removeUIComponent(UIComponent uiComponent) throws EngineException {
+		checkSubLoaded();
+		
+		vUIComponents.remove(uiComponent);
+		uiComponent.setParent(null);
+		
+        removeOrderedComponent(uiComponent.priority);
+        
+    	if (uiComponent instanceof UIStyle) {
+    		markStyleAsDirty();
+    	}
+    	else {
+    		markTemplateAsDirty();
+    	}
+	}
+
+	public List<UIComponent> getUIComponentList() {
+		checkSubLoaded();
+		return sort(vUIComponents);
+	}
+
+	public UIComponent getUIComponentByName(String uiName) throws EngineException {
+		checkSubLoaded();
+		for (UIComponent uiComponent : vUIComponents)
+			if (uiComponent.getName().equalsIgnoreCase(uiName)) return uiComponent;
+		throw new EngineException("There is no UI component named \"" + uiName + "\" found into this page.");
+	}
+	
 	@Override
 	public List<DatabaseObject> getAllChildren() {	
 		List<DatabaseObject> rep = super.getAllChildren();
 		rep.addAll(getRouteComponentList());
 		rep.addAll(getPageComponentList());
+		rep.addAll(getUIComponentList());
 		return rep;
 	}
 
@@ -291,6 +412,8 @@ public class ApplicationComponent extends MobileComponent implements ITemplateGe
 			addRouteComponent((RouteComponent) databaseObject);
 		} else if (databaseObject instanceof PageComponent) {
 			addPageComponent((PageComponent) databaseObject);
+		} else if (databaseObject instanceof UIComponent) {
+			addUIComponent((UIComponent) databaseObject);
 		} else {
 			throw new EngineException("You cannot add to an application component a database object of type " + databaseObject.getClass().getName());
 		}
@@ -302,6 +425,8 @@ public class ApplicationComponent extends MobileComponent implements ITemplateGe
 			removeRouteComponent((RouteComponent) databaseObject);
 		} else if (databaseObject instanceof PageComponent) {
 			removePageComponent((PageComponent) databaseObject);
+		} else if (databaseObject instanceof UIComponent) {
+			removeUIComponent((UIComponent) databaseObject);
 		} else {
 			throw new EngineException("You cannot remove from an application component a database object of type " + databaseObject.getClass().getName());
 		}
@@ -315,12 +440,12 @@ public class ApplicationComponent extends MobileComponent implements ITemplateGe
 	
 	public String getComputedTemplate() {
 		if (computedTemplate == null) {
-			doCompute();
+			doComputeTemplate();
 		}
 		return computedTemplate;
 	}
     
-	public synchronized void doCompute() {
+	private synchronized void doComputeTemplate() {
 		computedTemplate = computeTemplate();
 	}
 	
@@ -364,4 +489,43 @@ public class ApplicationComponent extends MobileComponent implements ITemplateGe
 		return sb.toString();
 	}
     
+	transient private String computedStyle = null;
+	
+	public String getComputedStyle() {
+		if (computedStyle == null) {
+			doComputeStyle();
+		}
+		return computedStyle;
+	}
+	
+	private synchronized void doComputeStyle() {
+		computedStyle = computeStyle();
+	}
+	
+	@Override
+	public String computeStyle() {
+		StringBuilder sb = new StringBuilder();
+		Iterator<UIComponent> it = getUIComponentList().iterator();
+		while (it.hasNext()) {
+			UIComponent component = (UIComponent)it.next();
+			if (component instanceof UIStyle) {
+				String tpl = component.computeTemplate();
+				if (!tpl.isEmpty()) {
+					sb.append(tpl).append(System.getProperty("line.separator"));
+				}
+			}
+		}
+		
+		return sb.toString();
+	}
+	
+	public void markStyleAsDirty() throws EngineException {
+		doComputeStyle();
+		getProject().getMobileBuilder().appStyleChanged(this);
+	}
+	
+	public void markTemplateAsDirty() throws EngineException {
+		doComputeTemplate();
+		//getProject().getMobileBuilder().appComputed(this);
+	}
 }

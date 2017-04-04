@@ -58,7 +58,7 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 	public void hasBeenModified(boolean bModified) {
 		super.hasBeenModified(bModified);
 		if (bModified && !isInherited) {
-			markRouteAsDirty();
+			//markRouteAsDirty();
 		}
 	}
 	
@@ -79,6 +79,11 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 	}
 	
 	protected void markStyleAsDirty() {
-		;// TODO
+		ApplicationComponent ac = getObject();
+		try {
+			ac.markStyleAsDirty();
+		} catch (EngineException e) {
+			ConvertigoPlugin.logException(e,
+					"Error while writing the app.scss for application '" + ac.getName() + "'");	}
 	}
 }

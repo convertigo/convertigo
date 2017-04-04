@@ -945,6 +945,14 @@
             id="convertigo.mobileApplicationComponentContribution"
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplicationComponentTreeObject">
          <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileUIComponentAction"
+               enablesFor="1"
+               icon="icons/studio/menu/uicomponent_color_16x16.png"
+               id="convertigo.action.newUIComponent"
+               label="UI Component"
+               menubarPath="convertigo.menu.new/content">
+         </action>
+         <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileRouteComponentAction"
                enablesFor="1"
                icon="icons/studio/menu/routecomponent_color_16x16.png"

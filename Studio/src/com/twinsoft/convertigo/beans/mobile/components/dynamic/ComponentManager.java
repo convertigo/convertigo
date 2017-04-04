@@ -38,6 +38,7 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
+import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIAttribute;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlAction;
@@ -355,6 +356,11 @@ public class ComponentManager {
 
 			@Override
 			public boolean isAllowedIn(DatabaseObject parent) {
+				if (parent instanceof ApplicationComponent) {
+					if (UIStyle.class.isAssignableFrom(dboClass)) {
+						return true;
+					}
+				}
 				if (parent instanceof PageComponent) {
 					if (!UIAttribute.class.isAssignableFrom(dboClass) &&
 						!UIControlAction.class.isAssignableFrom(dboClass)) {

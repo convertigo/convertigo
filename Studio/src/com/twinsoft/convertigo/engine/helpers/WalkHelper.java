@@ -117,6 +117,13 @@ public class WalkHelper {
 					walk(page);
 				}
 			}
+			
+			if (before(databaseObject, UIComponent.class)) {
+				for (UIComponent ui : applicationComponent.getUIComponentList()) {
+					walk(ui);
+				}
+			}
+			
 		} else if (databaseObject instanceof RouteComponent) {
 			RouteComponent routingListenerComponent = (RouteComponent) databaseObject;
 			
