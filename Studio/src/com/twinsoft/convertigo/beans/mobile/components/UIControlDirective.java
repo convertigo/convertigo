@@ -225,8 +225,11 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 				}
 			}
 			
+			String attrId = " id=\"tag"+ priority +"\"";
+			
 			StringBuilder sb = new StringBuilder();
 			sb.append("<").append(getTagName())
+				.append(attrId)
 				.append(attributes.length()>0 ? attributes:"");
 			
 			if (isSelfClose()) {

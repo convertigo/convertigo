@@ -163,8 +163,11 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 					children.append(component.computeTemplate());
 			}
 			
+			String attrId = " id=\"tag"+ priority +"\"";
+			
 			StringBuilder sb = new StringBuilder();
 			sb.append("<").append(getTagName())
+				.append(attrId)
 				.append(attributes.length()>0 ? attributes:"")
 				.append(styles.length()>0 ? " style=\""+styles+"\"":"");
 			

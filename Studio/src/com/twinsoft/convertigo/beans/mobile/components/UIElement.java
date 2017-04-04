@@ -107,8 +107,11 @@ public class UIElement extends UIComponent {
 				}
 			}
 			
+			String attrId = " id=\"tag"+ priority +"\"";
+			
 			StringBuilder sb = new StringBuilder();
 			sb.append("<").append(getTagName())
+				.append(attrId)
 				.append(attributes.length()>0 ? attributes:"")
 				.append(styles.length()>0 ? " style=\""+styles+"\"":"");
 			
