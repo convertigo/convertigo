@@ -128,6 +128,7 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 	@Override
 	public String computeTemplate() {
 		if (isEnabled()) {
+			StringBuilder styles = new StringBuilder();
 			StringBuilder attributes = new StringBuilder();
 			StringBuilder children = new StringBuilder();
 			
@@ -156,13 +157,16 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 				UIComponent component = (UIComponent)it.next();
 				if (component instanceof UIAttribute)
 					attributes.append(component.computeTemplate());
+				else if (component instanceof UIStyle)
+					styles.append(component.computeTemplate());
 				else
 					children.append(component.computeTemplate());
 			}
 			
 			StringBuilder sb = new StringBuilder();
 			sb.append("<").append(getTagName())
-				.append(attributes.length()>0 ? attributes:"");
+				.append(attributes.length()>0 ? attributes:"")
+				.append(styles.length()>0 ? " style=\""+styles+"\"":"");
 			
 			if (isSelfClose()) {
 				sb.append("/>").append(System.getProperty("line.separator"));

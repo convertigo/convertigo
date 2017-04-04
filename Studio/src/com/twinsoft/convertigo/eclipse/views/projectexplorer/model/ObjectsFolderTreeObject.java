@@ -57,6 +57,7 @@ public class ObjectsFolderTreeObject extends FolderTreeObject implements IAction
 	public static final int FOLDER_TYPE_ACTIONS = 25;
 	public static final int FOLDER_TYPE_CONTROLS = 26;
 	public static final int FOLDER_TYPE_SOURCES = 27;
+	public static final int FOLDER_TYPE_STYLES = 28;
 	
 	
 	public int folderType;
@@ -151,6 +152,9 @@ public class ObjectsFolderTreeObject extends FolderTreeObject implements IAction
 				break;
 			case FOLDER_TYPE_SOURCES:
 				folderName = "Sources";
+				break;
+			case FOLDER_TYPE_STYLES:
+				folderName = "Styles";
 				break;
 		}
 

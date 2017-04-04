@@ -78,4 +78,7 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 		;// TODO
 	}
 	
+	protected void markStyleAsDirty() {
+		;// TODO
+	}
 }

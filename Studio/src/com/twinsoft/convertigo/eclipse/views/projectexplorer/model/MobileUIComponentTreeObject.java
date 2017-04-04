@@ -27,6 +27,8 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -57,6 +59,8 @@ import com.twinsoft.convertigo.beans.mobile.components.UIControlListenSequenceSo
 import com.twinsoft.convertigo.beans.mobile.components.UIControlListenSource;
 import com.twinsoft.convertigo.beans.mobile.components.UICustom;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
+import com.twinsoft.convertigo.beans.mobile.components.UIElement;
+import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonProperty;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -99,11 +103,14 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 	public void launchEditor(String editorType) {
 		MobileComponent mc = (MobileComponent)getObject();
 		if (mc instanceof UICustom) {
-			openFileEditor();
+			openHtmlFileEditor();
+		}
+		if (mc instanceof UIStyle) {
+			openCssFileEditor();
 		}
 	}
 
-	private void openFileEditor() {
+	private void openHtmlFileEditor() {
 		final UICustom mc = (UICustom)getObject();
 		String filePath = "/_private/" + mc.getQName() + " " + mc.getName()+".html";
 		try {
@@ -166,11 +173,110 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		}
 	}
 	
+	private String formatStyleContent(UIStyle ms) {
+		String formated = ms.getStyleContent();
+		DatabaseObject parentDbo = ms.getParent();
+		if (parentDbo != null) {
+			if (parentDbo instanceof UIElement) {
+				formated = String.format(".style {%n%s%n}", formated);
+			}
+		}
+		return formated;
+	}
+	
+	private String unformatStyleContent(UIStyle ms, String s) {
+		String unformated = s;
+		DatabaseObject parentDbo = ms.getParent();
+		if (parentDbo != null) {
+			try {
+				if (parentDbo instanceof UIElement) {
+					Pattern p = Pattern.compile("\\.style \\{\\r\\n([^\\{\\}]*)\\r\\n\\}");
+					Matcher m = p.matcher(s);
+					if (m.matches()) {
+						unformated = m.group(1);
+					}
+				}
+			} catch (Exception e) {}
+		};
+		return unformated;
+	}
+	
+	private void openCssFileEditor() {
+		final UIStyle ms = (UIStyle)getObject();
+		String filePath = "/_private/" + ms.getQName() + " " + ms.getName()+".css";
+		try {
+			// Refresh project resource
+			String projectName = ms.getProject().getName();
+			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
+			
+			// Create temporary file if needed
+			IFile file = project.getFile(filePath);
+			if (!file.exists()) {
+				try {
+					String content = formatStyleContent(ms);
+					InputStream is = new ByteArrayInputStream(content.getBytes("UTF-8"));
+					file.create(is, true, null);
+					file.setCharset("UTF-8", null);
+				} catch (UnsupportedEncodingException e) {}
+			}
+			
+			// Open file in editor
+			if (file.exists()) {
+				IEditorInput input = new MobileComponentEditorInput(file,ms);
+				if (input != null) {
+					String editorId = "org.eclipse.wst.css.core.csssource.source";
+					
+					IWorkbenchPage activePage = PlatformUI
+							.getWorkbench()
+							.getActiveWorkbenchWindow()
+							.getActivePage();
+	
+					IEditorPart editorPart = activePage.openEditor(input, editorId);
+					editorPart.addPropertyListener(new IPropertyListener() {
+						boolean isFirstChange = false;
+						
+						@Override
+						public void propertyChanged(Object source, int propId) {
+							if (source instanceof ITextEditor) {
+								if (propId == IEditorPart.PROP_DIRTY) {
+									if (!isFirstChange) {
+										isFirstChange = true;
+										return;
+									}
+									
+									isFirstChange = false;
+									ITextEditor editor = (ITextEditor)source;
+									IDocumentProvider dp = editor.getDocumentProvider();
+									IDocument doc = dp.getDocument(editor.getEditorInput());
+									String content = unformatStyleContent(ms, doc.get());
+									MobileUIComponentTreeObject.this.setPropertyValue("styleContent", content);
+								}
+							}
+						}
+					});
+				}			
+			}
+		} catch (CoreException e) {
+			ConvertigoPlugin.logException(e, "Unable to open file '" + filePath + "'!");
+		}
+	}
+	
 	@Override
 	public void hasBeenModified(boolean bModified) {
 		super.hasBeenModified(bModified);
 		if (bModified && !isInherited) {
-			markTemplateAsDirty();
+			UIComponent uic = getObject();
+			if (uic instanceof UIStyle) {
+				if (uic.getParent() instanceof UIElement) {
+					markTemplateAsDirty();
+				}
+				else {
+					markStyleAsDirty();
+				}
+			}
+			else {
+				markTemplateAsDirty();
+			}
 		}
 	}
 
@@ -264,6 +370,21 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			}
 			if (treeParent instanceof MobilePageComponentTreeObject) {
 				((MobilePageComponentTreeObject) treeParent).markTemplateAsDirty();
+				break;
+			}
+			treeParent = treeParent.getParent();
+		}
+	}
+
+	protected void markStyleAsDirty() {
+		TreeParent treeParent = parent;
+		while (treeParent != null) {
+			if (treeParent instanceof MobileApplicationComponentTreeObject) {
+				((MobileApplicationComponentTreeObject) treeParent).markStyleAsDirty();
+				break;
+			}
+			if (treeParent instanceof MobilePageComponentTreeObject) {
+				((MobilePageComponentTreeObject) treeParent).markStyleAsDirty();
 				break;
 			}
 			treeParent = treeParent.getParent();

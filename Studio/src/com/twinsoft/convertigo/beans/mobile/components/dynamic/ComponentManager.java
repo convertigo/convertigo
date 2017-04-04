@@ -53,6 +53,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIControlCustomSource;
 import com.twinsoft.convertigo.beans.mobile.components.UICustom;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIElement;
+import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
 import com.twinsoft.convertigo.beans.mobile.components.UIText;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
@@ -249,6 +250,7 @@ public class ComponentManager {
 			components.add(getDboComponent(UIAttribute.class,group));
 			components.add(getDboComponent(UICustom.class,group));
 			components.add(getDboComponent(UIText.class,group));
+			components.add(getDboComponent(UIStyle.class,group));
 			
 			// Add Controls
 			group = "Controls";

@@ -30,6 +30,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.mobile.components.UIAttribute;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlAttr;
 import com.twinsoft.convertigo.beans.mobile.components.UICustom;
+import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
 import com.twinsoft.convertigo.beans.mobile.components.UIText;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
@@ -47,7 +48,8 @@ public class CreateMobileUIComponentAction extends MobileComponentCreateAction {
 			TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
 			if (treeObject instanceof DatabaseObjectTreeObject) {
 				DatabaseObject dbo = (DatabaseObject)treeObject.getObject();
-				enable = !(dbo instanceof UICustom || dbo instanceof UIText || dbo instanceof UIAttribute);
+				enable = !(dbo instanceof UICustom || dbo instanceof UIText 
+							|| dbo instanceof UIAttribute || dbo instanceof UIStyle);
 				if (!enable && dbo instanceof UIControlAttr) {
 					enable = true;
 				}

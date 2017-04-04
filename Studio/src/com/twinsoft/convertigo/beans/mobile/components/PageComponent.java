@@ -36,7 +36,7 @@ import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.engine.EngineException;
 
-public class PageComponent extends MobileComponent implements ITemplateGenerator, IContainerOrdered {
+public class PageComponent extends MobileComponent implements IStyleGenerator, ITemplateGenerator, IContainerOrdered {
 
 	private static final long serialVersionUID = 188562781669238824L;
 	
@@ -54,6 +54,7 @@ public class PageComponent extends MobileComponent implements ITemplateGenerator
 		PageComponent cloned = (PageComponent) super.clone();
 		cloned.vUIComponents = new LinkedList<UIComponent>();
 		cloned.computedTemplate = null;
+		cloned.computedStyle = null;
 		cloned.isRoot = false;
 		return cloned;
 	}
@@ -136,6 +137,13 @@ public class PageComponent extends MobileComponent implements ITemplateGenerator
     	ordered.add(pos1, value);
     	ordered.remove(pos+1);
     	hasChanged = true;
+    	
+    	if (databaseObject instanceof UIStyle) {
+    		markStyleAsDirty();
+    	}
+    	else {
+    		markTemplateAsDirty();
+    	}
     }
     
     private void decreaseOrder(DatabaseObject databaseObject, Long after) throws EngineException {
@@ -158,6 +166,14 @@ public class PageComponent extends MobileComponent implements ITemplateGenerator
     	ordered.add(pos1+1, value);
     	ordered.remove(pos);
     	hasChanged = true;
+    	
+    	if (databaseObject instanceof UIStyle) {
+    		markStyleAsDirty();
+    	}
+    	else {
+    		markTemplateAsDirty();
+    	}
+    	
     }
     
 	public void increasePriority(DatabaseObject databaseObject) throws EngineException {
@@ -200,6 +216,15 @@ public class PageComponent extends MobileComponent implements ITemplateGenerator
 		uiComponent.setParent(this);
 		
         insertOrderedComponent(uiComponent,null);
+        
+        if (uiComponent.bNew) {
+        	if (uiComponent instanceof UIStyle) {
+        		markStyleAsDirty();
+        	}
+        	else {
+        		markTemplateAsDirty();
+        	}
+        }
 	}
 
 	public void removeUIComponent(UIComponent uiComponent) throws EngineException {
@@ -209,6 +234,13 @@ public class PageComponent extends MobileComponent implements ITemplateGenerator
 		uiComponent.setParent(null);
 		
         removeOrderedComponent(uiComponent.priority);
+        
+    	if (uiComponent instanceof UIStyle) {
+    		markStyleAsDirty();
+    	}
+    	else {
+    		markTemplateAsDirty();
+    	}
 	}
 
 	public List<UIComponent> getUIComponentList() {
@@ -268,7 +300,7 @@ public class PageComponent extends MobileComponent implements ITemplateGenerator
 		return computedTemplate;
 	}
 	
-	public synchronized void doComputeTemplate() {
+	private synchronized void doComputeTemplate() {
 		computedTemplate = computeTemplate();
 	}
 	
@@ -278,10 +310,59 @@ public class PageComponent extends MobileComponent implements ITemplateGenerator
 		Iterator<UIComponent> it = getUIComponentList().iterator();
 		while (it.hasNext()) {
 			UIComponent component = (UIComponent)it.next();
-			sb.append(component.computeTemplate())
-				.append(System.getProperty("line.separator"));
+			if (!(component instanceof UIStyle)) {
+				String tpl = component.computeTemplate();
+				if (!tpl.isEmpty()) {
+					sb.append(tpl).append(System.getProperty("line.separator"));
+				}
+			}
 		}
 		return sb.toString();
 	}
 
+	transient private String computedStyle = null;
+	
+	public String getComputedStyle() {
+		if (computedStyle == null) {
+			doComputeStyle();
+		}
+		return computedStyle;
+	}
+	
+	private synchronized void doComputeStyle() {
+		computedStyle = computeStyle();
+	}
+	
+	@Override
+	public String computeStyle() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("page-"+ getName().toLowerCase()).append(" {")
+			.append(System.getProperty("line.separator"));
+		
+		Iterator<UIComponent> it = getUIComponentList().iterator();
+		while (it.hasNext()) {
+			UIComponent component = (UIComponent)it.next();
+			if (component instanceof UIStyle) {
+				String tpl = component.computeTemplate();
+				if (!tpl.isEmpty()) {
+					sb.append(tpl).append(System.getProperty("line.separator"));
+				}
+			}
+		}
+		
+		sb.append("}")
+			.append(System.getProperty("line.separator"));
+		
+		return sb.toString();
+	}
+
+	public void markStyleAsDirty() throws EngineException {
+		doComputeStyle();
+		getProject().getMobileBuilder().pageStyleChanged(this);
+	}
+	
+	public void markTemplateAsDirty() throws EngineException {
+		doComputeTemplate();
+		getProject().getMobileBuilder().pageComputed(this);
+	}
 }

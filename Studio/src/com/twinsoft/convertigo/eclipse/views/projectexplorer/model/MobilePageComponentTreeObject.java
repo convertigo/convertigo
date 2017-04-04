@@ -140,17 +140,25 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 	public void hasBeenModified(boolean bModified) {
 		super.hasBeenModified(bModified);
 		if (bModified && !isInherited) {
-			markTemplateAsDirty();
+			//markTemplateAsDirty();
 		}
 	}
 		
 	protected void markTemplateAsDirty() {
 		PageComponent page = getObject();
 		try {
-			page.doComputeTemplate();
-			page.getProject().getMobileBuilder().pageComputed(page);
+			page.markTemplateAsDirty();
 		} catch (EngineException e) {
 			ConvertigoPlugin.logException(e,
-					"Error while writing the html template for page '" + page.getName() + "'");	}
+					"Error while writing the html file for page '" + page.getName() + "'");	}
+	}
+
+	protected void markStyleAsDirty() {
+		PageComponent page = getObject();
+		try {
+			page.markStyleAsDirty();
+		} catch (EngineException e) {
+			ConvertigoPlugin.logException(e,
+					"Error while writing the style file for page '" + page.getName() + "'");	}
 	}
 }
