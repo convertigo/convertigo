@@ -216,7 +216,7 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 			Iterator<UIComponent> it = getUIComponentList().iterator();
 			while (it.hasNext()) {
 				UIComponent component = (UIComponent)it.next();
-				if (component instanceof UIControlSource) {
+				if (component instanceof UIControlSource || component instanceof UIStyle) {
 					;// ignore
 				} else if (component instanceof UIAttribute) {
 					attributes.append(component.computeTemplate());
@@ -225,7 +225,7 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 				}
 			}
 			
-			String attrId = " id=\"tag"+ priority +"\"";
+			String attrId = " id=\""+ getId() +"\"";
 			
 			StringBuilder sb = new StringBuilder();
 			sb.append("<").append(getTagName())

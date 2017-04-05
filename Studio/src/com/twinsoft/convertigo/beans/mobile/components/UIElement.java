@@ -74,7 +74,7 @@ public class UIElement extends UIComponent implements IStyleGenerator {
 	
 	@Override
 	public void addUIComponent(UIComponent uiComponent) throws EngineException {
-		if (isSelfClose() && !(uiComponent instanceof UIAttribute)) {
+		if (isSelfClose() && !(uiComponent instanceof UIAttribute || uiComponent instanceof UIStyle)) {
 			throw new EngineException("You cannot add component to this self-closing tag");
 		}
 		else {
