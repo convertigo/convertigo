@@ -26,6 +26,7 @@ import org.eclipse.jface.viewers.Viewer;
 
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -63,7 +64,8 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 
 	@Override
 	public void launchEditor(String editorType) {
-		//openPageEditor();
+		ApplicationComponentEditor editor = ((MobileApplicationComponentTreeObject) getParentDatabaseObjectTreeObject()).activeEditor();
+		editor.selectPage(getObject().getName());
 	}
 	
 	@Override

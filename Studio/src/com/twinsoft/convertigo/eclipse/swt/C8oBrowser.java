@@ -26,13 +26,27 @@ public class C8oBrowser extends Composite {
 		BrowserPreferences.setChromiumSwitches("--remote-debugging-port=" + port);
 	}
 
-	BrowserView browserView;
-	
+	private BrowserView browserView;
+
 	public C8oBrowser(Composite parent, int style) {
 		super(parent, style | SWT.EMBEDDED | SWT.NO_BACKGROUND);
 	    Frame frame = SWT_AWT.new_Frame(this);
 		browserView = new BrowserView(new Browser());
 		frame.add(browserView);
+	}
+	
+	
+	
+	@Override
+	public void dispose() {
+		getBrowser().dispose();
+		super.dispose();
+	}
+
+
+
+	public BrowserView getBrowserView() {
+		return browserView;
 	}
 
 	public Browser getBrowser() {
@@ -52,39 +66,30 @@ public class C8oBrowser extends Composite {
 			
 			@Override
 			public void onStartLoadingFrame(StartLoadingEvent event) {
-				// TODO Auto-generated method stub
-				
 			}
 			
 			@Override
 			public void onProvisionalLoadingFrame(ProvisionalLoadingEvent event) {
-				// TODO Auto-generated method stub
-				
 			}
 			
 			@Override
 			public void onFinishLoadingFrame(FinishLoadingEvent event) {
-				// TODO Auto-generated method stub
-				
+				progressListener.completed(null);
 			}
 			
 			@Override
 			public void onFailLoadingFrame(FailLoadingEvent event) {
-				// TODO Auto-generated method stub
 				
 			}
 			
 			@Override
 			public void onDocumentLoadedInMainFrame(LoadEvent event) {
-				progressListener.completed(null);
 			}
 			
 			@Override
 			public void onDocumentLoadedInFrame(FrameLoadEvent event) {
-				// TODO Auto-generated method stub
 				
 			}
 		});
 	}
-
 }

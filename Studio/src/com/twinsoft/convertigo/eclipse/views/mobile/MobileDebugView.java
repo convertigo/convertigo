@@ -35,6 +35,7 @@ import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 
 public class MobileDebugView extends ViewPart implements IPartListener2 {
 	
+	C8oBrowser c8oBrowser;
 	Browser browser;
 	
 	public MobileDebugView() {
@@ -44,34 +45,39 @@ public class MobileDebugView extends ViewPart implements IPartListener2 {
 	@Override
 	public void dispose() {
 		getSite().getPage().removePartListener(this);
-		browser.dispose();
+		c8oBrowser.dispose();
 		super.dispose();
 	}
 
 	@Override
 	public void createPartControl(Composite parent) {
-		browser = new C8oBrowser(parent, SWT.NONE).getBrowser();
+		c8oBrowser = new C8oBrowser(parent, SWT.NONE);
+		browser = c8oBrowser.getBrowser();
 		
 		browser.loadHTML("<body>please select a mobile application editor</body>");
 		
-		
+		onActivated(getSite().getPage().getActiveEditor());
 		getSite().getPage().addPartListener(this);
 	}
 
 	@Override
 	public void setFocus() {
-		
+		c8oBrowser.getBrowserView().grabFocus();
 	}
 
-	@Override
-	public void partActivated(IWorkbenchPartReference partRef) {
-		IWorkbenchPart part = partRef.getPart(false);
+	private void onActivated(IWorkbenchPart part) {
 		if (part instanceof ApplicationComponentEditor) {
 			String url = ((ApplicationComponentEditor) part).getDebugUrl();
 			if (url != null && !url.equals(browser.getURL())) {
 				browser.loadURL(url);
 			}
 		}
+	}
+	
+	@Override
+	public void partActivated(IWorkbenchPartReference partRef) {
+		IWorkbenchPart part = partRef.getPart(false);
+		onActivated(part);
 	}
 
 	@Override
@@ -107,7 +113,7 @@ public class MobileDebugView extends ViewPart implements IPartListener2 {
 	@Override
 	public void partVisible(IWorkbenchPartReference partRef) {
 		// TODO Auto-generated method stub
-		
+		partRef.toString();
 	}
 
 	@Override

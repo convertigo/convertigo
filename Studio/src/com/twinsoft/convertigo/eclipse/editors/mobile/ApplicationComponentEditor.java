@@ -41,6 +41,7 @@ import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.EditorPart;
 
+import com.teamdev.jxbrowser.chromium.Browser;
 import com.teamdev.jxbrowser.chromium.dom.By;
 import com.teamdev.jxbrowser.chromium.dom.DOMDocument;
 import com.teamdev.jxbrowser.chromium.dom.DOMElement;
@@ -53,8 +54,10 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 
 	private ProjectExplorerView projectExplorerView = null;
 	private ApplicationComponentEditorInput applicationEditorInput;
-	private com.teamdev.jxbrowser.chromium.Browser browser;
-	private boolean doOutput = true;
+	private C8oBrowser c8oBrowser;
+	private Browser browser;
+	private String baseUrl = null;
+	private String pageName = null;
 	private Collection<Process> processes = new LinkedList<>();
 	
 	public ApplicationComponentEditor() {
@@ -70,9 +73,8 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 		if (projectExplorerView != null) {
 			projectExplorerView.removeSelectionChangedListener(this);
 		}
-		if (browser != null) {
-			browser.dispose();
-		}
+		
+		c8oBrowser.dispose();
 		
 		for (Process p: processes) {
 			p.destroyForcibly();
@@ -104,7 +106,7 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 		setSite(site);
 		setInput(input);
 		
-		applicationEditorInput = (ApplicationComponentEditorInput)input;
+		applicationEditorInput = (ApplicationComponentEditorInput) input;
 		setPartName(applicationEditorInput.application.getProject().getName() + " [A: " + applicationEditorInput.application.getName()+"]");
 	}
 
@@ -125,16 +127,15 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 	}
 
 	private void createBrowser(Composite parent) {
-		browser = new C8oBrowser(parent, SWT.NONE).getBrowser();
+		c8oBrowser = new C8oBrowser(parent, SWT.NONE);
+		browser = c8oBrowser.getBrowser();
 		
 		getSite().getWorkbenchWindow().getActivePage().activate(this);
 	}
 
 	@Override
 	public void setFocus() {
-//		if (browser != null && !browser.isDisposed()) {
-//			browser.setFocus();
-//		}
+		c8oBrowser.getBrowserView().grabFocus();
 	}
 
 	public void refreshBrowser() {
@@ -177,7 +178,7 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 	}
 	
 	private void appendOutput(String msg) {
-		if (doOutput) {
+		if (baseUrl == null) {
 			DOMDocument doc = browser.getDocument();
 			DOMElement body = doc.findElement(By.tagName("body"));
 			body.appendChild(doc.createElement("br"));
@@ -194,7 +195,7 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 			File ionicDir = new File(applicationEditorInput.application.getProject().getDirPath() + "/_private/ionic");
 			if (!new File(ionicDir, "node_modules").exists()) {
 				try {
-					ProcessBuilder pb = new ProcessBuilder("npm.cmd", "install", "--verbose");
+					ProcessBuilder pb = new ProcessBuilder("npm.cmd", "install", "--progress=false");
 					pb.redirectErrorStream(true);
 					pb.directory(ionicDir);
 					Process p = pb.start();
@@ -218,13 +219,13 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 				processes.add(p);
 				BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
 				String line;
-				Pattern isServe = Pattern.compile(".*?server running: (http.*)");
+				Pattern isServe = Pattern.compile(".*?server running: (http\\S*).*");
 				while ((line = br.readLine()) != null) {
 					appendOutput(line);
 					Matcher m = isServe.matcher(line);
 					if (m.matches()) {
-						doOutput = false;
-						browser.loadURL(m.group(1));
+						baseUrl = m.group(1);
+						doLoad();
 					}
 				}
 				appendOutput("\\o/");
@@ -235,10 +236,25 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 		});
 	}
 
+	private void doLoad() {
+		if (baseUrl != null) {
+			String url = baseUrl;
+			if (pageName != null) {
+				url += "#/" + pageName;
+			}
+			browser.loadURL(url);
+		}
+	}
+	
 	public String getDebugUrl() {
 		if (browser != null) {
 			return browser.getRemoteDebuggingURL();
 		}
 		return null;
+	}
+	
+	public void selectPage(String pageName) {
+		this.pageName = pageName;
+		doLoad();
 	}
 }
