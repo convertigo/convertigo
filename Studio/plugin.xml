@@ -82,11 +82,11 @@
             name="Xml sequence Editor">
       </editor>
       <editor
-            class="com.twinsoft.convertigo.eclipse.editors.mobile.PageComponentEditor"
+            class="com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor"
             default="false"
             icon="icons/convertigo_doc_16x16.gif"
-            id="com.twinsoft.convertigo.eclipse.editors.mobile.PageComponentEditor"
-            name="Page Editor">
+            id="com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor"
+            name="Application Editor">
       </editor>
    </extension>
    <extension
@@ -806,6 +806,12 @@
          </view>
          <view
                id="com.twinsoft.convertigo.eclipse.views.mobile.MobilePaletteView"
+               minimized="false"
+               relationship="stack"
+               relative="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView">
+         </view>
+         <view
+               id="com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView"
                minimized="false"
                relationship="stack"
                relative="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView">
@@ -3548,6 +3554,14 @@
             icon="icons/palette_16x16.png"
             id="com.twinsoft.convertigo.eclipse.views.mobile.MobilePaletteView"
             name="Mobile Palette"
+            restorable="true">
+      </view>
+      <view
+            category="convertigo"
+            class="com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView"
+            icon="icons/studio/debug.gif"
+            id="com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView"
+            name="Mobile Debug"
             restorable="true">
       </view>
       <!--view

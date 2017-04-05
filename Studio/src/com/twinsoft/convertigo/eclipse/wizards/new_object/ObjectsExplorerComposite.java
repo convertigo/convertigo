@@ -38,7 +38,6 @@ import java.util.regex.Pattern;
 
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.ControlAdapter;
@@ -62,7 +61,7 @@ import org.eclipse.swt.widgets.ExpandItem;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboBean;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboBeans;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboCategory;
@@ -91,7 +90,7 @@ public class ObjectsExplorerComposite extends Composite {
 	
 	protected WizardPage wizardPage = null;
 	private Composite compositeObjects;
-	private Browser helpBrowser = null;
+	private C8oBrowser helpBrowser = null;
 	public ScrolledComposite scrolledComposite;
 	protected Composite composite = null;
 	protected Composite [] composites = null;
@@ -356,7 +355,7 @@ public class ObjectsExplorerComposite extends Composite {
 		scrolledComposite = new ScrolledComposite(this, SWT.V_SCROLL);
 		scrolledComposite.setLayoutData(gridData);
 		
-		helpBrowser = new Browser(this, SWT.BORDER | SWT.MULTI | SWT.WRAP | (Engine.isLinux() ? SWT.MOZILLA : SWT.NONE));
+		helpBrowser = new C8oBrowser(this, SWT.BORDER | SWT.MULTI | SWT.WRAP);
 		gridData = new GridData();
 		gridData.horizontalAlignment = GridData.FILL;
 		gridData.verticalAlignment = GridData.FILL;

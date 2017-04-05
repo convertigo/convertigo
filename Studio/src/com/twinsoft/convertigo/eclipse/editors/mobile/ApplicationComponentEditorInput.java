@@ -26,19 +26,19 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IPersistableElement;
 
-import com.twinsoft.convertigo.beans.core.Project;
-import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
+import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 
-public class PageComponentEditorInput implements IEditorInput {
+public class ApplicationComponentEditorInput implements IEditorInput {
 
-	PageComponent page;
+	ApplicationComponent application;
 	private String qname;
 	
-	public PageComponentEditorInput(PageComponent page) {
-		this.page = page;
-		this.qname = page.getQName();
+	public ApplicationComponentEditorInput(ApplicationComponent application) {
+		this.application = application;
+		this.qname = application.getQName();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public Object getAdapter(@SuppressWarnings("rawtypes") Class adapter) {
 		return null;
@@ -56,7 +56,7 @@ public class PageComponentEditorInput implements IEditorInput {
 
 	@Override
 	public String getName() {
-		return page.getName();
+		return application.getName();
 	}
 
 	public String getQName() {
@@ -70,15 +70,10 @@ public class PageComponentEditorInput implements IEditorInput {
 
 	@Override
 	public String getToolTipText() {
-		return page.getProject().getName() + "/" + page.getParent().getName() + "/" + page.getName();
+		return application.getProject().getName() + "/" + application.getParent().getName() + "/" + application.getName();
 	}
 	
-	public boolean is(PageComponent page) {
-		return page.equals(this.page) && page.getQName().equals(qname);
+	public boolean is(ApplicationComponent application) {
+		return application.equals(this.application) && application.getQName().equals(qname);
 	}
-	
-	public boolean is(Project project) {
-		return qname.startsWith(project.getQName());
-	}
-
 }

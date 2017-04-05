@@ -64,7 +64,6 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
-import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.browser.ProgressEvent;
 import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.events.SelectionEvent;
@@ -125,6 +124,7 @@ import com.twinsoft.convertigo.eclipse.dialogs.ProjectDeployErrorDialog;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditorInput;
+import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ClipboardManager;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectManager;
@@ -639,9 +639,9 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 
 	private void initializeBrowser(Composite parent, ProgressListener progressListener) throws IOException {
 		
-		final Browser browser;
+		final C8oBrowser browser;
 		try {
-			browser = new Browser(parent, Engine.isLinux() ? SWT.MOZILLA : SWT.NONE);
+			browser = new C8oBrowser(parent, SWT.NONE);
 		} catch (SWTError e) {
 			System.out.println("Could not instantiate Browser: " + e.getMessage());
 			return;
@@ -1633,6 +1633,10 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		} else {
 			logInfo("Cannot run the requestable of project " + projectName + ", the embedded tomcat is not correctly started.");
 		}
+	}
+	
+	public EmbeddedTomcat getEmbeddedTomcat() {
+		return embeddedTomcat;
 	}
 	
 	static private Properties decodePsc() throws PscException {

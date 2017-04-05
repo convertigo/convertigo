@@ -128,6 +128,8 @@
 	<classpathentry kind="lib" path="lib/jettison-1.3.4.jar"/>
 	<classpathentry kind="lib" path="lib/jt400.jar"/>
 	<classpathentry kind="lib" path="lib/jtds-1.2.2.jar"/>
+	<classpathentry kind="lib" path="lib/jxbrowser.jar"/>
+	<classpathentry kind="lib" path="lib/jxbrowser-license.jar"/>
 	<classpathentry kind="lib" path="lib/mariadb-java-client-1.1.7.jar"/>
 	<classpathentry kind="lib" path="lib/mysql-connector.jar"/>
 	<classpathentry kind="lib" path="lib/ojdbc5.jar"/>

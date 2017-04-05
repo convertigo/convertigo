@@ -6,7 +6,6 @@ import java.util.Collection;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
@@ -29,7 +28,7 @@ import com.twinsoft.convertigo.beans.transactions.couchdb.PostDocumentTransactio
 import com.twinsoft.convertigo.beans.transactions.couchdb.PostUpdateTransaction;
 import com.twinsoft.convertigo.beans.transactions.couchdb.PutUpdateTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
-import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.engine.enums.CouchExtraVariable;
 import com.twinsoft.convertigo.engine.enums.CouchParam;
 
@@ -219,7 +218,7 @@ public class CouchVariablesComposite extends ScrolledComposite {
 			labelName.setFont(font);
 			labelName.setText((name.startsWith("p_") || name.startsWith("q_") ? name.substring(2) : name ));
 			
-			Browser browserDescription = new Browser(choosenGroup, SWT.MULTI | SWT.WRAP | (Engine.isLinux() ? SWT.MOZILLA : SWT.NONE));
+			C8oBrowser browserDescription = new C8oBrowser(choosenGroup, SWT.MULTI | SWT.WRAP);
 			browserDescription.setLayoutData(new GridData(GridData.FILL, GridData.CENTER, true, false));
 			browserDescription.setText("<html>" +
 					"<head>" +

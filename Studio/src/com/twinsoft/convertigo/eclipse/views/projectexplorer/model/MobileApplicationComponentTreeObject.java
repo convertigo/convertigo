@@ -23,13 +23,20 @@
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.engine.EngineException;
 
-public class MobileApplicationComponentTreeObject extends MobileComponentTreeObject {
+public class MobileApplicationComponentTreeObject extends MobileComponentTreeObject implements IEditableTreeObject {
 	
 	public MobileApplicationComponentTreeObject(Viewer viewer, ApplicationComponent object) {
 		super(viewer, object);
@@ -77,7 +84,47 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 	protected void markTemplateAsDirty() {
 		;// TODO
 	}
-	
+
+
+	@Override
+	public void launchEditor(String editorType) {
+		ApplicationComponent application = (ApplicationComponent) getObject();
+		synchronized (application) {
+			IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+			if (activePage != null) {
+				IEditorPart editorPart = null;
+				IEditorReference[] editorRefs = activePage.getEditorReferences();
+				for (int i = 0; i < editorRefs.length; i++) {
+					IEditorReference editorRef = (IEditorReference) editorRefs[i];
+					try {
+						IEditorInput editorInput = editorRef.getEditorInput();
+						if ((editorInput != null) && (editorInput instanceof ApplicationComponentEditorInput)) {
+							if (((ApplicationComponentEditorInput) editorInput).is(application)) {
+								editorPart = editorRef.getEditor(false);
+								break;
+							}
+						}
+					} catch(PartInitException e) {
+					}
+				}
+
+
+
+				if (editorPart != null) {
+					activePage.activate(editorPart);
+				} else {
+					try {
+						editorPart = activePage.openEditor(new ApplicationComponentEditorInput(application),
+								"com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor");
+					} catch (PartInitException e) {
+						ConvertigoPlugin.logException(e,
+								"Error while loading the page editor '"
+										+ application.getName() + "'");
+					}
+				}
+			}
+		}
+	}
 	protected void markStyleAsDirty() {
 		ApplicationComponent ac = getObject();
 		try {

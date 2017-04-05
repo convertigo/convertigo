@@ -33,7 +33,6 @@ import java.util.regex.Pattern;
 
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.dnd.DND;
@@ -66,7 +65,7 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSource;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSourceTransfer;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardAction;
-import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 
 public class ComponentExplorerComposite extends Composite {
 	static private Pattern removeTag = Pattern.compile("</?\\w+ ?/?>");
@@ -86,7 +85,7 @@ public class ComponentExplorerComposite extends Composite {
 	protected Map<CLabel, Object> objectsMap = null;
 	
 	protected WizardPage wizardPage = null;
-	private Browser helpBrowser = null;
+	private C8oBrowser helpBrowser = null;
 	public ScrolledComposite scrolledComposite;
 	protected Composite composite = null;
 	protected Composite [] composites = null;
@@ -326,7 +325,7 @@ public class ComponentExplorerComposite extends Composite {
 		bar = new ExpandBar(scrolledComposite, SWT.NONE);
 		bar.setSpacing(8);
 		
-		helpBrowser = new Browser(this, SWT.BORDER | SWT.MULTI | SWT.WRAP | (Engine.isLinux() ? SWT.MOZILLA : SWT.NONE));
+		helpBrowser = new C8oBrowser(this, SWT.BORDER | SWT.MULTI | SWT.WRAP);
 		gridData = new GridData();
 		gridData.horizontalAlignment = GridData.FILL;
 		gridData.verticalAlignment = GridData.FILL;
