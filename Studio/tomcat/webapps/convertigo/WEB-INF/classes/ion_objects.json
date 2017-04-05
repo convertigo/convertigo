@@ -1184,7 +1184,7 @@
             ]
           },
           "ColumnsXSmall": {
-            "attr": "col-xs-%%",
+            "attr": "col-%%",
             "label": "Span (X-Small)",
             "description": "Number of slots this column spans on for Xtra small devices (Witdh <  576px)",
             "category": "@Widths",
