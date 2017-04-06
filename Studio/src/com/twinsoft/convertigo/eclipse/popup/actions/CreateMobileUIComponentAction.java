@@ -27,13 +27,10 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.mobile.components.UIAttribute;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlAttr;
-import com.twinsoft.convertigo.beans.mobile.components.UICustom;
-import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
-import com.twinsoft.convertigo.beans.mobile.components.UIText;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+import com.twinsoft.convertigo.engine.ActionModel;
+import com.twinsoft.convertigo.engine.DatabaseObjectsAction;
 
 public class CreateMobileUIComponentAction extends MobileComponentCreateAction {
 	public CreateMobileUIComponentAction() {
@@ -47,12 +44,9 @@ public class CreateMobileUIComponentAction extends MobileComponentCreateAction {
 			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 			TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
 			if (treeObject instanceof DatabaseObjectTreeObject) {
-				DatabaseObject dbo = (DatabaseObject)treeObject.getObject();
-				enable = !(dbo instanceof UICustom || dbo instanceof UIText 
-							|| dbo instanceof UIAttribute || dbo instanceof UIStyle);
-				if (!enable && dbo instanceof UIControlAttr) {
-					enable = true;
-				}
+				DatabaseObject dbo = (DatabaseObject) treeObject.getObject();
+				ActionModel actionModel = DatabaseObjectsAction.selectionChanged(getClass().getName(), dbo);
+				enable = actionModel.isEnabled;
 			}
 			action.setEnabled(enable);
 		}

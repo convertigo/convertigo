@@ -46,6 +46,8 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+import com.twinsoft.convertigo.engine.ActionModel;
+import com.twinsoft.convertigo.engine.DatabaseObjectsAction;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -61,13 +63,9 @@ public class ChangeToXMLElementStepAction extends MyAbstractAction {
 			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 			TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
 			if (treeObject instanceof DatabaseObjectTreeObject) {
-				DatabaseObject dbo = (DatabaseObject)treeObject.getObject();
-				DatabaseObject dboParent = dbo.getParent();
-				if (DatabaseObjectsManager.acceptDatabaseObjects(dboParent, new XMLElementStep())) {
-					enable = (dbo instanceof XMLConcatStep) ||
-								(dbo instanceof XMLAttributeStep) ||
-									(dbo instanceof ElementStep);
-				}
+				DatabaseObject dbo = (DatabaseObject) treeObject.getObject();
+				ActionModel actionModel = DatabaseObjectsAction.selectionChanged(getClass().getName(), dbo);
+				enable = actionModel.isEnabled;
 			}
 			action.setEnabled(enable);
 		}

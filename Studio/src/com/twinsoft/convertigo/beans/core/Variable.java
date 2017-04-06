@@ -272,5 +272,18 @@ public abstract class Variable extends DatabaseObject implements IMultiValued, I
 			label = getLabel();
 		} catch (EngineException e) {}
 		return super.toString() + label;
-	}	
+	}
+	
+	@Override
+	public boolean testAttribute(String name, String value) {
+		if (name.equals("isChildOfJavelinTransaction")) {
+			return false;
+		}
+		if (name.equals("isMultiValued")) {
+			Boolean bool = Boolean.valueOf(value);
+			return bool.equals(Boolean.valueOf(isMultiValued()));
+		}
+		return super.testAttribute(name, value);
+	}
+
 }

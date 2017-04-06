@@ -53,8 +53,6 @@ import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.Replacement;
 
 public class ConnectorTreeObject extends DatabaseObjectTreeObject {
-
-	private boolean byDefault = false;
 	
 	public ConnectorTreeObject(Viewer viewer, Connector object) {
 		this(viewer, object, false);
@@ -72,10 +70,8 @@ public class ConnectorTreeObject extends DatabaseObjectTreeObject {
 
 	@Override
 	public boolean testAttribute(Object target, String name, String value) {
-		if (name.equals("isDefault")) {
-			byDefault = getObject().isDefault;
-			Boolean bool = Boolean.valueOf(value);
-			return bool.equals(Boolean.valueOf(byDefault));
+		if (getObject().testAttribute(name, value)) {
+			return true;
 		}
 		return super.testAttribute(target, name, value);
 	}

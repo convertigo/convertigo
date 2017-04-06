@@ -34,10 +34,17 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
+import com.twinsoft.convertigo.beans.statements.HTTPStatement;
+import com.twinsoft.convertigo.beans.statements.IThenElseStatementContainer;
+import com.twinsoft.convertigo.beans.statements.IfStatement;
+import com.twinsoft.convertigo.beans.statements.IfThenElseStatement;
+import com.twinsoft.convertigo.beans.statements.IfXpathExistsStatement;
+import com.twinsoft.convertigo.beans.statements.IfXpathExistsThenElseStatement;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 /**
@@ -229,8 +236,7 @@ public abstract class Statement extends DatabaseObject implements IEnableAble {
 		super.preconfigure(element);
 		
 		String version = element.getAttribute("version");
-		
-//		if (VersionUtils.compare(version, "7.5.0") < 0) {
+		if (VersionUtils.compare(version, "7.5.0") < 0) {
 			NodeList properties = element.getElementsByTagName("property");
 			
 			Element propName = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "isEnable");
@@ -238,9 +244,9 @@ public abstract class Statement extends DatabaseObject implements IEnableAble {
 				propName.setAttribute("name", "isEnabled");
 				hasChanged = true;
 			}
-
-//				Engine.logBeans.warn("[RequestableStep] The object \""+objectName+"\" has been updated to version 4.6.0 (property \"variablesDefinition\" changed to \"orderedVariables\")");
-//		}
+			
+			Engine.logBeans.warn("[Statement] The object \"" + getName() + "\" has been updated to version 7.5.0 (property \"isEnable\" changed to \"isEnabled\")");
+		}
 	}
 	
 	/* (non-Javadoc)
@@ -291,4 +297,29 @@ public abstract class Statement extends DatabaseObject implements IEnableAble {
 		
 		return element;
 	}
+
+	@Override
+	public boolean testAttribute(String name, String value) {
+		if (name.equals("isEnable")) {
+			Boolean bool = Boolean.valueOf(value);
+			return bool.equals(Boolean.valueOf(isEnabled()));
+		}
+		if (name.equals("isHttpStatement")) {
+			Boolean bool = Boolean.valueOf(value);
+			return bool.equals(Boolean.valueOf(this instanceof HTTPStatement));
+		}
+		if (name.equals("isThenElseStatement")) {
+			Boolean bool = Boolean.valueOf(value);
+			return bool.equals(Boolean.valueOf(this instanceof IThenElseStatementContainer));
+		}
+		if (name.equals("canChangeTo")) {
+			Boolean bool = Boolean.valueOf(value);
+			return 	bool.equals(Boolean.valueOf(this instanceof IfStatement)) ||
+					bool.equals(Boolean.valueOf(this instanceof IfThenElseStatement)) ||
+					bool.equals(Boolean.valueOf(this instanceof IfXpathExistsStatement)) ||
+					bool.equals(Boolean.valueOf(this instanceof IfXpathExistsThenElseStatement));
+		}
+		return super.testAttribute(name, value);
+	}
+
 }

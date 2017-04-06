@@ -26,13 +26,12 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 
-import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.ScreenClass;
-import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+import com.twinsoft.convertigo.engine.ActionModel;
+import com.twinsoft.convertigo.engine.DatabaseObjectsAction;
 
 public class CreateSheetAction extends DatabaseObjectCreateAction {
 
@@ -46,12 +45,13 @@ public class CreateSheetAction extends DatabaseObjectCreateAction {
 			super.selectionChanged(action, selection);
 			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 			TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
-			if (treeObject instanceof ObjectsFolderTreeObject)
+			if (treeObject instanceof ObjectsFolderTreeObject) {
 				enable = ((ObjectsFolderTreeObject)treeObject).folderType == ObjectsFolderTreeObject.FOLDER_TYPE_SHEETS;
+			}
 			else if (treeObject instanceof DatabaseObjectTreeObject) {
-				DatabaseObject dbo = (DatabaseObject)treeObject.getObject();
-				if ((dbo instanceof ScreenClass) || (dbo instanceof Transaction))
-					enable = !(dbo.getConnector() instanceof SiteClipperConnector);
+				DatabaseObject dbo = (DatabaseObject) treeObject.getObject();
+				ActionModel actionModel = DatabaseObjectsAction.selectionChanged(getClass().getName(), dbo);
+				enable = actionModel.isEnabled;
 			}
 			action.setEnabled(enable);
 		}

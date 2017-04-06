@@ -703,4 +703,15 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer, ICon
 		
 		return rep;
 	}
+
+	@Override
+	public boolean testAttribute(String name, String value) {
+		if (name.equals("isDefault")) {
+			ScreenClass dsc = ((IScreenClassContainer<?>) getConnector()).getDefaultScreenClass();
+			Boolean bool = Boolean.valueOf(value);
+			return bool.equals(Boolean.valueOf(this.equals(dsc)));
+		}
+		return super.testAttribute(name, value);
+	}
+
 }

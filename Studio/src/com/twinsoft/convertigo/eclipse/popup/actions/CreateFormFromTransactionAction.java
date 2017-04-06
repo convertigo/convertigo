@@ -53,13 +53,14 @@ import com.twinsoft.convertigo.beans.core.Sheet;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.statements.HandlerStatement;
-import com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TransactionTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+import com.twinsoft.convertigo.engine.ActionModel;
+import com.twinsoft.convertigo.engine.DatabaseObjectsAction;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.requesters.DefaultRequester;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -72,13 +73,12 @@ public class CreateFormFromTransactionAction extends MyAbstractAction {
 
 	public void selectionChanged(IAction action, ISelection selection) {
 		try {
-			boolean enable = false;
 			super.selectionChanged(action, selection);
 			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 			TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
-			Object ob = treeObject.getObject();
-			enable = (ob instanceof TransactionWithVariables) && !(ob instanceof SiteClipperTransaction);
-			action.setEnabled(enable);
+			DatabaseObject dbo = (DatabaseObject) treeObject.getObject();
+			ActionModel actionModel = DatabaseObjectsAction.selectionChanged(getClass().getName(), dbo);
+			action.setEnabled(actionModel.isEnabled);
 		}
 		catch (Exception e) {}
 	}

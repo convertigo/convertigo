@@ -175,4 +175,13 @@ public abstract class RouteActionComponent extends MobileComponent implements IR
 		return new String[0];
 	}
 	
+	@Override
+	public boolean testAttribute(String name, String value) {
+		if (name.equals("isEnabled")) {
+			Boolean bool = Boolean.valueOf(value);
+			return bool.equals(Boolean.valueOf(isEnabled()));
+		}
+		return super.testAttribute(name, value);
+	}
+
 }

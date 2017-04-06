@@ -26,9 +26,11 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 
-import com.twinsoft.convertigo.beans.core.ITestCaseContainer;
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+import com.twinsoft.convertigo.engine.ActionModel;
+import com.twinsoft.convertigo.engine.DatabaseObjectsAction;
 
 public class CreateTestCaseAction extends DatabaseObjectCreateAction {
 
@@ -42,10 +44,14 @@ public class CreateTestCaseAction extends DatabaseObjectCreateAction {
 			super.selectionChanged(action, selection);
 			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 			TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
-			if (treeObject instanceof ObjectsFolderTreeObject)
+			if (treeObject instanceof ObjectsFolderTreeObject) {
 				enable = ((ObjectsFolderTreeObject)treeObject).folderType == ObjectsFolderTreeObject.FOLDER_TYPE_TESTCASES;
-			else
-				enable = treeObject.getObject() instanceof ITestCaseContainer;
+			}
+			else {
+				DatabaseObject dbo = (DatabaseObject) treeObject.getObject();
+				ActionModel actionModel = DatabaseObjectsAction.selectionChanged(getClass().getName(), dbo);
+				enable = actionModel.isEnabled;
+			}
 			action.setEnabled(enable);
 		}
 		catch (Exception e) {}

@@ -30,12 +30,15 @@ import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobilePageComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+import com.twinsoft.convertigo.engine.ActionModel;
+import com.twinsoft.convertigo.engine.DatabaseObjectsAction;
 
 public class SetMobileRootPageAction extends MyAbstractAction {
 
@@ -48,8 +51,9 @@ public class SetMobileRootPageAction extends MyAbstractAction {
 		IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 		TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
 		if (treeObject instanceof MobilePageComponentTreeObject) {
-			PageComponent page = ((MobilePageComponentTreeObject)treeObject).getObject();
-			action.setChecked(page.isRoot);
+			DatabaseObject dbo = (DatabaseObject) treeObject.getObject();
+			ActionModel actionModel = DatabaseObjectsAction.selectionChanged(getClass().getName(), dbo);
+			action.setChecked(actionModel.isChecked);
 		}
 	}
 	

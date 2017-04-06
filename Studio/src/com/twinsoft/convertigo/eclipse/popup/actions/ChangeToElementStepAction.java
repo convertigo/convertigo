@@ -44,6 +44,8 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
+import com.twinsoft.convertigo.engine.ActionModel;
+import com.twinsoft.convertigo.engine.DatabaseObjectsAction;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -59,12 +61,9 @@ public class ChangeToElementStepAction extends MyAbstractAction {
 			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 			TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
 			if (treeObject instanceof DatabaseObjectTreeObject) {
-				DatabaseObject dbo = (DatabaseObject)treeObject.getObject();
-				DatabaseObject dboParent = dbo.getParent();
-				if (DatabaseObjectsManager.acceptDatabaseObjects(dboParent, new ElementStep())) {
-					enable = (dbo instanceof AttributeStep) ||
-									(dbo instanceof XMLElementStep);
-				}
+				DatabaseObject dbo = (DatabaseObject) treeObject.getObject();
+				ActionModel actionModel = DatabaseObjectsAction.selectionChanged(getClass().getName(), dbo);
+				enable = actionModel.isEnabled;
 			}
 			action.setEnabled(enable);
 		}

@@ -39,25 +39,9 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.Transaction;
-import com.twinsoft.convertigo.beans.steps.AttributeStep;
-import com.twinsoft.convertigo.beans.steps.ElementStep;
-import com.twinsoft.convertigo.beans.steps.IThenElseContainer;
-import com.twinsoft.convertigo.beans.steps.IfExistStep;
-import com.twinsoft.convertigo.beans.steps.IfExistThenElseStep;
-import com.twinsoft.convertigo.beans.steps.IfFileExistStep;
-import com.twinsoft.convertigo.beans.steps.IfFileExistThenElseStep;
-import com.twinsoft.convertigo.beans.steps.IfStep;
-import com.twinsoft.convertigo.beans.steps.IfThenElseStep;
-import com.twinsoft.convertigo.beans.steps.IsInStep;
-import com.twinsoft.convertigo.beans.steps.IsInThenElseStep;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
-import com.twinsoft.convertigo.beans.steps.SimpleSourceStep;
 import com.twinsoft.convertigo.beans.steps.SimpleStep;
-import com.twinsoft.convertigo.beans.steps.SourceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
-import com.twinsoft.convertigo.beans.steps.XMLAttributeStep;
-import com.twinsoft.convertigo.beans.steps.XMLConcatStep;
-import com.twinsoft.convertigo.beans.steps.XMLElementStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptStepEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.xml.XMLSequenceStepEditorInput;
@@ -328,43 +312,8 @@ public class StepTreeObject extends DatabaseObjectTreeObject implements INamedSo
 
 	@Override
 	public boolean testAttribute(Object target, String name, String value) {
-		if (name.equals("isEnable")) {
-			Boolean bool = Boolean.valueOf(value);
-			return bool.equals(Boolean.valueOf(isEnabled()));
-		}
-		if (name.equals("isTransactionStep")) {
-			Boolean bool = Boolean.valueOf(value);
-			return bool.equals(Boolean.valueOf(getObject() instanceof TransactionStep));
-		}
-		if (name.equals("isSequenceStep")) {
-			Boolean bool = Boolean.valueOf(value);
-			return bool.equals(Boolean.valueOf(getObject() instanceof SequenceStep));
-		}
-		if (name.equals("isThenElseStep")) {
-			Boolean bool = Boolean.valueOf(value);
-			return bool.equals(Boolean.valueOf(getObject() instanceof IThenElseContainer));
-		}
-		if (name.equals("workOnSource")) {
-			Boolean bool = Boolean.valueOf(value);
-			return bool == getObject().workOnSource();
-		}
-		if (name.equals("canChangeTo")) {
-			Boolean bool = Boolean.valueOf(value);
-			return 	bool.equals(Boolean.valueOf(getObject() instanceof IfStep)) ||
-					bool.equals(Boolean.valueOf(getObject() instanceof IfThenElseStep)) ||
-					bool.equals(Boolean.valueOf(getObject() instanceof IsInStep)) ||
-					bool.equals(Boolean.valueOf(getObject() instanceof IsInThenElseStep)) ||
-					bool.equals(Boolean.valueOf(getObject() instanceof IfExistStep)) ||
-					bool.equals(Boolean.valueOf(getObject() instanceof IfExistThenElseStep)) || 
-					bool.equals(Boolean.valueOf(getObject() instanceof IfFileExistStep)) ||
-					bool.equals(Boolean.valueOf(getObject() instanceof IfFileExistThenElseStep)) ||
-					bool.equals(Boolean.valueOf(getObject() instanceof XMLConcatStep)) ||
-					bool.equals(Boolean.valueOf(getObject() instanceof XMLElementStep)) ||
-					bool.equals(Boolean.valueOf(getObject() instanceof XMLAttributeStep)) ||
-					bool.equals(Boolean.valueOf(getObject() instanceof SourceStep)) ||
-					bool.equals(Boolean.valueOf(getObject() instanceof SimpleSourceStep)) ||
-					bool.equals(Boolean.valueOf(getObject() instanceof ElementStep)) ||
-					bool.equals(Boolean.valueOf(getObject() instanceof AttributeStep));
+		if (getObject().testAttribute(name, value)) {
+			return true;
 		}
 		return super.testAttribute(target, name, value);
 	}

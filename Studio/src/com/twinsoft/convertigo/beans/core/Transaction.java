@@ -886,4 +886,18 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 		
 		return xmlSchemaInclude;
 	}
+
+	@Override
+	public boolean testAttribute(String name, String value) {
+		if (name.equals("isDefault")) {
+			Boolean bool = Boolean.valueOf(value);
+			return bool.equals(Boolean.valueOf(isDefault));
+		}
+		if (name.equals("isLearning")) {
+			Boolean bool = Boolean.valueOf(value);
+			return bool.equals(Boolean.valueOf(isLearning));
+		}
+		return super.testAttribute(name, value);
+	}
+
 }

@@ -390,5 +390,14 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
 		}
 		return sb.toString();
 	}
+	
+	@Override
+	public boolean testAttribute(String name, String value) {
+		if (name.equals("isEnabled")) {
+			Boolean bool = Boolean.valueOf(value);
+			return bool.equals(Boolean.valueOf(isEnabled()));
+		}
+		return super.testAttribute(name, value);
+	}
 
 }

@@ -8,8 +8,10 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 
-import com.twinsoft.convertigo.beans.references.WebServiceReference;
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+import com.twinsoft.convertigo.engine.ActionModel;
+import com.twinsoft.convertigo.engine.DatabaseObjectsAction;
 
 public class UpdateReferenceAction extends ProjectImportWsReference {
 
@@ -23,8 +25,10 @@ public class UpdateReferenceAction extends ProjectImportWsReference {
 			super.selectionChanged(action, selection);
 			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 			TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
-			Object ob = treeObject.getObject();
-			action.setEnabled(ob instanceof WebServiceReference);
+			
+			DatabaseObject dbo = (DatabaseObject) treeObject.getObject();
+			ActionModel actionModel = DatabaseObjectsAction.selectionChanged(getClass().getName(), dbo);
+			action.setEnabled(actionModel.isEnabled);
 		}
 		catch (Exception e) {}
 	}

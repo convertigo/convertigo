@@ -54,9 +54,8 @@ public class MobileRouteActionComponentTreeObject extends MobileComponentTreeObj
 
 	@Override
 	public boolean testAttribute(Object target, String name, String value) {
-		if (name.equals("isEnabled")) {
-			Boolean bool = Boolean.valueOf(value);
-			return bool.equals(Boolean.valueOf(isEnabled()));
+		if (getObject().testAttribute(name, value)) {
+			return true;
 		}
 		return super.testAttribute(target, name, value);
 	}

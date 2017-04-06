@@ -154,5 +154,13 @@ public class RouteEventComponent extends MobileComponent implements IRouteGenera
 		return "";
 	}
 
-	
+	@Override
+	public boolean testAttribute(String name, String value) {
+		if (name.equals("isEnabled")) {
+			Boolean bool = Boolean.valueOf(value);
+			return bool.equals(Boolean.valueOf(isEnabled()));
+		}
+		return super.testAttribute(name, value);
+	}
+
 }

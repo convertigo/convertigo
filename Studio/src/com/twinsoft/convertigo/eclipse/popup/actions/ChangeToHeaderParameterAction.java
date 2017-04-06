@@ -30,16 +30,18 @@ import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.rest.HeaderParameter;
-import com.twinsoft.convertigo.beans.rest.PathParameter;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UrlMappingParameterTreeObject;
+import com.twinsoft.convertigo.engine.ActionModel;
+import com.twinsoft.convertigo.engine.DatabaseObjectsAction;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -48,19 +50,17 @@ public class ChangeToHeaderParameterAction extends MyAbstractAction {
 	public ChangeToHeaderParameterAction() {
 	}
 
-	
 	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
 		super.selectionChanged(action, selection);
 		IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 		TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
 		if (treeObject != null) {
-			UrlMappingParameter parameter = (UrlMappingParameter) treeObject.getObject();
-			boolean enabled = !(parameter instanceof HeaderParameter) && !(parameter instanceof PathParameter);
-			action.setEnabled(enabled);
+			DatabaseObject dbo = (DatabaseObject) treeObject.getObject();
+			ActionModel actionModel = DatabaseObjectsAction.selectionChanged(getClass().getName(), dbo);
+			action.setEnabled(actionModel.isEnabled);
 		}
 	}
-
 
 	@Override
 	public void run() {

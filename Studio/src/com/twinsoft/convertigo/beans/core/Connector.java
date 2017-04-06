@@ -503,4 +503,13 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty{
 	}
 	
 	public abstract Transaction newTransaction();
+
+	@Override
+	public boolean testAttribute(String name, String value) {
+		if (name.equals("isDefault")) {
+			Boolean bool = Boolean.valueOf(value);
+			return bool.equals(isDefault);
+		}
+		return super.testAttribute(name, value);
+	}
 }

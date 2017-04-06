@@ -371,4 +371,14 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 		doComputeTemplate();
 		getProject().getMobileBuilder().pageComputed(this);
 	}
+	
+	@Override
+	public boolean testAttribute(String name, String value) {
+		if (name.equals("isRoot")) {
+			Boolean bool = Boolean.valueOf(value);
+			return bool.equals(Boolean.valueOf(isRoot));
+		}
+		return super.testAttribute(name, value);
+	}
+
 }

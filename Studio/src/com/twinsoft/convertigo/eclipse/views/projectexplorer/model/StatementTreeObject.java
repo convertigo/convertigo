@@ -40,13 +40,7 @@ import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.beans.statements.CallFunctionStatement;
 import com.twinsoft.convertigo.beans.statements.ContinueWithSiteClipperStatement;
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
-import com.twinsoft.convertigo.beans.statements.HTTPStatement;
 import com.twinsoft.convertigo.beans.statements.HandlerStatement;
-import com.twinsoft.convertigo.beans.statements.IThenElseStatementContainer;
-import com.twinsoft.convertigo.beans.statements.IfStatement;
-import com.twinsoft.convertigo.beans.statements.IfThenElseStatement;
-import com.twinsoft.convertigo.beans.statements.IfXpathExistsStatement;
-import com.twinsoft.convertigo.beans.statements.IfXpathExistsThenElseStatement;
 import com.twinsoft.convertigo.beans.statements.ScHandlerStatement;
 import com.twinsoft.convertigo.beans.statements.SimpleStatement;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -289,24 +283,8 @@ public class StatementTreeObject extends DatabaseObjectTreeObject implements IEd
 
 	@Override
 	public boolean testAttribute(Object target, String name, String value) {
-		if (name.equals("isEnable")) {
-			Boolean bool = Boolean.valueOf(value);
-			return bool.equals(Boolean.valueOf(isEnabled()));
-		}
-		if (name.equals("isHttpStatement")) {
-			Boolean bool = Boolean.valueOf(value);
-			return bool.equals(Boolean.valueOf(getObject() instanceof HTTPStatement));
-		}
-		if (name.equals("isThenElseStatement")) {
-			Boolean bool = Boolean.valueOf(value);
-			return bool.equals(Boolean.valueOf(getObject() instanceof IThenElseStatementContainer));
-		}
-		if (name.equals("canChangeTo")) {
-			Boolean bool = Boolean.valueOf(value);
-			return 	bool.equals(Boolean.valueOf(getObject() instanceof IfStatement)) ||
-					bool.equals(Boolean.valueOf(getObject() instanceof IfThenElseStatement)) ||
-					bool.equals(Boolean.valueOf(getObject() instanceof IfXpathExistsStatement)) ||
-					bool.equals(Boolean.valueOf(getObject() instanceof IfXpathExistsThenElseStatement));
+		if (getObject().testAttribute(name, value)) {
+			return true;
 		}
 		return super.testAttribute(target, name, value);
 	}

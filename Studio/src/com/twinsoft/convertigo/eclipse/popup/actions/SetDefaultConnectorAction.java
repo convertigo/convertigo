@@ -31,11 +31,14 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.beans.core.Connector;
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ConnectorTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+import com.twinsoft.convertigo.engine.ActionModel;
+import com.twinsoft.convertigo.engine.DatabaseObjectsAction;
 
 public class SetDefaultConnectorAction extends MyAbstractAction {
 
@@ -48,8 +51,9 @@ public class SetDefaultConnectorAction extends MyAbstractAction {
 		IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 		TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
 		if (treeObject instanceof ConnectorTreeObject) {
-			Connector connector = (Connector)treeObject.getObject();
-			action.setChecked(connector.isDefault);
+			DatabaseObject dbo = (DatabaseObject) treeObject.getObject();
+			ActionModel actionModel = DatabaseObjectsAction.selectionChanged(getClass().getName(), dbo);
+			action.setChecked(actionModel.isChecked);
 		}
 	}
 	

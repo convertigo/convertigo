@@ -132,21 +132,18 @@ var ProjectsView = {
 	
 						// If the dbo is a screen class, create adequate category : Screen classes/Inherited screen classes
 						if (categoryName == "ScreenClass") {
-							var categoryNode = {
-								text: parentCategoryFound ? "Inherited screen classes" : newCategoryName,
-								children: []
-							};
+							var categoryNode = ProjectsView.createNodeJsonFolder(
+									parentCategoryFound ? "Inherited screen classes" : newCategoryName,
+									parentCategoryFound ? "Inherited" + categoryName : categoryName
+							);
 							createCategory = true;
 						}
 						// If category not found, we create it
 						else if (!parentCategoryFound) {
-							var categoryNode = {
-								text: newCategoryName,
-								children: []
-							};
+							var categoryNode = ProjectsView.createNodeJsonFolder(newCategoryName, categoryName);
 							createCategory = true;
 						}
-						
+
 						// Create category if needed
 						if (createCategory) {
 							categories[categoryName] = categoryNode;
@@ -169,6 +166,15 @@ var ProjectsView = {
 		},
 		createConvertigoServiceUrl: function (serviceName) {
 			return ProjectsView.url.baseUrlConvertigoServices + serviceName;
+		},
+		createNodeJsonFolder: function (text, categoryName) {
+			return {
+				text: text,
+				children: [],
+				data: {
+					folderType: categoryName
+				}
+			};
 		},
 		createNodeJsonDbo: function (dboElt) {
 			var qname = $(dboElt).attr("qname");
@@ -323,7 +329,7 @@ var ProjectsView = {
 				return "Mobile applications";
 			}
 			if (tmpCategory == "mobileplatform") {
-				return "Mobile platforms";
+				return "Platforms";
 			}
 			if (tmpCategory == "mobilecomponent") {
 				return "Mobile components";
@@ -333,6 +339,18 @@ var ProjectsView = {
 			}
 			if (tmpCategory == "statement") {
 				return "Functions";
+			}
+			if (tmpCategory == "urlmapping") {
+				return "Mappings";
+			}
+			if (tmpCategory == "urlmappingoperation") {
+				return "Operations";
+			}
+			if (tmpCategory == "urlmappingparameter") {
+				return "Parameters";
+			}
+			if (tmpCategory == "urlmappingresponse") {
+				return "Responses";
 			}
 			
 			var newName = category.substring(0,1).toUpperCase() + category.substring(1);	
@@ -442,34 +460,45 @@ var ProjectsView = {
 						"utils"
 					],
 					contextmenu: {
+						show_at_node: false,
 						items: function (node) {
-							var items = {};
+							// Get all nodes
+							var selectedNodes = ProjectsView.tree.jstree().get_selected(true);
 							
-							var selectedNodes = ProjectsView.tree.jstree().get_selected();
+							// Get qnames and folderTypes to send to the server to get the context menu
 							var qnames = [];
+							var folderTypes = [];
 							for (var i = 0; i < selectedNodes.length; ++i) {
-								var node = ProjectsView.tree.jstree().get_node(selectedNodes[i]);
-								qnames.push(node.data.qname);
+								var node = selectedNodes[i];
+								if (typeof node.data.qname !== "undefined") {
+									qnames.push(node.data.qname);
+								}
+								else {
+									folderTypes.push(node.data.folderType);
+								}
 							}
 							
-							
-							//if (node.data && typeof node.data.isEnabled !== "undefined") {
-								items.enable = {
-									label: "Enable",
-									//_disabled: node.data.isEnabled,
-									action: function () {
-										DatabaseObjectManager.setProperty(qnames, "isEnabled", true);
-									}
-								};
+							var items = {};
+							if ((folderTypes.length === 1 && qnames.length === 0) ||
+								(qnames.length > 0 && folderTypes.length === 0)) {
 								
-								items.disable = {
-									label: "Disable",
-									//_disabled: !node.data.isEnabled,
-									action: function () {
-										DatabaseObjectManager.setProperty(qnames, "isEnabled", false);
+								// Get menu
+								$.ajax({
+								    url: ProjectsView.createConvertigoServiceUrl("studio.database_objects.GetMenu"),
+								    // TODO : FIND A SOLUTION TO GENERATE THE MENU ASYNCHRONOUS (need to finish the jstreecontextmenuajax plugin)
+								    async: false,
+									data: {
+								    	qnames: qnames,
+								    	folderTypes: folderTypes
+								    },
+									success: function (data, textStatus, jqXHR) {										
+										// Create the menu if it has correctly been generated
+										if ($(data).find("admin>response").attr("state") == "success") {
+											ProjectsView.createContextMenu(items, $(data).find("admin>menu"));
+										}
 									}
-								};
-							//}
+								});
+							}
 
 							return items;
 						}
@@ -493,9 +522,8 @@ var ProjectsView = {
 				})
 				.on("select_cell.jstree-grid", function (event, data) {
 					var node = ProjectsView.tree.jstree().get_node(data.node[0].id);
-					// Check if the node has a comment (node.data(.comment))
-					// If it haven't, it is a folder
-					if (node.data) {
+					// Check if the node has a comment (if it hasn't, it's  a folder)
+					if (typeof node.data.comment !== "undefined") {
 						// Removes "// "
 						var editComment = StringUtils.unescapeHTML(node.data.comment.substr(3));
 						ProjectsView.editCell(node, {
@@ -514,21 +542,6 @@ var ProjectsView = {
 					}
 					
 					DatabaseObjectManager.setProperty([data.node.data.qname], "comment", newComment);
-				})
-				.on("ready.jstree", function (event, data) {
-					ProjectsView.tree.jstree().element.on('keydown.jstree', '.jstree-anchor', $.proxy(function (e) {
-					    if(e.target.tagName && e.target.tagName.toLowerCase() === "input") { return true; }
-					    if(e.which !== 32 && e.which !== 13 && (e.shiftKey || e.ctrlKey || e.altKey || e.metaKey)) { return true; }
-					    var o = null;
-					    if(ProjectsView.tree.jstree()._data.core.rtl) {
-					        if(e.which === 37) { e.which = 39; }
-					        else if(e.which === 39) { e.which = 37; }
-					    }
-					    
-					    if (e.which === 113) {
-					       console.log("f2");
-					    }
-					}));
 				});
 				
 			// Property view jstree
@@ -614,6 +627,39 @@ var ProjectsView = {
 		},
 		computeNodeId: function (qname) {
 			return "qn-" + StringUtils.replaceDotByMinus(qname);
+		},
+		createContextMenu: function (parent, $menu) {
+			var children = $menu.children();
+			for (var i = 0; i < children.length; ++i) {
+				var indexNextNode = i + 1;
+				var isValidIndex = indexNextNode < children.length;
+
+				// Create sub-menu
+				if (children[i].nodeName == "menu") {
+					var label = StringUtils.escapeHTML($(children[i]).attr("label"));
+
+					var menuItem = {
+						label: label,
+						separator_after: isValidIndex,
+						submenu: {}
+					};
+					parent[label.replace(/\s/g, "")] = menuItem;
+					ProjectsView.createContextMenu(menuItem.submenu, $(children[i]));
+				}
+				// Create action
+				else {
+					var label = StringUtils.escapeHTML($(children[i]).attr("label"));
+					if ($(children[i]).attr("isChecked") == "true") {
+						label = '\u2713' + " " + label;
+					}
+					parent[label.replace(/\s/g, "")] = {
+						label: label,
+						_disabled: $(children[i]).attr("isEnabled") == "false",
+						// menubarPath = category
+						separator_after: isValidIndex && $(children[i]).attr("menubarPath") !== $(children[indexNextNode]).attr("menubarPath")
+					}
+				}
+			}
 		}
 	};
 

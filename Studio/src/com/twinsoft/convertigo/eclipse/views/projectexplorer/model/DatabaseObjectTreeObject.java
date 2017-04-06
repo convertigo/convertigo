@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.CellEditor;
@@ -72,14 +71,10 @@ import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.core.Pool;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
-import com.twinsoft.convertigo.beans.core.StatementWithExpressions;
-import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.statements.HandlerStatement;
 import com.twinsoft.convertigo.beans.statements.ScDefaultHandlerStatement;
 import com.twinsoft.convertigo.beans.statements.ScHandlerStatement;
-import com.twinsoft.convertigo.beans.steps.TransactionStep;
-import com.twinsoft.convertigo.beans.transactions.SapJcoTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.property_editors.AbstractDialogCellEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.ArrayOrNullEditor;
@@ -1141,56 +1136,13 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	
 	@Override
 	public boolean testAttribute(Object target, String name, String value) {
-		if (name.equals("isStatementWithExpressions")) {
-			DatabaseObject databaseObject = getObject();
-			Boolean bool = Boolean.valueOf(value);
-			return bool.equals(Boolean.valueOf(databaseObject instanceof StatementWithExpressions));
-		}
-		if (name.equals("isStepWithExpressions")) {
-			DatabaseObject databaseObject = getObject();
-			Boolean bool = Boolean.valueOf(value);
-			return bool.equals(Boolean.valueOf(databaseObject instanceof StepWithExpressions));
-		}		
-		if (name.equals("isTargetForSapTransaction")) {
-			DatabaseObject databaseObject = getObject();
-			Boolean bool = Boolean.valueOf(value);
-			try {
-				return bool.equals(Boolean.valueOf(((TransactionStep)databaseObject.getParent()).getTargetTransaction() instanceof SapJcoTransaction));
-			} catch (Throwable e) {}
-			return false;
-		}		
-		if (name.equals("objectClassName")) {
-			DatabaseObject databaseObject = getObject();
-			objectClassName = databaseObject.getClass().getName();
-			objectClassName = Pattern.quote(objectClassName);
-			return value.matches("(^|.*;)"+objectClassName+"($|;.*)");
-			//return objectClassName.equals(value);
-		}
-		if (name.equals("isInherited")) {
-			Boolean bool = Boolean.valueOf(value);
-			return bool.equals(Boolean.valueOf(isInherited));
-		}
-		if (name.equals("isModified")) {
-			boolean isModified = hasChanged();
-			Boolean bool = Boolean.valueOf(value);
-			return bool.equals(Boolean.valueOf(isModified));
-		}
-		if (name.equals("isDefault")) {
-			Boolean bool = Boolean.valueOf(value);
-			return bool.equals(Boolean.valueOf(isDefault));
+		if (getObject().testAttribute(name, value)) {
+			return true;
 		}
 		if (name.equals("canPaste")) {
 			canPaste = ((ConvertigoPlugin.clipboardManagerSystem.isCopy) || (ConvertigoPlugin.clipboardManagerSystem.isCut));
 			Boolean bool = Boolean.valueOf(value);
 			return bool.equals(Boolean.valueOf(canPaste));
-		}
-		if (name.equals("isUnderCvs")) {
-			Boolean bool = Boolean.valueOf(value);
-			return bool.equals(Boolean.valueOf(isUnderCvs));
-		}
-		if (name.equals("isCheckedOut")) {
-			Boolean bool = Boolean.valueOf(value);
-			return bool.equals(Boolean.valueOf(isCheckedOut));
 		}
 		return super.testAttribute(target, name, value);
 	}

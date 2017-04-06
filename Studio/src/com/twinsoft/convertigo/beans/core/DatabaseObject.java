@@ -41,6 +41,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 import java.util.Set;
 
 import javax.swing.Icon;
@@ -56,6 +57,8 @@ import org.w3c.dom.NodeList;
 import com.twinsoft.convertigo.beans.Version;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.steps.SmartType;
+import com.twinsoft.convertigo.beans.steps.TransactionStep;
+import com.twinsoft.convertigo.beans.transactions.SapJcoTransaction;
 import com.twinsoft.convertigo.engine.DatabaseObjectNotFoundException;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
@@ -1262,4 +1265,36 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		}
 		return null;
 	}
+
+	public boolean testAttribute(String name, String value) {
+		if (name.equals("isStatementWithExpressions")) {
+			Boolean bool = Boolean.valueOf(value);
+			return bool.equals(Boolean.valueOf(this instanceof StatementWithExpressions));
+		}
+		if (name.equals("isStepWithExpressions")) {
+			Boolean bool = Boolean.valueOf(value);
+			return bool.equals(Boolean.valueOf(this instanceof StepWithExpressions));
+		}		
+		if (name.equals("isTargetForSapTransaction")) {
+			Boolean bool = Boolean.valueOf(value);
+			try {
+				return bool.equals(Boolean.valueOf(((TransactionStep) getParent()).getTargetTransaction() instanceof SapJcoTransaction));
+			} catch (Throwable e) {}
+			return false;
+		}		
+		if (name.equals("objectClassName")) {
+			String objectClassName = getClass().getName();
+			objectClassName = Pattern.quote(objectClassName);
+			return value.matches("(^|.*;)" + objectClassName + "($|;.*)");
+		}
+		if (name.equals("isModified")) {
+			Boolean bool = Boolean.valueOf(value);
+			return bool.equals(Boolean.valueOf(hasChanged));
+		}
+		if (name.equals("isInherited")) {
+			return true;
+		}
+		return false;
+	}
+
 }

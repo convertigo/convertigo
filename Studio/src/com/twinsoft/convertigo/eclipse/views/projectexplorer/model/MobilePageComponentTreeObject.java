@@ -34,12 +34,10 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 	
 	public MobilePageComponentTreeObject(Viewer viewer, PageComponent object) {
 		super(viewer, object);
-		isDefault = getObject().isRoot;
 	}
 
 	public MobilePageComponentTreeObject(Viewer viewer, PageComponent object, boolean inherited) {
 		super(viewer, object, inherited);
-		isDefault = getObject().isRoot;
 	}
 
 	@Override
@@ -54,11 +52,9 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 
 	@Override
 	public boolean testAttribute(Object target, String name, String value) {
-		if (name.equals("isRoot")) {
-			Boolean bool = Boolean.valueOf(value);
-			return bool.equals(Boolean.valueOf(isDefault));
+		if (getObject().testAttribute(name, value)) {
+			return true;
 		}
-		
 		return super.testAttribute(target, name, value);
 	}
 

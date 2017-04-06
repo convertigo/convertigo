@@ -57,13 +57,32 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.common.XmlQName;
+import com.twinsoft.convertigo.beans.steps.AttributeStep;
+import com.twinsoft.convertigo.beans.steps.ElementStep;
+import com.twinsoft.convertigo.beans.steps.IThenElseContainer;
+import com.twinsoft.convertigo.beans.steps.IfExistStep;
+import com.twinsoft.convertigo.beans.steps.IfExistThenElseStep;
+import com.twinsoft.convertigo.beans.steps.IfFileExistStep;
+import com.twinsoft.convertigo.beans.steps.IfFileExistThenElseStep;
+import com.twinsoft.convertigo.beans.steps.IfStep;
+import com.twinsoft.convertigo.beans.steps.IfThenElseStep;
+import com.twinsoft.convertigo.beans.steps.IsInStep;
+import com.twinsoft.convertigo.beans.steps.IsInThenElseStep;
+import com.twinsoft.convertigo.beans.steps.SequenceStep;
+import com.twinsoft.convertigo.beans.steps.SimpleSourceStep;
 import com.twinsoft.convertigo.beans.steps.SmartType;
+import com.twinsoft.convertigo.beans.steps.SourceStep;
+import com.twinsoft.convertigo.beans.steps.TransactionStep;
+import com.twinsoft.convertigo.beans.steps.XMLAttributeStep;
+import com.twinsoft.convertigo.beans.steps.XMLConcatStep;
+import com.twinsoft.convertigo.beans.steps.XMLElementStep;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
+import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
@@ -141,8 +160,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		super.preconfigure(element);
 		
 		String version = element.getAttribute("version");
-		
-//		if (VersionUtils.compare(version, "7.5.0") < 0) {
+		if (VersionUtils.compare(version, "7.5.0") < 0) {
 			NodeList properties = element.getElementsByTagName("property");
 			
 			Element propName = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "isEnable");
@@ -150,9 +168,9 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 				propName.setAttribute("name", "isEnabled");
 				hasChanged = true;
 			}
-
-//				Engine.logBeans.warn("[RequestableStep] The object \""+objectName+"\" has been updated to version 4.6.0 (property \"variablesDefinition\" changed to \"orderedVariables\")");
-//		}
+			
+			Engine.logBeans.warn("[Step] The object \"" + getName() + "\" has been updated to version 7.5.0 (property \"isEnable\" changed to \"isEnabled\")");
+		}
 	}
 
 	/* (non-Javadoc)
@@ -959,4 +977,48 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	public QName getElementRefAffectation() {
 		return getXmlElementRefAffectation().getQName();
 	}
+
+	@Override
+	public boolean testAttribute(String name, String value) {
+		if (name.equals("isEnable")) {
+			Boolean bool = Boolean.valueOf(value);
+			return bool.equals(Boolean.valueOf(isEnabled));
+		}
+		if (name.equals("isTransactionStep")) {
+			Boolean bool = Boolean.valueOf(value);
+			return bool.equals(Boolean.valueOf(this instanceof TransactionStep));
+		}
+		if (name.equals("isSequenceStep")) {
+			Boolean bool = Boolean.valueOf(value);
+			return bool.equals(Boolean.valueOf(this instanceof SequenceStep));
+		}
+		if (name.equals("isThenElseStep")) {
+			Boolean bool = Boolean.valueOf(value);
+			return bool.equals(Boolean.valueOf(this instanceof IThenElseContainer));
+		}
+		if (name.equals("workOnSource")) {
+			Boolean bool = Boolean.valueOf(value);
+			return bool == workOnSource();
+		}
+		if (name.equals("canChangeTo")) {
+			Boolean bool = Boolean.valueOf(value);
+			return 	bool.equals(Boolean.valueOf(this instanceof IfStep)) ||
+					bool.equals(Boolean.valueOf(this instanceof IfThenElseStep)) ||
+					bool.equals(Boolean.valueOf(this instanceof IsInStep)) ||
+					bool.equals(Boolean.valueOf(this instanceof IsInThenElseStep)) ||
+					bool.equals(Boolean.valueOf(this instanceof IfExistStep)) ||
+					bool.equals(Boolean.valueOf(this instanceof IfExistThenElseStep)) || 
+					bool.equals(Boolean.valueOf(this instanceof IfFileExistStep)) ||
+					bool.equals(Boolean.valueOf(this instanceof IfFileExistThenElseStep)) ||
+					bool.equals(Boolean.valueOf(this instanceof XMLConcatStep)) ||
+					bool.equals(Boolean.valueOf(this instanceof XMLElementStep)) ||
+					bool.equals(Boolean.valueOf(this instanceof XMLAttributeStep)) ||
+					bool.equals(Boolean.valueOf(this instanceof SourceStep)) ||
+					bool.equals(Boolean.valueOf(this instanceof SimpleSourceStep)) ||
+					bool.equals(Boolean.valueOf(this instanceof ElementStep)) ||
+					bool.equals(Boolean.valueOf(this instanceof AttributeStep));
+		}
+		return super.testAttribute(name, value);
+	}
+
 }

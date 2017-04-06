@@ -46,16 +46,12 @@ import com.twinsoft.convertigo.engine.EngineException;
 
 public class VariableTreeObject2 extends DatabaseObjectTreeObject implements IOrderableTreeObject {
 
-	public boolean isChildOfJavelinTransaction = false;
-	public boolean isMultiValued = false;
-	
 	public VariableTreeObject2(Viewer viewer, Variable object) {
 		this(viewer, object, false);
 	}
 	
 	public VariableTreeObject2(Viewer viewer, Variable object, boolean inherited) {
 		super(viewer, object, inherited);
-		isMultiValued = object.isMultiValued();
 	}
 
 	@Override
@@ -65,13 +61,8 @@ public class VariableTreeObject2 extends DatabaseObjectTreeObject implements IOr
 	
 	@Override
 	public boolean testAttribute(Object target, String name, String value) {
-		if (name.equals("isChildOfJavelinTransaction")) {
-			Boolean bool = Boolean.valueOf(value);
-			return bool.equals(Boolean.valueOf(isChildOfJavelinTransaction));
-		}
-		if (name.equals("isMultiValued")) {
-			Boolean bool = Boolean.valueOf(value);
-			return bool.equals(Boolean.valueOf(isMultiValued));
+		if (getObject().testAttribute(name, value)) {
+			return true;
 		}
 		return super.testAttribute(target, name, value);
 	}

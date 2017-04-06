@@ -25,6 +25,8 @@ package com.twinsoft.convertigo.beans.core;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public abstract class Listener extends DatabaseObject implements IEnableAble {
@@ -43,8 +45,7 @@ public abstract class Listener extends DatabaseObject implements IEnableAble {
 		super.preconfigure(element);
 		
 		String version = element.getAttribute("version");
-		
-//		if (VersionUtils.compare(version, "7.5.0") < 0) {
+		if (VersionUtils.compare(version, "7.5.0") < 0) {
 			NodeList properties = element.getElementsByTagName("property");
 			
 			Element propName = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "isEnable");
@@ -53,8 +54,8 @@ public abstract class Listener extends DatabaseObject implements IEnableAble {
 				hasChanged = true;
 			}
 
-//				Engine.logBeans.warn("[RequestableStep] The object \""+objectName+"\" has been updated to version 4.6.0 (property \"variablesDefinition\" changed to \"orderedVariables\")");
-//		}
+			Engine.logBeans.warn("[Listener] The object \"" + getName() + "\" has been updated to version 7.5.0 (property \"isEnable\" changed to \"isEnabled\")");
+		}
 	}
 	
 	@Override
@@ -76,4 +77,14 @@ public abstract class Listener extends DatabaseObject implements IEnableAble {
 	public void setEnabled(boolean isEnabled) {
 		this.isEnabled = isEnabled;
 	}
+	
+	@Override
+	public boolean testAttribute(String name, String value) {
+		if (name.equals("isEnable")) {
+			Boolean bool = Boolean.valueOf(value);
+			return bool.equals(Boolean.valueOf(isEnabled()));
+		}
+		return super.testAttribute(name, value);
+	}
+
 }

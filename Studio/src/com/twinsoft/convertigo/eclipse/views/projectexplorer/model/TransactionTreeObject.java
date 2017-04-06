@@ -68,9 +68,7 @@ import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.util.StringEx;
 
 public class TransactionTreeObject extends DatabaseObjectTreeObject implements IEditableTreeObject {
-	
-	private boolean isLearning = false;
-	
+		
 	public TransactionTreeObject(Viewer viewer, Transaction object) {
 		this(viewer, object, false);
 	}
@@ -391,15 +389,8 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
 	
 	@Override
 	public boolean testAttribute(Object target, String name, String value) {
-		if (name.equals("isDefault")) {
-			isDefault = getObject().isDefault;
-			Boolean bool = Boolean.valueOf(value);
-			return bool.equals(Boolean.valueOf(isDefault));
-		}
-		if (name.equals("isLearning")) {
-			isLearning = getObject().isLearning;
-			Boolean bool = Boolean.valueOf(value);
-			return bool.equals(Boolean.valueOf(isLearning));
+		if (getObject().testAttribute(name, value)) {
+			return true;
 		}
 		return super.testAttribute(target, name, value);
 	}

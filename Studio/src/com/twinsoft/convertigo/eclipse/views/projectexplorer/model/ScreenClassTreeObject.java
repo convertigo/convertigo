@@ -58,14 +58,10 @@ public class ScreenClassTreeObject extends DatabaseObjectTreeObject {
 	 */
 	@Override
 	public boolean testAttribute(Object target, String name, String value) {
-		if (name.equals("isDefault")) {
-			ScreenClass sc = getObject();
-			ScreenClass dsc = ((IScreenClassContainer<?>)sc.getConnector()).getDefaultScreenClass();
-			Boolean bool = Boolean.valueOf(value);
-			return bool.equals(Boolean.valueOf(sc.equals(dsc)));
+		if (getObject().testAttribute(name, value)) {
+			return true;
 		}
 		return super.testAttribute(target, name, value);
 	}
-	
-	
+
 }

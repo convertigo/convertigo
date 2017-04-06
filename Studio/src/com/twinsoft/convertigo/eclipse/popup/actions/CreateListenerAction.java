@@ -26,12 +26,12 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 
-import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
-import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+import com.twinsoft.convertigo.engine.ActionModel;
+import com.twinsoft.convertigo.engine.DatabaseObjectsAction;
 
 public class CreateListenerAction extends DatabaseObjectCreateAction {
 
@@ -48,9 +48,9 @@ public class CreateListenerAction extends DatabaseObjectCreateAction {
 			if (treeObject instanceof ObjectsFolderTreeObject)
 				enable = ((ObjectsFolderTreeObject)treeObject).folderType == ObjectsFolderTreeObject.FOLDER_TYPE_LISTENERS;
 			else if (treeObject instanceof DatabaseObjectTreeObject) {
-				DatabaseObject dbo = (DatabaseObject)treeObject.getObject();
-				if (dbo instanceof Connector)
-					enable = dbo instanceof FullSyncConnector;
+				DatabaseObject dbo = (DatabaseObject) treeObject.getObject();
+				ActionModel actionModel = DatabaseObjectsAction.selectionChanged(getClass().getName(), dbo);
+				enable = actionModel.isEnabled;
 			}
 			action.setEnabled(enable);
 		}

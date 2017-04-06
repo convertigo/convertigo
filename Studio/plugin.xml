@@ -2525,7 +2525,7 @@
                         <not>
                            <objectState
                                  name="objectClassName"
-                                 value="com.twinsoft.convertigo.beans.steps.IfInThenElseStep">
+                                 value="com.twinsoft.convertigo.beans.steps.IsInThenElseStep">
                            </objectState>
                         </not>
                      </and>
@@ -2560,7 +2560,7 @@
                         <not>
                            <objectState
                                  name="objectClassName"
-                                 value="com.twinsoft.convertigo.beans.steps.IfInThenElseStep">
+                                 value="com.twinsoft.convertigo.beans.steps.IsInThenElseStep">
                            </objectState>
                         </not>
                      </and>

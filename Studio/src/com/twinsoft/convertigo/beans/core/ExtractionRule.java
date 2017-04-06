@@ -142,5 +142,15 @@ public abstract class ExtractionRule extends DatabaseObject implements IEnableAb
         element.setAttribute("newPriority", new Long(newPriority).toString());
 		
 		return element;
-	}    
+	}
+
+	@Override
+	public boolean testAttribute(String name, String value) {
+		if (name.equals("isEnabled")) {
+			Boolean bool = Boolean.valueOf(value);
+			return bool.equals(Boolean.valueOf(isEnabled()));
+		}
+		return super.testAttribute(name, value);
+	}
+
 }
