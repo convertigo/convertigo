@@ -226,29 +226,30 @@ public class Engine {
 	/**
 	 * Loggers
 	 */
-	public static Logger logConvertigo;
-	public static Logger logEngine;
-	public static Logger logBillers;
 	public static Logger logAdmin;
-	public static Logger logBeans;
-	public static Logger logContext;
-	public static Logger logEmulators;
-	public static Logger logUser;
-	public static Logger logContextManager;
-	public static Logger logCacheManager;
-	public static Logger logTracePlayerManager;
-	public static Logger logDatabaseObjectManager;
-	public static Logger logJobManager;
-	public static Logger logCertificateManager;
-	public static Logger logProxyManager;
-	public static Logger logUsageMonitor;
-	public static Logger logStatistics;
-	public static Logger logScheduler;
-	public static Logger logSiteClipper;
 	public static Logger logAudit;
-	public static Logger logDevices;
+	public static Logger logBeans;
+	public static Logger logBillers;
+	public static Logger logCacheManager;
+	public static Logger logCertificateManager;
+	public static Logger logContext;
+	public static Logger logContextManager;
+	public static Logger logConvertigo;
 	public static Logger logCouchDbManager;
+	public static Logger logDatabaseObjectManager;
+	public static Logger logDevices;
+	public static Logger logEmulators;
+	public static Logger logEngine;
+	public static Logger logJobManager;
+	public static Logger logProxyManager;
+	public static Logger logScheduler;
 	public static Logger logSecurityTokenManager;
+	public static Logger logSiteClipper;
+	public static Logger logStatistics;
+	public static Logger logStudio;
+	public static Logger logTracePlayerManager;
+	public static Logger logUsageMonitor;
+	public static Logger logUser;
 
 	/**
 	 * The Log object for the application.
@@ -375,6 +376,7 @@ public class Engine {
 			Engine.logStatistics = Logger.getLogger("cems.Statistics");
 			Engine.logScheduler = Logger.getLogger("cems.Scheduler");
 			Engine.logSiteClipper = Logger.getLogger("cems.SiteClipper");
+			Engine.logStudio = Logger.getLogger("cems.Studio");
 			Engine.logAudit = Logger.getLogger("cems.Context.Audit");
 			
 			// Managers
@@ -1591,7 +1593,15 @@ public class Engine {
 	}
 
 	public static boolean isLinux() {
-		return System.getProperty("os.name").indexOf("Linux") != -1;
+		return System.getProperty("os.name").toLowerCase().indexOf("nux") != -1;
+	}
+
+	public static boolean isMac() {
+		return System.getProperty("os.name").toLowerCase().indexOf("mac") != -1;
+	}
+
+	public static boolean isWindows() {
+		return System.getProperty("os.name").toLowerCase().indexOf("win") != -1;
 	}
 
 	public static boolean hasXulRunner() {

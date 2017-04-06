@@ -139,6 +139,7 @@ import com.twinsoft.convertigo.engine.requesters.InternalRequester;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.LogWrapper;
 import com.twinsoft.convertigo.engine.util.SimpleCipher;
 import com.twinsoft.util.Log;
 
@@ -704,8 +705,13 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
         // Redirect stdout and stderr
 		System.setOut(new StdoutStream());
 		System.setErr(new StderrStream());
+				
+		studioLog = new Log(ConvertigoPlugin.getDefault().stdoutConsoleStream);
 		
-		studioLog = new Log(ConvertigoPlugin.getDefault().studioConsoleStream);
+		runAtStartup(() -> {
+			studioLog = new LogWrapper(Engine.logStudio);
+		});
+		
 		studioLog.logLevel = Log.LOGLEVEL_DEBUG;
 		
 		try {
@@ -1185,19 +1191,12 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 
 	public ConsolePipes consolePipes = null;
 	
-	public MessageConsole connectorConsole;
 	public MessageConsole engineConsole;
-	public MessageConsole studioConsole;
 	public MessageConsole stdoutConsole;
-	public MessageConsole debugConsole;
-	public MessageConsole traceConsole;
-	public MessageConsole tomcatConsole;
 	
-	public MessageConsoleStream studioConsoleStream;
 	public MessageConsoleStream engineConsoleStream;
 	public MessageConsoleStream stdoutConsoleStream;
 	public MessageConsoleStream stderrConsoleStream;
-	public MessageConsoleStream traceConsoleStream;
 	public MessageConsoleStream debugConsoleStream;
 	
 	private Color stderrConsoleStreamColor = new Color(null, 200, 0, 0);
@@ -1206,10 +1205,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	private void createConsoles() {
 		ConsolePlugin consolePlugin = ConsolePlugin.getDefault();
 		IConsoleManager consoleManager = consolePlugin.getConsoleManager();
-
-		studioConsole = new MessageConsole("Studio", ImageDescriptor.createFromFile(getClass(), "/consoles/convertigo.gif"));
-		studioConsole.setTabWidth(TAB_WIDTH);
-		studioConsoleStream = studioConsole.newMessageStream();
 		
 		stdoutConsole = new MessageConsole("Stdout", ImageDescriptor.createFromFile(getClass(), "/consoles/stdout.gif"));
 		stdoutConsole.setTabWidth(TAB_WIDTH);
@@ -1217,113 +1212,29 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		stderrConsoleStream = stdoutConsole.newMessageStream();
 		stderrConsoleStream.setColor(stderrConsoleStreamColor);
 		
-		traceConsole = new MessageConsole("Trace [no trace file]", ImageDescriptor.createFromFile(getClass(), "/consoles/trace.gif"));
-		traceConsole.setTabWidth(TAB_WIDTH);
-		traceConsoleStream = traceConsole.newMessageStream();
-		
 		engineConsole = new MessageConsole("Engine", ImageDescriptor.createFromFile(getClass(), "/consoles/engine.gif"));
 		engineConsole.setTabWidth(TAB_WIDTH);
 		engineConsoleStream = engineConsole.newMessageStream();
-		
-		debugConsole = new MessageConsole("Debug [no current session]", ImageDescriptor.createFromFile(getClass(), "/consoles/tomcat.gif"));
-		debugConsole.setTabWidth(TAB_WIDTH);
-		debugConsoleStream = debugConsole.newMessageStream();
 
 		consoleManager.addConsoles(new IConsole[] {
 			engineConsole,
-			stdoutConsole,
-			traceConsole,
-			debugConsole,
-			studioConsole,
-		});		
+			stdoutConsole
+		});
 		
-		// Restore previously opened console views
-		/*
-		final String consoles = properties.getProperty(ConvertigoPlugin.ConfigurationProperties.OPENED_CONSOLES);
-		final IWorkbench workbench = PlatformUI.getWorkbench();
-		workbench.getDisplay().asyncExec(new Runnable() {
-			public void run() {
-				IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
-				IWorkbenchPage page = window.getActivePage();
-				String[] array = consoles.split(",");
-				//System.out.println(consoles);//
-				
-				int counter = 1;
-				for (int i=0; i<array.length; i++) {
-					String consoleName = array[i];
-	            	
-		            try {
-		            	ConsoleView consoleView = null;
-						
-		            	// restore console
-		            	if (consoleName.indexOf("connector") == 0) {
-		            		consoleView = (ConsoleView)page.showView(IConsoleConstants.ID_CONSOLE_VIEW, "Console View #" + counter++, 1);
-							consoleView.consolesAdded(new IConsole[] { connectorConsole});
-		            	}
-						else if (consoleName.indexOf("studio") == 0) {
-							consoleView = (ConsoleView)page.showView(IConsoleConstants.ID_CONSOLE_VIEW, "Console View #" + counter++, 1);
-							consoleView.consolesAdded(new IConsole[] { studioConsole});
-						}
-						else if (consoleName.indexOf("engine") == 0) {
-							consoleView = (ConsoleView)page.showView(IConsoleConstants.ID_CONSOLE_VIEW, "Console View #" + counter++, 1);
-							consoleView.consolesAdded(new IConsole[] { engineConsole});
-						}
-						else if (consoleName.indexOf("tomcat") == 0) {
-							consoleView = (ConsoleView)page.showView(IConsoleConstants.ID_CONSOLE_VIEW, "Console View #" + counter++, 1);
-							consoleView.consolesAdded(new IConsole[] { tomcatConsole});
-						}
-						else if (consoleName.indexOf("trace") == 0) {
-							consoleView = (ConsoleView)page.showView(IConsoleConstants.ID_CONSOLE_VIEW, "Console View #" + counter++, 1);
-							consoleView.consolesAdded(new IConsole[] { traceConsole});
-						}
-						else if (consoleName.indexOf("debug") == 0) {
-							consoleView = (ConsoleView)page.showView(IConsoleConstants.ID_CONSOLE_VIEW, "Console View #" + counter++, 1);
-							consoleView.consolesAdded(new IConsole[] { debugConsole});
-						}
-						else if (consoleName.indexOf("stdout") == 0) {
-							consoleView = (ConsoleView)page.showView(IConsoleConstants.ID_CONSOLE_VIEW, "Console View #" + counter++, 1);
-							consoleView.consolesAdded(new IConsole[] { stdoutConsole});
-						}
-					} catch (PartInitException e) {
-						ConvertigoPlugin.logException(e, "Unexpected exception");
-					}
-
-					if (counter >= 7)
-		            	break;
-				}
-			}});
-		*/
 		consolePipes = new ConsolePipes();
-	}
-	
-	/*private IEditorReference[] editorReferences = new IEditorReference[] {};
-	
-	public IEditorReference[] getEditorReferences() {
-		final IWorkbench workbench = PlatformUI.getWorkbench();
-		workbench.getDisplay().syncExec(new Runnable() {
-			public void run() {
-				IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
-				IWorkbenchPage page = window.getActivePage();
-				editorReferences = page.getEditorReferences();
-			}});
-		return editorReferences;
-	}
+		
+		debugConsoleStream = new MessageConsoleStream(engineConsole) {
 
-	
-	private IViewReference[] viewReferences = new IViewReference[] {};
-	
-	public IViewReference[] getViewReferences() {
-		final IWorkbench workbench = PlatformUI.getWorkbench();
-		workbench.getDisplay().syncExec(new Runnable() {
-			public void run() {
-				IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
-				if (window != null) {
-					IWorkbenchPage page = window.getActivePage();
-					viewReferences = page.getViewReferences();
+			@Override
+			public void write(String str) throws IOException {
+				if (str.endsWith("\n")) {
+					str = str.substring(0, str.length() - 1);
 				}
-			}});
-		return viewReferences;
-	}*/
+				Engine.logStudio.info("[debug] " + str);
+			}
+			
+		};
+	}
 	
 	private IWorkbenchPage getActivePage() {
 		return PlatformUI

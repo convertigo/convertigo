@@ -53,7 +53,7 @@ import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class EnginePropertiesManager {
-	enum Visibility { VISIBLE, HIDDEN, HIDDEN_CLOUD };
+	enum Visibility { VISIBLE, HIDDEN, HIDDEN_CLOUD, HIDDEN_SERVER };
 
 	@Retention(RetentionPolicy.RUNTIME)
 	@interface CategoryOptions {
@@ -260,11 +260,11 @@ public class EnginePropertiesManager {
 			CategoryOptions categoryOptions = GenericUtils.getAnnotation(CategoryOptions.class, this);
 			if (categoryOptions != null) {
 				Visibility visibility = categoryOptions.visibility();
-				if (Engine.isCloudMode()) {
-					return visibility == Visibility.VISIBLE;
-				}
-				else {
-					return visibility == Visibility.VISIBLE || visibility == Visibility.HIDDEN_CLOUD;
+				switch (visibility) {
+				case VISIBLE: return true;
+				case HIDDEN_CLOUD: return !Engine.isCloudMode();
+				case HIDDEN: return false;
+				case HIDDEN_SERVER: return !Engine.isEngineMode();
 				}
 			}
 			return true;
@@ -402,7 +402,9 @@ public class EnginePropertiesManager {
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_SITECLIPPER ("log4j.logger.cems.SiteClipper", LogLevels.INFO.getValue(), "Log4J site clipper output logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
-		LOG4J_LOGGER_CEMS_STATISTICS ("log4j.logger.cems.Statistics", LogLevels.WARN.getValue(), "Log4J statistics logger", PropertyCategory.Logs),
+		LOG4J_LOGGER_CEMS_STATISTICS ("log4j.logger.cems.Statistics", LogLevels.INFO.getValue(), "Log4J statistics logger", PropertyCategory.Logs),
+		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class, visibility = Visibility.HIDDEN_SERVER)
+		LOG4J_LOGGER_CEMS_STUDIO ("log4j.logger.cems.Studio", LogLevels.WARN.getValue(), "Log4J studio logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_TRACEPLAYERMANAGER ("log4j.logger.cems.TracePlayerManager", LogLevels.WARN.getValue(), "Log4J trace player manager logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
@@ -684,11 +686,11 @@ public class EnginePropertiesManager {
 			PropertyOptions propertyOptions = GenericUtils.getAnnotation(PropertyOptions.class, this);
 			if (propertyOptions != null) {
 				Visibility visibility = propertyOptions.visibility();
-				if (Engine.isCloudMode()) {
-					return visibility == Visibility.VISIBLE;
-				}
-				else {
-					return visibility == Visibility.VISIBLE || visibility == Visibility.HIDDEN_CLOUD;
+				switch (visibility) {
+				case VISIBLE: return true;
+				case HIDDEN_CLOUD: return !Engine.isCloudMode();
+				case HIDDEN: return false;
+				case HIDDEN_SERVER: return !Engine.isEngineMode();
 				}
 			}
 			return true;

@@ -92,18 +92,8 @@ public class ConvertigoPartListener implements IPartListener {
 					if (console instanceof MessageConsole) {
 		        		if ((console.equals(convertigoPlugin.engineConsole)) && (openedConsoles.indexOf("engine") == -1))
 		        			openedConsoles += (openedConsoles.equals("") ? "":",") + "engine";
-		        		else if ((console.equals(convertigoPlugin.studioConsole)) && (openedConsoles.indexOf("studio") == -1))
-		        			openedConsoles += (openedConsoles.equals("") ? "":",") + "studio";
-		        		else if ((console.equals(convertigoPlugin.connectorConsole)) && (openedConsoles.indexOf("connector") == -1))
-		        			openedConsoles += (openedConsoles.equals("") ? "":",") + "connector";
-		        		else if ((console.equals(convertigoPlugin.tomcatConsole)) && (openedConsoles.indexOf("tomcat") == -1))
-		        			openedConsoles += (openedConsoles.equals("") ? "":",") + "tomcat";
 		        		else if ((console.equals(convertigoPlugin.stdoutConsole)) && (openedConsoles.indexOf("stdout") == -1))
 		        			openedConsoles += (openedConsoles.equals("") ? "":",") + "stdout";
-		        		else if ((console.equals(convertigoPlugin.debugConsole)) && (openedConsoles.indexOf("debug") == -1))
-		        			openedConsoles += (openedConsoles.equals("") ? "":",") + "debug";
-		        		else if ((console.equals(convertigoPlugin.traceConsole)) && (openedConsoles.indexOf("trace") == -1))
-		        			openedConsoles += (openedConsoles.equals("") ? "":",") + "trace";
 		        	}
 				}
 
