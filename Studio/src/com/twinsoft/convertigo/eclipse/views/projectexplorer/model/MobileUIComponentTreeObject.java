@@ -67,7 +67,6 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.html.MobileComponentEditorInput;
 import com.twinsoft.convertigo.eclipse.property_editors.StringComboBoxPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 
 public class MobileUIComponentTreeObject extends MobileComponentTreeObject implements IEditableTreeObject, IOrderableTreeObject, INamedSourceSelectorTreeObject {
 	
@@ -265,15 +264,6 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 	@Override
 	public void hasBeenModified(boolean bModified) {
 		super.hasBeenModified(bModified);
-		if (bModified && !isInherited) {
-			UIComponent uic = getObject();
-			if (uic instanceof UIStyle) {
-				markStyleAsDirty();
-			}
-			else {
-				markTemplateAsDirty();
-			}
-		}
 	}
 
 	@Override
@@ -355,36 +345,6 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
         	}
         }
 		super.setPropertyValue(id, value);
-	}
-
-	protected void markTemplateAsDirty() {
-		TreeParent treeParent = parent;
-		while (treeParent != null) {
-			if (treeParent instanceof MobileApplicationComponentTreeObject) {
-				((MobileApplicationComponentTreeObject) treeParent).markTemplateAsDirty();
-				break;
-			}
-			if (treeParent instanceof MobilePageComponentTreeObject) {
-				((MobilePageComponentTreeObject) treeParent).markTemplateAsDirty();
-				break;
-			}
-			treeParent = treeParent.getParent();
-		}
-	}
-
-	protected void markStyleAsDirty() {
-		TreeParent treeParent = parent;
-		while (treeParent != null) {
-			if (treeParent instanceof MobileApplicationComponentTreeObject) {
-				((MobileApplicationComponentTreeObject) treeParent).markStyleAsDirty();
-				break;
-			}
-			if (treeParent instanceof MobilePageComponentTreeObject) {
-				((MobilePageComponentTreeObject) treeParent).markStyleAsDirty();
-				break;
-			}
-			treeParent = treeParent.getParent();
-		}
 	}
 
 	@Override

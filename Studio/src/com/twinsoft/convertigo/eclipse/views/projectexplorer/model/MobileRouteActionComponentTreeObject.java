@@ -69,22 +69,8 @@ public class MobileRouteActionComponentTreeObject extends MobileComponentTreeObj
 	@Override
 	public void hasBeenModified(boolean bModified) {
 		super.hasBeenModified(bModified);
-		if (bModified && !isInherited) {
-			markRouteAsDirty();
-		}
 	}
 	
-	protected void markRouteAsDirty() {
-		TreeParent treeParent = parent;
-		while (treeParent != null) {
-			if (treeParent instanceof MobileApplicationComponentTreeObject) {
-				((MobileApplicationComponentTreeObject) treeParent).markRouteAsDirty();
-				break;
-			}
-			treeParent = treeParent.getParent();
-		}
-	}
-
 	@Override
 	public NamedSourceSelector getNamedSourceSelector() {
 		return new NamedSourceSelector() {

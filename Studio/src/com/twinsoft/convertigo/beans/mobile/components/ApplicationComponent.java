@@ -163,10 +163,11 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
     	ordered.remove(pos+1);
     	hasChanged = true;
     	
-    	if (databaseObject instanceof UIStyle) {
+    	if (databaseObject instanceof RouteComponent) {
+    		markRouteAsDirty();
+    	} else if (databaseObject instanceof UIStyle) {
     		markStyleAsDirty();
-    	}
-    	else {
+    	} else if (databaseObject instanceof UIComponent) {
     		markTemplateAsDirty();
     	}
     }
@@ -194,10 +195,11 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
     	ordered.remove(pos);
     	hasChanged = true;
     	
-    	if (databaseObject instanceof UIStyle) {
+    	if (databaseObject instanceof RouteComponent) {
+    		markRouteAsDirty();
+    	} else if (databaseObject instanceof UIStyle) {
     		markStyleAsDirty();
-    	}
-    	else {
+    	} else if (databaseObject instanceof UIComponent) {
     		markTemplateAsDirty();
     	}
     }
@@ -249,18 +251,18 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		insertOrderedRoute(routeComponent,null);
 		
 		if (routeComponent.bNew) {
-			getProject().getMobileBuilder().appChanged();
+			markRouteAsDirty();
 		}
 		
 	}
 
-	public void removeRouteComponent(RouteComponent routeComponent) throws EngineException {
+	protected void removeRouteComponent(RouteComponent routeComponent) throws EngineException {
 		checkSubLoaded();
 		vRouteComponents.remove(routeComponent);
 		
 		removeOrderedRoute(routeComponent.priority);
 		
-		getProject().getMobileBuilder().appChanged();
+		markRouteAsDirty();
 	}
 
 	public List<RouteComponent> getRouteComponentList() {
@@ -283,11 +285,13 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		super.add(pageComponent);
 		
 		if (pageComponent.bNew) {
+			pageComponent.doComputeStyle();
+			pageComponent.doComputeTemplate();
 			getProject().getMobileBuilder().pageAdded(pageComponent);
 		}
 	}
 
-	public void removePageComponent(PageComponent pageComponent) throws EngineException {
+	protected void removePageComponent(PageComponent pageComponent) throws EngineException {
 		checkSubLoaded();
 		vPageComponents.remove(pageComponent);
 		
@@ -348,8 +352,11 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 	 */
 	transient private List<UIComponent> vUIComponents = new LinkedList<UIComponent>();
 	
-	public void addUIComponent(UIComponent uiComponent) throws EngineException {
+	protected void addUIComponent(UIComponent uiComponent) throws EngineException {
 		checkSubLoaded();
+		
+		boolean isNew = uiComponent.bNew;
+		boolean isCut = !isNew && uiComponent.getParent() == null;
 		
 		String newDatabaseObjectName = getChildBeanName(vUIComponents, uiComponent.getName(), uiComponent.bNew);
 		uiComponent.setName(newDatabaseObjectName);
@@ -359,17 +366,20 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		
         insertOrderedComponent(uiComponent,null);
         
-        if (uiComponent.bNew) {
+        if (isNew || isCut) {
         	if (uiComponent instanceof UIStyle) {
         		markStyleAsDirty();
         	}
         	else {
         		markTemplateAsDirty();
+        		if (uiComponent.hasStyle()) {
+        			markStyleAsDirty();
+        		}
         	}
         }
 	}
 
-	public void removeUIComponent(UIComponent uiComponent) throws EngineException {
+	protected void removeUIComponent(UIComponent uiComponent) throws EngineException {
 		checkSubLoaded();
 		
 		vUIComponents.remove(uiComponent);
@@ -382,6 +392,9 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
     	}
     	else {
     		markTemplateAsDirty();
+    		if (uiComponent.hasStyle()) {
+    			markStyleAsDirty();
+    		}
     	}
 	}
 
@@ -445,7 +458,7 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		return computedTemplate;
 	}
     
-	private synchronized void doComputeTemplate() {
+	protected synchronized void doComputeTemplate() {
 		computedTemplate = computeTemplate();
 	}
 	
@@ -467,7 +480,7 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		return computedRoute;
 	}
 	
-	public synchronized void doComputeRoute() {
+	protected synchronized void doComputeRoute() {
 		computedRoute = computeRoute();
 	}
     
@@ -498,7 +511,7 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		return computedStyle;
 	}
 	
-	private synchronized void doComputeStyle() {
+	protected synchronized void doComputeStyle() {
 		computedStyle = computeStyle();
 	}
 	
@@ -527,5 +540,10 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 	public void markTemplateAsDirty() throws EngineException {
 		doComputeTemplate();
 		//getProject().getMobileBuilder().appComputed(this);
+	}
+	
+	public void markRouteAsDirty() throws EngineException {
+		doComputeRoute();
+		getProject().getMobileBuilder().routeChanged();
 	}
 }

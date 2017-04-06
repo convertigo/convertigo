@@ -206,8 +206,11 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 	 */
 	transient private List<UIComponent> vUIComponents = new LinkedList<UIComponent>();
 	
-	public void addUIComponent(UIComponent uiComponent) throws EngineException {
+	protected void addUIComponent(UIComponent uiComponent) throws EngineException {
 		checkSubLoaded();
+		
+		boolean isNew = uiComponent.bNew;
+		boolean isCut = !isNew && uiComponent.getParent() == null;
 		
 		String newDatabaseObjectName = getChildBeanName(vUIComponents, uiComponent.getName(), uiComponent.bNew);
 		uiComponent.setName(newDatabaseObjectName);
@@ -217,17 +220,20 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 		
         insertOrderedComponent(uiComponent,null);
         
-        if (uiComponent.bNew) {
+        if (isNew || isCut) {
         	if (uiComponent instanceof UIStyle) {
         		markStyleAsDirty();
         	}
         	else {
         		markTemplateAsDirty();
+        		if (uiComponent.hasStyle()) {
+        			markStyleAsDirty();
+        		}
         	}
         }
 	}
 
-	public void removeUIComponent(UIComponent uiComponent) throws EngineException {
+	protected void removeUIComponent(UIComponent uiComponent) throws EngineException {
 		checkSubLoaded();
 		
 		vUIComponents.remove(uiComponent);
@@ -240,6 +246,9 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
     	}
     	else {
     		markTemplateAsDirty();
+    		if (uiComponent.hasStyle()) {
+    			markStyleAsDirty();
+    		}
     	}
 	}
 
@@ -300,7 +309,7 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 		return computedTemplate;
 	}
 	
-	private synchronized void doComputeTemplate() {
+	protected synchronized void doComputeTemplate() {
 		computedTemplate = computeTemplate();
 	}
 	
@@ -329,7 +338,7 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 		return computedStyle;
 	}
 	
-	private synchronized void doComputeStyle() {
+	protected synchronized void doComputeStyle() {
 		computedStyle = computeStyle();
 	}
 	

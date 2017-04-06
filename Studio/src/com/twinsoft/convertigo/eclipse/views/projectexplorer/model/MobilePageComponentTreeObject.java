@@ -24,9 +24,13 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
 import org.eclipse.jface.viewers.Viewer;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -34,10 +38,12 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 	
 	public MobilePageComponentTreeObject(Viewer viewer, PageComponent object) {
 		super(viewer, object);
+		isDefault = getObject().isRoot;
 	}
 
 	public MobilePageComponentTreeObject(Viewer viewer, PageComponent object, boolean inherited) {
 		super(viewer, object, inherited);
+		isDefault = getObject().isRoot;
 	}
 
 	@Override
@@ -81,11 +87,33 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 	}
 
 	@Override
+	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
+		super.treeObjectPropertyChanged(treeObjectEvent);
+		
+		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
+		if (treeObject instanceof DatabaseObjectTreeObject) {
+			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)treeObject;
+			DatabaseObject dbo = doto.getObject();
+			if (dbo instanceof UIComponent) {
+				UIComponent uic = (UIComponent)dbo;
+				if (getObject().equals(uic.getPage())) {
+					if (dbo instanceof UIStyle) {
+						markStyleAsDirty();
+					}
+					else {
+						markTemplateAsDirty();
+					}
+				}
+			}
+			else if (this.equals(dbo)) {
+				markTemplateAsDirty();
+			}
+		}
+	}
+
+	@Override
 	public void hasBeenModified(boolean bModified) {
 		super.hasBeenModified(bModified);
-		if (bModified && !isInherited) {
-			//markTemplateAsDirty();
-		}
 	}
 		
 	protected void markTemplateAsDirty() {

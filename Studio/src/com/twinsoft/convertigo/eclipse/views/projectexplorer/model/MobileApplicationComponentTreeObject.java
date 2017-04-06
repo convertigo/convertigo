@@ -29,10 +29,17 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
+import com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
+import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
+import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -62,19 +69,45 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 	}
 
 	@Override
+	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
+		super.treeObjectPropertyChanged(treeObjectEvent);
+		
+		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
+		if (treeObject instanceof DatabaseObjectTreeObject) {
+			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)treeObject;
+			DatabaseObject dbo = doto.getObject();
+			
+			if (getObject().equals(dbo.getParent())) {
+				if (dbo instanceof RouteComponent) {
+					markRouteAsDirty();
+				} else if (dbo instanceof UIStyle) {
+					markStyleAsDirty();
+				} else if (dbo instanceof UIComponent){
+					markTemplateAsDirty();
+				}
+			}
+			else if (getObject().equals(dbo.getParent().getParent())) {
+				if (dbo instanceof RouteEventComponent) {
+					markRouteAsDirty();
+				} else if (dbo instanceof RouteActionComponent) {
+					markRouteAsDirty();
+				}
+			} else if (this.equals(dbo)) {
+				; // TODO
+			}
+		}
+	}
+	
+	@Override
 	public void hasBeenModified(boolean bModified) {
 		super.hasBeenModified(bModified);
-		if (bModified && !isInherited) {
-			//markRouteAsDirty();
-		}
 	}
 	
 	protected void markRouteAsDirty() {
 		ApplicationComponent ac = getObject();
 		if (ac != null) {
 			try {
-				ac.doComputeRoute();
-				ac.getProject().getMobileBuilder().routeChanged();
+				ac.markRouteAsDirty();
 			} catch (EngineException e) {
 				ConvertigoPlugin.logException(e,
 						"Error while writing the component.ts file for app '" + ac.getName() + "'");	}
@@ -82,9 +115,24 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 	}
 
 	protected void markTemplateAsDirty() {
-		;// TODO
+		ApplicationComponent ac = getObject();
+		if (ac != null) {
+			try {
+				ac.markTemplateAsDirty();
+			} catch (EngineException e) {
+				ConvertigoPlugin.logException(e,
+						"Error while writing the app.html file for app '" + ac.getName() + "'");	}
+		}
 	}
 
+	protected void markStyleAsDirty() {
+		ApplicationComponent ac = getObject();
+		try {
+			ac.markStyleAsDirty();
+		} catch (EngineException e) {
+			ConvertigoPlugin.logException(e,
+					"Error while writing the app.scss for application '" + ac.getName() + "'");	}
+	}	
 
 	@Override
 	public void launchEditor(String editorType) {
@@ -129,14 +177,5 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 		}
 		
 		return editorPart;
-	}
-	
-	protected void markStyleAsDirty() {
-		ApplicationComponent ac = getObject();
-		try {
-			ac.markStyleAsDirty();
-		} catch (EngineException e) {
-			ConvertigoPlugin.logException(e,
-					"Error while writing the app.scss for application '" + ac.getName() + "'");	}
 	}
 }

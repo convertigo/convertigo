@@ -118,6 +118,13 @@ public abstract class UIComponent extends MobileComponent implements ITemplateGe
     	ordered.add(pos1, value);
     	ordered.remove(pos+1);
     	hasChanged = true;
+    	
+    	if (databaseObject instanceof UIStyle) {
+    		getPage().markStyleAsDirty();
+    	}
+    	else {
+    		getPage().markTemplateAsDirty();
+    	}
     }
     
     private void decreaseOrder(DatabaseObject databaseObject, Long after) throws EngineException {
@@ -140,6 +147,13 @@ public abstract class UIComponent extends MobileComponent implements ITemplateGe
     	ordered.add(pos1+1, value);
     	ordered.remove(pos);
     	hasChanged = true;
+    	
+    	if (databaseObject instanceof UIStyle) {
+    		getPage().markStyleAsDirty();
+    	}
+    	else {
+    		getPage().markTemplateAsDirty();
+    	}
     }
     
 	public void increasePriority(DatabaseObject databaseObject) throws EngineException {
@@ -190,8 +204,11 @@ public abstract class UIComponent extends MobileComponent implements ITemplateGe
 	 */
 	transient private List<UIComponent> vUIComponents = new LinkedList<UIComponent>();
 	
-	public void addUIComponent(UIComponent uiComponent) throws EngineException {
+	protected void addUIComponent(UIComponent uiComponent) throws EngineException {
 		checkSubLoaded();
+		
+		boolean isNew = uiComponent.bNew;
+		boolean isCut = !isNew && uiComponent.getParent() == null;
 		
 		String newDatabaseObjectName = getChildBeanName(vUIComponents, uiComponent.getName(), uiComponent.bNew);
 		uiComponent.setName(newDatabaseObjectName);
@@ -200,15 +217,37 @@ public abstract class UIComponent extends MobileComponent implements ITemplateGe
 		uiComponent.setParent(this);
 		
         insertOrderedComponent(uiComponent,null);
+        
+        if (isNew || isCut) {
+        	if (uiComponent instanceof UIStyle) {
+        		getPage().markStyleAsDirty();
+        	}
+        	else {
+        		getPage().markTemplateAsDirty();
+        		if (uiComponent.hasStyle()) {
+        			getPage().markStyleAsDirty();
+        		}
+        	}
+        }
 	}
 
-	public void removeUIComponent(UIComponent uiComponent) throws EngineException {
+	protected void removeUIComponent(UIComponent uiComponent) throws EngineException {
 		checkSubLoaded();
 		
 		vUIComponents.remove(uiComponent);
 		uiComponent.setParent(null);
 		
         removeOrderedComponent(uiComponent.priority);
+        
+    	if (uiComponent instanceof UIStyle) {
+    		getPage().markStyleAsDirty();
+    	}
+    	else {
+    		getPage().markTemplateAsDirty();
+    		if (uiComponent.hasStyle()) {
+    			getPage().markStyleAsDirty();
+    		}
+    	}
 	}
 
 	public List<UIComponent> getUIComponentList() {
@@ -216,6 +255,15 @@ public abstract class UIComponent extends MobileComponent implements ITemplateGe
 		return sort(vUIComponents);
 	}
 
+	public boolean hasStyle() {
+		for (UIComponent uic :getUIComponentList()) {
+			if (uic instanceof UIStyle) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	public UIComponent getUIComponentByName(String uiName) throws EngineException {
 		checkSubLoaded();
 		for (UIComponent uiComponent : vUIComponents)
@@ -258,6 +306,18 @@ public abstract class UIComponent extends MobileComponent implements ITemplateGe
 		return element;
 	}
 
+	public PageComponent getPage() {
+		DatabaseObject databaseObject = this;
+		while (!(databaseObject instanceof PageComponent) && databaseObject != null) { 
+			databaseObject = databaseObject.getParent();
+		}
+		
+		if (databaseObject == null)
+			return null;
+		else
+			return (PageComponent) databaseObject;
+	}
+	
 	@Override
 	public boolean testAttribute(String name, String value) {
 		if (name.equals("isEnabled")) {
@@ -267,4 +327,5 @@ public abstract class UIComponent extends MobileComponent implements ITemplateGe
 		return super.testAttribute(name, value);
 	}
 
+	
 }

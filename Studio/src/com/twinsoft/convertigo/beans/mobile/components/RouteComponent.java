@@ -187,6 +187,8 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
     	ordered.add(pos1, value);
     	ordered.remove(pos+1);
     	hasChanged = true;
+    	
+    	getParent().markRouteAsDirty();
     }
     
     private void decreaseOrder(DatabaseObject databaseObject, Long after) throws EngineException {
@@ -211,6 +213,8 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
     	ordered.add(pos1+1, value);
     	ordered.remove(pos);
     	hasChanged = true;
+    	
+    	getParent().markRouteAsDirty();
     }
     
 	public void increasePriority(DatabaseObject databaseObject) throws EngineException {
@@ -260,17 +264,17 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
 		insertOrderedEvent(routeEventComponent, null);
 		
 		if (routeEventComponent.bNew) {
-			getProject().getMobileBuilder().appChanged();
+			getParent().markRouteAsDirty();
 		}
 	}
 
-	public void removeRouteEventComponent(RouteEventComponent routeEventComponent) throws EngineException {
+	protected void removeRouteEventComponent(RouteEventComponent routeEventComponent) throws EngineException {
 		checkSubLoaded();
 		vRouteEventComponents.remove(routeEventComponent);
 		
 		removeOrderedEvent(routeEventComponent.priority);
 		
-		getProject().getMobileBuilder().appChanged();
+		getParent().markRouteAsDirty();
 	}
 
 	public List<RouteEventComponent> getRouteEventComponentList() {
@@ -293,18 +297,18 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
 		insertOrderedAction(routeActionComponent, null);
 		
 		if (routeActionComponent.bNew) {
-			getProject().getMobileBuilder().appChanged();
+			getParent().markRouteAsDirty();
 		}
 		
 	}
 
-	public void removeRouteActionComponent(RouteActionComponent routeActionComponent) throws EngineException {
+	protected void removeRouteActionComponent(RouteActionComponent routeActionComponent) throws EngineException {
 		checkSubLoaded();
 		vRouteActionComponents.remove(routeActionComponent);
 		
 		removeOrderedAction(routeActionComponent.priority);
 		
-		getProject().getMobileBuilder().appChanged();
+		getParent().markRouteAsDirty();
 	}
 
 	public List<RouteActionComponent> getRouteActionComponentList() {
