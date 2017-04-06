@@ -368,6 +368,7 @@ var ProjectsView = {
 		initJstree: function (jstreeId) {
 			// Inject CSS the icons of each type of nodes
 			Injector.injectLinkStyle(ProjectsView.createConvertigoServiceUrl("studio.database_objects.GetCSS"));
+			Injector.injectLinkStyle(ProjectsView.createConvertigoServiceUrl("studio.database_objects.GetMenuIconsCSS"));
 			
 			$(ProjectsView).on("set_property.database-object-manager", function (event, qnames, property, value, data) {
 				for (var j = 0; j < qnames.length; ++j) {
@@ -649,12 +650,21 @@ var ProjectsView = {
 				// Create action
 				else {
 					var label = StringUtils.escapeHTML($(children[i]).attr("label"));
-					if ($(children[i]).attr("isChecked") == "true") {
-						label = '\u2713' + " " + label;
+					var iconClass = $(children[i]).attr("isChecked") == "true" ?
+							// If is checked : show check maker
+						    "contextmenu-entry-default" :
+						    // Show classic icon
+						    $(children[i]).attr("icon");
+					
+					var isDisabled = $(children[i]).attr("isEnabled") == "false";
+					if (isDisabled) {
+						iconClass += " contextmenu-entry-disable";
 					}
+					
 					parent[label.replace(/\s/g, "")] = {
 						label: label,
-						_disabled: $(children[i]).attr("isEnabled") == "false",
+						icon: iconClass,
+						_disabled: isDisabled,
 						// menubarPath = category
 						separator_after: isValidIndex && $(children[i]).attr("menubarPath") !== $(children[indexNextNode]).attr("menubarPath")
 					}

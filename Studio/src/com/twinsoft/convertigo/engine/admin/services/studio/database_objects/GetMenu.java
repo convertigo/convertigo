@@ -1,15 +1,19 @@
 package com.twinsoft.convertigo.engine.admin.services.studio.database_objects;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
 
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Criteria;
@@ -63,6 +67,7 @@ public class GetMenu extends XmlService {
 
 	private TwsCachedXPathAPI xpathApi = new TwsCachedXPathAPI();
 	private static Document pluginDocument = null;
+	public static String rootPath = "C:/dev/Eclipses/projects/CemsStudio_7.5.x/";
 
 	// Get the label of a menu from its ID
 	private static Map<String, String> idMenuToLabel = new HashMap<>(3);
@@ -161,9 +166,7 @@ public class GetMenu extends XmlService {
 	@Override
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		// Load the plugin.xml where the representation of the context menu is described
-		if (pluginDocument == null) {
-			pluginDocument = XMLUtils.loadXml("C:/dev/Eclipses/projects/CemsStudio_7.5.x/plugin.xml");
-		}
+		getPluginDocument();
 		
 		String[] qnames = request.getParameterValues("qnames[]");
 		String[] folderTypes = request.getParameterValues("folderTypes[]");
@@ -223,15 +226,19 @@ public class GetMenu extends XmlService {
 					 *  so it is useless to display the others.
 					 */
 					if (foundAction = evaluateFolderCondition(folderTypeValue, eAction)) {
+						String menubarPath = eAction.getAttribute("menubarPath");
+						
 						// Create the action
-						Element eNewAction = document.createElement("action");	
-						eNewAction.setAttribute("isEnabled", "true");
-						eNewAction.setAttribute("label", eAction.getAttribute("label"));
-						eNewAction.setAttribute("class", eAction.getAttribute("class"));
+						Element eNewAction = createElementActionBaseAttr(
+								document,
+								eAction.getAttribute("id"),
+								eAction.getAttribute("label"),
+								eAction.getAttribute("class"),
+								true,
+								menubarPath
+						);
 						
 						// Create the sub menu
-						String menubarPath = eAction.getAttribute("menubarPath");
-						eNewAction.setAttribute("menubarPath", menubarPath);
 						int index = menubarPath.indexOf("/");
 						createSubMenu(menubarPath, index, document, eContextMenu, eNewAction, eObjectContribution.getAttribute("id"));		
 					}
@@ -250,9 +257,33 @@ public class GetMenu extends XmlService {
 		}
 	}
 
+	public static Document getPluginDocument() throws ParserConfigurationException, SAXException, IOException {
+		if (pluginDocument == null) {
+			pluginDocument = XMLUtils.loadXml(rootPath + "plugin.xml");
+		}
+		
+		return pluginDocument;
+	}
+	
 	private void noEntryMessage(Element response) {
 		response.setAttribute("state", "error");
 		response.setAttribute("message", "Context menu has no entry.");
+	}
+	
+	private Element createElementActionBaseAttr(Document document, String id, String label, String className, boolean isEnabled, String menubarPath) {
+		Element newAction = document.createElement("action");
+		newAction.setAttribute("id", id);
+		newAction.setAttribute("label", label);
+		
+		// Action class
+		newAction.setAttribute("class", className);
+		newAction.setAttribute("icon", computeIconNameCSS(id));
+		newAction.setAttribute("isEnabled", Boolean.toString(isEnabled));
+		
+		// menubarPath = category
+		newAction.setAttribute("menubarPath", menubarPath);
+		
+		return newAction;
 	}
 	
 	private Element generateFilteredMenu(Document document, List<Node> menus) {
@@ -330,7 +361,7 @@ public class GetMenu extends XmlService {
 		return eFilteredMenu;
 	}
 	
-	private Element createDboMenu(DatabaseObject dbo, Document document) throws ClassNotFoundException {
+	private Element createDboMenu(DatabaseObject dbo, Document document) throws ClassNotFoundException, MalformedURLException {
 		Element menuRootElt = document.createElement("menu");
 		
 		// Get nodes object contribution
@@ -343,20 +374,23 @@ public class GetMenu extends XmlService {
 					for (Node nAction: xpathApi.selectList(nObjectContribution, "/action")) {
 						Element eAction = (Element) nAction;
 						
-						// Create the new action
-						Element eNewAction = document.createElement("action");						
 						ActionModel actionModel = evaluateEnablementCondition(dbo, nAction);
-						eNewAction.setAttribute("isEnabled", Boolean.toString(actionModel.isEnabled));
+						String menubarPath = eAction.getAttribute("menubarPath");
+						
+						// Create the new action
+						Element eNewAction = createElementActionBaseAttr(
+							    document,
+							    eAction.getAttribute("id"),
+							    (actionModel.text != null ? actionModel.text : eAction.getAttribute("label")),
+							    eAction.getAttribute("class"),
+							    actionModel.isEnabled,
+							    menubarPath
+						);
 						eNewAction.setAttribute("objectClass", attrObjectClass);
-						eNewAction.setAttribute("label", actionModel.text != null ? actionModel.text : eAction.getAttribute("label"));
 						eNewAction.setAttribute("isChecked", Boolean.toString(actionModel.isChecked));
-						eNewAction.setAttribute("class", eAction.getAttribute("class"));
-						eNewAction.setAttribute("id", eAction.getAttribute("id"));
 						eNewAction.setAttribute("enablesFor", eAction.getAttribute("enablesFor"));
 
-						// menubarPath = category
-						String menubarPath = eAction.getAttribute("menubarPath");
-						eNewAction.setAttribute("menubarPath", menubarPath);
+
 						
 						int index = menubarPath.indexOf("/");
 						// Case of a sub-menu
@@ -390,6 +424,10 @@ public class GetMenu extends XmlService {
 		}
 		
 		addActionElt(subMenuElt, eNewAction, null, menubarPath);
+	}
+	
+	private String computeIconNameCSS(String classNameCSS) {
+		return classNameCSS.replaceAll("\\.", "-");
 	}
 	
 	private void addActionElt(Element root, Element action, String attrObjectClass, String menubarPath) {

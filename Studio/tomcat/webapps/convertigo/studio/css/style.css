@@ -60,3 +60,23 @@ li.nodeDisable > a {
 .jstree-default-dark .jstree-anchor>.jstree-icon {
     opacity: 1;
 }
+
+/* Icons of the context menu */
+.vakata-context li>a>i {
+	background-repeat: no-repeat;
+	/* Center */
+	background-position: 7px 7px;
+}
+
+.contextmenu-entry-default:before {
+   	content: "\2713";
+}
+
+.contextmenu-entry-disable {
+  	opacity: 0.5;
+   -webkit-filter: grayscale(100%);
+   -moz-filter: grayscale(100%);
+   -o-filter: grayscale(100%);
+   -ms-filter: grayscale(100%);
+   filter: grayscale(100%);
+}
