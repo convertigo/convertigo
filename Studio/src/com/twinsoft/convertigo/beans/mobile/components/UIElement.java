@@ -88,8 +88,8 @@ public class UIElement extends UIComponent implements IStyleGenerator {
 		return label.isEmpty() ? super.toString() : label;
 	}
 
-	public String getId() {
-		return "tag"+priority;
+	public String getTagClass() {
+		return "class"+priority;
 	}
 	
 	@Override
@@ -110,7 +110,7 @@ public class UIElement extends UIComponent implements IStyleGenerator {
 				}
 			}
 			
-			String attrId = " id=\""+ getId() +"\"";
+			String attrId = " class=\""+ getTagClass() +"\"";
 			
 			StringBuilder sb = new StringBuilder();
 			sb.append("<").append(getTagName())
@@ -156,7 +156,7 @@ public class UIElement extends UIComponent implements IStyleGenerator {
 		
 		StringBuilder sb = new StringBuilder();
 		if (styles.length()>0) {
-			sb.append("#"+ getId()).append(" {").append(System.getProperty("line.separator"));
+			sb.append("."+ getTagClass()).append(" {").append(System.getProperty("line.separator"));
 			sb.append(styles);
 			sb.append("}").append(System.getProperty("line.separator"));
 		}

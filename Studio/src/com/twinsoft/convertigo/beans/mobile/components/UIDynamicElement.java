@@ -163,7 +163,7 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 				}
 			}
 			
-			String attrId = " id=\""+ getId() +"\"";
+			String attrId = " class=\""+ getTagClass() +"\"";
 			
 			StringBuilder sb = new StringBuilder();
 			sb.append("<").append(getTagName())
