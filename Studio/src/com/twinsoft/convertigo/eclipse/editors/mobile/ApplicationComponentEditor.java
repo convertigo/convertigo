@@ -24,12 +24,14 @@ package com.twinsoft.convertigo.eclipse.editors.mobile;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -49,6 +51,7 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.util.ProcessUtils;
 
 public class ApplicationComponentEditor extends EditorPart implements ISelectionChangedListener {
 
@@ -59,6 +62,9 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 	private String baseUrl = null;
 	private String pageName = null;
 	private Collection<Process> processes = new LinkedList<>();
+	
+	private static Pattern pIsServerRunning = Pattern.compile(".*?server running: (http\\S*).*");
+	private static Pattern pRemoveEchap = Pattern.compile("\\x1b\\[\\d+m");
 	
 	public ApplicationComponentEditor() {
 		projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
@@ -135,7 +141,7 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 
 	@Override
 	public void setFocus() {
-		c8oBrowser.getBrowserView().grabFocus();
+//		c8oBrowser.getBrowserView().requestFocus();
 	}
 
 	public void refreshBrowser() {
@@ -146,8 +152,6 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 	
 	@Override
 	public void selectionChanged(SelectionChangedEvent event) {
-		Engine.logEngine.info("ok");
-		Engine.logEngine.info("" + browser.getRemoteDebuggingURL());
 //		browser.executeScript("location.href='http://www.convertigo.com'");
 //		browser.executeJavaScript("location.href='http://www.convertigo.com'");
 //		if (event.getSource() instanceof ISelectionProvider) {
@@ -190,12 +194,17 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 	}
 	
 	private void launchBuilder() {
-		browser.loadHTML("<body>loading…</body>");
+		try {
+			browser.loadHTML(IOUtils.toString(getClass().getResourceAsStream("loader.html"), "UTF-8"));
+		} catch (IOException e1) {
+			throw new RuntimeException(e1);
+		}
+		
 		Engine.execute(() -> {
 			File ionicDir = new File(applicationEditorInput.application.getProject().getDirPath() + "/_private/ionic");
 			if (!new File(ionicDir, "node_modules").exists()) {
 				try {
-					ProcessBuilder pb = new ProcessBuilder("npm.cmd", "install", "--progress=false");
+					ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "install", "--progress=false");
 					pb.redirectErrorStream(true);
 					pb.directory(ionicDir);
 					Process p = pb.start();
@@ -203,8 +212,12 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 					BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
 					String line;
 					while ((line = br.readLine()) != null) {
+						line = pRemoveEchap.matcher(line).replaceAll("");
+						
+						Engine.logStudio.info(line);
 						appendOutput(line);
 					}
+					Engine.logStudio.info(line);
 					appendOutput("\\o/");
 				} catch (Exception e) {
 					appendOutput(":( " + e);
@@ -212,17 +225,19 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 			}
 
 			try {
-				ProcessBuilder pb = new ProcessBuilder("npm.cmd", "run", "ionic:serve", "--nobrowser");
+				ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "run", "ionic:serve", "--nobrowser");
 				pb.redirectErrorStream(true);
 				pb.directory(ionicDir);
 				Process p = pb.start();
 				processes.add(p);
 				BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
 				String line;
-				Pattern isServe = Pattern.compile(".*?server running: (http\\S*).*");
 				while ((line = br.readLine()) != null) {
+					line = pRemoveEchap.matcher(line).replaceAll("");
+					
+					Engine.logStudio.info(line);
 					appendOutput(line);
-					Matcher m = isServe.matcher(line);
+					Matcher m = pIsServerRunning.matcher(line);
 					if (m.matches()) {
 						baseUrl = m.group(1);
 						doLoad();

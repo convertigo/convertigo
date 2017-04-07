@@ -165,11 +165,14 @@ public class ConsolePipes {
 								}
 							} else {
 								if (!alertOnSettings) {
-									convertigoPlugin.engineConsoleStream.print("***** ENGINE LOGS NOT WRITTEN INTO THE CONSOLE, IF YOU WANT TO SET THEM *****");
+									convertigoPlugin.engineConsoleStream.print("*****  ENGINE LOGS NOT WRITTEN INTO THE CONSOLE, IF YOU WANT TO SET THEM  *****");
 									convertigoPlugin.engineConsoleStream.println();
 									convertigoPlugin.engineConsoleStream.print("***** PLEASE ENABLE \"Show Engine logs...\" SETTING IN STUDIO PREFERENCES *****");
 									convertigoPlugin.engineConsoleStream.println();
+									convertigoPlugin.engineConsoleStream.print("*****                    THEN RESTART THE STUDIO                          *****");
+									convertigoPlugin.engineConsoleStream.println();
 									alertOnSettings = true;
+									bContinue = false;
 								}
 							}
 						} 

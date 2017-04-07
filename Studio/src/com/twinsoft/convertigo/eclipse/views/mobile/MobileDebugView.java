@@ -62,7 +62,7 @@ public class MobileDebugView extends ViewPart implements IPartListener2 {
 
 	@Override
 	public void setFocus() {
-		c8oBrowser.getBrowserView().grabFocus();
+//		c8oBrowser.getBrowserView().requestFocus();
 	}
 
 	private void onActivated(IWorkbenchPart part) {
