@@ -359,17 +359,21 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
 			if (size > 0) {
 				// Add events
 				boolean hasEvents = false;
-				sb.append("new C8oRouteListener([");
+				boolean hasActions = false;
+				StringBuilder sbEvents = new StringBuilder();
+				StringBuilder sbActions = new StringBuilder();
+				
+				sbEvents.append("new C8oRouteListener([");
 				Iterator<RouteEventComponent> ite = getRouteEventComponentList().iterator();
 				while (ite.hasNext()) {
 					RouteEventComponent event = ite.next();
 					String tpl = event.computeRoute();
 					if (!tpl.isEmpty()) {
-						sb.append((hasEvents ? ",":"") + "\""+ tpl + "\"");
+						sbEvents.append((hasEvents ? ",":"") + "\""+ tpl + "\"");
 						hasEvents = true;
 					}
 				}
-				sb.append("])");
+				sbEvents.append("])");
 				
 				// Add route actions
 				if (hasEvents) {
@@ -380,14 +384,19 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
 							RouteActionComponent action = ita.next();
 							String tpl = action.computeRoute();
 							if (!tpl.isEmpty()) {
+								hasActions = true;
 								if (action instanceof RouteDataActionComponent) {
-									sb.append(".addRoute("+ tpl +")");
+									sbActions.append(".addRoute("+ tpl +")");
 								}
 								else if (action instanceof RouteExceptionActionComponent) {
-									sb.append(".addFailedRoute("+ tpl +")");
+									sbActions.append(".addFailedRoute("+ tpl +")");
 								}
 							}
 						}
+					}
+					
+					if (hasActions) {
+						sb.append(sbEvents).append(sbActions);
 					}
 				}
 			}

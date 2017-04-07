@@ -372,13 +372,23 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 	}
 
 	public void markStyleAsDirty() throws EngineException {
+		String oldComputed = getComputedStyle();
 		doComputeStyle();
-		getProject().getMobileBuilder().pageStyleChanged(this);
+		String newComputed = getComputedStyle();
+		
+		if (!newComputed.equals(oldComputed)) {
+			getProject().getMobileBuilder().pageStyleChanged(this);
+		}
 	}
 	
 	public void markTemplateAsDirty() throws EngineException {
+		String oldComputed = getComputedTemplate();
 		doComputeTemplate();
-		getProject().getMobileBuilder().pageComputed(this);
+		String newComputed = getComputedTemplate();
+		
+		if (!newComputed.equals(oldComputed)) {
+			getProject().getMobileBuilder().pageComputed(this);
+		}
 	}
 	
 	@Override

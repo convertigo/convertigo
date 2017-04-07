@@ -533,17 +533,32 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 	}
 	
 	public void markStyleAsDirty() throws EngineException {
+		String oldComputed = getComputedStyle();
 		doComputeStyle();
-		getProject().getMobileBuilder().appStyleChanged(this);
+		String newComputed = getComputedStyle();
+		
+		if (!newComputed.equals(oldComputed)) {
+			getProject().getMobileBuilder().appStyleChanged(this);
+		}
 	}
 	
 	public void markTemplateAsDirty() throws EngineException {
+		String oldComputed = getComputedTemplate();
 		doComputeTemplate();
-		//getProject().getMobileBuilder().appComputed(this);
+		String newComputed = getComputedTemplate();
+		
+		if (!newComputed.equals(oldComputed)) {
+			//getProject().getMobileBuilder().appComputed(this);
+		}
 	}
 	
 	public void markRouteAsDirty() throws EngineException {
+		String oldComputed = getComputedRoute();
 		doComputeRoute();
-		getProject().getMobileBuilder().routeChanged();
+		String newComputed = getComputedRoute();
+		
+		if (!newComputed.equals(oldComputed)) {
+			getProject().getMobileBuilder().routeChanged();
+		}
 	}
 }
