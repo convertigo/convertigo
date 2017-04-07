@@ -36,6 +36,7 @@ import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
+import com.twinsoft.convertigo.beans.mobile.components.UITheme;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
@@ -80,6 +81,8 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 			if (getObject().equals(dbo.getParent())) {
 				if (dbo instanceof RouteComponent) {
 					markRouteAsDirty();
+				} else if (dbo instanceof UITheme) {
+					markThemeAsDirty();
 				} else if (dbo instanceof UIStyle) {
 					markStyleAsDirty();
 				} else if (dbo instanceof UIComponent){
@@ -114,6 +117,17 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 		}
 	}
 
+	protected void markThemeAsDirty() {
+		ApplicationComponent ac = getObject();
+		if (ac != null) {
+			try {
+				ac.markThemeAsDirty();
+			} catch (EngineException e) {
+				ConvertigoPlugin.logException(e,
+						"Error while writing the variables.scss file for app '" + ac.getName() + "'");	}
+		}
+	}
+	
 	protected void markTemplateAsDirty() {
 		ApplicationComponent ac = getObject();
 		if (ac != null) {

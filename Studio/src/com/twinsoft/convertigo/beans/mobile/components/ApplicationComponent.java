@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -34,6 +36,7 @@ import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.FileUtils;
 
 public class ApplicationComponent extends MobileComponent implements IStyleGenerator, ITemplateGenerator, IRouteGenerator, IContainerOrdered {
 	
@@ -59,8 +62,10 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		cloned.vUIComponents = new LinkedList<UIComponent>();
 		cloned.computedTemplate = null;
 		cloned.computedStyle = null;
+		cloned.computedTheme = null;
 		cloned.computedRoute = null;
 		cloned.rootPage = null;
+		cloned.theme = null;
 		return cloned;
 	}
 
@@ -165,8 +170,10 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
     	
     	if (databaseObject instanceof RouteComponent) {
     		markRouteAsDirty();
+    	} else if (databaseObject instanceof UITheme) {
+   			markThemeAsDirty();
     	} else if (databaseObject instanceof UIStyle) {
-    		markStyleAsDirty();
+   			markStyleAsDirty();
     	} else if (databaseObject instanceof UIComponent) {
     		markTemplateAsDirty();
     	}
@@ -197,8 +204,10 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
     	
     	if (databaseObject instanceof RouteComponent) {
     		markRouteAsDirty();
+    	} else if (databaseObject instanceof UITheme) {
+   			markThemeAsDirty();
     	} else if (databaseObject instanceof UIStyle) {
-    		markStyleAsDirty();
+   			markStyleAsDirty();
     	} else if (databaseObject instanceof UIComponent) {
     		markTemplateAsDirty();
     	}
@@ -347,6 +356,22 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 	}
 	
 	
+	private String getThemeTplScss() {
+		File projectDir = new File(getProject().getDirPath());
+		File appThemeTpl = new File(projectDir, "ionicTpl/src/theme/variables.scss");
+		try {
+			return FileUtils.readFileToString(appThemeTpl, "UTF-8");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return "";
+	}
+	
+	/**
+	 * The application's theme
+	 */
+	private transient UITheme theme = null;
+	
 	/**
 	 * The list of available ui components for this application.
 	 */
@@ -354,6 +379,15 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 	
 	protected void addUIComponent(UIComponent uiComponent) throws EngineException {
 		checkSubLoaded();
+		
+    	if (uiComponent instanceof UITheme) {
+    		if (this.theme != null) {
+    			throw new EngineException("The mobile application \"" + getName() + "\" already contains a theme! Please delete it first.");
+    		}
+    		else {
+    			((UITheme)uiComponent).styleContent = getThemeTplScss();
+    		}
+    	}
 		
 		boolean isNew = uiComponent.bNew;
 		boolean isCut = !isNew && uiComponent.getParent() == null;
@@ -367,10 +401,12 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
         insertOrderedComponent(uiComponent,null);
         
         if (isNew || isCut) {
-        	if (uiComponent instanceof UIStyle) {
-        		markStyleAsDirty();
-        	}
-        	else {
+        	if (uiComponent instanceof UITheme) {
+        		this.theme = (UITheme)uiComponent;
+       			markThemeAsDirty();
+        	} else if (uiComponent instanceof UIStyle) {
+       			markStyleAsDirty();
+        	} else {
         		markTemplateAsDirty();
         		if (uiComponent.hasStyle()) {
         			markStyleAsDirty();
@@ -387,8 +423,12 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		
         removeOrderedComponent(uiComponent.priority);
         
-    	if (uiComponent instanceof UIStyle) {
-    		markStyleAsDirty();
+        if (uiComponent != null && uiComponent.equals(this.theme)) {
+    		this.theme = null;
+    		markThemeAsDirty();
+        }
+        else if (uiComponent instanceof UIStyle) {
+   			markStyleAsDirty();
     	}
     	else {
     		markTemplateAsDirty();
@@ -413,6 +453,7 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 	@Override
 	public List<DatabaseObject> getAllChildren() {	
 		List<DatabaseObject> rep = super.getAllChildren();
+		if (theme != null) rep.add(theme);
 		rep.addAll(getRouteComponentList());
 		rep.addAll(getPageComponentList());
 		rep.addAll(getUIComponentList());
@@ -521,7 +562,7 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		Iterator<UIComponent> it = getUIComponentList().iterator();
 		while (it.hasNext()) {
 			UIComponent component = (UIComponent)it.next();
-			if (component instanceof UIStyle) {
+			if (component instanceof UIStyle && !(component instanceof UITheme)) {
 				String tpl = component.computeTemplate();
 				if (!tpl.isEmpty()) {
 					sb.append(tpl).append(System.getProperty("line.separator"));
@@ -530,6 +571,45 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		}
 		
 		return sb.toString();
+	}
+
+	transient private String computedTheme = null;
+	
+	public String getComputedTheme() {
+		if (computedTheme == null) {
+			doComputeTheme();
+		}
+		return computedTheme;
+	}
+	
+	protected synchronized void doComputeTheme() {
+		computedTheme = computeTheme();
+	}
+
+	public String computeTheme() {
+		StringBuilder sb = new StringBuilder();
+		if (theme != null) {
+			String tpl = theme.computeTemplate();
+			if (!tpl.isEmpty()) {
+				sb.append(tpl);
+			}
+		}
+		
+		if (sb.length() == 0) {
+			sb.append(getThemeTplScss());
+		}
+		
+		return sb.toString();
+	}
+	
+	public void markThemeAsDirty() throws EngineException {
+		String oldComputed = getComputedTheme();
+		doComputeTheme();
+		String newComputed = getComputedTheme();
+		
+		if (!newComputed.equals(oldComputed) || theme == null) {
+			getProject().getMobileBuilder().appThemeChanged(this);
+		}
 	}
 	
 	public void markStyleAsDirty() throws EngineException {

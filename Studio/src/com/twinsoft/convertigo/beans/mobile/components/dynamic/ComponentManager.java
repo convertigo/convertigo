@@ -56,6 +56,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
 import com.twinsoft.convertigo.beans.mobile.components.UIText;
+import com.twinsoft.convertigo.beans.mobile.components.UITheme;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class ComponentManager {
@@ -252,6 +253,7 @@ public class ComponentManager {
 			components.add(getDboComponent(UICustom.class,group));
 			components.add(getDboComponent(UIText.class,group));
 			components.add(getDboComponent(UIStyle.class,group));
+			components.add(getDboComponent(UITheme.class,group));
 			
 			// Add Controls
 			group = "Controls";
@@ -362,13 +364,15 @@ public class ComponentManager {
 					}
 				}
 				if (parent instanceof PageComponent) {
-					if (!UIAttribute.class.isAssignableFrom(dboClass) &&
+					if (!UITheme.class.isAssignableFrom(dboClass) &&
+						!UIAttribute.class.isAssignableFrom(dboClass) &&
 						!UIControlAction.class.isAssignableFrom(dboClass)) {
 						return true;
 					}
 				}
 				if (parent instanceof UIElement) {
-					if (!UIControlAttr.class.isAssignableFrom(dboClass) &&
+					if (!UITheme.class.isAssignableFrom(dboClass) &&
+						!UIControlAttr.class.isAssignableFrom(dboClass) &&
 						!(UIControlAction.class.isAssignableFrom(dboClass))) {
 							return true;
 					}

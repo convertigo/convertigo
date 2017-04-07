@@ -1491,10 +1491,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 									folderType = ObjectsFolderTreeObject.FOLDER_TYPE_CONTROLS;
 								}
 							}
-							if (databaseObject instanceof UIControlSource) {
+							else if (databaseObject instanceof UIControlSource) {
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_SOURCES;
 							}
-							if (databaseObject instanceof UIStyle) {
+							else if (databaseObject instanceof UIStyle) {
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_STYLES;
 							}
 							databaseObjectTreeObject = new MobileUIComponentTreeObject(viewer, (UIComponent) databaseObject, false);

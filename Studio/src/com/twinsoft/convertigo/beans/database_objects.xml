@@ -200,6 +200,9 @@
 					<!--<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlDirective"/>-->
 				</bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UITheme">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent"/>
+				</bean>
 			</beans>
 			<beans groupname="Control Components">
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent">

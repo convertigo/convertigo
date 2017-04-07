@@ -232,6 +232,13 @@ public class MobileBuilder {
 		}
 	}
 
+	public synchronized void appThemeChanged(final ApplicationComponent app) throws EngineException {
+		if (app != null && initDone) {
+			writeAppTheme(app);
+			Engine.logEngine.debug("(MobileBuilder) Handled 'appThemeChanged'");
+		}
+	}
+	
 	private boolean isIonicTemplateBased() {
 		return ionicTplDir.exists();
 	}
@@ -360,6 +367,22 @@ public class MobileBuilder {
 		}
 	}
 
+	private void writeAppTheme(ApplicationComponent app) throws EngineException {
+		try {
+			if (app != null) {
+				String appName = app.getName();
+				File themeScssFile = new File(ionicWorkDir, "src/theme/variables.scss");
+				String tContent = app.getComputedTheme();
+				FileUtils.write(themeScssFile, tContent, "UTF-8");
+				
+				Engine.logEngine.debug("(MobileBuilder) Ionic theme scss file generated for app '"+appName+"'");
+			}
+		}
+		catch (Exception e) {
+			throw new EngineException("Unable to write ionic theme scss file",e);
+		}
+	}
+
 	private void removeUselessPage(String pageName) {
 		File pageDir = new File(ionicWorkDir,"src/pages/"+ pageName);
 		try {
@@ -439,6 +462,10 @@ public class MobileBuilder {
 				File appScssFile = new File(ionicWorkDir, "src/app/app.scss");
 				String computedScss = application.getComputedStyle();
 				FileUtils.write(appScssFile, computedScss, "UTF-8");
+
+				File themeScssFile = new File(ionicWorkDir, "src/theme/variables.scss");
+				String tContent = application.getComputedTheme();
+				FileUtils.write(themeScssFile, tContent, "UTF-8");
 
 				Engine.logEngine.debug("(MobileBuilder) Ionic source files generated for application 'app'");
 			}
