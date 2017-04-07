@@ -24,7 +24,6 @@ package com.twinsoft.convertigo.eclipse.editors.mobile;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -44,9 +43,6 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.EditorPart;
 
 import com.teamdev.jxbrowser.chromium.Browser;
-import com.teamdev.jxbrowser.chromium.dom.By;
-import com.teamdev.jxbrowser.chromium.dom.DOMDocument;
-import com.teamdev.jxbrowser.chromium.dom.DOMElement;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
@@ -183,20 +179,14 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 	
 	private void appendOutput(String msg) {
 		if (baseUrl == null) {
-			DOMDocument doc = browser.getDocument();
-			DOMElement body = doc.findElement(By.tagName("body"));
-			body.appendChild(doc.createElement("br"));
-			if (StringUtils.isNotEmpty(msg)) {
-				body.appendChild(doc.createTextNode(msg));
-			}
-			browser.executeJavaScript("document.body.scrollTop = document.body.scrollHeight");
+			browser.executeJavaScriptAndReturnValue("loader_log").asFunction().invokeAsync(null, msg);
 		}
 	}
 	
 	private void launchBuilder() {
 		try {
 			browser.loadHTML(IOUtils.toString(getClass().getResourceAsStream("loader.html"), "UTF-8"));
-		} catch (IOException e1) {
+		} catch (Exception e1) {
 			throw new RuntimeException(e1);
 		}
 		
@@ -213,9 +203,10 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 					String line;
 					while ((line = br.readLine()) != null) {
 						line = pRemoveEchap.matcher(line).replaceAll("");
-						
-						Engine.logStudio.info(line);
-						appendOutput(line);
+						if (StringUtils.isNotBlank(line)) {						
+							Engine.logStudio.info(line);
+							appendOutput(line);
+						}
 					}
 					Engine.logStudio.info(line);
 					appendOutput("\\o/");
@@ -234,13 +225,14 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 				String line;
 				while ((line = br.readLine()) != null) {
 					line = pRemoveEchap.matcher(line).replaceAll("");
-					
-					Engine.logStudio.info(line);
-					appendOutput(line);
-					Matcher m = pIsServerRunning.matcher(line);
-					if (m.matches()) {
-						baseUrl = m.group(1);
-						doLoad();
+					if (StringUtils.isNotBlank(line)) {
+						Engine.logStudio.info(line);
+						appendOutput(line);
+						Matcher m = pIsServerRunning.matcher(line);
+						if (m.matches()) {
+							baseUrl = m.group(1);
+							doLoad();
+						}
 					}
 				}
 				appendOutput("\\o/");

@@ -7,23 +7,14 @@
   <meta name="format-detection" content="telephone=no">
   <meta name="msapplication-tap-highlight" content="no">
 <style>
-.center {
-    position: absolute;
-    margin: auto;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    right: 0;
-    width: 120px;
-    height: 20px;
-    text-align: center;
+body {
+	margin-top: 10px;
+	background-color: lightblue;
+	font-family: sans-serif;
 }
-#wait {
-    width: 100%;
-    height: 100%;
-    background: rgba(128,128,128,0.5);
-    overflow: hidden;
-    z-index: 2;
+#content {
+    margin: auto;
+    text-align: center;
 }
 #loader {
   border: 16px solid #f3f3f3;
@@ -31,25 +22,42 @@
   border-top: 16px solid #3498db;
   width: 120px;
   height: 120px;
-  -webkit-animation: spin 2s linear infinite;
   animation: spin 2s linear infinite;
+  margin: auto;
 }
-
-@-webkit-keyframes spin {
-  0% { -webkit-transform: rotate(0deg); }
-  100% { -webkit-transform: rotate(360deg); }
+#loading {
+	position: relative;
+	top: 86px;
 }
-
+#l1, #l2, #l3 {
+	margin-top: 10px;
+}
+#l2 {
+	opacity: 0.5;
+}
+#l3 {
+	opacity: 0.2;
+}
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
 </style>
+<script>
+function loader_log(msg) {
+	document.getElementById("l3").textContent = document.getElementById("l2").textContent;
+	document.getElementById("l2").textContent = document.getElementById("l1").textContent;
+	document.getElementById("l1").textContent = msg;
+}
+</script>
 </head>
-<body style="margin: 0px">
-  <div id="wait" class="center">
-    <div id="message" class="center">Loading…</div>
-    <div id="loader" class="center"></div>
-  </div>
+<body>
+	<div id="content">
+		<div id="loading">Loading …</div>
+		<div id="loader"></div>
+		<div id="l1"></div>
+		<div id="l2"></div>
+		<div id="l3"></div>
+	</div>
 </body>
 </html>
