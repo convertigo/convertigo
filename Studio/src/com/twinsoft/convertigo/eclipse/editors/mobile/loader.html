@@ -16,6 +16,12 @@ body {
     margin: auto;
     text-align: center;
 }
+
+#Message {
+    margin: auto;
+    text-align: center;
+}
+
 #loader {
   border: 16px solid #f3f3f3;
   border-radius: 50%;
@@ -30,7 +36,7 @@ body {
 	top: 86px;
 }
 #l1, #l2, #l3 {
-	margin-top: 20px;
+	margin-top: 3 px;
 }
 #l2 {
 	opacity: 0.5;
@@ -52,10 +58,16 @@ function loader_log(msg) {
 </script>
 </head>
 <body>
+	<div id="Message">
+		<h3>Visual App Viewer</h3>
+		<p>Your mobile application will be shown here.. Please wait a while so that we install Angular and Ionic 2 dependencies and that we initialize the rendering system.</p>
+		<br /> 		
+	</div>
 	<div id="load">
 		<div id="loading">Loading …</div>
 		<div id="loader"></div>
 	</div>
+	<br /> 		
 	<div id="l1"></div>
 	<div id="l2"></div>
 	<div id="l3"></div>
