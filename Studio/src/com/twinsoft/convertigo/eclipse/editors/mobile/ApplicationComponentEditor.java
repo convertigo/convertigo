@@ -36,7 +36,14 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.PartInitException;
@@ -53,6 +60,10 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 
 	private ProjectExplorerView projectExplorerView = null;
 	private ApplicationComponentEditorInput applicationEditorInput;
+	
+	ScrolledComposite browserScroll;
+	GridData browserGD;
+	
 	private C8oBrowser c8oBrowser;
 	private Browser browser;
 	private String baseUrl = null;
@@ -124,17 +135,132 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 
 	@Override
 	public void createPartControl(Composite parent) {
-		createBrowser(parent);
+		Composite editor = new Composite(parent, SWT.NONE);
+		GridLayout gl = new GridLayout(2, false);
+		gl.marginBottom = gl.marginTop = gl.marginLeft = gl.marginRight = gl.marginHeight = gl.marginWidth = gl.horizontalSpacing = 0; 
+		editor.setLayout(gl);
+		
+		createToolbar(editor);
+		createBrowser(editor);
+		
+		setBrowserSize(-1, -1);
+		
 		launchBuilder();
-	}
-
-	private void createBrowser(Composite parent) {
-		c8oBrowser = new C8oBrowser(parent, SWT.NONE);
-		browser = c8oBrowser.getBrowser();
 		
 		getSite().getWorkbenchWindow().getActivePage().activate(this);
 	}
 
+	private void createBrowser(Composite parent) {
+		browserScroll = new ScrolledComposite(parent, SWT.H_SCROLL | SWT.V_SCROLL);
+		browserScroll.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		browserScroll.setExpandHorizontal(true);
+		browserScroll.setExpandVertical(true);
+		
+		Composite canvas = new Composite(browserScroll, SWT.NONE);
+		browserScroll.setContent(canvas);
+		
+		GridLayout gl = new GridLayout(1, false);
+		gl.marginBottom = gl.marginTop = gl.marginLeft = gl.marginRight = gl.marginHeight = gl.marginWidth = 0;
+		canvas.setLayout(gl);
+		
+		c8oBrowser = new C8oBrowser(canvas, SWT.NONE);
+		browserGD = new GridData(SWT.CENTER, SWT.CENTER, true, true);
+		c8oBrowser.setLayoutData(browserGD);
+
+		browser = c8oBrowser.getBrowser();
+	}
+
+	private void createToolbar(Composite parent) {
+		ToolBar toolbar = new ToolBar(parent, SWT.VERTICAL);
+		toolbar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, true));
+		
+		ToolItem item = new ToolItem(toolbar, SWT.PUSH);
+		item.setText("F");
+		item.setToolTipText("Set fullsize");
+		item.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				setBrowserSize(-1, -1);
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
+		
+		item = new ToolItem(toolbar, SWT.PUSH);
+		item.setText("P");
+		item.setToolTipText("Set portrait");
+		item.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				setBrowserSize(360, 598);
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
+		
+		item = new ToolItem(toolbar, SWT.PUSH);
+		item.setText("L");
+		item.setToolTipText("Set landscape");
+		item.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				setBrowserSize(598, 360);
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
+				
+		item = new ToolItem(toolbar, SWT.PUSH);
+		item.setText("D");
+		item.setToolTipText("Show debug");
+		item.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				getSite().getPage().activate(ConvertigoPlugin.getDefault().getMobileDebugView());
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
+		
+		item = new ToolItem(toolbar, SWT.PUSH);
+		item.setText("B");
+		item.setToolTipText("Open in default browser");
+		item.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				String url = browser.getURL();
+				if (url.startsWith("http")) {
+					org.eclipse.swt.program.Program.launch(url);
+				}
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
+	}
+	
+	private void setBrowserSize(int width, int height) {
+		browserGD.horizontalAlignment = width < 0 ? GridData.FILL : GridData.CENTER;
+		browserGD.verticalAlignment = height < 0 ? GridData.FILL : GridData.CENTER;
+		browserScroll.setMinWidth(browserGD.widthHint = browserGD.minimumWidth = width);
+		browserScroll.setMinHeight(browserGD.heightHint = browserGD.minimumHeight = height);
+		c8oBrowser.getParent().layout();
+	}
+	
 	@Override
 	public void setFocus() {
 //		c8oBrowser.getBrowserView().requestFocus();

@@ -125,6 +125,7 @@ import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditorInput;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
+import com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ClipboardManager;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectManager;
@@ -1311,6 +1312,30 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 				sourcePickerView = (SourcePickerView)viewPart;
 		}
 		return sourcePickerView;
+	}
+	
+	/**
+	 * Gets the source picker view.
+	 * !!MUST BE CALLED IN A UI-THREAD!!
+	 * @return SourcePickerView : the source picker view of Convertigo Plugin
+	 * @throws  
+	 */
+	public MobileDebugView getMobileDebugView() {
+		MobileDebugView mobileDebugView = null;
+		try {
+			IWorkbenchPage activePage = getActivePage();
+			if (activePage != null) {
+				IViewPart viewPart =  activePage.findView("com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView");
+				if (viewPart != null)
+					mobileDebugView = (MobileDebugView) viewPart;
+			}
+			if (mobileDebugView == null) {
+				mobileDebugView = (MobileDebugView) getActivePage().showView("com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView");
+			}
+		} catch (PartInitException e) {
+			logException(e, "Failed to get the MobileDebugView");
+		}
+		return mobileDebugView;
 	}
 
 	/**
