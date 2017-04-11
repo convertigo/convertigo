@@ -33,15 +33,27 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.IEditorInput;
@@ -61,8 +73,14 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 	private ProjectExplorerView projectExplorerView = null;
 	private ApplicationComponentEditorInput applicationEditorInput;
 	
-	ScrolledComposite browserScroll;
-	GridData browserGD;
+	private ScrolledComposite browserScroll;
+	private GridData browserGD;
+	private Menu devicesMenu;
+	private Composite deviceBar;
+	
+	private Text deviceName;
+	private Text deviceWidth;
+	private Text deviceHeight;
 	
 	private C8oBrowser c8oBrowser;
 	private Browser browser;
@@ -137,13 +155,20 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 	public void createPartControl(Composite parent) {
 		Composite editor = new Composite(parent, SWT.NONE);
 		GridLayout gl = new GridLayout(2, false);
-		gl.marginBottom = gl.marginTop = gl.marginLeft = gl.marginRight = gl.marginHeight = gl.marginWidth = gl.horizontalSpacing = 0; 
-		editor.setLayout(gl);
+		gl.marginBottom = gl.marginTop = gl.marginLeft = gl.marginRight
+				= gl.marginHeight = gl.marginWidth
+				= gl.horizontalSpacing = gl.verticalSpacing = 0;
 		
+		editor.setLayout(gl);
+				
+		devicesMenu = new Menu(parent.getShell());
+		
+		updateDevicesMenu();
 		createToolbar(editor);
+		createDeviceBar(editor);
 		createBrowser(editor);
 		
-		setBrowserSize(-1, -1);
+		devicesMenu.getItems()[0].notifyListeners(SWT.Selection, new Event());
 		
 		launchBuilder();
 		
@@ -152,7 +177,7 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 
 	private void createBrowser(Composite parent) {
 		browserScroll = new ScrolledComposite(parent, SWT.H_SCROLL | SWT.V_SCROLL);
-		browserScroll.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		browserScroll.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, true));
 		browserScroll.setExpandHorizontal(true);
 		browserScroll.setExpandVertical(true);
 		
@@ -160,7 +185,10 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 		browserScroll.setContent(canvas);
 		
 		GridLayout gl = new GridLayout(1, false);
-		gl.marginBottom = gl.marginTop = gl.marginLeft = gl.marginRight = gl.marginHeight = gl.marginWidth = 0;
+		gl.marginBottom = gl.marginTop = gl.marginLeft = gl.marginRight
+				= gl.marginHeight = gl.marginWidth
+				= gl.horizontalSpacing = gl.verticalSpacing = 0;
+		
 		canvas.setLayout(gl);
 		
 		c8oBrowser = new C8oBrowser(canvas, SWT.NONE);
@@ -169,12 +197,126 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 
 		browser = c8oBrowser.getBrowser();
 	}
-
-	private void createToolbar(Composite parent) {
-		ToolBar toolbar = new ToolBar(parent, SWT.VERTICAL);
-		toolbar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, true));
+	
+	private void createDeviceBar(Composite parent) {
+		deviceBar = new Composite(parent, SWT.NONE);
+		GridData gd = new GridData(GridData.FILL, GridData.BEGINNING, true, false);
+		deviceBar.setLayoutData(gd);
 		
-		ToolItem item = new ToolItem(toolbar, SWT.PUSH);
+		RowLayout layout = new RowLayout();
+		layout.fill = true;
+//		layout.marginBottom = layout.marginTop = layout.marginHeight = 0;
+		layout.spacing = 10;
+		deviceBar.setLayout(layout);
+		
+		FocusListener focusListener = new FocusListener() {
+			
+			@Override
+			public void focusLost(FocusEvent e) {
+				boolean doSize = false;
+				int width = browserGD.widthHint;
+				int height = browserGD.heightHint;
+				
+				if (e.widget == deviceWidth) {
+					try {
+						width = Integer.parseInt(deviceWidth.getText());
+						doSize = true;
+					} catch (Exception ex) {
+						// TODO: handle exception
+					}
+				} else if (e.widget == deviceHeight) {
+					try {
+						height = Integer.parseInt(deviceHeight.getText());
+						doSize = true;
+					} catch (Exception ex) {
+						// TODO: handle exception
+					}
+				}
+//				doSize = false;
+				if (doSize) {
+					setBrowserSize(width, height);
+				}
+			}
+			
+			@Override
+			public void focusGained(FocusEvent e) {
+				deviceBar.getDisplay().asyncExec(() -> {
+					((Text) e.widget).selectAll();
+				});
+			}
+		};
+		
+		new Label(deviceBar, SWT.NONE).setText("Device name:");
+		deviceName = new Text(deviceBar, SWT.NONE);
+		deviceName.setFont(JFaceResources.getTextFont());
+		deviceName.addFocusListener(focusListener);
+		
+		new Label(deviceBar, SWT.NONE).setText(" ");
+		
+		new Label(deviceBar, SWT.NONE).setText("Width:");
+		deviceWidth = new Text(deviceBar, SWT.NONE);
+		deviceWidth.setTextLimit(4);
+		deviceWidth.setFont(JFaceResources.getTextFont());
+		deviceWidth.addFocusListener(focusListener);
+		
+		new Label(deviceBar, SWT.NONE).setText(" ");
+		
+		new Label(deviceBar, SWT.NONE).setText("Height:");
+		deviceHeight = new Text(deviceBar, SWT.NONE);
+		deviceHeight.setTextLimit(4);
+		deviceHeight.setFont(JFaceResources.getTextFont());
+		deviceHeight.addFocusListener(focusListener);
+	}
+
+	private void createToolbar(Composite parent) {		
+		ToolBar toolbar = new ToolBar(parent, SWT.VERTICAL);
+		GridData gd = new GridData(GridData.FILL, GridData.FILL, false, true);
+		gd.verticalSpan = 2;
+		toolbar.setLayoutData(gd);
+
+		ToolItem item = new ToolItem(toolbar, SWT.DROP_DOWN);
+		item.setText("R");
+		item.setToolTipText("Select resolution");
+		item.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if (e.detail == SWT.ARROW) {
+					ToolItem item = (ToolItem) e.widget;
+					Rectangle rect = item.getBounds(); 
+					Point pt = item.getParent().toDisplay(new Point(rect.x, rect.y));
+					devicesMenu.setLocation(pt);
+					devicesMenu.setVisible(true);
+				} else {
+					boolean visible = !deviceBar.getVisible();
+					deviceBar.setVisible(visible);
+					GridData gd = (GridData) deviceBar.getLayoutData();
+					gd.exclude = !visible;
+					deviceBar.getParent().layout();
+				}
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
+		
+		item = new ToolItem(toolbar, SWT.PUSH);
+		item.setText("C");
+		item.setToolTipText("Change orientation");
+		item.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				setBrowserSize(browserGD.heightHint, browserGD.widthHint);
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
+		
+		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setText("F");
 		item.setToolTipText("Set fullsize");
 		item.addSelectionListener(new SelectionListener() {
@@ -253,7 +395,37 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 		});
 	}
 	
+	private void updateDevicesMenu() {
+		for (MenuItem m: devicesMenu.getItems()) {
+			m.dispose();
+		}
+		
+		SelectionAdapter selectionAdapter = new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				deviceName.setText(StringUtils.rightPad(((MenuItem) e.widget).getText(), 25));
+				setBrowserSize((int) e.widget.getData("width"), (int) e.widget.getData("height"));
+			}
+			
+		};
+		
+		MenuItem device = new MenuItem(devicesMenu, SWT.NONE);
+		device.addSelectionListener(selectionAdapter);
+		device.setText("No device");
+		device.setData("width", -1);
+		device.setData("height", -1);
+		
+		device = new MenuItem(devicesMenu, SWT.NONE);
+		device.addSelectionListener(selectionAdapter);
+		device.setText("IPhone 6, 7");
+		device.setData("width", 375);
+		device.setData("height", 667);
+	}
+	
 	private void setBrowserSize(int width, int height) {
+		deviceWidth.setText(StringUtils.leftPad("" + width, 4));
+		deviceHeight.setText(StringUtils.leftPad("" + height, 4));
 		browserGD.horizontalAlignment = width < 0 ? GridData.FILL : GridData.CENTER;
 		browserGD.verticalAlignment = height < 0 ? GridData.FILL : GridData.CENTER;
 		browserScroll.setMinWidth(browserGD.widthHint = browserGD.minimumWidth = width);
