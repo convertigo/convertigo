@@ -30,8 +30,12 @@ import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -40,14 +44,19 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
@@ -81,6 +90,7 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 	private Text deviceName;
 	private Text deviceWidth;
 	private Text deviceHeight;
+	private Button deviceDelete;
 	
 	private C8oBrowser c8oBrowser;
 	private Browser browser;
@@ -88,13 +98,31 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 	private String pageName = null;
 	private Collection<Process> processes = new LinkedList<>();
 	
+	private JSONArray devicesDefinition;
+	private JSONArray devicesDefinitionCustom;
+	
 	private static Pattern pIsServerRunning = Pattern.compile(".*?server running: (http\\S*).*");
 	private static Pattern pRemoveEchap = Pattern.compile("\\x1b\\[\\d+m");
 	
 	public ApplicationComponentEditor() {
 		projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
+		
 		if (projectExplorerView != null) {
 			projectExplorerView.addSelectionChangedListener(this);
+		}
+		
+		try {
+			devicesDefinition = new JSONArray(IOUtils.toString(getClass().getResourceAsStream("devices.json"), "UTF-8"));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			devicesDefinition = new JSONArray();
+		}
+		
+		try {
+			devicesDefinitionCustom = new JSONArray(FileUtils.readFileToString(new File(Engine.USER_WORKSPACE_PATH, "studio/devices.json"), "UTF-8"));
+		} catch (Exception e) {
+			devicesDefinitionCustom = new JSONArray();
 		}
 	}
 
@@ -200,12 +228,11 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 	
 	private void createDeviceBar(Composite parent) {
 		deviceBar = new Composite(parent, SWT.NONE);
-		GridData gd = new GridData(GridData.FILL, GridData.BEGINNING, true, false);
+		GridData gd = new GridData(GridData.FILL, GridData.CENTER, true, false);
 		deviceBar.setLayoutData(gd);
 		
 		RowLayout layout = new RowLayout();
-		layout.fill = true;
-//		layout.marginBottom = layout.marginTop = layout.marginHeight = 0;
+		layout.center = true;
 		layout.spacing = 10;
 		deviceBar.setLayout(layout);
 		
@@ -246,26 +273,124 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 			}
 		};
 		
+		KeyListener keyListener = new KeyListener() {
+			
+			@Override
+			public void keyReleased(KeyEvent e) {
+				if (e.keyCode == 13) {
+					Event ne = new Event();
+					ne.widget = e.widget;
+					focusListener.focusLost(new FocusEvent(ne));
+				}
+			}
+			
+			@Override
+			public void keyPressed(KeyEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+		};
+		
+		VerifyListener verifyListener = e -> {
+		    String oldS = ((Text) e.widget).getText();
+		    String newS = oldS.substring(0, e.start) + e.text + oldS.substring(e.end);
+				if (!newS.isEmpty() && !newS.equals("-")) {
+					try {
+						Integer.parseInt(newS);
+					} catch (Exception ex) {
+						e.doit = false;
+					}
+				}
+		};
+		
 		new Label(deviceBar, SWT.NONE).setText("Device name:");
 		deviceName = new Text(deviceBar, SWT.NONE);
 		deviceName.setFont(JFaceResources.getTextFont());
-		deviceName.addFocusListener(focusListener);
+		deviceName.setLayoutData(new RowData(200, SWT.DEFAULT));
 		
 		new Label(deviceBar, SWT.NONE).setText(" ");
 		
 		new Label(deviceBar, SWT.NONE).setText("Width:");
 		deviceWidth = new Text(deviceBar, SWT.NONE);
-		deviceWidth.setTextLimit(4);
-		deviceWidth.setFont(JFaceResources.getTextFont());
-		deviceWidth.addFocusListener(focusListener);
 		
 		new Label(deviceBar, SWT.NONE).setText(" ");
 		
 		new Label(deviceBar, SWT.NONE).setText("Height:");
 		deviceHeight = new Text(deviceBar, SWT.NONE);
-		deviceHeight.setTextLimit(4);
-		deviceHeight.setFont(JFaceResources.getTextFont());
-		deviceHeight.addFocusListener(focusListener);
+		
+		for (Text t: new Text[]{deviceWidth, deviceHeight}) {
+			t.setTextLimit(4);
+			t.setFont(JFaceResources.getTextFont());
+			t.setLayoutData(new RowData(35, SWT.DEFAULT));
+			t.addFocusListener(focusListener);
+			t.addVerifyListener(verifyListener);
+			t.addKeyListener(keyListener);
+		}
+		
+		new Label(deviceBar, SWT.NONE).setText(" ");
+		
+		Button button = new Button(deviceBar, SWT.NONE);
+		button.setText("Save");
+		button.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				String name = deviceName.getText().trim();
+				
+				if (name.isEmpty()) {
+					Engine.logStudio.info("Device name must no be empty.");
+					return;
+				}
+				
+				if (findDevice(devicesDefinition, name) != null) {
+					Engine.logStudio.info("Cannot override the default device '" + name + "'.");
+					return;
+				}
+				
+				JSONObject device = findDevice(devicesDefinitionCustom, name);
+				
+				try {
+					if (device == null) {
+						device = new JSONObject();
+						device.put("name", name);
+						devicesDefinitionCustom.put(device);
+					}
+					device.put("width", browserGD.widthHint);
+					device.put("height", browserGD.heightHint);
+					FileUtils.write(new File(Engine.USER_WORKSPACE_PATH, "studio/devices.json"), devicesDefinitionCustom.toString(4), "UTF-8");
+					updateDevicesMenu();
+				} catch (Exception ex) {
+					// TODO: handle exception
+				}
+			}			
+		});
+		
+		deviceDelete = button = new Button(deviceBar, SWT.NONE);
+		button.setText("Delete");
+		button.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				String name = deviceName.getText().trim();
+				
+				if (findDevice(devicesDefinition, name) != null) {
+					Engine.logStudio.info("Cannot remove the default device '" + name + "'.");
+					return;
+				}
+				
+				JSONObject device = findDevice(devicesDefinitionCustom, name);
+				
+				try {
+					if (device != null) {
+						devicesDefinitionCustom.remove(device);
+						FileUtils.write(new File(Engine.USER_WORKSPACE_PATH, "studio/devices.json"), devicesDefinitionCustom.toString(4), "UTF-8");
+						updateDevicesMenu();
+					}
+				} catch (Exception ex) {
+					// TODO: handle exception
+				}
+			}			
+		});
 	}
 
 	private void createToolbar(Composite parent) {		
@@ -404,28 +529,36 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				deviceName.setText(StringUtils.rightPad(((MenuItem) e.widget).getText(), 25));
+				deviceName.setText(((MenuItem) e.widget).getText());
 				setBrowserSize((int) e.widget.getData("width"), (int) e.widget.getData("height"));
 			}
 			
 		};
 		
-		MenuItem device = new MenuItem(devicesMenu, SWT.NONE);
-		device.addSelectionListener(selectionAdapter);
-		device.setText("No device");
-		device.setData("width", -1);
-		device.setData("height", -1);
-		
-		device = new MenuItem(devicesMenu, SWT.NONE);
-		device.addSelectionListener(selectionAdapter);
-		device.setText("IPhone 6, 7");
-		device.setData("width", 375);
-		device.setData("height", 667);
+		for (JSONArray devices: new JSONArray[]{devicesDefinition, devicesDefinitionCustom}) {
+			int len = devices.length();
+			for (int i = 0; i < len; i++) {
+				try {
+					JSONObject json = devices.getJSONObject(i);
+					MenuItem device = new MenuItem(devicesMenu, SWT.NONE);
+					device.addSelectionListener(selectionAdapter);
+					device.setText(json.getString("name"));
+					device.setData("width", json.getInt("width"));
+					device.setData("height", json.getInt("height"));
+					if (json.has("desc")) {
+						device.setToolTipText(json.getString("desc"));
+					}
+				} catch (JSONException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}			
+		}
 	}
 	
 	private void setBrowserSize(int width, int height) {
-		deviceWidth.setText(StringUtils.leftPad("" + width, 4));
-		deviceHeight.setText(StringUtils.leftPad("" + height, 4));
+		deviceWidth.setText("" + width);
+		deviceHeight.setText("" + height);
 		browserGD.horizontalAlignment = width < 0 ? GridData.FILL : GridData.CENTER;
 		browserGD.verticalAlignment = height < 0 ? GridData.FILL : GridData.CENTER;
 		browserScroll.setMinWidth(browserGD.widthHint = browserGD.minimumWidth = width);
@@ -541,6 +674,21 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 		});
 	}
 
+	
+	private JSONObject findDevice(JSONArray devices, String name) {
+		int len = devices.length();
+		for (int i = 0; i < len; i++) {
+			try {
+				JSONObject device = devices.getJSONObject(i);
+				if (name.equals(device.getString("name"))) {
+					return device;
+				}
+			} catch (Exception ex) {
+			}
+		}
+		return null;
+	}
+	
 	private void doLoad() {
 		if (baseUrl != null) {
 			String url = baseUrl;
