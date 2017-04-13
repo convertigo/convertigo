@@ -48,15 +48,14 @@ import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.VerifyListener;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
@@ -71,6 +70,8 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.EditorPart;
 
 import com.teamdev.jxbrowser.chromium.Browser;
+import com.teamdev.jxbrowser.chromium.events.ScriptContextAdapter;
+import com.teamdev.jxbrowser.chromium.events.ScriptContextEvent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
@@ -90,10 +91,10 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 	private Text deviceName;
 	private Text deviceWidth;
 	private Text deviceHeight;
-	private Button deviceDelete;
 	
 	private C8oBrowser c8oBrowser;
 	private Browser browser;
+	private String debugUrl;
 	private String baseUrl = null;
 	private String pageName = null;
 	private Collection<Process> processes = new LinkedList<>();
@@ -224,6 +225,19 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 		c8oBrowser.setLayoutData(browserGD);
 
 		browser = c8oBrowser.getBrowser();
+		debugUrl = browser.getRemoteDebuggingURL();
+		browser.addScriptContextListener(new ScriptContextAdapter() {
+
+			@Override
+			public void onScriptContextCreated(ScriptContextEvent event) {
+				String url = browser.getURL();
+				if (baseUrl != null && url.startsWith(baseUrl)) {
+					browser.executeJavaScript("sessionStorage.setItem('_c8ocafsession_storage_mode', 'session');");
+				}
+				super.onScriptContextCreated(event);
+			}
+			
+		});
 	}
 	
 	private void createDeviceBar(Composite parent) {
@@ -329,8 +343,10 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 		
 		new Label(deviceBar, SWT.NONE).setText(" ");
 		
-		Button button = new Button(deviceBar, SWT.NONE);
-		button.setText("Save");
+		ToolBar tb = new ToolBar(deviceBar, SWT.NONE);
+		ToolItem button = new ToolItem(tb, SWT.PUSH);
+		button.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/dbo_save.gif")));
+		button.setToolTipText("Save");
 		button.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -365,8 +381,9 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 			}			
 		});
 		
-		deviceDelete = button = new Button(deviceBar, SWT.NONE);
-		button.setText("Delete");
+		button = new ToolItem(tb, SWT.PUSH);
+		button.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/project_delete.gif")));
+		button.setToolTipText("Delete");
 		button.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -400,9 +417,9 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 		toolbar.setLayoutData(gd);
 
 		ToolItem item = new ToolItem(toolbar, SWT.DROP_DOWN);
-		item.setText("R");
-		item.setToolTipText("Select resolution");
-		item.addSelectionListener(new SelectionListener() {
+		item.setToolTipText("Select device viewport");
+		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/core/images/mobiledevice_color_16x16.png")));
+		item.addSelectionListener(new SelectionAdapter() {
 			
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -421,102 +438,47 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 				}
 			}
 			
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-			}
 		});
 		
 		item = new ToolItem(toolbar, SWT.PUSH);
-		item.setText("C");
 		item.setToolTipText("Change orientation");
-		item.addSelectionListener(new SelectionListener() {
+		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/connectors/images/fullsyncconnector_color_16x16.png")));
+		item.addSelectionListener(new SelectionAdapter() {
 			
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				setBrowserSize(browserGD.heightHint, browserGD.widthHint);
 			}
 			
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-			}
-		});
-		
-		item = new ToolItem(toolbar, SWT.PUSH);
-		item.setText("F");
-		item.setToolTipText("Set fullsize");
-		item.addSelectionListener(new SelectionListener() {
-			
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				setBrowserSize(-1, -1);
-			}
-			
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-			}
-		});
-		
-		item = new ToolItem(toolbar, SWT.PUSH);
-		item.setText("P");
-		item.setToolTipText("Set portrait");
-		item.addSelectionListener(new SelectionListener() {
-			
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				setBrowserSize(360, 598);
-			}
-			
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-			}
-		});
-		
-		item = new ToolItem(toolbar, SWT.PUSH);
-		item.setText("L");
-		item.setToolTipText("Set landscape");
-		item.addSelectionListener(new SelectionListener() {
-			
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				setBrowserSize(598, 360);
-			}
-			
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-			}
 		});
 				
 		item = new ToolItem(toolbar, SWT.PUSH);
-		item.setText("D");
 		item.setToolTipText("Show debug");
-		item.addSelectionListener(new SelectionListener() {
+		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/debug.gif")));
+		item.addSelectionListener(new SelectionAdapter() {
 			
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				getSite().getPage().activate(ConvertigoPlugin.getDefault().getMobileDebugView());
 			}
 			
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-			}
 		});
 		
 		item = new ToolItem(toolbar, SWT.PUSH);
-		item.setText("B");
 		item.setToolTipText("Open in default browser");
-		item.addSelectionListener(new SelectionListener() {
+		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/statements/images/ContinueWithSiteClipperStatement_color_16x16.png")));
+		item.addSelectionListener(new SelectionAdapter() {
 			
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				String url = browser.getURL();
-				if (url.startsWith("http")) {
-					org.eclipse.swt.program.Program.launch(url);
-				}
+				C8oBrowser.run(() -> {
+					String url = browser.getURL();
+					if (url.startsWith("http")) {
+						org.eclipse.swt.program.Program.launch(url);
+					}
+				});
 			}
 			
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-			}
 		});
 	}
 	
@@ -610,18 +572,20 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 	
 	private void appendOutput(String msg) {
 		if (baseUrl == null) {
-			browser.executeJavaScriptAndReturnValue("loader_log").asFunction().invokeAsync(null, msg);
+			C8oBrowser.run(() -> {
+				browser.executeJavaScriptAndReturnValue("loader_log").asFunction().invokeAsync(null, msg);
+			});
 		}
 	}
 	
-	private void launchBuilder() {
-		try {
-			browser.loadHTML(IOUtils.toString(getClass().getResourceAsStream("loader.html"), "UTF-8"));
-		} catch (Exception e1) {
-			throw new RuntimeException(e1);
-		}
-		
+	private void launchBuilder() {		
 		Engine.execute(() -> {
+			try {
+				browser.loadHTML(IOUtils.toString(getClass().getResourceAsStream("loader.html"), "UTF-8"));
+			} catch (Exception e1) {
+				throw new RuntimeException(e1);
+			}
+			
 			File ionicDir = new File(applicationEditorInput.application.getProject().getDirPath() + "/_private/ionic");
 			if (!new File(ionicDir, "node_modules").exists()) {
 				try {
@@ -691,19 +655,19 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 	
 	private void doLoad() {
 		if (baseUrl != null) {
-			String url = baseUrl;
-			if (pageName != null) {
-				url += "#/" + pageName;
-			}
-			browser.loadURL(url);
+			C8oBrowser.run(() -> {
+				String url = baseUrl;
+				if (pageName != null) {
+					url += "#/" + pageName;
+				}
+				
+				browser.loadURL(url);
+			});
 		}
 	}
 	
 	public String getDebugUrl() {
-		if (browser != null) {
-			return browser.getRemoteDebuggingURL();
-		}
-		return null;
+		return debugUrl;
 	}
 	
 	public void selectPage(String pageName) {

@@ -17,6 +17,7 @@ import com.teamdev.jxbrowser.chromium.events.LoadListener;
 import com.teamdev.jxbrowser.chromium.events.ProvisionalLoadingEvent;
 import com.teamdev.jxbrowser.chromium.events.StartLoadingEvent;
 import com.teamdev.jxbrowser.chromium.swing.BrowserView;
+import com.twinsoft.convertigo.engine.Engine;
 
 public class C8oBrowser extends Composite {
 	
@@ -25,6 +26,8 @@ public class C8oBrowser extends Composite {
 		int port = 18082;
 		BrowserPreferences.setChromiumSwitches("--remote-debugging-port=" + port);
 	}
+	
+	private static Thread threadSwt = null;
 
 	private BrowserView browserView;
 
@@ -33,13 +36,16 @@ public class C8oBrowser extends Composite {
 	    Frame frame = SWT_AWT.new_Frame(this);
 		browserView = new BrowserView(new Browser());
 		frame.add(browserView);
+		threadSwt = parent.getDisplay().getThread();
 	}
 	
 	
 	
 	@Override
 	public void dispose() {
-		getBrowser().dispose();
+		run(() -> {
+			getBrowser().dispose();			
+		});
 		super.dispose();
 	}
 
@@ -91,5 +97,13 @@ public class C8oBrowser extends Composite {
 				
 			}
 		});
+	}
+	
+	public static void run(Runnable runnable) {
+		if (threadSwt != null && threadSwt.equals(Thread.currentThread())) {
+			Engine.execute(runnable);
+		} else {
+			runnable.run();
+		}
 	}
 }
