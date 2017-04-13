@@ -232,7 +232,7 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 			public void onScriptContextCreated(ScriptContextEvent event) {
 				String url = browser.getURL();
 				if (baseUrl != null && url.startsWith(baseUrl)) {
-					browser.executeJavaScript("sessionStorage.setItem('_c8ocafsession_storage_mode', 'session');");
+					browser.executeJavaScript("sessionStorage.setItem('_c8ocafsession_storage_mode', 'local');");
 				}
 				super.onScriptContextCreated(event);
 			}
@@ -273,7 +273,7 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 						// TODO: handle exception
 					}
 				}
-//				doSize = false;
+				
 				if (doSize) {
 					setBrowserSize(width, height);
 				}
@@ -281,9 +281,7 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 			
 			@Override
 			public void focusGained(FocusEvent e) {
-				deviceBar.getDisplay().asyncExec(() -> {
-					((Text) e.widget).selectAll();
-				});
+				deviceBar.getDisplay().asyncExec(() -> ((Text) e.widget).selectAll());
 			}
 		};
 		
@@ -345,6 +343,41 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 		
 		ToolBar tb = new ToolBar(deviceBar, SWT.NONE);
 		ToolItem button = new ToolItem(tb, SWT.PUSH);
+		button.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/zoom_out.png")));
+		button.setToolTipText("Zoom out");
+		button.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				C8oBrowser.run(() -> browser.zoomOut());
+			}
+		});
+		
+		button = new ToolItem(tb, SWT.PUSH);
+		button.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/zoom_reset.png")));
+		button.setToolTipText("Zoom reset");
+		button.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				C8oBrowser.run(() -> browser.zoomReset());
+			}
+		});
+		
+		button = new ToolItem(tb, SWT.PUSH);
+		button.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/zoom_in.png")));
+		button.setToolTipText("Zoom in");
+		button.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				C8oBrowser.run(() -> browser.zoomIn());
+			}
+		});
+		
+		new ToolItem(tb, SWT.SEPARATOR);
+		
+		button = new ToolItem(tb, SWT.PUSH);
 		button.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/dbo_save.gif")));
 		button.setToolTipText("Save");
 		button.addSelectionListener(new SelectionAdapter() {
@@ -363,22 +396,26 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 					return;
 				}
 				
-				JSONObject device = findDevice(devicesDefinitionCustom, name);
-				
-				try {
-					if (device == null) {
-						device = new JSONObject();
-						device.put("name", name);
-						devicesDefinitionCustom.put(device);
+				C8oBrowser.run(() -> {
+					JSONObject device = findDevice(devicesDefinitionCustom, name);
+					
+					try {
+						if (device == null) {
+							device = new JSONObject();
+							device.put("name", name);
+							devicesDefinitionCustom.put(device);
+						}
+						device.put("width", browserGD.widthHint);
+						device.put("height", browserGD.heightHint);
+						device.put("zoom", browser.getZoomLevel());
+						FileUtils.write(new File(Engine.USER_WORKSPACE_PATH, "studio/devices.json"), devicesDefinitionCustom.toString(4), "UTF-8");
+						
+						parent.getDisplay().asyncExec(() -> updateDevicesMenu());
+					} catch (Exception ex) {
+						// TODO: handle exception
 					}
-					device.put("width", browserGD.widthHint);
-					device.put("height", browserGD.heightHint);
-					FileUtils.write(new File(Engine.USER_WORKSPACE_PATH, "studio/devices.json"), devicesDefinitionCustom.toString(4), "UTF-8");
-					updateDevicesMenu();
-				} catch (Exception ex) {
-					// TODO: handle exception
-				}
-			}			
+				});
+			}
 		});
 		
 		button = new ToolItem(tb, SWT.PUSH);
@@ -426,7 +463,7 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 				if (e.detail == SWT.ARROW) {
 					ToolItem item = (ToolItem) e.widget;
 					Rectangle rect = item.getBounds(); 
-					Point pt = item.getParent().toDisplay(new Point(rect.x, rect.y));
+					Point pt = item.getParent().toDisplay(new Point(rect.x + 8, rect.y + 8));
 					devicesMenu.setLocation(pt);
 					devicesMenu.setVisible(true);
 				} else {
@@ -440,6 +477,8 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 			
 		});
 		
+//		new ToolItem(toolbar, SWT.SEPARATOR);
+		
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Change orientation");
 		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/connectors/images/fullsyncconnector_color_16x16.png")));
@@ -451,6 +490,34 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 			}
 			
 		});
+		
+		new ToolItem(toolbar, SWT.SEPARATOR);
+				
+		item = new ToolItem(toolbar, SWT.PUSH);
+		item.setToolTipText("Refresh");
+		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/refresh.gif")));
+		item.addSelectionListener(new SelectionAdapter() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				C8oBrowser.run(() -> browser.reload());
+			}
+			
+		});
+				
+		item = new ToolItem(toolbar, SWT.PUSH);
+		item.setToolTipText("Back");
+		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/undo.gif")));
+		item.addSelectionListener(new SelectionAdapter() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				C8oBrowser.run(() -> browser.goBack());
+			}
+			
+		});
+		
+		new ToolItem(toolbar, SWT.SEPARATOR);
 				
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Show debug");
@@ -493,9 +560,16 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 			public void widgetSelected(SelectionEvent e) {
 				deviceName.setText(((MenuItem) e.widget).getText());
 				setBrowserSize((int) e.widget.getData("width"), (int) e.widget.getData("height"));
+				Object zoom = e.widget.getData("zoom");
+				if (zoom != null && zoom instanceof Double) {
+					C8oBrowser.run(() -> browser.setZoomLevel((double) zoom));
+				}
 			}
 			
 		};
+		
+		Image lock = new Image(devicesMenu.getDisplay(), getClass().getResourceAsStream("/studio/bound_property.s.gif"));
+		Image unlock = new Image(devicesMenu.getDisplay(), getClass().getResourceAsStream("/studio/bound_property.gif"));
 		
 		for (JSONArray devices: new JSONArray[]{devicesDefinition, devicesDefinitionCustom}) {
 			int len = devices.length();
@@ -505,8 +579,14 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 					MenuItem device = new MenuItem(devicesMenu, SWT.NONE);
 					device.addSelectionListener(selectionAdapter);
 					device.setText(json.getString("name"));
+					device.setImage(devices == devicesDefinition ? lock : unlock);
 					device.setData("width", json.getInt("width"));
 					device.setData("height", json.getInt("height"));
+					
+					if (json.has("zoom")) {
+						device.setData(json.get("zoom"));						
+					}
+					
 					if (json.has("desc")) {
 						device.setToolTipText(json.getString("desc"));
 					}
@@ -572,9 +652,7 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 	
 	private void appendOutput(String msg) {
 		if (baseUrl == null) {
-			C8oBrowser.run(() -> {
-				browser.executeJavaScriptAndReturnValue("loader_log").asFunction().invokeAsync(null, msg);
-			});
+			C8oBrowser.run(() -> browser.executeJavaScriptAndReturnValue("loader_log").asFunction().invokeAsync(null, msg));
 		}
 	}
 	

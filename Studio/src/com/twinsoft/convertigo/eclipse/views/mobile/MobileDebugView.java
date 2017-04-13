@@ -53,7 +53,7 @@ public class MobileDebugView extends ViewPart implements IPartListener2 {
 	public void createPartControl(Composite parent) {
 		c8oBrowser = new C8oBrowser(parent, SWT.NONE);
 		browser = c8oBrowser.getBrowser();
-		
+		browser.setZoomEnabled(false);
 		browser.loadHTML("<body>please select a mobile application editor</body>");
 		
 		onActivated(getSite().getPage().getActiveEditor());
@@ -68,8 +68,12 @@ public class MobileDebugView extends ViewPart implements IPartListener2 {
 	private void onActivated(IWorkbenchPart part) {
 		if (part instanceof ApplicationComponentEditor) {
 			String url = ((ApplicationComponentEditor) part).getDebugUrl();
-			if (url != null && !url.equals(browser.getURL())) {
-				browser.loadURL(url);
+			if (url != null) {
+				C8oBrowser.run(() -> {
+					if (!url.equals(browser.getURL())) {
+						browser.loadURL(url);
+					}
+				});
 			}
 		}
 	}
