@@ -98,7 +98,7 @@ public abstract class BuildLocally {
 	}
 
 	private String runCommand(File launchDir, String command, List<String> parameters, boolean mergeError) throws Throwable {
-		if (command.equals("cordova") && Engine.isWindows()) {
+		if (command.endsWith("cordova") && Engine.isWindows()) {
 			command += ".cmd";
 		}
 		parameters.add(0, command);
