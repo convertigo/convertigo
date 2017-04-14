@@ -7,20 +7,24 @@
 		"name"  : "Android Phone (35%)",
 		"desc"  : "Galaxy S4-S7\nNexus 5\nLG G3, G4\nHTC One\nSony Xperia Z, S, P",
 		"width" : 360,
-		"height": 640
+		"height": 640,
+		"zoom"  : 90
 	}, {
 		"name"  : "iPhone 7, 6, 6s",
 		"width" : 375,
-		"height": 667
+		"height": 667,
+		"zoom"  : 90
 	}, {
 		"name"  : "iPads",
 		"desc"  : "iPad 1-4, Air, Air2, mini 1-3",
 		"width" : 768,
-		"height": 1024
+		"height": 1024,
+		"zoom"  : 50
 	}, {
 		"name"  : "iPad Pro",
 		"width" : 1024,
-		"height": 1366
+		"height": 1366,
+		"zoom"  : 33
 	}, {
 		"name"  : "iPhone 5",
 		"width" : 320,

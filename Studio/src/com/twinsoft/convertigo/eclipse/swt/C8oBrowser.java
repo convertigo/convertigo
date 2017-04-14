@@ -39,8 +39,6 @@ public class C8oBrowser extends Composite {
 		threadSwt = parent.getDisplay().getThread();
 	}
 	
-	
-	
 	@Override
 	public void dispose() {
 		run(() -> {
@@ -48,8 +46,6 @@ public class C8oBrowser extends Composite {
 		});
 		super.dispose();
 	}
-
-
 
 	public BrowserView getBrowserView() {
 		return browserView;
@@ -65,6 +61,12 @@ public class C8oBrowser extends Composite {
 
 	public void setUrl(String url) {
 		getBrowser().loadURL(url);
+	}
+		
+	@Override
+	public boolean setFocus() {
+		C8oBrowser.run(() -> browserView.requestFocus());
+		return super.setFocus();
 	}
 
 	public void addProgressListener(ProgressListener progressListener) {

@@ -33,6 +33,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -42,8 +43,10 @@ import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.FocusAdapter;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -101,6 +104,8 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 	
 	private JSONArray devicesDefinition;
 	private JSONArray devicesDefinitionCustom;
+	
+	private ZoomFactor zoomFactor = ZoomFactor.z100;
 	
 	private static Pattern pIsServerRunning = Pattern.compile(".*?server running: (http\\S*).*");
 	private static Pattern pRemoveEchap = Pattern.compile("\\x1b\\[\\d+m");
@@ -234,6 +239,7 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 				if (baseUrl != null && url.startsWith(baseUrl)) {
 					browser.executeJavaScript("sessionStorage.setItem('_c8ocafsession_storage_mode', 'local');");
 				}
+				browser.setZoomLevel(zoomFactor.zoomLevel());
 				super.onScriptContextCreated(event);
 			}
 			
@@ -250,57 +256,29 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 		layout.spacing = 10;
 		deviceBar.setLayout(layout);
 		
-		FocusListener focusListener = new FocusListener() {
+		FocusListener focusListener = new FocusAdapter() {
 			
 			@Override
 			public void focusLost(FocusEvent e) {
-				boolean doSize = false;
-				int width = browserGD.widthHint;
-				int height = browserGD.heightHint;
-				
-				if (e.widget == deviceWidth) {
-					try {
-						width = Integer.parseInt(deviceWidth.getText());
-						doSize = true;
-					} catch (Exception ex) {
-						// TODO: handle exception
-					}
-				} else if (e.widget == deviceHeight) {
-					try {
-						height = Integer.parseInt(deviceHeight.getText());
-						doSize = true;
-					} catch (Exception ex) {
-						// TODO: handle exception
-					}
-				}
-				
-				if (doSize) {
-					setBrowserSize(width, height);
-				}
+				updateBrowserSize();
 			}
 			
 			@Override
 			public void focusGained(FocusEvent e) {
 				deviceBar.getDisplay().asyncExec(() -> ((Text) e.widget).selectAll());
 			}
+			
 		};
 		
-		KeyListener keyListener = new KeyListener() {
+		KeyListener keyListener = new KeyAdapter() {
 			
 			@Override
 			public void keyReleased(KeyEvent e) {
 				if (e.keyCode == 13) {
-					Event ne = new Event();
-					ne.widget = e.widget;
-					focusListener.focusLost(new FocusEvent(ne));
+					updateBrowserSize();
 				}
 			}
 			
-			@Override
-			public void keyPressed(KeyEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
 		};
 		
 		VerifyListener verifyListener = e -> {
@@ -349,7 +327,8 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				C8oBrowser.run(() -> browser.zoomOut());
+				zoomFactor = zoomFactor.out();
+				updateBrowserSize();
 			}
 		});
 		
@@ -360,7 +339,8 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				C8oBrowser.run(() -> browser.zoomReset());
+				zoomFactor = ZoomFactor.z100;
+				updateBrowserSize();
 			}
 		});
 		
@@ -371,7 +351,8 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				C8oBrowser.run(() -> browser.zoomIn());
+				zoomFactor = zoomFactor.in();
+				updateBrowserSize();
 			}
 		});
 		
@@ -405,9 +386,9 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 							device.put("name", name);
 							devicesDefinitionCustom.put(device);
 						}
-						device.put("width", browserGD.widthHint);
-						device.put("height", browserGD.heightHint);
-						device.put("zoom", browser.getZoomLevel());
+						device.put("width", NumberUtils.toInt(deviceWidth.getText(), -1));
+						device.put("height", NumberUtils.toInt(deviceHeight.getText(), -1));
+						device.put("zoom", zoomFactor.percent());
 						FileUtils.write(new File(Engine.USER_WORKSPACE_PATH, "studio/devices.json"), devicesDefinitionCustom.toString(4), "UTF-8");
 						
 						parent.getDisplay().asyncExec(() -> updateDevicesMenu());
@@ -477,7 +458,8 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 			
 		});
 		
-//		new ToolItem(toolbar, SWT.SEPARATOR);
+		new ToolItem(toolbar, SWT.SEPARATOR);
+		new ToolItem(toolbar, SWT.SEPARATOR);
 		
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Change orientation");
@@ -486,7 +468,10 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 			
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				setBrowserSize(browserGD.heightHint, browserGD.widthHint);
+				String width = deviceWidth.getText();
+				deviceWidth.setText(deviceHeight.getText());
+				deviceHeight.setText(width);
+				updateBrowserSize();
 			}
 			
 		});
@@ -500,7 +485,11 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 			
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				C8oBrowser.run(() -> browser.reload());
+				C8oBrowser.run(() -> {
+					if (!browser.getURL().equals("about:blank")) {
+						browser.reload();
+					}
+				});
 			}
 			
 		});
@@ -512,7 +501,12 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 			
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				C8oBrowser.run(() -> browser.goBack());
+				C8oBrowser.run(() -> {
+					int index = browser.getCurrentNavigationEntryIndex();
+					if (index > 2) {
+						browser.goBack();
+					}
+				});
 			}
 			
 		});
@@ -559,11 +553,13 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				deviceName.setText(((MenuItem) e.widget).getText());
-				setBrowserSize((int) e.widget.getData("width"), (int) e.widget.getData("height"));
-				Object zoom = e.widget.getData("zoom");
-				if (zoom != null && zoom instanceof Double) {
-					C8oBrowser.run(() -> browser.setZoomLevel((double) zoom));
-				}
+				deviceWidth.setText("" + e.widget.getData("width"));
+				deviceHeight.setText("" + e.widget.getData("height"));
+				zoomFactor = ZoomFactor.z100;
+				try {
+					zoomFactor = ZoomFactor.get((int) e.widget.getData("zoom"));
+				} catch (Exception ex) {	}
+				updateBrowserSize();
 			}
 			
 		};
@@ -584,7 +580,7 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 					device.setData("height", json.getInt("height"));
 					
 					if (json.has("zoom")) {
-						device.setData(json.get("zoom"));						
+						device.setData("zoom", json.getInt("zoom"));						
 					}
 					
 					if (json.has("desc")) {
@@ -598,25 +594,24 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 		}
 	}
 	
-	private void setBrowserSize(int width, int height) {
-		deviceWidth.setText("" + width);
-		deviceHeight.setText("" + height);
+	private void updateBrowserSize() {
+		int width = NumberUtils.toInt(deviceWidth.getText(), -1);
+		int height = NumberUtils.toInt(deviceHeight.getText(), -1);
+		
+		width = zoomFactor.swt(width);
+		height = zoomFactor.swt(height);
 		browserGD.horizontalAlignment = width < 0 ? GridData.FILL : GridData.CENTER;
 		browserGD.verticalAlignment = height < 0 ? GridData.FILL : GridData.CENTER;
 		browserScroll.setMinWidth(browserGD.widthHint = browserGD.minimumWidth = width);
 		browserScroll.setMinHeight(browserGD.heightHint = browserGD.minimumHeight = height);
 		c8oBrowser.getParent().layout();
+		
+		C8oBrowser.run(() -> browser.setZoomLevel(zoomFactor.zoomLevel()));
 	}
 	
 	@Override
 	public void setFocus() {
-//		c8oBrowser.getBrowserView().requestFocus();
-	}
-
-	public void refreshBrowser() {
-//		if (browser != null && !browser.isDisposed()) {
-//			browser.refresh();
-//		}
+		c8oBrowser.setFocus();
 	}
 	
 	@Override
