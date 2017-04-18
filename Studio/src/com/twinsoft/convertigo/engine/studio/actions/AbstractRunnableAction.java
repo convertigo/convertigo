@@ -1,0 +1,46 @@
+package com.twinsoft.convertigo.engine.studio.actions;
+
+import java.util.Map;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import com.twinsoft.convertigo.engine.ConvertigoException;
+import com.twinsoft.convertigo.engine.studio.responses.MessageBoxResponse;
+import com.twinsoft.convertigo.engine.studio.wrappers.WrapStudio;
+
+public abstract class AbstractRunnableAction {
+
+	protected WrapStudio studio;
+	private boolean isDone = false;
+	protected Map<String, String> dboExceptionMessages;
+	
+	public AbstractRunnableAction(WrapStudio studio) {
+		this.studio = studio;
+	}
+	
+	public void run() {
+		run2();
+		isDone = true;
+	}
+	protected abstract void run2();
+	
+	public Element toXml(Document document, String qname) throws ConvertigoException, Exception {
+		// Can't generate XML while the action is not finished yet
+		if (!isDone) {
+			throw new ConvertigoException("The action is not finished yet.");
+		}
+		
+		String exceptionMessage = dboExceptionMessages.get(qname);
+		return exceptionMessage == null ?
+				// No exception thrown during the execution of the action
+			    null :
+				// Exception thrown
+			    new MessageBoxResponse(exceptionMessage).toXml(document, qname);
+	}
+	
+	public boolean isDone() {
+		return isDone;
+	}
+
+}

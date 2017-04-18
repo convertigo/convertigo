@@ -37,8 +37,8 @@ import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
-import com.twinsoft.convertigo.engine.ActionModel;
-import com.twinsoft.convertigo.engine.DatabaseObjectsAction;
+import com.twinsoft.convertigo.engine.studio.ActionModel;
+import com.twinsoft.convertigo.engine.studio.DatabaseObjectsAction;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class CreateStubFromXMLAction extends AbstractStubAction {

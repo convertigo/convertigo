@@ -40,7 +40,13 @@ public class DOMUtils {
 		Document document = XMLUtils.getDefaultDocumentBuilder().newDocument();
         return document;
 	}
-
+	
+	public static Element createElementWithText(Document document, String tagName, String textContent) {
+		Element element = document.createElement(tagName);
+		element.setTextContent(textContent);
+		return element;
+	}
+	
 	public static Document handleError(Throwable t) throws ParserConfigurationException {
 		Exception e = t instanceof Exception ? (Exception) t : new Exception("Unexpected exception", t);
 		return handleError(e);

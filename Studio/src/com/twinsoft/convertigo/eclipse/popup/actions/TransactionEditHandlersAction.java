@@ -36,8 +36,8 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IEditableTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TransactionTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
-import com.twinsoft.convertigo.engine.ActionModel;
-import com.twinsoft.convertigo.engine.DatabaseObjectsAction;
+import com.twinsoft.convertigo.engine.studio.ActionModel;
+import com.twinsoft.convertigo.engine.studio.DatabaseObjectsAction;
 
 public class TransactionEditHandlersAction extends MyAbstractAction   {
 

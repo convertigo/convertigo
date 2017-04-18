@@ -1,4 +1,4 @@
-package com.twinsoft.convertigo.engine;
+package com.twinsoft.convertigo.engine.studio;
 
 import java.util.List;
 
@@ -35,6 +35,7 @@ import com.twinsoft.convertigo.beans.steps.XMLAttributeStep;
 import com.twinsoft.convertigo.beans.steps.XMLConcatStep;
 import com.twinsoft.convertigo.beans.steps.XMLElementStep;
 import com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction;
+import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 
 public class DatabaseObjectsAction {
 	
@@ -278,12 +279,9 @@ public class DatabaseObjectsAction {
 //			case "com.twinsoft.convertigo.eclipse.popup.actions.ViewExecuteNoReduceAction": {
 //			}
 //			break;
-			
-//			default:
-//				actionModel.isEnabled = true;
 		}
 		
 		return actionModel;
 	}
-	
+
 }

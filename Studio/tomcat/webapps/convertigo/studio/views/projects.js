@@ -69,34 +69,43 @@ var ProjectsView = {
 			// Inject CSS
 			Injector.injectLinkStyle(ProjectsView.url.baseUrlConvertigoStudio + "css/jstree/themes/default-dark/style.min.css");
 			Injector.injectLinkStyle(ProjectsView.url.baseUrlConvertigoStudio + "css/style.css");
-			
-			Injector.injectScript(ProjectsView.url.baseUrlConvertigoStudio + "views/studio.js", function () {
-				// Load jQuery library
-				Injector.injectScript(ProjectsView.url.baseUrlConvertigo + "scripts/jquery-2.1.4.js", function () {
-					// Inject jstree library
-					Injector.injectScript(ProjectsView.url.baseUrlConvertigoStudio + "js/jstree/jstree-3.3.3.min.js", function () {
-						// Delay because jstree library is not correctly loaded sometimes...
-						setTimeout(function () {
-							// jstreeutils plugin to generate ID for nodes
-							Injector.injectScript(ProjectsView.url.baseUrlConvertigoStudio + "js/jstree/jstreeutils.js", function () {
-								// Inject jstree grid plugin
-								Injector.injectScript(ProjectsView.url.baseUrlConvertigoStudio + "js/jstree/jstreegrid-3.5.14.js", function () {
-									// Define AJAX setup
-									$.ajaxSetup({
-										type: "POST",
-										dataType: "xml",
-										xhrFields: {
-											withCredentials: true
-										}
-									});
-									
-									// Create first level of the tree : project nodes
-									ProjectsView.loadProjects(authUserName, authPassword, function () {
-										ProjectsView.initJstree(jstreeId);
-									});									
-								});
-							});	
-						}, 1500);
+
+			Injector.injectScript(ProjectsView.url.baseUrlConvertigoStudio + "views/response-action-manager.js", function () {
+				Injector.injectScript(ProjectsView.url.baseUrlConvertigoStudio + "views/modal.js", function () {
+					Injector.injectScript(ProjectsView.url.baseUrlConvertigoStudio + "views/studio.js", function () {
+						// Load jQuery library
+						Injector.injectScript(ProjectsView.url.baseUrlConvertigo + "scripts/jquery-2.1.4.js", function () {
+							// For modals
+							Injector.injectScript(ProjectsView.url.baseUrlConvertigoStudio + "js/jquery.modal.min.js", function () {
+								Injector.injectLinkStyle(ProjectsView.url.baseUrlConvertigoStudio + "css/jquery.modal.min.css");
+							});
+							
+							// Inject jstree library
+							Injector.injectScript(ProjectsView.url.baseUrlConvertigoStudio + "js/jstree/jstree-3.3.3.min.js", function () {
+								// Delay because jstree library is not correctly loaded sometimes...
+								setTimeout(function () {
+									// jstreeutils plugin to generate ID for nodes
+									Injector.injectScript(ProjectsView.url.baseUrlConvertigoStudio + "js/jstree/jstreeutils.js", function () {
+										// Inject jstree grid plugin
+										Injector.injectScript(ProjectsView.url.baseUrlConvertigoStudio + "js/jstree/jstreegrid-3.5.14.js", function () {
+											// Define AJAX setup
+											$.ajaxSetup({
+												type: "POST",
+												dataType: "xml",
+												xhrFields: {
+													withCredentials: true
+												}
+											});
+											
+											// Create first level of the tree : project nodes
+											ProjectsView.loadProjects(authUserName, authPassword, function () {
+												ProjectsView.initJstree(jstreeId);
+											});									
+										});
+									});	
+								}, 1500);
+							});
+						});
 					});
 				});
 			});
@@ -629,6 +638,32 @@ var ProjectsView = {
 		computeNodeId: function (qname) {
 			return "qn-" + StringUtils.replaceDotByMinus(qname);
 		},
+		callServiceCallAction: function (qnames, classAction, response = null) {
+			$.ajax({
+				url: ProjectsView.createConvertigoServiceUrl("studio.database_objects.CallAction"),
+				data: {
+					qnames: qnames,
+					action: classAction,
+					response: response
+				},
+				success: function (data, textStatus, jqXHR) {
+					var $responses = $(data).find("admin");
+					$responses.find(">*").each(function () {
+						if ($(this).attr("state") === "success") {
+							ResponseActionManager.handleResponse($(this).attr("name"), $(data));
+						}
+						// Show error
+						else {
+							var $response = $responses.find("admin>*>*").first();
+							Modal.createMessageBox(
+								$response.find("title").text(),
+								$response.find("message").text()
+							);
+						}
+					});
+				}
+			});
+		},
 		createContextMenu: function (parent, $menu) {
 			var children = $menu.children();
 			for (var i = 0; i < children.length; ++i) {
@@ -660,14 +695,31 @@ var ProjectsView = {
 					if (isDisabled) {
 						iconClass += " contextmenu-entry-disable";
 					}
-					
-					parent[label.replace(/\s/g, "")] = {
-						label: label,
-						icon: iconClass,
-						_disabled: isDisabled,
-						// menubarPath = category
-						separator_after: isValidIndex && $(children[i]).attr("menubarPath") !== $(children[indexNextNode]).attr("menubarPath")
-					}
+
+					(function () {
+						// Get the action to call
+						var classAction = $(children[i]).attr("class");
+						parent[label.replace(/\s/g, "")] = {
+							label: label,
+							icon: iconClass,
+							action: function (node) {
+								// Get the qnames
+								var selectedNodes = ProjectsView.tree.jstree().get_selected(true);
+								var qnames = [];
+								for (var i = 0; i < selectedNodes.length; ++i) {
+									var node = selectedNodes[i];
+									if (typeof node.data.qname !== "undefined") {
+										qnames.push(node.data.qname);
+									}
+								}
+								
+								ProjectsView.callServiceCallAction(qnames, classAction, null);
+							},
+							_disabled: isDisabled,
+							// menubarPath = category
+							separator_after: isValidIndex && $(children[i]).attr("menubarPath") !== $(children[indexNextNode]).attr("menubarPath")
+						}
+					}());
 				}
 			}
 		}

@@ -80,3 +80,18 @@ li.nodeDisable > a {
    -ms-filter: grayscale(100%);
    filter: grayscale(100%);
 }
+
+div.modal {
+	/* text in white */
+	color: white;
+	background-color: #33373B;
+}
+
+.align-right {
+	text-align: right;
+}
+
+div.modal button {
+	/* space between buttons */
+	margin-right: 10px;
+}

@@ -111,7 +111,7 @@ public class Set extends XmlService {
 				}
 				
 				response.setAttribute("state", "success");
-				response.setAttribute("message", "Project has been successfully updated!");
+				response.setAttribute("message", "Property " + property + " has been successfully updated.");
 				
 				Element elt = dbo.toXml(document, property);
 				elt.setAttribute("name", dbo.toString());
