@@ -73,6 +73,8 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.EditorPart;
 
 import com.teamdev.jxbrowser.chromium.Browser;
+import com.teamdev.jxbrowser.chromium.events.LoadAdapter;
+import com.teamdev.jxbrowser.chromium.events.LoadEvent;
 import com.teamdev.jxbrowser.chromium.events.ScriptContextAdapter;
 import com.teamdev.jxbrowser.chromium.events.ScriptContextEvent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -132,9 +134,25 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 		}
 	}
 
+	private void saveDeviceBar() {
+		try {
+			if (!deviceBar.getParent().isVisible()) {
+				return;
+			}
+			JSONObject device = new JSONObject();
+			device.put("visible", deviceBar.isVisible());
+			device.put("name", deviceName.getText());
+			device.put("width", NumberUtils.toInt(deviceWidth.getText(), -1));
+			device.put("height", NumberUtils.toInt(deviceHeight.getText(), -1));
+			device.put("zoom", zoomFactor.percent());
+			FileUtils.write(new File(Engine.USER_WORKSPACE_PATH, "studio/device.json"), device.toString(4), "UTF-8");
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+	}
 	
 	@Override
-	public void dispose() {
+	public void dispose() {		
 		if (projectExplorerView != null) {
 			projectExplorerView.removeSelectionChangedListener(this);
 		}
@@ -158,12 +176,10 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 
 	@Override
 	public void doSave(IProgressMonitor monitor) {
-		
 	}
 
 	@Override
 	public void doSaveAs() {
-		
 	}
 
 	@Override
@@ -182,6 +198,7 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 
 	@Override
 	public boolean isSaveAsAllowed() {
+		saveDeviceBar();
 		return false;
 	}
 
@@ -202,7 +219,17 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 		createDeviceBar(editor);
 		createBrowser(editor);
 		
-		devicesMenu.getItems()[0].notifyListeners(SWT.Selection, new Event());
+		try {
+			JSONObject device = new JSONObject(FileUtils.readFileToString(new File(Engine.USER_WORKSPACE_PATH, "studio/device.json"), "UTF-8"));
+			deviceName.setText(device.getString("name"));
+			deviceWidth.setText("" + device.getInt("width"));
+			deviceHeight.setText("" + device.getInt("height"));
+			zoomFactor = ZoomFactor.get(device.getInt("zoom"));
+			setDeviceBarVisible(device.getBoolean("visible"));			
+			updateBrowserSize();
+		} catch (Exception e) {
+			devicesMenu.getItems()[0].notifyListeners(SWT.Selection, new Event());
+		}
 		
 		launchBuilder();
 		
@@ -244,12 +271,35 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 			}
 			
 		});
+		
+		browser.addLoadListener(new LoadAdapter() {
+			
+			@Override
+			public void onDocumentLoadedInMainFrame(LoadEvent event) {
+				browser.executeJavaScript(
+					"var _c8oviewer_ = document.createElement('style');\n"
+					+ "_c8oviewer_.textContent = '"
+						+ ".scroll-content { overflow-y: overlay; }\\n"
+						+ "::-webkit-scrollbar { width: 8px; }\\n"
+						+ "::-webkit-scrollbar-thumb {"
+							+ "background-color: rgba(0,0,0,0.3);"
+							+ "border-radius: 4px;"
+						+ "}"
+					+ "';\n"
+					+ "document.head.appendChild(_c8oviewer_);"
+				);
+			}
+			
+		});
 	}
 	
 	private void createDeviceBar(Composite parent) {
 		deviceBar = new Composite(parent, SWT.NONE);
 		GridData gd = new GridData(GridData.FILL, GridData.CENTER, true, false);
 		deviceBar.setLayoutData(gd);
+		
+		gd.exclude = true;
+		deviceBar.setVisible(false);
 		
 		RowLayout layout = new RowLayout();
 		layout.center = true;
@@ -435,7 +485,7 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 		toolbar.setLayoutData(gd);
 
 		ToolItem item = new ToolItem(toolbar, SWT.DROP_DOWN);
-		item.setToolTipText("Select device viewport");
+		item.setToolTipText("Select device viewport. Click to toggle the custom device bar.");
 		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/core/images/mobiledevice_color_16x16.png")));
 		item.addSelectionListener(new SelectionAdapter() {
 			
@@ -448,11 +498,7 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 					devicesMenu.setLocation(pt);
 					devicesMenu.setVisible(true);
 				} else {
-					boolean visible = !deviceBar.getVisible();
-					deviceBar.setVisible(visible);
-					GridData gd = (GridData) deviceBar.getLayoutData();
-					gd.exclude = !visible;
-					deviceBar.getParent().layout();
+					setDeviceBarVisible(!deviceBar.getVisible());
 				}
 			}
 			
@@ -724,6 +770,13 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 			}
 		}
 		return null;
+	}
+	
+	private void setDeviceBarVisible(boolean visible) {
+		deviceBar.setVisible(visible);
+		GridData gd = (GridData) deviceBar.getLayoutData();
+		gd.exclude = !visible;
+		deviceBar.getParent().layout();
 	}
 	
 	private void doLoad() {

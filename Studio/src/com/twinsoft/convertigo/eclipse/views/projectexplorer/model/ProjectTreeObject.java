@@ -73,6 +73,7 @@ import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptStatementEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptStepEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditorInput;
+import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditor;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.text.TraceFileEditorInput;
@@ -695,6 +696,11 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 						else if (editorInput instanceof FileEditorInput) {
 							IPath fullpath = ((FileEditorInput)editorInput).getFile().getFullPath();
 							if (fullpath.toString().replaceFirst("/(.*?)/.*", "$1").equals(project.getName())) {
+								closeEditor(activePage, editorRef);
+							}
+						}
+						else if (editorInput instanceof ApplicationComponentEditorInput) {
+							if (((ApplicationComponentEditorInput)editorInput).getApplication().getProject().equals(project)) {
 								closeEditor(activePage, editorRef);
 							}
 						}

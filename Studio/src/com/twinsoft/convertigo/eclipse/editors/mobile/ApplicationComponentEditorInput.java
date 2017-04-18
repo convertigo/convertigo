@@ -76,4 +76,9 @@ public class ApplicationComponentEditorInput implements IEditorInput {
 	public boolean is(ApplicationComponent application) {
 		return application.equals(this.application) && application.getQName().equals(qname);
 	}
+
+	public ApplicationComponent getApplication() {
+		return application;
+	}
+	
 }
