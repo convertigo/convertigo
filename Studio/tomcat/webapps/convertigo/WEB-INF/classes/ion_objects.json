@@ -115,7 +115,8 @@
       "values": [
         false,
         "item-left",
-        "item-right"
+        "item-right",
+        "item-content"
       ]
     },
     "IconName": {
@@ -479,469 +480,616 @@
 
   /*  Beans models  */
   "Beans": {
-      "Button": {
-        "tag": "button",
-        "label": "Button",
-        "description": "Buttons are an essential way to interact with and navigate through an app, and should clearly communicate what action will occur after the user taps them. Buttons can consist of text and/or an icon, and can be enhanced with a wide variety of attributes",
-        "group": "Components",
-        "icon16": "button_color_16x16.png",
-        "icon32": "button_color_32x32.png",
-        "properties": {
-          "ButtonType": "ion-button",
-          "MenuMode": false,
-          "IonColor": false,
-          "IonShape": false,
-          "IonOutline": false,
-          "IonSize": false,
-          "IconPosition": false
+    "Button": {
+      "tag": "button",
+      "label": "Button",
+      "description": "Buttons are an essential way to interact with and navigate through an app, and should clearly communicate what action will occur after the user taps them. Buttons can consist of text and/or an icon, and can be enhanced with a wide variety of attributes",
+      "group": "Components",
+      "icon16": "button_color_16x16.png",
+      "icon32": "button_color_32x32.png",
+      "properties": {
+        "ButtonType": "ion-button",
+        "MenuMode": false,
+        "IonColor": false,
+        "IonShape": false,
+        "IonOutline": false,
+        "IonSize": false,
+        "IconPosition": false
+      }
+    },
+    "ButtonSet": {
+      "tag": "ion-buttons",
+      "label": "ButtonSet",
+      "description": "Defines a set of buttons",
+      "group": "Containers",
+      "icon16": "buttonset_color_16x16.png",
+      "icon32": "buttonset_color_32x32.png",
+      "properties": {
+        "SetPosition": {
+          "label": "position",
+          "description": "Specifies the position",
+          "category": "Attributes",
+          "value": false,
+          "values": [
+            false,
+            "start",
+            "end",
+            "left",
+            "right"
+          ]
         }
-      },
-      "ButtonSet": {
-        "tag": "ion-buttons",
-        "label": "ButtonSet",
-        "description": "Defines a set of buttons",
-        "group": "Containers",
-        "icon16": "buttonset_color_16x16.png",
-        "icon32": "buttonset_color_32x32.png",
-        "properties": {
-          "SetPosition": {
-            "label": "position",
-            "description": "Specifies the position",
-            "category": "Attributes",
-            "value": false,
-            "values": [
-              false,
-              "start",
-              "end",
-              "left",
-              "right"
-            ]
-          }
+      }
+    },
+    "Content": {
+      "tag": "ion-content",
+      "label": "Content",
+      "description": "Defines a content area",
+      "group": "Containers",
+      "icon16": "content_color_16x16.png",
+      "icon32": "content_color_32x32.png",
+      "properties": {
+        "IonPadding": "padding",
+        "Fullscreen": {
+          "attr": "fullscreen",
+          "label": "full screen",
+          "description": "Specifies a fullscreen scrollable content",
+          "category": "Attributes",
+          "value": false,
+          "values": [
+            false,
+            "false",
+            "true"
+          ]
         }
-      },
-      "Content": {
-        "tag": "ion-content",
-        "label": "Content",
-        "description": "Defines a content area",
-        "group": "Containers",
-        "icon16": "content_color_16x16.png",
-        "icon32": "content_color_32x32.png",
-        "properties": {
-          "IonPadding": "padding",
-          "Fullscreen": {
-            "attr": "fullscreen",
-            "label": "full screen",
-            "description": "Specifies a fullscreen scrollable content",
-            "category": "Attributes",
-            "value": false,
-            "values": [
-              false,
-              "false",
-              "true"
-            ]
-          }
+      }
+    },
+    "Footer": {
+      "tag": "ion-footer",
+      "label": "Footer",
+      "description": "Defines a page footer",
+      "group": "Containers",
+      "icon16": "footer_color_16x16.png",
+      "icon32": "footer_color_32x32.png",
+      "properties": {
+      }
+    },
+    "Header": {
+      "tag": "ion-header",
+      "label": "Header",
+      "description": "Defines a page header",
+      "group": "Containers",
+      "icon16": "header_color_16x16.png",
+      "icon32": "header_color_32x32.png",
+      "properties": {
+      }
+    },
+    "Icon": {
+      "tag": "ion-icon",
+      "label": "Icon",
+      "description": "More than 700+ Ionicons icons we�ve all come to know and love.",
+      "group": "Components",
+      "icon16": "icon_color_16x16.png",
+      "icon32": "icon_color_32x32.png",
+      "properties": {
+        "IconName": "add",
+        "ItemPosition":  false
+      }
+    },
+    "Heading1": {
+      "tag": "h1",
+      "label": "H1",
+      "description": "Defines a heading 1",
+      "group": "HTML",
+      "icon16": "HTML_color_16x16.png",
+      "icon32": "HTML_color_32x32.png",
+      "properties": {
+      }
+    },
+    "Heading2": {
+      "tag": "h2",
+      "label": "H2",
+      "description": "Defines a heading 2",
+      "group": "HTML",
+      "icon16": "HTML_color_16x16.png",
+      "icon32": "HTML_color_32x32.png",
+      "properties": {
+      }
+    },
+    "Heading3": {
+      "tag": "h3",
+      "label": "H3",
+      "description": "Defines a heading 3",
+      "group": "HTML",
+      "icon16": "HTML_color_16x16.png",
+      "icon32": "HTML_color_32x32.png",
+      "properties": {
+      }
+    },
+    "Paragraph": {
+      "tag": "p",
+      "label": "Paragraph (P)",
+      "description": "Defines a paragraph",
+      "group": "HTML",
+      "icon16": "HTML_color_16x16.png",
+      "icon32": "HTML_color_32x32.png",
+      "properties": {
+      }
+    },
+    "Break": {
+      "tag": "br",
+      "label": "Break",
+      "autoClose": true,
+      "description": "Defines a break as a line return",
+      "group": "HTML",
+      "icon16": "HTML_color_16x16.png",
+      "icon32": "HTML_color_32x32.png",
+      "properties": {
+      }
+    },
+    "Image": {
+      "tag": "img",
+      "label": "img",
+      "autoClose": true,
+      "description": "Defines an Image resource",
+      "group": "HTML",
+      "icon16": "HTML_color_16x16.png",
+      "icon32": "HTML_color_32x32.png",
+      "properties": {
+        "url": {
+          "attr": "src",
+          "label": "src",
+          "description": "The immage url. Can be absolute (http(s)://) or relative to project (../assets/myimage.png)",
+          "category": "Attributes",
+          "value": "",
+          "values": [
+            false,
+            true
+          ]
+        },
+        "width": {
+          "attr": "width",
+          "label": "width",
+          "description": "The image width (in pixels add px eg: 200px, in points add pt eg: 20pt)",
+          "category": "Attributes",
+          "value": "",
+          "values": [
+            false,
+            true
+          ]
+        },
+        "height": {
+          "attr": "height",
+          "label": "height",
+          "description": "The image height (in pixels add px eg: 200px, in points add pt eg: 20pt)",
+          "category": "Attributes",
+          "value": "",
+          "values": [
+            false,
+            true
+          ]
         }
-      },
-      "Footer": {
-        "tag": "ion-footer",
-        "label": "Footer",
-        "description": "Defines a page footer",
-        "group": "Containers",
-        "icon16": "footer_color_16x16.png",
-        "icon32": "footer_color_32x32.png",
-        "properties": {
+      }
+    },
+
+    "MyButton": {
+      "tag": "button",
+      "label": "My Button",
+      "description": "Defines a custom colored button",
+      "group": "Components",
+      "icon16": "mybutton_color_16x16.png",
+      "icon32": "mybutton_color_32x32.png",
+      "properties": {
+        "ButtonType": "ion-button",
+        "IonColor": false,
+        "IonShape": "round",
+        "IonOutline": false,
+        "IonSize": false,
+        "IconPosition": false,
+        "MyColor": {
+          "attr": "my-color",
+          "label": "my color",
+          "description": "Specifies a custom color",
+          "category": "Attributes",
+          "value": "blue",
+          "values": [
+            false,
+            "blue",
+            "red",
+            "white",
+            "yellow",
+            true
+          ]
         }
-      },
-      "Header": {
-        "tag": "ion-header",
-        "label": "Header",
-        "description": "Defines a page header",
-        "group": "Containers",
-        "icon16": "header_color_16x16.png",
-        "icon32": "header_color_32x32.png",
-        "properties": {
+      }
+    },
+    "NavBar": {
+      "tag": "ion-navbar",
+      "label": "NavBar",
+      "description": "If your page has an <ion-navbar>, a back button will automatically be added to it if it is not a root page, and the title of the Nav Bar will be updated.",
+      "group": "Components",
+      "icon16": "navbar_color_16x16.png",
+      "icon32": "navbar_color_32x32.png",
+      "properties": {
+        "IonColor": false,
+        "BarMode": false,
+        "BackButtonHidden": {
+          "attr": "hideBackButton",
+          "label": "back button",
+          "description": "Specifies whether back button is hidden",
+          "category": "Attributes",
+          "value": false,
+          "values": [
+            false,
+            "false",
+            "true"
+          ]
         }
-      },
-      "Icon": {
-        "tag": "ion-icon",
-        "label": "Icon",
-        "description": "More than 700+ Ionicons icons we�ve all come to know and love.",
-        "group": "Components",
-        "icon16": "icon_color_16x16.png",
-        "icon32": "icon_color_32x32.png",
-        "properties": {
-          "IconName": "add"
+      }
+    },
+    "ToolBar": {
+      "tag": "ion-toolbar",
+      "label": "ToolBar",
+      "description": "A toolbar is a generic bar that can be used in an app as a header, sub-header, footer, or even sub-footer. Since ion-toolbar is based on flexbox, no matter how many toolbars you have in your page, they will be displayed correctly and ion-content will adjust accordingly.",
+      "group": "Containers",
+      "icon16": "toolbar_color_16x16.png",
+      "icon32": "toolbar_color_32x32.png",
+      "properties": {
+        "IonColor": false,
+        "BarMode": false
+      }
+    },
+    "BarTitle": {
+      "tag": "ion-title",
+      "label": "BarTitle",
+      "description": "Defines a bar title",
+      "group": "Components",
+      "icon16": "bartitle_color_16x16.png",
+      "icon32": "bartitle_color_32x32.png",
+      "properties": {
+      }
+    },
+
+    "Badge": {
+      "tag": "ion-badge",
+      "label": "Badge",
+      "description": "Badges are small components that typically communicate a numerical value to the user. They are typically used within an item.",
+      "group": "Components",
+      "icon16": "badge_color_16x16.png",
+      "icon32": "badge_color_32x32.png",
+      "properties": {
+        "IonColor": false,
+        "ItemPosition": false
+      }
+    },
+
+
+    /* Lists */
+    "List": {
+      "tag": "ion-list",
+      "label": "List",
+      "description": "Lists are used to display rows of information. You can insert buttons in lists to make list items clickable. You can also insert many other components such as icons, avatars or thumbnails",
+      "group": "Lists",
+      "icon16": "list_16x16.png",
+      "icon32": "list_32x32.png",
+      "properties": {
+        "Nolines": {
+          "label": "nolines",
+          "description": "Adding the no-lines attribute will hide the dividers between list items",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "no-lines"
+          ]
+        },
+        "Inset": {
+          "label": "Inset",
+          "description": "Lists don’t have an outside margin by default. To add one, add the inset attribute to ion-list component.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "inset"
+          ]
         }
-      },
-      "Heading1": {
-        "tag": "h1",
-        "label": "H1",
-        "description": "Defines a heading 1",
-        "group": "HTML",
-        "icon16": "HTML_color_16x16.png",
-        "icon32": "HTML_color_32x32.png",
-        "properties": {
+      }
+    },
+
+    "Listheader": {
+      "tag": "ion-list-header",
+      "label": "List Header",
+      "description": "Each list can include a header at the top of the list:",
+      "group": "Lists",
+      "icon16": "listheader_16x16.png",
+      "icon32": "listheader_32x32.png",
+      "properties": {
+      }
+    },
+
+    "Listgroup": {
+      "tag": "ion-item-group",
+      "label": "List Group",
+      "description": "To divide groups of items, use <ion-item-group> instead of <ion-list>. Use <ion-item-divider> components to divide the group in to multiple sections",
+      "group": "Lists",
+      "icon16": "listgroup_16x16.png",
+      "icon32": "listgroup_32x32.png",
+      "properties": {
+      }
+    },
+
+    "Listdivider": {
+      "tag": "ion-item-divider",
+      "label": "List divider",
+      "description": "To divide groups of items, use <ion-item-group> instead of <ion-list>. Use <ion-item-divider> components to divide the group in to multiple sections",
+      "group": "Lists",
+      "icon16": "listdivider_16x16.png",
+      "icon32": "listdivider_32x32.png",
+      "properties": {
+        "IonColor": false
+      }
+    },
+
+    "Avatar": {
+      "tag": "ion-avatar",
+      "label": "List avatar",
+      "description": "Item avatars showcase an image larger than an icon, but smaller than a thumbnail. To use an avatar, add an <ion-avatar> component inside of an item. The position of the avatar can be set using the item-left and item-right attributes",
+      "group": "Lists",
+      "icon16": "listavatar_16x16.png",
+      "icon32": "listavatar_32x32.png",
+      "properties": {
+        "ItemPosition": false
+      }
+    },
+
+    "Thumbnail": {
+      "tag": "ion-thumbnail",
+      "label": "List thumbnail",
+      "description": "Item thumbnails showcase an image that takes up the entire height of an item. To use a thumbnail, add an <ion-thumbnail> component inside of an item. The position of the thumbnail can be set using the item-left and item-right attributes",
+      "group": "Lists",
+      "icon16": "thumbnail_16x16.png",
+      "icon32": "thumbnail_32x32.png",
+      "properties": {
+        "ItemPosition": false
+      }
+    },
+
+    "Sliding": {
+      "tag": "ion-item-sliding",
+      "label": "Sliding Item",
+      "description": "Sliding items can be swiped to the left or right to reveal a hidden set of buttons. To use a sliding item, add an ion-item-sliding component inside of an ion-list component. Next, add an <ion-item-options> component inside of the sliding item to contain the buttons.",
+      "group": "Lists",
+      "icon16": "sliding_16x16.png",
+      "icon32": "sliding_32x32.png",
+      "properties": {
+      }
+    },
+
+    "SlidingOption": {
+      "tag": "ion-item-options",
+      "label": "Sliding options",
+      "description": "Add an <ion-item-options> component inside a sliding item to contain the buttons.",
+      "group": "Lists",
+      "icon16": "slidingoption_16x16.png",
+      "icon32": "slidingoption_32x32.png",
+      "properties": {
+        "side": {
+          "attr": "side", 
+          "label": "Buttons side",
+          "description": "Side where buttons are revealed",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "left",
+            "right"
+          ]
         }
-      },
-      "Heading2": {
-        "tag": "h2",
-        "label": "H2",
-        "description": "Defines a heading 2",
-        "group": "HTML",
-        "icon16": "HTML_color_16x16.png",
-        "icon32": "HTML_color_32x32.png",
-        "properties": {
+      }
+    },
+
+    "ListItem": {
+      "tag": "ion-item",
+      "label": "List Item",
+      "description": "An Item in a list. Can be replaced by a button with the ion-item type to be clickable. Can also contain sliding options to reveal buttons when swiped left or right",
+      "group": "Lists",
+      "icon16": "list_item_16x16.png",
+      "icon32": "list_item_32x32.png",
+      "properties": {
+        "ItemPosition" :  false
+      }
+    },
+
+
+    /* Forms */
+    "Label": {
+      "tag": "ion-label",
+      "label": "Label",
+      "description": "Field labels.",
+      "group": "Forms",
+      "icon16": "label_color_16x16.png",
+      "icon32": "label_color_32x32.png",
+      "properties": {
+        "Fixed": {
+          "label": "Fixed",
+          "description": "Use fixed to place a label to the left of the input element. The label does not hide when text is entered. The input will align on the same position, regardless of the length of the label. Placeholder text can be used in conjunction with a fixed label.",
+          "category": "@Position",
+          "value": false,
+          "values": [
+            false,
+            "fixed"
+          ]
+        },
+        "Floating": {
+          "label": "Floating",
+          "description": "Floating labels are labels that animate or 'float' up when the input is selected. Add the floating attribute to an ion-label to use",
+          "category": "@Position",
+          "value": false,
+          "values": [
+            false,
+            "floating"
+          ]
+        },
+        "Stacked": {
+          "label": "Stacked",
+          "description": "A stacked label will always appear on top of the input. Add the stacked attribute to an ion-label to use. Placeholder text can be used in conjunction with an stacked label.",
+          "category": "@Position",
+          "value": false,
+          "values": [
+            false,
+            "stacked"
+          ]
         }
-      },
-      "Heading3": {
-        "tag": "h3",
-        "label": "H3",
-        "description": "Defines a heading 3",
-        "group": "HTML",
-        "icon16": "HTML_color_16x16.png",
-        "icon32": "HTML_color_32x32.png",
-        "properties": {
-                  }
-      },
-      "Paragraph": {
-        "tag": "p",
-        "label": "Paragraph (P)",
-        "description": "Defines a paragraph",
-        "group": "HTML",
-        "icon16": "HTML_color_16x16.png",
-        "icon32": "HTML_color_32x32.png",
-        "properties": {
+
+      }
+    },
+
+    /**************************************************/
+    /* Form Input 									*/
+    /**************************************************/
+    "Input": {
+      "tag": "ion-input",
+      "label": "Input",
+      "description": "ion-input is meant for text type inputs only, such as text, password, email, number, search, tel, and url.",
+      "group": "Forms",
+      "icon16": "input_color_16x16.png",
+      "icon32": "input_color_32x32.png",
+      "properties": {
+        "ClearInput": {
+          "attr": "clearInput",
+          "label": "ClearInput",
+          "description": "If true, a clear icon will appear in the input when there is a value. Clicking it clears the input.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "false",
+            "true"
+          ]
+        },
+        "ClearOnEdit": {
+          "attr": "clearOnEdit",
+          "label": "ClearOnEdit",
+          "description": "If true, the value will be cleared after focus upon edit. Defaults to true when type is 'password', false for all other types.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "false",
+            "true"
+          ]
+        },
+        "Disabled": {
+          "attr": "disabled",
+          "label": "Disabled",
+          "description": "If true, the user cannot interact with this element.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "false",
+            "true"
+          ]
+        },
+        "Max": {
+          "attr": "max",
+          "label": "Maximum",
+          "description": "The maximum value, which must not be less than its minimum (min attribute) value",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            true
+          ]
+        },
+        "Min": {
+          "attr": "min",
+          "label": "Minimum",
+          "description": "The minimum value, which must not be greater than its maximum (max attribute) value.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            true
+          ]
+        },
+        "Mode": {
+          "attr": "mode",
+          "label": "Mode",
+          "description": "The mode determines which platform styles to use. Possible values are: 'ios', 'md' (Material Design) , or 'wp' (Windows). For more information, see Platform Styles",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "ios",
+            "md",
+            "wp"
+          ]
+        },
+        "Placeholder": {
+          "attr": "placeholder",
+          "label": "Placeholder",
+          "description": "Instructional text that shows before the input has a value.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            true
+          ]
+        },
+        "Readonly": {
+          "attr": "readonly",
+          "label": "Readonly",
+          "description": "If true, the user cannot modify the value.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "false",
+            "true"
+          ]
+        },
+        "Step": {
+          "attr": "step",
+          "label": "Step",
+          "description": "Works with the min and max attributes to limit the increments at which a value can be set.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            true
+          ]
+        },
+        "Type": {
+          "attr": "type",
+          "label": "Type",
+          "description": "The type of control to display. The default type is text. Possible values are: 'text', 'password', 'email', 'number', 'search', 'tel', or 'url'.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "text",
+            "password",
+            "email",
+            "number",
+            "search",
+            "tel",
+            "url",
+            true
+          ]
+        },
+        "Value": {
+          "attr": "value",
+          "label": "Value",
+          "description": "The text value of the input.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            true
+          ]
         }
-      },
-      "Break": {
-        "tag": "br",
-        "label": "Break",
-        "autoClose": true,
-        "description": "Defines a break as a line return",
-        "group": "HTML",
-        "icon16": "HTML_color_16x16.png",
-        "icon32": "HTML_color_32x32.png",
-        "properties": {
-        }
-      },
-      "Image": {
-        "tag": "img",
-        "label": "img",
-        "autoClose": true,
-        "description": "Defines an Image resource",
-        "group": "HTML",
-        "icon16": "HTML_color_16x16.png",
-        "icon32": "HTML_color_32x32.png",
-        "properties": {
-			"url": {
-	            "attr": "src",
-	            "label": "src",
-	            "description": "The immage url. Can be absolute (http(s)://) or relative to project (../assets/myimage.png)",
-	            "category": "Attributes",
-	            "value": "",
-	            "values": [
-	              false,
-	              true
-	            ]
-          	},
-			"width": {
-	            "attr": "width",
-	            "label": "width",
-	            "description": "The image width (in pixels add px eg: 200px, in points add pt eg: 20pt)",
-	            "category": "Attributes",
-	            "value": "",
-	            "values": [
-	              false,
-	              true
-	            ]
-          	},
-			"height": {
-	            "attr": "height",
-	            "label": "height",
-	            "description": "The image height (in pixels add px eg: 200px, in points add pt eg: 20pt)",
-	            "category": "Attributes",
-	            "value": "",
-	            "values": [
-	              false,
-	              true
-	            ]
-          	}
-         }
-      },
-            
-      "MyButton": {
-        "tag": "button",
-        "label": "My Button",
-        "description": "Defines a custom colored button",
-        "group": "Components",
-        "icon16": "mybutton_color_16x16.png",
-        "icon32": "mybutton_color_32x32.png",
-        "properties": {
-          "ButtonType": "ion-button",
-          "IonColor": false,
-          "IonShape": "round",
-          "IonOutline": false,
-          "IonSize": false,
-          "IconPosition": false,
-          "MyColor": {
-            "attr": "my-color",
-            "label": "my color",
-            "description": "Specifies a custom color",
-            "category": "Attributes",
-            "value": "blue",
-            "values": [
-              false,
-              "blue",
-              "red",
-              "white",
-              "yellow",
-              true
-            ]
-          }
-        }
-      },
-      "NavBar": {
-        "tag": "ion-navbar",
-        "label": "NavBar",
-        "description": "If your page has an <ion-navbar>, a back button will automatically be added to it if it is not a root page, and the title of the Nav Bar will be updated.",
-        "group": "Components",
-        "icon16": "navbar_color_16x16.png",
-        "icon32": "navbar_color_32x32.png",
-        "properties": {
-          "IonColor": false,
-          "BarMode": false,
-          "BackButtonHidden": {
-            "attr": "hideBackButton",
-            "label": "back button",
-            "description": "Specifies whether back button is hidden",
-            "category": "Attributes",
-            "value": false,
-            "values": [
-              false,
-              "false",
-              "true"
-            ]
-          }
-        }
-      },
-      "ToolBar": {
-        "tag": "ion-toolbar",
-        "label": "ToolBar",
-        "description": "A toolbar is a generic bar that can be used in an app as a header, sub-header, footer, or even sub-footer. Since ion-toolbar is based on flexbox, no matter how many toolbars you have in your page, they will be displayed correctly and ion-content will adjust accordingly.",
-        "group": "Containers",
-        "icon16": "toolbar_color_16x16.png",
-        "icon32": "toolbar_color_32x32.png",
-        "properties": {
-          "IonColor": false,
-          "BarMode": false
-        }
-      },
-      "BarTitle": {
-        "tag": "ion-title",
-        "label": "BarTitle",
-        "description": "Defines a bar title",
-        "group": "Components",
-        "icon16": "bartitle_color_16x16.png",
-        "icon32": "bartitle_color_32x32.png",
-        "properties": {
-        }
-      },
-      
-      "Badge": {
-        "tag": "ion-badge",
-        "label": "Badge",
-        "description": "Badges are small components that typically communicate a numerical value to the user. They are typically used within an item.",
-        "group": "Components",
-        "icon16": "badge_color_16x16.png",
-        "icon32": "badge_color_32x32.png",
-        "properties": {
-          "IonColor": false,
-          "ItemPosition": false
-        }
-      },
-      
-	  /* Forms */
-	  "Label": {
-        "tag": "ion-label",
-        "label": "Label",
-        "description": "Field labels.",
-        "group": "Forms",
-        "icon16": "label_color_16x16.png",
-        "icon32": "label_color_32x32.png",
-        "properties": {
-          "Fixed": {
-            "label": "Fixed",
-            "description": "Use fixed to place a label to the left of the input element. The label does not hide when text is entered. The input will align on the same position, regardless of the length of the label. Placeholder text can be used in conjunction with a fixed label.",
-            "category": "@Position",
-            "value": false,
-            "values": [
-              false,
-              "fixed"
-            ]
-          },
-          "Floating": {
-            "label": "Floating",
-            "description": "Floating labels are labels that animate or 'float' up when the input is selected. Add the floating attribute to an ion-label to use",
-            "category": "@Position",
-            "value": false,
-            "values": [
-              false,
-              "floating"
-            ]
-          },
-          "Stacked": {
-            "label": "Stacked",
-            "description": "A stacked label will always appear on top of the input. Add the stacked attribute to an ion-label to use. Placeholder text can be used in conjunction with an stacked label.",
-            "category": "@Position",
-            "value": false,
-            "values": [
-              false,
-              "stacked"
-            ]
-          }
-        
-        }
-      },
-      
-      /**************************************************/
-      /* Form Input 									*/
-      /**************************************************/
-	  "Input": {
-        "tag": "ion-input",
-        "label": "Input",
-        "description": "ion-input is meant for text type inputs only, such as text, password, email, number, search, tel, and url.",
-        "group": "Forms",
-        "icon16": "input_color_16x16.png",
-        "icon32": "input_color_32x32.png",
-        "properties": {
-          "ClearInput": {
-          	"attr":"clearInput",
-            "label": "ClearInput",
-            "description": "If true, a clear icon will appear in the input when there is a value. Clicking it clears the input.",
-            "category": "@Properties",
-            "value": false,
-            "values": [
-              false,
-              "false",
-              "true"
-            ]
-          },
-          "ClearOnEdit": {
-          	"attr":"clearOnEdit",
-            "label": "ClearOnEdit",
-            "description": "If true, the value will be cleared after focus upon edit. Defaults to true when type is 'password', false for all other types.",
-            "category": "@Properties",
-            "value": false,
-            "values": [
-              false,
-              "false",
-              "true"
-            ]
-          },
-          "Disabled": {
-          	"attr":"disabled",
-            "label": "Disabled",
-            "description": "If true, the user cannot interact with this element.",
-            "category": "@Properties",
-            "value": false,
-            "values": [
-              false,
-              "false",
-              "true"
-            ]
-          },
-          "Max": {
-          	"attr":"max",
-            "label": "Maximum",
-            "description": "The maximum value, which must not be less than its minimum (min attribute) value",
-            "category": "@Properties",
-            "value": false,
-            "values": [
-              false,
-              true
-            ]
-          },
-          "Min": {
-          	"attr":"min",
-            "label": "Minimum",
-            "description": "The minimum value, which must not be greater than its maximum (max attribute) value.",
-            "category": "@Properties",
-            "value": false,
-            "values": [
-              false,
-              true
-            ]
-          },
-          "Mode": {
-          	"attr":"mode",
-            "label": "Mode",
-            "description": "The mode determines which platform styles to use. Possible values are: 'ios', 'md' (Material Design) , or 'wp' (Windows). For more information, see Platform Styles",
-            "category": "@Properties",
-            "value": false,
-            "values": [
-              false,
-              "ios",
-              "md",
-              "wp"
-            ]
-          },
-          "Placeholder": {
-          	"attr":"placeholder",
-            "label": "Placeholder",
-            "description": "Instructional text that shows before the input has a value.",
-            "category": "@Properties",
-            "value": false,
-            "values": [
-              false,
-              true
-            ]
-          },
-          "Readonly": {
-          	"attr":"readonly",
-            "label": "Readonly",
-            "description": "If true, the user cannot modify the value.",
-            "category": "@Properties",
-            "value": false,
-            "values": [
-              false,
-              "false",
-              "true"
-            ]
-          },
-          "Step": {
-          	"attr":"step",
-            "label": "Step",
-            "description": "Works with the min and max attributes to limit the increments at which a value can be set.",
-            "category": "@Properties",
-            "value": false,
-            "values": [
-              false,
-              true
-            ]
-          },
-          "Type": {
-          	"attr":"type",
-            "label": "Type",
-            "description": "The type of control to display. The default type is text. Possible values are: 'text', 'password', 'email', 'number', 'search', 'tel', or 'url'.",
-            "category": "@Properties",
-            "value": false,
-            "values": [
-              false, "text", "password", "email", "number", "search", "tel", "url", true
-            ]
-          },
-          "Value": {
-          	"attr":"value",
-            "label": "Value",
-            "description": "The text value of the input.",
-            "category": "@Properties",
-            "value": false,
-            "values": [
-              false,
-              true
-            ]
-          }
-        }
-      },
+      }
+    },
 
     "CheckBox": {
       "tag": "ion-checkbox",
@@ -978,7 +1126,7 @@
 
         }
       }
-    },      
+    },
 
     "DateTime": {
       "tag": "ion-datetime",
@@ -1018,482 +1166,660 @@
           ]
         }
       }
-    },      
-      /*    Grid System     */
-      "Grid": {
-        "tag": "ion-grid",
-        "label": "Grid",
-        "description": "Grid system is based on flexbox, a CSS feature supported by all devices. The grid is composed of three units : grid, rows and columns.",
-        "group": "Containers",
-        "icon16": "grid_color_16x16.png",
-        "icon32": "grid_color_32x32.png",
-        "properties": {
-          "Height": {
-          	"attr":"style",
-            "label": "Height",
-            "description": "Hight of the grid, pixel (px) or percentage (%). Use 100% to set a grid full screen, usefull for vertical centering",
-            "category": "Attribute",
-            "value": false,
-            "values": [
-            	false, "height:100%"
-            ]
-          },
-          "NoPadding": {
-            "attr": "no-padding",
-            "label": "No padding",
-            "description": "Removes padding from the grid and immediate children columns.",
-            "category": "Attributes",
-            "value": false,
-            "values": [
-              false,
-              "false",
-              "true"
-            ]
-          },
-          "Fixed": {
-            "attr": "fixed",
-            "label": "Fixed",
-            "description": "Set a max width based on the screen size.",
-            "category": "Attributes",
-            "value": false,
-            "values": [
-              false,
-              "false",
-              "true"
-            ]
-          }
+    },
+    /*    Grid System     */
+    "Grid": {
+      "tag": "ion-grid",
+      "label": "Grid",
+      "description": "Grid system is based on flexbox, a CSS feature supported by all devices. The grid is composed of three units : grid, rows and columns.",
+      "group": "Containers",
+      "icon16": "grid_color_16x16.png",
+      "icon32": "grid_color_32x32.png",
+      "properties": {
+        "Height": {
+          "attr": "style",
+          "label": "Height",
+          "description": "Hight of the grid, pixel (px) or percentage (%). Use 100% to set a grid full screen, usefull for vertical centering",
+          "category": "Attribute",
+          "value": false,
+          "values": [
+            false,
+            "height:100%"
+          ]
+        },
+        "NoPadding": {
+          "attr": "no-padding",
+          "label": "No padding",
+          "description": "Removes padding from the grid and immediate children columns.",
+          "category": "Attributes",
+          "value": false,
+          "values": [
+            false,
+            "false",
+            "true"
+          ]
+        },
+        "Fixed": {
+          "attr": "fixed",
+          "label": "Fixed",
+          "description": "Set a max width based on the screen size.",
+          "category": "Attributes",
+          "value": false,
+          "values": [
+            false,
+            "false",
+            "true"
+          ]
         }
-      },
-      
-      "GridRow": {
-        "tag": "ion-row",
-        "label": "Grid Row",
-        "description": "A grid row. Must be inserted in a Grid and contains Columns. A row is composed of 12 slots that can be filled with columns",
-        "group": "Containers",
-        "icon16": "grid_color_16x16.png",
-        "icon32": "grid_color_32x32.png",
-        "properties": {
-          "Height": {
-          	"attr":"style",
-            "label": "Height",
-            "description": "Hight of the row, pixel (px) or percentage (%). Use 100% to set a row full screen, usefull for centering",
-            "category": "@Size",
-            "value": false,
-            "values": [
-            	false, "height:100%"
-            ]
-          },
-          "Nowrap": {
-            "label": "No wrap",
-            "description": "Forces the columns to a single row",
-            "category": "@Wrapping",
-            "value": false,
-            "values": [
-            	false, "nowrap"
-            ]
-          },
-          "WrapReverse": {
-            "label": "Wrap reverse",
-            "description": "The columns will wrap in reverse.",
-            "category": "@Wrapping",
-            "value": false,
-            "values": [
-            	false, "wrap-reverse"
-            ]
-          },
-          "AlignItemsStart": {
-            "label": "Align items start",
-            "description": "All columns will be vertically aligned at the top, unless they specify their own alignment.",
-            "category": "@Vertical alignments",
-            "value": false,
-            "values": [
-            	false, "align-items-start"
-            ]
-          },
-          "AlignItemsCenter": {
-            "label": "Align items center",
-            "description": "All columns will be vertically aligned in the center, unless they specify their own alignment.",
-            "category": "@Vertical alignments",
-            "value": false,
-            "values": [
-            	false, "align-items-center"
-            ]
-          },
-          "AlignItemsEnd": {
-            "label": "Align items bottom",
-            "description": "All columns will be vertically aligned at the bottom, unless they specify their own alignment.",
-            "category": "@Vertical alignments",
-            "value": false,
-            "values": [
-            	false, "align-items-end"
-            ]
-          },
-          "AlignItemsStrech": {
-            "label": "Align items strech",
-            "description": "All columns will be stretched to take up the entire height of the row, unless they specify their own alignment.",
-            "category": "@Vertical alignments",
-            "value": false,
-            "values": [
-            	false, "align-items-stretch"
-            ]
-          },
-          "AlignItemsBaseline": {
-            "label": "Align items baseline",
-            "description": "All columns will be vertically aligned at their baselines, unless they specify their own alignment.",
-            "category": "@Vertical alignments",
-            "value": false,
-            "values": [
-            	false, "align-items-baseline"
-            ]
-          },
-          "JustifyContentStart": {
-            "label": "Justify content start",
-            "description": "All columns will be horizontally aligned at the start.",
-            "category": "@Justifications",
-            "value": false,
-            "values": [
-            	false, "justify-content-start"
-            ]
-          },
-          "JustifyContentCenter": {
-            "label": "Justify content center",
-            "description": "All columns will be horizontally aligned at the center.",
-            "category": "@Justifications",
-            "value": false,
-            "values": [
-            	false, "justify-content-center"
-            ]
-          },
-          "JustifyContentEnd": {
-            "label": "Justify content end",
-            "description": "All columns will be horizontally aligned at the end.",
-            "category": "@Justifications",
-            "value": false,
-            "values": [
-            	false, "justify-content-end"
-            ]
-          },
-          "JustifyContentAround": {
-            "label": "Justify content around",
-            "description": "All columns will be horizontally aligned with equal space around them.",
-            "category": "@Justifications",
-            "value": false,
-            "values": [
-            	false, "justify-content-around"
-            ]
-          },
-          "JustifyContentBeteween": {
-            "label": "Justify content between",
-            "description": "All columns will be horizontally aligned with a half-size space on either end.",
-            "category": "@Justifications",
-            "value": false,
-            "values": [
-            	false, "justify-content-between"
-            ]
-          }
-        }
-      },
-      
-      "GridCol": {
-        "tag": "ion-col",
-        "label": "Grid Column",
-        "description": "A grid column. Must be inserted in a Grid row and contains components or HTML",
-        "group": "Containers",
-        "icon16": "grid_color_16x16.png",
-        "icon32": "grid_color_32x32.png",
-        "properties": {
-          "AlignItemsStart": {
-            "label": "Align column top",
-            "description": "Column will be vertically aligned at the top.",
-            "category": "@Vertical alignments",
-            "value": false,
-            "values": [
-            	false, "align-self-start"
-            ]
-          },
-          "AlignItemsCenter": {
-            "label": "Align column center",
-            "description": "Column will be vertically aligned in the center.",
-            "category": "@Vertical alignments",
-            "value": false,
-            "values": [
-            	false, "align-self-center"
-            ]
-          },
-          "AlignItemsEnd": {
-            "label": "Align column bottom",
-            "description": "Column will be vertically aligned at the bottom.",
-            "category": "@Vertical alignments",
-            "value": false,
-            "values": [
-            	false, "align-self-end"
-            ]
-          },
-          "AlignItemsStrech": {
-            "label": "Align column strech",
-            "description": "Column will be stretched to take up the entire height of the row.",
-            "category": "@Vertical alignments",
-            "value": false,
-            "values": [
-            	false, "align-self-stretch"
-            ]
-          },
-          "AlignItemsBaseline": {
-            "label": "Align column baseline",
-            "description": "Column will be vertically aligned at the baseline.",
-            "category": "@Vertical alignments",
-            "value": false,
-            "values": [
-            	false, "align-self-baseline"
-            ]
-          },
-        
-          "Columns": {
-            "attr": "col-%%",
-            "label": "Column slots (Any devices)",
-            "description": "Number of slots this column spans on",
-            "category": "@Widths",
-            "value": false,
-            "values": [
-            	false, "auto", "1","2","3","4","5","6","7","8","9","10","11","12"
-            ]
-          },
-          "ColumnsXSmall": {
-            "attr": "col-%%",
-            "label": "Span (X-Small)",
-            "description": "Number of slots this column spans on for Xtra small devices (Witdh <  576px)",
-            "category": "@Widths",
-            "value": false,
-            "values": [
-            	false, "auto", "1","2","3","4","5","6","7","8","9","10","11","12"
-            ]
-          },
-          "ColumnsSmall": {
-            "attr": "col-sm-%%",
-            "label": "Span (Small)",
-            "description": "Number of slots this column spans on for small devices (Width >  576px and <  768px)",
-            "category": "@Widths",
-            "value": false,
-            "values": [
-            	false, "auto", "1","2","3","4","5","6","7","8","9","10","11","12"
-            ]
-          },
-          "ColumnsMedium": {
-            "attr": "col-md-%%",
-            "label": "Span (Medium)",
-            "description": "Number of slots this column spans on for medium devices (Width >  768px and <  992px)",
-            "category": "@Widths",
-            "value": false,
-            "values": [
-            	false, "auto", "1","2","3","4","5","6","7","8","9","10","11","12"
-            ]
-          },
-          "ColumnsLarge": {
-            "attr": "col-lg-%%",
-            "label": "Span (Large)",
-            "description": "Number of slots this column spans on for large devices (Width >  992px and <  1200px)",
-            "category": "@Widths",
-            "value": false,
-            "values": [
-            	false, "auto", "1","2","3","4","5","6","7","8","9","10","11","12"
-            ]
-          },
-          "ColumnsXLarge": {
-            "attr": "col-xl-%%",
-            "label": "Span (X-Large)",
-            "description": "Number of slots this column spans on for Xtra large devices (Width >  1200px)",
-            "category": "@Widths",
-            "value": false,
-            "values": [
-            	false, "auto", "1","2","3","4","5","6","7","8","9","10","11","12"
-            ]
-          },
-           "Offset": {
-            "attr": "offset-%%",
-            "label": "Column offset",
-            "description": "Number of slots for this column offset",
-            "category": "@Offsets",
-            "value": false,
-            "values": [
-            	false, "1","2","3","4","5","6","7","8","9","10","11","12"
-            ]
-          },
-          "OffsetXSmall": {
-            "attr": "offset-xs-%%",
-            "label": "Offset (X-Small)",
-            "description": "Number of slots for this column offset for Xtra small devices (Witdh <  576px)",
-            "category": "@Offsets",
-            "value": false,
-            "values": [
-            	false, "1","2","3","4","5","6","7","8","9","10","11","12"
-            ]
-          },
-          "OffsetSmall": {
-            "attr": "offset-sm-%%",
-            "label": "Offset (Small)",
-            "description": "Number of slots for this column offset for small devices (Width >  576px and <  768px)",
-            "category": "@Offsets",
-            "value": false,
-            "values": [
-            	false, "1","2","3","4","5","6","7","8","9","10","11","12"
-            ]
-          },
-          "OffsetMedium": {
-            "attr": "offset-md-%%",
-            "label": "Offset (Medium)",
-            "description": "Number of slots for this column offset for medium devices (Width >  768px and <  992px)",
-            "category": "@Offsets",
-            "value": false,
-            "values": [
-            	false, "1","2","3","4","5","6","7","8","9","10","11","12"
-            ]
-          },
-          "OffsetLarge": {
-            "attr": "offset-lg-%%",
-            "label": "Offset (Large)",
-            "description": "Number of slots for this column offset for large devices (Width >  992px and <  1200px)",
-            "category": "@Offsets",
-            "value": false,
-            "values": [
-            	false, "1","2","3","4","5","6","7","8","9","10","11","12"
-            ]
-          },
-          "OffsetXLarge": {
-            "attr": "offset-xl-%%",
-            "label": "Offset (X-Large)",
-            "description": "Number of slots for this column offset for Xtra large devices (Width >  1200px)",
-            "category": "@Offsets",
-            "value": false,
-            "values": [
-            	false, "1","2","3","4","5","6","7","8","9","10","11","12"
-            ]
-          }
-        }
-      },
-      
-      "Card":{
- 		"tag": "ion-card",
-        "label": "Card",
-        "description": "Cards are a great way to display important pieces of content, and are quickly emerging as a core design pattern for apps. They're are a great way to contain and organize information, while also setting up predictable expectations for the user. With so much content to display at once, and often so little screen realestate, cards have fast become the design pattern of choice for many companies, including the likes of Google, Twitter, and Spotify.",
-        "group": "Containers",
-        "icon16": "card_color_16x16.png",
-        "icon32": "card_color_32x32.png",
-        "properties": {
-        }
-      },
+      }
+    },
 
-      "CardHeader":{
- 		"tag": "ion-card-header",
-        "label": "Card Header",
-        "description": "Just like a normal page, cards can be customized to include headers. To add a header to a card, add the <ion-card-header> component inside of your card",
-        "group": "Containers",
-        "icon16": "cardheader_color_16x16.png",
-        "icon32": "cardheader_color_32x32.png",
-        "properties": {
+    "GridRow": {
+      "tag": "ion-row",
+      "label": "Grid Row",
+      "description": "A grid row. Must be inserted in a Grid and contains Columns. A row is composed of 12 slots that can be filled with columns",
+      "group": "Containers",
+      "icon16": "grid_color_16x16.png",
+      "icon32": "grid_color_32x32.png",
+      "properties": {
+        "Height": {
+          "attr": "style",
+          "label": "Height",
+          "description": "Hight of the row, pixel (px) or percentage (%). Use 100% to set a row full screen, usefull for centering",
+          "category": "@Size",
+          "value": false,
+          "values": [
+            false,
+            "height:100%"
+          ]
+        },
+        "Nowrap": {
+          "label": "No wrap",
+          "description": "Forces the columns to a single row",
+          "category": "@Wrapping",
+          "value": false,
+          "values": [
+            false,
+            "nowrap"
+          ]
+        },
+        "WrapReverse": {
+          "label": "Wrap reverse",
+          "description": "The columns will wrap in reverse.",
+          "category": "@Wrapping",
+          "value": false,
+          "values": [
+            false,
+            "wrap-reverse"
+          ]
+        },
+        "AlignItemsStart": {
+          "label": "Align items start",
+          "description": "All columns will be vertically aligned at the top, unless they specify their own alignment.",
+          "category": "@Vertical alignments",
+          "value": false,
+          "values": [
+            false,
+            "align-items-start"
+          ]
+        },
+        "AlignItemsCenter": {
+          "label": "Align items center",
+          "description": "All columns will be vertically aligned in the center, unless they specify their own alignment.",
+          "category": "@Vertical alignments",
+          "value": false,
+          "values": [
+            false,
+            "align-items-center"
+          ]
+        },
+        "AlignItemsEnd": {
+          "label": "Align items bottom",
+          "description": "All columns will be vertically aligned at the bottom, unless they specify their own alignment.",
+          "category": "@Vertical alignments",
+          "value": false,
+          "values": [
+            false,
+            "align-items-end"
+          ]
+        },
+        "AlignItemsStrech": {
+          "label": "Align items strech",
+          "description": "All columns will be stretched to take up the entire height of the row, unless they specify their own alignment.",
+          "category": "@Vertical alignments",
+          "value": false,
+          "values": [
+            false,
+            "align-items-stretch"
+          ]
+        },
+        "AlignItemsBaseline": {
+          "label": "Align items baseline",
+          "description": "All columns will be vertically aligned at their baselines, unless they specify their own alignment.",
+          "category": "@Vertical alignments",
+          "value": false,
+          "values": [
+            false,
+            "align-items-baseline"
+          ]
+        },
+        "JustifyContentStart": {
+          "label": "Justify content start",
+          "description": "All columns will be horizontally aligned at the start.",
+          "category": "@Justifications",
+          "value": false,
+          "values": [
+            false,
+            "justify-content-start"
+          ]
+        },
+        "JustifyContentCenter": {
+          "label": "Justify content center",
+          "description": "All columns will be horizontally aligned at the center.",
+          "category": "@Justifications",
+          "value": false,
+          "values": [
+            false,
+            "justify-content-center"
+          ]
+        },
+        "JustifyContentEnd": {
+          "label": "Justify content end",
+          "description": "All columns will be horizontally aligned at the end.",
+          "category": "@Justifications",
+          "value": false,
+          "values": [
+            false,
+            "justify-content-end"
+          ]
+        },
+        "JustifyContentAround": {
+          "label": "Justify content around",
+          "description": "All columns will be horizontally aligned with equal space around them.",
+          "category": "@Justifications",
+          "value": false,
+          "values": [
+            false,
+            "justify-content-around"
+          ]
+        },
+        "JustifyContentBeteween": {
+          "label": "Justify content between",
+          "description": "All columns will be horizontally aligned with a half-size space on either end.",
+          "category": "@Justifications",
+          "value": false,
+          "values": [
+            false,
+            "justify-content-between"
+          ]
         }
-      },  	
-      
-      "CardContent":{
- 		"tag": "ion-card-content",
-        "label": "Card Content",
-        "description": "The content part of the card",
-        "group": "Containers",
-        "icon16": "cardcontent_color_16x16.png",
-        "icon32": "cardcontent_color_32x32.png",
-        "properties": {
+      }
+    },
+
+    "GridCol": {
+      "tag": "ion-col",
+      "label": "Grid Column",
+      "description": "A grid column. Must be inserted in a Grid row and contains components or HTML",
+      "group": "Containers",
+      "icon16": "grid_color_16x16.png",
+      "icon32": "grid_color_32x32.png",
+      "properties": {
+        "AlignItemsStart": {
+          "label": "Align column top",
+          "description": "Column will be vertically aligned at the top.",
+          "category": "@Vertical alignments",
+          "value": false,
+          "values": [
+            false,
+            "align-self-start"
+          ]
+        },
+        "AlignItemsCenter": {
+          "label": "Align column center",
+          "description": "Column will be vertically aligned in the center.",
+          "category": "@Vertical alignments",
+          "value": false,
+          "values": [
+            false,
+            "align-self-center"
+          ]
+        },
+        "AlignItemsEnd": {
+          "label": "Align column bottom",
+          "description": "Column will be vertically aligned at the bottom.",
+          "category": "@Vertical alignments",
+          "value": false,
+          "values": [
+            false,
+            "align-self-end"
+          ]
+        },
+        "AlignItemsStrech": {
+          "label": "Align column strech",
+          "description": "Column will be stretched to take up the entire height of the row.",
+          "category": "@Vertical alignments",
+          "value": false,
+          "values": [
+            false,
+            "align-self-stretch"
+          ]
+        },
+        "AlignItemsBaseline": {
+          "label": "Align column baseline",
+          "description": "Column will be vertically aligned at the baseline.",
+          "category": "@Vertical alignments",
+          "value": false,
+          "values": [
+            false,
+            "align-self-baseline"
+          ]
+        },
+
+        "Columns": {
+          "attr": "col-%%",
+          "label": "Column slots (Any devices)",
+          "description": "Number of slots this column spans on",
+          "category": "@Widths",
+          "value": false,
+          "values": [
+            false,
+            "auto",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12"
+          ]
+        },
+        "ColumnsXSmall": {
+          "attr": "col-%%",
+          "label": "Span (X-Small)",
+          "description": "Number of slots this column spans on for Xtra small devices (Witdh <  576px)",
+          "category": "@Widths",
+          "value": false,
+          "values": [
+            false,
+            "auto",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12"
+          ]
+        },
+        "ColumnsSmall": {
+          "attr": "col-sm-%%",
+          "label": "Span (Small)",
+          "description": "Number of slots this column spans on for small devices (Width >  576px and <  768px)",
+          "category": "@Widths",
+          "value": false,
+          "values": [
+            false,
+            "auto",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12"
+          ]
+        },
+        "ColumnsMedium": {
+          "attr": "col-md-%%",
+          "label": "Span (Medium)",
+          "description": "Number of slots this column spans on for medium devices (Width >  768px and <  992px)",
+          "category": "@Widths",
+          "value": false,
+          "values": [
+            false,
+            "auto",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12"
+          ]
+        },
+        "ColumnsLarge": {
+          "attr": "col-lg-%%",
+          "label": "Span (Large)",
+          "description": "Number of slots this column spans on for large devices (Width >  992px and <  1200px)",
+          "category": "@Widths",
+          "value": false,
+          "values": [
+            false,
+            "auto",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12"
+          ]
+        },
+        "ColumnsXLarge": {
+          "attr": "col-xl-%%",
+          "label": "Span (X-Large)",
+          "description": "Number of slots this column spans on for Xtra large devices (Width >  1200px)",
+          "category": "@Widths",
+          "value": false,
+          "values": [
+            false,
+            "auto",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12"
+          ]
+        },
+        "Offset": {
+          "attr": "offset-%%",
+          "label": "Column offset",
+          "description": "Number of slots for this column offset",
+          "category": "@Offsets",
+          "value": false,
+          "values": [
+            false,
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12"
+          ]
+        },
+        "OffsetXSmall": {
+          "attr": "offset-xs-%%",
+          "label": "Offset (X-Small)",
+          "description": "Number of slots for this column offset for Xtra small devices (Witdh <  576px)",
+          "category": "@Offsets",
+          "value": false,
+          "values": [
+            false,
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12"
+          ]
+        },
+        "OffsetSmall": {
+          "attr": "offset-sm-%%",
+          "label": "Offset (Small)",
+          "description": "Number of slots for this column offset for small devices (Width >  576px and <  768px)",
+          "category": "@Offsets",
+          "value": false,
+          "values": [
+            false,
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12"
+          ]
+        },
+        "OffsetMedium": {
+          "attr": "offset-md-%%",
+          "label": "Offset (Medium)",
+          "description": "Number of slots for this column offset for medium devices (Width >  768px and <  992px)",
+          "category": "@Offsets",
+          "value": false,
+          "values": [
+            false,
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12"
+          ]
+        },
+        "OffsetLarge": {
+          "attr": "offset-lg-%%",
+          "label": "Offset (Large)",
+          "description": "Number of slots for this column offset for large devices (Width >  992px and <  1200px)",
+          "category": "@Offsets",
+          "value": false,
+          "values": [
+            false,
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12"
+          ]
+        },
+        "OffsetXLarge": {
+          "attr": "offset-xl-%%",
+          "label": "Offset (X-Large)",
+          "description": "Number of slots for this column offset for Xtra large devices (Width >  1200px)",
+          "category": "@Offsets",
+          "value": false,
+          "values": [
+            false,
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12"
+          ]
         }
-      },
-      
-      "TextFormat":{
- 		"tag": "div",
-        "label": "Text format",
-        "description": "Text formatting such as alignments to left right and center or text transformations. Will be applied to all underlying text nodes.",
-        "group": "Formatting",
-        "icon16": "textformat_color_16x16.png",
-        "icon32": "textformat_color_32x32.png",
-        "properties": {
-          "TextLeft": {
-            "label": "Align left",
-            "description": "Aligns the text of the element to its left",
-            "category": "@Alignments",
-            "value": false,
-            "values": [
-            	false, "text-left"
-            ]
-          },
-          "TextRight": {
-            "label": "Align right",
-            "description": "Aligns the text of the element to its Right",
-            "category": "@Alignments",
-            "value": false,
-            "values": [
-            	false, "text-right"
-            ]
-          },
-          "TextCenter": {
-            "label": "Align Center",
-            "description": "Aligns the text of the element to its center",
-            "category": "@Alignments",
-            "value": false,
-            "values": [
-            	false, "text-center"
-            ]
-          },
-          "TextJustify": {
-            "label": "Justify",
-            "description": "Justify text by stretching the lines so that each line has equal width",
-            "category": "@Alignments",
-            "value": false,
-            "values": [
-            	false, "text-justify"
-            ]
-          },
-          "TextWrap": {
-            "label": "Wrap",
-            "description": "Wraps text",
-            "category": "@Wrapping",
-            "value": false,
-            "values": [
-            	false, "text-wrap"
-            ]
-          },
-          "TextNoWrap": {
-            "label": "No wrap",
-            "description": "Dont't wrap text",
-            "category": "@Wrapping",
-            "value": false,
-            "values": [
-            	false, "text-nowrap"
-            ]
-          },
-          "TextUpperCase": {
-            "label": "To upper case",
-            "description": "Transforms text to all caps",
-            "category": "@Transformations",
-            "value": false,
-            "values": [
-            	false, "text-uppercase"
-            ]
-          },
-          "TextLowerCase": {
-            "label": "To lower case",
-            "description": "Transforms text to all lowercase",
-            "category": "@Transformations",
-            "value": false,
-            "values": [
-            	false, "text-lowercase"
-            ]
-          },
-          "TextCapitalize": {
-            "label": "Capitalize",
-            "description": "Transforms the first letter of the text to capitals",
-            "category": "@Transformations",
-            "value": false,
-            "values": [
-            	false, "text-capitalize"
-            ]
-          }
+      }
+    },
+
+    "Card": {
+      "tag": "ion-card",
+      "label": "Card",
+      "description": "Cards are a great way to display important pieces of content, and are quickly emerging as a core design pattern for apps. They're are a great way to contain and organize information, while also setting up predictable expectations for the user. With so much content to display at once, and often so little screen realestate, cards have fast become the design pattern of choice for many companies, including the likes of Google, Twitter, and Spotify.",
+      "group": "Containers",
+      "icon16": "card_color_16x16.png",
+      "icon32": "card_color_32x32.png",
+      "properties": {
+      }
+    },
+
+    "CardHeader": {
+      "tag": "ion-card-header",
+      "label": "Card Header",
+      "description": "Just like a normal page, cards can be customized to include headers. To add a header to a card, add the <ion-card-header> component inside of your card",
+      "group": "Containers",
+      "icon16": "cardheader_color_16x16.png",
+      "icon32": "cardheader_color_32x32.png",
+      "properties": {
+      }
+    },
+
+    "CardContent": {
+      "tag": "ion-card-content",
+      "label": "Card Content",
+      "description": "The content part of the card",
+      "group": "Containers",
+      "icon16": "cardcontent_color_16x16.png",
+      "icon32": "cardcontent_color_32x32.png",
+      "properties": {
+      }
+    },
+
+    "TextFormat": {
+      "tag": "div",
+      "label": "Text format",
+      "description": "Text formatting such as alignments to left right and center or text transformations. Will be applied to all underlying text nodes.",
+      "group": "Formatting",
+      "icon16": "textformat_color_16x16.png",
+      "icon32": "textformat_color_32x32.png",
+      "properties": {
+        "TextLeft": {
+          "label": "Align left",
+          "description": "Aligns the text of the element to its left",
+          "category": "@Alignments",
+          "value": false,
+          "values": [
+            false,
+            "text-left"
+          ]
+        },
+        "TextRight": {
+          "label": "Align right",
+          "description": "Aligns the text of the element to its Right",
+          "category": "@Alignments",
+          "value": false,
+          "values": [
+            false,
+            "text-right"
+          ]
+        },
+        "TextCenter": {
+          "label": "Align Center",
+          "description": "Aligns the text of the element to its center",
+          "category": "@Alignments",
+          "value": false,
+          "values": [
+            false,
+            "text-center"
+          ]
+        },
+        "TextJustify": {
+          "label": "Justify",
+          "description": "Justify text by stretching the lines so that each line has equal width",
+          "category": "@Alignments",
+          "value": false,
+          "values": [
+            false,
+            "text-justify"
+          ]
+        },
+        "TextWrap": {
+          "label": "Wrap",
+          "description": "Wraps text",
+          "category": "@Wrapping",
+          "value": false,
+          "values": [
+            false,
+            "text-wrap"
+          ]
+        },
+        "TextNoWrap": {
+          "label": "No wrap",
+          "description": "Dont't wrap text",
+          "category": "@Wrapping",
+          "value": false,
+          "values": [
+            false,
+            "text-nowrap"
+          ]
+        },
+        "TextUpperCase": {
+          "label": "To upper case",
+          "description": "Transforms text to all caps",
+          "category": "@Transformations",
+          "value": false,
+          "values": [
+            false,
+            "text-uppercase"
+          ]
+        },
+        "TextLowerCase": {
+          "label": "To lower case",
+          "description": "Transforms text to all lowercase",
+          "category": "@Transformations",
+          "value": false,
+          "values": [
+            false,
+            "text-lowercase"
+          ]
+        },
+        "TextCapitalize": {
+          "label": "Capitalize",
+          "description": "Transforms the first letter of the text to capitals",
+          "category": "@Transformations",
+          "value": false,
+          "values": [
+            false,
+            "text-capitalize"
+          ]
         }
       }
     }
+  }
 }
