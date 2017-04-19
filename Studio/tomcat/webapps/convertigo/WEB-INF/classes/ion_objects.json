@@ -480,11 +480,14 @@
 
   /*  Beans models  */
   "Beans": {
+    /*
+     buttons
+    */
     "Button": {
       "tag": "button",
       "label": "Button",
       "description": "Buttons are an essential way to interact with and navigate through an app, and should clearly communicate what action will occur after the user taps them. Buttons can consist of text and/or an icon, and can be enhanced with a wide variety of attributes",
-      "group": "Components",
+      "group": "Buttons",
       "icon16": "button_color_16x16.png",
       "icon32": "button_color_32x32.png",
       "properties": {
@@ -494,14 +497,101 @@
         "IonShape": false,
         "IonOutline": false,
         "IonSize": false,
-        "IconPosition": false
+        "IconPosition": false,
+        "IconOnly": {
+          "label": "Icon only",
+          "description": "Set if we only show the icon",
+          "category": "Attributes",
+          "values": [
+            false,
+            "icon-only"
+          ]
+        }
       }
     },
+
+    "FabButton": {
+      "tag": "button",
+      "label": "FAB Button",
+      "description": "FABs (Floating Action Buttons) are standard material design components. They are shaped as a circle that represents a promoted action. When pressed, it may contain more related actions. FABs as its name suggests are floating over the content in a fixed position. You can add icons in the button to represent a given function",
+      "group": "Buttons",
+      "icon16": "fab_16x16.png",
+      "icon32": "fab_32x32.png",
+      "properties": {
+        "ButtonType": "ion-fab",
+        "IonColor": false,
+        "Size": {
+          "label": "size",
+          "description": "Specifies FAB size",
+          "category": "@Properties",
+          "values": [
+            false,
+            "mini"
+          ]
+        }
+      }
+    },
+
+
+    "FabContainer": {
+      "tag": "ion-fab",
+      "label": "FAB container",
+      "description": "Place your FAB buttons (Floating Action Button) in this container to make them non scrollable with content",
+      "group": "Buttons",
+      "icon16": "fab_16x16.png",
+      "icon32": "fab_32x32.png",
+      "properties": {
+        "HorzPosition": {
+          "label": "Horizontal Position",
+          "description": "Specifies the horizontal position",
+          "category": "@Properties",
+          "values": [
+            false,
+            "left",
+            "right"
+          ]
+        },
+        "VertPosition": {
+          "label": "Vertical Position",
+          "description": "Specifies the vertical position",
+          "category": "@Properties",
+          "values": [
+            false,
+            "top",
+            "bottom"
+          ]
+        },
+        "Edge": {
+          "label": "Edge",
+          "description": "Specifies if the FAB must be positioned on the edge",
+          "category": "@Properties",
+          "values": [
+            false,
+            "edge"
+          ]
+        }
+      }
+    },
+
+    "Icon": {
+      "tag": "ion-icon",
+      "label": "Icon",
+      "description": "More than 700+ Ionicons icons we all come to know and love. Can be used in buttons",
+      "group": "Buttons",
+      "icon16": "icon_color_16x16.png",
+      "icon32": "icon_color_32x32.png",
+      "properties": {
+        "IconName": "add",
+        "ItemPosition": false
+      }
+    },
+
+
     "ButtonSet": {
       "tag": "ion-buttons",
-      "label": "ButtonSet",
-      "description": "Defines a set of buttons",
-      "group": "Containers",
+      "label": "Button Set",
+      "description": "Defines a set of buttons to be used within other components. For example, buttons can be added to a list item or a navbar. You can define if buttons are aligned left (start) or right (end)",
+      "group": "Buttons",
       "icon16": "buttonset_color_16x16.png",
       "icon32": "buttonset_color_32x32.png",
       "properties": {
@@ -520,6 +610,8 @@
         }
       }
     },
+
+
     "Content": {
       "tag": "ion-content",
       "label": "Content",
@@ -563,18 +655,7 @@
       "properties": {
       }
     },
-    "Icon": {
-      "tag": "ion-icon",
-      "label": "Icon",
-      "description": "More than 700+ Ionicons icons we�ve all come to know and love.",
-      "group": "Components",
-      "icon16": "icon_color_16x16.png",
-      "icon32": "icon_color_32x32.png",
-      "properties": {
-        "IconName": "add",
-        "ItemPosition":  false
-      }
-    },
+
     "Heading1": {
       "tag": "h1",
       "label": "H1",
@@ -671,37 +752,6 @@
       }
     },
 
-    "MyButton": {
-      "tag": "button",
-      "label": "My Button",
-      "description": "Defines a custom colored button",
-      "group": "Components",
-      "icon16": "mybutton_color_16x16.png",
-      "icon32": "mybutton_color_32x32.png",
-      "properties": {
-        "ButtonType": "ion-button",
-        "IonColor": false,
-        "IonShape": "round",
-        "IonOutline": false,
-        "IonSize": false,
-        "IconPosition": false,
-        "MyColor": {
-          "attr": "my-color",
-          "label": "my color",
-          "description": "Specifies a custom color",
-          "category": "Attributes",
-          "value": "blue",
-          "values": [
-            false,
-            "blue",
-            "red",
-            "white",
-            "yellow",
-            true
-          ]
-        }
-      }
-    },
     "NavBar": {
       "tag": "ion-navbar",
       "label": "NavBar",
@@ -873,7 +923,7 @@
       "icon32": "slidingoption_32x32.png",
       "properties": {
         "side": {
-          "attr": "side", 
+          "attr": "side",
           "label": "Buttons side",
           "description": "Side where buttons are revealed",
           "category": "@Properties",
@@ -895,7 +945,7 @@
       "icon16": "list_item_16x16.png",
       "icon32": "list_item_32x32.png",
       "properties": {
-        "ItemPosition" :  false
+        "ItemPosition": false
       }
     },
 
@@ -1172,7 +1222,7 @@
       "tag": "ion-grid",
       "label": "Grid",
       "description": "Grid system is based on flexbox, a CSS feature supported by all devices. The grid is composed of three units : grid, rows and columns.",
-      "group": "Containers",
+      "group": "Grid System",
       "icon16": "grid_color_16x16.png",
       "icon32": "grid_color_32x32.png",
       "properties": {
@@ -1218,7 +1268,7 @@
       "tag": "ion-row",
       "label": "Grid Row",
       "description": "A grid row. Must be inserted in a Grid and contains Columns. A row is composed of 12 slots that can be filled with columns",
-      "group": "Containers",
+      "group": "Grid System",
       "icon16": "grid_color_16x16.png",
       "icon32": "grid_color_32x32.png",
       "properties": {
@@ -1360,7 +1410,7 @@
       "tag": "ion-col",
       "label": "Grid Column",
       "description": "A grid column. Must be inserted in a Grid row and contains components or HTML",
-      "group": "Containers",
+      "group": "Grid System",
       "icon16": "grid_color_16x16.png",
       "icon32": "grid_color_32x32.png",
       "properties": {
@@ -1688,11 +1738,13 @@
       }
     },
 
+    /* Cards */
+
     "Card": {
       "tag": "ion-card",
       "label": "Card",
       "description": "Cards are a great way to display important pieces of content, and are quickly emerging as a core design pattern for apps. They're are a great way to contain and organize information, while also setting up predictable expectations for the user. With so much content to display at once, and often so little screen realestate, cards have fast become the design pattern of choice for many companies, including the likes of Google, Twitter, and Spotify.",
-      "group": "Containers",
+      "group": "Cards",
       "icon16": "card_color_16x16.png",
       "icon32": "card_color_32x32.png",
       "properties": {
@@ -1703,7 +1755,7 @@
       "tag": "ion-card-header",
       "label": "Card Header",
       "description": "Just like a normal page, cards can be customized to include headers. To add a header to a card, add the <ion-card-header> component inside of your card",
-      "group": "Containers",
+      "group": "Cards",
       "icon16": "cardheader_color_16x16.png",
       "icon32": "cardheader_color_32x32.png",
       "properties": {
@@ -1714,7 +1766,7 @@
       "tag": "ion-card-content",
       "label": "Card Content",
       "description": "The content part of the card",
-      "group": "Containers",
+      "group": "Cards",
       "icon16": "cardcontent_color_16x16.png",
       "icon32": "cardcontent_color_32x32.png",
       "properties": {
