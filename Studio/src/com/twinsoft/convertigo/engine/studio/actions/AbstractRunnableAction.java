@@ -1,5 +1,6 @@
 package com.twinsoft.convertigo.engine.studio.actions;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.w3c.dom.Document;
@@ -20,6 +21,7 @@ public abstract class AbstractRunnableAction {
 	}
 	
 	public void run() {
+		dboExceptionMessages = new HashMap<>();
 		run2();
 		isDone = true;
 	}

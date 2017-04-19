@@ -6,7 +6,7 @@ var DatabaseObjectManager = {
 	},
 	setProperty: function (qnames, property, value) {
 		$.ajax({
-			url: ProjectsView.createConvertigoServiceUrl("studio.database_objects.Set"),
+			url: Main.createConvertigoServiceUrl("studio.database_objects.Set"),
 			data: {
 				qnames: qnames,
 				property: property,
@@ -15,6 +15,20 @@ var DatabaseObjectManager = {
 			success: function (data, textStatus, jqXHR) {				
 				DatabaseObjectManager.notifySetProperty($(data).find("admin"));
 			}
+		});
+	},
+	notifyDatabaseObjectDelete: function (data) {
+		var $responses = $(data).find("admin>*");
+		var qnamesDbosToDelete = [];
+		$responses.each(function () {
+			if ($(this).attr("doDelete") === "true") {
+				qnamesDbosToDelete.push($(this).attr("qname"));
+			}
+		});
+		
+		// Notify all listeners
+		$.each(DatabaseObjectManager.listeners, function () {
+			$(this).trigger("database_object_delete.dbo-manager", [qnamesDbosToDelete]);
 		});
 	},
 	notifySetProperty: function (data) {
@@ -35,7 +49,7 @@ var DatabaseObjectManager = {
 		
 		// Notify all listeners
 		$.each(DatabaseObjectManager.listeners, function () {
-			$(this).trigger("set_property.database-object-manager", [qnames, propertyName, propertyValue, data]);
+			$(this).trigger("set_property.dbo-manager", [qnames, propertyName, propertyValue, data]);
 		});
 	}
 };

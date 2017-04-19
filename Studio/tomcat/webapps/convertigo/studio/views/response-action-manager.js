@@ -1,4 +1,6 @@
 var ResponseActionManager = {
+	projectViews: null,
+	
 	responseNameToFunction: {
 		SetPropertyResponse: function ($data) {
 			DatabaseObjectManager.notifySetProperty($data.find("admin"));
@@ -24,7 +26,7 @@ var ResponseActionManager = {
 					click: function () {
 						// Send response of the dialog to the server
 						var code = $(that).find("response").text();
-						ProjectsView.callServiceCallAction(null, null, code);
+						ResponseActionManager.projectViews.callServiceCallAction(null, null, code);
 						$.modal.close();
 					}
 				});
@@ -38,30 +40,12 @@ var ResponseActionManager = {
 			);
 		},
 		DatabaseObjectDeleteResponse: function ($data) {
-			var $responses = $data.find("admin>*");
-			$responses.each(function () {
-				if ($(this).attr("doDelete") === "true") {
-					var qnId = ProjectsView.computeNodeId($(this).attr("qname"));
-					// Remove all nodes from the tree
-					var idNodes = ProjectsView.tree.jstree().getIdNodes(qnId);
-					for (var i = 0; i < idNodes.length; ++i) {
-						var parentNodeId = ProjectsView.tree.jstree().get_parent(idNodes[i]);
-						var parentNode = ProjectsView.tree.jstree().get_node(parentNodeId);
-						
-						ProjectsView.tree.jstree().delete_node(parentNode.children.length == 1 ?
-							// Remove the parent node if the current element is the last child
-						    parentNode :
-						    // Just remove the element
-						    idNodes[i]);
-					}
-					
-					PropertiesView.removeTreeData();
-				}
-			})
+			DatabaseObjectManager.notifyDatabaseObjectDelete($data.find("admin"));
 		}
 	},
-	handleResponse: function (responseName, $data) {
+	handleResponse: function (responseName, $data, projectViews) {
 		if (responseName in ResponseActionManager.responseNameToFunction) {
+			ResponseActionManager.projectViews = projectViews;
 			ResponseActionManager.responseNameToFunction[responseName]($data);
 		}
 		else {

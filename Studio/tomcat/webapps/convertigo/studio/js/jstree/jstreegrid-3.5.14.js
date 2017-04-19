@@ -20,13 +20,13 @@
  *
  */
 (function (factory) {
-//    if (typeof define === 'function' && define.amd) {
-//        // AMD. Register as an anonymous module.
-//        define(['jquery', 'jstree'], factory);
-//    } else {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define(['jquery', 'jstree'], factory);
+    } else {
         // Browser globals
         factory(jQuery);
-//    }
+    }
 }(function ($) {
 	var renderAWidth, renderATitle, getIndent, copyData, htmlstripre, findLastClosedNode, BLANKRE = /^\s*$/g,
 		IDREGEX = /[\\:&!^|()\[\]<>@*'+~#";,= \/${}%]/g, escapeId = function (id) {

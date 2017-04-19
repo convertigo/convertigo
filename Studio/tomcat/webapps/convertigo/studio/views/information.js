@@ -5,7 +5,13 @@ var PropertiesView = {
 	
 	// Functions
 	init: function (jstreeId) {
-		$(PropertiesView).on("set_property.database-object-manager", function (event, qnames, property, value, data) {
+		$(PropertiesView).on("database_object_delete.dbo-manager", function (event, qnamesDbosToDelete) {
+			if (qnamesDbosToDelete.length) {
+				PropertiesView.removeTreeData();
+			}
+		});
+		
+		$(PropertiesView).on("set_property.dbo-manager", function (event, qnames, property, value, data) {
 			var idNode = PropertiesView.tree.jstree().getIdNodes("pr-" + property.replace(/\s/g, "-"))[0];
 	    	var node = PropertiesView.tree.jstree().get_node(idNode);
 			
@@ -220,7 +226,7 @@ var PropertiesView = {
 		if (refNodeProjectsView.type !== "default") {
 			// Get properties of the object
 			$.ajax({
-				url: ProjectsView.createConvertigoServiceUrl("studio.database_objects.Get"),
+				url: Main.createConvertigoServiceUrl("studio.database_objects.Get"),
 				data: {
 					qname: refNodeProjectsView.data.qname
 				},

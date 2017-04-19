@@ -76,7 +76,6 @@ public class DatabaseObjectDeleteAction extends AbstractRunnableAction {
 			WrapDatabaseObject treeObject = null;
 			WrapObject[] treeObjects = studio.getSelectedObjects().toArray(new WrapObject[0]);
 			dboDoDelete = new HashMap<>(treeObjects.length);
-			dboExceptionMessages = new HashMap<>(treeObjects.length); 
 
 			if (treeObjects != null) {
 				MultipleDeletionDialog dialog = new MultipleDeletionDialog(studio, "Object Deletion", treeObjects.length > 1);
