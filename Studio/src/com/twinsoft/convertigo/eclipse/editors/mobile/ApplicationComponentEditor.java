@@ -24,6 +24,7 @@ package com.twinsoft.convertigo.eclipse.editors.mobile;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -73,10 +74,12 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.EditorPart;
 
 import com.teamdev.jxbrowser.chromium.Browser;
-import com.teamdev.jxbrowser.chromium.events.LoadAdapter;
-import com.teamdev.jxbrowser.chromium.events.LoadEvent;
+import com.teamdev.jxbrowser.chromium.dom.By;
+import com.teamdev.jxbrowser.chromium.dom.DOMDocument;
 import com.teamdev.jxbrowser.chromium.events.ScriptContextAdapter;
 import com.teamdev.jxbrowser.chromium.events.ScriptContextEvent;
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
@@ -264,7 +267,15 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 			public void onScriptContextCreated(ScriptContextEvent event) {
 				String url = browser.getURL();
 				if (baseUrl != null && url.startsWith(baseUrl)) {
-					browser.executeJavaScript("sessionStorage.setItem('_c8ocafsession_storage_mode', 'local');");
+					try {
+						browser.executeJavaScript(
+							"sessionStorage.setItem('_c8ocafsession_storage_mode', 'local');\n"
+							+ IOUtils.toString(getClass().getResourceAsStream("inject.js"), "UTF-8")
+						);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 				browser.setZoomLevel(zoomFactor.zoomLevel());
 				super.onScriptContextCreated(event);
@@ -272,25 +283,32 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 			
 		});
 		
-		browser.addLoadListener(new LoadAdapter() {
-			
-			@Override
-			public void onDocumentLoadedInMainFrame(LoadEvent event) {
-				browser.executeJavaScript(
-					"var _c8oviewer_ = document.createElement('style');\n"
-					+ "_c8oviewer_.textContent = '"
-						+ ".scroll-content { overflow-y: overlay; }\\n"
-						+ "::-webkit-scrollbar { width: 8px; }\\n"
-						+ "::-webkit-scrollbar-thumb {"
-							+ "background-color: rgba(0,0,0,0.3);"
-							+ "border-radius: 4px;"
-						+ "}"
-					+ "';\n"
-					+ "document.head.appendChild(_c8oviewer_);"
-				);
-			}
-			
-		});
+//		browser.addLoadListener(new LoadAdapter() {
+//			
+//			@Override
+//			public void onDocumentLoadedInMainFrame(LoadEvent event) {
+////				browser.executeJavaScript(
+////					"var _c8oviewer_ = document.createElement('style');\n"
+////					+ "_c8oviewer_.textContent = ';\n"
+////					+ "document.head.appendChild(_c8oviewer_);"
+////				);
+//				DOMDocument doc = browser.getDocument();
+//				DOMElement scrollStyle = doc.createElement("style");
+//				scrollStyle.setTextContent(
+//					".scroll-content { overflow-y: overlay; }\n"
+//					+ "::-webkit-scrollbar { width: 8px; }\n"
+//					+ "::-webkit-scrollbar-thumb {"
+//						+ "background-color: rgba(0,0,0,0.3);"
+//						+ "border-radius: 4px;"
+//					+ "}"
+//				);
+//				
+//				DOMElement head = doc.findElement(By.tagName("head"));
+//				head.appendChild(scrollStyle);
+//				head.appendChild(highlightStyle = doc.createElement("style"));
+//			}
+//			
+//		});
 	}
 	
 	private void createDeviceBar(Composite parent) {
@@ -560,6 +578,20 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 		new ToolItem(toolbar, SWT.SEPARATOR);
 				
 		item = new ToolItem(toolbar, SWT.PUSH);
+		item.setToolTipText("Remove highlight");
+		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/write_wait_zone.d.gif")));
+		item.addSelectionListener(new SelectionAdapter() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				C8oBrowser.run(() -> browser.executeJavaScript("_c8o_remove_all_overlay()"));
+			}
+			
+		});
+		
+		new ToolItem(toolbar, SWT.SEPARATOR);
+				
+		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Show debug");
 		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/debug.gif")));
 		item.addSelectionListener(new SelectionAdapter() {
@@ -652,7 +684,10 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 		browserScroll.setMinHeight(browserGD.heightHint = browserGD.minimumHeight = height);
 		c8oBrowser.getParent().layout();
 		
-		C8oBrowser.run(() -> browser.setZoomLevel(zoomFactor.zoomLevel()));
+		C8oBrowser.run(() -> {
+			browser.executeJavaScript("try {_c8o_remove_all_overlay()} catch(e){}");
+			browser.setZoomLevel(zoomFactor.zoomLevel());
+		});
 	}
 	
 	@Override
@@ -662,33 +697,7 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 	
 	@Override
 	public void selectionChanged(SelectionChangedEvent event) {
-//		browser.executeScript("location.href='http://www.convertigo.com'");
-//		browser.executeJavaScript("location.href='http://www.convertigo.com'");
-//		if (event.getSource() instanceof ISelectionProvider) {
-//			IStructuredSelection selection = (IStructuredSelection) event.getSelection();
-//			TreeObject treeObject = (TreeObject) selection.getFirstElement();
-//			if (treeObject != null) {
-//				if (treeObject instanceof MobileUIComponentTreeObject) {
-//					TreeParent treeParent = treeObject.getParent();
-//					while (treeParent != null) {
-//						if (treeParent instanceof MobilePageComponentTreeObject) {
-//							PageComponent page = ((MobilePageComponentTreeObject)treeParent).getObject();
-//							if (pageEditorInput.is(page)) {
-//								getEditorSite().getPage().bringToTop(this);
-//							}
-//							break;
-//						}
-//						treeParent = treeParent.getParent();
-//					}
-//				}
-//				else if (treeObject instanceof MobilePageComponentTreeObject) {
-//					PageComponent page = ((MobilePageComponentTreeObject)treeObject).getObject();
-//					if (pageEditorInput.is(page)) {
-//						getEditorSite().getPage().bringToTop(this);
-//					}
-//				}
-//			}
-//		}
+		
 	}
 	
 	private void appendOutput(String msg) {
@@ -799,5 +808,21 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 	public void selectPage(String pageName) {
 		this.pageName = pageName;
 		doLoad();
+	}
+
+	public void highlightComponent(MobileComponent mobileComponent) {
+		C8oBrowser.run(() -> {
+			DOMDocument doc = browser.getDocument();
+			MobileComponent mc = mobileComponent;
+			while (doc.findElements(By.className("class" + mc.priority)).isEmpty()) {
+				DatabaseObject parent = mc.getParent();
+				if (parent instanceof MobileComponent) {
+					mc = (MobileComponent) parent;
+				} else {
+					return;
+				}
+			}
+			browser.executeJavaScript("_c8o_highlight_class('class" + mc.priority + "');");
+		});
 	}
 }

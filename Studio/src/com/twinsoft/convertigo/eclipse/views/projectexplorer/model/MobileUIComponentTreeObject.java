@@ -99,12 +99,13 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 	
 	@Override
 	public void launchEditor(String editorType) {
-		MobileComponent mc = (MobileComponent)getObject();
+		MobileComponent mc = (MobileComponent) getObject();
 		if (mc instanceof UICustom) {
 			openHtmlFileEditor();
-		}
-		if (mc instanceof UIStyle) {
+		} else if (mc instanceof UIStyle) {
 			openCssFileEditor();
+		} else {
+			super.launchEditor(editorType);
 		}
 	}
 

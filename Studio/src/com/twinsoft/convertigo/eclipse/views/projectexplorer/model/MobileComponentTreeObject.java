@@ -23,9 +23,11 @@
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
 import org.eclipse.jface.viewers.Viewer;
-import com.twinsoft.convertigo.beans.core.MobileComponent;
 
-public class MobileComponentTreeObject extends DatabaseObjectTreeObject {
+import com.twinsoft.convertigo.beans.core.MobileComponent;
+import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor;
+
+public class MobileComponentTreeObject extends DatabaseObjectTreeObject implements IEditableTreeObject {
 	
 	public MobileComponentTreeObject(Viewer viewer, MobileComponent object) {
 		super(viewer, object);
@@ -43,5 +45,19 @@ public class MobileComponentTreeObject extends DatabaseObjectTreeObject {
 	@Override
 	public boolean testAttribute(Object target, String name, String value) {
 		return super.testAttribute(target, name, value);
+	}
+	
+	@Override
+	public void launchEditor(String editorType) {
+		DatabaseObjectTreeObject parent = getParentDatabaseObjectTreeObject();
+		while (!(parent == null || parent instanceof MobileApplicationComponentTreeObject)) {
+			parent = parent.getParentDatabaseObjectTreeObject();
+		}
+		
+		if (parent != null) {
+			ApplicationComponentEditor editor = ((MobileApplicationComponentTreeObject) parent).activeEditor();
+			editor.highlightComponent(getObject());
+		}
+		
 	}
 }
