@@ -74,16 +74,25 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.EditorPart;
 
 import com.teamdev.jxbrowser.chromium.Browser;
+import com.teamdev.jxbrowser.chromium.ContextMenuHandler;
+import com.teamdev.jxbrowser.chromium.ContextMenuParams;
 import com.teamdev.jxbrowser.chromium.dom.By;
 import com.teamdev.jxbrowser.chromium.dom.DOMDocument;
+import com.teamdev.jxbrowser.chromium.dom.DOMElement;
+import com.teamdev.jxbrowser.chromium.dom.DOMNode;
+import com.teamdev.jxbrowser.chromium.dom.DOMNodeAtPoint;
 import com.teamdev.jxbrowser.chromium.events.ScriptContextAdapter;
 import com.teamdev.jxbrowser.chromium.events.ScriptContextEvent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
+import com.twinsoft.convertigo.engine.DatabaseObjectFoundException;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.util.ProcessUtils;
 
 public class ApplicationComponentEditor extends EditorPart implements ISelectionChangedListener {
@@ -114,6 +123,7 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 	
 	private static Pattern pIsServerRunning = Pattern.compile(".*?server running: (http\\S*).*");
 	private static Pattern pRemoveEchap = Pattern.compile("\\x1b\\[\\d+m");
+	private static Pattern pPriority = Pattern.compile("class(\\d+)");
 	
 	public ApplicationComponentEditor() {
 		projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
@@ -281,6 +291,52 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 				super.onScriptContextCreated(event);
 			}
 			
+		});
+		
+		browser.setContextMenuHandler(new ContextMenuHandler() {
+			
+			@Override
+			public void showContextMenu(ContextMenuParams ctx) {
+				DOMNodeAtPoint nodeAP = browser.getNodeAtPoint(ctx.getLocation());
+				DOMNode node = nodeAP.getNode();
+				while (!(node == null || node instanceof DOMElement)) {
+					node = node.getParent();
+				}
+				while (node != null) {
+					DOMElement element = (DOMElement) node;
+					String classes = element.getAttribute("class");
+					Matcher mPriority = pPriority.matcher(classes);
+					if (mPriority.find()) {
+						try {
+							node = null;
+							long priority = Long.parseLong(mPriority.group(1));
+							new WalkHelper() {
+
+								@Override
+								protected void walk(DatabaseObject databaseObject) throws Exception {
+									if (databaseObject.priority == priority) {
+										throw new DatabaseObjectFoundException(databaseObject);
+									}
+									super.walk(databaseObject);
+								}
+								
+							}.init(applicationEditorInput.application);
+						} catch (DatabaseObjectFoundException e) {
+							DatabaseObject databaseObject = e.getDatabaseObject();
+
+							c8oBrowser.getDisplay().asyncExec(() -> ConvertigoPlugin.getDefault().getProjectExplorerView().objectSelected(new CompositeEvent(databaseObject)));
+							
+							if (databaseObject instanceof MobileComponent) {
+								highlightComponent((MobileComponent) databaseObject);
+							}
+						} catch (Exception e) {
+							e.printStackTrace();							
+						}
+					} else {
+						node = node.getParent();
+					}
+				}
+			}
 		});
 		
 //		browser.addLoadListener(new LoadAdapter() {
@@ -795,8 +851,9 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 				if (pageName != null) {
 					url += "#/" + pageName;
 				}
-				
-				browser.loadURL(url);
+				if (!browser.getURL().equals(url)) {
+					browser.loadURL(url);
+				}
 			});
 		}
 	}
@@ -812,6 +869,9 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 
 	public void highlightComponent(MobileComponent mobileComponent) {
 		C8oBrowser.run(() -> {
+			if (mobileComponent instanceof UIComponent) {
+				selectPage(((UIComponent) mobileComponent).getPage().getName());
+			}
 			DOMDocument doc = browser.getDocument();
 			MobileComponent mc = mobileComponent;
 			while (doc.findElements(By.className("class" + mc.priority)).isEmpty()) {
