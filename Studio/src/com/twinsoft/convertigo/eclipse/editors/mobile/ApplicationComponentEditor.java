@@ -120,6 +120,8 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 	private JSONArray devicesDefinitionCustom;
 	
 	private ZoomFactor zoomFactor = ZoomFactor.z100;
+	private double dpiFactorX = 1;
+	private double dpiFactorY = 1;
 	
 	private static Pattern pIsServerRunning = Pattern.compile(".*?server running: (http\\S*).*");
 	private static Pattern pRemoveEchap = Pattern.compile("\\x1b\\[\\d+m");
@@ -217,6 +219,12 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 
 	@Override
 	public void createPartControl(Composite parent) {
+		{
+			Point dpi = parent.getDisplay().getDPI();
+			dpiFactorX = dpi.x / 96f;
+			dpiFactorY = dpi.y / 96f; 
+		}
+		
 		Composite editor = new Composite(parent, SWT.NONE);
 		GridLayout gl = new GridLayout(2, false);
 		gl.marginBottom = gl.marginTop = gl.marginLeft = gl.marginRight
@@ -297,7 +305,9 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 			
 			@Override
 			public void showContextMenu(ContextMenuParams ctx) {
-				DOMNodeAtPoint nodeAP = browser.getNodeAtPoint(ctx.getLocation());
+				java.awt.Point location = ctx.getLocation();
+				location.setLocation(location.getX() * dpiFactorX, location.getY() * dpiFactorY);
+				DOMNodeAtPoint nodeAP = browser.getNodeAtPoint(location);
 				DOMNode node = nodeAP.getNode();
 				while (!(node == null || node instanceof DOMElement)) {
 					node = node.getParent();
@@ -732,8 +742,8 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 		int width = NumberUtils.toInt(deviceWidth.getText(), -1);
 		int height = NumberUtils.toInt(deviceHeight.getText(), -1);
 		
-		width = zoomFactor.swt(width);
-		height = zoomFactor.swt(height);
+		width = zoomFactor.swt(width, dpiFactorX);
+		height = zoomFactor.swt(height, dpiFactorY);
 		browserGD.horizontalAlignment = width < 0 ? GridData.FILL : GridData.CENTER;
 		browserGD.verticalAlignment = height < 0 ? GridData.FILL : GridData.CENTER;
 		browserScroll.setMinWidth(browserGD.widthHint = browserGD.minimumWidth = width);

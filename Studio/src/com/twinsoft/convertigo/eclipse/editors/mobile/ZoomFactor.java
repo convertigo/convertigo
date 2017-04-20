@@ -25,8 +25,8 @@ public enum ZoomFactor {
 		return jx;
 	}
 	
-	int swt(int viewport) {
-		return (int) Math.round(viewport * swt);
+	int swt(int viewport, double dpiFactor) {
+		return (int) Math.round(viewport * swt * dpiFactor);
 	}
 	
 	ZoomFactor in() {
