@@ -88,9 +88,15 @@ public class FullSyncServlet extends HttpServlet {
 
 	@Override
 	protected void service(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		StringBuffer debug = new StringBuffer();
 		String c8oSDK = null;	
 		HttpMethodType method;
 		try {
+			String corsOrigin = HttpUtils.filterCorsOrigin(request, response);
+			if (corsOrigin != null) {
+				debug.append("Add CORS header for: " + corsOrigin + "\n");
+			}
+			
 			method = HttpMethodType.valueOf(request.getMethod());
 			
 			if (method == HttpMethodType.OPTIONS) {
@@ -120,15 +126,7 @@ public class FullSyncServlet extends HttpServlet {
 			throw new ServletException(e);
 		}
 		
-		StringBuffer debug = new StringBuffer();
 		try {
-			{
-				String corsOrigin = HttpUtils.filterCorsOrigin(request, response);
-				if (corsOrigin != null) {
-					debug.append("Add CORS header for: " + corsOrigin + "\n");
-				}
-			}
-			
 			HttpRequestBase newRequest;
 			
 			switch (method) {
