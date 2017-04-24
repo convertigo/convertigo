@@ -52,6 +52,7 @@ import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
@@ -105,6 +106,7 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 	private Menu devicesMenu;
 	private Composite deviceBar;
 	
+	private ToolItem deviceOsToolItem;
 	private Text deviceName;
 	private Text deviceWidth;
 	private Text deviceHeight;
@@ -119,6 +121,7 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 	private JSONArray devicesDefinition;
 	private JSONArray devicesDefinitionCustom;
 	
+	private DeviceOS deviceOS = DeviceOS.android;
 	private ZoomFactor zoomFactor = ZoomFactor.z100;
 	private double dpiFactorX = 1;
 	private double dpiFactorY = 1;
@@ -160,6 +163,7 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 			device.put("width", NumberUtils.toInt(deviceWidth.getText(), -1));
 			device.put("height", NumberUtils.toInt(deviceHeight.getText(), -1));
 			device.put("zoom", zoomFactor.percent());
+			device.put("os", deviceOS.name());
 			FileUtils.write(new File(Engine.USER_WORKSPACE_PATH, "studio/device.json"), device.toString(4), "UTF-8");
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -225,6 +229,8 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 			dpiFactorY = dpi.y / 96f; 
 		}
 		
+		DeviceOS.init(parent.getDisplay());
+		
 		Composite editor = new Composite(parent, SWT.NONE);
 		GridLayout gl = new GridLayout(2, false);
 		gl.marginBottom = gl.marginTop = gl.marginLeft = gl.marginRight
@@ -246,6 +252,7 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 			deviceWidth.setText("" + device.getInt("width"));
 			deviceHeight.setText("" + device.getInt("height"));
 			zoomFactor = ZoomFactor.get(device.getInt("zoom"));
+			deviceOS = DeviceOS.valueOf(device.getString("os"));
 			setDeviceBarVisible(device.getBoolean("visible"));			
 			updateBrowserSize();
 		} catch (Exception e) {
@@ -288,6 +295,7 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 					try {
 						browser.executeJavaScript(
 							"sessionStorage.setItem('_c8ocafsession_storage_mode', 'local');\n"
+							+ "navigator.__defineGetter__('userAgent', function(){ return '" + deviceOS.agent() + "'});\n"
 							+ IOUtils.toString(getClass().getResourceAsStream("inject.js"), "UTF-8")
 						);
 					} catch (IOException e) {
@@ -348,33 +356,6 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 				}
 			}
 		});
-		
-//		browser.addLoadListener(new LoadAdapter() {
-//			
-//			@Override
-//			public void onDocumentLoadedInMainFrame(LoadEvent event) {
-////				browser.executeJavaScript(
-////					"var _c8oviewer_ = document.createElement('style');\n"
-////					+ "_c8oviewer_.textContent = ';\n"
-////					+ "document.head.appendChild(_c8oviewer_);"
-////				);
-//				DOMDocument doc = browser.getDocument();
-//				DOMElement scrollStyle = doc.createElement("style");
-//				scrollStyle.setTextContent(
-//					".scroll-content { overflow-y: overlay; }\n"
-//					+ "::-webkit-scrollbar { width: 8px; }\n"
-//					+ "::-webkit-scrollbar-thumb {"
-//						+ "background-color: rgba(0,0,0,0.3);"
-//						+ "border-radius: 4px;"
-//					+ "}"
-//				);
-//				
-//				DOMElement head = doc.findElement(By.tagName("head"));
-//				head.appendChild(scrollStyle);
-//				head.appendChild(highlightStyle = doc.createElement("style"));
-//			}
-//			
-//		});
 	}
 	
 	private void createDeviceBar(Composite parent) {
@@ -427,6 +408,43 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 				}
 		};
 		
+		ToolBar tb = new ToolBar(deviceBar, SWT.NONE);
+		deviceOsToolItem = new ToolItem(tb, SWT.DROP_DOWN);
+		final Menu mOS = new Menu(tb);
+		SelectionListener selectionListener = new SelectionAdapter() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				setDeviceOS((DeviceOS) e.widget.getData());
+			}
+			
+		};
+		
+		for (DeviceOS device: DeviceOS.values()) {
+			MenuItem menuItem = new MenuItem(mOS, SWT.NONE);
+			menuItem.setData(device);
+			menuItem.setImage(device.image());
+			menuItem.setText(device.displayName());
+			menuItem.addSelectionListener(selectionListener);			
+		}
+		
+		deviceOsToolItem.setToolTipText("Select device OS.");
+		deviceOsToolItem.setImage(deviceOS.image());
+		deviceOsToolItem.addSelectionListener(new SelectionAdapter() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				ToolItem item = (ToolItem) e.widget;
+				Rectangle rect = item.getBounds(); 
+				Point pt = item.getParent().toDisplay(new Point(rect.x, rect.y));
+				mOS.setLocation(pt);
+				mOS.setVisible(true);
+			}
+			
+		});
+		
+		new Label(deviceBar, SWT.NONE).setText(" ");
+		
 		new Label(deviceBar, SWT.NONE).setText("Device name:");
 		deviceName = new Text(deviceBar, SWT.NONE);
 		deviceName.setFont(JFaceResources.getTextFont());
@@ -453,7 +471,7 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 		
 		new Label(deviceBar, SWT.NONE).setText(" ");
 		
-		ToolBar tb = new ToolBar(deviceBar, SWT.NONE);
+		tb = new ToolBar(deviceBar, SWT.NONE);
 		ToolItem button = new ToolItem(tb, SWT.PUSH);
 		button.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/zoom_out.png")));
 		button.setToolTipText("Zoom out");
@@ -523,6 +541,7 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 						device.put("width", NumberUtils.toInt(deviceWidth.getText(), -1));
 						device.put("height", NumberUtils.toInt(deviceHeight.getText(), -1));
 						device.put("zoom", zoomFactor.percent());
+						device.put("os", deviceOS.name());
 						FileUtils.write(new File(Engine.USER_WORKSPACE_PATH, "studio/devices.json"), devicesDefinitionCustom.toString(4), "UTF-8");
 						
 						parent.getDisplay().asyncExec(() -> updateDevicesMenu());
@@ -589,7 +608,6 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 		});
 		
 		new ToolItem(toolbar, SWT.SEPARATOR);
-		new ToolItem(toolbar, SWT.SEPARATOR);
 		
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Change orientation");
@@ -615,11 +633,7 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 			
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				C8oBrowser.run(() -> {
-					if (!browser.getURL().equals("about:blank")) {
-						browser.reload();
-					}
-				});
+				doReload();
 			}
 			
 		});
@@ -696,20 +710,16 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				deviceName.setText(((MenuItem) e.widget).getText());
+				deviceName.setText(((MenuItem) e.widget).getText().substring(2));
 				deviceWidth.setText("" + e.widget.getData("width"));
 				deviceHeight.setText("" + e.widget.getData("height"));
-				zoomFactor = ZoomFactor.z100;
-				try {
-					zoomFactor = ZoomFactor.get((int) e.widget.getData("zoom"));
-				} catch (Exception ex) {	}
+				zoomFactor = ZoomFactor.get((int) e.widget.getData("zoom"));
+				setDeviceOS(DeviceOS.valueOf((String) e.widget.getData("os")));
+				
 				updateBrowserSize();
 			}
 			
 		};
-		
-		Image lock = new Image(devicesMenu.getDisplay(), getClass().getResourceAsStream("/studio/bound_property.s.gif"));
-		Image unlock = new Image(devicesMenu.getDisplay(), getClass().getResourceAsStream("/studio/bound_property.gif"));
 		
 		for (JSONArray devices: new JSONArray[]{devicesDefinition, devicesDefinitionCustom}) {
 			int len = devices.length();
@@ -718,14 +728,12 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 					JSONObject json = devices.getJSONObject(i);
 					MenuItem device = new MenuItem(devicesMenu, SWT.NONE);
 					device.addSelectionListener(selectionAdapter);
-					device.setText(json.getString("name"));
-					device.setImage(devices == devicesDefinition ? lock : unlock);
+					device.setText((devices == devicesDefinition ? "🔒 " : "👤 ") + json.getString("name"));
+					device.setImage(DeviceOS.valueOf(json.getString("os")).image());
 					device.setData("width", json.getInt("width"));
 					device.setData("height", json.getInt("height"));
-					
-					if (json.has("zoom")) {
-						device.setData("zoom", json.getInt("zoom"));						
-					}
+					device.setData("zoom", json.getInt("zoom"));
+					device.setData("os", json.getString("os"));
 					
 					if (json.has("desc")) {
 						device.setToolTipText(json.getString("desc"));
@@ -894,5 +902,21 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 			}
 			browser.executeJavaScript("_c8o_highlight_class('class" + mc.priority + "');");
 		});
+	}
+	
+	private void doReload() {
+		C8oBrowser.run(() -> {
+			if (!browser.getURL().equals("about:blank")) {
+				browser.reload();
+			}
+		});
+	}
+	
+	private void setDeviceOS(DeviceOS deviceOS) {
+		if (!this.deviceOS.equals(deviceOS)) {
+			this.deviceOS = deviceOS;
+			deviceOsToolItem.setImage(deviceOS.image());
+			doReload();
+		}
 	}
 }
