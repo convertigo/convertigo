@@ -8,6 +8,7 @@ import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.widgets.Composite;
 
 import com.teamdev.jxbrowser.chromium.Browser;
+import com.teamdev.jxbrowser.chromium.BrowserContext;
 import com.teamdev.jxbrowser.chromium.BrowserPreferences;
 import com.teamdev.jxbrowser.chromium.events.FailLoadingEvent;
 import com.teamdev.jxbrowser.chromium.events.FinishLoadingEvent;
@@ -22,7 +23,6 @@ import com.twinsoft.convertigo.engine.Engine;
 public class C8oBrowser extends Composite {
 	
 	static {
-		//int port = ConvertigoPlugin.getDefault().getEmbeddedTomcat().getHttpPort() + 2;
 		int port = 18082;
 		BrowserPreferences.setChromiumSwitches("--remote-debugging-port=" + port);
 	}
@@ -32,9 +32,13 @@ public class C8oBrowser extends Composite {
 	private BrowserView browserView;
 
 	public C8oBrowser(Composite parent, int style) {
+		this(parent, style, BrowserContext.defaultContext());
+	}
+
+	public C8oBrowser(Composite parent, int style, BrowserContext browserContext) {
 		super(parent, style | SWT.EMBEDDED | SWT.NO_BACKGROUND);
 	    Frame frame = SWT_AWT.new_Frame(this);
-		browserView = new BrowserView(new Browser());
+	    browserView = new BrowserView(new Browser(browserContext));
 		frame.add(browserView);
 		threadSwt = parent.getDisplay().getThread();
 	}

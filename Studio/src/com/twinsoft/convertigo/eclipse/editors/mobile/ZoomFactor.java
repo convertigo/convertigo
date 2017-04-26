@@ -48,6 +48,10 @@ public enum ZoomFactor {
 	}
 	
 	static ZoomFactor get(int percent) {
-		return ZoomFactor.valueOf("z" + percent);
+		try {
+			return ZoomFactor.valueOf("z" + percent);
+		} catch (Exception e) {
+			return ZoomFactor.z100;
+		}
 	}
 }

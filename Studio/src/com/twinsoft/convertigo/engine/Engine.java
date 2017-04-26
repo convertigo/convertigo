@@ -1609,21 +1609,18 @@ public class Engine {
 	}
 	
 	public static void execute(final Runnable runnable) {
-		executor.execute(new Runnable() {
-			
-			@Override
-			public void run() {
-				Thread th = Thread.currentThread();
-				String name = th.getName();
-				try {
-					runnable.run();
-				} finally {
-					if (!name.equals(th.getName())) {
-						th.setName(name);
-					}
+		executor.execute(() -> {
+			Thread th = Thread.currentThread();
+			String name = th.getName();
+			try {
+				runnable.run();
+			} catch (Throwable t) {
+				Engine.logEngine.trace("Convertigo executor terminated with a throwable.", t);
+			} finally {
+				if (!name.equals(th.getName())) {
+					th.setName(name);
 				}
 			}
-			
 		});
 	}
 }

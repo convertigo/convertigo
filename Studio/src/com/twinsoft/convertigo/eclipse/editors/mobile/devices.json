@@ -3,6 +3,7 @@
 		"name"  : "No canvas",
 		"width" : -1,
 		"height": -1,
+		"zoom"  : 100,
 		"os"    : "android"
 	}, {
 		"name"  : "Android Phone (35%)",
