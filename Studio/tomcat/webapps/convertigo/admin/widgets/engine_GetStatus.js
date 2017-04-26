@@ -78,8 +78,10 @@ function engine_GetStatus_update() {
 		
 		$("#statusLicenceType").text($(xml).find("version").attr("licence-type"));	
 		$("#statusLicenceNumber").text($(xml).find("version").attr("licence-number"));
-		$("#statusLicenceSessions").text($(xml).find("version").attr("licence-sessions"));
-		$("#statusLicenceEndDate").text(dateFormat($(xml).find("version").attr("licence-end"), "ddd, mmm dS yyyy"));
+		var lses = $(xml).find("version").attr("licence-sessions");
+		$("#statusLicenceSessions").text(lses == "" ? "n/a":lses);
+		var lend = $(xml).find("version").attr("licence-end");
+		$("#statusLicenceEndDate").text(lend == "" ? "n/a":dateFormat(lend, "ddd, mmm dS yyyy"));
 		
 		if ($(xml).find("version").attr("licence-expired") === "true") {
 			$("#statusLicenceEndDate").css("color", "red");
