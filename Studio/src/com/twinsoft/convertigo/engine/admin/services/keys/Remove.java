@@ -55,7 +55,7 @@ import com.twinsoft.tas.KeyManager;
 
 @ServiceDefinition(
 		name = "Remove",
-		roles = { Role.WEB_ADMIN, Role.KEYS_CONFIG, Role.KEYS_VIEW },
+		roles = { Role.WEB_ADMIN, Role.KEYS_CONFIG },
 		parameters = {},
 		returnValue = "",
 		cloud_forbidden = true
@@ -100,11 +100,8 @@ public class Remove extends XmlService{
 				keysProperties.remove(oldKey);
 				
 				// remove the key from KeyManager
-				// should add a remove function instead 
-				// of doing this jmc 2017/04/19
 				try {
-					if (KeyManager.keys.get(oldKey)!= null)
-						KeyManager.keys.remove(oldKey);
+					KeyManager.removeKey(oldKey);
 				} catch(Exception e) {					
 				}
 				

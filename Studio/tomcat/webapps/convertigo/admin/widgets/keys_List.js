@@ -1,15 +1,20 @@
 /*
- * Copyright (c) 2001-2014 Convertigo SA.
+ * Copyright (c) 2001-2017 Convertigo. All Rights Reserved.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; either version 3
- * of the License, or (at your option) any later version.
+ * The copyright to the computer  program(s) herein  is the property
+ * of Convertigo.
+ * The program(s) may  be used  and/or copied  only with the written
+ *  permission  of  Convertigo  or in accordance  with  the terms and
+ * conditions  stipulated  in the agreement/contract under which the
+ * program(s) have been supplied.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Convertigo makes  no  representations  or  warranties  about  the
+ * suitability of the software, either express or implied, including
+ * but  not  limited  to  the implied warranties of merchantability,
+ * fitness for a particular purpose, or non-infringement. Convertigo
+ * shall  not  be  liable for  any damage  suffered by licensee as a
+ * result of using,  modifying or  distributing this software or its
+ * derivatives.
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
@@ -18,7 +23,7 @@
  * $Author$
  * $Revision$
  * $Date$
- */
+*/
 
 function removeKey(key) {
 	if (key.length > 0) {
@@ -100,7 +105,7 @@ function updateKeysList(xml) {
 		var display = categoryName;
 		if (categoryName == "Standard Edition") {
 			if (parseInt(nb_valid_keys) > 1) {
-				display = "Extended Edition";
+				display = "Sessions";
 			}
 			if ($x_category.attr("overflow") == "true") {
 				display += " (session overflow allowed)";
@@ -120,6 +125,16 @@ function updateKeysList(xml) {
 			$key.find(".key-text").text($x_key.attr('text'));
 			$key.find(".key-value").text($x_key.attr('value'));
 			$key.find(".key-click").attr("onclick", "removeKey('" + $x_key.attr('text') + "')");
+
+			if ($(this).attr('evaluation') == "true") {
+				$key.find(".key-expiration").text(dateFormat(parseInt($(xml).find("firstStartDate").text()), "ddd, mmm dS yyyy"));
+			} else {
+				var dayOffset = parseInt($x_key.attr('expiration'));
+				if (dayOffset == 0)	// unlimited
+					$key.find(".key-expiration").text("Unlimited");
+				else
+					$key.find(".key-expiration").text(dateFormat(dayOffset*1000*3600*24, "ddd, mmm dS yyyy"));
+			}
 			
 			if ($(this).attr('evaluation') != "true" || $(this).attr('expired') != "true") {
 				$key.find(".key-expired").hide();
