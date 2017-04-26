@@ -39,6 +39,7 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
@@ -259,7 +260,7 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 			devicesMenu.getItems()[0].notifyListeners(SWT.Selection, new Event());
 		}
 		
-		launchBuilder();
+		launchBuilder(false);
 		
 		getSite().getWorkbenchWindow().getActivePage().activate(this);
 	}
@@ -699,6 +700,33 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 			}
 			
 		});
+		
+		new ToolItem(toolbar, SWT.SEPARATOR);
+		
+		item = new ToolItem(toolbar, SWT.PUSH);
+		item.setToolTipText("Run npm install");
+		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/show_blocks.gif")));
+		item.addSelectionListener(new SelectionAdapter() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				MessageDialog dialog = new MessageDialog(
+					null, "Run npm install ?",
+					null, "Do you want to perform a 'npm install' that can take time.",
+					MessageDialog.QUESTION,
+					new String[] {"Update", "Re-install", "Cancel"}, 0
+				);
+				int result = dialog.open();
+				if (result == 1) {
+					File nodeModules = new File(applicationEditorInput.application.getProject().getDirPath() + "/_private/ionic/node_modules");
+					FileUtils.deleteQuietly(nodeModules);
+				}
+				if (result < 2) {
+					launchBuilder(true);
+				}
+			}
+			
+		});
 	}
 	
 	private void updateDevicesMenu() {
@@ -780,12 +808,14 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 	}
 	
 	private void appendOutput(String msg) {
-		if (baseUrl == null) {
-			C8oBrowser.run(() -> browser.executeJavaScriptAndReturnValue("loader_log").asFunction().invokeAsync(null, msg));
-		}
+		C8oBrowser.run(() -> {
+			if (browser.getURL().equals("about:blank")) {
+				browser.executeJavaScriptAndReturnValue("loader_log").asFunction().invokeAsync(null, msg);
+			}
+		});
 	}
 	
-	private void launchBuilder() {		
+	private void launchBuilder(boolean forceInstall) {				
 		Engine.execute(() -> {
 			try {
 				browser.loadHTML(IOUtils.toString(getClass().getResourceAsStream("loader.html"), "UTF-8"));
@@ -794,18 +824,35 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 			}
 			
 			File ionicDir = new File(applicationEditorInput.application.getProject().getDirPath() + "/_private/ionic");
-			if (!new File(ionicDir, "node_modules").exists()) {
+			File nodeModules = new File(ionicDir, "node_modules");
+			if (forceInstall || !nodeModules.exists()) {
+				boolean[] running = {true};
 				try {
-					ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "install", "--progress=false");
+					ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "install");//, "--progress=false");
 					pb.redirectErrorStream(true);
 					pb.directory(ionicDir);
 					Process p = pb.start();
+					Engine.execute(() -> {
+						try {
+							while (running[0] && !nodeModules.exists()) {
+								appendOutput("Waiting for node_modules creation");
+								Thread.sleep(1000);
+							}
+							while (running[0]) {
+								appendOutput("node_modules: " + FileUtils.byteCountToDisplaySize(FileUtils.sizeOfAsBigInteger(nodeModules)));
+								Thread.sleep(1000);
+							} 
+						} catch (Exception e) {
+							appendOutput("Something wrong during the install: " + e);
+						}
+					});
 					processes.add(p);
 					BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
 					String line;
 					while ((line = br.readLine()) != null) {
 						line = pRemoveEchap.matcher(line).replaceAll("");
-						if (StringUtils.isNotBlank(line)) {						
+						if (StringUtils.isNotBlank(line)) {
+							running[0] = false;				
 							Engine.logStudio.info(line);
 							appendOutput(line);
 						}
