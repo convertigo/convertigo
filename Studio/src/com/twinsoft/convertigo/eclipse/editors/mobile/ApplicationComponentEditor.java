@@ -713,8 +713,8 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 				deviceName.setText(((MenuItem) e.widget).getText().substring(2));
 				deviceWidth.setText("" + e.widget.getData("width"));
 				deviceHeight.setText("" + e.widget.getData("height"));
-				zoomFactor = ZoomFactor.get((int) e.widget.getData("zoom"));
-				setDeviceOS(DeviceOS.valueOf((String) e.widget.getData("os")));
+				zoomFactor = (ZoomFactor) e.widget.getData("zoom");
+				setDeviceOS((DeviceOS) e.widget.getData("os"));
 				
 				updateBrowserSize();
 			}
@@ -724,23 +724,28 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 		for (JSONArray devices: new JSONArray[]{devicesDefinition, devicesDefinitionCustom}) {
 			int len = devices.length();
 			for (int i = 0; i < len; i++) {
+				MenuItem device = new MenuItem(devicesMenu, SWT.NONE);
 				try {
 					JSONObject json = devices.getJSONObject(i);
-					MenuItem device = new MenuItem(devicesMenu, SWT.NONE);
+					
+					DeviceOS os = DeviceOS.android;
+					try {
+						os = DeviceOS.valueOf(json.getString("os"));
+					} catch (Exception e) {	}
+					
 					device.addSelectionListener(selectionAdapter);
 					device.setText((devices == devicesDefinition ? "🔒 " : "👤 ") + json.getString("name"));
-					device.setImage(DeviceOS.valueOf(json.getString("os")).image());
+					device.setImage(os.image());
 					device.setData("width", json.getInt("width"));
 					device.setData("height", json.getInt("height"));
-					device.setData("zoom", json.getInt("zoom"));
-					device.setData("os", json.getString("os"));
+					device.setData("zoom", ZoomFactor.get(json.has("zoom") ? json.getInt("zoom") : 100));
+					device.setData("os", os);
 					
 					if (json.has("desc")) {
 						device.setToolTipText(json.getString("desc"));
 					}
 				} catch (JSONException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+					device.dispose();
 				}
 			}			
 		}
