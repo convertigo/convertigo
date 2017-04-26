@@ -265,7 +265,7 @@ public class ApplicationComponentEditor extends EditorPart {
 		
 		canvas.setLayout(gl);
 		
-		c8oBrowser = new C8oBrowser(canvas, SWT.NONE, new BrowserContext(new BrowserContextParams(applicationEditorInput.application.getProject().getDirPath() + "/_pricate/viewer")));
+		c8oBrowser = new C8oBrowser(canvas, SWT.NONE, new BrowserContext(new BrowserContextParams(applicationEditorInput.application.getProject().getDirPath() + "/_private/viewer")));
 		browserGD = new GridData(SWT.CENTER, SWT.CENTER, true, true);
 		c8oBrowser.setLayoutData(browserGD);
 
@@ -794,7 +794,7 @@ public class ApplicationComponentEditor extends EditorPart {
 		});
 	}
 	
-	private void launchBuilder(boolean forceInstall) {				
+	private void launchBuilder(boolean forceInstall) {		
 		Engine.execute(() -> {
 			try {
 				browser.loadHTML(IOUtils.toString(getClass().getResourceAsStream("loader.html"), "UTF-8"));
