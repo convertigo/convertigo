@@ -26,28 +26,29 @@
 */
 
 function removeKey(key) {
-	if (key.length > 0) {
-		var $keys = $("<keys/>").append($("<key/>").attr("text", key));
-		
-		callService("keys.Remove", function(xml) {
-			var message = "";
-			$(xml).find("key").each(function() {
-				var keyErrorMessage = $(this).attr("errorMessage");
-				var keyText = $(this).attr("text");
-				if (keyErrorMessage) {
-					message += "Unable to remove the key '" + keyText + "'<br/><br/>" + keyErrorMessage;
-				} else {
-					message += "The key <em>" + keyText + "</em> has been successfully removed.";
-					keys_List_update();
-				}
-			});
+	if (key.length > 0) {		
+		showConfirm("Are you sure you want to delete this key?", function() {
+			var $keys = $("<keys/>").append($("<key/>").attr("text", key));
 			
-			if (message.length) {
-				showInfo(message);
-			}			
-		}, domToString($keys), undefined, {contentType : "application/xml"});
+			callService("keys.Remove", function(xml) {
+				var message = "";
+				$(xml).find("key").each(function() {
+					var keyErrorMessage = $(this).attr("errorMessage");
+					var keyText = $(this).attr("text");
+					if (keyErrorMessage) {
+						message += "Unable to remove the key '" + keyText + "'<br/><br/>" + keyErrorMessage;
+					} else {
+						message += "The key <em>" + keyText + "</em> has been successfully removed.";
+						keys_List_update();
+					}
+				});
+				
+				if (message.length) {
+					showInfo(message);
+				}			
+			}, domToString($keys), undefined, {contentType : "application/xml"});
+		});							
 	}
-	
 	return false;
 } 
 
