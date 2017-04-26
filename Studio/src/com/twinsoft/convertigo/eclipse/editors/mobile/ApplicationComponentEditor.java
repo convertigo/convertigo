@@ -41,8 +41,6 @@ import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.JFaceResources;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.FocusAdapter;
@@ -76,6 +74,8 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.EditorPart;
 
 import com.teamdev.jxbrowser.chromium.Browser;
+import com.teamdev.jxbrowser.chromium.BrowserContext;
+import com.teamdev.jxbrowser.chromium.BrowserContextParams;
 import com.teamdev.jxbrowser.chromium.ContextMenuHandler;
 import com.teamdev.jxbrowser.chromium.ContextMenuParams;
 import com.teamdev.jxbrowser.chromium.dom.By;
@@ -91,15 +91,13 @@ import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.engine.DatabaseObjectFoundException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.util.ProcessUtils;
 
-public class ApplicationComponentEditor extends EditorPart implements ISelectionChangedListener {
-
-	private ProjectExplorerView projectExplorerView = null;
+public class ApplicationComponentEditor extends EditorPart {
+	
 	private ApplicationComponentEditorInput applicationEditorInput;
 	
 	private ScrolledComposite browserScroll;
@@ -131,13 +129,7 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 	private static Pattern pRemoveEchap = Pattern.compile("\\x1b\\[\\d+m");
 	private static Pattern pPriority = Pattern.compile("class(\\d+)");
 	
-	public ApplicationComponentEditor() {
-		projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
-		
-		if (projectExplorerView != null) {
-			projectExplorerView.addSelectionChangedListener(this);
-		}
-		
+	public ApplicationComponentEditor() {		
 		try {
 			devicesDefinition = new JSONArray(IOUtils.toString(getClass().getResourceAsStream("devices.json"), "UTF-8"));
 		} catch (Exception e) {
@@ -172,11 +164,7 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 	}
 	
 	@Override
-	public void dispose() {		
-		if (projectExplorerView != null) {
-			projectExplorerView.removeSelectionChangedListener(this);
-		}
-		
+	public void dispose() {
 		c8oBrowser.dispose();
 		
 		for (Process p: processes) {
@@ -184,16 +172,11 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 			p.destroy();
 		}
 		
-		try {
-			new ProcessBuilder("taskkill", "/F", "/IM", "node.exe").start();
-		} catch (Exception e) {
-			// TODO: handle exception
-		}
+		terminateNode();
 		
 		super.dispose();
 	}
-
-
+	
 	@Override
 	public void doSave(IProgressMonitor monitor) {
 	}
@@ -208,7 +191,8 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 		setInput(input);
 		
 		applicationEditorInput = (ApplicationComponentEditorInput) input;
-		setPartName(applicationEditorInput.application.getProject().getName() + " [A: " + applicationEditorInput.application.getName()+"]");
+		setPartName(applicationEditorInput.application.getProject().getName() + " [A: " + applicationEditorInput.application.getName() + "]");
+		terminateNode();
 	}
 
 	@Override
@@ -253,8 +237,8 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 			deviceWidth.setText("" + device.getInt("width"));
 			deviceHeight.setText("" + device.getInt("height"));
 			zoomFactor = ZoomFactor.get(device.getInt("zoom"));
-			deviceOS = DeviceOS.valueOf(device.getString("os"));
-			setDeviceBarVisible(device.getBoolean("visible"));			
+			setDeviceBarVisible(device.getBoolean("visible"));
+			setDeviceOS(DeviceOS.valueOf(device.getString("os")));
 			updateBrowserSize();
 		} catch (Exception e) {
 			devicesMenu.getItems()[0].notifyListeners(SWT.Selection, new Event());
@@ -281,7 +265,7 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 		
 		canvas.setLayout(gl);
 		
-		c8oBrowser = new C8oBrowser(canvas, SWT.NONE);
+		c8oBrowser = new C8oBrowser(canvas, SWT.NONE, new BrowserContext(new BrowserContextParams(applicationEditorInput.application.getProject().getDirPath() + "/_pricate/viewer")));
 		browserGD = new GridData(SWT.CENTER, SWT.CENTER, true, true);
 		c8oBrowser.setLayoutData(browserGD);
 
@@ -802,11 +786,6 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 		c8oBrowser.setFocus();
 	}
 	
-	@Override
-	public void selectionChanged(SelectionChangedEvent event) {
-		
-	}
-	
 	private void appendOutput(String msg) {
 		C8oBrowser.run(() -> {
 			if (browser.getURL().equals("about:blank")) {
@@ -965,10 +944,20 @@ public class ApplicationComponentEditor extends EditorPart implements ISelection
 	}
 	
 	private void setDeviceOS(DeviceOS deviceOS) {
-		if (!this.deviceOS.equals(deviceOS)) {
+		if (!this.deviceOS.equals(deviceOS) && deviceOS != null) {
 			this.deviceOS = deviceOS;
 			deviceOsToolItem.setImage(deviceOS.image());
 			doReload();
+		}
+	}
+	
+	private void terminateNode() {
+		try {
+			new ProcessBuilder("wmic", "PROCESS", "WHERE",
+				"Name='node.exe' AND CommandLine Like '%\\\\" + applicationEditorInput.application.getProject().getName() + "\\\\_private\\\\%'",
+				"CALL", "TERMINATE").start();
+		} catch (Exception e) {
+			// TODO: handle exception
 		}
 	}
 }
