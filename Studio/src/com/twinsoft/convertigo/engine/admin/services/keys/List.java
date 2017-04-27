@@ -110,7 +110,7 @@ public class List extends XmlService{
         			if (keyList.getLength() == 0)
         				keysElement.appendChild(keyElement);
         			else {
-	        			for(int i=0; i<keyList.getLength(); i++) {
+	        			for (int i=0; i<keyList.getLength(); i++) {
 	        				Element el = ((Element)keyList.item(i));
 	        				String expiration = el.getAttribute("expiration");
 	        				
