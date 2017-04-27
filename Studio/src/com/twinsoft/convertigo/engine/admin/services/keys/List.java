@@ -135,8 +135,8 @@ public class List extends XmlService{
         			// override computed total with value from last
         			total = Integer.parseInt(((Element)keyList.item(keyList.getLength()-1)).getAttribute("value"));
         			// sets all the others to 0
-        			for(int i=0; i<keyList.getLength()-1; i++) {
-        				((Element)keyList.item(i)).setAttribute("value", "0");
+        			for (int i = 0; i < keyList.getLength() - 1; i++) {
+        				((Element) keyList.item(i)).setAttribute("value", "0");
         			}
         		}
         		
