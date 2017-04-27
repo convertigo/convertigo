@@ -108,17 +108,17 @@ function init_date_started_from(instance){
 
 
 function engine_GetStatus_update_hour(dateSince1970,instance){	
-	var newDate=(new Date()).getTime();	
-	var diff=newDate-dateSince1970;
-	diff/=1000;//time in seconds
-	var seconds=parseInt(diff%60);
-	diff/=60;//time in minutes
-	var minutes=parseInt(diff%60);
-	diff/=60;//time in hours
-	var hours=parseInt(diff%24);
-	var days=parseInt(diff/24);//time in days
+	var newDate = new Date().getTime();	
+	var diff = newDate - dateSince1970;
+	diff /= 1000;//time in seconds
+	var seconds = parseInt(diff % 60);
+	diff /= 60;//time in minutes
+	var minutes = parseInt(diff % 60);
+	diff /= 60;//time in hours
+	var hours = parseInt(diff % 24);
+	var days = parseInt(diff / 24);//time in days
 	
-	if(instance==instanceUpdateDate){
+	if (instance == instanceUpdateDate) {
 		$("#statusStartDateRunningIE").html(""+
 				days+" day"+plurialSuffix(days)+", "+
 				hours+" hour"+plurialSuffix(hours)+", "+
