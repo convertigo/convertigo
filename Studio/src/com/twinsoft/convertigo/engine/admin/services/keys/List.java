@@ -152,7 +152,7 @@ public class List extends XmlService{
         		emulatorNameElement.appendChild(keysElement);
         		
         		rootElement.appendChild(emulatorNameElement);
-        	}    		
+        	}
     	}
     	
     	//We add the number of valid into the XML response
