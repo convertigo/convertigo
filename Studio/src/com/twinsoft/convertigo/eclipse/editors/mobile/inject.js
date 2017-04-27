@@ -65,16 +65,12 @@ function _c8o_highlight_class(classname) {
 		i++;
 	}
 	
-	nl = document.getElementsByClassName("_c8o_overlay");
-	if (nl.length) {
-		var visible = false;
-		for (i = 0; !visible && i < nl.length; i++) {
-			visible = !nl[i].hasAttribute("isRemoving") && nl[i].getBoundingClientRect().top >= 0;
-		}
-		if (!visible) {
+	window.setTimeout(function () {
+		var nl = document.getElementsByClassName("_c8o_overlay");
+		if (nl.length) {
 			nl[0].scrollIntoViewIfNeeded();
 		}
-	}
+	}, 200);
 }
 
 document.addEventListener("DOMContentLoaded", function () {

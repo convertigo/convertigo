@@ -49,6 +49,8 @@ import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -61,6 +63,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
@@ -78,6 +81,9 @@ import com.teamdev.jxbrowser.chromium.BrowserContext;
 import com.teamdev.jxbrowser.chromium.BrowserContextParams;
 import com.teamdev.jxbrowser.chromium.ContextMenuHandler;
 import com.teamdev.jxbrowser.chromium.ContextMenuParams;
+import com.teamdev.jxbrowser.chromium.JSFunction;
+import com.teamdev.jxbrowser.chromium.JSObject;
+import com.teamdev.jxbrowser.chromium.JSValue;
 import com.teamdev.jxbrowser.chromium.dom.By;
 import com.teamdev.jxbrowser.chromium.dom.DOMDocument;
 import com.teamdev.jxbrowser.chromium.dom.DOMElement;
@@ -87,6 +93,8 @@ import com.teamdev.jxbrowser.chromium.events.ScriptContextAdapter;
 import com.teamdev.jxbrowser.chromium.events.ScriptContextEvent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
+import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
@@ -116,6 +124,9 @@ public class ApplicationComponentEditor extends EditorPart {
 	private String baseUrl = null;
 	private String pageName = null;
 	private Collection<Process> processes = new LinkedList<>();
+	private File datasetDir;
+	private File devicePref;
+	private String dataset = "none";
 	
 	private JSONArray devicesDefinition;
 	private JSONArray devicesDefinitionCustom;
@@ -128,6 +139,7 @@ public class ApplicationComponentEditor extends EditorPart {
 	private static Pattern pIsServerRunning = Pattern.compile(".*?server running: (http\\S*).*");
 	private static Pattern pRemoveEchap = Pattern.compile("\\x1b\\[\\d+m");
 	private static Pattern pPriority = Pattern.compile("class(\\d+)");
+	private static Pattern pDatasetFile = Pattern.compile("(.+).json");
 	
 	public ApplicationComponentEditor() {		
 		try {
@@ -157,7 +169,8 @@ public class ApplicationComponentEditor extends EditorPart {
 			device.put("height", NumberUtils.toInt(deviceHeight.getText(), -1));
 			device.put("zoom", zoomFactor.percent());
 			device.put("os", deviceOS.name());
-			FileUtils.write(new File(Engine.USER_WORKSPACE_PATH, "studio/device.json"), device.toString(4), "UTF-8");
+			device.put("dataset", dataset);
+			FileUtils.write(devicePref, device.toString(4), "UTF-8");
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
@@ -191,7 +204,13 @@ public class ApplicationComponentEditor extends EditorPart {
 		setInput(input);
 		
 		applicationEditorInput = (ApplicationComponentEditorInput) input;
-		setPartName(applicationEditorInput.application.getProject().getName() + " [A: " + applicationEditorInput.application.getName() + "]");
+		ApplicationComponent application = applicationEditorInput.application;
+		Project project = application.getProject();
+
+		datasetDir = new File(project.getDirPath() + "/dataset");
+		devicePref = new File(Engine.USER_WORKSPACE_PATH, "studio/device-" + project.getName() + ".json");
+		
+		setPartName(project.getName() + " [A: " + application.getName() + "]");
 		terminateNode();
 	}
 
@@ -232,7 +251,8 @@ public class ApplicationComponentEditor extends EditorPart {
 		createBrowser(editor);
 		
 		try {
-			JSONObject device = new JSONObject(FileUtils.readFileToString(new File(Engine.USER_WORKSPACE_PATH, "studio/device.json"), "UTF-8"));
+			JSONObject device = new JSONObject(FileUtils.readFileToString(devicePref, "UTF-8"));
+			dataset = device.getString("dataset");
 			deviceName.setText(device.getString("name"));
 			deviceWidth.setText("" + device.getInt("width"));
 			deviceHeight.setText("" + device.getInt("height"));
@@ -278,11 +298,20 @@ public class ApplicationComponentEditor extends EditorPart {
 				String url = browser.getURL();
 				if (baseUrl != null && url.startsWith(baseUrl)) {
 					try {
+						JSObject sessionStorage = browser.executeJavaScriptAndReturnValue("sessionStorage").asObject();
+						JSFunction setItem = sessionStorage.getProperty("setItem").asFunction();
 						browser.executeJavaScript(
-							"sessionStorage.setItem('_c8ocafsession_storage_mode', 'local');\n"
+							""//"sessionStorage.setItem('_c8ocafsession_storage_mode', 'session');\n"
 							+ "navigator.__defineGetter__('userAgent', function(){ return '" + deviceOS.agent() + "'});\n"
 							+ IOUtils.toString(getClass().getResourceAsStream("inject.js"), "UTF-8")
 						);
+						setItem.invoke(sessionStorage, "_c8ocafsession_storage_mode", "session");
+						if (!dataset.equals("none")) {
+							String json = FileUtils.readFileToString(new File(datasetDir, dataset + ".json"), "UTF-8");
+							setItem.invoke(sessionStorage, "_c8ocafsession_storage_data", json);
+						} else {
+							setItem.invoke(sessionStorage, "_c8ocafsession_storage_data", null);
+						}
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -688,7 +717,7 @@ public class ApplicationComponentEditor extends EditorPart {
 		new ToolItem(toolbar, SWT.SEPARATOR);
 		
 		item = new ToolItem(toolbar, SWT.PUSH);
-		item.setToolTipText("Run npm install");
+		item.setToolTipText("Manage modules");
 		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/show_blocks.gif")));
 		item.addSelectionListener(new SelectionAdapter() {
 			
@@ -707,6 +736,136 @@ public class ApplicationComponentEditor extends EditorPart {
 				}
 				if (result < 2) {
 					launchBuilder(true);
+				}
+			}
+			
+		});
+		
+		new ToolItem(toolbar, SWT.SEPARATOR);
+		
+		item = new ToolItem(toolbar, SWT.DROP_DOWN);
+		item.setToolTipText("Select dataset");
+		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/cvs_show_history.gif")));
+		
+		SelectionListener selectionListener = new SelectionAdapter() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				setDataset(((MenuItem) e.widget).getText());
+			}
+			
+		};
+		
+		Image iDataset = new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/cvs_checkin.gif"));
+		Image iDatasetSelected = new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/cvs_checkout.gif"));
+		final Menu mDataset = new Menu(toolbar);
+				
+		item.addSelectionListener(new SelectionAdapter() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				for (MenuItem item: mDataset.getItems()) {
+					item.dispose();
+				}
+				
+				MenuItem menuItem = new MenuItem(mDataset, SWT.NONE);
+				menuItem.setText("none");
+				
+				for (String fDataset: datasetDir.list()) {
+					Matcher m = pDatasetFile.matcher(fDataset);
+					if (m.matches()) {
+						menuItem = new MenuItem(mDataset, SWT.NONE);
+						menuItem.setText(m.group(1));
+					}
+				}
+				
+				for (MenuItem item: mDataset.getItems()) {
+					if (item.getText().equals(dataset)) {
+						item.setImage(iDatasetSelected);
+					} else {
+						item.setImage(iDataset);
+					}
+					item.addSelectionListener(selectionListener);
+				}
+
+				ToolItem item = (ToolItem) e.widget;
+				Rectangle rect = item.getBounds(); 
+				Point pt = item.getParent().toDisplay(new Point(rect.x, rect.y));
+				mDataset.setLocation(pt);
+				mDataset.setVisible(true);
+			}
+			
+		});
+		
+		item = new ToolItem(toolbar, SWT.PUSH);
+		item.setToolTipText("Save dataset");
+		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/cvs_add.gif")));
+		item.addSelectionListener(new SelectionAdapter() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				String[] name = {dataset.equals("none") ? "" : dataset};
+				String extra = "";
+				int response;
+				
+				do {
+					MessageDialog dialog = new MessageDialog(null, "Dataset name", null, "What is the name of the dataset ?" + extra, MessageDialog.QUESTION, 0, new String[]{"Save", "Cancel"}) {
+						
+						@Override
+						protected Control createCustomArea(Composite parent) {
+							Text t = new Text(parent, SWT.NONE);
+							t.setLayoutData(new GridData(GridData.FILL_BOTH));
+							t.setText(name[0]);
+							t.addModifyListener(new ModifyListener() {
+								
+								@Override
+								public void modifyText(ModifyEvent e) {
+									name[0] = t.getText();
+								}
+							});
+							return t;
+						}
+						
+					};
+					response = dialog.open();
+					extra = "";
+					
+					if (response == 0) {
+						if (StringUtils.isBlank(name[0])) {
+							extra = " (cannot be empty)";
+						} else if (name[0].equals("none")) {
+							extra = " (cannot override 'none')";
+						}
+					}
+				} while (!extra.isEmpty());
+				
+				C8oBrowser.run(() -> {
+					JSValue value = browser.executeJavaScriptAndReturnValue("sessionStorage._c8ocafsession_storage_data");
+					try {
+						FileUtils.write(new File(datasetDir, name[0] + ".json"), new JSONArray(value.asString().getValue()).toString(2), "UTF-8");
+						dataset = name[0];
+					} catch (Exception e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				});
+			}
+			
+		});
+		
+		item = new ToolItem(toolbar, SWT.PUSH);
+		item.setToolTipText("Remove dataset");
+		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/cvs_delete.gif")));
+		item.addSelectionListener(new SelectionAdapter() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if (!dataset.equals("none")) {
+					boolean ok = MessageDialog.openQuestion(null, "Delete '" + dataset + "' ?", "You really want delete'" + dataset + "' ?");
+					if (ok) {
+						new File(datasetDir, dataset + ".json").delete();
+						setDataset("none");
+					}
 				}
 			}
 			
@@ -947,6 +1106,13 @@ public class ApplicationComponentEditor extends EditorPart {
 		if (!this.deviceOS.equals(deviceOS) && deviceOS != null) {
 			this.deviceOS = deviceOS;
 			deviceOsToolItem.setImage(deviceOS.image());
+			doReload();
+		}
+	}
+
+	private void setDataset(String dataset) {
+		if (!this.dataset.equals(dataset)) {
+			this.dataset = dataset;
 			doReload();
 		}
 	}
