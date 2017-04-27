@@ -610,7 +610,7 @@ public class ApplicationComponentEditor extends EditorPart {
 		});
 		
 		new ToolItem(toolbar, SWT.SEPARATOR);
-				
+		
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Refresh");
 		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/refresh.gif")));
