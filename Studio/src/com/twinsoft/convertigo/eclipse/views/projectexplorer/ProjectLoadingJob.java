@@ -190,7 +190,7 @@ public class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 						ISelection selection = new StructuredSelection(projectTreeObject);
 						viewer.setSelection(selection, true);
 						
-						if (defaultConnectorTreeObject != null)
+						if (defaultConnectorTreeObject != null && ConvertigoPlugin.getAutoOpenDefaultConnector())
 							defaultConnectorTreeObject.launchEditor();
 
 						TreeObjectEvent treeObjectEvent = null;

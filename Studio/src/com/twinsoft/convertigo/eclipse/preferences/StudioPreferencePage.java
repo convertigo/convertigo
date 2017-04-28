@@ -46,6 +46,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 	private BooleanFieldEditor cbIgnoreNews = null;
 	private BooleanFieldEditor cbShowEngineOnConsole = null;
 	private BooleanFieldEditor cbEngineLoadAllProjects = null;
+	private BooleanFieldEditor cbAutoOpenDefaultConnector;
 	private IntegerFieldEditor intTracePlayerPort = null;
 	private StringFieldEditor localBuildAdditionalPath = null;
 	
@@ -102,6 +103,13 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbEngineLoadAllProjects.setPage(this);
 		cbEngineLoadAllProjects.setPreferenceStore(getPreferenceStore());
 		cbEngineLoadAllProjects.load();
+
+		cbAutoOpenDefaultConnector = new BooleanFieldEditor(
+				ConvertigoPlugin.PREFERENCE_AUTO_OPEN_DEFAULT_CONNECTOR,
+				"Auto open editor of a default connector", groupGeneral);
+		cbAutoOpenDefaultConnector.setPage(this);
+		cbAutoOpenDefaultConnector.setPreferenceStore(getPreferenceStore());
+		cbAutoOpenDefaultConnector.load();
 		
 		// Diagnostics
 		Group groupDiagnostics = new Group(top, SWT.SHADOW_IN);
@@ -152,6 +160,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbIgnoreNews.loadDefault();
 		cbShowEngineOnConsole.loadDefault();
 		cbEngineLoadAllProjects.loadDefault();
+		cbAutoOpenDefaultConnector.loadDefault();
 		localBuildAdditionalPath.loadDefault();
 		
 		super.performDefaults();
@@ -162,8 +171,9 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 	 */
 	@Override
 	public boolean performOk() {
-		ConvertigoPlugin.setLogLevel(Integer.valueOf(comboLevel.getValue(),10));
+		ConvertigoPlugin.setLogLevel(Integer.valueOf(comboLevel.getValue(), 10));
 		ConvertigoPlugin.setHighlightDetectedObject(cbHighlight.getBooleanValue());
+		ConvertigoPlugin.setAutoOpenDefaultConnector(cbAutoOpenDefaultConnector.getBooleanValue());
 		ConvertigoPlugin.setShowEngineIntoConsole(cbShowEngineOnConsole.getBooleanValue());
 		
 		comboLevel.store();
@@ -172,6 +182,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbIgnoreNews.store();
 		cbShowEngineOnConsole.store();
 		cbEngineLoadAllProjects.store();
+		cbAutoOpenDefaultConnector.store();
 		localBuildAdditionalPath.store();
 		
 		return super.performOk();

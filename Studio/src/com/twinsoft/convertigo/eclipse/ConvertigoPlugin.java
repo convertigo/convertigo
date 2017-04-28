@@ -170,6 +170,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
     public static final String PREFERENCE_SHOW_ENGINE_INTO_CONSOLE = "engine.into.console";
     public static final String PREFERENCE_ENGINE_LOAD_ALL_PROJECTS = "engine.load.all.projects";
     public static final String PREFERENCE_LOCAL_BUILD_ADDITIONAL_PATH = "localBuild.additionalPath";
+	public static final String PREFERENCE_AUTO_OPEN_DEFAULT_CONNECTOR = "autoOpen.defaultConnector";
+
     
     private static Display display = null;
     public static synchronized Display getDisplay() {
@@ -678,6 +680,17 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	public void start(final BundleContext context) throws Exception {
 		super.start(context);
 
+		IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+		if (activePage != null) {
+			IEditorReference[] editorRefs = activePage.getEditorReferences();
+			for (int i = 0; i < editorRefs.length; i++) {
+				IEditorReference editorRef = (IEditorReference) editorRefs[i];
+				if ("org.eclipse.ui.internal.emptyEditorTab".equals(editorRef.getId())) {
+					activePage.closeEditors(new IEditorReference[] {editorRef}, false);
+				}
+			}
+		}
+		
 		// Version check
 		if (!com.twinsoft.convertigo.eclipse.Version.productVersion.equals(com.twinsoft.convertigo.beans.Version.productVersion)) {
 			throw new Exception("The product version numbers of Eclipse Plugin and Objects libraries are differents.");
@@ -731,6 +744,13 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 			studioLog.warning("Unable to retrieve the highlight option; using default highlight option (true).");
 		}
 
+		try {
+			autoOpenDefaultConnector = new Boolean(ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_AUTO_OPEN_DEFAULT_CONNECTOR)).booleanValue();
+		}
+		catch(NumberFormatException e) {
+			studioLog.warning("Unable to retrieve the auto open default connector option; using default (false).");
+		}
+		
 		// In STUDIO, the Convertigo User Workspace is in the current Eclipse Workspace/.metadata/.plugins/com.twinsoft.convertigo.studio
 		Engine.USER_WORKSPACE_PATH = getDefault().getStateLocation().toFile().getCanonicalPath();
 
@@ -986,6 +1006,16 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		return showEnginIntoConsole;
 	}
 	
+	private static boolean autoOpenDefaultConnector = false;
+	
+	public static boolean getAutoOpenDefaultConnector() {
+		return autoOpenDefaultConnector;
+	}
+
+	public static void setAutoOpenDefaultConnector(boolean autoOpen) {
+		autoOpenDefaultConnector = autoOpen;
+	}
+
 	/**
 	 * Clean plug-in
 	 * 
