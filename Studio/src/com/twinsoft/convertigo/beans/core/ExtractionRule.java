@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.beans.core;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -34,6 +35,10 @@ import com.twinsoft.convertigo.engine.EngineException;
  * <p>An extraction rule is seen as a JavaBean. So it is serializable,
  * and can have its own properties editor.</p>
  */
+@DboCategoryInfo(
+		getCategoryName = "Extraction rule",
+		getIconClassCSS = "convertigo-action-newExtractionRule"
+	)
 public abstract class ExtractionRule extends DatabaseObject implements IEnableAble {
 	private static final long serialVersionUID = -7322067869844724239L;
     

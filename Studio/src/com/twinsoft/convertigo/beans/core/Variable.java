@@ -30,9 +30,14 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 
+@DboCategoryInfo(
+		getCategoryName = "Variable",
+		getIconClassCSS = "convertigo-action-newVariable"
+	)
 public abstract class Variable extends DatabaseObject implements IMultiValued, INillableProperty {
 
 	private static final long serialVersionUID = -8671967475887212428L;

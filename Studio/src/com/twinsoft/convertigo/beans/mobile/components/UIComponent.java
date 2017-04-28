@@ -34,8 +34,13 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.IEnableAble;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.EngineException;
 
+@DboCategoryInfo(
+		getCategoryName = "UI Component",
+		getIconClassCSS = "convertigo-action-newUIComponent"
+	)
 public abstract class UIComponent extends MobileComponent implements ITemplateGenerator, IContainerOrdered, IEnableAble {
 	
 	private static final long serialVersionUID = -1872010547443624681L;

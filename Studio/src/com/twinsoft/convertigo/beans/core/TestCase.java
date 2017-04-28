@@ -27,6 +27,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.beans.variables.TestCaseMultiValuedVariable;
 import com.twinsoft.convertigo.beans.variables.TestCaseVariable;
@@ -35,6 +36,10 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
+@DboCategoryInfo(
+		getCategoryName = "Test case",
+		getIconClassCSS = "convertigo-action-newTransactionTestCase"
+	)
 public class TestCase extends DatabaseObject implements IVariableContainer, IContainerOrdered {
 
 	private static final long serialVersionUID = 8119436229667565326L;

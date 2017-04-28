@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -44,6 +45,10 @@ import com.twinsoft.convertigo.engine.util.HttpUtils;
 /**
  * This class manages a host application.
  */
+@DboCategoryInfo(
+		getCategoryName = "Mobile application",
+		getIconClassCSS = "convertigo-action-newMobileApplication"
+	)
 public class MobileApplication extends DatabaseObject {
 
 	private static final long serialVersionUID = 5414379401296015511L;

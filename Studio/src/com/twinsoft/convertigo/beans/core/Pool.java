@@ -23,11 +23,16 @@
 package com.twinsoft.convertigo.beans.core;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
 /**
  * This class manages a host application.
  */
+@DboCategoryInfo(
+		getCategoryName = "Pool",
+		getIconClassCSS = "convertigo-action-newPool"
+	)
 public class Pool extends DatabaseObject implements ITagsProperty{
 
 	private static final long serialVersionUID = 6241651041599239082L;

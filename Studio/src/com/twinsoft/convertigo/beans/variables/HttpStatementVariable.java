@@ -22,9 +22,14 @@
 
 package com.twinsoft.convertigo.beans.variables;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.Variable;
 
+@DboCategoryInfo(
+		getCategoryName = "Variable",
+		getIconClassCSS = "convertigo-action-newHttpStatementVariable"
+	)
 public class HttpStatementVariable extends Variable implements ITagsProperty {
 
 	private static final long serialVersionUID = 3554331811470682344L;

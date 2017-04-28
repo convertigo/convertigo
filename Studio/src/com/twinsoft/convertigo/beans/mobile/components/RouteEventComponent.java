@@ -27,8 +27,13 @@ import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.IEnableAble;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.EngineException;
 
+@DboCategoryInfo(
+		getCategoryName = "Event",
+		getIconClassCSS = "convertigo-action-newRouteEventComponent"
+	)
 public class RouteEventComponent extends MobileComponent implements IRouteGenerator, IEnableAble {
 
 	private static final long serialVersionUID = -5879576200562937068L;

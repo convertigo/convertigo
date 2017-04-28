@@ -1,79 +1,87 @@
 .folder {
-	background-image: url(../../admin/images/folder.gif) !important;
+    background-image: url(../../admin/images/folder.gif) !important;
 }
 
-#propertyView tbody>tr:first-child>td:first-child {
-	color: red;
+/*********************************
+* Jstree projects tree view
+*********************************/
+
+.projectsTreeView tbody>tr:first-child>td:first-child {
+    color: red;
 }
 
-#propertyView tbody>tr>td {
-	color: green;
-	/* overflow-x: hidden; */
-	/* white-space: nowrap; */
-	user-select: initial;
+.projectsTreeView tbody>tr>td {
+    color: green;
+    /* overflow-x: hidden; */
+    /* white-space: nowrap; */
+    user-select: initial;
 }
 
-#propertyView tbody>tr>td>input {
-	background-color: rgb(51, 55, 59);
-	color: white;
+.projectsTreeView tbody>tr>td>input {
+    background-color: rgb(51, 55, 59);
+    color: white;
     border: none;
 }
 
-#propertyView thead>tr>th {
-	text-align: left
+.projectsTreeView thead>tr>th {
+    text-align: left
 }
 
 .comment {
-	color: rgb(4, 234, 34);
+    color: rgb(4, 234, 34);
 }
 
 .jstree-rename-input {
-	width: 100% !important;	
+    width: 100% !important; 
 }
 
 .jstree-default-dark {
-	background-color: none;
+    background-color: none;
 }
 
 .jstree-header {
-	display: block !important;
-	background: none !important;
+    display: block !important;
+    background: none !important;
 }
 
 /* Header separator of the jstree grid plugin */
 .jstree-grid-separator-regular {
-/* 	border-style: none !important; */
+/*  border-style: none !important; */
 }
 
 li.nodeDisable > a {
-	color: rgb(255, 0, 0) !important;
+    color: rgb(255, 0, 0) !important;
 }
 
 .nodeDisable a {
-	color: #ffb300 !important;
+    color: #ffb300 !important;
 }
 
 .nodeIsInherited a {
-	color: pink !important;
+    color: pink !important;
 }
 
 .jstree-default-dark .jstree-anchor>.jstree-icon {
     opacity: 1;
 }
 
+/*********************************
+* Jstree context menu
+*********************************/
+
 /* Icons of the context menu */
 .vakata-context li>a>i {
-	background-repeat: no-repeat;
-	/* Center */
-	background-position: 7px 7px;
+    background-repeat: no-repeat;
+    /* Center */
+    background-position: 7px 7px;
 }
 
 .contextmenu-entry-default:before {
-   	content: "\2713";
+    content: "\2713";
 }
 
 .contextmenu-entry-disable {
-  	opacity: 0.5;
+    opacity: 0.5;
    -webkit-filter: grayscale(100%);
    -moz-filter: grayscale(100%);
    -o-filter: grayscale(100%);
@@ -81,17 +89,75 @@ li.nodeDisable > a {
    filter: grayscale(100%);
 }
 
+/*********************************
+* Modal
+*********************************/
+
 div.modal {
-	/* text in white */
-	color: white;
-	background-color: #33373B;
+    /* text in white */
+    color: white;
+    background-color: #33373B;
 }
 
 .align-right {
-	text-align: right;
+    text-align: right;
 }
 
 div.modal button {
-	/* space between buttons */
-	margin-right: 10px;
+    /* space between buttons */
+    margin-right: 10px;
+}
+
+/*********************************
+* Palette
+*********************************/
+
+/* Sub categories */
+.tab-palette>div>div.sub-category {
+    margin-bottom: 10px;
+}
+
+/* Div containing the icon + text of each sub category */
+.tab-palette>div>div.sub-category>div {
+    display: inline-block;
+    cursor: pointer;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    width: 150px;
+}
+
+/* Div icons of sub categories */
+.tab-palette>div>div.sub-category>div>div {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+}
+
+/* Div containing the icon + text of each sub category */
+.tab-palette>div>div.sub-category>div:hover {
+    background-color: rgb(244, 244, 244);
+}
+
+.gray-selection {
+    background-color: #e4e4e4;
+}
+
+/* Div icons of the categories */
+.tab-palette>div>div.category>div {
+    display: inline-block;
+    background-repeat: no-repeat;
+    background-size: 32px 32px;
+    width: 32px;
+    height: 32px;
+}
+
+/* Div containing the icon + text of each category */
+.tab-palette>div>div.category {
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+/* Div containing the icon + text of each category */
+.tab-palette>div>div.category:hover {
+    background-color: rgb(244, 244, 244);
 }

@@ -35,8 +35,13 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.IEnableAble;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.EngineException;
 
+@DboCategoryInfo(
+		getCategoryName = "Navigation Route",
+		getIconClassCSS = "convertigo-action-newRouteComponent"
+	)
 public class RouteComponent extends MobileComponent implements IRouteGenerator, IContainerOrdered, IEnableAble {
 	
 	private static final long serialVersionUID = -8928033403518219727L;

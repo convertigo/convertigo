@@ -62,6 +62,7 @@ public class GetChildren extends XmlService {
 		 */
 		if (dbo instanceof ScreenClass) {
 			ScreenClass sc = (ScreenClass) dbo;
+			boolean hasChildren = false;
 			
 			// Get all Criteria
 			List<Criteria> criteria = sc.getCriterias();
@@ -69,6 +70,7 @@ public class GetChildren extends XmlService {
 				children.remove(criterion);
 				Element eltCriterion = createScreenClassChildElement(parent.getOwnerDocument(), criterion, dbo);
 				elt.appendChild(eltCriterion);
+				hasChildren = true;
 			}
 			
 			// Get all Extraction Rules
@@ -77,6 +79,7 @@ public class GetChildren extends XmlService {
 				children.remove(extractionRule);
 				Element eltExtractionRule = createScreenClassChildElement(parent.getOwnerDocument(), extractionRule, dbo);
 				elt.appendChild(eltExtractionRule);
+				hasChildren = true;
 			}
 			
 			// Get all Sheets
@@ -85,6 +88,7 @@ public class GetChildren extends XmlService {
 				children.remove(sheet);
 				Element eltSheet = createScreenClassChildElement(parent.getOwnerDocument(), sheet, dbo);
 				elt.appendChild(eltSheet);
+				hasChildren = true;
 			}
 			
 			// In case of JavelinScreenClass, we also have to get the block factory manually
@@ -94,6 +98,11 @@ public class GetChildren extends XmlService {
 				children.remove(blockFactory);
 				Element eltBlockFactory = createScreenClassChildElement(parent.getOwnerDocument(), blockFactory, dbo);
 				elt.appendChild(eltBlockFactory);
+				hasChildren = true;
+			}
+			
+			if (hasChildren) {
+				elt.setAttribute("hasChildren", "true");
 			}
 		}
 
@@ -108,7 +117,7 @@ public class GetChildren extends XmlService {
 	private Element createDboElement(Document document, DatabaseObject dbo, boolean hasChildren) throws DOMException, Exception {
 		Element elt = document.createElement("dbo");
 		elt.setAttribute("qname", dbo.getQName());
-		elt.setAttribute("classname", dbo.getClass().getName());
+		elt.setAttribute("classname", dbo.getClass().getName() + "-16");
 		elt.setAttribute("name", dbo.toString());
 		elt.setAttribute("category", dbo.getDatabaseType());
 		elt.setAttribute("comment", dbo.getComment());

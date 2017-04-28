@@ -14,12 +14,12 @@ import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 
 @ServiceDefinition(
-		name = "GetCSS",
+		name = "GetTreeIconsCSS",
 		roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG, Role.PROJECT_DBO_VIEW },
 		parameters = {},
 		returnValue = ""
 	)
-public class GetCSS extends DownloadService {
+public class GetTreeIconsCSS extends DownloadService {
 
 	@Override
 	protected void writeResponseResult(HttpServletRequest request, HttpServletResponse response) throws Exception {
@@ -28,14 +28,15 @@ public class GetCSS extends DownloadService {
 		for (String className : classNames) {
 			sb.append(".")
 			  .append(className.replaceAll("\\.", "-"))
+			  .append("-16")
 			  .append(" {background-image:url(")
-			
+
 			  .append("../../admin/services/database_objects.GetIcon?className=")
 			  .append(className)
 			  .append(") !important;")
 			  .append("}\r\n");
 		}
-		
+
 		response.setContentType(MimeType.Css.value());
 		IOUtils.write(sb.toString(), response.getOutputStream(), "UTF-8");
 	}

@@ -63,6 +63,7 @@ import org.w3c.dom.traversal.NodeFilter;
 import org.w3c.dom.traversal.TreeWalker;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions.AsynchronousStepThread;
 import com.twinsoft.convertigo.beans.steps.BranchStep;
 import com.twinsoft.convertigo.beans.steps.XMLCopyStep;
@@ -87,6 +88,10 @@ import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
+@DboCategoryInfo(
+		getCategoryName = "Sequence",
+		getIconClassCSS = "convertigo-action-newSequence"
+	)
 public abstract class Sequence extends RequestableObject implements IVariableContainer, ITestCaseContainer, IContextMaintainer, IContainerOrdered, ISchemaParticleGenerator, IComplexTypeAffectation {
 
 	private static final long serialVersionUID = 8218719500689068156L;

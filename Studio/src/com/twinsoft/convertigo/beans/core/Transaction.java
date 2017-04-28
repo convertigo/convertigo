@@ -56,6 +56,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.ConvertigoError;
 import com.twinsoft.convertigo.engine.Engine;
@@ -72,6 +73,10 @@ import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
  * an algorithm defining how to produce the XML document required by the Convertigo
  * user.
  */
+@DboCategoryInfo(
+		getCategoryName = "Transaction",
+		getIconClassCSS = "convertigo-action-newTransaction"
+	)
 public abstract class Transaction extends RequestableObject implements ISchemaIncludeGenerator {
     
 	private static final long serialVersionUID = 8629312962446057509L;

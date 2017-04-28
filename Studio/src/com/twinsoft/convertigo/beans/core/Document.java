@@ -28,9 +28,14 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
+@DboCategoryInfo(
+		getCategoryName = "Document",
+		getIconClassCSS = "convertigo-action-newDocument"
+	)
 public abstract class Document extends DatabaseObject {
 
 	private static final long serialVersionUID = 1291777029005995625L;

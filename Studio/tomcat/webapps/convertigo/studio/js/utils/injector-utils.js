@@ -1,4 +1,4 @@
-var Injector = {
+var InjectorUtils = {
 	// Inject a CSS
 	injectLinkStyle: function (cssUrl, callback) {
 		var linkStyleTag = document.createElement("link");

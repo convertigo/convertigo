@@ -27,12 +27,17 @@ import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
 /**
  * The MobileDevice class is the base class for all mobile devices.
  */
+@DboCategoryInfo(
+		getCategoryName = "Mobile platform",
+		getIconClassCSS = "convertigo-action-newMobilePlatform"
+	)
 public abstract class MobilePlatform extends DatabaseObject {
 
 	private static final long serialVersionUID = 8006681009945420375L;

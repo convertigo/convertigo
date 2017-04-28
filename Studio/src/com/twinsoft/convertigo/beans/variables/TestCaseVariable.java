@@ -23,8 +23,13 @@
 package com.twinsoft.convertigo.beans.variables;
 
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.Variable;
 
+@DboCategoryInfo(
+		getCategoryName = "Variable",
+		getIconClassCSS = "convertigo-action-newTestCaseVariable"
+	)
 public class TestCaseVariable extends Variable {
 
 	private static final long serialVersionUID = -2603119914647543481L;

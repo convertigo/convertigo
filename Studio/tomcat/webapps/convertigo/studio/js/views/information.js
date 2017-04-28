@@ -226,7 +226,7 @@ var PropertiesView = {
 		if (refNodeProjectsView.type !== "default") {
 			// Get properties of the object
 			$.ajax({
-				url: Main.createConvertigoServiceUrl("studio.database_objects.Get"),
+				url: Convertigo.createServiceUrl("studio.database_objects.Get"),
 				data: {
 					qname: refNodeProjectsView.data.qname
 				},

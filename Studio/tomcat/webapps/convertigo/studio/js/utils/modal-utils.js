@@ -1,4 +1,4 @@
-var Modal = {
+var ModalUtils = {
 	createMessageBox: function (title, message) {
 		// Create Ok button
 		var $okBtn = $("<button/>", {
@@ -38,6 +38,7 @@ var Modal = {
 		
 		// Open modal
 		$modal.modal({
+			closeExisting: false, // Allow multiple modals
 			escapeClose: false,
 			clickClose: false,
 			showClose: false

@@ -170,6 +170,7 @@ public class GetMenu extends XmlService {
 		
 		String[] qnames = request.getParameterValues("qnames[]");
 		String[] folderTypes = request.getParameterValues("folderTypes[]");
+		String refQnameFolder = request.getParameter("refQnameFolder");
 
 		// Create the response : success or fail
 		Element eResponse = document.createElement("response");
@@ -206,48 +207,62 @@ public class GetMenu extends XmlService {
 			eContextMenu = generateFilteredMenu(document, menus);
 		}
 		// Generate the menu for folders
-		else if (folderTypes != null) {
-			eContextMenu = document.createElement("menu");
-			String folderTypeValue = folderNameToTypeValue.get(folderTypes[0]);
-			if (folderTypeValue != null) {		
-				// Get the object contribution related to the folder
-				Element eObjectContribution = (Element) xpathApi.selectNode(pluginDocument, "/plugin/extension[@point='org.eclipse.ui.popupMenus']/objectContribution[@objectClass='com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject']");
-				
-				// Search the action of the folder
-				List<Node> nActions = xpathApi.selectList(eObjectContribution, "/*");
-				boolean foundAction = false;
-				for (int i = 0; !foundAction && i < nActions.size(); ++i) {
-					Element eAction = (Element) nActions.get(i);
+		else if (folderTypes != null && !refQnameFolder.isEmpty()) {
+			DatabaseObject dbo = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(refQnameFolder);
+			
+			// Generate the menu if we found the related dbo
+			boolean generateMenu = dbo != null;
+			
+			// In case of Screen Class, if the Criteria folder is selected
+			if (generateMenu && dbo instanceof ScreenClass && "Criteria".equals(folderTypes[0])) {
+				ScreenClass sc = (ScreenClass) dbo;
+				// Generate the menu "New->Criteria" if it is not the default Screen Class
+				generateMenu = sc.getDepth() != 0;
+			}
+			
+			if (generateMenu) {
+				eContextMenu = document.createElement("menu");
+				String folderTypeValue = folderNameToTypeValue.get(folderTypes[0]);
+				if (folderTypeValue != null) {	
+					// Get the object contribution related to the folder
+					Element eObjectContribution = (Element) xpathApi.selectNode(pluginDocument, "/plugin/extension[@point='org.eclipse.ui.popupMenus']/objectContribution[@objectClass='com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject']");
 					
-					/*
-					 *  If we have the right action, we add it to the menu and stop looping.
-					 *  In the Studio, we display other actions as disabled but here we only
-					 *  display the specific action. In face we can only have one action
-					 *  so it is useless to display the others.
-					 */
-					if (foundAction = evaluateFolderCondition(folderTypeValue, eAction)) {
-						String menubarPath = eAction.getAttribute("menubarPath");
+					// Search the action of the folder
+					List<Node> nActions = xpathApi.selectList(eObjectContribution, "/*");
+					boolean foundAction = false;
+					for (int i = 0; !foundAction && i < nActions.size(); ++i) {
+						Element eAction = (Element) nActions.get(i);
 						
-						// Create the action
-						Element eNewAction = createElementActionBaseAttr(
-								document,
-								eAction.getAttribute("id"),
-								eAction.getAttribute("label"),
-								eAction.getAttribute("class"),
-								true,
-								menubarPath
-						);
-						
-						// Create the sub menu
-						int index = menubarPath.indexOf("/");
-						createSubMenu(menubarPath, index, document, eContextMenu, eNewAction, eObjectContribution.getAttribute("id"));		
+						/*
+						 *  If we have the right action, we add it to the menu and stop looping.
+						 *  In the Studio, we display other actions as disabled but here we only
+						 *  display the specific action. In face we can only have one action
+						 *  so it is useless to display the others.
+						 */
+						if (foundAction = evaluateFolderCondition(folderTypeValue, eAction)) {
+							String menubarPath = eAction.getAttribute("menubarPath");
+							
+							// Create the action
+							Element eNewAction = createElementActionBaseAttr(
+									document,
+									eAction.getAttribute("id"),
+									eAction.getAttribute("label"),
+									eAction.getAttribute("class"),
+									true,
+									menubarPath
+							);
+							
+							// Create the sub menu
+							int index = menubarPath.indexOf("/");
+							createSubMenu(menubarPath, index, document, eContextMenu, eNewAction, eObjectContribution.getAttribute("id"));		
+						}
 					}
 				}
 			}
 		}
 		
 		// Create response
-		if (eContextMenu.hasChildNodes()) {
+		if (eContextMenu != null && eContextMenu.hasChildNodes()) {
 			eResponse.setAttribute("state", "success");
 			eResponse.setAttribute("message", "Context menu has been generated.");
 			eRoot.appendChild(eContextMenu);

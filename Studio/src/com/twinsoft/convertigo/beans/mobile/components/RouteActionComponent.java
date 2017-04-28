@@ -28,9 +28,14 @@ import org.w3c.dom.Element;
 import com.twinsoft.convertigo.beans.core.IEnableAble;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
+@DboCategoryInfo(
+		getCategoryName = "Action",
+		getIconClassCSS = "convertigo-action-newRouteActionComponent"
+	)
 public abstract class RouteActionComponent extends MobileComponent implements IRouteGenerator, ITagsProperty, IEnableAble {
 	
 	private static final long serialVersionUID = 2529010701434894046L;

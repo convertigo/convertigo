@@ -57,6 +57,7 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.common.XmlQName;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.steps.AttributeStep;
 import com.twinsoft.convertigo.beans.steps.ElementStep;
 import com.twinsoft.convertigo.beans.steps.IThenElseContainer;
@@ -90,6 +91,10 @@ import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 /**
  * The Step class is the base class for all steps.
  */
+@DboCategoryInfo(
+		getCategoryName = "Step",
+		getIconClassCSS = "convertigo-action-newStep"
+	)
 public abstract class Step extends DatabaseObject implements StepListener, ISheetContainer, ITagsProperty, ISchemaGenerator, IEnableAble {
 	private static final long serialVersionUID = 1600450851360946365L;
 	private String schemaDataType = "xsd:string"; // since beans version 5.0.2

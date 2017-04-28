@@ -33,6 +33,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.common.XMLRectangle;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -40,9 +41,13 @@ import com.twinsoft.convertigo.engine.EngineException;
 /**
  * The Connector class is the base class for all connectors.
  */
-public abstract class Connector extends DatabaseObject implements ITagsProperty{
+@DboCategoryInfo(
+		getCategoryName = "Connector",
+		getIconClassCSS = "convertigo-action-newConnector"
+	)
+public abstract class Connector extends DatabaseObject implements ITagsProperty {
 	private static final long serialVersionUID = 5573688971345318823L;
-    
+	
     /**
      * The context associated to the XML producer. The XML producer is
      * responsible for updating relevantly this context.

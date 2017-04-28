@@ -1,0 +1,343 @@
+package com.twinsoft.convertigo.engine.admin.services.studio.database_objects;
+
+import java.beans.BeanInfo;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import com.twinsoft.convertigo.beans.connectors.CicsConnector;
+import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
+import com.twinsoft.convertigo.beans.connectors.HttpConnector;
+import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
+import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector;
+import com.twinsoft.convertigo.beans.connectors.SqlConnector;
+import com.twinsoft.convertigo.beans.core.Connector;
+import com.twinsoft.convertigo.beans.core.Criteria;
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.beans.core.ExtractionRule;
+import com.twinsoft.convertigo.beans.core.Listener;
+import com.twinsoft.convertigo.beans.core.MobilePlatform;
+import com.twinsoft.convertigo.beans.core.Pool;
+import com.twinsoft.convertigo.beans.core.Reference;
+import com.twinsoft.convertigo.beans.core.ScreenClass;
+import com.twinsoft.convertigo.beans.core.Sheet;
+import com.twinsoft.convertigo.beans.core.Statement;
+import com.twinsoft.convertigo.beans.core.Step;
+import com.twinsoft.convertigo.beans.core.TestCase;
+import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.core.UrlMapping;
+import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
+import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
+import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
+import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.beans.dbo_explorer.DboBeanData;
+import com.twinsoft.convertigo.beans.dbo_explorer.DboBeansData;
+import com.twinsoft.convertigo.beans.dbo_explorer.DboCategoryData;
+import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
+import com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
+import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
+import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.admin.services.XmlService;
+import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.dbo_explorer.DboBean;
+import com.twinsoft.convertigo.engine.dbo_explorer.DboBeans;
+import com.twinsoft.convertigo.engine.dbo_explorer.DboCategory;
+import com.twinsoft.convertigo.engine.dbo_explorer.DboExplorerManager;
+import com.twinsoft.convertigo.engine.dbo_explorer.DboGroup;
+import com.twinsoft.convertigo.engine.dbo_explorer.DboParent;
+import com.twinsoft.convertigo.engine.dbo_explorer.DboUtils;
+import com.twinsoft.convertigo.engine.studio.responses.XmlResponseFactory;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
+
+@ServiceDefinition(
+		name = "GetPalette",
+		roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG },
+		parameters = {},
+		returnValue = ""
+	)
+public class GetPalette extends XmlService {
+	
+	// Get the bean class of a folder from its name
+	private static Map<String, Class<? extends DatabaseObject>> folderNameToBeanClass = new HashMap<>(24);
+	static {
+		folderNameToBeanClass.put("Listener", Listener.class);
+		folderNameToBeanClass.put("Transaction", Transaction.class);
+		//folderNameToBeanClass.put("Handler", Handler);
+		folderNameToBeanClass.put("InheritedScreenClass", ScreenClass.class);
+		folderNameToBeanClass.put("Sheet", Sheet.class);
+		folderNameToBeanClass.put("Pool", Pool.class);
+		folderNameToBeanClass.put("ExtractionRule", ExtractionRule.class);
+		folderNameToBeanClass.put("Criteria", Criteria.class);
+		folderNameToBeanClass.put("Connector", Connector.class);
+		folderNameToBeanClass.put("Sequence", com.twinsoft.convertigo.beans.core.Sequence.class);
+		folderNameToBeanClass.put("Step", Step.class);
+		folderNameToBeanClass.put("TestCase", TestCase.class);
+		folderNameToBeanClass.put("Variable", Variable.class);
+		folderNameToBeanClass.put("Reference", Reference.class);
+		folderNameToBeanClass.put("Document", com.twinsoft.convertigo.beans.core.Document.class);
+		folderNameToBeanClass.put("UrlMapping", UrlMapping.class);
+		folderNameToBeanClass.put("UrlMappingOperation", UrlMappingOperation.class);
+		folderNameToBeanClass.put("UrlMappingParameter", UrlMappingParameter.class);
+		folderNameToBeanClass.put("UrlMappingResponse", UrlMappingResponse.class);
+		folderNameToBeanClass.put("MobilePlatform", MobilePlatform.class);
+		folderNameToBeanClass.put("Action", RouteActionComponent.class);
+		folderNameToBeanClass.put("Event", RouteEventComponent.class);
+		folderNameToBeanClass.put("Route", RouteComponent.class);
+		folderNameToBeanClass.put("Page", PageComponent.class);
+	}
+	
+	@Override
+	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
+		String qname = request.getParameter("qname");
+		String folderType = request.getParameter("folderType");
+		
+		DatabaseObject dbo = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
+		Class<? extends DatabaseObject> databaseObjectClass = folderNameToBeanClass.get(folderType);
+		createCategories(document, dbo, databaseObjectClass, document.getDocumentElement());
+	}
+
+	private void createCategories(Document document, DatabaseObject dbo, Class<? extends DatabaseObject> databaseObjectClass, Element root) throws Exception {
+		Element response = document.createElement("response");
+		List<Element> messageBoxes = new ArrayList<>();
+		
+		try {
+			List<String> defaultDboList = new ArrayList<>();
+
+			Class<? extends DatabaseObject> parentObjectClass = dbo.getClass();
+
+			// TODO: Engine log
+			// Enumeration of the beans
+			// ConvertigoPlugin.logDebug2("Exploring Convertigo database objects
+			// list...");
+
+			Map<String, DboCategoryData> categoryNameToDboCategory = new HashMap<>();
+			DboExplorerManager manager = new DboExplorerManager();
+			for (DboGroup group : manager.getGroups()) {
+				for (DboCategory category : group.getCategories()) {
+					for (DboBeans beansCategory : category.getBeans()) {
+						for (DboBean bean : beansCategory.getBeans()) {
+							// Skip if bean is disabled
+							if (!bean.isEnable()) {
+								continue;
+							}
+
+							String className = bean.getClassName();
+
+							try {
+								Class<DatabaseObject> beanClass = GenericUtils.cast(Class.forName(className));
+								DboCategoryInfo dboCategoryInfo = DatabaseObject.getDboGroupInfo(beanClass);
+
+								if (dboCategoryInfo == null) {
+									continue;
+								}
+
+								// If one of these cases, do not add the category
+								if (dbo instanceof ScreenClass) {
+									ScreenClass sc = (ScreenClass) dbo;
+									// Do not show Criteria category if it is the default Screen Class
+									if (sc.getDepth() == 0 && dboCategoryInfo.equals(DatabaseObject.getDboGroupInfo(Criteria.class))) {
+										continue;
+									}
+								}
+								else if (dbo instanceof CicsConnector) {
+									// Do not show Pool category
+									if (dboCategoryInfo.equals(DatabaseObject.getDboGroupInfo(Pool.class))) {
+										continue;
+									}
+								}
+								else if (dbo instanceof JavelinConnector) {
+									// Do not show ScreenClass category
+									if (dboCategoryInfo.equals(DatabaseObject.getDboGroupInfo(ScreenClass.class))) {
+										continue;
+									}
+								}
+								else if (dbo instanceof SqlConnector) {
+									// Do not show Pool category
+									if (dboCategoryInfo.equals(DatabaseObject.getDboGroupInfo(Pool.class))) {
+										continue;
+									}
+								}
+								else if (dbo instanceof HtmlConnector) {
+									// Do not show Pool and ScreenClass categories
+									if (dboCategoryInfo.equals(DatabaseObject.getDboGroupInfo(Pool.class)) ||
+										dboCategoryInfo.equals(DatabaseObject.getDboGroupInfo(ScreenClass.class))) {
+										continue;
+									}
+								}
+								else if (dbo instanceof HttpConnector) {
+									// Do not show Pool category
+									if (dboCategoryInfo.equals(DatabaseObject.getDboGroupInfo(Pool.class))) {
+										continue;
+									}
+								}
+								else if (dbo instanceof SiteClipperConnector) {
+									// Do not show Pool and ScreenClass categories
+									if (dboCategoryInfo.equals(DatabaseObject.getDboGroupInfo(Pool.class)) ||
+										dboCategoryInfo.equals(DatabaseObject.getDboGroupInfo(ScreenClass.class))) {
+										continue;
+									}
+								}
+								else if (dbo instanceof Transaction) {
+									// Do not show Statement category
+									if (dboCategoryInfo.equals(DatabaseObject.getDboGroupInfo(Statement.class))) {
+										continue;
+									}
+								}
+
+								if (bean.isDefault()) {
+									defaultDboList.add(className);
+								}
+
+								// TODO: Engine log
+								// ConvertigoPlugin
+								// .logDebug2("Bean class: " + (beanClass !=
+								// null ? beanClass.getName() : "null"));
+
+								// The bean should derived from
+								// DatabaseObject...
+								boolean isDatabaseObject = (DatabaseObject.class.isAssignableFrom(beanClass));
+								if (isDatabaseObject) {
+									// ... and should derived from the specified class
+									boolean isFromSpecifiedClass = (databaseObjectClass == null ||
+										    (databaseObjectClass != null && databaseObjectClass.isAssignableFrom(beanClass)));
+									
+									if (isFromSpecifiedClass) {
+										Collection<DboParent> parents = bean.getParents();
+										boolean bFound = false;
+										for (DboParent possibleParent : parents) {
+											// Check if parent allow inheritance
+											if (Class.forName(possibleParent.getClassName()).equals(parentObjectClass)
+													|| possibleParent.allowInheritance()
+															&& Class.forName(possibleParent.getClassName())
+																	.isAssignableFrom(parentObjectClass)) {
+												bFound = true;
+												break;
+											}
+										}
+
+										if (bFound) {
+											String technology = DboUtils.getTechnology(dbo, beanClass);
+	
+											// Check technology if needed
+											if (technology != null) {
+												Collection<String> acceptedTechnologies = bean.getEmulatorTechnologies();
+	
+												if (!acceptedTechnologies.isEmpty()
+														&& !acceptedTechnologies.contains(technology)) {
+													continue;
+												}
+											}
+
+											String beanInfoClassName = className + "BeanInfo";
+											Class<BeanInfo> beanInfoClass = GenericUtils.cast(Class.forName(beanInfoClassName));
+											if (beanInfoClass != null) {
+												String categoryName = dboCategoryInfo.getCategoryName();
+
+												// Create category
+												DboCategoryData dboCategoryData = categoryNameToDboCategory.get(categoryName);
+												if (dboCategoryData == null) {
+													dboCategoryData = new DboCategoryData(categoryName,
+															dboCategoryInfo.getIconClassCSS());
+													categoryNameToDboCategory.put(categoryName, dboCategoryData);
+												}
+
+												// Beans name
+												String beansName = beansCategory.getName();
+												if (beansName.length() == 0) {
+													beansName = categoryName;
+												}
+
+												// Create beans
+												DboBeansData dboBeansData = dboCategoryData.getDboBeans(beansName);
+												if (dboBeansData == null) {
+													dboBeansData = new DboBeansData(beansName);
+													dboCategoryData.addDboBeans(beansName, dboBeansData);
+												}
+
+												// Create bean
+												DboBeanData dboBeanData = new DboBeanData(beanInfoClass.newInstance());
+												dboBeansData.addDboBean(dboBeanData);
+											}
+											else {
+												String message = java.text.MessageFormat.format(
+														"The \"{0}\" does not exist.", new Object[] { beanInfoClassName });
+												messageBoxes.add(XmlResponseFactory.createMessageBoxResponse(document, dbo.getQName(), message));
+											}
+										}
+									}
+								}
+								else {
+									String message = java.text.MessageFormat.format(
+											"The \"{0}\" class is not a Convertigo database object.",
+											new Object[] { className });
+									messageBoxes.add(XmlResponseFactory.createMessageBoxResponse(document, dbo.getQName(), message));
+								}
+							}
+							catch (ClassNotFoundException e) {
+								String message = java.text.MessageFormat.format(
+										"Unable to analyze the \"{0}\" class.\n\nClass not found: {1}",
+										new Object[] { className, e.getMessage() });
+								messageBoxes.add(XmlResponseFactory.createMessageBoxResponse(document, dbo.getQName(), message));
+							}
+							catch (Throwable e) {
+								String message = java.text.MessageFormat.format(
+										"Unable to analyze the \"{0}\" Convertigo database object.",
+										new Object[] { className });
+								messageBoxes.add(XmlResponseFactory.createMessageBoxResponse(document, dbo.getQName(),  message));
+							}
+						}
+					}
+				}
+			}
+
+			// Find the default selected bean for each categories
+			for (DboCategoryData dboCategory : categoryNameToDboCategory.values()) {
+				boolean defaultDboFound = false;
+				List<DboBeanData> dboBeansList = dboCategory.getAllDboBean(true);
+
+				// By default, we chose the first bean as default selected bean
+				DboBeanData defaultSelectedBean = dboBeansList.get(0);
+
+				// Find the default selected bean
+				for (int i = 0; i < dboBeansList.size() && !defaultDboFound; ++i) {
+					Class<DatabaseObject> beanClass = dboBeansList.get(i).getBeanClass();
+
+					// Another bean is set as default selected bean
+					if (defaultDboFound = defaultDboList.contains(beanClass.getName())) {
+						defaultSelectedBean = dboBeansList.get(i);
+					}
+				}
+
+				defaultSelectedBean.setSelectedByDefault(true);
+			}
+
+			// XmlLize
+			for (DboCategoryData dboCategory: categoryNameToDboCategory.values()) {
+				response.appendChild(dboCategory.toXml(document));
+			}
+		}
+		catch (Exception e) {
+			// TODO: create exception message box
+			messageBoxes.add(XmlResponseFactory.createMessageBoxResponse(document, dbo.getQName(), "Unable to load database objects properties."));
+			// ConvertigoPlugin.logException(e, "Unable to load database objects properties.");
+		}
+
+		root.appendChild(response);
+
+		// Message boxes
+		for (Element messageBox: messageBoxes) {
+			root.appendChild(messageBox);
+		}
+	}
+
+}

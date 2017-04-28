@@ -6,7 +6,7 @@ var DatabaseObjectManager = {
 	},
 	setProperty: function (qnames, property, value) {
 		$.ajax({
-			url: Main.createConvertigoServiceUrl("studio.database_objects.Set"),
+			url: Convertigo.createServiceUrl("studio.database_objects.Set"),
 			data: {
 				qnames: qnames,
 				property: property,

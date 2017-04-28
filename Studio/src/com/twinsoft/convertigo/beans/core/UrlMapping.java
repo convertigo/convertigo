@@ -32,8 +32,13 @@ import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.EngineException;
 
+@DboCategoryInfo(
+		getCategoryName = "Mapping",
+		getIconClassCSS = "convertigo-action-newUrlMapping"
+	)
 public abstract class UrlMapping extends DatabaseObject {
 
 	private static final long serialVersionUID = -1685983179181274444L;

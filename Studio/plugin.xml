@@ -1357,7 +1357,7 @@
                enablesFor="1"
                icon="icons/studio/menu/testcase_color_16x16.png"
                id="convertigo.action.newTransactionTestCase"
-               label="TestCase"
+               label="Test case"
                menubarPath="convertigo.menu.new/content"/>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.TransactionEditHandlersAction"
@@ -2223,7 +2223,7 @@
                enablesFor="1"
                icon="icons/studio/menu/routecomponent_color_16x16.png"
                id="convertigo.action.newRouteComponent"
-               label="Route"
+               label="Navigation Route"
                menubarPath="convertigo.menu.new/content">
             <enablement>
                <objectState

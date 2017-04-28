@@ -25,12 +25,17 @@ package com.twinsoft.convertigo.beans.core;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
  
 /**
  * The Criteria class is the base class for all criterias.
  */
+@DboCategoryInfo(
+		getCategoryName = "Criteria",
+		getIconClassCSS = "convertigo-action-newCriteria"
+	)
 public abstract class Criteria extends DatabaseObject {
 	private static final long serialVersionUID = 4417148740041540014L;
     

@@ -53,13 +53,15 @@ public class GetIcon extends DownloadService {
 			throws IOException, ServiceException {
 
 		String className = request.getParameter("className");
+		String large = request.getParameter("large");
 
 		if (className == null || !className.startsWith("com.twinsoft.convertigo.beans"))
 			throw new ServiceException("Must provide className parameter", null);
 
 		try {
 			BeanInfo bi = CachedIntrospector.getBeanInfo(GenericUtils.<Class<? extends DatabaseObject>>cast(Class.forName(className)));
-			IOUtils.copy(bi.getBeanDescriptor().getBeanClass().getResourceAsStream(MySimpleBeanInfo.getIconName(bi, BeanInfo.ICON_COLOR_16x16)), response.getOutputStream());
+			int iconType = large != null && large.equals("true") ? BeanInfo.ICON_COLOR_32x32 : BeanInfo.ICON_COLOR_16x16;
+			IOUtils.copy(bi.getBeanDescriptor().getBeanClass().getResourceAsStream(MySimpleBeanInfo.getIconName(bi, iconType)), response.getOutputStream());
 		} catch (Exception e) {
 			throw new ServiceException("Icon unreachable", e);
 		}

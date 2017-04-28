@@ -26,8 +26,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
+@DboCategoryInfo(
+		getCategoryName = "Parameter",
+		getIconClassCSS = "convertigo-action-newUrlMappingParameter"
+	)
 public abstract class UrlMappingParameter extends DatabaseObject implements ITagsProperty{
 
 	private static final long serialVersionUID = -2280875929012349646L;

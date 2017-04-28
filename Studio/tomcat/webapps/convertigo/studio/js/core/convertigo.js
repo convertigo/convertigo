@@ -78,95 +78,29 @@
     }
 })("docReady", window);
 
-var Main = {
+var Convertigo = {
 	url: {
 		baseUrl: null,
-		baseUrlConvertigo: null,
-		baseUrlConvertigoStudio: null,
-		baseUrlConvertigoServices: null
+		baseConvertigoUrl: null,
+		baseConvertigoStudioUrl: null,
+		baseConvertigoAdminServicesUrl: null
 	},
-	init: function (baseUrl, authUserName, authPassword) {
+	init: function (baseUrl) {
 		// Initialize URLs
 		this.url.baseUrl = baseUrl;
-		this.url.baseUrlConvertigo = this.url.baseUrl + "convertigo/";
-		this.url.baseUrlConvertigoStudio = this.url.baseUrlConvertigo + "studio/";
-		this.url.baseUrlConvertigoServices = this.url.baseUrlConvertigo + "admin/services/";
-		
-		this.defineScripts();
-		
-		var that = this;
-		
-		require([
-			"database_object_manager",
-			"projects",
-			"information",
-			"injector",
-			"response_action_manager",
-			"string_utils",
-			"jquery",
-			"modal",
-			"jquery.modal",
-			"jstree",
-			"jstreeutils",
-			"jstreegrid"
-		], function () {
-			// Define AJAX setup
-			$.ajaxSetup({
-				type: "POST",
-				dataType: "xml",
-				xhrFields: {
-					withCredentials: true
-				}
-			});
-			
-			that.authenticate(authUserName, authPassword, function () {
-				Injector.injectLinkStyle(that.url.baseUrlConvertigoStudio + "css/jstree/themes/default-dark/style.min.css");
-				Injector.injectLinkStyle(that.url.baseUrlConvertigoStudio + "css/style.css");
-				Injector.injectLinkStyle(that.url.baseUrlConvertigoStudio + "css/jquery.modal.min.css");
-				
-				// Inject CSS the icons of each type of nodes
-				Injector.injectLinkStyle(that.createConvertigoServiceUrl("studio.database_objects.GetCSS"));
-				Injector.injectLinkStyle(that.createConvertigoServiceUrl("studio.database_objects.GetMenuIconsCSS"));
-								
-				var projectsView = new ProjectsView(".projectsView");
-				
-				// Property view jstree
-				PropertiesView.init(".informationView");
-				DatabaseObjectManager.addListener(projectsView);
-				DatabaseObjectManager.addListener(PropertiesView);
-				
-				that.checkAuthentication();
-			});
-		});
+		this.url.baseConvertigoUrl = this.url.baseUrl + "convertigo/";
+		this.url.baseConvertigoStudioUrl = this.url.baseConvertigoUrl + "studio/";
+		this.url.baseConvertigoAdminServicesUrl = this.url.baseConvertigoUrl + "admin/services/";
 	},
-	defineScripts: function () {
-		// All scripts are defined here
-		require.config({
-		    paths: {
-		    	database_object_manager: this.url.baseUrlConvertigoStudio + "views/database-object-manager",
-		        projects: this.url.baseUrlConvertigoStudio + "views/projects",
-		        information: this.url.baseUrlConvertigoStudio + "views/information",
-		        response_action_manager: this.url.baseUrlConvertigoStudio + "views/response-action-manager",
-		        string_utils: this.url.baseUrlConvertigoStudio + "js/string-utils",
-		        injector: this.url.baseUrlConvertigoStudio + "js/injector",
-		        jquery: this.url.baseUrlConvertigo + "scripts/jquery-2.1.4",
-		        "jquery.modal": this.url.baseUrlConvertigoStudio + "js/jquery.modal.min",
-		        modal: this.url.baseUrlConvertigoStudio + "views/modal",
-		        jstree: this.url.baseUrlConvertigoStudio + "js/jstree/jstree-3.3.3.min",
-		        jstreeutils: this.url.baseUrlConvertigoStudio + "js/jstree/jstreeutils",
-		        jstreegrid: this.url.baseUrlConvertigoStudio + "js/jstree/jstreegrid-3.5.14"
-		    },
-		    shim: {
-		        "jquery.modal": ["jquery"]
-		    }
-		});
+	createServiceUrl: function (serviceName) {
+		return this.url.baseConvertigoAdminServicesUrl + serviceName;
 	},
-	authenticate: function (userName, password, callback) {
+	authenticate: function (authUserName, authPassword, callback) {
 		$.ajax({
-			url: Main.createConvertigoServiceUrl("engine.Authenticate"),
+			url: this.createServiceUrl("engine.Authenticate"),
 			data: {
-				authUserName: userName,
-				authPassword: password,
+				authUserName: authUserName,
+				authPassword: authPassword,
 				authType: "login"
 			},
 			success: function (data, textStatus, jqXHR) {
@@ -176,37 +110,31 @@ var Main = {
 			}
 		});
 	},
-	checkAuthentication: function () {
+	checkAuthentication: function (everyMs = 10000) {
+		var that = this;
 		$.ajax({
-			type: "POST",
-			url: Main.createConvertigoServiceUrl("engine.CheckAuthentication"),
-			dataType: "xml",
-			data: {},
+			url: that.createServiceUrl("engine.CheckAuthentication"),
 			success: function (xml) {
 				var $xml = $(xml);
 				var $authenticated = $xml.find("authenticated");
 				if ($authenticated.text() == "true") {
+					// Recall check authentication each everyMs ms
 					setTimeout(function() {
-						Main.checkAuthentication();
-					}, 5000);
+						that.checkAuthentication();
+					}, everyMs);
 				} else {
 				}
 			},
 			error: function (xhr, ajaxOptions, thrownError) {
 				if (xhr.status == 503) {
 				}
-			},
-	        global: false
+			}
 		});
 	},
-	createConvertigoServiceUrl: function (serviceName) {
-		return this.url.baseUrlConvertigoServices + serviceName;
+	getBaseConvertigoUrl: function (childUrl = "") {
+		return this.url.baseConvertigoUrl + childUrl;
 	},
+	getBaseConvertigoStudioUrl: function (childUrl = "") {
+		return this.url.baseConvertigoStudioUrl + childUrl;
+	}
 };
-
-
-docReady(function () {
-	Main.init("http://localhost:18080/", "admin", "admin");
-	
-	
-});

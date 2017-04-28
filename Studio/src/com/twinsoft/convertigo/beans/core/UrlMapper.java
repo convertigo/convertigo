@@ -26,9 +26,14 @@ import java.util.LinkedList;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
+@DboCategoryInfo(
+		getCategoryName = "URL mapper",
+		getIconClassCSS = "convertigo-action-newUrlMapper"
+	)
 public class UrlMapper extends DatabaseObject {
 
 	private static final long serialVersionUID = 7109554030130695052L;

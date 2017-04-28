@@ -9,7 +9,7 @@ import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.engine.studio.actions.AbstractRunnableAction;
-import com.twinsoft.convertigo.engine.studio.responses.MessageDialogResponse;
+import com.twinsoft.convertigo.engine.studio.responses.XmlResponseFactory;
 
 public class CheStudio extends Studio {
 	
@@ -49,9 +49,9 @@ public class CheStudio extends Studio {
 	@Override
 	public int openMessageDialog(String title, Object object, String msg, String string, String[] buttons, int defaultIndex) {
 		try {
-			document.getDocumentElement().appendChild(
-					new MessageDialogResponse(title, msg, buttons).toXml(document, null)
-			);
+			document
+				.getDocumentElement()
+				.appendChild(XmlResponseFactory.createMessageDialogResponse(document, null, title, msg, buttons));
 		} catch (Exception e1) {
 			e1.printStackTrace();
 		}
@@ -71,9 +71,9 @@ public class CheStudio extends Studio {
 	@Override
 	public int openMessageBox(String title, String msg, String[] buttons) {
 		try {
-			document.getDocumentElement().appendChild(
-					new MessageDialogResponse(title, msg, buttons).toXml(document, null)
-			);
+			document
+				.getDocumentElement()
+				.appendChild(XmlResponseFactory.createMessageDialogResponse(document, null, title, msg, buttons));
 		} catch (Exception e1) {
 			e1.printStackTrace();
 		}

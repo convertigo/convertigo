@@ -28,8 +28,13 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.EngineException;
 
+@DboCategoryInfo(
+		getCategoryName = "Operation",
+		getIconClassCSS = "convertigo-action-newUrlMappingOperation"
+	)
 public abstract class UrlMappingOperation extends DatabaseObject {
 
 	private static final long serialVersionUID = -160544540810026807L;

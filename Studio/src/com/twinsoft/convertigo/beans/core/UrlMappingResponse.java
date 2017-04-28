@@ -22,7 +22,12 @@
 
 package com.twinsoft.convertigo.beans.core;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 
+@DboCategoryInfo(
+		getCategoryName = "Response",
+		getIconClassCSS = "convertigo-action-newUrlMappingResponse"
+	)
 public abstract class UrlMappingResponse extends DatabaseObject {
 
 	private static final long serialVersionUID = -8538886126930614080L;

@@ -30,6 +30,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -37,6 +38,10 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 /**
  * This class defines a screen class.
  */
+@DboCategoryInfo(
+		getCategoryName = "Screen class",
+		getIconClassCSS = "convertigo-action-newScreenclass"
+	)
 public class ScreenClass extends DatabaseObject implements ISheetContainer, IContainerOrdered {
 
 	private static final long serialVersionUID = 6886891146000360258L;

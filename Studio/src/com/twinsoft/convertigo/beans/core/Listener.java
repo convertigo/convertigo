@@ -25,10 +25,15 @@ package com.twinsoft.convertigo.beans.core;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
+@DboCategoryInfo(
+		getCategoryName = "Listener",
+		getIconClassCSS = "convertigo-action-newListener"
+	)
 public abstract class Listener extends DatabaseObject implements IEnableAble {
 
 	private static final long serialVersionUID = 9010595374464464408L;

@@ -34,10 +34,15 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 
+@DboCategoryInfo(
+		getCategoryName = "Application",
+		getIconClassCSS = "convertigo-action-newApplicationComponent"
+	)
 public class ApplicationComponent extends MobileComponent implements IStyleGenerator, ITemplateGenerator, IRouteGenerator, IContainerOrdered {
 	
 	private static final long serialVersionUID = 6142350115354549719L;

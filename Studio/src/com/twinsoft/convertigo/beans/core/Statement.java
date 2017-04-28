@@ -34,6 +34,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.statements.HTTPStatement;
 import com.twinsoft.convertigo.beans.statements.IThenElseStatementContainer;
 import com.twinsoft.convertigo.beans.statements.IfStatement;
@@ -50,6 +51,10 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 /**
  * The Statement class is the base class for all statements.
  */
+@DboCategoryInfo(
+		getCategoryName = "Statement",
+		getIconClassCSS = "convertigo-action-newStatement"
+	)
 public abstract class Statement extends DatabaseObject implements IEnableAble {
 	private static final long serialVersionUID = 1113997185686423262L;
     

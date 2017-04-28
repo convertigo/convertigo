@@ -34,8 +34,13 @@ import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.EngineException;
 
+@DboCategoryInfo(
+		getCategoryName = "Page",
+		getIconClassCSS = "convertigo-action-newPageComponent"
+	)
 public class PageComponent extends MobileComponent implements IStyleGenerator, ITemplateGenerator, IContainerOrdered {
 
 	private static final long serialVersionUID = 188562781669238824L;

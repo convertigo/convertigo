@@ -23,10 +23,15 @@
 package com.twinsoft.convertigo.beans.core;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 
 /**
  * This class defines a XSL sheet.
  */
+@DboCategoryInfo(
+		getCategoryName = "Sheet",
+		getIconClassCSS = "convertigo-action-newSheet"
+	)
 public class Sheet extends DatabaseObject implements ITagsProperty{
 
 	private static final long serialVersionUID = 2474285022734204501L;

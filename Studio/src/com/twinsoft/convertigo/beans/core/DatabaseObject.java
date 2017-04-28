@@ -28,6 +28,8 @@ import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -41,8 +43,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.regex.Pattern;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -82,6 +84,26 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 public abstract class DatabaseObject implements Serializable, Cloneable, ITokenPath {
 	private static final long serialVersionUID = -873065042105207891L;
 
+	@Retention(RetentionPolicy.RUNTIME)
+	public @interface DboCategoryInfo {
+    	String getCategoryName();
+    	String getIconClassCSS();
+	}
+	
+	public static DboCategoryInfo getDboGroupInfo(Class<?> beanClass) {
+		if (beanClass.isAssignableFrom(DatabaseObject.class)) {
+			return null;
+		}
+		
+		DboCategoryInfo dboCategoryInfo = beanClass.getAnnotation(com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo.class);
+		while (dboCategoryInfo == null && !beanClass.isAssignableFrom(DatabaseObject.class)) {
+			beanClass = beanClass.getSuperclass();
+			dboCategoryInfo = beanClass.getAnnotation(com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo.class);
+		}
+		
+		return dboCategoryInfo;
+	}
+	
 	public static final String PROPERTY_XMLNAME = "xmlname";
 	
 	private transient Map<String, Set<String>> symbolsErrors = null;

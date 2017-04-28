@@ -58,6 +58,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ExpandBar;
 import org.eclipse.swt.widgets.ExpandItem;
 
+import com.twinsoft.convertigo.beans.BeansUtils;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -293,7 +294,7 @@ public class ObjectsExplorerComposite extends Composite {
 					String beanName = beanInfo.getBeanDescriptor().getDisplayName();
 					String beanDescription = isDocumented ? beanInfo.getBeanDescriptor().getShortDescription():"Not yet documented |";
 					String[] beanDescriptions = beanDescription.split("\\|");
-					String beanShortDescription = cleanDescription(beanDescriptions[0],false);
+					String beanShortDescription = BeansUtils.cleanDescription(beanDescriptions[0], false);
 
 					Image beanImage = ConvertigoPlugin.getDefault().getBeanIcon(beanInfo, BeanInfo.ICON_COLOR_32x32);
 
@@ -416,25 +417,6 @@ public class ObjectsExplorerComposite extends Composite {
 
 	}
 
-	private String cleanDescription(String description, boolean bHtml) {
-		String cleanDescription = description;
-		// Replace first space
-		if (cleanDescription.charAt(0) == ' ') {
-			cleanDescription = cleanDescription.substring(1);
-		}
-
-		// replace orangetwinsoft class by text color style
-		cleanDescription = cleanDescription.replace("class=\"orangetwinsoft\"", (bHtml ? "style=\"color=#FC870A;\"" : ""));
-		
-		// replace computer class by new font
-		cleanDescription = cleanDescription.replace("class=\"computer\"", (bHtml ? "style=\"font-family: lucida Console;\"" : ""));
-		
-		// Double BR tags
-		cleanDescription = cleanDescription.replaceAll("<br/>(?:<br/>)?", (bHtml ? "<br/><br/>" : ""));
-		
-		return cleanDescription;
-	}
-
 	private void updateHelpText(BeanInfo bi) {
 		BeanDescriptor beanDescriptor = bi.getBeanDescriptor();
 		boolean isDocumented = documentedDboList.contains(beanDescriptor.getBeanClass().getName());
@@ -444,8 +426,8 @@ public class ObjectsExplorerComposite extends Composite {
 		String beanShortDescription = beanDescriptions.length >= 1 ? beanDescriptions[0] : "n/a";
 		String beanLongDescription = beanDescriptions.length >= 2 ? beanDescriptions[1] : "n/a";
 
-		beanShortDescription = cleanDescription(beanShortDescription,true);
-		beanLongDescription = cleanDescription(beanLongDescription,true);
+		beanShortDescription = BeansUtils.cleanDescription(beanShortDescription, true);
+		beanLongDescription = BeansUtils.cleanDescription(beanLongDescription, true);
 
 		helpBrowser.setText("<html>" +
 								"<head>" +

@@ -7,7 +7,7 @@ var ResponseActionManager = {
 		},
 		MessageBoxResponse: function ($data) {
 			var $response = $data.find("admin>*>*").first();
-			Modal.createMessageBox(
+			ModalUtils.createMessageBox(
 				$response.find("title").text(),
 				$response.find("message").text()
 			);
@@ -33,7 +33,7 @@ var ResponseActionManager = {
 				allButtons.push($button);
 			});
 			
-			Modal.createMessageDialog(
+			ModalUtils.createMessageDialog(
 				$response.find("title").text(),
 				$response.find("message").text(),
 				allButtons
