@@ -172,7 +172,7 @@ public class ApplicationComponentEditor extends EditorPart {
 			device.put("dataset", dataset);
 			FileUtils.write(devicePref, device.toString(4), "UTF-8");
 		} catch (Exception e) {
-			// TODO: handle exception
+			Engine.logStudio.debug("Cannot save device bar", e);
 		}
 	}
 	
@@ -534,14 +534,17 @@ public class ApplicationComponentEditor extends EditorPart {
 				String name = deviceName.getText().trim();
 				
 				if (name.isEmpty()) {
-					Engine.logStudio.info("Device name must no be empty.");
+					toast("Device name must no be empty.");
 					return;
 				}
 				
 				if (findDevice(devicesDefinition, name) != null) {
-					Engine.logStudio.info("Cannot override the default device '" + name + "'.");
+					toast("Cannot override the default device '" + name + "'.");
 					return;
 				}
+				
+				int width = NumberUtils.toInt(deviceWidth.getText(), -1);
+				int height = NumberUtils.toInt(deviceHeight.getText(), -1);
 				
 				C8oBrowser.run(() -> {
 					JSONObject device = findDevice(devicesDefinitionCustom, name);
@@ -552,15 +555,15 @@ public class ApplicationComponentEditor extends EditorPart {
 							device.put("name", name);
 							devicesDefinitionCustom.put(device);
 						}
-						device.put("width", NumberUtils.toInt(deviceWidth.getText(), -1));
-						device.put("height", NumberUtils.toInt(deviceHeight.getText(), -1));
+						device.put("width", width);
+						device.put("height", height);
 						device.put("zoom", zoomFactor.percent());
 						device.put("os", deviceOS.name());
 						FileUtils.write(new File(Engine.USER_WORKSPACE_PATH, "studio/devices.json"), devicesDefinitionCustom.toString(4), "UTF-8");
-						
+						toast("Device '" + name + "' saved !");
 						parent.getDisplay().asyncExec(() -> updateDevicesMenu());
 					} catch (Exception ex) {
-						// TODO: handle exception
+						toast("Device '" + name + "' NOT saved ! " + ex.getMessage());
 					}
 				});
 			}
@@ -576,7 +579,7 @@ public class ApplicationComponentEditor extends EditorPart {
 				String name = deviceName.getText().trim();
 				
 				if (findDevice(devicesDefinition, name) != null) {
-					Engine.logStudio.info("Cannot remove the default device '" + name + "'.");
+					toast("Cannot remove the default device '" + name + "' !");
 					return;
 				}
 				
@@ -586,10 +589,13 @@ public class ApplicationComponentEditor extends EditorPart {
 					if (device != null) {
 						devicesDefinitionCustom.remove(device);
 						FileUtils.write(new File(Engine.USER_WORKSPACE_PATH, "studio/devices.json"), devicesDefinitionCustom.toString(4), "UTF-8");
+						toast("Device '" + deviceName.getText() + "' removed !");
 						updateDevicesMenu();
+					} else {
+						toast("Device '" + deviceName.getText() + "' not found !");
 					}
 				} catch (Exception ex) {
-					// TODO: handle exception
+					toast("Device '" + deviceName.getText() + "' NOT removed ! " + ex);
 				}
 			}			
 		});
@@ -843,10 +849,10 @@ public class ApplicationComponentEditor extends EditorPart {
 					JSValue value = browser.executeJavaScriptAndReturnValue("sessionStorage._c8ocafsession_storage_data");
 					try {
 						FileUtils.write(new File(datasetDir, name[0] + ".json"), new JSONArray(value.asString().getValue()).toString(2), "UTF-8");
+						toast("Dataset '" + name[0] + "' saved !");
 						dataset = name[0];
 					} catch (Exception e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
+						toast("Dataset '" + name[0] + "' NOT saved ! " + e1.getMessage());
 					}
 				});
 			}
@@ -864,8 +870,11 @@ public class ApplicationComponentEditor extends EditorPart {
 					boolean ok = MessageDialog.openQuestion(null, "Delete '" + dataset + "' ?", "You really want delete'" + dataset + "' ?");
 					if (ok) {
 						new File(datasetDir, dataset + ".json").delete();
+						toast("Dataset '" + dataset + "' removed !");
 						setDataset("none");
 					}
+				} else {
+					toast("No dataset selected !");
 				}
 			}
 			
@@ -950,6 +959,13 @@ public class ApplicationComponentEditor extends EditorPart {
 			if (browser.getURL().equals("about:blank")) {
 				browser.executeJavaScriptAndReturnValue("loader_log").asFunction().invokeAsync(null, msg);
 			}
+		});
+	}
+	
+	private void toast(String msg) {
+		Engine.logStudio.info("[Toast] " + msg);
+		C8oBrowser.run(() -> {
+			browser.executeJavaScriptAndReturnValue("_c8o_toast").asFunction().invokeAsync(null, msg);
 		});
 	}
 	

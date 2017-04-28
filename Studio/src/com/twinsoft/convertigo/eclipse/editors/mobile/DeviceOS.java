@@ -10,7 +10,7 @@ public enum DeviceOS {
 	
 	private String displayName;
 	private String agent;
-	private Image image;
+	private Image image = null;
 	
 	DeviceOS(String displayName) {
 		this(displayName, displayName);
@@ -35,7 +35,9 @@ public enum DeviceOS {
 	
 	public static void init(Display display) {
 		for (DeviceOS device: values()) {
-			device.image = new Image(display, device.getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/mobileplatforms/images/" + device.name() + "_color_16x16.png"));
+			if (device.image == null) {
+				device.image = new Image(display, device.getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/mobileplatforms/images/" + device.name() + "_color_16x16.png"));
+			}
 		}
 	}
 }

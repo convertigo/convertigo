@@ -1,3 +1,32 @@
+function _c8o_toast(msg) {
+	var toast = document.createElement("div");
+	toast.textContent = msg;
+	toast.setAttribute("style",
+		"position: fixed;" +
+		"z-index: 99999999;" +
+		"top: 0px;" +
+		"margin: 2% 5%;" +
+		"background-color: black;" +
+		"color: white;" +
+		"font-size: 1.5em;" +
+		"font-family: sans-serif" +
+		"padding: 5px;" +
+		"width: 90%;" +
+		"border-radius: 10px;" +
+		"text-align: center;" +
+		"transition: 1s;"
+	);
+	
+	document.body.appendChild(toast);
+	
+	window.setTimeout(function () {
+		toast.style.opacity = 0;
+	}, 2000);
+	window.setTimeout(function () {
+		toast.remove();
+	}, 3000);
+}
+
 function _c8o_remove_all_overlay() {
 	var ol = [...document.getElementsByClassName("_c8o_overlay")];
 	for (i in ol) {
