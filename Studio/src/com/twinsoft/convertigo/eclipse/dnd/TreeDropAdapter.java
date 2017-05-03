@@ -617,7 +617,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 								String xmlData = TextTransfer.getInstance().nativeToJava(transferType).toString();
 								List<Object> list = ConvertigoPlugin.clipboardManagerDND.read(xmlData);
 								DatabaseObject databaseObject = (DatabaseObject) list.get(0);
-								DatabaseObject parentDatabaseObject = ((DatabaseObjectTreeObject)target).getObject();
+								DatabaseObject parentDatabaseObject = ((DatabaseObjectTreeObject)target).getObject().getParent();
 								if (!DatabaseObjectsManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
 									//TODO: Modify DatabaseObjectsManager.acceptDatabaseObjects for pseudo beans
 									return false;
