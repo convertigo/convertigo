@@ -1,15 +1,20 @@
 /*
- * Copyright (c) 2001-2011 Convertigo SA.
+ * Copyright (c) 2001-2017 Convertigo. All Rights Reserved.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; either version 3
- * of the License, or (at your option) any later version.
+ * The copyright to the computer  program(s) herein  is the property
+ * of Convertigo.
+ * The program(s) may  be used  and/or copied  only with the written
+ * permission  of  Convertigo  or in accordance  with  the terms and
+ * conditions  stipulated  in the agreement/contract under which the
+ * program(s) have been supplied.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Convertigo makes  no  representations  or  warranties  about  the
+ * suitability of the software, either express or implied, including
+ * but  not  limited  to  the implied warranties of merchantability,
+ * fitness for a particular purpose, or non-infringement. Convertigo
+ * shall  not  be  liable for  any damage  suffered by licensee as a
+ * result of using,  modifying or  distributing this software or its
+ * derivatives.
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
@@ -18,7 +23,7 @@
  * $Author$
  * $Revision$
  * $Date$
- */
+*/
 
 package com.twinsoft.convertigo.engine.admin.services.engine;
 
@@ -79,13 +84,17 @@ public class GetStatus extends XmlService {
 		Iterator<?> iter = KeyManager.keys.values().iterator();
 		int nbValidKey = 0;
 		boolean licenceMismatch = true;
-		Key seKey = null;
+		Key seKey = null;		
 		while (iter.hasNext()) {
 			Key key = (Key)iter.next();
+			
 			if (key.emulatorID == com.twinsoft.api.Session.EmulIDSE) {
-				seKey = key;
-				licenceMismatch = false;
-				
+				// check (unlimited key or currentKey expiry date later than previous)
+				if ((seKey == null) || (key.expiration == 0) || (key.expiration >= seKey.expiration)) {
+					seKey = key;
+					licenceMismatch = false;
+				}
+				continue;	// skip overdated or overriden session key, only ONE is allowed
 			}
 			nbValidKey += KeyManager.hasExpired(key.emulatorID) ? 0 : (key.bDemo ? 0 : 1);
 		}
@@ -120,6 +129,8 @@ public class GetStatus extends XmlService {
 								(licenceMismatch ? "(! licence mismatch !)": "Convertigo Standard Edition") ) ) 
 						: "Convertigo Community Edition");
 		versionElement.setAttribute("licence-number", iCategory == 15 ? (990000000 + iStations) + "" : "n/a");
+		int snb = KeyManager.getCV(com.twinsoft.api.Session.EmulIDSE);
+		versionElement.setAttribute("licence-sessions", (snb != 0) ? ""+snb:"n/a");
 		versionElement.setAttribute("licence-end", iNumberOfDays != 0 ? (iNumberOfDays < 0 ? "n/a" : endDate) : "unlimited");
 		versionElement.setAttribute("licence-expired", iNumberOfDays != 0 ? (iNumberOfDays < 0 ? "n/a" : currentDate.compareTo(expiredDate) > 0) + "" : "false");
 		rootElement.appendChild(versionElement);

@@ -1,15 +1,20 @@
 <!--
- * Copyright (c) 2001-2014 Convertigo SA.
+ * Copyright (c) 2001-2017 Convertigo. All Rights Reserved.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; either version 3
- * of the License, or (at your option) any later version.
+ * The copyright to the computer  program(s) herein  is the property
+ * of Convertigo.
+ * The program(s) may  be used  and/or copied  only with the written
+ *  permission  of  Convertigo  or in accordance  with  the terms and
+ * conditions  stipulated  in the agreement/contract under which the
+ * program(s) have been supplied.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Convertigo makes  no  representations  or  warranties  about  the
+ * suitability of the software, either express or implied, including
+ * but  not  limited  to  the implied warranties of merchantability,
+ * fitness for a particular purpose, or non-infringement. Convertigo
+ * shall  not  be  liable for  any damage  suffered by licensee as a
+ * result of using,  modifying or  distributing this software or its
+ * derivatives.
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
@@ -36,19 +41,25 @@
 				<td><b>Total</b></td>
 				<td align="right" class="key-category-total"></td>
 				<td>simultaneous connections</td>
+				<td width="15%">&nbsp;</td>
+				<td width="5%"></td>
 			</tr>
 			<tr class="main_even">
 				<td>In use</td>
 				<td align="right" class="key-category-used"></td>
 				<td>simultaneous connections</td>
+				<td width="15%">&nbsp;</td>
+				<td width="5%"></td>
 			</tr>
 			<tr class="main_odd">
 				<td>Remaining</td>
 				<td align="right" class="key-category-remaining"></td>
 				<td>simultaneous connections</td>
+				<td width="15%">&nbsp;</td>
+				<td width="5%"></td>
 			</tr>
 			<tr>
-				<td colspan="3"><hr></td>
+				<td colspan="5"><hr></td>
 			</tr>
 		</table>
 	</div>
@@ -57,7 +68,10 @@
 		<tr class="key-content">
 			<td width="30%" class="key-text"></td>
 			<td width="100px" align="right" class="key-value"></td>
-			<td class="key-connections">simultaneous connections <span class="key-expired">(evaluation period expired)</span></td>
+			<td class="key-connections">simultaneous connections<span class="key-expired" style="color:red;">&nbsp;&nbsp;(evaluation period expired)</span></td>
+			<td width="15%"><span class="key-expiration"></span></td>
+			<td width="5%" style="text-align:center;">
+			<a class="symbolDelete key-click" onclick="removeKey('')" href="#"><img style="height:1.4em;" border="0" title="Delete" src="images/convertigo-administration-picto-delete.png"></a>
 		</tr>
 	</table>
 </div>

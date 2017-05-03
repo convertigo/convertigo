@@ -1,15 +1,20 @@
 /*
- * Copyright (c) 2001-2014 Convertigo SA.
+ * Copyright (c) 2001-2017 Convertigo. All Rights Reserved.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; either version 3
- * of the License, or (at your option) any later version.
+ * The copyright to the computer  program(s) herein  is the property
+ * of Convertigo.
+ * The program(s) may  be used  and/or copied  only with the written
+ * permission  of  Convertigo  or in accordance  with  the terms and
+ * conditions  stipulated  in the agreement/contract under which the
+ * program(s) have been supplied.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Convertigo makes  no  representations  or  warranties  about  the
+ * suitability of the software, either express or implied, including
+ * but  not  limited  to  the implied warranties of merchantability,
+ * fitness for a particular purpose, or non-infringement. Convertigo
+ * shall  not  be  liable for  any damage  suffered by licensee as a
+ * result of using,  modifying or  distributing this software or its
+ * derivatives.
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
@@ -72,8 +77,11 @@ function engine_GetStatus_update() {
 		$("#statusBuildFilename").html($(xml).find("build").attr("filename"));	
 		
 		$("#statusLicenceType").text($(xml).find("version").attr("licence-type"));	
-		$("#statusLicenceNumber").text($(xml).find("version").attr("licence-number"));	
-		$("#statusLicenceEndDate").text($(xml).find("version").attr("licence-end"));
+		$("#statusLicenceNumber").text($(xml).find("version").attr("licence-number"));
+		var lses = $(xml).find("version").attr("licence-sessions");
+		$("#statusLicenceSessions").text(lses == "" ? "n/a":lses);
+		var lend = $(xml).find("version").attr("licence-end");
+		$("#statusLicenceEndDate").text(lend == "" ? "n/a":dateFormat(lend, "ddd, mmm dS yyyy"));
 		
 		if ($(xml).find("version").attr("licence-expired") === "true") {
 			$("#statusLicenceEndDate").css("color", "red");
@@ -100,17 +108,17 @@ function init_date_started_from(instance){
 
 
 function engine_GetStatus_update_hour(dateSince1970,instance){	
-	var newDate=(new Date()).getTime();	
-	var diff=newDate-dateSince1970;
-	diff/=1000;//time in seconds
-	var seconds=parseInt(diff%60);
-	diff/=60;//time in minutes
-	var minutes=parseInt(diff%60);
-	diff/=60;//time in hours
-	var hours=parseInt(diff%24);
-	var days=parseInt(diff/24);//time in days
+	var newDate = new Date().getTime();	
+	var diff = newDate - dateSince1970;
+	diff /= 1000;//time in seconds
+	var seconds = parseInt(diff % 60);
+	diff /= 60;//time in minutes
+	var minutes = parseInt(diff % 60);
+	diff /= 60;//time in hours
+	var hours = parseInt(diff % 24);
+	var days = parseInt(diff / 24);//time in days
 	
-	if(instance==instanceUpdateDate){
+	if (instance == instanceUpdateDate) {
 		$("#statusStartDateRunningIE").html(""+
 				days+" day"+plurialSuffix(days)+", "+
 				hours+" hour"+plurialSuffix(hours)+", "+
