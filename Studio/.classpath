@@ -114,7 +114,7 @@
 	<classpathentry kind="lib" path="lib/internal/ms.jar"/>
 	<classpathentry kind="lib" path="lib/internal/netscape.jar"/>
 	<classpathentry kind="lib" path="lib/internal/phaos.jar"/>
-	<classpathentry kind="lib" path="lib/internal/tas-v42667.jar" sourcepath="/ConvertigoLibs/src"/>
+	<classpathentry kind="lib" path="lib/internal/tas-v43225.jar" sourcepath="/ConvertigoLibs/src"/>
 	<classpathentry kind="lib" path="lib/internal/twinj-v41019.jar"/>
 	<classpathentry kind="lib" path="lib/internal/ui-090918.jar"/>
 	<classpathentry kind="lib" path="lib/internal/util-v41019.jar" sourcepath="/ConvertigoLibs/src"/>
