@@ -106,7 +106,7 @@
 	<classpathentry kind="lib" path="lib/hsqldb.jar"/>
 	<classpathentry kind="lib" path="lib/httpclientAuthHelper.jar"/>
 	<classpathentry kind="lib" path="lib/internal/api-v42641.jar" sourcepath="/ConvertigoLibs/src"/>
-	<classpathentry kind="lib" path="lib/internal/aviva-111120.jar"/>
+	<classpathentry kind="lib" path="lib/internal/aviva-111123.jar"/>
 	<classpathentry kind="lib" path="lib/internal/bull-v24323.jar"/>
 	<classpathentry kind="lib" path="lib/internal/comm.jar"/>
 	<classpathentry kind="lib" path="lib/internal/crysec-090918.jar"/>
