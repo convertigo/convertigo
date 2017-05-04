@@ -219,4 +219,9 @@ public class AttributeStep extends Step implements ISchemaAttributeGenerator, IS
 		addXmlSchemaAnnotation(attribute);
 		return attribute;
 	}
+
+	@Override
+	public boolean isOutput() {
+		return true;
+	}
 }

@@ -32,6 +32,8 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
+import com.twinsoft.convertigo.beans.steps.AttributeStep;
+import com.twinsoft.convertigo.beans.steps.XMLAttributeStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
@@ -53,10 +55,16 @@ public class OutputStepAction extends MyAbstractAction {
 		IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 		TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
 		if (treeObject instanceof StepTreeObject) {
-			output = !((StepTreeObject)treeObject).getObject().isOutput();
-			String actionText = output ? "Output true":"Output false";
-			actionText += recurse ? " recursively":"";
-			action.setText(actionText);
+			Step step = ((StepTreeObject) treeObject).getObject();
+			if (step instanceof AttributeStep || step instanceof XMLAttributeStep) {
+				action.setText("Attribute always output true.");
+				action.setEnabled(false);
+			} else {
+				output = !step.isOutput();
+				String actionText = output ? "Output true":"Output false";
+				actionText += recurse ? " recursively":"";
+				action.setText(actionText);
+			}
 		}
 	}
 

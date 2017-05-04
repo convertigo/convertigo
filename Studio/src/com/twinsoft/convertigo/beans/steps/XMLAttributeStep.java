@@ -207,4 +207,9 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer, ISch
 		addXmlSchemaAnnotation(attribute);
 		return attribute;
 	}
+
+	@Override
+	public boolean isOutput() {
+		return true;
+	}
 }
