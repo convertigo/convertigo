@@ -35,6 +35,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 
 @DboCategoryInfo(
+		getCategoryId = "Variable",
 		getCategoryName = "Variable",
 		getIconClassCSS = "convertigo-action-newVariable"
 	)

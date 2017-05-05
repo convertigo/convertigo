@@ -10,16 +10,22 @@ import org.w3c.dom.Element;
 
 public class DboCategoryData {
 
+	private String id;
 	private String name;
 	private String iconClassCSS;
 	private Map<String, DboBeansData> dboBeansMap;
 
-	public DboCategoryData(String name, String iconClassCSS) {
+	public DboCategoryData(String id, String name, String iconClassCSS) {
+		this.id = id;
 		this.name = name;
 		this.iconClassCSS = iconClassCSS;
 		dboBeansMap = new LinkedHashMap<>();
 	}
 
+	public String getId() {
+		return id;
+	}
+	
 	public String getName() {
 		return name;
 	}
@@ -61,6 +67,7 @@ public class DboCategoryData {
 	public Element toXml(Document document) {
 		// Create category
 		Element eCategory = document.createElement("category");
+		eCategory.setAttribute("id", id);
 		eCategory.setAttribute("name", name);
 		eCategory.setAttribute("icon", iconClassCSS);
 
@@ -75,8 +82,8 @@ public class DboCategoryData {
 				eBean.setAttribute("displayName", dboBeanData.getDisplayName());
 
 				String classname =  dboBeanData.getClassname();
-				classname = classname.replace("class ", "").replaceAll("\\.", "-") + "-32";
 				eBean.setAttribute("classname", classname);
+				eBean.setAttribute("icon", classname.replaceAll("\\.", "-") + "-32");
 
 				eBean.setAttribute("description", dboBeanData.getHtmlDescription());
 				eBean.setAttribute("selectedByDefault", Boolean.toString(dboBeanData.isSelectedByDefault()));

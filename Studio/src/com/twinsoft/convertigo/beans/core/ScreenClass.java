@@ -39,6 +39,7 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
  * This class defines a screen class.
  */
 @DboCategoryInfo(
+		getCategoryId = "ScreenClass",
 		getCategoryName = "Screen class",
 		getIconClassCSS = "convertigo-action-newScreenclass"
 	)
@@ -105,19 +106,30 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer, ICon
     	}
     }
     
-    @Override
-    public void add(DatabaseObject databaseObject) throws EngineException {
-        if (databaseObject instanceof Criteria)
-            addCriteria((Criteria) databaseObject);
-        else if (databaseObject instanceof ExtractionRule)
-            addExtractionRule((ExtractionRule) databaseObject);
-        else if (databaseObject instanceof Sheet)
+	@Override
+	public void add(DatabaseObject databaseObject, Long after) throws EngineException {
+        if (databaseObject instanceof Criteria) {
+            addCriteria((Criteria) databaseObject, after);
+        }
+        else if (databaseObject instanceof ExtractionRule) {
+            addExtractionRule((ExtractionRule) databaseObject, after);
+        }
+        else if (databaseObject instanceof Sheet) {
             addSheet((Sheet) databaseObject);
-        else if (databaseObject instanceof ScreenClass)
+        }
+        else if (databaseObject instanceof ScreenClass) {
             addInheritedScreenClass((ScreenClass) databaseObject);
+        }
         else if (databaseObject instanceof BlockFactory) {
         	// do nothing as this is done by the JavelinScreenClass that inherits this class
-        } else throw new EngineException("You cannot add to a screen class a database object of type " + databaseObject.getClass().getName());
+        } else {
+        	throw new EngineException("You cannot add to a screen class a database object of type " + databaseObject.getClass().getName());
+        }		
+	}
+    
+    @Override
+    public void add(DatabaseObject databaseObject) throws EngineException {
+    	add(databaseObject, null);
     }
 
     @Override
@@ -139,7 +151,7 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer, ICon
      *
      * @param criteria the criteria to add.
      */
-    public void addCriteria(Criteria criteria) throws EngineException {
+    public void addCriteria(Criteria criteria, Long after) throws EngineException {
     	checkSubLoaded();
     	
 		String newDatabaseObjectName = getChildBeanName(vCriterias, criteria.getName(), criteria.bNew);
@@ -149,11 +161,18 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer, ICon
         
         super.add(criteria);
 
-        if (!criteria.bNew && !handlePriorities)
+        if (!criteria.bNew && !handlePriorities) {
         	initializeOrderedCriterias();
-        else insertOrderedCriteria(criteria,null);
+        }
+        else {
+        	insertOrderedCriteria(criteria, after);
+        }
     }
-
+    
+    public void addCriteria(Criteria criteria) throws EngineException {
+    	addCriteria(criteria, null);
+    }
+    
     public void insertOrderedCriteria(Criteria criteria, Long after) {
     	List<Long> ordered = orderedCriterias.get(0);
     	int size = ordered.size();
@@ -270,16 +289,22 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer, ICon
      *
      * @param extractionRule the ExtractionRule to add.
      */
-    public void addExtractionRule(ExtractionRule extractionRule) throws EngineException {
+    public void addExtractionRule(ExtractionRule extractionRule, Long after) throws EngineException {
     	checkSubLoaded();
 		String newDatabaseObjectName = getChildBeanName(vExtractionRules, extractionRule.getName(), extractionRule.bNew);
 		extractionRule.setName(newDatabaseObjectName);
         vExtractionRules.add(extractionRule);
         super.add(extractionRule);
-        if (!extractionRule.bNew && !handlePriorities)
+        if (!extractionRule.bNew && !handlePriorities) {
         	initializeOrderedExtractionRules();
-        else insertOrderedExtractionRule(extractionRule,null);
-        
+        }
+        else {
+        	insertOrderedExtractionRule(extractionRule, after);
+        }
+    }
+    
+    public void addExtractionRule(ExtractionRule extractionRule) throws EngineException {
+    	addExtractionRule(extractionRule, null);
     }
 
     public void insertOrderedExtractionRule(ExtractionRule extractionrule, Long after) {

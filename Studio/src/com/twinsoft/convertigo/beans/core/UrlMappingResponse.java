@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.beans.core;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 
 @DboCategoryInfo(
+		getCategoryId = "UrlMappingResponse",
 		getCategoryName = "Response",
 		getIconClassCSS = "convertigo-action-newUrlMappingResponse"
 	)

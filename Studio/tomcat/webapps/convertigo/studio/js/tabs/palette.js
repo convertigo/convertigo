@@ -14,6 +14,8 @@ function Palette(id) {
 	// Data received from the service GetNewBeans
 	this.data = null;
 
+	this.currentCategory = null;
+	
 	/*
 	 * this.categoriesToSubCategoriesXml = {}
 	 * Map to keep the sub categories of each category
@@ -35,6 +37,8 @@ Palette.prototype.update = function (data) {
 	
 	var that = this;
 	
+	that.currentCategory = null;
+
 	// Keep data for the "back" button when we go from the sub categories to the categories page
 	that.data = data;
 	that.emptyCategoriesToSubCategoriesXml();
@@ -45,19 +49,25 @@ Palette.prototype.update = function (data) {
 	$(that.separator).remove();
 	$(that.divDescription).remove();
 	
-	// Title of the categoris page
-	$(that.divContainer).append($("<h2/>", {
-		text: "Please select a category."
-	}));
+	var $categories = $(data).find(">category");
+	
+	// Title of the categories page
+	if ($categories.length) {
+		$(that.divContainer).append($("<h2/>", {
+			text: "Please select a category."
+		}));
+	}
 
 	// Create all div categories
-	$(data).find(">category").each(function () {
+	$categories.each(function () {
 		// Keep the sub categories of the current category
 		var categoryName = $(this).attr("name");
+		var id = $(this).attr("id");
+
 		that.categoriesToSubCategoriesXml[categoryName] = $(this).children();
 		
 		// Divs icon + text
-		var $divCategoryIcon = $("<div/>", {
+		var $divCategoryIcon = $("<i/>", {
 			"class": $(this).attr("icon")
 		});
 		var $divCategoryName = $("<span/>", {
@@ -67,8 +77,9 @@ Palette.prototype.update = function (data) {
 		// Create the div category
 		var $divCategory = $("<div/>", {
 		        "class": "category",
-		        click: function() {
-		            that.createSubCategories(categoryName)
+		        click: function () {
+		        	that.currentCategory =  id;
+		            that.createSubCategories(categoryName);
 		        }
 		    })
 		    .append($divCategoryIcon)
@@ -77,6 +88,10 @@ Palette.prototype.update = function (data) {
 		// Add the current category
 		$(that.divContainer).append($divCategory);
 	});
+};
+
+Palette.prototype.getCurrentCategory = function () {
+	return this.currentCategory;
 };
 
 Palette.prototype.emptyCategoriesToSubCategoriesXml = function () {
@@ -152,8 +167,8 @@ Palette.prototype.createSubCategories = function (categoryName) {
 			var bean = this;
 			
 			// Divs icon + text
-			var $divBeanIcon = $("<div/>", {
-				"class": $(this).attr("classname")
+			var $divBeanIcon = $("<i/>", {
+				"class": $(this).attr("icon")
 			});
 			var $divBeanText = $("<span/>", {
 				text: $(this).attr("displayName")
@@ -161,8 +176,7 @@ Palette.prototype.createSubCategories = function (categoryName) {
 			
 			// Create the div bean
 			var $divBean = $("<div/>", {
-					// Can drag it to the projects view
-			        "draggable": "true",
+					"data-beanclass": $(this).attr("classname"),
 			        click: function() {
 			        	// Update only if we select a different bean
 			        	if (lastSelectedBean !== this) {

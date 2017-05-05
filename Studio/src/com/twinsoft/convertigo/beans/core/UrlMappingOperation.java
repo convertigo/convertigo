@@ -32,6 +32,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.EngineException;
 
 @DboCategoryInfo(
+		getCategoryId = "UrlMappingOperation",
 		getCategoryName = "Operation",
 		getIconClassCSS = "convertigo-action-newUrlMappingOperation"
 	)

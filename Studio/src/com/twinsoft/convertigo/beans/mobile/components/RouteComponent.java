@@ -39,6 +39,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.EngineException;
 
 @DboCategoryInfo(
+		getCategoryId = "RouteComponent",
 		getCategoryName = "Navigation Route",
 		getIconClassCSS = "convertigo-action-newRouteComponent"
 	)
@@ -259,18 +260,22 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
 	 */
 	transient private List<RouteEventComponent> vRouteEventComponents = new LinkedList<RouteEventComponent>();
 	
-	protected void addRouteEventComponent(RouteEventComponent routeEventComponent) throws EngineException {
+	protected void addRouteEventComponent(RouteEventComponent routeEventComponent, Long after) throws EngineException {
 		checkSubLoaded();
 		String newDatabaseObjectName = getChildBeanName(vRouteEventComponents, routeEventComponent.getName(), routeEventComponent.bNew);
 		routeEventComponent.setName(newDatabaseObjectName);
 		vRouteEventComponents.add(routeEventComponent);
 		super.add(routeEventComponent);
 		
-		insertOrderedEvent(routeEventComponent, null);
+		insertOrderedEvent(routeEventComponent, after);
 		
 		if (routeEventComponent.bNew) {
 			getParent().markRouteAsDirty();
 		}
+	}
+	
+	protected void addRouteEventComponent(RouteEventComponent routeEventComponent) throws EngineException {
+		addRouteEventComponent(routeEventComponent, null);
 	}
 
 	protected void removeRouteEventComponent(RouteEventComponent routeEventComponent) throws EngineException {
@@ -292,19 +297,22 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
 	 */
 	transient private List<RouteActionComponent> vRouteActionComponents = new LinkedList<RouteActionComponent>();
 	
-	protected void addRouteActionComponent(RouteActionComponent routeActionComponent) throws EngineException {
+	protected void addRouteActionComponent(RouteActionComponent routeActionComponent, Long after) throws EngineException {
 		checkSubLoaded();
 		String newDatabaseObjectName = getChildBeanName(vRouteActionComponents, routeActionComponent.getName(), routeActionComponent.bNew);
 		routeActionComponent.setName(newDatabaseObjectName);
 		vRouteActionComponents.add(routeActionComponent);
 		super.add(routeActionComponent);
 		
-		insertOrderedAction(routeActionComponent, null);
+		insertOrderedAction(routeActionComponent, after);
 		
 		if (routeActionComponent.bNew) {
 			getParent().markRouteAsDirty();
 		}
-		
+	}
+	
+	protected void addRouteActionComponent(RouteActionComponent routeActionComponent) throws EngineException {
+		addRouteActionComponent(routeActionComponent, null);
 	}
 
 	protected void removeRouteActionComponent(RouteActionComponent routeActionComponent) throws EngineException {
@@ -330,16 +338,21 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
 	}
 
 	@Override
-    public void add(DatabaseObject databaseObject) throws EngineException {
+	public void add(DatabaseObject databaseObject, Long after) throws EngineException {
 		if (databaseObject instanceof RouteEventComponent) {
-			addRouteEventComponent((RouteEventComponent) databaseObject);
+			addRouteEventComponent((RouteEventComponent) databaseObject, after);
 		}
 		else if (databaseObject instanceof RouteActionComponent) {
-			addRouteActionComponent((RouteActionComponent) databaseObject);
+			addRouteActionComponent((RouteActionComponent) databaseObject, after);
 		}
 		else {
 			throw new EngineException("You cannot add to a route component a database object of type " + databaseObject.getClass().getName());
-		}
+		}		
+	}
+	
+	@Override
+    public void add(DatabaseObject databaseObject) throws EngineException {
+		add(databaseObject, null);
     }
 
     @Override

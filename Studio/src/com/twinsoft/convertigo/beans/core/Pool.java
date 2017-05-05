@@ -30,6 +30,7 @@ import com.twinsoft.convertigo.engine.util.StringUtils;
  * This class manages a host application.
  */
 @DboCategoryInfo(
+		getCategoryId = "Pool",
 		getCategoryName = "Pool",
 		getIconClassCSS = "convertigo-action-newPool"
 	)

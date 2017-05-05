@@ -36,6 +36,7 @@ import com.twinsoft.convertigo.engine.EngineException;
  * and can have its own properties editor.</p>
  */
 @DboCategoryInfo(
+		getCategoryId = "ExtractionRule",
 		getCategoryName = "Extraction rule",
 		getIconClassCSS = "convertigo-action-newExtractionRule"
 	)

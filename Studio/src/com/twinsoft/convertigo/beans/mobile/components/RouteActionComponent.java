@@ -33,6 +33,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
 @DboCategoryInfo(
+		getCategoryId = "RouteAction",
 		getCategoryName = "Action",
 		getIconClassCSS = "convertigo-action-newRouteActionComponent"
 	)

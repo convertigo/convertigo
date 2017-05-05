@@ -37,6 +37,7 @@ import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
 @DboCategoryInfo(
+		getCategoryId = "TestCase",
 		getCategoryName = "Test case",
 		getIconClassCSS = "convertigo-action-newTransactionTestCase"
 	)
@@ -74,10 +75,18 @@ public class TestCase extends DatabaseObject implements IVariableContainer, ICon
 	}
 	
 	@Override
+	public void add(DatabaseObject databaseObject, Long after) throws EngineException {
+        if (databaseObject instanceof TestCaseVariable) {
+            addVariable((TestCaseVariable) databaseObject, after);
+        }
+        else {
+        	throw new EngineException("You cannot add to a test case a database object of type " + databaseObject.getClass().getName());
+        }		
+	}
+	
+	@Override
 	public void add(DatabaseObject databaseObject) throws EngineException {
-        if (databaseObject instanceof TestCaseVariable)
-            addVariable((TestCaseVariable) databaseObject);
-        else throw new EngineException("You cannot add to a test case a database object of type " + databaseObject.getClass().getName());
+		add(databaseObject, null);
 	}
 
 	@Override
@@ -153,13 +162,17 @@ public class TestCase extends DatabaseObject implements IVariableContainer, ICon
 		return vVariables.size();
 	}
 	
-    public void addVariable(TestCaseVariable variable) throws EngineException {
+    public void addVariable(TestCaseVariable variable, Long after) throws EngineException {
     	checkSubLoaded();
 		String newDatabaseObjectName = getChildBeanName(vVariables, variable.getName(), variable.bNew);
 		variable.setName(newDatabaseObjectName);
 		vVariables.add(variable);
         variable.setParent(this);
-        insertOrderedVariable(variable,null);
+        insertOrderedVariable(variable, after);
+    }
+	
+    public void addVariable(TestCaseVariable variable) throws EngineException {
+    	addVariable(variable, null);
     }
 	
     private void insertOrderedVariable(Variable variable, Long after) {

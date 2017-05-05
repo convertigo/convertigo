@@ -62,13 +62,18 @@ public abstract class StatementWithExpressions extends Statement implements ICon
 	}
 
 	@Override
-    public void add(DatabaseObject databaseObject) throws EngineException {
+	public void add(DatabaseObject databaseObject, Long after) throws EngineException {
         if (databaseObject instanceof Statement) {
         	addStatement((Statement) databaseObject);
         }
         else {
             throw new EngineException("You cannot add to a statement a database object of type " + databaseObject.getClass().getName());
         }
+	}
+	
+	@Override
+    public void add(DatabaseObject databaseObject) throws EngineException {
+		add(databaseObject, null);
     }
 	
 	@Override

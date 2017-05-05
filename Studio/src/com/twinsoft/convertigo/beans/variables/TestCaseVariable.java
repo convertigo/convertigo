@@ -27,6 +27,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.Variable;
 
 @DboCategoryInfo(
+		getCategoryId = "Variable",
 		getCategoryName = "Variable",
 		getIconClassCSS = "convertigo-action-newTestCaseVariable"
 	)

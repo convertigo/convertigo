@@ -31,6 +31,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.EngineException;
 
 @DboCategoryInfo(
+		getCategoryId = "RouteEventComponent",
 		getCategoryName = "Event",
 		getIconClassCSS = "convertigo-action-newRouteEventComponent"
 	)

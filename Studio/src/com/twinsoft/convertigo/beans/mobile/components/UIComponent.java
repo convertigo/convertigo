@@ -38,6 +38,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.EngineException;
 
 @DboCategoryInfo(
+		getCategoryId = "UIComponent",
 		getCategoryName = "UI Component",
 		getIconClassCSS = "convertigo-action-newUIComponent"
 	)
@@ -209,7 +210,7 @@ public abstract class UIComponent extends MobileComponent implements ITemplateGe
 	 */
 	transient private List<UIComponent> vUIComponents = new LinkedList<UIComponent>();
 	
-	protected void addUIComponent(UIComponent uiComponent) throws EngineException {
+	protected void addUIComponent(UIComponent uiComponent, Long after) throws EngineException {
 		checkSubLoaded();
 		
 		boolean isNew = uiComponent.bNew;
@@ -221,7 +222,7 @@ public abstract class UIComponent extends MobileComponent implements ITemplateGe
 		vUIComponents.add(uiComponent);
 		uiComponent.setParent(this);
 		
-        insertOrderedComponent(uiComponent,null);
+        insertOrderedComponent(uiComponent, after);
         
         if (isNew || isCut) {
         	if (uiComponent instanceof UIStyle) {
@@ -234,6 +235,10 @@ public abstract class UIComponent extends MobileComponent implements ITemplateGe
         		}
         	}
         }
+	}
+	
+	protected void addUIComponent(UIComponent uiComponent) throws EngineException {
+		addUIComponent(uiComponent, null);
 	}
 
 	protected void removeUIComponent(UIComponent uiComponent) throws EngineException {
@@ -284,12 +289,17 @@ public abstract class UIComponent extends MobileComponent implements ITemplateGe
 	}
 
 	@Override
-    public void add(DatabaseObject databaseObject) throws EngineException {
+	public void add(DatabaseObject databaseObject, Long after) throws EngineException {
 		if (databaseObject instanceof UIComponent) {
-			addUIComponent((UIComponent) databaseObject);
+			addUIComponent((UIComponent) databaseObject, after);
 		} else {
 			throw new EngineException("You cannot add to a page component a database object of type " + databaseObject.getClass().getName());
-		}
+		}		
+	}
+	
+	@Override
+    public void add(DatabaseObject databaseObject) throws EngineException {
+		add(databaseObject, null);
     }
 
     @Override

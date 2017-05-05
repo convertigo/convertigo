@@ -86,6 +86,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 
 	@Retention(RetentionPolicy.RUNTIME)
 	public @interface DboCategoryInfo {
+    	String getCategoryId();
     	String getCategoryName();
     	String getIconClassCSS();
 	}

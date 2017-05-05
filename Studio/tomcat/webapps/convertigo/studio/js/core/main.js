@@ -36,6 +36,7 @@ var Main = {
 	        "injector-utils",
 	        "modal-utils",
 	        "string-utils",
+	        "variable-utils",
 
 	        /**
 	         * Views
@@ -104,6 +105,13 @@ var Main = {
 						projectsView.tree.jstree().refresh(true);
 					}
 				});
+				
+				// Automatically open these tabs (only works with Che)
+				$("div[title='Projects']").find(":first").click();
+				$("div[title='Information']").find(":first").click();
+				
+				// Open palette (for the moment)
+				palette.focus();
 
 				// Properties view
 				PropertiesView.init(".informationView");
@@ -124,8 +132,8 @@ var Main = {
 		    	 */
 		        jquery: Convertigo.getBaseConvertigoUrl("scripts/jquery2.min"),
 		        jstree: Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jstree/jstree-3.3.3.min"),
-		        jstreegrid: Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jstree/jstreegrid-3.5.14"),
-		        jstreeutils: Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jstree/jstreeutils"),
+		        jstreegrid: Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jstree/plugins/jstreegrid-3.5.14"),
+		        jstreeutils: Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jstree/plugins/jstreeutils"),
 		        "jquery-ui": Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jquery-ui.min-1.12.1"),
 		        "jquery.modal": Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jquery.modal.min-0.8.0"),
 		        accordion: Convertigo.getBaseConvertigoStudioUrl("js/libs/accordion"),
@@ -151,6 +159,7 @@ var Main = {
 		        "injector-utils": Convertigo.getBaseConvertigoStudioUrl("js/utils/injector-utils"),
 		        "modal-utils": Convertigo.getBaseConvertigoStudioUrl("js/utils/modal-utils"),
 		        "string-utils": Convertigo.getBaseConvertigoStudioUrl("js/utils/string-utils"),
+		        "variable-utils": Convertigo.getBaseConvertigoStudioUrl("js/utils/variable-utils"),
 
 		        /**
 		         * Views
@@ -167,6 +176,7 @@ var Main = {
 	}
 };
 
+// docReady is defined in convertigo.js
 docReady(function () {
 	var baseConvertigoUrl = "http://localhost:18080/";
 	var authUserName = "admin";

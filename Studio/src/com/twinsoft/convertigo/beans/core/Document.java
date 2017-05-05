@@ -33,6 +33,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 @DboCategoryInfo(
+		getCategoryId = "Document",
 		getCategoryName = "Document",
 		getIconClassCSS = "convertigo-action-newDocument"
 	)

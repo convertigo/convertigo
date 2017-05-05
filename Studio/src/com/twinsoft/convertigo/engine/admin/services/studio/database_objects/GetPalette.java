@@ -46,6 +46,7 @@ import com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
@@ -54,7 +55,6 @@ import com.twinsoft.convertigo.engine.dbo_explorer.DboBeans;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboCategory;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboExplorerManager;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboGroup;
-import com.twinsoft.convertigo.engine.dbo_explorer.DboParent;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboUtils;
 import com.twinsoft.convertigo.engine.studio.responses.XmlResponseFactory;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -68,11 +68,12 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 public class GetPalette extends XmlService {
 	
 	// Get the bean class of a folder from its name
-	private static Map<String, Class<? extends DatabaseObject>> folderNameToBeanClass = new HashMap<>(24);
+	public static Map<String, Class<? extends DatabaseObject>> folderNameToBeanClass = new HashMap<>(24);
 	static {
 		folderNameToBeanClass.put("Listener", Listener.class);
 		folderNameToBeanClass.put("Transaction", Transaction.class);
 		//folderNameToBeanClass.put("Handler", Handler);
+	    folderNameToBeanClass.put("ScreenClass", ScreenClass.class);
 		folderNameToBeanClass.put("InheritedScreenClass", ScreenClass.class);
 		folderNameToBeanClass.put("Sheet", Sheet.class);
 		folderNameToBeanClass.put("Pool", Pool.class);
@@ -112,13 +113,7 @@ public class GetPalette extends XmlService {
 		
 		try {
 			List<String> defaultDboList = new ArrayList<>();
-
 			Class<? extends DatabaseObject> parentObjectClass = dbo.getClass();
-
-			// TODO: Engine log
-			// Enumeration of the beans
-			// ConvertigoPlugin.logDebug2("Exploring Convertigo database objects
-			// list...");
 
 			Map<String, DboCategoryData> categoryNameToDboCategory = new HashMap<>();
 			DboExplorerManager manager = new DboExplorerManager();
@@ -137,71 +132,66 @@ public class GetPalette extends XmlService {
 								Class<DatabaseObject> beanClass = GenericUtils.cast(Class.forName(className));
 								DboCategoryInfo dboCategoryInfo = DatabaseObject.getDboGroupInfo(beanClass);
 
-								if (dboCategoryInfo == null) {
-									continue;
-								}
+                                if (dboCategoryInfo == null) {
+                                    continue;
+                                }
 
-								// If one of these cases, do not add the category
-								if (dbo instanceof ScreenClass) {
-									ScreenClass sc = (ScreenClass) dbo;
-									// Do not show Criteria category if it is the default Screen Class
-									if (sc.getDepth() == 0 && dboCategoryInfo.equals(DatabaseObject.getDboGroupInfo(Criteria.class))) {
-										continue;
-									}
-								}
-								else if (dbo instanceof CicsConnector) {
-									// Do not show Pool category
-									if (dboCategoryInfo.equals(DatabaseObject.getDboGroupInfo(Pool.class))) {
-										continue;
-									}
-								}
-								else if (dbo instanceof JavelinConnector) {
-									// Do not show ScreenClass category
-									if (dboCategoryInfo.equals(DatabaseObject.getDboGroupInfo(ScreenClass.class))) {
-										continue;
-									}
-								}
-								else if (dbo instanceof SqlConnector) {
-									// Do not show Pool category
-									if (dboCategoryInfo.equals(DatabaseObject.getDboGroupInfo(Pool.class))) {
-										continue;
-									}
-								}
-								else if (dbo instanceof HtmlConnector) {
-									// Do not show Pool and ScreenClass categories
-									if (dboCategoryInfo.equals(DatabaseObject.getDboGroupInfo(Pool.class)) ||
-										dboCategoryInfo.equals(DatabaseObject.getDboGroupInfo(ScreenClass.class))) {
-										continue;
-									}
-								}
-								else if (dbo instanceof HttpConnector) {
-									// Do not show Pool category
-									if (dboCategoryInfo.equals(DatabaseObject.getDboGroupInfo(Pool.class))) {
-										continue;
-									}
-								}
-								else if (dbo instanceof SiteClipperConnector) {
-									// Do not show Pool and ScreenClass categories
-									if (dboCategoryInfo.equals(DatabaseObject.getDboGroupInfo(Pool.class)) ||
-										dboCategoryInfo.equals(DatabaseObject.getDboGroupInfo(ScreenClass.class))) {
-										continue;
-									}
-								}
-								else if (dbo instanceof Transaction) {
-									// Do not show Statement category
-									if (dboCategoryInfo.equals(DatabaseObject.getDboGroupInfo(Statement.class))) {
-										continue;
-									}
-								}
-
+						        // If one of these cases, do not add the category
+						        if (dbo instanceof ScreenClass) {
+						            ScreenClass sc = (ScreenClass) dbo;
+						            // Do not show Criteria category if it is the default Screen Class
+						            if (sc.getDepth() == 0 && dboCategoryInfo.equals(DatabaseObject.getDboGroupInfo(Criteria.class))) {
+                                        continue;
+						            }
+						        }
+						        else if (dbo instanceof CicsConnector) {
+						            // Do not show Pool category
+						            if (dboCategoryInfo.equals(DatabaseObject.getDboGroupInfo(Pool.class))) {
+                                        continue;
+						            }
+						        }
+						        else if (dbo instanceof JavelinConnector) {
+						            // Do not show ScreenClass category
+						            if (dboCategoryInfo.equals(DatabaseObject.getDboGroupInfo(ScreenClass.class))) {
+                                        continue;
+						            }
+						        }
+						        else if (dbo instanceof SqlConnector) {
+						            // Do not show Pool category
+						            if (dboCategoryInfo.equals(DatabaseObject.getDboGroupInfo(Pool.class))) {
+                                        continue;
+						            }
+						        }
+						        else if (dbo instanceof HtmlConnector) {
+						            // Do not show Pool and ScreenClass categories
+						            if (dboCategoryInfo.equals(DatabaseObject.getDboGroupInfo(Pool.class)) ||
+						                dboCategoryInfo.equals(DatabaseObject.getDboGroupInfo(ScreenClass.class))) {
+                                        continue;
+						            }
+						        }
+						        else if (dbo instanceof HttpConnector) {
+						            // Do not show Pool category
+						            if (dboCategoryInfo.equals(DatabaseObject.getDboGroupInfo(Pool.class))) {
+                                        continue;
+						            }
+						        }
+						        else if (dbo instanceof SiteClipperConnector) {
+						            // Do not show Pool and ScreenClass categories
+						            if (dboCategoryInfo.equals(DatabaseObject.getDboGroupInfo(Pool.class)) ||
+						                dboCategoryInfo.equals(DatabaseObject.getDboGroupInfo(ScreenClass.class))) {
+						                continue;
+						            }
+						        }
+						        else if (dbo instanceof Transaction) {
+						            // Do not show Statement category
+						            if (dboCategoryInfo.equals(DatabaseObject.getDboGroupInfo(Statement.class))) {
+						                continue;
+						            }
+						        }
+								
 								if (bean.isDefault()) {
 									defaultDboList.add(className);
 								}
-
-								// TODO: Engine log
-								// ConvertigoPlugin
-								// .logDebug2("Bean class: " + (beanClass !=
-								// null ? beanClass.getName() : "null"));
 
 								// The bean should derived from
 								// DatabaseObject...
@@ -212,19 +202,8 @@ public class GetPalette extends XmlService {
 										    (databaseObjectClass != null && databaseObjectClass.isAssignableFrom(beanClass)));
 									
 									if (isFromSpecifiedClass) {
-										Collection<DboParent> parents = bean.getParents();
-										boolean bFound = false;
-										for (DboParent possibleParent : parents) {
-											// Check if parent allow inheritance
-											if (Class.forName(possibleParent.getClassName()).equals(parentObjectClass)
-													|| possibleParent.allowInheritance()
-															&& Class.forName(possibleParent.getClassName())
-																	.isAssignableFrom(parentObjectClass)) {
-												bFound = true;
-												break;
-											}
-										}
-
+									    // Check parent
+										boolean bFound = DatabaseObjectsManager.checkParent(parentObjectClass, bean);
 										if (bFound) {
 											String technology = DboUtils.getTechnology(dbo, beanClass);
 	
@@ -246,8 +225,11 @@ public class GetPalette extends XmlService {
 												// Create category
 												DboCategoryData dboCategoryData = categoryNameToDboCategory.get(categoryName);
 												if (dboCategoryData == null) {
-													dboCategoryData = new DboCategoryData(categoryName,
-															dboCategoryInfo.getIconClassCSS());
+													dboCategoryData = new DboCategoryData(
+															dboCategoryInfo.getCategoryId(),
+															categoryName,
+															dboCategoryInfo.getIconClassCSS()
+													);
 													categoryNameToDboCategory.put(categoryName, dboCategoryData);
 												}
 

@@ -63,12 +63,12 @@ import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
+import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboBean;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboBeans;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboCategory;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboExplorerManager;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboGroup;
-import com.twinsoft.convertigo.engine.dbo_explorer.DboParent;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
@@ -160,19 +160,9 @@ public class ObjectsExplorerComposite extends Composite {
 										boolean isFromSpecifiedClass = ((databaseObjectClass == null) ||
 												((databaseObjectClass != null) && (databaseObjectClass.isAssignableFrom(beanClass))));
 										if (isFromSpecifiedClass) {
-											// Check parent
-											Collection<DboParent> parents = bean.getParents();
-											boolean bFound = false;
-											for (DboParent possibleParent : parents) {
-												// Check if parent allow inheritance
-												if (Class.forName(possibleParent.getClassName()).equals(parentObjectClass)||
-													possibleParent.allowInheritance() && Class.forName(possibleParent.getClassName()).isAssignableFrom(parentObjectClass)) {
-														bFound = true;
-														break;
-												}
-											}
-
-											if (bFound) {
+	                                        // Check parent
+	                                        boolean bFound = DatabaseObjectsManager.checkParent(parentObjectClass, bean);
+	                                        if (bFound) {
 												// Check technology if needed
 												if (technology != null) {
 													Collection<String> acceptedTechnologies = bean.getEmulatorTechnologies();

@@ -280,6 +280,18 @@ public class DatabaseObjectsManager implements AbstractManager {
 		return project;
 	}
 	
+	public static boolean checkParent(Class<? extends DatabaseObject> parentObjectClass, DboBean bean) throws ClassNotFoundException {
+        Collection<DboParent> parents = bean.getParents();
+        for (DboParent possibleParent : parents) {
+            // Check if parent allow inheritance
+            if (Class.forName(possibleParent.getClassName()).equals(parentObjectClass) ||
+                possibleParent.allowInheritance() && Class.forName(possibleParent.getClassName()).isAssignableFrom(parentObjectClass)) {
+                    return true;
+            }
+        }
+        return false;
+	}
+	
 	public static boolean acceptDatabaseObjects(DatabaseObject parentObject, DatabaseObject object ) {
 		try {
 			Class<? extends DatabaseObject> parentObjectClass = parentObject.getClass();
@@ -305,19 +317,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 								boolean isFromSpecifiedClass = ((objectClass == null) ||
 										((objectClass != null) && (objectClass.isAssignableFrom(beanClass))));
 								if (isFromSpecifiedClass) {
-									// Check parent
-									Collection<DboParent> parents = bean.getParents();
-									boolean bFound = false;
-									for (DboParent possibleParent : parents) {
-										// Check if parent allow inheritance
-										if (Class.forName(possibleParent.getClassName()).equals(parentObjectClass)||
-											possibleParent.allowInheritance() && Class.forName(possibleParent.getClassName()).isAssignableFrom(parentObjectClass)) {
-												bFound = true;
-												break;
-										}
-									}
-
-									if (bFound) {
+                                    // Check parent
+                                    boolean bFound = checkParent(parentObjectClass, bean);
+                                    if (bFound) {
 										// Check technology if needed
 										String technology = DboUtils.getTechnology(parentObject, objectClass);
 										if (technology != null) {
@@ -340,6 +342,58 @@ public class DatabaseObjectsManager implements AbstractManager {
 			return false;
 		}
 	}
+	
+	public static boolean acceptDatabaseObjects(DatabaseObject parentObject, Class<? extends DatabaseObject> objectClass, Class<? extends DatabaseObject> folderBeanClass) {
+        try {
+            Class<? extends DatabaseObject> parentObjectClass = parentObject.getClass();
+
+            DboExplorerManager manager = new DboExplorerManager();
+            List<DboGroup> groups = manager.getGroups();
+            for (DboGroup group : groups) {
+                List<DboCategory> categories = group.getCategories();
+                for (DboCategory category : categories) {
+                    List<DboBeans> beansCategories  = category.getBeans();
+                    for (DboBeans beansCategory : beansCategories) {
+                        List<DboBean> beans = beansCategory.getBeans();
+                        for (DboBean bean : beans) {
+                            String className = bean.getClassName();
+                            Class<DatabaseObject> beanClass = GenericUtils.cast(Class.forName(className));
+                            
+                            if (beanClass.equals(objectClass)) {
+                                // The bean should derived from DatabaseObject...
+                                boolean isDatabaseObject = (DatabaseObject.class.isAssignableFrom(beanClass));
+    
+                                if (isDatabaseObject) {
+                                    // ... and should derived from the specified class
+                                    boolean isFromSpecifiedClass = ((folderBeanClass == null) ||
+                                            ((folderBeanClass != null) && (folderBeanClass.isAssignableFrom(beanClass))));
+                                    if (isFromSpecifiedClass) {
+                                        // Check parent
+                                        boolean bFound = checkParent(parentObjectClass, bean);
+                                        if (bFound) {
+                                            // Check technology if needed
+                                            String technology = DboUtils.getTechnology(parentObject, objectClass);
+                                            if (technology != null) {
+                                                Collection<String> acceptedTechnologies = bean.getEmulatorTechnologies();
+                                                if (!acceptedTechnologies.isEmpty() && !acceptedTechnologies.contains(technology)) {
+                                                    continue;
+                                                }
+                                            }
+                                            return true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
+        } catch (Exception e) {
+            Engine.logDatabaseObjectManager.error("Unable to load database objects properties.", e);
+            return false;
+        }
+    }
 	
 	public Project getProjectByName(String projectName) throws EngineException {
 		try {

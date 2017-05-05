@@ -23,7 +23,7 @@ public class DboBeanData {
 	}
 
 	public String getClassname() {
-		return getBeanClass().toString();
+		return getBeanClass().getName();
 	}
 
 	public String getHtmlDescription() {

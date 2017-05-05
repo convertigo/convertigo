@@ -42,6 +42,7 @@ import com.twinsoft.convertigo.engine.EngineException;
  * The Connector class is the base class for all connectors.
  */
 @DboCategoryInfo(
+		getCategoryId = "Connector",
 		getCategoryName = "Connector",
 		getIconClassCSS = "convertigo-action-newConnector"
 	)

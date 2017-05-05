@@ -30,6 +30,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
 @DboCategoryInfo(
+		getCategoryId = "UrlMappingParameter",
 		getCategoryName = "Parameter",
 		getIconClassCSS = "convertigo-action-newUrlMappingParameter"
 	)

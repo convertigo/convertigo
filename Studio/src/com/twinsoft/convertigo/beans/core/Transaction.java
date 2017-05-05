@@ -74,6 +74,7 @@ import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
  * user.
  */
 @DboCategoryInfo(
+		getCategoryId = "Transaction",
 		getCategoryName = "Transaction",
 		getIconClassCSS = "convertigo-action-newTransaction"
 	)

@@ -3,6 +3,7 @@ package com.twinsoft.convertigo.beans.core;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 
 @DboCategoryInfo(
+		getCategoryId = "Reference",
 		getCategoryName = "Reference",
 		getIconClassCSS = "convertigo-action-newReference"
 	)

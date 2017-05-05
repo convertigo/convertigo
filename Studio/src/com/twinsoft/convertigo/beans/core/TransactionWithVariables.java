@@ -94,17 +94,22 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		return clonedObject;
 	}
     
-    @Override
-    public void add(DatabaseObject databaseObject) throws EngineException {
+	@Override
+	public void add(DatabaseObject databaseObject, Long after) throws EngineException {
         if (databaseObject instanceof RequestableVariable) {
-            addVariable((RequestableVariable) databaseObject);
+            addVariable((RequestableVariable) databaseObject, after);
         }
         else if (databaseObject instanceof TestCase) {
             addTestCase((TestCase) databaseObject);
         }
         else {
             super.add(databaseObject);
-        }
+        }		
+	}
+    
+    @Override
+    public void add(DatabaseObject databaseObject) throws EngineException {
+    	add(databaseObject, null);
     }
 	
     @Override
@@ -120,7 +125,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
         }
     }
     
-    public void addVariable(RequestableVariable variable) throws EngineException {
+    public void addVariable(RequestableVariable variable, Long after) throws EngineException {
     	checkSubLoaded();
     	
 		String newDatabaseObjectName = getChildBeanName(vVariables, variable.getName(), variable.bNew);
@@ -130,7 +135,11 @@ public abstract class TransactionWithVariables extends Transaction implements IV
         
 		variable.setParent(this);
 		
-		insertOrderedVariable(variable,null);
+		insertOrderedVariable(variable, after);
+    }
+    
+    public void addVariable(RequestableVariable variable) throws EngineException {
+    	addVariable(variable, null);
     }
     
     private void insertOrderedVariable(Variable variable, Long after) {

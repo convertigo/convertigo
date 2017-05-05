@@ -89,6 +89,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 @DboCategoryInfo(
+		getCategoryId = "Sequence",
 		getCategoryName = "Sequence",
 		getIconClassCSS = "convertigo-action-newSequence"
 	)
@@ -447,19 +448,24 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	}
 
 	@Override
-	public void add(DatabaseObject databaseObject) throws EngineException {
+	public void add(DatabaseObject databaseObject, Long after) throws EngineException {
         if (databaseObject instanceof RequestableVariable) {
-            addVariable((RequestableVariable) databaseObject);
+            addVariable((RequestableVariable) databaseObject, after);
         }
         else if (databaseObject instanceof TestCase) {
             addTestCase((TestCase) databaseObject);
         }
         else if (databaseObject instanceof Step) {
-			addStep((Step) databaseObject);
+			addStep((Step) databaseObject, after);
 		}
         else {
             super.add(databaseObject);
-        }
+        }		
+	}
+	
+	@Override
+	public void add(DatabaseObject databaseObject) throws EngineException {
+		add(databaseObject, null);
 	}
 
 	@Override
@@ -686,6 +692,10 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	}
 	
     public void addVariable(RequestableVariable variable) throws EngineException {
+    	addVariable(variable, null);
+    }
+    
+    public void addVariable(RequestableVariable variable, Long after) throws EngineException {
     	checkSubLoaded();
     	
 		String newDatabaseObjectName = getChildBeanName(vVariables, variable.getName(), variable.bNew);
@@ -695,10 +705,14 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
         
         variable.setParent(this);
         
-        insertOrderedVariable(variable,null);
+        insertOrderedVariable(variable, after);
     }
     
 	public void addStep(Step step) throws EngineException {
+		addStep(step, null);
+    }
+	
+	public void addStep(Step step, Long after) throws EngineException {
 		checkSubLoaded();
 		
 		String newDatabaseObjectName = getChildBeanName(vSteps, step.getName(), step.bNew);
@@ -712,7 +726,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
         loadedSteps.put(new Long(step.priority), step);
         addStepListener(step);
         
-       	insertOrderedStep(step,null);
+       	insertOrderedStep(step, after);
     }
 
     public void insertOrderedStep(Step step, Long after) {

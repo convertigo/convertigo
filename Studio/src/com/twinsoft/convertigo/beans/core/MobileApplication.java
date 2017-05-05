@@ -46,6 +46,7 @@ import com.twinsoft.convertigo.engine.util.HttpUtils;
  * This class manages a host application.
  */
 @DboCategoryInfo(
+		getCategoryId = "MobileApplication",
 		getCategoryName = "Mobile application",
 		getIconClassCSS = "convertigo-action-newMobileApplication"
 	)

@@ -208,13 +208,18 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 	}
 	
 	@Override
-    public void add(DatabaseObject databaseObject) throws EngineException {
+	public void add(DatabaseObject databaseObject, Long after) throws EngineException {
         if (databaseObject instanceof Step) {
-        	addStep((Step) databaseObject);
+        	addStep((Step) databaseObject, after);
         }
         else {
         	super.add(databaseObject);
-        }
+        }		
+	}
+	
+	@Override
+    public void add(DatabaseObject databaseObject) throws EngineException {
+		add(databaseObject, null);
     }
 	
 	@Override
@@ -228,6 +233,10 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 	}
 
 	public void addStep(Step step) throws EngineException {
+		addStep(step, null);
+    }
+	
+	public void addStep(Step step, Long after) throws EngineException {
 		checkSubLoaded();
 		
 		String newDatabaseObjectName = getChildBeanName(vSteps, step.getName(), step.bNew);
@@ -240,7 +249,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
         sequence.loadedSteps.put(new Long(step.priority), step);
         sequence.addStepListener(step);
         
-       	insertOrderedStep(step,null);
+       	insertOrderedStep(step, after);
     }
 
     public void insertOrderedStep(Step step, Long after) {

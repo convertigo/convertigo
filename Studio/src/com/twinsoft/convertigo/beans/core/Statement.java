@@ -52,6 +52,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
  * The Statement class is the base class for all statements.
  */
 @DboCategoryInfo(
+		getCategoryId = "Statement",
 		getCategoryName = "Statement",
 		getIconClassCSS = "convertigo-action-newStatement"
 	)

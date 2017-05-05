@@ -92,6 +92,7 @@ import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
  * The Step class is the base class for all steps.
  */
 @DboCategoryInfo(
+		getCategoryId = "Step",
 		getCategoryName = "Step",
 		getIconClassCSS = "convertigo-action-newStep"
 	)

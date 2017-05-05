@@ -35,6 +35,7 @@ import com.twinsoft.convertigo.engine.EngineException;
  * The MobileDevice class is the base class for all mobile devices.
  */
 @DboCategoryInfo(
+		getCategoryId = "MobilePlatform",
 		getCategoryName = "Mobile platform",
 		getIconClassCSS = "convertigo-action-newMobilePlatform"
 	)

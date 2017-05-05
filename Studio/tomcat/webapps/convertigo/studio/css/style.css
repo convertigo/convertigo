@@ -127,7 +127,7 @@ div.modal button {
 }
 
 /* Div icons of sub categories */
-.tab-palette>div>div.sub-category>div>div {
+.tab-palette>div>div.sub-category>div>i {
     display: inline-block;
     width: 32px;
     height: 32px;
@@ -143,7 +143,7 @@ div.modal button {
 }
 
 /* Div icons of the categories */
-.tab-palette>div>div.category>div {
+.tab-palette>div>div.category>i {
     display: inline-block;
     background-repeat: no-repeat;
     background-size: 32px 32px;
@@ -160,4 +160,22 @@ div.modal button {
 /* Div containing the icon + text of each category */
 .tab-palette>div>div.category:hover {
     background-color: rgb(244, 244, 244);
+}
+
+/*********************************
+* Drag and drop
+*********************************/
+
+i.draggable {
+    display: inline-block;
+    width: 32px !important;
+    height: 32px !important;
+}
+
+.checkmark {
+    background: url(../img/checkmark.png) no-repeat;
+}
+
+.forbidden {
+    background: url(../img/forbidden.png) no-repeat;
 }

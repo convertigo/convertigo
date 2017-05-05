@@ -29,6 +29,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
  * This class defines a XSL sheet.
  */
 @DboCategoryInfo(
+		getCategoryId = "Sheet",
 		getCategoryName = "Sheet",
 		getIconClassCSS = "convertigo-action-newSheet"
 	)

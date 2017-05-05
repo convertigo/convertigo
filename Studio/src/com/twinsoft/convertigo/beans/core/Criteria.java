@@ -33,6 +33,7 @@ import com.twinsoft.convertigo.engine.EngineException;
  * The Criteria class is the base class for all criterias.
  */
 @DboCategoryInfo(
+		getCategoryId = "Criteria",
 		getCategoryName = "Criteria",
 		getIconClassCSS = "convertigo-action-newCriteria"
 	)

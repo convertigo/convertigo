@@ -40,6 +40,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 
 @DboCategoryInfo(
+		getCategoryId = "ApplicationComponent",
 		getCategoryName = "Application",
 		getIconClassCSS = "convertigo-action-newApplicationComponent"
 	)
@@ -256,18 +257,21 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 	transient private List<RouteComponent> vRouteComponents = new LinkedList<RouteComponent>();
 	
 	protected void addRouteComponent(RouteComponent routeComponent) throws EngineException {
+		addRouteComponent(routeComponent, null);
+	}
+	
+	protected void addRouteComponent(RouteComponent routeComponent, Long after) throws EngineException {
 		checkSubLoaded();
 		String newDatabaseObjectName = getChildBeanName(vRouteComponents, routeComponent.getName(), routeComponent.bNew);
 		routeComponent.setName(newDatabaseObjectName);
 		vRouteComponents.add(routeComponent);
 		super.add(routeComponent);
 		
-		insertOrderedRoute(routeComponent,null);
+		insertOrderedRoute(routeComponent, after);
 		
 		if (routeComponent.bNew) {
 			markRouteAsDirty();
 		}
-		
 	}
 
 	protected void removeRouteComponent(RouteComponent routeComponent) throws EngineException {
@@ -382,7 +386,7 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 	 */
 	transient private List<UIComponent> vUIComponents = new LinkedList<UIComponent>();
 	
-	protected void addUIComponent(UIComponent uiComponent) throws EngineException {
+	protected void addUIComponent(UIComponent uiComponent, Long after) throws EngineException {
 		checkSubLoaded();
 		
     	if (uiComponent instanceof UITheme) {
@@ -403,7 +407,7 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		vUIComponents.add(uiComponent);
 		uiComponent.setParent(this);
 		
-        insertOrderedComponent(uiComponent,null);
+        insertOrderedComponent(uiComponent, after);
         
         if (isNew || isCut) {
         	if (uiComponent instanceof UITheme) {
@@ -418,6 +422,10 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
         		}
         	}
         }
+	}
+	
+	protected void addUIComponent(UIComponent uiComponent) throws EngineException {
+		addUIComponent(uiComponent, null);
 	}
 
 	protected void removeUIComponent(UIComponent uiComponent) throws EngineException {
@@ -466,16 +474,21 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 	}
 
 	@Override
-    public void add(DatabaseObject databaseObject) throws EngineException {
+	public void add(DatabaseObject databaseObject, Long after) throws EngineException {
 		if (databaseObject instanceof RouteComponent) {
-			addRouteComponent((RouteComponent) databaseObject);
+			addRouteComponent((RouteComponent) databaseObject, after);
 		} else if (databaseObject instanceof PageComponent) {
 			addPageComponent((PageComponent) databaseObject);
 		} else if (databaseObject instanceof UIComponent) {
-			addUIComponent((UIComponent) databaseObject);
+			addUIComponent((UIComponent) databaseObject, after);
 		} else {
 			throw new EngineException("You cannot add to an application component a database object of type " + databaseObject.getClass().getName());
 		}
+	}
+	
+	@Override
+    public void add(DatabaseObject databaseObject) throws EngineException {
+		add(databaseObject, null);
     }
 
     @Override

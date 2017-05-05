@@ -1,5 +1,7 @@
 package com.twinsoft.convertigo.engine.admin.services.studio.database_objects;
 
+import java.beans.BeanInfo;
+import java.beans.IntrospectionException;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -21,6 +23,7 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 
 @ServiceDefinition(
 		name = "Get",
@@ -48,7 +51,7 @@ public class GetChildren extends XmlService {
 		}
 	}
 	
-	private void getChildren(String qname, Element parent, int depth) throws Exception {
+	public static void getChildren(String qname, Element parent, int depth) throws Exception   {
 		DatabaseObject dbo = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
 		List<DatabaseObject> children = dbo.getDatabaseObjectChildren();
 		
@@ -114,14 +117,19 @@ public class GetChildren extends XmlService {
 		}
 	}
 	
-	private Element createDboElement(Document document, DatabaseObject dbo, boolean hasChildren) throws DOMException, Exception {
+	private static Element createDboElement(Document document, DatabaseObject dbo, boolean hasChildren) throws DOMException, IntrospectionException {
 		Element elt = document.createElement("dbo");
+		
 		elt.setAttribute("qname", dbo.getQName());
-		elt.setAttribute("classname", dbo.getClass().getName() + "-16");
+		elt.setAttribute("icon", dbo.getClass().getName() + "-16");
 		elt.setAttribute("name", dbo.toString());
 		elt.setAttribute("category", dbo.getDatabaseType());
 		elt.setAttribute("comment", dbo.getComment());
 		elt.setAttribute("hasChildren", Boolean.toString(hasChildren));
+		elt.setAttribute("priority", Long.toString(dbo.priority));
+		
+		BeanInfo bi = CachedIntrospector.getBeanInfo(dbo);
+		elt.setAttribute("beanClass", bi.getBeanDescriptor().getBeanClass().getName());
 		
 		if (dbo instanceof IEnableAble) {
 			elt.setAttribute("isEnabled", Boolean.toString(((IEnableAble) dbo).isEnabled()));
@@ -129,13 +137,13 @@ public class GetChildren extends XmlService {
 		return elt;
 	}
 	
-	private Element createScreenClassChildElement(Document document, DatabaseObject dbo, DatabaseObject dboParent) throws DOMException, Exception {
+	private static Element createScreenClassChildElement(Document document, DatabaseObject dbo, DatabaseObject dboParent) throws DOMException, Exception {
 		Element elt = createDboElement(document, dbo, !dbo.getDatabaseObjectChildren().isEmpty());
 		elt.setAttributeNode(createIsInheritedAttr(document, dbo, dboParent));
 		return elt;
 	}
 	
-	private Attr createIsInheritedAttr(Document document, DatabaseObject dbo, DatabaseObject dboParent) {
+	private static Attr createIsInheritedAttr(Document document, DatabaseObject dbo, DatabaseObject dboParent) {
 		Attr attr = document.createAttribute("isInherited");
 		attr.setNodeValue(Boolean.toString(!dboParent.toString().equals(dbo.getParent().toString())));
 		return attr;

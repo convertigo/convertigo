@@ -137,13 +137,18 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 		return clonedObject;
 	}
 
-    @Override
-	public void add(DatabaseObject databaseObject) throws EngineException {
+	@Override
+	public void add(DatabaseObject databaseObject, Long after) throws EngineException {
         if (databaseObject instanceof HttpStatementVariable) {
-            addVariable((HttpStatementVariable) databaseObject);
+            addVariable((HttpStatementVariable) databaseObject, after);
         } else {
         	throw new EngineException("You cannot add to an http statement a database object of type " + databaseObject.getClass().getName());
         }
+	}
+    
+    @Override
+	public void add(DatabaseObject databaseObject) throws EngineException {
+    	add(databaseObject, null);
 	}
 
     @Override
@@ -232,7 +237,7 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 		return vVariables.size();
 	}
 	
-    public void addVariable(HttpStatementVariable variable) throws EngineException {
+    public void addVariable(HttpStatementVariable variable, Long after) throws EngineException {
     	checkSubLoaded();
     	
 		String newDatabaseObjectName = getChildBeanName(vVariables, variable.getName(), variable.bNew);
@@ -242,7 +247,11 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
         
         variable.setParent(this);
         
-        insertOrderedVariable(variable,null);
+        insertOrderedVariable(variable, after);
+    }
+	
+    public void addVariable(HttpStatementVariable variable) throws EngineException {
+    	addVariable(variable, null);
     }
 	
     private void insertOrderedVariable(Variable variable, Long after) {

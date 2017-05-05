@@ -311,10 +311,18 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 	}
 	
 	@Override
+	public void add(DatabaseObject databaseObject, Long after) throws EngineException {
+        if (databaseObject instanceof StepVariable) {
+            addVariable((StepVariable) databaseObject, after);
+        }
+        else {
+        	throw new EngineException("You cannot add to a requestable step a database object of type " + databaseObject.getClass().getName());		
+        }
+	}
+	
+	@Override
 	public void add(DatabaseObject databaseObject) throws EngineException {
-        if (databaseObject instanceof StepVariable)
-            addVariable((StepVariable) databaseObject);
-        else throw new EngineException("You cannot add to a requestable step a database object of type " + databaseObject.getClass().getName());
+		add(databaseObject, null);
 	}
 
 	@Override
@@ -390,13 +398,17 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 		return vVariables.size();
 	}
 	
-    public void addVariable(StepVariable variable) throws EngineException {
+    public void addVariable(StepVariable variable, Long after) throws EngineException {
     	checkSubLoaded();
 		String newDatabaseObjectName = getChildBeanName(vVariables, variable.getName(), variable.bNew);
 		variable.setName(newDatabaseObjectName);
 		vVariables.add(variable);
         variable.setParent(this);
-        insertOrderedVariable(variable,null);
+        insertOrderedVariable(variable, after);
+    }
+	
+    public void addVariable(StepVariable variable) throws EngineException {
+    	addVariable(variable, null);
     }
 	
     private void insertOrderedVariable(Variable variable, Long after) {
