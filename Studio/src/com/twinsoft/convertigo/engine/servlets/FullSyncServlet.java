@@ -35,7 +35,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
@@ -212,6 +211,7 @@ public class FullSyncServlet extends HttpServlet {
 						|| (isChanges && (HeaderName.IfNoneMatch.is(headerName)
 								|| HeaderName.IfModifiedSince.is(headerName)
 								|| HeaderName.CacheControl.is(headerName)
+								|| HeaderName.AcceptEncoding.is(headerName)
 								)))) {
 					for (String headerValue: Collections.list(request.getHeaders(headerName))) {
 						debug.append("request Header: " + headerName + "=" + headerValue + "\n");
@@ -352,7 +352,8 @@ public class FullSyncServlet extends HttpServlet {
 			CloseableHttpResponse newResponse = null;
 			try {
 				newResponse = httpClient.get().execute(newRequest);
-			} catch (NoHttpResponseException e) {
+			} catch (IOException e) {
+				debug.append("retry request because: " + e.getMessage());
 				newResponse = httpClient.get().execute(newRequest);
 			}
 			
@@ -397,9 +398,7 @@ public class FullSyncServlet extends HttpServlet {
 							Engine.logCouchDbManager.info("(FullSyncServlet) Entering in continuous loop:\n" + debug);
 							BufferedReader br = new BufferedReader(new InputStreamReader(new BufferedInputStream(is), charset));
 							OutputStreamWriter writer = new OutputStreamWriter(os, charset);
-							String query = uri.getQuery();
-							boolean initial = query != null && (query.contains("since=0") || !query.contains("since="));
-							Engine.theApp.couchDbManager.filterChanges(dbName, initial, fsAuth, br, writer);
+							Engine.theApp.couchDbManager.filterChanges(httpSession.getId(), dbName, uri, fsAuth, br, writer);
 						} else {
 							int id = 0;
 							byte[] buf = new byte[64];
