@@ -24,8 +24,8 @@ package com.twinsoft.convertigo.eclipse.dialogs;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -90,8 +90,7 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
     	
     	list.removeAll();
         
-        Set<String> deploymentConfigurationNames = new HashSet<String>();        
-        deploymentConfigurationNames = ConvertigoPlugin.deploymentConfigurationManager.getAllDeploymentConfigurationNames();
+        SortedSet<String> deploymentConfigurationNames = new TreeSet<String>(ConvertigoPlugin.deploymentConfigurationManager.getAllDeploymentConfigurationNames());
         
         for (String deploymentConfigurationName: deploymentConfigurationNames) {
         	list.add(ConvertigoPlugin.deploymentConfigurationManager.get(deploymentConfigurationName).toString());
