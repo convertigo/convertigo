@@ -132,7 +132,7 @@ function ProjectsView(palettes) {
 
 				                        // Store the opened nodes to re-open them at the end of the refresh
 				                        var projectNode = that.getProjectNode(node_parent);
-                                        that.dnd.openedNodes = projectsView.tree.jstree().get_json(projectNode, {
+                                        that.dnd.openedNodes = that.tree.jstree().get_json(projectNode, {
                                             flat: true
                                         })
                                         // Only get opened nodes

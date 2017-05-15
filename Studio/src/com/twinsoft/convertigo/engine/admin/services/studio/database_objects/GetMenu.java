@@ -67,7 +67,7 @@ public class GetMenu extends XmlService {
 
 	private TwsCachedXPathAPI xpathApi = new TwsCachedXPathAPI();
 	private static Document pluginDocument = null;
-	public static String rootPath = "C:/dev/Eclipses/projects/CemsStudio_7.5.x/";
+	public static String rootPath = Engine.WEBAPP_PATH + "/../../../";
 
 	// Get the label of a menu from its ID
 	private static Map<String, String> idMenuToLabel = new HashMap<>(3);

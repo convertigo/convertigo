@@ -178,7 +178,8 @@ var Main = {
 
 // docReady is defined in convertigo.js
 docReady(function () {
-	var baseConvertigoUrl = "http://localhost:18080/";
+	//var baseConvertigoUrl = "http://localhost:18080/";
+    var baseConvertigoUrl = localStorage.getItem("convertigoMachineUrl");
 	var authUserName = "admin";
 	var authPassword = "admin";
 
