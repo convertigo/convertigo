@@ -812,6 +812,143 @@
       }
     },
 
+    /* Slides */
+
+    "Slides": {
+      "tag": "ion-slides",
+      "label": "Slides",
+      "description": "Slides make it easy to create galleries, tutorials, and page-based layouts. Slides take a number of configuration options on the <ion-slides> component. The Slides component is a multi-section container. Each section can be swiped or dragged between. It contains any number of Slide components.",
+      "group": "Slides",
+      "icon16": "slides_color_16x16.png",
+      "icon32": "slides_color_32x32.png",
+      "properties": {
+        "AutoPlay": {
+          "attr": "autoplay",
+          "label": "Autoplay",
+          "description": "Delay between transitions (in milliseconds). If this parameter is not passed, autoplay is disabled. Default does not have a value and does not autoplay. Default: null",
+          "category": "@Properties",
+          "value": ""
+        },
+        "Direction": {
+          "attr": "direction",
+          "label": "Direction",
+          "description": "Swipe direction: 'horizontal' or 'vertical'. Default: horizontal.",
+          "category": "@Properties",
+          "value": "horizontal",
+          "values": [
+            "horizontal",
+            "vertical"
+          ]
+        },
+        "Pager": {
+          "attr": "pager",
+          "label": "Pager",
+          "description": "If true, show the pager. (Little dots for each page)",
+          "category": "@Properties",
+          "value": "true",
+          "values": [
+            "true",
+            "false"
+          ]
+        },
+        "PaginationType": {
+          "attr": "paginationType",
+          "label": "Pagination type",
+          "description": "Type of pagination. Possible values are: bullets, fraction, progress. Default: bullets. (Note that the pager will not show unless pager input is set to true).",
+          "category": "@Properties",
+          "value": "bullets",
+          "values": [
+            "bullets",
+            "fraction",
+            "progress"
+          ]
+        },
+        "parallax": {
+          "attr": "parallax",
+          "label": "Parallax",
+          "description": "If true, allows you to use 'parallaxed' elements inside of slider",
+          "category": "@Properties",
+          "value": "false",
+          "values": [
+            "true",
+            "false"
+          ]
+        },
+        "SlidesPerView": {
+          "attr": "slidesPerView",
+          "label": "Slides per view",
+          "description": "Slides per view. Slides visible at the same time. Default, 1",
+          "category": "@Properties",
+          "value": "1"
+        },
+        "SpaceBetween": {
+          "attr": "spaceBetween",
+          "label": "Space between",
+          "description": "Distance between slides in px. Default: 0",
+          "category": "@Properties",
+          "value": "0"
+        },
+        "Speed": {
+          "attr": "speed",
+          "label": "Speed",
+          "description": "Duration of transition between slides (in milliseconds). Default: 300.",
+          "category": "@Properties",
+          "value": "300"
+        },
+        "Zoom": {
+          "attr": "zoom",
+          "label": "Zoom",
+          "description": "If true, enables zooming functionality.",
+          "category": "@Properties",
+          "value": "false",
+          "values": [
+            "true",
+            "false"
+          ]
+        },
+        "InitialSlide": {
+          "attr": "initialSlide",
+          "label": "Initial Slide",
+          "description": "Index number of initial slide. Default: 0.",
+          "category": "@Properties",
+          "value": "0"
+        },
+        "Effect": {
+          "attr": "effect",
+          "label": "Effect",
+          "description": "The animation effect of the slides. Possible values are: slide, fade, cube, coverflow or flip. Default: slide.",
+          "category": "@Properties",
+          "value": "slide",
+          "values": [
+            "slide",
+            "fade",
+            "cube",
+            "coverflow",
+            "flip"
+          ]
+        },
+        "Loop": {
+          "attr": "loop",
+          "label": "Loop",
+          "description": "If true, continuously loop from the last slide to the first slide.",
+          "category": "@Properties",
+          "value": "false",
+          "values": [
+            "false",
+            "true"
+          ]
+        }
+      }
+    },
+
+    "Slide": {
+      "tag": "ion-slide",
+      "label": "Slide",
+      "description": "A Slide in a <ion-slides> component.",
+      "group": "Slides",
+      "icon16": "slides_color_16x16.png",
+      "icon32": "slides_color_32x32.png"
+    },
 
     /* Lists */
     "List": {
