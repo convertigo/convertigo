@@ -110,7 +110,8 @@ public class AdminServlet extends HttpServlet {
 					}
 				}
 				
-				if (serviceDefinition.allow_cors()) {
+				// TODO: temporary solution to accept request from Che
+				if (true || serviceDefinition.allow_cors()) {
 					String corsOrigin = HttpUtils.filterCorsOrigin(request, response);
 					if (corsOrigin != null) {
 						Engine.logAdmin.trace("Add CORS header for: " + corsOrigin);

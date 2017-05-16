@@ -67,10 +67,10 @@ public class GetMenu extends XmlService {
 
 	private TwsCachedXPathAPI xpathApi = new TwsCachedXPathAPI();
 	private static Document pluginDocument = null;
-	public static String rootPath = Engine.WEBAPP_PATH + "/../../../";
+	public final static String rootPath = Engine.WEBAPP_PATH + (Engine.isStudioMode() ? "/../../../" : "/WEB-INF/");
 
 	// Get the label of a menu from its ID
-	private static Map<String, String> idMenuToLabel = new HashMap<>(3);
+	private final static Map<String, String> idMenuToLabel = new HashMap<>(3);
 	static {
 		idMenuToLabel.put("new", "New");
 		idMenuToLabel.put("changeTo", "Change to");
