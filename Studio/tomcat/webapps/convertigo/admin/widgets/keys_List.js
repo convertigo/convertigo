@@ -48,7 +48,7 @@ function removeKey(key) {
 				}			
 			}, domToString($keys), undefined, {contentType : "application/xml"});
 		});							
-	}
+	}	
 	return false;
 } 
 
@@ -63,7 +63,7 @@ function keys_List_init() {
 
 	$('#keysGenerateNewKey').submit(function() {
 		var key = $("#keysNewKey").val();
-		if (key.length > 0) {
+		if (key.length == (16+1+16)) {
 			var $keys = $("<keys/>").append($("<key/>").attr("text", key));
 			
 			callService("keys.Update", function(xml) {
@@ -86,7 +86,7 @@ function keys_List_init() {
 			}, domToString($keys), undefined, {contentType : "application/xml"});
 		}
 		else {
-			showInfo("Please enter a key!");
+			showInfo("Please enter a valid key!");
 		}
 		return false;
 	});
