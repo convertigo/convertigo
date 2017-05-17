@@ -88,7 +88,7 @@ var Convertigo = {
 	init: function (baseUrl) {
 		// Initialize URLs
 		this.url.baseUrl = baseUrl;
-		this.url.baseConvertigoUrl = this.url.baseUrl + "convertigo/";
+		this.url.baseConvertigoUrl = this.url.baseUrl + "/convertigo/";
 		this.url.baseConvertigoStudioUrl = this.url.baseConvertigoUrl + "studio/";
 		this.url.baseConvertigoAdminServicesUrl = this.url.baseConvertigoUrl + "admin/services/";
 	},
