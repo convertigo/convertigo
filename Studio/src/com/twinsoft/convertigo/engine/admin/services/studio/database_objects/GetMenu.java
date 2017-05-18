@@ -46,7 +46,6 @@ import com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NamedSourceSelector;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
@@ -78,7 +77,7 @@ public class GetMenu extends XmlService {
 	}
 
 	// Get the value of a folder from its name
-	private static Map<String, String> folderNameToTypeValue = new HashMap<>(24);
+	private static Map<String, String> folderNameToTypeValue = new HashMap<>(23);
 	static {
 		folderNameToTypeValue.put("Listener", "16");
 		folderNameToTypeValue.put("Transaction", "0");
@@ -132,7 +131,7 @@ public class GetMenu extends XmlService {
 		treeObjectToClass.put("com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteComponentTreeObject", RouteComponent.class);
 		treeObjectToClass.put("com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteEventComponentTreeObject", RouteEventComponent.class);
 		treeObjectToClass.put("com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileUIComponentTreeObject", UIComponent.class);
-		treeObjectToClass.put("com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NamedSourceSelector", NamedSourceSelector.class);
+//		treeObjectToClass.put("com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NamedSourceSelector", NamedSourceSelector.class);
 		treeObjectToClass.put("com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject", Project.class);
 //		treeObjectToClass.put("com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableColumnTreeObject", PropertyTableColumn.class);
 //		treeObjectToClass.put("com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableRowTreeObject", PropertyTableRow.class);
