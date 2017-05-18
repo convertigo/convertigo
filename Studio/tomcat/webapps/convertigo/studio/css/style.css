@@ -135,11 +135,11 @@ div.modal button {
 
 /* Div containing the icon + text of each sub category */
 .tab-palette>div>div.sub-category>div:hover {
-    background-color: rgb(244, 244, 244);
+    background-color: #aaaaaa;
 }
 
 .gray-selection {
-    background-color: #e4e4e4;
+    background-color: #555;
 }
 
 /* Div icons of the categories */
@@ -159,7 +159,7 @@ div.modal button {
 
 /* Div containing the icon + text of each category */
 .tab-palette>div>div.category:hover {
-    background-color: rgb(244, 244, 244);
+    background-color: #aaaaaa;
 }
 
 /*********************************
@@ -178,4 +178,39 @@ i.draggable {
 
 .forbidden {
     background: url(../img/forbidden.png) no-repeat;
+}
+
+/*********************************
+* jQuery UI tabs
+*********************************/
+
+.ui-tabs, .ui-tabs>ul, .ui-tabs>div {
+	background-color: #292C2F;
+}
+
+.ui-state-active a, .ui-state-active a:link, .ui-state-active a:visited {
+   background-color: #5A5A5A !important;
+}
+
+.ui-state-default a, .ui-state-default a:link, .ui-state-default a:visited, a.ui-button, a:link.ui-button, a:visited.ui-button, .ui-button {
+   background-color: #333;   
+}
+
+.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default, .ui-button, html .ui-button.ui-state-disabled:hover, html .ui-button.ui-state-disabled:active {
+	border: none; /* 1px solid #6B6D6F; */
+	background-color: gray;
+}
+
+.ui-tabs h2, .ui-tabs h4, .ui-tabs p, .ui-tabs span,
+.ui-state-default a, .ui-state-default a:link, .ui-state-default a:visited, a.ui-button, a:link.ui-button, a:visited.ui-button, .ui-button {
+	color: white !important;
+}
+
+.ui-corner-all {
+	border: none !important; /* #6B6D6F 1px solid !important; */
+}
+
+hr {
+    border: 0;
+    border-top: 1px solid #6B6D6F;
 }

@@ -1,7 +1,7 @@
 /* Original source: https://www.w3schools.com/howto/howto_js_accordion.asp */
 button.accordion {
-    background-color: #eee;
-    color: #444;
+    background-color: #5A5A5A;
+    color: white;
     cursor: pointer;
     width: 100%;
     border: none;
@@ -11,7 +11,7 @@ button.accordion {
 }
 
 button.accordion.active, button.accordion:hover {
-    background-color: #ddd; 
+    background-color: #5A5A5A;
 }
 
 button.accordion:after {
