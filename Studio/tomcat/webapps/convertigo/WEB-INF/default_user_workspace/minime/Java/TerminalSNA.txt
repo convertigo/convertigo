@@ -11,7 +11,7 @@ ServiceCode=
 KeyValue=
 JavelinEx=1
 Client1=TerminalType=IBM-3278
-Client2=ScreenModel=2
+Client2=ScreenModel=5
 Client3=CodePage=01290469
 Client4=ExtendedEnable=0
 Client5=NumLockEnable=0
