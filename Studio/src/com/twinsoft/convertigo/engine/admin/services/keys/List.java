@@ -110,7 +110,7 @@ public class List extends XmlService{
         			if (keyList.getLength() == 0)
         				keysElement.appendChild(keyElement);
         			else {
-	        			for (int i=0; i<keyList.getLength(); i++) {
+	        			for(int i=0; i<keyList.getLength(); i++) {
 	        				Element el = ((Element)keyList.item(i));
 	        				String expiration = el.getAttribute("expiration");
 	        				
@@ -135,8 +135,12 @@ public class List extends XmlService{
         			// override computed total with value from last
         			total = Integer.parseInt(((Element)keyList.item(keyList.getLength()-1)).getAttribute("value"));
         			// sets all the others to 0
-        			for (int i = 0; i < keyList.getLength() - 1; i++) {
-        				((Element) keyList.item(i)).setAttribute("value", "0");
+        			for(int i=keyList.getLength()-2; i>=0; i--) {
+        				// if key is valid and has sessions not null
+        				if (total > 0)
+        					((Element)keyList.item(i)).setAttribute("value", "0");	// kill previous keys
+        				else
+        					total = Integer.parseInt(((Element)keyList.item(i)).getAttribute("value")); // get value from current
         			}
         		}
         		
@@ -152,7 +156,7 @@ public class List extends XmlService{
         		emulatorNameElement.appendChild(keysElement);
         		
         		rootElement.appendChild(emulatorNameElement);
-        	}
+        	}    		
     	}
     	
     	//We add the number of valid into the XML response
