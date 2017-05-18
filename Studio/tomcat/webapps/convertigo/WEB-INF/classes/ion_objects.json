@@ -538,8 +538,8 @@
       "label": "FAB container",
       "description": "Place your FAB buttons (Floating Action Button) in this container to make them non scrollable with content",
       "group": "Buttons",
-      "icon16": "fab_16x16.png",
-      "icon32": "fab_32x32.png",
+      "icon16": "container_fab_16x16.png",
+      "icon32": "container_fab_32x32.png",
       "properties": {
         "HorzPosition": {
           "label": "Horizontal Position",
@@ -713,8 +713,8 @@
       "autoClose": true,
       "description": "Defines an Image resource",
       "group": "HTML",
-      "icon16": "HTML_color_16x16.png",
-      "icon32": "HTML_color_32x32.png",
+      "icon16": "img_HTML_color_16x16.png",
+      "icon32": "img_HTML_color_32x32.png",
       "properties": {
         "url": {
           "attr": "src",
@@ -1406,8 +1406,8 @@
       "label": "Grid Row",
       "description": "A grid row. Must be inserted in a Grid and contains Columns. A row is composed of 12 slots that can be filled with columns",
       "group": "Grid System",
-      "icon16": "grid_color_16x16.png",
-      "icon32": "grid_color_32x32.png",
+      "icon16": "grid_row_color_16x16.png",
+      "icon32": "grid_row_color_32x32.png",
       "properties": {
         "Height": {
           "attr": "style",
@@ -1548,8 +1548,8 @@
       "label": "Grid Column",
       "description": "A grid column. Must be inserted in a Grid row and contains components or HTML",
       "group": "Grid System",
-      "icon16": "grid_color_16x16.png",
-      "icon32": "grid_color_32x32.png",
+      "icon16": "grid_column_color_16x16.png",
+      "icon32": "grid_column_color_32x32.png",
       "properties": {
         "AlignItemsStart": {
           "label": "Align column top",
