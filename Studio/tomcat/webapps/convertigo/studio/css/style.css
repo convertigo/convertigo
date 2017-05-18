@@ -123,43 +123,33 @@ div.modal button {
     cursor: pointer;
     margin-top: 20px;
     margin-bottom: 20px;
-    width: 150px;
+    width: 210px;
 }
 
 /* Div icons of sub categories */
-.tab-palette>div>div.sub-category>div>i {
+.tab-palette>div>div.sub-category>div>i,
+.tab-palette>div>div.category>i {
     display: inline-block;
     width: 32px;
     height: 32px;
-}
-
-/* Div containing the icon + text of each sub category */
-.tab-palette>div>div.sub-category>div:hover {
-    background-color: #aaaaaa;
+    vertical-align:middle;
+    margin-right: 8px;
 }
 
 .gray-selection {
-    background-color: #555;
+    background-color: #2e3a45;
 }
 
 /* Div icons of the categories */
 .tab-palette>div>div.category>i {
-    display: inline-block;
     background-repeat: no-repeat;
     background-size: 32px 32px;
-    width: 32px;
-    height: 32px;
 }
 
 /* Div containing the icon + text of each category */
 .tab-palette>div>div.category {
     cursor: pointer;
     margin-bottom: 20px;
-}
-
-/* Div containing the icon + text of each category */
-.tab-palette>div>div.category:hover {
-    background-color: #aaaaaa;
 }
 
 /*********************************

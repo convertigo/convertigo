@@ -136,7 +136,7 @@ Palette.prototype.createSubCategories = function (categoryName) {
 			text: "New " + categoryName
 		}))
 		.append($("<h4/>", {
-			text: "Drag and drop an object..."
+			text: "Drag and drop an object in your project tree view..."
 		}))
 		// Back button
 		.append($backBtn)

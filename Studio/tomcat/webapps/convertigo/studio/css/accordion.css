@@ -1,6 +1,5 @@
 /* Original source: https://www.w3schools.com/howto/howto_js_accordion.asp */
 button.accordion {
-    background-color: #5A5A5A;
     color: white;
     cursor: pointer;
     width: 100%;
@@ -10,8 +9,8 @@ button.accordion {
     font-size: 15px;
 }
 
-button.accordion.active, button.accordion:hover {
-    background-color: #5A5A5A;
+button.accordion.active, button.accordion:hover, button.accordion {
+    background-color: #2e3a45;
 }
 
 button.accordion:after {
