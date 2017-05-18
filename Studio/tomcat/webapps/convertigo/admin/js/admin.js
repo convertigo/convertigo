@@ -423,7 +423,7 @@ function genericError(XMLHttpRequest, type, extra, callback) {
 }
 
 function loadHTML(url, successFunction, parameters, errorFunction, extra) {
-	return ajaxCall("POST", url, "text", parameters, successFunction, errorFunction, extra);
+	return ajaxCall("GET", url, "text", parameters, successFunction, errorFunction, extra);
 }
 
 function callService(serviceName, successFunction, parameters, errorFunction, extra) {

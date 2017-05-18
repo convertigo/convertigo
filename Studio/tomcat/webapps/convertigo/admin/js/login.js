@@ -59,7 +59,7 @@ function authenticate(data) {
 		success : function(xml) {
 			var $xml = $(xml);
 			if ($xml.find("success").length > 0) {
-				$("form").unbind("submit").submit();
+				location = $("form").attr("action");
 			} else {
 				$("#dlgAuthFailed_message").html($xml.find("error").text().replace(/\n/g, "<br/>"));
 				$("#dlgAuthFailed").dialog('open');
