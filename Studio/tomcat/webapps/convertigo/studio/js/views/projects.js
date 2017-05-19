@@ -8,6 +8,17 @@ function ProjectsView(palettes) {
 		this.palettes[palettes[i].getId()] = palettes[i];
 	}
 
+    // Refresh projects tree view when pressing F5 (for debug prupose)
+    $(document).on("keydown", function (e) {
+        if ((e.which || e.keyCode) == 116) {
+            e.preventDefault();
+            projectsView.tree.jstree().refresh(true);
+        }
+    });
+    
+    // Create toolbar
+    new ProjectsToolbar(this, ".projectsView"); 
+    
 	this.resetDndData();
 	var that = this;
 	// Property updated
@@ -375,6 +386,10 @@ function ProjectsView(palettes) {
 				
 				that.resetDndData();
 			}
+		})
+		.on("loaded.jstree", function () {
+		    var firstNodeId = that.tree.jstree().get_node("#").children[0];
+		    that.tree.jstree().select_node(firstNodeId);
 		});
 	
 		var lastTargetNodeId = null;
@@ -984,7 +999,9 @@ ProjectsView.prototype.isNodeFolder = function (node) {
 ProjectsView.prototype.getProjectNode = function (node, asDom = false) {
     var currentNode = this.tree.jstree().get_node(node);
     return this.tree.jstree().get_node(
-            currentNode.parents[currentNode.parents.length - 1],
-            asDom
-        );
+        currentNode.parent === "#" ?
+        currentNode :
+        currentNode.parents[currentNode.parents.length - 2],
+        asDom
+    );
 };

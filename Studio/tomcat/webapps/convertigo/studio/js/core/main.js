@@ -25,11 +25,17 @@ var Main = {
 	         * Tabs
 	         */
 	    	"tab",
+	        "studio-tabs",
 	    	"palette",
 	    	"references",
 	    	"source-picker",
-	    	"studio-tabs",
 
+            /**
+             * Toolbars
+             */
+             "toolbar",
+             "projects-toolbar",
+	    	
 	        /**
 	         * Utils
 	         */
@@ -97,15 +103,7 @@ var Main = {
 					.append(projectsView.getDivWrapperTree())
 					.append($("<hr/>"))
 					.append(studioTabs.getDiv());
-
-				// Refresh projects tree view when pressing F5 (for debug prupose)
-				$(document).on("keydown", function (e) {
-					if ((e.which || e.keyCode) == 116) {
-						e.preventDefault();
-						projectsView.tree.jstree().refresh(true);
-					}
-				});
-				
+								
 				// Automatically open these tabs (only works with Che)
 				$("div[title='Projects']").find(":first").click();
 				$("div[title='Information']").find(":first").click();
@@ -147,12 +145,18 @@ var Main = {
 		        /**
 		         * Tabs
 		         */
+	            tab: Convertigo.getBaseConvertigoStudioUrl("js/tabs/tab"),
 		    	palette: Convertigo.getBaseConvertigoStudioUrl("js/tabs/palette"),
 		    	references:  Convertigo.getBaseConvertigoStudioUrl("js/tabs/references"),
 		    	"source-picker": Convertigo.getBaseConvertigoStudioUrl("js/tabs/source-picker"),
 		    	"studio-tabs": Convertigo.getBaseConvertigoStudioUrl("js/tabs/studio-tabs"),
-		    	tab: Convertigo.getBaseConvertigoStudioUrl("js/tabs/tab"),
 
+		    	/**
+		    	 * Toolbars
+		    	 */
+	             "toolbar": Convertigo.getBaseConvertigoStudioUrl("js/toolbars/toolbar"),
+	             "projects-toolbar": Convertigo.getBaseConvertigoStudioUrl("js/toolbars/projects-toolbar"),
+		    	
 		        /**
 		         * Utils
 		         */
