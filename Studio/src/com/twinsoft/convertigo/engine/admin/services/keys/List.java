@@ -147,9 +147,13 @@ public class List extends XmlService{
         		Element emulatorNameElement = document.createElement("category");    	    	    	
         		emulatorNameElement.setAttribute("name", emulatorName);
         		emulatorNameElement.setAttribute("remaining", Integer.toString(KeyManager.getCV(emulatorID)));
-        		emulatorNameElement.setAttribute("total", Integer.toString(total));
         		
         		if (emulatorID == Session.EmulIDSE) {        			
+            		// sessions cannot be less than 10
+    				if (total <= 0)
+    					total = 10;
+
+           			emulatorNameElement.setAttribute("total", Integer.toString(total));
         			emulatorNameElement.setAttribute("overflow", KeyManager.isOverflow(emulatorID) ? "true" : "false");
         		}
         		

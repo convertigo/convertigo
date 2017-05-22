@@ -89,7 +89,7 @@ public class GetStatus extends XmlService {
 			Key key = (Key)iter.next();
 			
 			if (key.emulatorID == com.twinsoft.api.Session.EmulIDSE) {
-				// check (unlimited key or currentKey expiry date later than previous)
+				// check (unlimited key or currentKey expiration date later than previous)
 				if ((seKey == null) || (key.expiration == 0) || (key.expiration >= seKey.expiration)) {
 					seKey = key;
 					licenceMismatch = false;
@@ -130,7 +130,10 @@ public class GetStatus extends XmlService {
 						: "Convertigo Community Edition");
 		versionElement.setAttribute("licence-number", iCategory == 15 ? (990000000 + iStations) + "" : "n/a");
 		int snb = KeyManager.getCV(com.twinsoft.api.Session.EmulIDSE);
-		versionElement.setAttribute("licence-sessions", (snb != 0) ? ""+snb:"n/a");
+		if (snb == 0)
+   			KeyManager.setCV(com.twinsoft.api.Session.EmulIDSE, snb = 10);
+
+		versionElement.setAttribute("licence-sessions", (snb != 0) ? (""+snb):"n/a");
 		versionElement.setAttribute("licence-end", iNumberOfDays != 0 ? (iNumberOfDays < 0 ? "n/a" : endDate) : "unlimited");
 		versionElement.setAttribute("licence-expired", iNumberOfDays != 0 ? (iNumberOfDays < 0 ? "n/a" : currentDate.compareTo(expiredDate) > 0) + "" : "false");
 		rootElement.appendChild(versionElement);
