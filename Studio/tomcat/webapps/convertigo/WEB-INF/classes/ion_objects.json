@@ -946,8 +946,8 @@
       "label": "Slide",
       "description": "A Slide in a <ion-slides> component.",
       "group": "Slides",
-      "icon16": "slides_color_16x16.png",
-      "icon32": "slides_color_32x32.png"
+      "icon16": "slide_color_16x16.png",
+      "icon32": "slide_color_32x32.png"
     },
 
     /* Lists */
