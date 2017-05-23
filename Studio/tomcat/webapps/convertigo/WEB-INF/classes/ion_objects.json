@@ -690,6 +690,17 @@
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
       "properties": {
+        "ionText": {
+          "value": false,
+          "label": "Ion-Text",
+          "description": "The ion-text attribute should be added to the element in order to pass a color from the Sass $colors map and change the text color of that element.",
+          "category": "Attributes",
+          "values": [
+            false,
+            "ion-text"
+          ]
+        },
+        "IonColor": false
       }
     },
     "Heading2": {
@@ -700,6 +711,17 @@
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
       "properties": {
+        "ionText": {
+          "value": false,
+          "label": "Ion-Text",
+          "description": "The ion-text attribute should be added to the element in order to pass a color from the Sass $colors map and change the text color of that element.",
+          "category": "Attributes",
+          "values": [
+            false,
+            "ion-text"
+          ]
+        },
+        "IonColor": false
       }
     },
     "Heading3": {
@@ -710,8 +732,83 @@
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
       "properties": {
+        "ionText": {
+          "value": false,
+          "label": "Ion-Text",
+          "description": "The ion-text attribute should be added to the element in order to pass a color from the Sass $colors map and change the text color of that element.",
+          "category": "Attributes",
+          "values": [
+            false,
+            "ion-text"
+          ]
+        },
+        "IonColor": false
       }
     },
+    "Heading4": {
+      "tag": "h4",
+      "label": "H4",
+      "description": "Defines a heading 4",
+      "group": "HTML",
+      "icon16": "HTML_color_16x16.png",
+      "icon32": "HTML_color_32x32.png",
+      "properties": {
+        "ionText": {
+          "value": false,
+          "label": "Ion-Text",
+          "description": "The ion-text attribute should be added to the element in order to pass a color from the Sass $colors map and change the text color of that element.",
+          "category": "Attributes",
+          "values": [
+            false,
+            "ion-text"
+          ]
+        },
+        "IonColor": false
+      }
+    },
+    "Heading5": {
+      "tag": "h5",
+      "label": "H5",
+      "description": "Defines a heading 5",
+      "group": "HTML",
+      "icon16": "HTML_color_16x16.png",
+      "icon32": "HTML_color_32x32.png",
+      "properties": {
+        "ionText": {
+          "value": false,
+          "label": "Ion-Text",
+          "description": "The ion-text attribute should be added to the element in order to pass a color from the Sass $colors map and change the text color of that element.",
+          "category": "Attributes",
+          "values": [
+            false,
+            "ion-text"
+          ]
+        },
+        "IonColor": false
+      }
+    },
+    "Heading6": {
+      "tag": "h6",
+      "label": "H6",
+      "description": "Defines a heading 6",
+      "group": "HTML",
+      "icon16": "HTML_color_16x16.png",
+      "icon32": "HTML_color_32x32.png",
+      "properties": {
+        "ionText": {
+          "value": false,
+          "label": "Ion-Text",
+          "description": "The ion-text attribute should be added to the element in order to pass a color from the Sass $colors map and change the text color of that element.",
+          "category": "Attributes",
+          "values": [
+            false,
+            "ion-text"
+          ]
+        },
+        "IonColor": false
+      }
+    },
+    
     "Paragraph": {
       "tag": "p",
       "label": "Paragraph (P)",
