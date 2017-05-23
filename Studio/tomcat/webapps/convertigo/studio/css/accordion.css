@@ -1,16 +1,11 @@
 /* Original source: https://www.w3schools.com/howto/howto_js_accordion.asp */
 button.accordion {
-    color: white;
     cursor: pointer;
     width: 100%;
     border: none;
     text-align: left;
     outline: none;
     font-size: 15px;
-}
-
-button.accordion.active, button.accordion:hover, button.accordion {
-    background-color: #2e3a45;
 }
 
 button.accordion:after {

@@ -6,6 +6,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
+import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
@@ -53,7 +54,7 @@ public class Create extends XmlService {
                 }
 
                 // Compute new name
-                newBean.setName(newBean.getChildBeanName(parentDbo.getAllChildren(), beanName, true));
+                newBean.setName(newBean.getChildBeanName(parentDbo.getDatabaseObjectChildren(), beanName, true));
 
                 // If the new bean has to be inserted at a specific position
                 if (parentDbo instanceof IContainerOrdered) {
@@ -70,6 +71,11 @@ public class Create extends XmlService {
                     containerOrdered.add(newBean, after);
                 }
                 else {
+                    // Need to create more things in case of Connectors
+                    if (newBean instanceof Connector) {
+                        Connector.setupConnector(newBean);
+                    }
+
                     parentDbo.add(newBean);
                 }
 

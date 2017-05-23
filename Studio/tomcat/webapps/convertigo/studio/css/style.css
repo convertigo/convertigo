@@ -5,21 +5,13 @@
 /*********************************
 * Jstree projects tree view
 *********************************/
-
-.projectsTreeView tbody>tr:first-child>td:first-child {
-    color: red;
-}
-
 .projectsTreeView tbody>tr>td {
-    color: green;
     /* overflow-x: hidden; */
     /* white-space: nowrap; */
     user-select: initial;
 }
 
 .projectsTreeView tbody>tr>td>input {
-    background-color: rgb(51, 55, 59);
-    color: white;
     border: none;
 }
 
@@ -27,16 +19,8 @@
     text-align: left
 }
 
-.comment {
-    color: rgb(4, 234, 34);
-}
-
 .jstree-rename-input {
     width: 100% !important; 
-}
-
-.jstree-default-dark {
-    background-color: none;
 }
 
 .jstree-header {
@@ -47,22 +31,6 @@
 /* Header separator of the jstree grid plugin */
 .jstree-grid-separator-regular {
 /*  border-style: none !important; */
-}
-
-li.nodeDisable > a {
-    color: rgb(255, 0, 0) !important;
-}
-
-.nodeDisable a {
-    color: #ffb300 !important;
-}
-
-.nodeIsInherited a {
-    color: pink !important;
-}
-
-.jstree-default-dark .jstree-anchor>.jstree-icon {
-    opacity: 1;
 }
 
 /*********************************
@@ -80,24 +48,9 @@ li.nodeDisable > a {
     content: "\2713";
 }
 
-.contextmenu-entry-disable {
-    opacity: 0.5;
-   -webkit-filter: grayscale(100%);
-   -moz-filter: grayscale(100%);
-   -o-filter: grayscale(100%);
-   -ms-filter: grayscale(100%);
-   filter: grayscale(100%);
-}
-
 /*********************************
 * Modal
 *********************************/
-
-div.modal {
-    /* text in white */
-    color: white;
-    background-color: #33373B;
-}
 
 .align-right {
     text-align: right;
@@ -136,10 +89,6 @@ div.modal button {
     margin-right: 8px;
 }
 
-.gray-selection {
-    background-color: #2e3a45;
-}
-
 /* Div icons of the categories */
 .tab-palette>div>div.category>i {
     background-repeat: no-repeat;
@@ -173,27 +122,8 @@ i.draggable {
 /*********************************
 * jQuery UI tabs
 *********************************/
-
-.ui-tabs, .ui-tabs>ul, .ui-tabs>div {
-	background-color: #292C2F;
-}
-
-.ui-state-active a, .ui-state-active a:link, .ui-state-active a:visited {
-   background-color: #5A5A5A !important;
-}
-
-.ui-state-default a, .ui-state-default a:link, .ui-state-default a:visited, a.ui-button, a:link.ui-button, a:visited.ui-button, .ui-button {
-   background-color: #333;   
-}
-
 .ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default, .ui-button, html .ui-button.ui-state-disabled:hover, html .ui-button.ui-state-disabled:active {
 	border: none; /* 1px solid #6B6D6F; */
-	background-color: gray;
-}
-
-.ui-tabs h2, .ui-tabs h4, .ui-tabs p, .ui-tabs span,
-.ui-state-default a, .ui-state-default a:link, .ui-state-default a:visited, a.ui-button, a:link.ui-button, a:visited.ui-button, .ui-button {
-	color: white !important;
 }
 
 .ui-corner-all {
@@ -202,6 +132,6 @@ i.draggable {
 
 hr {
     border: 0;
-    border-top: 1px solid #6B6D6F;
+    border-top: 1px solid;
+    border-top-color: #6B6D6F;
 }
-

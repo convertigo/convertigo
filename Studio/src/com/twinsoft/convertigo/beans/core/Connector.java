@@ -32,8 +32,34 @@ import javax.swing.event.EventListenerList;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.twinsoft.convertigo.beans.common.DefaultBlockFactory;
+import com.twinsoft.convertigo.beans.common.EmulatorTechnology;
 import com.twinsoft.convertigo.beans.common.XMLRectangle;
+import com.twinsoft.convertigo.beans.connectors.CicsConnector;
+import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
+import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
+import com.twinsoft.convertigo.beans.connectors.HttpConnector;
+import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
+import com.twinsoft.convertigo.beans.connectors.SapJcoConnector;
+import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector;
+import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.beans.references.ImportXsdSchemaReference;
+import com.twinsoft.convertigo.beans.references.XsdSchemaReference;
+import com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass;
+import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
+import com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass;
+import com.twinsoft.convertigo.beans.transactions.CicsTransaction;
+import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
+import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
+import com.twinsoft.convertigo.beans.transactions.JavelinTransaction;
+import com.twinsoft.convertigo.beans.transactions.SapJcoLogonTransaction;
+import com.twinsoft.convertigo.beans.transactions.SapJcoTransaction;
+import com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction;
+import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
+import com.twinsoft.convertigo.beans.transactions.couchdb.AbstractCouchDbTransaction;
+import com.twinsoft.convertigo.beans.transactions.couchdb.GetServerInfoTransaction;
+import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -518,4 +544,151 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty 
 		}
 		return super.testAttribute(name, value);
 	}
+	
+    public static void setupConnector(DatabaseObject connector) throws EngineException {
+        
+        if (connector instanceof JavelinConnector) {
+            JavelinConnector javelinConnector = (JavelinConnector) connector;
+            
+            JavelinScreenClass defaultScreenClass = new JavelinScreenClass();
+            defaultScreenClass.setName("Default_screen_class");
+            defaultScreenClass.hasChanged = true;
+            defaultScreenClass.bNew = true;
+            javelinConnector.setDefaultScreenClass(defaultScreenClass);
+
+            DefaultBlockFactory blockFactory = new DefaultBlockFactory();
+            blockFactory.setName("Block_factory");
+            blockFactory.hasChanged = true;
+            blockFactory.bNew = true;
+            defaultScreenClass.setBlockFactory(blockFactory);
+
+            EmulatorTechnology emulatorTechnology = new EmulatorTechnology();
+            emulatorTechnology.hasChanged = true;
+            emulatorTechnology.bNew = true;
+            emulatorTechnology.setName("Emulator_technology");
+            defaultScreenClass.add(emulatorTechnology);
+            
+            JavelinTransaction transaction = new JavelinTransaction();
+            transaction.hasChanged = true;
+            transaction.bNew = true;
+            transaction.setName("XMLize");
+            javelinConnector.add(transaction);
+            javelinConnector.setDefaultTransaction(transaction);
+        }
+        else if (connector instanceof HtmlConnector) {
+            HtmlConnector htmlConnector = (HtmlConnector) connector;
+            htmlConnector.setServer("www.convertigo.com");
+            
+            HtmlScreenClass defaultScreenClass = new HtmlScreenClass();
+            defaultScreenClass.setName("Default_screen_class");
+            defaultScreenClass.hasChanged = true;
+            defaultScreenClass.bNew = true;
+            htmlConnector.setDefaultScreenClass(defaultScreenClass);
+            
+            HtmlTransaction transaction = new HtmlTransaction();
+            transaction.hasChanged = true;
+            transaction.bNew = true;
+            transaction.setName("XMLize");
+            htmlConnector.add(transaction);
+            htmlConnector.setDefaultTransaction(transaction);
+        }
+        else if (connector instanceof HttpConnector) {
+            HttpConnector httpConnector = (HttpConnector) connector;
+            
+            HttpTransaction transaction = new HttpTransaction();
+            transaction.hasChanged = true;
+            transaction.bNew = true;
+            transaction.setName("Default_transaction");
+            httpConnector.add(transaction);
+            httpConnector.setDefaultTransaction(transaction);
+        }
+        
+        else if (connector instanceof SapJcoConnector) {
+            SapJcoConnector sapConnector = (SapJcoConnector)connector;
+            
+            SapJcoLogonTransaction sapLogon = new SapJcoLogonTransaction();
+            sapLogon.hasChanged = true;
+            sapLogon.bNew = true;
+            sapLogon.setName("Logon");
+            sapLogon.addCredentialsVariables();
+            sapConnector.add(sapLogon);
+            sapConnector.setDefaultTransaction(sapLogon);
+            
+            SapJcoTransaction transaction = new SapJcoTransaction();
+            transaction.hasChanged = true;
+            transaction.bNew = true;
+            transaction.setName("RFC_FUNCTION_SEARCH");
+            transaction.setBapiName("RFC_FUNCTION_SEARCH");
+            RequestableVariable variable = new RequestableVariable();
+            variable.hasChanged = true;
+            variable.bNew = true;
+            variable.setName("FUNCNAME");
+            variable.setValueOrNull("BAPI_*");
+            transaction.add(variable);
+            sapConnector.add(transaction);
+        }
+        
+        else if (connector instanceof SqlConnector) {
+            SqlConnector sqlConnector = (SqlConnector)connector;
+            sqlConnector.setJdbcDriverClassName("org.hsqldb.jdbcDriver");
+            
+            SqlTransaction transaction = new SqlTransaction();
+            transaction.hasChanged = true;
+            transaction.bNew = true;
+            transaction.setName("Default_transaction");
+            sqlConnector.add(transaction);
+            sqlConnector.setDefaultTransaction(transaction);
+        }
+        else if (connector instanceof CicsConnector) {
+            CicsConnector cicsConnector = (CicsConnector) connector;
+            
+            CicsTransaction transaction = new CicsTransaction();
+            transaction.hasChanged = true;
+            transaction.bNew = true;
+            transaction.setName("Default_transaction");
+            cicsConnector.add(transaction);
+            cicsConnector.setDefaultTransaction(transaction);
+        }
+        else if (connector instanceof SiteClipperConnector) {
+            SiteClipperConnector siteClipperConnector = (SiteClipperConnector) connector;
+            
+            SiteClipperScreenClass defaultScreenClass = new SiteClipperScreenClass();
+            defaultScreenClass.setName("Default_screen_class");
+            defaultScreenClass.hasChanged = true;
+            defaultScreenClass.bNew = true;
+            siteClipperConnector.setDefaultScreenClass(defaultScreenClass);
+            
+            SiteClipperTransaction transaction = new SiteClipperTransaction();
+            transaction.hasChanged = true;
+            transaction.bNew = true;
+            transaction.setName("Default_transaction");
+            siteClipperConnector.add(transaction);
+            siteClipperConnector.setDefaultTransaction(transaction);
+        }
+        else if (connector instanceof CouchDbConnector) {
+            CouchDbConnector couchDbConnector = (CouchDbConnector)connector;
+            
+            String couchDbXsdPath = AbstractCouchDbTransaction.COUCHDB_XSD_LOCATION;
+            boolean existReference = false;
+            for (Reference reference : couchDbConnector.getProject().getReferenceList()) {
+                if (reference instanceof XsdSchemaReference) {
+                    String urlPath = ((XsdSchemaReference)reference).getUrlpath();
+                    if (urlPath.equals(couchDbXsdPath)) {
+                        existReference = true;
+                        break;
+                    }
+                }
+            }
+            if (!existReference) {
+                ImportXsdSchemaReference reference = new ImportXsdSchemaReference();
+                reference.setName("CouchDb_schema");
+                reference.setUrlpath(couchDbXsdPath);
+                couchDbConnector.getProject().add(reference);
+            }
+            
+            GetServerInfoTransaction transaction = new GetServerInfoTransaction();
+            couchDbConnector.add(transaction);
+            couchDbConnector.setDefaultTransaction(transaction);
+        }
+    }
 }

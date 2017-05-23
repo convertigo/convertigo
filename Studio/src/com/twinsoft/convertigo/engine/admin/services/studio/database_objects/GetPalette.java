@@ -309,7 +309,6 @@ public class GetPalette extends XmlService {
 			}
 		}
 		catch (Exception e) {
-			// TODO: create exception message box
 			messageBoxes.add(XmlResponseFactory.createMessageBoxResponse(document, dbo.getQName(), "Unable to load database objects properties."));
 			// ConvertigoPlugin.logException(e, "Unable to load database objects properties.");
 		}

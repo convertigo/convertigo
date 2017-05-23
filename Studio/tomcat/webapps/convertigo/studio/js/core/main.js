@@ -47,15 +47,27 @@ var Main = {
 	        /**
 	         * Views
 	         */
-	        "information",
+	        "tree-view-container",
+	        "properties",
 	        "projects"
 		], function () {
+		    // Current Che theme that can be changed in preferences
+		    var isCheDarkTheme = localStorage.getItem("codenvy-theme") === "DarkTheme";
+
+		    var theme = "default";
+		    if (isCheDarkTheme) {
+		        theme += "-dark"
+		    }
+		    
 			// Inject CSS
-			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/jstree/themes/default-dark/style.min.css"));
+	        InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/jstree/themes/" + theme + "/style.min.css"));
 			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/jquery-ui.min-1.12.1.css"));
 			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/jquery.modal.min-0.8.0.css"));
+	        InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/goldenlayout/goldenlayout-base.css"));
+	        InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/goldenlayout/goldenlayout-dark-theme.css"));
 			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/accordion.css"));
 			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/style.css"));
+			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/theme/" + theme + ".css"));
 
 			// To iterate in reverse order
 			jQuery.fn.reverse = [].reverse;
@@ -71,13 +83,10 @@ var Main = {
 
 			// Connect to the Convertigo server
 			Convertigo.authenticate(authUserName, authPassword, function () {
-				// Inject CSS that needed an authentifcation to the Convertigo server
+				// Inject CSS that needed an authentification to the Convertigo server
 				InjectorUtils.injectLinkStyle(Convertigo.createServiceUrl("studio.database_objects.GetMenuIconsCSS"));
 				InjectorUtils.injectLinkStyle(Convertigo.createServiceUrl("studio.database_objects.GetPaletteIconsCSS"));
 				InjectorUtils.injectLinkStyle(Convertigo.createServiceUrl("studio.database_objects.GetTreeIconsCSS"));
-
-				// Will contain projects view + tabs
-				var $projectsViewDiv = $(".projectsView");				
 
 				// Will contain all tabs
 				var studioTabs = new StudioTabs();
@@ -96,14 +105,30 @@ var Main = {
 
 				studioTabs.renderTabs();
 
-				var projectsView = new ProjectsView([palette]);
-
-				// Add projects tree view + Palette
+                // Properties view
+                var propertiesView = new PropertiesView(theme);
+				var projectsView = new ProjectsView(propertiesView, [palette], theme);
+				
+                // Will contain projects view + tabs
+                var $projectsViewDiv = $(".projectsView");
+                // Create toolbar
+                new ProjectsToolbar(projectsView, $projectsViewDiv); 
+				
+				// Add
 				$projectsViewDiv
+				    // ... projects tree view
 					.append(projectsView.getDivWrapperTree())
 					.append($("<hr/>"))
+					// ... and Palette
 					.append(studioTabs.getDiv());
-								
+				
+				// Add
+                var $informationViewDiv = $(".informationView");
+                $informationViewDiv
+                    // ... properties view
+                    .append(propertiesView.getDivWrapperTree());
+                    // ... and Engine log view
+
 				// Automatically open these tabs (only works with Che)
 				$("div[title='Projects']").find(":first").click();
 				$("div[title='Information']").find(":first").click();
@@ -111,11 +136,9 @@ var Main = {
 				// Open palette (for the moment)
 				palette.focus();
 
-				// Properties view
-				PropertiesView.init(".informationView");
 				DatabaseObjectManager.addListener(projectsView);
-				DatabaseObjectManager.addListener(PropertiesView);
-
+				DatabaseObjectManager.addListener(propertiesView);
+				
 				// Call check authentication to stay authenticated
 				Convertigo.checkAuthentication();
 			});
@@ -168,13 +191,14 @@ var Main = {
 		        /**
 		         * Views
 		         */
-		        information: Convertigo.getBaseConvertigoStudioUrl("js/views/information"),
+	            "tree-view-container": Convertigo.getBaseConvertigoStudioUrl("js/views/tree-view-container"),
+		        properties: Convertigo.getBaseConvertigoStudioUrl("js/views/properties"),
 		        projects: Convertigo.getBaseConvertigoStudioUrl("js/views/projects")
 		    },
 		    // To resolve jQuery conflicts
 		    shim: {
 		        "jquery.modal": ["jquery"],
-		        "jquery-ui": ["jquery"]
+		        "jquery-ui": ["jquery"],
 		    }
 		});
 	}

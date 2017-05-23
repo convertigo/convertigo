@@ -1,26 +1,24 @@
-function ProjectsView(palettes) {
-	this.tree = $("<div/>", {
-		"class": "projectsTreeView"
-	});
+function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {    
+	TreeViewContainer.call(this, "projectsTreeView");
 
+	this.propertiesView = propertiesView;
+	
 	this.palettes = {};
 	for (var i = 0; i < palettes.length; ++i) {
 		this.palettes[palettes[i].getId()] = palettes[i];
 	}
 
-    // Refresh projects tree view when pressing F5 (for debug prupose)
+	var that = this;
+
+    // Refresh projects tree view when pressing F5 (for debug purpose)
     $(document).on("keydown", function (e) {
         if ((e.which || e.keyCode) == 116) {
             e.preventDefault();
-            projectsView.tree.jstree().refresh(true);
+            that.tree.jstree().refresh(true);
         }
     });
     
-    // Create toolbar
-    new ProjectsToolbar(this, ".projectsView"); 
-    
 	this.resetDndData();
-	var that = this;
 	// Property updated
 	$(this).on("set_property.dbo-manager", function (event, qnames, property, value, data) {
 		for (var j = 0; j < qnames.length; ++j) {
@@ -178,7 +176,7 @@ function ProjectsView(palettes) {
 			    force_text: true, // Prevent XSS vulnerabilities
 				animation : 0,
 				themes: {
-					name: "default-dark",
+					name: jstreeTheme,
 					dots: false
 				},
 				// Create nodes
@@ -283,58 +281,55 @@ function ProjectsView(palettes) {
 			}
 		})
 		.on("select_node.jstree", function (event, data) {
-			// Don't update properties view if we select the same node again
-			if (lastSelectedNodeId !== data.node.id) {
-				lastSelectedNodeId = data.node.id;
-				PropertiesView.refresh(data.node);
-				
-				/*
-				 * If the condition is true, it means a dbo has been created.
-				 * However when it is created, we select the new node automatically
-				 * so the Palette will be updated and we don't want to do that because
-				 * it is not user friendly.
-				 */
-				if (!that.dnd.started) {
-					var qname = null;
-					var folderType = null;
-					// It is not a folder
-					if (!that.isNodeFolder(data.node)) {
-						qname = data.node.data.qname;
-					}
-					else {
-						// Parent of the selected folder = the related dbo
-						var parentNode = that.tree.jstree().get_node(data.node.parent);
-						
-						qname = parentNode.data.qname;
-						folderType = data.node.data.folderType;
-					}
-					
-					// Get Palette
-					$.ajax({
-						url: Convertigo.createServiceUrl("studio.database_objects.GetPalette"),
-						data: {
-							qname: qname,
-							folderType: folderType
-						},
-						success: function (data, textStatus, jqXHR) {
-							var $adminXml =  $(data).find("admin");
-							var $categoriesXml = $adminXml.find(">:first");
-							// Update all Palette views
-							for (var key in that.palettes) {
-								that.palettes[key].update($categoriesXml);
-							}
-							
-							// Show errors
-							$adminXml.find(">*[name='MessageBoxResponse']").reverse().each(function () {
-								var $msgBoxXml = $(this).find(">*");
-								ModalUtils.createMessageBox(
-									$msgBoxXml.find("title").text(),
-									$msgBoxXml.find("message").text()
-								);
-							});
-						}
-					});
+			lastSelectedNodeId = data.node.id;
+			that.propertiesView.refresh(data.node);
+			
+			/*
+			 * If the condition is true, it means a dbo has been created.
+			 * However when it is created, we select the new node automatically
+			 * so the Palette will be updated and we don't want to do that because
+			 * it is not user friendly.
+			 */
+			if (!that.dnd.started) {
+				var qname = null;
+				var folderType = null;
+				// It is not a folder
+				if (!that.isNodeFolder(data.node)) {
+					qname = data.node.data.qname;
 				}
+				else {
+					// Parent of the selected folder = the related dbo
+					var parentNode = that.tree.jstree().get_node(data.node.parent);
+					
+					qname = parentNode.data.qname;
+					folderType = data.node.data.folderType;
+				}
+				
+				// Get Palette
+				$.ajax({
+					url: Convertigo.createServiceUrl("studio.database_objects.GetPalette"),
+					data: {
+						qname: qname,
+						folderType: folderType
+					},
+					success: function (data, textStatus, jqXHR) {
+						var $adminXml =  $(data).find("admin");
+						var $categoriesXml = $adminXml.find(">:first");
+						// Update all Palette views
+						for (var key in that.palettes) {
+							that.palettes[key].update($categoriesXml);
+						}
+						
+						// Show errors
+						$adminXml.find(">*[name='MessageBoxResponse']").reverse().each(function () {
+							var $msgBoxXml = $(this).find(">*");
+							ModalUtils.createMessageBox(
+								$msgBoxXml.find("title").text(),
+								$msgBoxXml.find("message").text()
+							);
+						});
+					}
+				});
 			}
 		})
 		.on("select_cell.jstree-grid", function (event, data) {
@@ -516,6 +511,9 @@ function ProjectsView(palettes) {
                 }
             });
 }
+
+ProjectsView.prototype = Object.create(TreeViewContainer.prototype);
+ProjectsView.prototype.constructor = ProjectsView;
 
 ProjectsView.prototype.addJstreeNodeType = function (classname) {
 	var nodeType = StringUtils.replaceDotByMinus(classname);
@@ -700,21 +698,7 @@ ProjectsView.prototype.createChildNodes = function ($dbo, node) {
 	return nodes;
 };
 
-ProjectsView.prototype.createNodeJsonFolder = function (text, categoryName, qname) {
-	return {
-	    id: "fd-" + StringUtils.replaceDotByMinus(qname) + "-" + categoryName,
-		text: text,
-		children: [],
-		li_attr: {
-			"class": "drop"
-		},
-		data: {
-			folderType: categoryName
-		}
-	};
-};
-
-ProjectsView.prototype.computeCategoryName = function(category) {
+ProjectsView.prototype.computeCategoryName = function (category) {
 	var tmpCategory = category.toLowerCase();
 	if (tmpCategory == "screenclass") {
 		return "Screen classes";
@@ -796,6 +780,21 @@ ProjectsView.prototype.createNodeJsonDbo = function (dboElt) {
 	}
 	
 	return nodeJsonDbo;
+};
+
+ProjectsView.prototype.createNodeJsonFolder = function (text, categoryName, qname) {
+    var nodeId = "fd-" + StringUtils.replaceDotByMinus(qname) + "-" + categoryName;
+    return {
+        id: this.tree.jstree().generateId(nodeId),
+        text: text,
+        children: [],
+        li_attr: {
+            "class": "drop"
+        },
+        data: {
+            folderType: categoryName
+        }
+    };
 };
 
 ProjectsView.prototype.computeComment = function (comment) {
@@ -971,15 +970,6 @@ ProjectsView.prototype.editCell = function (obj, col, element, editText) {
 	h2.css(fn).width("100%")[0].select();
 };
 
-ProjectsView.prototype.getDivWrapperTree = function () {
-	/*
-	 * As we use the plugin jstreegrid (to show comments), the main div of jstree
-	 * and the comments colums is wrapped in a div.
-	 * So we find this wrapper div.
-	 */
-	return $(this.tree).parents().last();
-};
-
 ProjectsView.prototype.resetDndData = function () {
 	this.dnd = {
 		started: false,
@@ -998,10 +988,14 @@ ProjectsView.prototype.isNodeFolder = function (node) {
 
 ProjectsView.prototype.getProjectNode = function (node, asDom = false) {
     var currentNode = this.tree.jstree().get_node(node);
-    return this.tree.jstree().get_node(
-        currentNode.parent === "#" ?
-        currentNode :
-        currentNode.parents[currentNode.parents.length - 2],
-        asDom
-    );
+    return currentNode !== false ?
+        // Return project node
+        this.tree.jstree().get_node(
+            currentNode.parent === "#" ?
+            currentNode :
+            currentNode.parents[currentNode.parents.length - 2],
+            asDom
+        ) :
+        // No node
+        null;
 };

@@ -9,14 +9,26 @@ function ProjectsToolbar(projectsView, panelSelector) {
         function () {
             var selectedNodeId = projectsView.tree.jstree().get_selected()[0];
             var projectNode = projectsView.getProjectNode(selectedNodeId);
-            $.ajax({
-                url: Convertigo.createServiceUrl("studio.projects.Save"),
-                data: {
-                    qname: projectNode.data.qname 
-                },
-                success: function () {
-                }
-            });
+            
+            // Do not call Save service if no node is selected
+            if (projectNode !== null) {
+                $.ajax({
+                    url: Convertigo.createServiceUrl("studio.projects.Save"),
+                    data: {
+                        qname: projectNode.data.qname 
+                    },
+                    success: function (data, textStatus, jqXHR) {
+                        // Show errors
+                        $(data).find("admin").find(">*[name='MessageBoxResponse']").reverse().each(function() {
+                            var $msgBoxXml = $(this).find(">*");
+                            ModalUtils.createMessageBox(
+                                $msgBoxXml.find("title").text(),
+                                $msgBoxXml.find("message").text()
+                            );
+                        });
+                    }
+                });
+            }
         }
     );
     

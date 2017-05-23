@@ -1,0 +1,114 @@
+/*********************************
+* CSS (colors) for Light theme.
+*********************************/
+
+/*********************************
+* Jstree projects tree view
+*********************************/
+
+.projectsTreeView tbody>tr:first-child>td:first-child {
+    color: red;
+}
+
+.projectsTreeView tbody>tr>td {
+    color: green;
+}
+
+.projectsTreeView tbody>tr>td>input {
+    background-color: rgb(51, 55, 59);
+    color: white;
+}
+
+.comment {
+    color: #0085ff;
+}
+
+.jstree-default {
+    background-color: none;
+}
+
+/* Header separator of the jstree grid plugin */
+.jstree-grid-separator-regular {
+/*  border-style: none !important; */
+}
+
+li.nodeDisable > a {
+    color: rgb(255, 0, 0) !important;
+}
+
+.nodeDisable a {
+    color: rgb(236, 167, 3) !important;
+}
+
+.nodeIsInherited a {
+    color: #afacac !important;
+}
+
+.jstree-default .jstree-anchor>.jstree-icon {
+    opacity: 1;
+}
+
+/*********************************
+* Jstree context menu
+*********************************/
+
+.contextmenu-entry-disable {
+    opacity: 0.5;
+   -webkit-filter: grayscale(100%);
+   -moz-filter: grayscale(100%);
+   -o-filter: grayscale(100%);
+   -ms-filter: grayscale(100%);
+   filter: grayscale(100%);
+}
+
+/*********************************
+* Modal
+*********************************/
+
+div.modal {
+    color: #33373B;
+    background-color: white;
+}
+
+/*********************************
+* Palette
+*********************************/
+.gray-selection {
+    background-color: #beebff;
+}
+
+/*********************************
+* jQuery UI tabs
+*********************************/
+
+.ui-tabs, .ui-tabs>ul, .ui-tabs>div {
+	background-color: #ffffff;
+}
+
+.ui-state-active a, .ui-state-active a:link, .ui-state-active a:visited {
+   background-color: #beebff !important;
+}
+
+.ui-state-default a, .ui-state-default a:link, .ui-state-default a:visited, a.ui-button, a:link.ui-button, a:visited.ui-button, .ui-button {
+   background-color: #e7f4f9;   
+}
+
+.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default, .ui-button, html .ui-button.ui-state-disabled:hover, html .ui-button.ui-state-disabled:active {
+	background-color: #e0e0e0;
+}
+
+.ui-tabs h2, .ui-tabs h4, .ui-tabs p, .ui-tabs span,
+.ui-state-default a, .ui-state-default a:link, .ui-state-default a:visited, a.ui-button, a:link.ui-button, a:visited.ui-button, .ui-button {
+	color: rgb(0, 0, 0) !important;
+}
+
+/*********************************
+* Accordion
+*********************************/
+button.accordion {
+	color: rgb(0, 0, 0);
+}
+
+button.accordion.active, button.accordion:hover, button.accordion {
+    background-color: #f5f5f5;
+}
