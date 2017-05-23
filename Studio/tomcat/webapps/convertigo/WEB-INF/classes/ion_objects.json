@@ -1,6 +1,29 @@
 {
   /*  Property models   */
   "Props": {
+
+    "RangeLeft": {
+      "label": "Range Left",
+      "description": "Labels can be placed on either side of the range by adding the range-left or range-right property to the element. The element doesn't have to be an ion-label, it can be added to any element to place it to the left or right of the range.",
+      "category": "@Range Labels",
+      "value": false,
+      "values": [
+        false,
+        "range-left"
+      ]
+    },
+
+    "RangeRight": {
+      "label": "Range Right",
+      "description": "Labels can be placed on either side of the range by adding the range-left or range-right property to the element. The element doesn't have to be an ion-label, it can be added to any element to place it to the left or right of the range.",
+      "category": "@Range Labels",
+      "value": false,
+      "values": [
+        false,
+        "range-right"
+      ]
+    },
+
     "ButtonType": {
       "label": "button type",
       "description": "Specifies ionic button style",
@@ -582,7 +605,10 @@
       "icon32": "icon_color_32x32.png",
       "properties": {
         "IconName": "add",
-        "ItemPosition": false
+        "ItemPosition": false,
+        "IonColor": false,
+        "RangeLeft": false,
+        "RangeRight": false
       }
     },
 
@@ -1125,8 +1151,9 @@
             false,
             "stacked"
           ]
-        }
-
+        },
+        "RangeLeft" : false,
+        "RangeRight" : false
       }
     },
 
@@ -1354,6 +1381,81 @@
         }
       }
     },
+
+    "Range": {
+      "tag": "ion-range",
+      "label": "Range slider",
+      "description": "The Range slider lets users select from a range of values by moving the slider knob. It can accept dual knobs, but by default one knob controls the value of the range.",
+      "group": "Forms",
+      "icon16": "range_16x16.png",
+      "icon32": "range_32x32.png",
+      "properties": {
+        "Min": {
+          "attr": "min",
+          "label": "Minimum",
+          "description": "Minimum and maximum values can be passed to the range through the min and max properties, respectively. By default, the range sets the min to 0 and the max to 100.",
+          "category": "@Properties",
+          "value": false
+        },
+        "Max": {
+          "attr": "max",
+          "label": "Maximum",
+          "description": "Minimum and maximum values can be passed to the range through the min and max properties, respectively. By default, the range sets the min to 0 and the max to 100.",
+          "category": "@Properties",
+          "value": false
+        },
+        "Step": {
+          "attr": "step",
+          "label": "Step",
+          "description": "The step property specifies the value granularity of the range's value. It can be useful to set the step when the value isn't in increments of 1. Setting the step property will show tick marks on the range for each step. The snaps property can be set to automatically move the knob to the nearest tick mark based on the step property value.",
+          "category": "@Properties",
+          "value": false
+        },
+        "Debounce": {
+          "attr": "debounce",
+          "label": "Debounce",
+          "description": "How long, in milliseconds, to wait to trigger the ionChange event after each change in the range value. Default 0.",
+          "category": "@Properties",
+          "value": false
+        },
+        "Pin": {
+          "attr": "pin",
+          "label": "Pin",
+          "description": "If true, a pin with integer value is shown when the knob is pressed. Defaults to false.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            "false",
+            "true"
+          ]
+        },
+        "Snaps": {
+          "attr": "snaps",
+          "label": "Snaps",
+          "description": "The step property specifies the value granularity of the range's value. It can be useful to set the step when the value isn't in increments of 1. Setting the step property will show tick marks on the range for each step. The snaps property can be set to automatically move the knob to the nearest tick mark based on the step property value.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            "false",
+            "true"
+          ]
+        },
+
+        "DualKnobs": {
+          "attr": "dualKnobs",
+          "label": "Dual Knobs",
+          "description": "Setting the dualKnobs property to true on the range component will enable two knobs on the range. If the range has two knobs, the value will be an object containing two properties: lower and upper.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            "false",
+            "true"
+          ]
+        },
+        "IonColor": false
+      }
+    },
+    
     /*    Grid System     */
     "Grid": {
       "tag": "ion-grid",
