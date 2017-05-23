@@ -802,6 +802,61 @@
         }
       }
     },
+
+    "Scroll": {
+      "tag": "ion-scroll",
+      "label": "Scroll Area",
+      "description": "Scroll is a non-flexboxed scroll area that can scroll horizontally or vertically. ion-Scroll Can be used in places where you may not need a full page scroller, but a highly customized one, such as image scubber or comment scroller.",
+      "group": "Containers",
+      "icon16": "scroll_color_16x16.png",
+      "icon32": "scroll_color_32x32.png",
+      "properties": {
+        "ScrollX": {
+          "attr": "scrollX",
+          "label": "Scroll X",
+          "description": "If true, scrolling along the X axis is enabled.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "false",
+            "true"
+          ]
+        },
+        "ScrollY": {
+          "attr": "scrollY",
+          "label": "Scroll Y",
+          "description": "If true, scrolling along the Y axis is enabled. (requires the following CSS declaration: ion-scroll { white-space: nowrap; })",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "false",
+            "true"
+          ]
+        },
+        "Zoom": {
+          "attr": "zoom",
+          "label": "Zoom",
+          "description": "If true, zooming is enabled.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "false",
+            "true"
+          ]
+        },
+        "MaxZoom": {
+          "attr": "maxZoom",
+          "label": "Max. Zoom",
+          "description": "Set the max zoom amount.",
+          "category": "@Properties",
+          "value": false
+        }
+      }
+    },
+
     "ToolBar": {
       "tag": "ion-toolbar",
       "label": "ToolBar",
