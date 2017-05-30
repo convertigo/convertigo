@@ -74,12 +74,17 @@ public class UIElement extends UIComponent implements IStyleGenerator {
 	
 	@Override
 	public void addUIComponent(UIComponent uiComponent) throws EngineException {
-		if (isSelfClose() && !(uiComponent instanceof UIAttribute || uiComponent instanceof UIStyle)) {
-			throw new EngineException("You cannot add component to this self-closing tag");
-		}
-		else {
-			super.addUIComponent(uiComponent);
-		}
+	    addUIComponent(uiComponent, null);
+	}
+	
+	@Override
+	protected void addUIComponent(UIComponent uiComponent, Long after) throws EngineException {
+        if (isSelfClose() && !(uiComponent instanceof UIAttribute || uiComponent instanceof UIStyle)) {
+            throw new EngineException("You cannot add component to this self-closing tag");
+        }
+        else {
+            super.addUIComponent(uiComponent, after);
+        }
 	}
 
 	@Override

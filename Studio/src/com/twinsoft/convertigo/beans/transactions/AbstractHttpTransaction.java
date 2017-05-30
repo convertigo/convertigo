@@ -500,13 +500,21 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 	
     @Override
     public void add(DatabaseObject databaseObject) throws EngineException {
+        add(databaseObject, null);
+    }
+    
+    @Override
+    public void add(DatabaseObject databaseObject, Long after) throws EngineException {
         if (databaseObject instanceof RequestableVariable) {
-        	if (databaseObject instanceof RequestableHttpVariable)
-        		addVariable((RequestableHttpVariable) databaseObject);
-        	else throw new EngineException("You cannot add to an HttpTransaction object a database object of type " + databaseObject.getClass().getName());
+            if (databaseObject instanceof RequestableHttpVariable) {
+                addVariable((RequestableHttpVariable) databaseObject);
+            }
+            else {
+                throw new EngineException("You cannot add to an HttpTransaction object a database object of type " + databaseObject.getClass().getName());
+            }
         }
         else {
-            super.add(databaseObject);
+            super.add(databaseObject, after);
         }
     }
     

@@ -41,8 +41,13 @@ public class UICustom extends UIComponent {
 
 	@Override
 	public void add(DatabaseObject databaseObject) throws EngineException {
-		throw new EngineException("You cannot add to a custom component a database object of type " + databaseObject.getClass().getName());
+		add(databaseObject, null);
 	}
+	
+    @Override
+    public void add(DatabaseObject databaseObject, Long after) throws EngineException {
+        throw new EngineException("You cannot add to a custom component a database object of type " + databaseObject.getClass().getName());
+    }
 
 	protected String htmlTemplate = "";
 

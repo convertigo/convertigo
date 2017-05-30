@@ -116,40 +116,45 @@ public abstract class BlockStep extends StepWithExpressions {
 
 	@Override
 	public void addStep(Step step) throws EngineException {
-		checkSubLoaded();
-		
-		if (hasThenElseSteps()) {
-			if ((!(step instanceof ThenStep)) && (!(step instanceof ElseStep))) {
-				throw new EngineException("You cannot add to this step a database object of type " + step.getClass().getName());
-			}
-			
-			if ((thenStep == null) || (elseStep == null)) {
-				if ((step instanceof ThenStep)) {
-					if (thenStep == null) {
-						super.addStep(step);
-						thenStep = (ThenStep)step;
-					}
-					else
-						throw new EngineException("You cannot add to this step another database object of type " + step.getClass().getName());
-				}
-				else if ((step instanceof ElseStep)) {
-					if (elseStep == null) {
-						super.addStep(step);
-						elseStep = (ElseStep)step;
-					}
-					else
-						throw new EngineException("You cannot add to this step another database object of type " + step.getClass().getName());
-				}
-			}
-			else {
-				throw new EngineException("You cannot add to this step another database object of type " + step.getClass().getName());
-			}
-		}
-		else {
-			super.addStep(step);
-		}
+	    addStep(step, null);
 	}
 
+    @Override
+    public void addStep(Step step, Long after) throws EngineException {
+        checkSubLoaded();
+        
+        if (hasThenElseSteps()) {
+            if ((!(step instanceof ThenStep)) && (!(step instanceof ElseStep))) {
+                throw new EngineException("You cannot add to this step a database object of type " + step.getClass().getName());
+            }
+            
+            if ((thenStep == null) || (elseStep == null)) {
+                if ((step instanceof ThenStep)) {
+                    if (thenStep == null) {
+                        super.addStep(step, after);
+                        thenStep = (ThenStep)step;
+                    }
+                    else
+                        throw new EngineException("You cannot add to this step another database object of type " + step.getClass().getName());
+                }
+                else if ((step instanceof ElseStep)) {
+                    if (elseStep == null) {
+                        super.addStep(step, after);
+                        elseStep = (ElseStep)step;
+                    }
+                    else
+                        throw new EngineException("You cannot add to this step another database object of type " + step.getClass().getName());
+                }
+            }
+            else {
+                throw new EngineException("You cannot add to this step another database object of type " + step.getClass().getName());
+            }
+        }
+        else {
+            super.addStep(step, after);
+        }
+    }
+	
 	@Override
 	public void removeStep(Step step) {
 		checkSubLoaded();

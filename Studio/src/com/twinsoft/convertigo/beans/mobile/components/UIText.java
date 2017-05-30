@@ -53,8 +53,13 @@ public class UIText extends UIComponent {
 
 	@Override
 	public void add(DatabaseObject databaseObject) throws EngineException {
-		throw new EngineException("You cannot add to a text component a database object of type " + databaseObject.getClass().getName());
+		add(databaseObject, null);
 	}
+	
+    @Override
+    public void add(DatabaseObject databaseObject, Long after) throws EngineException {
+        throw new EngineException("You cannot add to a text component a database object of type " + databaseObject.getClass().getName());
+    }
 
 	@Override
 	public String computeTemplate() {

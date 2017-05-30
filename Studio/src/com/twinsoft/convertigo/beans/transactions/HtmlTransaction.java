@@ -170,13 +170,18 @@ public class HtmlTransaction extends HttpTransaction {
 
     @Override
 	public void add(DatabaseObject databaseObject) throws EngineException {
-		if (databaseObject instanceof Statement) {
-			addStatement((Statement) databaseObject);
-		}
-		else {
-			super.add(databaseObject);
-		}
+        add(databaseObject, null);
 	}
+    
+    @Override
+    public void add(DatabaseObject databaseObject, Long after) throws EngineException {
+        if (databaseObject instanceof Statement) {
+            addStatement((Statement) databaseObject);
+        }
+        else {
+            super.add(databaseObject, after);
+        }
+    }
 
     @Override
 	public void remove(DatabaseObject databaseObject) throws EngineException {

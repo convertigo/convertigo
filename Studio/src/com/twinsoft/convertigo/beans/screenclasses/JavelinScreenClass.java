@@ -97,8 +97,14 @@ public class JavelinScreenClass extends ScreenClass {
         return blockFactory;
     }
     
+    @Override
     public void add(DatabaseObject databaseObject) throws EngineException {
-        super.add(databaseObject);
+        add(databaseObject, null);
+    }
+    
+    @Override
+    public void add(DatabaseObject databaseObject, Long after) throws EngineException {
+        super.add(databaseObject, after);
         if (databaseObject instanceof BlockFactory) {
             setBlockFactory((BlockFactory) databaseObject);
         }
