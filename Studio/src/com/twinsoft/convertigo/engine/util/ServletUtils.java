@@ -40,6 +40,7 @@ public class ServletUtils {
 	        	Engine.logContext.debug("Found MIME type: " + mimeType);
 	        	HeaderName.ContentType.setHeader(response, mimeType);
 	    		HeaderName.CacheControl.setHeader(response, "public");
+	    		HeaderName.ContentLength.setHeader(response, "" + file.length());
 	    		response.setDateHeader(HeaderName.LastModified.value(), file.lastModified());
 
 	    		FileInputStream fileInputStream = null;
