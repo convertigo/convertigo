@@ -136,15 +136,28 @@ function updateKeysList(xml) {
 				else
 					$key.find(".key-expiration").text(dateFormat(dayOffset*1000*3600*24, "ddd, mmm dS yyyy"));
 			}
-			
-			if ($(this).attr('evaluation') != "true" || $(this).attr('expired') != "true") {
+
+			if ($(this).attr('evaluation') == "true") {
+				$key.find(".key-expired").show();				
+			} else {
+				$key.find(".key-expired").hide();
+			}
+
+			// made expired over rule demo flag
+			if ($(this).attr('expired') == "true") {
+				$key.find(".key-expired").show();				
+			} else {
 				$key.find(".key-expired").hide();
 			}
 			
 			$category_table.prepend($key);
 			
 			if (categoryName == "Standard Edition") {
-				$category_table.find("td:contains('simultaneous connections')").text("simultaneous sessions");
+				$category_table.find("td:contains('simultaneous connections')").contents().filter(function() {
+				    return this.nodeType === 3;
+				  }).replaceWith(function() {
+				      return this.nodeValue.replace('connections','sessions');
+				  });				
 			}
 		});
 		

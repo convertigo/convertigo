@@ -86,39 +86,48 @@ public class List extends XmlService{
         		nbValidKey += KeyManager.hasExpired(emulatorID) ? 0 : (key.bDemo ? 0 : 1);
 
         		Element keysElement = document.createElement("keys");
-        		
+
         		do {
        				total += key.cv;
         			
         			Element keyElement = document.createElement("key");
         			keyElement.setAttribute("text", key.sKey);
         			keyElement.setAttribute("value", Integer.toString(key.cv));
-        			keyElement.setAttribute("evaluation",key.bDemo ? "true" : "false");
+        			keyElement.setAttribute("evaluation", key.bDemo ? "true" : "false");
         			
         			/**
-        			 * for demo keys, adjust expiry date to milliEvalDate (startDate + 30 days, see KeyManager)
+        			 * for demo keys, adjust expiration date to milliEvalDate (startDate + 30 days, see KeyManager)
         			 */
+        			String expiration;
+        			
         			if (key.bDemo)
-        				keyElement.setAttribute("expiration", ""+(KeyManager.getFirstStartDate()/(1000*3600*24)));
+        				keyElement.setAttribute("expiration", expiration = ""+(KeyManager.getFirstStartDate()/(1000*3600*24)));
         			else
-        				keyElement.setAttribute("expiration", Integer.toString(key.expiration));
-        			
-        			keyElement.setAttribute("expired", key.cv == 0 ? "true" : "false");
-        			
+        				keyElement.setAttribute("expiration", expiration = Integer.toString(key.expiration));
+
+        			if (emulatorID == Session.EmulIDSE) {
+            			if ((Integer.parseInt(expiration) != 0) && (System.currentTimeMillis()/(1000*3600*24) > Integer.parseInt(expiration)))
+            				keyElement.setAttribute("expired", "true");
+            			else
+            				keyElement.setAttribute("expired", "false");
+        			} else {
+        				keyElement.setAttribute("expired", key.cv == 0 ? "true" : "false");
+        			}
+
         			NodeList keyList =  keysElement.getChildNodes();
-        			
+
         			if (keyList.getLength() == 0)
         				keysElement.appendChild(keyElement);
         			else {
 	        			for(int i=0; i<keyList.getLength(); i++) {
 	        				Element el = ((Element)keyList.item(i));
-	        				String expiration = el.getAttribute("expiration");
+	        				expiration = el.getAttribute("expiration");
 	        				
 	        				if (expiration.equals("0") || expiration.compareTo(Integer.toString(key.expiration)) > 0) {
 	        					keysElement.insertBefore(keyElement,  (Element)keyList.item(i));
 	        					break;
 	        				}
-
+	        				
 	        				if (i == keyList.getLength()-1)
 	        					keysElement.appendChild(keyElement);
 	        			}
@@ -130,35 +139,22 @@ public class List extends XmlService{
         		/*
         		 * parse final licence array to adjust sessions keys where the latest one overrides the previous
         		 */
-        		NodeList keyList =  keysElement.getChildNodes();
+    			NodeList keyList =  keysElement.getChildNodes();
         		if ((emulatorID == Session.EmulIDSE) && (keyList.getLength() > 0)) { 
-        			// override computed total with value from last
-        			total = Integer.parseInt(((Element)keyList.item(keyList.getLength()-1)).getAttribute("value"));
-        			// sets all the others to 0
-        			for(int i=keyList.getLength()-2; i>=0; i--) {
-        				// if key is valid and has sessions not null
-        				if (total > 0)
-        					((Element)keyList.item(i)).setAttribute("value", "0");	// kill previous keys
-        				else
-        					total = Integer.parseInt(((Element)keyList.item(i)).getAttribute("value")); // get value from current
-        			}
+        			// if Session CV still 0, default to maxCVValue from KeyManager, 
+        			// session key CV cannot be less than 10
+        			// and remaining-used will not appear negative
+        			if (total == 0) 
+        				total = KeyManager.getMaxCV(Session.EmulIDSE);
         		}
         		
-        		Element emulatorNameElement = document.createElement("category");    	    	    	
+        		Element emulatorNameElement = document.createElement("category");
+       			emulatorNameElement.setAttribute("overflow", KeyManager.isOverflow(emulatorID) ? "true" : "false");
         		emulatorNameElement.setAttribute("name", emulatorName);
         		emulatorNameElement.setAttribute("remaining", Integer.toString(KeyManager.getCV(emulatorID)));
-        		
-        		if (emulatorID == Session.EmulIDSE) {        			
-            		// sessions cannot be less than 10
-    				if (total <= 0)
-    					total = 10;
-
-           			emulatorNameElement.setAttribute("total", Integer.toString(total));
-        			emulatorNameElement.setAttribute("overflow", KeyManager.isOverflow(emulatorID) ? "true" : "false");
-        		}
+        		emulatorNameElement.setAttribute("total", Integer.toString(total));
         		
         		emulatorNameElement.appendChild(keysElement);
-        		
         		rootElement.appendChild(emulatorNameElement);
         	}    		
     	}
