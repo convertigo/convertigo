@@ -65,7 +65,7 @@ import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonProperty;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.html.MobileComponentEditorInput;
-import com.twinsoft.convertigo.eclipse.property_editors.StringComboBoxPropertyDescriptor;
+import com.twinsoft.convertigo.eclipse.property_editors.MobileSmartSourcePropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 
 public class MobileUIComponentTreeObject extends MobileComponentTreeObject implements IEditableTreeObject, IOrderableTreeObject, INamedSourceSelectorTreeObject {
@@ -295,7 +295,9 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 	        				Object value = values[i];
 	        				tags[i] = value.equals(false) ? "not set":value.toString();
 	        			}
-	        			propertyDescriptor = new StringComboBoxPropertyDescriptor(id, displayName, tags, !isEditable);
+	        			//propertyDescriptor = new StringComboBoxPropertyDescriptor(id, displayName, tags, !isEditable);
+	        			propertyDescriptor = new MobileSmartSourcePropertyDescriptor(id, displayName, tags, !isEditable);
+	        			((MobileSmartSourcePropertyDescriptor)propertyDescriptor).databaseObjectTreeObject = this;
 	    	        }
 	    	        propertyDescriptor.setCategory(property.getCategory());
 	    	        propertyDescriptor.setDescription(property.getDescription());

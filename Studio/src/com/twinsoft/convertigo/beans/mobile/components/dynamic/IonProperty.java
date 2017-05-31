@@ -26,6 +26,9 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
+import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType.Mode;
+
 public class IonProperty implements Cloneable {
 	
 	enum Key {
@@ -34,6 +37,7 @@ public class IonProperty implements Cloneable {
 		label,
 		description,
 		category,
+		mode,
 		value,
 		values
 		;
@@ -49,8 +53,9 @@ public class IonProperty implements Cloneable {
 				.put(Key.label.name(), "label")
 				.put(Key.description.name(), "description")
 				.put(Key.category.name(), "Attributes")
+				.put(Key.mode.name(), "plain")
 				.put(Key.value.name(), false)
-				.put(Key.values.name(), new Object[]{false,true});
+				.put(Key.values.name(), new JSONArray().put(false).put(true));
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
@@ -58,12 +63,27 @@ public class IonProperty implements Cloneable {
 
 	public IonProperty(JSONObject jsonOb) {
 		this();
+		boolean needConfigure = false;
 		for (Key k: Key.values()) {
 			if (jsonOb.has(k.name())) {
 				try {
 					jsonProperty.put(k.name(), jsonOb.get(k.name()));
 				} catch (JSONException e) {
 					e.printStackTrace();
+				}
+			} else if (Key.mode.equals(k)) {
+				needConfigure = true;
+			}
+		}
+		
+		if (needConfigure) {
+			Object value = getValue();
+			if (value != null && value instanceof String) {
+				String s = (String)value;
+				if (s.startsWith("{{") && s.endsWith("}}")) {
+					setMode(Mode.SCRIPT.name().toLowerCase());
+					s = s.substring(2, s.length()-2);
+					setValue(s);
 				}
 			}
 		}
@@ -135,6 +155,7 @@ public class IonProperty implements Cloneable {
 			return new Object[]{false,true};
 		}
 	}
+	
 	public Object getValue() {
 		try {
 			return jsonProperty.get(Key.value.name());
@@ -143,12 +164,68 @@ public class IonProperty implements Cloneable {
 			return false;
 		}
 	}
+	
 	public void setValue(Object value) {
 		try {
 			jsonProperty.put(Key.value.name(), value);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public String getMode() {
+		try {
+			return jsonProperty.getString(Key.mode.name());
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return "plain";
+		}
+	}
+	
+	public void setMode(String mode) {
+		try {
+			jsonProperty.put(Key.mode.name(), mode);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public MobileSmartSourceType getSmartType() {
+		MobileSmartSourceType msst = new MobileSmartSourceType() {
+			
+			private static final long serialVersionUID = 5907963275354985836L;
+			
+			@Override
+			public Object getEditorData() {
+				String smartValue = getSmartValue();
+				return smartValue.equals("not set") ? "":super.getEditorData();
+			}
+			
+		};
+		
+		String mode = getMode();
+		msst.setMode(Mode.valueOf(mode.toUpperCase()));
+		Object value = getValue();
+		msst.setSmartValue(value.equals(false) ? "not set" : value.toString());
+		return msst;
+	}
+	
+	public void setSmartType(MobileSmartSourceType msst) {
+		if (msst != null) {
+			String mode = msst.getMode().name();
+			setMode(mode.toLowerCase());
+			String smartValue = msst.getSmartValue();
+			setValue(smartValue.equals("not set") ? false : smartValue);
+		}
+	}
+	
+	public String getSmartValue() {
+		MobileSmartSourceType msst = getSmartType();
+		String value = msst.getValue();
+		if (!Mode.PLAIN.equals(msst.getMode())) {
+			value = "{{" + value + "}}";
+		}
+		return value;
 	}
 	
 	public String toString() {

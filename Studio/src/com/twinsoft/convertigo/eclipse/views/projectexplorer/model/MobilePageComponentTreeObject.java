@@ -94,20 +94,22 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 		if (treeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)treeObject;
 			DatabaseObject dbo = doto.getObject();
-			if (dbo instanceof UIComponent) {
-				UIComponent uic = (UIComponent)dbo;
-				if (getObject().equals(uic.getPage())) {
-					if (dbo instanceof UIStyle) {
-						markStyleAsDirty();
-					}
-					else {
-						markTemplateAsDirty();
+			try {
+				if (dbo instanceof UIComponent) {
+					UIComponent uic = (UIComponent)dbo;
+					if (getObject().equals(uic.getPage())) {
+						if (dbo instanceof UIStyle) {
+							markStyleAsDirty();
+						}
+						else {
+							markTemplateAsDirty();
+						}
 					}
 				}
-			}
-			else if (this.equals(dbo)) {
-				markTemplateAsDirty();
-			}
+				else if (this.equals(dbo)) {
+					markTemplateAsDirty();
+				}
+			} catch (Exception e) {}
 		}
 	}
 

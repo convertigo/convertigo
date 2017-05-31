@@ -131,21 +131,31 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 			StringBuilder attributes = new StringBuilder();
 			StringBuilder children = new StringBuilder();
 			
+			if (ionBean == null) {
+				try {
+					loadBean();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			
 	    	if (ionBean != null) {
 				for (IonProperty property : ionBean.getProperties().values()) {
 					String attr = property.getAttr();
 					Object value = property.getValue();
 					if (!value.equals(false)) {
+						String smartValue = property.getSmartValue();
+						
 						attributes.append(" ");
 						if (attr.isEmpty()){
-							attributes.append(value);
+							attributes.append(smartValue);
 						}
 						else if (attr.indexOf("%%") != -1){
-							attributes.append(attr.replaceFirst("%%", value.toString()));
+							attributes.append(attr.replaceFirst("%%", smartValue));
 						}
 						else {
 							attributes.append(attr).append("=");
-							attributes.append("\"").append(value).append("\"");
+							attributes.append("\"").append(smartValue).append("\"");
 						}
 					}
 				}

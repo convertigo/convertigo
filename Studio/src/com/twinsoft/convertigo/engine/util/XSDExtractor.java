@@ -414,6 +414,17 @@ public class XSDExtractor {
 				Element attr = xsdDom.createElement("xsd:attribute");
 				attr.setAttribute("name", name );
 				attr.setAttribute("type", getSchemaType());
+				if (name.equals("type")) {
+					if (value.equals("object") || value.equals("array")) {
+						attr.setAttribute("default", value);
+					}
+					else {
+						attr.setAttribute("default", "string");
+					}
+				}
+				if (name.equals("originalKeyName")) {
+					attr.setAttribute("default", value);
+				}
 				parentElement.appendChild(attr);
 			}
 		}

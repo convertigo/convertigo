@@ -47,6 +47,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.views.properties.IPropertyDescriptor;
 import org.eclipse.ui.views.properties.PropertySheet;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -72,6 +73,7 @@ import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.rest.FormParameter;
 import com.twinsoft.convertigo.beans.rest.QueryParameter;
 import com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass;
@@ -91,12 +93,14 @@ import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectDecreasePriorityAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectIncreasePriorityAction;
+import com.twinsoft.convertigo.eclipse.property_editors.MobileSmartSourcePropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FolderTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IOrderableTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IPropertyTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileUIComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableRowTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableTreeObject;
@@ -140,6 +144,10 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				}
 				if (PaletteSourceTransfer.getInstance().isSupportedType(transferData)) {
 					event.data = PaletteSourceTransfer.getInstance().getPaletteSource();
+					break;
+				}
+				if (MobileSourceTransfer.getInstance().isSupportedType(transferData)) {
+					event.data = MobileSourceTransfer.getInstance().getMobileSource();
 					break;
 				}
 			}
@@ -680,6 +688,18 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				}
 			}
 		}
+		if (MobileSourceTransfer.getInstance().isSupportedType(transferType)) {
+			if (target instanceof MobileUIComponentTreeObject) {
+				MobileUIComponentTreeObject mcto = (MobileUIComponentTreeObject)target;
+				for (IPropertyDescriptor descriptor : mcto.getPropertyDescriptors()) {
+					if (descriptor instanceof MobileSmartSourcePropertyDescriptor) {
+						if (!((MobileSmartSourcePropertyDescriptor)descriptor).isReadOnly()) {
+							return true;
+						}
+					}
+				}
+			}
+		}
 		return false;
 	}
 	
@@ -940,6 +960,52 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				}
 			} catch (Exception ex) {
 				ConvertigoPlugin.logError("failed to add from palette");
+			}
+		}
+		else if (data instanceof MobileSource) {
+			try {
+				String jsonString = ((MobileSource)data).getJsonString();
+				
+				if (targetTreeObject instanceof MobileUIComponentTreeObject) {
+					Shell shell = ConvertigoPlugin.getMainShell();
+					Menu dropMenu = new Menu(shell, SWT.POP_UP);
+	                shell.setMenu(dropMenu);
+					
+					MobileUIComponentTreeObject mcto = (MobileUIComponentTreeObject)targetTreeObject;
+					for (IPropertyDescriptor descriptor : mcto.getPropertyDescriptors()) {
+						if (descriptor instanceof MobileSmartSourcePropertyDescriptor) {
+							MobileSmartSourcePropertyDescriptor cspd = (MobileSmartSourcePropertyDescriptor)descriptor;
+							if (!cspd.isReadOnly()) {
+								String propertyName = (String) cspd.getId();
+								String propertyLabel = (String) cspd.getDisplayName();
+				                MenuItem itemCheck = new MenuItem(dropMenu, SWT.NONE);
+				                itemCheck.setText(propertyLabel);
+				                itemCheck.addSelectionListener(new SelectionListener() {
+									@Override
+									public void widgetSelected(SelectionEvent e) {
+										MobileSmartSourceType cst = new MobileSmartSourceType();
+										cst.setMode(MobileSmartSourceType.Mode.SOURCE);
+										cst.setSmartValue(jsonString);
+										
+										mcto.setPropertyValue(propertyName, cst);
+										refreshPropertiesView(explorerView, mcto);
+									}
+									
+									@Override
+									public void widgetDefaultSelected(SelectionEvent e) {
+									}
+								});
+							}
+						}
+					}
+					dropMenu.setVisible(true);
+					
+				}
+				else {
+					throw new Exception();
+				}
+			} catch (Exception ex) {
+				ConvertigoPlugin.logError("failed to add mobile source");
 			}
 		}
 	}

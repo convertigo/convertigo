@@ -43,9 +43,10 @@ public class UITextBeanInfo extends MySimpleBeanInfo {
 			
 			properties = new PropertyDescriptor[1];
 			
-			properties[0] = new PropertyDescriptor("textValue", beanClass, "getTextValue", "setTextValue");
+			properties[0] = new PropertyDescriptor("textValue", beanClass, "getTextSmartType", "setTextSmartType");
 			properties[0].setDisplayName(getExternalizedString("property.textValue.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.textValue.short_description"));
+            properties[0].setPropertyEditorClass(getEditorClass("MobileSmartSourcePropertyDescriptor"));
 			
 		}
 		catch(Exception e) {

@@ -78,6 +78,7 @@ import com.twinsoft.convertigo.beans.statements.ScHandlerStatement;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.property_editors.AbstractDialogCellEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.ArrayOrNullEditor;
+import com.twinsoft.convertigo.eclipse.property_editors.MobileSmartSourcePropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.DataOrNullPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.DynamicComboBoxPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.DynamicInfoPropertyDescriptor;
@@ -434,6 +435,12 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 				Method getTags = pec.getDeclaredMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
 				String[] tags = (String[]) getTags.invoke(null, new Object[] { this, name } );
 				propertyDescriptor = new StringComboBoxPropertyDescriptor(name, displayName, tags, false);
+        	}
+        	else if (MobileSmartSourcePropertyDescriptor.class.isAssignableFrom(pec)) {
+				Method getTags = pec.getDeclaredMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
+				String[] tags = (String[]) getTags.invoke(null, new Object[] { this, name } );
+				propertyDescriptor = new MobileSmartSourcePropertyDescriptor(name, displayName, tags, false);
+				((MobileSmartSourcePropertyDescriptor)propertyDescriptor).databaseObjectTreeObject = this;
         	}
         	else if (PropertyWithDynamicInfoEditor.class.isAssignableFrom(pec)) {
         		Method getInfo = pec.getMethod("getInfo", new Class[] { DatabaseObjectTreeObject.class, String.class });

@@ -22,7 +22,16 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
-public class UIAttribute extends UIComponent {
+import org.codehaus.jettison.json.JSONObject;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import com.twinsoft.convertigo.beans.core.ITagsProperty;
+import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType.Mode;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
+
+public class UIAttribute extends UIComponent implements ITagsProperty {
 
 	private static final long serialVersionUID = 4407761661788130893L;
 	
@@ -36,6 +45,31 @@ public class UIAttribute extends UIComponent {
 		return cloned;
 	}
 
+	@Override
+	public void preconfigure(Element element) throws Exception {
+		super.preconfigure(element);
+		
+		NodeList properties = element.getElementsByTagName("property");
+		Element property = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "attrValue");
+		Element pelement = (Element) XMLUtils.findChildNode(property, Node.ELEMENT_NODE);
+		Object value = XMLUtils.readObjectFromXml(pelement);
+		
+		if (value != null && value instanceof String) {
+			String s = (String) value;
+			try {
+				new JSONObject(s);
+			} catch (Exception e) {
+				boolean isScriptValue = s.startsWith("{{") && s.endsWith("}}");
+				MobileSmartSourceType msst = new MobileSmartSourceType();
+				msst.setMode(isScriptValue ? Mode.SCRIPT : Mode.PLAIN);
+				msst.setSmartValue(isScriptValue ? s.substring(2, s.length()-2) : s);
+				Element nelement = (Element) XMLUtils.writeObjectToXml(property.getOwnerDocument(), msst);
+				property.replaceChild(nelement, pelement);
+				hasChanged = true;
+			}
+		}
+	}
+	
 	private String attrName = "attr";
 	
 	public String getAttrName() {
@@ -46,24 +80,33 @@ public class UIAttribute extends UIComponent {
 		this.attrName = attrName;
 	}
 	
-	private String attrValue = "value";
+	private MobileSmartSourceType attrValue = new MobileSmartSourceType("value");
 	
-	public String getAttrValue() {
+	public MobileSmartSourceType getAttrSmartType() {
 		return attrValue;
 	}
 
-	public void setAttrValue(String attrValue) {
+	public void setAttrSmartType(MobileSmartSourceType attrValue) {
 		this.attrValue = attrValue;
+	}
+	
+	protected String getAttrValue() {
+		String value = attrValue.getValue();
+		if (!Mode.PLAIN.equals(attrValue.getMode())) {
+			value = "{{" + value + "}}";
+		}
+		return value;
 	}
 	
 	@Override
 	public String computeTemplate() {
 		if (isEnabled()) {
+			String attrVal = getAttrValue();
 	        if (attrName.isEmpty()) {
-	        	return attrValue.isEmpty() ? "":" "+ attrValue;
+	        	return attrVal.isEmpty() ? "":" "+ attrVal;
 	        }
 	        else {
-	        	return (" "+attrName+"=\""+attrValue+"\"");
+	        	return (" "+attrName+"=\""+ attrVal +"\"");
 	        }
 		}
 		else
@@ -73,9 +116,16 @@ public class UIAttribute extends UIComponent {
 	@Override
 	public String toString() {
 		String label = attrName;
-		label = label + (label.isEmpty() ? "":"=") + attrValue;
+		label = label + (label.isEmpty() ? "":"=") + getAttrValue();
 		return label;
 	}
 
+	@Override
+	public String[] getTagsForProperty(String propertyName) {
+		if (propertyName.equals("attrValue")) {
+			return new String[] {""};
+		}
+		return new String[0];
+	}
 	
 }

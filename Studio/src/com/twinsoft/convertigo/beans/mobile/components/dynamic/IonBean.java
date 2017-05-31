@@ -30,6 +30,7 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
 
 public class IonBean {
@@ -176,8 +177,7 @@ public class IonBean {
 	public Object getPropertyValue(String propertyName) {
 		IonProperty property = getProperty(propertyName);
 		if (property != null) {
-			Object value = property.getValue();
-			return value.equals(false) ? "not set":value.toString();
+			return property.getSmartType();
 		}
 		return null;
 	}
@@ -185,13 +185,8 @@ public class IonBean {
 	public void setPropertyValue(String propertyName, Object propertyValue) {
 		IonProperty property = getProperty(propertyName);
 		if (property != null) {
-			if (propertyValue instanceof String) {
-				if (propertyValue.equals("not set")) {
-					propertyValue = false;
-				}
-				property.setValue(propertyValue);
-				putProperty(property);
-			}
+			property.setSmartType((MobileSmartSourceType) propertyValue);
+			putProperty(property);
 		}
 	}
 	

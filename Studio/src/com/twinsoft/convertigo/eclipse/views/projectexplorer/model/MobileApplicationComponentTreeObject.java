@@ -78,26 +78,28 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)treeObject;
 			DatabaseObject dbo = doto.getObject();
 			
-			if (getObject().equals(dbo.getParent())) {
-				if (dbo instanceof RouteComponent) {
-					markRouteAsDirty();
-				} else if (dbo instanceof UITheme) {
-					markThemeAsDirty();
-				} else if (dbo instanceof UIStyle) {
-					markStyleAsDirty();
-				} else if (dbo instanceof UIComponent){
-					markTemplateAsDirty();
+			try {
+				if (getObject().equals(dbo.getParent())) {
+					if (dbo instanceof RouteComponent) {
+						markRouteAsDirty();
+					} else if (dbo instanceof UITheme) {
+						markThemeAsDirty();
+					} else if (dbo instanceof UIStyle) {
+						markStyleAsDirty();
+					} else if (dbo instanceof UIComponent){
+						markTemplateAsDirty();
+					}
 				}
-			}
-			else if (getObject().equals(dbo.getParent().getParent())) {
-				if (dbo instanceof RouteEventComponent) {
-					markRouteAsDirty();
-				} else if (dbo instanceof RouteActionComponent) {
-					markRouteAsDirty();
+				else if (getObject().equals(dbo.getParent().getParent())) {
+					if (dbo instanceof RouteEventComponent) {
+						markRouteAsDirty();
+					} else if (dbo instanceof RouteActionComponent) {
+						markRouteAsDirty();
+					}
+				} else if (this.equals(dbo)) {
+					; // TODO
 				}
-			} else if (this.equals(dbo)) {
-				; // TODO
-			}
+			} catch (Exception e) {}
 		}
 	}
 	

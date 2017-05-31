@@ -39,6 +39,7 @@ import org.codehaus.jettison.json.JSONObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
+import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIAttribute;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlAction;
@@ -196,9 +197,9 @@ public class ComponentManager {
 				String propertyName = ionProperty.getName(); 
 				IonProperty dboProperty = dboBean.getProperty(propertyName);
 				if (dboProperty != null) {
-					Object value = dboProperty.getValue();
-					if (value != null) {
-						ionProperty.setValue(value);
+					MobileSmartSourceType msst = dboProperty.getSmartType();
+					if (msst != null) {
+						ionProperty.setSmartType(msst);
 						ionBean.putProperty(ionProperty);
 					}
 				}
@@ -372,7 +373,6 @@ public class ComponentManager {
 				}
 				if (parent instanceof UIElement) {
 					if (!UITheme.class.isAssignableFrom(dboClass) &&
-						!UIControlAttr.class.isAssignableFrom(dboClass) &&
 						!(UIControlAction.class.isAssignableFrom(dboClass))) {
 							return true;
 					}

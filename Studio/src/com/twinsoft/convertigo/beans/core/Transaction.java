@@ -573,47 +573,53 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 		return getProject().getTargetNamespace();
 	}
 	
+	public String generateXsd(String xsdTypes) {
+		String p_ns = getXsdProjectPrefix();
+		String requestName = getXsdRequestElementName();
+		String responseName = getXsdResponseElementName();
+		String requestType = getXsdRequestTypeName();
+		String responseType = getXsdResponseTypeName();
+		
+        String xsdElements = "";
+		xsdElements += "  <xsd:element name=\""+ requestName +"\" type=\""+ p_ns +":"+ requestType +"\">\n";
+		xsdElements += "    <xsd:annotation>\n";
+		xsdElements += "      <xsd:documentation>"+ XMLUtils.getCDataXml(getComment()) +"</xsd:documentation>\n";
+		xsdElements += "    </xsd:annotation>\n";
+		xsdElements += "  </xsd:element>\n";
+		xsdElements += "  <xsd:element name=\""+ responseName +"\">\n";
+		xsdElements += "    <xsd:complexType>\n";
+		xsdElements += "      <xsd:sequence>\n";
+		xsdElements += "        <xsd:element name=\"response\" type=\""+ p_ns +":"+ responseType +"\"/>\n";
+		xsdElements += "      </xsd:sequence>\n";
+		xsdElements += "    </xsd:complexType>\n";
+		xsdElements += "  </xsd:element>\n";
+		xsdElements += "  <xsd:complexType name=\""+ responseName +"Type\">\n";
+		xsdElements += "      <xsd:sequence>\n";
+		xsdElements += "        <xsd:element name=\"document\" type=\""+ p_ns +":"+ responseType +"\"/>\n";
+		xsdElements += "      </xsd:sequence>\n";
+		xsdElements += "  </xsd:complexType>\n";
+		
+		if (xsdTypes == null || "".equals(xsdTypes)) {
+			xsdTypes =  "  <xsd:complexType name=\""+ requestType +"\" />\n";
+			xsdTypes += "  <xsd:complexType name=\""+ responseType +"\" />\n";
+		}
+		
+		String xsdDom = "<xsd:schema xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\""
+							+" xmlns:"+p_ns+"=\""+getProject().getTargetNamespace()+"\""
+							+" attributeFormDefault=\""+getProject().getSchemaElementForm().name()+"\""
+							+" elementFormDefault=\""+getProject().getSchemaElementForm().name()+"\""
+							+" targetNamespace=\""+getProject().getTargetNamespace()+"\">\n"
+						+ xsdElements
+						+ xsdTypes
+						+ "</xsd:schema>";
+		//System.out.println(xsdDom);
+		return xsdDom;
+	}
+	
 	public void writeSchemaToFile(String xsdTypes) {
 		try {
-			String p_ns = getXsdProjectPrefix();
-			String requestName = getXsdRequestElementName();
-			String responseName = getXsdResponseElementName();
-			String requestType = getXsdRequestTypeName();
-			String responseType = getXsdResponseTypeName();
-			
-	        String xsdElements = "";
-			xsdElements += "  <xsd:element name=\""+ requestName +"\" type=\""+ p_ns +":"+ requestType +"\">\n";
-			xsdElements += "    <xsd:annotation>\n";
-			xsdElements += "      <xsd:documentation>"+ XMLUtils.getCDataXml(getComment()) +"</xsd:documentation>\n";
-			xsdElements += "    </xsd:annotation>\n";
-			xsdElements += "  </xsd:element>\n";
-			xsdElements += "  <xsd:element name=\""+ responseName +"\">\n";
-			xsdElements += "    <xsd:complexType>\n";
-			xsdElements += "      <xsd:sequence>\n";
-			xsdElements += "        <xsd:element name=\"response\" type=\""+ p_ns +":"+ responseType +"\"/>\n";
-			xsdElements += "      </xsd:sequence>\n";
-			xsdElements += "    </xsd:complexType>\n";
-			xsdElements += "  </xsd:element>\n";
-			xsdElements += "  <xsd:complexType name=\""+ responseName +"Type\">\n";
-			xsdElements += "      <xsd:sequence>\n";
-			xsdElements += "        <xsd:element name=\"document\" type=\""+ p_ns +":"+ responseType +"\"/>\n";
-			xsdElements += "      </xsd:sequence>\n";
-			xsdElements += "  </xsd:complexType>\n";
-			
-			if (xsdTypes == null || "".equals(xsdTypes)) {
-				xsdTypes =  "  <xsd:complexType name=\""+ requestType +"\" />\n";
-				xsdTypes += "  <xsd:complexType name=\""+ responseType +"\" />\n";
-			}
-			
-    		String xsdDom = "<xsd:schema xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\""
-    							+" xmlns:"+p_ns+"=\""+getProject().getTargetNamespace()+"\""
-    							+" attributeFormDefault=\""+getProject().getSchemaElementForm().name()+"\""
-    							+" elementFormDefault=\""+getProject().getSchemaElementForm().name()+"\""
-    							+" targetNamespace=\""+getProject().getTargetNamespace()+"\">\n"
-    						+ xsdElements
-    						+ xsdTypes
-    						+ "</xsd:schema>";
-			//System.out.println(xsdDom);
+			// Genererate xsd dom
+    		String xsdDom = generateXsd(xsdTypes);
     		
     		// Save schema to file
 			new File(getSchemaFileDirPath()).mkdirs();
@@ -621,7 +627,7 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 				XmlSchema xmlSchema = SchemaUtils.loadSchema(xsdDom, new XmlSchemaCollection());
 				ConvertigoError.updateXmlSchemaObjects(xmlSchema);
 				
-				QName responseTypeQName = new QName(xmlSchema.getTargetNamespace(), responseType);
+				QName responseTypeQName = new QName(xmlSchema.getTargetNamespace(), getXsdResponseTypeName());
 				XmlSchemaComplexType cType = (XmlSchemaComplexType) xmlSchema.getSchemaTypes().getItem(responseTypeQName);
 				if (cType == null)
 					addSchemaResponseDataType(xmlSchema);

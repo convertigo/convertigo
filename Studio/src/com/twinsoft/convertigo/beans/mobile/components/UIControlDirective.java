@@ -99,73 +99,28 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 	}
 	
 	/*
-	 * The iterative item name
+	 * The directive source
 	 */
-	private String itemName = "";
+	private MobileSmartSourceType directiveSource = new MobileSmartSourceType();
 	
-	public String getItemName() {
-		return itemName;
+	public MobileSmartSourceType getSourceSmartType() {
+		return directiveSource;
 	}
 
-	public void setItemName(String itemName) {
-		this.itemName = itemName;
-	}
-	
-	protected String getItemVariable() {
-		String varItem = itemName.isEmpty() ? "item":itemName;
-		return varItem + String.valueOf(this.priority);
-	}
-	
-	/*
-	 * The iterative item path
-	 */
-	private String itemPath = "";
-	
-	public String getItemPath() {
-		return itemPath;
+	public void setSourceSmartType(MobileSmartSourceType directiveSource) {
+		this.directiveSource = directiveSource;
 	}
 
-	public void setItemPath(String itemPath) {
-		this.itemPath = itemPath;
-	}
-	
 	protected String getComputedValue() {
-		StringBuilder listeners = new StringBuilder();
-		StringBuilder customs = new StringBuilder();
-		
-		Iterator<UIComponent> it = getUIComponentList().iterator();
-		while (it.hasNext()) {
-			UIComponent component = (UIComponent)it.next();
-			if (component instanceof UIControlSource) {
-				if (component instanceof UIControlListenSource) {
-					String tpl = component.computeTemplate();
-					if (!tpl.isEmpty()) {
-						listeners.append(listeners.length() > 0 ? ",":"");
-						listeners.append(tpl);
-					}
-				}
-				if (component instanceof UIControlCustomSource) {
-					String tpl = component.computeTemplate();
-					if (!tpl.isEmpty()) {
-						customs.append(customs.length() > 0 ? ";":"");
-						customs.append(tpl);
-					}
-				}
-			}
-		}
-		
 		StringBuilder sbListen = new StringBuilder();
-		if (listeners.length() > 0) {
-			String path = getItemPath();
-			sbListen.append("listen([").append(listeners).append("])").append(path);
-		}
+		sbListen.append(directiveSource.getValue());
 		
 		StringBuilder children = new StringBuilder();
 		if (sbListen.length() > 0) {
 			AttrDirective attrDirective = AttrDirective.getDirective(getDirectiveName());
 			if (AttrDirective.RepeatForEach.equals(attrDirective)) {
-				String item = getItemName();
-				children.append("let "+ (item.isEmpty() ? "item":item)).append(" of ").append(sbListen);
+				String item = "item"+ this.priority;
+				children.append("let "+ item).append(" of ").append(sbListen);
 			}
 			else {
 				children.append(sbListen);

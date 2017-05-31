@@ -41,7 +41,7 @@ public class UIControlDirectiveBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[4];
+			properties = new PropertyDescriptor[3];
 			
 			properties[0] = new PropertyDescriptor("directiveName", beanClass, "getDirectiveName", "setDirectiveName");
 			properties[0].setDisplayName(getExternalizedString("property.directiveName.display_name"));
@@ -52,16 +52,13 @@ public class UIControlDirectiveBeanInfo extends MySimpleBeanInfo {
 			properties[1].setDisplayName(getExternalizedString("property.directiveExpression.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.directiveExpression.short_description"));
 			properties[1].setValue("scriptable", Boolean.TRUE);
+			properties[1].setExpert(true);
 			
-			properties[2] = new PropertyDescriptor("itemName", beanClass, "getItemName", "setItemName");
-			properties[2].setDisplayName(getExternalizedString("property.itemName.display_name"));
-			properties[2].setShortDescription(getExternalizedString("property.itemName.short_description"));
-			properties[2].setExpert(true);
-			
-			properties[3] = new PropertyDescriptor("itemPath", beanClass, "getItemPath", "setItemPath");
-			properties[3].setDisplayName(getExternalizedString("property.itemPath.display_name"));
-			properties[3].setShortDescription(getExternalizedString("property.itemPath.short_description"));
-			properties[3].setExpert(true);
+            properties[2] = new PropertyDescriptor("directiveSource", beanClass, "getSourceSmartType", "setSourceSmartType");
+            properties[2].setDisplayName(getExternalizedString("property.directiveSource.display_name"));
+            properties[2].setShortDescription(getExternalizedString("property.directiveSource.short_description"));
+            properties[2].setPropertyEditorClass(getEditorClass("MobileSmartSourcePropertyDescriptor"));
+            properties[2].setExpert(true);
 			
 			getPropertyDescriptor("tagName").setValue("disable", Boolean.TRUE);
 			getPropertyDescriptor("selfClose").setHidden(true);
