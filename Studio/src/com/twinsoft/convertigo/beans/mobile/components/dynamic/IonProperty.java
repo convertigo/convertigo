@@ -63,27 +63,12 @@ public class IonProperty implements Cloneable {
 
 	public IonProperty(JSONObject jsonOb) {
 		this();
-		boolean needConfigure = false;
 		for (Key k: Key.values()) {
 			if (jsonOb.has(k.name())) {
 				try {
 					jsonProperty.put(k.name(), jsonOb.get(k.name()));
 				} catch (JSONException e) {
 					e.printStackTrace();
-				}
-			} else if (Key.mode.equals(k)) {
-				needConfigure = true;
-			}
-		}
-		
-		if (needConfigure) {
-			Object value = getValue();
-			if (value != null && value instanceof String) {
-				String s = (String)value;
-				if (s.startsWith("{{") && s.endsWith("}}")) {
-					setMode(Mode.SCRIPT.name().toLowerCase());
-					s = s.substring(2, s.length()-2);
-					setValue(s);
 				}
 			}
 		}
