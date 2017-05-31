@@ -49,9 +49,6 @@ import com.twinsoft.convertigo.beans.mobile.components.UIControlCallFullSync;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlCallSequence;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlListenFullSyncSource;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlListenSequenceSource;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlCustomSource;
 import com.twinsoft.convertigo.beans.mobile.components.UICustom;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIElement;
@@ -238,7 +235,7 @@ public class ComponentManager {
 		
 		groups.add("Controls");
 		groups.add("Actions");
-		groups.add("Sources");
+//		groups.add("Sources");
 		return Collections.unmodifiableList(groups);
 	}
 	
@@ -267,11 +264,11 @@ public class ComponentManager {
 			components.add(getDboComponent(UIControlCallSequence.class,group));
 			components.add(getDboComponent(UIControlCallFullSync.class,group));
 			
-			// Add Sources
-			group = "Sources";
-			components.add(getDboComponent(UIControlCustomSource.class,group));
-			components.add(getDboComponent(UIControlListenSequenceSource.class,group));
-			components.add(getDboComponent(UIControlListenFullSyncSource.class,group));
+//			// Add Sources
+//			group = "Sources";
+//			components.add(getDboComponent(UIControlCustomSource.class,group));
+//			components.add(getDboComponent(UIControlListenSequenceSource.class,group));
+//			components.add(getDboComponent(UIControlListenFullSyncSource.class,group));
 			
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
