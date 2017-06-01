@@ -36,7 +36,6 @@ import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Document;
 import com.twinsoft.convertigo.beans.core.Project;
-import com.twinsoft.convertigo.beans.core.Reference;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.Filter;
@@ -44,7 +43,9 @@ import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective.AttrDirective;
-import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
@@ -158,14 +159,31 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 			PageComponent pageComponent = (PageComponent)parentElement;
 			Project project = pageComponent.getProject();
 			
+			ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
+			List<String> projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
+			
 			TVObject root = new TVObject("root", pageComponent);
 			if (filter.equals(Filter.Sequence)) {
 				TVObject tvs = root.add(new TVObject("sequences"));
-				addSequences(tvs, project, false);
+				for (String projectName : projectNames) {
+					try {
+						Project p = projectExplorerView.getProject(projectName);
+						boolean isReferenced = !p.getName().equals(project.getName());
+						addSequences(tvs, isReferenced ? p:project, isReferenced);
+					} catch (Exception e) {
+					}
+				}
 			}
 			if (filter.equals(Filter.Database)) {
 				TVObject tvd = root.add(new TVObject("databases"));
-				addFsObjects(tvd, project, false);
+				for (String projectName : projectNames) {
+					try {
+						Project p = projectExplorerView.getProject(projectName);
+						boolean isReferenced = !p.getName().equals(project.getName());
+						addFsObjects(tvd, isReferenced ? p:project, isReferenced);
+					} catch (Exception e) {
+					}
+				}
 			}
 			if (filter.equals(Filter.Iteration)) {
 				TVObject tvi = root.add(new TVObject("iterations"));
@@ -204,13 +222,6 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 					String label = isReferenced ? s.getQName():s.getName();
 					tvs.add(new TVObject(label, s));
 				}
-				if (!isReferenced) {
-					for (Reference r : project.getReferenceList()) {
-						if (r instanceof ProjectSchemaReference) {
-							addSequences(tvs, ((ProjectSchemaReference)r).getProject(), true);
-						}
-					}
-				}
 			}
 		}
 	}
@@ -242,13 +253,6 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 							}
 						}
 						
-					}
-				}
-				if (!isReferenced) {
-					for (Reference r : project.getReferenceList()) {
-						if (r instanceof ProjectSchemaReference) {
-							addFsObjects(tvd, ((ProjectSchemaReference)r).getProject(), true);
-						}
 					}
 				}
 			}

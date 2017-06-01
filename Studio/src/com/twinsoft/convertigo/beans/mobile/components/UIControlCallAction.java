@@ -67,10 +67,12 @@ public abstract class UIControlCallAction extends UIControlAction {
 	 */
 	protected String getRequestableTarget() {
 		String requestableTarget = getTarget();
-		int index = requestableTarget.indexOf('.');
+		String projectName = this.getProject().getName();
+		int index = requestableTarget.indexOf(projectName+".");
 		if (index != -1) {
 			try {
-				requestableTarget = requestableTarget.substring(index+1);
+				String replacement = requestableTarget.startsWith("fs://")? "":".";
+				requestableTarget = requestableTarget.replaceFirst(projectName+"\\.", replacement);
 			} catch (Exception e) {}
 		}
 		return requestableTarget;
@@ -79,17 +81,18 @@ public abstract class UIControlCallAction extends UIControlAction {
 	protected String getRequestableString() {
 		String requestableTarget = getRequestableTarget();
 		if (!requestableTarget.isEmpty()) {
-			requestableTarget = (requestableTarget.startsWith("fs://")? "":".") 
-									+ requestableTarget + (marker.isEmpty() ? "" : "#" + marker);
+			requestableTarget = requestableTarget + (marker.isEmpty() ? "" : "#" + marker);
 		}
 		return requestableTarget;
 	}
 	
 	protected String getTargetName() {
 		String targetName = getTarget();
-		if (!targetName.isEmpty() && targetName.startsWith(getProject().getName())) {
+		String projectName = this.getProject().getName();
+		if (!targetName.isEmpty() && targetName.startsWith(projectName+".")) {
 			try {
-				targetName = targetName.substring(targetName.lastIndexOf('.')+1);
+				int length = (projectName+".").length();
+				targetName = targetName.substring(length);
 			} catch (IndexOutOfBoundsException e) {}
 		}
 		return targetName;

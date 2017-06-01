@@ -101,6 +101,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileUICompo
 import com.twinsoft.convertigo.engine.ConvertigoError;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.CouchParam;
+import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.EngineListenerHelper;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -714,8 +715,11 @@ public class MobilePickerComposite extends Composite {
 						// case of requestable
 						if (dbo instanceof RequestableObject) {
 							RequestableObject ro = (RequestableObject)dbo;
-							String responseEltName = ro.getXsdTypePrefix() + ro.getName() + "Response";
+							
 							Project project = ro.getProject();
+							String responseEltName = ro.getXsdTypePrefix() + ro.getName() + "Response";
+							boolean isDocumentNode = JsonRoot.docNode.equals(project.getJsonRoot()) && dataPath.isEmpty();
+							
 							XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(project.getName());
 							XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, ro);
 							if (xso != null) {
@@ -724,9 +728,13 @@ public class MobilePickerComposite extends Composite {
 								
 								String jsonString = XMLUtils.XmlToJson(document.getDocumentElement(), true, true);
 								JSONObject jsonObject = new JSONObject(jsonString);
+								
 								String searchPath = "document."+ responseEltName +".response";
-								searchPath += dataPath;
-								JSONObject jsonResponse = findJSONObject(jsonObject,searchPath);
+								searchPath += isDocumentNode ? dataPath : dataPath.replaceFirst("\\.document", "");
+								
+								JSONObject jsonOutput = findJSONObject(jsonObject,searchPath);
+								
+								JSONObject jsonResponse = isDocumentNode ? new JSONObject().put("document", jsonOutput) : jsonOutput;
 								
 								Display.getDefault().asyncExec(new Runnable() {
 									public void run() {
