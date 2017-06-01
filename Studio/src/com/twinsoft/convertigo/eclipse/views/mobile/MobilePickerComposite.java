@@ -681,7 +681,9 @@ public class MobilePickerComposite extends Composite {
 						searchPath = mss.getModelPath() + searchPath;
 					} while (dbo != null && dbo instanceof UIControlDirective);
 				}
-			} catch (Exception e) {}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 		data.put("databaseObject", dbo);
 		data.put("params", params);

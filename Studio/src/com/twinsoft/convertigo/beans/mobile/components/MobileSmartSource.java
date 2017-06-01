@@ -136,15 +136,20 @@ public class MobileSmartSource {
 		if (Filter.Iteration.equals(getFilter())) {
 			Matcher m = directivePattern.matcher(getInput());
 			if (m.find()) {
-				sources.add(m.group(1));
+				String directive = m.group(1);
+				if (directive != null) {
+					sources.add(directive);
+				}
 			}
 		} else {
 			Matcher m = listenPattern.matcher(getInput());
 			if (m.find()) {
 				String array = m.group(1);
-				List<String> items = Arrays.asList(array.split("'\\s*,\\s*'"));
-				for (String s : items) {
-					sources.add("'"+s.replaceFirst("#[^,]*,,", "")+"'");
+				if (array != null) {
+					List<String> items = Arrays.asList(array.split("'\\s*,\\s*'"));
+					for (String s : items) {
+						sources.add("'"+s.replaceFirst("#[^,]*,,", "")+"'");
+					}
 				}
 			}
 		}
@@ -239,6 +244,7 @@ public class MobileSmartSource {
 						
 						int index = name.indexOf('.');
 						String projectName = index != -1 ? name.substring(0, index) : getProjectName();
+						projectName = projectName.isEmpty() ? getProjectName(): projectName;
 						String sequenceName = index != -1 ? name.substring(index+1) : name;
 						
 						Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
@@ -264,20 +270,22 @@ public class MobileSmartSource {
 				Matcher m = cafPattern.matcher(cafInput);
 				if (m.find()) {
 					String parameters = m.group(2);
-					parameters = parameters.replaceFirst("\\{", "");
-					parameters = parameters.replaceFirst("\\}", "");
-					String[] params = parameters.split(",");
-					for (int i=0; i< params.length; i++) {
-						String param = params[i];
-						if (param.indexOf('=') != -1) {
-							String[] values = param.split("=");
-							String key = values[0].trim();
-							if (!key.isEmpty()) {
-								String value = values[1].trim();
-								if (value.startsWith("'") && value.endsWith("'")) {
-									value = value.substring(1, value.length()-1);
+					if (parameters != null) {
+						parameters = parameters.replaceFirst("\\{", "");
+						parameters = parameters.replaceFirst("\\}", "");
+						String[] params = parameters.split(",");
+						for (int i=0; i< params.length; i++) {
+							String param = params[i];
+							if (param.indexOf('=') != -1) {
+								String[] values = param.split("=");
+								String key = values[0].trim();
+								if (!key.isEmpty()) {
+									String value = values[1].trim();
+									if (value.startsWith("'") && value.endsWith("'")) {
+										value = value.substring(1, value.length()-1);
+									}
+									map.put(key, value);
 								}
-								map.put(key, value);
 							}
 						}
 					}

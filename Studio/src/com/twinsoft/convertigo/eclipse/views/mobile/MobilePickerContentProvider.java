@@ -83,7 +83,9 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 			String param = "";
 			if (object != null) {
 				if (object instanceof Sequence) {
-					param = "'"+ name +"'";
+					Sequence sequence = (Sequence)object;
+					boolean isReferenced = sequence.getQName().equals(name);
+					param = "'"+ (isReferenced ? "":".") + name +"'";
 				} else if (object instanceof DesignDocument) {
 					DesignDocument dd = (DesignDocument)object;
 					String db = parent.parent.parent.getName();
