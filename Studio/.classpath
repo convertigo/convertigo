@@ -21,6 +21,7 @@
 	<classpathentry kind="lib" path="lib/apache/httpcore-4.4.4.jar"/>
 	<classpathentry kind="lib" path="lib/apache/log4j-1.2.17.jar" sourcepath="/ExternalJavaSources/apache-log4j-1.2.17-src.zip"/>
 	<classpathentry kind="lib" path="lib/apache/xmlgraphics/xmlgraphics-commons-1.4.jar"/>
+	<classpathentry kind="lib" path="lib/avalon.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/XmlSchema-1.4.7.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/activation-1.1.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/antlr-2.7.7.jar"/>
