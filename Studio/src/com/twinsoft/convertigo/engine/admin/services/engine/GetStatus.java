@@ -113,7 +113,7 @@ public class GetStatus extends XmlService {
 			iStations = seKey.licence;
 			iNumberOfDays = seKey.expiration;
 
-			//We search the licence expiry date
+			//We search the license expiration date
 			if (iNumberOfDays != 0) {
 				expiredDate = new Date((long) (iNumberOfDays) * 1000 * 60 * 60 * 24);
 				SimpleDateFormat formater = new SimpleDateFormat("MM/dd/yyyy");
@@ -123,10 +123,10 @@ public class GetStatus extends XmlService {
 		
 		versionElement.setAttribute("licence-type", iCategory == 15 ? 
 				(nbValidKey > 1 ? 
-						"Convertigo Extended Edition" + (licenceMismatch ? "(! licence mismatch !)": "") : 
+						"Convertigo Extended Edition" + (licenceMismatch ? "(! license mismatch !)": "") : 
 							(nbValidKey == 0 ? 
 								"Convertigo Community Edition" : 
-								(licenceMismatch ? "(! licence mismatch !)": "Convertigo Standard Edition") ) ) 
+								(licenceMismatch ? "(! license mismatch !)": "Convertigo Standard Edition") ) ) 
 						: "Convertigo Community Edition");
 		versionElement.setAttribute("licence-number", iCategory == 15 ? (990000000 + iStations) + "" : "n/a");
 		int snb = KeyManager.getCV(com.twinsoft.api.Session.EmulIDSE);
@@ -134,7 +134,8 @@ public class GetStatus extends XmlService {
    			KeyManager.setCV(com.twinsoft.api.Session.EmulIDSE, snb = 10);
 
 		versionElement.setAttribute("licence-sessions", (snb != 0) ? (""+snb):"n/a");
-		versionElement.setAttribute("licence-end", iNumberOfDays != 0 ? (iNumberOfDays < 0 ? "n/a" : endDate) : "unlimited");
+		String licenceEnd = (iNumberOfDays != 0) ? (iNumberOfDays < 0 ? "n/a" : endDate) : "unlimited";
+		versionElement.setAttribute("licence-end", licenceEnd);
 		versionElement.setAttribute("licence-expired", iNumberOfDays != 0 ? (iNumberOfDays < 0 ? "n/a" : currentDate.compareTo(expiredDate) > 0) + "" : "false");
 		rootElement.appendChild(versionElement);
 

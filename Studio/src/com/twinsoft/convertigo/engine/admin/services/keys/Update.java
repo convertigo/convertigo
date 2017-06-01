@@ -26,6 +26,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.Properties;
 import java.util.StringTokenizer;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Iterator;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -40,7 +43,9 @@ import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.tas.Key;
 import com.twinsoft.tas.KeyManager;
+import com.twinsoft.util.DESKey;
 import com.twinsoft.util.TWSKey;
 
 @ServiceDefinition(
@@ -110,12 +115,17 @@ public class Update extends XmlService {
 								else {
 									keysProperties.setProperty(newKey, "");
 									keysProperties.store(new FileOutputStream(tasRoot + "/Java/keys.txt"), null);
+									
 									KeyManager.addKey(newKey, keyInfos);
 									keyElement.setAttribute("valid", "true");
 									keyElement.setAttribute("text", newKey);
 									keysListElement.appendChild(keyElement);
 									/* The keys have been updated */
 									Engine.logAdmin.info("The key '" + newKey + "' has been added");
+
+									/* update key file */
+									updateKeyFile();
+									Engine.logAdmin.info("The key file updated");
 								}
 							}
 						}
@@ -127,6 +137,49 @@ public class Update extends XmlService {
 					}
 				}
 			}
+		}
+	}
+	
+	boolean isActiveKey(String sKey) {
+		Hashtable keys = KeyManager.keys;
+		Iterator iter = keys.values().iterator();
+		while (iter.hasNext()) {
+			Key k = (Key)iter.next();
+			if (k.sKey == sKey)
+				return true;
+		}
+		return false;
+	}
+	
+	void updateKeyFile() {
+		try {
+			boolean changed = false;
+			String tasRoot = EnginePropertiesManager.getProperty(PropertyName.CARIOCA_URL);
+			Properties keysProperties = new Properties();
+			keysProperties.load(new FileInputStream(tasRoot + "/Java/keys.txt"));		
+			Enumeration enumeration = keysProperties.keys();
+			String sEval = DESKey.encodeToHexString("eval").toUpperCase(); // A4E2F2A4A778C2C1
+			String sKey;
+			Hashtable keys = KeyManager.keys;
+			while (enumeration.hasMoreElements()) {
+				sKey = (String) enumeration.nextElement();
+				// if first run date
+				if (sKey.equals(sEval)) 
+					continue;
+				// if key commented out
+				if (sKey.startsWith("#")) 
+					continue;
+				
+				if (!isActiveKey(sKey)) {
+					changed = true;
+					keysProperties.remove(sKey);
+				}
+			}
+			
+			if (changed)
+				keysProperties.store(new FileOutputStream(tasRoot + "/Java/keys.txt"), null);
+		} catch(Exception e) {
+			Engine.logAdmin.info("The key file cannot be updated");
 		}
 	}
 }
