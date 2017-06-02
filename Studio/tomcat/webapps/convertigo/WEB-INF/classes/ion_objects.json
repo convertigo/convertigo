@@ -1154,8 +1154,8 @@
       "label": "Segment button",
       "description": "A Button segment in a Segment",
       "group": "Buttons",
-      "icon16": "segment-buton_color_16x16.png",
-      "icon32": "segment-buton_color_32x32.png",
+      "icon16": "segment-button_color_16x16.png",
+      "icon32": "segment-button_color_32x32.png",
       "properties": {
         "IonColor": false,
         "Name": {
