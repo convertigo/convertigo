@@ -36,4 +36,13 @@ public class UIControlCallSequence extends UIControlCallAction {
 		return cloned;
 	}
 
+	@Override
+	protected String getRequestableTarget() {
+		String requestableTarget = getTarget();
+		try {
+			requestableTarget = requestableTarget.replaceFirst(this.getProject().getName(), "");
+		} catch (Exception e) {}
+		return requestableTarget;
+	}
+	
 }

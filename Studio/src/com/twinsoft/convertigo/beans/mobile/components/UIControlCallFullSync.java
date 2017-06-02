@@ -55,8 +55,10 @@ public class UIControlCallFullSync extends UIControlCallAction implements ITagsP
 	
 	@Override
 	protected String getRequestableTarget() {
-		String requestableTarget = super.getRequestableTarget();
+		String requestableTarget = getTarget();
 		if (!requestableTarget.isEmpty()) {
+			int index = requestableTarget.indexOf(".");
+			requestableTarget = index != -1 ? requestableTarget.substring(index+1):requestableTarget;
 			requestableTarget = "fs://" + requestableTarget + "." + getVerb();
 		}
 		return requestableTarget;

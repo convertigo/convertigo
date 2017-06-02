@@ -109,11 +109,28 @@ public class MobileSmartSource {
 	public String getValue() {
 		String value = getInput();
 		try {
+			// remove parameters for caf listen
 			int i = -1, j = -1;
 			while ((i = value.indexOf(", {")) > 0) {
 				if ((j = value.indexOf("}", i)) > 0) {
 					value = value.substring(0, i) + value.substring(j+1);
 				} else break;
+			}
+			
+			// remove project names for fullsync
+			if (Filter.Database.equals(getFilter())) {
+				int z = 0;
+				while ((i = value.indexOf("'fs://", z)) > 0) {
+					z = i+("'fs://").length();
+					if ((j = value.indexOf("'", z)) > 0) {
+						String requestable = value.substring(z, j);
+						String[] ar = requestable.split("\\.");
+						if (ar.length > 2) {
+							String projectName = ar[0];
+							value = value.replaceFirst("fs://"+projectName+"\\.", "fs://");
+						}
+					}
+				}
 			}
 		}
 		catch (Exception e) {

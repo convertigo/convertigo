@@ -62,20 +62,8 @@ public abstract class UIControlCallAction extends UIControlAction {
 		this.marker = marker;
 	}
 	
-	/*
-	 * The 'requestable' used 
-	 */
 	protected String getRequestableTarget() {
-		String requestableTarget = getTarget();
-		String projectName = this.getProject().getName();
-		int index = requestableTarget.indexOf(projectName+".");
-		if (index != -1) {
-			try {
-				String replacement = requestableTarget.startsWith("fs://")? "":".";
-				requestableTarget = requestableTarget.replaceFirst(projectName+"\\.", replacement);
-			} catch (Exception e) {}
-		}
-		return requestableTarget;
+		return getTarget();
 	}
 	
 	protected String getRequestableString() {
@@ -88,12 +76,9 @@ public abstract class UIControlCallAction extends UIControlAction {
 	
 	protected String getTargetName() {
 		String targetName = getTarget();
-		String projectName = this.getProject().getName();
-		if (!targetName.isEmpty() && targetName.startsWith(projectName+".")) {
-			try {
-				int length = (projectName+".").length();
-				targetName = targetName.substring(length);
-			} catch (IndexOutOfBoundsException e) {}
+		if (!targetName.isEmpty()) {
+			int index = targetName.indexOf(".");
+			targetName = index != -1 ? targetName.substring(index+1):targetName;
 		}
 		return targetName;
 	}
@@ -107,7 +92,10 @@ public abstract class UIControlCallAction extends UIControlAction {
 	@Override
 	public String computeTemplate() {
 		if (isEnabled()) {
-			return "call('"+ getRequestableString() + "')";// TODO: add parameters
+			String requestableString = getRequestableString();
+			if (!requestableString.isEmpty()) {
+				return "call('"+ requestableString + "')";// TODO: add parameters
+			}
 		}
 		return "";
 	}	

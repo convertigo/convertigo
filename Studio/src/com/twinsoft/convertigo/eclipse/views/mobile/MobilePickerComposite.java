@@ -409,59 +409,6 @@ public class MobilePickerComposite extends Composite {
 			source.addDragListener(dragAdapter);
 		}
 	}
-/*
-	private MobileSmartSource buildSmartSource() {
-		try {
-			Filter filter = null;
-			if (btnSequence.getSelection())
-				filter = Filter.Sequence;
-			else if (btnDatabase.getSelection())
-				filter = Filter.Database;
-			else if (btnIteration.getSelection())
-				filter = Filter.Iteration;
-			
-			String projectName = currentPage.getProject().getName();
-			boolean isDirective = btnIteration.getSelection();
-			List<String> sourceData = getSourceData();
-			int size = sourceData.size();
-			
-			StringBuffer buf = new StringBuffer();
-			if (isDirective && size > 0) {
-				buf.append(sourceData.get(size-1));
-			}
-			else {
-				for (String data : sourceData) {
-					buf.append(buf.length() > 0 ? ", ":"").append(data);
-				}
-			}
-			
-			String path = text.getText();
-			path = path.isEmpty() ? "": "."+ path;
-			
-			String computedText = buf.length() > 0 ? (isDirective ? buf + path : "listen(["+ buf +"])" + path):"";
-			
-			MobileSmartSource cs = new MobileSmartSource(filter, projectName, computedText);
-			return cs;
-		}
-		catch (Exception e) {
-			return null;
-		}
-		
-		
-	}
-	
-	public String getSmartSourceString() {
-		try {
-			MobileSmartSource cs = buildSmartSource();
-			String jsonString = cs.toJsonString();
-			//System.out.println(jsonString);
-			return jsonString;
-		}
-		catch (Exception e) {
-			return "";
-		}
-	}
-*/
 	
 	public String getSmartSourceString() {
 		try {
@@ -571,9 +518,11 @@ public class MobilePickerComposite extends Composite {
 			}
 			
 			if (cs != null) {
-				/*String path = cs.getModelPath();
-				path = path.startsWith(".") ? path.substring(1) : path;
-				updateText(path);*/
+				if (treeViewer.equals(checkboxTreeViewer)) {
+					checkedList.clear();
+					fillCheckedList(null, cs.getSources());
+					updateGrayChecked();
+				}
 				updateText(cs.getInput());
 			} else {
 				updateText();
@@ -596,10 +545,21 @@ public class MobilePickerComposite extends Composite {
 	}
 	
 	private List<String> getSourceData() {
+		TVObject tvoSelected = null;
+		Object selected = checkboxTreeViewer.getStructuredSelection().getFirstElement();
+		if (selected != null && selected instanceof TVObject) {
+			tvoSelected = (TVObject)selected;
+		}
+		
 		List<String> sourceData =  new ArrayList<String>();
 		List<TVObject> tvoList = GenericUtils.cast(Arrays.asList(checkboxTreeViewer.getCheckedElements()));
 		for (TVObject tvo : tvoList) {
-			sourceData.add(tvo.getSourceData());
+			if (tvo.equals(tvoSelected)) {
+				sourceData.add(0, tvo.getSourceData());
+			}
+			else {
+				sourceData.add(tvo.getSourceData());
+			}
 		}
 		return sourceData;
 	}
@@ -615,14 +575,6 @@ public class MobilePickerComposite extends Composite {
 	}
 	
 	private void updateText() {
-		/*String searchPath = "root";
-		String path = getModelPath();
-		int index = path.indexOf(searchPath);
-		path = index != -1 ? path.substring(index + searchPath.length()) : path;
-		path = path.startsWith(".") ? path.substring(1) : path;
-		
-		text.setText(path);*/
-		
 		boolean isDirective = btnIteration.getSelection();
 		List<String> sourceData = getSourceData();
 		int size = sourceData.size();
@@ -633,7 +585,9 @@ public class MobilePickerComposite extends Composite {
 		}
 		else {
 			for (String data : sourceData) {
-				buf.append(buf.length() > 0 ? ", ":"").append(data);
+				if (!data.isEmpty()) {
+					buf.append(buf.length() > 0 ? ", ":"").append(data);
+				}
 			}
 		}
 		
@@ -856,7 +810,11 @@ public class MobilePickerComposite extends Composite {
 				TVObject tvo = (TVObject) parent.getData();
 				String tvoSourceData = tvo.getSourceData();
 				if (csSourceData.contains(tvoSourceData)) {
-					checkedList.add(tvo);
+					int index = csSourceData.indexOf(tvoSourceData);
+					if (index == 0)
+						checkedList.add(0,tvo);
+					else
+						checkedList.add(tvo);
 				}
 			}
 			
