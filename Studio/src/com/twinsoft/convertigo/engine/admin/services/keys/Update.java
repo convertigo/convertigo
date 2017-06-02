@@ -24,11 +24,11 @@ package com.twinsoft.convertigo.engine.admin.services.keys;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Iterator;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -36,12 +36,13 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.tas.Key;
 import com.twinsoft.tas.KeyManager;
@@ -141,14 +142,16 @@ public class Update extends XmlService {
 	}
 	
 	boolean isActiveKey(String sKey) {
-		Hashtable keys = KeyManager.keys;
-		Iterator iter = keys.values().iterator();
+		Map<String, Key> keys = GenericUtils.cast(KeyManager.keys);
+		Iterator<Key> iter = keys.values().iterator();
 		while (iter.hasNext()) {
-			Key k = (Key)iter.next();
-			if (k.sKey == sKey)
+			Key k = iter.next();
+			String str = k.sKey; 
+			if (str.equals(sKey)) {
 				return true;
+			}
 		}
-		return false;
+		return true;
 	}
 	
 	void updateKeyFile() {
@@ -157,10 +160,9 @@ public class Update extends XmlService {
 			String tasRoot = EnginePropertiesManager.getProperty(PropertyName.CARIOCA_URL);
 			Properties keysProperties = new Properties();
 			keysProperties.load(new FileInputStream(tasRoot + "/Java/keys.txt"));		
-			Enumeration enumeration = keysProperties.keys();
+			Enumeration<Object> enumeration = keysProperties.keys();
 			String sEval = DESKey.encodeToHexString("eval").toUpperCase(); // A4E2F2A4A778C2C1
 			String sKey;
-			Hashtable keys = KeyManager.keys;
 			while (enumeration.hasMoreElements()) {
 				sKey = (String) enumeration.nextElement();
 				// if first run date
@@ -171,7 +173,7 @@ public class Update extends XmlService {
 					continue;
 				
 				if (!isActiveKey(sKey)) {
-					changed = true;
+					changed |= true;
 					keysProperties.remove(sKey);
 				}
 			}

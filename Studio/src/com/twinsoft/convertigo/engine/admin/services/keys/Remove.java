@@ -120,7 +120,6 @@ public class Remove extends XmlService{
 			}
 		}
 		
-		// KeyManager.removeKey(oldKey) is already saving file
-		// keysProperties.store(new FileOutputStream(tasRoot + "/Java/keys.txt"), null);
+		keysProperties.store(new FileOutputStream(tasRoot + "/Java/keys.txt"), null);
 	}
 }
