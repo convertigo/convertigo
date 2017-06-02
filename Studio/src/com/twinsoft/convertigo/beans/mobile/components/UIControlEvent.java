@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2016 Convertigo SA.
+ * Copyright (c) 2001-2017 Convertigo SA.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License
@@ -31,6 +31,12 @@ public class UIControlEvent extends UIControlAttr implements IControl {
 	public enum AttrEvent {
 		onClick("(click)"),
 		onInput("(input)"),
+		onTap("(tap)"),
+		onPress("(press)"),
+		onPan("(pan)"),
+		onSwipe("(swipe)"),
+		onRotate("(rotate)"),
+		onPinch("(pinch)"),
 		;
 		
 		String event;
