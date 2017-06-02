@@ -248,7 +248,6 @@ PropertiesView.prototype.refresh = function (refNodeProjectsView) {
     }
 };
 
-
 PropertiesView.prototype.updateProperties = function ($dboElt) {  
     var that = this;
 

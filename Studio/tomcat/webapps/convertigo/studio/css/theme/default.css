@@ -20,7 +20,7 @@
 }
 
 .comment {
-    color: #0085ff;
+    color: #0085ff !important;
 }
 
 .jstree-default {

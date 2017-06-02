@@ -15,6 +15,11 @@ var Main = {
 			"jquery.modal",
 			"accordion",
 
+			/**
+             * Listeners
+             */
+            "editor-listener",
+			
 	    	/**
 	    	 * Managers
 	    	 */
@@ -158,6 +163,11 @@ var Main = {
 		        "jquery-ui": Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jquery-ui.min-1.12.1"),
 		        "jquery.modal": Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jquery.modal.min-0.8.0"),
 		        accordion: Convertigo.getBaseConvertigoStudioUrl("js/libs/accordion"),
+
+		        /**
+		         * Listeners
+		         */
+		        "editor-listener": Convertigo.getBaseConvertigoStudioUrl("js/listeners/editor-listener"),
 
 		    	/**
 		    	 * Managers

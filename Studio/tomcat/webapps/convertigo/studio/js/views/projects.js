@@ -95,6 +95,7 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 	$(that.tree)
 		.jstree({
 			core: {
+			    dblclick_toggle: false,
 				check_callback: function (operation, node, node_parent, node_position, more) {
 					// operation can be 'create_node', 'rename_node', 'delete_node', 'move_node', 'copy_node' or 'edit'
 				    // in case of 'rename_node' node_position is filled with the new node name
@@ -383,8 +384,37 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 			}
 		})
 		.on("loaded.jstree", function () {
+		    // Select the first node (=project) when the tree is loaded
 		    var firstNodeId = that.tree.jstree().get_node("#").children[0];
 		    that.tree.jstree().select_node(firstNodeId);
+		})
+		.on("dblclick.jstree", function (event, b) {
+		    var target = $(event.target).closest("li");
+		    var selectNode = that.tree.jstree().get_node(target);
+		    
+		    if (!that.isNodeFolder(selectNode)) {
+                $.ajax({
+                    url: Convertigo.createServiceUrl("studio.database_objects.OpenEditor"),
+                    data: {
+                        qname: selectNode.data.qname
+                    },
+                    success: function (data, textStatus, jqXHR) {
+                        var $response = $(data).find("admin>response");
+                        var editor = $response.attr("editor");
+                        switch (editor) {
+                            case "c8o_JscriptStepEditor":
+                            case "c8o_XslEditor":
+                            case "c8o_JscriptTransactionEditor":
+                                var filePath = $(data).find("admin>response>filepath").text();
+                                openEditor(filePath, selectNode.data.qname);
+                                break;
+                            
+                            default:
+                                break;
+                        }
+                    }
+                });
+		    }
 		});
 	
 		var lastTargetNodeId = null;
