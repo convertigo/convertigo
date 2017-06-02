@@ -97,4 +97,16 @@ public class UIAttribute extends UIComponent implements ITagsProperty {
 		return new String[0];
 	}
 	
+	@Override
+	public void updateSmartSource(long oldPriority, long newPriority) {
+		String smartValue = attrValue.getSmartValue();
+		String oldString = String.valueOf(oldPriority);
+		if (smartValue.indexOf(oldString) != -1) {
+			String newString = String.valueOf(newPriority);
+			attrValue.setSmartValue(smartValue.replaceAll(oldString, newString));
+			this.hasChanged = true;
+		}
+		super.updateSmartSource(oldPriority, newPriority);
+	}
+	
 }

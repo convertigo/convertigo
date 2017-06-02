@@ -201,4 +201,16 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 		}
 		return "";
 	}
+
+	@Override
+	public void updateSmartSource(long oldPriority, long newPriority) {
+		String smartValue = directiveSource.getSmartValue();
+		String oldString = String.valueOf(oldPriority);
+		if (smartValue.indexOf(oldString) != -1) {
+			String newString = String.valueOf(newPriority);
+			directiveSource.setSmartValue(smartValue.replaceAll(oldString, newString));
+			this.hasChanged = true;
+		}
+		super.updateSmartSource(oldPriority, newPriority);
+	}
 }

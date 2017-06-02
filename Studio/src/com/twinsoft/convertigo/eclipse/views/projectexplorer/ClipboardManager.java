@@ -68,6 +68,8 @@ import com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective.AttrDirective;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.statements.ElseStatement;
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
@@ -637,9 +639,20 @@ public class ClipboardManager {
 				}
 			}
 			
-			// Update sources that reference this step
+			// Update sources which reference this step
 			if (databaseObject instanceof Step) {
 				pastedSteps.put(String.valueOf(oldPriority), (Step)databaseObject);
+			}
+			
+			// Update sources (of child components) which reference this directive
+			if (databaseObject instanceof UIControlDirective) {
+				UIControlDirective directive = (UIControlDirective)databaseObject;
+				String directiveName = directive.getDirectiveName();
+				AttrDirective attrDirective = AttrDirective.getDirective(directiveName);
+				if (AttrDirective.RepeatForEach.equals(attrDirective)) {
+					directive.updateSmartSource(oldPriority, directive.priority);
+					directive.getPage().markTemplateAsDirty();
+				}
 			}
 
 			databaseObject.isSubLoaded = true;

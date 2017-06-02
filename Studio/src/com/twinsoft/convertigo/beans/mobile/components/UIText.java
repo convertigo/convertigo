@@ -93,4 +93,16 @@ public class UIText extends UIComponent implements ITagsProperty {
 		}
 		return new String[0];
 	}
+
+	@Override
+	public void updateSmartSource(long oldPriority, long newPriority) {
+		String smartValue = textValue.getSmartValue();
+		String oldString = String.valueOf(oldPriority);
+		if (smartValue.indexOf(oldString) != -1) {
+			String newString = String.valueOf(newPriority);
+			textValue.setSmartValue(smartValue.replaceAll(oldString, newString));
+			this.hasChanged = true;
+		}
+		super.updateSmartSource(oldPriority, newPriority);
+	}
 }

@@ -342,5 +342,11 @@ public abstract class UIComponent extends MobileComponent implements ITemplateGe
 		return super.testAttribute(name, value);
 	}
 
+	public void updateSmartSource(long oldPriority, long newPriority) {
+		for (UIComponent uic : getUIComponentList()) {
+			uic.updateSmartSource(oldPriority, newPriority);
+		}
+		
+	}
 	
 }

@@ -199,4 +199,19 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 	public String computeStyle() {
 		return super.computeStyle();
 	}
+
+	@Override
+	public void updateSmartSource(long oldPriority, long newPriority) {
+		if (beanData != null) {
+			String oldString = String.valueOf(oldPriority);
+			if (beanData.indexOf(oldString) != -1) {
+				String newString = String.valueOf(newPriority);
+				beanData = beanData.replaceAll(oldString, newString);
+				ionBean = null;
+				this.hasChanged = true;
+			}
+			
+		}
+		super.updateSmartSource(oldPriority, newPriority);
+	}
 }
