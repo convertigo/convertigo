@@ -145,10 +145,11 @@ public class Update extends XmlService {
 		Iterator iter = keys.values().iterator();
 		while (iter.hasNext()) {
 			Key k = (Key)iter.next();
-			if (k.sKey == sKey)
+			String str = k.sKey; 
+			if (str.equals(sKey))
 				return true;
 		}
-		return false;
+		return true;
 	}
 	
 	void updateKeyFile() {
@@ -171,7 +172,7 @@ public class Update extends XmlService {
 					continue;
 				
 				if (!isActiveKey(sKey)) {
-					changed = true;
+					changed |= true;
 					keysProperties.remove(sKey);
 				}
 			}
