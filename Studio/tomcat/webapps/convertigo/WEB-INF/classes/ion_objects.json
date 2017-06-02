@@ -1128,6 +1128,46 @@
       "icon32": "slide_color_32x32.png"
     },
 
+    /* Segments */
+
+    "Segment": {
+      "tag": "ion-segment",
+      "label": "Segment",
+      "description": "A Segment is a group of buttons, sometimes known as Segmented Controls, that allow the user to interact with a compact group of a number of controls. Segments provide functionality similar to tabs, selecting one will unselect all others",
+      "group": "Buttons",
+      "icon16": "segment_color_16x16.png",
+      "icon32": "segment_color_32x32.png",
+      "properties": {
+        "IonColor": false,
+        "Name": {
+          "attr": "[(ngModel)]",
+          "label": "NgModel",
+          "description": "The selected button will be bound to this variable name, by default 'selectedButton'. You can use Switch and SwitchCase directives to display some information related to to the selectedButton",
+          "category": "@Properties",
+          "value": "selectedButton"
+        }
+      }
+    },
+
+    "SegmentButton": {
+      "tag": "ion-segment-button",
+      "label": "Segment button",
+      "description": "A Button segment in a Segment",
+      "group": "Buttons",
+      "icon16": "segment-buton_color_16x16.png",
+      "icon32": "segment-buton_color_32x32.png",
+      "properties": {
+        "IonColor": false,
+        "Name": {
+          "attr": "value",
+          "label": "Value",
+          "description": "Value of the segment button bound to the [(ngModel)] attribute in the Segment",
+          "category": "@Properties",
+          "value": ""
+        }
+      }
+    },
+
     /* Lists */
     "List": {
       "tag": "ion-list",
