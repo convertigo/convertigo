@@ -111,12 +111,16 @@ public class AdminServlet extends HttpServlet {
 				}
 				
 				// TODO: temporary solution to accept request from Che
-				if (true || serviceDefinition.allow_cors()) {
+				//if (true || serviceDefinition.allow_cors()) {
+				try {
 					String corsOrigin = HttpUtils.filterCorsOrigin(request, response);
 					if (corsOrigin != null) {
 						Engine.logAdmin.trace("Add CORS header for: " + corsOrigin);
 					}
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
+				//}
 				
 				boolean needsAuthentication = !AuthenticatedSessionManager.hasRole(serviceDefinition.roles(), Role.ANONYMOUS);
 				Engine.logAdmin.debug("Needs authentication: " + needsAuthentication);
