@@ -1564,7 +1564,7 @@ font-weight: bold;
 	border: 1px solid #F2F5F5;
 	background: #f4f4f4!important;}
 
-.symbolDelete {
+.symbolDelete, .keyDelete {
 	position: relative;
     top: 1px;
 }
