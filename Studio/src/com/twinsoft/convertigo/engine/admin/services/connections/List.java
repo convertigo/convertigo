@@ -136,6 +136,13 @@ public class List extends XmlService{
         	int i = context.contextID.indexOf('_');
         	String sessionID = context.contextID.substring(0, i);
         	String contextName = context.contextID.substring(i + 1);
+        	String authenticatedUser = null;
+        	try {
+        		authenticatedUser = context.getAuthenticatedUser();
+        	} catch (Exception e) {
+				Engine.logAdmin.trace("connection.List failed to get the authenticated user: " + e);
+			}
+        	
         	com.twinsoft.api.Session apiSession = Engine.theApp.sessionManager.getSession(context.contextID);
     		boolean bConnected = ((apiSession != null) && apiSession.isConnected());
             Element connectionElement = document.createElement("connection");
@@ -145,7 +152,7 @@ public class List extends XmlService{
             connectionElement.setAttribute(attributes[3], context.connectorName);
             connectionElement.setAttribute(attributes[4], (context.requestedObject instanceof Transaction) ? context.transactionName:context.sequenceName);
             connectionElement.setAttribute(attributes[5], (context.requestedObject == null || context.requestedObject.runningThread == null ? "finished" : (context.requestedObject.runningThread.bContinue ? "in progress" : "finished")) + "("+ context.waitingRequests+")");
-            connectionElement.setAttribute(attributes[6], context.getAuthenticatedUser()==null ? "" : context.getAuthenticatedUser());
+            connectionElement.setAttribute(attributes[6], authenticatedUser == null ? "" : authenticatedUser);
             connectionElement.setAttribute(attributes[7], DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(context.creationTime)));
             connectionElement.setAttribute(attributes[8], DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(context.lastAccessTime)));
             try {
