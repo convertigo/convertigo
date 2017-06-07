@@ -225,6 +225,13 @@ public class MobileBuilder {
 		}
 	}
 	
+	public synchronized void pageTsChanged(final PageComponent page) throws EngineException {
+		if (page != null && initDone) {
+			writePageTypescript(page);
+			Engine.logEngine.debug("(MobileBuilder) Handled 'pageTsChanged'");
+		}
+	}
+
 	public synchronized void appStyleChanged(final ApplicationComponent app) throws EngineException {
 		if (app != null && initDone) {
 			writeAppStyle(app);
@@ -348,6 +355,73 @@ public class MobileBuilder {
 		}
 		catch (Exception e) {
 			throw new EngineException("Unable to write ionic page scss file",e);
+		}
+	}
+	
+	public String getTempTsRelativePath(PageComponent page) throws EngineException {
+		try {
+			if (page != null) {
+				String pageName = page.getName();
+				File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
+				File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".temp.ts");
+				String filePath = tempTsFile.getPath().replace(projectDir.getPath(), "/");
+				return filePath;
+			}
+		}
+		catch (Exception e) {}
+		return null;
+	}
+	
+	private void writePageTempTypescript(PageComponent page) throws EngineException {
+		try {
+			if (page != null) {
+				String pageName = page.getName();
+				File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
+				File pageTsFile = new File(pageDir, pageName.toLowerCase() + ".ts");
+				
+				File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".temp.ts");
+				FileUtils.copyFile(pageTsFile, tempTsFile);
+			}
+		}
+		catch (Exception e) {
+			throw new EngineException("Unable to write ionic page temp ts file",e);
+		}
+	}
+	private void writePageTypescript(PageComponent page) throws EngineException {
+		try {
+			if (page != null) {
+				String pageName = page.getName();
+				String c8o_PageName = pageName;
+				String c8o_PageTplUrl = pageName.toLowerCase() + ".html";
+				String c8o_PageSelector = "page-"+pageName.toLowerCase();
+				String c8o_Markers = page.getScriptContent();
+				
+				File pageTplTs = new File(ionicTplDir, "src/page.tpl");
+				String tsContent = FileUtils.readFileToString(pageTplTs, "UTF-8");
+				tsContent = tsContent.replaceAll("/\\*\\=c8o_PageSelector\\*/","'"+c8o_PageSelector+"'");
+				tsContent = tsContent.replaceAll("/\\*\\=c8o_PageTplUrl\\*/","'"+c8o_PageTplUrl+"'");
+				tsContent = tsContent.replaceAll("/\\*\\=c8o_PageName\\*/",c8o_PageName);
+				
+				Pattern pattern = Pattern.compile("/\\*Begin_c8o_(.+)\\*/"); // begin c8o marker
+				Matcher matcher = pattern.matcher(tsContent);
+				while (matcher.find()) {
+					String markerId = matcher.group(1);
+					String tplMarker = getMarker(tsContent, markerId);
+					String customMarker = getMarker(c8o_Markers, markerId);
+					if (!customMarker.isEmpty()) {
+						tsContent = tsContent.replace(tplMarker, customMarker);
+					}
+				}
+				
+				File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
+				File pageTsFile = new File(pageDir, pageName.toLowerCase() + ".ts");
+				FileUtils.write(pageTsFile, tsContent, "UTF-8");
+				
+				Engine.logEngine.debug("(MobileBuilder) Ionic ts file generated for page '"+pageName+"'");
+			}
+		}
+		catch (Exception e) {
+			throw new EngineException("Unable to write ionic page ts file",e);
 		}
 	}
 	
@@ -478,28 +552,13 @@ public class MobileBuilder {
 	private void writePageSourceFiles(PageComponent page) throws EngineException {
 		String pageName = page.getName();
 		try {
-			String c8o_PageName = pageName;
-			String c8o_PageTplUrl = pageName.toLowerCase() + ".html";
-			String c8o_PageSelector = "page-"+pageName.toLowerCase();
-			
 			File pageDir = new File(ionicWorkDir,"src/pages/"+pageName);
 			pageDir.mkdirs();
 			
-			File pageTplTs = new File(ionicTplDir, "src/page.tpl");
-			String tsContent = FileUtils.readFileToString(pageTplTs, "UTF-8");
-			tsContent = tsContent.replaceAll("/\\*\\=c8o_PageSelector\\*/","'"+c8o_PageSelector+"'");
-			tsContent = tsContent.replaceAll("/\\*\\=c8o_PageTplUrl\\*/","'"+c8o_PageTplUrl+"'");
-			tsContent = tsContent.replaceAll("/\\*\\=c8o_PageName\\*/",c8o_PageName);
-			File pageTsFile = new File(pageDir, pageName.toLowerCase() + ".ts");
-			FileUtils.write(pageTsFile, tsContent, "UTF-8");
-			
-			File pageScssFile = new File(pageDir, pageName.toLowerCase() + ".scss");
-			String computedStyle = page.getComputedStyle();
-			FileUtils.write(pageScssFile, computedStyle, "UTF-8");
-			
-			File pageHtmlFile = new File(pageDir, pageName.toLowerCase() + ".html");
-			String computedTemplate = page.getComputedTemplate();
-			FileUtils.write(pageHtmlFile, computedTemplate, "UTF-8");
+			writePageTypescript(page);
+			writePageTempTypescript(page);
+			writePageStyle(page);
+			writePageTemplate(page);
 			
 			Engine.logEngine.debug("(MobileBuilder) Ionic source files generated for page '"+pageName+"'");
 		}
@@ -508,4 +567,30 @@ public class MobileBuilder {
 		}
 	}
 	
+	public static String getMarkers(String content) {
+		String markers = "";
+		Pattern pattern = Pattern.compile("/\\*Begin_c8o_(.+)\\*/"); // begin c8o marker
+		Matcher matcher = pattern.matcher(content);
+		while (matcher.find()) {
+			String markerId = matcher.group(1);
+			String marker = getMarker(content, markerId);
+			if (!marker.isEmpty()) {
+				markers += marker + System.lineSeparator();
+			}
+		}
+		return markers;
+	}
+	
+	private static String getMarker(String s, String markerId) {
+		String beginMarker = "/*Begin_c8o_" + markerId + "*/";
+		String endMarker = "/*End_c8o_" + markerId + "*/";
+		int beginIndex = s.indexOf(beginMarker);
+		if (beginIndex != -1) {
+			int endIndex = s.indexOf(endMarker, beginIndex);
+			if (endIndex != -1) {
+				return s.substring(beginIndex, endIndex) + endMarker;
+			}
+		}
+		return "";
+	}
 }

@@ -37,7 +37,7 @@ import org.eclipse.ui.views.properties.PropertySheet;
 import org.eclipse.wst.sse.ui.StructuredTextEditor;
 
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
-import com.twinsoft.convertigo.eclipse.editors.html.MobileComponentEditorInput;
+import com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
@@ -104,10 +104,10 @@ public class ConvertigoPartListener implements IPartListener {
 		if (part instanceof StructuredTextEditor) {
 			StructuredTextEditor editor = (StructuredTextEditor)part;
 			IEditorInput input = editor.getEditorInput();
-			if (input instanceof MobileComponentEditorInput) {
+			if (input instanceof ComponentFileEditorInput) {
 				try {
 					editor.dispose();// added because html editor throw a ConcurentModificationException (bug)
-					((MobileComponentEditorInput)input).getFile().delete(true, null);
+					((ComponentFileEditorInput)input).getFile().delete(true, null);
 					
 				} catch (Exception e) {
 					e.printStackTrace();

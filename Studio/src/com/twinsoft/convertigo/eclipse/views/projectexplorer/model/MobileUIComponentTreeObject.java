@@ -64,7 +64,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonProperty;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.editors.html.MobileComponentEditorInput;
+import com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput;
 import com.twinsoft.convertigo.eclipse.property_editors.MobileSmartSourcePropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 
@@ -130,11 +130,8 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			
 			// Open file in editor
 			if (file.exists()) {
-				IEditorInput input = new MobileComponentEditorInput(file,mc);
+				IEditorInput input = new ComponentFileEditorInput(file, mc);
 				if (input != null) {
-					//IPath path = file.getProjectRelativePath();
-					//String fileName = path.removeFirstSegments(path.segmentCount() - 1).toString();
-					//String editorId = getEditorId(fileName);
 					String editorId = "org.eclipse.wst.html.core.htmlsource.source";
 					
 					IWorkbenchPage activePage = PlatformUI
@@ -223,7 +220,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			
 			// Open file in editor
 			if (file.exists()) {
-				IEditorInput input = new MobileComponentEditorInput(file,ms);
+				IEditorInput input = new ComponentFileEditorInput(file, ms);
 				if (input != null) {
 					String editorId = "org.eclipse.wst.css.core.csssource.source";
 					

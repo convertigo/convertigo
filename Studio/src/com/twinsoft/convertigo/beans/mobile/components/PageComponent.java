@@ -315,6 +315,17 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 		this.segment = segment;
 	}
 
+	protected String scriptContent = "";
+
+	public String getScriptContent() {
+		return scriptContent;
+	}
+
+	public void setScriptContent(String scriptContent) {
+		this.scriptContent = scriptContent;
+	}
+	
+	
 	transient private String computedTemplate = null;
 	
 	public String getComputedTemplate() {
@@ -386,6 +397,10 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 		return sb.toString();
 	}
 
+	public void markTsAsDirty() throws EngineException {
+		getProject().getMobileBuilder().pageTsChanged(this);
+	}
+	
 	public void markStyleAsDirty() throws EngineException {
 		String oldComputed = getComputedStyle();
 		doComputeStyle();
