@@ -23,7 +23,6 @@
 package com.twinsoft.convertigo.engine;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FilenameFilter;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -54,26 +53,15 @@ public class MigrationManager {
 				long t0 = Calendar.getInstance().getTime().getTime();
 				Engine.logEngine.info("Migration starting...");
 				try {
-					String projectName;
 					//Added by julienda
-						String targetProjectArchive = ""; 
-					MigrationJob job;
+					String targetProjectArchive = "";
 					
-					// Starts Convertigo projects (already deployed) migration
-					File[] deployedProjects = projectsDirFile.listFiles(new FileFilter() {
-				        public boolean accept(File file) {
-				            return file.isDirectory() && (file.getName().indexOf('.')==-1);
-				        }
-					});
-					File deployedProjectDir;
-					for (int i = 0 ; i < deployedProjects.length ; i++) {
-						deployedProjectDir = deployedProjects[i];
-						projectName = deployedProjectDir.getName();
-						job = new MigrationJob(projectName);
+					for (String projectName: Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false)) {
+						MigrationJob job = new MigrationJob(projectName);
 						if (!jobs.containsKey(projectName)) {
 							jobs.put(projectName, job);
 							job.start();
-						}
+						} 
 					}
 					
 					// Starts Convertigo archives deployment and migration
@@ -90,10 +78,10 @@ public class MigrationManager {
 						//projectName = projectArchive.substring(0, projectArchive.indexOf(".car"));
 						
 						//Added by julienda
-							targetProjectArchive = (new File(projectsDirFile, projectArchive)).getPath();
-							projectName = ZipUtils.getProjectName(targetProjectArchive);
+						targetProjectArchive = (new File(projectsDirFile, projectArchive)).getPath();
+						String projectName = ZipUtils.getProjectName(targetProjectArchive);
 						
-						job = new MigrationJob(projectName);
+						MigrationJob job = new MigrationJob(projectName);
 						if (!jobs.containsKey(projectName)) {
 							jobs.put(projectName, job);
 							job.start();
