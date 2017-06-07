@@ -82,11 +82,9 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 	public void launchEditor(String editorType) {
 		ApplicationComponentEditor editor = ((MobileApplicationComponentTreeObject) getParentDatabaseObjectTreeObject()).activeEditor();
 		editor.selectPage(getObject().getName());
-		
-		openTsFileEditor();
 	}
 	
-	private void openTsFileEditor() {
+	public void editPageTsFile() {
 		final PageComponent page = (PageComponent)getObject();
 		try {
 			// Refresh project resource

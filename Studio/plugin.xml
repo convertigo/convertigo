@@ -1125,6 +1125,14 @@
                      value="false"/>
             </enablement>
          </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.EditMobileComponentClassAction"
+               enablesFor="1"
+               id="convertigo.action.editMobilePageClass"
+               label="Edit page class"
+               menubarPath="default"
+               style="toggle">
+         </action>
       </objectContribution>
       <objectContribution
             id="convertigo.mobileUIComponentContribution"
