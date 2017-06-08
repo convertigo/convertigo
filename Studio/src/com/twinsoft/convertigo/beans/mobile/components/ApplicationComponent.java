@@ -81,6 +81,16 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		return (MobileApplication) super.getParent();
 	}
 
+	protected String componentScriptContent = "";
+	
+	public String getComponentScriptContent() {
+		return componentScriptContent;
+	}
+	
+	public void setComponentScriptContent(String componentScriptContent) {
+		this.componentScriptContent = componentScriptContent;
+	}
+	
 	private XMLVector<XMLVector<Long>> orderedRoutes = new XMLVector<XMLVector<Long>>();
 	
 	public XMLVector<XMLVector<Long>> getOrderedRoutes() {
@@ -656,7 +666,15 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		String newComputed = getComputedRoute();
 		
 		if (!newComputed.equals(oldComputed)) {
-			getProject().getMobileBuilder().routeChanged();
+			getProject().getMobileBuilder().appRouteChanged(this);
 		}
+	}
+	
+	public void markRootAsDirty() throws EngineException {
+		getProject().getMobileBuilder().appRootChanged(this);
+	}
+	
+	public void markComponentTsAsDirty() throws EngineException {
+		getProject().getMobileBuilder().appCompTsChanged(this);
 	}
 }

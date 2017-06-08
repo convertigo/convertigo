@@ -141,29 +141,20 @@ public class MobileBuilder {
 		}
 	}
 	
-	public synchronized void appChanged() throws EngineException {
-		if (initDone) {
-			MobileApplication mobileApplication = project.getMobileApplication();
-			if (mobileApplication != null) {
-				ApplicationComponent application = mobileApplication.getApplicationComponent();
-				if (application != null) {
-					writeAppSourceFiles(application);
-					Engine.logEngine.debug("(MobileBuilder) Handled 'appChanged'");
-				}
-			}
+	public synchronized void appRootChanged(final ApplicationComponent app) throws EngineException {
+		if (app != null && initDone) {
+			//writeAppSourceFiles(app);
+			writeAppCompTypescript(app);
+			Engine.logEngine.debug("(MobileBuilder) Handled 'appRootChanged'");
 		}
 	}
 
-	public synchronized void routeChanged() throws EngineException {
-		if (initDone) {
-			MobileApplication mobileApplication = project.getMobileApplication();
-			if (mobileApplication != null) {
-				ApplicationComponent application = mobileApplication.getApplicationComponent();
-				if (application != null) {
-					writeAppSourceFiles(application);
-					Engine.logEngine.debug("(MobileBuilder) Handled 'routeChanged'");
-				}
-			}
+	public synchronized void appRouteChanged(final ApplicationComponent app) throws EngineException {
+		if (app != null && initDone) {
+			//writeAppSourceFiles(app);
+			writeAppCompTypescript(app);
+			writeAppCompTempTypescript(app);
+			Engine.logEngine.debug("(MobileBuilder) Handled 'appRouteChanged'");
 		}
 	}
 	
@@ -243,6 +234,13 @@ public class MobileBuilder {
 		if (app != null && initDone) {
 			writeAppTheme(app);
 			Engine.logEngine.debug("(MobileBuilder) Handled 'appThemeChanged'");
+		}
+	}
+	
+	public synchronized void appCompTsChanged(final ApplicationComponent app) throws EngineException {
+		if (app != null && initDone) {
+			writeAppCompTypescript(app);
+			Engine.logEngine.debug("(MobileBuilder) Handled 'appCompTsChanged'");
 		}
 	}
 	
@@ -378,8 +376,8 @@ public class MobileBuilder {
 				String pageName = page.getName();
 				File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
 				File pageTsFile = new File(pageDir, pageName.toLowerCase() + ".ts");
-				
 				File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".temp.ts");
+				
 				FileUtils.copyFile(pageTsFile, tempTsFile);
 			}
 		}
@@ -422,6 +420,134 @@ public class MobileBuilder {
 		}
 		catch (Exception e) {
 			throw new EngineException("Unable to write ionic page ts file",e);
+		}
+	}
+	
+	public String getTempTsRelativePath(ApplicationComponent app) throws EngineException {
+		try {
+			if (app != null) {
+				File appComponentTsFile = new File(ionicWorkDir, "src/app/app.component.temp.ts");
+				String filePath = appComponentTsFile.getPath().replace(projectDir.getPath(), "/");
+				return filePath;
+			}
+		}
+		catch (Exception e) {}
+		return null;
+	}
+	
+	private void writeAppModTypescript(ApplicationComponent app) throws EngineException {
+		try {
+			if (app != null) {
+				String c8o_PagesImport = "";
+				String c8o_PagesLinks = "";
+				String c8o_PagesDeclarations = "";
+				int i=1;
+				
+				
+				List<PageComponent> pages = app.getPageComponentList();
+				for (PageComponent page : pages) {
+					String pageName = page.getName();
+					boolean isLastPage = i == pages.size();
+					c8o_PagesImport += "import { "+pageName+" } from \"../pages/"+pageName+"/"+pageName.toLowerCase()+"\";\n";
+					c8o_PagesLinks += " { component: "+pageName+", name: '"+pageName+"', segment: '"+pageName+"' }" + (isLastPage ? "":",");
+					c8o_PagesDeclarations += " " + pageName + (isLastPage ? "":",");
+					i++;
+				}
+				
+				File appModuleTpl = new File(ionicTplDir, "src/app/app.module.ts");
+				String mContent = FileUtils.readFileToString(appModuleTpl, "UTF-8");
+				mContent = mContent.replaceAll("/\\*\\=c8o_PagesImport\\*/",c8o_PagesImport);
+				mContent = mContent.replaceAll("/\\*\\=c8o_PagesLinks\\*/",c8o_PagesLinks);
+				mContent = mContent.replaceAll("/\\*\\=c8o_PagesDeclarations\\*/",c8o_PagesDeclarations);
+				File appModuleTsFile = new File(ionicWorkDir, "src/app/app.module.ts");
+				FileUtils.write(appModuleTsFile, mContent, "UTF-8");
+				
+				Engine.logEngine.debug("(MobileBuilder) Ionic module ts file generated for 'app'");
+			}
+		}
+		catch (Exception e) {
+			throw new EngineException("Unable to write ionic app module ts file",e);
+		}
+	}
+	
+	private void writeAppCompTypescript(ApplicationComponent app) throws EngineException {
+		try {
+			if (app != null) {
+				String c8o_PagesImport = "";
+				String c8o_PagesVariables = "";
+				String c8o_RootPage = "null";
+				String c8o_AppComponentMarkers = app.getComponentScriptContent();
+				int i=1;
+				
+				
+				List<PageComponent> pages = app.getPageComponentList();
+				for (PageComponent page : pages) {
+					String pageName = page.getName();
+					boolean isRootPage = page.isRoot;
+					boolean isLastPage = i == pages.size();
+					if (isRootPage) c8o_RootPage = pageName;
+					c8o_PagesImport += "import { "+pageName+" } from \"../pages/"+pageName+"/"+pageName.toLowerCase()+"\";\n";
+					c8o_PagesVariables += " { title: '"+pageName+"', component: "+pageName+" }" + (isLastPage ? "":",");
+					i++;
+				}
+				
+				String computedRoute = app.getComputedRoute();
+				File appComponentTpl = new File(ionicTplDir, "src/app/app.component.ts");
+				String cContent = FileUtils.readFileToString(appComponentTpl, "UTF-8");
+				cContent = cContent.replaceAll("/\\*\\=c8o_PagesImport\\*/",c8o_PagesImport);
+				cContent = cContent.replaceAll("/\\*\\=c8o_RootPage\\*/",c8o_RootPage);
+				cContent = cContent.replaceAll("/\\*\\=c8o_PagesVariables\\*/",c8o_PagesVariables);
+				cContent = cContent.replaceAll("/\\*\\=c8o_RoutingTable\\*/",computedRoute);
+				
+				Pattern pattern = Pattern.compile("/\\*Begin_c8o_(.+)\\*/"); // begin c8o marker
+				Matcher matcher = pattern.matcher(cContent);
+				while (matcher.find()) {
+					String markerId = matcher.group(1);
+					String tplMarker = getMarker(cContent, markerId);
+					String customMarker = getMarker(c8o_AppComponentMarkers, markerId);
+					if (!customMarker.isEmpty()) {
+						cContent = cContent.replace(tplMarker, customMarker);
+					}
+				}
+				
+				File appComponentTsFile = new File(ionicWorkDir, "src/app/app.component.ts");
+				FileUtils.write(appComponentTsFile, cContent, "UTF-8");
+				
+				Engine.logEngine.debug("(MobileBuilder) Ionic component ts file generated for 'app'");
+			}
+		}
+		catch (Exception e) {
+			throw new EngineException("Unable to write ionic app component ts file",e);
+		}
+	}
+	
+	private void writeAppCompTempTypescript(ApplicationComponent app) throws EngineException {
+		try {
+			if (app != null) {
+				File appTsFile = new File(ionicWorkDir, "src/app/app.component.ts");
+				File tempTsFile = new File(ionicWorkDir, "src/app/app.component.temp.ts");
+				
+				FileUtils.copyFile(appTsFile, tempTsFile);
+			}
+		}
+		catch (Exception e) {
+			throw new EngineException("Unable to write ionic app component temp ts file",e);
+		}
+	}
+	
+	private void writeAppTemplate(ApplicationComponent app) throws EngineException {
+		try {
+			if (app != null) {
+				String appName = app.getName();
+				//File appHtmlFile = new File(ionicWorkDir, "src/app/app.html");
+				//String computedTemplate = app.getComputedTemplate();
+				//FileUtils.write(appHtmlFile, computedTemplate, "UTF-8");
+				
+				Engine.logEngine.debug("(MobileBuilder) Ionic template file generated for app '"+appName+"'");
+			}
+		}
+		catch (Exception e) {
+			throw new EngineException("Unable to write ionic app html file",e);
 		}
 	}
 	
@@ -490,56 +616,12 @@ public class MobileBuilder {
 	private void writeAppSourceFiles(ApplicationComponent application) throws EngineException {
 		try {
 			if (application != null) {
-				String c8o_PagesImport = "";
-				String c8o_PagesLinks = "";
-				String c8o_PagesVariables = "";
-				String c8o_PagesDeclarations = "";
-				String c8o_RootPage = "null";
-				int i=1;
-				
-				
-				List<PageComponent> pages = application.getPageComponentList();
-				for (PageComponent page : pages) {
-					String pageName = page.getName();
-					boolean isRootPage = page.isRoot;
-					boolean isLastPage = i == pages.size();
-					if (isRootPage) c8o_RootPage = pageName;
-					c8o_PagesImport += "import { "+pageName+" } from \"../pages/"+pageName+"/"+pageName.toLowerCase()+"\";\n";
-					c8o_PagesLinks += " { component: "+pageName+", name: '"+pageName+"', segment: '"+pageName+"' }" + (isLastPage ? "":",");
-					c8o_PagesVariables += " { title: '"+pageName+"', component: "+pageName+" }" + (isLastPage ? "":",");
-					c8o_PagesDeclarations += " " + pageName + (isLastPage ? "":",");
-					i++;
-				}
-				
-				File appModuleTpl = new File(ionicTplDir, "src/app/app.module.ts");
-				String mContent = FileUtils.readFileToString(appModuleTpl, "UTF-8");
-				mContent = mContent.replaceAll("/\\*\\=c8o_PagesImport\\*/",c8o_PagesImport);
-				mContent = mContent.replaceAll("/\\*\\=c8o_PagesLinks\\*/",c8o_PagesLinks);
-				mContent = mContent.replaceAll("/\\*\\=c8o_PagesDeclarations\\*/",c8o_PagesDeclarations);
-				File appModuleTsFile = new File(ionicWorkDir, "src/app/app.module.ts");
-				FileUtils.write(appModuleTsFile, mContent, "UTF-8");
-		
-				String computedRoute = application.getComputedRoute();
-				File appComponentTpl = new File(ionicTplDir, "src/app/app.component.ts");
-				String cContent = FileUtils.readFileToString(appComponentTpl, "UTF-8");
-				cContent = cContent.replaceAll("/\\*\\=c8o_PagesImport\\*/",c8o_PagesImport);
-				cContent = cContent.replaceAll("/\\*\\=c8o_RootPage\\*/",c8o_RootPage);
-				cContent = cContent.replaceAll("/\\*\\=c8o_PagesVariables\\*/",c8o_PagesVariables);
-				cContent = cContent.replaceAll("/\\*\\=c8o_RoutingTable\\*/",computedRoute);
-				File appComponentTsFile = new File(ionicWorkDir, "src/app/app.component.ts");
-				FileUtils.write(appComponentTsFile, cContent, "UTF-8");
-				
-				File appHtmlFile = new File(ionicWorkDir, "src/app/app.html");
-				//String computedTemplate = application.getComputedTemplate();
-				//FileUtils.write(appHtmlFile, computedTemplate, "UTF-8");
-				
-				File appScssFile = new File(ionicWorkDir, "src/app/app.scss");
-				String computedScss = application.getComputedStyle();
-				FileUtils.write(appScssFile, computedScss, "UTF-8");
-
-				File themeScssFile = new File(ionicWorkDir, "src/theme/variables.scss");
-				String tContent = application.getComputedTheme();
-				FileUtils.write(themeScssFile, tContent, "UTF-8");
+				writeAppModTypescript(application);
+				writeAppCompTypescript(application);
+				writeAppCompTempTypescript(application);
+				writeAppTemplate(application);
+				writeAppStyle(application);
+				writeAppTheme(application);
 
 				Engine.logEngine.debug("(MobileBuilder) Ionic source files generated for application 'app'");
 			}

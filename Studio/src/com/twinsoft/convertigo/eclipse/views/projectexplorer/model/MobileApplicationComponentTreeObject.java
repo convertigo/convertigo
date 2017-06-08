@@ -22,12 +22,21 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.texteditor.IDocumentProvider;
+import org.eclipse.ui.texteditor.ITextEditor;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
@@ -40,9 +49,11 @@ import com.twinsoft.convertigo.beans.mobile.components.UITheme;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
+import com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
 public class MobileApplicationComponentTreeObject extends MobileComponentTreeObject implements IEditableTreeObject {
 	
@@ -74,6 +85,13 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 		super.treeObjectPropertyChanged(treeObjectEvent);
 		
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
+		
+		String propertyName = (String)treeObjectEvent.propertyName;
+		propertyName = ((propertyName == null) ? "" : propertyName);
+		
+		Object oldValue = treeObjectEvent.oldValue;
+		Object newValue = treeObjectEvent.newValue;
+		
 		if (treeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)treeObject;
 			DatabaseObject dbo = doto.getObject();
@@ -96,8 +114,12 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 					} else if (dbo instanceof RouteActionComponent) {
 						markRouteAsDirty();
 					}
-				} else if (this.equals(dbo)) {
-					; // TODO
+				} else if (this.equals(doto)) {
+					if (propertyName.equals("componentScriptContent")) {
+						if (!newValue.equals(oldValue)) {
+							markComponentTsAsDirty();
+						}
+					}
 				}
 			} catch (Exception e) {}
 		}
@@ -119,6 +141,17 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 		}
 	}
 
+	protected void markRootAsDirty() {
+		ApplicationComponent ac = getObject();
+		if (ac != null) {
+			try {
+				ac.markRootAsDirty();
+			} catch (EngineException e) {
+				ConvertigoPlugin.logException(e,
+						"Error while writing the component.ts file for app '" + ac.getName() + "'");	}
+		}
+	}
+	
 	protected void markThemeAsDirty() {
 		ApplicationComponent ac = getObject();
 		if (ac != null) {
@@ -150,6 +183,73 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 					"Error while writing the app.scss for application '" + ac.getName() + "'");	}
 	}	
 
+	protected void markComponentTsAsDirty() {
+		ApplicationComponent ac = getObject();
+		try {
+			ac.markComponentTsAsDirty();
+		} catch (EngineException e) {
+			ConvertigoPlugin.logException(e,
+					"Error while writing the app.component.ts for application '" + ac.getName() + "'");	}
+	}
+	
+	public void editAppComponentTsFile() {
+		final ApplicationComponent application = getObject();
+		try {
+			// Refresh project resource
+			String projectName = application.getProject().getName();
+			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
+			project.refreshLocal(IResource.DEPTH_INFINITE, null);
+			
+			// Get filepath of application.component.ts file
+			String filePath = application.getProject().getMobileBuilder().getTempTsRelativePath(application);
+			IFile file = project.getFile(filePath);
+			
+			// Open file in editor
+			if (file.exists()) {
+				IEditorInput input = new ComponentFileEditorInput(file, application);
+				if (input != null) {
+					IEditorDescriptor desc = PlatformUI
+							.getWorkbench()
+							.getEditorRegistry()
+							.getDefaultEditor(file.getName());
+					
+					IWorkbenchPage activePage = PlatformUI
+							.getWorkbench()
+							.getActiveWorkbenchWindow()
+							.getActivePage();
+	
+					String editorId = desc.getId();
+					
+					IEditorPart editorPart = activePage.openEditor(input, editorId);
+					editorPart.addPropertyListener(new IPropertyListener() {
+						boolean isFirstChange = false;
+						
+						@Override
+						public void propertyChanged(Object source, int propId) {
+							if (source instanceof ITextEditor) {
+								if (propId == IEditorPart.PROP_DIRTY) {
+									if (!isFirstChange) {
+										isFirstChange = true;
+										return;
+									}
+									
+									isFirstChange = false;
+									ITextEditor editor = (ITextEditor)source;
+									IDocumentProvider dp = editor.getDocumentProvider();
+									IDocument doc = dp.getDocument(editor.getEditorInput());
+									String componentScriptContent = MobileBuilder.getMarkers(doc.get());
+									MobileApplicationComponentTreeObject.this.setPropertyValue("componentScriptContent", componentScriptContent);
+								}
+							}
+						}
+					});
+				}			
+			}
+		} catch (Exception e) {
+			ConvertigoPlugin.logException(e, "Unable to open typescript file for page '" + application.getName() + "'!");
+		}
+	}
+	
 	@Override
 	public void launchEditor(String editorType) {
 		activeEditor();

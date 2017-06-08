@@ -29,6 +29,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplicationComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobilePageComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
@@ -51,7 +52,11 @@ public class EditMobileComponentClassAction extends MyAbstractAction {
     		if (explorerView != null) {
     			TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
     			if (treeObject instanceof MobileComponentTreeObject) {
-    				if (treeObject instanceof MobilePageComponentTreeObject) {
+    				if (treeObject instanceof MobileApplicationComponentTreeObject) {
+    					MobileApplicationComponentTreeObject mpcto = (MobileApplicationComponentTreeObject)treeObject;
+    					mpcto.editAppComponentTsFile();
+    				}
+    				else if (treeObject instanceof MobilePageComponentTreeObject) {
     					MobilePageComponentTreeObject mpcto = (MobilePageComponentTreeObject)treeObject;
     					mpcto.editPageTsFile();
     				}

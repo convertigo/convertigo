@@ -23,7 +23,6 @@
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
 import org.eclipse.jface.viewers.Viewer;
-
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor;
 

@@ -48,4 +48,7 @@ public class ComponentFileEditorInput extends FileEditorInput {
 		this.component = component;
 	}
 
+	public boolean is(MobileComponent component) {
+		return component.equals(this.component) && component.getQName().equals(this.component.getQName());
+	}
 }

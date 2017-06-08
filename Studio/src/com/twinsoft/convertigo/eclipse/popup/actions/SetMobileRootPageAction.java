@@ -79,7 +79,7 @@ public class SetMobileRootPageAction extends MyAbstractAction {
                 }
                 
                 application.setRootPage(page);
-    			page.getProject().getMobileBuilder().appChanged();
+    			page.getProject().getMobileBuilder().appRootChanged(application);
 
                 if (rootPageTreeObject != null) {
                 	rootPageTreeObject.isDefault = false;

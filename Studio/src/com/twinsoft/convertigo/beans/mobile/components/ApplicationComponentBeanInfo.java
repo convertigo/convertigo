@@ -41,7 +41,7 @@ public class ApplicationComponentBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[2];
+			properties = new PropertyDescriptor[3];
 			
 			properties[0] = new PropertyDescriptor("orderedRoutes", beanClass, "getOrderedRoutes", "setOrderedRoutes");
 			properties[0].setDisplayName(getExternalizedString("property.orderedRoutes.display_name"));
@@ -52,6 +52,11 @@ public class ApplicationComponentBeanInfo extends MySimpleBeanInfo {
 			properties[1].setDisplayName(getExternalizedString("property.orderedComponents.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.orderedComponents.short_description"));
 			properties[1].setHidden(true);
+			
+			properties[2] = new PropertyDescriptor("componentScriptContent", beanClass, "getComponentScriptContent", "setComponentScriptContent");
+			properties[2].setDisplayName(getExternalizedString("property.componentScriptContent.display_name"));
+			properties[2].setShortDescription(getExternalizedString("property.componentScriptContent.short_description"));
+			properties[2].setHidden(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
