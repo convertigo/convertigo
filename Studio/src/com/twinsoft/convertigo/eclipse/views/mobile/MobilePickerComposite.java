@@ -581,7 +581,7 @@ public class MobilePickerComposite extends Composite {
 		
 		StringBuffer buf = new StringBuffer();
 		if (isDirective && size > 0) {
-			buf.append(sourceData.get(size-1));
+			buf.append(sourceData.get(0));
 		}
 		else {
 			for (String data : sourceData) {
