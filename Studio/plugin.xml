@@ -994,6 +994,13 @@
 	           label="Stop watch"
 	           menubarPath="npm">
 	     </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.EditMobileComponentClassAction"
+               enablesFor="1"
+               id="convertigo.action.editMobileAppComponentClass"
+               label="Edit application class"
+               menubarPath="default">
+         </action>
       </objectContribution>
       <objectContribution
             id="convertigo.mobileRouteComponentContribution"
@@ -1130,8 +1137,7 @@
                enablesFor="1"
                id="convertigo.action.editMobilePageClass"
                label="Edit page class"
-               menubarPath="default"
-               style="toggle">
+               menubarPath="default">
          </action>
       </objectContribution>
       <objectContribution
