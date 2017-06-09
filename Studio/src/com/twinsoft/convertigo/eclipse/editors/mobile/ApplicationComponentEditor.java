@@ -982,6 +982,7 @@ public class ApplicationComponentEditor extends EditorPart {
 			if (forceInstall || !nodeModules.exists()) {
 				boolean[] running = {true};
 				try {
+					Engine.logStudio.info("Installing node_modules.. This can take several minutes depending on your network connection speed...");
 					ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "install");//, "--progress=false");
 					pb.redirectErrorStream(true);
 					pb.directory(ionicDir);
@@ -994,6 +995,7 @@ public class ApplicationComponentEditor extends EditorPart {
 							}
 							while (running[0]) {
 								appendOutput("node_modules: " + FileUtils.byteCountToDisplaySize(FileUtils.sizeOfAsBigInteger(nodeModules)));
+								Engine.logStudio.info("Installing, node_module size is now : " + FileUtils.byteCountToDisplaySize(FileUtils.sizeOfAsBigInteger(nodeModules)));
 								Thread.sleep(1000);
 							} 
 						} catch (Exception e) {
