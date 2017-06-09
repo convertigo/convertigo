@@ -958,7 +958,6 @@ public class ApplicationComponentEditor extends EditorPart {
 		C8oBrowser.run(() -> {
 			if (browser.getURL().equals("about:blank")) {
 				try {
-					Engine.logStudio.info("[Mobile Viewer] " + msg);
 					browser.executeJavaScriptAndReturnValue("loader_log").asFunction().invokeAsync(null, msg);
 				} catch (Exception e) {
 					// silently ignore
