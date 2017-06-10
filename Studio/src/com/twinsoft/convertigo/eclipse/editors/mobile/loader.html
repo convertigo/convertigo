@@ -16,6 +16,7 @@ body {
 }
 #main {
 	padding: 3% 25% 3% 25%;
+	display: inline
 }
 #load {
     margin: auto;
@@ -44,11 +45,18 @@ body {
 	margin-top: 3 px;
 }
 #l2 {
-	opacity: 0.5;
+	opacity: 0.8;
 }
 #l3 {
-	opacity: 0.2;
+	opacity: 0.5;
 }
+
+#logs {
+	background-color: black;
+	color: white;
+	font-family: monospace;
+}
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
@@ -95,17 +103,19 @@ function _c8o_toast(msg) {
 	<div id="main">
 		<div id="Message">
 			<h3>Visual App Viewer</h3>
-			<p>Your mobile application will be shown here.. Please wait a while so that we install Angular and Ionic 2 dependencies and that we initialize the rendering system.</p>
+			<p>Your mobile application will be displayed here.. Please wait a while so that we install Angular and Ionic 2 NPM dependencies and that we initialize the rendering system.</p>
 			<br /> 		
 		</div>
 		<div id="load">
 			<div id="loading">Loading …</div>
 			<div id="loader"></div>
 		</div>
-		<br /> 		
-		<div id="l1"></div>
-		<div id="l2"></div>
-		<div id="l3"></div>
+		<br />
+		<div id="logs"> 		
+			<div id="l1"></div>
+			<div id="l2"></div>
+			<div id="l3"></div>
+		</div>
 	</div>
 </body>
 </html>
