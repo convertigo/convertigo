@@ -281,7 +281,7 @@ public class MobilePickerComposite extends Composite {
 			btnSequence.setText("SQ");
 		}
 		btnSequence.setImage(image);
-		btnSequence.setToolTipText("Sequences");
+		btnSequence.setToolTipText("Show Sequence Sources");
 		btnSequence.addSelectionListener(listener);
 		btnSequence.setSelection(true);
 		
@@ -292,7 +292,7 @@ public class MobilePickerComposite extends Composite {
 			btnDatabase.setText("FS");
 		}
 		btnDatabase.setImage(image);
-		btnDatabase.setToolTipText("FullSync Databases");
+		btnDatabase.setToolTipText("Show FullSync Databases Sources");
 		btnDatabase.addSelectionListener(listener);
 		
 		btnIteration = new ToolItem(toolbar, btnStyle);
@@ -302,7 +302,7 @@ public class MobilePickerComposite extends Composite {
 			btnIteration.setText("IT");
 		}
 		btnIteration.setImage(image);
-		btnIteration.setToolTipText("Iterations");
+		btnIteration.setToolTipText("Show Iterators on current page Sources");
 		btnIteration.addSelectionListener(listener);
 		
 		message = new Label(headerComposite, SWT.NONE);
@@ -373,6 +373,7 @@ public class MobilePickerComposite extends Composite {
 		label = new Label(xpathComposite, SWT.NONE);
 		//label.setText("Path");
 		label.setText("Source");
+		label.setToolTipText("Drag me on a Mobile UI component in the project tree to bind this source to an UI component property");
 		
 		text = new Text(xpathComposite, SWT.BORDER);
 		text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
