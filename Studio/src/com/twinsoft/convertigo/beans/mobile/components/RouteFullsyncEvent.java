@@ -58,6 +58,12 @@ public class RouteFullsyncEvent extends RouteEventComponent implements ITagsProp
 	protected String getRequestableSource() {
 		String requestableSource = super.getRequestableSource();
 		if (!requestableSource.isEmpty()) {
+			int index = requestableSource.indexOf('.');
+			if (index != -1) {
+				try {
+					requestableSource = requestableSource.substring(index+1);
+				} catch (Exception e) {}
+			}
 			requestableSource = "fs://" + requestableSource + "." + getVerb();
 		}
 		return requestableSource;

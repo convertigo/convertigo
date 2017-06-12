@@ -117,21 +117,13 @@ public class RouteEventComponent extends MobileComponent implements IRouteGenera
 	 * The 'requestable' used by mobile client application
 	 */
 	protected String getRequestableSource() {
-		String requestableSource = getSource();
-		int index = requestableSource.indexOf('.');
-		if (index != -1) {
-			try {
-				requestableSource = requestableSource.substring(index+1);
-			} catch (Exception e) {}
-		}
-		return requestableSource;
+		return getSource();
 	}
 	
 	public String getRequestableString() {
 		String requestableSource = getRequestableSource();
 		if (!requestableSource.isEmpty()) {
-			requestableSource = (requestableSource.startsWith("fs://")? "":".") 
-					+ requestableSource + (marker.isEmpty() ? "" : "#" + marker);
+			requestableSource =  requestableSource + (marker.isEmpty() ? "" : "#" + marker);
 		}
 		return requestableSource;
 	}
