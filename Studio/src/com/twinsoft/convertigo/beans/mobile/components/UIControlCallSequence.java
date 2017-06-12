@@ -39,9 +39,9 @@ public class UIControlCallSequence extends UIControlCallAction {
 	@Override
 	protected String getRequestableTarget() {
 		String requestableTarget = getTarget();
-		try {
+		/*try {
 			requestableTarget = requestableTarget.replaceFirst(this.getProject().getName(), "");
-		} catch (Exception e) {}
+		} catch (Exception e) {}*/
 		return requestableTarget;
 	}
 	
