@@ -170,7 +170,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 									String content = "";
 									if (lines.length > 2) { // retrieve content inside markers
 										for (int i=1; i<lines.length-1; i++) {
-											content += lines[i];
+											content += lines[i] + System.lineSeparator();
 										}
 									}
 									MobileUIComponentTreeObject.this.setPropertyValue("actionValue", content);
