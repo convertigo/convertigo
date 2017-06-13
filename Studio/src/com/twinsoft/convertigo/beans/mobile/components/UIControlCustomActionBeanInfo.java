@@ -46,6 +46,7 @@ public class UIControlCustomActionBeanInfo extends MySimpleBeanInfo {
 			properties[0] = new PropertyDescriptor("actionValue", beanClass, "getActionValue", "setActionValue");
 			properties[0].setDisplayName(getExternalizedString("property.actionValue.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.actionValue.short_description"));
+			properties[0].setHidden(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

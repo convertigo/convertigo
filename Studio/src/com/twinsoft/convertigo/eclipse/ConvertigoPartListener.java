@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.eclipse;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
@@ -33,9 +34,8 @@ import org.eclipse.ui.console.ConsolePlugin;
 import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.internal.console.ConsoleView;
+import org.eclipse.ui.part.EditorPart;
 import org.eclipse.ui.views.properties.PropertySheet;
-import org.eclipse.wst.sse.ui.StructuredTextEditor;
-
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditor;
@@ -101,14 +101,15 @@ public class ConvertigoPartListener implements IPartListener {
 			}
 		}
 		
-		if (part instanceof StructuredTextEditor) {
-			StructuredTextEditor editor = (StructuredTextEditor)part;
-			IEditorInput input = editor.getEditorInput();
+		if (part instanceof EditorPart) {
+			IEditorInput input = ((EditorPart)part).getEditorInput();
 			if (input instanceof ComponentFileEditorInput) {
 				try {
-					editor.dispose();// added because html editor throw a ConcurentModificationException (bug)
-					((ComponentFileEditorInput)input).getFile().delete(true, null);
-					
+					//((EditorPart)part).dispose();// added because html editor throw a ConcurentModificationException (bug)
+					IFile iFile = ((ComponentFileEditorInput)input).getFile();
+					if (!iFile.getName().endsWith(".temp.ts")) {
+						iFile.delete(true, null);
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

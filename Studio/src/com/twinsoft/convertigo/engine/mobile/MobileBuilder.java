@@ -143,17 +143,16 @@ public class MobileBuilder {
 	
 	public synchronized void appRootChanged(final ApplicationComponent app) throws EngineException {
 		if (app != null && initDone) {
-			//writeAppSourceFiles(app);
-			writeAppCompTypescript(app);
+			writeAppComponentTs(app);
+			writeAppComponentTempTs(app);
 			Engine.logEngine.debug("(MobileBuilder) Handled 'appRootChanged'");
 		}
 	}
 
 	public synchronized void appRouteChanged(final ApplicationComponent app) throws EngineException {
 		if (app != null && initDone) {
-			//writeAppSourceFiles(app);
-			writeAppCompTypescript(app);
-			writeAppCompTempTypescript(app);
+			writeAppComponentTs(app);
+			writeAppComponentTempTs(app);
 			Engine.logEngine.debug("(MobileBuilder) Handled 'appRouteChanged'");
 		}
 	}
@@ -202,7 +201,7 @@ public class MobileBuilder {
 		}
 	}
 	
-	public synchronized void pageComputed(final PageComponent page) throws EngineException {
+	public synchronized void pageTemplateChanged(final PageComponent page) throws EngineException {
 		if (page != null && initDone) {
 			writePageTemplate(page);
 			Engine.logEngine.debug("(MobileBuilder) Handled 'pageComputed'");
@@ -218,7 +217,7 @@ public class MobileBuilder {
 	
 	public synchronized void pageTsChanged(final PageComponent page) throws EngineException {
 		if (page != null && initDone) {
-			writePageTypescript(page);
+			writePageTs(page);
 			Engine.logEngine.debug("(MobileBuilder) Handled 'pageTsChanged'");
 		}
 	}
@@ -239,7 +238,7 @@ public class MobileBuilder {
 	
 	public synchronized void appCompTsChanged(final ApplicationComponent app) throws EngineException {
 		if (app != null && initDone) {
-			writeAppCompTypescript(app);
+			writeAppComponentTs(app);
 			Engine.logEngine.debug("(MobileBuilder) Handled 'appCompTsChanged'");
 		}
 	}
@@ -370,7 +369,50 @@ public class MobileBuilder {
 		return null;
 	}
 	
-	private void writePageTempTypescript(PageComponent page) throws EngineException {
+	public String getTempTsRelativePath(PageComponent page, String ctsCode) throws EngineException {
+		try {
+			if (page != null) {
+				String pageName = page.getName();
+				File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
+				File pageTsFile = new File(pageDir, pageName.toLowerCase() + ".ts");
+				File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".action.temp.ts");
+				
+				// Remove all CTSXXX
+				String tsContent = FileUtils.readFileToString(pageTsFile, "UTF-8");
+				int index = tsContent.indexOf("/*End_c8o_PageFunction*/");
+				if (index != -1) {
+					tsContent = tsContent.substring(0, index) + "/*End_c8o_PageFunction*/"
+									+ System.lineSeparator() + "//c8o_CtsCode"
+									+ System.lineSeparator() + "}";
+				}
+				
+				// Replace all Begin_c8o_XXX, End_c8o_XXX
+				Pattern pattern = Pattern.compile("/\\*Begin_c8o_(.+)\\*/");
+				Matcher matcher = pattern.matcher(tsContent);
+				while (matcher.find()) {
+					String markerId = matcher.group(1);
+					String beginMarker = "/*Begin_c8o_" + markerId + "*/";
+					String endMarker = "/*End_c8o_" + markerId + "*/";
+					tsContent = tsContent.replace(beginMarker, "//---"+markerId+"---");
+					tsContent = tsContent.replace(endMarker, "//---"+markerId+"---");
+				}
+				
+				// Write ctsCode
+				tsContent = tsContent.replace("//c8o_CtsCode", ctsCode);
+				
+				FileUtils.write(tempTsFile, tsContent, "UTF-8");
+				
+				String filePath = tempTsFile.getPath().replace(projectDir.getPath(), "/");
+				return filePath;
+			}
+		}
+		catch (Exception e) {
+			throw new EngineException("Unable to write ionic component temp ts file",e);
+		}
+		return null;
+	}
+
+	private void writePageTempTs(PageComponent page) throws EngineException {
 		try {
 			if (page != null) {
 				String pageName = page.getName();
@@ -378,14 +420,23 @@ public class MobileBuilder {
 				File pageTsFile = new File(pageDir, pageName.toLowerCase() + ".ts");
 				File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".temp.ts");
 				
-				FileUtils.copyFile(pageTsFile, tempTsFile);
+				// Remove all CTSXXX
+				String tsContent = FileUtils.readFileToString(pageTsFile, "UTF-8");
+				int index = tsContent.indexOf("/*End_c8o_PageFunction*/");
+				if (index != -1) {
+					tsContent = tsContent.substring(0, index) + "/*End_c8o_PageFunction*/"
+									+ System.lineSeparator() + "}";
+				}
+				
+				FileUtils.write(tempTsFile, tsContent, "UTF-8");
 			}
 		}
 		catch (Exception e) {
 			throw new EngineException("Unable to write ionic page temp ts file",e);
 		}
 	}
-	private void writePageTypescript(PageComponent page) throws EngineException {
+	
+	private void writePageTs(PageComponent page) throws EngineException {
 		try {
 			if (page != null) {
 				String pageName = page.getName();
@@ -393,6 +444,7 @@ public class MobileBuilder {
 				String c8o_PageTplUrl = pageName.toLowerCase() + ".html";
 				String c8o_PageSelector = "page-"+pageName.toLowerCase();
 				String c8o_Markers = page.getScriptContent();
+				String c8o_ActionMarkers = page.getComputedScriptContent();
 				
 				File pageTplTs = new File(ionicTplDir, "src/page.tpl");
 				String tsContent = FileUtils.readFileToString(pageTplTs, "UTF-8");
@@ -409,6 +461,12 @@ public class MobileBuilder {
 					if (!customMarker.isEmpty()) {
 						tsContent = tsContent.replace(tplMarker, customMarker);
 					}
+				}
+				
+				int index = tsContent.lastIndexOf("}");
+				if (index != -1) {
+					tsContent = tsContent.substring(0,index) + System.lineSeparator() 
+									+ c8o_ActionMarkers  + System.lineSeparator() + "}";
 				}
 				
 				File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
@@ -435,7 +493,7 @@ public class MobileBuilder {
 		return null;
 	}
 	
-	private void writeAppModTypescript(ApplicationComponent app) throws EngineException {
+	private void writeAppModuleTs(ApplicationComponent app) throws EngineException {
 		try {
 			if (app != null) {
 				String c8o_PagesImport = "";
@@ -470,7 +528,7 @@ public class MobileBuilder {
 		}
 	}
 	
-	private void writeAppCompTypescript(ApplicationComponent app) throws EngineException {
+	private void writeAppComponentTs(ApplicationComponent app) throws EngineException {
 		try {
 			if (app != null) {
 				String c8o_PagesImport = "";
@@ -521,7 +579,7 @@ public class MobileBuilder {
 		}
 	}
 	
-	private void writeAppCompTempTypescript(ApplicationComponent app) throws EngineException {
+	private void writeAppComponentTempTs(ApplicationComponent app) throws EngineException {
 		try {
 			if (app != null) {
 				File appTsFile = new File(ionicWorkDir, "src/app/app.component.ts");
@@ -616,9 +674,9 @@ public class MobileBuilder {
 	private void writeAppSourceFiles(ApplicationComponent application) throws EngineException {
 		try {
 			if (application != null) {
-				writeAppModTypescript(application);
-				writeAppCompTypescript(application);
-				writeAppCompTempTypescript(application);
+				writeAppModuleTs(application);
+				writeAppComponentTs(application);
+				writeAppComponentTempTs(application);
 				writeAppTemplate(application);
 				writeAppStyle(application);
 				writeAppTheme(application);
@@ -637,8 +695,8 @@ public class MobileBuilder {
 			File pageDir = new File(ionicWorkDir,"src/pages/"+pageName);
 			pageDir.mkdirs();
 			
-			writePageTypescript(page);
-			writePageTempTypescript(page);
+			writePageTs(page);
+			writePageTempTs(page);
 			writePageStyle(page);
 			writePageTemplate(page);
 			
@@ -663,7 +721,7 @@ public class MobileBuilder {
 		return markers;
 	}
 	
-	private static String getMarker(String s, String markerId) {
+	public static String getMarker(String s, String markerId) {
 		String beginMarker = "/*Begin_c8o_" + markerId + "*/";
 		String endMarker = "/*End_c8o_" + markerId + "*/";
 		int beginIndex = s.indexOf(beginMarker);

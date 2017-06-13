@@ -49,9 +49,33 @@ public class UIControlCustomAction extends UIControlAction {
 		this.actionValue = actionValue;
 	}
 
-	
 	@Override
 	public String computeTemplate() {
-		return isEnabled() ? getActionValue():"";
-	}	
+		if (isEnabled()) {
+			String computed = "CTS"+ this.priority + "()";
+			return computed;
+		}
+		return "";
+	}
+
+	@Override
+	public String computeScriptContent() {
+		String computed = "";
+		if (isEnabled()) {
+			computed += System.lineSeparator();
+			computed += "\tCTS"+ this.priority +"() {" + System.lineSeparator();
+			computed += getScriptContent();
+			computed += System.lineSeparator() + "\t}";
+		}
+		return computed;
+	}
+	
+	private String getScriptContent() {
+		String s = "";
+		s += "\t/*Begin_c8o_CTS"+ this.priority +"*/" + System.lineSeparator();
+		s += this.actionValue + System.lineSeparator();
+		s += "\t/*End_c8o_CTS"+ this.priority +"*/";
+		return s;
+	}
+	
 }

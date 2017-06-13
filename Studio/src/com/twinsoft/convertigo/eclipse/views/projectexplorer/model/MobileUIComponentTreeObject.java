@@ -32,10 +32,12 @@ import java.util.regex.Pattern;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IPropertyListener;
@@ -50,10 +52,12 @@ import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlCallAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlCallFullSync;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlCallSequence;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlCustomAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlListenFullSyncSource;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlListenSequenceSource;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlListenSource;
@@ -67,6 +71,7 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput;
 import com.twinsoft.convertigo.eclipse.property_editors.MobileSmartSourcePropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
+import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
 public class MobileUIComponentTreeObject extends MobileComponentTreeObject implements IEditableTreeObject, IOrderableTreeObject, INamedSourceSelectorTreeObject {
 	
@@ -104,11 +109,82 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			openHtmlFileEditor();
 		} else if (mc instanceof UIStyle) {
 			openCssFileEditor();
+		} else if (mc instanceof UIControlCustomAction) {
+			editPageActionTsFile();
 		} else {
 			super.launchEditor(editorType);
 		}
 	}
 
+	private void editPageActionTsFile() {
+		final UIControlCustomAction ca = (UIControlCustomAction)getObject();
+		final PageComponent page = ca.getPage();
+		try {
+			// Refresh project resource for typescript editor imports
+			String projectName = page.getProject().getName();
+			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
+			project.refreshLocal(IResource.DEPTH_INFINITE, null);
+			
+			// Refresh re-created action's temporary ts file
+			String ctsCode = ca.computeScriptContent();
+			String filePath = page.getProject().getMobileBuilder().getTempTsRelativePath(page, ctsCode);
+			IFile file = project.getFile(filePath);
+			file.refreshLocal(IResource.DEPTH_ZERO, null);
+			
+			// Open file in editor
+			if (file.exists()) {
+				IEditorInput input = new ComponentFileEditorInput(file, ca);
+				if (input != null) {
+					IEditorDescriptor desc = PlatformUI
+							.getWorkbench()
+							.getEditorRegistry()
+							.getDefaultEditor(file.getName());
+					
+					IWorkbenchPage activePage = PlatformUI
+							.getWorkbench()
+							.getActiveWorkbenchWindow()
+							.getActivePage();
+	
+					String editorId = desc.getId();
+					
+					IEditorPart editorPart = activePage.openEditor(input, editorId);
+					editorPart.addPropertyListener(new IPropertyListener() {
+						boolean isFirstChange = false;
+						
+						@Override
+						public void propertyChanged(Object source, int propId) {
+							if (source instanceof ITextEditor) {
+								if (propId == IEditorPart.PROP_DIRTY) {
+									if (!isFirstChange) {
+										isFirstChange = true;
+										return;
+									}
+									
+									isFirstChange = false;
+									ITextEditor editor = (ITextEditor)source;
+									IDocumentProvider dp = editor.getDocumentProvider();
+									IDocument doc = dp.getDocument(editor.getEditorInput());
+									String markerId = "CTS"+ca.priority;
+									String marker = MobileBuilder.getMarker(doc.get(), markerId);
+									String[] lines = marker.split(System.lineSeparator());
+									String content = "";
+									if (lines.length > 2) { // retrieve content inside markers
+										for (int i=1; i<lines.length-1; i++) {
+											content += lines[i];
+										}
+									}
+									MobileUIComponentTreeObject.this.setPropertyValue("actionValue", content);
+								}
+							}
+						}
+					});
+				}			
+			}
+		} catch (Exception e) {
+			ConvertigoPlugin.logException(e, "Unable to open typescript file for page '" + page.getName() + "'!");
+		}
+	}
+	
 	private void openHtmlFileEditor() {
 		final UICustom mc = (UICustom)getObject();
 		String filePath = "/_private/" + mc.getQName() + " " + mc.getName()+".html";

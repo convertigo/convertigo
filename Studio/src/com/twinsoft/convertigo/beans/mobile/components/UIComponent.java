@@ -23,6 +23,7 @@
 package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -42,7 +43,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 		getCategoryName = "UI Component",
 		getIconClassCSS = "convertigo-action-newUIComponent"
 	)
-public abstract class UIComponent extends MobileComponent implements ITemplateGenerator, IContainerOrdered, IEnableAble {
+public abstract class UIComponent extends MobileComponent implements IScriptGenerator, ITemplateGenerator, IContainerOrdered, IEnableAble {
 	
 	private static final long serialVersionUID = -1872010547443624681L;
 
@@ -158,7 +159,7 @@ public abstract class UIComponent extends MobileComponent implements ITemplateGe
     		getPage().markStyleAsDirty();
     	}
     	else {
-    		getPage().markTemplateAsDirty();
+    		getPage().markTemplateAsDirty();    		
     	}
     }
     
@@ -230,6 +231,9 @@ public abstract class UIComponent extends MobileComponent implements ITemplateGe
         	}
         	else {
         		getPage().markTemplateAsDirty();
+        		if (uiComponent.hasAction()) {
+        			getPage().markTsAsDirty();
+        		}
         		if (uiComponent.hasStyle()) {
         			getPage().markStyleAsDirty();
         		}
@@ -254,6 +258,9 @@ public abstract class UIComponent extends MobileComponent implements ITemplateGe
     	}
     	else {
     		getPage().markTemplateAsDirty();
+    		if (uiComponent.hasAction()) {
+    			getPage().markTsAsDirty();
+    		}
     		if (uiComponent.hasStyle()) {
     			getPage().markStyleAsDirty();
     		}
@@ -268,6 +275,15 @@ public abstract class UIComponent extends MobileComponent implements ITemplateGe
 	public boolean hasStyle() {
 		for (UIComponent uic :getUIComponentList()) {
 			if (uic instanceof UIStyle) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean hasAction() {
+		for (UIComponent uic :getUIComponentList()) {
+			if (uic instanceof UIControlAction) {
 				return true;
 			}
 		}
@@ -347,6 +363,22 @@ public abstract class UIComponent extends MobileComponent implements ITemplateGe
 			uic.updateSmartSource(oldPriority, newPriority);
 		}
 		
+	}
+	
+	@Override
+	public String computeScriptContent() {
+		StringBuilder sb = new StringBuilder();
+		Iterator<UIComponent> it = getUIComponentList().iterator();
+		while (it.hasNext()) {
+			UIComponent component = (UIComponent)it.next();
+			if ((component instanceof IScriptGenerator)) {
+				String tpl = ((IScriptGenerator)component).computeScriptContent();
+				if (!tpl.isEmpty()) {
+					sb.append(tpl);
+				}
+			}
+		}
+		return sb.toString();
 	}
 	
 }

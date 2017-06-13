@@ -181,12 +181,17 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 							markStyleAsDirty();
 						}
 						else {
+							if (propertyName.equals("actionValue")) {// see UIControlCustomAction
+								if (!newValue.equals(oldValue)) {
+									markTsAsDirty();
+								}
+							}
 							markTemplateAsDirty();
 						}
 					}
 				}
 				else if (this.equals(doto)) {
-					if (propertyName.equals("scriptContent")) {
+					if (propertyName.equals("scriptContent")) {// see PageComponent
 						if (!newValue.equals(oldValue)) {
 							markTsAsDirty();
 						}

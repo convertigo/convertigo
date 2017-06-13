@@ -42,7 +42,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 		getCategoryName = "Page",
 		getIconClassCSS = "convertigo-action-newPageComponent"
 	)
-public class PageComponent extends MobileComponent implements IStyleGenerator, ITemplateGenerator, IContainerOrdered {
+public class PageComponent extends MobileComponent implements IStyleGenerator, ITemplateGenerator, IScriptGenerator, IContainerOrdered {
 
 	private static final long serialVersionUID = 188562781669238824L;
 	
@@ -59,6 +59,7 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 	public PageComponent clone() throws CloneNotSupportedException {
 		PageComponent cloned = (PageComponent) super.clone();
 		cloned.vUIComponents = new LinkedList<UIComponent>();
+		cloned.computedScriptContent = null;
 		cloned.computedTemplate = null;
 		cloned.computedStyle = null;
 		cloned.isRoot = false;
@@ -325,6 +326,34 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 		this.scriptContent = scriptContent;
 	}
 	
+	transient private String computedScriptContent = null;
+	
+	public String getComputedScriptContent() {
+		if (computedScriptContent == null) {
+			doComputeScriptContent();
+		}
+		return computedScriptContent;
+	}
+	
+	protected synchronized void doComputeScriptContent() {
+		computedScriptContent = computeScriptContent();
+	}
+	
+	@Override
+	public String computeScriptContent() {
+		StringBuilder sb = new StringBuilder();
+		Iterator<UIComponent> it = getUIComponentList().iterator();
+		while (it.hasNext()) {
+			UIComponent component = (UIComponent)it.next();
+			if ((component instanceof IScriptGenerator)) {
+				String tpl = ((IScriptGenerator)component).computeScriptContent();
+				if (!tpl.isEmpty()) {
+					sb.append(tpl);
+				}
+			}
+		}
+		return sb.toString();
+	}
 	
 	transient private String computedTemplate = null;
 	
@@ -398,6 +427,7 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 	}
 
 	public void markTsAsDirty() throws EngineException {
+		doComputeScriptContent();
 		getProject().getMobileBuilder().pageTsChanged(this);
 	}
 	
@@ -417,7 +447,7 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 		String newComputed = getComputedTemplate();
 		
 		if (!newComputed.equals(oldComputed)) {
-			getProject().getMobileBuilder().pageComputed(this);
+			getProject().getMobileBuilder().pageTemplateChanged(this);
 		}
 	}
 	
