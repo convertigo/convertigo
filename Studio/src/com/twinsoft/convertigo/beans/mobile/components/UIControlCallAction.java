@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
+import java.util.Iterator;
+
 public abstract class UIControlCallAction extends UIControlAction {
 	
 	private static final long serialVersionUID = 952743867765987510L;
@@ -92,9 +94,26 @@ public abstract class UIControlCallAction extends UIControlAction {
 	@Override
 	public String computeTemplate() {
 		if (isEnabled()) {
+			StringBuilder parameters = new StringBuilder();
+			
+			Iterator<UIComponent> it = getUIComponentList().iterator();
+			while (it.hasNext()) {
+				UIComponent component = (UIComponent)it.next();
+				if (component instanceof UIControlVariable) {
+					String parameter = component.computeTemplate();
+					if (!parameter.isEmpty()) {
+						parameters.append(parameters.length()> 0 ? ", ":"").append(parameter);
+					}
+				}
+			}
+			
 			String requestableString = getRequestableString();
 			if (!requestableString.isEmpty()) {
-				return "call('"+ requestableString + "')";// TODO: add parameters
+				if (parameters.length()> 0) {
+					return "call('"+ requestableString + "', {"+ parameters +"})";
+				} else {
+					return "call('"+ requestableString + "')";
+				}
 			}
 		}
 		return "";

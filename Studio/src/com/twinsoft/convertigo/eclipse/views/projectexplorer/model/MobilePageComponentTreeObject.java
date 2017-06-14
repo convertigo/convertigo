@@ -39,6 +39,8 @@ import org.eclipse.ui.texteditor.ITextEditor;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlAction;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
 import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor;
@@ -180,12 +182,16 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 						if (dbo instanceof UIStyle) {
 							markStyleAsDirty();
 						}
+						else if (dbo instanceof UIControlAction || dbo instanceof UIControlVariable) {
+				    		markTsAsDirty();
+				    		markTemplateAsDirty();
+				    	}
 						else {
-							if (propertyName.equals("actionValue")) {// see UIControlCustomAction
+							/*if (propertyName.equals("actionValue")) {// see UIControlCustomAction
 								if (!newValue.equals(oldValue)) {
 									markTsAsDirty();
 								}
-							}
+							}*/
 							markTemplateAsDirty();
 						}
 					}

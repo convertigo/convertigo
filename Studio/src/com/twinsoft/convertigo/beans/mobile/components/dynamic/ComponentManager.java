@@ -55,6 +55,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
 import com.twinsoft.convertigo.beans.mobile.components.UIText;
 import com.twinsoft.convertigo.beans.mobile.components.UITheme;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class ComponentManager {
@@ -263,6 +264,7 @@ public class ComponentManager {
 			components.add(getDboComponent(UIControlCustomAction.class,group));
 			components.add(getDboComponent(UIControlCallSequence.class,group));
 			components.add(getDboComponent(UIControlCallFullSync.class,group));
+			components.add(getDboComponent(UIControlVariable.class,group));
 			
 //			// Add Sources
 //			group = "Sources";
@@ -376,6 +378,11 @@ public class ComponentManager {
 				}
 				if (parent instanceof UIControlAttr) {
 					if (UIControlAction.class.isAssignableFrom(dboClass)) {
+						return true;
+					}
+				}
+				if (parent instanceof UIControlAction) {
+					if (UIControlVariable.class.isAssignableFrom(dboClass)) {
 						return true;
 					}
 				}

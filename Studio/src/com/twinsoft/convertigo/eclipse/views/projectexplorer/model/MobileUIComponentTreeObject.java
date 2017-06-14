@@ -120,12 +120,12 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		final UIControlCustomAction ca = (UIControlCustomAction)getObject();
 		final PageComponent page = ca.getPage();
 		try {
-			// Refresh project resource for typescript editor imports
+			// Refresh project resource for typescript editor
 			String projectName = page.getProject().getName();
 			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
 			project.refreshLocal(IResource.DEPTH_INFINITE, null);
 			
-			// Refresh re-created action's temporary ts file
+			// Refresh component resource for typescript editor
 			String ctsCode = ca.computeScriptContent();
 			String filePath = page.getProject().getMobileBuilder().getTempTsRelativePath(page, ctsCode);
 			IFile file = project.getFile(filePath);

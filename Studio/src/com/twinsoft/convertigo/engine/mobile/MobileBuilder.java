@@ -144,7 +144,10 @@ public class MobileBuilder {
 	public synchronized void appRootChanged(final ApplicationComponent app) throws EngineException {
 		if (app != null && initDone) {
 			writeAppComponentTs(app);
-			writeAppComponentTempTs(app);
+			File appComponentTsFile = new File(ionicWorkDir, "src/app/app.component.temp.ts");
+			if (appComponentTsFile.exists()) {
+				writeAppComponentTempTs(app);
+			}
 			Engine.logEngine.debug("(MobileBuilder) Handled 'appRootChanged'");
 		}
 	}
@@ -152,7 +155,10 @@ public class MobileBuilder {
 	public synchronized void appRouteChanged(final ApplicationComponent app) throws EngineException {
 		if (app != null && initDone) {
 			writeAppComponentTs(app);
-			writeAppComponentTempTs(app);
+			File appComponentTsFile = new File(ionicWorkDir, "src/app/app.component.temp.ts");
+			if (appComponentTsFile.exists()) {
+				writeAppComponentTempTs(app);
+			}
 			Engine.logEngine.debug("(MobileBuilder) Handled 'appRouteChanged'");
 		}
 	}
@@ -361,6 +367,9 @@ public class MobileBuilder {
 				String pageName = page.getName();
 				File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
 				File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".temp.ts");
+				if (!tempTsFile.exists()) {
+					writePageTempTs(page);
+				}
 				String filePath = tempTsFile.getPath().replace(projectDir.getPath(), "/");
 				return filePath;
 			}
@@ -485,6 +494,9 @@ public class MobileBuilder {
 		try {
 			if (app != null) {
 				File appComponentTsFile = new File(ionicWorkDir, "src/app/app.component.temp.ts");
+				if (!appComponentTsFile.exists()) {
+					writeAppComponentTempTs(app);
+				}
 				String filePath = appComponentTsFile.getPath().replace(projectDir.getPath(), "/");
 				return filePath;
 			}
@@ -676,7 +688,6 @@ public class MobileBuilder {
 			if (application != null) {
 				writeAppModuleTs(application);
 				writeAppComponentTs(application);
-				writeAppComponentTempTs(application);
 				writeAppTemplate(application);
 				writeAppStyle(application);
 				writeAppTheme(application);
@@ -696,7 +707,6 @@ public class MobileBuilder {
 			pageDir.mkdirs();
 			
 			writePageTs(page);
-			writePageTempTs(page);
 			writePageStyle(page);
 			writePageTemplate(page);
 			

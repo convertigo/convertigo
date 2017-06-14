@@ -22,7 +22,6 @@
 
 package com.twinsoft.convertigo.eclipse;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
@@ -106,10 +105,7 @@ public class ConvertigoPartListener implements IPartListener {
 			if (input instanceof ComponentFileEditorInput) {
 				try {
 					//((EditorPart)part).dispose();// added because html editor throw a ConcurentModificationException (bug)
-					IFile iFile = ((ComponentFileEditorInput)input).getFile();
-					if (!iFile.getName().endsWith(".temp.ts")) {
-						iFile.delete(true, null);
-					}
+					((ComponentFileEditorInput)input).getFile().delete(true, null);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

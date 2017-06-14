@@ -129,6 +129,10 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
     	if (databaseObject instanceof UIStyle) {
     		getPage().markStyleAsDirty();
     	}
+    	else if (databaseObject instanceof UIControlAction || databaseObject instanceof UIControlVariable) {
+    		getPage().markTsAsDirty();
+    		getPage().markTemplateAsDirty();
+    	}
     	else {
     		getPage().markTemplateAsDirty();
     	}
@@ -157,6 +161,10 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
     	
     	if (databaseObject instanceof UIStyle) {
     		getPage().markStyleAsDirty();
+    	}
+    	else if (databaseObject instanceof UIControlAction || databaseObject instanceof UIControlVariable) {
+    		getPage().markTsAsDirty();
+    		getPage().markTemplateAsDirty();
     	}
     	else {
     		getPage().markTemplateAsDirty();    		
@@ -229,6 +237,10 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
         	if (uiComponent instanceof UIStyle) {
         		getPage().markStyleAsDirty();
         	}
+        	else if (uiComponent instanceof UIControlAction || uiComponent instanceof UIControlVariable) {
+        		getPage().markTsAsDirty();
+        		getPage().markTemplateAsDirty();
+        	}
         	else {
         		getPage().markTemplateAsDirty();
         		if (uiComponent.hasAction()) {
@@ -255,6 +267,10 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
         
     	if (uiComponent instanceof UIStyle) {
     		getPage().markStyleAsDirty();
+    	}
+    	else if (uiComponent instanceof UIControlAction || uiComponent instanceof UIControlVariable) {
+    		getPage().markTsAsDirty();
+    		getPage().markTemplateAsDirty();
     	}
     	else {
     		getPage().markTemplateAsDirty();

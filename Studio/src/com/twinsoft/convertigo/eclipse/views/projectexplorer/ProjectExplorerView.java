@@ -154,6 +154,7 @@ import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlAttr;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlSource;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
 import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
@@ -1497,6 +1498,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							}
 							else if (databaseObject instanceof UIStyle) {
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_STYLES;
+							}
+							else if (databaseObject instanceof UIControlVariable) {
+								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_VARIABLES;
 							}
 							databaseObjectTreeObject = new MobileUIComponentTreeObject(viewer, (UIComponent) databaseObject, false);
 							

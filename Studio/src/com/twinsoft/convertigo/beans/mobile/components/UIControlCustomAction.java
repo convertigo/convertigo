@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
+import java.util.Iterator;
+
 public class UIControlCustomAction extends UIControlAction {
 	
 	private static final long serialVersionUID = 1629185375344957613L;
@@ -52,7 +54,19 @@ public class UIControlCustomAction extends UIControlAction {
 	@Override
 	public String computeTemplate() {
 		if (isEnabled()) {
-			String computed = "CTS"+ this.priority + "()";
+			StringBuilder parameters = new StringBuilder();
+			
+			Iterator<UIComponent> it = getUIComponentList().iterator();
+			while (it.hasNext()) {
+				UIComponent component = (UIComponent)it.next();
+				if (component instanceof UIControlVariable) {
+					UIControlVariable variable = (UIControlVariable)component;
+					String parameterValue = variable.getVarValue();
+					parameters.append(parameters.length()> 0 ? ", ":"").append(parameterValue);
+				}
+			}
+			
+			String computed = "CTS"+ this.priority + "("+ parameters +")";
 			return computed;
 		}
 		return "";
@@ -62,8 +76,22 @@ public class UIControlCustomAction extends UIControlAction {
 	public String computeScriptContent() {
 		String computed = "";
 		if (isEnabled()) {
+			StringBuilder parameters = new StringBuilder();
+			
+			Iterator<UIComponent> it = getUIComponentList().iterator();
+			while (it.hasNext()) {
+				UIComponent component = (UIComponent)it.next();
+				if (component instanceof UIControlVariable) {
+					UIControlVariable variable = (UIControlVariable)component;
+					String parameterName = variable.getVarName();
+					if (!parameterName.isEmpty()) {
+						parameters.append(parameters.length()> 0 ? ", ":"").append(parameterName+": String");
+					}
+				}
+			}
+			
 			computed += System.lineSeparator();
-			computed += "\tCTS"+ this.priority +"() {" + System.lineSeparator();
+			computed += "\tCTS"+ this.priority + "("+ parameters +") {" + System.lineSeparator();
 			computed += getScriptContent();
 			computed += System.lineSeparator() + "\t}";
 		}
