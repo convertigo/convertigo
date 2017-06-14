@@ -66,7 +66,7 @@ public class UIControlCustomAction extends UIControlAction {
 				}
 			}
 			
-			String computed = "CTS"+ this.priority + "("+ parameters +")";
+			String computed = "CTS"+ this.priority + "($event, "+ parameters +")";
 			return computed;
 		}
 		return "";
@@ -76,21 +76,37 @@ public class UIControlCustomAction extends UIControlAction {
 	public String computeScriptContent() {
 		String computed = "";
 		if (isEnabled()) {
-			StringBuilder parameters = new StringBuilder();
+			StringBuilder cartridge = new StringBuilder();
+			cartridge.append("\t/**").append(System.lineSeparator())
+						.append("\t * Function "+ getName()).append(System.lineSeparator());
+			for (String commentLine : getComment().split(System.lineSeparator())) {
+				cartridge.append("\t *   ").append(commentLine).append(System.lineSeparator());
+			}
+			cartridge.append("\t * ").append(System.lineSeparator());
 			
+			StringBuilder parameters = new StringBuilder();
+			parameters.append("event");
+			cartridge.append("\t * @param event , the event received").append(System.lineSeparator());
 			Iterator<UIComponent> it = getUIComponentList().iterator();
 			while (it.hasNext()) {
 				UIComponent component = (UIComponent)it.next();
 				if (component instanceof UIControlVariable) {
 					UIControlVariable variable = (UIControlVariable)component;
-					String parameterName = variable.getVarName();
-					if (!parameterName.isEmpty()) {
-						parameters.append(parameters.length()> 0 ? ", ":"").append(parameterName+": any");
+					String paramName = variable.getVarName();
+					String paramComment = variable.getComment();
+					parameters.append(parameters.length()> 0 ? ", ":"").append(paramName);
+					cartridge.append("\t * @param "+paramName);
+					boolean firstLine = true;
+					for (String commentLine : paramComment.split(System.lineSeparator())) {
+						cartridge.append(firstLine ? " , ":"\t *   ").append(commentLine).append(System.lineSeparator());
+						firstLine = false;
 					}
 				}
 			}
+			cartridge.append("\t */").append(System.lineSeparator());
 			
 			computed += System.lineSeparator();
+			computed += cartridge;
 			computed += "\tCTS"+ this.priority + "("+ parameters +") {" + System.lineSeparator();
 			computed += getScriptContent();
 			computed += System.lineSeparator() + "\t}";
