@@ -57,8 +57,6 @@ public class UIControlVariable extends UIComponent implements ITagsProperty {
 		String value = varValue.getValue();
 		if (Mode.PLAIN.equals(varValue.getMode())) {
 			value = "'" + value + "'";
-		} else {
-			value = "{{" + value + "}}";
 		}
 		return value;
 	}
