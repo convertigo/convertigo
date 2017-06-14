@@ -55,6 +55,7 @@ public class UIControlCustomAction extends UIControlAction {
 	public String computeTemplate() {
 		if (isEnabled()) {
 			StringBuilder parameters = new StringBuilder();
+			parameters.append("$event");
 			
 			Iterator<UIComponent> it = getUIComponentList().iterator();
 			while (it.hasNext()) {
@@ -66,7 +67,7 @@ public class UIControlCustomAction extends UIControlAction {
 				}
 			}
 			
-			String computed = "CTS"+ this.priority + "($event, "+ parameters +")";
+			String computed = "CTS"+ this.priority + "("+ parameters +")";
 			return computed;
 		}
 		return "";
