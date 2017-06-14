@@ -85,7 +85,7 @@ public class UIControlCustomAction extends UIControlAction {
 					UIControlVariable variable = (UIControlVariable)component;
 					String parameterName = variable.getVarName();
 					if (!parameterName.isEmpty()) {
-						parameters.append(parameters.length()> 0 ? ", ":"").append(parameterName+": String");
+						parameters.append(parameters.length()> 0 ? ", ":"").append(parameterName+": any");
 					}
 				}
 			}
