@@ -1,26 +1,26 @@
 function PropertiesView(jstreeTheme = "default") {
-    TreeViewContainer.call(this, "propertiesTreeView");
+    TreeViewContainer.call(this, "propertiesTreeView", jstreeTheme);
     this.refNodeProjectsView = null;
-    
+
     var that = this;
-    
+
     $(that).on("database_object_delete.dbo-manager", function (event, qnamesDbosToDelete) {
         if (qnamesDbosToDelete.length) {
             that.removeTreeData();
         }
     });
-    
+
     $(that).on("set_property.dbo-manager", function (event, qnames, property, value, data) {
         var idNode = that.tree.jstree().getIdNodes("pr-" + property.replace(/\s/g, "-"))[0];
         var node = that.tree.jstree().get_node(idNode);
-        
+
         var $nodeData = $(data).find(">*[qname='" + that.refNodeProjectsView.data.qname + "']").children();
         var newValue = StringUtils.escapeHTML($nodeData.find("[value]").attr("value").toString());
-        
+
         node.data.value = newValue;
         that.tree.jstree().redraw_node(node.id);
     });
-    
+
     that.tree
         .jstree({
             core: {
@@ -28,7 +28,7 @@ function PropertiesView(jstreeTheme = "default") {
                 force_text: true,
                 animation : 0,
                 themes: {
-                    name: jstreeTheme,
+                    name: that.jstreeTheme,
                     dots: false,
                     icons: false
                 },
@@ -90,7 +90,7 @@ function PropertiesView(jstreeTheme = "default") {
                     value: data.sourceName
                 }, data.grid, editComment);
             }
-            
+
             event.preventDefault();
         })
         .on("update_cell.jstree-grid", function (event, data) {
@@ -232,6 +232,7 @@ PropertiesView.prototype.refresh = function (refNodeProjectsView) {
     if (refNodeProjectsView.type !== "default") {
         // Get properties of the object
         $.ajax({
+            dataType: "xml",
             url: Convertigo.createServiceUrl("studio.database_objects.Get"),
             data: {
                 qname: refNodeProjectsView.data.qname
@@ -264,7 +265,7 @@ PropertiesView.prototype.updateProperties = function ($dboElt) {
                 that.createNodeJsonPropertyCategory(isExtractionRule ? "Selection" : "Expert", true) :
                 that.createNodeJsonPropertyCategory(isExtractionRule ? "Configuration" : "Base properties", true);
         }
-        
+
         var propertyName = $(this).attr("name");
         // Add the property to the category
         propertyCategories[key].children.push({
@@ -285,7 +286,7 @@ PropertiesView.prototype.updateProperties = function ($dboElt) {
             propertyViewTreeNodes.push(propertyCategories[key]);
         }
     }
-    
+
     // Create information category
     var informationCategory = that.createNodeJsonPropertyCategory("Information", false);
     informationCategory.children.push({
@@ -331,7 +332,7 @@ PropertiesView.prototype.updateProperties = function ($dboElt) {
         }
     });
     propertyViewTreeNodes.push(informationCategory);
-    
+
     // Update the properties view with the new data
     that.updateTreeData(propertyViewTreeNodes);
 };

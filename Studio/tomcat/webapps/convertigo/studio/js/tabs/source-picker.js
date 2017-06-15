@@ -10,5 +10,4 @@ SourcePicker.prototype.constructor = SourcePicker;
 SourcePicker.nbInstances = 0;
 
 SourcePicker.prototype.update = function (data) {
-	console.log("Update Source Picker");
 };

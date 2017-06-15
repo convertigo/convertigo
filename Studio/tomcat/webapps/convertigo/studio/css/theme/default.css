@@ -102,6 +102,10 @@ div.modal {
 	color: rgb(0, 0, 0) !important;
 }
 
+hr {
+    border-top-color: #6B6D6F;
+}
+
 /*********************************
 * Accordion
 *********************************/
@@ -111,4 +115,128 @@ button.accordion {
 
 button.accordion.active, button.accordion:hover, button.accordion {
     background-color: #f5f5f5;
+}
+
+/*********************************
+* Toolbar
+*********************************/
+.action-enabled {
+	background-color: #a4a4a4;
+}
+
+.img-action:hover {
+	background-color: #BDBEC0;
+	border-radius: 2px;
+}
+
+/* Active = On click */
+.img-action:active {
+    background-color: #909090;
+}
+
+/* Logs */
+#engine-logs-level tr:nth-child(odd) {
+    background-color: rgb(223, 243, 252);
+}
+
+/*********************************
+* Engine log
+*********************************/
+.log-line-odd-FATAL {
+    background-color: #996C6C;
+    color: white;
+}
+
+.log-line-even-FATAL {
+    background-color: #BC8484;
+    color: white;
+}
+
+.log-line-odd-ERROR {
+    background-color: #FF9E93;
+}
+
+.log-line-even-ERROR {
+    background-color: #FFBAB2;
+}
+
+.log-line-odd-WARN {
+    background-color: #F2C4D0;
+}
+
+.log-line-even-WARN {
+    background-color: #FFCCD9;
+}
+
+.log-line-odd-INFO {
+    background-color: #E1F2E4;
+}
+
+.log-line-even-INFO {
+    background-color: #EDFFF1;
+}
+
+.log-line-odd-DEBUG {
+    background-color: #F9F9B1;
+}
+
+.log-line-even-DEBUG {
+    background-color: #FFFFC4;
+}
+
+.log-line-odd-TRACE {
+    background-color: #B5EAF4;
+}
+
+.log-line-even-TRACE {
+    background-color: #C9F6FF;
+}
+
+.log-line-odd {
+    background-color: #F3F2F1;
+}
+
+.log-extra {
+    background-color: white;
+}
+
+.log-extra1 {
+    color: red;
+}
+
+.log-extra2 {
+    color: green;
+}
+
+.log-extra3 {
+    color: black;
+}
+
+.log-extra4 {
+    color: brown;
+}
+
+.log-extra5 {
+    color: purple;
+}
+
+.log-extra6 {
+    color: orange;
+}
+
+.log-extra7 {
+    color: #727d6f;
+}
+
+.log-extra8 {
+    color: #4ac8c9;
+}
+
+.log-extra9 {
+    color: #fe764d;
+}
+
+/* Header */
+.engineLogView table th {
+    background-color: #e7f4f9;
 }

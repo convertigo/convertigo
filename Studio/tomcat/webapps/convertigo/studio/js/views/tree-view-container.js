@@ -1,7 +1,8 @@
-function TreeViewContainer (treeClassName) {
+function TreeViewContainer(treeClassName, jstreeTheme = "default") {
     this.tree = $("<div/>", {
         "class": treeClassName
     });
+    this.jstreeTheme = jstreeTheme;
 }
 
 TreeViewContainer.prototype.getDivTree = function () {

@@ -10,5 +10,4 @@ References.prototype.constructor = References;
 References.nbInstances = 0;
 
 References.prototype.update = function (data) {
-	console.log("Update References");
 };

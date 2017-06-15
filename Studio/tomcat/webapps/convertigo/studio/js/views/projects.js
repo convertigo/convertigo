@@ -1,8 +1,8 @@
 function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {    
-	TreeViewContainer.call(this, "projectsTreeView");
+	TreeViewContainer.call(this, "projectsTreeView", jstreeTheme);
 
 	this.propertiesView = propertiesView;
-	
+
 	this.palettes = {};
 	for (var i = 0; i < palettes.length; ++i) {
 		this.palettes[palettes[i].getId()] = palettes[i];
@@ -17,27 +17,27 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
             that.tree.jstree().refresh(true);
         }
     });
-    
+
 	this.resetDndData();
 	// Property updated
 	$(this).on("set_property.dbo-manager", function (event, qnames, property, value, data) {
 		for (var j = 0; j < qnames.length; ++j) {
 			var nodeId = that.computeNodeId(qnames[j]);				
 			var idNodes = that.tree.jstree().getIdNodes(nodeId);
-			
+
 			// Do update for each nodes
 			for (var i = 0; i < idNodes.length; ++i) {
 				var node = that.tree.jstree().get_node(idNodes[i]);
 				var $nodeData = $(data).find(">*[qname='" + qnames[j] + "']").children();
-				
+
 				// Text node
 				var textNode = $nodeData.attr("name");
 				if (VariableUtils.isDefined(textNode)) {
 					node.text = textNode;
 				}
-				
+
 				var newValue = $nodeData.find("[value]").attr("value").toString();
-				
+
 				// Comment
 				if (property == "comment") {
 					var comments = that.computeComment(newValue);
@@ -49,7 +49,7 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 					var enabled = that.computeEnabled(newValue);
 					if (VariableUtils.isDefined(enabled.isEnabled)) {
 						node.data.isEnabled = enabled.isEnabled;
-						
+
 						// Remove CSS -> node is enable
 						if (node.data.isEnabled) {
 							node.li_attr["class"] = node.li_attr["class"].replace(/\s*nodeDisable\s*/, "");
@@ -60,25 +60,25 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 						}
 					}
 				}
-				
+
 				// Redraw node
 				that.tree.jstree().redraw_node(node.id);
 			}
 		}
 	});
-	
+
 	// Database object deleted
 	$(this).on("database_object_delete.dbo-manager", function (event, qnamesDbosToDelete) {
 		for (var i = 0; i < qnamesDbosToDelete.length; ++i) {
 			var qnId = that.computeNodeId(qnamesDbosToDelete[i]);
-			
+
 			// A node can be referenced multiple times in case of inherited Screen Classes (Criteria, Extraction rules...)
 			var idNodes = ResponseActionManager.projectViews.tree.jstree().getIdNodes(qnId);
 			for (var j = 0; j < idNodes.length; ++j) {
 				// Get the parent
 				var parentNodeId = that.tree.jstree().get_parent(idNodes[j]);
 				var parentNode = that.tree.jstree().get_node(parentNodeId);
-				
+
 				that.tree.jstree().delete_node(parentNode.children.length == 1 ?
 					// Remove the parent node if the current element is the last child
 				    parentNode :
@@ -104,7 +104,7 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 				            if (!that.dnd.canCreate) {
 				                return false;
 				            }
-				            
+
 				            // By default, insert at the end
 				            var afterPriority = null;
 				            // Insert at a specific position
@@ -116,7 +116,7 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 				            else if (node_position == 0 && that.dnd.markerBetweenNodes) {
 	                            afterPriority = 0;
 				            }
-				            
+
                             var isFolder = that.isNodeFolder(node_parent);
 				            // Get the real parent node
 				            var nodeParent = isFolder ? that.tree.jstree().get_node(node_parent.parent) : node_parent;
@@ -124,6 +124,7 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 
 				            // Create
 				            $.ajax({
+				                dataType: "xml",
 				                url: Convertigo.createServiceUrl("studio.database_objects.Create"),
 				                data: {
 				                    qname: qname,
@@ -131,9 +132,8 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 				                    folderType: isFolder ? node_parent.data.folderType : null,
 				                    afterPriority: afterPriority
 				                },
-				                success: function(data, textStatus, jqXHR) {
+				                success: function (data, textStatus, jqXHR) {
 				                    var $adminXml = $(data).find("admin");
-				                    
 				                    var $dboXml = $adminXml.find("dbo");
 				                    // Dbo created
 				                    if ($dboXml.length) {
@@ -149,7 +149,7 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
                                         .filter(function(node) {
                                             return node.state.opened;
                                         });
-				                        
+
 				                        // Refresh the parent node to generate the new node
 				                        that.tree.jstree().refresh_node(nodeParent.id);
 				                    }
@@ -177,13 +177,14 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 			    force_text: true, // Prevent XSS vulnerabilities
 				animation : 0,
 				themes: {
-					name: jstreeTheme,
+					name: that.jstreeTheme,
 					dots: false
 				},
 				// Create nodes
 				data: function (node, cb) {
 					var isRoot = node.id == "#";
 					$.ajax({
+					    dataType: "xml",
 						url: Convertigo.createServiceUrl("studio.database_objects.GetChildren"),
 						data: isRoot ? {} : {qname: node.data.qname},
 						success: function (data, textStatus, jqXHR) {
@@ -198,7 +199,7 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 							else {
 								var nodes = that.createChildNodes($(data).find("admin>*"), node);
 							}
-							
+
 							// Creation of the nodes
 							cb.call(this, nodes);
 						}
@@ -217,7 +218,7 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 				items: function (node) {
 					// Get all nodes
 					var selectedNodes = that.tree.jstree().get_selected(true);
-					
+
 					// Get qnames and folderTypes to send to the server to get the context menu
 					var qnames = [];
 					var folderTypes = [];
@@ -231,11 +232,11 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 							folderTypes.push(node.data.folderType);
 						}
 					}
-					
+
 					var items = {};
 					if ((folderTypes.length === 1 && qnames.length === 0) ||
 						(qnames.length > 0 && folderTypes.length === 0)) {
-						
+
 						/*
 						 * If only one folder is selected and no node has been selected,
 						 * we send the qname of the parent node of the folder
@@ -244,9 +245,10 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 							var parentNode = that.tree.jstree().get_node(node.parent);
 							refQnameFolder = parentNode.data.qname;
 						}
-						
+
 						// Get menu
 						$.ajax({
+						    dataType: "xml",
 						    url: Convertigo.createServiceUrl("studio.database_objects.GetMenu"),
 						    // TODO : FIND A SOLUTION TO GENERATE THE MENU ASYNCHRONOUSLY (need to finish the jstreecontextmenuajax plugin)
 						    async: false,
@@ -284,7 +286,7 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 		.on("select_node.jstree", function (event, data) {
 			lastSelectedNodeId = data.node.id;
 			that.propertiesView.refresh(data.node);
-			
+
 			/*
 			 * If the condition is true, it means a dbo has been created.
 			 * However when it is created, we select the new node automatically
@@ -305,9 +307,10 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 					qname = parentNode.data.qname;
 					folderType = data.node.data.folderType;
 				}
-				
+
 				// Get Palette
 				$.ajax({
+				    dataType: "xml",
 					url: Convertigo.createServiceUrl("studio.database_objects.GetPalette"),
 					data: {
 						qname: qname,
@@ -320,7 +323,7 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 						for (var key in that.palettes) {
 							that.palettes[key].update($categoriesXml);
 						}
-						
+
 						// Show errors
 						$adminXml.find(">*[name='MessageBoxResponse']").reverse().each(function () {
 							var $msgBoxXml = $(this).find(">*");
@@ -339,24 +342,25 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 			if (VariableUtils.isDefined(node.data.comment)) {
 				// Removes "// "
 				var editComment = StringUtils.unescapeHTML(node.data.comment.substr(3));
-	            that.editCell(node, {
+	            that.editCell(
+	            	node, {
                         value: data.sourceName
                     },
                     data.grid,
                     editComment
                 );
 			}
-			
+
 	        event.preventDefault();
 		})
 		.on("update_cell.jstree-grid", function (event, data) {
 			var newComment = data.value;
-			
+
 			// Add other lines if they exist
 			if (data.node.data.restOfComment) {
 				newComment += data.node.data.restOfComment;
 			}
-			
+
 			DatabaseObjectManager.setProperty([data.node.data.qname], "comment", newComment);
 		})
 		.on("refresh_node.jstree", function (node, nodes) {
@@ -368,18 +372,18 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 				that.tree.find("li[role='treeitem']").each(function () {
 					that.tree.jstree()._prepare_grid($(this))
 				});
-				
+
 				// Show the new created node and select it
 				var idNodes = that.tree.jstree().getIdNodes(that.dnd.newIdNodeCreated);
 				that.tree.jstree()._open_to(idNodes[0]);
 				that.tree.jstree().deselect_node(lastSelectedNodeId);
 				that.tree.jstree().select_node(idNodes[0]);
-				
+
 				// Re-open opened nodes
 				that.dnd.openedNodes.forEach(function (node) {
 				    that.tree.jstree().open_node(node);
 				});
-				
+
 				that.resetDndData();
 			}
 		})
@@ -391,9 +395,10 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 		.on("dblclick.jstree", function (event, b) {
 		    var target = $(event.target).closest("li");
 		    var selectNode = that.tree.jstree().get_node(target);
-		    
+
 		    if (!that.isNodeFolder(selectNode)) {
                 $.ajax({
+                    dataType: "xml",
                     url: Convertigo.createServiceUrl("studio.database_objects.OpenEditor"),
                     data: {
                         qname: selectNode.data.qname
@@ -408,7 +413,7 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
                                 var filePath = $(data).find("admin>response>filepath").text();
                                 openEditor(filePath, selectNode.data.qname);
                                 break;
-                            
+
                             default:
                                 break;
                         }
@@ -416,7 +421,7 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
                 });
 		    }
 		});
-	
+
 		var lastTargetNodeId = null;
 		var lastDistMarkerNode = null;
 		/*
@@ -429,7 +434,7 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 		        that.dnd.started = true;
 		        lastTargetNodeId = null;
 		    	var idRelatedPalette = $(event.target).parents('[id*="palette"]').attr("id");
-		    	
+
 		    	// Create the floating div
 		        return $.vakata.dnd.start(event, {
 		                jstree: true,
@@ -453,7 +458,7 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 		    	// Target node
 		    	var $targetElt = $(data.event.target);
 		    	var $allowIconElt = data.helper.find(".allow-status");
-		    	
+
 	            // If on the projects tree view
 		    	if ($targetElt.closest(that.tree).length > 0) {
 		    	    // If on a node
@@ -461,10 +466,10 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 		    	    if ($doppableElement.length > 0) {
 		    	        // Get the id of the current target
 		    	        var targetId = $doppableElement.attr("id");
-		    	        
+
 		    	        var $arrowInsertMaker = $("#jstree-marker");
 		    	        var distMakerNode = $arrowInsertMaker.position().left - $targetElt.position().left;
-		    	        
+
 	                    // If still on the same element or the marker is still on the same position
 		    	        if (lastTargetNodeId !== targetId || lastDistMarkerNode !== distMakerNode) {
 		    	            lastTargetNodeId = targetId;
@@ -486,8 +491,8 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 		                    if (that.dnd.markerBetweenNodes = distMakerNode !== 22) {
 		                        targetNode = that.tree.jstree().get_node(targetNode.parent);
 		                    }
-		    	            
-		                   // that.dnd.canCreate = targetNode.id !== "#";
+
+		                   	// that.dnd.canCreate = targetNode.id !== "#";
 		                    if (targetNode.id !== "#") {
     		    	            var qname = null;
     		    	            var folderType = null;
@@ -505,9 +510,10 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
         		    	                folderType = targetNode.data.folderType;
     		    	                }
     		    	            }
-    
+
     		    	            // Check if can create
     		    	            $.ajax({
+    		    	                dataType: "xml",
     		    	                url: Convertigo.createServiceUrl("studio.database_objects.CanCreate"),
     		    	                data: {
     		    	                    qname: qname,
@@ -547,18 +553,19 @@ ProjectsView.prototype.constructor = ProjectsView;
 
 ProjectsView.prototype.addJstreeNodeType = function (classname) {
 	var nodeType = StringUtils.replaceDotByMinus(classname);
-	
+
 	// Add the node type and specify the icon for these nodes
 	this.tree.jstree().settings.types[nodeType] = {
 		icon: nodeType
 	}
-	
+
 	return nodeType;
 };
 
 ProjectsView.prototype.callServiceCallAction = function (qnames, classAction, response = null) {
 	var that = this;
 	$.ajax({
+	    dataType: "xml",
 		url: Convertigo.createServiceUrl("studio.database_objects.CallAction"),
 		data: {
 			qnames: qnames,
@@ -615,7 +622,7 @@ ProjectsView.prototype.createContextMenu = function (parent, $menu) {
 				    "contextmenu-entry-default" :
 				    // Show classic icon
 				    $(children[i]).attr("icon");
-			
+
 			var isDisabled = $(children[i]).attr("isEnabled") == "false";
 			if (isDisabled) {
 				iconClass += " contextmenu-entry-disable";
@@ -648,7 +655,7 @@ ProjectsView.prototype.createContextMenu = function (parent, $menu) {
 									qnames.push(node.data.qname);
 								}
 							}
-							
+
 							that.callServiceCallAction(qnames, classAction, null);
 						}
 					},
@@ -671,7 +678,6 @@ ProjectsView.prototype.createChildNodes = function ($dbo, node) {
 	var categories = [];
 	$dbo.children().each(function () {
 		var categoryName = $(this).attr("category");
-		
 		if (categoryName != "BlockFactory") {
 			// Check if category (=Steps, Connector, Sequence, etc.) exists
 			if (!categories[categoryName]) {
@@ -680,7 +686,7 @@ ProjectsView.prototype.createChildNodes = function ($dbo, node) {
 				var parentCategoryFound = node.parents.find(function (parent) {
 					return newCategoryName === that.tree.jstree().get_text(parent);
 				});
-				
+
 				var createCategory = false;
 
 				// If the dbo is a screen class, create adequate category : Screen classes/Inherited screen classes
@@ -714,7 +720,7 @@ ProjectsView.prototype.createChildNodes = function ($dbo, node) {
 				}
 			}
 		}
-		
+
 		// Create the node and "set" its parent: the new category or the selected node
 		var dboNode = that.createNodeJsonDbo(this);
 		if (categories[categoryName]) {
@@ -766,7 +772,7 @@ ProjectsView.prototype.computeCategoryName = function (category) {
 	if (tmpCategory == "urlmappingresponse") {
 		return "Responses";
 	}
-	
+
 	var newName = category.substring(0,1).toUpperCase() + category.substring(1);	
 	newName += category.substring(category.length-1) == "s" ? "es" : "s";
 
@@ -787,7 +793,7 @@ ProjectsView.prototype.createNodeJsonDbo = function (dboElt) {
 	        "drop"
 	    ]
 	    .join(" ");
-	
+
 	var nodeJsonDbo = {
 		id: this.tree.jstree().generateId(nodeId),
 		text: $(dboElt).attr("name"),
@@ -804,11 +810,11 @@ ProjectsView.prototype.createNodeJsonDbo = function (dboElt) {
 			restOfComment: comments.restOfComment
 		}
 	};
-	
+
 	if (VariableUtils.isDefined(enabled.isEnabled)) {
 		nodeJsonDbo.data.isEnabled = enabled.isEnabled;
 	}
-	
+
 	return nodeJsonDbo;
 };
 
@@ -835,19 +841,18 @@ ProjectsView.prototype.computeComment = function (comment) {
 	if (indexOfNewLine === -1) {
 		indexOfNewLine = comment.indexOf("\n");
 	}
-	
+
 	// If it is a multi-lines comment
 	if (indexOfNewLine !== -1) {
 		// The other lines of the comment
 		restOfComment = comment.substr(indexOfNewLine);
-		
-		// The fist line
+		// The first line
 		comment = comment.substr(0, indexOfNewLine);
 	}
 
 	// Add "// " at the beginning of the comment
 	comment = comment.length ? StringUtils.addDoubleSlash(comment) : "";
-	
+
 	return {
 		comment,
 		restOfComment
@@ -858,17 +863,16 @@ ProjectsView.prototype.computeEnabled = function (isEnabled) {
 	var enabled = {
 		liClass: ""
 	};
-	
+
 	if (VariableUtils.isDefined(isEnabled)) {
 		var realIsEnabled = isEnabled == "false" ? false : true;
 		if (!realIsEnabled) {
 			// Node is disable
 			enabled.liClass = "nodeDisable";
 		}
-		
 		enabled.isEnabled = realIsEnabled;
 	}
-	
+
 	return enabled;
 };
 
@@ -876,13 +880,11 @@ ProjectsView.prototype.computeInherited = function (isInherited) {
 	var inherited = {
 		liClass: ""
 	};
-	
-	if (VariableUtils.isDefined(isInherited)) {
-		if (isInherited === "true") {
-			inherited.liClass = "nodeIsInherited";
-		}
+
+	if (VariableUtils.isDefined(isInherited) && isInherited === "true") {
+		inherited.liClass = "nodeIsInherited";
 	}
-	
+
 	return inherited;
 };
 
@@ -899,7 +901,7 @@ ProjectsView.prototype.computeNodeId = function (qname) {
  */
 ProjectsView.prototype.editCell = function (obj, col, element, editText) {
 	var that = this;
-	
+
 	if (!obj) {
 	    return false;
 	}

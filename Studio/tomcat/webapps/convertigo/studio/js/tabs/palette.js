@@ -4,24 +4,24 @@ function Palette(id) {
 
 	// Div that contains the categories (or the sub categories)
 	this.divContainer = $("<div/>");
-	
+
 	// Visual separator bewteen the sub categories and the description
 	this.separator = $("<hr/>");
-	
+
 	// Div for the description of the selected element
 	this.divDescription = $("<div/>");
-	
+
 	// Data received from the service GetNewBeans
 	this.data = null;
 
 	this.currentCategory = null;
-	
+
 	/*
 	 * this.categoriesToSubCategoriesXml = {}
 	 * Map to keep the sub categories of each category
 	 */
 	this.emptyCategoriesToSubCategoriesXml();
-	
+
 	$(this.mainDiv).attr("class", "tab-palette");
 	$(this.mainDiv).append(this.divContainer);
 }
@@ -34,9 +34,9 @@ Palette.nbInstances = 0;
 
 Palette.prototype.update = function (data) {
 	//Object.getPrototypeOf(this.constructor.prototype).update.call(this);
-	
+
 	var that = this;
-	
+
 	that.currentCategory = null;
 
 	// Keep data for the "back" button when we go from the sub categories to the categories page
@@ -48,9 +48,9 @@ Palette.prototype.update = function (data) {
 	$(that.divDescription).empty();
 	$(that.separator).remove();
 	$(that.divDescription).remove();
-	
+
 	var $categories = $(data).find(">category");
-	
+
 	// Title of the categories page
 	if ($categories.length) {
 		$(that.divContainer).append($("<h2/>", {
@@ -65,7 +65,7 @@ Palette.prototype.update = function (data) {
 		var id = $(this).attr("id");
 
 		that.categoriesToSubCategoriesXml[categoryName] = $(this).children();
-		
+
 		// Divs icon + text
 		var $divCategoryIcon = $("<i/>", {
 			"class": $(this).attr("icon")
@@ -73,7 +73,7 @@ Palette.prototype.update = function (data) {
 		var $divCategoryName = $("<span/>", {
 			text: $(this).attr("name")
 		});
-		
+
 		// Create the div category
 		var $divCategory = $("<div/>", {
 		        "class": "category",
@@ -84,7 +84,7 @@ Palette.prototype.update = function (data) {
 		    })
 		    .append($divCategoryIcon)
 		    .append($divCategoryName);
-		
+
 		// Add the current category
 		$(that.divContainer).append($divCategory);
 	});
@@ -124,12 +124,12 @@ Palette.prototype.createSubCategories = function (categoryName) {
 			that.createCategories();
 		}
 	});
-	
+
 	// Add the separator and the description
 	$(that.mainDiv)
 		.append(that.separator)
 		.append(that.divDescription);
-	
+
 	$(that.divContainer)
 	 	// Instructions
 		.append($("<h2/>", {
@@ -147,25 +147,25 @@ Palette.prototype.createSubCategories = function (categoryName) {
 	var $subCategoriesXml = that.categoriesToSubCategoriesXml[categoryName];
 	var $defaultBeanToSelect = null;
 	var lastSelectedBean = null;
-	
+
 	// Create sub categories
 	$subCategoriesXml.each(function () {
 		// Div of the sub category
 		var $divSubCategory = $("<div/>", {
 			"class": "sub-category"
 		});
-		
+
 		// Accordion button of the sub category
 		$(that.divContainer).append($("<button/>", {
 			type: "button",
 			"class": "accordion active",
 			text: $(this).attr("name")
 		}));
-		
+
 		// Create beans of each sub category
 		$(this).children().each(function (index) {				
 			var bean = this;
-			
+
 			// Divs icon + text
 			var $divBeanIcon = $("<i/>", {
 				"class": $(this).attr("icon")
@@ -173,7 +173,7 @@ Palette.prototype.createSubCategories = function (categoryName) {
 			var $divBeanText = $("<span/>", {
 				text: $(this).attr("displayName")
 			});
-			
+
 			// Create the div bean
 			var $divBean = $("<div/>", {
 					"data-beanclass": $(this).attr("classname"),
@@ -186,7 +186,7 @@ Palette.prototype.createSubCategories = function (categoryName) {
 				            // Now the current bean is the one which is selected
 				            lastSelectedBean = this;
 				            $(this).addClass("gray-selection");
-				            
+
 				            // Update its description
 				            $(that.divDescription).html($(bean).attr("description"));
 			        	}
@@ -194,10 +194,10 @@ Palette.prototype.createSubCategories = function (categoryName) {
 			    })
 			    .append($divBeanIcon)
 			    .append($divBeanText);
-			
+
 			// Add the bean to the sub category
 			$divSubCategory.append($divBean);
-			
+
 			if ($(this).attr("selectedByDefault") === "true") {
 				$defaultBeanToSelect = $divBean;
 			}
@@ -208,7 +208,7 @@ Palette.prototype.createSubCategories = function (categoryName) {
 
 	// "Accordionify" the sub categories
 	accordionify();
-	
+
 	// Trigger click event on the default bean
 	$defaultBeanToSelect.click();
 };

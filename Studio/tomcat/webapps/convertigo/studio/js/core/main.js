@@ -1,7 +1,7 @@
 var Main = {
 	init: function (authUserName, authPassword) {
 		this.defineScripts();
-		
+
 		// Require order is important
 		require([
 			/**
@@ -19,7 +19,7 @@ var Main = {
              * Listeners
              */
             "editor-listener",
-			
+
 	    	/**
 	    	 * Managers
 	    	 */
@@ -38,12 +38,16 @@ var Main = {
             /**
              * Toolbars
              */
+             "action-toolbar",
+             "action-toggable-toolbar",
              "toolbar",
+             "enginelog-toolbar",
              "projects-toolbar",
-	    	
+
 	        /**
 	         * Utils
 	         */
+            "dom-utils",
 	        "injector-utils",
 	        "modal-utils",
 	        "string-utils",
@@ -53,6 +57,7 @@ var Main = {
 	         * Views
 	         */
 	        "tree-view-container",
+	        "enginelog",
 	        "properties",
 	        "projects"
 		], function () {
@@ -63,13 +68,11 @@ var Main = {
 		    if (isCheDarkTheme) {
 		        theme += "-dark"
 		    }
-		    
+
 			// Inject CSS
-	        InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/jstree/themes/" + theme + "/style.min.css"));
+	        InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/jstree/themes/" + theme + "/style.min-3.3.3.css"));
 			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/jquery-ui.min-1.12.1.css"));
 			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/jquery.modal.min-0.8.0.css"));
-	        InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/goldenlayout/goldenlayout-base.css"));
-	        InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/goldenlayout/goldenlayout-dark-theme.css"));
 			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/accordion.css"));
 			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/style.css"));
 			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/theme/" + theme + ".css"));
@@ -80,7 +83,6 @@ var Main = {
 			// Define AJAX setup
 			$.ajaxSetup({
 				type: "POST",
-				dataType: "xml",
 				xhrFields: {
 					withCredentials: true
 				}
@@ -93,57 +95,55 @@ var Main = {
 				InjectorUtils.injectLinkStyle(Convertigo.createServiceUrl("studio.database_objects.GetPaletteIconsCSS"));
 				InjectorUtils.injectLinkStyle(Convertigo.createServiceUrl("studio.database_objects.GetTreeIconsCSS"));
 
-				// Will contain all tabs
 				var studioTabs = new StudioTabs();
 
-				// Create Source Picker tab
+				// Source Picker
 				var sourcePicker = new SourcePicker();
 				studioTabs.addTab(sourcePicker);
 
-				// Create References tab
+				// References
 				var references = new References();
 				studioTabs.addTab(references);
 
-				// Create Palette tab
+				// Palette
 				var palette = new Palette();
 				studioTabs.addTab(palette);
 
 				studioTabs.renderTabs();
 
-                // Properties view
                 var propertiesView = new PropertiesView(theme);
 				var projectsView = new ProjectsView(propertiesView, [palette], theme);
-				
+
                 // Will contain projects view + tabs
                 var $projectsViewDiv = $(".projectsView");
-                // Create toolbar
-                new ProjectsToolbar(projectsView, $projectsViewDiv); 
-				
-				// Add
+                new ProjectsToolbar($projectsViewDiv, projectsView); 
+
+				// Projects + tabs
 				$projectsViewDiv
-				    // ... projects tree view
 					.append(projectsView.getDivWrapperTree())
 					.append($("<hr/>"))
-					// ... and Palette
 					.append(studioTabs.getDiv());
-				
-				// Add
-                var $informationViewDiv = $(".informationView");
-                $informationViewDiv
-                    // ... properties view
-                    .append(propertiesView.getDivWrapperTree());
-                    // ... and Engine log view
+
+				// Properties
+                var $propertiesViewDiv = $(".propertiesView");
+                $propertiesViewDiv.append(propertiesView.getDivWrapperTree());
+
+				// Engine Log
+                var enginelogView = new EngineLogView();
+                var $engineLogViewDiv = $(".engineLogView");
+                $engineLogViewDiv.append(enginelogView.getDiv());
+                new EngineLogToolbar($engineLogViewDiv, enginelogView); 
 
 				// Automatically open these tabs (only works with Che)
 				$("div[title='Projects']").find(":first").click();
-				$("div[title='Information']").find(":first").click();
-				
+				$("div[title='Engine Log']").find(":first").click();
+
 				// Open palette (for the moment)
 				palette.focus();
 
 				DatabaseObjectManager.addListener(projectsView);
 				DatabaseObjectManager.addListener(propertiesView);
-				
+
 				// Call check authentication to stay authenticated
 				Convertigo.checkAuthentication();
 			});
@@ -187,12 +187,16 @@ var Main = {
 		    	/**
 		    	 * Toolbars
 		    	 */
+	             "action-toolbar": Convertigo.getBaseConvertigoStudioUrl("js/toolbars/action-toolbar"),
+	             "action-toggable-toolbar": Convertigo.getBaseConvertigoStudioUrl("js/toolbars/action-toggable-toolbar"),
 	             "toolbar": Convertigo.getBaseConvertigoStudioUrl("js/toolbars/toolbar"),
+	             "enginelog-toolbar": Convertigo.getBaseConvertigoStudioUrl("js/toolbars/enginelog-toolbar"),
 	             "projects-toolbar": Convertigo.getBaseConvertigoStudioUrl("js/toolbars/projects-toolbar"),
-		    	
+
 		        /**
 		         * Utils
 		         */
+	            "dom-utils": Convertigo.getBaseConvertigoStudioUrl("js/utils/dom-utils"),
 		        "injector-utils": Convertigo.getBaseConvertigoStudioUrl("js/utils/injector-utils"),
 		        "modal-utils": Convertigo.getBaseConvertigoStudioUrl("js/utils/modal-utils"),
 		        "string-utils": Convertigo.getBaseConvertigoStudioUrl("js/utils/string-utils"),
@@ -202,6 +206,7 @@ var Main = {
 		         * Views
 		         */
 	            "tree-view-container": Convertigo.getBaseConvertigoStudioUrl("js/views/tree-view-container"),
+	            enginelog: Convertigo.getBaseConvertigoStudioUrl("js/views/enginelog"),
 		        properties: Convertigo.getBaseConvertigoStudioUrl("js/views/properties"),
 		        projects: Convertigo.getBaseConvertigoStudioUrl("js/views/projects")
 		    },
@@ -214,7 +219,6 @@ var Main = {
 	}
 };
 
-// docReady is defined in convertigo.js
 docReady(function () {
 	//var baseConvertigoUrl = "http://localhost:18080/";
     var baseConvertigoUrl = localStorage.getItem("convertigoMachineUrl");

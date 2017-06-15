@@ -8,12 +8,13 @@ var EditorListener = {
             },
             false
         );
-        
+
         // save handler transaction
         document.addEventListener(
             "save_JscriptTransaction",
             function (event) {
                 $.ajax({
+                    dataType: "xml",
                     url: Convertigo.createServiceUrl("studio.database_objects.SaveHandlerTransaction"),
                     data: {
                         qname: event.detail.qname,

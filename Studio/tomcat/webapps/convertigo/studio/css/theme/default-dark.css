@@ -24,7 +24,11 @@
 }
 
 .jstree-default-dark {
-    background-color: none;
+    background: none !important;
+}
+
+.jstree-default-dark .jstree-anchor {
+	color: white;
 }
 
 /* Header separator of the jstree grid plugin */
@@ -102,6 +106,10 @@ div.modal {
 	color: white !important;
 }
 
+hr {
+    border-top-color: #6B6D6F;
+}
+
 /*********************************
 * Accordion
 *********************************/
@@ -111,4 +119,134 @@ button.accordion {
 
 button.accordion.active, button.accordion:hover, button.accordion {
     background-color: rgb(46, 58, 69);
+}
+
+/*********************************
+* Toolbar
+*********************************/
+.action-enabled {
+    background-color: #555;
+}
+
+.img-action:hover {
+    background-color: #21252b;
+}
+
+/* Active = On click */
+.img-action:active {
+    background-color: #909090;
+}
+
+/* Logs */
+#engine-logs-level tr:nth-child(odd) {
+    background-color: #555;
+}
+
+/*********************************
+* Engine log
+*********************************/
+.log-line-odd-FATAL {
+    background-color: #996C6C;
+    color: white;
+}
+
+.log-line-even-FATAL {
+    background-color: #BC8484;
+    color: white;
+}
+
+.log-line-odd-ERROR {
+    background-color: #FF9E93;
+}
+
+.log-line-even-ERROR {
+    background-color: #FFBAB2;
+}
+
+.log-line-odd-WARN {
+    background-color: #F2C4D0;
+}
+
+.log-line-even-WARN {
+    background-color: #FFCCD9;
+}
+
+.log-line-odd-INFO {
+    background-color: #E1F2E4;
+}
+
+.log-line-even-INFO {
+    background-color: #EDFFF1;
+    color:black !important;
+}
+
+.log-line-odd-DEBUG {
+    background-color: #F9F9B1;
+}
+
+.log-line-even-DEBUG {
+    background-color: #FFFFC4;
+}
+
+.log-line-odd-TRACE {
+    background-color: #B5EAF4;
+}
+
+.log-line-even-TRACE {
+    background-color: #C9F6FF;
+}
+
+.log-line-odd {
+    background-color: #F3F2F1;
+
+}
+
+.log-extra {
+    background-color: white;
+}
+
+.log-extra1 {
+    color: red;
+}
+
+.log-extra2 {
+    color: green;
+}
+
+.log-extra3 {
+    color: black;
+}
+
+.log-extra4 {
+    color: brown;
+}
+
+.log-extra5 {
+    color: purple;
+}
+
+.log-extra6 {
+    color: orange;
+}
+
+.log-extra7 {
+    color: #727d6f;
+}
+
+.log-extra8 {
+    color: #4ac8c9;
+}
+
+.log-extra9 {
+    color: #fe764d;
+}
+
+/* Text in td */
+.engineLogView td {
+    color: #1f1f1f;
+}
+
+/* Header */
+.engineLogView table th {
+    background-color: #5a5a5a;
 }

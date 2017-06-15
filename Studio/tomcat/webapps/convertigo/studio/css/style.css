@@ -29,9 +29,9 @@
 }
 
 /* Header separator of the jstree grid plugin */
-.jstree-grid-separator-regular {
-/*  border-style: none !important; */
-}
+/*.jstree-grid-separator-regular {
+  border-style: none !important;
+}*/
 
 /*********************************
 * Jstree context menu
@@ -133,5 +133,91 @@ i.draggable {
 hr {
     border: 0;
     border-top: 1px solid;
-    border-top-color: #6B6D6F;
+}
+
+/*********************************
+* Toolbar
+*********************************/
+
+/* Logs */
+#engine-logs-level tr {
+    height: 30px;
+}
+
+#engine-logs-level table {
+    border-spacing: 0px;
+	overflow-y: scroll;
+	display: block;
+    height: 600px;
+}
+
+.action-enabled {
+    border-radius: 1px;
+}
+
+.img-action:hover {
+    border-radius: 2px;
+}
+
+/*********************************
+* Engine Log
+*********************************/
+.engineLogView table {
+	border-spacing: 2px 0px;
+}
+
+/* Enable selection in Engine Log */
+.engineLogView div, .engineLogView td {
+    user-select: initial;
+}
+
+.log-message-sublines {
+    font-size: 9pt;
+    font-family: monospace;
+    border: thin dashed;
+    margin: 2px;
+    padding: 2px;
+}
+
+.log-column-line-number {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.log-column-category {
+    min-width: 80px;
+    word-wrap: break-word;
+    word-break: break-all;
+}
+
+.log-column-thread {
+    min-width: 160px;
+    word-wrap: break-word;
+    word-break: break-all;
+}
+
+.log-column-message {
+    word-wrap: break-word;
+    word-break: break-all;
+}
+
+.log-column-extra {
+    min-width: 250px;
+    word-wrap: break-word;
+    word-break: break-all;
+}
+
+.engineLogView table {
+    font-size: 10pt;
+    width: 100%;
+}
+
+.engineLogView table th {
+    text-align: center;
+    font-weight: bold;
+    padding: 3px;
+}
+
+.engineLogView table td {
+    padding: 3px;
 }

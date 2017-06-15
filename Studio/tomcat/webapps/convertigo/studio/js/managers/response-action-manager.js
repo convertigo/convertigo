@@ -1,6 +1,6 @@
 var ResponseActionManager = {
 	projectViews: null,
-	
+
 	responseNameToFunction: {
 		SetPropertyResponse: function ($data) {
 			DatabaseObjectManager.notifySetProperty($data.find("admin"));
@@ -32,7 +32,7 @@ var ResponseActionManager = {
 				});
 				allButtons.push($button);
 			});
-			
+
 			ModalUtils.createMessageDialog(
 				$response.find("title").text(),
 				$response.find("message").text(),
@@ -47,9 +47,6 @@ var ResponseActionManager = {
 		if (responseName in ResponseActionManager.responseNameToFunction) {
 			ResponseActionManager.projectViews = projectViews;
 			ResponseActionManager.responseNameToFunction[responseName]($data);
-		}
-		else {
-			console.debug("Handle response action not defined");
 		}
 	}
 };
