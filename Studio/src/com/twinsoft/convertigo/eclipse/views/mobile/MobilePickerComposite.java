@@ -505,7 +505,7 @@ public class MobilePickerComposite extends Composite {
 					String modelPath = cs.getModelPath();
 					if (!modelPath.isEmpty()) {
 						modelTreeViewer.expandAll();
-						TVObject tvo = findModelItem(null, modelPath);
+						TVObject tvo = findModelItem(null, modelPath.replaceAll("\\?\\.", "."));
 						if (tvo != null) {
 							modelTreeViewer.collapseAll();
 							modelTreeViewer.expandToLevel(tvo, 0);
@@ -637,7 +637,7 @@ public class MobilePickerComposite extends Composite {
 						MobileSmartSource mss = msst.getSmartSource();
 						dbo = mss.getDatabaseObject(pageName);
 						params.putAll(mss.getParameters());
-						searchPath = mss.getModelPath() + searchPath;
+						searchPath = mss.getModelPath().replaceAll("\\?\\.", ".") + searchPath;
 					} while (dbo != null && dbo instanceof UIControlDirective);
 				}
 			} catch (Exception e) {
@@ -837,7 +837,7 @@ public class MobilePickerComposite extends Composite {
 				TreeItem treeItem = items[i];
 				TVObject tvo = (TVObject) treeItem.getData();
 				if (tvo != null) {
-					String tvoSourcePath = tvo.getSourcePath();
+					String tvoSourcePath = tvo.getSourcePath().replaceAll("\\?\\.", ".");
 					if (modelPath.startsWith(tvoSourcePath.replaceFirst("root", ""))) {
 						if (modelPath.equals(tvoSourcePath.replaceFirst("root", ""))) {
 							return tvo;

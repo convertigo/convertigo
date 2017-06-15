@@ -75,7 +75,7 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 		public String getSourcePath() {
 			String path = INVALID_CHARACTERS.matcher(name).find() ?  "['"+name+"']":name;
 			if (parent != null) {
-				path = parent.getSourcePath() + (path.startsWith("[") ? "":".") + path;
+				path = parent.getSourcePath() + (path.startsWith("[") ? "":"?.") + path;
 			}
 			return path;
 		}
