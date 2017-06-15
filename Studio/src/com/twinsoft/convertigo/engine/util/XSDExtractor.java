@@ -242,8 +242,9 @@ public class XSDExtractor {
 							xsdObject.parse();
 						}
 						else {
-							int occur = ((Integer)occurs.get(key)).intValue();
-							occurs.put(key, Integer.valueOf(occur+1));
+							int oldOccur = ((Integer)occurs.get(key)).intValue();
+							int newOccur = (((Element)node.getParentNode()).getElementsByTagName(key).getLength());
+							occurs.put(key, Math.max(oldOccur, newOccur));
 							xsdObject = elements.get(key);
 							((XSDElement)xsdObject).parse((Element)node);
 						}
