@@ -38,6 +38,8 @@ public abstract class UIControlCallAction extends UIControlAction {
 		return cloned;
 	}
 	
+	abstract public void importVariableDefinition();
+	
 	/*
 	 * The requestable target
 	 */
@@ -117,6 +119,22 @@ public abstract class UIControlCallAction extends UIControlAction {
 			}
 		}
 		return "";
-	}	
+	}
+
+
+	protected UIControlVariable getVariable(String variableName) {
+		Iterator<UIComponent> it = getUIComponentList().iterator();
+		while (it.hasNext()) {
+			UIComponent component = (UIComponent)it.next();
+			if (component instanceof UIControlVariable) {
+				UIControlVariable variable = (UIControlVariable)component;
+				if (variable.getName().equals(variableName)) {
+					return variable;
+				}
+			}
+		}
+		return null;
+	}
+	
 	
 }

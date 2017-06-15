@@ -76,5 +76,11 @@ public class UIControlCallFullSync extends UIControlCallAction implements ITagsP
 		}
 		return new String[0];
 	}
+
+	@Override
+	public void importVariableDefinition() {
+		// TODO Auto-generated method stub
+		
+	}
 	
 }
