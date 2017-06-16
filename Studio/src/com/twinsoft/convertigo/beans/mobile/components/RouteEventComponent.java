@@ -54,6 +54,19 @@ public class RouteEventComponent extends MobileComponent implements IRouteGenera
 	}
 
 	@Override
+	public void configure(Element element) throws Exception {
+		super.configure(element);
+		
+		try {
+			newPriority = new Long(element.getAttribute("newPriority")).longValue();
+			if (newPriority != priority) newPriority = priority;
+		}
+		catch(Exception e) {
+			throw new Exception("Missing \"newPriority\" attribute");
+		}
+	}
+	
+	@Override
 	public Element toXml(Document document) throws EngineException {
 		Element element =  super.toXml(document);
 		
