@@ -1,18 +1,18 @@
-package com.twinsoft.convertigo.engine.studio.actions;
+package com.twinsoft.convertigo.engine.studio.popup.actions;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
+import com.twinsoft.convertigo.beans.core.Listener;
 import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.studio.responses.SetPropertyResponse;
 import com.twinsoft.convertigo.engine.studio.wrappers.WrapDatabaseObject;
 import com.twinsoft.convertigo.engine.studio.wrappers.WrapObject;
 import com.twinsoft.convertigo.engine.studio.wrappers.WrapStudio;
 
-public class DisableMobileUIComponentAction extends AbstractRunnableAction {
+public class EnableListenerAction extends AbstractRunnableAction {
 
-	public DisableMobileUIComponentAction(WrapStudio studio) {
+	public EnableListenerAction(WrapStudio studio) {
 		super(studio);
 	}
 	
@@ -24,11 +24,11 @@ public class DisableMobileUIComponentAction extends AbstractRunnableAction {
     			
 				for (int i = treeObjects.length - 1; i >= 0; --i) {
 					WrapDatabaseObject treeObject = (WrapDatabaseObject) treeObjects[i];
-					if (treeObject.instanceOf(UIComponent.class)) {
+					if (treeObject.instanceOf(Listener.class)) {
 						//StepView stepTreeObject = (StepView) treeObject;
 
-						UIComponent component = (UIComponent) treeObject.getObject();
-						component.setEnabled(false);
+						Listener listener = (Listener) treeObject.getObject();
+						listener.setEnabled(true);
 
 						//stepTreeObject.setEnabled(true);
 						//stepTreeObject.hasBeenModified(true);

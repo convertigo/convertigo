@@ -1,18 +1,18 @@
-package com.twinsoft.convertigo.engine.studio.actions;
+package com.twinsoft.convertigo.engine.studio.popup.actions;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.twinsoft.convertigo.beans.core.Listener;
+import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.studio.responses.SetPropertyResponse;
 import com.twinsoft.convertigo.engine.studio.wrappers.WrapDatabaseObject;
 import com.twinsoft.convertigo.engine.studio.wrappers.WrapObject;
 import com.twinsoft.convertigo.engine.studio.wrappers.WrapStudio;
 
-public class DisableListenerAction extends AbstractRunnableAction {
+public class DisableStepAction extends AbstractRunnableAction {
 
-	public DisableListenerAction(WrapStudio studio) {
+	public DisableStepAction(WrapStudio studio) {
 		super(studio);
 	}
 	
@@ -24,11 +24,11 @@ public class DisableListenerAction extends AbstractRunnableAction {
     			
 				for (int i = treeObjects.length - 1; i >= 0; --i) {
 					WrapDatabaseObject treeObject = (WrapDatabaseObject) treeObjects[i];
-					if (treeObject.instanceOf(Listener.class)) {
+					if (treeObject.instanceOf(Step.class)) {
 						//StepView stepTreeObject = (StepView) treeObject;
 
-						Listener listener = (Listener) treeObject.getObject();
-						listener.setEnabled(false);
+						Step step = (Step) treeObject.getObject();
+						step.setEnabled(false);
 
 						//stepTreeObject.setEnabled(true);
 						//stepTreeObject.hasBeenModified(true);

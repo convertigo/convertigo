@@ -1,18 +1,18 @@
-package com.twinsoft.convertigo.engine.studio.actions;
+package com.twinsoft.convertigo.engine.studio.popup.actions;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
+import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
 import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.studio.responses.SetPropertyResponse;
 import com.twinsoft.convertigo.engine.studio.wrappers.WrapDatabaseObject;
 import com.twinsoft.convertigo.engine.studio.wrappers.WrapObject;
 import com.twinsoft.convertigo.engine.studio.wrappers.WrapStudio;
 
-public class DisableMobileRouteEventComponentAction extends AbstractRunnableAction {
+public class DisableMobileRouteComponentAction extends AbstractRunnableAction {
 
-	public DisableMobileRouteEventComponentAction(WrapStudio studio) {
+	public DisableMobileRouteComponentAction(WrapStudio studio) {
 		super(studio);
 	}
 	
@@ -24,10 +24,10 @@ public class DisableMobileRouteEventComponentAction extends AbstractRunnableActi
     			
 				for (int i = treeObjects.length - 1; i >= 0; --i) {
 					WrapDatabaseObject treeObject = (WrapDatabaseObject) treeObjects[i];
-					if (treeObject.instanceOf(RouteEventComponent.class)) {
+					if (treeObject.instanceOf(RouteComponent.class)) {
 						//StepView stepTreeObject = (StepView) treeObject;
 
-						RouteEventComponent component = (RouteEventComponent) treeObject.getObject();
+						RouteComponent component = (RouteComponent) treeObject.getObject();
 						component.setEnabled(false);
 
 						//stepTreeObject.setEnabled(true);

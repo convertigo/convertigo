@@ -1,4 +1,4 @@
-package com.twinsoft.convertigo.engine.studio.actions;
+package com.twinsoft.convertigo.engine.studio.popup.actions;
 
 import java.util.HashMap;
 import java.util.Map;

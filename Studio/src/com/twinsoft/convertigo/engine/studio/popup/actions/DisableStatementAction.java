@@ -1,4 +1,4 @@
-package com.twinsoft.convertigo.engine.studio.actions;
+package com.twinsoft.convertigo.engine.studio.popup.actions;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -10,9 +10,9 @@ import com.twinsoft.convertigo.engine.studio.wrappers.WrapDatabaseObject;
 import com.twinsoft.convertigo.engine.studio.wrappers.WrapObject;
 import com.twinsoft.convertigo.engine.studio.wrappers.WrapStudio;
 
-public class EnableStatementAction extends AbstractRunnableAction {
+public class DisableStatementAction extends AbstractRunnableAction {
 
-	public EnableStatementAction(WrapStudio studio) {
+	public DisableStatementAction(WrapStudio studio) {
 		super(studio);
 	}
 	
@@ -28,7 +28,7 @@ public class EnableStatementAction extends AbstractRunnableAction {
 						//StepView stepTreeObject = (StepView) treeObject;
 
 						Statement statement = (Statement) treeObject.getObject();
-						statement.setEnabled(true);
+						statement.setEnabled(false);
 
 						//stepTreeObject.setEnabled(true);
 						//stepTreeObject.hasBeenModified(true);

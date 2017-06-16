@@ -7,6 +7,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 public interface WrapStudio {
 
 	List<WrapObject> getSelectedObjects();
+	WrapObject getFirstSelectedTreeObject();
 	void addSelectedObject(DatabaseObject dbo);
 	void addSelectedObjects(DatabaseObject ...dbos);
 	

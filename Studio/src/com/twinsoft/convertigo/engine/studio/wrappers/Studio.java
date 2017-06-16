@@ -17,6 +17,11 @@ public abstract class Studio implements WrapStudio {
 	}
 	
 	@Override
+	public WrapObject getFirstSelectedTreeObject() {
+	    return getSelectedObjects().isEmpty() ? null : getSelectedObjects().get(0);
+	}
+	
+	@Override
 	public void addSelectedObject(DatabaseObject dbo) {
 		selectedObjects.add(new DatabaseObjectView(dbo));
 	}

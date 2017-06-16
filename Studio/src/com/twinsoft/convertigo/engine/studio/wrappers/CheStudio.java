@@ -8,7 +8,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.engine.studio.actions.AbstractRunnableAction;
+import com.twinsoft.convertigo.engine.studio.popup.actions.AbstractRunnableAction;
 import com.twinsoft.convertigo.engine.studio.responses.XmlResponseFactory;
 
 public class CheStudio extends Studio {

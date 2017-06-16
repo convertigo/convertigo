@@ -20,7 +20,7 @@
  * $Date: 2017-03-01 14:29:16 +0100 (mer., 01 mars 2017) $
  */
 
-package com.twinsoft.convertigo.engine.studio.actions;
+package com.twinsoft.convertigo.engine.studio.popup.actions;
 
 import java.io.File;
 import java.io.IOException;

@@ -50,7 +50,7 @@ EngineLogView.regexpDateTimeSeparatorChars = /[-:,\s]/;
 EngineLogView.regexpLF = /\n/g;
 EngineLogView.regexpSpace = / /g;
 EngineLogView.regexpTabulation = /\t/g;
-EngineLogView.limitLogsChars = 10000;
+EngineLogView.limitLogsChars = 25000;
 
 EngineLogView.prototype.clearLogs = function () {
     $(this.logTbody).empty();

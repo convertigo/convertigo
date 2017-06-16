@@ -1,18 +1,18 @@
-package com.twinsoft.convertigo.engine.studio.actions;
+package com.twinsoft.convertigo.engine.studio.popup.actions;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.twinsoft.convertigo.beans.core.Step;
+import com.twinsoft.convertigo.beans.core.ExtractionRule;
 import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.studio.responses.SetPropertyResponse;
 import com.twinsoft.convertigo.engine.studio.wrappers.WrapDatabaseObject;
 import com.twinsoft.convertigo.engine.studio.wrappers.WrapObject;
 import com.twinsoft.convertigo.engine.studio.wrappers.WrapStudio;
 
-public class DisableStepAction extends AbstractRunnableAction {
+public class DisableExtractionRuleAction extends AbstractRunnableAction {
 
-	public DisableStepAction(WrapStudio studio) {
+	public DisableExtractionRuleAction(WrapStudio studio) {
 		super(studio);
 	}
 	
@@ -24,11 +24,11 @@ public class DisableStepAction extends AbstractRunnableAction {
     			
 				for (int i = treeObjects.length - 1; i >= 0; --i) {
 					WrapDatabaseObject treeObject = (WrapDatabaseObject) treeObjects[i];
-					if (treeObject.instanceOf(Step.class)) {
+					if (treeObject.instanceOf(ExtractionRule.class)) {
 						//StepView stepTreeObject = (StepView) treeObject;
 
-						Step step = (Step) treeObject.getObject();
-						step.setEnabled(false);
+						ExtractionRule extractionRule = (ExtractionRule) treeObject.getObject();
+						extractionRule.setEnabled(false);
 
 						//stepTreeObject.setEnabled(true);
 						//stepTreeObject.hasBeenModified(true);
