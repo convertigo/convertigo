@@ -5,7 +5,7 @@ function Toolbar(panelSelector) {
             .find("div[role='toolbar-header']");
 }
 
-Toolbar.prototype.createAction = function (id, srcImg, tooltip, func) {
+Toolbar.prototype.createAction = function (id, srcImg, tooltip) {
     // Get all actions (=icons) of the toolbar
     var actions = $(this.toolbar).find(">div").get().filter(function (elt) {
         var rightValue = elt.style.right;
@@ -24,7 +24,6 @@ Toolbar.prototype.createAction = function (id, srcImg, tooltip, func) {
     $newAction.css("right", rightValue + "px");
     $newAction.attr("id", id);
     $newAction.attr("title", tooltip);
-    $newAction.click(func);
     $newAction.addClass("img-action");
 
     // Create image
@@ -38,26 +37,33 @@ Toolbar.prototype.createAction = function (id, srcImg, tooltip, func) {
     return $newAction;
 }
 
-Toolbar.prototype.addAction = function (actionToolbar) {
-    $(this.toolbar).append(this.createAction(
-        actionToolbar.id,
-        actionToolbar.srcImg,
-        actionToolbar.tooltip,
-        actionToolbar.func
-    ));
+Toolbar.prototype.addAction = function (id, srcImg, tooltip, func) {
+    var $newAction = this.createAction(
+        id,
+        srcImg,
+        tooltip
+    );
+    $newAction.click(func);
+    $(this.toolbar).append($newAction);
 };
 
-Toolbar.prototype.addActionToggable = function (actionToggableToolbar) {
+Toolbar.prototype.addActionToggable = function (id, srcImg, tooltip, func, toggleByDefault) {
     // Create action
     var $newAction = this.createAction(
-        actionToggableToolbar.id,
-        actionToggableToolbar.srcImg,
-        actionToggableToolbar.tooltip,
-        actionToggableToolbar.func
+        id,
+        srcImg,
+        tooltip
     );
+    var coreFunc = func;
+    func = function () {
+        // Toogle CSS and call function
+        $newAction.toggleClass("action-enabled");
+        coreFunc();
+    }
+    $newAction.click(func);
 
     // Toggle by default if needed
-    if (actionToggableToolbar.toggleByDefault) {
+    if (toggleByDefault) {
         $newAction.addClass("action-enabled");
     }
 

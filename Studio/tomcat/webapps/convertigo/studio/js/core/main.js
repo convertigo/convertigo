@@ -38,8 +38,6 @@ var Main = {
             /**
              * Toolbars
              */
-             "action-toolbar",
-             "action-toggable-toolbar",
              "toolbar",
              "enginelog-toolbar",
              "projects-toolbar",
@@ -187,8 +185,6 @@ var Main = {
 		    	/**
 		    	 * Toolbars
 		    	 */
-	             "action-toolbar": Convertigo.getBaseConvertigoStudioUrl("js/toolbars/action-toolbar"),
-	             "action-toggable-toolbar": Convertigo.getBaseConvertigoStudioUrl("js/toolbars/action-toggable-toolbar"),
 	             "toolbar": Convertigo.getBaseConvertigoStudioUrl("js/toolbars/toolbar"),
 	             "enginelog-toolbar": Convertigo.getBaseConvertigoStudioUrl("js/toolbars/enginelog-toolbar"),
 	             "projects-toolbar": Convertigo.getBaseConvertigoStudioUrl("js/toolbars/projects-toolbar"),

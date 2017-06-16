@@ -2,27 +2,27 @@ function EngineLogToolbar(panelSelector, engineLogView) {
     Toolbar.call(this, panelSelector);
 
     // Go to top
-    this.addAction(new ActionToolbar(
+    this.addAction(
         "go-to-top-action",
         Convertigo.createServiceUrl("studio.database_objects.GetMenuIcon?iconPath=icons/studio/dbo_increase_priority.gif"),
         "Go to top",
         function () {
             engineLogView.goToTop();
         }
-    ));
+    );
 
     // Go to end
-    this.addAction(new ActionToolbar(
+    this.addAction(
         "go-to-end-action",
         Convertigo.createServiceUrl("studio.database_objects.GetMenuIcon?iconPath=icons/studio/dbo_decrease_priority.gif"),
         "Go to end",
         function () {
             engineLogView.goToEnd();
         }
-    ));
+    );
 
     // Scroll lock
-    this.addActionToggable(new ActionToggabeToolbar(
+    this.addActionToggable(
         "scroll-lock-action",
         Convertigo.getBaseConvertigoStudioUrl("/img/toolbar/scroll-lock.png"),
         "Scroll lock",
@@ -30,23 +30,23 @@ function EngineLogToolbar(panelSelector, engineLogView) {
             engineLogView.toggleLock();
         },
         engineLogView.isAutoScrollEnabled()
-    ));
+    );
 
     // Clear logs
-    this.addAction(new ActionToolbar(
-            "clear-logs-action",
-            Convertigo.getBaseConvertigoStudioUrl("/img/toolbar/clear-logs.png"),
-            "Clear logs",
-            function() {
-                engineLogView.clearLogs();
-            }
-    ));
+    this.addAction(
+        "clear-logs-action",
+        Convertigo.getBaseConvertigoStudioUrl("/img/toolbar/clear-logs.png"),
+        "Clear logs",
+        function() {
+            engineLogView.clearLogs();
+        }
+    );
 
     // Logs level
     var that = this;
     this.applyButtonId = "btn-engine-logs-level-apply";
     this.resetPropertyMap();
-    this.addAction(new ActionToolbar(
+    this.addAction(
         "configure-logs-level-action",
         Convertigo.getBaseConvertigoStudioUrl("/img/toolbar/configure-logs-level.png"),
         "Configure Logs level",
@@ -120,7 +120,7 @@ function EngineLogToolbar(panelSelector, engineLogView) {
                 }
             });
         }
-    ));
+    );
 }
 
 EngineLogToolbar.prototype = Object.create(Toolbar.prototype);
