@@ -66,6 +66,14 @@ public class UIAttribute extends UIComponent implements ITagsProperty {
 		}
 		return value;
 	}
+
+	protected String getAttrLabel() {
+		String label = attrValue.getLabel();
+		if (!Mode.PLAIN.equals(attrValue.getMode())) {
+			label = "{{" + label + "}}";
+		}
+		return label;
+	}
 	
 	@Override
 	public String computeTemplate() {
@@ -85,7 +93,7 @@ public class UIAttribute extends UIComponent implements ITagsProperty {
 	@Override
 	public String toString() {
 		String label = attrName;
-		label = label + (label.isEmpty() ? "":"=") + getAttrValue();
+		label = label + (label.isEmpty() ? "":"=") + getAttrLabel();
 		return label;
 	}
 

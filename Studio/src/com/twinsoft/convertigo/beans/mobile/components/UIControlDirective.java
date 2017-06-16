@@ -31,7 +31,7 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 	private static final long serialVersionUID = 2750008565134796761L;
 
 	public enum AttrDirective {
-		RepeatForEach("*ngFor"),
+		ForEach("*ngFor"),
 		If("*ngIf"),
 		Switch("[ngSwitch]"),
 		SwitchCase("*ngSwitchCase"),
@@ -118,7 +118,7 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 		StringBuilder children = new StringBuilder();
 		if (sbListen.length() > 0) {
 			AttrDirective attrDirective = AttrDirective.getDirective(getDirectiveName());
-			if (AttrDirective.RepeatForEach.equals(attrDirective)) {
+			if (AttrDirective.ForEach.equals(attrDirective)) {
 				String item = "item"+ this.priority;
 				children.append("let "+ item).append(" of ").append(sbListen);
 			}
@@ -157,7 +157,9 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 	@Override
 	public String toString() {
 		String label = getDirectiveName();
-		return label = (label.isEmpty() ? "?":label) + " " + getComputedValue();
+		return label = (label.isEmpty() ? "?":label) + " " 
+							+ directiveSource.getLabel()
+							+ directiveExpression;
 	}
 
 	@Override

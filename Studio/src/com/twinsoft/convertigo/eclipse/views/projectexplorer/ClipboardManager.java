@@ -649,7 +649,7 @@ public class ClipboardManager {
 				UIControlDirective directive = (UIControlDirective)databaseObject;
 				String directiveName = directive.getDirectiveName();
 				AttrDirective attrDirective = AttrDirective.getDirective(directiveName);
-				if (AttrDirective.RepeatForEach.equals(attrDirective)) {
+				if (AttrDirective.ForEach.equals(attrDirective)) {
 					directive.updateSmartSource(oldPriority, directive.priority);
 					directive.getPage().markTemplateAsDirty();
 				}

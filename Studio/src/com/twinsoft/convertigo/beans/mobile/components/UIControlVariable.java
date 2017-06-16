@@ -61,6 +61,14 @@ public class UIControlVariable extends UIComponent implements ITagsProperty {
 		return value;
 	}
 	
+	protected String getVarLabel() {
+		String label = varValue.getLabel();
+		if (Mode.PLAIN.equals(varValue.getMode())) {
+			label = "'" + label + "'";
+		}
+		return label;
+	}
+
 	@Override
 	public String computeTemplate() {
 		if (isEnabled()) {
@@ -72,7 +80,7 @@ public class UIControlVariable extends UIComponent implements ITagsProperty {
 	@Override
 	public String toString() {
 		String label = getVarName();
-		label = label + (label.isEmpty() ? "":"=") + getVarValue();
+		label = label + (label.isEmpty() ? "":"=") + getVarLabel();
 		return label;
 	}
 

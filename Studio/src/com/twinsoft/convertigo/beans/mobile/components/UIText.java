@@ -70,6 +70,14 @@ public class UIText extends UIComponent implements ITagsProperty {
 		return value;
 	}
 	
+	protected String getTextLabel() {
+		String label = textValue.getLabel();
+		if (!Mode.PLAIN.equals(textValue.getMode())) {
+			label = "{{" + label + "}}";
+		}
+		return label;
+	}
+	
 	@Override
 	public String computeTemplate() {
 		if (isEnabled()) {
@@ -82,7 +90,7 @@ public class UIText extends UIComponent implements ITagsProperty {
 
 	@Override
 	public String toString() {
-		String label = getTextValue();
+		String label = getTextLabel();
 		return label.isEmpty() ? "?" : label;
 	}
 

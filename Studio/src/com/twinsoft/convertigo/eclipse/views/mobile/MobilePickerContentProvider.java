@@ -276,7 +276,7 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 						}
 						
 						UIControlDirective uicd = (UIControlDirective)uic;
-						if (AttrDirective.RepeatForEach.equals(AttrDirective.getDirective(uicd.getDirectiveName()))) {
+						if (AttrDirective.ForEach.equals(AttrDirective.getDirective(uicd.getDirectiveName()))) {
 							TVObject tuic = tvi.add(new TVObject(uic.toString(), uic));
 							addIterations(tuic, uic);
 						} else {

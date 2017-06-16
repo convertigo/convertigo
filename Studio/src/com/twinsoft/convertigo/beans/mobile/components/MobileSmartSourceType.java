@@ -159,9 +159,29 @@ public class MobileSmartSourceType implements XMLizable, Serializable, Cloneable
 		return "";
 	}
 	
+	public String getLabel() {
+		String label = getValue();
+		if (Mode.SOURCE.equals(mode)) {
+			try {
+				label = label.replaceAll("\\?\\.", ".");
+				label = label.replaceAll("fs\\://", "");
+				
+				if (label.startsWith("item")) {
+					label = "->" + label.substring(label.indexOf('.')+1);
+					
+				} else if (label.startsWith("listen([")) {
+					int index = label.indexOf("])");
+					String rs = label.substring("listen([".length(), index);
+					label = rs.replaceAll("'", "") + label.substring(index+2).replaceFirst("\\.", "->");
+				}
+			} catch (Exception e) {}
+		}
+		return label;
+	}
+	
 	@Override
 	public String toString() {
-		return getValue();
+		return getLabel();
 	}
 
 	@Override
