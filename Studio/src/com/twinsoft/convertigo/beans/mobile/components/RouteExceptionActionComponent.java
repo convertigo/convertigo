@@ -39,16 +39,18 @@ public class RouteExceptionActionComponent extends RouteActionComponent {
 
 	@Override
 	public String toString() {
-		return "toast Exception";
+		String message = getToastMessage();
+		return "toast " + (message.isEmpty() ? "An exception occured":message);
 	}
 	
 	@Override
 	public String computeRoute() {
 		StringBuilder sb = new StringBuilder();
 		if (isEnabled()) {
+			String message = getToastMessage();
 			sb.append("new C8oRoute((exception:any)=>{return true}, tableOptions)")
 				.append(".setTarget(\""+Action.toast.name()+"\")")
-				.append(".setToastMesage(\""+ "Exception" +"\")");
+				.append(".setToastMesage(\""+ (message.isEmpty() ? "An exception occured":message) +"\")");
 			
 			String position = getToastPosition();
 			sb.append(".setToastPosition(\""+ (position.isEmpty() ? "bottom":position) +"\")");
