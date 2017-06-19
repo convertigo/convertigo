@@ -28,8 +28,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
-
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
@@ -67,7 +65,7 @@ import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardAction;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 
 public class ComponentExplorerComposite extends Composite {
-	static private Pattern removeTag = Pattern.compile("</?\\w+ ?/?>");
+	//static private Pattern removeTag = Pattern.compile("</?\\w+ ?/?>");
 	
 	protected Color FOREGROUND_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND);
 	protected Color BACKGROUND_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
@@ -202,7 +200,8 @@ public class ComponentExplorerComposite extends Composite {
 		label.setImage(image);
 		label.setText(component.getLabel());
 		label.setAlignment(SWT.LEFT);
-		label.setToolTipText(removeTag.matcher(component.getDescription()).replaceAll(""));
+		//label.setToolTipText(removeTag.matcher(component.getDescription()).replaceAll(""));
+		label.setToolTipText(getShortDescription(component));
 		label.setCursor(handCursor);
 		label.setLayoutData(new RowData());
 		
@@ -397,6 +396,16 @@ public class ComponentExplorerComposite extends Composite {
 		return cleanDescription;
 	}
 
+	private String getShortDescription(Component component) {
+		String beanDescription = component.getDescription();
+		String[] beanDescriptions = beanDescription.split("\\|");
+		String beanShortDescription = beanDescriptions.length >= 1 ? beanDescriptions[0] : "n/a";
+		
+		beanShortDescription = cleanDescription(beanShortDescription,true);
+		
+		return beanShortDescription;
+	}
+	
 	private void updateHelpText(Component component) {
 		String beanDisplayName = component.getLabel();
 		
