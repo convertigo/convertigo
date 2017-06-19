@@ -93,10 +93,14 @@ public abstract class UIControlCallAction extends UIControlAction {
 		return "call " + (label.isEmpty() ? "?":label);
 	}
 	
+	protected StringBuilder initParameters() {
+		return new StringBuilder();
+	}
+	
 	@Override
 	public String computeTemplate() {
 		if (isEnabled()) {
-			StringBuilder parameters = new StringBuilder();
+			StringBuilder parameters = initParameters();
 			
 			Iterator<UIComponent> it = getUIComponentList().iterator();
 			while (it.hasNext()) {

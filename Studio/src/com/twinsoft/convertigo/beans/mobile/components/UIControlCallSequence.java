@@ -30,6 +30,8 @@ import com.twinsoft.convertigo.beans.sequences.GenericSequence;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.LocalCachePolicy;
+import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class UIControlCallSequence extends UIControlCallAction {
@@ -46,6 +48,26 @@ public class UIControlCallSequence extends UIControlCallAction {
 		return cloned;
 	}
 
+	private LocalCachePolicy cachePolicy = LocalCachePolicy.None;
+	
+	public LocalCachePolicy getCachePolicy() {
+		return cachePolicy;
+	}
+
+	public void setCachePolicy(LocalCachePolicy policy) {
+		this.cachePolicy = policy;
+	}
+	
+	private long cacheTtl = 3000L;
+	
+	public long getCacheTimeToLive() {
+		return cacheTtl;
+	}
+	
+	public void setCacheTimeToLive(long cacheTtl) {
+		this.cacheTtl = cacheTtl;
+	}
+	
 	@Override
 	protected String getRequestableTarget() {
 		String requestableTarget = getTarget();
@@ -55,6 +77,17 @@ public class UIControlCallSequence extends UIControlCallAction {
 		return requestableTarget;
 	}
 	
+	
+	@Override
+	protected StringBuilder initParameters() {
+		StringBuilder parameters =  super.initParameters();
+		if (!LocalCachePolicy.None.equals(cachePolicy)) {
+			parameters.append(Parameter.LocalCachePriority.getName() + ": " + "'"+cachePolicy.value()+"'")
+					.append(", ").append(Parameter.LocalCacheTimeToLive.getName() + ": " + cacheTtl);
+		}
+		return parameters;
+	}
+
 	@Override
 	public void importVariableDefinition() {
 		Sequence targetSequence = getTargetSequence();
@@ -103,4 +136,5 @@ public class UIControlCallSequence extends UIControlCallAction {
 			}
 		}
     }
+
 }

@@ -92,7 +92,12 @@ public enum Parameter {
 	WidgetName("__widget_name"),
 	WidgetType("__widget_type"),
 	
-	ContentType("__content_type");
+	ContentType("__content_type"),
+	
+	LocalCachePriority("__localCache_priority"),
+	LocalCacheTimeToLive("__localCache_ttl"),
+	
+	;
 	
 	String param_name;
 	

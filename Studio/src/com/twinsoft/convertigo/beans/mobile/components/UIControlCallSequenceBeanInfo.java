@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.beans.mobile.components;
 import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
+import com.twinsoft.convertigo.engine.enums.LocalCachePolicy;
 
 public class UIControlCallSequenceBeanInfo extends MySimpleBeanInfo {
 	
@@ -41,9 +42,20 @@ public class UIControlCallSequenceBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[0];
+			properties = new PropertyDescriptor[2];
 			
+            properties[0] = new PropertyDescriptor("cachePolicy", beanClass, "getCachePolicy", "setCachePolicy");
+            properties[0].setDisplayName(getExternalizedString("property.cachePolicy.display_name"));
+            properties[0].setShortDescription(getExternalizedString("property.cachePolicy.short_description"));  
+            properties[0].setPropertyEditorClass(LocalCachePolicy.class);
+            
+            properties[1] = new PropertyDescriptor("cacheTtl", beanClass, "getCacheTimeToLive", "setCacheTimeToLive");
+            properties[1].setDisplayName(getExternalizedString("property.cacheTtl.display_name"));
+            properties[1].setShortDescription(getExternalizedString("property.cacheTtl.short_description"));  
+            
+            
 			getPropertyDescriptor("target").setPropertyEditorClass(getEditorClass("NamedSourceSelectorEditor"));
+			
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
