@@ -509,7 +509,7 @@
     "Button": {
       "tag": "button",
       "label": "Button",
-      "description": "Buttons are an essential way to interact with and navigate through an app, and should clearly communicate what action will occur after the user taps them. Buttons can consist of text and/or an icon, and can be enhanced with a wide variety of attributes",
+      "description": "Defines a button. | Buttons are an essential way to interact with and navigate through an app, and should clearly communicate what action will occur after the user taps them.<br/>Buttons can consist of text and/or an icon, and can be enhanced with a wide variety of attributes",
       "group": "Buttons",
       "icon16": "button_color_16x16.png",
       "icon32": "button_color_32x32.png",
@@ -536,7 +536,7 @@
     "FabButton": {
       "tag": "button",
       "label": "FAB Button",
-      "description": "FABs (Floating Action Buttons) are standard material design components. They are shaped as a circle that represents a promoted action. When pressed, it may contain more related actions. FABs as its name suggests are floating over the content in a fixed position. You can add icons in the button to represent a given function",
+      "description": "Defines a floating button. | FABs (Floating Action Buttons) are standard material design components.<br/>They are shaped as a circle that represents a promoted action. When pressed, it may contain more related actions.<br/>FABs as its name suggests are floating over the content in a fixed position. You can add icons in the button to represent a given function.",
       "group": "Buttons",
       "icon16": "fab_16x16.png",
       "icon32": "fab_32x32.png",
@@ -559,7 +559,7 @@
     "FabContainer": {
       "tag": "ion-fab",
       "label": "FAB container",
-      "description": "Place your FAB buttons (Floating Action Button) in this container to make them non scrollable with content",
+      "description": "Defines a container for floating buttons. | Place your FAB buttons (Floating Action Button) in this container to make them non scrollable with content.",
       "group": "Buttons",
       "icon16": "container_fab_16x16.png",
       "icon32": "container_fab_32x32.png",
@@ -599,7 +599,7 @@
     "Icon": {
       "tag": "ion-icon",
       "label": "Icon",
-      "description": "More than 700+ Ionicons icons we all come to know and love. Can be used in buttons",
+      "description": "Defines an icon. | More than 700+ Ionicons icons we all come to know and love.<br/>Can be used in buttons.",
       "group": "Buttons",
       "icon16": "icon_color_16x16.png",
       "icon32": "icon_color_32x32.png",
@@ -616,7 +616,7 @@
     "ButtonSet": {
       "tag": "ion-buttons",
       "label": "Button Set",
-      "description": "Defines a set of buttons to be used within other components. For example, buttons can be added to a list item or a navbar. You can define if buttons are aligned left (start) or right (end)",
+      "description": "Defines a set of buttons to be used within other components. | For example, buttons can be added to a list item or a navigation bar.<br/>You can define whether buttons are aligned left (start) or right (end).",
       "group": "Buttons",
       "icon16": "buttonset_color_16x16.png",
       "icon32": "buttonset_color_32x32.png",
@@ -636,12 +636,11 @@
         }
       }
     },
-
-
+	
     "Content": {
       "tag": "ion-content",
       "label": "Content",
-      "description": "Defines a content area",
+      "description": "Defines a content area. | ",
       "group": "Containers",
       "icon16": "content_color_16x16.png",
       "icon32": "content_color_32x32.png",
@@ -661,20 +660,22 @@
         }
       }
     },
+    
     "Footer": {
       "tag": "ion-footer",
       "label": "Footer",
-      "description": "Defines a page footer",
+      "description": "Defines a page footer. | ",
       "group": "Containers",
       "icon16": "footer_color_16x16.png",
       "icon32": "footer_color_32x32.png",
       "properties": {
       }
     },
+    
     "Header": {
       "tag": "ion-header",
       "label": "Header",
-      "description": "Defines a page header",
+      "description": "Defines a page header. | ",
       "group": "Containers",
       "icon16": "header_color_16x16.png",
       "icon32": "header_color_32x32.png",
@@ -685,7 +686,7 @@
     "Heading1": {
       "tag": "h1",
       "label": "H1",
-      "description": "Defines a heading 1",
+      "description": "Defines a heading 1. | ",
       "group": "HTML",
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
@@ -703,10 +704,11 @@
         "IonColor": false
       }
     },
+    
     "Heading2": {
       "tag": "h2",
       "label": "H2",
-      "description": "Defines a heading 2",
+      "description": "Defines a heading 2. | ",
       "group": "HTML",
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
@@ -724,10 +726,11 @@
         "IonColor": false
       }
     },
+    
     "Heading3": {
       "tag": "h3",
       "label": "H3",
-      "description": "Defines a heading 3",
+      "description": "Defines a heading 3. | ",
       "group": "HTML",
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
@@ -745,10 +748,11 @@
         "IonColor": false
       }
     },
+    
     "Heading4": {
       "tag": "h4",
       "label": "H4",
-      "description": "Defines a heading 4",
+      "description": "Defines a heading 4. | ",
       "group": "HTML",
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
@@ -766,10 +770,11 @@
         "IonColor": false
       }
     },
+    
     "Heading5": {
       "tag": "h5",
       "label": "H5",
-      "description": "Defines a heading 5",
+      "description": "Defines a heading 5. | ",
       "group": "HTML",
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
@@ -787,10 +792,11 @@
         "IonColor": false
       }
     },
+    
     "Heading6": {
       "tag": "h6",
       "label": "H6",
-      "description": "Defines a heading 6",
+      "description": "Defines a heading 6. | ",
       "group": "HTML",
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
@@ -812,29 +818,31 @@
     "Paragraph": {
       "tag": "p",
       "label": "Paragraph (P)",
-      "description": "Defines a paragraph",
+      "description": "Defines a paragraph. | ",
       "group": "HTML",
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
       "properties": {
       }
     },
+    
     "Break": {
       "tag": "br",
       "label": "Break",
       "autoClose": true,
-      "description": "Defines a break as a line return",
+      "description": "Defines a break as a line return. | ",
       "group": "HTML",
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
       "properties": {
       }
     },
+    
     "Image": {
       "tag": "img",
       "label": "img",
       "autoClose": true,
-      "description": "Defines an Image resource",
+      "description": "Defines an image resource. | ",
       "group": "HTML",
       "icon16": "img_HTML_color_16x16.png",
       "icon32": "img_HTML_color_32x32.png",
@@ -878,7 +886,7 @@
     "NavBar": {
       "tag": "ion-navbar",
       "label": "NavBar",
-      "description": "If your page has an <ion-navbar>, a back button will automatically be added to it if it is not a root page, and the title of the Nav Bar will be updated.",
+      "description": "Defines a navigation bar. | If your page has an &lt;ion-navbar&gt;, a back button will automatically be added to it if it is not a root page, and the title of the bar will be updated.",
       "group": "Components",
       "icon16": "navbar_color_16x16.png",
       "icon32": "navbar_color_32x32.png",
@@ -903,7 +911,7 @@
     "Scroll": {
       "tag": "ion-scroll",
       "label": "Scroll Area",
-      "description": "Scroll is a non-flexboxed scroll area that can scroll horizontally or vertically. ion-Scroll Can be used in places where you may not need a full page scroller, but a highly customized one, such as image scubber or comment scroller.",
+      "description": "Defines a scroll area. | Scroll is a non-flexboxed scroll area that can scroll horizontally or vertically.<br/>ion-Scroll can be used in places where you may not need a full page scroller, but a highly customized one, such as image scubber or comment scroller.",
       "group": "Containers",
       "icon16": "scroll_color_16x16.png",
       "icon32": "scroll_color_32x32.png",
@@ -957,7 +965,7 @@
     "ToolBar": {
       "tag": "ion-toolbar",
       "label": "ToolBar",
-      "description": "A toolbar is a generic bar that can be used in an app as a header, sub-header, footer, or even sub-footer. Since ion-toolbar is based on flexbox, no matter how many toolbars you have in your page, they will be displayed correctly and ion-content will adjust accordingly.",
+      "description": "Defines a toolbar. | A toolbar is a generic bar that can be used in an app as a header, sub-header, footer, or even sub-footer.<br/>Since ion-toolbar is based on flexbox, no matter how many toolbars you have in your page, they will be displayed correctly and ion-content will adjust accordingly.",
       "group": "Containers",
       "icon16": "toolbar_color_16x16.png",
       "icon32": "toolbar_color_32x32.png",
@@ -966,10 +974,11 @@
         "BarMode": false
       }
     },
+    
     "BarTitle": {
       "tag": "ion-title",
       "label": "BarTitle",
-      "description": "Defines a bar title",
+      "description": "Defines a bar title. | ",
       "group": "Components",
       "icon16": "bartitle_color_16x16.png",
       "icon32": "bartitle_color_32x32.png",
@@ -980,7 +989,7 @@
     "Badge": {
       "tag": "ion-badge",
       "label": "Badge",
-      "description": "Badges are small components that typically communicate a numerical value to the user. They are typically used within an item.",
+      "description": "Defines a badge. | Badges are small components that typically communicate a numerical value to the user.<br/>They are typically used within an item.",
       "group": "Components",
       "icon16": "badge_color_16x16.png",
       "icon32": "badge_color_32x32.png",
@@ -995,7 +1004,7 @@
     "Slides": {
       "tag": "ion-slides",
       "label": "Slides",
-      "description": "Slides make it easy to create galleries, tutorials, and page-based layouts. Slides take a number of configuration options on the <ion-slides> component. The Slides component is a multi-section container. Each section can be swiped or dragged between. It contains any number of Slide components.",
+      "description": "Defines a slides. | Slides make it easy to create galleries, tutorials, and page-based layouts. Slides take a number of configuration options on the &lt;ion-slides&gt; component.<br/>The Slides component is a multi-section container. Each section can be swiped or dragged between. It contains any number of Slide components.",
       "group": "Slides",
       "icon16": "slides_color_16x16.png",
       "icon32": "slides_color_32x32.png",
@@ -1122,7 +1131,7 @@
     "Slide": {
       "tag": "ion-slide",
       "label": "Slide",
-      "description": "A Slide in a <ion-slides> component.",
+      "description": "Defines a slide. | A Slide in a &lt;ion-slides&gt; component.",
       "group": "Slides",
       "icon16": "slide_color_16x16.png",
       "icon32": "slide_color_32x32.png"
@@ -1133,7 +1142,7 @@
     "Segment": {
       "tag": "ion-segment",
       "label": "Segment",
-      "description": "A Segment is a group of buttons, sometimes known as Segmented Controls, that allow the user to interact with a compact group of a number of controls. Segments provide functionality similar to tabs, selecting one will unselect all others",
+      "description": "Defines a segment. | A Segment is a group of buttons, sometimes known as segmented controls, that allow the user to interact with a compact group of a number of controls.<br/>Segments provide functionality similar to tabs, selecting one will unselect all others.",
       "group": "Buttons",
       "icon16": "segment_color_16x16.png",
       "icon32": "segment_color_32x32.png",
@@ -1152,7 +1161,7 @@
     "SegmentButton": {
       "tag": "ion-segment-button",
       "label": "Segment button",
-      "description": "A Button segment in a Segment",
+      "description": "Defines a button in a Segment. | ",
       "group": "Buttons",
       "icon16": "segment-button_color_16x16.png",
       "icon32": "segment-button_color_32x32.png",
@@ -1172,7 +1181,7 @@
     "List": {
       "tag": "ion-list",
       "label": "List",
-      "description": "Lists are used to display rows of information. You can insert buttons in lists to make list items clickable. You can also insert many other components such as icons, avatars or thumbnails",
+      "description": "Defines a list. | Lists are used to display rows of information.<br/>You can insert buttons in lists to make list items clickable. You can also insert many other components such as icons, avatars or thumbnails.",
       "group": "Lists",
       "icon16": "list_16x16.png",
       "icon32": "list_32x32.png",
@@ -1203,7 +1212,7 @@
     "Listheader": {
       "tag": "ion-list-header",
       "label": "List Header",
-      "description": "Each list can include a header at the top of the list:",
+      "description": "Defines a list header. | Each list can include a header at the top of the list.",
       "group": "Lists",
       "icon16": "listheader_16x16.png",
       "icon32": "listheader_32x32.png",
@@ -1214,7 +1223,7 @@
     "Listgroup": {
       "tag": "ion-item-group",
       "label": "List Group",
-      "description": "To divide groups of items, use <ion-item-group> instead of <ion-list>. Use <ion-item-divider> components to divide the group in to multiple sections",
+      "description": "Defines a list group. | To divide groups of items, use &lt;ion-item-group&gt; instead of &lt;ion-list&gt;.<br/>Use &lt;ion-item-divider&gt; components to divide the group in to multiple sections.",
       "group": "Lists",
       "icon16": "listgroup_16x16.png",
       "icon32": "listgroup_32x32.png",
@@ -1225,7 +1234,7 @@
     "Listdivider": {
       "tag": "ion-item-divider",
       "label": "List divider",
-      "description": "To divide groups of items, use <ion-item-group> instead of <ion-list>. Use <ion-item-divider> components to divide the group in to multiple sections",
+      "description": "Defines a list divider. | To divide groups of items, use &lt;ion-item-group&gt; instead of &lt;ion-list&gt;.<br/>Use &lt;ion-item-divider&gt; components to divide the group in to multiple sections.",
       "group": "Lists",
       "icon16": "listdivider_16x16.png",
       "icon32": "listdivider_32x32.png",
@@ -1237,7 +1246,7 @@
     "Avatar": {
       "tag": "ion-avatar",
       "label": "List avatar",
-      "description": "Item avatars showcase an image larger than an icon, but smaller than a thumbnail. To use an avatar, add an <ion-avatar> component inside of an item. The position of the avatar can be set using the item-left and item-right attributes",
+      "description": "Defines an avatar. | Item avatars showcase an image larger than an icon, but smaller than a thumbnail.<br/>To use an avatar, add an &lt;ion-avatar&gt; component inside of an item. The position of the avatar can be set using the item-left and item-right attributes.",
       "group": "Lists",
       "icon16": "listavatar_16x16.png",
       "icon32": "listavatar_32x32.png",
@@ -1249,7 +1258,7 @@
     "Thumbnail": {
       "tag": "ion-thumbnail",
       "label": "List thumbnail",
-      "description": "Item thumbnails showcase an image that takes up the entire height of an item. To use a thumbnail, add an <ion-thumbnail> component inside of an item. The position of the thumbnail can be set using the item-left and item-right attributes",
+      "description": "Defines a thumbnail. | Item thumbnails showcase an image that takes up the entire height of an item.<br/>To use a thumbnail, add an &lt;ion-thumbnail&gt; component inside of an item. The position of the thumbnail can be set using the item-left and item-right attributes.",
       "group": "Lists",
       "icon16": "thumbnail_16x16.png",
       "icon32": "thumbnail_32x32.png",
@@ -1261,7 +1270,7 @@
     "Sliding": {
       "tag": "ion-item-sliding",
       "label": "Sliding Item",
-      "description": "Sliding items can be swiped to the left or right to reveal a hidden set of buttons. To use a sliding item, add an ion-item-sliding component inside of an ion-list component. Next, add an <ion-item-options> component inside of the sliding item to contain the buttons.",
+      "description": "Defines a sliding item. | Sliding items can be swiped to the left or right to reveal a hidden set of buttons.<br/>To use a sliding item, add an ion-item-sliding component inside of an ion-list component. Next, add an &lt;ion-item-options&gt; component inside of the sliding item to contain the buttons.",
       "group": "Lists",
       "icon16": "sliding_16x16.png",
       "icon32": "sliding_32x32.png",
@@ -1272,7 +1281,7 @@
     "SlidingOption": {
       "tag": "ion-item-options",
       "label": "Sliding options",
-      "description": "Add an <ion-item-options> component inside a sliding item to contain the buttons.",
+      "description": "Defines a sliding option. | Add an &lt;ion-item-options&gt; component inside a sliding item to contain the buttons.",
       "group": "Lists",
       "icon16": "slidingoption_16x16.png",
       "icon32": "slidingoption_32x32.png",
@@ -1295,7 +1304,7 @@
     "ListItem": {
       "tag": "ion-item",
       "label": "List Item",
-      "description": "An Item in a list. Can be replaced by a button with the ion-item type to be clickable. Can also contain sliding options to reveal buttons when swiped left or right",
+      "description": "Defines a list item. | Can be replaced by a button with the ion-item type to be clickable.<br/>Can also contain sliding options to reveal buttons when swiped left or right.",
       "group": "Lists",
       "icon16": "list_item_16x16.png",
       "icon32": "list_item_32x32.png",
@@ -1309,7 +1318,7 @@
     "Label": {
       "tag": "ion-label",
       "label": "Label",
-      "description": "Field labels.",
+      "description": "Defines a field label. | ",
       "group": "Forms",
       "icon16": "label_color_16x16.png",
       "icon32": "label_color_32x32.png",
@@ -1355,7 +1364,7 @@
     "Input": {
       "tag": "ion-input",
       "label": "Input",
-      "description": "ion-input is meant for text type inputs only, such as text, password, email, number, search, tel, and url.",
+      "description": "Defines a form input. | ion-input is meant for text type inputs only, such as text, password, email, number, search, tel, and url.",
       "group": "Forms",
       "icon16": "input_color_16x16.png",
       "icon32": "input_color_32x32.png",
@@ -1500,7 +1509,7 @@
     "CheckBox": {
       "tag": "ion-checkbox",
       "label": "Checkbox",
-      "description": "A checkbox is an input component that holds a boolean value. Checkboxes are no different than HTML checkbox inputs. However, like other Ionic components, checkboxes are styled differently on each platform. Use the checked attribute to set the default value, and the disabled attribute to disable the user from changing the value.",
+      "description": "Defines a checkbox. | A checkbox is an input component that holds a boolean value.<br/>Checkboxes are no different than HTML checkbox inputs. However, like other Ionic components, checkboxes are styled differently on each platform.<br/>Use the checked attribute to set the default value, and the disabled attribute to disable the user from changing the value.",
       "group": "Forms",
       "icon16": "input_checkbox_16x16.png",
       "icon32": "input_checkbox_32x32.png",
@@ -1537,7 +1546,7 @@
     "DateTime": {
       "tag": "ion-datetime",
       "label": "DateTime",
-      "description": "The DateTime component is used to present an interface which makes it easy for users to select dates and times. The DateTime component is similar to the native <input type='datetime-local'> element, however, Ionic’s DateTime component makes it easy to display the date and time in a preferred format, and manage the datetime values.",
+      "description": "Defines a datetime. | The DateTime component is used to present an interface which makes it easy for users to select dates and times.<br/>The DateTime component is similar to the native <input type='datetime-local'> element, however, Ionic’s DateTime component makes it easy to display the date and time in a preferred format, and manage the datetime values.",
       "group": "Forms",
       "icon16": "input_datetime_16x16.png",
       "icon32": "input_datetime_32x32.png",
@@ -1577,7 +1586,7 @@
     "Range": {
       "tag": "ion-range",
       "label": "Range slider",
-      "description": "The Range slider lets users select from a range of values by moving the slider knob. It can accept dual knobs, but by default one knob controls the value of the range.",
+      "description": "Defines a range slider. | The Range slider lets users select from a range of values by moving the slider knob.<br/>It can accept dual knobs, but by default one knob controls the value of the range.",
       "group": "Forms",
       "icon16": "range_16x16.png",
       "icon32": "range_32x32.png",
@@ -1652,7 +1661,7 @@
     "Grid": {
       "tag": "ion-grid",
       "label": "Grid",
-      "description": "Grid system is based on flexbox, a CSS feature supported by all devices. The grid is composed of three units : grid, rows and columns.",
+      "description": "Defines a grid. | Grid system is based on flexbox, a CSS feature supported by all devices.<br/>The grid is composed of three units : grid, rows and columns.",
       "group": "Grid System",
       "icon16": "grid_color_16x16.png",
       "icon32": "grid_color_32x32.png",
@@ -1698,7 +1707,7 @@
     "GridRow": {
       "tag": "ion-row",
       "label": "Grid Row",
-      "description": "A grid row. Must be inserted in a Grid and contains Columns. A row is composed of 12 slots that can be filled with columns",
+      "description": "Defines a grid row. | Must be inserted in a Grid and contains Columns.<br/>A row is composed of 12 slots that can be filled with columns.",
       "group": "Grid System",
       "icon16": "grid_row_color_16x16.png",
       "icon32": "grid_row_color_32x32.png",
@@ -1840,7 +1849,7 @@
     "GridCol": {
       "tag": "ion-col",
       "label": "Grid Column",
-      "description": "A grid column. Must be inserted in a Grid row and contains components or HTML",
+      "description": "Defines a grid column. | Must be inserted in a Grid row and contains components or HTML.",
       "group": "Grid System",
       "icon16": "grid_column_color_16x16.png",
       "icon32": "grid_column_color_32x32.png",
@@ -2174,7 +2183,7 @@
     "Card": {
       "tag": "ion-card",
       "label": "Card",
-      "description": "Cards are a great way to display important pieces of content, and are quickly emerging as a core design pattern for apps. They're are a great way to contain and organize information, while also setting up predictable expectations for the user. With so much content to display at once, and often so little screen realestate, cards have fast become the design pattern of choice for many companies, including the likes of Google, Twitter, and Spotify.",
+      "description": "Defines a card. | Cards are a great way to display important pieces of content, and are quickly emerging as a core design pattern for apps.<br/>They're are a great way to contain and organize information, while also setting up predictable expectations for the user.<br/>With so much content to display at once, and often so little screen realestate, cards have fast become the design pattern of choice for many companies, including the likes of Google, Twitter, and Spotify.",
       "group": "Cards",
       "icon16": "card_color_16x16.png",
       "icon32": "card_color_32x32.png",
@@ -2185,7 +2194,7 @@
     "CardHeader": {
       "tag": "ion-card-header",
       "label": "Card Header",
-      "description": "Just like a normal page, cards can be customized to include headers. To add a header to a card, add the <ion-card-header> component inside of your card",
+      "description": "Defines a card header. | Just like a normal page, cards can be customized to include headers.<br/>To add a header to a card, add the &lt;ion-card-header&gt; component inside of your card.",
       "group": "Cards",
       "icon16": "cardheader_color_16x16.png",
       "icon32": "cardheader_color_32x32.png",
@@ -2196,7 +2205,7 @@
     "CardContent": {
       "tag": "ion-card-content",
       "label": "Card Content",
-      "description": "The content part of the card",
+      "description": "Defines a card content. | The content part of the card.",
       "group": "Cards",
       "icon16": "cardcontent_color_16x16.png",
       "icon32": "cardcontent_color_32x32.png",
@@ -2207,7 +2216,7 @@
     "TextFormat": {
       "tag": "div",
       "label": "Text format",
-      "description": "Text formatting such as alignments to left right and center or text transformations. Will be applied to all underlying text nodes.",
+      "description": "Defines a text format. | Text formatting such as alignments to left right and center or text transformations.<br/>Will be applied to all underlying text nodes.",
       "group": "Formatting",
       "icon16": "textformat_color_16x16.png",
       "icon32": "textformat_color_32x32.png",

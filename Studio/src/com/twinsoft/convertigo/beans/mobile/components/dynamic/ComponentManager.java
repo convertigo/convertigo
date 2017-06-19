@@ -337,7 +337,7 @@ public class ComponentManager {
 
 			@Override
 			public String getDescription() {
-				String description = bd.getShortDescription().split("\\|")[0];
+				String description = bd.getShortDescription();
 				return bd != null ? description : dboClass.getSimpleName();
 			}
 
