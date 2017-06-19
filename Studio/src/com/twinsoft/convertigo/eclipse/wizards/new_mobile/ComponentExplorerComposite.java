@@ -22,7 +22,6 @@
 
 package com.twinsoft.convertigo.eclipse.wizards.new_mobile;
 
-import java.beans.BeanDescriptor;
 import java.beans.BeanInfo;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -77,7 +76,7 @@ public class ComponentExplorerComposite extends Composite {
 			SWT.COLOR_WIDGET_HIGHLIGHT_SHADOW);
 
 	//private String technology = null;
-	private Class<? extends DatabaseObject> databaseObjectClass = null;
+	protected Class<? extends DatabaseObject> databaseObjectClass = null;
 	protected CLabel currentSelectedObject = null;
 
 	private DatabaseObject parentObject = null;
@@ -114,7 +113,7 @@ public class ComponentExplorerComposite extends Composite {
 		super(parent, style);
 
 		objectsMap = new HashMap<CLabel, Object>(32);
-		initializePalette();
+		initialize();
 	}
 	
 	protected void findDatabaseObjects() {
@@ -173,7 +172,7 @@ public class ComponentExplorerComposite extends Composite {
 		
 					Component currentSelectedComponent = getCurrentSelectedComponent();
 					if (currentSelectedComponent != null) {
-						//updateHelpText(currentSelectedObjectBeanInfo);
+						updateHelpText(currentSelectedComponent);
 					}
 				}
 				
@@ -217,7 +216,7 @@ public class ComponentExplorerComposite extends Composite {
 
 			Component currentSelectedComponent = getCurrentSelectedComponent();
 			if (currentSelectedComponent != null) {
-				//updateHelpText(currentSelectedObjectBeanInfo);
+				updateHelpText(currentSelectedComponent);
 			}
 		}
 
@@ -274,7 +273,7 @@ public class ComponentExplorerComposite extends Composite {
 
 				Component currentSelectedComponent = getCurrentSelectedComponent();
 				if (currentSelectedComponent != null) {
-					//updateHelpText(currentSelectedObjectBeanInfo);
+					updateHelpText(currentSelectedComponent);
 				}
 			}
 
@@ -363,55 +362,6 @@ public class ComponentExplorerComposite extends Composite {
 				
 		this.setSize(new org.eclipse.swt.graphics.Point(800, 400));
 	}
-
-	protected void initializePalette() {
-
-		layout(true); 
-		layout(true, true); 
-		
-		setLayout(new GridLayout());
-		
-		GridData gridData;
-		gridData = new GridData();
-		gridData.horizontalAlignment = SWT.FILL;
-		gridData.grabExcessHorizontalSpace = true;
-		gridData.verticalAlignment = SWT.FILL;
-		gridData.grabExcessVerticalSpace = true;
-
-		scrolledComposite = new ScrolledComposite(this, SWT.V_SCROLL);
-		scrolledComposite.setLayoutData(gridData);
-		
-		bar = new ExpandBar(scrolledComposite, SWT.NONE);
-		bar.setSpacing(8);
-		
-		// find associated database objects
-		findDatabaseObjects();
-		
-		for (ExpandItem expandItem : bar.getItems()) {
-			/* update the item's height if needed in response to changes*/ 
-			final ExpandItem item = expandItem;
-			final Composite composite = (Composite) expandItem.getControl();	
-			composite.addControlListener(new ControlAdapter() {
-				public void controlResized(ControlEvent e) {
-					Point size = composite.getSize();
-					Point size2 = composite.computeSize(size.x,
-							SWT.DEFAULT);
-					item.setHeight(size2.y);
-		     }
-		    });
-		}
-		
-		scrolledComposite.setContent(bar);		
-		scrolledComposite.setExpandVertical(true);
-		scrolledComposite.setExpandHorizontal(true);
-		
-		scrolledComposite.addControlListener(new ControlAdapter() {
-			public void controlResized(ControlEvent e) {
-				Rectangle r = scrolledComposite.getClientArea();
-				scrolledComposite.setMinSize(bar.computeSize(r.width, SWT.DEFAULT));
-			}
-		});
-	}
 	
 	/*
 	 * (non-Javadoc)
@@ -447,7 +397,38 @@ public class ComponentExplorerComposite extends Composite {
 		return cleanDescription;
 	}
 
-	private void updateHelpText(BeanInfo bi) {
+	private void updateHelpText(Component component) {
+		String beanDisplayName = component.getLabel();
+		
+		String beanDescription = component.getDescription();
+		String[] beanDescriptions = beanDescription.split("\\|");
+		String beanShortDescription = beanDescriptions.length >= 1 ? beanDescriptions[0] : "n/a";
+		String beanLongDescription = beanDescriptions.length >= 2 ? beanDescriptions[1] : "n/a";
+		
+		beanShortDescription = cleanDescription(beanShortDescription,true);
+		beanLongDescription = cleanDescription(beanLongDescription,true);
+		
+		if (helpBrowser != null) {
+			helpBrowser.setText("<html>" +
+									"<head>" +
+									"<script type=\"text/javascript\">"+
+								        "document.oncontextmenu = new Function(\"return false\");"+
+								    "</script>"+
+											"<style type=\"text/css\">"+
+												  "body {"+
+												    "font-family: Courrier new, sans-serif;"+
+												    "font-size: 14px;"+
+												    "padding-left: 0.3em;"+
+												    "background-color: #ECEBEB }"+
+											"</style>"+
+									"</head><p>" 
+								+ "<font size=\"4.5\"><u><b>"+beanDisplayName+"</b></u></font>" + "<br><br>" 
+								+ "<i>"+beanShortDescription+"</i>" + "<br><br>" 
+								+ beanLongDescription + "</p></html>");
+		}
+	}
+	
+	/*private void updateHelpText(BeanInfo bi) {
 		BeanDescriptor beanDescriptor = bi.getBeanDescriptor();
 		boolean isDocumented = documentedDboList.contains(beanDescriptor.getBeanClass().getName());
 		String beanDescription = isDocumented ? beanDescriptor.getShortDescription():"Not yet documented. |";
@@ -477,6 +458,6 @@ public class ComponentExplorerComposite extends Composite {
 								+ "<i>"+beanShortDescription+"</i>" + "<br><br>" 
 								+ beanLongDescription + "</p></html>");
 		}
-	}
+	}*/
 
 } // @jve:decl-index=0:visual-constraint="10,10"
