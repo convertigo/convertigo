@@ -97,6 +97,7 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 			// Get filepath of page's temporary TypeScript file
 			String filePath = page.getProject().getMobileBuilder().getTempTsRelativePath(page);
 			IFile file = project.getFile(filePath);
+			file.refreshLocal(IResource.DEPTH_ZERO, null);
 			
 			// Open file in editor
 			if (file.exists()) {

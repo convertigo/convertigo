@@ -203,6 +203,7 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 			// Get filepath of application.component.ts file
 			String filePath = application.getProject().getMobileBuilder().getTempTsRelativePath(application);
 			IFile file = project.getFile(filePath);
+			file.refreshLocal(IResource.DEPTH_ZERO, null);
 			
 			// Open file in editor
 			if (file.exists()) {
