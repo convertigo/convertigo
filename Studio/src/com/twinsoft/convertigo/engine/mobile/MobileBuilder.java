@@ -452,7 +452,7 @@ public class MobileBuilder {
 				String c8o_PageName = pageName;
 				String c8o_PageTplUrl = pageName.toLowerCase() + ".html";
 				String c8o_PageSelector = "page-"+pageName.toLowerCase();
-				String c8o_Markers = page.getScriptContent();
+				String c8o_Markers = page.getScriptContent().getString();
 				String c8o_ActionMarkers = page.getComputedScriptContent();
 				
 				File pageTplTs = new File(ionicTplDir, "src/page.tpl");
@@ -546,7 +546,7 @@ public class MobileBuilder {
 				String c8o_PagesImport = "";
 				String c8o_PagesVariables = "";
 				String c8o_RootPage = "null";
-				String c8o_AppComponentMarkers = app.getComponentScriptContent();
+				String c8o_AppComponentMarkers = app.getComponentScriptContent().getString();
 				int i=1;
 				
 				

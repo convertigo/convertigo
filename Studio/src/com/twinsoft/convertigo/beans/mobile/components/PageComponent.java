@@ -29,13 +29,18 @@ import java.util.List;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
+import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 @DboCategoryInfo(
 		getCategoryId = "PageComponent",
@@ -76,6 +81,35 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 		element.setAttribute("isRoot", new Boolean(isRoot).toString());
         
 		return element;
+	}
+	
+	@Override
+	public void preconfigure(Element element) throws Exception {
+		super.preconfigure(element);
+		
+		try {
+			NodeList properties = element.getElementsByTagName("property");
+			
+			// migration of scriptContent from String to FormatedContent
+			Element propElement = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "scriptContent");
+			if (propElement != null) {
+				Element valueElement = (Element) XMLUtils.findChildNode(propElement, Node.ELEMENT_NODE);
+				if (valueElement != null) {
+					Document document = valueElement.getOwnerDocument();
+					Object content = XMLUtils.readObjectFromXml(valueElement);
+					if (content instanceof String) {
+						FormatedContent formated = new FormatedContent((String) content);
+						Element newValueElement = (Element)XMLUtils.writeObjectToXml(document, formated);
+						propElement.replaceChild(newValueElement, valueElement);
+						hasChanged = true;
+						Engine.logBeans.warn("(PageComponent) 'scriptContent' has been updated for the object \"" + getName() + "\"");
+					}
+				}
+			}
+		}
+        catch(Exception e) {
+            throw new EngineException("Unable to preconfigure the page component \"" + getName() + "\".", e);
+        }
 	}
 	
 	@Override
@@ -316,13 +350,13 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 		this.segment = segment;
 	}
 
-	protected String scriptContent = "";
+	protected FormatedContent scriptContent = new FormatedContent("");
 
-	public String getScriptContent() {
+	public FormatedContent getScriptContent() {
 		return scriptContent;
 	}
 
-	public void setScriptContent(String scriptContent) {
+	public void setScriptContent(FormatedContent scriptContent) {
 		this.scriptContent = scriptContent;
 	}
 	

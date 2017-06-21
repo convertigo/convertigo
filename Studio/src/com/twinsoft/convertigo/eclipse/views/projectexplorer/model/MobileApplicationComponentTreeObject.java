@@ -38,6 +38,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 
+import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
@@ -238,7 +239,7 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 									ITextEditor editor = (ITextEditor)source;
 									IDocumentProvider dp = editor.getDocumentProvider();
 									IDocument doc = dp.getDocument(editor.getEditorInput());
-									String componentScriptContent = MobileBuilder.getMarkers(doc.get());
+									FormatedContent componentScriptContent = new FormatedContent(MobileBuilder.getMarkers(doc.get()));
 									MobileApplicationComponentTreeObject.this.setPropertyValue("componentScriptContent", componentScriptContent);
 								}
 							}

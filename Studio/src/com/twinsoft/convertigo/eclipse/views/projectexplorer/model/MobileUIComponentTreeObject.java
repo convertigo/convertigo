@@ -48,6 +48,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.views.properties.PropertyDescriptor;
 import org.eclipse.ui.views.properties.TextPropertyDescriptor;
 
+import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
@@ -173,7 +174,8 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 											content += lines[i] + System.lineSeparator();
 										}
 									}
-									MobileUIComponentTreeObject.this.setPropertyValue("actionValue", content);
+									FormatedContent formated = new FormatedContent(content);
+									MobileUIComponentTreeObject.this.setPropertyValue("actionValue", formated);
 								}
 							}
 						}
