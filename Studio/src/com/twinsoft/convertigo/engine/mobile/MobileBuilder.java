@@ -24,7 +24,6 @@ package com.twinsoft.convertigo.engine.mobile;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -44,10 +43,8 @@ import com.twinsoft.convertigo.engine.util.FileUtils;
 
 public class MobileBuilder {
 	
-	private BuilderCommand command = null;
 	private Project project = null;
 	boolean initDone = false;
-	boolean watching = false;
 	
 	File projectDir, ionicTplDir, ionicWorkDir;
 	
@@ -73,7 +70,6 @@ public class MobileBuilder {
 	
 	public MobileBuilder(Project project) {
 		this.project = project;
-		this.command = new BuilderCommand();
 		
 		projectDir = new File(project.getDirPath());
 		ionicTplDir = new File(projectDir,"ionicTpl");
@@ -84,63 +80,7 @@ public class MobileBuilder {
 		File nodeModulesDir = new File(ionicWorkDir,"node_modules");
 		return nodeModulesDir.exists();
 	}
-	
-	public boolean isWatching() {
-		return watching;
-	}
-	
-	public void cmdStartWatch() throws BuilderException {
-		if (!watching) {
-			
-			Engine.execute(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						List<String> parameters = new LinkedList<String>();
-						
-						// Check for npm installation
-						parameters.clear();
-						parameters.add("--version");
-						String npmVersion = command.run(ionicWorkDir, "npm", parameters, true);
-						Pattern pattern = Pattern.compile("^([0-9])+\\.([0-9])+\\.([0-9])+$");
-						Matcher matcher = pattern.matcher(npmVersion);			
-						Engine.logEngine.debug("(MobileBuilder) npm version is "+ npmVersion);
-						if (!matcher.find()){
-							throw new MissingNodeJsException("You must download and install nodes.js from https://nodejs.org/en/download/");
-						}
-						
-						// Check for node modules installation
-						if (!hasNodeModules()) {
-							throw new MissingNodeModules("Node modules not installed");
-						}
-						
-						// Run npm watch for the app
-						Engine.logEngine.debug("(MobileBuilder) starting watch...");
-						watching = true;
-						parameters.clear();
-						parameters.add("run");
-						parameters.add("watch");
-						command.run(ionicWorkDir, "npm", parameters, true);
-					}
-					catch (Throwable e) {
-						Engine.logEngine.error("(MobileBuilder) Start watch failed!", e);
-						//throw new BuilderException("Start watch failed", e);
-					}
-					finally {
-						watching = false;
-					}
-				}
-			});
-		}
-	}
-	
-	public void cmdStopWatch() {
-		if (watching) {
-			Engine.logEngine.debug("(MobileBuilder) stopping watch...");
-			command.cancel();
-		}
-	}
-	
+		
 	public synchronized void appRootChanged(final ApplicationComponent app) throws EngineException {
 		if (app != null && initDone) {
 			writeAppComponentTs(app);
@@ -272,8 +212,6 @@ public class MobileBuilder {
 		if (isIonicTemplateBased()) {
 			// TODO ?
 		}
-		
-		cmdStopWatch();
 		
 		initDone = false;
 		Engine.logEngine.debug("(MobileBuilder) Released builder for ionic project '"+ project.getName() +"')");

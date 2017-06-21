@@ -980,20 +980,6 @@
                label="Page"
                menubarPath="convertigo.menu.new/content">
          </action>
-	     <action
-	           class="com.twinsoft.convertigo.eclipse.popup.actions.MobileBuilderAction"
-	           enablesFor="1"
-	           id="convertigo.action.mobilebuilder.startWatch"
-	           label="Start watch"
-	           menubarPath="npm">
-	     </action>
-	     <action
-	           class="com.twinsoft.convertigo.eclipse.popup.actions.MobileBuilderAction"
-	           enablesFor="1"
-	           id="convertigo.action.mobilebuilder.stopWatch"
-	           label="Stop watch"
-	           menubarPath="npm">
-	     </action>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.EditMobileComponentClassAction"
                enablesFor="1"
