@@ -680,13 +680,16 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	public void start(final BundleContext context) throws Exception {
 		super.start(context);
 
-		IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-		if (activePage != null) {
-			IEditorReference[] editorRefs = activePage.getEditorReferences();
-			for (int i = 0; i < editorRefs.length; i++) {
-				IEditorReference editorRef = (IEditorReference) editorRefs[i];
-				if ("org.eclipse.ui.internal.emptyEditorTab".equals(editorRef.getId())) {
-					activePage.closeEditors(new IEditorReference[] {editorRef}, false);
+		IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+		if (activeWindow != null) {
+			IWorkbenchPage activePage = activeWindow.getActivePage();
+			if (activePage != null) {
+				IEditorReference[] editorRefs = activePage.getEditorReferences();
+				for (int i = 0; i < editorRefs.length; i++) {
+					IEditorReference editorRef = (IEditorReference) editorRefs[i];
+					if ("org.eclipse.ui.internal.emptyEditorTab".equals(editorRef.getId())) {
+						activePage.closeEditors(new IEditorReference[] {editorRef}, false);
+					}
 				}
 			}
 		}
