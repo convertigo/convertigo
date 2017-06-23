@@ -26,25 +26,41 @@ import java.io.File;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaComplexType;
+import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaSequence;
+import org.apache.ws.commons.schema.constants.Constants;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
+import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
-public class WriteBase64Step extends WriteFileStep {
+public class WriteBase64Step extends WriteFileStep implements  IStepSourceContainer {
 
 	private static final long serialVersionUID = 2781335492473421310L;
+	
+	private transient String ComputedFilePath;
 
 	public WriteBase64Step() {
 		super();
+		this.xml = true;
 	}
 
 	@Override
     public WriteBase64Step clone() throws CloneNotSupportedException {
     	WriteBase64Step clonedObject = (WriteBase64Step) super.clone();
+    	clonedObject.ComputedFilePath = null;
         return clonedObject;
     }
 
@@ -69,6 +85,7 @@ public class WriteBase64Step extends WriteFileStep {
 		}
 		
 		String fullPathName = getAbsoluteFilePath(filePath);
+		ComputedFilePath = fullPathName;
 		synchronized (Engine.theApp.filePropertyManager.getMutex(fullPathName)) {
 			try {
 				for (Node node : XMLUtils.toNodeArray(nodeList)) {
@@ -90,4 +107,35 @@ public class WriteBase64Step extends WriteFileStep {
 			}
 		}
 	}
+	
+	@Override
+	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
+		if (StringUtils.isNotEmpty(ComputedFilePath)) {
+			Element keyElement = doc.createElement("filePath");
+			keyElement.setTextContent(ComputedFilePath);
+			stepNode.appendChild(keyElement);
+		}
+	}
+
+	@Override
+	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
+		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
+		
+		XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+		element.setType(cType);
+
+		XmlSchemaSequence sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
+		cType.setParticle(sequence);
+		SchemaMeta.setContainerXmlSchemaGroupBase(element, sequence);
+		
+		XmlSchemaElement elt = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+		sequence.getItems().add(elt);
+		elt.setName("filePath");
+		elt.setMinOccurs(0);
+		elt.setMaxOccurs(1);
+		elt.setSchemaTypeName(Constants.XSD_STRING);
+		
+		return element;
+	}
+
 }
