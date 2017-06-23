@@ -198,8 +198,10 @@ function configuration_List_init () {
 
 		$("input.config-text, input.config-password").keyup(function () {
 			$(".config-update").button("enable");			
-		}).change(function(){						
-			propertyMap[$(this).attr("name")] = $(this).val();
+		}).change(function() {
+			if ($(this).attr("name")) {
+				propertyMap[$(this).attr("name")] = $(this).val();
+			}
 		});
 		
 		$("select.config-combo").change(function () {
