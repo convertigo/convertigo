@@ -34,6 +34,7 @@ public class UIControlEvent extends UIControlAttr implements IControl {
 		onTap("(tap)"),
 		onPress("(press)"),
 		onPan("(pan)"),
+		onSubmit("(ngSubmit)"),
 		onSwipe("(swipe)"),
 		onRotate("(rotate)"),
 		onPinch("(pinch)"),

@@ -24,6 +24,8 @@ package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.util.Iterator;
 
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -113,7 +115,17 @@ public class UIControlCustomAction extends UIControlAction {
 	}
 
 	@Override
-	public String computeScriptContent() {
+	public void computeScripts(JSONObject jsonScripts) {
+		String function = computeActionFunction();
+		try {
+			String functions = jsonScripts.getString("functions") + function;
+			jsonScripts.put("functions", functions);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public String computeActionFunction() {
 		String computed = "";
 		if (isEnabled()) {
 			StringBuilder cartridge = new StringBuilder();
@@ -148,13 +160,13 @@ public class UIControlCustomAction extends UIControlAction {
 			computed += System.lineSeparator();
 			computed += cartridge;
 			computed += "\tCTS"+ this.priority + "("+ parameters +") {" + System.lineSeparator();
-			computed += getScriptContent();
+			computed += computeActionContent();
 			computed += System.lineSeparator() + "\t}";
 		}
 		return computed;
 	}
 	
-	private String getScriptContent() {
+	private String computeActionContent() {
 		String s = "";
 		s += "\t/*Begin_c8o_CTS"+ this.priority +"*/" + System.lineSeparator();
 		s += actionValue.getString() + System.lineSeparator();

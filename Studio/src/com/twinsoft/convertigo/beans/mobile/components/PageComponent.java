@@ -27,6 +27,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -64,9 +66,7 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 	public PageComponent clone() throws CloneNotSupportedException {
 		PageComponent cloned = (PageComponent) super.clone();
 		cloned.vUIComponents = new LinkedList<UIComponent>();
-		cloned.computedScriptContent = null;
-		cloned.computedTemplate = null;
-		cloned.computedStyle = null;
+		cloned.computedContents = null;
 		cloned.isRoot = false;
 		return cloned;
 	}
@@ -179,12 +179,7 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
     	ordered.remove(pos+1);
     	hasChanged = true;
     	
-    	if (databaseObject instanceof UIStyle) {
-    		markStyleAsDirty();
-    	}
-    	else {
-    		markTemplateAsDirty();
-    	}
+    	markPageAsDirty();
     }
     
     private void decreaseOrder(DatabaseObject databaseObject, Long after) throws EngineException {
@@ -208,13 +203,7 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
     	ordered.remove(pos);
     	hasChanged = true;
     	
-    	if (databaseObject instanceof UIStyle) {
-    		markStyleAsDirty();
-    	}
-    	else {
-    		markTemplateAsDirty();
-    	}
-    	
+    	markPageAsDirty();
     }
     
 	public void increasePriority(DatabaseObject databaseObject) throws EngineException {
@@ -262,15 +251,7 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
         insertOrderedComponent(uiComponent, after);
         
         if (isNew || isCut) {
-        	if (uiComponent instanceof UIStyle) {
-        		markStyleAsDirty();
-        	}
-        	else {
-        		markTemplateAsDirty();
-        		if (uiComponent.hasStyle()) {
-        			markStyleAsDirty();
-        		}
-        	}
+        	markPageAsDirty();
         }
 	}
 	
@@ -286,15 +267,7 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 		
         removeOrderedComponent(uiComponent.priority);
         
-    	if (uiComponent instanceof UIStyle) {
-    		markStyleAsDirty();
-    	}
-    	else {
-    		markTemplateAsDirty();
-    		if (uiComponent.hasStyle()) {
-    			markStyleAsDirty();
-    		}
-    	}
+        markPageAsDirty();
 	}
 
 	public List<UIComponent> getUIComponentList() {
@@ -360,46 +333,133 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 		this.scriptContent = scriptContent;
 	}
 	
-	transient private String computedScriptContent = null;
+	private transient JSONObject computedContents = null;
 	
-	public String getComputedScriptContent() {
-		if (computedScriptContent == null) {
-			doComputeScriptContent();
+	private JSONObject initJsonComputed() {
+		JSONObject jsonObject = null;
+		try {
+			jsonObject = new JSONObject()
+						.put("scripts", 
+								new JSONObject().put("imports", "")
+												.put("declarations", "")
+												.put("constructors", "")
+												.put("functions", ""))
+						.put("template", "")
+						.put("style", "");
+		} catch (JSONException e) {
+			e.printStackTrace();
 		}
-		return computedScriptContent;
+		return jsonObject;
 	}
 	
-	protected synchronized void doComputeScriptContent() {
-		computedScriptContent = computeScriptContent();
+	public JSONObject getComputedContents() {
+		if (computedContents == null) {
+			doComputeContents();
+		}
+		return computedContents;
+	}
+	
+	protected synchronized void doComputeContents() {
+		try {
+			JSONObject newComputedContent = initJsonComputed();
+			
+			computeScripts(newComputedContent.getJSONObject("scripts"));
+			newComputedContent.put("style", computeStyle());
+			newComputedContent.put("template", computeTemplate());
+			
+			computedContents = newComputedContent;
+			
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void markPageAsDirty() throws EngineException {
+		try {
+			JSONObject oldComputedContent = computedContents == null ? 
+					null :new JSONObject(computedContents.toString());
+			
+			doComputeContents();
+			
+			JSONObject newComputedContent = computedContents == null ? 
+					null :new JSONObject(computedContents.toString());
+			
+			if (oldComputedContent != null && newComputedContent != null) {
+				if (!(newComputedContent.getJSONObject("scripts").toString()
+						.equals(oldComputedContent.getJSONObject("scripts").toString()))) {
+					getProject().getMobileBuilder().pageTsChanged(this);
+				}
+			}
+			if (oldComputedContent != null && newComputedContent != null) {
+				if (!(newComputedContent.getString("style")
+						.equals(oldComputedContent.getString("style")))) {
+					getProject().getMobileBuilder().pageStyleChanged(this);
+				}
+			}
+			if (oldComputedContent != null && newComputedContent != null) {
+				if (!(newComputedContent.getString("template")
+						.equals(oldComputedContent.getString("template")))) {
+					getProject().getMobileBuilder().pageTemplateChanged(this);
+				}
+			}
+			
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public String getComputedImports() {
+		try {
+			return getComputedContents().getJSONObject("scripts").getString("imports");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return "";
+	}
+	
+	public String getComputedDeclarations() {
+		try {
+			return getComputedContents().getJSONObject("scripts").getString("declarations");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return "";
+	}
+
+	public String getComputedConstructors() {
+		try {
+			return getComputedContents().getJSONObject("scripts").getString("constructors");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return "";
+	}
+	
+	public String getComputedFunctions() {
+		try {
+			return getComputedContents().getJSONObject("scripts").getString("functions");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return "";
 	}
 	
 	@Override
-	public String computeScriptContent() {
-		StringBuilder sb = new StringBuilder();
+	public void computeScripts(JSONObject jsonScripts) {
 		Iterator<UIComponent> it = getUIComponentList().iterator();
 		while (it.hasNext()) {
 			UIComponent component = (UIComponent)it.next();
-			if ((component instanceof IScriptGenerator)) {
-				String tpl = ((IScriptGenerator)component).computeScriptContent();
-				if (!tpl.isEmpty()) {
-					sb.append(tpl);
-				}
-			}
+			component.computeScripts(jsonScripts);
 		}
-		return sb.toString();
 	}
-	
-	transient private String computedTemplate = null;
 	
 	public String getComputedTemplate() {
-		if (computedTemplate == null) {
-			doComputeTemplate();
+		try {
+			return getComputedContents().getString("template");
+		} catch (JSONException e) {
+			e.printStackTrace();
 		}
-		return computedTemplate;
-	}
-	
-	protected synchronized void doComputeTemplate() {
-		computedTemplate = computeTemplate();
+		return "";
 	}
 	
 	@Override
@@ -418,17 +478,13 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 		return sb.toString();
 	}
 
-	transient private String computedStyle = null;
-	
 	public String getComputedStyle() {
-		if (computedStyle == null) {
-			doComputeStyle();
+		try {
+			return getComputedContents().getString("style");
+		} catch (JSONException e) {
+			e.printStackTrace();
 		}
-		return computedStyle;
-	}
-	
-	protected synchronized void doComputeStyle() {
-		computedStyle = computeStyle();
+		return "";
 	}
 	
 	@Override
@@ -458,31 +514,6 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 			.append(System.getProperty("line.separator"));
 		
 		return sb.toString();
-	}
-
-	public void markTsAsDirty() throws EngineException {
-		doComputeScriptContent();
-		getProject().getMobileBuilder().pageTsChanged(this);
-	}
-	
-	public void markStyleAsDirty() throws EngineException {
-		String oldComputed = getComputedStyle();
-		doComputeStyle();
-		String newComputed = getComputedStyle();
-		
-		if (!newComputed.equals(oldComputed)) {
-			getProject().getMobileBuilder().pageStyleChanged(this);
-		}
-	}
-	
-	public void markTemplateAsDirty() throws EngineException {
-		String oldComputed = getComputedTemplate();
-		doComputeTemplate();
-		String newComputed = getComputedTemplate();
-		
-		if (!newComputed.equals(oldComputed)) {
-			getProject().getMobileBuilder().pageTemplateChanged(this);
-		}
 	}
 	
 	@Override

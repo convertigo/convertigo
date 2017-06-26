@@ -127,7 +127,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			project.refreshLocal(IResource.DEPTH_INFINITE, null);
 			
 			// Refresh component resource for typescript editor
-			String ctsCode = ca.computeScriptContent();
+			String ctsCode = ca.computeActionFunction();
 			String filePath = page.getProject().getMobileBuilder().getTempTsRelativePath(page, ctsCode);
 			IFile file = project.getFile(filePath);
 			file.refreshLocal(IResource.DEPTH_ZERO, null);

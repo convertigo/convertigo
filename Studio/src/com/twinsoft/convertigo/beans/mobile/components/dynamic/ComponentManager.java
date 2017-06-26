@@ -52,10 +52,12 @@ import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UICustom;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIElement;
+import com.twinsoft.convertigo.beans.mobile.components.UIForm;
 import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
 import com.twinsoft.convertigo.beans.mobile.components.UIText;
 import com.twinsoft.convertigo.beans.mobile.components.UITheme;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class ComponentManager {
@@ -272,6 +274,8 @@ public class ComponentManager {
 //			components.add(getDboComponent(UIControlListenSequenceSource.class,group));
 //			components.add(getDboComponent(UIControlListenFullSyncSource.class,group));
 			
+			components.add(getDboComponent(UIForm.class,"Forms"));
+			
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		} catch (InstantiationException e) {
@@ -318,7 +322,20 @@ public class ComponentManager {
 				
 				@Override
 				protected DatabaseObject createBean() {
-					return bean.createBean();
+					DatabaseObject dbo = bean.createBean();
+					if (dbo instanceof UIDynamicElement) {
+						try {
+							if (((UIDynamicElement)dbo).isFormControl()) {
+								UIAttribute uiattr = new UIAttribute();
+								uiattr.setAttrName("formControlName");
+								uiattr.setAttrSmartType(new MobileSmartSourceType("varName"));
+								uiattr.bNew = true;
+								uiattr.hasChanged = true;
+								((UIDynamicElement) dbo).addUIComponent(uiattr);
+							}
+						} catch (EngineException e) {}
+					}
+					return dbo;
 				}
 			});
 		}

@@ -207,7 +207,7 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
     	ordered.remove(pos+1);
     	hasChanged = true;
     	
-    	getParent().markRouteAsDirty();
+    	getParent().markApplicationAsDirty();
     }
     
     private void decreaseOrder(DatabaseObject databaseObject, Long after) throws EngineException {
@@ -233,7 +233,7 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
     	ordered.remove(pos);
     	hasChanged = true;
     	
-    	getParent().markRouteAsDirty();
+    	getParent().markApplicationAsDirty();
     }
     
 	public void increasePriority(DatabaseObject databaseObject) throws EngineException {
@@ -283,7 +283,7 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
 		insertOrderedEvent(routeEventComponent, after);
 		
 		if (routeEventComponent.bNew) {
-			getParent().markRouteAsDirty();
+			getParent().markApplicationAsDirty();
 		}
 	}
 	
@@ -297,7 +297,7 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
 		
 		removeOrderedEvent(routeEventComponent.priority);
 		
-		getParent().markRouteAsDirty();
+		getParent().markApplicationAsDirty();
 	}
 
 	public List<RouteEventComponent> getRouteEventComponentList() {
@@ -320,7 +320,7 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
 		insertOrderedAction(routeActionComponent, after);
 		
 		if (routeActionComponent.bNew) {
-			getParent().markRouteAsDirty();
+			getParent().markApplicationAsDirty();
 		}
 	}
 	
@@ -334,7 +334,7 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
 		
 		removeOrderedAction(routeActionComponent.priority);
 		
-		getParent().markRouteAsDirty();
+		getParent().markApplicationAsDirty();
 	}
 
 	public List<RouteActionComponent> getRouteActionComponentList() {

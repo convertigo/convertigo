@@ -29,6 +29,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -73,10 +75,7 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		cloned.vRouteComponents = new LinkedList<RouteComponent>();
 		cloned.vPageComponents = new LinkedList<PageComponent>();
 		cloned.vUIComponents = new LinkedList<UIComponent>();
-		cloned.computedTemplate = null;
-		cloned.computedStyle = null;
-		cloned.computedTheme = null;
-		cloned.computedRoute = null;
+		cloned.computedContents = null;
 		cloned.rootPage = null;
 		cloned.theme = null;
 		return cloned;
@@ -220,15 +219,7 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
     	ordered.remove(pos+1);
     	hasChanged = true;
     	
-    	if (databaseObject instanceof RouteComponent) {
-    		markRouteAsDirty();
-    	} else if (databaseObject instanceof UITheme) {
-   			markThemeAsDirty();
-    	} else if (databaseObject instanceof UIStyle) {
-   			markStyleAsDirty();
-    	} else if (databaseObject instanceof UIComponent) {
-    		markTemplateAsDirty();
-    	}
+    	markApplicationAsDirty();
     }
     
     private void decreaseOrder(DatabaseObject databaseObject, Long after) throws EngineException {
@@ -254,15 +245,7 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
     	ordered.remove(pos);
     	hasChanged = true;
     	
-    	if (databaseObject instanceof RouteComponent) {
-    		markRouteAsDirty();
-    	} else if (databaseObject instanceof UITheme) {
-   			markThemeAsDirty();
-    	} else if (databaseObject instanceof UIStyle) {
-   			markStyleAsDirty();
-    	} else if (databaseObject instanceof UIComponent) {
-    		markTemplateAsDirty();
-    	}
+    	markApplicationAsDirty();
     }
     
 	public void increasePriority(DatabaseObject databaseObject) throws EngineException {
@@ -316,7 +299,7 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		insertOrderedRoute(routeComponent, after);
 		
 		if (routeComponent.bNew) {
-			markRouteAsDirty();
+			markApplicationAsDirty();
 		}
 	}
 
@@ -326,7 +309,7 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		
 		removeOrderedRoute(routeComponent.priority);
 		
-		markRouteAsDirty();
+		markApplicationAsDirty();
 	}
 
 	public List<RouteComponent> getRouteComponentList() {
@@ -349,8 +332,7 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		super.add(pageComponent);
 		
 		if (pageComponent.bNew) {
-			pageComponent.doComputeStyle();
-			pageComponent.doComputeTemplate();
+			pageComponent.doComputeContents();
 			getProject().getMobileBuilder().pageAdded(pageComponent);
 		}
 	}
@@ -458,15 +440,8 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
         if (isNew || isCut) {
         	if (uiComponent instanceof UITheme) {
         		this.theme = (UITheme)uiComponent;
-       			markThemeAsDirty();
-        	} else if (uiComponent instanceof UIStyle) {
-       			markStyleAsDirty();
-        	} else {
-        		markTemplateAsDirty();
-        		if (uiComponent.hasStyle()) {
-        			markStyleAsDirty();
-        		}
         	}
+        	markApplicationAsDirty();
         }
 	}
 	
@@ -484,17 +459,8 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
         
         if (uiComponent != null && uiComponent.equals(this.theme)) {
     		this.theme = null;
-    		markThemeAsDirty();
         }
-        else if (uiComponent instanceof UIStyle) {
-   			markStyleAsDirty();
-    	}
-    	else {
-    		markTemplateAsDirty();
-    		if (uiComponent.hasStyle()) {
-    			markStyleAsDirty();
-    		}
-    	}
+        markApplicationAsDirty();
 	}
 
 	public List<UIComponent> getUIComponentList() {
@@ -551,22 +517,105 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		super.remove(databaseObject);
     }
 
+	private transient JSONObject computedContents = null;
+	
+	private JSONObject initJsonComputed() {
+		JSONObject jsonObject = null;
+		try {
+			jsonObject = new JSONObject()
+						.put("style", "")
+						.put("theme", "")
+						.put("route", "")
+						.put("template", "");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return jsonObject;
+	}
+	
+	public JSONObject getComputedContents() {
+		if (computedContents == null) {
+			doComputeContents();
+		}
+		return computedContents;
+	}
+	
+	protected synchronized void doComputeContents() {
+		try {
+			JSONObject newComputedContent = initJsonComputed();
+			
+			newComputedContent.put("style", computeStyle());
+			newComputedContent.put("theme", computeTheme());
+			newComputedContent.put("route", computeRoute());
+			newComputedContent.put("template", computeTemplate());
+			
+			computedContents = newComputedContent;
+			
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+	}
+	
+    public void markApplicationAsDirty() throws EngineException {
+		try {
+			JSONObject oldComputedContent = computedContents == null ? 
+					null :new JSONObject(computedContents.toString());
+			
+			doComputeContents();
+			
+			JSONObject newComputedContent = computedContents == null ? 
+					null :new JSONObject(computedContents.toString());
+			
+			if (oldComputedContent != null && newComputedContent != null) {
+				if (!(newComputedContent.getString("style")
+						.equals(oldComputedContent.getString("style")))) {
+					getProject().getMobileBuilder().appStyleChanged(this);
+				}
+			}
+			if (oldComputedContent != null && newComputedContent != null) {
+				if (!(newComputedContent.getString("theme")
+						.equals(oldComputedContent.getString("theme")))) {
+					getProject().getMobileBuilder().appThemeChanged(this);
+				}
+			}
+			if (oldComputedContent != null && newComputedContent != null) {
+				if (!(newComputedContent.getString("route")
+						.equals(oldComputedContent.getString("route")))) {
+					getProject().getMobileBuilder().appRouteChanged(this);
+				}
+			}
+			if (oldComputedContent != null && newComputedContent != null) {
+				if (!(newComputedContent.getString("template")
+						.equals(oldComputedContent.getString("template")))) {
+					//getProject().getMobileBuilder().appTemplateChanged(this);
+				}
+			}
+			
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+    }
+    
+	public void markRootAsDirty() throws EngineException {
+		getProject().getMobileBuilder().appRootChanged(this);
+	}
+	
+	public void markComponentTsAsDirty() throws EngineException {
+		getProject().getMobileBuilder().appCompTsChanged(this);
+	}
+    
     /*
      * The computed template (see app.html)
      */
-	transient private String computedTemplate = null;
-	
 	public String getComputedTemplate() {
-		if (computedTemplate == null) {
-			doComputeTemplate();
+		try {
+			return getComputedContents().getString("template");
+		} catch (JSONException e) {
+			e.printStackTrace();
 		}
-		return computedTemplate;
+		return "";
 	}
     
-	protected synchronized void doComputeTemplate() {
-		computedTemplate = computeTemplate();
-	}
-	
 	@Override
 	public String computeTemplate() {
 		//TODO
@@ -576,17 +625,13 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 	/*
 	 * The computed routing table (see app.component.ts)
 	 */
-	transient private String computedRoute = null;
-	
 	public String getComputedRoute() {
-		if (computedRoute == null) {
-			doComputeRoute();
+		try {
+			return getComputedContents().getString("route");
+		} catch (JSONException e) {
+			e.printStackTrace();
 		}
-		return computedRoute;
-	}
-	
-	protected synchronized void doComputeRoute() {
-		computedRoute = computeRoute();
+		return "";
 	}
     
 	@Override
@@ -607,17 +652,13 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		return sb.toString();
 	}
     
-	transient private String computedStyle = null;
-	
 	public String getComputedStyle() {
-		if (computedStyle == null) {
-			doComputeStyle();
+		try {
+			return getComputedContents().getString("style");
+		} catch (JSONException e) {
+			e.printStackTrace();
 		}
-		return computedStyle;
-	}
-	
-	protected synchronized void doComputeStyle() {
-		computedStyle = computeStyle();
+		return "";
 	}
 	
 	@Override
@@ -637,17 +678,13 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		return sb.toString();
 	}
 
-	transient private String computedTheme = null;
-	
 	public String getComputedTheme() {
-		if (computedTheme == null) {
-			doComputeTheme();
+		try {
+			return getComputedContents().getString("theme");
+		} catch (JSONException e) {
+			e.printStackTrace();
 		}
-		return computedTheme;
-	}
-	
-	protected synchronized void doComputeTheme() {
-		computedTheme = computeTheme();
+		return "";
 	}
 
 	public String computeTheme() {
@@ -664,53 +701,5 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		}
 		
 		return sb.toString();
-	}
-	
-	public void markThemeAsDirty() throws EngineException {
-		String oldComputed = getComputedTheme();
-		doComputeTheme();
-		String newComputed = getComputedTheme();
-		
-		if (!newComputed.equals(oldComputed) || theme == null) {
-			getProject().getMobileBuilder().appThemeChanged(this);
-		}
-	}
-	
-	public void markStyleAsDirty() throws EngineException {
-		String oldComputed = getComputedStyle();
-		doComputeStyle();
-		String newComputed = getComputedStyle();
-		
-		if (!newComputed.equals(oldComputed)) {
-			getProject().getMobileBuilder().appStyleChanged(this);
-		}
-	}
-	
-	public void markTemplateAsDirty() throws EngineException {
-		String oldComputed = getComputedTemplate();
-		doComputeTemplate();
-		String newComputed = getComputedTemplate();
-		
-		if (!newComputed.equals(oldComputed)) {
-			//getProject().getMobileBuilder().appComputed(this);
-		}
-	}
-	
-	public void markRouteAsDirty() throws EngineException {
-		String oldComputed = getComputedRoute();
-		doComputeRoute();
-		String newComputed = getComputedRoute();
-		
-		if (!newComputed.equals(oldComputed)) {
-			getProject().getMobileBuilder().appRouteChanged(this);
-		}
-	}
-	
-	public void markRootAsDirty() throws EngineException {
-		getProject().getMobileBuilder().appRootChanged(this);
-	}
-	
-	public void markComponentTsAsDirty() throws EngineException {
-		getProject().getMobileBuilder().appCompTsChanged(this);
 	}
 }

@@ -27,6 +27,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -126,15 +127,9 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
     	ordered.remove(pos+1);
     	hasChanged = true;
     	
-    	if (databaseObject instanceof UIStyle) {
-    		getPage().markStyleAsDirty();
-    	}
-    	else if (databaseObject instanceof UIControlAction || databaseObject instanceof UIControlVariable) {
-    		getPage().markTsAsDirty();
-    		getPage().markTemplateAsDirty();
-    	}
-    	else {
-    		getPage().markTemplateAsDirty();
+    	PageComponent page = getPage();
+    	if (page != null) {
+    		page.markPageAsDirty();
     	}
     }
     
@@ -159,15 +154,9 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
     	ordered.remove(pos);
     	hasChanged = true;
     	
-    	if (databaseObject instanceof UIStyle) {
-    		getPage().markStyleAsDirty();
-    	}
-    	else if (databaseObject instanceof UIControlAction || databaseObject instanceof UIControlVariable) {
-    		getPage().markTsAsDirty();
-    		getPage().markTemplateAsDirty();
-    	}
-    	else {
-    		getPage().markTemplateAsDirty();    		
+    	PageComponent page = getPage();
+    	if (page != null) {
+    		page.markPageAsDirty();
     	}
     }
     
@@ -234,21 +223,9 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
         insertOrderedComponent(uiComponent, after);
         
         if (isNew || isCut) {
-        	if (uiComponent instanceof UIStyle) {
-        		getPage().markStyleAsDirty();
-        	}
-        	else if (uiComponent instanceof UIControlAction || uiComponent instanceof UIControlVariable) {
-        		getPage().markTsAsDirty();
-        		getPage().markTemplateAsDirty();
-        	}
-        	else {
-        		getPage().markTemplateAsDirty();
-        		if (uiComponent.hasAction()) {
-        			getPage().markTsAsDirty();
-        		}
-        		if (uiComponent.hasStyle()) {
-        			getPage().markStyleAsDirty();
-        		}
+        	PageComponent page = getPage();
+        	if (page != null) {
+        		page.markPageAsDirty();
         	}
         }
 	}
@@ -265,22 +242,10 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		
         removeOrderedComponent(uiComponent.priority);
         
-    	if (uiComponent instanceof UIStyle) {
-    		getPage().markStyleAsDirty();
-    	}
-    	else if (uiComponent instanceof UIControlAction || uiComponent instanceof UIControlVariable) {
-    		getPage().markTsAsDirty();
-    		getPage().markTemplateAsDirty();
-    	}
-    	else {
-    		getPage().markTemplateAsDirty();
-    		if (uiComponent.hasAction()) {
-    			getPage().markTsAsDirty();
-    		}
-    		if (uiComponent.hasStyle()) {
-    			getPage().markStyleAsDirty();
-    		}
-    	}
+        PageComponent page = getPage();
+        if (page != null) {
+        	page.markPageAsDirty();
+        }
 	}
 
 	public List<UIComponent> getUIComponentList() {
@@ -297,10 +262,12 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		return false;
 	}
 	
-	public boolean hasAction() {
+	public boolean hasAttribute(String attributeName) {
 		for (UIComponent uic :getUIComponentList()) {
-			if (uic instanceof UIControlAction) {
-				return true;
+			if (uic instanceof UIAttribute) {
+				if (((UIAttribute)uic).getAttrName().equals(attributeName)) {
+					return true;
+				}
 			}
 		}
 		return false;
@@ -378,6 +345,19 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 			return (PageComponent) databaseObject;
 	}
 	
+	public UIForm getUIForm() {
+		DatabaseObject databaseObject = this;
+		while (!(databaseObject instanceof PageComponent) && 
+				!(databaseObject instanceof UIForm) && databaseObject != null) { 
+			databaseObject = databaseObject.getParent();
+		}
+		
+		if (databaseObject == null || databaseObject instanceof PageComponent)
+			return null;
+		else
+			return (UIForm) databaseObject;
+	}
+	
 	@Override
 	public boolean testAttribute(String name, String value) {
 		if (name.equals("isEnabled")) {
@@ -395,19 +375,14 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 	}
 	
 	@Override
-	public String computeScriptContent() {
-		StringBuilder sb = new StringBuilder();
-		Iterator<UIComponent> it = getUIComponentList().iterator();
-		while (it.hasNext()) {
-			UIComponent component = (UIComponent)it.next();
-			if ((component instanceof IScriptGenerator)) {
-				String tpl = ((IScriptGenerator)component).computeScriptContent();
-				if (!tpl.isEmpty()) {
-					sb.append(tpl);
-				}
+	public void computeScripts(JSONObject jsonScripts) {
+		if (isEnabled()) {
+			Iterator<UIComponent> it = getUIComponentList().iterator();
+			while (it.hasNext()) {
+				UIComponent component = (UIComponent)it.next();
+				component.computeScripts(jsonScripts);
 			}
 		}
-		return sb.toString();
 	}
 	
 }

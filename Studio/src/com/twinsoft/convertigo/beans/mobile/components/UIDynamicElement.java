@@ -23,8 +23,6 @@
 package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.beans.BeanInfo;
-import java.util.Iterator;
-
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.IDynamicBean;
@@ -125,79 +123,68 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 		return getName();
 	}
 	
+	public boolean isFormControl() {
+		String tagName = getTagName();
+		if (tagName.equals("ion-input")) {
+			return true;
+		}
+		return false;
+	}
+	
 	@Override
-	public String computeTemplate() {
-		if (isEnabled()) {
-			StringBuilder attributes = new StringBuilder();
-			StringBuilder children = new StringBuilder();
-			
-			if (ionBean == null) {
-				try {
-					loadBean();
-				} catch (Exception e) {
-					e.printStackTrace();
+	public boolean hasAttribute(String attributeName) {
+		if (ionBean == null) {
+			try {
+				loadBean();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+    	if (ionBean != null) {
+			for (IonProperty property : ionBean.getProperties().values()) {
+				if (property.getAttr().equals(attributeName)) {
+					return true;
 				}
 			}
-			
-	    	if (ionBean != null) {
-				for (IonProperty property : ionBean.getProperties().values()) {
-					String attr = property.getAttr();
-					Object value = property.getValue();
-					if (!value.equals(false)) {
-						String smartValue = property.getSmartValue();
-						
-						attributes.append(" ");
-						if (attr.isEmpty()){
-							attributes.append(smartValue);
-						}
-						else if (attr.indexOf("%%") != -1){
-							attributes.append(attr.replaceFirst("%%", smartValue));
-						}
-						else {
-							attributes.append(attr).append("=");
-							attributes.append("\"").append(smartValue).append("\"");
-						}
+    	}
+    	
+    	return super.hasAttribute(attributeName);
+	}
+	
+	@Override
+	protected StringBuilder initAttributes() {
+		StringBuilder attributes = super.initAttributes();
+		if (ionBean == null) {
+			try {
+				loadBean();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+    	if (ionBean != null) {
+			for (IonProperty property : ionBean.getProperties().values()) {
+				String attr = property.getAttr();
+				Object value = property.getValue();
+				if (!value.equals(false)) {
+					String smartValue = property.getSmartValue();
+					
+					attributes.append(" ");
+					if (attr.isEmpty()){
+						attributes.append(smartValue);
+					}
+					else if (attr.indexOf("%%") != -1){
+						attributes.append(attr.replaceFirst("%%", smartValue));
+					}
+					else {
+						attributes.append(attr).append("=");
+						attributes.append("\"").append(smartValue).append("\"");
 					}
 				}
-	    	}
-	    	
-			Iterator<UIComponent> it = getUIComponentList().iterator();
-			while (it.hasNext()) {
-				UIComponent component = (UIComponent)it.next();
-				if (component instanceof UIStyle) {
-					;// ignore
-				} else if (component instanceof UIAttribute) {
-					attributes.append(component.computeTemplate());
-				} else {
-					children.append(component.computeTemplate());
-				}
 			}
-			
-			String attrId = " class=\""+ getTagClass() +"\"";
-			
-			StringBuilder sb = new StringBuilder();
-			sb.append("<").append(getTagName())
-				.append(attrId)
-				.append(attributes.length()>0 ? attributes:"");
-			
-			if (isSelfClose()) {
-				sb.append("/>").append(System.getProperty("line.separator"));
-			}
-			else {
-				sb.append(">").append(System.getProperty("line.separator"))
-					.append(children.length()>0 ? children:"")
-				  .append("</").append(getTagName())
-				  	.append(">").append(System.getProperty("line.separator"));
-			}
-			
-			return sb.toString();
-		}
-		return "";
-	}
-
-	@Override
-	public String computeStyle() {
-		return super.computeStyle();
+    	}
+		return attributes;
 	}
 
 	@Override

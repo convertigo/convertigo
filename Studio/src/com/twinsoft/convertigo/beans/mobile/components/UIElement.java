@@ -24,6 +24,9 @@ package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.util.Iterator;
 
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
+
 import com.twinsoft.convertigo.engine.EngineException;
 
 public class UIElement extends UIComponent implements IStyleGenerator {
@@ -48,7 +51,7 @@ public class UIElement extends UIComponent implements IStyleGenerator {
 	/*
 	 * The tagname
 	 */
-	private String tagName = "tag";
+	protected String tagName = "tag";
 	
 	public String getTagName() {
 		return tagName;
@@ -97,10 +100,14 @@ public class UIElement extends UIComponent implements IStyleGenerator {
 		return "class"+priority;
 	}
 	
+	protected StringBuilder initAttributes() {
+		return new StringBuilder();
+	}
+	
 	@Override
 	public String computeTemplate() {
 		if (isEnabled()) {
-			StringBuilder attributes = new StringBuilder();
+			StringBuilder attributes = initAttributes();
 			StringBuilder children = new StringBuilder();
 			
 			Iterator<UIComponent> it = getUIComponentList().iterator();
@@ -171,5 +178,41 @@ public class UIElement extends UIComponent implements IStyleGenerator {
 		return sb.toString();
 	}
 
+	/* (non-Javadoc)
+	 * @see com.twinsoft.convertigo.beans.mobile.components.UIComponent#computeScripts(org.codehaus.jettison.json.JSONObject)
+	 */
+	@Override
+	public void computeScripts(JSONObject jsonScripts) {
+		if (isEnabled()) {
+			String formControlVarName = "";
+			Iterator<UIComponent> it = getUIComponentList().iterator();
+			while (it.hasNext()) {
+				UIComponent component = (UIComponent)it.next();
+				if (component instanceof UIAttribute) {
+					UIAttribute attribute = (UIAttribute)component;
+					if ("formControlName".equals(attribute.getAttrName())) {
+						formControlVarName = attribute.getAttrValue();
+						break;
+					}
+				}
+			}
+			//TODO check for tagname (valid for a control type : input, select,...)
+			if (!formControlVarName.isEmpty()) {
+				UIForm form = getUIForm();
+				if (form != null) {
+					String constructor = "this."+form.getFormName()
+											+".addControl('"+formControlVarName+"', new FormControl());"
+											+ System.lineSeparator();
+					try {
+						String constructors = jsonScripts.getString("constructors") + constructor;
+						jsonScripts.put("constructors", constructors);
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+		super.computeScripts(jsonScripts);
+	}
 
 }

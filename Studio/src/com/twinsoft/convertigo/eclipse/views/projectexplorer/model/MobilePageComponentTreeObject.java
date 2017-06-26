@@ -40,9 +40,6 @@ import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlAction;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
-import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput;
@@ -171,9 +168,6 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 		String propertyName = (String)treeObjectEvent.propertyName;
 		propertyName = ((propertyName == null) ? "" : propertyName);
 		
-		Object oldValue = treeObjectEvent.oldValue;
-		Object newValue = treeObjectEvent.newValue;
-		
 		if (treeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)treeObject;
 			DatabaseObject dbo = doto.getObject();
@@ -181,31 +175,11 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 				if (dbo instanceof UIComponent) {
 					UIComponent uic = (UIComponent)dbo;
 					if (getObject().equals(uic.getPage())) {
-						if (dbo instanceof UIStyle) {
-							markStyleAsDirty();
-						}
-						else if (dbo instanceof UIControlAction || dbo instanceof UIControlVariable) {
-				    		markTsAsDirty();
-				    		markTemplateAsDirty();
-				    	}
-						else {
-							/*if (propertyName.equals("actionValue")) {// see UIControlCustomAction
-								if (!newValue.equals(oldValue)) {
-									markTsAsDirty();
-								}
-							}*/
-							markTemplateAsDirty();
-						}
+						markPageAsDirty();
 					}
 				}
 				else if (this.equals(doto)) {
-					if (propertyName.equals("scriptContent")) {// see PageComponent
-						if (!newValue.equals(oldValue)) {
-							markTsAsDirty();
-						}
-					} else {
-						markTemplateAsDirty();
-					}
+					markPageAsDirty();
 				}
 			} catch (Exception e) {}
 		}
@@ -215,31 +189,13 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 	public void hasBeenModified(boolean bModified) {
 		super.hasBeenModified(bModified);
 	}
-		
-	protected void markTemplateAsDirty() {
-		PageComponent page = getObject();
-		try {
-			page.markTemplateAsDirty();
-		} catch (EngineException e) {
-			ConvertigoPlugin.logException(e,
-					"Error while writing the html file for page '" + page.getName() + "'");	}
-	}
-
-	protected void markStyleAsDirty() {
-		PageComponent page = getObject();
-		try {
-			page.markStyleAsDirty();
-		} catch (EngineException e) {
-			ConvertigoPlugin.logException(e,
-					"Error while writing the style file for page '" + page.getName() + "'");	}
-	}
 	
-	protected void markTsAsDirty() {
+	protected void markPageAsDirty() {
 		PageComponent page = getObject();
 		try {
-			page.markTsAsDirty();
+			page.markPageAsDirty();
 		} catch (EngineException e) {
 			ConvertigoPlugin.logException(e,
-					"Error while writing the typescript file for page '" + page.getName() + "'");	}
+					"Error while writing the source files for page '" + page.getName() + "'");	}
 	}
 }

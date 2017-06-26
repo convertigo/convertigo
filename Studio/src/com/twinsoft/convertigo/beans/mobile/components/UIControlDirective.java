@@ -22,7 +22,6 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
-import java.util.Iterator;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
@@ -163,45 +162,10 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 	}
 
 	@Override
-	public String computeTemplate() {
-		if (isEnabled()) {
-			StringBuilder attributes = new StringBuilder();
-			StringBuilder children = new StringBuilder();
-			
-			attributes.append(getDirectiveTemplate());
-			
-			Iterator<UIComponent> it = getUIComponentList().iterator();
-			while (it.hasNext()) {
-				UIComponent component = (UIComponent)it.next();
-				if (component instanceof UIControlSource || component instanceof UIStyle) {
-					;// ignore
-				} else if (component instanceof UIAttribute) {
-					attributes.append(component.computeTemplate());
-				} else {
-					children.append(component.computeTemplate());
-				}
-			}
-			
-			String attrId = " class=\""+ getTagClass() +"\"";
-			
-			StringBuilder sb = new StringBuilder();
-			sb.append("<").append(getTagName())
-				.append(attrId)
-				.append(attributes.length()>0 ? attributes:"");
-			
-			if (isSelfClose()) {
-				sb.append("/>").append(System.getProperty("line.separator"));
-			}
-			else {
-				sb.append(">").append(System.getProperty("line.separator"))
-					.append(children.length()>0 ? children:"")
-				  .append("</").append(getTagName())
-				  	.append(">").append(System.getProperty("line.separator"));
-			}
-			
-			return sb.toString();
-		}
-		return "";
+	protected StringBuilder initAttributes() {
+		StringBuilder attributes = super.initAttributes();
+		attributes.append(getDirectiveTemplate());
+		return attributes;
 	}
 
 	@Override

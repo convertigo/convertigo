@@ -24,6 +24,9 @@ package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.util.Iterator;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent.AttrEvent;
+
 public abstract class UIControlCallAction extends UIControlAction {
 	
 	private static final long serialVersionUID = 952743867765987510L;
@@ -97,6 +100,14 @@ public abstract class UIControlCallAction extends UIControlAction {
 		return new StringBuilder();
 	}
 	
+	private boolean underSubmitEvent() {
+		DatabaseObject dbo = getParent();
+		if (dbo != null && dbo instanceof UIControlEvent) {
+			return ((UIControlEvent)dbo).getAttrName().equals(AttrEvent.onSubmit.event());
+		}
+		return false;
+	}
+	
 	@Override
 	public String computeTemplate() {
 		if (isEnabled()) {
@@ -113,10 +124,19 @@ public abstract class UIControlCallAction extends UIControlAction {
 				}
 			}
 			
+			String params = "";
+			
+			UIForm uiForm = getUIForm();
+			if (uiForm != null && underSubmitEvent()) {
+				params = uiForm.getFormName() +".value";
+			} else {
+				params = parameters.length()> 0 ? "{"+ parameters +"}" : "";
+			}
+			
 			String requestableString = getRequestableString();
 			if (!requestableString.isEmpty()) {
-				if (parameters.length()> 0) {
-					return "call('"+ requestableString + "', {"+ parameters +"})";
+				if (params.length()> 0) {
+					return "call('"+ requestableString + "', "+ params +")";
 				} else {
 					return "call('"+ requestableString + "')";
 				}

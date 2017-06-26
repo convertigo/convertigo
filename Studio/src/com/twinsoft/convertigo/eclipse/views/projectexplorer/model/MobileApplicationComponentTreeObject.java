@@ -41,12 +41,6 @@ import org.eclipse.ui.texteditor.ITextEditor;
 import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
-import com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
-import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
-import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
-import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
-import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
-import com.twinsoft.convertigo.beans.mobile.components.UITheme;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
@@ -99,22 +93,10 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 			
 			try {
 				if (getObject().equals(dbo.getParent())) {
-					if (dbo instanceof RouteComponent) {
-						markRouteAsDirty();
-					} else if (dbo instanceof UITheme) {
-						markThemeAsDirty();
-					} else if (dbo instanceof UIStyle) {
-						markStyleAsDirty();
-					} else if (dbo instanceof UIComponent){
-						markTemplateAsDirty();
-					}
+					markApplicationAsDirty();
 				}
 				else if (getObject().equals(dbo.getParent().getParent())) {
-					if (dbo instanceof RouteEventComponent) {
-						markRouteAsDirty();
-					} else if (dbo instanceof RouteActionComponent) {
-						markRouteAsDirty();
-					}
+					markApplicationAsDirty();
 				} else if (this.equals(doto)) {
 					if (propertyName.equals("componentScriptContent")) {
 						if (!newValue.equals(oldValue)) {
@@ -131,59 +113,6 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 		super.hasBeenModified(bModified);
 	}
 	
-	protected void markRouteAsDirty() {
-		ApplicationComponent ac = getObject();
-		if (ac != null) {
-			try {
-				ac.markRouteAsDirty();
-			} catch (EngineException e) {
-				ConvertigoPlugin.logException(e,
-						"Error while writing the component.ts file for app '" + ac.getName() + "'");	}
-		}
-	}
-
-	protected void markRootAsDirty() {
-		ApplicationComponent ac = getObject();
-		if (ac != null) {
-			try {
-				ac.markRootAsDirty();
-			} catch (EngineException e) {
-				ConvertigoPlugin.logException(e,
-						"Error while writing the component.ts file for app '" + ac.getName() + "'");	}
-		}
-	}
-	
-	protected void markThemeAsDirty() {
-		ApplicationComponent ac = getObject();
-		if (ac != null) {
-			try {
-				ac.markThemeAsDirty();
-			} catch (EngineException e) {
-				ConvertigoPlugin.logException(e,
-						"Error while writing the variables.scss file for app '" + ac.getName() + "'");	}
-		}
-	}
-	
-	protected void markTemplateAsDirty() {
-		ApplicationComponent ac = getObject();
-		if (ac != null) {
-			try {
-				ac.markTemplateAsDirty();
-			} catch (EngineException e) {
-				ConvertigoPlugin.logException(e,
-						"Error while writing the app.html file for app '" + ac.getName() + "'");	}
-		}
-	}
-
-	protected void markStyleAsDirty() {
-		ApplicationComponent ac = getObject();
-		try {
-			ac.markStyleAsDirty();
-		} catch (EngineException e) {
-			ConvertigoPlugin.logException(e,
-					"Error while writing the app.scss for application '" + ac.getName() + "'");	}
-	}	
-
 	protected void markComponentTsAsDirty() {
 		ApplicationComponent ac = getObject();
 		try {
@@ -191,6 +120,15 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 		} catch (EngineException e) {
 			ConvertigoPlugin.logException(e,
 					"Error while writing the app.component.ts for application '" + ac.getName() + "'");	}
+	}
+	
+	protected void markApplicationAsDirty() {
+		ApplicationComponent ac = getObject();
+		try {
+			ac.markApplicationAsDirty();
+		} catch (EngineException e) {
+			ConvertigoPlugin.logException(e,
+					"Error while writing the application source files for '" + ac.getName() + "'");	}
 	}
 	
 	public void editAppComponentTsFile() {

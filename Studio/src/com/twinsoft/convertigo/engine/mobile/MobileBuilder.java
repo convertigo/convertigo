@@ -390,31 +390,33 @@ public class MobileBuilder {
 				String c8o_PageName = pageName;
 				String c8o_PageTplUrl = pageName.toLowerCase() + ".html";
 				String c8o_PageSelector = "page-"+pageName.toLowerCase();
-				String c8o_Markers = page.getScriptContent().getString();
-				String c8o_ActionMarkers = page.getComputedScriptContent();
+				String c8o_PageImports = page.getComputedImports();
+				String c8o_PageDeclarations = page.getComputedDeclarations();
+				String c8o_PageConstructors = page.getComputedConstructors();
+				String c8o_PageFunctions = page.getComputedFunctions();
+				String c8o_UserCustoms = page.getScriptContent().getString();
 				
 				File pageTplTs = new File(ionicTplDir, "src/page.tpl");
 				String tsContent = FileUtils.readFileToString(pageTplTs, "UTF-8");
 				tsContent = tsContent.replaceAll("/\\*\\=c8o_PageSelector\\*/","'"+c8o_PageSelector+"'");
 				tsContent = tsContent.replaceAll("/\\*\\=c8o_PageTplUrl\\*/","'"+c8o_PageTplUrl+"'");
 				tsContent = tsContent.replaceAll("/\\*\\=c8o_PageName\\*/",c8o_PageName);
+				tsContent = tsContent.replaceAll("/\\*\\=c8o_PageImports\\*/",c8o_PageImports);
+				tsContent = tsContent.replaceAll("/\\*\\=c8o_PageDeclarations\\*/",c8o_PageDeclarations);
+				tsContent = tsContent.replaceAll("/\\*\\=c8o_PageConstructors\\*/",c8o_PageConstructors);
 				
 				Pattern pattern = Pattern.compile("/\\*Begin_c8o_(.+)\\*/"); // begin c8o marker
 				Matcher matcher = pattern.matcher(tsContent);
 				while (matcher.find()) {
 					String markerId = matcher.group(1);
 					String tplMarker = getMarker(tsContent, markerId);
-					String customMarker = getMarker(c8o_Markers, markerId);
+					String customMarker = getMarker(c8o_UserCustoms, markerId);
 					if (!customMarker.isEmpty()) {
 						tsContent = tsContent.replace(tplMarker, customMarker);
 					}
 				}
 				
-				int index = tsContent.lastIndexOf("}");
-				if (index != -1) {
-					tsContent = tsContent.substring(0,index) + System.lineSeparator() 
-									+ c8o_ActionMarkers  + System.lineSeparator() + "}";
-				}
+				tsContent = tsContent.replaceAll("/\\*\\=c8o_PageFunctions\\*/",c8o_PageFunctions);
 				
 				File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
 				File pageTsFile = new File(pageDir, pageName.toLowerCase() + ".ts");

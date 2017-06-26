@@ -651,7 +651,7 @@ public class ClipboardManager {
 				AttrDirective attrDirective = AttrDirective.getDirective(directiveName);
 				if (AttrDirective.ForEach.equals(attrDirective)) {
 					directive.updateSmartSource(oldPriority, directive.priority);
-					directive.getPage().markTemplateAsDirty();
+					directive.getPage().markPageAsDirty();
 				}
 			}
 

@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
+import org.codehaus.jettison.json.JSONObject;
+
 public interface IScriptGenerator {
-	public abstract String computeScriptContent();
+	public abstract void computeScripts(JSONObject jsonScripts);
 }
