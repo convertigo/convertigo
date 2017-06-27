@@ -408,6 +408,10 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 		}
 	}
 	
+	public void markPageTsAsDirty() throws EngineException {
+		getProject().getMobileBuilder().pageTsChanged(this);
+	}
+	
 	public String getComputedImports() {
 		try {
 			return getComputedContents().getJSONObject("scripts").getString("imports");

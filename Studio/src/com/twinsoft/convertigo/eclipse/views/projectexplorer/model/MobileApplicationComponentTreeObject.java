@@ -102,6 +102,8 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 						if (!newValue.equals(oldValue)) {
 							markComponentTsAsDirty();
 						}
+					} else {
+						markApplicationAsDirty();
 					}
 				}
 			} catch (Exception e) {}

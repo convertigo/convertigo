@@ -168,6 +168,9 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 		String propertyName = (String)treeObjectEvent.propertyName;
 		propertyName = ((propertyName == null) ? "" : propertyName);
 		
+		Object oldValue = treeObjectEvent.oldValue;
+		Object newValue = treeObjectEvent.newValue;
+		
 		if (treeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)treeObject;
 			DatabaseObject dbo = doto.getObject();
@@ -179,7 +182,13 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 					}
 				}
 				else if (this.equals(doto)) {
-					markPageAsDirty();
+					if (propertyName.equals("scriptContent")) {
+						if (!newValue.equals(oldValue)) {
+							markPageTsAsDirty();
+						}
+					} else {
+						markPageAsDirty();
+					}
 				}
 			} catch (Exception e) {}
 		}
@@ -197,5 +206,14 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 		} catch (EngineException e) {
 			ConvertigoPlugin.logException(e,
 					"Error while writing the source files for page '" + page.getName() + "'");	}
+	}
+
+	protected void markPageTsAsDirty() {
+		PageComponent page = getObject();
+		try {
+			page.markPageTsAsDirty();
+		} catch (EngineException e) {
+			ConvertigoPlugin.logException(e,
+					"Error while writing the page.ts file for page '" + page.getName() + "'");	}
 	}
 }
