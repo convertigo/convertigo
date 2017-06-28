@@ -100,10 +100,47 @@ public class UIElement extends UIComponent implements IStyleGenerator {
 		return "class"+priority;
 	}
 	
+	protected String getFormControlName() {
+		Iterator<UIComponent> it = getUIComponentList().iterator();
+		while (it.hasNext()) {
+			UIComponent component = (UIComponent)it.next();
+			if (component instanceof UIAttribute) {
+				UIAttribute attribute = (UIAttribute)component;
+				if (attribute.getAttrName().equals("formControlName")) {
+					return attribute.getAttrValue();
+				}
+			}
+		}
+		return "";
+	}
+	
 	protected StringBuilder initAttributes() {
 		return new StringBuilder();
 	}
 	
+	@Override
+	public void computeScripts(JSONObject jsonScripts) {
+		if (isEnabled()) {
+			String formControlVarName = getFormControlName();
+			if (!formControlVarName.isEmpty()) {
+				UIForm form = getUIForm();
+				if (form != null) {
+					String formGroupName = form.getFormGroupName();
+					String constructor = formGroupName.isEmpty() ? "":"this."+ formGroupName
+											+".addControl('"+formControlVarName+"', new FormControl());"
+											+ System.lineSeparator();
+					try {
+						String constructors = jsonScripts.getString("constructors") + constructor;
+						jsonScripts.put("constructors", constructors);
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+		super.computeScripts(jsonScripts);
+	}
+		
 	@Override
 	public String computeTemplate() {
 		if (isEnabled()) {
@@ -176,43 +213,6 @@ public class UIElement extends UIComponent implements IStyleGenerator {
 			sb.append(others);
 		}
 		return sb.toString();
-	}
-
-	/* (non-Javadoc)
-	 * @see com.twinsoft.convertigo.beans.mobile.components.UIComponent#computeScripts(org.codehaus.jettison.json.JSONObject)
-	 */
-	@Override
-	public void computeScripts(JSONObject jsonScripts) {
-		if (isEnabled()) {
-			String formControlVarName = "";
-			Iterator<UIComponent> it = getUIComponentList().iterator();
-			while (it.hasNext()) {
-				UIComponent component = (UIComponent)it.next();
-				if (component instanceof UIAttribute) {
-					UIAttribute attribute = (UIAttribute)component;
-					if ("formControlName".equals(attribute.getAttrName())) {
-						formControlVarName = attribute.getAttrValue();
-						break;
-					}
-				}
-			}
-			//TODO check for tagname (valid for a control type : input, select,...)
-			if (!formControlVarName.isEmpty()) {
-				UIForm form = getUIForm();
-				if (form != null) {
-					String constructor = "this."+form.getFormName()
-											+".addControl('"+formControlVarName+"', new FormControl());"
-											+ System.lineSeparator();
-					try {
-						String constructors = jsonScripts.getString("constructors") + constructor;
-						jsonScripts.put("constructors", constructors);
-					} catch (JSONException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-		}
-		super.computeScripts(jsonScripts);
 	}
 
 }

@@ -57,7 +57,6 @@ import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
 import com.twinsoft.convertigo.beans.mobile.components.UIText;
 import com.twinsoft.convertigo.beans.mobile.components.UITheme;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
-import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class ComponentManager {
@@ -321,19 +320,18 @@ public class ComponentManager {
 				}
 				
 				@Override
+				public String getName() {
+					return bean.getName();
+				}
+				
+				@Override
 				protected DatabaseObject createBean() {
 					DatabaseObject dbo = bean.createBean();
-					if (dbo instanceof UIDynamicElement) {
-						try {
-							if (((UIDynamicElement)dbo).isFormControl()) {
-								UIAttribute uiattr = new UIAttribute();
-								uiattr.setAttrName("formControlName");
-								uiattr.setAttrSmartType(new MobileSmartSourceType("varName"));
-								uiattr.bNew = true;
-								uiattr.hasChanged = true;
-								((UIDynamicElement) dbo).addUIComponent(uiattr);
-							}
-						} catch (EngineException e) {}
+					if (dbo != null && dbo instanceof UIDynamicElement) {
+						IonBean ionBean = ((UIDynamicElement)dbo).getIonBean();
+						if (ionBean != null && ionBean.hasProperty("FormControlName")) {
+							ionBean.setPropertyValue("FormControlName", new MobileSmartSourceType("varName"));
+						}
 					}
 					return dbo;
 				}
@@ -363,6 +361,11 @@ public class ComponentManager {
 				return group;
 			}
 
+			@Override
+			public String getName() {
+				return bd != null ? bd.getName() : dboClass.getSimpleName();
+			}
+			
 			@Override
 			public String getLabel() {
 				return bd != null ? bd.getDisplayName() : dboClass.getSimpleName();
@@ -423,4 +426,12 @@ public class ComponentManager {
 		};
 	}
 
+	public static Component getComponentByName(String name) {
+		for (Component component : getComponents()) {
+			if (component.getName().equals(name)) {
+				return component;
+			}
+		}
+		return null;
+	}
 }

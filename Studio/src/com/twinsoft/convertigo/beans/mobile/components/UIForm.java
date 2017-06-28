@@ -39,24 +39,35 @@ public class UIForm extends UIElement {
 		return cloned;
 	}
 
-	@Override
-	public String toString() {
-		return "form : "+ getFormName();
+	private String formGroupName = "fgForm";
+
+	public String getFormGroupName() {
+		return formGroupName;
 	}
 
-	protected String getFormName() {
-		return "fg"+ getName();
+	public void setFormGroupName(String formGroupName) {
+		this.formGroupName = formGroupName;
+	}
+	
+	@Override
+	public String toString() {
+		return "form : "+ (formGroupName.isEmpty() ? "?":formGroupName);
 	}
 
 	private String getDeclaration() {
-		return "public "+ getFormName() + " =  new FormGroup({});" + System.lineSeparator();
+		if (!formGroupName.isEmpty()) {
+			return "public "+ formGroupName + " =  new FormGroup({});" + System.lineSeparator();
+		}
+		return "";
 	}
 	
 	@Override
 	protected StringBuilder initAttributes() {
-		StringBuilder attributes = new StringBuilder();
-		attributes.append(" [formGroup]=").append("\"").append(getFormName()).append("\"")
-					.append(" novalidate");
+		StringBuilder attributes = super.initAttributes();
+		if (!formGroupName.isEmpty()) {
+			attributes.append(" [formGroup]=").append("\"").append(formGroupName).append("\"")
+						.append(" novalidate");
+		}
 		return attributes;
 	}	
 	
@@ -86,5 +97,4 @@ public class UIForm extends UIElement {
 			super.computeScripts(jsonScripts);
 		}
 	}
-	
 }

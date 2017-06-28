@@ -123,45 +123,11 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 		return getName();
 	}
 	
-	public boolean isFormControl() {
-		String tagName = getTagName();
-		if (tagName.equals("ion-input")) {
-			return true;
-		}
-		return false;
-	}
-	
-	@Override
-	public boolean hasAttribute(String attributeName) {
-		if (ionBean == null) {
-			try {
-				loadBean();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		
-    	if (ionBean != null) {
-			for (IonProperty property : ionBean.getProperties().values()) {
-				if (property.getAttr().equals(attributeName)) {
-					return true;
-				}
-			}
-    	}
-    	
-    	return super.hasAttribute(attributeName);
-	}
-	
 	@Override
 	protected StringBuilder initAttributes() {
 		StringBuilder attributes = super.initAttributes();
-		if (ionBean == null) {
-			try {
-				loadBean();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
+
+		IonBean ionBean = getIonBean();
 		
     	if (ionBean != null) {
 			for (IonProperty property : ionBean.getProperties().values()) {
@@ -187,6 +153,18 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 		return attributes;
 	}
 
+	@Override
+	protected String getFormControlName() {
+		IonBean ionBean = getIonBean();
+		if (ionBean != null && ionBean.hasProperty("FormControlName")) {
+			MobileSmartSourceType msst = (MobileSmartSourceType) ionBean.getPropertyValue("FormControlName");
+			if (msst != null && !msst.getValue().equals("not set")) {
+				return msst.getValue();
+			}
+		}
+		return super.getFormControlName();
+	}
+	
 	@Override
 	public void updateSmartSource(long oldPriority, long newPriority) {
 		if (beanData != null) {

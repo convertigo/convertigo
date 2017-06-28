@@ -128,7 +128,8 @@ public abstract class UIControlCallAction extends UIControlAction {
 			
 			UIForm uiForm = getUIForm();
 			if (uiForm != null && underSubmitEvent()) {
-				params = uiForm.getFormName() +".value";
+				String formGroupName = uiForm.getFormGroupName();
+				params = formGroupName.isEmpty() ? "" : "merge("+formGroupName +".value, {"+ parameters +"})";
 			} else {
 				params = parameters.length()> 0 ? "{"+ parameters +"}" : "";
 			}

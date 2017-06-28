@@ -262,17 +262,6 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		return false;
 	}
 	
-	public boolean hasAttribute(String attributeName) {
-		for (UIComponent uic :getUIComponentList()) {
-			if (uic instanceof UIAttribute) {
-				if (((UIAttribute)uic).getAttrName().equals(attributeName)) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-	
 	public UIComponent getUIComponentByName(String uiName) throws EngineException {
 		checkSubLoaded();
 		for (UIComponent uiComponent : vUIComponents)

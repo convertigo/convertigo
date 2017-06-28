@@ -74,6 +74,14 @@ import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlCallSequence;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
+import com.twinsoft.convertigo.beans.mobile.components.UIForm;
+import com.twinsoft.convertigo.beans.mobile.components.UIText;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent.AttrEvent;
+import com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager;
+import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.rest.FormParameter;
 import com.twinsoft.convertigo.beans.rest.QueryParameter;
 import com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass;
@@ -548,6 +556,84 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						parameter.bNew = true;
 						operation.add(parameter);
 						operation.hasChanged = true;
+					}
+					return true;
+				}
+			}
+			// MOBILE COMPONENTS
+			else if (parent instanceof UIForm) {
+				UIForm uiForm = (UIForm)parent;
+				
+				// Add child components to fill the form
+				if (databaseObject instanceof Sequence) {
+					try {
+						String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
+						
+						Sequence sequence = (Sequence)databaseObject;
+						
+						// add an onSubmit event with a callSequence
+						UIControlEvent event = new UIControlEvent();
+						event.setEventName(AttrEvent.onSubmit.name());
+						event.bNew = true;
+						event.hasChanged = true;
+						
+						UIControlCallSequence call = new UIControlCallSequence();
+						call.setTarget(projectName + "." + sequence.getName());
+						call.bNew = true;
+						call.hasChanged = true;
+						
+						event.add(call);
+						
+						// add a list of item with label & input for each variable
+						DatabaseObject dboList = ComponentManager.createBean(ComponentManager.getComponentByName("List"));
+						for (RequestableVariable variable: sequence.getVariables()) {
+							DatabaseObject dboItem = ComponentManager.createBean(ComponentManager.getComponentByName("ListItem"));
+							dboList.add(dboItem);
+							
+							DatabaseObject dboLabel = ComponentManager.createBean(ComponentManager.getComponentByName("Label"));
+							dboItem.add(dboLabel);
+							
+							UIText uiText = new UIText();
+							uiText.bNew = true;
+							uiText.hasChanged = true;
+							uiText.setTextSmartType(new MobileSmartSourceType(variable.getName()+":"));
+							dboLabel.add(uiText);
+							
+							DatabaseObject dboInput = ComponentManager.createBean(ComponentManager.getComponentByName("Input"));
+							if (dboInput != null && dboInput instanceof UIDynamicElement) {
+								IonBean ionBean = ((UIDynamicElement)dboInput).getIonBean();
+								if (ionBean != null && ionBean.hasProperty("FormControlName")) {
+									ionBean.setPropertyValue("FormControlName", new MobileSmartSourceType(variable.getName()));
+								}
+								dboItem.add(dboInput);
+							}
+						}
+						
+						// add a buttonset with a submit and a reset button
+						DatabaseObject dboBtnSet = ComponentManager.createBean(ComponentManager.getComponentByName("ButtonSet"));
+						
+						DatabaseObject dboSubmit = ComponentManager.createBean(ComponentManager.getComponentByName("SubmitButton"));
+						dboBtnSet.add(dboSubmit);
+						UIText sText = new UIText();
+						sText.bNew = true;
+						sText.hasChanged = true;
+						sText.setTextSmartType(new MobileSmartSourceType("Submit"));
+						dboSubmit.add(sText);
+						
+						DatabaseObject dboReset = ComponentManager.createBean(ComponentManager.getComponentByName("ResetButton"));
+						dboBtnSet.add(dboReset);
+						UIText rText = new UIText();
+						rText.bNew = true;
+						rText.hasChanged = true;
+						rText.setTextSmartType(new MobileSmartSourceType("Reset"));
+						dboReset.add(rText);
+						
+						uiForm.add(event);
+						uiForm.add(dboList);
+						uiForm.add(dboBtnSet);
+					}
+					catch (Exception e) {
+						throw new EngineException("Unable to create filled Form from requestable", e);
 					}
 					return true;
 				}

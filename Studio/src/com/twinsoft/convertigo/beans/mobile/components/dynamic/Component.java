@@ -26,6 +26,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 	
 public abstract class Component {
 	public abstract String getDescription();
+	public abstract String getName();
 	public abstract String getGroup();
 	public abstract String getLabel();
 	public abstract String getImagePath();
