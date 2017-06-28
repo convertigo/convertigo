@@ -2,6 +2,18 @@
   /*  Property models   */
   "Props": {
 
+	"FormControlName": {
+      "label": "Control name",
+      "description": "The associated declared form's control name",
+      "category": "@Forms",
+      "attr": "formControlName",
+      "value": false,
+      "values": [
+        false,
+        true
+      ]
+	},
+	
     "RangeLeft": {
       "label": "Range Left",
       "description": "Labels can be placed on either side of the range by adding the range-left or range-right property to the element. The element doesn't have to be an ion-label, it can be added to any element to place it to the left or right of the range.",
@@ -36,6 +48,29 @@
         "ion-item"
       ]
     },
+    
+    "ButtonFormType": {
+      "label": "button type",
+      "description": "Specifies Form button type",
+      "category": "@Forms",
+      "attr": "type",
+      "values": [
+        false,
+        "reset",
+        "submit"
+      ]
+    },
+    
+    "IconOnly": {
+      "label": "Icon only",
+      "description": "Set if we only show the icon",
+      "category": "Attributes",
+      "values": [
+        false,
+        "icon-only"
+      ]
+    },
+    
     "MenuMode": {
       "label": "menu mode",
       "description": "Specifies menu mode",
@@ -514,6 +549,7 @@
       "icon16": "button_color_16x16.png",
       "icon32": "button_color_32x32.png",
       "properties": {
+        "ButtonFormType" : false,
         "ButtonType": "ion-button",
         "MenuMode": false,
         "IonColor": false,
@@ -521,18 +557,50 @@
         "IonOutline": false,
         "IonSize": false,
         "IconPosition": false,
-        "IconOnly": {
-          "label": "Icon only",
-          "description": "Set if we only show the icon",
-          "category": "Attributes",
-          "values": [
-            false,
-            "icon-only"
-          ]
-        }
+        "IconOnly": false
       }
     },
 
+    "SubmitButton": {
+      "tag": "button",
+      "label": "Submit Button",
+      "description": "Defines a submit button for a Form. | ",
+      "group": "Forms",
+      "icon16": "button_color_16x16.png",
+      "icon32": "button_color_32x32.png",
+      "properties": {
+        "ButtonFormType" : "submit",
+        "ButtonType": "ion-button",
+        "MenuMode": false,
+        "IonColor": false,
+        "IonShape": false,
+        "IonOutline": false,
+        "IonSize": false,
+        "IconPosition": false,
+        "IconOnly": false
+      }
+    },
+
+    "ResetButton": {
+      "tag": "button",
+      "label": "Reset Button",
+      "description": "Defines a reset button for a Form. | ",
+      "group": "Forms",
+      "icon16": "button_color_16x16.png",
+      "icon32": "button_color_32x32.png",
+      "properties": {
+        "ButtonFormType" : "reset",
+        "ButtonType": "ion-button",
+        "MenuMode": false,
+        "IonColor": false,
+        "IonShape": false,
+        "IonOutline": false,
+        "IonSize": false,
+        "IconPosition": false,
+        "IconOnly": false
+      }
+    },
+    
     "FabButton": {
       "tag": "button",
       "label": "FAB Button",
@@ -683,6 +751,17 @@
       }
     },
 
+    "DivTag": {
+      "tag": "div",
+      "label": "Div",
+      "description": "Defines a div tag. | ",
+      "group": "HTML",
+      "icon16": "HTML_color_16x16.png",
+      "icon32": "HTML_color_32x32.png",
+      "properties": {
+      }
+    },
+
     "Heading1": {
       "tag": "h1",
       "label": "H1",
@@ -817,7 +896,7 @@
     
     "Paragraph": {
       "tag": "p",
-      "label": "Paragraph (P)",
+      "label": "Paragraph",
       "description": "Defines a paragraph. | ",
       "group": "HTML",
       "icon16": "HTML_color_16x16.png",
@@ -1396,6 +1475,7 @@
       "icon16": "input_color_16x16.png",
       "icon32": "input_color_32x32.png",
       "properties": {
+        "FormControlName": false,
         "ClearInput": {
           "attr": "clearInput",
           "label": "ClearInput",
