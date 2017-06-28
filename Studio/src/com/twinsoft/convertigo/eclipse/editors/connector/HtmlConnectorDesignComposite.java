@@ -352,8 +352,10 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 
 		// Release parser and remove it from HttpState listeners
 		HtmlParser htmlParser = htmlConnector.getHtmlParser();
-		htmlConnector.removeHttpStateListener(htmlParser);
-		htmlParser.release();
+		if (htmlParser != null) {
+			htmlConnector.removeHttpStateListener(htmlParser);
+			htmlParser.release();
+		}
 
 		// Reset
 		htmlConnector.context = null;

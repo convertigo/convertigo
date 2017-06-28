@@ -145,20 +145,21 @@ public class TraceTreeObject extends TreeObject {
 		
 		// Connect javelin
 		IEditorPart wpart = getConnectorEditor(javelinConnector);
-		ConnectorEditor connectorEditor = (ConnectorEditor)wpart;
-		ConnectorEditorPart connectorEditorPart = connectorEditor.getConnectorEditorPart();
-		AbstractConnectorComposite connectorComposite = connectorEditorPart.getConnectorComposite();
-		if ((connectorComposite != null) && (connectorComposite instanceof JavelinConnectorComposite)) {
-			// Asynchronize javelin connection
-			final JavelinConnectorComposite javelinConnectorComposite = ((JavelinConnectorComposite)connectorComposite);
-			EventQueue.invokeLater(new Runnable(){
-				public void run() {
-					javelinConnectorComposite.renew(true);
-					javelinConnectorComposite.connect();	
-				}
-			});
+		if (wpart != null) {
+			ConnectorEditor connectorEditor = (ConnectorEditor) wpart;
+			ConnectorEditorPart connectorEditorPart = connectorEditor.getConnectorEditorPart();
+			AbstractConnectorComposite connectorComposite = connectorEditorPart.getConnectorComposite();
+			if ((connectorComposite != null) && (connectorComposite instanceof JavelinConnectorComposite)) {
+				// Asynchronize javelin connection
+				final JavelinConnectorComposite javelinConnectorComposite = ((JavelinConnectorComposite)connectorComposite);
+				EventQueue.invokeLater(new Runnable(){
+					public void run() {
+						javelinConnectorComposite.renew(true);
+						javelinConnectorComposite.connect();	
+					}
+				});
+			}
 		}
-		
 	}
 	
 	public IEditorPart getConnectorEditor(Connector connector) {
