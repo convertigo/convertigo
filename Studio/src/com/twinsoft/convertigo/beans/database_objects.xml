@@ -195,6 +195,12 @@
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UITheme">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent"/>
 				</bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIFormControlValidator">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
+				</bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIFormCustomValidator">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
+				</bean>
 			</beans>
 			<beans groupname="Control Components">
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent">

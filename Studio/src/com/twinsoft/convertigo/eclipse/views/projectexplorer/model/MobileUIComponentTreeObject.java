@@ -51,7 +51,6 @@ import org.eclipse.ui.views.properties.TextPropertyDescriptor;
 import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
@@ -65,6 +64,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIControlListenSource;
 import com.twinsoft.convertigo.beans.mobile.components.UICustom;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIElement;
+import com.twinsoft.convertigo.beans.mobile.components.UIFormCustomValidator;
 import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonProperty;
@@ -105,21 +105,24 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 	
 	@Override
 	public void launchEditor(String editorType) {
-		MobileComponent mc = (MobileComponent) getObject();
-		if (mc instanceof UICustom) {
+		UIComponent uic = getObject();
+		if (uic instanceof UICustom) {
 			openHtmlFileEditor();
-		} else if (mc instanceof UIStyle) {
+		} else if (uic instanceof UIStyle) {
 			openCssFileEditor();
-		} else if (mc instanceof UIControlCustomAction) {
-			editPageActionTsFile();
+		} else if (uic instanceof UIControlCustomAction) {
+			String functionMarker = "function:"+ "CTS"+uic.priority;
+			editPageFunction(uic, functionMarker, "actionValue");
+		} else if (uic instanceof UIFormCustomValidator) {
+			String functionMarker = "function:"+ ((UIFormCustomValidator)uic).getValidatorName();
+			editPageFunction(uic, functionMarker , "validatorValue");
 		} else {
 			super.launchEditor(editorType);
 		}
 	}
 
-	private void editPageActionTsFile() {
-		final UIControlCustomAction ca = (UIControlCustomAction)getObject();
-		final PageComponent page = ca.getPage();
+	private void editPageFunction(final UIComponent uic, final String functionMarker, final String propertyName) {
+		final PageComponent page = uic.getPage();
 		try {
 			// Refresh project resource for typescript editor
 			String projectName = page.getProject().getName();
@@ -127,14 +130,13 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			project.refreshLocal(IResource.DEPTH_INFINITE, null);
 			
 			// Refresh component resource for typescript editor
-			String ctsCode = ca.computeActionFunction();
-			String filePath = page.getProject().getMobileBuilder().getTempTsRelativePath(page, ctsCode);
+			String filePath = page.getProject().getMobileBuilder().getTempTsRelativePath(page, functionMarker);
 			IFile file = project.getFile(filePath);
 			file.refreshLocal(IResource.DEPTH_ZERO, null);
 			
 			// Open file in editor
 			if (file.exists()) {
-				IEditorInput input = new ComponentFileEditorInput(file, ca);
+				IEditorInput input = new ComponentFileEditorInput(file, uic);
 				if (input != null) {
 					IEditorDescriptor desc = PlatformUI
 							.getWorkbench()
@@ -165,8 +167,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 									ITextEditor editor = (ITextEditor)source;
 									IDocumentProvider dp = editor.getDocumentProvider();
 									IDocument doc = dp.getDocument(editor.getEditorInput());
-									String markerId = "CTS"+ca.priority;
-									String marker = MobileBuilder.getMarker(doc.get(), markerId);
+									String marker = MobileBuilder.getMarker(doc.get(), functionMarker);
 									String[] lines = marker.split(System.lineSeparator());
 									String content = "";
 									if (lines.length > 2) { // retrieve content inside markers
@@ -175,7 +176,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 										}
 									}
 									FormatedContent formated = new FormatedContent(content);
-									MobileUIComponentTreeObject.this.setPropertyValue("actionValue", formated);
+									MobileUIComponentTreeObject.this.setPropertyValue(propertyName, formated);
 								}
 							}
 						}
@@ -183,7 +184,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 				}			
 			}
 		} catch (Exception e) {
-			ConvertigoPlugin.logException(e, "Unable to open typescript file for page '" + page.getName() + "'!");
+			ConvertigoPlugin.logException(e, "Unable to edit function for page '" + page.getName() + "'!");
 		}
 	}
 	

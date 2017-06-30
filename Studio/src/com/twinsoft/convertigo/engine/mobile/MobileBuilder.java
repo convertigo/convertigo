@@ -316,39 +316,30 @@ public class MobileBuilder {
 		return null;
 	}
 	
-	public String getTempTsRelativePath(PageComponent page, String ctsCode) throws EngineException {
+	public String getTempTsRelativePath(PageComponent page, String functionMarker) throws EngineException {
 		try {
 			if (page != null) {
 				String pageName = page.getName();
 				File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
 				File pageTsFile = new File(pageDir, pageName.toLowerCase() + ".ts");
-				File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".action.temp.ts");
 				
-				// Remove all CTSXXX
 				String tsContent = FileUtils.readFileToString(pageTsFile, "UTF-8");
-				int index = tsContent.indexOf("/*End_c8o_PageFunction*/");
-				if (index != -1) {
-					tsContent = tsContent.substring(0, index) + "/*End_c8o_PageFunction*/"
-									+ System.lineSeparator() + "//c8o_CtsCode"
-									+ System.lineSeparator() + "}";
-				}
 				
-				// Replace all Begin_c8o_XXX, End_c8o_XXX
+				// Replace all Begin_c8o_XXX, End_c8o_XXX except for functionMarker
 				Pattern pattern = Pattern.compile("/\\*Begin_c8o_(.+)\\*/");
 				Matcher matcher = pattern.matcher(tsContent);
 				while (matcher.find()) {
 					String markerId = matcher.group(1);
-					String beginMarker = "/*Begin_c8o_" + markerId + "*/";
-					String endMarker = "/*End_c8o_" + markerId + "*/";
-					tsContent = tsContent.replace(beginMarker, "//---"+markerId+"---");
-					tsContent = tsContent.replace(endMarker, "//---"+markerId+"---");
+					if (!markerId.equals(functionMarker)) {
+						String beginMarker = "/*Begin_c8o_" + markerId + "*/";
+						String endMarker = "/*End_c8o_" + markerId + "*/";
+						tsContent = tsContent.replace(beginMarker, "//---"+markerId+"---");
+						tsContent = tsContent.replace(endMarker, "//---"+markerId+"---");
+					}
 				}
 				
-				// Write ctsCode
-				tsContent = tsContent.replace("//c8o_CtsCode", ctsCode);
-				
+				File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".function.temp.ts");
 				FileUtils.write(tempTsFile, tsContent, "UTF-8");
-				
 				String filePath = tempTsFile.getPath().replace(projectDir.getPath(), "/");
 				return filePath;
 			}
@@ -365,16 +356,28 @@ public class MobileBuilder {
 				String pageName = page.getName();
 				File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
 				File pageTsFile = new File(pageDir, pageName.toLowerCase() + ".ts");
-				File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".temp.ts");
+				
+				String tsContent = FileUtils.readFileToString(pageTsFile, "UTF-8");
+				
+				// Replace all Begin_c8o_function:XXX, End_c8o_function:XXX
+				Pattern pattern = Pattern.compile("/\\*Begin_c8o_function:(.+)\\*/");
+				Matcher matcher = pattern.matcher(tsContent);
+				while (matcher.find()) {
+					String markerId = matcher.group(1);
+					String beginMarker = "/*Begin_c8o_function:" + markerId + "*/";
+					String endMarker = "/*End_c8o_function:" + markerId + "*/";
+					tsContent = tsContent.replace(beginMarker, "//---"+markerId+"---");
+					tsContent = tsContent.replace(endMarker, "//---"+markerId+"---");
+				}
 				
 				// Remove all CTSXXX
-				String tsContent = FileUtils.readFileToString(pageTsFile, "UTF-8");
 				int index = tsContent.indexOf("/*End_c8o_PageFunction*/");
 				if (index != -1) {
 					tsContent = tsContent.substring(0, index) + "/*End_c8o_PageFunction*/"
 									+ System.lineSeparator() + "}";
 				}
 				
+				File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".temp.ts");
 				FileUtils.write(tempTsFile, tsContent, "UTF-8");
 			}
 		}

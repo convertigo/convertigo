@@ -168,9 +168,9 @@ public class UIControlCustomAction extends UIControlAction {
 	
 	private String computeActionContent() {
 		String s = "";
-		s += "\t/*Begin_c8o_CTS"+ this.priority +"*/" + System.lineSeparator();
+		s += "\t/*Begin_c8o_function:CTS"+ this.priority +"*/" + System.lineSeparator();
 		s += actionValue.getString() + System.lineSeparator();
-		s += "\t/*End_c8o_CTS"+ this.priority +"*/";
+		s += "\t/*End_c8o_function:CTS"+ this.priority +"*/";
 		return s;
 	}
 	

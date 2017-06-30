@@ -82,10 +82,24 @@ public class UIElement extends UIComponent implements IStyleGenerator {
 	
 	@Override
 	protected void addUIComponent(UIComponent uiComponent, Long after) throws EngineException {
-        if (isSelfClose() && !(uiComponent instanceof UIAttribute || uiComponent instanceof UIStyle)) {
+        if (isSelfClose() && !(uiComponent instanceof UIAttribute 
+        						|| uiComponent instanceof UIStyle
+        							|| uiComponent instanceof UIFormValidator)) {
             throw new EngineException("You cannot add component to this self-closing tag");
         }
         else {
+        	if (uiComponent instanceof UIFormValidator) {
+        		String formControlName = getFormControlName();
+        		if (formControlName.isEmpty()) {
+        			throw new EngineException("You cannot add validator to this component: Missing \"formControlName\" property or attribute.");
+        		} else if (uiComponent instanceof UIFormCustomValidator) {
+        			UIFormCustomValidator uicv = (UIFormCustomValidator)uiComponent;
+        			String function = uicv.getValidatorName();
+        			if (uicv.bNew && function.isEmpty()) {
+        				uicv.setValidatorName("validate_"+formControlName);
+        			}
+        		}
+        	}
             super.addUIComponent(uiComponent, after);
         }
 	}
@@ -113,6 +127,33 @@ public class UIElement extends UIComponent implements IStyleGenerator {
 		}
 		return "";
 	}
+
+	protected String getValidatorConstructors() {
+		String constructors = "";
+		Iterator<UIComponent> it = getUIComponentList().iterator();
+		while (it.hasNext()) {
+			UIComponent component = (UIComponent)it.next();
+			if (component instanceof UIFormValidator) {
+				UIFormValidator validator = (UIFormValidator)component;
+				String constructor = validator.computeConstructor();
+				constructors += (!constructors.isEmpty() && !constructor.isEmpty() ? ",":"") + constructor;
+			}
+		}
+		return constructors;
+	}
+	
+	protected String getValidatorFunctions() {
+		String functions = "";
+		Iterator<UIComponent> it = getUIComponentList().iterator();
+		while (it.hasNext()) {
+			UIComponent component = (UIComponent)it.next();
+			if (component instanceof UIFormValidator) {
+				UIFormValidator validator = (UIFormValidator)component;
+				functions += validator.computeFunction();
+			}
+		}
+		return functions;
+	}
 	
 	protected StringBuilder initAttributes() {
 		return new StringBuilder();
@@ -127,8 +168,11 @@ public class UIElement extends UIComponent implements IStyleGenerator {
 				if (form != null) {
 					String formGroupName = form.getFormGroupName();
 					String constructor = formGroupName.isEmpty() ? "":"this."+ formGroupName
-											+".addControl('"+formControlVarName+"', new FormControl());"
+											+".addControl('"+formControlVarName+"', new FormControl('', Validators.compose(["+getValidatorConstructors()+"])));"
 											+ System.lineSeparator();
+					
+					constructor += System.lineSeparator() + getValidatorFunctions();
+					
 					try {
 						String constructors = jsonScripts.getString("constructors") + constructor;
 						jsonScripts.put("constructors", constructors);
@@ -150,7 +194,7 @@ public class UIElement extends UIComponent implements IStyleGenerator {
 			Iterator<UIComponent> it = getUIComponentList().iterator();
 			while (it.hasNext()) {
 				UIComponent component = (UIComponent)it.next();
-				if (component instanceof UIStyle) {
+				if (component instanceof UIStyle || component instanceof UIFormControlValidator) {
 					;// ignore
 				} else if (component instanceof UIAttribute) {
 					attributes.append(component.computeTemplate());

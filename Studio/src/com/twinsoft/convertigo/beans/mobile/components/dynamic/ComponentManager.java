@@ -56,6 +56,9 @@ import com.twinsoft.convertigo.beans.mobile.components.UIForm;
 import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
 import com.twinsoft.convertigo.beans.mobile.components.UIText;
 import com.twinsoft.convertigo.beans.mobile.components.UITheme;
+import com.twinsoft.convertigo.beans.mobile.components.UIFormControlValidator;
+import com.twinsoft.convertigo.beans.mobile.components.UIFormCustomValidator;
+import com.twinsoft.convertigo.beans.mobile.components.UIFormValidator;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
@@ -274,6 +277,8 @@ public class ComponentManager {
 //			components.add(getDboComponent(UIControlListenFullSyncSource.class,group));
 			
 			components.add(getDboComponent(UIForm.class,"Forms"));
+			components.add(getDboComponent(UIFormControlValidator.class,"Forms"));
+			components.add(getDboComponent(UIFormCustomValidator.class,"Forms"));
 			
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
@@ -385,6 +390,7 @@ public class ComponentManager {
 				}
 				if (parent instanceof PageComponent) {
 					if (!UITheme.class.isAssignableFrom(dboClass) &&
+						!UIFormValidator.class.isAssignableFrom(dboClass) &&
 						!UIAttribute.class.isAssignableFrom(dboClass) &&
 						!UIControlAction.class.isAssignableFrom(dboClass)) {
 						return true;

@@ -155,6 +155,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlAttr;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlSource;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
+import com.twinsoft.convertigo.beans.mobile.components.UIFormValidator;
 import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
@@ -331,6 +332,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public static final int TREE_OBJECT_TYPE_FOLDER_SOURCES = 0x216;
 	public static final int TREE_OBJECT_TYPE_FOLDER_STYLES = 0x217;
 	public static final int TREE_OBJECT_TYPE_FOLDER_ATTRIBUTES = 0x218;
+	public static final int TREE_OBJECT_TYPE_FOLDER_VALIDATORS = 0x219;
 
 	public static final int TREE_OBJECT_TYPE_MISC = 0x8000;						// 1000 0000 0000 0000
 
@@ -1502,6 +1504,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							else if (databaseObject instanceof UIControlVariable) {
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_VARIABLES;
 							}
+							else if (databaseObject instanceof UIFormValidator) {
+								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_VALIDATORS;
+							}
 							databaseObjectTreeObject = new MobileUIComponentTreeObject(viewer, (UIComponent) databaseObject, false);
 							
 						} else if (databaseObject instanceof UrlMapper) {
@@ -2409,6 +2414,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			}
 			else if (folderType == ObjectsFolderTreeObject.FOLDER_TYPE_ATTRIBUTES) {
 				return ProjectExplorerView.TREE_OBJECT_TYPE_FOLDER_ATTRIBUTES;
+			}
+			else if (folderType == ObjectsFolderTreeObject.FOLDER_TYPE_VALIDATORS) {
+				return ProjectExplorerView.TREE_OBJECT_TYPE_FOLDER_VALIDATORS;
 			}
 			else if (folderType == ObjectsFolderTreeObject.FOLDER_TYPE_PLATFORMS) {
 				return ProjectExplorerView.TREE_OBJECT_TYPE_FOLDER_MOBILEPLATFORMS;
