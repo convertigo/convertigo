@@ -131,21 +131,29 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 		
     	if (ionBean != null) {
 			for (IonProperty property : ionBean.getProperties().values()) {
+				String name = property.getName();
 				String attr = property.getAttr();
 				Object value = property.getValue();
 				if (!value.equals(false)) {
-					String smartValue = property.getSmartValue();
-					
-					attributes.append(" ");
-					if (attr.isEmpty()){
-						attributes.append(smartValue);
-					}
-					else if (attr.indexOf("%%") != -1){
-						attributes.append(attr.replaceFirst("%%", smartValue));
-					}
-					else {
-						attributes.append(attr).append("=");
-						attributes.append("\"").append(smartValue).append("\"");
+					if (name.equals("AutoDisable")) {
+						UIForm form = getUIForm();
+						if (form != null) {
+							String formGroupName = form.getFormGroupName();
+							attributes.append(" [disabled]=\"!").append(formGroupName).append(".valid\"");
+						}
+					} else {
+						String smartValue = property.getSmartValue();
+						attributes.append(" ");
+						if (attr.isEmpty()){
+							attributes.append(smartValue);
+						}
+						else if (attr.indexOf("%%") != -1){
+							attributes.append(attr.replaceFirst("%%", smartValue));
+						}
+						else {
+							attributes.append(attr).append("=");
+							attributes.append("\"").append(smartValue).append("\"");
+						}
 					}
 				}
 			}

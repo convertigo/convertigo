@@ -577,7 +577,17 @@
         "IonOutline": false,
         "IonSize": false,
         "IconPosition": false,
-        "IconOnly": false
+        "IconOnly": false,
+		"AutoDisable": {
+      		"label": "Auto disable",
+      		"description": "Disable button if associated form is not valid",
+      		"category": "@Forms",
+      		"value": "true",
+      		"values": [
+        		false,
+        		"true"
+      		]
+		}
       }
     },
 
