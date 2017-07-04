@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
+import java.util.Iterator;
+
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -54,13 +56,6 @@ public class UIForm extends UIElement {
 		return "form : "+ (formGroupName.isEmpty() ? "?":formGroupName);
 	}
 
-	private String getDeclaration() {
-		if (!formGroupName.isEmpty()) {
-			return "public "+ formGroupName + " =  new FormGroup({});" + System.lineSeparator();
-		}
-		return "";
-	}
-	
 	@Override
 	protected StringBuilder initAttributes() {
 		StringBuilder attributes = super.initAttributes();
@@ -70,6 +65,58 @@ public class UIForm extends UIElement {
 		}
 		return attributes;
 	}	
+	
+	@Override
+	protected String computeConstructor() {
+		if (isEnabled()) {
+			StringBuilder sb = new StringBuilder();
+			String formGroupName = getFormGroupName();
+			if (!formGroupName.isEmpty()) {
+				StringBuilder constructors = new StringBuilder();
+				StringBuilder validator = new StringBuilder();
+				Iterator<UIComponent> it = getUIComponentList().iterator();
+				while (it.hasNext()) {
+					UIComponent component = (UIComponent)it.next();
+					if (component instanceof UIElement) {
+						String constructor = ((UIElement)component).computeConstructor();
+						constructors.append(constructors.length() > 0 && !constructor.isEmpty() ? ",":"").append(constructor);
+					} else if (component instanceof UIFormCustomValidator) {
+						if (validator.length() == 0) {// only one
+							validator.append(((UIFormCustomValidator)component).computeConstructor());
+						}
+					}
+				}
+				
+				sb.append("this."+ formGroupName + " = new FormGroup({");
+				sb.append(constructors).append(System.lineSeparator()).append("\t\t}");
+				sb.append(validator.length() > 0 ? ",":"").append(validator).append(");");
+				sb.append(System.lineSeparator());
+				return sb.toString();
+			}
+		}
+		return "";
+	}
+	
+	@Override
+	protected String computeFunction() {
+		if (isEnabled()) {
+			StringBuilder sb = new StringBuilder();
+			String formGroupName = getFormGroupName();
+			if (!formGroupName.isEmpty()) {
+				Iterator<UIComponent> it = getUIComponentList().iterator();
+				while (it.hasNext()) {
+					UIComponent component = (UIComponent)it.next();
+					if (component instanceof UIElement) {
+						sb.append(((UIElement)component).computeFunction());
+					} else if (component instanceof UIFormCustomValidator) {
+						sb.append(((UIFormValidator)component).computeFunction());
+					}
+				}
+				return sb.toString();
+			}
+		}
+		return "";
+	}
 	
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
@@ -86,12 +133,30 @@ public class UIForm extends UIElement {
 				e.printStackTrace();
 			}
 	
-			String declaration = getDeclaration();
-			try {
-				String declarations = jsonScripts.getString("declarations") + declaration;
-				jsonScripts.put("declarations", declarations);
-			} catch (JSONException e) {
-				e.printStackTrace();
+			if (!formGroupName.isEmpty()) {
+				String declaration = "public "+ formGroupName + " :  FormGroup;" + System.lineSeparator();
+				try {
+					String declarations = jsonScripts.getString("declarations") + declaration;
+					jsonScripts.put("declarations", declarations);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+				
+				String constructor = computeConstructor() + System.lineSeparator();
+				try {
+					String constructors = jsonScripts.getString("constructors") + constructor;
+					jsonScripts.put("constructors", constructors);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+				
+				String function = computeFunction() + System.lineSeparator();
+				try {
+					String constructors = jsonScripts.getString("constructors") + function;
+					jsonScripts.put("constructors", constructors);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
 			}
 			
 			super.computeScripts(jsonScripts);

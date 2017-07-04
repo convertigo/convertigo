@@ -87,7 +87,8 @@ public class UIFormCustomValidator extends UIFormValidator {
 		if (isEnabled()) {
 			if (!validatorName.isEmpty()) {
 				String computed = "";
-				computed += "\t\tfunction "+ this.validatorName +"(c: FormControl) {"+ System.lineSeparator();
+				String parameter = getParent() instanceof UIForm ? "g: FormGroup":"c: FormControl";
+				computed += "\t\tfunction "+ this.validatorName +"("+parameter+") {"+ System.lineSeparator();
 				computed += computeValidatorContent();
 				computed += System.lineSeparator() + "\t\t}";
 				computed += System.lineSeparator();
@@ -108,6 +109,11 @@ public class UIFormCustomValidator extends UIFormValidator {
 		s += validatorValue.getString().replace("__functionName__", validatorName) + System.lineSeparator();
 		s += "\t\t/*End_c8o_function:"+ this.validatorName +"*/";
 		return s;
+	}
+
+	@Override
+	public String toString() {
+		return validatorName.isEmpty() ? "?" : validatorName + "()";
 	}
 	
 }

@@ -24,7 +24,6 @@ package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.util.Iterator;
 
-import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.EngineException;
@@ -86,21 +85,38 @@ public class UIElement extends UIComponent implements IStyleGenerator {
         						|| uiComponent instanceof UIStyle
         							|| uiComponent instanceof UIFormValidator)) {
             throw new EngineException("You cannot add component to this self-closing tag");
-        }
-        else {
-        	if (uiComponent instanceof UIFormValidator) {
-        		String formControlName = getFormControlName();
-        		if (formControlName.isEmpty()) {
-        			throw new EngineException("You cannot add validator to this component: Missing \"formControlName\" property or attribute.");
-        		} else if (uiComponent instanceof UIFormCustomValidator) {
-        			UIFormCustomValidator uicv = (UIFormCustomValidator)uiComponent;
-        			String function = uicv.getValidatorName();
-        			if (uicv.bNew && function.isEmpty()) {
-        				uicv.setValidatorName("validate_"+formControlName);
-        			}
+        } else if (uiComponent instanceof UIFormValidator) {
+        	if (this instanceof UIForm) {
+        		if (!(uiComponent instanceof UIFormCustomValidator)) {
+        			throw new EngineException("You can only add a custom validator to this component");
+        		} else {
+		    		String formGroupName = ((UIForm)this).getFormGroupName();
+		    		if (formGroupName.isEmpty()) {
+		    			throw new EngineException("You cannot add validator to this component: Missing \"formGroup\" property or attribute.");
+		    		}
+	    			UIFormCustomValidator uicv = (UIFormCustomValidator)uiComponent;
+	    			String function = uicv.getValidatorName();
+	    			if (uicv.bNew && function.isEmpty()) {
+	    				uicv.setValidatorName("validate_"+formGroupName);
+	    			}
+	    			super.addUIComponent(uiComponent, after);
         		}
+        	} else {
+	    		String formControlName = getFormControlName();
+	    		if (formControlName.isEmpty()) {
+	    			throw new EngineException("You cannot add validator to this component: Missing \"formControlName\" property or attribute.");
+	    		}
+	    		if (uiComponent instanceof UIFormCustomValidator) {
+	    			UIFormCustomValidator uicv = (UIFormCustomValidator)uiComponent;
+	    			String function = uicv.getValidatorName();
+	    			if (uicv.bNew && function.isEmpty()) {
+	    				uicv.setValidatorName("validate_"+formControlName);
+	    			}
+	    		}
+	    		super.addUIComponent(uiComponent, after);
         	}
-            super.addUIComponent(uiComponent, after);
+        } else {
+        	super.addUIComponent(uiComponent, after);
         }
 	}
 
@@ -128,60 +144,77 @@ public class UIElement extends UIComponent implements IStyleGenerator {
 		return "";
 	}
 
-	protected String getValidatorConstructors() {
-		String constructors = "";
-		Iterator<UIComponent> it = getUIComponentList().iterator();
-		while (it.hasNext()) {
-			UIComponent component = (UIComponent)it.next();
-			if (component instanceof UIFormValidator) {
-				UIFormValidator validator = (UIFormValidator)component;
-				String constructor = validator.computeConstructor();
-				constructors += (!constructors.isEmpty() && !constructor.isEmpty() ? ",":"") + constructor;
-			}
-		}
-		return constructors;
-	}
-	
-	protected String getValidatorFunctions() {
-		String functions = "";
-		Iterator<UIComponent> it = getUIComponentList().iterator();
-		while (it.hasNext()) {
-			UIComponent component = (UIComponent)it.next();
-			if (component instanceof UIFormValidator) {
-				UIFormValidator validator = (UIFormValidator)component;
-				functions += validator.computeFunction();
-			}
-		}
-		return functions;
-	}
-	
 	protected StringBuilder initAttributes() {
 		return new StringBuilder();
 	}
 	
-	@Override
-	public void computeScripts(JSONObject jsonScripts) {
+	protected String computeConstructor() {
 		if (isEnabled()) {
+			StringBuilder sb = new StringBuilder();
+			
 			String formControlVarName = getFormControlName();
 			if (!formControlVarName.isEmpty()) {
-				UIForm form = getUIForm();
-				if (form != null) {
-					String formGroupName = form.getFormGroupName();
-					String constructor = formGroupName.isEmpty() ? "":"this."+ formGroupName
-											+".addControl('"+formControlVarName+"', new FormControl('', Validators.compose(["+getValidatorConstructors()+"])));"
-											+ System.lineSeparator();
-					
-					constructor += System.lineSeparator() + getValidatorFunctions();
-					
-					try {
-						String constructors = jsonScripts.getString("constructors") + constructor;
-						jsonScripts.put("constructors", constructors);
-					} catch (JSONException e) {
-						e.printStackTrace();
+				StringBuilder constructors = new StringBuilder();
+				Iterator<UIComponent> it = getUIComponentList().iterator();
+				while (it.hasNext()) {
+					UIComponent component = (UIComponent)it.next();
+					if (component instanceof UIFormValidator) {
+						UIFormValidator validator = (UIFormValidator)component;
+						String constructor = validator.computeConstructor();
+						constructors.append(constructors.length() > 0 && !constructor.isEmpty() ? ",":"").append(constructor);
+					}
+				}
+				sb.append(System.lineSeparator());
+				sb.append("\t\t\t"+formControlVarName + " : new FormControl('', Validators.compose([");
+				sb.append(constructors);
+				sb.append("]))").append(",");
+			}
+			else {
+				StringBuilder constructors = new StringBuilder();
+				Iterator<UIComponent> it = getUIComponentList().iterator();
+				while (it.hasNext()) {
+					UIComponent component = (UIComponent)it.next();
+					if (component instanceof UIElement ) {
+						String constructor = ((UIElement)component).computeConstructor();
+						constructors.append(constructor);
+					}
+				}
+				sb.append(constructors);
+			}
+			return sb.toString();
+		}
+		return "";
+	}
+	
+	protected String computeFunction() {
+		if (isEnabled()) {
+			StringBuilder sb = new StringBuilder();
+			String formControlVarName = getFormControlName();
+			if (!formControlVarName.isEmpty()) {
+				Iterator<UIComponent> it = getUIComponentList().iterator();
+				while (it.hasNext()) {
+					UIComponent component = (UIComponent)it.next();
+					if (component instanceof UIFormValidator) {
+						sb.append(((UIFormValidator)component).computeFunction());
 					}
 				}
 			}
+			else {
+				Iterator<UIComponent> it = getUIComponentList().iterator();
+				while (it.hasNext()) {
+					UIComponent component = (UIComponent)it.next();
+					if (component instanceof UIElement ) {
+						sb.append(((UIElement)component).computeFunction());
+					}
+				}
+			}
+			return sb.toString();
 		}
+		return "";
+	}
+	
+	@Override
+	public void computeScripts(JSONObject jsonScripts) {
 		super.computeScripts(jsonScripts);
 	}
 		
