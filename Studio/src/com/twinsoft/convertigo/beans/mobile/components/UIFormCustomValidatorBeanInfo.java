@@ -41,17 +41,12 @@ public class UIFormCustomValidatorBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[2];
+			properties = new PropertyDescriptor[1];
 			
-			properties[0] = new PropertyDescriptor("validatorName", beanClass, "getValidatorName", "setValidatorName");
-			properties[0].setDisplayName(getExternalizedString("property.validatorName.display_name"));
-			properties[0].setShortDescription(getExternalizedString("property.validatorName.short_description"));
-            properties[0].setExpert(true);
-			
-			properties[1] = new PropertyDescriptor("validatorValue", beanClass, "getValidatorValue", "setValidatorValue");
-			properties[1].setDisplayName(getExternalizedString("property.validatorValue.display_name"));
-			properties[1].setShortDescription(getExternalizedString("property.validatorValue.short_description"));
-            properties[1].setHidden(true);
+			properties[0] = new PropertyDescriptor("validatorValue", beanClass, "getValidatorValue", "setValidatorValue");
+			properties[0].setDisplayName(getExternalizedString("property.validatorValue.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.validatorValue.short_description"));
+            properties[0].setHidden(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

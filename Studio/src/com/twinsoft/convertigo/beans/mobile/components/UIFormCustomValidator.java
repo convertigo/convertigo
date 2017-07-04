@@ -39,28 +39,17 @@ public class UIFormCustomValidator extends UIFormValidator {
 	}
 	
 	private static String sample() {
-		return  "\t\t\t//return c.value !== '' ? null : {\n"	+
-				"\t\t\t//\t__functionName__: {\n"				+
-				"\t\t\t//\t\tvalid: false\n"					+
-				"\t\t\t//\t}\n"									+
-				"\t\t\t//}\n"									+
+		return  "\t\t\t//For FormControl: you can access control value using : c.value\n" +
+				"\t\t\t//For FormGroup: you can access control value using : g.get('<control_name>').value\n" +
+				"\t\t\t//return any json structure to specify errors\n"	+
+				"\t\t\t//return null if valid\n"	+
 				"\t\t\treturn null;//means valid";
-
 	}
-	
-	/*
-	 * The validator name (function name)
-	 */
-	private String validatorName = "";
 	
 	public String getValidatorName() {
-		return validatorName;
+		return "validate"+ this.priority;
 	}
-
-	public void setValidatorName(String validatorName) {
-		this.validatorName = validatorName;
-	}
-
+	
 	/*
 	 * The validator value (function contents)
 	 */
@@ -77,7 +66,7 @@ public class UIFormCustomValidator extends UIFormValidator {
 	@Override
 	public String computeConstructor() {
 		if (isEnabled()) {
-			return validatorName;
+			return getValidatorName();
 		}
 		return "";
 	}
@@ -85,15 +74,14 @@ public class UIFormCustomValidator extends UIFormValidator {
 	@Override
 	public String computeFunction() {
 		if (isEnabled()) {
-			if (!validatorName.isEmpty()) {
-				String computed = "";
-				String parameter = getParent() instanceof UIForm ? "g: FormGroup":"c: FormControl";
-				computed += "\t\tfunction "+ this.validatorName +"("+parameter+") {"+ System.lineSeparator();
-				computed += computeValidatorContent();
-				computed += System.lineSeparator() + "\t\t}";
-				computed += System.lineSeparator();
-				return computed;
-			}
+			String computed = "";
+			String validatorName = getValidatorName();
+			String parameter = getParent() instanceof UIForm ? "g: FormGroup":"c: FormControl";
+			computed += "\t\tfunction "+ validatorName +"("+parameter+") {"+ System.lineSeparator();
+			computed += computeValidatorContent();
+			computed += System.lineSeparator() + "\t\t}";
+			computed += System.lineSeparator();
+			return computed;
 		}
 		return "";
 	}
@@ -104,16 +92,17 @@ public class UIFormCustomValidator extends UIFormValidator {
 	}
 
 	private String computeValidatorContent() {
+		String validatorName = getValidatorName();
 		String s = "";
-		s += "\t\t/*Begin_c8o_function:"+ this.validatorName +"*/" + System.lineSeparator();
-		s += validatorValue.getString().replace("__functionName__", validatorName) + System.lineSeparator();
-		s += "\t\t/*End_c8o_function:"+ this.validatorName +"*/";
+		s += "\t\t/*Begin_c8o_function:"+ validatorName +"*/" + System.lineSeparator();
+		s += validatorValue.getString() + System.lineSeparator();
+		s += "\t\t/*End_c8o_function:"+ validatorName +"*/";
 		return s;
 	}
 
 	@Override
 	public String toString() {
-		return validatorName.isEmpty() ? "?" : validatorName + "()";
+		return getValidatorName() + "()";
 	}
 	
 }

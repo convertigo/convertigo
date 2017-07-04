@@ -90,25 +90,12 @@ public class UIElement extends UIComponent implements IStyleGenerator {
         		if (!(uiComponent instanceof UIFormCustomValidator)) {
         			throw new EngineException("You can only add a custom validator to this component");
         		} else {
-		    		String formGroupName = ((UIForm)this).getFormGroupName();
-	    			UIFormCustomValidator uicv = (UIFormCustomValidator)uiComponent;
-	    			String function = uicv.getValidatorName();
-	    			if (uicv.bNew && function.isEmpty()) {
-	    				uicv.setValidatorName("validate_"+formGroupName);
-	    			}
 	    			super.addUIComponent(uiComponent, after);
         		}
         	} else {
 	    		String formControlName = getFormControlName();
 	    		if (formControlName.isEmpty()) {
 	    			throw new EngineException("You cannot add validator to this component: Missing \"formControlName\" property or attribute.");
-	    		}
-	    		if (uiComponent instanceof UIFormCustomValidator) {
-	    			UIFormCustomValidator uicv = (UIFormCustomValidator)uiComponent;
-	    			String function = uicv.getValidatorName();
-	    			if (uicv.bNew && function.isEmpty()) {
-	    				uicv.setValidatorName("validate_"+formControlName);
-	    			}
 	    		}
 	    		super.addUIComponent(uiComponent, after);
         	}
