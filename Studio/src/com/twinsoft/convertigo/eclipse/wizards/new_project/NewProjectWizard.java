@@ -124,6 +124,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int TEMPLATE_SITE_CLIPPER = 1100;
 	public static final int TEMPLATE_SAP_CONNECTOR = 1200;
 	public static final int TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE = 1300;
+	public static final int TEMPLATE_MOBILE_BUILDER = 1400;
 
 	// generic sample
 	public static final int SAMPLE_HELLO_WORLD = 620;
@@ -194,6 +195,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final String SAP_TEMPLATE_PROJECT_FILE_NAME = "template_SAP.car";
 	public static final String SITE_CLIPPER_TEMPLATE_PROJECT_FILE_NAME = "template_siteClipper.car";
 	public static final String JQUERYMOBILE_MOBILE_EMPTY_TEMPLATE_PROJECT_FILE_NAME = "template_mobileJQueryMobile.car";
+	public static final String MOBILE_BUILDER_TEMPLATE_PROJECT_FILE_NAME = "template_Ionic2.car";
 	// documentation samples
 	public static final String CLI_DOC_PROJECT_FILE_NAME = "sample_documentation_CLI.car";
 	public static final String CWI_DOC_PROJECT_FILE_NAME = "sample_documentation_CWI.car";
@@ -370,6 +372,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			break;
 
 		case TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE:
+		case TEMPLATE_MOBILE_BUILDER:
 		case TEMPLATE_SEQUENCE_CONNECTOR:
 			page1 = new NewProjectWizardPage1(selection);
 			addPage(page1);
@@ -465,6 +468,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case TEMPLATE_SAP_CONNECTOR:
 			case TEMPLATE_SITE_CLIPPER:
 			case TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE:
+			case TEMPLATE_MOBILE_BUILDER:
 			case TEMPLATE_WEB_SERVICE_REST_REFERENCE:
 				projectName = page1.getProjectName();
 				monitor.beginTask("Creating project " + projectName, 7);
@@ -659,6 +663,12 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			oldProjectName = JQUERYMOBILE_MOBILE_EMPTY_TEMPLATE_PROJECT_FILE_NAME.substring(0,
 					JQUERYMOBILE_MOBILE_EMPTY_TEMPLATE_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
+		case TEMPLATE_MOBILE_BUILDER:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/"
+					+ MOBILE_BUILDER_TEMPLATE_PROJECT_FILE_NAME;
+			oldProjectName = MOBILE_BUILDER_TEMPLATE_PROJECT_FILE_NAME.substring(0,
+					MOBILE_BUILDER_TEMPLATE_PROJECT_FILE_NAME.indexOf(".car"));
+			break;
 		default:
 			return null;
 		}
@@ -798,6 +808,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			// interactionHub project connector name is by default set to "void"
 			switch (templateId) {
 			case TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE:
+			case TEMPLATE_MOBILE_BUILDER:
 			case TEMPLATE_SEQUENCE_CONNECTOR:
 				newConnectorName = "void";
 				break;
@@ -1088,28 +1099,29 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			try {
 				String xsdInternalPath = newProjectDir + "/" + Project.XSD_FOLDER_NAME + "/" + Project.XSD_INTERNAL_FOLDER_NAME;
 				File xsdInternalDir = new File(xsdInternalPath).getCanonicalFile();
-
-				boolean needConnectorRename = !oldConnectorName.equals(newConnectorName);
-				if (needConnectorRename) {
-					File srcDir = new File(xsdInternalDir, oldConnectorName);
-					File destDir = new File(xsdInternalDir, newConnectorName);
-					
-					if (oldConnectorName.equalsIgnoreCase(newConnectorName)) {
-						File destDirTmp = new File(xsdInternalDir, "tmp" + oldConnectorName).getCanonicalFile();
-						FileUtils.moveDirectory(srcDir, destDirTmp);
-						srcDir = destDirTmp;
+				if (xsdInternalDir.exists()) {
+					boolean needConnectorRename = !oldConnectorName.equals(newConnectorName);
+					if (needConnectorRename) {
+						File srcDir = new File(xsdInternalDir, oldConnectorName);
+						File destDir = new File(xsdInternalDir, newConnectorName);
+						
+						if (oldConnectorName.equalsIgnoreCase(newConnectorName)) {
+							File destDirTmp = new File(xsdInternalDir, "tmp" + oldConnectorName).getCanonicalFile();
+							FileUtils.moveDirectory(srcDir, destDirTmp);
+							srcDir = destDirTmp;
+						}
+						FileUtils.moveDirectory(srcDir, destDir);
 					}
-					FileUtils.moveDirectory(srcDir, destDir);
-				}
-
-				for (File connectorDir : xsdInternalDir.listFiles()) {
-					if (connectorDir.isDirectory()) {
-						String connectorName = connectorDir.getName();
-						for (File transactionXsdFile : connectorDir.listFiles()) {
-							String xsdFilePath = transactionXsdFile.getCanonicalPath();
-							ProjectUtils.xsdRenameProject(xsdFilePath, oldProjectName, newProjectName);
-							if (needConnectorRename && connectorName.equals(newConnectorName)) {
-								ProjectUtils.xsdRenameConnector(xsdFilePath, oldConnectorName, newConnectorName);
+	
+					for (File connectorDir : xsdInternalDir.listFiles()) {
+						if (connectorDir.isDirectory()) {
+							String connectorName = connectorDir.getName();
+							for (File transactionXsdFile : connectorDir.listFiles()) {
+								String xsdFilePath = transactionXsdFile.getCanonicalPath();
+								ProjectUtils.xsdRenameProject(xsdFilePath, oldProjectName, newProjectName);
+								if (needConnectorRename && connectorName.equals(newConnectorName)) {
+									ProjectUtils.xsdRenameConnector(xsdFilePath, oldConnectorName, newConnectorName);
+								}
 							}
 						}
 					}

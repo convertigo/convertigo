@@ -204,6 +204,16 @@
             project="true">
             <description>Creates a Mobile application project based on jQuery Mobile and CTF frameworks.</description> 
             </wizard>
+      <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewMobileBuilderWizard"
+            icon="icons/studio/mobile_HighEnd_color_32x32.png"
+            id="com.twinsoft.convertigo.eclipse.wizards.NewMobileBuilderWizard"
+            name="Mobile Builder application project"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Creates a Mobile Builder application project based on ionic2 and Convertigo Angular frameworks.</description> 
+            </wizard>
 <!-- Legacy publishing projects -->
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyweb"
