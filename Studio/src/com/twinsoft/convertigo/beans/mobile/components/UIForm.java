@@ -46,11 +46,6 @@ public class UIForm extends UIElement {
 	}
 
 	@Override
-	public String toString() {
-		return getFormGroupName();
-	}
-
-	@Override
 	protected StringBuilder initAttributes() {
 		StringBuilder attributes = super.initAttributes();
 		String formGroupName = getFormGroupName();
@@ -77,9 +72,18 @@ public class UIForm extends UIElement {
 				}
 			}
 			
+			StringBuilder cartridge = new StringBuilder();
+			cartridge.append("/**").append(System.lineSeparator())
+						.append("\t\t * "+ getName()).append(System.lineSeparator());
+			for (String commentLine : getComment().split(System.lineSeparator())) {
+				cartridge.append("\t\t *   ").append(commentLine).append(System.lineSeparator());
+			}
+			cartridge.append("\t\t */").append(System.lineSeparator());
+			
 			StringBuilder sb = new StringBuilder();
 			String formGroupName = getFormGroupName();
-			sb.append("this."+ formGroupName + " = new FormGroup({");
+			sb.append(cartridge);
+			sb.append("\t\tthis."+ formGroupName + " = new FormGroup({");
 			sb.append(constructors).append(System.lineSeparator()).append("\t\t}");
 			sb.append(validator.length() > 0 ? ",":"").append(validator).append(");");
 			sb.append(System.lineSeparator());

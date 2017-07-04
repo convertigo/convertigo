@@ -161,10 +161,4 @@ public class UIFormControlValidator extends UIFormValidator implements ITagsProp
 	public String computeTemplate() {
 		return "";
 	}
-	
-	@Override
-	public String toString() {
-		String label = computeConstructor();
-		return label.isEmpty() ? "noValidate" : label.replace("Validators.", "");
-	}
 }

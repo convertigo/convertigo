@@ -74,9 +74,28 @@ public class UIFormCustomValidator extends UIFormValidator {
 	@Override
 	public String computeFunction() {
 		if (isEnabled()) {
-			String computed = "";
+			boolean underForm = getParent() instanceof UIForm;
 			String validatorName = getValidatorName();
-			String parameter = getParent() instanceof UIForm ? "g: FormGroup":"c: FormControl";
+
+			StringBuilder cartridge = new StringBuilder();
+			cartridge.append("\t\t/**").append(System.lineSeparator())
+						.append("\t\t * "+ getName()).append(System.lineSeparator());
+			for (String commentLine : getComment().split(System.lineSeparator())) {
+				cartridge.append("\t\t *   ").append(commentLine).append(System.lineSeparator());
+			}
+			cartridge.append("\t\t * ").append(System.lineSeparator());
+			
+			if (underForm)
+				cartridge.append("\t\t * @param g:FormGroup, the form").append(System.lineSeparator());
+			else
+				cartridge.append("\t\t * @param c:FormControl, the control").append(System.lineSeparator());
+			cartridge.append("\t\t */").append(System.lineSeparator());
+			
+			String parameter =  underForm ? "g: FormGroup":"c: FormControl";
+			
+			String computed = "";
+			computed += System.lineSeparator();
+			computed += cartridge;
 			computed += "\t\tfunction "+ validatorName +"("+parameter+") {"+ System.lineSeparator();
 			computed += computeValidatorContent();
 			computed += System.lineSeparator() + "\t\t}";
@@ -100,9 +119,4 @@ public class UIFormCustomValidator extends UIFormValidator {
 		return s;
 	}
 
-	@Override
-	public String toString() {
-		return getValidatorName() + "()";
-	}
-	
 }
