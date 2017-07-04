@@ -91,9 +91,6 @@ public class UIElement extends UIComponent implements IStyleGenerator {
         			throw new EngineException("You can only add a custom validator to this component");
         		} else {
 		    		String formGroupName = ((UIForm)this).getFormGroupName();
-		    		if (formGroupName.isEmpty()) {
-		    			throw new EngineException("You cannot add validator to this component: Missing \"formGroup\" property or attribute.");
-		    		}
 	    			UIFormCustomValidator uicv = (UIFormCustomValidator)uiComponent;
 	    			String function = uicv.getValidatorName();
 	    			if (uicv.bNew && function.isEmpty()) {

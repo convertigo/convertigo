@@ -41,11 +41,7 @@ public class UIFormBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[1];
-			
-			properties[0] = new PropertyDescriptor("formGroupName", beanClass, "getFormGroupName", "setFormGroupName");
-			properties[0].setDisplayName(getExternalizedString("property.formGroupName.display_name"));
-			properties[0].setShortDescription(getExternalizedString("property.formGroupName.short_description"));
+			properties = new PropertyDescriptor[0];
 			
 			getPropertyDescriptor("tagName").setValue("disable", Boolean.TRUE);
 			getPropertyDescriptor("selfClose").setHidden(true);
