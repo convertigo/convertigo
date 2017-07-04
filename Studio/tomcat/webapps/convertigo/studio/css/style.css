@@ -221,3 +221,7 @@ hr {
 .engineLogView table td {
     padding: 3px;
 }
+
+body .lm_content {
+	overflow: auto;
+}

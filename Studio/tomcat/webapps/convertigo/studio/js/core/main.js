@@ -4,6 +4,7 @@ var Main = {
 
 		// Require order is important
 		require([
+            
 			/**
 			 * Libs
 			 */
@@ -14,6 +15,7 @@ var Main = {
 			"jquery-ui",
 			"jquery.modal",
 			"accordion",
+			"attrchange",
 
 			/**
              * Listeners
@@ -46,6 +48,7 @@ var Main = {
 	         * Utils
 	         */
             "dom-utils",
+            "goldenlayout",
 	        "injector-utils",
 	        "modal-utils",
 	        "string-utils",
@@ -74,6 +77,8 @@ var Main = {
 			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/accordion.css"));
 			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/style.css"));
 			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/theme/" + theme + ".css"));
+			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/goldenlayout-base-1.5.8.css"));
+		    InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/goldenlayout-" + (isCheDarkTheme ? "dark" : "light") + "-theme-1.5.8.css"));
 
 			// To iterate in reverse order
 			jQuery.fn.reverse = [].reverse;
@@ -114,27 +119,172 @@ var Main = {
 
                 // Will contain projects view + tabs
                 var $projectsViewDiv = $(".projectsView");
+                $projectsViewDiv.css("height", "100%");
+                $projectsViewDiv.parent().css("height", "100%");
                 new ProjectsToolbar($projectsViewDiv, projectsView); 
-
-				// Projects + tabs
-				$projectsViewDiv
-					.append(projectsView.getDivWrapperTree())
-					.append($("<hr/>"))
-					.append(studioTabs.getDiv());
-
-				// Properties
-                var $propertiesViewDiv = $(".propertiesView");
-                $propertiesViewDiv.append(propertiesView.getDivWrapperTree());
-
-				// Engine Log
+                
                 var enginelogView = new EngineLogView();
-                var $engineLogViewDiv = $(".engineLogView");
-                $engineLogViewDiv.append(enginelogView.getDiv());
-                new EngineLogToolbar($engineLogViewDiv, enginelogView); 
-
+				
+				var $engineLogView = $(".engineLogView:first");
+				$engineLogView.css("height", "100%");
+				$engineLogView.parent().css("height", "100%");
+				
+				// Extract all views from a GL config
+                var getViews = function (config, views) {
+                	if (!views) {
+                		views = {};
+                	}
+                	try {
+                		views[config.componentState.view] = true;
+                	} catch (e) {}
+                	try {
+                		$.each(config.content, function (i, v) {
+                			getViews(v, views);
+                		});
+                	} catch (e) {}
+                	return views;
+                };
+                
+                // Define how to build our GL components
+                var registerComponent = function (container, state) {
+					var $elt = container.getElement();
+					if (state.view == 'projectsView') {
+						$elt.append(projectsView.getDivWrapperTree());
+					} else if (state.view == 'palette') {
+						$elt.append(studioTabs.getDiv());
+					} else if (state.view == 'propertiesView') {
+						$elt.append(propertiesView.getDivWrapperTree());
+					} else if (state.view == 'enginelogView') {
+						$elt.append(enginelogView.getDiv());
+					} else {
+						$elt.append("<h2>No implemented</h2>");
+					}                	
+                };
+                
+                // Update GL layouts
+				var updateSize = function (e) {
+					try {
+						Convertigo.glLeft.updateSize();
+					} catch (e) {}
+					try {
+						Convertigo.glBottom.updateSize();
+					} catch (e) {}
+				};
+                
+				// Init GL, load from localStorage if the config is compatible
+                var initGl = function (name, $div, config) {
+					window.setTimeout(function () {
+	                	var localKey = name + 'Config';
+	                	if (localStorage[localKey]) {
+	                		try {
+	                			var localConfig = JSON.parse(localStorage[localKey]);
+	                			var localViews = getViews(localConfig);
+	                			var defaultViews = getViews(config);
+	                			if (JSON.stringify(localViews) == JSON.stringify(defaultViews)) {
+	                				config = localConfig;
+	                			}
+	                		} catch (e) {
+	                			console.log("failed to load GL config: " + e);
+	                		}
+	                	}
+	                	var gl = Convertigo[name] = new (require("goldenlayout"))(config, $div);
+	                	
+	                	gl.on('stateChanged', function() {
+	                		if (gl.isInitialised) {
+							    var state = JSON.stringify(gl.toConfig());
+							    localStorage.setItem(localKey, state);
+	                		}
+						});
+						
+						gl.registerComponent('view', registerComponent);
+						gl.init();
+					}, 0);
+                };
+                
+                // Register resize and init events
+				$(".gwt-SplitLayoutPanel>*").attrchange({callback: updateSize});
+				$(window).resize(updateSize);
+				$(document)
+					.on("click", "div[title='Projects'],div[title='Engine Log']", updateSize)
+					.one("click", "div[title='Projects']", function() {
+						initGl("glLeft", $projectsViewDiv, {
+							settings : {
+								showPopoutIcon : false,
+								showCloseIcon : false
+							},
+							content : [ {
+								type : 'row',
+								content : [{
+									type : 'component',
+									componentName : 'view',
+									componentState : {
+										view : 'projectsView'
+									},
+									isClosable : false,
+									title : 'Projects'
+								}, {
+									type : 'stack',
+									content : [{
+										type : 'component',
+										componentName : 'view',
+										componentState : {
+											view : 'palette'
+										},
+										isClosable : false,
+										title : 'Palette'
+									}, {
+										type : 'component',
+										componentName : 'view',
+										componentState : {
+											view : 'sourcePicker'
+										},
+										isClosable : false,
+										title : 'Source Picker'
+									}, {
+										type : 'component',
+										componentName : 'view',
+										componentState : {
+											view : 'references'
+										},
+										isClosable : false,
+										title : 'References'
+									} ]
+								} ]
+							} ]
+						});
+					}).one("click", "div[title='Engine Log']", function() {
+						initGl("glBottom", $engineLogView, {
+							settings : {
+								showPopoutIcon : false,
+								showCloseIcon : false
+							},
+							content : [{
+								type : 'row',
+								content : [ {
+									type : 'component',
+									componentName : 'view',
+									componentState : {
+										view : 'propertiesView'
+									},
+									isClosable : false,
+									width : 20,
+									title : 'Properties'
+								}, {
+									type : 'component',
+									componentName : 'view',
+									componentState : {
+										view : 'enginelogView'
+									},
+									isClosable : false,
+									title : 'Engine Log'
+								} ]
+							} ]
+						});
+					});
+                
 				// Automatically open these tabs (only works with Che)
-				$("div[title='Projects']").find(":first").click();
-				$("div[title='Engine Log']").find(":first").click();
+				$("div[title='Projects']>:first-child").click();
+				$("div[title='Engine Log']>:first-child").click();
 
 				// Open palette (for the moment)
 				palette.focus();
@@ -161,6 +311,8 @@ var Main = {
 		        "jquery-ui": Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jquery-ui.min-1.12.1"),
 		        "jquery.modal": Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jquery.modal.min-0.8.0"),
 		        accordion: Convertigo.getBaseConvertigoStudioUrl("js/libs/accordion"),
+	            goldenlayout: Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/goldenlayout.min-1.5.8"),
+	            attrchange: Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/attrchange"),
 
 		        /**
 		         * Listeners
@@ -210,6 +362,8 @@ var Main = {
 		    shim: {
 		        "jquery.modal": ["jquery"],
 		        "jquery-ui": ["jquery"],
+		        "goldenlayout": ["jquery"],
+		        "attrchange": ["jquery"]
 		    }
 		});
 	}
