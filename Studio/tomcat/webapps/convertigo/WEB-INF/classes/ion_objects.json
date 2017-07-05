@@ -1477,6 +1477,19 @@
       "icon32": "select_color_32x32.png",
       "properties": {
         "FormControlName": false,
+        "interface": {
+          "attr": "interface",
+          "label": "Type of dialog",
+          "description": "Select choices can be displayed in alerts, action sheets or popovers, default is alerts. Multiple options are always displayed in alerts",
+          "category": "@properties",
+          "value": false,
+          "values": [
+            false,
+            "alert",
+            "popover",
+            "action-sheet"
+          ]
+        },
         "cancelText": {
           "attr": "cancelText",
           "label": "Cancel Text",
