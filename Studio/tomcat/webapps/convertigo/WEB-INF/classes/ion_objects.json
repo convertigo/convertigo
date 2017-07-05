@@ -1447,6 +1447,78 @@
       }
     },
 
+    /**************************************************/
+    /* Form select / option  				                  */
+    /**************************************************/
+    "option": {
+      "tag": "ion-option",
+      "label": "Select option",
+      "description": "Options for an ion-select. Each option must be placed under a ion-select to give a list of selectable options. The name of the option is given by a Text component under the option",
+      "group": "Forms",
+      "icon16": "option_color_16x16.png",
+      "icon32": "option_color_32x32.png",
+      "properties": {
+        "value": {
+          "attr": "value",
+          "label": "Option value",
+          "description": "When this option is selected, the parent ion-select object will have this value.",
+          "category": "@properties",
+          "value": false
+        }
+      }
+    },
+
+    "select": {
+      "tag": "ion-select",
+      "label": "Select",
+      "description": "The ion-select component is similar to an HTML &lt;select&gt; element, however, Ionic's select component makes it easier for users to sort through and select the preferred option or options. When users tap the select component, a dialog will appear with all of the options in a large, easy to select list for users.",
+      "group": "Forms",
+      "icon16": "select_color_16x16.png",
+      "icon32": "select_color_32x32.png",
+      "properties": {
+        "FormControlName": false,
+        "cancelText": {
+          "attr": "cancelText",
+          "label": "Cancel Text",
+          "description": "The text to display on the cancel button. Default: Cancel.",
+          "category": "@properties",
+          "value": false
+        },
+        "okText": {
+          "attr": "okText",
+          "label": "Ok Text",
+          "description": "The text to display on the ok button. Default: Ok.",
+          "category": "@properties",
+          "value": false
+        },
+        "placeholder": {
+          "attr": "placeholder",
+          "label": "Place holder",
+          "description": "The text to display when the select is empty.",
+          "category": "@properties",
+          "value": false
+        },
+        "selectedText": {
+          "attr": "selectedText",
+          "label": "Selected text",
+          "description": "The text to display instead of the selected option's value.",
+          "category": "@properties",
+          "value": false
+        },
+        "multiple": {
+          "attr": "multiple",
+          "label": "Multiple",
+          "description": "If true, the element can accept multiple values.",
+          "category": "@properties",
+          "value": false,
+          "values": [
+            false,
+            "true",
+            "false"
+          ]
+        }
+      }
+    },
 
 
     /**************************************************/
@@ -1460,17 +1532,18 @@
       "icon16": "toggle_color_16x16.png",
       "icon32": "toggle_color_32x32.png",
       "properties": {
-          "Disabled": {
-            "label": "Disabled",
-            "description": "If true the toggle is disabled",
-            "category": "Attributes",
-            "value": false,
-            "values": [
-              false,
-              "true",
-              "false"
-            ]
-          }
+        "FormControlName": false,
+        "Disabled": {
+          "label": "Disabled",
+          "description": "If true the toggle is disabled",
+          "category": "Attributes",
+          "value": false,
+          "values": [
+            false,
+            "true",
+            "false"
+          ]
+        }
       }
     },
 
@@ -1631,6 +1704,7 @@
       "icon16": "input_checkbox_16x16.png",
       "icon32": "input_checkbox_32x32.png",
       "properties": {
+        "FormControlName": false,
         "IonColor": false,
         "checked": {
           "attr": "checked",
@@ -1668,6 +1742,7 @@
       "icon16": "input_datetime_16x16.png",
       "icon32": "input_datetime_32x32.png",
       "properties": {
+        "FormControlName": false,
         "IonColor": false,
         "displayFormat": {
           "attr": "displayFormat",
@@ -1696,6 +1771,17 @@
             "HH:MM MM/DD/YYYY",
             true
           ]
+        },
+        "Value": {
+          "attr": "value",
+          "label": "Value",
+          "description": "The text value of the input.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            true
+          ]
         }
       }
     },
@@ -1708,6 +1794,7 @@
       "icon16": "range_16x16.png",
       "icon32": "range_32x32.png",
       "properties": {
+        "FormControlName": false,
         "Min": {
           "attr": "min",
           "label": "Minimum",
