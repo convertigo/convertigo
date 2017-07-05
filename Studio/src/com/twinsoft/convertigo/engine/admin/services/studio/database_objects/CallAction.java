@@ -17,6 +17,8 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.studio.popup.actions.AbstractRunnableAction;
+import com.twinsoft.convertigo.engine.studio.popup.actions.DatabaseObjectDeleteAction;
+import com.twinsoft.convertigo.engine.studio.popup.actions.SequenceExecuteSelectedAction;
 import com.twinsoft.convertigo.engine.studio.responses.XmlResponseFactory;
 import com.twinsoft.convertigo.engine.studio.wrappers.CheStudio;
 import com.twinsoft.convertigo.engine.studio.wrappers.WrapStudio;
@@ -30,6 +32,7 @@ import com.twinsoft.convertigo.engine.studio.wrappers.WrapStudio;
 public class CallAction extends XmlService {
 
 	private final static String PARAM_CHE_STUDIO = "cheStudio";
+	private final static String LAST_ACTION = "lastAction";
 
 	@Override
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
@@ -59,6 +62,7 @@ public class CallAction extends XmlService {
 						"com.twinsoft.convertigo.eclipse.popup.actions",
 						"com.twinsoft.convertigo.engine.studio.popup.actions"
 				);
+                session.setAttribute(LAST_ACTION, actionClassName);
 				try {
 					Constructor<?> c = Class.forName(actionClassName).getConstructor(WrapStudio.class);
 					synchronized (cheStudio) {
@@ -87,23 +91,35 @@ public class CallAction extends XmlService {
 					
 					// We don't forget to delete it from the session to start a new action the next time
 					session.removeAttribute(PARAM_CHE_STUDIO);
+					session.removeAttribute(LAST_ACTION);
 				}
 			}
 		}
-		// Continue the action (case of action with dialogs)
 		else {
-			synchronized (cheStudio) {
-				// Setting the new Document is important, else it will keep the old reference of the document
-				cheStudio.setDocument(document);
-				String response = request.getParameter("response");
-				if (response != null) {
-					int intResponse = Integer.parseInt(response);
-					cheStudio.setResponse(intResponse);
-				}
+		    if (isCurrentAction(SequenceExecuteSelectedAction.class, session)) {
+	            synchronized (cheStudio) {
+	                cheStudio.setDocument(document);
+	                cheStudio.notify();
+	                cheStudio.wait();
+	            }
+		    }
+		    else if (isCurrentAction(DatabaseObjectDeleteAction.class, session)) {
+	          synchronized (cheStudio) {
+	                // Setting the new Document is important, else it will keep the old reference of the document
+	                cheStudio.setDocument(document);
+	                String response = request.getParameter("response");
+	                if (response != null) {
+	                    int intResponse = Integer.parseInt(response);
+	                    cheStudio.setResponse(intResponse);
+	                }
 
-				cheStudio.wait();
-			}
+	                cheStudio.wait();
+	            }
+		    }
 		}
 	}
 
+	private boolean isCurrentAction(Class<? extends AbstractRunnableAction> action, HttpSession session) {
+	    return action.getName().equals(session.getAttribute(LAST_ACTION));
+	}
 }

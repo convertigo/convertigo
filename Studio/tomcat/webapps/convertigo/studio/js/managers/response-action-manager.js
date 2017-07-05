@@ -14,7 +14,7 @@ var ResponseActionManager = {
 		},
 		MessageDialogResponse: function ($data) {
 			var $response = $data.find("admin>*>*").first();
-			
+
 			// Create buttons
 			var $buttons = $response.find("buttons").children();
 			var allButtons = [];
@@ -41,6 +41,15 @@ var ResponseActionManager = {
 		},
 		DatabaseObjectDeleteResponse: function ($data) {
 			DatabaseObjectManager.notifyDatabaseObjectDelete($data.find("admin"));
+		},
+		SequenceExecuteSelectedOpenSequenceEditor: function ($data) {
+		    var $response = $data.find("response");
+
+		    // Open the editor in CHE
+		    CheGWTOpenSequenceEditor($response.attr("project"), $response.attr("sequence"));
+
+		    // Recall the service to continue the action
+            ResponseActionManager.projectViews.callServiceCallAction(null, null, null,);
 		}
 	},
 	handleResponse: function (responseName, $data, projectViews) {

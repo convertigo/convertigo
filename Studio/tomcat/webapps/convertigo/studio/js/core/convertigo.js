@@ -31,7 +31,7 @@ var Convertigo = {
 			}
 		});
 	},
-	checkAuthentication: function (everyMs = 10000) {
+	checkAuthentication: function (everyMs = 180000 /* 3 minutes */) {
 		var that = this;
 		$.ajax({
 		    dataType: "xml",

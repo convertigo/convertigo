@@ -25,7 +25,7 @@ import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 
 @ServiceDefinition(
-        name = "CallDblClickAction",
+        name = "OpenEditor",
         roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG, Role.PROJECT_DBO_VIEW },
         parameters = {},
         returnValue = ""
@@ -36,7 +36,7 @@ public class OpenEditor extends XmlService {
     private final static String XSL_EDITOR = "c8o_XslEditor";
     private final static String JSCRIPT_TRANSACTION_EDITOR = "c8o_JscriptTransactionEditor";
     private final static String PRIVATE = "_private";
-    
+
     @Override
     protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
         String qname = request.getParameter("qname");
@@ -46,7 +46,7 @@ public class OpenEditor extends XmlService {
         if (dbo != null) {
             // File path + Editor
             Pair<String, String> filePathEditor = null;
-            
+
             // Sequence_JS
             if (dbo instanceof SimpleStep) {
                 filePathEditor = openJscriptStepEditor(dbo);
@@ -59,13 +59,13 @@ public class OpenEditor extends XmlService {
             else if (dbo instanceof Transaction) {
                 filePathEditor = openJscriptTransactionEditor(dbo);
             }
-            
+
             if (filePathEditor != null) {
                 // Send file path
                 Element eFilePath = document.createElement("filepath");
                 eFilePath.setTextContent(filePathEditor.getLeft());
-                
-                response.setAttribute("editor", filePathEditor.getRight());
+
+                response.setAttribute("type_editor", filePathEditor.getRight());
                 response.appendChild(eFilePath);
             }
         }
@@ -80,29 +80,29 @@ public class OpenEditor extends XmlService {
         Project project = dbo.getProject();
         String fileName = createTmpFileWithUTF8Data(
                 project.getDirPath(),
-                PRIVATE + "/" + JSCRIPT_STEP_EDITOR + Base64.encodeBase64URLSafeString(DigestUtils.sha1(dbo.getQName())) + " " + dbo.getName() + ".js",
+                PRIVATE + "/" + Base64.encodeBase64URLSafeString(DigestUtils.sha1(dbo.getQName())) + " " + dbo.getName() + "." + JSCRIPT_STEP_EDITOR,
                 ((SimpleStep) dbo).getExpression()
         );
-        
+
         return Pair.of(
             project.getQName() + "/" + PRIVATE + "/" +  fileName,
             JSCRIPT_STEP_EDITOR
         );
     }
-    
+
     private Pair<String, String> openXslEditor(DatabaseObject dbo) throws IOException {
         return Pair.of(
             dbo.getProject().getQName() + "/" + ((Sheet) dbo).getUrl(),
             XSL_EDITOR
         );
     }
-    
+
     private Pair<String, String> openJscriptTransactionEditor(DatabaseObject dbo) throws IOException {
         Transaction transaction = (Transaction) dbo;
         Project project = dbo.getProject();
         String fileName = createTmpFileWithUTF8Data(
                 project.getDirPath(),
-                PRIVATE + "/" + JSCRIPT_TRANSACTION_EDITOR + dbo.getProject().getName() + "__" + transaction.getConnector().getName() + "__" + transaction.getName() + ".js",
+                PRIVATE + "/" + dbo.getProject().getName() + "__" + transaction.getConnector().getName() + "__" + transaction.getName() + "." + JSCRIPT_TRANSACTION_EDITOR,
                 transaction.handlers
         );
 
@@ -111,13 +111,13 @@ public class OpenEditor extends XmlService {
             JSCRIPT_TRANSACTION_EDITOR
         );
     }
-    
+
     private String createTmpFileWithUTF8Data(String parentPath, String childPath, String content) throws IOException {
         File tempEditorFile = new File(parentPath, childPath);
         try (OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(tempEditorFile), StandardCharsets.UTF_8)) {
             osw.append(content);
         }
-        
+
         return tempEditorFile.getName();
     }
 }

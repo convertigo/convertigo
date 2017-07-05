@@ -405,13 +405,13 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
                     },
                     success: function (data, textStatus, jqXHR) {
                         var $response = $(data).find("admin>response");
-                        var editor = $response.attr("editor");
+                        var editor = $response.attr("type_editor");
                         switch (editor) {
                             case "c8o_JscriptStepEditor":
                             case "c8o_XslEditor":
                             case "c8o_JscriptTransactionEditor":
                                 var filePath = $(data).find("admin>response>filepath").text();
-                                openEditor(filePath, selectNode.data.qname);
+                                CheGWTOpenTextEditor(filePath, selectNode.data.qname);
                                 break;
 
                             default:
@@ -562,7 +562,7 @@ ProjectsView.prototype.addJstreeNodeType = function (classname) {
 	return nodeType;
 };
 
-ProjectsView.prototype.callServiceCallAction = function (qnames, classAction, response = null) {
+ProjectsView.prototype.callServiceCallAction = function (qnames, classAction, response) {
 	var that = this;
 	$.ajax({
 	    dataType: "xml",

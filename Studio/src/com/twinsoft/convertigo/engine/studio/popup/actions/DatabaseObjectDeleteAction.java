@@ -55,15 +55,18 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.studio.dialogs.MultipleDeletionDialog;
 import com.twinsoft.convertigo.engine.studio.responses.DatabaseObjectDeleteResponse;
+import com.twinsoft.convertigo.engine.studio.wrappers.ConnectorView;
+import com.twinsoft.convertigo.engine.studio.wrappers.ProjectView;
+import com.twinsoft.convertigo.engine.studio.wrappers.SequenceView;
 import com.twinsoft.convertigo.engine.studio.wrappers.WrapDatabaseObject;
 import com.twinsoft.convertigo.engine.studio.wrappers.WrapObject;
 import com.twinsoft.convertigo.engine.studio.wrappers.WrapStudio;
 
 public class DatabaseObjectDeleteAction extends AbstractRunnableAction {
-	
+
 	private List<WrapDatabaseObject> treeNodesToUpdate;
 	private Map<String, Boolean> dboDoDelete;
-	
+
 	public DatabaseObjectDeleteAction(WrapStudio studio) {
 		super(studio);
 	}
@@ -97,13 +100,13 @@ public class DatabaseObjectDeleteAction extends AbstractRunnableAction {
 					dboDoDelete.put(qname, true);
 
 					if (treeObject.instanceOf(Project.class)) {
-						treeObject.closeAllEditors();
+						((ProjectView) treeObject).closeAllEditors();
 					}
 					else if (treeObject.instanceOf(Sequence.class)) {
-						treeObject.getParent().getParent().closeSequenceEditors((Sequence) treeObject.getObject());
+					    ((ProjectView) ((SequenceView) treeObject)/*.getParent()*/.getParent()).closeSequenceEditors((Sequence) treeObject.getObject());
 					}
 					else if (treeObject.instanceOf(Connector.class)) {
-						treeObject.getParent().getParent().closeConnectorEditors((Connector) treeObject.getObject());
+					    ((ProjectView) ((ConnectorView) treeObject)/*.getParent()*/.getParent()).closeConnectorEditors((Connector) treeObject.getObject());
 		        	}
 					else if (treeObject.instanceOf(Step.class)) {
 					//    						// We close the editor linked with the SimpleStep (=SequenceJsStep)
@@ -127,10 +130,9 @@ public class DatabaseObjectDeleteAction extends AbstractRunnableAction {
 					//    								++_i;
 					//    							}
 					}
-				
-	
+
 					delete(treeObject);
-	
+
 					if (treeObject.instanceOf(Project.class)) {
 						//     		explorerView.removeProjectTreeObject(treeObject);
 		        	}
@@ -159,7 +161,6 @@ public class DatabaseObjectDeleteAction extends AbstractRunnableAction {
 			// Refresh tree to show potential 'broken' steps
 			//    				explorerView.refreshTree();
 		} catch (Exception e) {
-			e.printStackTrace();
 			// Exception thrown, put the relative message
 			dboExceptionMessages.put(qname, e.getMessage());
 		}
@@ -168,39 +169,39 @@ public class DatabaseObjectDeleteAction extends AbstractRunnableAction {
 	private void delete(WrapDatabaseObject treeObject) throws ConvertigoException {
 		WrapDatabaseObject parentTreeObject = null;
 		WrapObject treeParent = treeObject.getParent();
-		
+
 		DatabaseObject databaseObject = (DatabaseObject) treeObject.getObject();
 		DatabaseObject parent = databaseObject.getParent();
-		
+
 		while ((treeParent != null) && (!(treeParent instanceof WrapDatabaseObject))) {
 			treeParent = treeParent.getParent();
 		}
-		
+
 		if (treeParent != null) {
 			parentTreeObject = (WrapDatabaseObject) treeParent;
 		}
-		
+
 		delete(databaseObject);
-		
+
 		/*if ((parent != null) && (!parent.hasChanged))
 			ConvertigoPlugin.projectManager.save(parent, false);*/
-		
+
 		// Do not save after a deletion anymore
 		if (parent != null) {
 			parentTreeObject.hasBeenModified(true);
 		}
-				
+
 		if ((parentTreeObject != null) && !treeNodesToUpdate.contains(parentTreeObject)) {
 			treeNodesToUpdate.add(parentTreeObject);
 		}
 	}
-	
+
 	private void delete(DatabaseObject databaseObject) throws EngineException {
 		if (databaseObject instanceof Connector) {
 			if (((Connector) databaseObject).isDefault) {
 				throw new EngineException("Cannot delete the default connector!");
 			}
-			
+
 			String projectName = databaseObject.getParent().getName();
 			deleteResourcesFolder(projectName, "soap-templates", databaseObject.getName());
 			deleteResourcesFolder(projectName, "Traces", databaseObject.getName());
@@ -244,7 +245,7 @@ public class DatabaseObjectDeleteAction extends AbstractRunnableAction {
 				throw new EngineException("Cannot delete the root page!");
 			}
 		}
-		
+
 		if (databaseObject instanceof Project) {
 			// Deleted project will be backup, car will be deleted to avoid its deployment at engine restart
 			//Engine.theApp.databaseObjectsManager.deleteProject(databaseObject.getName());
@@ -254,7 +255,7 @@ public class DatabaseObjectDeleteAction extends AbstractRunnableAction {
 		else {
 			databaseObject.delete();
 		}
-		
+
 		if (databaseObject instanceof CouchDbConnector) {
 			CouchDbConnector couchDbConnector = (CouchDbConnector)databaseObject;
 			String db = couchDbConnector.getDatabaseName();
@@ -267,10 +268,10 @@ public class DatabaseObjectDeleteAction extends AbstractRunnableAction {
 //				}
 			}
 		}
-		
+
 //		ConvertigoPlugin.logDebug("The object \"" + databaseObject.getQName() + "\" has been deleted from the database repository!");
     }
-	
+
 	private void deleteResourcesFolder(String projectName, String resourcesFolder, String dboName) {
 		// Delete soap templates for this connector
 		String dirPath = Engine.PROJECTS_PATH + "/"+ projectName + "/" + resourcesFolder + "/" + dboName;
@@ -291,15 +292,14 @@ public class DatabaseObjectDeleteAction extends AbstractRunnableAction {
 			}
 		}
 	}
-	
+
 	@Override
 	public Element toXml(Document document, String qname) throws ConvertigoException, Exception {
 		Element response = super.toXml(document, qname);
 		if (response != null) {
 			return response;
 		}
-		
+
 		return new DatabaseObjectDeleteResponse(dboDoDelete.get(qname)).toXml(document, qname);
 	}
-
 }

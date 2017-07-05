@@ -19,6 +19,9 @@ var StringUtils = {
 	replaceDotByMinus: function (text) {
 		return text.replace(/\./g, "-");
 	},
+	replaceTextCRLFByRealCRLF: function (text) {
+	    return text.replace(/\\r\\n/g, "\r\n");
+	},
 	unescapeHTML: function (text) {
 		var unescapedHTML = $.parseHTML(text);
 		return unescapedHTML ? unescapedHTML[0].nodeValue : "";

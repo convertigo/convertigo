@@ -12,17 +12,27 @@ import com.twinsoft.convertigo.engine.studio.popup.actions.AbstractRunnableActio
 import com.twinsoft.convertigo.engine.studio.responses.XmlResponseFactory;
 
 public class CheStudio extends Studio {
-	
+
 	private Document document;
-	
+
 	public CheStudio(Document document) {
 		setDocument(document);
 	}
-	
+
+	public Document getDocument() {
+	    return document;
+	}
+
 	public void setDocument(Document document) {
 		this.document = document;
 	}
-	
+
+	public void createResponse(Element element) {
+	    document
+            .getDocumentElement()
+            .appendChild(element);
+	}
+
 	public void runAction(AbstractRunnableAction action) throws DOMException, Exception {
 		// Get all qnames to generate the response later
 		List<String> qnames = new ArrayList<>(getSelectedObjects().size());
@@ -33,37 +43,35 @@ public class CheStudio extends Studio {
 
 		action.run();
 		isActionDone = action.isDone();
-		
+
 		// Generate responses
 		for (String qname: qnames) {
-			Element response = action.toXml(document, qname);
-			document.getDocumentElement().appendChild(response);
+		    Element xmlResponse = action.toXml(document, qname);
+		    createResponse(xmlResponse);
 		}
-		
+
 		// End of the action: notify
 		synchronized (this) {
 			notify();
 		}
 	}
-	
+
 	@Override
 	public int openMessageDialog(String title, Object object, String msg, String string, String[] buttons, int defaultIndex) {
 		try {
-			document
-				.getDocumentElement()
-				.appendChild(XmlResponseFactory.createMessageDialogResponse(document, null, title, msg, buttons));
-		} catch (Exception e1) {
-			e1.printStackTrace();
+		    createResponse(XmlResponseFactory.createMessageDialogResponse(document, null, title, msg, buttons));
 		}
-		
+		catch (Exception e1) {
+		}
+
 		synchronized (this) {
 			notify();
 			try {
 				wait();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
 			}
-			
+			catch (InterruptedException e) {
+			}
+
 			return response;
 		}
 	}
@@ -71,23 +79,20 @@ public class CheStudio extends Studio {
 	@Override
 	public int openMessageBox(String title, String msg, String[] buttons) {
 		try {
-			document
-				.getDocumentElement()
-				.appendChild(XmlResponseFactory.createMessageDialogResponse(document, null, title, msg, buttons));
-		} catch (Exception e1) {
-			e1.printStackTrace();
+		    createResponse(XmlResponseFactory.createMessageDialogResponse(document, null, title, msg, buttons));
 		}
-		
+		catch (Exception e1) {
+		}
+
 		synchronized (this) {
 			notify();
 			try {
 				wait();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
 			}
-			
+		    catch (InterruptedException e) {
+			}
+
 			return response;
 		}
 	}
-
 }

@@ -286,4 +286,12 @@
         <mime-type>text/plain</mime-type>
     </mime-mapping>
 
+    <servlet>
+        <servlet-name>GetEvents</servlet-name>
+        <servlet-class>com.twinsoft.convertigo.engine.servlets.GetEvents</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>GetEvents</servlet-name>
+        <url-pattern>/studio/getevents/*</url-pattern>
+    </servlet-mapping>
 </web-app>

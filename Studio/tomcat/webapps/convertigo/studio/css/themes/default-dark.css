@@ -1,5 +1,5 @@
 /*********************************
-* CSS (colors) for Light theme.
+* CSS (colors) for Dark theme.
 *********************************/
 
 /*********************************
@@ -20,11 +20,15 @@
 }
 
 .comment {
-    color: #0085ff !important;
+    color: rgb(4, 234, 34) !important;
 }
 
-.jstree-default {
-    background-color: none;
+.jstree-default-dark {
+    background: none !important;
+}
+
+.jstree-default-dark .jstree-anchor {
+	color: white;
 }
 
 /* Header separator of the jstree grid plugin */
@@ -37,14 +41,14 @@ li.nodeDisable > a {
 }
 
 .nodeDisable a {
-    color: rgb(236, 167, 3) !important;
+    color: #ffb300 !important;
 }
 
 .nodeIsInherited a {
-    color: #afacac !important;
+    color: pink !important;
 }
 
-.jstree-default .jstree-anchor>.jstree-icon {
+.jstree-default-dark .jstree-anchor>.jstree-icon {
     opacity: 1;
 }
 
@@ -66,15 +70,15 @@ li.nodeDisable > a {
 *********************************/
 
 div.modal {
-    color: #33373B;
-    background-color: white;
+    color: white;
+    background-color: #33373B;
 }
 
 /*********************************
 * Palette
 *********************************/
 .gray-selection {
-    background-color: #beebff;
+    background-color: #256c9f;
 }
 
 /*********************************
@@ -82,24 +86,24 @@ div.modal {
 *********************************/
 
 .ui-tabs, .ui-tabs>ul, .ui-tabs>div {
-	background-color: #ffffff;
+	background-color: #292C2F;
 }
 
 .ui-state-active a, .ui-state-active a:link, .ui-state-active a:visited {
-   background-color: #beebff !important;
+   background-color: #5A5A5A !important;
 }
 
 .ui-state-default a, .ui-state-default a:link, .ui-state-default a:visited, a.ui-button, a:link.ui-button, a:visited.ui-button, .ui-button {
-   background-color: #e7f4f9;   
+   background-color: #333;   
 }
 
 .ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default, .ui-button, html .ui-button.ui-state-disabled:hover, html .ui-button.ui-state-disabled:active {
-	background-color: #e0e0e0;
+	background-color: #256c9f;
 }
 
 .ui-tabs h2, .ui-tabs h4, .ui-tabs p, .ui-tabs span,
 .ui-state-default a, .ui-state-default a:link, .ui-state-default a:visited, a.ui-button, a:link.ui-button, a:visited.ui-button, .ui-button {
-	color: rgb(0, 0, 0) !important;
+	color: white !important;
 }
 
 hr {
@@ -110,23 +114,22 @@ hr {
 * Accordion
 *********************************/
 button.accordion {
-	color: rgb(0, 0, 0);
+    color: white;
 }
 
 button.accordion.active, button.accordion:hover, button.accordion {
-    background-color: #f5f5f5;
+    background-color: rgb(46, 58, 69);
 }
 
 /*********************************
 * Toolbar
 *********************************/
 .action-enabled {
-	background-color: #a4a4a4;
+    background-color: #555;
 }
 
 .img-action:hover {
-	background-color: #BDBEC0;
-	border-radius: 2px;
+    background-color: #21252b;
 }
 
 /* Active = On click */
@@ -136,7 +139,7 @@ button.accordion.active, button.accordion:hover, button.accordion {
 
 /* Logs */
 #engine-logs-level tr:nth-child(odd) {
-    background-color: rgb(223, 243, 252);
+    background-color: #555;
 }
 
 /*********************************
@@ -174,6 +177,7 @@ button.accordion.active, button.accordion:hover, button.accordion {
 
 .log-line-even-INFO {
     background-color: #EDFFF1;
+    color:black !important;
 }
 
 .log-line-odd-DEBUG {
@@ -194,6 +198,7 @@ button.accordion.active, button.accordion:hover, button.accordion {
 
 .log-line-odd {
     background-color: #F3F2F1;
+
 }
 
 .log-extra {
@@ -236,7 +241,23 @@ button.accordion.active, button.accordion:hover, button.accordion {
     color: #fe764d;
 }
 
+/* Text in td */
+.engineLogView td {
+    color: #1f1f1f;
+}
+
 /* Header */
 .engineLogView table th {
-    background-color: #e7f4f9;
+    background-color: #5a5a5a;
+}
+
+/*********************************
+* Sequence editor
+*********************************/
+.sequence-editor-toolbar {
+    background-color: gray;
+}
+
+.sequence-output {
+    border-left-color: white;
 }

@@ -1,17 +1,17 @@
-var EditorListener = {
+var GwtEventsListener = {
     init: function () {
-        // save bean expression event
+        // Save bean expression event
         document.addEventListener(
-            "save_JscriptStep",
+            "SaveTextEditor.jscriptStep",
             function (event) {
                 DatabaseObjectManager.setProperty([event.detail.qname], "expression", event.detail.content);
             },
             false
         );
 
-        // save handler transaction
+        // Save handler transaction
         document.addEventListener(
-            "save_JscriptTransaction",
+            "SaveTextEditor.jscriptTransaction",
             function (event) {
                 $.ajax({
                     dataType: "xml",
@@ -26,7 +26,25 @@ var EditorListener = {
             },
             false
         );
+
+        // Open a Sequence editor
+        document.addEventListener(
+            "OpenGraphicEditor.sequence",
+            function (event) {
+                if (!$("#" + event.detail.id).length) {
+                    new SequenceEditor(event.detail.id);
+                }
+            },
+            false
+        );
+
+        // Open a Sql Connector editor
+        document.addEventListener(
+            "OpenGraphicEditor.sqlConnector",
+            function (event) {
+                console.log("OpenGraphicEditor.sqlConnector")
+            },
+            false
+        );
     }
 };
-
-EditorListener.init();

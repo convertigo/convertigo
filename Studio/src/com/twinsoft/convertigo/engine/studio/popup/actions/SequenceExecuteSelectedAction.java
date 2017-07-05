@@ -1,25 +1,29 @@
 package com.twinsoft.convertigo.engine.studio.popup.actions;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-import javax.servlet.http.HttpSession;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
-import com.twinsoft.convertigo.engine.Context;
-import com.twinsoft.convertigo.engine.ContextManager;
-import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.enums.Parameter;
-import com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest;
-import com.twinsoft.convertigo.engine.requesters.InternalRequester;
+import com.twinsoft.convertigo.beans.core.Step;
+import com.twinsoft.convertigo.beans.core.StepWithExpressions;
+import com.twinsoft.convertigo.beans.steps.SequenceStep;
+import com.twinsoft.convertigo.beans.steps.TransactionStep;
+import com.twinsoft.convertigo.engine.ConvertigoException;
+import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.studio.editors.sequence.SequenceEditorWrap;
+import com.twinsoft.convertigo.engine.studio.responses.sequences.SequenceExecuteSelectedResponse;
+import com.twinsoft.convertigo.engine.studio.wrappers.ProjectView;
+import com.twinsoft.convertigo.engine.studio.wrappers.SequenceView;
+import com.twinsoft.convertigo.engine.studio.wrappers.Studio;
 import com.twinsoft.convertigo.engine.studio.wrappers.WrapDatabaseObject;
 import com.twinsoft.convertigo.engine.studio.wrappers.WrapStudio;
-import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class SequenceExecuteSelectedAction extends AbstractRunnableAction {
-
-    private Sequence sequence;
-    private HttpSession session;
 
     public SequenceExecuteSelectedAction(WrapStudio studio) {
         super(studio);
@@ -27,91 +31,96 @@ public class SequenceExecuteSelectedAction extends AbstractRunnableAction {
 
     @Override
     protected void run2() {
-        //...
-
         WrapDatabaseObject treeObject = (WrapDatabaseObject) studio.getFirstSelectedTreeObject();
         if (treeObject != null && treeObject.instanceOf(Sequence.class)) {
-            sequence = (Sequence) treeObject.getObject();
-            // openEditors...
-            
-//            if (sequenceEditor != null) {
-//                getActivePage().activate(sequenceEditor);
-                  getDocument(sequence.getName(), null, false);
-//            }
-        }
+            SequenceView sequenceTreeObject = (SequenceView) treeObject;
+            openEditors(/*explorerView, */sequenceTreeObject);
 
-        //...
+            Sequence sequence = sequenceTreeObject.getObject();
+            ProjectView projectTreeObject = sequenceTreeObject.getProjectView();
+            SequenceEditorWrap sequenceEditor = projectTreeObject.getSequenceEditor(sequence);
+            if (sequenceEditor != null) {
+                //getActivePage().activate(sequenceEditor);
+                sequenceEditor.getDocument(sequence.getName(), null, isStubRequested());
+            }
+        }
     }
 
-    public void getDocument(String sequenceName, String testcaseName, boolean isStubRequested) {
-        final Map<String, String[]> parameters = new HashMap<String, String[]>();
-
-        if (sequenceName == null) {
-            sequenceName = sequence.getName();
-        }
-
-        parameters.put(Parameter.Sequence.getName(), new String[]{sequenceName});
-        parameters.put(Parameter.Context.getName(), new String[]{getStudioContext(false).contextID});
-
-        if (testcaseName != null) {
-            parameters.put(Parameter.Testcase.getName(), new String[]{testcaseName});
-        }
-
-        if (isStubRequested) {
-            parameters.put(Parameter.Stub.getName(), new String[]{"true"});
-        }
-
-        runRequestable(sequence.getProject().getName(), parameters);
+    protected boolean isStubRequested() {
+        return false;
     }
 
-    public void runRequestable(final String projectName, final Map<String, String[]> parameters) {
-        if (!Engine.isStartFailed && Engine.isStarted) {
-            parameters.put(Parameter.Project.getName(), new String[] {projectName});
-            new Thread(new Runnable() {
+    protected void openEditors(/*ProjectExplorerView explorerView, */WrapDatabaseObject treeObject) {
+        openEditors(/*explorerView, */treeObject, new HashSet<SequenceStep>());
+    }
 
-                @Override
-                public void run() {
+    private void openEditors(/*ProjectExplorerView explorerView, */WrapDatabaseObject treeObject, Set<SequenceStep> alreadyOpened) {
+        if (treeObject.instanceOf(Sequence.class)) {
+            SequenceView sequenceTreeObject = (SequenceView) treeObject;
+            openEditors(/*explorerView, */sequenceTreeObject.getObject().getSteps(), alreadyOpened);
+            sequenceTreeObject.openSequenceEditor();
+        }
+    }
+
+    private void openEditors(/*ProjectExplorerView explorerView, */List<Step> steps, Set<SequenceStep> alreadyOpened) {
+        for (Step step: steps) {
+            if (step.isEnabled()) {
+                if (step instanceof SequenceStep) {
+                    SequenceStep sequenceStep = (SequenceStep)step;
+                    String projectName = sequenceStep.getProjectName();
+                    // load project if necessary
+                    if (!step.getSequence().getProject().getName().equals(projectName)) {
+                        //loadProject(explorerView, projectName);
+                    }
+
+                    if (alreadyOpened.contains(sequenceStep)) {
+                        return; // avoid sequence recursion
+                    }
+                    alreadyOpened.add(sequenceStep);
+
                     try {
-                        InternalHttpServletRequest request;
-                        if (session == null) {
-                            request = new InternalHttpServletRequest();
-                            session = request.getSession();
-                        } else {
-                            request = new InternalHttpServletRequest(session);
-                        }
-                        
-                        new InternalRequester(GenericUtils.<Map<String, Object>>cast(parameters), request).processRequest();
-                    } catch (Exception e) {
-                        //logException(e, "Failed to run the requestable of project " + projectName);
+                       // ProjectTreeObject projectTreeObject = (ProjectTreeObject)explorerView.getProjectRootObject(projectName);
+                        Project p = step.getProject();
+                        Sequence subSequence = p.getSequenceByName(sequenceStep.getSequenceName());
+                        SequenceView subSequenceTreeObject = (SequenceView) Studio.getViewFromDbo(subSequence, studio);
+                        openEditors(/*explorerView, */subSequenceTreeObject, alreadyOpened); // recurse on sequence
+                    }
+                    catch (EngineException e) {
+                        e.printStackTrace();
                     }
                 }
-                
-            }).start();
-        } else {
-            //logInfo("Cannot run the requestable of project " + projectName + ", the embedded tomcat is not correctly started.");
+                else if (step instanceof TransactionStep) {
+                    TransactionStep transactionStep = (TransactionStep)step;
+                    String projectName = transactionStep.getProjectName();
+                    if (!step.getSequence().getProject().getName().equals(projectName)) {
+                        //loadProject(explorerView, projectName); // load project if necessary
+                    }
+
+//                    try {
+//                        //ProjectTreeObject projectTreeObject = (ProjectTreeObject)explorerView.getProjectRootObject(projectName);
+//                        Project project = step.getProject();
+//                        //Sequence subSequence = project.getSequenceByName(transactionStep.getSequenceName());
+//                        Connector connector = project.getConnectorByName(transactionStep.getConnectorName());
+//                        //ConnectorTreeObject connectorTreeObject = (ConnectorTreeObject)explorerView.findTreeObjectByUserObject(connector);
+//                        //connectorTreeObject.openConnectorEditor(); // open connector editor
+//                    } catch (EngineException e) {
+//                        e.printStackTrace();
+//                    }
+                }
+                else if (step instanceof StepWithExpressions) {
+                    openEditors(/*explorerView, */((StepWithExpressions)step).getSteps(), alreadyOpened);
+                }
+            }
         }
     }
 
-    private Context getStudioContext(boolean bForce) {
-        String projectName = sequence.getParent().getName();
-        String sequenceName = sequence.getName();
-        String contextType = ContextManager.CONTEXT_TYPE_SEQUENCE;
-        String contextID = Engine.theApp.contextManager.computeStudioContextName(contextType, projectName, sequenceName);
-
-        Context ctx = Engine.theApp.contextManager.get(contextID);
-        if ((ctx == null) || bForce) {
-            ctx = new Context(contextID);
-            ctx.cleanXpathApi();
-            ctx.contextID = contextID;
-            ctx.name = contextID;
-            ctx.projectName = projectName;
-            ctx.sequenceName = sequenceName;
-            ctx.requestedObject = sequence;
-            ctx.requestedObject.context = ctx;//
-            ctx.lastAccessTime = System.currentTimeMillis();
-
-            Engine.theApp.contextManager.add(ctx);
+    @Override
+    public Element toXml(Document document, String qname) throws ConvertigoException, Exception {
+        Element response = super.toXml(document, qname);
+        if (response != null) {
+            return response;
         }
-        return ctx;
+
+        return new SequenceExecuteSelectedResponse().toXml(document, qname);
     }
 }

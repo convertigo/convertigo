@@ -222,6 +222,51 @@ hr {
     padding: 3px;
 }
 
+/*********************************
+* Sequence editor
+*********************************/
+.internal-requester-output {
+    margin-right: 1px;
+}
+
+.sequence-output {
+    border-left: 1px solid;
+}
+
+.output {
+	position: relative;
+    float: left;
+    width: 47%;
+    user-select: initial;
+}
+
+.sequence-editor-top-bar {
+	border-bottom: solid 1px;
+}
+
+/* Temporary loading animation */
+.loading:after {
+  overflow: hidden;
+  display: inline-block;
+  vertical-align: bottom;
+  -webkit-animation: ellipsis steps(4,end) 900ms infinite;      
+  animation: ellipsis steps(4,end) 900ms infinite;
+  content: "\2026"; /* ascii code for the ellipsis character */
+  width: 0px;
+}
+
+@keyframes ellipsis {
+  to {
+    width: 20px;    
+  }
+}
+
+@-webkit-keyframes ellipsis {
+  to {
+    width: 20px;    
+  }
+}
+
 body .lm_content {
 	overflow: auto;
 }

@@ -2,9 +2,8 @@ var Main = {
 	init: function (authUserName, authPassword) {
 		this.defineScripts();
 
-		// Require order is important
+        var that = this;
 		require([
-            
 			/**
 			 * Libs
 			 */
@@ -14,13 +13,21 @@ var Main = {
 			"jstreeutils",
 			"jquery-ui",
 			"jquery.modal",
+	        "jquery.sse",
 			"accordion",
-			"attrchange",
+			"prism",
+	        "attrchange",
+
+            /**
+             * Editors
+             */
+            "sequence-editor",
 
 			/**
              * Listeners
              */
-            "editor-listener",
+            "c8o-server-events-listener",
+            "gwt-events-listener",
 
 	    	/**
 	    	 * Managers
@@ -63,7 +70,7 @@ var Main = {
 	        "projects"
 		], function () {
 		    // Current Che theme that can be changed in preferences
-		    var isCheDarkTheme = localStorage.getItem("codenvy-theme") === "DarkTheme";
+		    var isCheDarkTheme = that.isCheDarkTheme();
 
 		    var theme = "default";
 		    if (isCheDarkTheme) {
@@ -71,12 +78,13 @@ var Main = {
 		    }
 
 			// Inject CSS
-	        InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/jstree/themes/" + theme + "/style.min-3.3.3.css"));
-			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/jquery-ui.min-1.12.1.css"));
-			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/jquery.modal.min-0.8.0.css"));
+	        InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/jstree-3.3.3/themes/" + theme + "/style.min.css"));
+			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/jquery-ui-1.12.1.min.css"));
+			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/jquery.modal-0.8.0.min.css"));
 			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/accordion.css"));
+	        InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/prism-1.6.0/themes/" + theme + ".css"));
 			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/style.css"));
-			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/theme/" + theme + ".css"));
+			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/themes/" + theme + ".css"));
 			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/goldenlayout-base-1.5.8.css"));
 		    InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/goldenlayout-" + (isCheDarkTheme ? "dark" : "light") + "-theme-1.5.8.css"));
 
@@ -97,6 +105,8 @@ var Main = {
 				InjectorUtils.injectLinkStyle(Convertigo.createServiceUrl("studio.database_objects.GetMenuIconsCSS"));
 				InjectorUtils.injectLinkStyle(Convertigo.createServiceUrl("studio.database_objects.GetPaletteIconsCSS"));
 				InjectorUtils.injectLinkStyle(Convertigo.createServiceUrl("studio.database_objects.GetTreeIconsCSS"));
+
+				that.initListeners();
 
 				var studioTabs = new StudioTabs();
 
@@ -122,13 +132,13 @@ var Main = {
                 $projectsViewDiv.css("height", "100%");
                 $projectsViewDiv.parent().css("height", "100%");
                 new ProjectsToolbar($projectsViewDiv, projectsView); 
-                
+
                 var enginelogView = new EngineLogView();
-				
+
 				var $engineLogView = $(".engineLogView:first");
 				$engineLogView.css("height", "100%");
 				$engineLogView.parent().css("height", "100%");
-				
+
 				// Extract all views from a GL config
                 var getViews = function (config, views) {
                 	if (!views) {
@@ -144,7 +154,7 @@ var Main = {
                 	} catch (e) {}
                 	return views;
                 };
-                
+
                 // Define how to build our GL components
                 var registerComponent = function (container, state) {
 					var $elt = container.getElement();
@@ -160,7 +170,7 @@ var Main = {
 						$elt.append("<h2>No implemented</h2>");
 					}                	
                 };
-                
+
                 // Update GL layouts
 				var updateSize = function (e) {
 					try {
@@ -170,7 +180,7 @@ var Main = {
 						Convertigo.glBottom.updateSize();
 					} catch (e) {}
 				};
-                
+
 				// Init GL, load from localStorage if the config is compatible
                 var initGl = function (name, $div, config) {
 					window.setTimeout(function () {
@@ -188,19 +198,19 @@ var Main = {
 	                		}
 	                	}
 	                	var gl = Convertigo[name] = new (require("goldenlayout"))(config, $div);
-	                	
+
 	                	gl.on('stateChanged', function() {
 	                		if (gl.isInitialised) {
 							    var state = JSON.stringify(gl.toConfig());
 							    localStorage.setItem(localKey, state);
 	                		}
 						});
-						
+
 						gl.registerComponent('view', registerComponent);
 						gl.init();
 					}, 0);
                 };
-                
+
                 // Register resize and init events
 				$(".gwt-SplitLayoutPanel>*").attrchange({callback: updateSize});
 				$(window).resize(updateSize);
@@ -281,7 +291,7 @@ var Main = {
 							} ]
 						});
 					});
-                
+
 				// Automatically open these tabs (only works with Che)
 				$("div[title='Projects']>:first-child").click();
 				$("div[title='Engine Log']>:first-child").click();
@@ -297,6 +307,10 @@ var Main = {
 			});
 		});
 	},
+	initListeners: function () {
+	    C8OServerEventsListener.init();
+	    GwtEventsListener.init();
+	},
 	defineScripts: function () {
 		// All scripts are defined here
 		require.config({
@@ -305,19 +319,27 @@ var Main = {
 		    	 * Libs
 		    	 */
 		        jquery: Convertigo.getBaseConvertigoUrl("scripts/jquery2.min"),
-		        jstree: Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jstree/jstree-3.3.3.min"),
-		        jstreegrid: Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jstree/plugins/jstreegrid-3.5.14"),
-		        jstreeutils: Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jstree/plugins/jstreeutils"),
-		        "jquery-ui": Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jquery-ui.min-1.12.1"),
-		        "jquery.modal": Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jquery.modal.min-0.8.0"),
+		        jstree: Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jstree-3.3.3/jstree.min"),
+		        jstreegrid: Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jstree-3.3.3/plugins/jstreegrid-3.5.14"),
+		        jstreeutils: Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jstree-3.3.3/plugins/jstreeutils"),
+		        "jquery-ui": Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jquery-ui-1.12.1.min"),
+		        "jquery.modal": Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jquery.modal-0.8.0.min"),
+	            "jquery.sse": Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jquery.sse-0.1.3.min"),
 		        accordion: Convertigo.getBaseConvertigoStudioUrl("js/libs/accordion"),
-	            goldenlayout: Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/goldenlayout.min-1.5.8"),
-	            attrchange: Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/attrchange"),
+		        prism: Convertigo.getBaseConvertigoStudioUrl("js/libs/prism-1.6.0.min"),
+		        goldenlayout: Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/goldenlayout.min-1.5.8"),
+		        attrchange: Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/attrchange"),
+
+		        /**
+		         * Editors
+		         */
+		        "sequence-editor":  Convertigo.getBaseConvertigoStudioUrl("js/editors/sequence-editor"),
 
 		        /**
 		         * Listeners
 		         */
-		        "editor-listener": Convertigo.getBaseConvertigoStudioUrl("js/listeners/editor-listener"),
+	            "c8o-server-events-listener": Convertigo.getBaseConvertigoStudioUrl("js/listeners/c8o-server-events-listener"),
+		        "gwt-events-listener": Convertigo.getBaseConvertigoStudioUrl("js/listeners/gwt-events-listener"),
 
 		    	/**
 		    	 * Managers
@@ -360,12 +382,16 @@ var Main = {
 		    },
 		    // To resolve jQuery conflicts
 		    shim: {
+	            "jquery-ui": ["jquery"],
 		        "jquery.modal": ["jquery"],
-		        "jquery-ui": ["jquery"],
+		        "jquery.sse": ["jquery"],
 		        "goldenlayout": ["jquery"],
 		        "attrchange": ["jquery"]
 		    }
 		});
+	},
+	isCheDarkTheme: function () {
+	    return localStorage.getItem("codenvy-theme") === "DarkTheme";
 	}
 };
 
