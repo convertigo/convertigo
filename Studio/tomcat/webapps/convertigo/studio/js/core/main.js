@@ -109,6 +109,7 @@ var Main = {
 
 				that.initListeners();
 
+				// All tabs
 				var sourcePicker = new SourcePicker();
 				var references = new References();
 				var palette = new Palette();
@@ -117,16 +118,16 @@ var Main = {
 				var projectsView = new ProjectsView(propertiesView, [palette], theme);
 
                 // Will contain projects view + tabs
-                var $projectsViewDiv = $(".projectsView");
-                $projectsViewDiv.css("height", "100%");
-                $projectsViewDiv.parent().css("height", "100%");
-                new ProjectsToolbar($projectsViewDiv, projectsView); 
+                var $mainTabViewDiv = $(".mainTabView");
+                $mainTabViewDiv.css("height", "100%");
+                $mainTabViewDiv.parent().css("height", "100%");
+                new ProjectsToolbar($mainTabViewDiv, projectsView); 
 
                 var enginelogView = new EngineLogView();
 
-				var $engineLogView = $(".engineLogView:first");
-				$engineLogView.css("height", "100%");
-				$engineLogView.parent().css("height", "100%");
+				var $secondTabDiv = $(".secondTabView");
+				$secondTabDiv.css("height", "100%");
+				$secondTabDiv.parent().css("height", "100%");
 
 				// Extract all views from a GL config
                 var getViews = function (config, views) {
@@ -208,9 +209,9 @@ var Main = {
 				$(".gwt-SplitLayoutPanel>*").attrchange({callback: updateSize});
 				$(window).resize(updateSize);
 				$(document)
-					.on("click", "div[title='Projects'],div[title='Engine Log']", updateSize)
-					.one("click", "div[title='Projects']", function () {
-						initGl("glLeft", $projectsViewDiv, {
+					.on("click", "div[title='Convertigo']", updateSize)
+					.one("click", "#gwt-debug-leftPanel div[title='Convertigo']", function () {
+						initGl("glLeft", $mainTabViewDiv, {
 							settings : {
 								showPopoutIcon : false,
 								showCloseIcon : false
@@ -255,8 +256,8 @@ var Main = {
 								} ]
 							} ]
 						});
-					}).one("click", "div[title='Engine Log']", function() {
-						initGl("glBottom", $engineLogView, {
+					}).one("click", "#gwt-debug-bottomPanel div[title='Convertigo']", function () {
+						initGl("glBottom", $secondTabDiv, {
 							settings : {
 								showPopoutIcon : false,
 								showCloseIcon : false
@@ -285,14 +286,9 @@ var Main = {
 						});
 					});
 
-				// Automatically open these tabs (only works with Che)
-				$("div[title='Projects']>:first-child").click();
-				$("div[title='Engine Log']>:first-child").click();
-
-				// Open palette (for the moment)
-				setTimeout(function () {
-	                palette.focus(Convertigo.glLeft);
-				}, 0);
+				// Automatically open Convertigo parts (only works with Che)
+				$("#gwt-debug-leftPanel div[title='Convertigo']>:first-child").click();
+				$("#gwt-debug-bottomPanel div[title='Convertigo']>:first-child").click();
 
 				DatabaseObjectManager.addListener(projectsView);
 				DatabaseObjectManager.addListener(propertiesView);
