@@ -38,14 +38,6 @@ public class UIFormCustomValidator extends UIFormValidator {
 		return cloned;
 	}
 	
-	private static String sample() {
-		return  "\t\t\t//For FormControl: you can access control value using : c.value\n" +
-				"\t\t\t//For FormGroup: you can access control value using : g.get('<control_name>').value\n" +
-				"\t\t\t//return any json structure to specify errors\n"	+
-				"\t\t\t//return null if valid\n"	+
-				"\t\t\treturn null;//means valid";
-	}
-	
 	public String getValidatorName() {
 		return "validate"+ this.priority;
 	}
@@ -53,7 +45,7 @@ public class UIFormCustomValidator extends UIFormValidator {
 	/*
 	 * The validator value (function contents)
 	 */
-	private FormatedContent validatorValue = new FormatedContent(sample());
+	private FormatedContent validatorValue = new FormatedContent("\t\t\treturn null;//means valid"+ System.lineSeparator());
 	
 	public FormatedContent getValidatorValue() {
 		return validatorValue;
@@ -85,10 +77,14 @@ public class UIFormCustomValidator extends UIFormValidator {
 			}
 			cartridge.append("\t\t * ").append(System.lineSeparator());
 			
-			if (underForm)
+			if (underForm) {
 				cartridge.append("\t\t * @param g:FormGroup, the form").append(System.lineSeparator());
-			else
+				cartridge.append("\t\t *    use g.get('<control_name>').value to retrieve a control's value").append(System.lineSeparator());
+			} else {
 				cartridge.append("\t\t * @param c:FormControl, the control").append(System.lineSeparator());
+				cartridge.append("\t\t *    use c.value to retrieve control's value").append(System.lineSeparator());
+			}
+			cartridge.append("\t\t * @return null if valid or any json error structure if invalid").append(System.lineSeparator());
 			cartridge.append("\t\t */").append(System.lineSeparator());
 			
 			String parameter =  underForm ? "g: FormGroup":"c: FormControl";
@@ -98,8 +94,7 @@ public class UIFormCustomValidator extends UIFormValidator {
 			computed += cartridge;
 			computed += "\t\tfunction "+ validatorName +"("+parameter+") {"+ System.lineSeparator();
 			computed += computeValidatorContent();
-			computed += System.lineSeparator() + "\t\t}";
-			computed += System.lineSeparator();
+			computed += "\t\t}"+ System.lineSeparator();
 			return computed;
 		}
 		return "";
@@ -114,8 +109,8 @@ public class UIFormCustomValidator extends UIFormValidator {
 		String validatorName = getValidatorName();
 		String s = "";
 		s += "\t\t/*Begin_c8o_function:"+ validatorName +"*/" + System.lineSeparator();
-		s += validatorValue.getString() + System.lineSeparator();
-		s += "\t\t/*End_c8o_function:"+ validatorName +"*/";
+		s += validatorValue.getString();
+		s += "\t\t/*End_c8o_function:"+ validatorName +"*/" + System.lineSeparator();
 		return s;
 	}
 

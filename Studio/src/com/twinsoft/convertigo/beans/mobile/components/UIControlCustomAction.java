@@ -79,6 +79,10 @@ public class UIControlCustomAction extends UIControlAction {
         }
 	}
 	
+	public String getActionName() {
+		return "CTS"+ this.priority;
+	}
+	
 	/*
 	 * The action value
 	 */
@@ -108,7 +112,8 @@ public class UIControlCustomAction extends UIControlAction {
 				}
 			}
 			
-			String computed = "CTS"+ this.priority + "("+ parameters +")";
+			String actionName = getActionName();
+			String computed = actionName + "("+ parameters +")";
 			return computed;
 		}
 		return "";
@@ -157,20 +162,23 @@ public class UIControlCustomAction extends UIControlAction {
 			}
 			cartridge.append("\t */").append(System.lineSeparator());
 			
+			String actionName = getActionName();
+			
 			computed += System.lineSeparator();
 			computed += cartridge;
-			computed += "\tCTS"+ this.priority + "("+ parameters +") {" + System.lineSeparator();
+			computed += "\t"+ actionName + "("+ parameters +") {" + System.lineSeparator();
 			computed += computeActionContent();
-			computed += System.lineSeparator() + "\t}";
+			computed += "\t}" + System.lineSeparator();
 		}
 		return computed;
 	}
 	
 	private String computeActionContent() {
+		String actionName = getActionName();
 		String s = "";
-		s += "\t/*Begin_c8o_function:CTS"+ this.priority +"*/" + System.lineSeparator();
-		s += actionValue.getString() + System.lineSeparator();
-		s += "\t/*End_c8o_function:CTS"+ this.priority +"*/";
+		s += "\t/*Begin_c8o_function:"+ actionName +"*/" + System.lineSeparator();
+		s += actionValue.getString();
+		s += "\t/*End_c8o_function:"+ actionName +"*/" + System.lineSeparator();
 		return s;
 	}
 	

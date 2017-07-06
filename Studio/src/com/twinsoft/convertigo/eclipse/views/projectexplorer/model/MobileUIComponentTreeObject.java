@@ -111,7 +111,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		} else if (uic instanceof UIStyle) {
 			openCssFileEditor();
 		} else if (uic instanceof UIControlCustomAction) {
-			String functionMarker = "function:"+ "CTS"+uic.priority;
+			String functionMarker = "function:"+ ((UIControlCustomAction)uic).getActionName();
 			editPageFunction(uic, functionMarker, "actionValue");
 		} else if (uic instanceof UIFormCustomValidator) {
 			String functionMarker = "function:"+ ((UIFormCustomValidator)uic).getValidatorName();
@@ -168,13 +168,11 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 									IDocumentProvider dp = editor.getDocumentProvider();
 									IDocument doc = dp.getDocument(editor.getEditorInput());
 									String marker = MobileBuilder.getMarker(doc.get(), functionMarker);
-									String[] lines = marker.split(System.lineSeparator());
-									String content = "";
-									if (lines.length > 2) { // retrieve content inside markers
-										for (int i=1; i<lines.length-1; i++) {
-											content += lines[i] + System.lineSeparator();
-										}
-									}
+									String beginMarker = "/*Begin_c8o_" + functionMarker + "*/";
+									String endMarker = "/*End_c8o_" + functionMarker + "*/";
+									String content = marker.replace(beginMarker+ System.lineSeparator(), "")
+																.replace("\t\t"+endMarker, "") // for validator
+																	.replace("\t"+endMarker, ""); // for action
 									FormatedContent formated = new FormatedContent(content);
 									MobileUIComponentTreeObject.this.setPropertyValue(propertyName, formated);
 								}
