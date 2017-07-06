@@ -1,10 +1,18 @@
-.folder {
-    background-image: url(../../admin/images/folder.gif) !important;
+/*********************************
+* Common
+*********************************/
+hr {
+    border: 0;
+    border-top: 1px solid;
 }
 
 /*********************************
 * Jstree projects tree view
 *********************************/
+.folder {
+    background-image: url(../../admin/images/folder.gif) !important;
+}
+
 .projectsTreeView tbody>tr>td {
     /* overflow-x: hidden; */
     /* white-space: nowrap; */
@@ -36,7 +44,6 @@
 /*********************************
 * Jstree context menu
 *********************************/
-
 /* Icons of the context menu */
 .vakata-context li>a>i {
     background-repeat: no-repeat;
@@ -51,7 +58,6 @@
 /*********************************
 * Modal
 *********************************/
-
 .align-right {
     text-align: right;
 }
@@ -64,7 +70,6 @@ div.modal button {
 /*********************************
 * Palette
 *********************************/
-
 /* Sub categories */
 .tab-palette>div>div.sub-category {
     margin-bottom: 10px;
@@ -104,7 +109,6 @@ div.modal button {
 /*********************************
 * Drag and drop
 *********************************/
-
 i.draggable {
     display: inline-block;
     width: 32px !important;
@@ -120,25 +124,8 @@ i.draggable {
 }
 
 /*********************************
-* jQuery UI tabs
-*********************************/
-.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default, .ui-button, html .ui-button.ui-state-disabled:hover, html .ui-button.ui-state-disabled:active {
-	border: none; /* 1px solid #6B6D6F; */
-}
-
-.ui-corner-all {
-	border: none !important; /* #6B6D6F 1px solid !important; */
-}
-
-hr {
-    border: 0;
-    border-top: 1px solid;
-}
-
-/*********************************
 * Toolbar
 *********************************/
-
 /* Logs */
 #engine-logs-level tr {
     height: 30px;
@@ -267,6 +254,9 @@ hr {
   }
 }
 
+/*********************************
+* Golden Layout
+*********************************/
 body .lm_content {
 	overflow: auto;
 }

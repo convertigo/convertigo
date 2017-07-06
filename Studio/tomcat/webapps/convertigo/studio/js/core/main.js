@@ -7,16 +7,19 @@ var Main = {
 			/**
 			 * Libs
 			 */
+		    // jquery
 			"jquery",
 			"jstree",
 			"jstreegrid",
 			"jstreeutils",
-			"jquery-ui",
 			"jquery.modal",
 	        "jquery.sse",
+            "attrchange",
+            "goldenlayout",
+
+            // others
 			"accordion",
 			"prism",
-	        "attrchange",
 
             /**
              * Editors
@@ -39,7 +42,6 @@ var Main = {
 	         * Tabs
 	         */
 	    	"tab",
-	        "studio-tabs",
 	    	"palette",
 	    	"references",
 	    	"source-picker",
@@ -55,7 +57,7 @@ var Main = {
 	         * Utils
 	         */
             "dom-utils",
-            "goldenlayout",
+            "golden-layout-utils",
 	        "injector-utils",
 	        "modal-utils",
 	        "string-utils",
@@ -79,14 +81,13 @@ var Main = {
 
 			// Inject CSS
 	        InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/jstree-3.3.3/themes/" + theme + "/style.min.css"));
-			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/jquery-ui-1.12.1.min.css"));
 			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/jquery.modal-0.8.0.min.css"));
 			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/accordion.css"));
 	        InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/prism-1.6.0/themes/" + theme + ".css"));
 			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/style.css"));
 			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/themes/" + theme + ".css"));
-			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/goldenlayout-base-1.5.8.css"));
-		    InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/goldenlayout-" + (isCheDarkTheme ? "dark" : "light") + "-theme-1.5.8.css"));
+			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/golden-layout-1.5.8/goldenlayout-base.css"));
+		    InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/golden-layout-1.5.8/themes/" + theme + ".css"));
 
 			// To iterate in reverse order
 			jQuery.fn.reverse = [].reverse;
@@ -108,21 +109,9 @@ var Main = {
 
 				that.initListeners();
 
-				var studioTabs = new StudioTabs();
-
-				// Source Picker
 				var sourcePicker = new SourcePicker();
-				studioTabs.addTab(sourcePicker);
-
-				// References
 				var references = new References();
-				studioTabs.addTab(references);
-
-				// Palette
 				var palette = new Palette();
-				studioTabs.addTab(palette);
-
-				studioTabs.renderTabs();
 
                 var propertiesView = new PropertiesView(theme);
 				var projectsView = new ProjectsView(propertiesView, [palette], theme);
@@ -158,13 +147,17 @@ var Main = {
                 // Define how to build our GL components
                 var registerComponent = function (container, state) {
 					var $elt = container.getElement();
-					if (state.view == 'projectsView') {
+					if (state.view == "projectsView") {
 						$elt.append(projectsView.getDivWrapperTree());
-					} else if (state.view == 'palette') {
-						$elt.append(studioTabs.getDiv());
-					} else if (state.view == 'propertiesView') {
+					} else if (state.view == "palette") {
+						$elt.append(palette.getDiv());
+					} else if (state.view == "sourcePicker") {
+					    $elt.append(sourcePicker.getDiv());
+					} else if (state.view == "references") {
+					    $elt.append(references.getDiv());
+                    } else if (state.view == "propertiesView") {
 						$elt.append(propertiesView.getDivWrapperTree());
-					} else if (state.view == 'enginelogView') {
+					} else if (state.view == "enginelogView") {
 						$elt.append(enginelogView.getDiv());
 					} else {
 						$elt.append("<h2>No implemented</h2>");
@@ -184,7 +177,7 @@ var Main = {
 				// Init GL, load from localStorage if the config is compatible
                 var initGl = function (name, $div, config) {
 					window.setTimeout(function () {
-	                	var localKey = name + 'Config';
+	                	var localKey = name + "Config";
 	                	if (localStorage[localKey]) {
 	                		try {
 	                			var localConfig = JSON.parse(localStorage[localKey]);
@@ -199,14 +192,14 @@ var Main = {
 	                	}
 	                	var gl = Convertigo[name] = new (require("goldenlayout"))(config, $div);
 
-	                	gl.on('stateChanged', function() {
+	                	gl.on("stateChanged", function () {
 	                		if (gl.isInitialised) {
 							    var state = JSON.stringify(gl.toConfig());
 							    localStorage.setItem(localKey, state);
 	                		}
 						});
 
-						gl.registerComponent('view', registerComponent);
+						gl.registerComponent("view", registerComponent);
 						gl.init();
 					}, 0);
                 };
@@ -216,48 +209,48 @@ var Main = {
 				$(window).resize(updateSize);
 				$(document)
 					.on("click", "div[title='Projects'],div[title='Engine Log']", updateSize)
-					.one("click", "div[title='Projects']", function() {
+					.one("click", "div[title='Projects']", function () {
 						initGl("glLeft", $projectsViewDiv, {
 							settings : {
 								showPopoutIcon : false,
 								showCloseIcon : false
 							},
 							content : [ {
-								type : 'row',
+								type : "row",
 								content : [{
-									type : 'component',
-									componentName : 'view',
+									type : "component",
+									componentName : "view",
 									componentState : {
-										view : 'projectsView'
+										view : "projectsView"
 									},
 									isClosable : false,
-									title : 'Projects'
+									title : "Projects"
 								}, {
-									type : 'stack',
+									type : "stack",
 									content : [{
-										type : 'component',
-										componentName : 'view',
+										type : "component",
+										componentName : "view",
 										componentState : {
-											view : 'palette'
+											view : "palette"
 										},
 										isClosable : false,
-										title : 'Palette'
+										title : "Palette"
 									}, {
-										type : 'component',
-										componentName : 'view',
+										type : "component",
+										componentName : "view",
 										componentState : {
-											view : 'sourcePicker'
+											view : "sourcePicker"
 										},
 										isClosable : false,
-										title : 'Source Picker'
+										title : "Source Picker"
 									}, {
-										type : 'component',
-										componentName : 'view',
+										type : "component",
+										componentName : "view",
 										componentState : {
-											view : 'references'
+											view : "references"
 										},
 										isClosable : false,
-										title : 'References'
+										title : "References"
 									} ]
 								} ]
 							} ]
@@ -269,24 +262,24 @@ var Main = {
 								showCloseIcon : false
 							},
 							content : [{
-								type : 'row',
+								type : "row",
 								content : [ {
-									type : 'component',
-									componentName : 'view',
+									type : "component",
+									componentName : "view",
 									componentState : {
-										view : 'propertiesView'
+										view : "propertiesView"
 									},
 									isClosable : false,
 									width : 20,
 									title : 'Properties'
 								}, {
-									type : 'component',
-									componentName : 'view',
+									type : "component",
+									componentName : "view",
 									componentState : {
-										view : 'enginelogView'
+										view : "enginelogView"
 									},
 									isClosable : false,
-									title : 'Engine Log'
+									title : "Engine Log"
 								} ]
 							} ]
 						});
@@ -297,7 +290,9 @@ var Main = {
 				$("div[title='Engine Log']>:first-child").click();
 
 				// Open palette (for the moment)
-				palette.focus();
+				setTimeout(function () {
+	                palette.focus(Convertigo.glLeft);
+				}, 0);
 
 				DatabaseObjectManager.addListener(projectsView);
 				DatabaseObjectManager.addListener(propertiesView);
@@ -322,12 +317,11 @@ var Main = {
 		        jstree: Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jstree-3.3.3/jstree.min"),
 		        jstreegrid: Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jstree-3.3.3/plugins/jstreegrid-3.5.14"),
 		        jstreeutils: Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jstree-3.3.3/plugins/jstreeutils"),
-		        "jquery-ui": Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jquery-ui-1.12.1.min"),
 		        "jquery.modal": Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jquery.modal-0.8.0.min"),
 	            "jquery.sse": Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jquery.sse-0.1.3.min"),
 		        accordion: Convertigo.getBaseConvertigoStudioUrl("js/libs/accordion"),
 		        prism: Convertigo.getBaseConvertigoStudioUrl("js/libs/prism-1.6.0.min"),
-		        goldenlayout: Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/goldenlayout.min-1.5.8"),
+		        goldenlayout: Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/goldenlayout-1.5.8"),
 		        attrchange: Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/attrchange"),
 
 		        /**
@@ -354,7 +348,6 @@ var Main = {
 		    	palette: Convertigo.getBaseConvertigoStudioUrl("js/tabs/palette"),
 		    	references:  Convertigo.getBaseConvertigoStudioUrl("js/tabs/references"),
 		    	"source-picker": Convertigo.getBaseConvertigoStudioUrl("js/tabs/source-picker"),
-		    	"studio-tabs": Convertigo.getBaseConvertigoStudioUrl("js/tabs/studio-tabs"),
 
 		    	/**
 		    	 * Toolbars
@@ -367,6 +360,7 @@ var Main = {
 		         * Utils
 		         */
 	            "dom-utils": Convertigo.getBaseConvertigoStudioUrl("js/utils/dom-utils"),
+	            "golden-layout-utils": Convertigo.getBaseConvertigoStudioUrl("js/utils/golden-layout-utils"),
 		        "injector-utils": Convertigo.getBaseConvertigoStudioUrl("js/utils/injector-utils"),
 		        "modal-utils": Convertigo.getBaseConvertigoStudioUrl("js/utils/modal-utils"),
 		        "string-utils": Convertigo.getBaseConvertigoStudioUrl("js/utils/string-utils"),
@@ -382,7 +376,6 @@ var Main = {
 		    },
 		    // To resolve jQuery conflicts
 		    shim: {
-	            "jquery-ui": ["jquery"],
 		        "jquery.modal": ["jquery"],
 		        "jquery.sse": ["jquery"],
 		        "goldenlayout": ["jquery"],

@@ -1,11 +1,17 @@
 /*********************************
-* CSS (colors) for Dark theme.
+* CSS colors for Dark theme.
 *********************************/
+
+/*********************************
+* Common
+*********************************/
+hr {
+    border-top-color: #6B6D6F;
+}
 
 /*********************************
 * Jstree projects tree view
 *********************************/
-
 .projectsTreeView tbody>tr:first-child>td:first-child {
     color: red;
 }
@@ -55,7 +61,6 @@ li.nodeDisable > a {
 /*********************************
 * Jstree context menu
 *********************************/
-
 .contextmenu-entry-disable {
     opacity: 0.5;
    -webkit-filter: grayscale(100%);
@@ -68,7 +73,6 @@ li.nodeDisable > a {
 /*********************************
 * Modal
 *********************************/
-
 div.modal {
     color: white;
     background-color: #33373B;
@@ -79,35 +83,6 @@ div.modal {
 *********************************/
 .gray-selection {
     background-color: #256c9f;
-}
-
-/*********************************
-* jQuery UI tabs
-*********************************/
-
-.ui-tabs, .ui-tabs>ul, .ui-tabs>div {
-	background-color: #292C2F;
-}
-
-.ui-state-active a, .ui-state-active a:link, .ui-state-active a:visited {
-   background-color: #5A5A5A !important;
-}
-
-.ui-state-default a, .ui-state-default a:link, .ui-state-default a:visited, a.ui-button, a:link.ui-button, a:visited.ui-button, .ui-button {
-   background-color: #333;   
-}
-
-.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default, .ui-button, html .ui-button.ui-state-disabled:hover, html .ui-button.ui-state-disabled:active {
-	background-color: #256c9f;
-}
-
-.ui-tabs h2, .ui-tabs h4, .ui-tabs p, .ui-tabs span,
-.ui-state-default a, .ui-state-default a:link, .ui-state-default a:visited, a.ui-button, a:link.ui-button, a:visited.ui-button, .ui-button {
-	color: white !important;
-}
-
-hr {
-    border-top-color: #6B6D6F;
 }
 
 /*********************************

@@ -16,6 +16,6 @@ Tab.prototype.getDiv = function () {
 Tab.prototype.update = function (data) {
 };
 
-Tab.prototype.focus = function () {
-	this.getDiv().parent().find("a[href='#" + this.id +"']").click();
+Tab.prototype.focus = function (layout) {
+    GoldenLayoutUtils.activeTabByTitle(layout, this.label);
 };

@@ -106,7 +106,7 @@ Palette.prototype.showCategory = function (categoryName) {
 	// Recreate categories
 	this.createCategories();
 	this.getDiv().find("div:contains('" + categoryName + "')").click();
-	this.focus();
+	this.focus(Convertigo.glLeft);
 };
 
 Palette.prototype.createSubCategories = function (categoryName) {

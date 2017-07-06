@@ -1,6 +1,7 @@
 function SourcePicker(id) {
 	++SourcePicker.nbInstances;
 	Tab.call(this, "sourcePicker" + SourcePicker.nbInstances, "Source Picker");
+    $(this.mainDiv).text("Source-picker");
 }
 
 SourcePicker.prototype = Object.create(Tab.prototype);
