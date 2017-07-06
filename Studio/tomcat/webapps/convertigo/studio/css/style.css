@@ -36,6 +36,10 @@ hr {
     background: none !important;
 }
 
+.jstree-default .jstree-node {
+    margin-left: 10px;
+}
+
 /* Header separator of the jstree grid plugin */
 /*.jstree-grid-separator-regular {
   border-style: none !important;
@@ -104,6 +108,11 @@ div.modal button {
 .tab-palette>div>div.category {
     cursor: pointer;
     margin-bottom: 20px;
+}
+
+.tab-palette {
+	margin-left: 15px;
+	margin-right: 15px;
 }
 
 /*********************************

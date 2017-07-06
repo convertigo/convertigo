@@ -3,7 +3,7 @@
 *********************************/
 
 /*********************************
-* Common
+* General
 *********************************/
 hr {
     border-top-color: #6B6D6F;
@@ -235,4 +235,11 @@ button.accordion.active, button.accordion:hover, button.accordion {
 
 .sequence-output {
     border-left-color: white;
+}
+
+/*********************************
+* Golden Layout
+*********************************/
+.lm_content {
+	background-color: #292c2f !important;
 }
