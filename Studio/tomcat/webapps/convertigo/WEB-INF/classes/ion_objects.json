@@ -1464,6 +1464,30 @@
           "description": "When this option is selected, the parent ion-select object will have this value.",
           "category": "@properties",
           "value": false
+        },
+        "disabled": {
+          "attr": "disabled",
+          "label": "Disabled",
+          "description": "If true, the user cannot interact with this element.",
+          "category": "@properties",
+          "value": false,
+          "values": [
+            false,
+            "true",
+            "false"
+          ]
+        },
+        "selected": {
+          "attr": "selected",
+          "label": "Selected",
+          "description": "If true, the element is selected.",
+          "category": "@properties",
+          "value": false,
+          "values": [
+            false,
+            "true",
+            "false"
+          ]
         }
       }
     },
