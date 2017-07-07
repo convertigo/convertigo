@@ -63,6 +63,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIControlListenSequenceSo
 import com.twinsoft.convertigo.beans.mobile.components.UIControlListenSource;
 import com.twinsoft.convertigo.beans.mobile.components.UICustom;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicTab;
 import com.twinsoft.convertigo.beans.mobile.components.UIElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIFormCustomValidator;
 import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
@@ -453,7 +454,15 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 						list.add("target");
 					}
 				}
-				
+				if (getObject() instanceof UIDynamicTab) {
+					if (ProjectTreeObject.class.isAssignableFrom(c) ||
+						MobileApplicationTreeObject.class.isAssignableFrom(c) ||
+						MobileApplicationComponentTreeObject.class.isAssignableFrom(c) ||
+						MobilePageComponentTreeObject.class.isAssignableFrom(c))
+					{
+						list.add("tabpage");
+					}
+				}
 				return list;
 			}
 			
@@ -464,6 +473,9 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 				}
 				if (getObject() instanceof UIControlListenSource) {
 					return "target".equals(propertyName);
+				}
+				if (getObject() instanceof UIDynamicTab) {
+					return "tabpage".equals(propertyName);
 				}
 				return false;
 			}
@@ -489,6 +501,13 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 						}
 						if (cc instanceof UIControlListenFullSyncSource) {
 							return nsObject instanceof FullSyncConnector;
+						}
+					}
+				}
+				if (getObject() instanceof UIDynamicTab) {
+					if ("tabpage".equals(propertyName)) {
+						if (nsObject instanceof PageComponent) {
+							return (((PageComponent)nsObject).getProject().equals(getObject().getProject()));
 						}
 					}
 				}
@@ -518,6 +537,12 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 							if (getObject() instanceof UIControlListenSource) {
 								if ("target".equals(propertyName)) {
 									((UIControlListenSource)getObject()).setTarget(_pValue);
+									hasBeenRenamed = true;
+								}
+							}
+							if (getObject() instanceof UIDynamicTab) {
+								if ("tabpage".equals(propertyName)) {
+									((UIDynamicTab)getObject()).setTabPage(_pValue);
 									hasBeenRenamed = true;
 								}
 							}

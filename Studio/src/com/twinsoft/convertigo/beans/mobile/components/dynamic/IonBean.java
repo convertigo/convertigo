@@ -36,6 +36,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
 public class IonBean {
 	
 	enum Key {
+		classname,
 		tag,
 		name,
 		label,
@@ -53,6 +54,7 @@ public class IonBean {
 	public IonBean() {
 		try {
 			jsonBean = new JSONObject()
+				.put(Key.classname.name(), "com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement")
 				.put(Key.name.name(), "bean")
 				.put(Key.tag.name(), "tag")
 				.put(Key.label.name(), "label")
@@ -89,6 +91,14 @@ public class IonBean {
 		return jsonBean;
 	}
 	
+	public String getClassName() {
+		try {
+			return jsonBean.getString(Key.classname.name());
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return "com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement";
+		}
+	}
 	public String getName() {
 		try {
 			return jsonBean.getString(Key.name.name());
@@ -231,7 +241,12 @@ public class IonBean {
 	protected DatabaseObject createBean() {
 		UIDynamicElement dbo = null;
 		try {
-			dbo = new UIDynamicElement(getTag());
+			Object args[] = { getTag() };
+			
+			String dboclass = getClassName();
+			Class<?> c = Class.forName(dboclass);
+			dbo = (UIDynamicElement) c.getConstructor(String.class).newInstance(args);
+			
 			dbo.setName(getName());
 			dbo.setSelfClose(isSelfClose());
 			dbo.setBeanData(getJSONObject().toString());			
