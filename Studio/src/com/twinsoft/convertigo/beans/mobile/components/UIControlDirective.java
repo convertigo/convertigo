@@ -74,7 +74,7 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 	/*
 	 * The directive to bind
 	 */
-	private String directiveName = AttrDirective.If.name();
+	private String directiveName = AttrDirective.ForEach.name();
 
 	public String getDirectiveName() {
 		return directiveName;
