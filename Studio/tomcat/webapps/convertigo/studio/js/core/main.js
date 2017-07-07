@@ -121,7 +121,6 @@ var Main = {
                 var $mainTabViewDiv = $(".mainTabView");
                 $mainTabViewDiv.css("height", "100%");
                 $mainTabViewDiv.parent().css("height", "100%");
-                new ProjectsToolbar($mainTabViewDiv, projectsView); 
 
                 var enginelogView = new EngineLogView();
 
@@ -199,6 +198,34 @@ var Main = {
 							    localStorage.setItem(localKey, state);
 	                		}
 						});
+
+	                	gl.on("stackCreated", function (stack) {
+	                	    var projectsToolbar = null;
+	                	    var engineLogToolbar = null;
+
+	                	    stack.on("activeContentItemChanged", function (contentItem) {
+	                	        // Remove all buttons from the toolbar (= header)
+	                	        stack.header.controlsContainer.find(".img-action").hide();
+
+	                	        // Regenerate the correct toolbar
+	                	        if (contentItem.config.title === "Projects") {
+	                	            if (!projectsToolbar) {
+	                	                projectsToolbar = new ProjectsToolbar(stack.header.controlsContainer, projectsView);
+	                	            }
+	                	            else {
+	                	                stack.header.controlsContainer.find("." + projectsToolbar.getClassAction()).show();
+	                	            }
+	                	        }
+	                	        else if (contentItem.config.title === "Engine Log") {
+                                    if (!engineLogToolbar) {
+                                        engineLogToolbar = new EngineLogToolbar(stack.header.controlsContainer, enginelogView);
+                                    }
+                                    else {
+                                        stack.header.controlsContainer.find("." + engineLogToolbar.getClassAction()).show();
+                                    }
+	                	        }
+	                	    });
+	                	});
 
 						gl.registerComponent("view", registerComponent);
 						gl.init();
@@ -289,7 +316,7 @@ var Main = {
 				// Automatically open Convertigo parts (only works with Che)
 				$("#gwt-debug-leftPanel div[title='Convertigo']>:first-child").click();
 				$("#gwt-debug-bottomPanel div[title='Convertigo']>:first-child").click();
-
+		
 				DatabaseObjectManager.addListener(projectsView);
 				DatabaseObjectManager.addListener(propertiesView);
 

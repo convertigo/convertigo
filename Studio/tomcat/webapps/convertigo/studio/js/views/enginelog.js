@@ -105,8 +105,7 @@ EngineLogView.prototype.getLogs = function () {
 
 EngineLogView.prototype.getScrollableDiv = function () {
     if (this.scrollableDiv === null) {
-        // It's a CHE-GWT div
-        this.scrollableDiv = $(this.mainDiv).parent().parent().parent()[0];
+        this.scrollableDiv = $(this.mainDiv).parent()[0];
     }
 
     return this.scrollableDiv;
@@ -125,7 +124,7 @@ EngineLogView.prototype.goToTop = function () {
 };
 
 EngineLogView.prototype.goToEnd = function () {
-    this.getScrollableDiv().scrollTop = $(".engineLogView")[0].scrollHeight;
+    this.getScrollableDiv().scrollTop = $(this.mainDiv)[0].scrollHeight;
 };
 
 EngineLogView.prototype.formatLine = function (nLine, line) {

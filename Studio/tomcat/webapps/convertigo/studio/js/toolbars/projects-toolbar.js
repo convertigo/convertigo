@@ -1,5 +1,5 @@
-function ProjectsToolbar(panelSelector, projectsView) {
-    Toolbar.call(this, panelSelector);
+function ProjectsToolbar(container, projectsView) {
+    Toolbar.call(this, container, "projects-action");
 
     // Save action
     this.addAction(
@@ -39,6 +39,7 @@ function ProjectsToolbar(panelSelector, projectsView) {
         Convertigo.createServiceUrl("studio.database_objects.GetMenuIcon?iconPath=icons/studio/dbo_increase_priority.gif"),
         "Increase selected object(s) priority",
         function () {
+            ModalUtils.createMessageBox("Convertigo", "Not implemented.");
         }
     );
 
@@ -48,6 +49,7 @@ function ProjectsToolbar(panelSelector, projectsView) {
         Convertigo.createServiceUrl("studio.database_objects.GetMenuIcon?iconPath=icons/studio/dbo_decrease_priority.gif"),
         "Decrease selected object(s) priority",
         function () {
+            ModalUtils.createMessageBox("Convertigo", "Not implemented.");
         }
     );
 }

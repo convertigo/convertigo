@@ -1,5 +1,5 @@
-function EngineLogToolbar(panelSelector, engineLogView) {
-    Toolbar.call(this, panelSelector);
+function EngineLogToolbar(container, engineLogView) {
+    Toolbar.call(this, container, "enginelog-action");
 
     // Go to top
     this.addAction(
@@ -29,7 +29,7 @@ function EngineLogToolbar(panelSelector, engineLogView) {
         function () {
             engineLogView.toggleLock();
         },
-        engineLogView.isAutoScrollEnabled()
+        !engineLogView.isAutoScrollEnabled()
     );
 
     // Clear logs

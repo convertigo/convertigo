@@ -103,12 +103,16 @@ button.accordion.active, button.accordion:hover, button.accordion {
     background-color: #555;
 }
 
-.img-action:hover {
-    background-color: #21252b;
+.lm_header li {
+    opacity: initial !important;
+}
+
+.lm_header li:hover {
+    background-color: #5a5a5a;
 }
 
 /* Active = On click */
-.img-action:active {
+.lm_header li:active {
     background-color: #909090;
 }
 

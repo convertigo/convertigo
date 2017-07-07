@@ -1,38 +1,23 @@
-function Toolbar(panelSelector) {
-    this.toolbar = 
-        $(panelSelector)
-            .parents("div[role='part']")
-            .find("div[role='toolbar-header']");
+function Toolbar(container, classAction) {
+    this.toolbar = $(container);
+    this.classAction = classAction;
 }
 
 Toolbar.prototype.createAction = function (id, srcImg, tooltip) {
-    // Get all actions (=icons) of the toolbar
-    var actions = $(this.toolbar).find(">div").get().filter(function (elt) {
-        var rightValue = elt.style.right;
-        return rightValue !== "0px" && rightValue !== "";
-    });
-
     // Create new action
-    var $newAction = $(actions[0]).clone();
-
-    // Compute right offset
-    var rightValue =
-        Toolbar.spaceFactor * Toolbar.iconSize +
-        parseInt(actions[actions.length - 1].style.right.replace("px", ""));
+    var $newAction = $("<li/>");
 
     // DOM data
-    $newAction.css("right", rightValue + "px");
     $newAction.attr("id", id);
     $newAction.attr("title", tooltip);
     $newAction.addClass("img-action");
+    $newAction.addClass(this.classAction);
 
     // Create image
     var $newActionImg = $("<img/>", {
         src: srcImg
     });
-    $newAction
-        .find("*:first")
-        .replaceWith($newActionImg);
+    $newAction.append($newActionImg);
 
     return $newAction;
 }
@@ -44,7 +29,7 @@ Toolbar.prototype.addAction = function (id, srcImg, tooltip, func) {
         tooltip
     );
     $newAction.click(func);
-    $(this.toolbar).append($newAction);
+    $(this.toolbar).prepend($newAction);
 };
 
 Toolbar.prototype.addActionToggable = function (id, srcImg, tooltip, func, toggleByDefault) {
@@ -55,20 +40,22 @@ Toolbar.prototype.addActionToggable = function (id, srcImg, tooltip, func, toggl
         tooltip
     );
     var coreFunc = func;
+    var actionEnabled = "action-enabled";
     func = function () {
         // Toogle CSS and call function
-        $newAction.toggleClass("action-enabled");
+        $newAction.toggleClass(actionEnabled);
         coreFunc();
     }
     $newAction.click(func);
 
     // Toggle by default if needed
     if (toggleByDefault) {
-        $newAction.addClass("action-enabled");
+        $newAction.addClass(actionEnabled);
     }
 
-    $(this.toolbar).append($newAction);
+    $(this.toolbar).prepend($newAction);
 };
 
-Toolbar.spaceFactor = 1.5;
-Toolbar.iconSize = 16;
+Toolbar.prototype.getClassAction = function () {
+    return this.classAction;
+}
