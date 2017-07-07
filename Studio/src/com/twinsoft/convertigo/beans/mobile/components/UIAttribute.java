@@ -59,10 +59,17 @@ public class UIAttribute extends UIComponent implements ITagsProperty {
 		this.attrValue = attrValue;
 	}
 	
+	protected boolean isAttrBind() {
+		String attr = getAttrName();
+		return attr.startsWith("[") && attr.endsWith("]");
+	}
+	
 	protected String getAttrValue() {
 		String value = attrValue.getValue();
 		if (!Mode.PLAIN.equals(attrValue.getMode())) {
-			value = "{{" + value + "}}";
+			if (!isAttrBind()) {
+				value = "{{" + value + "}}";
+			}
 		}
 		return value;
 	}
