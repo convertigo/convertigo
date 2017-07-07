@@ -1856,7 +1856,7 @@
     "Option": {
       "tag": "ion-option",
       "label": "Select option",
-      "description": "Options for an ion-select. Each option must be placed under a ion-select to give a list of selectable options. The name of the option is given by a Text component under the option",
+      "description": "Defines a select option. | Each Option component must be placed under a Select component to give a list of selectable options. The name of the option is given by a Text component under the option",
       "group": "Forms",
       "icon16": "option_color_16x16.png",
       "icon32": "option_color_32x32.png",
@@ -1898,7 +1898,7 @@
     "Select": {
       "tag": "ion-select",
       "label": "Select",
-      "description": "The ion-select component is similar to an HTML &lt;select&gt; element, however, Ionic's select component makes it easier for users to sort through and select the preferred option or options. When users tap the select component, a dialog will appear with all of the options in a large, easy to select list for users.",
+      "description": "Defines a select. | The Select component is similar to an HTML &lt;select&gt; element, however, Ionic's select component makes it easier for users to sort through and select the preferred option or options. When users tap the select component, a dialog will appear with all of the options in a large, easy to select list for users.",
       "group": "Forms",
       "icon16": "select_color_16x16.png",
       "icon32": "select_color_32x32.png",
@@ -1975,7 +1975,7 @@
     "Toggle": {
       "tag": "ion-toggle",
       "label": "Toggle",
-      "description": "A toggle technically is the same thing as an HTML checkbox input, except it looks different and is easier to use on a touch device. Toggles can also have colors assigned to them, by adding any color attribute.",
+      "description": "Defines a toggle. | A Toggle component is technically the same thing as an HTML checkbox input, except it looks different and is easier to use on a touch device. Toggles can also have colors assigned to them, by adding any color attribute.",
       "group": "Forms",
       "icon16": "toggle_color_16x16.png",
       "icon32": "toggle_color_32x32.png",
