@@ -544,7 +544,7 @@
     "Button": {
       "tag": "button",
       "label": "Button",
-      "description": "Defines a button. | Buttons are an essential way to interact with and navigate through an app, and should clearly communicate what action will occur after the user taps them.<br/>Buttons can consist of text and/or an icon, and can be enhanced with a wide variety of attributes",
+      "description": "Defines a button. | Buttons are an essential way to interact with and navigate through an app, and should clearly communicate what action will occur after the user taps them.<br/>Buttons can consist of text and/or an icon, and can be enhanced with a wide variety of attributes.<br/>You can add event components to buttons to handle button clicks.",
       "group": "Buttons",
       "icon16": "button_color_16x16.png",
       "icon32": "button_color_32x32.png",
@@ -564,7 +564,7 @@
     "SubmitButton": {
       "tag": "button",
       "label": "Submit Button",
-      "description": "Defines a submit button for a Form. | ",
+      "description": "Defines a submit button for a Form. | Use a 'onSubmit' event on the Form component to handle the Submit event.<br /><br />You can use the 'AutoDisabled' property of the Submit button to disable it if the form is not valid.",
       "group": "Forms",
       "icon16": "button_color_16x16.png",
       "icon32": "button_color_32x32.png",
@@ -594,7 +594,7 @@
     "ResetButton": {
       "tag": "button",
       "label": "Reset Button",
-      "description": "Defines a reset button for a Form. | ",
+      "description": "Defines a reset button for a Form. | The reset button will clear all fields of the Form",
       "group": "Forms",
       "icon16": "button_color_16x16.png",
       "icon32": "button_color_32x32.png",
@@ -677,7 +677,7 @@
     "Icon": {
       "tag": "ion-icon",
       "label": "Icon",
-      "description": "Defines an icon. | More than 700+ Ionicons icons we all come to know and love.<br/>Can be used in buttons.",
+      "description": "Defines an icon. | More than 700+ Ionicons icons we all come to know and love.<br/>Can be used in buttons.<br />See link for <a href='https://ionicframework.com/docs/ionicons/' target='_blank'>icon descriptions</a>",
       "group": "Buttons",
       "icon16": "icon_color_16x16.png",
       "icon32": "icon_color_32x32.png",
@@ -742,7 +742,7 @@
     "Footer": {
       "tag": "ion-footer",
       "label": "Footer",
-      "description": "Defines a page footer. | ",
+      "description": "Defines a page footer. | Footer is a root component of a page that sits at the bottom of the page. Footer can be a wrapper for ion-toolbar to make sure the content area is sized correctly. ",
       "group": "Containers",
       "icon16": "footer_color_16x16.png",
       "icon32": "footer_color_32x32.png",
@@ -753,7 +753,7 @@
     "Header": {
       "tag": "ion-header",
       "label": "Header",
-      "description": "Defines a page header. | ",
+      "description": "Defines a page header. | Header is a parent component that holds the navbar and toolbar component. It's important to note that ion-header needs to be the one of the three root elements of a page",
       "group": "Containers",
       "icon16": "header_color_16x16.png",
       "icon32": "header_color_32x32.png",
@@ -764,7 +764,7 @@
     "DivTag": {
       "tag": "div",
       "label": "Div",
-      "description": "Defines a div tag. | ",
+      "description": "Defines a div tag. | This the standard HTML DIV tag. You can use this to write your own HTML in a page.",
       "group": "HTML",
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
@@ -775,7 +775,7 @@
     "Heading1": {
       "tag": "h1",
       "label": "H1",
-      "description": "Defines a heading 1. | ",
+      "description": "Defines a heading 1. | Use this for Pages Titles for example. Add text components inside",
       "group": "HTML",
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
@@ -797,7 +797,7 @@
     "Heading2": {
       "tag": "h2",
       "label": "H2",
-      "description": "Defines a heading 2. | ",
+      "description": "Defines a heading 2. | Use this for small titles. Add text components inside",
       "group": "HTML",
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
@@ -819,7 +819,7 @@
     "Heading3": {
       "tag": "h3",
       "label": "H3",
-      "description": "Defines a heading 3. | ",
+      "description": "Defines a heading 3. | Use this for even smaller titles. Add text components inside",
       "group": "HTML",
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
@@ -841,7 +841,7 @@
     "Heading4": {
       "tag": "h4",
       "label": "H4",
-      "description": "Defines a heading 4. | ",
+      "description": "Defines a heading 4. | Use this for small titles. Add text components inside",
       "group": "HTML",
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
@@ -863,7 +863,7 @@
     "Heading5": {
       "tag": "h5",
       "label": "H5",
-      "description": "Defines a heading 5. | ",
+      "description": "Defines a heading 5. | use this for very small titles. Add text components inside",
       "group": "HTML",
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
@@ -885,7 +885,7 @@
     "Heading6": {
       "tag": "h6",
       "label": "H6",
-      "description": "Defines a heading 6. | ",
+      "description": "Defines a heading 6. | use this for extra small titles. Add text components inside",
       "group": "HTML",
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
@@ -907,7 +907,7 @@
     "Paragraph": {
       "tag": "p",
       "label": "Paragraph",
-      "description": "Defines a paragraph. | ",
+      "description": "Defines a paragraph. | Use paragraphs with text components inside to display text in your pages.",
       "group": "HTML",
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
@@ -919,7 +919,7 @@
       "tag": "br",
       "label": "Break",
       "autoClose": true,
-      "description": "Defines a break as a line return. | ",
+      "description": "Defines a break. | Line breaks makes a line space between two text components",
       "group": "HTML",
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
