@@ -2357,7 +2357,7 @@
       "icon32": "option_color_32x32.png",
       "properties": {
         "value": {
-          "attr": "value",
+          "attr": "[value]",
           "label": "Option value",
           "description": "When this option is selected, the parent ion-select object will have this value.",
           "category": "@properties",
