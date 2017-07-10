@@ -26,6 +26,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.regex.Matcher;
@@ -736,12 +737,8 @@ public class ApplicationComponentEditor extends EditorPart {
 					new String[] {"Update", "Re-install", "Cancel"}, 0
 				);
 				int result = dialog.open();
-				if (result == 1) {
-					File nodeModules = new File(applicationEditorInput.application.getProject().getDirPath() + "/_private/ionic/node_modules");
-					FileUtils.deleteQuietly(nodeModules);
-				}
 				if (result < 2) {
-					launchBuilder(true);
+					launchBuilder(true, result == 1);
 				}
 			}
 			
@@ -954,11 +951,13 @@ public class ApplicationComponentEditor extends EditorPart {
 		c8oBrowser.setFocus();
 	}
 	
-	private void appendOutput(String msg) {
+	private void appendOutput(String... msg) {
 		C8oBrowser.run(() -> {
 			if (browser.getURL().equals("about:blank")) {
 				try {
-					browser.executeJavaScriptAndReturnValue("loader_log").asFunction().invokeAsync(null, msg);
+					for (String m: msg) {
+						browser.executeJavaScriptAndReturnValue("loader_log").asFunction().invokeAsync(null, m);
+					}
 				} catch (Exception e) {
 					// silently ignore
 				}
@@ -973,7 +972,11 @@ public class ApplicationComponentEditor extends EditorPart {
 		});
 	}
 	
-	private void launchBuilder(boolean forceInstall) {		
+	private void launchBuilder(boolean forceInstall) {
+		launchBuilder(forceInstall, false);
+	}
+	
+	private void launchBuilder(boolean forceInstall, boolean forceClean) {
 		Engine.execute(() -> {
 			try {
 				browser.loadHTML(IOUtils.toString(getClass().getResourceAsStream("loader.html"), "UTF-8"));
@@ -983,10 +986,23 @@ public class ApplicationComponentEditor extends EditorPart {
 			
 			File ionicDir = new File(applicationEditorInput.application.getProject().getDirPath() + "/_private/ionic");
 			File nodeModules = new File(ionicDir, "node_modules");
+			
+			terminateNode();
+			
 			if (forceInstall || !nodeModules.exists()) {
 				boolean[] running = {true};
 				try {
-					Engine.logStudio.info("Installing node_modules.. This can take several minutes depending on your network connection speed...");
+					new File(ionicDir, "package-lock.json").delete();
+					
+					if (forceClean) {
+						appendOutput("...", "...", "Removing existing node_modules... This can take several seconds...");
+						Engine.logStudio.info("Removing existing node_modules... This can take several seconds...");
+						
+						FileUtils.deleteQuietly(nodeModules);
+					}
+					appendOutput("Installing node_modules... This can take several minutes depending on your network connection speed...");
+					Engine.logStudio.info("Installing node_modules... This can take several minutes depending on your network connection speed...");
+					
 					ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "install");//, "--progress=false");
 					pb.redirectErrorStream(true);
 					pb.directory(ionicDir);
@@ -1140,10 +1156,19 @@ public class ApplicationComponentEditor extends EditorPart {
 	}
 	
 	private void terminateNode() {
+		int retry = 10;
 		try {
-			new ProcessBuilder("wmic", "PROCESS", "WHERE",
-				"Name='node.exe' AND CommandLine Like '%\\\\" + applicationEditorInput.application.getProject().getName() + "\\\\_private\\\\%'",
-				"CALL", "TERMINATE").start();
+			while (retry-- > 0) {
+				Process process = new ProcessBuilder("wmic", "PROCESS", "WHERE",
+					"Name='node.exe' AND CommandLine Like '%\\\\" + applicationEditorInput.application.getProject().getName() + "\\\\_private\\\\%'",
+					"CALL", "TERMINATE").start();
+				String output = IOUtils.toString(process.getInputStream(), Charset.defaultCharset());
+				process.waitFor();
+				int id = output.indexOf('\n');
+				if (id == -1 || output.indexOf('\n', id) == -1) {
+					retry = 0;
+				}
+			}
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
