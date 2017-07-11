@@ -24,7 +24,7 @@ function EngineLogToolbar(container, engineLogView) {
     // Scroll lock
     this.addActionToggable(
         "scroll-lock-action",
-        Convertigo.getBaseConvertigoStudioUrl("/img/toolbar/scroll-lock.png"),
+        Convertigo.getBaseConvertigoStudioUrl("img/toolbar/scroll-lock.png"),
         "Scroll lock",
         function () {
             engineLogView.toggleLock();
@@ -35,9 +35,9 @@ function EngineLogToolbar(container, engineLogView) {
     // Clear logs
     this.addAction(
         "clear-logs-action",
-        Convertigo.getBaseConvertigoStudioUrl("/img/toolbar/clear-logs.png"),
+        Convertigo.getBaseConvertigoStudioUrl("img/toolbar/clear-logs.png"),
         "Clear logs",
-        function() {
+        function () {
             engineLogView.clearLogs();
         }
     );
@@ -48,7 +48,7 @@ function EngineLogToolbar(container, engineLogView) {
     this.resetPropertyMap();
     this.addAction(
         "configure-logs-level-action",
-        Convertigo.getBaseConvertigoStudioUrl("/img/toolbar/configure-logs-level.png"),
+        Convertigo.getBaseConvertigoStudioUrl("img/toolbar/configure-logs-level.png"),
         "Configure Logs level",
         function () {
             that.registerUpdateListeners();
@@ -57,7 +57,9 @@ function EngineLogToolbar(container, engineLogView) {
                 url: Convertigo.createServiceUrl("configuration.List"),
                 success: function (data, textStatus, jqXHR) {
                     // Create table with its properties
-                    var $logSettingsTable = $("<table/>");
+                    var $logSettingsTable = $("<table/>", {
+                        id: "select-logs-level-table"
+                    });
                     var $logSettingsTbody = $("<tbody/>");
                     $logSettingsTable.append($logSettingsTbody);
                     $(data).find("category[name='Logs']>property").each(function () {
@@ -101,7 +103,7 @@ function EngineLogToolbar(container, engineLogView) {
                     }));
 
                     // Create modal
-                    var $modal = ModalUtils.createEmptyModal("engine-logs-level");
+                    var $modal = ModalUtils.createEmptyModal("engine-logs-select-level");
                     $modal
                         .append($("<h3/>", {
                             text: "Engine Log settings"
@@ -121,10 +123,123 @@ function EngineLogToolbar(container, engineLogView) {
             });
         }
     );
+
+    // Select columns
+    this.addAction(
+        "select-columns-action",
+        Convertigo.getBaseConvertigoStudioUrl("img/toolbar/select-columns.png"),
+        "Select columns",
+        function () {
+            var $selectColumnsTable = $("<table/>");
+            var $selectColumnsTbody = $("<tbody/>");
+            $selectColumnsTable.append($selectColumnsTbody);
+
+            // Create dialog to select the columns to show
+            engineLogView.getDisplayedColumns().forEach(function (elem) {
+                var columnName = Object.keys(elem)[0];
+                var showColumn = elem[columnName];
+                
+                $selectColumnsTbody.append(that.createColumnEntry(columnName, showColumn));
+            });
+
+            // Buttons
+            var $buttons = $("<p/>", {
+                "class": "align-right"
+            });
+
+            // Cancel button
+            $buttons.append($("<button/>", {
+                type: "button",
+                text: "Cancel",
+                click: function () {
+                    $.modal.close();
+                }
+            }));
+
+            // Apply button
+            $buttons.append($("<button/>", {
+                type: "button",
+                text: "Apply",
+                click: function () {
+                    var engineLogColumns = [];
+
+                    $selectColumnsTbody.find("tr").each(function () {
+                        var showColumn = $(this).find("input").prop("checked");
+                        var columnName = $(this).find("label").text();
+                        engineLogColumns.push(VariableUtils.createObject(columnName, showColumn));
+                    });
+
+                    engineLogView.updateColumnsVisibility(engineLogColumns);
+
+                    $.modal.close();
+                }
+            }));
+
+            var $modal = ModalUtils.createEmptyModal("engine-logs-select-columns");
+            $modal
+                .append($("<h3/>", {
+                    text: "Select columns"
+                }))
+                .append($("<hr/>"))
+                .append($selectColumnsTable)
+                .append($buttons);
+
+            // Open modal
+            $modal.modal({
+                closeExisting: false,
+                escapeClose: false,
+                clickClose: false,
+                showClose: false
+            });
+        }
+    );
 }
 
 EngineLogToolbar.prototype = Object.create(Toolbar.prototype);
 EngineLogToolbar.prototype.constructor = EngineLogToolbar;
+
+EngineLogToolbar.prototype.createColumnEntry = function (name, show) {
+    var text = name;
+    name = name.replace(/\s/g, "-").toLowerCase();
+
+    // Get ID + name + type
+    var id = "log-column-" + name;
+
+    // Get value and original value
+    var $propertyValue = null;
+
+    // Property - value line
+    var $trProp = $("<tr/>");
+
+    // Left column = property
+    var $tdProp = $("<td/>");
+    $tdProp.append($("<label/>", {
+        "for": id,
+        text: text
+    }));
+    // Right column = value
+    var $tdValue = $("<td/>");
+
+    // Check box
+    var $propertyValue = $("<input/>", {
+        id: id,
+        name: name,
+        "class": "config-checkbox",
+        type: "checkbox"
+    });
+
+    if (show) {
+        $propertyValue.attr("checked", "checked");
+    }
+
+    // Add property-value
+    $tdValue.append($propertyValue);
+    $trProp
+        .append($tdProp)
+        .append($tdValue);
+
+    return $trProp;
+};
 
 EngineLogToolbar.prototype.createProperty = function ($xmlProperty) {
     // Get ID + name + type
@@ -208,7 +323,7 @@ EngineLogToolbar.prototype.createProperty = function ($xmlProperty) {
 
 EngineLogToolbar.prototype.changeProperty = function (key, value) {
     this.propertyMap[key] = value;
-    this.enableApplyButton(this.applyButtonId);
+    this.enableApplyBtnSelectLogLevel(this.applyButtonId);
 };
 
 EngineLogToolbar.prototype.createXmlDoc = function () {
@@ -223,23 +338,23 @@ EngineLogToolbar.prototype.createXmlDoc = function () {
     return xmlDoc;
 };
 
-EngineLogToolbar.prototype.enableApplyButton = function () {
+EngineLogToolbar.prototype.enableApplyBtnSelectLogLevel = function () {
     $("#" + this.applyButtonId).removeAttr("disabled");
 };
 
 EngineLogToolbar.prototype.registerUpdateListeners = function () {
     var that = this;
     $(document)
-        .on("keyup", "input.config-text", function () {
-            that.enableApplyButton();
+        .on("keyup", "#engine-logs-select-level input.config-text", function () {
+            that.enableApplyBtnSelectLogLevel();
         })
-        .on("change", "input.config-text", function() {
+        .on("change", "#engine-logs-select-level input.config-text", function () {
             that.changeProperty($(this).attr("name"), $(this).val());
         })
-        .on("change", "select.config-combo", function () {
+        .on("change", "#engine-logs-select-level select.config-combo", function () {
             that.changeProperty($(this).attr("name"), $(this).val());
         })
-        .on("change", "input.config-checkbox", function () {
+        .on("change", "#engine-logs-select-level input.config-checkbox", function () {
             that.changeProperty($(this).attr("name"), $(this).prop("checked") ? "true" : "false");
         });
 };

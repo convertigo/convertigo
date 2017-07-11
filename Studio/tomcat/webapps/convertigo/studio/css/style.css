@@ -136,11 +136,16 @@ i.draggable {
 * Toolbar
 *********************************/
 /* Logs */
-#engine-logs-level tr {
+#engine-logs-select-level tr, #engine-logs-select-columns tr {
     height: 30px;
 }
 
-#engine-logs-level table {
+#engine-logs-select-columns table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+#engine-logs-select-level table {
     border-spacing: 0px;
 	overflow-y: scroll;
 	display: block;
@@ -268,4 +273,20 @@ i.draggable {
 *********************************/
 body .lm_content {
 	overflow: auto;
+}
+
+/*********************************
+* Jstree properties view
+*********************************/
+.propertiesTreeView li[aria-level="1"] {
+    left: -9px;
+    width: 100%;
+    position: relative;
+}
+
+.propertiesTreeView li[aria-level="2"] {
+    position: relative;
+    left: -18px;
+    padding-left: 18px;
+    width: 100%;
 }

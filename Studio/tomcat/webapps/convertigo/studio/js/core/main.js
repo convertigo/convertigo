@@ -1,4 +1,5 @@
 var Main = {
+    sheet: null,
 	init: function (authUserName, authPassword) {
 		this.defineScripts();
 
@@ -58,7 +59,7 @@ var Main = {
 	         */
             "dom-utils",
             "golden-layout-utils",
-	        "injector-utils",
+	        "style-utils",
 	        "modal-utils",
 	        "string-utils",
 	        "variable-utils",
@@ -80,14 +81,14 @@ var Main = {
 		    }
 
 			// Inject CSS
-	        InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/jstree-3.3.3/themes/" + theme + "/style.min.css"));
-			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/jquery.modal-0.8.0.min.css"));
-			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/accordion.css"));
-	        InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/prism-1.6.0/themes/" + theme + ".css"));
-			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/style.css"));
-			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/themes/" + theme + ".css"));
-			InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/golden-layout-1.5.8/goldenlayout-base.css"));
-		    InjectorUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/golden-layout-1.5.8/themes/" + theme + ".css"));
+	        StyleUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/jstree-3.3.3/themes/" + theme + "/style.min.css"));
+			StyleUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/jquery.modal-0.8.0.min.css"));
+			StyleUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/accordion.css"));
+	        StyleUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/prism-1.6.0/themes/" + theme + ".css"));
+			StyleUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/style.css"));
+			StyleUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/themes/" + theme + ".css"));
+			StyleUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/golden-layout-1.5.8/goldenlayout-base.css"));
+		    StyleUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/golden-layout-1.5.8/themes/" + theme + ".css"));
 
 			// To iterate in reverse order
 			jQuery.fn.reverse = [].reverse;
@@ -100,12 +101,18 @@ var Main = {
 				}
 			});
 
+			// To add CSS rules dynamically
+			that.sheet =
+			    $("<style/>", {
+    			    "id": "dynamic-style"
+    			}).appendTo("head:first").get(0).sheet;
+
 			// Connect to the Convertigo server
 			Convertigo.authenticate(authUserName, authPassword, function () {
 				// Inject CSS that needed an authentification to the Convertigo server
-				InjectorUtils.injectLinkStyle(Convertigo.createServiceUrl("studio.database_objects.GetMenuIconsCSS"));
-				InjectorUtils.injectLinkStyle(Convertigo.createServiceUrl("studio.database_objects.GetPaletteIconsCSS"));
-				InjectorUtils.injectLinkStyle(Convertigo.createServiceUrl("studio.database_objects.GetTreeIconsCSS"));
+				StyleUtils.injectLinkStyle(Convertigo.createServiceUrl("studio.database_objects.GetMenuIconsCSS"));
+				StyleUtils.injectLinkStyle(Convertigo.createServiceUrl("studio.database_objects.GetPaletteIconsCSS"));
+				StyleUtils.injectLinkStyle(Convertigo.createServiceUrl("studio.database_objects.GetTreeIconsCSS"));
 
 				that.initListeners();
 
@@ -384,7 +391,7 @@ var Main = {
 		         */
 	            "dom-utils": Convertigo.getBaseConvertigoStudioUrl("js/utils/dom-utils"),
 	            "golden-layout-utils": Convertigo.getBaseConvertigoStudioUrl("js/utils/golden-layout-utils"),
-		        "injector-utils": Convertigo.getBaseConvertigoStudioUrl("js/utils/injector-utils"),
+		        "style-utils": Convertigo.getBaseConvertigoStudioUrl("js/utils/style-utils"),
 		        "modal-utils": Convertigo.getBaseConvertigoStudioUrl("js/utils/modal-utils"),
 		        "string-utils": Convertigo.getBaseConvertigoStudioUrl("js/utils/string-utils"),
 		        "variable-utils": Convertigo.getBaseConvertigoStudioUrl("js/utils/variable-utils"),

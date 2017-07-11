@@ -114,8 +114,8 @@ button.accordion.active, button.accordion:hover, button.accordion {
 }
 
 /* Logs */
-#engine-logs-level tr:nth-child(odd) {
-    background-color: rgb(223, 243, 252);
+#engine-logs-select-level tr:nth-child(odd), #engine-logs-select-columns tr:nth-child(odd) {
+    background-color: #f2f2f2;
 }
 
 /*********************************
@@ -236,4 +236,11 @@ pre {
 *********************************/
 .lm_content {
     background-color: #ffffff !important;
+}
+
+/*********************************
+* Jstree properties view
+*********************************/
+.propertiesTreeView li[aria-level="2"]:nth-child(odd), .propertiesTreeView div[id*="-odd-"] {
+    background-color: #f2f2f2 !important;
 }

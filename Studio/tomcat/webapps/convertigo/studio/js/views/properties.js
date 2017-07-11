@@ -11,7 +11,17 @@ function PropertiesView(jstreeTheme = "default") {
     });
 
     $(that).on("set_property.dbo-manager", function (event, qnames, property, value, data) {
-        var idNode = that.tree.jstree().getIdNodes("pr-" + property.replace(/\s/g, "-"))[0];
+        /*
+ 			The id node can end with "odd" or "even", but we can't know it in advance.
+			We have to try the 2 possibilities.
+        */
+        var tempIdNode = that.computeNodeId(property, "odd");
+        var idNode = that.tree.jstree().getIdNodes(tempIdNode)[0];
+        if (!idNode) {
+            tempIdNode = that.computeNodeId(property, "even");
+            idNode = that.tree.jstree().getIdNodes(tempIdNode)[0];
+        }
+
         var node = that.tree.jstree().get_node(idNode);
 
         var $nodeData = $(data).find(">*[qname='" + that.refNodeProjectsView.data.qname + "']").children();
@@ -27,6 +37,7 @@ function PropertiesView(jstreeTheme = "default") {
                 check_callback: true,
                 force_text: true,
                 animation : 0,
+                multiple: false, // disable multiple selection
                 themes: {
                     name: that.jstreeTheme,
                     dots: false,
@@ -47,8 +58,9 @@ function PropertiesView(jstreeTheme = "default") {
             },
             plugins: [
                 "grid",
-                "sort",
-                "utils"
+                //"sort", -> we now sort manually because we have to add extra data for CSS selector before rendering the tree
+                "utils",
+                "wholerow"
             ],
             grid: {
                 columns: [{
@@ -256,27 +268,47 @@ PropertiesView.prototype.updateProperties = function ($dboElt) {
     var propertyCategories = {};
     var isExtractionRule = $dboElt.attr("isExtractionRule") == "true";
 
-    // Add property to the right category
-    $dboElt.find("property[isHidden!=true]").each(function () {
-        var key = $(this).attr("isExpert");
-        // Create the category if it does not exist yet
-        if (!propertyCategories[key]) {
-            propertyCategories[key] = key == "true" ?
-                that.createNodeJsonPropertyCategory(isExtractionRule ? "Selection" : "Expert", true) :
-                that.createNodeJsonPropertyCategory(isExtractionRule ? "Configuration" : "Base properties", true);
-        }
+    var counter = {
+        true: 0, // Expert properties
+        false: 0 // Base properties
+    };
 
-        var propertyName = $(this).attr("name");
-        // Add the property to the category
-        propertyCategories[key].children.push({
-            id: that.tree.jstree().generateId("pr-" + propertyName.replace(/\s/g, "-")),
-            text: $(this).attr("displayName"),
-            data: {
-                value: StringUtils.escapeHTML($(this).find("[value]").attr("value")),
-                name: propertyName
+    $dboElt
+        .find("property[isHidden!=true]")
+        // Sort by display name
+        .sort(function (e1, e2) {
+            if ($(e1).attr("displayName") < $(e2).attr("displayName")) {
+                return -1;
             }
+            if ($(e1).attr("displayName") > $(e2).attr("displayName")) {
+                return 1;
+            }
+            // a must be equal to b
+            return 0;
+        })
+        // Add property to the right category
+        .each(function () {
+            var key = $(this).attr("isExpert");
+            // Create the category if it does not exist yet
+            if (!propertyCategories[key]) {
+                propertyCategories[key] = key == "true" ?
+                    that.createNodeJsonPropertyCategory(isExtractionRule ? "Selection" : "Expert", true) :
+                    that.createNodeJsonPropertyCategory(isExtractionRule ? "Configuration" : "Base properties", true);
+            }
+    
+            var propertyName = $(this).attr("name");
+            var tempId = that.computeNodeId(propertyName, counter[key] % 2 === 0 ? "odd" : "even");
+            // Add the property to the category
+            propertyCategories[key].children.push({
+                id: that.tree.jstree().generateId(tempId),
+                text: $(this).attr("displayName"),
+                data: {
+                    value: StringUtils.escapeHTML($(this).find("[value]").attr("value")),
+                    name: propertyName
+                }
+            });
+            ++counter[key];
         });
-    });
 
     var propertyViewTreeNodes = [];
     // Add the categories if they have properties
@@ -290,42 +322,49 @@ PropertiesView.prototype.updateProperties = function ($dboElt) {
     // Create information category
     var informationCategory = that.createNodeJsonPropertyCategory("Information", false);
     informationCategory.children.push({
+        id: that.tree.jstree().generateId(that.computeNodeId("information-depth", "odd")),
         text: "Depth",
         data: {
             value: StringUtils.escapeHTML($dboElt.attr("depth"))
         }
     });
     informationCategory.children.push({
+        id: that.tree.jstree().generateId(that.computeNodeId("information-exported", "even")),
         text: "Exported",
         data: {
             value: StringUtils.escapeHTML($dboElt.attr("exported"))
         }
     });
     informationCategory.children.push({
+        id: that.tree.jstree().generateId(that.computeNodeId("information-javaclass", "odd")),
         text: "Java class",
         data: {
             value: StringUtils.escapeHTML($dboElt.attr("java_class"))
         }
     });
     informationCategory.children.push({
+        id: that.tree.jstree().generateId(that.computeNodeId("information-name", "even")),
         text: "Name",
         data: {
             value: StringUtils.escapeHTML($dboElt.find("property[name=name]").first().find("[value]").attr("value"))
         }
     });
     informationCategory.children.push({
+        id: that.tree.jstree().generateId(that.computeNodeId("information-priority", "odd")),
         text: "Priority",
         data: {
             value: StringUtils.escapeHTML($dboElt.attr("priority"))
         }
     });
     informationCategory.children.push({
+        id: that.tree.jstree().generateId(that.computeNodeId("information-qname", "even")),
         text: "QName",
         data: {
             value: StringUtils.escapeHTML($dboElt.attr("qname"))
         }
     });
     informationCategory.children.push({
+        id: that.tree.jstree().generateId(that.computeNodeId("information-type", "odd")),
         text: "Type",
         data: {
             value: StringUtils.escapeHTML($dboElt.attr("displayName"))
@@ -340,4 +379,9 @@ PropertiesView.prototype.updateProperties = function ($dboElt) {
 PropertiesView.prototype.updateTreeData = function (data) {       
     this.tree.jstree().settings.core.data = data;
     this.tree.jstree().refresh(true);
+};
+
+PropertiesView.prototype.computeNodeId = function (propertyName, parity) {
+	// Parity is used to alternate colors of the rows
+    return "pr-" + propertyName.replace(/\s/g, "-") + "-" + parity;
 };

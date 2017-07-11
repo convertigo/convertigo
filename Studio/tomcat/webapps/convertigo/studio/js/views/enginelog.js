@@ -24,14 +24,16 @@ function EngineLogView() {
     var logColumns =
         "<tr>" +
             //"<th class=\"log-column-line-number\"></th>" +
-            "<th class=\"log-column-category\">Category</th>" +
-            "<th class=\"log-column-time\">Time</th>" +
-            "<th class=\"log-column-delta-time\">Delta time</th>" +
-            "<th class=\"log-column-level\">Level</th>" +
-            "<th class=\"log-column-thread\">Thread</th>" +
-            "<th class=\"log-column-message\">Message</th>" +
-            "<th class=\"log-column-extra\">Extra</th>" +
+            "<th class=\"" + this.createClassNameColumn(this.categoryColumn) + "\">" + this.categoryColumn + "</th>" +
+            "<th class=\"" + this.createClassNameColumn(this.timeColumn) + "\">" + this.timeColumn + "</th>" +
+            "<th class=\"" + this.createClassNameColumn(this.deltaTimeColumn) + "\">" + this.deltaTimeColumn + "</th>" +
+            "<th class=\"" + this.createClassNameColumn(this.levelColumn) + "\">" + this.levelColumn + "</th>" +
+            "<th class=\"" + this.createClassNameColumn(this.threadColumn) + "\">" + this.threadColumn + "</th>" +
+            "<th class=\"" + this.createClassNameColumn(this.messageColumn) + "\">" + this.messageColumn + "</th>" +
+            "<th class=\"" + this.createClassNameColumn(this.extraColumn) + "\">" + this.extraColumn + "</th>" +
         "</tr>";
+
+    this.updateColumnsVisibility(this.getDisplayedColumns());
 
     // Construct table
     $(logThead).append(logColumns);
@@ -40,7 +42,7 @@ function EngineLogView() {
         .append(this.logTbody);
     $(this.mainDiv).append(logTable);
 
-    this.getLogs();
+    this.getLogs(); 
 }
 
 // Regexp to format logs
@@ -101,6 +103,29 @@ EngineLogView.prototype.getLogs = function () {
             that.getLogs();
         }
     });
+};
+
+EngineLogView.prototype.getDisplayedColumns = function () {
+    var engineLogColumns = localStorage.getItem("engineLogColumns");
+    // If preferences does not exist yet
+    if (!engineLogColumns) {
+        // [ {columnName: showColumn}, {columnName: showColumn}, ...]
+        // By default show all columns
+        engineLogColumns = [
+            VariableUtils.createObject(this.categoryColumn, true),
+            VariableUtils.createObject(this.timeColumn, true),
+            VariableUtils.createObject(this.deltaTimeColumn, true),
+            VariableUtils.createObject(this.levelColumn, true),
+            VariableUtils.createObject(this.threadColumn, true),
+            VariableUtils.createObject(this.messageColumn, true),
+            VariableUtils.createObject(this.extraColumn, true)
+        ];
+    }
+    else {
+        engineLogColumns = JSON.parse(engineLogColumns);
+    }
+
+    return engineLogColumns;
 };
 
 EngineLogView.prototype.getScrollableDiv = function () {
@@ -208,14 +233,14 @@ EngineLogView.prototype.formatLine = function (nLine, line) {
 
     return "<tr class=\"log-line log-line-" + (nLine % 2 == 0 ? "odd-" : "even-") + level + "\">" +
                 //"<td class=\"log-column-line-number\">" + nLine + "</td>" +
-                "<td class=\"log-column-category\">" + category + "</td>" +
-                "<td class=\"log-column-time\">" + time + "</td>" +
-                "<td class=\"log-column-delta-time\">" + deltaTime + "</td>" +
-                "<td class=\"log-column-level\">" + level + "</td>" +
-                "<td class=\"log-column-thread\">" + thread + "</td>" +
-                "<td class=\"log-column-message\">" + message + "</td>" +
-                "<td class=\"log-column-extra\">" + extra + "</td>" +
-            "</tr>";
+                "<td class=\"" + this.createClassNameColumn(this.categoryColumn) + "\">" + category + "</td>" +
+                "<td class=\"" + this.createClassNameColumn(this.timeColumn) + "\">" + time + "</td>" +
+                "<td class=\"" + this.createClassNameColumn(this.deltaTimeColumn) + "\">" + deltaTime + "</td>" +
+                "<td class=\"" + this.createClassNameColumn(this.levelColumn) + "\">" + level + "</td>" +
+                "<td class=\"" + this.createClassNameColumn(this.threadColumn) + "\">" + thread + "</td>" +
+                "<td class=\"" + this.createClassNameColumn(this.messageColumn) + "\">" + message + "</td>" +
+                "<td class=\"" + this.createClassNameColumn(this.extraColumn) + "\">" + extra + "</td>" +
+           "</tr>";
 };
 
 EngineLogView.prototype.resetCounterLogsChars = function () {
@@ -225,3 +250,36 @@ EngineLogView.prototype.resetCounterLogsChars = function () {
 EngineLogView.prototype.ellipsis = function (message) {
     return StringUtils.ellipsis(message, EngineLogView.limitLogsChars, true)
 };
+
+EngineLogView.prototype.updateColumnsVisibility = function (engineLogColumns) {
+    localStorage.setItem("engineLogColumns", JSON.stringify(engineLogColumns));
+
+    var that = this;
+    // Update visibility
+    engineLogColumns.forEach(function (elem) {
+        var columnName = Object.keys(elem)[0];
+        var showColumn = elem[columnName];
+        var cssColumn = "." + that.createClassNameColumn(columnName);
+
+        StyleUtils.changeCssByStylesheetId(
+            Main.sheet.ownerNode.id,
+            cssColumn,
+            "display",
+            // Show or hide
+            showColumn ? "table-cell" : "none"
+        );        
+    });
+};
+
+EngineLogView.prototype.createClassNameColumn = function (columnName) {
+    return this.columnClassPrefix + columnName.replace(/\s/g, "-").toLowerCase();
+}
+
+EngineLogView.prototype.columnClassPrefix = "log-column-";
+EngineLogView.prototype.categoryColumn = "Category";
+EngineLogView.prototype.timeColumn = "Time";
+EngineLogView.prototype.deltaTimeColumn = "Delta time";
+EngineLogView.prototype.levelColumn = "Level";
+EngineLogView.prototype.threadColumn = "Thread";
+EngineLogView.prototype.messageColumn = "Message";
+EngineLogView.prototype.extraColumn = "Extra";
