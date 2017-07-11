@@ -14,6 +14,19 @@
       ]
 	},
 	
+    "Disabled": {
+      "attr": "disabled",
+      "label": "Disabled",
+      "description": "If true the component will be disabled, preventing the the user from changing the value.",
+      "category": "@Properties",
+      "value": false,
+      "values": [
+        false,
+        "false",
+        "true"
+      ]
+    },
+	
     "RangeLeft": {
       "label": "Range Left",
       "description": "Labels can be placed on either side of the range by adding the range-left or range-right property to the element. The element doesn't have to be an ion-label, it can be added to any element to place it to the left or right of the range.",
@@ -2346,7 +2359,7 @@
     },
 
     /**************************************************/
-    /* Form select / option  				                  */
+    /* Form select / option  				          */
     /**************************************************/
     "Option": {
       "tag": "ion-option",
@@ -2360,14 +2373,14 @@
           "attr": "[value]",
           "label": "Option value",
           "description": "When this option is selected, the parent ion-select object will have this value.",
-          "category": "@properties",
+          "category": "@Properties",
           "value": false
         },
         "disabled": {
           "attr": "disabled",
           "label": "Disabled",
           "description": "If true, the user cannot interact with this element.",
-          "category": "@properties",
+          "category": "@Properties",
           "value": false,
           "values": [
             false,
@@ -2379,7 +2392,7 @@
           "attr": "selected",
           "label": "Selected",
           "description": "If true, the element is selected.",
-          "category": "@properties",
+          "category": "@Properties",
           "value": false,
           "values": [
             false,
@@ -2401,9 +2414,9 @@
         "FormControlName": false,
         "DefaultValue": {
           "attr": "[ngModel]",
-          "label": "Selected Option Value",
-          "description": "The option with this value will be selected value by default",
-          "category": "@properties",
+          "label": "Default value",
+          "description": "The value to be selected by default",
+          "category": "@Properties",
           "value": false
         },
 
@@ -2411,7 +2424,7 @@
           "attr": "interface",
           "label": "Type of dialog",
           "description": "Select choices can be displayed in alerts, action sheets or popovers, default is alerts. Multiple options are always displayed in alerts",
-          "category": "@properties",
+          "category": "@Properties",
           "value": false,
           "values": [
             false,
@@ -2424,35 +2437,35 @@
           "attr": "cancelText",
           "label": "Cancel Text",
           "description": "The text to display on the cancel button. Default: Cancel.",
-          "category": "@properties",
+          "category": "@Properties",
           "value": false
         },
         "okText": {
           "attr": "okText",
           "label": "Ok Text",
           "description": "The text to display on the ok button. Default: Ok.",
-          "category": "@properties",
+          "category": "@Properties",
           "value": false
         },
         "placeholder": {
           "attr": "placeholder",
           "label": "Place holder",
           "description": "The text to display when the select is empty.",
-          "category": "@properties",
+          "category": "@Properties",
           "value": false
         },
         "selectedText": {
           "attr": "selectedText",
           "label": "Selected text",
           "description": "The text to display instead of the selected option's value.",
-          "category": "@properties",
+          "category": "@Properties",
           "value": false
         },
         "multiple": {
           "attr": "multiple",
           "label": "Multiple",
           "description": "If true, the element can accept multiple values.",
-          "category": "@properties",
+          "category": "@Properties",
           "value": false,
           "values": [
             false,
@@ -2463,9 +2476,74 @@
       }
     },
 
-
     /**************************************************/
-    /* Form Toggle 									                  */
+    /* Form RadioButton	/ RadioGroup				  */
+    /**************************************************/
+    "RadioList": {
+      "tag": "ion-list",
+      "label": "RadioList",
+      "description": "Defines a list for a set of radio buttons. | It allows a user to select at most one radio button from a set. Checking one radio button that belongs to a radio list unchecks any previous checked radio button within the same list.",
+      "group": "Forms",
+      "icon16": "radiolist_color_16x16.png",
+      "icon32": "radiolist_color_32x32.png",
+      "properties": {
+        "FormControlName": false,      
+      	"ListType": {
+          "label": "List type",
+          "description": "The type of list",
+          "category": "@Properties",
+          "value": "radio-group",
+          "values": [
+          	 "radio-group"
+          ]
+      	},
+        "DefaultValue": {
+          "attr": "[ngModel]",
+          "label": "Default value",
+          "description": "The value to be selected by default",
+          "category": "@Properties",
+          "value": false
+        }
+      }
+    },
+    
+    "RadioButton": {
+      "tag": "ion-radio",
+      "label": "RadioButton",
+      "description": "Defines a radio button. | When radio buttons are inside a RadioList component, exactly one radio button in the list can be checked at any time. You can add each radio button of your list inside a List item.",
+      "group": "Forms",
+      "icon16": "radio_color_16x16.png",
+      "icon32": "radio_color_32x32.png",
+      "properties": {
+        "Disabled": false,
+        "Value": {
+          "attr": "[value]",
+          "label": "Value",
+          "description": "When this button is selected, the radio's control will have this value.",
+          "category": "@Properties",
+          "value": false
+        },
+        "Checked": {
+          "attr": "checked",
+          "label": "Checked",
+          "description": "If true, the component is checked.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "true",
+            "false"
+          ]
+        }
+      }
+    },
+	
+	
+	
+	
+	
+    /**************************************************/
+    /* Form Toggle 									  */
     /**************************************************/
     "Toggle": {
       "tag": "ion-toggle",
@@ -2476,17 +2554,20 @@
       "icon32": "toggle_color_32x32.png",
       "properties": {
         "FormControlName": false,
-        "Disabled": {
-          "label": "Disabled",
-          "description": "If true the toggle is disabled",
-          "category": "Attributes",
-          "value": false,
-          "values": [
-            false,
-            "true",
-            "false"
-          ]
-        }
+        "Disabled": false,
+    	"Checked": {
+      	   "attr": "[ngModel]",
+      	   "label": "Checked",
+      	   "description": "If true the component will be checked",
+      	   "category": "@Properties",
+      	   "value": "false",
+      	   "values": [
+        	   false,
+        	   "false",
+        	   "true",
+        	   true
+      	   ]
+    	 }
       }
     },
 
@@ -2502,6 +2583,7 @@
       "icon32": "input_color_32x32.png",
       "properties": {
         "FormControlName": false,
+        "Disabled": false,
         "ClearInput": {
           "attr": "clearInput",
           "label": "ClearInput",
@@ -2518,18 +2600,6 @@
           "attr": "clearOnEdit",
           "label": "ClearOnEdit",
           "description": "If true, the value will be cleared after focus upon edit. Defaults to true when type is 'password', false for all other types.",
-          "category": "@Properties",
-          "value": false,
-          "values": [
-            false,
-            "false",
-            "true"
-          ]
-        },
-        "Disabled": {
-          "attr": "disabled",
-          "label": "Disabled",
-          "description": "If true, the user cannot interact with this element.",
           "category": "@Properties",
           "value": false,
           "values": [
@@ -2649,31 +2719,20 @@
       "properties": {
         "FormControlName": false,
         "IonColor": false,
-        "checked": {
-          "attr": "checked",
-          "label": "Checked",
-          "description": "If true the checkbox will be checked",
-          "category": "@Properties",
-          "value": false,
-          "values": [
-            false,
-            "false",
-            "true"
-          ]
-        },
-        "disabled": {
-          "attr": "disabled",
-          "label": "Disabled",
-          "description": "If true the checkbox will be disabled, preventing the the user from changing the value.",
-          "category": "@Properties",
-          "value": false,
-          "values": [
-            false,
-            "false",
-            "true"
-          ]
-
-        }
+        "Disabled": false,
+    	"Checked": {
+      	   "attr": "[ngModel]",
+      	   "label": "Checked",
+      	   "description": "If true the component will be checked",
+      	   "category": "@Properties",
+      	   "value": "false",
+      	   "values": [
+        	   false,
+        	   "false",
+        	   "true",
+        	   true
+      	   ]
+    	 }
       }
     },
 
