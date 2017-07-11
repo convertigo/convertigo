@@ -165,7 +165,7 @@ public class UIElement extends UIComponent implements IStyleGenerator {
 				}
 				sb.append(constructors);
 			}
-			return sb.toString();
+			return sb.toString().replaceAll(",+", ",");
 		}
 		return "";
 	}

@@ -87,7 +87,7 @@ public class UIForm extends UIElement {
 			sb.append(constructors).append(System.lineSeparator()).append("\t\t}");
 			sb.append(validator.length() > 0 ? ",":"").append(validator).append(");");
 			sb.append(System.lineSeparator());
-			return sb.toString();
+			return sb.toString().replaceAll(",+", ",");
 		}
 		return "";
 	}
