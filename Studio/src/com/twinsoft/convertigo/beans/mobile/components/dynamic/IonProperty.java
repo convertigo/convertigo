@@ -212,8 +212,15 @@ public class IonProperty implements Cloneable {
 	public String getSmartValue() {
 		MobileSmartSourceType msst = getSmartType();
 		String value = msst.getValue();
-		if (!Mode.PLAIN.equals(msst.getMode())) {
-			if (!isAttrBind()) {
+		if (isAttrBind()) {
+			if (Mode.PLAIN.equals(msst.getMode())) {
+				if (!value.startsWith("'") && !value.endsWith("'")) {
+					value = "'" + value + "'";
+				}
+			}
+		}
+		else {
+			if (!Mode.PLAIN.equals(msst.getMode())) {
 				value = "{{" + value + "}}";
 			}
 		}
