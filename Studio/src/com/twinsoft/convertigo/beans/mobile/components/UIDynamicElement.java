@@ -143,8 +143,15 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 						}
 					} else {
 						String smartValue = property.getSmartValue();
+						if (name.equals("FormControlName")) {
+							if (property.getSmartType().getValue().isEmpty()) {
+								attr = "";
+								smartValue = "";
+							}
+						}
+						
 						attributes.append(" ");
-						if (attr.isEmpty()){
+						if (attr.isEmpty()) {
 							attributes.append(smartValue);
 						}
 						else if (attr.indexOf("%%") != -1){
@@ -157,6 +164,18 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 					}
 				}
 			}
+			
+			// Replace ngModel if no formControlName
+			int index = attributes.indexOf("[ngModel]");
+			if (index != -1) {
+				String formControlVarName = getFormControlName();
+				if (formControlVarName.isEmpty()) {
+					String tagName = getTagName();
+					String replaceWith = tagName.equals("ion-checkbox") || tagName.equals("ion-toggle") ? "[checked]":"_ngModel_";
+					attributes = attributes.replace(index, index + "[ngModel]".length(), replaceWith);
+				}
+			}
+			
     	}
 		return attributes;
 	}
@@ -166,7 +185,7 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 		IonBean ionBean = getIonBean();
 		if (ionBean != null && ionBean.hasProperty("FormControlName")) {
 			MobileSmartSourceType msst = (MobileSmartSourceType) ionBean.getPropertyValue("FormControlName");
-			if (msst != null && !msst.getValue().equals("not set")) {
+			if (msst != null && !msst.getValue().equals("not set") && !msst.getValue().isEmpty()) {
 				return msst.getValue();
 			}
 		}
