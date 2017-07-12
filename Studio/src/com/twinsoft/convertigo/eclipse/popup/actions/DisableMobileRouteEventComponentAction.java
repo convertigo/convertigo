@@ -65,7 +65,7 @@ public class DisableMobileRouteEventComponentAction extends MyAbstractAction {
 						componentTreeObject.setEnabled(false);
 						componentTreeObject.hasBeenModified(true);
 		                
-		                TreeObjectEvent treeObjectEvent = new TreeObjectEvent(componentTreeObject, "isEnable", true, false);
+		                TreeObjectEvent treeObjectEvent = new TreeObjectEvent(componentTreeObject, "isEnabled", true, false);
 		                explorerView.fireTreeObjectPropertyChanged(treeObjectEvent);
 					}
 				}
