@@ -2363,7 +2363,7 @@
     /**************************************************/
     "Option": {
       "tag": "ion-option",
-      "label": "Select option",
+      "label": "Option",
       "description": "Defines a select option. | Each Option component must be placed under a Select component to give a list of selectable options. The name of the option is given by a Text component under the option",
       "group": "Forms",
       "icon16": "option_color_16x16.png",
@@ -2371,8 +2371,8 @@
       "properties": {
         "value": {
           "attr": "[value]",
-          "label": "Option value",
-          "description": "When this option is selected, the parent ion-select object will have this value.",
+          "label": "Value",
+          "description": "When this option is selected, the parent select object will have this value.",
           "category": "@Properties",
           "value": false
         },
@@ -2481,7 +2481,7 @@
     /**************************************************/
     "RadioList": {
       "tag": "ion-list",
-      "label": "RadioList",
+      "label": "Radio list",
       "description": "Defines a list for a set of radio buttons. | It allows a user to select at most one radio button from a set. Checking one radio button that belongs to a radio list unchecks any previous checked radio button within the same list.",
       "group": "Forms",
       "icon16": "radiolist_color_16x16.png",
@@ -2509,7 +2509,7 @@
     
     "RadioButton": {
       "tag": "ion-radio",
-      "label": "RadioButton",
+      "label": "Radio",
       "description": "Defines a radio button. | When radio buttons are inside a RadioList component, exactly one radio button in the list can be checked at any time. You can add each radio button of your list inside a List item.",
       "group": "Forms",
       "icon16": "radio_color_16x16.png",
@@ -2560,7 +2560,7 @@
       	   "label": "Checked",
       	   "description": "If true the component will be checked",
       	   "category": "@Properties",
-      	   "value": "false",
+      	   "value": false,
       	   "values": [
         	   false,
         	   "false",
@@ -2725,7 +2725,7 @@
       	   "label": "Checked",
       	   "description": "If true the component will be checked",
       	   "category": "@Properties",
-      	   "value": "false",
+      	   "value": false,
       	   "values": [
         	   false,
         	   "false",
