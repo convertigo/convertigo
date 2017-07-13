@@ -591,9 +591,9 @@
         "IonSize": false,
         "IconPosition": false,
         "IconOnly": false,
-		"AutoDisable": {
+		    "AutoDisable": {
       		"label": "Auto disable",
-      		"description": "Disable button if associated form is not valid",
+      		"description": "Disable button if it's associated form is not valid",
       		"category": "@Forms",
       		"value": "true",
       		"values": [
@@ -731,7 +731,7 @@
     "Content": {
       "tag": "ion-content",
       "label": "Content",
-      "description": "Defines a content area. | ",
+      "description": "Defines a content area. | This is the main space where other commponents will be inserted. You can use the 'padding' property to automatically define some margins in the 'content' component",
       "group": "Containers",
       "icon16": "content_color_16x16.png",
       "icon32": "content_color_32x32.png",
@@ -954,7 +954,7 @@
       "tag": "img",
       "label": "img",
       "autoClose": true,
-      "description": "Defines an image resource. | ",
+      "description": "Defines an image resource. | An image can be used alone or within a 'List Thumbnail' or 'List Avatar' component. Configure the 'src' attribute to the source url of the image. It can be a local url (../assets/myimage.png) or a remote url (https://server.data/image/myimage.png) or even a base64 data url.<br /><br />Images used alone can be configured in size with the 'width' and 'height' properties. These can be pixels (100px) or percentage of the available space (100%). To center an Image, place it in a 'Text Format' element with attribute 'Align Center' set",
       "group": "HTML",
       "icon16": "img_HTML_color_16x16.png",
       "icon32": "img_HTML_color_32x32.png",
@@ -1000,7 +1000,7 @@
   "SlidingTabs": {
       "tag": "super-tabs",
       "label": "Sliding Tabs",
-      "description": "Defines sliding tabs. | Sliding tabs can be used like tabs but they usually appear on the top of the page below the header. You can swipe from one tab to another or select a tab when tou tap on it.<br/><br/>Insert any number of SlidingTab components,  one for each tab. SlidingTabs should be inserted in the 'Content' component with the 'padding' property removed. Also you can use the 'no-border' attribute on the Header to remove the border and the shadow of the NavBar.",
+      "description": "Defines sliding tabs. | Sliding tabs can be used like tabs but they usually appear on the top of the page below the header. You can swipe from one tab to another or select a tab when tou tap on it.<br/><br/>Insert any number of 'SlidingTab' components,  one for each tab. 'SlidingTabs' should be inserted in the 'Content' component with the 'padding' property removed. Also you can use the 'no-border' attribute on the 'Header' to remove the border and the shadow of the 'NavBar'.",
       "group": "Components",
       "icon16": "slidingtabs_color_16x16.png",
       "icon32": "slidingtabs_color_32x32.png",
