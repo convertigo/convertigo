@@ -103,6 +103,7 @@ import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.engine.DatabaseObjectFoundException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
+import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.ProcessUtils;
 
 public class ApplicationComponentEditor extends EditorPart {
@@ -738,6 +739,7 @@ public class ApplicationComponentEditor extends EditorPart {
 				);
 				int result = dialog.open();
 				if (result < 2) {
+					MobileBuilder.initBuilder(applicationEditorInput.application.getProject());
 					launchBuilder(true, result == 1);
 				}
 			}
