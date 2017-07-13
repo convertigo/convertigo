@@ -23,6 +23,7 @@
 package com.twinsoft.convertigo.engine.mobile;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -103,37 +104,58 @@ public class MobileBuilder {
 		}
 	}
 	
-	public synchronized void pageAdded(final PageComponent page) throws EngineException {
-		if (page != null && initDone) {
-			if (!page.bNew) return;
-			MobileApplication mobileApplication = project.getMobileApplication();
-			if (mobileApplication != null) {
-				ApplicationComponent application = mobileApplication.getApplicationComponent();
-				if (application != null) {
-					writePageSourceFiles(page);
-					writeAppSourceFiles(application);
-					Engine.logEngine.debug("(MobileBuilder) Handled 'pageAdded'");
-				}
+	private void addPage(PageComponent page) throws EngineException {
+		MobileApplication mobileApplication = project.getMobileApplication();
+		if (mobileApplication != null) {
+			ApplicationComponent application = mobileApplication.getApplicationComponent();
+			if (application != null) {
+				writePageSourceFiles(page);
+				writeAppSourceFiles(application);
 			}
+		}
+	}
+	
+	private void removePage(PageComponent page) throws EngineException {
+		MobileApplication mobileApplication = project.getMobileApplication();
+		if (mobileApplication != null) {
+			ApplicationComponent application = mobileApplication.getApplicationComponent();
+			if (application != null) {
+				writeAppSourceFiles(application);
+				removeUselessPage(page.getName());
+			}
+		}
+	}
+	
+	public synchronized void pageEnabled(final PageComponent page) throws EngineException {
+		if (page != null && page.isEnabled() && initDone) {
+			addPage(page);
+			Engine.logEngine.debug("(MobileBuilder) Handled 'pageEnabled'");
+		}
+	}
+	
+	public synchronized void pageDisabled(final PageComponent page) throws EngineException {
+		if (page != null && !page.isEnabled() && initDone) {
+			removePage(page);
+			Engine.logEngine.debug("(MobileBuilder) Handled 'pageDisabled'");
+		}
+	}
+
+	public synchronized void pageAdded(final PageComponent page) throws EngineException {
+		if (page != null && page.isEnabled() && page.bNew && initDone) {
+			addPage(page);
+			Engine.logEngine.debug("(MobileBuilder) Handled 'pageAdded'");
 		}
 	}
 	
 	public synchronized void pageRemoved(final PageComponent page) throws EngineException {
-		if (page != null && initDone) {
-			MobileApplication mobileApplication = project.getMobileApplication();
-			if (mobileApplication != null) {
-				ApplicationComponent application = mobileApplication.getApplicationComponent();
-				if (application != null) {
-					writeAppSourceFiles(application);
-					removeUselessPage(page.getName());
-					Engine.logEngine.debug("(MobileBuilder) Handled 'pageRemoved'");
-				}
-			}
+		if (page != null && page.isEnabled() && initDone) {
+			removePage(page);
+			Engine.logEngine.debug("(MobileBuilder) Handled 'pageRemoved'");
 		}
 	}
 	
 	public synchronized void pageRenamed(final PageComponent page, final String oldName) throws EngineException {
-		if (page != null && initDone) {
+		if (page != null && page.isEnabled() && initDone) {
 			MobileApplication mobileApplication = project.getMobileApplication();
 			if (mobileApplication != null) {
 				ApplicationComponent application = mobileApplication.getApplicationComponent();
@@ -148,21 +170,21 @@ public class MobileBuilder {
 	}
 	
 	public synchronized void pageTemplateChanged(final PageComponent page) throws EngineException {
-		if (page != null && initDone) {
+		if (page != null && page.isEnabled() && initDone) {
 			writePageTemplate(page);
 			Engine.logEngine.debug("(MobileBuilder) Handled 'pageComputed'");
 		}
 	}
 	
 	public synchronized void pageStyleChanged(final PageComponent page) throws EngineException {
-		if (page != null && initDone) {
+		if (page != null && page.isEnabled() && initDone) {
 			writePageStyle(page);
 			Engine.logEngine.debug("(MobileBuilder) Handled 'pageStyleChanged'");
 		}
 	}
 	
 	public synchronized void pageTsChanged(final PageComponent page) throws EngineException {
-		if (page != null && initDone) {
+		if (page != null && page.isEnabled() && initDone) {
 			writePageTs(page);
 			Engine.logEngine.debug("(MobileBuilder) Handled 'pageTsChanged'");
 		}
@@ -244,13 +266,23 @@ public class MobileBuilder {
 		}
 	}
 	
+	private List<PageComponent> getEnabledPages(final ApplicationComponent application) {
+		List<PageComponent> pages = new ArrayList<PageComponent>();
+		for (PageComponent page : application.getPageComponentList()) {
+			if (page.isEnabled()) {
+				pages.add(page);
+			}
+		}
+		return pages;
+	}
+	
 	private void updateSourceFiles() throws EngineException {
 		try {
 			MobileApplication mobileApplication = project.getMobileApplication();
 			if (mobileApplication != null) {
 				ApplicationComponent application = mobileApplication.getApplicationComponent();
 				if (application != null) {
-					for (PageComponent page : application.getPageComponentList()) {
+					for (PageComponent page : getEnabledPages(application)) {
 						writePageSourceFiles(page);
 					}
 					writeAppSourceFiles(application);
@@ -267,7 +299,7 @@ public class MobileBuilder {
 		
 	private void writePageTemplate(PageComponent page) throws EngineException {
 		try {
-			if (page != null) {
+			if (page != null && page.isEnabled()) {
 				String pageName = page.getName();
 				File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
 				File pageHtmlFile = new File(pageDir, pageName.toLowerCase() + ".html");
@@ -284,7 +316,7 @@ public class MobileBuilder {
 
 	private void writePageStyle(PageComponent page) throws EngineException {
 		try {
-			if (page != null) {
+			if (page != null && page.isEnabled()) {
 				String pageName = page.getName();
 				File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
 				File pageScssFile = new File(pageDir, pageName.toLowerCase() + ".scss");
@@ -312,7 +344,9 @@ public class MobileBuilder {
 				return filePath;
 			}
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+			throw new EngineException("Unable to write page temp ts file",e);
+		}
 		return null;
 	}
 	
@@ -321,9 +355,14 @@ public class MobileBuilder {
 			if (page != null) {
 				String pageName = page.getName();
 				File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
-				File pageTsFile = new File(pageDir, pageName.toLowerCase() + ".ts");
 				
-				String tsContent = FileUtils.readFileToString(pageTsFile, "UTF-8");
+				String tsContent;
+				if (page.isEnabled()) {
+					File pageTsFile = new File(pageDir, pageName.toLowerCase() + ".ts");
+					tsContent = FileUtils.readFileToString(pageTsFile, "UTF-8");
+				} else {
+					tsContent = getPageTsContent(page);
+				}
 				
 				// Replace all Begin_c8o_XXX, End_c8o_XXX except for functionMarker
 				Pattern pattern = Pattern.compile("/\\*Begin_c8o_(.+)\\*/");
@@ -345,7 +384,7 @@ public class MobileBuilder {
 			}
 		}
 		catch (Exception e) {
-			throw new EngineException("Unable to write ionic component temp ts file",e);
+			throw new EngineException("Unable to write function temp ts file",e);
 		}
 		return null;
 	}
@@ -355,9 +394,14 @@ public class MobileBuilder {
 			if (page != null) {
 				String pageName = page.getName();
 				File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
-				File pageTsFile = new File(pageDir, pageName.toLowerCase() + ".ts");
 				
-				String tsContent = FileUtils.readFileToString(pageTsFile, "UTF-8");
+				String tsContent;
+				if (page.isEnabled()) {
+					File pageTsFile = new File(pageDir, pageName.toLowerCase() + ".ts");
+					tsContent = FileUtils.readFileToString(pageTsFile, "UTF-8");
+				} else {
+					tsContent = getPageTsContent(page);
+				}
 				
 				// Replace all Begin_c8o_function:XXX, End_c8o_function:XXX
 				Pattern pattern = Pattern.compile("/\\*Begin_c8o_function:(.+)\\*/");
@@ -388,42 +432,11 @@ public class MobileBuilder {
 	
 	private void writePageTs(PageComponent page) throws EngineException {
 		try {
-			if (page != null) {
+			if (page != null && page.isEnabled()) {
 				String pageName = page.getName();
-				String c8o_PageName = pageName;
-				String c8o_PageTplUrl = pageName.toLowerCase() + ".html";
-				String c8o_PageSelector = "page-"+pageName.toLowerCase();
-				String c8o_PageImports = page.getComputedImports();
-				String c8o_PageDeclarations = page.getComputedDeclarations();
-				String c8o_PageConstructors = page.getComputedConstructors();
-				String c8o_PageFunctions = page.getComputedFunctions();
-				String c8o_UserCustoms = page.getScriptContent().getString();
-				
-				File pageTplTs = new File(ionicTplDir, "src/page.tpl");
-				String tsContent = FileUtils.readFileToString(pageTplTs, "UTF-8");
-				tsContent = tsContent.replaceAll("/\\*\\=c8o_PageSelector\\*/","'"+c8o_PageSelector+"'");
-				tsContent = tsContent.replaceAll("/\\*\\=c8o_PageTplUrl\\*/","'"+c8o_PageTplUrl+"'");
-				tsContent = tsContent.replaceAll("/\\*\\=c8o_PageName\\*/",c8o_PageName);
-				tsContent = tsContent.replaceAll("/\\*\\=c8o_PageImports\\*/",c8o_PageImports);
-				tsContent = tsContent.replaceAll("/\\*\\=c8o_PageDeclarations\\*/",c8o_PageDeclarations);
-				tsContent = tsContent.replaceAll("/\\*\\=c8o_PageConstructors\\*/",c8o_PageConstructors);
-				
-				Pattern pattern = Pattern.compile("/\\*Begin_c8o_(.+)\\*/"); // begin c8o marker
-				Matcher matcher = pattern.matcher(tsContent);
-				while (matcher.find()) {
-					String markerId = matcher.group(1);
-					String tplMarker = getMarker(tsContent, markerId);
-					String customMarker = getMarker(c8o_UserCustoms, markerId);
-					if (!customMarker.isEmpty()) {
-						tsContent = tsContent.replace(tplMarker, customMarker);
-					}
-				}
-				
-				tsContent = tsContent.replaceAll("/\\*\\=c8o_PageFunctions\\*/",c8o_PageFunctions);
-				
 				File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
 				File pageTsFile = new File(pageDir, pageName.toLowerCase() + ".ts");
-				FileUtils.write(pageTsFile, tsContent, "UTF-8");
+				FileUtils.write(pageTsFile, getPageTsContent(page), "UTF-8");
 				
 				Engine.logEngine.debug("(MobileBuilder) Ionic ts file generated for page '"+pageName+"'");
 			}
@@ -431,6 +444,43 @@ public class MobileBuilder {
 		catch (Exception e) {
 			throw new EngineException("Unable to write ionic page ts file",e);
 		}
+	}
+	
+	
+	private String getPageTsContent(PageComponent page) throws IOException {
+		String pageName = page.getName();
+		String c8o_PageName = pageName;
+		String c8o_PageTplUrl = pageName.toLowerCase() + ".html";
+		String c8o_PageSelector = "page-"+pageName.toLowerCase();
+		String c8o_PageImports = page.getComputedImports();
+		String c8o_PageDeclarations = page.getComputedDeclarations();
+		String c8o_PageConstructors = page.getComputedConstructors();
+		String c8o_PageFunctions = page.getComputedFunctions();
+		String c8o_UserCustoms = page.getScriptContent().getString();
+		
+		File pageTplTs = new File(ionicTplDir, "src/page.tpl");
+		String tsContent = FileUtils.readFileToString(pageTplTs, "UTF-8");
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageSelector\\*/","'"+c8o_PageSelector+"'");
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageTplUrl\\*/","'"+c8o_PageTplUrl+"'");
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageName\\*/",c8o_PageName);
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageImports\\*/",c8o_PageImports);
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageDeclarations\\*/",c8o_PageDeclarations);
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageConstructors\\*/",c8o_PageConstructors);
+		
+		Pattern pattern = Pattern.compile("/\\*Begin_c8o_(.+)\\*/"); // begin c8o marker
+		Matcher matcher = pattern.matcher(tsContent);
+		while (matcher.find()) {
+			String markerId = matcher.group(1);
+			String tplMarker = getMarker(tsContent, markerId);
+			String customMarker = getMarker(c8o_UserCustoms, markerId);
+			if (!customMarker.isEmpty()) {
+				tsContent = tsContent.replace(tplMarker, customMarker);
+			}
+		}
+		
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageFunctions\\*/",c8o_PageFunctions);
+		
+		return tsContent;
 	}
 	
 	public String getTempTsRelativePath(ApplicationComponent app) throws EngineException {
@@ -457,7 +507,7 @@ public class MobileBuilder {
 				int i=1;
 				
 				
-				List<PageComponent> pages = app.getPageComponentList();
+				List<PageComponent> pages = getEnabledPages(app);
 				for (PageComponent page : pages) {
 					String pageName = page.getName();
 					boolean isLastPage = i == pages.size();
@@ -493,7 +543,7 @@ public class MobileBuilder {
 				int i=1;
 				
 				
-				List<PageComponent> pages = app.getPageComponentList();
+				List<PageComponent> pages = getEnabledPages(app);
 				for (PageComponent page : pages) {
 					String pageName = page.getName();
 					boolean isRootPage = page.isRoot;

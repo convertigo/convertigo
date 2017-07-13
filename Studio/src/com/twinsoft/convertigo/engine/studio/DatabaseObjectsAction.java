@@ -280,6 +280,17 @@ public class DatabaseObjectsAction {
 //			case "com.twinsoft.convertigo.eclipse.popup.actions.ViewExecuteNoReduceAction": {
 //			}
 //			break;
+			
+			case "com.twinsoft.convertigo.eclipse.popup.actions.EnableMobilePageComponentAction": {
+				PageComponent page = (PageComponent)dbo;
+				actionModel.isEnabled = !page.isRoot && !page.isEnabled();
+			}
+			break;
+			case "com.twinsoft.convertigo.eclipse.popup.actions.DisableMobilePageComponentAction": {
+				PageComponent page = (PageComponent)dbo;
+				actionModel.isEnabled = !page.isRoot && page.isEnabled();
+			}
+			break;
 		}
 		
 		return actionModel;

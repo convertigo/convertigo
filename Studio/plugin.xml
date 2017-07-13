@@ -1135,6 +1135,32 @@
                label="Edit page class"
                menubarPath="default">
          </action>
+	       <action
+	             class="com.twinsoft.convertigo.eclipse.popup.actions.EnableMobilePageComponentAction"
+	             enablesFor="+"
+	             id="convertigo.action.enablePageComponent"
+	             label="Enable"
+	             menubarPath="enable">
+	          <enablement>
+	             <objectState
+	                   name="isEnabled"
+	                   value="false">
+	             </objectState>
+	          </enablement>
+	       </action>
+	       <action
+	             class="com.twinsoft.convertigo.eclipse.popup.actions.DisableMobilePageComponentAction"
+	             enablesFor="+"
+	             id="convertigo.action.disablePageComponent"
+	             label="Disable"
+	             menubarPath="enable">
+	          <enablement>
+	             <objectState
+	                   name="isEnabled"
+	                   value="true">
+	             </objectState>
+	          </enablement>
+	       </action>
       </objectContribution>
       <objectContribution
             id="convertigo.mobileUIComponentContribution"

@@ -79,6 +79,12 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 	}
 
 	@Override
+    public boolean isEnabled() {
+		setEnabled(getObject().isEnabled());
+    	return super.isEnabled();
+    }
+	
+	@Override
 	public void launchEditor(String editorType) {
 		ApplicationComponentEditor editor = ((MobileApplicationComponentTreeObject) getParentDatabaseObjectTreeObject()).activeEditor();
 		editor.selectPage(getObject().getName());
@@ -186,6 +192,10 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 						if (!newValue.equals(oldValue)) {
 							markPageTsAsDirty();
 						}
+					} else if (propertyName.equals("isEnabled")) {
+						if (!newValue.equals(oldValue)) {
+							markPageEnabledAsDirty();
+						}
 					} else {
 						markPageAsDirty();
 					}
@@ -197,6 +207,15 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 	@Override
 	public void hasBeenModified(boolean bModified) {
 		super.hasBeenModified(bModified);
+	}
+	
+	protected void markPageEnabledAsDirty() {
+		PageComponent page = getObject();
+		try {
+			page.markPageEnabledAsDirty();
+		} catch (EngineException e) {
+			ConvertigoPlugin.logException(e,
+					"Error while enabling/disabling page '" + page.getName() + "'");	}
 	}
 	
 	protected void markPageAsDirty() {

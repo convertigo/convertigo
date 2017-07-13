@@ -38,6 +38,7 @@ import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
+import com.twinsoft.convertigo.beans.core.IEnableAble;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.Engine;
@@ -49,7 +50,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 		getCategoryName = "Page",
 		getIconClassCSS = "convertigo-action-newPageComponent"
 	)
-public class PageComponent extends MobileComponent implements IStyleGenerator, ITemplateGenerator, IScriptGenerator, IContainerOrdered {
+public class PageComponent extends MobileComponent implements IStyleGenerator, ITemplateGenerator, IScriptGenerator, IContainerOrdered, IEnableAble {
 
 	private static final long serialVersionUID = 188562781669238824L;
 	
@@ -412,6 +413,13 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 		getProject().getMobileBuilder().pageTsChanged(this);
 	}
 	
+	public void markPageEnabledAsDirty() throws EngineException {
+		if (isEnabled())
+			getProject().getMobileBuilder().pageEnabled(this);
+		else
+			getProject().getMobileBuilder().pageDisabled(this);
+	}
+
 	public String getComputedImports() {
 		try {
 			return getComputedContents().getJSONObject("scripts").getString("imports");
@@ -526,7 +534,23 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 			Boolean bool = Boolean.valueOf(value);
 			return bool.equals(Boolean.valueOf(isRoot));
 		}
+		if (name.equals("isEnabled")) {
+			Boolean bool = Boolean.valueOf(value);
+			return bool.equals(Boolean.valueOf(isEnabled()));
+		}
 		return super.testAttribute(name, value);
+	}
+
+	private boolean isEnabled = true;
+	
+	@Override
+	public boolean isEnabled() {
+		return isEnabled;
+	}
+
+	@Override
+	public void setEnabled(boolean isEnabled) {
+		this.isEnabled = isEnabled;
 	}
 
 }
