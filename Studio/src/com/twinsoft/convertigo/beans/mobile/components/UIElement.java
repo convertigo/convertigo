@@ -206,25 +206,36 @@ public class UIElement extends UIComponent implements IStyleGenerator {
 	public String computeTemplate() {
 		if (isEnabled()) {
 			StringBuilder attributes = initAttributes();
+			StringBuilder attrclasses = new StringBuilder();
 			StringBuilder children = new StringBuilder();
 			
 			Iterator<UIComponent> it = getUIComponentList().iterator();
 			while (it.hasNext()) {
 				UIComponent component = (UIComponent)it.next();
-				if (component instanceof UIStyle || component instanceof UIFormControlValidator) {
+				if (component instanceof UIFormControlValidator) {
 					;// ignore
+				} else if (component instanceof UIStyle) {
+					String tagClass = getTagClass();
+					if (attrclasses.indexOf(tagClass) == -1) {
+						attrclasses.append(attrclasses.length()>0 ? " ":"").append(tagClass);
+					}
 				} else if (component instanceof UIAttribute) {
-					attributes.append(component.computeTemplate());
+					UIAttribute uiAttribute = (UIAttribute)component;
+					if (uiAttribute.getAttrName().equals("class")) {
+						attrclasses.append(attrclasses.length()>0 ? " ":"").append(uiAttribute.getAttrValue());
+					} else {
+						attributes.append(component.computeTemplate());
+					}
 				} else {
 					children.append(component.computeTemplate());
 				}
 			}
 			
-			String attrId = " class=\""+ getTagClass() +"\"";
+			String attrclass = attrclasses.length()>0 ? " class=\""+ attrclasses +"\"":"";
 			
 			StringBuilder sb = new StringBuilder();
 			sb.append("<").append(getTagName())
-				.append(attrId)
+				.append(attrclass)
 				.append(attributes.length()>0 ? attributes:"");
 			
 			if (isSelfClose()) {
