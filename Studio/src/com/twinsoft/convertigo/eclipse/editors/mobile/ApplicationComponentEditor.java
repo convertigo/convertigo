@@ -739,7 +739,6 @@ public class ApplicationComponentEditor extends EditorPart {
 				);
 				int result = dialog.open();
 				if (result < 2) {
-					MobileBuilder.initBuilder(applicationEditorInput.application.getProject());
 					launchBuilder(true, result == 1);
 				}
 			}
@@ -994,6 +993,8 @@ public class ApplicationComponentEditor extends EditorPart {
 			if (forceInstall || !nodeModules.exists()) {
 				boolean[] running = {true};
 				try {
+					MobileBuilder.initBuilder(applicationEditorInput.application.getProject());
+					
 					new File(ionicDir, "package-lock.json").delete();
 					
 					if (forceClean) {
