@@ -1895,8 +1895,8 @@
         "BarMode": false,
         "BackButtonHidden": {
           "attr": "hideBackButton",
-          "label": "back button",
-          "description": "Specifies whether back button is hidden",
+          "label": "Hide back button",
+          "description": "Specifies whether back button is hidden or not",
           "category": "Attributes",
           "value": false,
           "values": [
