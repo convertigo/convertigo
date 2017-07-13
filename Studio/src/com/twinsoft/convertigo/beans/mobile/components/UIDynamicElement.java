@@ -130,10 +130,14 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 		IonBean ionBean = getIonBean();
 		
     	if (ionBean != null) {
+    		String formControlVarName = getFormControlName();
+    		
 			for (IonProperty property : ionBean.getProperties().values()) {
 				String name = property.getName();
 				String attr = property.getAttr();
 				Object value = property.getValue();
+				
+				// case value is set
 				if (!value.equals(false)) {
 					if (name.equals("AutoDisable")) {
 						UIForm form = getUIForm();
@@ -143,10 +147,13 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 						}
 					} else {
 						String smartValue = property.getSmartValue();
-						if (name.equals("FormControlName")) {
-							if (property.getSmartType().getValue().isEmpty()) {
-								attr = "";
-								smartValue = "";
+						if (name.equals("FormControlName") && formControlVarName.isEmpty()) {
+							continue;
+						}
+						if (attr.equals("[ngModel]")) {
+							String tagName = getTagName();
+							if (tagName.equals("ion-checkbox") || tagName.equals("ion-toggle")) {
+								attr = formControlVarName.isEmpty() ? "[checked]":"[ngModel]";
 							}
 						}
 						
@@ -163,19 +170,19 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 						}
 					}
 				}
-			}
-			
-			// Replace ngModel if no formControlName
-			int index = attributes.indexOf("[ngModel]");
-			if (index != -1) {
-				String formControlVarName = getFormControlName();
-				if (formControlVarName.isEmpty()) {
-					String tagName = getTagName();
-					String replaceWith = tagName.equals("ion-checkbox") || tagName.equals("ion-toggle") ? "[checked]":"_ngModel_";
-					attributes = attributes.replace(index, index + "[ngModel]".length(), replaceWith);
+				// case value is not set
+				else {
+					if (attr.equals("[ngModel]")) {
+						String tagName = getTagName();
+						if (formControlVarName.isEmpty() 
+								|| tagName.equals("ion-checkbox") || tagName.equals("ion-toggle")) {
+							continue;
+						} else {
+							attributes.append(" [ngModel]=\"null\"");
+						}
+					}
 				}
 			}
-			
     	}
 		return attributes;
 	}
