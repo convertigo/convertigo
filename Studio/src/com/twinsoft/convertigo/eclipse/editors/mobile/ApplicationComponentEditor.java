@@ -732,8 +732,9 @@ public class ApplicationComponentEditor extends EditorPart {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				MessageDialog dialog = new MessageDialog(
-					null, "Run npm install ?",
-					null, "Do you want to perform a 'npm install' that can take time.",
+					null, "Node_module Update / Reinstall",
+					null, "This will update or reinstall all your project's node_module dependencies. Update when you just " +
+						     "added a new dependency to your ionicTpl/package.json file, or re-install if you want clean all your node_modules and do a fresh install (takes more time).",
 					MessageDialog.QUESTION,
 					new String[] {"Update", "Re-install", "Cancel"}, 0
 				);
