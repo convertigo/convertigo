@@ -2519,7 +2519,7 @@
         "Value": {
           "attr": "[value]",
           "label": "Value",
-          "description": "When this button is selected, the radio's control will have this value.",
+          "description": "When this button is selected, the radio_color_32x32's control will have this value.",
           "category": "@Properties",
           "value": false
         },
@@ -3574,7 +3574,7 @@
       "description": "Defines a marker on a Google Map. | A 'Marker' is displayed on a map to mark to a specific point. Several markers can be displayed on a map, just add them in your 'GoogleMap' component.<br /><br /> You can add markers using a 'ForEach' directive to display markers from a collection.",
       "group": "Google Map",
       "icon16": "gmapmarker_color_16x16.png",
-      "icon32": "gmapmakrer_color_32x32.png",
+      "icon32": "gmapmarker_color_32x32.png",
       "properties": {
         "Latitude": {
           "mode": "script",
