@@ -58,9 +58,14 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 	private static final long serialVersionUID = 6142350115354549719L;
 
 	private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();
+	private XMLVector<XMLVector<Long>> orderedRoutes = new XMLVector<XMLVector<Long>>();
+	private XMLVector<XMLVector<Long>> orderedPages = new XMLVector<XMLVector<Long>>();
 	
 	public ApplicationComponent() {
 		super();
+		
+		orderedPages = new XMLVector<XMLVector<Long>>();
+		orderedPages.add(new XMLVector<Long>());
 		
 		orderedRoutes = new XMLVector<XMLVector<Long>>();
 		orderedRoutes.add(new XMLVector<Long>());
@@ -126,7 +131,37 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		this.componentScriptContent = componentScriptContent;
 	}
 	
-	private XMLVector<XMLVector<Long>> orderedRoutes = new XMLVector<XMLVector<Long>>();
+	public XMLVector<XMLVector<Long>> getOrderedPages() {
+		return orderedPages;
+	}
+    
+	public void setOrderedPages(XMLVector<XMLVector<Long>> orderedPages) {
+		this.orderedPages = orderedPages;
+	}
+	
+    private void insertOrderedPage(PageComponent component, Long after) {
+    	List<Long> ordered = orderedPages.get(0);
+    	int size = ordered.size();
+    	
+    	if (ordered.contains(component.priority))
+    		return;
+    	
+    	if (after == null) {
+    		after = new Long(0);
+    		if (size>0)
+    			after = ordered.get(ordered.size()-1);
+    	}
+    	
+   		int order = ordered.indexOf(after);
+    	ordered.add(order+1, component.priority);
+    	hasChanged = true;
+    }
+    
+    private void removeOrderedPage(Long value) {
+        Collection<Long> ordered = orderedPages.get(0);
+        ordered.remove(value);
+        hasChanged = true;
+    }
 	
 	public XMLVector<XMLVector<Long>> getOrderedRoutes() {
 		return orderedRoutes;
@@ -200,6 +235,8 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
     	List<Long> ordered = null;
     	Long value = new Long(databaseObject.priority);
     	
+    	if (databaseObject instanceof PageComponent)
+    		ordered = orderedPages.get(0);
     	if (databaseObject instanceof RouteComponent)
     		ordered = orderedRoutes.get(0);
     	if (databaseObject instanceof UIComponent)
@@ -226,6 +263,8 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
     	List<Long> ordered = null;
     	long value = databaseObject.priority;
     	
+    	if (databaseObject instanceof PageComponent)
+    		ordered = orderedPages.get(0);
     	if (databaseObject instanceof RouteComponent)
     		ordered = orderedRoutes.get(0);
     	if (databaseObject instanceof UIComponent)
@@ -249,12 +288,14 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
     }
     
 	public void increasePriority(DatabaseObject databaseObject) throws EngineException {
-		if (databaseObject instanceof RouteComponent)
+		if (databaseObject instanceof PageComponent 
+				|| databaseObject instanceof RouteComponent)
 			increaseOrder(databaseObject,null);
 	}
 
 	public void decreasePriority(DatabaseObject databaseObject) throws EngineException {
-		if (databaseObject instanceof RouteComponent)
+		if (databaseObject instanceof PageComponent 
+				|| databaseObject instanceof RouteComponent)
 			decreaseOrder(databaseObject,null);
 	}
     
@@ -263,14 +304,21 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
      */
 	@Override
     public Object getOrder(Object object) throws EngineException	{
-        if (object instanceof RouteComponent) {
+        if (object instanceof PageComponent) {
+        	List<Long> ordered = orderedPages.get(0);
+        	long time = ((PageComponent)object).priority;
+        	if (ordered.contains(time))
+        		return (long)ordered.indexOf(time);
+        	else throw new EngineException("Corrupted page for application \""+ getName() +"\". PageComponent \""+ ((PageComponent)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
+        }
+        else if (object instanceof RouteComponent) {
         	List<Long> ordered = orderedRoutes.get(0);
         	long time = ((RouteComponent)object).priority;
         	if (ordered.contains(time))
         		return (long)ordered.indexOf(time);
         	else throw new EngineException("Corrupted route for application \""+ getName() +"\". RouteComponent \""+ ((RouteComponent)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
         }
-        if (object instanceof UIComponent) {
+        else if (object instanceof UIComponent) {
         	List<Long> ordered = orderedComponents.get(0);
         	long time = ((UIComponent)object).priority;
         	if (ordered.contains(time))
@@ -324,6 +372,10 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 	transient private List<PageComponent> vPageComponents = new LinkedList<PageComponent>();
 	
 	protected void addPageComponent(PageComponent pageComponent) throws EngineException {
+		addPageComponent(pageComponent, null);
+	}
+	
+	protected void addPageComponent(PageComponent pageComponent, Long after) throws EngineException {
 		checkSubLoaded();
 		String newDatabaseObjectName = getChildBeanName(vPageComponents, pageComponent.getName(), pageComponent.bNew);
 		pageComponent.setName(newDatabaseObjectName);
@@ -336,6 +388,8 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		}
 		super.add(pageComponent);
 		
+		insertOrderedPage(pageComponent, after);
+		
 		if (pageComponent.bNew) {
 			pageComponent.doComputeContents();
 			getProject().getMobileBuilder().pageAdded(pageComponent);
@@ -345,6 +399,8 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 	protected void removePageComponent(PageComponent pageComponent) throws EngineException {
 		checkSubLoaded();
 		vPageComponents.remove(pageComponent);
+		
+		removeOrderedPage(pageComponent.priority);
 		
 		getProject().getMobileBuilder().pageRemoved(pageComponent);
 	}

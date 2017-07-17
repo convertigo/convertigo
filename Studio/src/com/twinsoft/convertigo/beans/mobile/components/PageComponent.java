@@ -59,6 +59,9 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 	public PageComponent() {
 		super();
 		
+		this.priority = getNewOrderValue();
+		this.newPriority = priority;
+		
 		orderedComponents = new XMLVector<XMLVector<Long>>();
 		orderedComponents.add(new XMLVector<Long>());
 	}
@@ -66,6 +69,7 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 	@Override
 	public PageComponent clone() throws CloneNotSupportedException {
 		PageComponent cloned = (PageComponent) super.clone();
+		cloned.newPriority = newPriority;
 		cloned.vUIComponents = new LinkedList<UIComponent>();
 		cloned.computedContents = null;
 		cloned.isRoot = false;
@@ -78,6 +82,8 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 	public Element toXml(Document document) throws EngineException {
 		Element element = super.toXml(document);
         
+		element.setAttribute("newPriority", new Long(newPriority).toString());
+		
 		// Storing the page "isRoot" flag
 		element.setAttribute("isRoot", new Boolean(isRoot).toString());
         
@@ -89,6 +95,13 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 		super.preconfigure(element);
 		
 		try {
+			long priority = new Long(element.getAttribute("priority")).longValue();
+			if (priority == 0L) {
+				priority = getNewOrderValue();
+				element.setAttribute("priority", ""+priority);
+				element.setAttribute("newPriority", ""+priority);
+			}
+			
 			NodeList properties = element.getElementsByTagName("property");
 			
 			// migration of scriptContent from String to FormatedContent
@@ -116,9 +129,17 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 	@Override
 	public void configure(Element element) throws Exception {
 		super.configure(element);
+		
+		try {
+			newPriority = new Long(element.getAttribute("newPriority")).longValue();
+			if (newPriority != priority) newPriority = priority;
+		} catch(Exception e) {
+			throw new Exception("Missing \"newPriority\" attribute");
+		}
+		
 		try {
 			isRoot = new Boolean(element.getAttribute("isRoot")).booleanValue();
-		}catch(Exception e) {
+		} catch(Exception e) {
 			throw new EngineException("Unable to configure the property 'isRoot' of the page \"" + getName() + "\".", e);
 		}
 	}
@@ -232,6 +253,11 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
         else return super.getOrder(object);
     }
     
+    @Override
+    public Object getOrderedValue() {
+    	return new Long(priority);
+    }
+	
 	/**
 	 * The list of available page component for this application.
 	 */

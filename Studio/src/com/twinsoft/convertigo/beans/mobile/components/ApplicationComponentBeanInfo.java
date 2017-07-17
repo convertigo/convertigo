@@ -41,22 +41,27 @@ public class ApplicationComponentBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[3];
+			properties = new PropertyDescriptor[4];
 			
-			properties[0] = new PropertyDescriptor("orderedRoutes", beanClass, "getOrderedRoutes", "setOrderedRoutes");
-			properties[0].setDisplayName(getExternalizedString("property.orderedRoutes.display_name"));
-			properties[0].setShortDescription(getExternalizedString("property.orderedRoutes.short_description"));
+			properties[0] = new PropertyDescriptor("orderedPages", beanClass, "getOrderedPages", "setOrderedPages");
+			properties[0].setDisplayName(getExternalizedString("property.orderedPages.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.orderedPages.short_description"));
 			properties[0].setHidden(true);
-			
-			properties[1] = new PropertyDescriptor("orderedComponents", beanClass, "getOrderedComponents", "setOrderedComponents");
-			properties[1].setDisplayName(getExternalizedString("property.orderedComponents.display_name"));
-			properties[1].setShortDescription(getExternalizedString("property.orderedComponents.short_description"));
+
+			properties[1] = new PropertyDescriptor("orderedRoutes", beanClass, "getOrderedRoutes", "setOrderedRoutes");
+			properties[1].setDisplayName(getExternalizedString("property.orderedRoutes.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.orderedRoutes.short_description"));
 			properties[1].setHidden(true);
 			
-			properties[2] = new PropertyDescriptor("componentScriptContent", beanClass, "getComponentScriptContent", "setComponentScriptContent");
-			properties[2].setDisplayName(getExternalizedString("property.componentScriptContent.display_name"));
-			properties[2].setShortDescription(getExternalizedString("property.componentScriptContent.short_description"));
+			properties[2] = new PropertyDescriptor("orderedComponents", beanClass, "getOrderedComponents", "setOrderedComponents");
+			properties[2].setDisplayName(getExternalizedString("property.orderedComponents.display_name"));
+			properties[2].setShortDescription(getExternalizedString("property.orderedComponents.short_description"));
 			properties[2].setHidden(true);
+			
+			properties[3] = new PropertyDescriptor("componentScriptContent", beanClass, "getComponentScriptContent", "setComponentScriptContent");
+			properties[3].setDisplayName(getExternalizedString("property.componentScriptContent.display_name"));
+			properties[3].setShortDescription(getExternalizedString("property.componentScriptContent.short_description"));
+			properties[3].setHidden(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

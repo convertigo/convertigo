@@ -1322,6 +1322,7 @@
                   <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StatementTreeObject"/>
                   <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject"/>
                   <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileUIComponentTreeObject"/>
+                  <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobilePageComponentTreeObject"/>
                   <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteComponentTreeObject"/>
                   <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteActionComponentTreeObject"/>
                   <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteEventComponentTreeObject"/>
@@ -3720,6 +3721,7 @@
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableRowTreeObject"/>
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableColumnTreeObject"/>
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileUIComponentTreeObject"/>
+            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobilePageComponentTreeObject"/>
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteComponentTreeObject"/>
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteActionComponentTreeObject"/>
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteEventComponentTreeObject"/>
@@ -3744,6 +3746,7 @@
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableRowTreeObject"/>
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableColumnTreeObject"/>
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileUIComponentTreeObject"/>
+            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobilePageComponentTreeObject"/>
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteComponentTreeObject"/>
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteActionComponentTreeObject"/>
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteEventComponentTreeObject"/>
