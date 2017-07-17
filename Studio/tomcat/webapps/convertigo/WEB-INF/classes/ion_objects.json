@@ -2251,7 +2251,7 @@
       "icon16": "listavatar_16x16.png",
       "icon32": "listavatar_32x32.png",
       "properties": {
-        "ItemPosition": false
+        "ItemPosition": "item-left"
       }
     },
 
@@ -2263,7 +2263,7 @@
       "icon16": "thumbnail_16x16.png",
       "icon32": "thumbnail_32x32.png",
       "properties": {
-        "ItemPosition": false
+        "ItemPosition": "item-left"
       }
     },
 
@@ -2363,7 +2363,7 @@
     /**************************************************/
     "Option": {
       "tag": "ion-option",
-      "label": "Option",
+      "label": "Select Option",
       "description": "Defines a select option. | Each Option component must be placed under a Select component to give a list of selectable options. The name of the option is given by a Text component under the option",
       "group": "Forms",
       "icon16": "option_color_16x16.png",
@@ -3517,6 +3517,90 @@
             "text-capitalize"
           ]
         }
+      }
+    },
+
+    /*
+     * Google Maps AGM
+     */
+
+    "GoogleMap" : {
+      "tag": "agm-map",
+      "label": "Google Map",
+      "description": "Defines a Google Map. | Displays a Google Map able to be positioned on a given latitude and longitude.<br /><br />You can insert in the Map any number of 'Marker' objects to mark a positions on the map, and within 'Marker' an 'InfoWindow' object to display more information on a given marker.<br /><br />'InfoWindow' objects can have any type of HTML information inside to display formated information when the user clicks on a mark.",
+      "group": "Google Map",
+      "icon16": "gmap_color_16x16.png",
+      "icon32": "gmap_color_32x32.png",
+      "properties": {
+        "Latitude": {
+          "attr":"[latitude]",
+          "label": "Latitude",
+          "description": "Number : The map will be centered at this latitude. (ex: 51.678418)",
+          "category": "@Coordinates",
+          "value": "0"
+        },
+        "Longitude": {
+          "attr":"[longitude]",
+          "label": "Longitude",
+          "description": "Number : The map will be centered at this longitude. (ex: 7.809007)",
+          "category": "@Coordinates",
+          "value": "0"
+        },
+        "Height": {
+          "attr":"[style.height]",
+          "label": "Display Height",
+          "description": "The Height in pixels (px) or in percentage (%) the map uses on the screen.",
+          "category": "@Display",
+          "value": "100%"
+        },
+        "Zoom": {
+          "attr":"[zoom]",
+          "label": "Zoom level",
+          "description": "The zoom level of the map. The default zoom level is 8.",
+          "category": "@Display",
+          "value": "8"
+        }
+      }
+    },
+    "MapMarker" : {
+      "tag": "agm-marker",
+      "label": "Map Marker",
+      "description": "Defines a marker on a Google Map. | A 'Marker' is displayed on a map to mark to a specific point. Several markers can be displayed on a map, just add them in your 'GoogleMap' component.<br /><br /> You can add markers using a 'ForEach' directive to display markers from a collection.",
+      "group": "Google Map",
+      "icon16": "gmapmarker_color_16x16.png",
+      "icon32": "gmapmakrer_color_32x32.png",
+      "properties": {
+        "Latitude": {
+          "attr":"[latitude]",
+          "label": "Latitude",
+          "description": "Number : The Marker will be displayed at this latitude. (ex: 51.678418)",
+          "category": "@Coordinates",
+          "value": "0"
+        },
+        "Longitude": {
+          "attr":"[longitude]",
+          "label": "Longitude",
+          "description": "Number : The Marker will be displayed at this longitude. (ex: 7.809007)",
+          "category": "@Coordinates",
+          "value": "0"
+        },
+        "Title": {
+          "attr":"[title]",
+          "label": "Title",
+          "description": "The marker title.",
+          "category": "@Display",
+          "value": false
+        }
+      }
+    },
+    "MapInfoWindow" : {
+      "tag": "agm-info-window",
+      "label": "Information Window",
+      "description": "Defines an information window on a map marker. | Just add an 'InfoWindow' component to the 'Marker' component to have an information window displayed showing more details about a given marker when the user taps/click on a 'Marker'.<br /><br />You can use any type of HTML markup in an 'InfoWindow' component to format the details for this 'Marker'",
+      "group": "Google Map",
+      "icon16": "gmapiwindow_color_16x16.png",
+      "icon32": "gmapiwindow_color_32x32.png",
+      "properties": {
       }
     }
   }
