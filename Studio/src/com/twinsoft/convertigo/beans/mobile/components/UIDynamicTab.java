@@ -34,6 +34,12 @@ public class UIDynamicTab extends UIDynamicElement {
 		super(tagName);
 	}
 
+	@Override
+	public UIDynamicTab clone() throws CloneNotSupportedException {
+		UIDynamicTab cloned = (UIDynamicTab) super.clone();
+		return cloned;
+	}
+	
 	/*
 	 * The page associated with tab
 	 */
