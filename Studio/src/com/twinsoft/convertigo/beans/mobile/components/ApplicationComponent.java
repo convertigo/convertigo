@@ -328,7 +328,12 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		String newDatabaseObjectName = getChildBeanName(vPageComponents, pageComponent.getName(), pageComponent.bNew);
 		pageComponent.setName(newDatabaseObjectName);
 		vPageComponents.add(pageComponent);
-		if (pageComponent.isRoot) setRootPage(pageComponent);
+		if (pageComponent.isRoot) {
+			setRootPage(pageComponent);
+		}
+		if (pageComponent.getTitle().isEmpty() || pageComponent.bNew) {
+			pageComponent.setTitle(newDatabaseObjectName);
+		}
 		super.add(pageComponent);
 		
 		if (pageComponent.bNew) {

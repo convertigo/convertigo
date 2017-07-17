@@ -38,6 +38,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
 
 import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -196,6 +197,10 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 						if (!newValue.equals(oldValue)) {
 							markPageEnabledAsDirty();
 						}
+					} else if (propertyName.equals("title")) {
+						if (!newValue.equals(oldValue)) {
+							markAppComponentTsAsDirty();
+						}
 					} else {
 						markPageAsDirty();
 					}
@@ -207,6 +212,15 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 	@Override
 	public void hasBeenModified(boolean bModified) {
 		super.hasBeenModified(bModified);
+	}
+	
+	protected void markAppComponentTsAsDirty() {
+		ApplicationComponent ac = (ApplicationComponent) getObject().getParent();
+		try {
+			ac.markComponentTsAsDirty();
+		} catch (EngineException e) {
+			ConvertigoPlugin.logException(e,
+					"Error while writing the app.component.ts for application '" + ac.getName() + "'");	}
 	}
 	
 	protected void markPageEnabledAsDirty() {

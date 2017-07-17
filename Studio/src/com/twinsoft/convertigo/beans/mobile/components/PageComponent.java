@@ -324,6 +324,16 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 		this.segment = segment;
 	}
 
+	private String title = "";
+	
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
 	protected FormatedContent scriptContent = new FormatedContent("");
 
 	public FormatedContent getScriptContent() {

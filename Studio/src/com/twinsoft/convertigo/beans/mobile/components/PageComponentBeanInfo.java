@@ -41,25 +41,29 @@ public class PageComponentBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[4];
+			properties = new PropertyDescriptor[5];
 			
 			properties[0] = new PropertyDescriptor("orderedComponents", beanClass, "getOrderedComponents", "setOrderedComponents");
 			properties[0].setDisplayName(getExternalizedString("property.orderedComponents.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.orderedComponents.short_description"));
 			properties[0].setHidden(true);
 
-			properties[1] = new PropertyDescriptor("segment", beanClass, "getSegment", "setSegment");
-			properties[1].setDisplayName(getExternalizedString("property.segment.display_name"));
-			properties[1].setShortDescription(getExternalizedString("property.segment.short_description"));
+			properties[1] = new PropertyDescriptor("title", beanClass, "getTitle", "setTitle");
+			properties[1].setDisplayName(getExternalizedString("property.title.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.title.short_description"));
 
-			properties[2] = new PropertyDescriptor("scriptContent", beanClass, "getScriptContent", "setScriptContent");
-			properties[2].setDisplayName(getExternalizedString("property.scriptContent.display_name"));
-			properties[2].setShortDescription(getExternalizedString("property.scriptContent.short_description"));
-			properties[2].setHidden(true);
+			properties[2] = new PropertyDescriptor("segment", beanClass, "getSegment", "setSegment");
+			properties[2].setDisplayName(getExternalizedString("property.segment.display_name"));
+			properties[2].setShortDescription(getExternalizedString("property.segment.short_description"));
+
+			properties[3] = new PropertyDescriptor("scriptContent", beanClass, "getScriptContent", "setScriptContent");
+			properties[3].setDisplayName(getExternalizedString("property.scriptContent.display_name"));
+			properties[3].setShortDescription(getExternalizedString("property.scriptContent.short_description"));
+			properties[3].setHidden(true);
 			
-            properties[3] = new PropertyDescriptor("isEnabled", beanClass, "isEnabled", "setEnabled");
-			properties[3].setDisplayName(getExternalizedString("property.isEnabled.display_name"));
-			properties[3].setShortDescription(getExternalizedString("property.isEnabled.short_description"));
+            properties[4] = new PropertyDescriptor("isEnabled", beanClass, "isEnabled", "setEnabled");
+			properties[4].setDisplayName(getExternalizedString("property.isEnabled.display_name"));
+			properties[4].setShortDescription(getExternalizedString("property.isEnabled.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
