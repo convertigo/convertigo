@@ -154,6 +154,8 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 							String tagName = getTagName();
 							if (tagName.equals("ion-checkbox") || tagName.equals("ion-toggle")) {
 								attr = formControlVarName.isEmpty() ? "[checked]":"[ngModel]";
+							} else if (tagName.equals("ion-datetime")) {
+								attr = formControlVarName.isEmpty() ? "value":"[ngModel]";
 							}
 						}
 						

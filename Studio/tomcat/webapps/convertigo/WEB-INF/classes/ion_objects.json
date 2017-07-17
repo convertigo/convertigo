@@ -2753,7 +2753,8 @@
           "category": "@Properties",
           "value": false,
           "values": [
-            "HH:MM:SS",
+            false,
+            "HH:mm:ss",
             "MM/DD/YY",
             "MM/DD/YYYY",
             "DDDD MMMM D, YYYY",
@@ -2767,17 +2768,18 @@
           "category": "@Properties",
           "value": false,
           "values": [
-            "HH:MM:SS",
+            false,
+            "HH:mm:ss",
             "MM/DD/YY",
             "MM/DD/YYYY",
-            "HH:MM MM/DD/YYYY",
+            "HH:mm MM/DD/YYYY",
             true
           ]
         },
         "Value": {
-          "attr": "value",
+          "attr": "[ngModel]",
           "label": "Value",
-          "description": "The text value of the input.",
+          "description": "The default datetime value. Use ISO 8601 datetime format like YYYY-MM-DD or hh:mm:ss or YYYY-MM-DDThh:mm:ss. See https://www.w3.org/TR/NOTE-datetime for more formats",
           "category": "@Properties",
           "value": false,
           "values": [
