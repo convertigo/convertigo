@@ -7,6 +7,7 @@ import java.util.Set;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
@@ -14,9 +15,11 @@ import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.engine.ConvertigoException;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.studio.editors.sequence.SequenceEditorWrap;
 import com.twinsoft.convertigo.engine.studio.responses.sequences.SequenceExecuteSelectedResponse;
+import com.twinsoft.convertigo.engine.studio.wrappers.ConnectorView;
 import com.twinsoft.convertigo.engine.studio.wrappers.ProjectView;
 import com.twinsoft.convertigo.engine.studio.wrappers.SequenceView;
 import com.twinsoft.convertigo.engine.studio.wrappers.Studio;
@@ -86,26 +89,25 @@ public class SequenceExecuteSelectedAction extends AbstractRunnableAction {
                         openEditors(/*explorerView, */subSequenceTreeObject, alreadyOpened); // recurse on sequence
                     }
                     catch (EngineException e) {
-                        e.printStackTrace();
                     }
                 }
                 else if (step instanceof TransactionStep) {
-                    TransactionStep transactionStep = (TransactionStep)step;
+                    TransactionStep transactionStep = (TransactionStep) step;
                     String projectName = transactionStep.getProjectName();
                     if (!step.getSequence().getProject().getName().equals(projectName)) {
                         //loadProject(explorerView, projectName); // load project if necessary
                     }
 
-//                    try {
-//                        //ProjectTreeObject projectTreeObject = (ProjectTreeObject)explorerView.getProjectRootObject(projectName);
-//                        Project project = step.getProject();
-//                        //Sequence subSequence = project.getSequenceByName(transactionStep.getSequenceName());
-//                        Connector connector = project.getConnectorByName(transactionStep.getConnectorName());
-//                        //ConnectorTreeObject connectorTreeObject = (ConnectorTreeObject)explorerView.findTreeObjectByUserObject(connector);
-//                        //connectorTreeObject.openConnectorEditor(); // open connector editor
-//                    } catch (EngineException e) {
-//                        e.printStackTrace();
-//                    }
+                    try {
+                        //ProjectTreeObject projectTreeObject = (ProjectTreeObject)explorerView.getProjectRootObject(projectName);
+                        Project project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
+                        ProjectView projectTreeObject = new ProjectView(project, studio);
+                        Connector connector = projectTreeObject.getObject().getConnectorByName(transactionStep.getConnectorName());
+                        ConnectorView connectorTreeObject = new ConnectorView(connector, studio);
+                        connectorTreeObject.openConnectorEditor(); // open connector editor
+                    }
+                    catch (EngineException e) {
+                    }
                 }
                 else if (step instanceof StepWithExpressions) {
                     openEditors(/*explorerView, */((StepWithExpressions)step).getSteps(), alreadyOpened);

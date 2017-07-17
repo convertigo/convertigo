@@ -1,5 +1,5 @@
 package com.twinsoft.convertigo.engine.studio.editors;
 
-public interface IEditorPartWrap {
+public interface IEditorPartWrap extends ISaveablePartWrap {
 
 }

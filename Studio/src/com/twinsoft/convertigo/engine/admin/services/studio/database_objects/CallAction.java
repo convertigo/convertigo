@@ -19,6 +19,7 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.studio.popup.actions.AbstractRunnableAction;
 import com.twinsoft.convertigo.engine.studio.popup.actions.DatabaseObjectDeleteAction;
 import com.twinsoft.convertigo.engine.studio.popup.actions.SequenceExecuteSelectedAction;
+import com.twinsoft.convertigo.engine.studio.popup.actions.TestCaseExecuteSelectedAction;
 import com.twinsoft.convertigo.engine.studio.responses.XmlResponseFactory;
 import com.twinsoft.convertigo.engine.studio.wrappers.CheStudio;
 import com.twinsoft.convertigo.engine.studio.wrappers.WrapStudio;
@@ -32,7 +33,7 @@ import com.twinsoft.convertigo.engine.studio.wrappers.WrapStudio;
 public class CallAction extends XmlService {
 
 	private final static String PARAM_CHE_STUDIO = "cheStudio";
-	private final static String LAST_ACTION = "lastAction";
+	private final static String PARAM_LAST_ACTION = "lastAction";
 
 	@Override
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
@@ -62,7 +63,7 @@ public class CallAction extends XmlService {
 						"com.twinsoft.convertigo.eclipse.popup.actions",
 						"com.twinsoft.convertigo.engine.studio.popup.actions"
 				);
-                session.setAttribute(LAST_ACTION, actionClassName);
+                session.setAttribute(PARAM_LAST_ACTION, actionClassName);
 				try {
 					Constructor<?> c = Class.forName(actionClassName).getConstructor(WrapStudio.class);
 					synchronized (cheStudio) {
@@ -74,7 +75,6 @@ public class CallAction extends XmlService {
 								localCheStudio.runAction(runnableAction);
 							}
 							catch (Exception e) {
-								e.printStackTrace();
 							}
 						});
 
@@ -88,10 +88,10 @@ public class CallAction extends XmlService {
 					response.setAttribute("state", "error");
 
 					document.getDocumentElement().appendChild(response);
-					
+
 					// We don't forget to delete it from the session to start a new action the next time
 					session.removeAttribute(PARAM_CHE_STUDIO);
-					session.removeAttribute(LAST_ACTION);
+					session.removeAttribute(PARAM_LAST_ACTION);
 				}
 			}
 		}
@@ -103,6 +103,13 @@ public class CallAction extends XmlService {
 	                cheStudio.wait();
 	            }
 		    }
+		    else if (isCurrentAction(TestCaseExecuteSelectedAction.class, session)) {
+                synchronized (cheStudio) {
+                    cheStudio.setDocument(document);
+                    cheStudio.notify();
+                    cheStudio.wait();
+                }
+            }
 		    else if (isCurrentAction(DatabaseObjectDeleteAction.class, session)) {
 	          synchronized (cheStudio) {
 	                // Setting the new Document is important, else it will keep the old reference of the document
@@ -120,6 +127,6 @@ public class CallAction extends XmlService {
 	}
 
 	private boolean isCurrentAction(Class<? extends AbstractRunnableAction> action, HttpSession session) {
-	    return action.getName().equals(session.getAttribute(LAST_ACTION));
+	    return action.getName().equals(session.getAttribute(PARAM_LAST_ACTION));
 	}
 }

@@ -3,10 +3,11 @@ package com.twinsoft.convertigo.engine.studio.editors.sequence;
 import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.beans.core.Sequence;
-import com.twinsoft.convertigo.engine.studio.editors.IEditorPartWrap;
+import com.twinsoft.convertigo.engine.studio.editors.EditorPartWrap;
 
-public class SequenceEditorWrap implements IEditorPartWrap {
+public class SequenceEditorWrap extends EditorPartWrap {
     private SequenceEditorPartWrap sequenceEditorPart;
+    private boolean dirty;
 
     public SequenceEditorWrap(Sequence sequence) {
         sequenceEditorPart = new SequenceEditorPartWrap(this, sequence);
@@ -26,5 +27,14 @@ public class SequenceEditorWrap implements IEditorPartWrap {
 
     public Document getLastGeneratedDocument() {
         return sequenceEditorPart.lastGeneratedDocument;
+    }
+
+    @Override
+    public boolean isDirty() {
+        return dirty;
+    }
+
+    public void setDirty(boolean dirty) {
+        this.dirty = dirty;
     }
 }

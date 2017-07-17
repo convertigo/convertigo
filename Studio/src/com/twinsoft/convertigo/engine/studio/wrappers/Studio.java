@@ -7,6 +7,7 @@ import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.core.Transaction;
 
 public abstract class Studio implements WrapStudio {
 
@@ -24,6 +25,15 @@ public abstract class Studio implements WrapStudio {
 	    return getSelectedObjects().isEmpty() ? null : getSelectedObjects().get(0);
 	}
 
+    public Object getFirstSelectedDatabaseObject() {
+        Object object = null;
+        WrapDatabaseObject treeObject = (WrapDatabaseObject) getFirstSelectedTreeObject();
+        if (treeObject != null) {
+            object = treeObject.getObject();
+        }
+        return object;
+    }
+
 	@Override
 	public void addSelectedObject(DatabaseObject dbo) {
 		selectedObjects.add(getViewFromDbo(dbo, this));
@@ -39,7 +49,10 @@ public abstract class Studio implements WrapStudio {
         if (dbo instanceof Sequence) {
             return new SequenceView((Sequence) dbo, studio); 
         }
-        
+        if (dbo instanceof Transaction) {
+            return new TransactionView((Transaction) dbo, studio); 
+        }
+
         return new DatabaseObjectView(dbo, studio);
 	}
 

@@ -224,8 +224,16 @@ i.draggable {
 }
 
 /*********************************
-* Sequence editor
+* Sequence editors
 *********************************/
+code {
+	user-select: initial;
+}
+
+.editor-top-bar {
+    border-bottom: solid 1px;
+}
+
 .internal-requester-output {
     margin-right: 1px;
 }
@@ -234,15 +242,10 @@ i.draggable {
     border-left: 1px solid;
 }
 
-.output {
+.internal-requester-output, .sequence-output {
 	position: relative;
     float: left;
     width: 47%;
-    user-select: initial;
-}
-
-.sequence-editor-top-bar {
-	border-bottom: solid 1px;
 }
 
 /* Temporary loading animation */

@@ -25,7 +25,20 @@ var Main = {
             /**
              * Editors
              */
+			// Sequence
             "sequence-editor",
+
+			// Connnectors
+            "cicsconnector-editor",
+            "couchdbconnector-editor",
+            "fullsyncconnector-editor",
+            "htmlconnector-editor",
+            "httpconnector-editor",
+            "javelinconnector-editor",
+            "proxyhttpconnector-editor",
+            "sapjcoconnector-editor",
+            "siteclipperconnector-editor",
+            "sqlconnector-editor",
 
 			/**
              * Listeners
@@ -357,7 +370,20 @@ var Main = {
 		        /**
 		         * Editors
 		         */
-		        "sequence-editor":  Convertigo.getBaseConvertigoStudioUrl("js/editors/sequence-editor"),
+		        // Sequence
+	              "sequence-editor":  Convertigo.getBaseConvertigoStudioUrl("js/editors/sequences/sequence-editor"),
+
+	            // Connectors
+		        "cicsconnector-editor":  Convertigo.getBaseConvertigoStudioUrl("js/editors/connectors/cicsconnector-editor"),
+		        "couchdbconnector-editor":  Convertigo.getBaseConvertigoStudioUrl("js/editors/connectors/couchdbconnector-editor"),
+		        "fullsyncconnector-editor":  Convertigo.getBaseConvertigoStudioUrl("js/editors/connectors/fullsyncconnector-editor"),
+		        "htmlconnector-editor":  Convertigo.getBaseConvertigoStudioUrl("js/editors/connectors/htmlconnector-editor"),
+		        "httpconnector-editor":  Convertigo.getBaseConvertigoStudioUrl("js/editors/connectors/httpconnector-editor"),
+		        "javelinconnector-editor":  Convertigo.getBaseConvertigoStudioUrl("js/editors/connectors/javelinconnector-editor"),
+		        "proxyhttpconnector-editor":  Convertigo.getBaseConvertigoStudioUrl("js/editors/connectors/proxyhttpconnector-editor"),
+                "sapjcoconnector-editor":  Convertigo.getBaseConvertigoStudioUrl("js/editors/connectors/sapjcoconnector-editor"),
+                "siteclipperconnector-editor":  Convertigo.getBaseConvertigoStudioUrl("js/editors/connectors/siteclipperconnector-editor"),
+	            "sqlconnector-editor":  Convertigo.getBaseConvertigoStudioUrl("js/editors/connectors/sqlconnector-editor"),
 
 		        /**
 		         * Listeners

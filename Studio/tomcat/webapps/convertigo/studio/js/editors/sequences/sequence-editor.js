@@ -6,15 +6,13 @@ function SequenceEditor(id) {
 
     var $top = $("<div>", {
         text: " ",
-        "class": "sequence-editor-top-bar"
+        "class": "editor-top-bar"
     });
 
     // Internal requester output
-    var $internalRequesterCode = $("<code/>", {
-        "class": "language-none"
-    });
+    var $internalRequesterCode = $("<code/>");
     var $internalRequesterOutput = $("<pre/>", {
-        "class": "output internal-requester-output"
+        "class": "internal-requester-output"
     });
     $internalRequesterOutput.append($internalRequesterCode);
     var $divInternalRequester = $("<div/>", {
@@ -28,11 +26,11 @@ function SequenceEditor(id) {
         "class": "language-markup"
     });
     var $sequenceOutput = $("<pre/>", {
-        "class": "output sequence-output"
+        "class": "sequence-output"
     });
     $sequenceOutput.append($sequenceCode);
     var $divSequence = $("<div/>", {
-        "class": "sequence"
+        "class": "sequence-editor"
     });
     $divSequence.append($sequenceOutput);
 

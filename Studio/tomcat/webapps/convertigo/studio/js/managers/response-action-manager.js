@@ -1,5 +1,5 @@
 var ResponseActionManager = {
-	projectViews: null,
+	projectView: null,
 
 	responseNameToFunction: {
 		SetPropertyResponse: function ($data) {
@@ -26,7 +26,7 @@ var ResponseActionManager = {
 					click: function () {
 						// Send response of the dialog to the server
 						var code = $(that).find("response").text();
-						ResponseActionManager.projectViews.callServiceCallAction(null, null, code);
+						ResponseActionManager.projectView.callServiceCallAction(null, null, code);
 						$.modal.close();
 					}
 				});
@@ -49,12 +49,21 @@ var ResponseActionManager = {
 		    CheGWTOpenSequenceEditor($response.attr("project"), $response.attr("sequence"));
 
 		    // Recall the service to continue the action
-            ResponseActionManager.projectViews.callServiceCallAction(null, null, null,);
+            ResponseActionManager.projectView.callServiceCallAction(null, null, null);
+		},
+		SequenceExecuteSelectedOpenConnectorEditor: function ($data) {
+		    var $response = $data.find("response");
+
+            // Open the editor in CHE
+            CheGWTOpenConnectorEditor($response.attr("project"), $response.attr("connector"),  $response.attr("type_editor"));
+
+		    // Recall the service to continue the action
+            ResponseActionManager.projectView.callServiceCallAction(null, null, null);
 		}
 	},
-	handleResponse: function (responseName, $data, projectViews) {
+	handleResponse: function (responseName, $data, projectView) {
 		if (responseName in ResponseActionManager.responseNameToFunction) {
-			ResponseActionManager.projectViews = projectViews;
+			ResponseActionManager.projectView = projectView;
 			ResponseActionManager.responseNameToFunction[responseName]($data);
 		}
 	}

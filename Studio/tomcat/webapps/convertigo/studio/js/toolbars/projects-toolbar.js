@@ -1,6 +1,17 @@
 function ProjectsToolbar(container, projectsView) {
     Toolbar.call(this, container, "projects-action");
 
+    // Refresh action
+    this.addAction(
+        "refresh-action",
+        Convertigo.createServiceUrl("studio.database_objects.GetMenuIcon?iconPath=icons/studio/refresh.gif"),
+        "Refresh",
+        function () {
+            // Refresh projects tree view
+            projectsView.tree.jstree().refresh(true);
+        }
+    );
+
     // Save action
     this.addAction(
         "save-action",

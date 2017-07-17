@@ -14,7 +14,7 @@ public class DatabaseObjectView implements WrapDatabaseObject {
 
 	@Override
 	public DatabaseObject getObject() {
-		return dbo;
+	    return dbo;
 	}
 
 	@Override
@@ -30,4 +30,9 @@ public class DatabaseObjectView implements WrapDatabaseObject {
 	@Override
 	public void hasBeenModified(boolean hasBeenModified) {
 	}
+
+    @Override
+    public ProjectView getProjectTreeObject() {
+        return new ProjectView(dbo.getProject(), studio);
+    }
 }

@@ -6,11 +6,13 @@ import java.util.Map;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.engine.studio.editors.connector.ConnectorEditorWrap;
 import com.twinsoft.convertigo.engine.studio.editors.sequence.SequenceEditorWrap;
 
 public class ProjectView extends DatabaseObjectView {
 
     private static Map<Sequence, SequenceEditorWrap> sequenceToSequenceEditor = new HashMap<>();
+    private static Map<Connector, ConnectorEditorWrap> connectorToConnectorEditor = new HashMap<>();
 
     public ProjectView(Project project, WrapStudio studio) {
         super(project, studio);
@@ -34,5 +36,22 @@ public class ProjectView extends DatabaseObjectView {
         }
 
         return sequenceEditor;
+    }
+
+    public ConnectorEditorWrap getConnectorEditor(Connector connector) {
+        ConnectorEditorWrap connectorEditor = connectorToConnectorEditor.get(connector);
+
+        // Create instance if it doesn't exist yet
+        if (connectorEditor == null) {
+            connectorEditor = new ConnectorEditorWrap(connector);
+            connectorToConnectorEditor.put(connector, connectorEditor);
+        }
+
+        return connectorEditor;
+    }
+
+    @Override
+    public Project getObject() {
+        return (Project) dbo;
     }
 }

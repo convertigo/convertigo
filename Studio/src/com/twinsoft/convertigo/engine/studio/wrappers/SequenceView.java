@@ -16,12 +16,12 @@ public class SequenceView extends DatabaseObjectView {
 
     @Override
     public Sequence getObject() {
-        return (Sequence) dbo;
+        return (Sequence) super.getObject();
     }
 
     public void openSequenceEditor() {
         // To add listeners
-        getSequenceEditor();
+        getSequenceEditor(getObject());
 
         synchronized (studio) {
             try {
@@ -43,7 +43,7 @@ public class SequenceView extends DatabaseObjectView {
         }
     }
 
-    private IEditorPartWrap getSequenceEditor() {
-        return getProjectView().getSequenceEditor(getObject());
+    private IEditorPartWrap getSequenceEditor(Sequence sequence) {
+        return getProjectView().getSequenceEditor(sequence);
     }
 }

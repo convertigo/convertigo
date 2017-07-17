@@ -10,14 +10,6 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 
 	var that = this;
 
-    // Refresh projects tree view when pressing F5 (for debug purpose)
-    $(document).on("keydown", function (e) {
-        if ((e.which || e.keyCode) == 116) {
-            e.preventDefault();
-            that.tree.jstree().refresh(true);
-        }
-    });
-
 	this.resetDndData();
 	// Property updated
 	$(this).on("set_property.dbo-manager", function (event, qnames, property, value, data) {
@@ -73,7 +65,7 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 			var qnId = that.computeNodeId(qnamesDbosToDelete[i]);
 
 			// A node can be referenced multiple times in case of inherited Screen Classes (Criteria, Extraction rules...)
-			var idNodes = ResponseActionManager.projectViews.tree.jstree().getIdNodes(qnId);
+			var idNodes = that.tree.jstree().getIdNodes(qnId);
 			for (var j = 0; j < idNodes.length; ++j) {
 				// Get the parent
 				var parentNodeId = that.tree.jstree().get_parent(idNodes[j]);

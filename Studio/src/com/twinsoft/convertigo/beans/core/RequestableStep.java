@@ -834,12 +834,15 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 
 		            	if (result != null) {
 			            	xmlHttpDocument = (Document) result;
-			            	if (Engine.isStudioMode()) {
-			            		((Sequence)sequence.getOriginal()).fireDataChanged(new SequenceEvent(this, result));
-			            	}
-			            	else {
-				            	sequence.fireDataChanged(new SequenceEvent(this, result));
-			            	}
+//			            	if (Engine.isStudioMode()) {
+//			            		((Sequence)sequence.getOriginal()).fireDataChanged(new SequenceEvent(this, result));
+//			            	}
+//			            	else {
+//                                sequence.fireDataChanged(new SequenceEvent(this, result));
+//			            	}
+
+                            ((Sequence)sequence.getOriginal()).fireDataChanged(new SequenceEvent(this, result));
+
 			            	flushDocument();
 		            	}
 	            	}

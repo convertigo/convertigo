@@ -8,13 +8,13 @@ import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.SequenceEvent;
 import com.twinsoft.convertigo.beans.core.SequenceListener;
 import com.twinsoft.convertigo.engine.studio.events.GenericEvent;
-import com.twinsoft.convertigo.engine.studio.events.sequence.SequenceEditorCompositeClearContentEvent;
-import com.twinsoft.convertigo.engine.studio.events.sequence.SequenceEditorCompositeDataChangedEvent;
+import com.twinsoft.convertigo.engine.studio.events.sequences.SequenceEditorCompositeClearContentEvent;
+import com.twinsoft.convertigo.engine.studio.events.sequences.SequenceEditorCompositeDataChangedEvent;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public class SequenceEditorCompositeWrap extends AbstractSequenceCompositeWrap implements SequenceListener {
+public class SequenceCompositeWrap extends AbstractSequenceCompositeWrap implements SequenceListener {
 
-    public SequenceEditorCompositeWrap(SequenceEditorPartWrap sequenceEditorPart, Sequence sequence) {
+    public SequenceCompositeWrap(SequenceEditorPartWrap sequenceEditorPart, Sequence sequence) {
         super(sequenceEditorPart, sequence);
         sequence.addSequenceListener(this);
     }
