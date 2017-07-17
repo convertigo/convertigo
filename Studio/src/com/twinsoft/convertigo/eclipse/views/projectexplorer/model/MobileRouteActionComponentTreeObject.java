@@ -32,7 +32,7 @@ import com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteDataActionComponent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 
-public class MobileRouteActionComponentTreeObject extends MobileComponentTreeObject implements INamedSourceSelectorTreeObject {
+public class MobileRouteActionComponentTreeObject extends MobileComponentTreeObject implements IOrderableTreeObject, INamedSourceSelectorTreeObject {
 	
 	public MobileRouteActionComponentTreeObject(Viewer viewer, RouteActionComponent object) {
 		super(viewer, object);

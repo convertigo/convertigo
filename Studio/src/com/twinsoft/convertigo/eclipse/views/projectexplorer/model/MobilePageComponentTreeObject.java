@@ -49,7 +49,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
-public class MobilePageComponentTreeObject extends MobileComponentTreeObject implements IEditableTreeObject {
+public class MobilePageComponentTreeObject extends MobileComponentTreeObject implements IEditableTreeObject, IOrderableTreeObject {
 	
 	public MobilePageComponentTreeObject(Viewer viewer, PageComponent object) {
 		super(viewer, object);

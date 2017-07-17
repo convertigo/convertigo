@@ -34,7 +34,7 @@ import com.twinsoft.convertigo.beans.mobile.components.RouteFullsyncEvent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteSequenceEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 
-public class MobileRouteEventComponentTreeObject extends MobileComponentTreeObject implements INamedSourceSelectorTreeObject {
+public class MobileRouteEventComponentTreeObject extends MobileComponentTreeObject implements IOrderableTreeObject, INamedSourceSelectorTreeObject {
 	
 	public MobileRouteEventComponentTreeObject(Viewer viewer, RouteEventComponent object) {
 		super(viewer, object);
