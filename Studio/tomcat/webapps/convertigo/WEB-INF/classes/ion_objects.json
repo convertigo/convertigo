@@ -3611,6 +3611,97 @@
       "icon32": "gmapiwindow_color_32x32.png",
       "properties": {
       }
+    },
+
+    /*
+     * Charts
+     */
+
+    "Charts" : {
+      "tag": "canvas",
+      "label": "Charts",
+      "description": "Defines a Chart. | Charts can be 'line', 'bar', 'radar', 'pie', 'polarArea' or 'doughnut' according to the 'chartType' property. Chart data is bound to properties provided by some TypeScript data or directly from a source.<br /><br />Please refer to <a target='_blank' href='http://www.chartjs.org/docs/latest/'>chart.js</a> documentation for each property and data formats",
+      "group": "Components",
+      "icon16": "chart_color_16x16.png",
+      "icon32": "chart_color_32x32.png",
+      "properties": {
+        "BaseChart": {
+          "label": "baseChart",
+          "description": "Defines a chart, must not be modified",
+          "category": "@Properties",
+          "value": "baseChart"
+        },
+        "Width": {
+          "attr":"width",
+          "label": "Width",
+          "description": "Chart width",
+          "category": "@Properties",
+          "value": "100"
+        },
+        "Height": {
+          "attr":"height",
+          "label": "Height",
+          "description": "Chart height",
+          "category": "@Properties",
+          "value": "100"
+        },
+        "data": {
+          "mode": "script",
+          "attr":"[data]",
+          "label": "Data",
+          "description": "(Array<number[]> | number[]) - set of points of the chart, it should be Array<number[]> only for line, bar and radar, otherwise number[]",
+          "category": "@Properties",
+          "value": false
+        },
+        "datasets": {
+          "mode": "script",
+          "attr":"[datasets]",
+          "label": "Data sets",
+          "description": "(Array<number[]> | number[]) - set of points of the chart, it should be Array<number[]> only for line, bar and radar, otherwise number[]",
+          "category": "@Properties",
+          "value": false
+        },
+        "labels": {
+          "mode": "script",
+          "attr":"[labels]",
+          "label": "labels",
+          "description": " (Array<any>) - x axis labels. It's necessary for charts: line, bar and radar. And just labels (on hover) for charts: polarArea, pie and doughnut",
+          "category": "@Properties",
+          "value": false
+        },
+        "Options": {
+          "mode": "script",
+          "attr":"[options]",
+          "label": "Options",
+          "description": "chart options (as from Chart.js documentation)",
+          "category": "@Properties",
+          "value": false
+        },
+        "Colors": {
+          "mode": "script",
+          "attr":"[colors]",
+          "label": "Colors",
+          "description": "data colors, will use default and|or random colors if not specified",
+          "category": "@Properties",
+          "value": false
+        },
+        "ChartType": {
+          "attr":"chartType",
+          "label": "Chart Type",
+          "description": "Indicates the type of charts, it can be: line, bar, radar, pie, polarArea, doughnut",
+          "category": "@Properties",
+          "value": "line",
+          "values":[
+            "line",
+            "bar",
+            "radar",
+            "pie",
+            "polarArea",
+            "doughnut",
+            true
+          ]
+        }
+      }
     }
   }
 }
