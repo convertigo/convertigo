@@ -215,10 +215,7 @@ public class UIElement extends UIComponent implements IStyleGenerator {
 				if (component instanceof UIFormControlValidator) {
 					;// ignore
 				} else if (component instanceof UIStyle) {
-					String tagClass = getTagClass();
-					if (attrclasses.indexOf(tagClass) == -1) {
-						attrclasses.append(attrclasses.length()>0 ? " ":"").append(tagClass);
-					}
+					;// ignore
 				} else if (component instanceof UIAttribute) {
 					UIAttribute uiAttribute = (UIAttribute)component;
 					if (uiAttribute.getAttrName().equals("class")) {
@@ -231,6 +228,10 @@ public class UIElement extends UIComponent implements IStyleGenerator {
 				}
 			}
 			
+			String tagClass = getTagClass();
+			if (attrclasses.indexOf(tagClass) == -1) {
+				attrclasses.append(attrclasses.length()>0 ? " ":"").append(tagClass);
+			}
 			String attrclass = attrclasses.length()>0 ? " class=\""+ attrclasses +"\"":"";
 			
 			StringBuilder sb = new StringBuilder();
