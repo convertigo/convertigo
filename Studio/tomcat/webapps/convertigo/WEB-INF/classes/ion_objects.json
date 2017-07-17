@@ -3535,32 +3535,36 @@
       "icon32": "gmap_color_32x32.png",
       "properties": {
         "Latitude": {
+          "mode": "script",
           "attr":"[latitude]",
           "label": "Latitude",
           "description": "Number : The map will be centered at this latitude. (ex: 51.678418)",
           "category": "@Coordinates",
-          "value": "0"
+          "value": "48.6969459"
         },
         "Longitude": {
+          "mode": "script",
           "attr":"[longitude]",
           "label": "Longitude",
           "description": "Number : The map will be centered at this longitude. (ex: 7.809007)",
           "category": "@Coordinates",
-          "value": "0"
+          "value": "2.1775981"
         },
         "Height": {
+          "mode": "script",
           "attr":"[style.height]",
           "label": "Display Height",
           "description": "The Height in pixels (px) or in percentage (%) the map uses on the screen.",
           "category": "@Display",
-          "value": "100%"
+          "value": "'100%'"
         },
         "Zoom": {
+          "mode": "script",
           "attr":"[zoom]",
           "label": "Zoom level",
           "description": "The zoom level of the map. The default zoom level is 8.",
           "category": "@Display",
-          "value": "8"
+          "value": "12"
         }
       }
     },
@@ -3573,25 +3577,28 @@
       "icon32": "gmapmakrer_color_32x32.png",
       "properties": {
         "Latitude": {
+          "mode": "script",
           "attr":"[latitude]",
           "label": "Latitude",
           "description": "Number : The Marker will be displayed at this latitude. (ex: 51.678418)",
           "category": "@Coordinates",
-          "value": "0"
+          "value": "48.6969459"
         },
         "Longitude": {
+          "mode": "script",
           "attr":"[longitude]",
           "label": "Longitude",
           "description": "Number : The Marker will be displayed at this longitude. (ex: 7.809007)",
           "category": "@Coordinates",
-          "value": "0"
+          "value": "2.1775981"
         },
         "Title": {
+          "mode": "script",
           "attr":"[title]",
           "label": "Title",
           "description": "The marker title.",
           "category": "@Display",
-          "value": false
+          "value": "'Convertigo'"
         }
       }
     },
