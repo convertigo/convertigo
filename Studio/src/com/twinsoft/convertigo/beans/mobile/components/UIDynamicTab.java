@@ -58,8 +58,9 @@ public class UIDynamicTab extends UIDynamicElement {
 		StringBuilder attributes = super.initAttributes();
 		if (!tabpage.isEmpty()) {
 			try {
-				String page = tabpage.substring(tabpage.lastIndexOf('.')+1);
-				attributes.append(" [root]").append("=").append("\"getPageByName('"+ page +"')\"");
+				String pageName = tabpage.substring(tabpage.lastIndexOf('.')+1);
+				String pageTitle = getApplication().getPageComponentByName(pageName).getTitle();
+				attributes.append(" [root]").append("=").append("\"getPageByName('"+ pageTitle +"')\"");
 			} catch (Exception e) {}
 		}
 		return attributes;

@@ -21,6 +21,7 @@
  */
 package com.twinsoft.convertigo.beans.core;
 
+import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 
 public abstract class MobileComponent extends MobileObject {
 
@@ -35,5 +36,17 @@ public abstract class MobileComponent extends MobileObject {
 	public MobileComponent clone() throws CloneNotSupportedException {
 		MobileComponent cloned = (MobileComponent) super.clone();
 		return cloned;
+	}
+	
+	public ApplicationComponent getApplication() {
+		DatabaseObject databaseObject = this;
+		while (!(databaseObject instanceof ApplicationComponent) && databaseObject != null) { 
+			databaseObject = databaseObject.getParent();
+		}
+		
+		if (databaseObject == null)
+			return null;
+		else
+			return (ApplicationComponent) databaseObject;
 	}
 }
