@@ -53,14 +53,15 @@ import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.studio.AbstractRunnableAction;
 import com.twinsoft.convertigo.engine.studio.dialogs.MultipleDeletionDialog;
-import com.twinsoft.convertigo.engine.studio.responses.DatabaseObjectDeleteResponse;
-import com.twinsoft.convertigo.engine.studio.wrappers.ConnectorView;
-import com.twinsoft.convertigo.engine.studio.wrappers.ProjectView;
-import com.twinsoft.convertigo.engine.studio.wrappers.SequenceView;
-import com.twinsoft.convertigo.engine.studio.wrappers.WrapDatabaseObject;
-import com.twinsoft.convertigo.engine.studio.wrappers.WrapObject;
-import com.twinsoft.convertigo.engine.studio.wrappers.WrapStudio;
+import com.twinsoft.convertigo.engine.studio.responses.popup.actions.DatabaseObjectDeleteActionResponse;
+import com.twinsoft.convertigo.engine.studio.views.projectexplorer.WrapStudio;
+import com.twinsoft.convertigo.engine.studio.views.projectexplorer.model.ConnectorView;
+import com.twinsoft.convertigo.engine.studio.views.projectexplorer.model.ProjectView;
+import com.twinsoft.convertigo.engine.studio.views.projectexplorer.model.SequenceView;
+import com.twinsoft.convertigo.engine.studio.views.projectexplorer.model.WrapDatabaseObject;
+import com.twinsoft.convertigo.engine.studio.views.projectexplorer.model.WrapObject;
 
 public class DatabaseObjectDeleteAction extends AbstractRunnableAction {
 
@@ -300,6 +301,6 @@ public class DatabaseObjectDeleteAction extends AbstractRunnableAction {
 			return response;
 		}
 
-		return new DatabaseObjectDeleteResponse(dboDoDelete.get(qname)).toXml(document, qname);
+		return new DatabaseObjectDeleteActionResponse(dboDoDelete.get(qname)).toXml(document, qname);
 	}
 }

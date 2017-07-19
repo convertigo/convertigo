@@ -1,22 +1,18 @@
 package com.twinsoft.convertigo.engine.studio.popup.actions;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
-import com.twinsoft.convertigo.engine.ConvertigoException;
-import com.twinsoft.convertigo.engine.studio.editors.connector.ConnectorEditorWrap;
-import com.twinsoft.convertigo.engine.studio.editors.sequence.SequenceEditorWrap;
-import com.twinsoft.convertigo.engine.studio.responses.sequences.SequenceExecuteSelectedResponse;
-import com.twinsoft.convertigo.engine.studio.wrappers.ProjectView;
-import com.twinsoft.convertigo.engine.studio.wrappers.SequenceView;
-import com.twinsoft.convertigo.engine.studio.wrappers.TransactionView;
-import com.twinsoft.convertigo.engine.studio.wrappers.WrapDatabaseObject;
-import com.twinsoft.convertigo.engine.studio.wrappers.WrapStudio;
+import com.twinsoft.convertigo.engine.studio.AbstractRunnableAction;
+import com.twinsoft.convertigo.engine.studio.editors.connectors.ConnectorEditorWrap;
+import com.twinsoft.convertigo.engine.studio.editors.sequences.SequenceEditorWrap;
+import com.twinsoft.convertigo.engine.studio.views.projectexplorer.WrapStudio;
+import com.twinsoft.convertigo.engine.studio.views.projectexplorer.model.ProjectView;
+import com.twinsoft.convertigo.engine.studio.views.projectexplorer.model.SequenceView;
+import com.twinsoft.convertigo.engine.studio.views.projectexplorer.model.TransactionView;
+import com.twinsoft.convertigo.engine.studio.views.projectexplorer.model.WrapDatabaseObject;
 
 public class TestCaseExecuteSelectedAction extends AbstractRunnableAction {
 
@@ -56,15 +52,5 @@ public class TestCaseExecuteSelectedAction extends AbstractRunnableAction {
                 }
             }
         }
-    }
-
-    @Override
-    public Element toXml(Document document, String qname) throws ConvertigoException, Exception {
-        Element response = super.toXml(document, qname);
-        if (response != null) {
-            return response;
-        }
-
-        return new SequenceExecuteSelectedResponse().toXml(document, qname);
     }
 }

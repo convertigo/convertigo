@@ -22,7 +22,7 @@
 
 package com.twinsoft.convertigo.engine.studio.dialogs;
 
-import com.twinsoft.convertigo.engine.studio.wrappers.WrapStudio;
+import com.twinsoft.convertigo.engine.studio.views.projectexplorer.WrapStudio;
 
 public class MultipleDeletionDialog {
 

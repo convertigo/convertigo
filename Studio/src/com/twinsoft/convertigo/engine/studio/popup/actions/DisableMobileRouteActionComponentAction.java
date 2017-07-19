@@ -5,10 +5,11 @@ import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
 import com.twinsoft.convertigo.engine.ConvertigoException;
+import com.twinsoft.convertigo.engine.studio.AbstractRunnableAction;
 import com.twinsoft.convertigo.engine.studio.responses.SetPropertyResponse;
-import com.twinsoft.convertigo.engine.studio.wrappers.WrapDatabaseObject;
-import com.twinsoft.convertigo.engine.studio.wrappers.WrapObject;
-import com.twinsoft.convertigo.engine.studio.wrappers.WrapStudio;
+import com.twinsoft.convertigo.engine.studio.views.projectexplorer.WrapStudio;
+import com.twinsoft.convertigo.engine.studio.views.projectexplorer.model.WrapDatabaseObject;
+import com.twinsoft.convertigo.engine.studio.views.projectexplorer.model.WrapObject;
 
 public class DisableMobileRouteActionComponentAction extends AbstractRunnableAction {
 

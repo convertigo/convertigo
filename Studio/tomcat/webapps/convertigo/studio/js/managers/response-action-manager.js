@@ -39,32 +39,57 @@ var ResponseActionManager = {
 				allButtons
 			);
 		},
-		DatabaseObjectDeleteResponse: function ($data) {
+		DatabaseObjectDeleteActionResponse: function ($data) {
 			DatabaseObjectManager.notifyDatabaseObjectDelete($data.find("admin"));
 		},
-		SequenceExecuteSelectedOpenSequenceEditor: function ($data) {
+		OpenEditableEditorActionResponse: function ($data) {
+            var $response = $data.find("admin>response");
+            var editor = $response.attr("type_editor");
+            switch (editor) {
+                case "c8o_jscriptstepeditor":
+                case "c8o_xsleditor":
+                case "c8o_jscripttransactioneditor":
+                    var filePath = $response.find(">filepath").text();
+                    CheGWTOpenTextEditor(filePath, $response.attr("qname"));
+                    break;
+
+                default:
+                    break;
+            }
+		},
+		SequenceExecuteSelectedOpenSequenceEditorResponse: function ($data, callAction) {
 		    var $response = $data.find("response");
 
 		    // Open the editor in CHE
 		    CheGWTOpenSequenceEditor($response.attr("project"), $response.attr("sequence"));
 
 		    // Recall the service to continue the action
-            ResponseActionManager.projectView.callServiceCallAction(null, null, null);
+		    if (callAction) {
+	            ResponseActionManager.projectView.callServiceCallAction(null, null, null);
+		    }
+		    else {
+		        ResponseActionManager.projectView.callServiceDblkAction(null);
+		    }
 		},
-		SequenceExecuteSelectedOpenConnectorEditor: function ($data) {
+		SequenceExecuteSelectedOpenConnectorEditorResponse: function ($data, callAction) {
 		    var $response = $data.find("response");
 
             // Open the editor in CHE
             CheGWTOpenConnectorEditor($response.attr("project"), $response.attr("connector"),  $response.attr("type_editor"));
 
 		    // Recall the service to continue the action
-            ResponseActionManager.projectView.callServiceCallAction(null, null, null);
+            if (callAction) {
+                ResponseActionManager.projectView.callServiceCallAction(null, null, null);
+            }
+            else {
+                ResponseActionManager.projectView.callServiceDblkAction(null);
+            }
 		}
 	},
-	handleResponse: function (responseName, $data, projectView) {
+	handleResponse: function (responseName, $data, projectView, callAction = true) {
 		if (responseName in ResponseActionManager.responseNameToFunction) {
 			ResponseActionManager.projectView = projectView;
-			ResponseActionManager.responseNameToFunction[responseName]($data);
+			ResponseActionManager.responseNameToFunction[responseName]($data, callAction);
 		}
 	}
 };

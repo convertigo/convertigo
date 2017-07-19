@@ -16,13 +16,13 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.studio.popup.actions.AbstractRunnableAction;
+import com.twinsoft.convertigo.engine.studio.AbstractRunnableAction;
 import com.twinsoft.convertigo.engine.studio.popup.actions.DatabaseObjectDeleteAction;
 import com.twinsoft.convertigo.engine.studio.popup.actions.SequenceExecuteSelectedAction;
 import com.twinsoft.convertigo.engine.studio.popup.actions.TestCaseExecuteSelectedAction;
 import com.twinsoft.convertigo.engine.studio.responses.XmlResponseFactory;
-import com.twinsoft.convertigo.engine.studio.wrappers.CheStudio;
-import com.twinsoft.convertigo.engine.studio.wrappers.WrapStudio;
+import com.twinsoft.convertigo.engine.studio.views.projectexplorer.CheStudio;
+import com.twinsoft.convertigo.engine.studio.views.projectexplorer.WrapStudio;
 
 @ServiceDefinition(
 		name = "CallAction",
@@ -32,8 +32,8 @@ import com.twinsoft.convertigo.engine.studio.wrappers.WrapStudio;
 	)
 public class CallAction extends XmlService {
 
-	private final static String PARAM_CHE_STUDIO = "cheStudio";
-	private final static String PARAM_LAST_ACTION = "lastAction";
+    public final static String PARAM_CHE_STUDIO = "cheStudio";
+    public final static String PARAM_LAST_ACTION = "lastAction";
 
 	@Override
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
@@ -126,7 +126,7 @@ public class CallAction extends XmlService {
 		}
 	}
 
-	private boolean isCurrentAction(Class<? extends AbstractRunnableAction> action, HttpSession session) {
+	public static boolean isCurrentAction(Class<? extends AbstractRunnableAction> action, HttpSession session) {
 	    return action.getName().equals(session.getAttribute(PARAM_LAST_ACTION));
 	}
 }

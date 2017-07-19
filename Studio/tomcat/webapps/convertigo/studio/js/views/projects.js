@@ -389,26 +389,32 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 		    var selectNode = that.tree.jstree().get_node(target);
 
 		    if (!that.isNodeFolder(selectNode)) {
-                $.ajax({
+		        $.ajax({
                     dataType: "xml",
-                    url: Convertigo.createServiceUrl("studio.database_objects.OpenEditor"),
+                    url: Convertigo.createServiceUrl("studio.database_objects.CallDblkAction"),
                     data: {
                         qname: selectNode.data.qname
                     },
                     success: function (data, textStatus, jqXHR) {
-                        var $response = $(data).find("admin>response");
-                        var editor = $response.attr("type_editor");
-                        switch (editor) {
-                            case "c8o_JscriptStepEditor":
-                            case "c8o_XslEditor":
-                            case "c8o_JscriptTransactionEditor":
-                                var filePath = $(data).find("admin>response>filepath").text();
-                                CheGWTOpenTextEditor(filePath, selectNode.data.qname);
-                                break;
-
-                            default:
-                                break;
-                        }
+                        var $responses = $(data).find("admin");
+                        $responses.find(">*").each(function () {
+                            if ($(this).attr("state") === "success") {
+                                ResponseActionManager.handleResponse(
+                                    $(this).attr("name"),
+                                    $(data),
+                                    that,
+                                    false
+                                );
+                            }
+                            // Show error
+                            else {
+                                var $response = $responses.find("admin>*>*").first();
+                                ModalUtils.createMessageBox(
+                                    $response.find("title").text(),
+                                    $response.find("message").text()
+                                );
+                            }
+                        });
                     }
                 });
 		    }
@@ -554,6 +560,38 @@ ProjectsView.prototype.addJstreeNodeType = function (classname) {
 	return nodeType;
 };
 
+ProjectsView.prototype.callServiceDblkAction = function (qname) {
+    var that = this;
+    $.ajax({
+        dataType: "xml",
+        url: Convertigo.createServiceUrl("studio.database_objects.CallDblkAction"),
+        data: {
+            qname: qname
+        },
+        success: function (data, textStatus, jqXHR) {
+            var $responses = $(data).find("admin");
+            $responses.find(">*").each(function () {
+                if ($(this).attr("state") === "success") {
+                    ResponseActionManager.handleResponse(
+                        $(this).attr("name"),
+                        $(data),
+                        that,
+                        false
+                    );
+                }
+                // Show error
+                else {
+                    var $response = $responses.find("admin>*>*").first();
+                    ModalUtils.createMessageBox(
+                        $response.find("title").text(),
+                        $response.find("message").text()
+                    );
+                }
+            });
+        }
+    });
+};
+
 ProjectsView.prototype.callServiceCallAction = function (qnames, classAction, response) {
 	var that = this;
 	$.ajax({
@@ -585,7 +623,7 @@ ProjectsView.prototype.callServiceCallAction = function (qnames, classAction, re
 			});
 		}
 	});
-}
+};
 
 ProjectsView.prototype.createContextMenu = function (parent, $menu) {
 	var that = this;

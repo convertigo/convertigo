@@ -25,10 +25,14 @@ package com.twinsoft.convertigo.engine.util;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
@@ -134,4 +138,12 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		String fileUrl = file.toURI().toURL().toString();
 		return fileUrl;
 	}
+
+    public static String createTmpFileWithUTF8Data(String parentPath, String childPath, String content) throws FileNotFoundException, IOException {
+        File tempEditorFile = new File(parentPath, childPath);
+        try (OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(tempEditorFile), StandardCharsets.UTF_8)) {
+            osw.append(content);
+        }
+        return tempEditorFile.getName();
+    }
 }

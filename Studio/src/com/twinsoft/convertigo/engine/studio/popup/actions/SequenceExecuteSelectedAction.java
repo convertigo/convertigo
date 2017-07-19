@@ -4,9 +4,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
@@ -14,17 +11,16 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
-import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.studio.editors.sequence.SequenceEditorWrap;
-import com.twinsoft.convertigo.engine.studio.responses.sequences.SequenceExecuteSelectedResponse;
-import com.twinsoft.convertigo.engine.studio.wrappers.ConnectorView;
-import com.twinsoft.convertigo.engine.studio.wrappers.ProjectView;
-import com.twinsoft.convertigo.engine.studio.wrappers.SequenceView;
-import com.twinsoft.convertigo.engine.studio.wrappers.Studio;
-import com.twinsoft.convertigo.engine.studio.wrappers.WrapDatabaseObject;
-import com.twinsoft.convertigo.engine.studio.wrappers.WrapStudio;
+import com.twinsoft.convertigo.engine.studio.AbstractRunnableAction;
+import com.twinsoft.convertigo.engine.studio.editors.sequences.SequenceEditorWrap;
+import com.twinsoft.convertigo.engine.studio.views.projectexplorer.Studio;
+import com.twinsoft.convertigo.engine.studio.views.projectexplorer.WrapStudio;
+import com.twinsoft.convertigo.engine.studio.views.projectexplorer.model.ConnectorView;
+import com.twinsoft.convertigo.engine.studio.views.projectexplorer.model.ProjectView;
+import com.twinsoft.convertigo.engine.studio.views.projectexplorer.model.SequenceView;
+import com.twinsoft.convertigo.engine.studio.views.projectexplorer.model.WrapDatabaseObject;
 
 public class SequenceExecuteSelectedAction extends AbstractRunnableAction {
 
@@ -114,15 +110,5 @@ public class SequenceExecuteSelectedAction extends AbstractRunnableAction {
                 }
             }
         }
-    }
-
-    @Override
-    public Element toXml(Document document, String qname) throws ConvertigoException, Exception {
-        Element response = super.toXml(document, qname);
-        if (response != null) {
-            return response;
-        }
-
-        return new SequenceExecuteSelectedResponse().toXml(document, qname);
     }
 }
