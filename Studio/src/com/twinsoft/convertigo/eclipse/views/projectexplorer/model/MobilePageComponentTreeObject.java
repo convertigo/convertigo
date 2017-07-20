@@ -197,6 +197,10 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 						if (!newValue.equals(oldValue)) {
 							markPageEnabledAsDirty();
 						}
+					} else if (propertyName.equals("segment")) {
+						if (!newValue.equals(oldValue)) {
+							markAppModuleTsAsDirty();
+						}
 					} else if (propertyName.equals("title") || propertyName.equals("inAutoMenu")) {
 						if (!newValue.equals(oldValue)) {
 							markAppComponentTsAsDirty();
@@ -221,6 +225,15 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 		} catch (EngineException e) {
 			ConvertigoPlugin.logException(e,
 					"Error while writing the app.component.ts for application '" + ac.getName() + "'");	}
+	}
+	
+	protected void markAppModuleTsAsDirty() {
+		ApplicationComponent ac = (ApplicationComponent) getObject().getParent();
+		try {
+			ac.markModuleTsAsDirty();
+		} catch (EngineException e) {
+			ConvertigoPlugin.logException(e,
+					"Error while writing the app.module.ts for application '" + ac.getName() + "'");	}
 	}
 	
 	protected void markPageEnabledAsDirty() {

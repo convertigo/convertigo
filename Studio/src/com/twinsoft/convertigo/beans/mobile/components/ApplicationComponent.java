@@ -438,7 +438,10 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 			setRootPage(pageComponent);
 		}
 		if (pageComponent.getTitle().isEmpty() || pageComponent.bNew) {
-			pageComponent.setTitle(newDatabaseObjectName);
+			pageComponent.setTitle("Title for "+ newDatabaseObjectName);
+		}
+		if (pageComponent.getSegment().isEmpty() || pageComponent.bNew) {
+			pageComponent.setSegment(newDatabaseObjectName);
 		}
 		super.add(pageComponent);
 		
@@ -806,7 +809,11 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 	public void markComponentTsAsDirty() throws EngineException {
 		getProject().getMobileBuilder().appCompTsChanged(this);
 	}
-    
+
+	public void markModuleTsAsDirty() throws EngineException {
+		getProject().getMobileBuilder().appModuleTsChanged(this);
+	}
+	
     /*
      * The computed template (see app.html)
      */

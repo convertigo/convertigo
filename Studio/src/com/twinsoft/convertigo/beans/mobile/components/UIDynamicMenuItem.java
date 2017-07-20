@@ -99,17 +99,19 @@ public class UIDynamicMenuItem extends UIDynamicElement {
 			}
 			String attrclass = attrclasses.length()>0 ? " class=\""+ attrclasses +"\"":"";
 			
+			boolean pageIsEnabled = false;
 			String pageName = getPageName();
 			String pageTitle = "Please specify a page for item";
 			if (!pageName.isEmpty()) {
 				try {
+					pageIsEnabled = getApplication().getPageComponentByName(pageName).isEnabled();
 					pageTitle = getApplication().getPageComponentByName(pageName).getTitle();
 				} catch (Exception e) {}
 			}
 			
 			StringBuilder sb = new StringBuilder();
 			sb.append("<").append(getTagName()).append(attrclass)
-				.append(" ion-item menuClose")
+				.append(" ion-item menuClose").append(pageIsEnabled ? "":" disabled")
 				.append(pageName.isEmpty() ? "":" (click)=\"openPageWithName('"+ pageName +"')\"")
 			  	.append(attributes.length()>0 ? attributes:"").append(">").append(pageTitle)
 				.append("</").append(getTagName()).append(">").append(System.getProperty("line.separator"));

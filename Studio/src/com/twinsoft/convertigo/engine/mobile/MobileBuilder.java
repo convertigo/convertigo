@@ -218,6 +218,13 @@ public class MobileBuilder {
 		}
 	}
 	
+	public synchronized void appModuleTsChanged(final ApplicationComponent app) throws EngineException {
+		if (app != null && initDone) {
+			writeAppModuleTs(app);
+			Engine.logEngine.debug("(MobileBuilder) Handled 'appModuleTsChanged'");
+		}
+	}
+	
 	private boolean isIonicTemplateBased() {
 		return ionicTplDir.exists();
 	}
@@ -517,9 +524,10 @@ public class MobileBuilder {
 				List<PageComponent> pages = getEnabledPages(app);
 				for (PageComponent page : pages) {
 					String pageName = page.getName();
+					String pageSegment = page.getSegment();
 					boolean isLastPage = i == pages.size();
 					c8o_PagesImport += "import { "+pageName+" } from \"../pages/"+pageName+"/"+pageName.toLowerCase()+"\";\n";
-					c8o_PagesLinks += " { component: "+pageName+", name: '"+pageName+"', segment: '"+pageName+"' }" + (isLastPage ? "":",");
+					c8o_PagesLinks += " { component: "+pageName+", name: '"+pageName+"', segment: '"+pageSegment+"' }" + (isLastPage ? "":",");
 					c8o_PagesDeclarations += " " + pageName + (isLastPage ? "":",");
 					i++;
 				}
