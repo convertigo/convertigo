@@ -58,7 +58,7 @@ public class UIDynamicMenu extends UIDynamicElement {
 		return attributes;
 	}
 	
-	protected boolean isAutoMenu() {
+	public boolean isAutoMenu() {
 		IonBean ionBean = getIonBean();
 		if (ionBean != null) {
 			return ionBean.getName().equals("AutoMenu");

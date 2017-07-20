@@ -63,6 +63,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIControlListenSequenceSo
 import com.twinsoft.convertigo.beans.mobile.components.UIControlListenSource;
 import com.twinsoft.convertigo.beans.mobile.components.UICustom;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItem;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicTab;
 import com.twinsoft.convertigo.beans.mobile.components.UIElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIFormCustomValidator;
@@ -463,6 +464,15 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 						list.add("tabpage");
 					}
 				}
+				if (getObject() instanceof UIDynamicMenuItem) {
+					if (ProjectTreeObject.class.isAssignableFrom(c) ||
+						MobileApplicationTreeObject.class.isAssignableFrom(c) ||
+						MobileApplicationComponentTreeObject.class.isAssignableFrom(c) ||
+						MobilePageComponentTreeObject.class.isAssignableFrom(c))
+					{
+						list.add("itempage");
+					}
+				}
 				return list;
 			}
 			
@@ -476,6 +486,9 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 				}
 				if (getObject() instanceof UIDynamicTab) {
 					return "tabpage".equals(propertyName);
+				}
+				if (getObject() instanceof UIDynamicMenuItem) {
+					return "itempage".equals(propertyName);
 				}
 				return false;
 			}
@@ -506,6 +519,13 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 				}
 				if (getObject() instanceof UIDynamicTab) {
 					if ("tabpage".equals(propertyName)) {
+						if (nsObject instanceof PageComponent) {
+							return (((PageComponent)nsObject).getProject().equals(getObject().getProject()));
+						}
+					}
+				}
+				if (getObject() instanceof UIDynamicMenuItem) {
+					if ("itempage".equals(propertyName)) {
 						if (nsObject instanceof PageComponent) {
 							return (((PageComponent)nsObject).getProject().equals(getObject().getProject()));
 						}
@@ -543,6 +563,12 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 							if (getObject() instanceof UIDynamicTab) {
 								if ("tabpage".equals(propertyName)) {
 									((UIDynamicTab)getObject()).setTabPage(_pValue);
+									hasBeenRenamed = true;
+								}
+							}
+							if (getObject() instanceof UIDynamicMenuItem) {
+								if ("itempage".equals(propertyName)) {
+									((UIDynamicMenuItem)getObject()).setItemPage(_pValue);
 									hasBeenRenamed = true;
 								}
 							}

@@ -42,6 +42,7 @@ import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIAttribute;
+import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlAttr;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlCustomAction;
@@ -51,6 +52,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UICustom;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.mobile.components.UIElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIForm;
 import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
@@ -293,8 +295,15 @@ public class ComponentManager {
 				
 				@Override
 				public boolean isAllowedIn(DatabaseObject parent) {
-					if (bean.getTag().equals("ion-menu"))
+					if (bean.getTag().equals("ion-menu")) {
 						return parent instanceof ApplicationComponent;
+					}
+					if (bean.getName().equals("MenuItem")) {
+						if (parent instanceof UIComponent) {
+							UIDynamicMenu menu = ((UIComponent)parent).getMenu();
+							return menu != null && !menu.isAutoMenu();
+						}
+					}
 					
 					if (parent instanceof PageComponent)
 						return true;

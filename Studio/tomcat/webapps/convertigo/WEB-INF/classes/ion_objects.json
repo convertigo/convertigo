@@ -1,7 +1,59 @@
 {
   /*  Property models   */
   "Props": {
-
+	"MenuType": {
+	  "attr": "type",
+	  "label": "Type",
+	  "description": "Specifies the menu type",
+	  "category": "Attributes",
+	  "value": false,
+	  "values": [
+		false,
+		"overlay",
+		"push",
+		"reveal"
+	  ]
+	},
+	
+	"MenuSide": {
+	  "attr": "side",
+	  "label": "Side",
+	  "description": "Specifies the menu side",
+	  "category": "Attributes",
+	  "value": false,
+	  "values": [
+		false,
+		"left",
+		"right"
+	  ]
+	},
+	
+	"MenuPersistent": {
+	  "attr": "persistent",
+	  "label": "Persistent",
+	  "description": "Specifies whether the menu is persistent or not on child pages",
+	  "category": "Attributes",
+	  "value": false,
+	  "values": [
+		false,
+		"false",
+		"true"
+	  ]
+	},
+	
+	"MenuSwipeEnabled": {
+	  "attr": "swipeEnabled",
+	  "label": "Swiping",
+	  "description": "Specifies whether swiping the menu is enabled",
+	  "category": "Attributes",
+	  "value": false,
+	  "values": [
+		false,
+		"false",
+		"true"
+	  ]
+	},
+	
 	"FormControlName": {
       "label": "Control name",
       "description": "The associated declared form's control name",
@@ -1892,55 +1944,10 @@
       "icon16": "menu_color_16x16.png",
       "icon32": "menu_color_32x32.png",
       "properties": {
-        "Type": {
-          "attr": "type",
-          "label": "Type",
-          "description": "Specifies the menu type",
-          "category": "Attributes",
-          "value": false,
-          "values": [
-            false,
-            "overlay",
-            "push",
-            "reveal"
-          ]
-        },
-        "Side": {
-          "attr": "side",
-          "label": "Side",
-          "description": "Specifies the menu side",
-          "category": "Attributes",
-          "value": false,
-          "values": [
-            false,
-            "left",
-            "right"
-          ]
-        },
-        "Persistent": {
-          "attr": "persistent",
-          "label": "Persistent",
-          "description": "Specifies whether the menu is persistent or not on child pages",
-          "category": "Attributes",
-          "value": false,
-          "values": [
-            false,
-            "false",
-            "true"
-          ]
-        },
-        "SwipeEnabled": {
-          "attr": "swipeEnabled",
-          "label": "Swiping",
-          "description": "Specifies whether swiping the menu is enabled",
-          "category": "Attributes",
-          "value": false,
-          "values": [
-            false,
-            "false",
-            "true"
-          ]
-        }
+        "MenuType": false,
+        "MenuSide": false,
+        "MenuPersistent": false,
+        "MenuSwipeEnabled": false
 	  }
 	},
 	
@@ -1953,56 +1960,23 @@
       "icon16": "menu_color_16x16.png",
       "icon32": "menu_color_32x32.png",
       "properties": {
-        "Type": {
-          "attr": "type",
-          "label": "Type",
-          "description": "Specifies the menu type",
-          "category": "Attributes",
-          "value": false,
-          "values": [
-            false,
-            "overlay",
-            "push",
-            "reveal"
-          ]
-        },
-        "Side": {
-          "attr": "side",
-          "label": "Side",
-          "description": "Specifies the menu side",
-          "category": "Attributes",
-          "value": false,
-          "values": [
-            false,
-            "left",
-            "right"
-          ]
-        },
-        "Persistent": {
-          "attr": "persistent",
-          "label": "Persistent",
-          "description": "Specifies whether the menu is persistent or not on child pages",
-          "category": "Attributes",
-          "value": false,
-          "values": [
-            false,
-            "false",
-            "true"
-          ]
-        },
-        "SwipeEnabled": {
-          "attr": "swipeEnabled",
-          "label": "Swiping",
-          "description": "Specifies whether swiping the menu is enabled",
-          "category": "Attributes",
-          "value": false,
-          "values": [
-            false,
-            "false",
-            "true"
-          ]
-        }
+        "MenuType": false,
+        "MenuSide": false,
+        "MenuPersistent": false,
+        "MenuSwipeEnabled": false
 	  }
+	},
+	
+	"MenuItem": {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItem",
+      "tag": "button",
+      "label": "MenuItem",
+      "description": "Defines a menu item. | MenuItem components may be added inside a CustomMenu component.<br/>A menu item acts as button and when clicked the navigation to the associated page is done.",
+      "group": "Menu",
+      "icon16": "menuitem_color_16x16.png",
+      "icon32": "menuitem_color_32x32.png",
+      "properties": {
+      }
 	},
 	
     "NavBar": {

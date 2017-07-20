@@ -53,12 +53,21 @@ public class UIDynamicTab extends UIDynamicElement {
 		this.tabpage = tabpage;
 	}
 
+	private String getPageName() {
+		if (!tabpage.isEmpty()) {
+			try {
+				return tabpage.substring(tabpage.lastIndexOf('.')+1);
+			} catch (Exception e) {}
+		}
+		return "";
+	}
+	
 	@Override
 	protected StringBuilder initAttributes() {
 		StringBuilder attributes = super.initAttributes();
-		if (!tabpage.isEmpty()) {
+		String pageName = getPageName();
+		if (!pageName.isEmpty()) {
 			try {
-				String pageName = tabpage.substring(tabpage.lastIndexOf('.')+1);
 				String pageTitle = getApplication().getPageComponentByName(pageName).getTitle();
 				attributes.append(" [root]").append("=").append("\"getPageByName('"+ pageTitle +"')\"");
 			} catch (Exception e) {}
@@ -66,4 +75,9 @@ public class UIDynamicTab extends UIDynamicElement {
 		return attributes;
 	}
 	
+	@Override
+	public String toString() {
+		String pageName = getPageName();
+		return super.toString() + ": " + (pageName.isEmpty() ? "?":pageName);
+	}
 }
