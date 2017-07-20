@@ -36,6 +36,7 @@ import com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.statements.HTTPStatement;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
@@ -112,6 +113,12 @@ public class WalkHelper {
 				}
 			}
 			
+			if (before(databaseObject, UIDynamicMenu.class)) {
+				for (UIDynamicMenu menu : applicationComponent.getMenuComponentList()) {
+					walk(menu);
+				}
+			}
+			
 			if (before(databaseObject, PageComponent.class)) {
 				for (PageComponent page : applicationComponent.getPageComponentList()) {
 					walk(page);
@@ -143,6 +150,14 @@ public class WalkHelper {
 			
 			if (before(databaseObject, UIComponent.class)) {
 				for (UIComponent ui : pageComponent.getUIComponentList()) {
+					walk(ui);
+				}
+			}
+		} else if (databaseObject instanceof UIDynamicMenu) {
+			UIDynamicMenu uiMenu = (UIDynamicMenu) databaseObject;
+			
+			if (before(databaseObject, UIComponent.class)) {
+				for (UIComponent ui : uiMenu.getUIComponentList()) {
 					walk(ui);
 				}
 			}

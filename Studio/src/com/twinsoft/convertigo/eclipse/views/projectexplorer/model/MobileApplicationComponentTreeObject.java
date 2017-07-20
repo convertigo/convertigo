@@ -41,6 +41,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
 import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
@@ -92,10 +93,13 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 			DatabaseObject dbo = doto.getObject();
 			
 			try {
-				if (getObject().equals(dbo.getParent())) {
+				if (dbo instanceof UIComponent) {
+					if (getObject().equals(((UIComponent)dbo).getMenu().getParent())) {
+						markApplicationAsDirty();
+					}
+				} else if (getObject().equals(dbo.getParent())) {
 					markApplicationAsDirty();
-				}
-				else if (getObject().equals(dbo.getParent().getParent())) {
+				} else if (getObject().equals(dbo.getParent().getParent())) {
 					markApplicationAsDirty();
 				} else if (this.equals(doto)) {
 					if (propertyName.equals("componentScriptContent")) {

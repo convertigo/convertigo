@@ -1883,6 +1883,128 @@
 	  }	
 	},
 	
+	"AutoMenu": {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu",
+      "tag": "ion-menu",
+      "label": "AutoMenu",
+      "description": "Defines an automatic menu to navigate through all pages. | This menu will show all your 'visible' pages in the order you've set.<br/>A page is considered as visible if it is enabled and if 'Include in auto menu' is set to true.",
+      "group": "Menu",
+      "icon16": "menu_color_16x16.png",
+      "icon32": "menu_color_32x32.png",
+      "properties": {
+        "Type": {
+          "attr": "type",
+          "label": "Type",
+          "description": "Specifies the menu type",
+          "category": "Attributes",
+          "value": false,
+          "values": [
+            false,
+            "overlay",
+            "push",
+            "reveal"
+          ]
+        },
+        "Side": {
+          "attr": "side",
+          "label": "Side",
+          "description": "Specifies the menu side",
+          "category": "Attributes",
+          "value": false,
+          "values": [
+            false,
+            "left",
+            "right"
+          ]
+        },
+        "Persistent": {
+          "attr": "persistent",
+          "label": "Persistent",
+          "description": "Specifies whether the menu is persistent or not on child pages",
+          "category": "Attributes",
+          "value": false,
+          "values": [
+            false,
+            "false",
+            "true"
+          ]
+        },
+        "SwipeEnabled": {
+          "attr": "swipeEnabled",
+          "label": "Swiping",
+          "description": "Specifies whether swiping the menu is enabled",
+          "category": "Attributes",
+          "value": false,
+          "values": [
+            false,
+            "false",
+            "true"
+          ]
+        }
+	  }
+	},
+	
+	"CustomMenu": {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu",
+      "tag": "ion-menu",
+      "label": "CustomMenu",
+      "description": "Defines a custom menu to navigate through desired pages. | Each MenuItem component added to this menu helps specifying the page to navigate to.<br/>You may customize the menu by adding other components and order MenuItems the way you want.",
+      "group": "Menu",
+      "icon16": "menu_color_16x16.png",
+      "icon32": "menu_color_32x32.png",
+      "properties": {
+        "Type": {
+          "attr": "type",
+          "label": "Type",
+          "description": "Specifies the menu type",
+          "category": "Attributes",
+          "value": false,
+          "values": [
+            false,
+            "overlay",
+            "push",
+            "reveal"
+          ]
+        },
+        "Side": {
+          "attr": "side",
+          "label": "Side",
+          "description": "Specifies the menu side",
+          "category": "Attributes",
+          "value": false,
+          "values": [
+            false,
+            "left",
+            "right"
+          ]
+        },
+        "Persistent": {
+          "attr": "persistent",
+          "label": "Persistent",
+          "description": "Specifies whether the menu is persistent or not on child pages",
+          "category": "Attributes",
+          "value": false,
+          "values": [
+            false,
+            "false",
+            "true"
+          ]
+        },
+        "SwipeEnabled": {
+          "attr": "swipeEnabled",
+          "label": "Swiping",
+          "description": "Specifies whether swiping the menu is enabled",
+          "category": "Attributes",
+          "value": false,
+          "values": [
+            false,
+            "false",
+            "true"
+          ]
+        }
+	  }
+	},
+	
     "NavBar": {
       "tag": "ion-navbar",
       "label": "NavBar",

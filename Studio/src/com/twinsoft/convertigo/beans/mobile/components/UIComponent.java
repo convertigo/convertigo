@@ -127,10 +127,7 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
     	ordered.remove(pos+1);
     	hasChanged = true;
     	
-    	PageComponent page = getPage();
-    	if (page != null) {
-    		page.markPageAsDirty();
-    	}
+    	markAsDirty();
     }
     
     private void decreaseOrder(DatabaseObject databaseObject, Long after) throws EngineException {
@@ -154,10 +151,7 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
     	ordered.remove(pos);
     	hasChanged = true;
     	
-    	PageComponent page = getPage();
-    	if (page != null) {
-    		page.markPageAsDirty();
-    	}
+    	markAsDirty();
     }
     
 	public void increasePriority(DatabaseObject databaseObject) throws EngineException {
@@ -223,10 +217,7 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
         insertOrderedComponent(uiComponent, after);
         
         if (isNew || isCut) {
-        	PageComponent page = getPage();
-        	if (page != null) {
-        		page.markPageAsDirty();
-        	}
+        	markAsDirty();
         }
 	}
 	
@@ -242,10 +233,7 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		
         removeOrderedComponent(uiComponent.priority);
         
-        PageComponent page = getPage();
-        if (page != null) {
-        	page.markPageAsDirty();
-        }
+    	markAsDirty();
 	}
 
 	public List<UIComponent> getUIComponentList() {
@@ -322,6 +310,18 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		return element;
 	}
 
+	public UIDynamicMenu getMenu() {
+		DatabaseObject databaseObject = this;
+		while (!(databaseObject instanceof UIDynamicMenu) && databaseObject != null) { 
+			databaseObject = databaseObject.getParent();
+		}
+		
+		if (databaseObject == null)
+			return null;
+		else
+			return (UIDynamicMenu) databaseObject;
+	}
+	
 	public PageComponent getPage() {
 		DatabaseObject databaseObject = this;
 		while (!(databaseObject instanceof PageComponent) && databaseObject != null) { 
@@ -374,4 +374,14 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		}
 	}
 	
+	protected void markAsDirty() throws EngineException {
+    	PageComponent page = getPage();
+    	if (page != null) {
+    		page.markPageAsDirty();
+    	}
+    	UIDynamicMenu menu = getMenu();
+    	if (menu != null) {
+    		menu.markMenuAsDirty();
+    	}
+	}
 }

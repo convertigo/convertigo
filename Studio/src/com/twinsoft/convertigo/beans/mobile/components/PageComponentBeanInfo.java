@@ -41,7 +41,7 @@ public class PageComponentBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[5];
+			properties = new PropertyDescriptor[6];
 			
 			properties[0] = new PropertyDescriptor("orderedComponents", beanClass, "getOrderedComponents", "setOrderedComponents");
 			properties[0].setDisplayName(getExternalizedString("property.orderedComponents.display_name"));
@@ -61,9 +61,13 @@ public class PageComponentBeanInfo extends MySimpleBeanInfo {
 			properties[3].setShortDescription(getExternalizedString("property.scriptContent.short_description"));
 			properties[3].setHidden(true);
 			
-            properties[4] = new PropertyDescriptor("isEnabled", beanClass, "isEnabled", "setEnabled");
-			properties[4].setDisplayName(getExternalizedString("property.isEnabled.display_name"));
-			properties[4].setShortDescription(getExternalizedString("property.isEnabled.short_description"));
+            properties[4] = new PropertyDescriptor("inAutoMenu", beanClass, "isInAutoMenu", "setInAutoMenu");
+			properties[4].setDisplayName(getExternalizedString("property.inAutoMenu.display_name"));
+			properties[4].setShortDescription(getExternalizedString("property.inAutoMenu.short_description"));
+
+			properties[5] = new PropertyDescriptor("isEnabled", beanClass, "isEnabled", "setEnabled");
+			properties[5].setDisplayName(getExternalizedString("property.isEnabled.display_name"));
+			properties[5].setShortDescription(getExternalizedString("property.isEnabled.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

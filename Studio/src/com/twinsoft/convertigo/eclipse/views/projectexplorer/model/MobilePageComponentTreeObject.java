@@ -197,7 +197,7 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 						if (!newValue.equals(oldValue)) {
 							markPageEnabledAsDirty();
 						}
-					} else if (propertyName.equals("title")) {
+					} else if (propertyName.equals("title") || propertyName.equals("inAutoMenu")) {
 						if (!newValue.equals(oldValue)) {
 							markAppComponentTsAsDirty();
 						}

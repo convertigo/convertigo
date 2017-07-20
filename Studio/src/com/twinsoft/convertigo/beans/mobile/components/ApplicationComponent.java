@@ -60,10 +60,14 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 	private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();
 	private XMLVector<XMLVector<Long>> orderedRoutes = new XMLVector<XMLVector<Long>>();
 	private XMLVector<XMLVector<Long>> orderedPages = new XMLVector<XMLVector<Long>>();
+	private XMLVector<XMLVector<Long>> orderedMenus = new XMLVector<XMLVector<Long>>();
 	
 	public ApplicationComponent() {
 		super();
 		
+		orderedMenus = new XMLVector<XMLVector<Long>>();
+		orderedMenus.add(new XMLVector<Long>());
+
 		orderedPages = new XMLVector<XMLVector<Long>>();
 		orderedPages.add(new XMLVector<Long>());
 		
@@ -79,6 +83,7 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		ApplicationComponent cloned = (ApplicationComponent) super.clone();
 		cloned.vRouteComponents = new LinkedList<RouteComponent>();
 		cloned.vPageComponents = new LinkedList<PageComponent>();
+		cloned.vMenuComponents = new LinkedList<UIDynamicMenu>();
 		cloned.vUIComponents = new LinkedList<UIComponent>();
 		cloned.computedContents = null;
 		cloned.rootPage = null;
@@ -130,6 +135,38 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 	public void setComponentScriptContent(FormatedContent componentScriptContent) {
 		this.componentScriptContent = componentScriptContent;
 	}
+	
+	public XMLVector<XMLVector<Long>> getOrderedMenus() {
+		return orderedMenus;
+	}
+    
+	public void setOrderedMenus(XMLVector<XMLVector<Long>> orderedMenus) {
+		this.orderedMenus = orderedMenus;
+	}
+	
+    private void insertOrderedMenu(UIDynamicMenu component, Long after) {
+    	List<Long> ordered = orderedMenus.get(0);
+    	int size = ordered.size();
+    	
+    	if (ordered.contains(component.priority))
+    		return;
+    	
+    	if (after == null) {
+    		after = new Long(0);
+    		if (size>0)
+    			after = ordered.get(ordered.size()-1);
+    	}
+    	
+   		int order = ordered.indexOf(after);
+    	ordered.add(order+1, component.priority);
+    	hasChanged = true;
+    }
+    
+    private void removeOrderedMenu(Long value) {
+        Collection<Long> ordered = orderedMenus.get(0);
+        ordered.remove(value);
+        hasChanged = true;
+    }
 	
 	public XMLVector<XMLVector<Long>> getOrderedPages() {
 		return orderedPages;
@@ -237,9 +274,11 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
     	
     	if (databaseObject instanceof PageComponent)
     		ordered = orderedPages.get(0);
-    	if (databaseObject instanceof RouteComponent)
+    	else if (databaseObject instanceof RouteComponent)
     		ordered = orderedRoutes.get(0);
-    	if (databaseObject instanceof UIComponent)
+    	else if (databaseObject instanceof UIDynamicMenu)
+    		ordered = orderedMenus.get(0);
+    	else if (databaseObject instanceof UIComponent)
     		ordered = orderedComponents.get(0);
     	
     	if (ordered == null || !ordered.contains(value))
@@ -265,9 +304,11 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
     	
     	if (databaseObject instanceof PageComponent)
     		ordered = orderedPages.get(0);
-    	if (databaseObject instanceof RouteComponent)
+    	else if (databaseObject instanceof RouteComponent)
     		ordered = orderedRoutes.get(0);
-    	if (databaseObject instanceof UIComponent)
+    	else if (databaseObject instanceof UIDynamicMenu)
+    		ordered = orderedMenus.get(0);
+    	else if (databaseObject instanceof UIComponent)
     		ordered = orderedComponents.get(0);
     	
     	if (ordered == null || !ordered.contains(value))
@@ -288,15 +329,21 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
     }
     
 	public void increasePriority(DatabaseObject databaseObject) throws EngineException {
-		if (databaseObject instanceof PageComponent 
-				|| databaseObject instanceof RouteComponent)
-			increaseOrder(databaseObject,null);
+		increaseOrder(databaseObject,null);
+		if (databaseObject instanceof PageComponent || databaseObject instanceof RouteComponent) {
+			markComponentTsAsDirty();
+		} else {
+			markApplicationAsDirty();
+		}
 	}
 
 	public void decreasePriority(DatabaseObject databaseObject) throws EngineException {
-		if (databaseObject instanceof PageComponent 
-				|| databaseObject instanceof RouteComponent)
-			decreaseOrder(databaseObject,null);
+		decreaseOrder(databaseObject,null);
+		if (databaseObject instanceof PageComponent || databaseObject instanceof RouteComponent) {
+			markComponentTsAsDirty();
+		} else {
+			markApplicationAsDirty();
+		}
 	}
     
     /**
@@ -317,6 +364,13 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
         	if (ordered.contains(time))
         		return (long)ordered.indexOf(time);
         	else throw new EngineException("Corrupted route for application \""+ getName() +"\". RouteComponent \""+ ((RouteComponent)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
+        }
+        else if (object instanceof UIDynamicMenu) {
+        	List<Long> ordered = orderedMenus.get(0);
+        	long time = ((UIDynamicMenu)object).priority;
+        	if (ordered.contains(time))
+        		return (long)ordered.indexOf(time);
+        	else throw new EngineException("Corrupted menu for application \""+ getName() +"\". MenuComponent \""+ ((UIDynamicMenu)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
         }
         else if (object instanceof UIComponent) {
         	List<Long> ordered = orderedComponents.get(0);
@@ -453,6 +507,89 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		} else throw new IllegalArgumentException("The value of argument 'pageComponent' is invalid: the page does not belong to the application");
 	}
 	
+	/**
+	 * The list of available menu component for this application.
+	 */
+	transient private List<UIDynamicMenu> vMenuComponents = new LinkedList<UIDynamicMenu>();
+	
+	protected void addMenuComponent(UIDynamicMenu menuComponent) throws EngineException {
+		addMenuComponent(menuComponent, null);
+	}
+	
+	protected void addMenuComponent(UIDynamicMenu menuComponent, Long after) throws EngineException {
+		checkSubLoaded();
+		String newDatabaseObjectName = getChildBeanName(vMenuComponents, menuComponent.getName(), menuComponent.bNew);
+		menuComponent.setName(newDatabaseObjectName);
+		vMenuComponents.add(menuComponent);
+		/*if (menuComponent.isRoot) {
+			setRootMenu(menuComponent);
+		}*/
+		super.add(menuComponent);
+		
+		insertOrderedMenu(menuComponent, after);
+		
+		if (menuComponent.bNew) {
+			markApplicationAsDirty();
+		}
+	}
+
+	protected void removeMenuComponent(UIDynamicMenu menuComponent) throws EngineException {
+		checkSubLoaded();
+		vMenuComponents.remove(menuComponent);
+		
+		removeOrderedMenu(menuComponent.priority);
+		
+		markApplicationAsDirty();
+	}
+	
+	public List<UIDynamicMenu> getMenuComponentList() {
+		checkSubLoaded();
+		return sort(vMenuComponents);
+	}
+
+	public UIDynamicMenu getMenuComponentByName(String menuName) throws EngineException {
+		checkSubLoaded();
+		for (UIDynamicMenu menuComponent : vMenuComponents)
+			if (menuComponent.getName().equalsIgnoreCase(menuName)) return menuComponent;
+		throw new EngineException("There is no menu component named \"" + menuName + "\" found into this application.");
+	}
+	
+	transient private UIDynamicMenu rootMenu = null;
+	
+	public UIDynamicMenu getRootMenu() throws EngineException {
+		if (rootMenu == null) {
+			checkSubLoaded();
+			/*for (UIDynamicMenu menuComponent : vMenuComponents) {
+				if (menuComponent.isRoot) {
+					rootMenu = menuComponent;
+					break;
+				}
+			}*/
+		}
+		if (rootMenu == null) {
+			if (Engine.isEngineMode()) {
+				// Fire exception in Engine mode only!
+				//throw new EngineException("There is no root menu defined for application \"" + getName() + "\".");
+			}
+			else {
+				// In Studio mode we must be able to set a root menu!
+			}
+		}
+		return rootMenu;
+	}
+	
+	public synchronized void setRootMenu(UIDynamicMenu menuComponent) throws EngineException {
+		if (menuComponent == null)
+			throw new IllegalArgumentException("The value of argument 'menuComponent' is null");
+		checkSubLoaded();
+		if (vMenuComponents.contains(menuComponent)) {
+			/*if (rootMenu == null) getRootMenu();
+			if (rootMenu != null) rootMenu.isRoot = false;
+			menuComponent.isRoot = true;
+			rootMenu = menuComponent;*/
+		} else throw new IllegalArgumentException("The value of argument 'menuComponent' is invalid: the menu does not belong to the application");
+	}
+	
 	
 	private String getThemeTplScss() {
 		File projectDir = new File(getProject().getDirPath());
@@ -541,6 +678,7 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		List<DatabaseObject> rep = super.getAllChildren();
 		if (theme != null) rep.add(theme);
 		rep.addAll(getRouteComponentList());
+		rep.addAll(getMenuComponentList());
 		rep.addAll(getPageComponentList());
 		rep.addAll(getUIComponentList());
 		return rep;
@@ -552,6 +690,8 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 			addRouteComponent((RouteComponent) databaseObject, after);
 		} else if (databaseObject instanceof PageComponent) {
 			addPageComponent((PageComponent) databaseObject);
+		} else if (databaseObject instanceof UIDynamicMenu) {
+			addMenuComponent((UIDynamicMenu) databaseObject);
 		} else if (databaseObject instanceof UIComponent) {
 			addUIComponent((UIComponent) databaseObject, after);
 		} else {
@@ -570,6 +710,8 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 			removeRouteComponent((RouteComponent) databaseObject);
 		} else if (databaseObject instanceof PageComponent) {
 			removePageComponent((PageComponent) databaseObject);
+		} else if (databaseObject instanceof UIDynamicMenu) {
+			removeMenuComponent((UIDynamicMenu) databaseObject);
 		} else if (databaseObject instanceof UIComponent) {
 			removeUIComponent((UIComponent) databaseObject);
 		} else {
@@ -648,7 +790,7 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 			if (oldComputedContent != null && newComputedContent != null) {
 				if (!(newComputedContent.getString("template")
 						.equals(oldComputedContent.getString("template")))) {
-					//getProject().getMobileBuilder().appTemplateChanged(this);
+					getProject().getMobileBuilder().appTemplateChanged(this);
 				}
 			}
 			
@@ -679,8 +821,32 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
     
 	@Override
 	public String computeTemplate() {
-		//TODO
-		return "";
+		StringBuilder sb = new StringBuilder();
+		
+		Iterator<UIDynamicMenu> it = getMenuComponentList().iterator();
+		while (it.hasNext()) {
+			UIDynamicMenu menu = it.next();
+			if (menu.isAutoMenu()) {
+				if (menu.isEnabled()) {
+					StringBuilder tpl = new StringBuilder();
+					tpl.append("<ion-menu").append(menu.initAttributes()).append(">").append(System.lineSeparator());
+					tpl.append("<ion-header><ion-toolbar><ion-title>Menu</ion-title></ion-toolbar></ion-header>").append(System.lineSeparator());
+					tpl.append("<ion-content><ion-list><button menuClose ion-item *ngFor=\"let p of getPagesIncludedInAutoMenu()\" (click)=\"openPage(p)\">{{p.title}}</button></ion-list></ion-content>").append(System.lineSeparator());
+					tpl.append("</ion-menu>").append(System.lineSeparator());
+					sb.append(tpl).append(System.lineSeparator());
+				}
+			} else {
+				String menuTemplate = menu.computeTemplate();
+				if (!menuTemplate.isEmpty()) {
+					sb.append(menuTemplate).append(System.lineSeparator());
+				}
+			}
+		}
+		
+		sb.append("<ion-nav [root]=\"rootPage\" #content swipeBackEnabled=\"false\"></ion-nav>");
+		sb.append(System.lineSeparator());
+		
+		return sb.toString();
 	}
 
 	/*

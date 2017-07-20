@@ -155,6 +155,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlAttr;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlSource;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.mobile.components.UIFormValidator;
 import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
@@ -333,6 +334,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public static final int TREE_OBJECT_TYPE_FOLDER_STYLES = 0x217;
 	public static final int TREE_OBJECT_TYPE_FOLDER_ATTRIBUTES = 0x218;
 	public static final int TREE_OBJECT_TYPE_FOLDER_VALIDATORS = 0x219;
+	public static final int TREE_OBJECT_TYPE_FOLDER_MENUS = 0x21A;
 
 	public static final int TREE_OBJECT_TYPE_MISC = 0x8000;						// 1000 0000 0000 0000
 
@@ -1488,6 +1490,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_PAGES;
 							databaseObjectTreeObject = new MobilePageComponentTreeObject(viewer, (PageComponent) databaseObject, false);
 							
+						} else if (databaseObject instanceof UIDynamicMenu) {
+							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_MENUS;
+							databaseObjectTreeObject = new MobileUIComponentTreeObject(viewer, (UIDynamicMenu) databaseObject, false);
+							
 						} else if (databaseObject instanceof UIComponent) {
 							if (databaseObject instanceof UIAttribute) {
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_ATTRIBUTES;
@@ -2417,6 +2423,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			}
 			else if (folderType == ObjectsFolderTreeObject.FOLDER_TYPE_VALIDATORS) {
 				return ProjectExplorerView.TREE_OBJECT_TYPE_FOLDER_VALIDATORS;
+			}
+			else if (folderType == ObjectsFolderTreeObject.FOLDER_TYPE_MENUS) {
+				return ProjectExplorerView.TREE_OBJECT_TYPE_FOLDER_MENUS;
 			}
 			else if (folderType == ObjectsFolderTreeObject.FOLDER_TYPE_PLATFORMS) {
 				return ProjectExplorerView.TREE_OBJECT_TYPE_FOLDER_MOBILEPLATFORMS;

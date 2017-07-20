@@ -197,6 +197,13 @@ public class MobileBuilder {
 		}
 	}
 
+	public synchronized void appTemplateChanged(final ApplicationComponent app) throws EngineException {
+		if (app != null && initDone) {
+			writeAppTemplate(app);
+			Engine.logEngine.debug("(MobileBuilder) Handled 'appTemplateChanged'");
+		}
+	}
+	
 	public synchronized void appThemeChanged(final ApplicationComponent app) throws EngineException {
 		if (app != null && initDone) {
 			writeAppTheme(app);
@@ -548,10 +555,11 @@ public class MobileBuilder {
 					String pageName = page.getName();
 					String pageTitle = page.getTitle();
 					boolean isRootPage = page.isRoot;
+					boolean isMenuPage = page.isInAutoMenu();
 					boolean isLastPage = i == pages.size();
 					if (isRootPage) c8o_RootPage = pageName;
 					c8o_PagesImport += "import { "+pageName+" } from \"../pages/"+pageName+"/"+pageName.toLowerCase()+"\";\n";
-					c8o_PagesVariables += " { title: '"+pageTitle+"', component: "+pageName+" }" + (isLastPage ? "":",");
+					c8o_PagesVariables += " { title: '"+pageTitle+"', component: "+pageName+", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
 					i++;
 				}
 				
@@ -603,10 +611,9 @@ public class MobileBuilder {
 		try {
 			if (app != null) {
 				String appName = app.getName();
-				//File appHtmlFile = new File(ionicWorkDir, "src/app/app.html");
-				//String computedTemplate = app.getComputedTemplate();
-				//FileUtils.write(appHtmlFile, computedTemplate, "UTF-8");
-				
+				File appHtmlFile = new File(ionicWorkDir, "src/app/app.html");
+				String computedTemplate = app.getComputedTemplate();
+				FileUtils.write(appHtmlFile, computedTemplate, "UTF-8");
 				Engine.logEngine.debug("(MobileBuilder) Ionic template file generated for app '"+appName+"'");
 			}
 		}

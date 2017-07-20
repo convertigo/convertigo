@@ -70,6 +70,7 @@ import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective.AttrDirective;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.statements.ElseStatement;
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
@@ -562,6 +563,11 @@ public class ClipboardManager {
 							databaseObject.newPriority = databaseObject.priority;
 							app.add(databaseObject);
 						}
+						else if (databaseObject instanceof UIDynamicMenu) {
+							databaseObject.priority = databaseObject.getNewOrderValue();
+							databaseObject.newPriority = databaseObject.priority;
+							app.add(databaseObject);
+						}
 						else if (databaseObject instanceof UIComponent) {
 							databaseObject.priority = databaseObject.getNewOrderValue();
 							databaseObject.newPriority = databaseObject.priority;
@@ -592,6 +598,13 @@ public class ClipboardManager {
 							databaseObject.priority = databaseObject.getNewOrderValue();
 							databaseObject.newPriority = databaseObject.priority;
 							page.add(databaseObject);
+						}
+					} else if (parentDatabaseObject instanceof UIDynamicMenu) {
+						UIDynamicMenu menu = (UIDynamicMenu) parentDatabaseObject;
+						if (databaseObject instanceof UIComponent) {
+							databaseObject.priority = databaseObject.getNewOrderValue();
+							databaseObject.newPriority = databaseObject.priority;
+							menu.add(databaseObject);
 						}
 					} else if (parentDatabaseObject instanceof UIComponent) {
 						UIComponent component = (UIComponent) parentDatabaseObject;

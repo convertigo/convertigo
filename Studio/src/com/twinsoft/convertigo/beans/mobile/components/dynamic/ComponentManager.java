@@ -293,6 +293,9 @@ public class ComponentManager {
 				
 				@Override
 				public boolean isAllowedIn(DatabaseObject parent) {
+					if (bean.getTag().equals("ion-menu"))
+						return parent instanceof ApplicationComponent;
+					
 					if (parent instanceof PageComponent)
 						return true;
 					if (parent instanceof UIDynamicElement)

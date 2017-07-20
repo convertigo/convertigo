@@ -360,6 +360,16 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 		this.title = title;
 	}
 
+	private boolean inAutoMenu = true;
+	
+	public boolean isInAutoMenu() {
+		return inAutoMenu;
+	}
+
+	public void setInAutoMenu(boolean inAutoMenu) {
+		this.inAutoMenu = inAutoMenu;
+	}
+
 	protected FormatedContent scriptContent = new FormatedContent("");
 
 	public FormatedContent getScriptContent() {
