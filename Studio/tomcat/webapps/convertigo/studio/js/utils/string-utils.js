@@ -2,6 +2,21 @@ var StringUtils = {
 	addDoubleSlash: function (text) {
 		return "// " + text;
 	},
+	// Source: https://stackoverflow.com/questions/2808368/decode-html-entities-in-javascript/2808386#2808386
+    decodeHTML: function (text) {
+        var entities = {
+            "&amp;": "&",
+            "&lt;": "<",
+            "&gt;": ">"
+        };
+
+        for (var prop in entities) {
+            if (entities.hasOwnProperty(prop)) {
+                text = text.replace(new RegExp(prop, "g"), entities[prop]);
+            }
+        }
+        return text;
+    },
 	escapeHTML: function (text) {
 		var fakeDiv = $("<div/>", {
 			text: text

@@ -35,7 +35,7 @@ public class DatabaseObjectView implements WrapDatabaseObject {
 	}
 
     @Override
-    public ProjectView getProjectTreeObject() {
+    public ProjectView getProjectViewObject() {
         return new ProjectView(dbo.getProject(), studio);
     }
 }

@@ -1,46 +1,38 @@
-function SequenceEditor(id) {
-    var $tabContainer = $(".graphicEditorsView").last();
-    $tabContainer.attr("id", id);
+function SequenceEditor(id, projectsView, qname) {
+    AbstractEditor.call(this, id, "sequence", "sequence-editor");
 
-    $tabContainer.parent().parent().css("background-color", Main.isCheDarkTheme() ? "#222222" : "white");
-
-    var $top = $("<div>", {
-        text: " ",
-        "class": "editor-top-bar"
-    });
+    new SequenceEditorToolbar(this.toolbarContainer, projectsView, qname);
 
     // Internal requester output
-    var $internalRequesterCode = $("<code/>");
+    this.internalRequesterCode = $("<code/>");
     var $internalRequesterOutput = $("<pre/>", {
         "class": "internal-requester-output"
     });
-    $internalRequesterOutput.append($internalRequesterCode);
+    $internalRequesterOutput.append(this.internalRequesterCode);
     var $divInternalRequester = $("<div/>", {
         "class": "internal-requester"
     });
     $divInternalRequester.append($internalRequesterOutput);
 
-    // Sequence output
-    var $sequenceCode = $("<code/>", {
-        text: " ",
-        "class": "language-markup"
-    });
-    var $sequenceOutput = $("<pre/>", {
-        "class": "sequence-output"
-    });
-    $sequenceOutput.append($sequenceCode);
-    var $divSequence = $("<div/>", {
-        "class": "sequence-editor"
-    });
-    $divSequence.append($sequenceOutput);
-
     // Internal requester output + Sequence output container
-    var $bottom = $("<div/>");
-    $bottom
-        .append($divInternalRequester)
-        .append($divSequence);
-
-    $tabContainer
-        .append($top)
-        .append($bottom);
+    this.bottom.prepend($divInternalRequester)
 }
+
+SequenceEditor.prototype = Object.create(AbstractEditor.prototype);
+SequenceEditor.prototype.constructor = SequenceEditor;
+
+SequenceEditor.prototype.setContent = function (content) {
+    if (content.startsWith('<?xml version="1.0" encoding="UTF-8"?>')) {
+        this.internalRequesterCode.addClass("language-markup");
+        content = StringUtils.decodeHTML(content);
+    }
+    this.internalRequesterCode.text(content);
+    Prism.highlightElement(this.internalRequesterCode[0]);
+};
+
+SequenceEditor.prototype.clearContent = function () {
+    this.internalRequesterCode.removeClass("language-markup");
+
+    // ALT + 0160 character, to make the div to have a width/height, it might changed later
+    this.internalRequesterCode.text(" ");
+};

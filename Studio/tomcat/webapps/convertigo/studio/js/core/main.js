@@ -25,10 +25,12 @@ var Main = {
             /**
              * Editors
              */
+            "abstract-editor",
+
 			// Sequence
             "sequence-editor",
 
-			// Connnectors
+			// Connectors
             "cicsconnector-editor",
             "couchdbconnector-editor",
             "fullsyncconnector-editor",
@@ -50,6 +52,7 @@ var Main = {
 	    	 * Managers
 	    	 */
 	    	"database-object-manager",
+	    	"editors-manager",
 	        "response-action-manager",
 
 	        /**
@@ -64,6 +67,22 @@ var Main = {
              * Toolbars
              */
              "toolbar",
+             // Editors
+                 // Connectors
+             "cicsconnector-editor-toolbar",
+             "couchdbconnector-editor-toolbar",
+             "fullsyncconnector-editor-toolbar",
+             "htmlconnector-editor-toolbar",
+             "httpconnector-editor-toolbar",
+             "javelinconnector-editor-toolbar",
+             "proxyhttpconnector-editor-toolbar",
+             "sapjcoconnector-editor-toolbar",
+             "siteclipperconnector-editor-toolbar",
+             "sqlconnector-editor-toolbar",
+                 // Sequences
+             "sequence-editor-toolbar",
+
+             // Views
              "enginelog-toolbar",
              "projects-toolbar",
 
@@ -127,8 +146,6 @@ var Main = {
 				StyleUtils.injectLinkStyle(Convertigo.createServiceUrl("studio.database_objects.GetPaletteIconsCSS"));
 				StyleUtils.injectLinkStyle(Convertigo.createServiceUrl("studio.database_objects.GetTreeIconsCSS"));
 
-				that.initListeners();
-
 				// All tabs
 				var sourcePicker = new SourcePicker();
 				var references = new References();
@@ -147,6 +164,8 @@ var Main = {
 				var $secondTabDiv = $(".secondTabView");
 				$secondTabDiv.css("height", "100%");
 				$secondTabDiv.parent().css("height", "100%");
+
+                that.initListeners(projectsView);
 
 				// Extract all views from a GL config
                 var getViews = function (config, views) {
@@ -345,9 +364,9 @@ var Main = {
 			});
 		});
 	},
-	initListeners: function () {
+	initListeners: function (projectsView) {
 	    C8OServerEventsListener.init();
-	    GwtEventsListener.init();
+	    GwtEventsListener.init(projectsView);
 	},
 	defineScripts: function () {
 		// All scripts are defined here
@@ -370,8 +389,10 @@ var Main = {
 		        /**
 		         * Editors
 		         */
+                "abstract-editor":  Convertigo.getBaseConvertigoStudioUrl("js/editors/abstract-editor"),
+
 		        // Sequence
-	              "sequence-editor":  Convertigo.getBaseConvertigoStudioUrl("js/editors/sequences/sequence-editor"),
+		        "sequence-editor":  Convertigo.getBaseConvertigoStudioUrl("js/editors/sequences/sequence-editor"),
 
 	            // Connectors
 		        "cicsconnector-editor":  Convertigo.getBaseConvertigoStudioUrl("js/editors/connectors/cicsconnector-editor"),
@@ -395,6 +416,7 @@ var Main = {
 		    	 * Managers
 		    	 */
 		    	"database-object-manager": Convertigo.getBaseConvertigoStudioUrl("js/managers/database-object-manager"),
+	            "editors-manager": Convertigo.getBaseConvertigoStudioUrl("js/managers/editors-manager"),
 		        "response-action-manager": Convertigo.getBaseConvertigoStudioUrl("js/managers/response-action-manager"),
 
 		        /**
@@ -409,8 +431,24 @@ var Main = {
 		    	 * Toolbars
 		    	 */
 	             "toolbar": Convertigo.getBaseConvertigoStudioUrl("js/toolbars/toolbar"),
-	             "enginelog-toolbar": Convertigo.getBaseConvertigoStudioUrl("js/toolbars/enginelog-toolbar"),
-	             "projects-toolbar": Convertigo.getBaseConvertigoStudioUrl("js/toolbars/projects-toolbar"),
+	             // Editors
+	                 // Connectors
+                 "cicsconnector-editor-toolbar": Convertigo.getBaseConvertigoStudioUrl("js/toolbars/editors/connectors/cicsconnector-editor-toolbar"),
+                 "couchdbconnector-editor-toolbar": Convertigo.getBaseConvertigoStudioUrl("js/toolbars/editors/connectors/couchdbconnector-editor-toolbar"),
+                 "fullsyncconnector-editor-toolbar": Convertigo.getBaseConvertigoStudioUrl("js/toolbars/editors/connectors/fullsyncconnector-editor-toolbar"),
+                 "htmlconnector-editor-toolbar": Convertigo.getBaseConvertigoStudioUrl("js/toolbars/editors/connectors/htmlconnector-editor-toolbar"),
+                 "httpconnector-editor-toolbar": Convertigo.getBaseConvertigoStudioUrl("js/toolbars/editors/connectors/httpconnector-editor-toolbar"),
+                 "javelinconnector-editor-toolbar": Convertigo.getBaseConvertigoStudioUrl("js/toolbars/editors/connectors/javelinconnector-editor-toolbar"),
+                 "proxyhttpconnector-editor-toolbar": Convertigo.getBaseConvertigoStudioUrl("js/toolbars/editors/connectors/proxyhttpconnector-editor-toolbar"),
+                 "sapjcoconnector-editor-toolbar": Convertigo.getBaseConvertigoStudioUrl("js/toolbars/editors/connectors/sapjcoconnector-editor-toolbar"),
+                 "siteclipperconnector-editor-toolbar": Convertigo.getBaseConvertigoStudioUrl("js/toolbars/editors/connectors/siteclipperconnector-editor-toolbar"),
+                 "sqlconnector-editor-toolbar": Convertigo.getBaseConvertigoStudioUrl("js/toolbars/editors/connectors/sqlconnector-editor-toolbar"),
+                     // Sequences
+                 "sequence-editor-toolbar": Convertigo.getBaseConvertigoStudioUrl("js/toolbars/editors/sequences/sequence-editor-toolbar"),
+
+	             // Views
+	             "enginelog-toolbar": Convertigo.getBaseConvertigoStudioUrl("js/toolbars/views/enginelog-toolbar"),
+	             "projects-toolbar": Convertigo.getBaseConvertigoStudioUrl("js/toolbars/views/projects-toolbar"),
 
 		        /**
 		         * Utils

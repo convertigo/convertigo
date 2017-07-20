@@ -1,33 +1,8 @@
-function ProxyHttpConnectorEditor(id) {
-    var $tabContainer = $(".graphicEditorsView").last();
-    $tabContainer.attr("id", id);
+function ProxyHttpConnectorEditor(id, projectsView, qname) {
+    AbstractEditor.call(this, id, "proxyhttpconnector-output", "proxyhttpconnector connector-editor");
 
-    $tabContainer.parent().parent().css("background-color", Main.isCheDarkTheme() ? "#222222" : "white");
-
-    var $top = $("<div>", {
-        text: " ",
-        "class": "editor-top-bar"
-    });
-
-    // Connector output
-    var $connectorCode = $("<code/>", {
-        text: " ",
-        "class": "language-markup"
-    });
-    var $connectorOutput = $("<pre/>", {
-        "class": "output proxyhttpconnector-output"
-    });
-    $connectorOutput.append($connectorCode);
-    var $divConnector = $("<div/>", {
-        "class": "proxyhttpconnector connector-editor"
-    });
-    $divConnector.append($connectorOutput);
-
-    var $bottom = $("<div/>");
-    $bottom
-        .append($divConnector);
-
-    $tabContainer
-        .append($top)
-        .append($bottom);
+    new ProxyHttpConnectorEditorToolbar(this.toolbarContainer, projectsView, qname);
 }
+
+ProxyHttpConnectorEditor.prototype = Object.create(AbstractEditor.prototype);
+ProxyHttpConnectorEditor.prototype.constructor = ProxyHttpConnectorEditor;

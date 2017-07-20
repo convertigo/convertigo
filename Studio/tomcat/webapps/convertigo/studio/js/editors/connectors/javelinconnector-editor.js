@@ -1,33 +1,8 @@
-function JavelinConnectorEditor(id) {
-    var $tabContainer = $(".graphicEditorsView").last();
-    $tabContainer.attr("id", id);
+function JavelinConnectorEditor(id, projectsView, qname) {
+    AbstractEditor.call(this, id, "javelinconnector", "javelinconnector connector-editor");
 
-    $tabContainer.parent().parent().css("background-color", Main.isCheDarkTheme() ? "#222222" : "white");
-
-    var $top = $("<div>", {
-        text: " ",
-        "class": "editor-top-bar"
-    });
-
-    // Connector output
-    var $connectorCode = $("<code/>", {
-        text: " ",
-        "class": "language-markup"
-    });
-    var $connectorOutput = $("<pre/>", {
-        "class": "output javelinconnector-output"
-    });
-    $connectorOutput.append($connectorCode);
-    var $divConnector = $("<div/>", {
-        "class": "javelinconnector connector-editor"
-    });
-    $divConnector.append($connectorOutput);
-
-    var $bottom = $("<div/>");
-    $bottom
-        .append($divConnector);
-
-    $tabContainer
-        .append($top)
-        .append($bottom);
+    new JavelinConnectorEditorToolbar(this.toolbarContainer, projectsView, qname);
 }
+
+JavelinConnectorEditor.prototype = Object.create(AbstractEditor.prototype);
+JavelinConnectorEditor.prototype.constructor = JavelinConnectorEditor;

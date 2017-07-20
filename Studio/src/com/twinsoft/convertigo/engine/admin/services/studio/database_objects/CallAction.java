@@ -20,6 +20,7 @@ import com.twinsoft.convertigo.engine.studio.AbstractRunnableAction;
 import com.twinsoft.convertigo.engine.studio.popup.actions.DatabaseObjectDeleteAction;
 import com.twinsoft.convertigo.engine.studio.popup.actions.SequenceExecuteSelectedAction;
 import com.twinsoft.convertigo.engine.studio.popup.actions.TestCaseExecuteSelectedAction;
+import com.twinsoft.convertigo.engine.studio.popup.actions.TransactionExecuteDefaultAction;
 import com.twinsoft.convertigo.engine.studio.responses.XmlResponseFactory;
 import com.twinsoft.convertigo.engine.studio.views.projectexplorer.CheStudio;
 import com.twinsoft.convertigo.engine.studio.views.projectexplorer.WrapStudio;
@@ -104,6 +105,13 @@ public class CallAction extends XmlService {
 	            }
 		    }
 		    else if (isCurrentAction(TestCaseExecuteSelectedAction.class, session)) {
+                synchronized (cheStudio) {
+                    cheStudio.setDocument(document);
+                    cheStudio.notify();
+                    cheStudio.wait();
+                }
+            }
+		    else if (isCurrentAction(TransactionExecuteDefaultAction.class, session)) {
                 synchronized (cheStudio) {
                     cheStudio.setDocument(document);
                     cheStudio.notify();

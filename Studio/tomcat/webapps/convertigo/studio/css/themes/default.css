@@ -221,7 +221,7 @@ button.accordion.active, button.accordion:hover, button.accordion {
 }
 
 /*********************************
-* Sequence editor
+* Graphic editors
 *********************************/
 .sequence-editor-toolbar {
     background-color: gray;
@@ -229,6 +229,23 @@ button.accordion.active, button.accordion:hover, button.accordion {
 
 pre {
 	background-color: white !important;
+}
+
+/* Loading animation */
+.loading-animation {
+    border-color: #2187e7;
+}
+
+/* Source: http://www.alessioatzeni.com/blog/css3-loading-animation-loop/ */
+.barlittle {
+    background-color: #2187e7;
+    background-image: -moz-linear-gradient(45deg, #2187e7 25%, #a0eaff);
+    background-image: -webkit-linear-gradient(45deg, #2187e7 25%, #a0eaff);
+    border-left-color: #111;
+    border-top-color: #111;
+    border-right-color: #333;
+    border-bottom-color: #333;
+    opacity: 0.1;
 }
 
 /*********************************

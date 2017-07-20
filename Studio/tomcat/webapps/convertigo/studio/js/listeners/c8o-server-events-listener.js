@@ -6,68 +6,40 @@ var C8OServerEventsListener = {
                 /**************************
                  * Sequence
                  **************************/
-                "SequenceEditorPart.documentGenerated": function (e) {
-                    var $response = that.getEditorEventResponse(e.data);
-                    var $divElt = that.getSequenceEditorDiv($response);
-                    that.onDocumentGenerated($divElt, ".sequence-editor code", "sequence_output");
+                "SequenceEditorPart.documentGenerated": function (event) {
+                    that.onDocumentGenerated(event, "sequence_output");
                 },
-                "SequenceEditorPart.sequenceStarted": function (e) {
-                    var $response = that.getEditorEventResponse(e.data);
-                    var $divElt = that.getSequenceEditorDiv($response);
-                    that.onStarted($divElt, ".sequence-editor code");
+                "SequenceEditorPart.sequenceStarted": function (event) {
+                    that.onStarted(event);
                 },
-                "SequenceEditorPart.sequenceFinished": function (e) {
-                    var $response = that.getEditorEventResponse(e.data);
-                    var $divElt = that.getSequenceEditorDiv($response);
-                    that.onFinished($divElt);
+                "SequenceEditorPart.sequenceFinished": function (event) {
+                    that.onFinished(event);
                 },
-                "SequenceEditorComposite.dataChanged": function (e) {
-                    var $response = that.getEditorEventResponse(e.data);
-                    var $divElt = that.getSequenceEditorDiv($response);
-                    if ($divElt) {
-                        // Update Internal requester response
-                        var $codeElt = $divElt.find(".internal-requester code");
-                        if ($codeElt.length) {
-                            var data = $response.find("internal_requester_output").text();
-                            // If XML language, add highlight
-                            if (data.startsWith('<?xml version="1.0" encoding="UTF-8"?>')) {
-                                $codeElt.addClass("language-markup");
-                            }
-                            $codeElt.text($response.find("internal_requester_output").text());
-                            Prism.highlightElement($codeElt[0]);
-                        }
-                    }
+                "SequenceEditorComposite.dataChanged": function (event) {
+                    var $response = that.getEditorEventResponse(event.data);
+                    var data = $response.find("internal_requester_output").text();
+
+                    var editor = EditorsManager.get($response.attr("qname"));
+                    editor.setContent(data);
                 },
-                "SequenceEditorComposite.clearContent": function (e) {
-                    var $response = that.getEditorEventResponse(e.data);
-                    var $divElt = that.getSequenceEditorDiv($response);
-                    if ($divElt) {
-                        // Clear Internal request content
-                        var $codeElt = $divElt.find(".calling code");
-                        if ($codeElt.length) {
-                            $codeElt.text(" ");
-                            $codeElt[0].className = "";
-                        }
-                    }
+                "SequenceEditorComposite.clearContent": function (event) {
+                    var $response = that.getEditorEventResponse(event.data);
+
+                    var editor = EditorsManager.get($response.attr("qname"));
+                    editor.clearContent();
                 },
 
                 /**************************
                  * Connectors
                  **************************/
-                "ConnectorEditorPart.documentGenerated": function (e) {
-                    var $response = that.getEditorEventResponse(e.data);
-                    var $divElt = that.getConnectorEditorDiv($response);
-                    that.onDocumentGenerated($divElt, ".connector-editor code", "connector_output");
+                "ConnectorEditorPart.documentGenerated": function (event) {
+                    that.onDocumentGenerated(event, "connector_output");
                 },
-                "ConnectorEditorPart.transactionStarted": function (e) {
-                    var $response = that.getEditorEventResponse(e.data);
-                    var $divElt = that.getConnectorEditorDiv($response);
-                    that.onStarted($divElt, ".connector-editor code");
+                "ConnectorEditorPart.transactionStarted": function (event) {
+                    that.onStarted(event);
                 },
-                "ConnectorEditorPart.transactionFinished": function (e) {
-                    var $response = that.getEditorEventResponse(e.data);
-                    var $divElt = that.getConnectorEditorDiv($response);
-                    that.onFinished($divElt);
+                "ConnectorEditorPart.transactionFinished": function (event) {
+                    that.onFinished(event);
                 }
             }
         });
@@ -79,42 +51,24 @@ var C8OServerEventsListener = {
     getEditorEventResponse: function (data) {
         return $response = $(StringUtils.replaceTextCRLFByRealCRLF(data));
     },
-    getConnectorEditorDiv: function ($response) {
-        return $("#" + $response.attr("project") + "-" + $response.attr("connector") + "-" + $response.attr("type_editor"));
+    onDocumentGenerated: function (event, ouputSelector) {
+        var $response = this.getEditorEventResponse(event.data);
+        var output = $response.find(ouputSelector).text();
+
+        var editor = EditorsManager.get($response.attr("qname"));
+        editor.setText(output);
     },
-    getSequenceEditorDiv: function ($response) {
-        return $("#" + $response.attr("project") + "-" + $response.attr("sequence") + "-" + $response.attr("type_editor"));
+    onStarted: function (event) {
+        var $response = this.getEditorEventResponse(event.data);
+
+        var editor = EditorsManager.get($response.attr("qname"));
+        editor.clearResponse();
+        editor.showLoadingAnimation();
     },
-    onDocumentGenerated: function ($divElt, codeSelector, outputSelector) {
-        if ($divElt.length) {
-            // Update Connector response
-            var $codeElt = $divElt.find(codeSelector);
-            if ($codeElt.length) {
-                $codeElt.text($response.find(outputSelector).text());
-                Prism.highlightElement($codeElt[0]);
-            }
-        }
-    },
-    onStarted: function ($divElt, codeSelector) {
-        if ($divElt.length) {
-            // Clear code content
-            var $codeElt = $divElt.find(codeSelector);
-            if ($codeElt.length) {
-                $codeElt.text(" ");
-            }
-    
-            // Show loading animation
-            var $topBar = $divElt.find(".editor-top-bar");
-            $topBar.addClass("loading");
-            $topBar.text("Loading");
-        }
-    },
-    onFinished: function ($divElt) {
-        if ($divElt.length) {
-            // Remove loading animation
-            var $topBar = $divElt.find(".editor-top-bar");
-            $topBar.removeClass("loading");
-            $topBar.text(" ");
-        }
+    onFinished: function (event) {
+        var $response = this.getEditorEventResponse(event.data);
+
+        var editor = EditorsManager.get($response.attr("qname"));
+        editor.hideLoadingAnimation();
     }
 };

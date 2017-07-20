@@ -8,7 +8,7 @@ Toolbar.prototype.createAction = function (id, srcImg, tooltip) {
     var $newAction = $("<li/>");
 
     // DOM data
-    $newAction.attr("id", id);
+    $newAction.attr("id", this.generateId(id));
     $newAction.attr("title", tooltip);
     $newAction.addClass("img-action");
     $newAction.addClass(this.classAction);
@@ -58,4 +58,15 @@ Toolbar.prototype.addActionToggable = function (id, srcImg, tooltip, func, toggl
 
 Toolbar.prototype.getClassAction = function () {
     return this.classAction;
+}
+
+Toolbar.prototype.generateId = function (id) {
+    var i = 1;
+    var resId = id;
+    while ($("#" + resId).length) {
+        resId = id + i.toString();
+        ++i;
+    }
+
+    return resId;
 }

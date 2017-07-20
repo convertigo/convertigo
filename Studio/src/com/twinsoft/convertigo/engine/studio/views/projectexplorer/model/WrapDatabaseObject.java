@@ -10,5 +10,5 @@ public interface WrapDatabaseObject extends WrapObject {
 	WrapDatabaseObject getParent();
 	String getName();
 	void hasBeenModified(boolean hasBeenModified);
-	ProjectView getProjectTreeObject();
+	ProjectView getProjectViewObject();
 }

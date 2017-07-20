@@ -1,33 +1,8 @@
-function SqlConnectorEditor(id) {
-    var $tabContainer = $(".graphicEditorsView").last();
-    $tabContainer.attr("id", id);
+function SqlConnectorEditor(id, projectsView, qname) {
+    AbstractEditor.call(this, id, "sqlconnector", "sqlconnector connector-editor");
 
-    $tabContainer.parent().parent().css("background-color", Main.isCheDarkTheme() ? "#222222" : "white");
-
-    var $top = $("<div>", {
-        text: " ",
-        "class": "editor-top-bar"
-    });
-
-    // Connector output
-    var $connectorCode = $("<code/>", {
-        text: " ",
-        "class": "language-markup"
-    });
-    var $connectorOutput = $("<pre/>", {
-        "class": "output sqlconnector-output"
-    });
-    $connectorOutput.append($connectorCode);
-    var $divConnector = $("<div/>", {
-        "class": "sqlconnector connector-editor"
-    });
-    $divConnector.append($connectorOutput);
-
-    var $bottom = $("<div/>");
-    $bottom
-        .append($divConnector);
-
-    $tabContainer
-        .append($top)
-        .append($bottom);
+    new SqlConnectorEditorToolbar(this.toolbarContainer, projectsView, qname);
 }
+
+SqlConnectorEditor.prototype = Object.create(AbstractEditor.prototype);
+SqlConnectorEditor.prototype.constructor = SqlConnectorEditor;

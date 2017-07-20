@@ -25,7 +25,7 @@ public class TestCaseExecuteSelectedAction extends AbstractRunnableAction {
         WrapDatabaseObject treeObject = (WrapDatabaseObject) studio.getFirstSelectedTreeObject();
         if ((treeObject != null) && (treeObject.instanceOf(TestCase.class))) {
             TestCase testCase = (TestCase) treeObject.getObject();
-            ProjectView projectTreeObject = treeObject.getProjectTreeObject();
+            ProjectView projectTreeObject = treeObject.getProjectViewObject();
 
             RequestableObject requestable = (RequestableObject) testCase.getParent();
             if (requestable instanceof Transaction) {

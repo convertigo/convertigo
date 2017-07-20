@@ -1,5 +1,5 @@
 var GwtEventsListener = {
-    init: function () {
+    init: function (projectsView) {
         // Save bean expression event
         document.addEventListener(
             "SaveTextEditor.jscriptStep",
@@ -32,7 +32,10 @@ var GwtEventsListener = {
             "OpenGraphicEditor.sequence",
             function (event) {
                 if (!$("#" + event.detail.id).length) {
-                    new SequenceEditor(event.detail.id);
+                    EditorsManager.put(
+                        event.detail.qname,
+                        new SequenceEditor(event.detail.id, projectsView, event.detail.qname)
+                    );
                 }
             },
             false
@@ -43,7 +46,10 @@ var GwtEventsListener = {
             "OpenGraphicEditor.cicsconnector",
             function (event) {
                 if (!$("#" + event.detail.id).length) {
-                    new CICSConnectorEditor(event.detail.id);
+                    EditorsManager.put(
+                        event.detail.qname,
+                        new CICSConnectorEditor(event.detail.id, projectsView, event.detail.qname)
+                    );
                 }
             },
             false
@@ -54,7 +60,10 @@ var GwtEventsListener = {
             "OpenGraphicEditor.couchdbconnector",
             function (event) {
                 if (!$("#" + event.detail.id).length) {
-                    new CouchDBConnectorEditor(event.detail.id);
+                    EditorsManager.put(
+                        event.detail.qname,
+                        new CouchDBConnectorEditor(event.detail.id, projectsView, event.detail.qname)
+                    );
                 }
             },
             false
@@ -65,7 +74,10 @@ var GwtEventsListener = {
             "OpenGraphicEditor.fullsyncconnector",
             function (event) {
                 if (!$("#" + event.detail.id).length) {
-                    new FullSyncConnectorEditor(event.detail.id);
+                    EditorsManager.put(
+                        event.detail.qname,
+                        new FullSyncConnectorEditor(event.detail.id, projectsView, event.detail.qname)
+                    );
                 }
             },
             false
@@ -76,7 +88,10 @@ var GwtEventsListener = {
             "OpenGraphicEditor.htmlconnector",
             function (event) {
                 if (!$("#" + event.detail.id).length) {
-                    new HtmlConnectorEditor(event.detail.id);
+                    EditorsManager.put(
+                        event.detail.qname,
+                        new HtmlConnectorEditor(event.detail.id, projectsView, event.detail.qname)
+                    );
                 }
             },
             false
@@ -87,7 +102,10 @@ var GwtEventsListener = {
             "OpenGraphicEditor.httpconnector",
             function (event) {
                 if (!$("#" + event.detail.id).length) {
-                    new HttpConnectorEditor(event.detail.id);
+                    EditorsManager.put(
+                        event.detail.qname,
+                        new HttpConnectorEditor(event.detail.id, projectsView, event.detail.qname)
+                    );
                 }
             },
             false
@@ -98,7 +116,10 @@ var GwtEventsListener = {
             "OpenGraphicEditor.javelinconnector",
             function (event) {
                 if (!$("#" + event.detail.id).length) {
-                    new JavelinConnectorEditor(event.detail.id);
+                    EditorsManager.put(
+                        event.detail.qname,
+                        new JavelinConnectorEditor(event.detail.id, projectsView, event.detail.qname)
+                    );
                 }
             },
             false
@@ -109,18 +130,24 @@ var GwtEventsListener = {
             "OpenGraphicEditor.proxyhttpconnector",
             function (event) {
                 if (!$("#" + event.detail.id).length) {
-                    new ProxyHttpConnectorEditor(event.detail.id);
+                    EditorsManager.put(
+                        event.detail.qname,
+                        new ProxyHttpConnectorEditor(event.detail.id, projectsView, event.detail.qname)
+                    );
                 }
             },
             false
         );
         
-        // Open a HTTP Connector editor
+        // Open a Sap Jco Connector editor
         document.addEventListener(
             "OpenGraphicEditor.sapjcoconnector",
             function (event) {
                 if (!$("#" + event.detail.id).length) {
-                    new SapJcoConnectorEditor(event.detail.id);
+                    EditorsManager.put(
+                        event.detail.qname,
+                        new SapJcoConnectorEditor(event.detail.id, projectsView, event.detail.qname)
+                    );
                 }
             },
             false
@@ -131,7 +158,10 @@ var GwtEventsListener = {
             "OpenGraphicEditor.siteclipperconnector",
             function (event) {
                 if (!$("#" + event.detail.id).length) {
-                    new SiteClipperConnectorEditor(event.detail.id);
+                    EditorsManager.put(
+                        event.detail.qname,
+                        new SiteClipperConnectorEditor(event.detail.id, projectsView, event.detail.qname)
+                    );
                 }
             },
             false
@@ -142,7 +172,10 @@ var GwtEventsListener = {
             "OpenGraphicEditor.sqlconnector",
             function (event) {
                 if (!$("#" + event.detail.id).length) {
-                    new SqlConnectorEditor(event.detail.id);
+                    EditorsManager.put(
+                        event.detail.qname,
+                        new SqlConnectorEditor(event.detail.id, projectsView, event.detail.qname)
+                    );
                 }
             },
             false
