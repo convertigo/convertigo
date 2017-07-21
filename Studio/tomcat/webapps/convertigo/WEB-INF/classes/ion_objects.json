@@ -609,7 +609,7 @@
     "Button": {
       "tag": "button",
       "label": "Button",
-      "description": "Defines a button. | Buttons are an essential way to interact with and navigate through an app, and should clearly communicate what action will occur after the user taps them.<br/>Buttons can consist of text and/or an icon, and can be enhanced with a wide variety of attributes.<br/>You can add event components to buttons to handle button clicks.",
+      "description": "Defines a button. | Buttons are an essential way to interact with and navigate through an app, and should clearly communicate what action will occur after the user taps them.<br/>Buttons can consist of text and/or an icon, and can be enhanced with a wide variety of attributes.<br/>You can add event components to buttons to handle button clicks. <br/> For more information: <a href='https://ionicframework.com/docs/components/#buttons' target='_blank'>Buttons</a>",
       "group": "Buttons",
       "icon16": "button_color_16x16.png",
       "icon32": "button_color_32x32.png",
@@ -679,7 +679,7 @@
     "FabButton": {
       "tag": "button",
       "label": "FAB Button",
-      "description": "Defines a floating button. | FABs (Floating Action Buttons) are standard material design components.<br/>They are shaped as a circle that represents a promoted action. When pressed, it may contain more related actions.<br/>FABs as its name suggests are floating over the content in a fixed position. You can add icons in the button to represent a given function.",
+      "description": "Defines a floating button. | FABs (Floating Action Buttons) are standard material design components.<br/>They are shaped as a circle that represents a promoted action. When pressed, it may contain more related actions.<br/>FABs as its name suggests are floating over the content in a fixed position. You can add icons in the button to represent a given function. <br/> For more information: <a href='https://ionicframework.com/docs/components/#fabs' target='_blank'>FABs</a>",
       "group": "Buttons",
       "icon16": "fab_16x16.png",
       "icon32": "fab_32x32.png",
@@ -759,7 +759,7 @@
     "ButtonSet": {
       "tag": "ion-buttons",
       "label": "Button Set",
-      "description": "Defines a set of buttons to be used within other components. | For example, buttons can be added to a list item or a navigation bar.<br/>You can define whether buttons are aligned left (start) or right (end).",
+      "description": "Defines a set of buttons to be used within other components. | For example, buttons can be added to a list item or a navigation bar.<br/>You can define whether buttons are aligned left (start) or right (end). <br/> For more information: <a href='https://ionicframework.com/docs/components/#buttons-in-components' target='_blank'>Button Set</a>",
       "group": "Buttons",
       "icon16": "buttonset_color_16x16.png",
       "icon32": "buttonset_color_32x32.png",
@@ -1535,7 +1535,7 @@
 	"Tabs": {
       "tag": "ion-tabs",
       "label": "Tabs",
-      "description": "Defines a tabs. | A Tabs component is a container of individual Tab components which make it easy to navigate between different pages.",
+      "description": "Defines a tabs. | A Tabs component is a container of individual Tab components which make it easy to navigate between different pages. <br/> For more information: <a href='https://ionicframework.com/docs/components/#tabs' target='_blank'>Tabs</a>",
       "group": "Components",
       "icon16": "tabbar_color_16x16.png",
       "icon32": "tabbar_color_32x32.png",
@@ -2061,7 +2061,7 @@
     "ToolBar": {
       "tag": "ion-toolbar",
       "label": "ToolBar",
-      "description": "Defines a toolbar. | A toolbar is a generic bar that can be used in an app as a header, sub-header, footer, or even sub-footer.<br/>Since ion-toolbar is based on flexbox, no matter how many toolbars you have in your page, they will be displayed correctly and ion-content will adjust accordingly.",
+      "description": "Defines a toolbar. | A toolbar is a generic bar that can be used in an app as a header, sub-header, footer, or even sub-footer.<br/>Since ion-toolbar is based on flexbox, no matter how many toolbars you have in your page, they will be displayed correctly and ion-content will adjust accordingly. <br/> For more information: <a href='https://ionicframework.com/docs/components/#toolbar' target='_blank'>Toolbar</a>",
       "group": "Containers",
       "icon16": "toolbar_color_16x16.png",
       "icon32": "toolbar_color_32x32.png",
@@ -2085,7 +2085,7 @@
     "Badge": {
       "tag": "ion-badge",
       "label": "Badge",
-      "description": "Defines a badge. | Badges are small components that typically communicate a numerical value to the user.<br/>They are typically used within an item.",
+      "description": "Defines a badge. | Badges are small components that typically communicate a numerical value to the user.<br/>They are typically used within an item. <br/> For more information: <a href='https://ionicframework.com/docs/components/#badges' target='_blank'>Badge</a>",
       "group": "Components",
       "icon16": "badge_color_16x16.png",
       "icon32": "badge_color_32x32.png",
@@ -2100,7 +2100,7 @@
     "Slides": {
       "tag": "ion-slides",
       "label": "Slides",
-      "description": "Defines a slides. | Slides make it easy to create galleries, tutorials, and page-based layouts. Slides take a number of configuration options on the &lt;ion-slides&gt; component.<br/>The Slides component is a multi-section container. Each section can be swiped or dragged between. It contains any number of Slide components.",
+      "description": "Defines a slides. | Slides make it easy to create galleries, tutorials, and page-based layouts. Slides take a number of configuration options on the &lt;ion-slides&gt; component.<br/>The Slides component is a multi-section container. Each section can be swiped or dragged between. It contains any number of Slide components. <br/> For more information: <a href='https://ionicframework.com/docs/components/#slides' target='_blank'>Slides</a>",
       "group": "Slides",
       "icon16": "slides_color_16x16.png",
       "icon32": "slides_color_32x32.png",
@@ -2227,7 +2227,7 @@
     "Slide": {
       "tag": "ion-slide",
       "label": "Slide",
-      "description": "Defines a slide. | A Slide in a &lt;ion-slides&gt; component.",
+      "description": "Defines a slide. | A Slide in a &lt;ion-slides&gt; component. <br/> For more information: <a href='https://ionicframework.com/docs/components/#slides' target='_blank'>Slide</a>",
       "group": "Slides",
       "icon16": "slide_color_16x16.png",
       "icon32": "slide_color_32x32.png"
@@ -2238,7 +2238,7 @@
     "Segment": {
       "tag": "ion-segment",
       "label": "Segment",
-      "description": "Defines a segment. | A Segment is a group of buttons, sometimes known as segmented controls, that allow the user to interact with a compact group of a number of controls.<br/>Segments provide functionality similar to tabs, selecting one will unselect all others.",
+      "description": "Defines a segment. | A Segment is a group of buttons, sometimes known as segmented controls, that allow the user to interact with a compact group of a number of controls.<br/>Segments provide functionality similar to tabs, selecting one will unselect all others. <br/> For more information: <a href='https://ionicframework.com/docs/components/#segment' target='_blank'>Segment</a>",
       "group": "Buttons",
       "icon16": "segment_color_16x16.png",
       "icon32": "segment_color_32x32.png",
@@ -2277,7 +2277,7 @@
     "List": {
       "tag": "ion-list",
       "label": "List",
-      "description": "Defines a list. | Lists are used to display rows of information.<br/>You can insert buttons in lists to make list items clickable. You can also insert many other components such as icons, avatars or thumbnails.",
+      "description": "Defines a list. | Lists are used to display rows of information.<br/>You can insert buttons in lists to make list items clickable. You can also insert many other components such as icons, avatars or thumbnails. <br/> For more information: <a href='https://ionicframework.com/docs/components/#lists' target='_blank'>Lists</a>",
       "group": "Lists",
       "icon16": "list_16x16.png",
       "icon32": "list_32x32.png",
@@ -2308,7 +2308,7 @@
     "Listheader": {
       "tag": "ion-list-header",
       "label": "List Header",
-      "description": "Defines a list header. | Each list can include a header at the top of the list.",
+      "description": "Defines a list header. | Each list can include a header at the top of the list. <br/> For more information: <a href='https://ionicframework.com/docs/components/#list-headers' target='_blank'>List Header</a>",
       "group": "Lists",
       "icon16": "listheader_16x16.png",
       "icon32": "listheader_32x32.png",
@@ -2330,7 +2330,7 @@
     "Listdivider": {
       "tag": "ion-item-divider",
       "label": "List divider",
-      "description": "Defines a list divider. | To divide groups of items, use &lt;ion-item-group&gt; instead of &lt;ion-list&gt;.<br/>Use &lt;ion-item-divider&gt; components to divide the group in to multiple sections.",
+      "description": "Defines a list divider. | To divide groups of items, use &lt;ion-item-group&gt; instead of &lt;ion-list&gt;.<br/>Use &lt;ion-item-divider&gt; components to divide the group in to multiple sections. <br/> For more information: <a href='https://ionicframework.com/docs/components/#list-dividers' target='_blank'>List Divider</a>",
       "group": "Lists",
       "icon16": "listdivider_16x16.png",
       "icon32": "listdivider_32x32.png",
@@ -2342,7 +2342,7 @@
     "Avatar": {
       "tag": "ion-avatar",
       "label": "List avatar",
-      "description": "Defines an avatar. | Item avatars showcase an image larger than an icon, but smaller than a thumbnail.<br/>To use an avatar, add an &lt;ion-avatar&gt; component inside of an item. The position of the avatar can be set using the item-left and item-right attributes.",
+      "description": "Defines an avatar. | Item avatars showcase an image larger than an icon, but smaller than a thumbnail.<br/>To use an avatar, add an &lt;ion-avatar&gt; component inside of an item. The position of the avatar can be set using the item-left and item-right attributes. <br/> For more information: <a href='https://ionicframework.com/docs/components/#avatar-list' target='_blank'>List Avatar</a>",
       "group": "Lists",
       "icon16": "listavatar_16x16.png",
       "icon32": "listavatar_32x32.png",
@@ -2354,7 +2354,7 @@
     "Thumbnail": {
       "tag": "ion-thumbnail",
       "label": "List thumbnail",
-      "description": "Defines a thumbnail. | Item thumbnails showcase an image that takes up the entire height of an item.<br/>To use a thumbnail, add an &lt;ion-thumbnail&gt; component inside of an item. The position of the thumbnail can be set using the item-left and item-right attributes.",
+      "description": "Defines a thumbnail. | Item thumbnails showcase an image that takes up the entire height of an item.<br/>To use a thumbnail, add an &lt;ion-thumbnail&gt; component inside of an item. The position of the thumbnail can be set using the item-left and item-right attributes. <br/> For more information: <a href='https://ionicframework.com/docs/components/#thumbnail-list' target='_blank'>List Thumbnail/a>",
       "group": "Lists",
       "icon16": "thumbnail_16x16.png",
       "icon32": "thumbnail_32x32.png",
@@ -2366,7 +2366,7 @@
     "Sliding": {
       "tag": "ion-item-sliding",
       "label": "Sliding Item",
-      "description": "Defines a sliding item. | Sliding items can be swiped to the left or right to reveal a hidden set of buttons.<br/>To use a sliding item, add an ion-item-sliding component inside of an ion-list component. Next, add an &lt;ion-item-options&gt; component inside of the sliding item to contain the buttons.",
+      "description": "Defines a sliding item. | Sliding items can be swiped to the left or right to reveal a hidden set of buttons.<br/>To use a sliding item, add an ion-item-sliding component inside of an ion-list component. Next, add an &lt;ion-item-options&gt; component inside of the sliding item to contain the buttons. <br/> For more information: <a href='https://ionicframework.com/docs/components/#sliding-list' target='_blank'>Sliding Item</a>",
       "group": "Lists",
       "icon16": "sliding_16x16.png",
       "icon32": "sliding_32x32.png",
@@ -2377,7 +2377,7 @@
     "SlidingOption": {
       "tag": "ion-item-options",
       "label": "Sliding options",
-      "description": "Defines a sliding option. | Add an &lt;ion-item-options&gt; component inside a sliding item to contain the buttons.",
+      "description": "Defines a sliding option. | Add an &lt;ion-item-options&gt; component inside a sliding item to contain the buttons. <br/> For more information: <a href='https://ionicframework.com/docs/components/#sliding-list' target='_blank'>Sliding Item/a>",
       "group": "Lists",
       "icon16": "slidingoption_16x16.png",
       "icon32": "slidingoption_32x32.png",
@@ -2502,7 +2502,7 @@
     "Select": {
       "tag": "ion-select",
       "label": "Select",
-      "description": "Defines a select. | The Select component is similar to an HTML &lt;select&gt; element, however, Ionic's select component makes it easier for users to sort through and select the preferred option or options. When users tap the select component, a dialog will appear with all of the options in a large, easy to select list for users.",
+      "description": "Defines a select. | The Select component is similar to an HTML &lt;select&gt; element, however, Ionic's select component makes it easier for users to sort through and select the preferred option or options. When users tap the select component, a dialog will appear with all of the options in a large, easy to select list for users. <br/> For more information: <a href='https://ionicframework.com/docs/components/#select' target='_blank'>Select</a>",
       "group": "Forms",
       "icon16": "select_color_16x16.png",
       "icon32": "select_color_32x32.png",
@@ -2578,7 +2578,7 @@
     "RadioList": {
       "tag": "ion-list",
       "label": "Radio list",
-      "description": "Defines a list for a set of radio buttons. | It allows a user to select at most one radio button from a set. Checking one radio button that belongs to a radio list unchecks any previous checked radio button within the same list.",
+      "description": "Defines a list for a set of radio buttons. | It allows a user to select at most one radio button from a set. Checking one radio button that belongs to a radio list unchecks any previous checked radio button within the same list. <br/> For more information: <a href='https://ionicframework.com/docs/api/components/radio/RadioGroup/' target='_blank'>Radio Group</a>",
       "group": "Forms",
       "icon16": "radiolist_color_16x16.png",
       "icon32": "radiolist_color_32x32.png",
@@ -2606,7 +2606,7 @@
     "RadioButton": {
       "tag": "ion-radio",
       "label": "Radio",
-      "description": "Defines a radio button. | When radio buttons are inside a RadioList component, exactly one radio button in the list can be checked at any time. You can add each radio button of your list inside a List item.",
+      "description": "Defines a radio button. | When radio buttons are inside a RadioList component, exactly one radio button in the list can be checked at any time. You can add each radio button of your list inside a List item. <br/> For more information: <a href='https://ionicframework.com/docs/components/#radio' target='_blank'>Radio</a>",
       "group": "Forms",
       "icon16": "radio_color_16x16.png",
       "icon32": "radio_color_32x32.png",
@@ -2644,7 +2644,7 @@
     "Toggle": {
       "tag": "ion-toggle",
       "label": "Toggle",
-      "description": "Defines a toggle. | A Toggle component is technically the same thing as an HTML checkbox input, except it looks different and is easier to use on a touch device. Toggles can also have colors assigned to them, by adding any color attribute.",
+      "description": "Defines a toggle. | A Toggle component is technically the same thing as an HTML checkbox input, except it looks different and is easier to use on a touch device. Toggles can also have colors assigned to them, by adding any color attribute. <br/> For more information: <a href='https://ionicframework.com/docs/components/#toggle' target='_blank'>Toggle</a>",
       "group": "Forms",
       "icon16": "toggle_color_16x16.png",
       "icon32": "toggle_color_32x32.png",
@@ -2673,7 +2673,7 @@
     "Input": {
       "tag": "ion-input",
       "label": "Input",
-      "description": "Defines a form input. | ion-input is meant for text type inputs only, such as text, password, email, number, search, tel, and url.",
+      "description": "Defines a form input. | ion-input is meant for text type inputs only, such as text, password, email, number, search, tel, and url. <br/> For more information: <a href='https://ionicframework.com/docs/components/#inputs' target='_blank'>Inputs</a>",
       "group": "Forms",
       "icon16": "input_color_16x16.png",
       "icon32": "input_color_32x32.png",
@@ -2808,7 +2808,7 @@
     "CheckBox": {
       "tag": "ion-checkbox",
       "label": "Checkbox",
-      "description": "Defines a checkbox. | A checkbox is an input component that holds a boolean value.<br/>Checkboxes are no different than HTML checkbox inputs. However, like other Ionic components, checkboxes are styled differently on each platform.<br/>Use the checked attribute to set the default value, and the disabled attribute to disable the user from changing the value.",
+      "description": "Defines a checkbox. | A checkbox is an input component that holds a boolean value.<br/>Checkboxes are no different than HTML checkbox inputs. However, like other Ionic components, checkboxes are styled differently on each platform.<br/>Use the checked attribute to set the default value, and the disabled attribute to disable the user from changing the value. <br/> For more information: <a href='https://ionicframework.com/docs/components/#checkbox' target='_blank'>Checkbox</a>",
       "group": "Forms",
       "icon16": "input_checkbox_16x16.png",
       "icon32": "input_checkbox_32x32.png",
@@ -2835,7 +2835,7 @@
     "DateTime": {
       "tag": "ion-datetime",
       "label": "DateTime",
-      "description": "Defines a datetime. | The DateTime component is used to present an interface which makes it easy for users to select dates and times.<br/>The DateTime component is similar to the native <input type='datetime-local'> element, however, Ionic’s DateTime component makes it easy to display the date and time in a preferred format, and manage the datetime values.",
+      "description": "Defines a datetime. | The DateTime component is used to present an interface which makes it easy for users to select dates and times.<br/>The DateTime component is similar to the native <input type='datetime-local'> element, however, Ionic’s DateTime component makes it easy to display the date and time in a preferred format, and manage the datetime values. <br/> For more information: <a href='https://ionicframework.com/docs/components/#datetime' target='_blank'>DateTime</a>",
       "group": "Forms",
       "icon16": "input_datetime_16x16.png",
       "icon32": "input_datetime_32x32.png",
@@ -2889,7 +2889,7 @@
     "Range": {
       "tag": "ion-range",
       "label": "Range slider",
-      "description": "Defines a range slider. | The Range slider lets users select from a range of values by moving the slider knob.<br/>It can accept dual knobs, but by default one knob controls the value of the range.",
+      "description": "Defines a range slider. | The Range slider lets users select from a range of values by moving the slider knob.<br/>It can accept dual knobs, but by default one knob controls the value of the range. <br/> For more information: <a href='https://ionicframework.com/docs/components/#range' target='_blank'>Range</a>",
       "group": "Forms",
       "icon16": "range_16x16.png",
       "icon32": "range_32x32.png",
@@ -2965,7 +2965,7 @@
     "Grid": {
       "tag": "ion-grid",
       "label": "Grid",
-      "description": "Defines a grid. | Grid system is based on flexbox, a CSS feature supported by all devices.<br/>The grid is composed of three units : grid, rows and columns.",
+      "description": "Defines a grid. | Grid system is based on flexbox, a CSS feature supported by all devices.<br/>The grid is composed of three units : grid, rows and columns. <br/> For more information: <a href='https://ionicframework.com/docs/components/#grid' target='_blank'>Grid</a>",
       "group": "Grid System",
       "icon16": "grid_color_16x16.png",
       "icon32": "grid_color_32x32.png",
@@ -3487,7 +3487,7 @@
     "Card": {
       "tag": "ion-card",
       "label": "Card",
-      "description": "Defines a card. | Cards are a great way to display important pieces of content, and are quickly emerging as a core design pattern for apps.<br/>They're are a great way to contain and organize information, while also setting up predictable expectations for the user.<br/>With so much content to display at once, and often so little screen realestate, cards have fast become the design pattern of choice for many companies, including the likes of Google, Twitter, and Spotify.",
+      "description": "Defines a card. | Cards are a great way to display important pieces of content, and are quickly emerging as a core design pattern for apps.<br/>They're are a great way to contain and organize information, while also setting up predictable expectations for the user.<br/>With so much content to display at once, and often so little screen realestate, cards have fast become the design pattern of choice for many companies, including the likes of Google, Twitter, and Spotify. <br/> For more information: <a href='https://ionicframework.com/docs/components/#cards' target='_blank'>Cards</a>",
       "group": "Cards",
       "icon16": "card_color_16x16.png",
       "icon32": "card_color_32x32.png",
@@ -3498,7 +3498,7 @@
     "CardHeader": {
       "tag": "ion-card-header",
       "label": "Card Header",
-      "description": "Defines a card header. | Just like a normal page, cards can be customized to include headers.<br/>To add a header to a card, add the &lt;ion-card-header&gt; component inside of your card.",
+      "description": "Defines a card header. | Just like a normal page, cards can be customized to include headers.<br/>To add a header to a card, add the &lt;ion-card-header&gt; component inside of your card. <br/> For more information: <a href='https://ionicframework.com/docs/components/#card-header' target='_blank'>Card Header</a>",
       "group": "Cards",
       "icon16": "cardheader_color_16x16.png",
       "icon32": "cardheader_color_32x32.png",
