@@ -59,21 +59,27 @@ public class UIAttribute extends UIComponent implements ITagsProperty {
 		this.attrValue = attrValue;
 	}
 	
-	protected boolean isAttrBind() {
+	protected boolean isAttrPropertyBind() {
 		String attr = getAttrName();
 		return attr.startsWith("[") && attr.endsWith("]");
 	}
 	
+	protected boolean isAttrEventBind() {
+		String attr = getAttrName();
+		return attr.startsWith("(") && attr.endsWith(")");
+	}
+	
 	protected String getAttrValue() {
 		String value = attrValue.getValue();
-		if (isAttrBind()) {
+		if (isAttrPropertyBind()) {
 			if (Mode.PLAIN.equals(attrValue.getMode())) {
 				if (!value.startsWith("'") && !value.endsWith("'")) {
 					value = "'" + value + "'";
 				}
 			}
-		}
-		else {
+		} else if (isAttrEventBind()) {
+			
+		} else {
 			if (!Mode.PLAIN.equals(attrValue.getMode())) {
 				value = "{{" + value + "}}";
 			}
@@ -84,7 +90,7 @@ public class UIAttribute extends UIComponent implements ITagsProperty {
 	protected String getAttrLabel() {
 		String label = attrValue.getLabel();
 		if (!Mode.PLAIN.equals(attrValue.getMode())) {
-			if (!isAttrBind()) {
+			if (!isAttrPropertyBind() && !isAttrEventBind()) {
 				label = "{{" + label + "}}";
 			}
 		}

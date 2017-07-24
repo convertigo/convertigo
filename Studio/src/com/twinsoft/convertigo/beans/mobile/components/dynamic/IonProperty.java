@@ -204,22 +204,28 @@ public class IonProperty implements Cloneable {
 		}
 	}
 	
-	protected boolean isAttrBind() {
+	protected boolean isAttrPropertyBind() {
 		String attr = getAttr();
 		return attr.startsWith("[") && attr.endsWith("]");
+	}
+	
+	protected boolean isAttrEventBind() {
+		String attr = getAttr();
+		return attr.startsWith("(") && attr.endsWith(")");
 	}
 	
 	public String getSmartValue() {
 		MobileSmartSourceType msst = getSmartType();
 		String value = msst.getValue();
-		if (isAttrBind()) {
+		if (isAttrPropertyBind()) {
 			if (Mode.PLAIN.equals(msst.getMode())) {
 				if (!value.startsWith("'") && !value.endsWith("'")) {
 					value = "'" + value + "'";
 				}
 			}
-		}
-		else {
+		} else if (isAttrEventBind()) {
+			
+		} else {
 			if (!Mode.PLAIN.equals(msst.getMode())) {
 				value = "{{" + value + "}}";
 			}
