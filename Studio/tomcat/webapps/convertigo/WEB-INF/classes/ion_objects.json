@@ -2239,13 +2239,18 @@
       "icon16": "segment_color_16x16.png",
       "icon32": "segment_color_32x32.png",
       "properties": {
+        "FormControlName": false,
         "IonColor": false,
         "Name": {
-          "attr": "[(ngModel)]",
-          "label": "NgModel",
-          "description": "The selected button will be bound to this variable name, by default 'selectedButton'. You can use Switch and SwitchCase directives to display some information related to to the selectedButton",
+          "attr": "[ngModel]",
+          "label": "Default value",
+          "description": "The value to be selected by default.",
           "category": "@Properties",
-          "value": "selectedButton"
+          "value": false,
+          "values": [
+            false,
+            true
+          ]
         }
       }
     },
@@ -2260,11 +2265,15 @@
       "properties": {
         "IonColor": false,
         "Name": {
-          "attr": "value",
+          "attr": "[value]",
           "label": "Value",
-          "description": "Value of the segment button bound to the [(ngModel)] attribute in the Segment",
+          "description": "When this segment is selected, the parent segment object will have this value.",
           "category": "@Properties",
-          "value": ""
+          "value": "",
+          "values": [
+            false,
+            true
+          ]
         }
       }
     },
