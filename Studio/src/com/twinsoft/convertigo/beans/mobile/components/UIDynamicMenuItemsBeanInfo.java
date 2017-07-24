@@ -26,28 +26,23 @@ import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
-public class UIDynamicMenuItemBeanInfo extends MySimpleBeanInfo {
+public class UIDynamicMenuItemsBeanInfo extends MySimpleBeanInfo {
 	
-	public UIDynamicMenuItemBeanInfo() {
+	public UIDynamicMenuItemsBeanInfo() {
 		try {
-			beanClass = UIDynamicMenuItem.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement.class;
+			beanClass = UIDynamicMenuItems.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItem.class;
 
-			resourceBundle = getResourceBundle("res/UIDynamicMenuItem");
+			resourceBundle = getResourceBundle("res/UIDynamicMenuItems");
 
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[2];
+			properties = new PropertyDescriptor[0];
 			
-			properties[0] = new PropertyDescriptor("itempage", beanClass, "getItemPage", "setItemPage");
-			properties[0].setDisplayName(getExternalizedString("property.itempage.display_name"));
-			properties[0].setShortDescription(getExternalizedString("property.itempage.short_description"));
-			properties[0].setPropertyEditorClass(getEditorClass("NamedSourceSelectorEditor"));
+			getPropertyDescriptor("itempage").setHidden(true);
+			getPropertyDescriptor("itemtitle").setHidden(true);
 			
-			properties[1] = new PropertyDescriptor("itemtitle", beanClass, "getItemTitle", "setItemTitle");
-			properties[1].setDisplayName(getExternalizedString("property.itemtitle.display_name"));
-			properties[1].setShortDescription(getExternalizedString("property.itemtitle.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

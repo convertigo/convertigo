@@ -53,6 +53,19 @@ public class UIDynamicMenuItem extends UIDynamicElement {
 	}
 	
 	/*
+	 * The ite's title
+	 */
+	private String itemtitle = "";
+	
+	public String getItemTitle() {
+		return itemtitle;
+	}
+
+	public void setItemTitle(String itemtitle) {
+		this.itemtitle = itemtitle;
+	}
+	
+	/*
 	 * The page associated with item
 	 */
 	private String itempage = "";
@@ -70,6 +83,14 @@ public class UIDynamicMenuItem extends UIDynamicElement {
 			try {
 				return itempage.substring(itempage.lastIndexOf('.')+1);
 			} catch (Exception e) {}
+		}
+		return "";
+	}
+	
+	protected String getMenuId() {
+		UIDynamicMenu menu = getMenu();
+		if (menu != null) {
+			return menu.getId();
 		}
 		return "";
 	}
@@ -109,11 +130,17 @@ public class UIDynamicMenuItem extends UIDynamicElement {
 				} catch (Exception e) {}
 			}
 			
+			String title = itemtitle.isEmpty() ? pageTitle:itemtitle;
+			
+			String menuId = getMenuId();
+			
 			StringBuilder sb = new StringBuilder();
 			sb.append("<").append(getTagName()).append(attrclass)
-				.append(" ion-item menuClose").append(pageIsEnabled ? "":" disabled")
+				.append(" ion-item")
+				.append(pageIsEnabled ? "":" disabled")
+				.append(menuId.isEmpty() ? " menuClose":" menuClose=\""+menuId+"\"")
 				.append(pageName.isEmpty() ? "":" (click)=\"openPageWithName('"+ pageName +"')\"")
-			  	.append(attributes.length()>0 ? attributes:"").append(">").append(pageTitle)
+			  	.append(attributes.length()>0 ? attributes:"").append(">").append(title)
 				.append("</").append(getTagName()).append(">").append(System.getProperty("line.separator"));
 			
 			return sb.toString();

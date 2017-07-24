@@ -833,20 +833,9 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		Iterator<UIDynamicMenu> it = getMenuComponentList().iterator();
 		while (it.hasNext()) {
 			UIDynamicMenu menu = it.next();
-			if (menu.isAutoMenu()) {
-				if (menu.isEnabled()) {
-					StringBuilder tpl = new StringBuilder();
-					tpl.append("<ion-menu").append(menu.initAttributes()).append(">").append(System.lineSeparator());
-					tpl.append("<ion-header><ion-toolbar><ion-title>Menu</ion-title></ion-toolbar></ion-header>").append(System.lineSeparator());
-					tpl.append("<ion-content><ion-list><button menuClose ion-item *ngFor=\"let p of getPagesIncludedInAutoMenu()\" (click)=\"openPage(p)\">{{p.title}}</button></ion-list></ion-content>").append(System.lineSeparator());
-					tpl.append("</ion-menu>").append(System.lineSeparator());
-					sb.append(tpl).append(System.lineSeparator());
-				}
-			} else {
-				String menuTemplate = menu.computeTemplate();
-				if (!menuTemplate.isEmpty()) {
-					sb.append(menuTemplate).append(System.lineSeparator());
-				}
+			String menuTemplate = menu.computeTemplate();
+			if (!menuTemplate.isEmpty()) {
+				sb.append(menuTemplate).append(System.lineSeparator());
 			}
 		}
 		

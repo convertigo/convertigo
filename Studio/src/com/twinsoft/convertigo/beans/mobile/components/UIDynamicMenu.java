@@ -22,7 +22,6 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
-import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
 import com.twinsoft.convertigo.engine.EngineException;
 
 public class UIDynamicMenu extends UIDynamicElement {
@@ -44,26 +43,14 @@ public class UIDynamicMenu extends UIDynamicElement {
 	}
 	
 	@Override
-	protected void addUIComponent(UIComponent uiComponent, Long after) throws EngineException {
-        if (isAutoMenu() && !(uiComponent instanceof UIAttribute)) {
-            throw new EngineException("You cannot add component to this menu");
-        }
-        super.addUIComponent(uiComponent, after);
-	}
-	
-	@Override
 	protected StringBuilder initAttributes() {
 		StringBuilder attributes = super.initAttributes();
-		attributes.append(" id=\""+ getName() +"\" [content]=\"content\"");
+		attributes.append(" id=\""+ getId() +"\" [content]=\"content\"");
 		return attributes;
 	}
 	
-	public boolean isAutoMenu() {
-		IonBean ionBean = getIonBean();
-		if (ionBean != null) {
-			return ionBean.getName().equals("AutoMenu");
-		}
-		return false;
+	protected String getId() {
+		return getName();
 	}
 	
 	protected void markMenuAsDirty() throws EngineException {

@@ -298,10 +298,10 @@ public class ComponentManager {
 					if (bean.getTag().equals("ion-menu")) {
 						return parent instanceof ApplicationComponent;
 					}
-					if (bean.getName().equals("MenuItem")) {
+					if (bean.getClassName().startsWith("com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItem")) {
 						if (parent instanceof UIComponent) {
 							UIDynamicMenu menu = ((UIComponent)parent).getMenu();
-							return menu != null && !menu.isAutoMenu();
+							return menu != null;
 						}
 					}
 					
