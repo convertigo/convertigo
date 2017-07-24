@@ -347,7 +347,7 @@ public class ComponentManager {
 					if (dbo != null && dbo instanceof UIDynamicElement) {
 						IonBean ionBean = ((UIDynamicElement)dbo).getIonBean();
 						if (ionBean != null && ionBean.hasProperty("FormControlName")) {
-							ionBean.setPropertyValue("FormControlName", new MobileSmartSourceType("varName"));
+							ionBean.setPropertyValue("FormControlName", new MobileSmartSourceType("var"+dbo.priority));
 						}
 					}
 					return dbo;
