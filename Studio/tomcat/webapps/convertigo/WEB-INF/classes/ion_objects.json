@@ -1969,8 +1969,8 @@
       "label": "MenuAutoItems",
       "description": "Defines menu items automatically. | A MenuAutoItems component may be added once inside a Menu component.<br/>It will show all your 'visible' pages in the order you've set.<br/>A page is considered as visible if it's enabled and if its 'Include in auto menu' property is set to true.<br/>You can not add child components to it except Attr components.",
       "group": "Menu",
-      "icon16": "menuitem_color_16x16.png",
-      "icon32": "menuitem_color_32x32.png",
+      "icon16": "menuautoitem_color_16x16.png",
+      "icon32": "menuautoitem_color_32x32.png",
       "properties": {
       }
 	},
