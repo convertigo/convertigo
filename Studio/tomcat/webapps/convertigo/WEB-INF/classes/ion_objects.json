@@ -1940,7 +1940,7 @@
       "tag": "ion-menu",
       "label": "Menu",
       "description": "Defines a menu to navigate through pages. | A menu may contains, or/and:<ul><li>a <i>MenuAutoItems</i> component to automatically add all your pages</li><li>several <i>MenuItem</i> components to add specific pages</ul><br/><br/><u>Note:</u> different menus may be added to an application but only the first one is used by default.<br/>",
-      "group": "Menu",
+      "group": "Menus",
       "icon16": "menu_color_16x16.png",
       "icon32": "menu_color_32x32.png",
       "properties": {
@@ -1956,7 +1956,7 @@
       "tag": "button",
       "label": "MenuItem",
       "description": "Defines a custom menu item. | MenuItem components may be added inside a Menu component.<br/>A menu item acts as button and when clicked the navigation to the associated page is done.<br/>You can not add child components to it except Attr components.",
-      "group": "Menu",
+      "group": "Menus",
       "icon16": "menuitem_color_16x16.png",
       "icon32": "menuitem_color_32x32.png",
       "properties": {
@@ -1968,7 +1968,7 @@
       "tag": "button",
       "label": "MenuAutoItems",
       "description": "Defines menu items automatically. | A MenuAutoItems component may be added once inside a Menu component.<br/>It will show all your 'visible' pages in the order you've set.<br/>A page is considered as visible if it's enabled and if its 'Include in auto menu' property is set to true.<br/>You can not add child components to it except Attr components.",
-      "group": "Menu",
+      "group": "Menus",
       "icon16": "menuautoitem_color_16x16.png",
       "icon32": "menuautoitem_color_32x32.png",
       "properties": {
