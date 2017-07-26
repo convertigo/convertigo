@@ -1014,7 +1014,7 @@
         "url": {
           "attr": "src",
           "label": "src",
-          "description": "The immage url. Can be absolute (http(s)://) or relative to project (../assets/myimage.png)",
+          "description": "The image url. Can be absolute (http(s)://) or relative to project (../assets/myimage.png). Can also be a Base64 Embedded images (data:image/png;base64,iVBORw0.......)",
           "category": "Attributes",
           "value": "",
           "values": [
