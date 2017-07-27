@@ -197,6 +197,11 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		this.isEnabled = isEnabled;
 	}
 	
+	public boolean isFormControlAttribute() {
+		return false;
+		
+	}
+	
 	/**
 	 * The list of available page component for this application.
 	 */
@@ -356,9 +361,9 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		return super.testAttribute(name, value);
 	}
 
-	public void updateSmartSource(long oldPriority, long newPriority) {
+	public void updateSmartSource(String oldString, String newString) {
 		for (UIComponent uic : getUIComponentList()) {
-			uic.updateSmartSource(oldPriority, newPriority);
+			uic.updateSmartSource(oldString, newString);
 		}
 		
 	}

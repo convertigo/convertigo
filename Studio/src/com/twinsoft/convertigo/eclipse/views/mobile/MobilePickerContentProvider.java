@@ -43,6 +43,7 @@ import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective.AttrDirective;
+import com.twinsoft.convertigo.beans.mobile.components.UIForm;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.engine.Engine;
@@ -96,6 +97,9 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 				} else if (object instanceof UIControlDirective) {
 					UIControlDirective directive = (UIControlDirective)object;
 					param = "item"+ directive.priority;
+				} else if (object instanceof UIForm) {
+					UIForm form = (UIForm)object;
+					param = "form"+ form.priority;
 				}
 			}
 			return param;
@@ -187,6 +191,10 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 			if (filter.equals(Filter.Iteration)) {
 				TVObject tvi = root.add(new TVObject("iterations"));
 				addIterations(tvi, pageComponent);
+			}
+			if (filter.equals(Filter.Form)) {
+				TVObject tvi = root.add(new TVObject("forms"));
+				addForms(tvi, pageComponent);
 			}
 			return root.children.toArray();
 		} else if (parentElement instanceof JSONObject) {
@@ -284,6 +292,33 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 						}
 					} else {
 						addIterations(tvi, uic);
+					}
+				}
+			}
+		}
+	}
+	
+	private void addForms(TVObject tvi, Object object) {
+		if (object != null) {
+			List<UIComponent> list = null;
+			if (object instanceof PageComponent) {
+				list = ((PageComponent)object).getUIComponentList();
+			} else if (object instanceof UIComponent) {
+				list = ((UIComponent)object).getUIComponentList();
+			}
+			
+			if (list != null) {
+				for (UIComponent uic : list) {
+					if (uic instanceof UIForm) {
+						// do not add to prevent selection on itself or children
+						if (uic.equals(selected)) {
+							return;
+						}
+						
+						TVObject tuic = tvi.add(new TVObject(uic.toString(), uic));
+						addForms(tuic, uic);
+					} else {
+						addForms(tvi, uic);
 					}
 				}
 			}

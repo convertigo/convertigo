@@ -599,4 +599,10 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 		this.isEnabled = isEnabled;
 	}
 
+	public void updateSmartSource(String oldString, String newString) {
+		for (UIComponent uic : getUIComponentList()) {
+			uic.updateSmartSource(oldString, newString);
+		}
+		
+	}
 }

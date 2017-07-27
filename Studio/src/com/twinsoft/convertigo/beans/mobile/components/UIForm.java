@@ -55,6 +55,33 @@ public class UIForm extends UIElement {
 	}	
 	
 	@Override
+	public String computeJsonModel() {
+		if (isEnabled()) {
+			StringBuilder models = new StringBuilder();
+			Iterator<UIComponent> it = getUIComponentList().iterator();
+			while (it.hasNext()) {
+				UIComponent component = (UIComponent)it.next();
+				if (component instanceof UIElement) {
+					String model = ((UIElement)component).computeJsonModel();
+					models.append(models.length() > 0 && !model.isEmpty() ? ",":"").append(model);
+				}
+			}
+			StringBuilder sb = new StringBuilder();
+			if (models.length() > 0) {
+				sb.append("{")
+				  .append("\"controls\":{").append(models).append("}").append(",")
+				  .append("\"errors\":\"\"").append(",")
+				  .append("\"status\":\"\"").append(",")
+				  .append("\"valid\":\"\"").append(",")
+				  .append("\"value\":\"\"")
+				  .append("}");
+				return sb.toString();
+			}
+		}
+		return "";
+	}
+	
+	@Override
 	protected String computeConstructor() {
 		if (isEnabled()) {
 			StringBuilder constructors = new StringBuilder();

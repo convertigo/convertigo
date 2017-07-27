@@ -85,6 +85,7 @@ import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
+import com.twinsoft.convertigo.beans.mobile.components.UIForm;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.Filter;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.transactions.couchdb.GetViewTransaction;
@@ -112,7 +113,7 @@ import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 public class MobilePickerComposite extends Composite {
 
 	Composite content, headerComposite;
-	private ToolItem btnSequence, btnDatabase, btnIteration;
+	private ToolItem btnSequence, btnDatabase, btnIteration, btnForm;
 	private CheckboxTreeViewer checkboxTreeViewer;
 	private TreeViewer modelTreeViewer;
 	private Label label;
@@ -242,6 +243,7 @@ public class MobilePickerComposite extends Composite {
 					btnSequence.setSelection(false);
 					btnDatabase.setSelection(false);
 					btnIteration.setSelection(false);
+					btnForm.setSelection(false);
 					
 					ToolItem button = (ToolItem) e.widget;
 					button.setSelection(true);
@@ -252,6 +254,8 @@ public class MobilePickerComposite extends Composite {
 						contentProvider.setFilterBy(Filter.Database);
 					} else if (btnIteration.getSelection()) {
 						contentProvider.setFilterBy(Filter.Iteration);
+					} else if (btnForm.getSelection()) {
+						contentProvider.setFilterBy(Filter.Form);
 					}
 					modelTreeViewer.setInput(null);
 					checkboxTreeViewer.getTree().removeAll();
@@ -305,6 +309,16 @@ public class MobilePickerComposite extends Composite {
 		btnIteration.setToolTipText("Show Iterators on current page Sources");
 		btnIteration.addSelectionListener(listener);
 		
+		btnForm = new ToolItem(toolbar, btnStyle);
+		try {
+			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/mobile/components/images/uiform_color_16x16.png", BeanInfo.ICON_COLOR_16x16);
+		} catch (Exception e) {
+			btnForm.setText("FM");
+		}
+		btnForm.setImage(image);
+		btnForm.setToolTipText("Show Forms on current page Sources");
+		btnForm.addSelectionListener(listener);
+		
 		message = new Label(headerComposite, SWT.NONE);
 		message.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
@@ -317,7 +331,7 @@ public class MobilePickerComposite extends Composite {
 			public void checkStateChanged(CheckStateChangedEvent event) {
 				Object element = event.getElement();
 				if (element instanceof TVObject) {
-					if (btnIteration.getSelection()) {
+					if (btnIteration.getSelection() || btnForm.getSelection()) {
 						checkboxTreeViewer.setChecked(element, !event.getChecked());
 						return;
 					}
@@ -420,6 +434,8 @@ public class MobilePickerComposite extends Composite {
 				filter = Filter.Database;
 			else if (btnIteration.getSelection())
 				filter = Filter.Iteration;
+			else if (btnForm.getSelection())
+				filter = Filter.Form;
 			String projectName = currentPage.getProject().getName();
 			String input = text.getText();
 			MobileSmartSource cs = new MobileSmartSource(filter, projectName, input);
@@ -446,6 +462,7 @@ public class MobilePickerComposite extends Composite {
 			btnSequence.setEnabled(enabled);
 			btnDatabase.setEnabled(enabled);
 			btnIteration.setEnabled(enabled);
+			btnForm.setEnabled(enabled);
 			checkboxTreeViewer.getTree().setEnabled(enabled);
 		} catch (Exception e) {
 			
@@ -461,7 +478,7 @@ public class MobilePickerComposite extends Composite {
 		for (Object ob: checkboxTreeViewer.getGrayedElements()) {
 			checkboxTreeViewer.setChecked(ob, true);
 			if (ob instanceof TVObject && !((TVObject)ob).getSourceData().isEmpty()) {
-				if (btnIteration.getSelection()) {
+				if (btnIteration.getSelection() || btnForm.getSelection()) {
 					checkboxTreeViewer.setGrayed(ob, !ob.equals(lastSelected));
 				} else {
 					checkboxTreeViewer.setGrayed(ob, false);
@@ -577,11 +594,12 @@ public class MobilePickerComposite extends Composite {
 	
 	private void updateText() {
 		boolean isDirective = btnIteration.getSelection();
+		boolean isForm = btnForm.getSelection();
 		List<String> sourceData = getSourceData();
 		int size = sourceData.size();
 		
 		StringBuffer buf = new StringBuffer();
-		if (isDirective && size > 0) {
+		if ((isDirective || isForm) && size > 0) {
 			String data = sourceData.get(0);
 			if (!data.isEmpty()) {
 				buf.append(data);
@@ -602,7 +620,7 @@ public class MobilePickerComposite extends Composite {
 			path = path.substring(index + searchPath.length());
 		}
 		
-		String computedText = buf.length() > 0 ? (isDirective ? buf + path : "listen(["+ buf +"])" + path):"";
+		String computedText = buf.length() > 0 ? (isDirective || isForm ? buf + path : "listen(["+ buf +"])" + path):"";
 		text.setText(computedText);
 	}
 	
@@ -639,6 +657,9 @@ public class MobilePickerComposite extends Composite {
 						params.putAll(mss.getParameters());
 						searchPath = mss.getModelPath().replaceAll("\\?\\.", ".") + searchPath;
 					} while (dbo != null && dbo instanceof UIControlDirective);
+				} else if (object instanceof UIForm) {
+					dbo = (UIForm)object;
+					searchPath = "";
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -742,6 +763,26 @@ public class MobilePickerComposite extends Composite {
 				    					// execute view transaction
 				    					connectorEditor.getDocument(CouchDbConnector.internalView, false);
 				    				}
+								}
+							});
+						}
+						// case of UIForm
+						else if (dbo instanceof UIForm) {
+							//JSONObject jsonObject = new JSONObject("{\"controls\":{\"['area']\":{\"value\":\"\"}}}");
+							JSONObject jsonObject = new JSONObject(((UIForm)dbo).computeJsonModel());
+							
+							String searchPath = dataPath;
+							
+							JSONObject jsonOutput = findJSONObject(jsonObject,searchPath);
+							
+							JSONObject jsonResponse = jsonOutput;
+							
+							Display.getDefault().asyncExec(new Runnable() {
+								public void run() {
+									modelTreeViewer.setInput(jsonResponse);
+									initTreeSelection(modelTreeViewer, null);
+									setWidgetsEnabled(true);
+									updateMessage();
 								}
 							});
 						}
@@ -897,6 +938,9 @@ public class MobilePickerComposite extends Composite {
 					}
 					if (Filter.Iteration.equals(filter)) {
 						buttonToSelect = btnIteration;
+					}
+					if (Filter.Form.equals(filter)) {
+						buttonToSelect = btnForm;
 					}
 					buttonToSelect.notifyListeners(SWT.Selection, null);
 				}

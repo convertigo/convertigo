@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
+import java.util.regex.Pattern;
+
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
@@ -169,14 +171,12 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 	}
 
 	@Override
-	public void updateSmartSource(long oldPriority, long newPriority) {
+	public void updateSmartSource(String oldString, String newString) {
 		String smartValue = directiveSource.getSmartValue();
-		String oldString = String.valueOf(oldPriority);
-		if (smartValue.indexOf(oldString) != -1) {
-			String newString = String.valueOf(newPriority);
+		if (smartValue.indexOf(oldString) != -1 || Pattern.compile(oldString).matcher(smartValue).find()) {
 			directiveSource.setSmartValue(smartValue.replaceAll(oldString, newString));
 			this.hasChanged = true;
 		}
-		super.updateSmartSource(oldPriority, newPriority);
+		super.updateSmartSource(oldString, newString);
 	}
 }

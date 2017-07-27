@@ -2235,7 +2235,7 @@
       "tag": "ion-segment",
       "label": "Segment",
       "description": "Defines a segment. | A Segment is a group of buttons, sometimes known as segmented controls, that allow the user to interact with a compact group of a number of controls.<br/>Segments provide functionality similar to tabs, selecting one will unselect all others. <br/> For more information: <a href='https://ionicframework.com/docs/components/#segment' target='_blank'>Segment</a>",
-      "group": "Buttons",
+      "group": "Forms",
       "icon16": "segment_color_16x16.png",
       "icon32": "segment_color_32x32.png",
       "properties": {
@@ -2259,7 +2259,7 @@
       "tag": "ion-segment-button",
       "label": "Segment button",
       "description": "Defines a button in a Segment. | ",
-      "group": "Buttons",
+      "group": "Forms",
       "icon16": "segment-button_color_16x16.png",
       "icon32": "segment-button_color_32x32.png",
       "properties": {
@@ -2900,6 +2900,17 @@
       "icon32": "range_32x32.png",
       "properties": {
         "FormControlName": false,
+        "DefaultValue": {
+          "attr": "[ngModel]",
+          "label": "Default value",
+          "description": "The default range value.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            true
+          ]
+        },
         "Min": {
           "attr": "min",
           "label": "Minimum",
@@ -2950,7 +2961,6 @@
             "true"
           ]
         },
-
         "DualKnobs": {
           "attr": "dualKnobs",
           "label": "Dual Knobs",

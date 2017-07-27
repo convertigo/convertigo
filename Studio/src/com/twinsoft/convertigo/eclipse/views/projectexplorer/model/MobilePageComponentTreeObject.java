@@ -39,6 +39,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
 import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
+import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -185,6 +186,22 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 				if (dbo instanceof UIComponent) {
 					UIComponent uic = (UIComponent)dbo;
 					if (getObject().equals(uic.getPage())) {
+						if (propertyName.equals("FormControlName") || uic.isFormControlAttribute()) {
+							if (!newValue.equals(oldValue)) {
+								try {
+									String oldSmart = ((MobileSmartSourceType)oldValue).getSmartValue();
+									String newSmart = ((MobileSmartSourceType)newValue).getSmartValue();
+									String form = uic.getUIForm().getFormGroupName();
+									getObject().updateSmartSource(form+"\\?\\.controls\\['"+oldSmart+"'\\]", form+"?.controls['"+newSmart+"']");
+								
+									this.viewer.refresh();
+								}
+								catch (Exception e) {
+									
+								}
+							}
+						}
+						
 						markPageAsDirty();
 					}
 				}

@@ -132,6 +132,27 @@ public class UIElement extends UIComponent implements IStyleGenerator {
 		return new StringBuilder();
 	}
 	
+	protected String computeJsonModel() {
+		if (isEnabled()) {
+			String formControlVarName = getFormControlName();
+			if (!formControlVarName.isEmpty()) {
+				return "\"['"+formControlVarName+"']\":{\"dirty\":\"\",\"errors\":\"\",\"valid\":\"\",\"value\":\"\"}";
+			} else {
+				StringBuilder models = new StringBuilder();
+				Iterator<UIComponent> it = getUIComponentList().iterator();
+				while (it.hasNext()) {
+					UIComponent component = (UIComponent)it.next();
+					if (component instanceof UIElement ) {
+						String model = ((UIElement)component).computeJsonModel();
+						models.append(model);
+					}
+				}
+				return models.toString();
+			}
+		}
+		return "";
+	}
+	
 	protected String computeConstructor() {
 		if (isEnabled()) {
 			StringBuilder sb = new StringBuilder();

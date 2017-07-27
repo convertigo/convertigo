@@ -45,12 +45,14 @@ public class MobileSmartSource {
 
 	public static Pattern listenPattern = Pattern.compile("listen\\(\\['(.*)'\\]\\)(.+)?");
 	public static Pattern directivePattern = Pattern.compile("(item\\d+)(.+)?");
+	public static Pattern formPattern = Pattern.compile("(form\\d+)(.+)?");
 	public static Pattern cafPattern = Pattern.compile("'([^,]+)(,.+)?'");
 	
 	public enum Filter {
 		Sequence,
 		Database,
-		Iteration;
+		Iteration,
+		Form;
 	}
 	
 	public enum Key {
@@ -158,6 +160,14 @@ public class MobileSmartSource {
 					sources.add(directive);
 				}
 			}
+		} else if (Filter.Form.equals(getFilter())) {
+			Matcher m = formPattern.matcher(getInput());
+			if (m.find()) {
+				String form = m.group(1);
+				if (form != null) {
+					sources.add(form);
+				}
+			}
 		} else {
 			Matcher m = listenPattern.matcher(getInput());
 			if (m.find()) {
@@ -177,6 +187,11 @@ public class MobileSmartSource {
 		String modelPath = null;
 		if (Filter.Iteration.equals(getFilter())) {
 			Matcher m = directivePattern.matcher(getInput());
+			if (m.find()) {
+				modelPath = m.group(2);
+			}
+		} else if (Filter.Form.equals(getFilter())) {
+			Matcher m = formPattern.matcher(getInput());
 			if (m.find()) {
 				modelPath = m.group(2);
 			}
@@ -227,6 +242,33 @@ public class MobileSmartSource {
 						}.init(page);
 						
 						return directiveList.isEmpty() ? null:directiveList.get(0);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			} else if (Filter.Form.equals(getFilter())) {
+				Matcher m = formPattern.matcher(cafInput);
+				if (m.find()) {
+					String form = m.group(1);
+					try {
+						final long priority = Long.valueOf(form.replaceFirst("form", ""), 10);
+						String projectName = getProjectName();
+						Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+						PageComponent page = project.getMobileApplication().getApplicationComponent().getPageComponentByName(pageName);
+						final List<UIForm> formList = new ArrayList<UIForm>();
+						new WalkHelper() {
+							@Override
+							protected void walk(DatabaseObject databaseObject) throws Exception {
+								if (databaseObject instanceof UIForm && databaseObject.priority == priority) {
+									formList.add((UIForm)databaseObject);
+								}
+								if (formList.isEmpty()) {
+									super.walk(databaseObject);
+								}
+							}
+						}.init(page);
+						
+						return formList.isEmpty() ? null:formList.get(0);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -282,6 +324,8 @@ public class MobileSmartSource {
 		String cafInput = sourceData.size() > 0 ? sourceData.get(0):null;
 		if (cafInput != null) {
 			if (Filter.Iteration.equals(getFilter())) {
+				;
+			} else if (Filter.Form.equals(getFilter())) {
 				;
 			} else {
 				Matcher m = cafPattern.matcher(cafInput);

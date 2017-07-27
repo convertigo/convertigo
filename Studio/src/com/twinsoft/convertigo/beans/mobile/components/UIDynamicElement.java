@@ -23,6 +23,8 @@
 package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.beans.BeanInfo;
+import java.util.regex.Pattern;
+
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.IDynamicBean;
@@ -202,17 +204,15 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 	}
 	
 	@Override
-	public void updateSmartSource(long oldPriority, long newPriority) {
+	public void updateSmartSource(String oldString, String newString) {
 		if (beanData != null) {
-			String oldString = String.valueOf(oldPriority);
-			if (beanData.indexOf(oldString) != -1) {
-				String newString = String.valueOf(newPriority);
+			if (beanData.indexOf(oldString) != -1 || Pattern.compile(oldString).matcher(beanData).find()) {
 				beanData = beanData.replaceAll(oldString, newString);
 				ionBean = null;
 				this.hasChanged = true;
 			}
 			
 		}
-		super.updateSmartSource(oldPriority, newPriority);
+		super.updateSmartSource(oldString, newString);
 	}
 }

@@ -69,8 +69,8 @@ import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective.AttrDirective;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
+import com.twinsoft.convertigo.beans.mobile.components.UIForm;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.statements.ElseStatement;
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
@@ -267,6 +267,7 @@ public class ClipboardManager {
 
 	public Object[] pastedObjects = null;
 	public Map<String, Step> pastedSteps = new HashMap<String, Step>();
+	public Map<String, UIComponent> pastedComponents = new HashMap<String, UIComponent>();
 
 	public List<Object> read(String xmlData) throws SAXException, IOException {
 		List<Object> objectList = new ArrayList<Object>();
@@ -300,6 +301,7 @@ public class ClipboardManager {
 		Node node;
 		
 		pastedSteps.clear();
+		pastedComponents.clear();
 		
 		pastedObjects = new Object[]{};
 		if (len > 0) {
@@ -324,6 +326,16 @@ public class ClipboardManager {
 		for (Entry<String, Step> entry : pastedSteps.entrySet()) {
 			Step step = entry.getValue();
 			step.getSequence().fireStepCopied(new StepEvent(step, entry.getKey()));
+		}
+		
+		for (Object ob : pastedObjects) {
+			if (ob instanceof UIComponent) {
+				UIComponent uic = (UIComponent)ob;
+				for (Entry<String, UIComponent> entry : pastedComponents.entrySet()) {
+					uic.updateSmartSource(entry.getKey(), String.valueOf(entry.getValue().priority));
+					uic.getPage().markPageAsDirty();
+				}
+			}
 		}
 	}
 
@@ -654,22 +666,15 @@ public class ClipboardManager {
 				}
 			}
 			
-			// Update sources which reference this step
+			// For update of sources which reference this step
 			if (databaseObject instanceof Step) {
 				pastedSteps.put(String.valueOf(oldPriority), (Step)databaseObject);
 			}
-			
-			// Update sources (of child components) which reference this directive
-			if (databaseObject instanceof UIControlDirective) {
-				UIControlDirective directive = (UIControlDirective)databaseObject;
-				String directiveName = directive.getDirectiveName();
-				AttrDirective attrDirective = AttrDirective.getDirective(directiveName);
-				if (AttrDirective.ForEach.equals(attrDirective)) {
-					directive.updateSmartSource(oldPriority, directive.priority);
-					directive.getPage().markPageAsDirty();
-				}
+			// For update of sources which reference this mobile component
+			if (databaseObject instanceof UIControlDirective || databaseObject instanceof UIForm) {
+				pastedComponents.put(String.valueOf(oldPriority), (UIComponent)databaseObject);
 			}
-
+			
 			databaseObject.isSubLoaded = true;
 			return databaseObject;
 		}
