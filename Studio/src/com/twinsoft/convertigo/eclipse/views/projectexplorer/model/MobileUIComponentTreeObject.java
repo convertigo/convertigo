@@ -403,6 +403,11 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 
 	@Override
 	public void setPropertyValue(Object id, Object value) {
+		if (isSymbolValue(value)) {
+			ConvertigoPlugin.logError("Symbols are not allowed for mobile components", true);
+			return;
+		}
+		
 		DatabaseObject dbo = getObject();
         if (dbo instanceof UIDynamicElement) {
         	IonBean ionBean = ((UIDynamicElement)dbo).getIonBean();

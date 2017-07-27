@@ -24,6 +24,8 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
 import org.eclipse.jface.viewers.Viewer;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
+import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor;
 
 public class MobileComponentTreeObject extends DatabaseObjectTreeObject implements IEditableTreeObject {
@@ -39,6 +41,28 @@ public class MobileComponentTreeObject extends DatabaseObjectTreeObject implemen
 	@Override
 	public MobileComponent getObject() {
 		return (MobileComponent) super.getObject();
+	}
+
+	protected boolean isSymbolValue(Object value) {
+		if (value != null) {
+			String val = null;
+			if (value instanceof String) {
+				val = String.valueOf(value);
+			} else if (value instanceof MobileSmartSourceType) {
+				val = ((MobileSmartSourceType)value).getValue();
+			}
+			return val != null && val.startsWith("${") && val.endsWith("}");
+		}
+		return false;
+	}
+	
+	@Override
+	public void setPropertyValue(Object id, Object value) {
+		if (isSymbolValue(value)) {
+			ConvertigoPlugin.logError("Symbols are not allowed for mobile components", true);
+			return;
+		}
+		super.setPropertyValue(id, value);
 	}
 
 	@Override
