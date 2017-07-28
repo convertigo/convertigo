@@ -527,7 +527,7 @@ public class MobileBuilder {
 					String pageSegment = page.getSegment();
 					boolean isLastPage = i == pages.size();
 					c8o_PagesImport += "import { "+pageName+" } from \"../pages/"+pageName+"/"+pageName.toLowerCase()+"\";\n";
-					c8o_PagesLinks += " { component: "+pageName+", name: '"+pageName+"', segment: '"+pageSegment+"' }" + (isLastPage ? "":",");
+					c8o_PagesLinks += " { component: "+pageName+", name: \""+pageName+"\", segment: \""+pageSegment+"\" }" + (isLastPage ? "":",");
 					c8o_PagesDeclarations += " " + pageName + (isLastPage ? "":",");
 					i++;
 				}
@@ -567,7 +567,7 @@ public class MobileBuilder {
 					boolean isLastPage = i == pages.size();
 					if (isRootPage) c8o_RootPage = pageName;
 					c8o_PagesImport += "import { "+pageName+" } from \"../pages/"+pageName+"/"+pageName.toLowerCase()+"\";\n";
-					c8o_PagesVariables += " { title: '"+pageTitle+"', component: "+pageName+", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
+					c8o_PagesVariables += " { title: \""+pageTitle+"\", component: "+pageName+", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
 					i++;
 				}
 				
