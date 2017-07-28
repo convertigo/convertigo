@@ -83,6 +83,48 @@ public class IonBean {
 		}
 	}
 	
+	public String toBeanData() {
+		String s = jsonBean.toString();
+		try {
+			JSONObject jsonOb = new JSONObject(toString());
+			for (Key k: Key.values()) {
+				if (k.equals(Key.name))
+					continue;
+				if (k.equals(Key.properties)) {
+					JSONObject jsonProperties = jsonOb.getJSONObject(Key.properties.name());
+					if (jsonProperties != null) {
+						@SuppressWarnings("unchecked")
+						Iterator<String> it = jsonProperties.keys();
+						while (it.hasNext()) {
+							String pkey = it.next();
+							if (!pkey.isEmpty()) {
+								Object ob = jsonProperties.get(pkey);
+								if (ob instanceof JSONObject) {
+									JSONObject jsonProperty = (JSONObject)ob;
+									for (IonProperty.Key kp: IonProperty.Key.values()) {
+										if (kp.equals(IonProperty.Key.name)) continue;
+										if (kp.equals(IonProperty.Key.mode)) continue;
+										if (kp.equals(IonProperty.Key.value)) continue;
+										jsonProperty.remove(kp.name());
+									}
+									jsonProperties.put(pkey, jsonProperty);
+								}
+							}
+						}
+						jsonOb.put(Key.properties.name(), jsonProperties);
+						continue;
+					}
+				}
+				jsonOb.remove(k.name());
+			}
+			s = jsonOb.toString();
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		//System.out.println(s);
+		return s;
+	}
+	
 	public String toString() {
 		return jsonBean.toString();
 	}

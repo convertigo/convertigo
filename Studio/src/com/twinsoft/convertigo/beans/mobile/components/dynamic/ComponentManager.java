@@ -62,6 +62,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIFormControlValidator;
 import com.twinsoft.convertigo.beans.mobile.components.UIFormCustomValidator;
 import com.twinsoft.convertigo.beans.mobile.components.UIFormValidator;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class ComponentManager {
@@ -79,22 +80,33 @@ public class ComponentManager {
 		clear();
 		InputStream inputstream = null;
 		try {
-			System.out.println("(ComponentManager) Start loading Ionic objects");
+			if (Engine.isStarted) {
+				Engine.logEngine.info("(ComponentManager) Start loading Ionic objects");
+			} else {
+				System.out.println("(ComponentManager) Start loading Ionic objects");
+			}
 			
 			inputstream = getClass().getResourceAsStream("/ion_objects.json");
 			String json = IOUtils.toString(inputstream, "UTF-8");
-			System.out.println(json);
+			//System.out.println(json);
 			
 			JSONObject root = new JSONObject(json);
 			readPropertyModels(root);
 			readBeanModels(root);
 			readTemplateModels(root);
 			
-			System.out.println("(ComponentManager) End loading Ionic objects");
-			
+			if (Engine.isStarted) {
+				Engine.logEngine.info("(ComponentManager) End loading Ionic objects");
+			} else {
+				System.out.println("(ComponentManager) End loading Ionic objects");
+			}
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			if (Engine.isStarted) {
+				Engine.logEngine.error("(ComponentManager) Could not load Ionic objects", e);
+			} else {
+				System.out.println("(ComponentManager) Could not load Ionic objects:");
+				e.printStackTrace();
+			}
 		}
 		finally {
 			if (inputstream != null)

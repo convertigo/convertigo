@@ -31,7 +31,6 @@ import com.twinsoft.convertigo.beans.core.IDynamicBean;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonProperty;
-import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
 public class UIDynamicElement extends UIElement implements IDynamicBean {
@@ -83,18 +82,13 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 	
 	protected void loadBean() throws Exception {
 		if (ionBean == null && beanData != null) {
-			if (Engine.isStudioMode()) {
-				ionBean = ComponentManager.loadBean(beanData);
-			}
-			else {
-				ionBean = new IonBean(beanData);
-			}
+			ionBean = ComponentManager.loadBean(beanData);
 		}
 	}
 	
 	protected void saveBean() {
 		if (ionBean != null) {
-			beanData = ionBean.toString();
+			beanData = ionBean.toBeanData();
     	}
 	}
 	
