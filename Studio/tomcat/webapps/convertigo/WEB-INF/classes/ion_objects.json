@@ -3687,6 +3687,14 @@
       "icon16": "gmapmarker_color_16x16.png",
       "icon32": "gmapmarker_color_32x32.png",
       "properties": {
+        "IconUrl": {
+          "mode": "script",
+          "attr":"[iconUrl]",
+          "label": "Icon",
+          "description": "Icon (the URL of the image) for the foreground.",
+          "category": "@Display",
+          "value": "'http://maps.google.com/mapfiles/ms/micons/red-dot.png'"
+        },
         "Latitude": {
           "mode": "script",
           "attr":"[latitude]",
