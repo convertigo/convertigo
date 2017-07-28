@@ -3737,24 +3737,35 @@
       "icon32": "chart_color_32x32.png",
       "properties": {
         "BaseChart": {
-          "label": "baseChart",
-          "description": "Defines a chart, must not be modified",
+          "label": "Chart base",
+          "description": "Defines a base chart",
           "category": "@Properties",
-          "value": "baseChart"
+          "value": "baseChart",
+          "values": [
+            "baseChart"
+          ]
         },
         "Width": {
           "attr":"width",
-          "label": "Width",
+          "label": "Chart width",
           "description": "Chart width",
           "category": "@Properties",
-          "value": "100"
+          "value": "100",
+		  "values": [
+		    false,
+		    true
+		  ]
         },
         "Height": {
           "attr":"height",
-          "label": "Height",
+          "label": "Chart height",
           "description": "Chart height",
           "category": "@Properties",
-          "value": "100"
+          "value": "100",
+		  "values": [
+		    false,
+		    true
+		  ]
         },
         "data": {
           "mode": "script",
@@ -3762,7 +3773,11 @@
           "label": "Data",
           "description": "(Array<number[]> | number[]) - set of points of the chart, it should be Array<number[]> only for line, bar and radar, otherwise number[]",
           "category": "@Properties",
-          "value": false
+          "value": false,
+		  "values": [
+		    false,
+		    true
+		  ]
         },
         "datasets": {
           "mode": "script",
@@ -3770,38 +3785,54 @@
           "label": "Data sets",
           "description": "(Array<number[]> | number[]) - set of points of the chart, it should be Array<number[]> only for line, bar and radar, otherwise number[]",
           "category": "@Properties",
-          "value": false
+          "value": "[{'label': 'My first dataset','backgroundColor': 'rgb(255, 99, 132)','borderColor': 'rgb(255, 99, 132)','data': [0, 10, 5, 2, 20, 30, 45]},{'label': 'My second dataset','backgroundColor': 'rgb(255, 99, 100)','borderColor': 'rgb(255, 99, 100)','data': [15, 45, 10, 20, 65, 38, 88]}]",
+		  "values": [
+		    false,
+		    true
+		  ]
         },
         "labels": {
           "mode": "script",
           "attr":"[labels]",
-          "label": "labels",
+          "label": "Data labels",
           "description": " (Array<any>) - x axis labels. It's necessary for charts: line, bar and radar. And just labels (on hover) for charts: polarArea, pie and doughnut",
           "category": "@Properties",
-          "value": false
+          "value": "['January', 'February', 'March', 'April', 'May', 'June', 'July']",
+		  "values": [
+		    false,
+		    true
+		  ]
         },
         "Options": {
           "mode": "script",
           "attr":"[options]",
-          "label": "Options",
+          "label": "Chart options",
           "description": "chart options (as from Chart.js documentation)",
           "category": "@Properties",
-          "value": false
+          "value": "{'title':{'display': true,'text': 'My Chart Title'}}",
+		  "values": [
+		    false,
+		    true
+		  ]
         },
         "Colors": {
           "mode": "script",
           "attr":"[colors]",
-          "label": "Colors",
+          "label": "Data colors",
           "description": "data colors, will use default and|or random colors if not specified",
           "category": "@Properties",
-          "value": false
+          "value": false,
+		  "values": [
+		    false,
+		    true
+		  ]
         },
         "ChartType": {
           "attr":"chartType",
           "label": "Chart Type",
           "description": "Indicates the type of charts, it can be: line, bar, radar, pie, polarArea, doughnut",
           "category": "@Properties",
-          "value": "line",
+          "value": "bar",
           "values":[
             "line",
             "bar",
