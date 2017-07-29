@@ -3640,7 +3640,7 @@
     "GoogleMap" : {
       "tag": "agm-map",
       "label": "Google Map",
-      "description": "Defines a Google Map. | Displays a Google Map able to be positioned on a given latitude and longitude.<br /><br />You can insert in the Map any number of 'Marker' objects to mark a positions on the map, and within 'Marker' an 'InfoWindow' object to display more information on a given marker.<br /><br />'InfoWindow' objects can have any type of HTML information inside to display formated information when the user clicks on a mark.",
+      "description": "Defines a Google Map. | Displays a Google Map able to be positioned on a given latitude and longitude.<br /><br />You can insert in the Map any number of 'Marker' objects to mark a positions on the map, and within 'Marker' an 'InfoWindow' object to display more information on a given marker.<br /><br />'InfoWindow' objects can have any type of HTML information inside to display formated information when the user clicks on a mark, including action buttons.<br /><br />All coordinates are as jSON 'number' type. To be sure to generate 'number' types within Sequences be sure to add an 'Attribute type=double' step to your 'Element' steps",
       "group": "Google Map",
       "icon16": "gmap_color_16x16.png",
       "icon32": "gmap_color_32x32.png",
@@ -3649,7 +3649,7 @@
           "mode": "script",
           "attr":"[latitude]",
           "label": "Latitude",
-          "description": "Number : The map will be centered at this latitude. (ex: 51.678418)",
+          "description": "Number : The map will be centered at this latitude. Must be a 'number' jSON type (ex: 51.678418)",
           "category": "@Coordinates",
           "value": "48.6969459"
         },
@@ -3657,7 +3657,7 @@
           "mode": "script",
           "attr":"[longitude]",
           "label": "Longitude",
-          "description": "Number : The map will be centered at this longitude. (ex: 7.809007)",
+          "description": "Number : The map will be centered at this longitude. Must be a 'number' jSON type (ex: 7.809007)",
           "category": "@Coordinates",
           "value": "2.1775981"
         },
@@ -3691,15 +3691,15 @@
           "mode": "script",
           "attr":"[iconUrl]",
           "label": "Icon",
-          "description": "Icon (the URL of the image) for the foreground.",
+          "description": "Icon (the URL of the image) for the foreground. Leaving this field blank will place the default Google Map Maker Icon",
           "category": "@Display",
-          "value": "'http://maps.google.com/mapfiles/ms/micons/red-dot.png'"
+          "value": ""
         },
         "Latitude": {
           "mode": "script",
           "attr":"[latitude]",
           "label": "Latitude",
-          "description": "Number : The Marker will be displayed at this latitude. (ex: 51.678418)",
+          "description": "Number : The Marker will be displayed at this latitude. Must be a 'number' jSON type (ex: 51.678418)",
           "category": "@Coordinates",
           "value": "48.6969459"
         },
@@ -3707,7 +3707,7 @@
           "mode": "script",
           "attr":"[longitude]",
           "label": "Longitude",
-          "description": "Number : The Marker will be displayed at this longitude. (ex: 7.809007)",
+          "description": "Number : The Marker will be displayed at this longitude. Must be a 'number' jSON type (ex: 7.809007)",
           "category": "@Coordinates",
           "value": "2.1775981"
         },
