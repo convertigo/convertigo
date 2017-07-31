@@ -3793,7 +3793,7 @@
           "label": "Data sets",
           "description": "(Array<number[]> | number[]) - set of points of the chart, it should be Array<number[]> only for line, bar and radar, otherwise number[]",
           "category": "@Properties",
-          "value": "[{'label': 'My first dataset','backgroundColor': 'rgb(255, 99, 132)','borderColor': 'rgb(255, 99, 132)','data': [0, 10, 5, 2, 20, 30, 45]},{'label': 'My second dataset','backgroundColor': 'rgb(255, 99, 100)','borderColor': 'rgb(255, 99, 100)','data': [15, 45, 10, 20, 65, 38, 88]}]",
+          "value": "[{'label': 'My first dataset','data': [0, 10, 5, 2, 20, 30, 45]},{'label': 'My second dataset','data': [15, 45, 10, 20, 65, 38, 88]}]",
 		  "values": [
 		    false,
 		    true
@@ -3829,7 +3829,7 @@
           "label": "Data colors",
           "description": "data colors, will use default and|or random colors if not specified",
           "category": "@Properties",
-          "value": false,
+          "value": "[{'backgroundColor': 'rgb(0, 127, 255)','borderColor': 'rgb(0, 0, 255)'},{'backgroundColor': 'rgb(136, 77, 167)','borderColor': 'rgb(102,0, 153)'}]",
 		  "values": [
 		    false,
 		    true
