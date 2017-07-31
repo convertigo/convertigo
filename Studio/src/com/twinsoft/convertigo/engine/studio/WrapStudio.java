@@ -1,9 +1,10 @@
-package com.twinsoft.convertigo.engine.studio.views.projectexplorer;
+package com.twinsoft.convertigo.engine.studio;
 
 import java.util.List;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.engine.studio.views.projectexplorer.model.WrapObject;
+import com.twinsoft.convertigo.engine.studio.views.sourcepicker.SourcePickerViewWrap;
 
 public interface WrapStudio {
 
@@ -18,4 +19,6 @@ public interface WrapStudio {
 
 	void setResponse(int reponse);	
 	boolean isActionDone();
+
+	SourcePickerViewWrap getSourcePickerView();
 }

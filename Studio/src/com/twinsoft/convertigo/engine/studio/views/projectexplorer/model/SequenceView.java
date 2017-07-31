@@ -1,9 +1,9 @@
 package com.twinsoft.convertigo.engine.studio.views.projectexplorer.model;
 
 import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.engine.studio.WrapStudio;
 import com.twinsoft.convertigo.engine.studio.editors.IEditorPartWrap;
 import com.twinsoft.convertigo.engine.studio.responses.sequences.SequenceExecuteSelectedOpenSequenceEditorResponse;
-import com.twinsoft.convertigo.engine.studio.views.projectexplorer.WrapStudio;
 
 public class SequenceView extends DatabaseObjectView {
 

@@ -8,7 +8,6 @@ import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.studio.responses.XmlResponseFactory;
-import com.twinsoft.convertigo.engine.studio.views.projectexplorer.WrapStudio;
 
 public abstract class AbstractRunnableAction {
 
@@ -45,5 +44,4 @@ public abstract class AbstractRunnableAction {
 	public boolean isDone() {
 		return isDone;
 	}
-
 }

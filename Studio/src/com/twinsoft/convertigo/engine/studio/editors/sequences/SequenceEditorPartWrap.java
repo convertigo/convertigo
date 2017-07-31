@@ -19,7 +19,7 @@ import com.twinsoft.convertigo.engine.RequestableEngineEvent;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
-import com.twinsoft.convertigo.engine.studio.events.GenericEvent;
+import com.twinsoft.convertigo.engine.studio.events.AbstractEvent;
 import com.twinsoft.convertigo.engine.studio.events.sequences.SequenceEditorPartDocumentGeneratedEvent;
 import com.twinsoft.convertigo.engine.studio.events.sequences.SequenceEditorPartSequenceFinishedEvent;
 import com.twinsoft.convertigo.engine.studio.events.sequences.SequenceEditorPartSequenceStartedEvent;
@@ -68,7 +68,7 @@ public class SequenceEditorPartWrap implements EngineListener {
 
         lastGeneratedDocument = (Document) engineEvent.getSource();
         String sequenceOutput = XMLUtils.prettyPrintDOMWithEncoding(lastGeneratedDocument);
-        GenericEvent event = new SequenceEditorPartDocumentGeneratedEvent(sequence, sequenceOutput);
+        AbstractEvent event = new SequenceEditorPartDocumentGeneratedEvent(sequence, sequenceOutput);
         com.twinsoft.convertigo.engine.servlets.GetEvents.addEvent(event);
     }
 
@@ -100,7 +100,7 @@ public class SequenceEditorPartWrap implements EngineListener {
         }
 
         clearEditor(engineEvent);
-        GenericEvent event = new SequenceEditorPartSequenceStartedEvent(sequence);
+        AbstractEvent event = new SequenceEditorPartSequenceStartedEvent(sequence);
         com.twinsoft.convertigo.engine.servlets.GetEvents.addEvent(event);
     }
 
@@ -110,7 +110,7 @@ public class SequenceEditorPartWrap implements EngineListener {
             return;
         }
 
-        GenericEvent event = new SequenceEditorPartSequenceFinishedEvent(sequence);
+        AbstractEvent event = new SequenceEditorPartSequenceFinishedEvent(sequence);
         com.twinsoft.convertigo.engine.servlets.GetEvents.addEvent(event);
     }
 

@@ -1,6 +1,6 @@
 package com.twinsoft.convertigo.engine.studio.dialogs;
 
-import com.twinsoft.convertigo.engine.studio.views.projectexplorer.WrapStudio;
+import com.twinsoft.convertigo.engine.studio.WrapStudio;
 
 public class MultipleDeletionDialog {
 
@@ -12,7 +12,7 @@ public class MultipleDeletionDialog {
 	private String title;
 	private boolean hasMultiple;
 	private WrapStudio shell;
-	
+
 	public MultipleDeletionDialog(WrapStudio shell, String title, boolean hasMultiple) {
 		this.title = title;
 		this.shell = shell;
@@ -32,7 +32,7 @@ public class MultipleDeletionDialog {
 			};
 		}	 
 	}
-	
+
 	public boolean shouldBeDeleted(String message) {
 		if (confirmation == YES_TO_ALL) {
 			return true;
@@ -54,7 +54,7 @@ public class MultipleDeletionDialog {
 			return false;
 		}
 	}
-	
+
 	private boolean confirmOverwrite(String msg) {
 		if (shell == null) return false;
 		int returnCode = shell.openMessageDialog(title, null, msg, "question", buttons, 0);
@@ -84,9 +84,8 @@ public class MultipleDeletionDialog {
 			}
 		}
 	}
-	
+
 	public void setTitle(String title) {
 		this.title = title;
 	}
-
 }

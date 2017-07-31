@@ -12,8 +12,7 @@ public abstract class AbstractResponse {
 		if (qname != null) {
 			response.setAttribute("qname", qname);
 		}
-		
+
 		return response;
 	}
-
 }

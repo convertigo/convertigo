@@ -13,6 +13,7 @@ var Main = {
 			"jstree",
 			"jstreegrid",
 			"jstreeutils",
+			"jquery.highlighttextarea",
 			"jquery.modal",
 	        "jquery.sse",
             "attrchange",
@@ -114,6 +115,7 @@ var Main = {
 
 			// Inject CSS
 	        StyleUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/jstree-3.3.3/themes/" + theme + "/style.min.css"));
+	        StyleUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/jquery.highlighttextarea.min.css"));
 			StyleUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/jquery.modal-0.8.0.min.css"));
 			StyleUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/accordion.css"));
 	        StyleUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/prism-1.6.0/themes/" + theme + ".css"));
@@ -147,7 +149,7 @@ var Main = {
 				StyleUtils.injectLinkStyle(Convertigo.createServiceUrl("studio.database_objects.GetTreeIconsCSS"));
 
 				// All tabs
-				var sourcePicker = new SourcePicker();
+				that.sourcePicker = new SourcePicker();
 				var references = new References();
 				var palette = new Palette();
 
@@ -191,7 +193,7 @@ var Main = {
 					} else if (state.view == "palette") {
 						$elt.append(palette.getDiv());
 					} else if (state.view == "sourcePicker") {
-					    $elt.append(sourcePicker.getDiv());
+					    $elt.append(that.sourcePicker.getDiv());
 					} else if (state.view == "references") {
 					    $elt.append(references.getDiv());
                     } else if (state.view == "propertiesView") {
@@ -379,6 +381,7 @@ var Main = {
 		        jstree: Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jstree-3.3.3/jstree.min"),
 		        jstreegrid: Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jstree-3.3.3/plugins/jstreegrid-3.5.14"),
 		        jstreeutils: Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jstree-3.3.3/plugins/jstreeutils"),
+		        "jquery.highlighttextarea": Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jquery.highlighttextarea.min"),
 		        "jquery.modal": Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jquery.modal-0.8.0.min"),
 	            "jquery.sse": Convertigo.getBaseConvertigoStudioUrl("js/libs/jquery/jquery.sse-0.1.3.min"),
 		        accordion: Convertigo.getBaseConvertigoStudioUrl("js/libs/accordion"),
@@ -470,12 +473,16 @@ var Main = {
 		    },
 		    // To resolve jQuery conflicts
 		    shim: {
+		        "jquery.highlighttextarea": ["jquery"],
 		        "jquery.modal": ["jquery"],
 		        "jquery.sse": ["jquery"],
 		        "goldenlayout": ["jquery"],
 		        "attrchange": ["jquery"]
 		    }
 		});
+	},
+	getSourcePicker: function () {
+	    return this.sourcePicker;
 	},
 	isCheDarkTheme: function () {
 	    return localStorage.getItem("codenvy-theme") === "DarkTheme";

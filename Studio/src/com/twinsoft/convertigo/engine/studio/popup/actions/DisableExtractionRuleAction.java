@@ -6,8 +6,8 @@ import org.w3c.dom.Element;
 import com.twinsoft.convertigo.beans.core.ExtractionRule;
 import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.studio.AbstractRunnableAction;
+import com.twinsoft.convertigo.engine.studio.WrapStudio;
 import com.twinsoft.convertigo.engine.studio.responses.SetPropertyResponse;
-import com.twinsoft.convertigo.engine.studio.views.projectexplorer.WrapStudio;
 import com.twinsoft.convertigo.engine.studio.views.projectexplorer.model.WrapDatabaseObject;
 import com.twinsoft.convertigo.engine.studio.views.projectexplorer.model.WrapObject;
 

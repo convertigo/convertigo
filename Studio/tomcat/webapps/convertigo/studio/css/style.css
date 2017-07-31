@@ -263,9 +263,6 @@ code {
 
 /* Source: http://www.alessioatzeni.com/blog/css3-loading-animation-loop/ */
 .barlittle {
-    background-color: #2187e7;
-    background-image: -moz-linear-gradient(45deg, #2187e7 25%, #a0eaff);
-    background-image: -webkit-linear-gradient(45deg, #2187e7 25%, #a0eaff);
     border-left: 1px solid #111;
     border-top: 1px solid #111;
     border-right: 1px solid #333;
@@ -352,3 +349,71 @@ body .lm_content {
     padding-left: 18px;
     width: 100%;
 }
+
+/*********************************
+* Source Picker
+*********************************/
+.infos {
+	float: left;
+	width: 50%;
+}
+
+.help {
+	float: left;
+	width: 40%;
+	margin-left: 10px;
+	margin-right: 10px;
+	margin-top: 14px;
+	border: 1px solid #2187e7;
+	background-color: #d6d6d9;
+}
+
+.infos label, .infos input {
+    display: inline-block;
+    vertical-align: baseline;
+}
+
+.infos label {
+    width: 25%;
+}
+
+.infos input {
+	width: 75%;
+}
+
+.infos label {
+    color: #2D2D2D;
+    font-size: 15px;
+}
+
+.infos, .infos input {
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+}
+
+div[id^="sourcePicker1"] .xpath {
+	resize: none;
+	width: 90%;
+	vertical-align: middle;
+	margin-left: 14px;
+}
+
+#left {
+	float: left;
+	width: 75%;
+	/*overflow: hidden;*/
+}
+
+#right {
+	float: left;
+	width: 25%;
+	/*overflow: hidden;*/
+} 
+
+
+#right textarea {
+    /*height: 100px;*/
+    resize: none;
+    /*overflow: hidden;*/
+} 

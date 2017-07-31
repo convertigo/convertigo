@@ -7,7 +7,7 @@ import org.w3c.dom.Document;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.SequenceEvent;
 import com.twinsoft.convertigo.beans.core.SequenceListener;
-import com.twinsoft.convertigo.engine.studio.events.GenericEvent;
+import com.twinsoft.convertigo.engine.studio.events.AbstractEvent;
 import com.twinsoft.convertigo.engine.studio.events.sequences.SequenceEditorCompositeClearContentEvent;
 import com.twinsoft.convertigo.engine.studio.events.sequences.SequenceEditorCompositeDataChangedEvent;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -40,7 +40,7 @@ public class SequenceCompositeWrap extends AbstractSequenceCompositeWrap impleme
 
     private void setTextData(String data) {
         if (data != null) {
-            GenericEvent event = new SequenceEditorCompositeDataChangedEvent(sequence, data);
+            AbstractEvent event = new SequenceEditorCompositeDataChangedEvent(sequence, data);
             com.twinsoft.convertigo.engine.servlets.GetEvents.addEvent(event);
         }
     }
@@ -54,7 +54,7 @@ public class SequenceCompositeWrap extends AbstractSequenceCompositeWrap impleme
 
     @Override
     protected void clearContent() {
-        GenericEvent event = new SequenceEditorCompositeClearContentEvent(sequence);
+        AbstractEvent event = new SequenceEditorCompositeClearContentEvent(sequence);
         com.twinsoft.convertigo.engine.servlets.GetEvents.addEvent(event);
     }
 }

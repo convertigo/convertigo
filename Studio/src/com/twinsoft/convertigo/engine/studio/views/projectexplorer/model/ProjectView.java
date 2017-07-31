@@ -6,9 +6,9 @@ import java.util.Map;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.engine.studio.WrapStudio;
 import com.twinsoft.convertigo.engine.studio.editors.connectors.ConnectorEditorWrap;
 import com.twinsoft.convertigo.engine.studio.editors.sequences.SequenceEditorWrap;
-import com.twinsoft.convertigo.engine.studio.views.projectexplorer.WrapStudio;
 
 public class ProjectView extends DatabaseObjectView {
 

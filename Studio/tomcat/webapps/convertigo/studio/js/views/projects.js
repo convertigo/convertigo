@@ -486,7 +486,7 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
                              *         ->◢Conn1 (marker is here so the target node is still "Conn1")
                              *           ◢Conn2
 		    	             */
-		                    if (that.dnd.markerBetweenNodes = distMakerNode !== 22) {
+		                    if (that.dnd.markerBetweenNodes = distMakerNode < 20) {
 		                        targetNode = that.tree.jstree().get_node(targetNode.parent);
 		                    }
 

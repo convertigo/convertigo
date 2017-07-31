@@ -8,7 +8,7 @@ import org.w3c.dom.Element;
 import com.twinsoft.convertigo.engine.admin.util.DOMUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public abstract class GenericEvent {
+public abstract class AbstractEvent {
 
     protected String name;
     protected String data = null;
@@ -16,7 +16,7 @@ public abstract class GenericEvent {
     protected String qname;
     protected Document document;
 
-    public GenericEvent(String name, String qname) {
+    public AbstractEvent(String name, String qname) {
         this.name = name;
         this.qname = qname;
 

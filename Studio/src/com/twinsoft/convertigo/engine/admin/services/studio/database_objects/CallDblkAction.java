@@ -13,7 +13,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.studio.AbstractRunnableAction;
-import com.twinsoft.convertigo.engine.studio.views.projectexplorer.CheStudio;
+import com.twinsoft.convertigo.engine.studio.CheStudio;
 import com.twinsoft.convertigo.engine.studio.views.projectexplorer.actions.LauncEditableEditorAction;
 import com.twinsoft.convertigo.engine.studio.views.projectexplorer.actions.LaunchConnectorEditorAction;
 import com.twinsoft.convertigo.engine.studio.views.projectexplorer.actions.LaunchSequenceEditorAction;
@@ -31,7 +31,7 @@ public class CallDblkAction extends XmlService {
     @Override
     protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
         HttpSession session = request.getSession();
-        CheStudio cheStudio = (CheStudio) session.getAttribute(CallAction.PARAM_CHE_STUDIO);
+        CheStudio cheStudio = CallAction.getStudio(session);
 
         if (cheStudio == null || cheStudio.isActionDone()) {
             String qname = request.getParameter("qname");

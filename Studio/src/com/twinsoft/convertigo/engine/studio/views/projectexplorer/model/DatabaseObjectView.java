@@ -1,9 +1,9 @@
 package com.twinsoft.convertigo.engine.studio.views.projectexplorer.model;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.engine.studio.views.projectexplorer.CheStudio;
-import com.twinsoft.convertigo.engine.studio.views.projectexplorer.Studio;
-import com.twinsoft.convertigo.engine.studio.views.projectexplorer.WrapStudio;
+import com.twinsoft.convertigo.engine.studio.CheStudio;
+import com.twinsoft.convertigo.engine.studio.Studio;
+import com.twinsoft.convertigo.engine.studio.WrapStudio;
 
 public class DatabaseObjectView implements WrapDatabaseObject {
 

@@ -1,4 +1,4 @@
-package com.twinsoft.convertigo.engine.studio.views.projectexplorer;
+package com.twinsoft.convertigo.engine.studio;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,14 +8,15 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.engine.studio.AbstractRunnableAction;
 import com.twinsoft.convertigo.engine.studio.responses.XmlResponseFactory;
 import com.twinsoft.convertigo.engine.studio.views.projectexplorer.model.WrapDatabaseObject;
 import com.twinsoft.convertigo.engine.studio.views.projectexplorer.model.WrapObject;
+import com.twinsoft.convertigo.engine.studio.views.sourcepicker.SourcePickerViewWrap;
 
 public class CheStudio extends Studio {
 
 	private Document document;
+	private static SourcePickerViewWrap sourcePickerViewWrap;
 
 	public CheStudio(Document document) {
 		setDocument(document);
@@ -46,16 +47,16 @@ public class CheStudio extends Studio {
 		}
 
 		action.run();
-		isActionDone = action.isDone();
-
-		// Generate responses
-		for (String qname: qnames) {
-		    Element xmlResponse = action.toXml(document, qname);
-		    createResponse(xmlResponse);
-		}
-
-		// End of the action: notify
 		synchronized (this) {
+    		isActionDone = action.isDone();
+
+    		// Generate responses
+    		for (String qname: qnames) {
+    		    Element xmlResponse = action.toXml(document, qname);
+    		    createResponse(xmlResponse);
+    		}
+
+    		// End of the action: notify
 			notify();
 		}
 	}
@@ -99,4 +100,14 @@ public class CheStudio extends Studio {
 			return response;
 		}
 	}
+
+    @Override
+    public SourcePickerViewWrap getSourcePickerView() {
+        if (sourcePickerViewWrap == null) {
+            sourcePickerViewWrap = new SourcePickerViewWrap(this);
+        }
+
+        sourcePickerViewWrap.updateStudio(this);
+        return sourcePickerViewWrap;
+    }
 }

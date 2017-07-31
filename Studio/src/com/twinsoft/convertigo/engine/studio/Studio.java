@@ -1,4 +1,4 @@
-package com.twinsoft.convertigo.engine.studio.views.projectexplorer;
+package com.twinsoft.convertigo.engine.studio;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -29,7 +29,7 @@ import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
 import com.twinsoft.convertigo.engine.servlets.GetEvents;
-import com.twinsoft.convertigo.engine.studio.events.GenericEvent;
+import com.twinsoft.convertigo.engine.studio.events.AbstractEvent;
 import com.twinsoft.convertigo.engine.studio.events.connectors.ConnectorEditorPartDocumentGeneratedEvent;
 import com.twinsoft.convertigo.engine.studio.events.connectors.ConnectorEditorPartTransactionFinishedEvent;
 import com.twinsoft.convertigo.engine.studio.events.connectors.ConnectorEditorPartTransactionStartedEvent;
@@ -117,7 +117,7 @@ public class ConnectorEditorPartWrap implements EngineListener {
 
         lastGeneratedDocument = (org.w3c.dom.Document) engineEvent.getSource();
         final String strXML = XMLUtils.prettyPrintDOMWithEncoding(lastGeneratedDocument);
-        GenericEvent event = new ConnectorEditorPartDocumentGeneratedEvent(connector, strXML);
+        AbstractEvent event = new ConnectorEditorPartDocumentGeneratedEvent(connector, strXML);
         GetEvents.addEvent(event);
         editor.setDirty(false);
     }
@@ -135,7 +135,7 @@ public class ConnectorEditorPartWrap implements EngineListener {
             return;
         }
 
-        GenericEvent event = new ConnectorEditorPartTransactionStartedEvent(connector);
+        AbstractEvent event = new ConnectorEditorPartTransactionStartedEvent(connector);
         com.twinsoft.convertigo.engine.servlets.GetEvents.addEvent(event);
     }
 
@@ -145,7 +145,7 @@ public class ConnectorEditorPartWrap implements EngineListener {
             return;
         }
 
-        GenericEvent event = new ConnectorEditorPartTransactionFinishedEvent(connector);
+        AbstractEvent event = new ConnectorEditorPartTransactionFinishedEvent(connector);
         com.twinsoft.convertigo.engine.servlets.GetEvents.addEvent(event);
     }
 

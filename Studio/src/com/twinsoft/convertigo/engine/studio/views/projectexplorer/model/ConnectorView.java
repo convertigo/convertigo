@@ -1,9 +1,9 @@
 package com.twinsoft.convertigo.engine.studio.views.projectexplorer.model;
 
 import com.twinsoft.convertigo.beans.core.Connector;
+import com.twinsoft.convertigo.engine.studio.WrapStudio;
 import com.twinsoft.convertigo.engine.studio.editors.IEditorPartWrap;
 import com.twinsoft.convertigo.engine.studio.responses.connectors.SequenceExecuteSelectedOpenConnectorEditorResponse;
-import com.twinsoft.convertigo.engine.studio.views.projectexplorer.WrapStudio;
 
 public class ConnectorView extends DatabaseObjectView {
 
@@ -26,7 +26,7 @@ public class ConnectorView extends DatabaseObjectView {
             //ConvertigoPlugin.logException(e, "Unable to open project named '" + projectName + "'!");
 //        }
     }
-    
+
     public void openConnectorEditor() {
         // To add listeners
         getConnectorEditor(getObject());

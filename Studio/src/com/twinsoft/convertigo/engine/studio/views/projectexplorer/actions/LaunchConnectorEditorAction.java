@@ -1,7 +1,7 @@
 package com.twinsoft.convertigo.engine.studio.views.projectexplorer.actions;
 
 import com.twinsoft.convertigo.engine.studio.AbstractRunnableAction;
-import com.twinsoft.convertigo.engine.studio.views.projectexplorer.WrapStudio;
+import com.twinsoft.convertigo.engine.studio.WrapStudio;
 import com.twinsoft.convertigo.engine.studio.views.projectexplorer.model.ConnectorView;
 import com.twinsoft.convertigo.engine.studio.views.projectexplorer.model.WrapDatabaseObject;
 

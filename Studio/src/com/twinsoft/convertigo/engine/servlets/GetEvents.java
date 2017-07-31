@@ -10,13 +10,13 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.twinsoft.convertigo.engine.studio.events.GenericEvent;
+import com.twinsoft.convertigo.engine.studio.events.AbstractEvent;
 
 
 public class GetEvents extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
-    private static final Queue<GenericEvent> events = new LinkedList<>();
+    private static final Queue<AbstractEvent> events = new LinkedList<>();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -27,7 +27,7 @@ public class GetEvents extends HttpServlet {
         // TODO: CURRENTLY, IT DOES A SHORT POLLING WHICH IS BAD (= MULTIPLE CONNECTIONS).
         // WE SHOULD FIND ANOTHER SOLUTION AND HAVE AN INFINITE LOOP
         try (PrintWriter writer = resp.getWriter()) {
-            GenericEvent event = events.poll();
+            AbstractEvent event = events.poll();
             if (event != null) {
                 // Reconnect every 500ms
                 writer.append("retry: 500\n");
@@ -37,13 +37,13 @@ public class GetEvents extends HttpServlet {
         }
     }
 
-    private String createEventMessage(GenericEvent event) {
+    private String createEventMessage(AbstractEvent event) {
         String eventStr = "event: " + event.getName() + "\n";
         String data = "data: " + event.getData().replaceAll("\r\n", "\\\\r\\\\n");
         return eventStr + data + "\n\n";
     }
 
-    public static void addEvent(GenericEvent event) {
+    public static void addEvent(AbstractEvent event) {
         events.add(event);
     }
 }

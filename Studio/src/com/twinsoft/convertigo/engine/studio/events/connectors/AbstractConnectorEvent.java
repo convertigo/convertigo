@@ -1,9 +1,9 @@
 package com.twinsoft.convertigo.engine.studio.events.connectors;
 
 import com.twinsoft.convertigo.beans.core.Connector;
-import com.twinsoft.convertigo.engine.studio.events.GenericEvent;
+import com.twinsoft.convertigo.engine.studio.events.AbstractEvent;
 
-public abstract class AbstractConnectorEvent extends GenericEvent {
+public abstract class AbstractConnectorEvent extends AbstractEvent {
 
     protected Connector connector;
 

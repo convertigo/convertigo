@@ -1,8 +1,8 @@
 package com.twinsoft.convertigo.engine.studio.views.projectexplorer.model;
 
 import com.twinsoft.convertigo.beans.core.Sheet;
+import com.twinsoft.convertigo.engine.studio.WrapStudio;
 import com.twinsoft.convertigo.engine.studio.responses.projectexplorer.actions.OpenEditableEditorActionResponse;
-import com.twinsoft.convertigo.engine.studio.views.projectexplorer.WrapStudio;
 
 public class SheetView extends DatabaseObjectView implements IEditableTreeViewWrap {
 

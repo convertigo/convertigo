@@ -5,6 +5,9 @@ var ResponseActionManager = {
 		SetPropertyResponse: function ($data) {
 			DatabaseObjectManager.notifySetProperty($data.find("admin"));
 		},
+		/*****************************
+         * Message
+         *****************************/
 		MessageBoxResponse: function ($data) {
 			var $response = $data.find("admin>*>*").first();
 			ModalUtils.createMessageBox(
@@ -42,6 +45,9 @@ var ResponseActionManager = {
 		DatabaseObjectDeleteActionResponse: function ($data) {
 			DatabaseObjectManager.notifyDatabaseObjectDelete($data.find("admin"));
 		},
+		/*****************************
+         * Editor
+         *****************************/
 		OpenEditableEditorActionResponse: function ($data) {
             var $response = $data.find("admin>response");
             var editor = $response.attr("type_editor");
@@ -84,7 +90,64 @@ var ResponseActionManager = {
             else {
                 ResponseActionManager.projectView.callServiceDblkAction(null);
             }
-		}
+		},
+		/*****************************
+		 * Source Picker
+		 *****************************/
+		SourcePickerViewFillHelpContentResponse: function ($data, callAction) {
+		    var $response = $data.find("response");
+		    Main.getSourcePicker().fillHelpContent(
+	            $response.find("tag").text(),
+	            $response.find("type").text(),
+	            $response.find("name").text(),
+	            $response.find("comment").text(),
+	            $response.find("text_show_btn").text(),
+	            $response.find("enable_btn").text() === "true"
+            );
+
+		    // Recall the service to continue the action
+            if (callAction) {
+                ResponseActionManager.projectView.callServiceCallAction(null, null, null);
+            }
+            else {
+                ResponseActionManager.projectView.callServiceDblkAction(null);
+            }
+		},
+		TwsDomTreeFillDomTreeResponse: function ($data, callAction) {
+		    var $response = $data.find("response");
+		    Main.getSourcePicker().fillDomTree($response.find("dom_tree"));
+
+            // Recall the service to continue the action
+            if (callAction) {
+                ResponseActionManager.projectView.callServiceCallAction(null, null, null);
+            }
+            else {
+                ResponseActionManager.projectView.callServiceDblkAction(null);
+            }
+		},
+		TwsDomTreeRemoveAllResponse: function ($data, callAction) {
+		    Main.getSourcePicker().removeAll();
+		    
+            // Recall the service to continue the action
+            if (callAction) {
+                ResponseActionManager.projectView.callServiceCallAction(null, null, null);
+            }
+            else {
+                ResponseActionManager.projectView.callServiceDblkAction(null);
+            }
+		},
+		XpathEvaluatorCompositeSetXpathTextResponse: function ($data, callAction) {
+		    var $response = $data.find("response");
+	        Main.getSourcePicker().setXpathText($data.find("xpath").text());
+
+            // Recall the service to continue the action
+            if (callAction) {
+                ResponseActionManager.projectView.callServiceCallAction(null, null, null);
+            }
+            else {
+                ResponseActionManager.projectView.callServiceDblkAction(null);
+            }
+        }
 	},
 	handleResponse: function (responseName, $data, projectView, callAction = true) {
 		if (responseName in ResponseActionManager.responseNameToFunction) {

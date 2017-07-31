@@ -17,13 +17,10 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.studio.AbstractRunnableAction;
+import com.twinsoft.convertigo.engine.studio.CheStudio;
+import com.twinsoft.convertigo.engine.studio.WrapStudio;
 import com.twinsoft.convertigo.engine.studio.popup.actions.DatabaseObjectDeleteAction;
-import com.twinsoft.convertigo.engine.studio.popup.actions.SequenceExecuteSelectedAction;
-import com.twinsoft.convertigo.engine.studio.popup.actions.TestCaseExecuteSelectedAction;
-import com.twinsoft.convertigo.engine.studio.popup.actions.TransactionExecuteDefaultAction;
 import com.twinsoft.convertigo.engine.studio.responses.XmlResponseFactory;
-import com.twinsoft.convertigo.engine.studio.views.projectexplorer.CheStudio;
-import com.twinsoft.convertigo.engine.studio.views.projectexplorer.WrapStudio;
 
 @ServiceDefinition(
 		name = "CallAction",
@@ -40,7 +37,7 @@ public class CallAction extends XmlService {
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		HttpSession session = request.getSession();
 
-		CheStudio cheStudio = (CheStudio) session.getAttribute(PARAM_CHE_STUDIO);
+		CheStudio cheStudio = getStudio(session);
 		if (cheStudio == null || cheStudio.isActionDone()) {
 			String[] qnames = request.getParameterValues("qnames[]");
 			String action = request.getParameter("action");
@@ -97,28 +94,7 @@ public class CallAction extends XmlService {
 			}
 		}
 		else {
-		    if (isCurrentAction(SequenceExecuteSelectedAction.class, session)) {
-	            synchronized (cheStudio) {
-	                cheStudio.setDocument(document);
-	                cheStudio.notify();
-	                cheStudio.wait();
-	            }
-		    }
-		    else if (isCurrentAction(TestCaseExecuteSelectedAction.class, session)) {
-                synchronized (cheStudio) {
-                    cheStudio.setDocument(document);
-                    cheStudio.notify();
-                    cheStudio.wait();
-                }
-            }
-		    else if (isCurrentAction(TransactionExecuteDefaultAction.class, session)) {
-                synchronized (cheStudio) {
-                    cheStudio.setDocument(document);
-                    cheStudio.notify();
-                    cheStudio.wait();
-                }
-            }
-		    else if (isCurrentAction(DatabaseObjectDeleteAction.class, session)) {
+		    if (isCurrentAction(DatabaseObjectDeleteAction.class, session)) {
 	          synchronized (cheStudio) {
 	                // Setting the new Document is important, else it will keep the old reference of the document
 	                cheStudio.setDocument(document);
@@ -131,10 +107,21 @@ public class CallAction extends XmlService {
 	                cheStudio.wait();
 	            }
 		    }
+		    else {
+                synchronized (cheStudio) {
+                    cheStudio.setDocument(document);
+                    cheStudio.notify();
+                    cheStudio.wait();
+                }
+		    }
 		}
 	}
 
 	public static boolean isCurrentAction(Class<? extends AbstractRunnableAction> action, HttpSession session) {
 	    return action.getName().equals(session.getAttribute(PARAM_LAST_ACTION));
+	}
+
+	public static CheStudio getStudio(HttpSession session) {
+	    return (CheStudio) session.getAttribute(PARAM_CHE_STUDIO);
 	}
 }

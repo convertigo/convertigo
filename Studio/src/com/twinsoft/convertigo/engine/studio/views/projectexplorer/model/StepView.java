@@ -7,8 +7,8 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.steps.SimpleStep;
+import com.twinsoft.convertigo.engine.studio.WrapStudio;
 import com.twinsoft.convertigo.engine.studio.responses.projectexplorer.actions.OpenEditableEditorActionResponse;
-import com.twinsoft.convertigo.engine.studio.views.projectexplorer.WrapStudio;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 
 public class StepView extends DatabaseObjectView implements IEditableTreeViewWrap {

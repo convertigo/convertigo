@@ -2,8 +2,8 @@ package com.twinsoft.convertigo.engine.studio.views.projectexplorer.model;
 
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.engine.studio.WrapStudio;
 import com.twinsoft.convertigo.engine.studio.responses.projectexplorer.actions.OpenEditableEditorActionResponse;
-import com.twinsoft.convertigo.engine.studio.views.projectexplorer.WrapStudio;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 
 public class TransactionView extends DatabaseObjectView implements IEditableTreeViewWrap {
