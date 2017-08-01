@@ -157,6 +157,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIControlSource;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.mobile.components.UIFormValidator;
+import com.twinsoft.convertigo.beans.mobile.components.UIPageEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
@@ -1512,6 +1513,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							}
 							else if (databaseObject instanceof UIFormValidator) {
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_VALIDATORS;
+							}
+							else if (databaseObject instanceof UIPageEvent) {
+								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_EVENTS;
 							}
 							databaseObjectTreeObject = new MobileUIComponentTreeObject(viewer, (UIComponent) databaseObject, false);
 							

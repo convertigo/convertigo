@@ -45,6 +45,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIAttribute;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlAttr;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlCallAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlCustomAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlCallFullSync;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlCallSequence;
@@ -61,6 +62,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UITheme;
 import com.twinsoft.convertigo.beans.mobile.components.UIFormControlValidator;
 import com.twinsoft.convertigo.beans.mobile.components.UIFormCustomValidator;
 import com.twinsoft.convertigo.beans.mobile.components.UIFormValidator;
+import com.twinsoft.convertigo.beans.mobile.components.UIPageEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -275,6 +277,7 @@ public class ComponentManager {
 			// Add Controls
 			group = "Controls";
 			components.add(getDboComponent(UIControlEvent.class,group));
+			components.add(getDboComponent(UIPageEvent.class,group));
 			components.add(getDboComponent(UIControlDirective.class,group));
 			
 			// Add Actions
@@ -417,6 +420,11 @@ public class ComponentManager {
 						!UIFormValidator.class.isAssignableFrom(dboClass) &&
 						!UIAttribute.class.isAssignableFrom(dboClass) &&
 						!UIControlAction.class.isAssignableFrom(dboClass)) {
+						return true;
+					}
+				}
+				if (parent instanceof UIPageEvent) {
+					if (UIControlCallAction.class.isAssignableFrom(dboClass)) {
 						return true;
 					}
 				}

@@ -199,6 +199,9 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
 				</bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIPageEvent">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent"/>
+				</bean>
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIStyle">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent"/>
@@ -234,9 +237,11 @@
 				</bean>
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlCallSequence">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIPageEvent"/>
 				</bean>
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlCallFullSync">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIPageEvent"/>
 				</bean>
 			</beans>
 			<!--<beans groupname="Source Components">

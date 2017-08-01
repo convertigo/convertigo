@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -40,6 +41,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.IEnableAble;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIPageEvent.ViewEvent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -302,6 +304,16 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 		return sort(vUIComponents);
 	}
 
+	public List<UIPageEvent> getUIPageEventList() {
+		List<UIPageEvent> eventList = new ArrayList<>();
+		for (UIComponent uiComponent : getUIComponentList()) {
+			if (uiComponent instanceof UIPageEvent) {
+				eventList.add((UIPageEvent) uiComponent);
+			}
+		}
+		return eventList;
+	}
+
 	public UIComponent getUIComponentByName(String uiName) throws EngineException {
 		checkSubLoaded();
 		for (UIComponent uiComponent : vUIComponents)
@@ -504,6 +516,24 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 	
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
+		// Page events
+		List<UIPageEvent> eventList = getUIPageEventList();
+		if (!eventList.isEmpty()) {
+			for (ViewEvent viewEvent: ViewEvent.values()) {
+				String computedEvent = viewEvent.computeEvent(eventList);
+				if (!computedEvent.isEmpty()) {
+					try {
+						String function = computedEvent + System.lineSeparator();
+						String functions = jsonScripts.getString("functions") + function;
+						jsonScripts.put("functions", functions);
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+		
+		// Component typescripts
 		Iterator<UIComponent> it = getUIComponentList().iterator();
 		while (it.hasNext()) {
 			UIComponent component = (UIComponent)it.next();
