@@ -45,7 +45,6 @@ import com.twinsoft.convertigo.beans.mobile.components.UIAttribute;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlAttr;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlCallAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlCustomAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlCallFullSync;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlCallSequence;
@@ -424,7 +423,7 @@ public class ComponentManager {
 					}
 				}
 				if (parent instanceof UIPageEvent) {
-					if (UIControlCallAction.class.isAssignableFrom(dboClass)) {
+					if (UIControlAction.class.isAssignableFrom(dboClass)) {
 						return true;
 					}
 				}

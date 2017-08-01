@@ -47,7 +47,9 @@ public class UIPageEvent extends UIComponent implements IEventGenerator {
 			StringBuffer children = new StringBuffer();
 			for (UIPageEvent pageEvent : eventList) {
 				if (pageEvent.getViewEvent().equals(this)) {
-					children.append(pageEvent.computeEvent());
+					String 	computed = pageEvent.computeEvent();
+					computed = computed.replace("$event", "'"+this.event+"'");
+					children.append(computed);
 				}
 			}
 			
@@ -94,8 +96,8 @@ public class UIPageEvent extends UIComponent implements IEventGenerator {
 			Iterator<UIComponent> it = getUIComponentList().iterator();
 			while (it.hasNext()) {
 				UIComponent component = (UIComponent)it.next();
-				if (component instanceof UIControlCallAction) {
-					String action = ((UIControlCallAction)component).computeTemplate();
+				if (component instanceof UIControlAction) {
+					String action = ((UIControlAction)component).computeTemplate();
 					if (!action.isEmpty()) {
 						sb.append("\t\tthis.").append(action).append(";").append(System.lineSeparator());
 					}
