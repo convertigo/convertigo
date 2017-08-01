@@ -3721,6 +3721,7 @@
         }
       }
     },
+    
     "MapInfoWindow" : {
       "tag": "agm-info-window",
       "label": "Information Window",
@@ -3732,6 +3733,134 @@
       }
     },
 
+	"MapCircle" : {
+       "tag": "agm-circle",
+       "label": "MapCircle",
+       "description": "Defines a circular area of the specified radius on a Google Map.",
+       "group": "Google Map",
+       "icon16": "gmapcircle_color_16x16.png",
+       "icon32": "gmapcircle_color_32x32.png",
+       "properties": {
+        "Latitude": {
+           "mode": "script",
+           "attr":"[latitude]",
+           "label": "Latitude",
+           "description": "Number : The circle will be displayed at this latitude. Must be a 'number' jSON type (ex: 51.678418)",
+           "category": "@Coordinates",
+           "value": "48.6969459"
+         },
+         "Longitude": {
+            "mode": "script",
+            "attr":"[longitude]",
+            "label": "Longitude",
+            "description": "Number : The circle will be displayed at this longitude. Must be a 'number' jSON type (ex: 7.809007)",
+            "category": "@Coordinates",
+            "value": "2.1775981"
+         },
+         "Radius": {
+            "mode": "script",
+            "attr":"[radius]",
+            "label": "Radius",
+            "description": "Number : The radius in meters on the Earth's surface.",
+            "category": "@Coordinates",
+            "value":"3000"
+         },
+         "Draggable": {
+             "mode": "script",
+             "attr":"[circleDraggable]",
+             "label": "Draggable",
+             "description": "boolean : If set to true, the user can drag this circle over the map. Defaults to false.",
+             "category": "@Properties",
+             "value": "false",
+              "values": [
+                 false,
+                 "true",
+                 "false"
+              ]
+          },
+          "Clickable": {
+              "mode": "script",
+              "attr":"[clickable]",
+              "label": "Clickable",
+              "description": "boolean : Specifies whether this circle handles mouse events. Defaults to true.",
+              "category": "@Properties",
+              "value": "true",
+              "values": [
+                 false,
+                 "true",
+                 "false"
+              ]
+           },
+           "FillColor": {
+              "mode": "script",
+              "attr":"[fillColor]",
+              "label": "FillColor",
+              "description": "string : The fill color. All CSS3 colors are supported except for extended named colors.",
+              "category": "@Properties",
+              "value": "'#004de8'"
+           },
+           "FillOpacity": {
+              "mode": "script",
+              "attr":"[fillOpacity]",
+              "label": "FillOpacity",
+              "description": "number : The fill opacity between 0.0 and 1.0.",
+              "category": "@Properties",
+              "value": "0.15"
+           },
+           "StrokeColor": {
+              "mode": "script",
+              "attr":"[strokeColor]",
+              "label": "StrokeColor",
+              "description": "string : The stroke color. All CSS3 colors are supported except for extended named colors.",
+              "category": "@Properties",
+              "value": "'#004de8'"
+           },
+           "StrokePosition": {
+              "mode": "script",
+              "attr":"[strokePosition]",
+              "label": "StrokePosition",
+              "description": "number : The stroke position. Defaults to 0 (CENTER). (1=INSIDE, 2=OUTSIDE)",
+              "category": "@Properties",
+              "value": "0",
+              "values": [
+                 false,
+                 "0",
+                 "1",
+                 "2"
+              ]                      
+            },
+            "StrokeOpacity": {
+               "mode": "script",
+               "attr":"[strokeOpacity]",
+               "label": "StrokeOpacity",
+               "description": "number : The stroke opacity between 0.0 and 1.0",
+               "category": "@Properties",
+               "value": "0.60"
+            },
+            "StrokeWeight": {
+               "mode": "script",
+               "attr":"[strokeWeight]",
+               "label": "StrokeWeight",
+               "description": "number : The stroke width in pixels.",
+               "category": "@Properties",
+               "value": "1"
+            },
+            "Visible": {
+               "mode": "script",
+               "attr":"[visible]",
+               "label": "Visible",
+               "description": "boolean : Specifies whether this circle is visible on the map. Defaults to true.",
+               "category": "@Properties",
+               "value": "true",
+               "values": [
+                 false,
+                 "true",
+                 "false"
+               ]
+            }
+        }
+    },
+    
     /*
      * Charts
      */
