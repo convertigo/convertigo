@@ -42,6 +42,7 @@ import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
@@ -93,15 +94,23 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 			DatabaseObject dbo = doto.getObject();
 			
 			try {
-				if (dbo instanceof UIComponent) {
-					if (getObject().equals(((UIComponent)dbo).getMenu().getParent())) {
+				// for Page or Menu or Route
+				if (getObject().equals(dbo.getParent())) {
+					markApplicationAsDirty();
+				}
+				// for any component inside a route
+				else if (getObject().equals(dbo.getParent().getParent())) {
+					markApplicationAsDirty();
+				}
+				// for any UI component inside a menu
+				else if (dbo instanceof UIComponent) {
+					UIDynamicMenu menu = ((UIComponent)dbo).getMenu();
+					if (menu != null && getObject().equals(menu.getParent())) {
 						markApplicationAsDirty();
 					}
-				} else if (getObject().equals(dbo.getParent())) {
-					markApplicationAsDirty();
-				} else if (getObject().equals(dbo.getParent().getParent())) {
-					markApplicationAsDirty();
-				} else if (this.equals(doto)) {
+				}
+				// for this application
+				else if (this.equals(doto)) {
 					if (propertyName.equals("componentScriptContent")) {
 						if (!newValue.equals(oldValue)) {
 							markComponentTsAsDirty();
