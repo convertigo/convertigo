@@ -26,8 +26,6 @@ import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
-import com.twinsoft.convertigo.beans.mobile.components.UIPageEvent.ViewEvent;
-
 public class UIPageEventBeanInfo extends MySimpleBeanInfo {
 	
 	public UIPageEventBeanInfo() {
@@ -48,7 +46,7 @@ public class UIPageEventBeanInfo extends MySimpleBeanInfo {
 			properties[0] = new PropertyDescriptor("viewEvent", beanClass, "getViewEvent", "setViewEvent");
 			properties[0].setDisplayName(getExternalizedString("property.viewEvent.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.viewEvent.short_description"));
-			properties[0].setPropertyEditorClass(ViewEvent.class);
+			properties[0].setPropertyEditorClass(getEditorClass("StringComboBoxPropertyDescriptor"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

@@ -25,7 +25,10 @@ package com.twinsoft.convertigo.beans.mobile.components;
 import java.util.Iterator;
 import java.util.List;
 
-public class UIPageEvent extends UIComponent implements IEventGenerator {
+import com.twinsoft.convertigo.beans.core.ITagsProperty;
+import com.twinsoft.convertigo.engine.util.EnumUtils;
+
+public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsProperty {
 
 	private static final long serialVersionUID = -5699915260997234123L;
 
@@ -106,5 +109,13 @@ public class UIPageEvent extends UIComponent implements IEventGenerator {
 			return sb.toString();
 		}
 		return "";
+	}
+
+	@Override
+	public String[] getTagsForProperty(String propertyName) {
+		if (propertyName.equals("viewEvent")) {
+			return EnumUtils.toNames(ViewEvent.class);
+		}
+		return new String[0];
 	}
 }
