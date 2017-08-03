@@ -86,7 +86,7 @@ public class UIControlCustomAction extends UIControlAction {
 	/*
 	 * The action value
 	 */
-	private FormatedContent actionValue = new FormatedContent("");
+	private FormatedContent actionValue = new FormatedContent("\t\tconsole.log(event);\n");
 	
 	public FormatedContent getActionValue() {
 		return actionValue;
