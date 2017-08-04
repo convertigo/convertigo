@@ -118,4 +118,10 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 		}
 		return new String[0];
 	}
+	
+	@Override
+	public String toString() {
+		String label = viewEvent.event;
+		return label.isEmpty() ? "?":label;
+	}
 }
