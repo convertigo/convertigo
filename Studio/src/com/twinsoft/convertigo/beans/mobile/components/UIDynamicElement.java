@@ -23,6 +23,7 @@
 package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.beans.BeanInfo;
+import java.util.Arrays;
 import java.util.regex.Pattern;
 
 import org.w3c.dom.Element;
@@ -30,6 +31,7 @@ import org.w3c.dom.Element;
 import com.twinsoft.convertigo.beans.core.IDynamicBean;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
+import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonEvent;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonProperty;
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -208,5 +210,27 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 			
 		}
 		super.updateSmartSource(oldString, newString);
+	}
+	
+	protected String getEventAttr(String eventName) {
+		IonBean ionBean = getIonBean();
+		if (ionBean != null) {
+			IonEvent ionEvent = ionBean.getEvent(eventName);
+			if (ionEvent != null) {
+				return ionEvent.getAttr();
+			}
+		}
+		return "";
+	}
+	
+	protected String[] getEventNames() {
+		IonBean ionBean = getIonBean();
+		
+		String[] eventNames = new String[0];
+    	if (ionBean != null) {
+    		eventNames = ionBean.getEvents().keySet().toArray(new String[0]);
+    		Arrays.sort(eventNames);
+    	}
+    	return eventNames;
 	}
 }

@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
 public class UIControlEvent extends UIControlAttr implements IControl {
@@ -83,6 +85,12 @@ public class UIControlEvent extends UIControlAttr implements IControl {
 
 	@Override
 	public String getAttrName() {
+		if (parent != null && parent instanceof UIDynamicElement) {
+			String eventAttr = ((UIDynamicElement)parent).getEventAttr(eventName);
+			if (!eventAttr.isEmpty()) {
+				return eventAttr;
+			}
+		}
 		return AttrEvent.getEvent(eventName);
 	}
 
@@ -94,7 +102,15 @@ public class UIControlEvent extends UIControlAttr implements IControl {
 	@Override
 	public String[] getTagsForProperty(String propertyName) {
 		if (propertyName.equals("eventName")) {
-			return EnumUtils.toNames(AttrEvent.class);
+			String[] attrEvents = EnumUtils.toNames(AttrEvent.class);
+			if (parent != null && parent instanceof UIDynamicElement) {
+				String[] eventNames = ((UIDynamicElement)parent).getEventNames();
+	    		if (eventNames.length > 0) {
+	    			eventNames = ArrayUtils.add(eventNames, "");
+	    		}
+				return ArrayUtils.addAll(eventNames, attrEvents);
+			}
+			return attrEvents;
 		}
 		return new String[0];
 	}

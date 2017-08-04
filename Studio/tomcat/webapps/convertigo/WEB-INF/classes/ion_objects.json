@@ -3677,8 +3677,43 @@
           "category": "@Display",
           "value": "12"
         }
+      },
+      "events": {
+        "onBoundsChange": {
+          "attr":"(boundsChange)",
+          "description": "This event is fired when the viewport bounds have changed."
+        },
+        "onCenterChange": {
+          "attr":"(centerChange)",
+          "description": "This event is fired when the map center changes."
+        },
+        "onIdle": {
+          "attr":"(idle)",
+          "description": "This event is fired when the map becomes idle after panning or zooming."
+        },
+        "onMapClick": {
+          "attr":"(mapClick)",
+          "description": "This event gets emitted when the user clicks on the map (but not when user click on a marker or infoWindow)."
+        },
+        "onMapDblClick": {
+          "attr":"(mapDblClick)",
+          "description": "This event gets emitted when the user double-clicks on the map (but not when they click on a marker or infoWindow)."
+        },
+        "onMapReady": {
+          "attr":"(mapReady)",
+          "description": "This event is fired when the google map is fully initialized. You get the google.maps.Map instance as a result of this EventEmitter."
+        },
+        "onMapRightClick": {
+          "attr":"(mapRightClick)",
+          "description": "This event gets emitted when the user right-clicks on the map (but not when they click on a marker or infoWindow)."
+        },
+        "onZoomChange": {
+          "attr":"(zoomChange)",
+          "description": "This event is fired when the zoom level has changed."
+        }
       }
     },
+    
     "MapMarker" : {
       "tag": "agm-marker",
       "label": "Map Marker",
@@ -3719,6 +3754,24 @@
           "category": "@Display",
           "value": "'Convertigo'"
         }
+      },
+      "events": {
+        "onDragEnd": {
+          "attr":"(dragEnd)",
+          "description": "This event is fired when the user stops dragging the marker."
+        },
+        "onMarkerClick": {
+          "attr":"(markerClick)",
+          "description": "This event gets emitted when the user clicks on the marker."
+        },
+        "onMouseOut": {
+          "attr":"(mouseOut)",
+          "description": "This event is fired when the user mouses outside the marker."
+        },
+        "onMouseOver": {
+          "attr":"(mouseOver)",
+          "description": "This event is fired when the user mouses over the marker."
+        }
       }
     },
     
@@ -3736,7 +3789,7 @@
 	"MapCircle" : {
        "tag": "agm-circle",
        "label": "Map Circle",
-       "description": "Defines a circular area of the specified radius on a Google Map.",
+       "description": "Defines a circular area of the specified radius on a Google Map. | ",
        "group": "Google Map",
        "icon16": "gmapcircle_color_16x16.png",
        "icon32": "gmapcircle_color_32x32.png",
@@ -3858,7 +3911,61 @@
                  "false"
                ]
             }
+        },
+      "events": {
+        "onCenterChange": {
+          "attr":"(centerChange)",
+          "description": "This event is fired when the circle's center is changed."
+        },
+        "onCircleClick": {
+          "attr":"(circleClick)",
+          "description": "This event gets emitted when the user clicks on the circle."
+        },
+        "onCircleDblClick": {
+          "attr":"(circleDblClick)",
+          "description": "This event emitter gets emitted when the user clicks on the circle."
+        },
+        "onDrag": {
+          "attr":"(drag)",
+          "description": "This event is repeatedly fired while the user drags the circle."
+        },
+        "onDragEnd": {
+          "attr":"(dragEnd)",
+          "description": "This event is fired when the user stops dragging the circle."
+        },
+        "onDragStart": {
+          "attr":"(dragStart)",
+          "description": "This event is fired when the user starts dragging the circle."
+        },
+        "onMouseDown": {
+          "attr":"(mouseDown)",
+          "description": "This event is fired when the DOM mousedown event is fired on the circle."
+        },
+        "onMouseMove": {
+          "attr":"(mouseMove)",
+          "description": "This event is fired when the DOM mousemove event is fired on the circle."
+        },
+        "onMouseOut": {
+          "attr":"(mouseOut)",
+          "description": "This event is fired on circle mouseout."
+        },
+        "onMouseOver": {
+          "attr":"(mouseOver)",
+          "description": "This event is fired on circle mouseover."
+        },
+        "onMouseUp": {
+          "attr":"(mouseUp)",
+          "description": "This event is fired when the DOM mouseup event is fired on the circle."
+        },
+        "onRadiusChange": {
+          "attr":"(radiusChange)",
+          "description": "This event is fired when the circle's radius is changed."
+        },
+        "onRightClick": {
+          "attr":"(rightClick)",
+          "description": "This event is fired when the circle is right-clicked on."
         }
+      }
     },
     
     /*
