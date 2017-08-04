@@ -2792,8 +2792,7 @@
             "number",
             "search",
             "tel",
-            "url",
-            true
+            "url"
           ]
         },
         "Value": {
@@ -2810,6 +2809,99 @@
       }
     },
 
+    "TextArea": {
+      "tag": "ion-textarea",
+      "label": "TextArea",
+      "description": "Defines a form textarea. | ion-textarea is meant for multiline text type inputs only, such as text, password, email, number, search, tel, and url. <br/> For more information: <a href='https://ionicframework.com/docs/components/#inputs' target='_blank'>Inputs</a>",
+      "group": "Forms",
+      "icon16": "textarea_color_16x16.png",
+      "icon32": "textarea_color_32x32.png",
+      "properties": {
+        "FormControlName": false,
+        "Disabled": false,
+        "ClearInput": {
+          "attr": "clearInput",
+          "label": "ClearInput",
+          "description": "If true, a clear icon will appear in the textarea when there is a value. Clicking it clears the textarea.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "false",
+            "true"
+          ]
+        },
+        "ClearOnEdit": {
+          "attr": "clearOnEdit",
+          "label": "ClearOnEdit",
+          "description": "If true, the value will be cleared after focus upon edit.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "false",
+            "true"
+          ]
+        },
+        "Placeholder": {
+          "attr": "placeholder",
+          "label": "Placeholder",
+          "description": "Instructional text that shows before the textarea has a value.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            true
+          ]
+        },
+        "Readonly": {
+          "attr": "readonly",
+          "label": "Readonly",
+          "description": "If true, the user cannot modify the value.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "false",
+            "true"
+          ]
+        },
+        "AreaRows": {
+          "attr": "rows",
+          "label": "Area rows",
+          "description": "The number of rows of the textarea",
+          "category": "@Properties",
+          "value": "3",
+          "values": [
+            false,
+            true
+          ]
+        },
+        "AreaCols": {
+          "attr": "cols",
+          "label": "Area cols",
+          "description": "The number of cols of the textarea",
+          "category": "@Properties",
+          "value": "40",
+          "values": [
+            false,
+            true
+          ]
+        },
+        "Value": {
+          "attr": "value",
+          "label": "Value",
+          "description": "The text value of the textarea.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            true
+          ]
+        }
+      }
+    },
+    
     "CheckBox": {
       "tag": "ion-checkbox",
       "label": "Checkbox",
