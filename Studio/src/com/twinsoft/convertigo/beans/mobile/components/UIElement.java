@@ -144,7 +144,7 @@ public class UIElement extends UIComponent implements IStyleGenerator {
 					UIComponent component = (UIComponent)it.next();
 					if (component instanceof UIElement ) {
 						String model = ((UIElement)component).computeJsonModel();
-						models.append(model);
+						models.append(models.length() > 0 && !model.isEmpty() ? ",":"").append(model);
 					}
 				}
 				return models.toString();
