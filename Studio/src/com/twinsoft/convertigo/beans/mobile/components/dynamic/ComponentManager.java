@@ -358,12 +358,6 @@ public class ComponentManager {
 				@Override
 				protected DatabaseObject createBean() {
 					DatabaseObject dbo = bean.createBean();
-					if (dbo != null && dbo instanceof UIDynamicElement) {
-						IonBean ionBean = ((UIDynamicElement)dbo).getIonBean();
-						if (ionBean != null && ionBean.hasProperty("FormControlName")) {
-							ionBean.setPropertyValue("FormControlName", new MobileSmartSourceType("var"+dbo.priority));
-						}
-					}
 					return dbo;
 				}
 			});

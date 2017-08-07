@@ -26,6 +26,7 @@ import java.util.Iterator;
 
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
 import com.twinsoft.convertigo.engine.EngineException;
 
 public class UIElement extends UIComponent implements IStyleGenerator {
@@ -100,6 +101,14 @@ public class UIElement extends UIComponent implements IStyleGenerator {
 	    		super.addUIComponent(uiComponent, after);
         	}
         } else {
+        	if (uiComponent instanceof UIDynamicElement && uiComponent.bNew) {
+        		if (getUIForm() != null) {
+					IonBean ionBean = ((UIDynamicElement)uiComponent).getIonBean();
+					if (ionBean != null && ionBean.hasProperty("FormControlName")) {
+						ionBean.setPropertyValue("FormControlName", new MobileSmartSourceType("var"+uiComponent.priority));
+					}
+        		}
+        	}
         	super.addUIComponent(uiComponent, after);
         }
 	}
