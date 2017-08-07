@@ -8,10 +8,10 @@ import com.twinsoft.convertigo.engine.studio.responses.AbstractResponse;
 public class TwsDomTreeFillDomTreeResponse extends AbstractResponse {
 
     private Element domTree;
-    
-    public TwsDomTreeFillDomTreeResponse(Element tree) {
+
+    public TwsDomTreeFillDomTreeResponse(Element domTree) {
         super();
-        this.domTree = tree;
+        this.domTree = domTree;
     }
 
     @Override

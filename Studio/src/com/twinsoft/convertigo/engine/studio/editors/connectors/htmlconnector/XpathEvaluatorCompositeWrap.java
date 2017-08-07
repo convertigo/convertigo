@@ -1,8 +1,5 @@
 package com.twinsoft.convertigo.engine.studio.editors.connectors.htmlconnector;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import javax.xml.transform.TransformerException;
 
 import org.w3c.dom.Attr;
@@ -14,6 +11,7 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.engine.studio.CheStudio;
 import com.twinsoft.convertigo.engine.studio.WrapStudio;
+import com.twinsoft.convertigo.engine.studio.responses.connectors.htmlconnector.XpathEvaluatorCompositeRemoveAnchorResponse;
 import com.twinsoft.convertigo.engine.studio.responses.connectors.htmlconnector.XpathEvaluatorCompositeSetXpathTextResponse;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -23,15 +21,15 @@ public abstract class XpathEvaluatorCompositeWrap {
     protected String currentAnchor;
     private String xpath;
     private String lastEval;
-    private List<String> xpathHistory;
-    private int currentHistory = 0;
+//    private List<String> xpathHistory;
+//    private int currentHistory = 0;
     private boolean isAnchorDisabled;
     protected boolean noPredicate = false;
     protected TwsDomTreeWrap nodesResult;
     protected CheStudio studio;
 
     public XpathEvaluatorCompositeWrap(WrapStudio studio) {
-        xpathHistory = new LinkedList<>();
+        //xpathHistory = new LinkedList<>();
         nodesResult = new TwsDomTreeWrap(studio);
         refreshButtonsEnable();
         this.studio = (CheStudio) studio;
@@ -43,7 +41,7 @@ public abstract class XpathEvaluatorCompositeWrap {
 
     abstract public TwsCachedXPathAPI getXpathApi();
 
-    private Document getXpathData(Document document, String xPath) {
+    public static Document getXpathData(Document document, String xPath) {
         if (document == null) {
             return null;
         }
@@ -56,7 +54,7 @@ public abstract class XpathEvaluatorCompositeWrap {
             Element root =  (Element) doc.createElement("root"); 
             doc.appendChild(root);
 
-            NodeList nl = getXpathApi().selectNodeList(document, xPath);
+            NodeList nl = new TwsCachedXPathAPI().selectNodeList(document, xPath);
             if (nl != null)
                 for (int i = 0; i < nl.getLength(); i++) {
                     Node node = doc.importNode(nl.item(i), true);
@@ -81,14 +79,25 @@ public abstract class XpathEvaluatorCompositeWrap {
     }
 
     public void removeAnchor() {
-        
-        
-        isAnchorDisabled = false;
-        currentAnchor = null;
-        lastEval = null;
+        synchronized (studio) {
+            isAnchorDisabled = false;
+            currentAnchor = null;
+            lastEval = null;
 
+            try {
+                studio.createResponse(new XpathEvaluatorCompositeRemoveAnchorResponse().toXml(studio.getDocument(), null));
+            }
+            catch (Exception e) {
+            }
 
-//        xpath.setStyleRange(null);
+            studio.notify();
+            try {
+                studio.wait();
+            }
+            catch (InterruptedException e) {
+            }
+        }
+
         refreshButtonsEnable();
     }
 
@@ -115,9 +124,11 @@ public abstract class XpathEvaluatorCompositeWrap {
         if (!fromService) {
             synchronized (studio) {
                 xpath = nodeXpath; //xpath.setText(nodeXpath);
-                
+
+                lastEval = null;
+                refreshButtonsEnable();
                 try {
-                    studio.createResponse(new XpathEvaluatorCompositeSetXpathTextResponse(xpath).toXml(studio.getDocument(), null));
+                    studio.createResponse(new XpathEvaluatorCompositeSetXpathTextResponse(xpath, currentAnchor).toXml(studio.getDocument(), null));
                 }
                 catch (Exception e) {
                 }
@@ -132,15 +143,8 @@ public abstract class XpathEvaluatorCompositeWrap {
         }
         else {
             xpath = nodeXpath; //xpath.setText(nodeXpath);
-        }
-
-        lastEval = null;
-        refreshButtonsEnable();
-        if (currentAnchor != null) {
-//            int start = nodeXpath.indexOf(currentAnchor);
-//            if (start >= 0) {
-                //xpath.setStyleRange(new StyleRange(start, currentAnchor.length(), xpath.getForeground(), highlightColor));
-//            }
+            lastEval = null;
+            refreshButtonsEnable();
         }
     }
 
@@ -277,8 +281,8 @@ public abstract class XpathEvaluatorCompositeWrap {
             //ConvertigoPlugin.logDebug3("Fill xpath node list dom tree start");
             //nodesResult.fillDomTree(nodesSelection);
             lastEval = xpath; //xpath.getText();
-            xpathHistory.add(lastEval);
-            currentHistory = 0;
+//            xpathHistory.add(lastEval);
+//            currentHistory = 0;
             refreshButtonsEnable();
             //ConvertigoPlugin.logDebug3("Fill xpath node list dom tree end");
         } else {

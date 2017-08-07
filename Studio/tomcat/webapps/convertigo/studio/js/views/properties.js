@@ -1,5 +1,5 @@
 function PropertiesView(jstreeTheme = "default") {
-    TreeViewContainer.call(this, "propertiesTreeView", jstreeTheme);
+    TreeViewContainer.call(this, "properties-tree-view", jstreeTheme);
     this.refNodeProjectsView = null;
 
     var that = this;

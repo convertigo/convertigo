@@ -1,6 +1,6 @@
-function Palette(id) {
+function Palette() {
 	++Palette.nbInstances;
-	Tab.call(this, "palette" + Palette.nbInstances, "Palette");
+	Tab.call(this, "palette" + Palette.nbInstances.toString(), "Palette");
 
 	// Div that contains the categories (or the sub categories)
 	this.divContainer = $("<div/>");

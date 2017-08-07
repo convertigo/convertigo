@@ -1,5 +1,5 @@
 function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {    
-	TreeViewContainer.call(this, "projectsTreeView", jstreeTheme);
+	TreeViewContainer.call(this, "projects-tree-view", jstreeTheme);
 
 	this.propertiesView = propertiesView;
 
@@ -655,7 +655,7 @@ ProjectsView.prototype.createContextMenu = function (parent, $menu) {
 
 			var isDisabled = $(children[i]).attr("isEnabled") == "false";
 			if (isDisabled) {
-				iconClass += " contextmenu-entry-disable";
+				iconClass += " grayscale";
 			}
 
 			(function () {

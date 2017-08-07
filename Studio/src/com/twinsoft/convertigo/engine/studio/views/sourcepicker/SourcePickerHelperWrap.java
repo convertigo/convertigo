@@ -34,7 +34,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class SourcePickerHelperWrap implements IStepSourceEditorWrap {
-    
+
     private TwsDomTreeWrap twsDomTree;
     private Document currentDom;
     private StepXpathEvaluatorCompositeWrap xpathEvaluator;
@@ -43,7 +43,6 @@ public class SourcePickerHelperWrap implements IStepSourceEditorWrap {
     private TwsCachedXPathAPI twsCachedXPathAPI = new TwsCachedXPathAPI();
     private final static String REGEXP_FOR_PREDICATES = "\\[\\D{1,}\\]";
 
-    
     public SourcePickerHelperWrap(WrapStudio studio) {
         twsDomTree = new TwsDomTreeWrap(studio);
     }
@@ -205,26 +204,14 @@ public class SourcePickerHelperWrap implements IStepSourceEditorWrap {
 
     public Element getXpathTree(String nodeId) {
         Node node = twsDomTree.getNode(nodeId);
-        String xpath = generateAbsoluteXpath(node);
+        String xpath = getXpathEvaluator().generateAbsoluteXpath(true, node, true);
         Document doc = getXpathData(currentDom, xpath);
         Node[] childs = XMLUtils.toNodeArray(doc.getChildNodes());
-        Element xPathTree = doc.createElement("xpath_tree");
-        twsDomTree.getTree2(childs[0], doc, xPathTree);
-        return xPathTree;
+        return TwsDomTreeWrap.getTree2(doc, childs[0], "xpath_tree");
     }
 
     public StepXpathEvaluatorCompositeWrap getXpathEvaluator() {
         return xpathEvaluator;
-    }
-
-    protected String generateAbsoluteXpath(Node node) {
-        String newXpath = XMLUtils.calcXpath(node);
-//        if (currentAnchor != null) {
-//            newXpath = currentAnchor + calcRelativeXpath(getDom(), currentAnchor, newXpath);
-//        }
-//        setXpathText(newXpath);
-//        performCalcXpath();
-        return newXpath;
     }
 
     private Document getXpathData(Document document, String xPath) {
@@ -235,7 +222,6 @@ public class SourcePickerHelperWrap implements IStepSourceEditorWrap {
             return null;
         }
 
-        
         try {
             Document doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
             Element root =  (Element) doc.createElement("root"); 

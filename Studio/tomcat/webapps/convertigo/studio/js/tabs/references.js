@@ -1,6 +1,6 @@
-function References(id) {
+function References() {
 	++References.nbInstances;
-	Tab.call(this, "references" + References.nbInstances, "References");
+	Tab.call(this, "references" + References.nbInstances.toString(), "References");
     $(this.mainDiv).text("References");
 }
 

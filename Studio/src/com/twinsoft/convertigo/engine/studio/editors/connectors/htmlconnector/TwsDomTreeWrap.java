@@ -14,7 +14,6 @@ import com.twinsoft.convertigo.engine.studio.CheStudio;
 import com.twinsoft.convertigo.engine.studio.WrapStudio;
 import com.twinsoft.convertigo.engine.studio.responses.sourcepicker.TwsDomTreeFillDomTreeResponse;
 import com.twinsoft.convertigo.engine.studio.responses.sourcepicker.TwsDomTreeRemoveAllResponse;
-import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class TwsDomTreeWrap {
 
@@ -58,10 +57,7 @@ public class TwsDomTreeWrap {
         if (document != null) {
             synchronized (studio) {
                 try {
-                    Element domTree = studio.getDocument().createElement("dom_tree");
-                    Node[] childs = XMLUtils.toNodeArray(document.getChildNodes());
-                    getTree(childs[0], studio.getDocument(), domTree);
-
+                    Element domTree = getTree(document);
                     studio.createResponse(
                         new TwsDomTreeFillDomTreeResponse(domTree)
                             .toXml(studio.getDocument(), null)
@@ -81,7 +77,13 @@ public class TwsDomTreeWrap {
         }
     }
 
-    private void getTree(Node node, Document document, Element parent) {
+    private Element getTree(Document document) {
+        Element domTree = studio.getDocument().createElement("dom_tree");
+        addNodeInTree(document.getChildNodes().item(0), studio.getDocument(), domTree);
+        return domTree;
+    }
+
+    private void addNodeInTree(Node node, Document document, Element parent) {
         Element currentElement = createElement(document, node);
         currentElement.setAttribute("type", Short.toString(node.getNodeType()));
 
@@ -144,7 +146,7 @@ public class TwsDomTreeWrap {
         NodeList nodeList = node.getChildNodes();
         for (int i = 0; i < nodeList.getLength(); i++) {
             Node currentNode = nodeList.item(i);
-            getTree(currentNode, document, currentElement);
+            addNodeInTree(currentNode, document, currentElement);
         }
     }
 
@@ -166,15 +168,20 @@ public class TwsDomTreeWrap {
         return newElement;
     }
 
-    public void getTree2(Node node, Document document, Element parent) {
-        int [] index = new int[1];
-        index[0] = 0;
-        getTree2(node, document, parent, index);
+    public static Element getTree2(Document document, Node node, String rootTagName) {
+        Element treeElement = document.createElement(rootTagName);
+        return TwsDomTreeWrap.getTree2(node, document, treeElement);
     }
 
-    private void getTree2(Node node, Document document, Element parent, int [] index) {
-        Element currentElement = createElement2(document, node, index);
+    private static Element getTree2(Node node, Document document, Element parent) {
+        int [] index = new int[1];
+        index[0] = 0;
+        addNodeInTree2(node, document, parent, index);
+        return parent;
+    }
 
+    private static void addNodeInTree2(Node node, Document document, Element parent, int [] index) {
+        Element currentElement = createElement2(document, node, index);
         currentElement.setAttribute("type", Short.toString(node.getNodeType()));
 
         switch (node.getNodeType()) {
@@ -186,7 +193,7 @@ public class TwsDomTreeWrap {
                     attributes.setAttribute("text", "Attributes");
                     attributes.setAttribute("type", Short.toString(Node.ATTRIBUTE_NODE));
                     currentElement.appendChild(attributes);
-    
+
                     for (int i = 0; i < map.getLength(); ++i) {
                         Element attribute = createElement2(document, map.item(i), index);
                         attribute.setAttribute("text", map.item(i).getNodeName() + "=\"" + map.item(i).getNodeValue() + "\"");
@@ -236,11 +243,11 @@ public class TwsDomTreeWrap {
         NodeList nodeList = node.getChildNodes();
         for (int i = 0; i < nodeList.getLength(); i++) {
             Node currentNode = nodeList.item(i);
-            getTree2(currentNode, document, currentElement, index);
+            addNodeInTree2(currentNode, document, currentElement, index);
         }
     }
 
-    private Element createElement2(Document document, Node node, int [] index) {
+    private static Element createElement2(Document document, Node node, int [] index) {
         Element newElement = document.createElement("node");
         String nodeId = "dom_tree_node" + Integer.toString(++index[0]);
         newElement.setAttribute("id", nodeId);

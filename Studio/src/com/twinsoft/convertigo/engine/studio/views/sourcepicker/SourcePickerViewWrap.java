@@ -1,5 +1,6 @@
 package com.twinsoft.convertigo.engine.studio.views.sourcepicker;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
@@ -105,5 +106,9 @@ public class SourcePickerViewWrap implements StepSourceListenerWrap {
 
     public String getAnchor() {
         return sourcePicker.getAnchor();
+    }
+
+    public Document getDom() {
+        return sourcePicker.getDom();
     }
 }

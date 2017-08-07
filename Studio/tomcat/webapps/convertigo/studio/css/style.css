@@ -13,17 +13,15 @@ hr {
     background-image: url(../../admin/images/folder.gif) !important;
 }
 
-.projectsTreeView tbody>tr>td {
-    /* overflow-x: hidden; */
-    /* white-space: nowrap; */
+.projects-tree-view tbody>tr>td {
     user-select: initial;
 }
 
-.projectsTreeView tbody>tr>td>input {
+.projects-tree-view tbody>tr>td>input {
     border: none;
 }
 
-.projectsTreeView thead>tr>th {
+.projects-tree-view thead>tr>th {
     text-align: left
 }
 
@@ -271,7 +269,6 @@ code {
     height: 10px;
     float: left;
     margin-left: 5px;
-    opacity: 0.1;
     -moz-transform: scale(0.7);
     -webkit-transform: scale(0.7);
     -moz-animation: move 1s infinite linear;
@@ -306,24 +303,20 @@ code {
 @-moz-keyframes move {
     0% {
         -moz-transform: scale(1.2);
-        opacity: 1;
     }
 
     100% {
         -moz-transform: scale(0.7);
-        opacity: 0.1;
     };
 }
 
 @-webkit-keyframes move {
     0% {
         -webkit-transform: scale(1.2);
-        opacity: 1;
     }
 
     100% {
         -webkit-transform: scale(0.7);
-        opacity: 0.1;
     };
 }
 
@@ -337,13 +330,13 @@ body .lm_content {
 /*********************************
 * Jstree properties view
 *********************************/
-.propertiesTreeView li[aria-level="1"] {
+.properties-tree-view li[aria-level="1"] {
     left: -9px;
     width: 100%;
     position: relative;
 }
 
-.propertiesTreeView li[aria-level="2"] {
+.properties-tree-view li[aria-level="2"] {
     position: relative;
     left: -18px;
     padding-left: 18px;
@@ -354,8 +347,7 @@ body .lm_content {
 * Source Picker
 *********************************/
 .infos {
-	float: left;
-	width: 50%;
+	width: 55%;
 }
 
 .help {
@@ -364,56 +356,127 @@ body .lm_content {
 	margin-left: 10px;
 	margin-right: 10px;
 	margin-top: 14px;
-	border: 1px solid #2187e7;
-	background-color: #d6d6d9;
-}
-
-.infos label, .infos input {
-    display: inline-block;
-    vertical-align: baseline;
-}
-
-.infos label {
-    width: 25%;
+	border: 1px solid;
+	height: 100%;
+	white-space: nowrap;
+	overflow: hidden;
 }
 
 .infos input {
 	width: 75%;
 }
 
-.infos label {
-    color: #2D2D2D;
-    font-size: 15px;
+.infos textarea {
+   width: 73%;
+   resize: none;
 }
 
-.infos, .infos input {
+.infos label {
+    width: 20%;
+}
+
+.infos input {
     box-sizing: border-box;
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
 }
 
-div[id^="sourcePicker1"] .xpath {
+div[id^="sourcepicker"] .xpath {
 	resize: none;
-	width: 90%;
+	width: 100%;
+	height: 100%;
 	vertical-align: middle;
 	margin-left: 14px;
 }
 
-#left {
-	float: left;
-	width: 75%;
-	/*overflow: hidden;*/
+.infos label {
+	margin-left: 5px;
 }
 
-#right {
-	float: left;
-	width: 25%;
-	/*overflow: hidden;*/
-} 
+.xpath-tree {
+	width: 100%;
+	overflow-y: scroll;
+	height: 15vh;
+	margin-top: 10px;
+}
 
+.buttons-container {
+	display: flex;
+	margin-top: 30px;
+}
 
-#right textarea {
-    /*height: 100px;*/
-    resize: none;
-    /*overflow: hidden;*/
-} 
+.buttons-container button {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-left: 4px;
+}
+
+.infos label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.xpath-btn button {
+	background-repeat: no-repeat;
+	width: 16px;
+	min-width: initial;
+	background-position: center;
+	padding: 12px 12px;
+	margin-: 4px;
+}
+
+.xpath-btn button:hover {
+    border: solid 1px;
+}
+
+.xpath-btn button[disabled]:hover {
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.xpath-btn button[disabled] {
+   border: solid 1px;
+}
+
+.main-container {
+   display: flex;
+}
+
+.scrollable-container {
+    overflow-y: scroll;
+    height: 20vh;
+    margin-left: 2px;
+    border: solid 1px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    width: 99%;
+}
+
+.xpath-btn {
+	width: 5%;
+	margin-right: 22px;
+	margin-left: 5px;
+}
+
+.xpath-container {
+	width: 95%;
+	display: flex;
+}
+
+.highlightTextarea {
+	display: inline-block;
+	width: 90% !important;
+}
+
+.infos-help-container {
+	height: 33%;
+	width: 100%;
+	display: flex;
+}
+
+.label-input-container {
+    display: flex;
+    margin-top: 5px;
+}

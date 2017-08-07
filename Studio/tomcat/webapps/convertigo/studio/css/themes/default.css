@@ -12,15 +12,15 @@ hr {
 /*********************************
 * Jstree projects tree view
 *********************************/
-.projectsTreeView tbody>tr:first-child>td:first-child {
+.projects-tree-view tbody>tr:first-child>td:first-child {
     color: red;
 }
 
-.projectsTreeView tbody>tr>td {
+.projects-tree-view tbody>tr>td {
     color: green;
 }
 
-.projectsTreeView tbody>tr>td>input {
+.projects-tree-view tbody>tr>td>input {
     background-color: rgb(51, 55, 59);
     color: white;
 }
@@ -57,7 +57,7 @@ li.nodeDisable > a {
 /*********************************
 * Jstree context menu
 *********************************/
-.contextmenu-entry-disable {
+.grayscale {
     opacity: 0.5;
    -webkit-filter: grayscale(100%);
    -moz-filter: grayscale(100%);
@@ -248,6 +248,26 @@ pre {
     opacity: 0.1;
 }
 
+@-moz-keyframes move {
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.1;
+    };
+}
+
+@-webkit-keyframes move {
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.1;
+    };
+}
+
 /*********************************
 * Golden Layout
 *********************************/
@@ -258,6 +278,30 @@ pre {
 /*********************************
 * Jstree properties view
 *********************************/
-.propertiesTreeView li[aria-level="2"]:nth-child(odd), .propertiesTreeView div[id*="-odd-"] {
+.properties-tree-view li[aria-level="2"]:nth-child(odd), .properties-tree-view div[id*="-odd-"] {
     background-color: #f2f2f2 !important;
+}
+
+/*********************************
+* Source Picker
+*********************************/
+.help {
+    background-color: #d6d6d9;
+    border-color: #2187e7;
+}
+
+.xpath-btn button {
+    background-color: #e0e0e0;
+}
+
+.xpath-btn button:hover {
+    border-color: #4eabff;
+}
+
+.xpath-btn button[disabled] {
+   -webkit-filter: grayscale(100%);
+   -moz-filter: grayscale(100%);
+   -o-filter: grayscale(100%);
+   -ms-filter: grayscale(100%);
+   filter: grayscale(100%);
 }

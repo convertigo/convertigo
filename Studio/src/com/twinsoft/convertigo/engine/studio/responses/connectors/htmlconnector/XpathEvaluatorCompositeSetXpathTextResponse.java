@@ -9,15 +9,18 @@ import com.twinsoft.convertigo.engine.studio.responses.AbstractResponse;
 public class XpathEvaluatorCompositeSetXpathTextResponse extends AbstractResponse {
 
     private String xpath;
+    private String anchor;
 
-    public XpathEvaluatorCompositeSetXpathTextResponse(String xpath) {
+    public XpathEvaluatorCompositeSetXpathTextResponse(String xpath, String anchor) {
         this.xpath = xpath;
+        this.anchor = anchor;
     }
-    
+
     @Override
     public Element toXml(Document document, String qname) throws Exception {
         Element response = super.toXml(document, qname);
         response.appendChild(DOMUtils.createElementWithText(document, "xpath", xpath));
+        response.appendChild(DOMUtils.createElementWithText(document, "anchor", anchor));
         return response;
     }
 }

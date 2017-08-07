@@ -1,6 +1,15 @@
 var ResponseActionManager = {
 	projectView: null,
 
+	continueAction: function(callAction) {
+        // Recall the right service to continue the action
+        if (callAction) {
+            ResponseActionManager.projectView.callServiceCallAction(null, null, null);
+        }
+        else {
+            ResponseActionManager.projectView.callServiceDblkAction(null);
+        }  
+	},
 	responseNameToFunction: {
 		SetPropertyResponse: function ($data) {
 			DatabaseObjectManager.notifySetProperty($data.find("admin"));
@@ -65,31 +74,17 @@ var ResponseActionManager = {
 		},
 		SequenceExecuteSelectedOpenSequenceEditorResponse: function ($data, callAction) {
 		    var $response = $data.find("response");
-
 		    // Open the editor in CHE
 		    CheGWTOpenSequenceEditor($response.attr("project"), $response.attr("sequence"));
 
-		    // Recall the service to continue the action
-		    if (callAction) {
-	            ResponseActionManager.projectView.callServiceCallAction(null, null, null);
-		    }
-		    else {
-		        ResponseActionManager.projectView.callServiceDblkAction(null);
-		    }
+            ResponseActionManager.continueAction(callAction);
 		},
 		SequenceExecuteSelectedOpenConnectorEditorResponse: function ($data, callAction) {
 		    var $response = $data.find("response");
-
             // Open the editor in CHE
             CheGWTOpenConnectorEditor($response.attr("project"), $response.attr("connector"),  $response.attr("type_editor"));
 
-		    // Recall the service to continue the action
-            if (callAction) {
-                ResponseActionManager.projectView.callServiceCallAction(null, null, null);
-            }
-            else {
-                ResponseActionManager.projectView.callServiceDblkAction(null);
-            }
+            ResponseActionManager.continueAction(callAction);
 		},
 		/*****************************
 		 * Source Picker
@@ -105,48 +100,29 @@ var ResponseActionManager = {
 	            $response.find("enable_btn").text() === "true"
             );
 
-		    // Recall the service to continue the action
-            if (callAction) {
-                ResponseActionManager.projectView.callServiceCallAction(null, null, null);
-            }
-            else {
-                ResponseActionManager.projectView.callServiceDblkAction(null);
-            }
+            ResponseActionManager.continueAction(callAction);
 		},
 		TwsDomTreeFillDomTreeResponse: function ($data, callAction) {
 		    var $response = $data.find("response");
 		    Main.getSourcePicker().fillDomTree($response.find("dom_tree"));
 
-            // Recall the service to continue the action
-            if (callAction) {
-                ResponseActionManager.projectView.callServiceCallAction(null, null, null);
-            }
-            else {
-                ResponseActionManager.projectView.callServiceDblkAction(null);
-            }
+            ResponseActionManager.continueAction(callAction);
 		},
 		TwsDomTreeRemoveAllResponse: function ($data, callAction) {
 		    Main.getSourcePicker().removeAll();
-		    
-            // Recall the service to continue the action
-            if (callAction) {
-                ResponseActionManager.projectView.callServiceCallAction(null, null, null);
-            }
-            else {
-                ResponseActionManager.projectView.callServiceDblkAction(null);
-            }
+
+            ResponseActionManager.continueAction(callAction);
 		},
 		XpathEvaluatorCompositeSetXpathTextResponse: function ($data, callAction) {
 		    var $response = $data.find("response");
-	        Main.getSourcePicker().setXpathText($data.find("xpath").text());
+	        Main.getSourcePicker().setXpathText($data.find("xpath").text(), $data.find("anchor").text());
 
-            // Recall the service to continue the action
-            if (callAction) {
-                ResponseActionManager.projectView.callServiceCallAction(null, null, null);
-            }
-            else {
-                ResponseActionManager.projectView.callServiceDblkAction(null);
-            }
+            ResponseActionManager.continueAction(callAction);
+        },
+        XpathEvaluatorCompositeRemoveAnchorResponse: function ($data, callAction) {
+            Main.getSourcePicker().removeAnchor();
+
+            ResponseActionManager.continueAction(callAction);
         }
 	},
 	handleResponse: function (responseName, $data, projectView, callAction = true) {

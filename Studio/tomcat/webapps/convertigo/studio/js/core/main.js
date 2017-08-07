@@ -149,7 +149,7 @@ var Main = {
 				StyleUtils.injectLinkStyle(Convertigo.createServiceUrl("studio.database_objects.GetTreeIconsCSS"));
 
 				// All tabs
-				that.sourcePicker = new SourcePicker();
+				that.sourcePicker = new SourcePicker(theme);
 				var references = new References();
 				var palette = new Palette();
 

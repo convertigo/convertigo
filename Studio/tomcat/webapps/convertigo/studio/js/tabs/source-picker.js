@@ -1,94 +1,106 @@
-function SourcePicker(id) {
+function SourcePicker(jstreeTheme = "default") {
 	++SourcePicker.nbInstances;
-	Tab.call(this, "sourcePicker" + SourcePicker.nbInstances, "Source Picker");
+	Tab.call(this, "sourcepicker" + SourcePicker.nbInstances.toString(), "Source Picker");
 
-    var $top = $("<div/>");
+    this.triggerSelectNodeEvent = false;
+	this.inputTags = {};
+	this.jstreeTheme = jstreeTheme;
 
-    var $mid = $("<div/>");
-    var $bottom = $("<div/>");
+	this.createTopContent();
+	this.createMidContent();
+	this.createBottomContent();
+}
 
-    $top.css("height", "500px");
-    $mid.css("height", "500px");
-    $bottom.css("height", "500px");
+SourcePicker.prototype = Object.create(Tab.prototype);
+SourcePicker.prototype.constructor = SourcePicker;
 
-//    $top.css("display", "inline-block");
-//    $mid.css("display", "inline-block");
-//    $bottom.css("display", "inline-block");
-    
-    $(this.mainDiv)
-        .append($top)
-        .append($("<hr>"))
-        .append($mid)
-        .append($("<hr>"))
-        .append($bottom);
+// Used to generate the div id
+SourcePicker.nbInstances = 0;
 
-    /*
-     * TOP
-     */
+SourcePicker.prototype.update = function (data) {
+};
+
+SourcePicker.prototype.createTopContent = function () {
+    var $top = $("<div/>", {
+        "class": "infos-help-container"
+    });
+
     // Infos
     var $infos = $("<div/>", {
         "class": "infos"
     });
     $top.append($infos);
 
+    var that = this;
+    var createLabelInput = function (labelValue, isTextArea = false) {
+        // Label + Input container
+        var $labelInputContainer = $("<div/>", {
+            "class": "label-input-container"
+        });
+
+        // Label
+        var $labelTag = $("<label/>", {
+            text: labelValue + " :",
+            title: labelValue
+        });
+
+        // Input
+        var $inputTag = !isTextArea ?
+                $("<input/>", {
+                    type: "text"
+                }) :
+                $("<textarea/>");
+        $inputTag.attr("disabled", "disabled");
+
+        // Store it to update help content
+        that.inputTags[labelValue] = $inputTag;
+
+        $labelInputContainer
+            .append($labelTag)
+            .append($inputTag);
+        return $labelInputContainer;
+    };
+
     // Tag
-    var $tagContainer = $('<div></div>');
-    this.tagInput = $("<input/>", {
-        type: "text",
-        disabled: "disabled"
-    });
-    $tagContainer
-        .append($("<label>Tag :</label>"))
-        .append(this.tagInput);
-    $infos.append($tagContainer);
+    $infos.append(createLabelInput("Tag"));
 
     // Type
-    var $typeContainer = $('<div></div>');
-    this.typeInput = $("<input/>", {
-        type: "text",
-        disabled: "disabled"
-    });
-    $typeContainer
-        .append($("<label>Type :</label>"))
-        .append(this.typeInput);
-    $infos.append($typeContainer);
+    $infos.append(createLabelInput("Type"));
 
     // Name
-    var $nameContainer = $('<div></div>');
-    this.nameInput = $("<input/>", {
-        type: "text",
-        disabled: "disabled"
-    });
-    $nameContainer
-        .append($("<label>Name :</label>"))
-        .append(this.nameInput);
-    $infos.append($nameContainer);
+    $infos.append(createLabelInput("Name"));
 
     // Comment
-    var $commentContainer = $('<div></div>');
-    this.commentInput = $("<textarea/>", {
-        disabled: "disabled"
-    });
-    this.commentInput.css("vertical-align", "middle");
-    $commentContainer
-        .append($("<label>Comment :</label>"))
-        .append(this.commentInput);
-    $infos.append($commentContainer);
+    $infos.append(createLabelInput("Comment", true));
 
-    var $buttonsContainer = $("<div/>");
-    
-    
-    this.showBtn = $("<button/>", {
-        type: "button",
-        text: "Show step\'s source",
-        disabled: "disabled"
+    var $buttonsContainer = $("<div/>", {
+        "class": "buttons-container"
     });
-    this.showBtn.css("margin-right", "8px");
-    this.removeBtn = $("<button/>", {
-        type: "button",
-        text: "Remove source",
-        disabled: "disabled"
-    });
+
+    var createBtn = function (text, func) {
+        var $btn = $("<button/>", {
+            type: "button",
+            text: text,
+            title: text,
+            click: func
+        });
+        $btn.attr("disabled", "disabled");
+
+        return $btn;
+    }
+
+    this.showBtn = createBtn(
+        "Show step's source",
+        function () {
+        }
+    );
+
+    this.removeBtn = createBtn(
+        "Remove source",
+        function () {
+        }
+    );
+
     $buttonsContainer
         .append($("<br>"))
         .append(this.showBtn )
@@ -102,36 +114,25 @@ function SourcePicker(id) {
         "class": "help"
     });
     $top.append($help);
+    $(this.mainDiv).append($top)
+};
+
+SourcePicker.prototype.createMidContent = function () {
+    var $mid = $("<div/>");
 
     var that = this;
-    this.triggerSelectNodeEvent = false;
-    /*
-     * MID
-     */
+
+    // Dom tree
     this.domTree = $("<div/>");
     this.domTree.jstree({
         core: {
             themes: {
+                name: that.jstreeTheme,
                 dots: false
             },
             check_callback: true,
             force_text: true,
             animation: 0
-//            data: [{
-//                text: 'Simple root node',
-//                type: "default"
-//            }, {
-//                text: 'Root node 2',
-//                type: "attrib",
-//                state: {
-//                    opened: true,
-//                    selected: true
-//                },
-//                children: [{
-//                    text: "",
-//                    type: "text"
-//                }]
-//            }]
         },
         plugins: [
             "state",
@@ -158,60 +159,135 @@ function SourcePicker(id) {
                     nodeId: data.node.id
                 },
                 success: function (data, textStatus, jqXHR) {
-                    that.removeTree(that.leftTree);
-                    that.addNodeInDomTree(that.leftTree, $(data).find("xpath_tree>"));
-                    that.setXpathText($(data).find("xpath").text());
-                    that.xpath.highlightTextarea("destroy")
-                    that.xpath.highlightTextarea({
-                        words: [
-                            "^" + $(data).find("anchor").text()
-                        ]
-                    });
+                    that.createXpathTree($(data).find("xpath_tree>"));
+                    that.setXpathText($(data).find("xpath").text(), $(data).find("anchor").text());
                 }
             });
         }
     });
-    $mid.append(this.domTree);
 
-    /*
-     * BOTTOM
-     */
-    var $xpathBtns = $("<div/>");
-    var $evaluateXpathBtn = $("<button/>", {
-        text: "Evaluate xPath",
-        type: "button",
-        click: function () {
-            console.log("Evaluate");
-        }
+    // Make the tree scrollable
+    var $scrollableDiv = $("<div/>", {
+        "class": "scrollable-container"
     });
-    $xpathBtns.append($evaluateXpathBtn);
-    $bottom.append($xpathBtns);
+    $scrollableDiv.append(this.domTree);
+    $mid.append($scrollableDiv);
 
-    var $containerLabelXpath = $("<div/>");
+    $(this.mainDiv).append($mid)
+};
+
+SourcePicker.prototype.createBottomContent = function () {
+    var that = this;
+    var $bottom = $("<div/>");
+
+    // Buttons
+    var $xpathBtns = $("<div/>", {
+        "class": "xpath-btn"
+    });
+
+    var createBtn = function (title, func, imgUrl) {
+        var $btn = $("<button/>", {
+            type: "button",
+            title: title,
+            click: func
+        });
+        $btn.css("background-image", "url(" + imgUrl + ")");
+        $btn.attr("disabled", "disabled");
+
+        return $btn;
+    }
+
+    // Evaluate XPath
+    this.evaluateXpathBtn = createBtn(
+        "Evaluate XPath",
+        function () {
+            $.ajax({
+                dataType: "xml",
+                url: Convertigo.createServiceUrl("studio.sourcepicker.EvaluateXpath"),
+                data: {
+                    xpath: that.xpath.val().trim()
+                },
+                success: function (data, textStatus, jqXHR) {
+                    that.createXpathTree($(data).find("xpath_tree>"));
+                }
+            });
+        },
+        Convertigo.getBaseConvertigoStudioUrl("img/editors/calc_xpath.png")
+    );
+
+    // Backward XPath history
+    var $backwardXpath = createBtn(
+        "Backward XPath history",
+        function () {
+        },
+        Convertigo.getBaseConvertigoStudioUrl("img/editors/backward_history.png")
+    );
+
+    // Forward XPath history
+    var $forwardXpath = createBtn(
+        "Forward XPath history",
+        function () {
+        },
+        Convertigo.getBaseConvertigoStudioUrl("img/editors/forward_history.png")
+    );
+
+    $xpathBtns
+        .append(this.evaluateXpathBtn)
+        .append($("<br>"))
+        .append($backwardXpath)
+        .append($("<br>"))
+        .append($forwardXpath);
+
+    // Textarea
+    var xpathTxtAreaId = "xpath-txtarea" + SourcePicker.nbInstances.toString();
+    var $containerLabelXpath = $("<div/>", {
+        "class": "xpath-container"
+    });
     var $label = $("<label/>", {
-        "for": "xpath-txtarea",
+        "for": xpathTxtAreaId,
         text: "xPath"
     });
     this.xpath = $("<textarea/>", {
-        id: "xpath-txtarea",
-        "class": "xpath",
-        rows: 4
+        id: xpathTxtAreaId,
+        spellcheck: "false",
+        "class": "xpath"
     });
+
+    $(document)
+        // Enter key when focus is on textarea = Evaluate XPath
+        .on("keypress", this.xpath.selector, function (e) {
+            if (e.which == 13) {
+                if (that.xpath.val().length) {
+                    that.evaluateXpathBtn.click();
+                }
+                e.preventDefault();
+            }
+        })
+        // Content in textarea = enable button
+        .on("keyup", this.xpath.selector, function (e) {
+            that.updateStateEvaluateXpathBtn();
+        });
+
     $containerLabelXpath
         .append($label)
-        .append(this.xpath);    
+        .append(this.xpath);
 
-    $bottom.append($containerLabelXpath);
+    var $mainContainer = $("<div/>", {
+        "class": "main-container"
+    });
+    $mainContainer
+        .append($xpathBtns)
+        .append($containerLabelXpath);
+    $bottom.append($mainContainer);
 
-    var $result = $("<div/>", {
-        id: "result"
+    // Xoath tree result
+    this.xpathTree = $("<div/>", {
+        "class": "xpath-tree"
     });
-    this.leftTree = $("<div/>", {
-        id: "left"
-    });
-    this.leftTree.jstree({
+    this.xpathTree.jstree({
         core: {
             themes: {
+                name: that.jstreeTheme,
                 dots: false
             },
             check_callback: true,
@@ -234,28 +310,16 @@ function SourcePicker(id) {
             }
         }
     });
-    
-    var $rightRender = $('<div id="right"><textarea>TEST<textarea/></div>');
-    $result
-        .append(this.leftTree)
-        .append($rightRender);
-    $bottom.append($result);
-}
 
-SourcePicker.prototype = Object.create(Tab.prototype);
-SourcePicker.prototype.constructor = SourcePicker;
-
-// Used to generate the div id
-SourcePicker.nbInstances = 0;
-
-SourcePicker.prototype.update = function (data) {
+    $bottom.append(this.xpathTree);
+    $(this.mainDiv).append($bottom);
 };
 
 SourcePicker.prototype.fillHelpContent = function (tag, type, name, comment, textBtn, enableBtn) {
-    this.tagInput.val(tag);
-    this.typeInput.val(type);
-    this.nameInput.val(name);
-    this.commentInput.val(comment);
+    this.inputTags["Tag"].val(tag);
+    this.inputTags["Type"].val(type);
+    this.inputTags["Name"].val(name);
+    this.inputTags["Comment"].val(comment);
     this.showBtn.text(textBtn);
     if (enableBtn) {
         this.showBtn.removeAttr("disabled");
@@ -269,7 +333,7 @@ SourcePicker.prototype.fillHelpContent = function (tag, type, name, comment, tex
 
 SourcePicker.prototype.fillDomTree = function ($domTree) {
     this.addNodeInDomTree(this.domTree, $domTree.find(">"));
-    
+
     this.triggerSelectNodeEvent = false;
 
     var childNodes = this.domTree.jstree().get_node("#").children_d;
@@ -327,6 +391,37 @@ SourcePicker.prototype.getNodeType = function (nodeType) {
     return "default";
 };
 
-SourcePicker.prototype.setXpathText = function (xpath) {
-    this.xpath.text(xpath);
+SourcePicker.prototype.setXpathText = function (xpath, anchor) {
+    this.xpath.val(xpath);
+
+    this.updateStateEvaluateXpathBtn();
+
+    this.removeAnchor();
+    if (anchor) {
+        this.xpath.highlightTextarea({
+            words: [
+                "^" + anchor
+            ]
+        });
+    }
+};
+
+SourcePicker.prototype.removeAnchor = function () {
+    this.xpath.highlightTextarea("destroy");
+};
+
+SourcePicker.prototype.createXpathTree = function ($rootNode) {
+    this.removeTree(this.xpathTree);    
+    if ($rootNode.length) {
+        this.addNodeInDomTree(this.xpathTree, $rootNode);
+    }
+};
+
+SourcePicker.prototype.updateStateEvaluateXpathBtn = function () {
+    if (this.xpath.val().length) {
+        this.evaluateXpathBtn.removeAttr("disabled");
+    }
+    else {
+        this.evaluateXpathBtn.attr("disabled", "disabled");
+    }
 };
