@@ -1150,7 +1150,7 @@
 	    "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicTab",
       "tag": "super-tab",
       "label": "Sliding Tab",
-      "description": "Defines a sliding tab. | A sliding tab to be inserted in a 'sliding-tabs' component",
+      "description": "Defines a sliding tab. | A sliding tab to be inserted in a 'sliding-tabs' component.<br/>A sliding tab is associated to a page which you can set through its properties.<br/><br/><u>Note</u>:</br>Make sure the page you associate contains a <i>Content or &lt;ion-content&gt;</i> to make it work properly in tab",
       "group": "Components",
       "icon16": "slidingtab_color_16x16.png",
       "icon32": "slidingtab_color_32x32.png",
@@ -1555,10 +1555,10 @@
 	},
 	
 	"Tab": {
-	    "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicTab",
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicTab",
       "tag": "ion-tab",
       "label": "Tab",
-      "description": "Defines a tab. | ",
+      "description": "Defines a tab. | A tab is associated to a page which you can set through its properties.<br/><br/><u>Note</u>:</br>Make sure the page you associate contains a <i>Content or &lt;ion-content&gt;</i> to make it work properly in tab",
       "group": "Components",
       "icon16": "tab_color_16x16.png",
       "icon32": "tab_color_32x32.png",
@@ -2507,7 +2507,7 @@
     "Select": {
       "tag": "ion-select",
       "label": "Select",
-      "description": "Defines a select. | The Select component is similar to an HTML &lt;select&gt; element, however, Ionic's select component makes it easier for users to sort through and select the preferred option or options. When users tap the select component, a dialog will appear with all of the options in a large, easy to select list for users. <br/> For more information: <a href='https://ionicframework.com/docs/components/#select' target='_blank'>Select</a>",
+      "description": "Defines a select. | The Select component is similar to an HTML &lt;select&gt; element, however, Ionic's select component makes it easier for users to sort through and select the preferred option or options. When users tap the select component, a dialog will appear with all of the options in a large, easy to select list for users. <br/> For more information: <a href='https://ionicframework.com/docs/components/#select' target='_blank'>Select</a>.<br/><br/><u>Note</u>:</br>Make sure to add your component under a <i>ListItem or &lt;ion-item&gt;</i> to make it work properly in form",
       "group": "Forms",
       "icon16": "select_color_16x16.png",
       "icon32": "select_color_32x32.png",
@@ -2583,7 +2583,7 @@
     "RadioList": {
       "tag": "ion-list",
       "label": "Radio list",
-      "description": "Defines a list for a set of radio buttons. | It allows a user to select at most one radio button from a set. Checking one radio button that belongs to a radio list unchecks any previous checked radio button within the same list. <br/> For more information: <a href='https://ionicframework.com/docs/api/components/radio/RadioGroup/' target='_blank'>Radio Group</a>",
+      "description": "Defines a list for a set of radio buttons. | It allows a user to select at most one radio button from a set. Checking one radio button that belongs to a radio list unchecks any previous checked radio button within the same list. <br/> For more information: <a href='https://ionicframework.com/docs/api/components/radio/RadioGroup/' target='_blank'>Radio Group</a>.<br/><br/><u>Note</u>:</br>Make sure to add your component under a <i>ListItem or &lt;ion-item&gt;</i> to make it work properly in form",
       "group": "Forms",
       "icon16": "radiolist_color_16x16.png",
       "icon32": "radiolist_color_32x32.png",
@@ -2649,7 +2649,7 @@
     "Toggle": {
       "tag": "ion-toggle",
       "label": "Toggle",
-      "description": "Defines a toggle. | A Toggle component is technically the same thing as an HTML checkbox input, except it looks different and is easier to use on a touch device. Toggles can also have colors assigned to them, by adding any color attribute. <br/> For more information: <a href='https://ionicframework.com/docs/components/#toggle' target='_blank'>Toggle</a>",
+      "description": "Defines a toggle. | A Toggle component is technically the same thing as an HTML checkbox input, except it looks different and is easier to use on a touch device. Toggles can also have colors assigned to them, by adding any color attribute. <br/> For more information: <a href='https://ionicframework.com/docs/components/#toggle' target='_blank'>Toggle</a><br/><br/><u>Note</u>:</br>Make sure to add your component under a <i>ListItem or &lt;ion-item&gt;</i> to make it work properly in form",
       "group": "Forms",
       "icon16": "toggle_color_16x16.png",
       "icon32": "toggle_color_32x32.png",
@@ -2678,7 +2678,7 @@
     "Input": {
       "tag": "ion-input",
       "label": "Input",
-      "description": "Defines a form input. | ion-input is meant for text type inputs only, such as text, password, email, number, search, tel, and url. <br/> For more information: <a href='https://ionicframework.com/docs/components/#inputs' target='_blank'>Inputs</a>",
+      "description": "Defines a form input. | ion-input is meant for text type inputs only, such as text, password, email, number, search, tel, and url. <br/> For more information: <a href='https://ionicframework.com/docs/components/#inputs' target='_blank'>Inputs</a>.<br/><br/><u>Note</u>:</br>Make sure to add your component under a <i>ListItem or &lt;ion-item&gt;</i> to make it work properly in form",
       "group": "Forms",
       "icon16": "input_color_16x16.png",
       "icon32": "input_color_32x32.png",
@@ -2812,7 +2812,7 @@
     "TextArea": {
       "tag": "ion-textarea",
       "label": "TextArea",
-      "description": "Defines a form textarea. | ion-textarea is meant for multiline text type inputs only, such as text, password, email, number, search, tel, and url. <br/> For more information: <a href='https://ionicframework.com/docs/components/#inputs' target='_blank'>Inputs</a>",
+      "description": "Defines a form textarea. | ion-textarea is meant for multiline text type inputs only, such as text, password, email, number, search, tel, and url. <br/> For more information: <a href='https://ionicframework.com/docs/components/#inputs' target='_blank'>Inputs</a>.<br/><br/><u>Note</u>:</br>Make sure to add your component under a <i>ListItem or &lt;ion-item&gt;</i> to make it work properly in form",
       "group": "Forms",
       "icon16": "textarea_color_16x16.png",
       "icon32": "textarea_color_32x32.png",
@@ -2905,7 +2905,7 @@
     "CheckBox": {
       "tag": "ion-checkbox",
       "label": "Checkbox",
-      "description": "Defines a checkbox. | A checkbox is an input component that holds a boolean value.<br/>Checkboxes are no different than HTML checkbox inputs. However, like other Ionic components, checkboxes are styled differently on each platform.<br/>Use the checked attribute to set the default value, and the disabled attribute to disable the user from changing the value. <br/> For more information: <a href='https://ionicframework.com/docs/components/#checkbox' target='_blank'>Checkbox</a>",
+      "description": "Defines a checkbox. | A checkbox is an input component that holds a boolean value.<br/>Checkboxes are no different than HTML checkbox inputs. However, like other Ionic components, checkboxes are styled differently on each platform.<br/>Use the checked attribute to set the default value, and the disabled attribute to disable the user from changing the value. <br/> For more information: <a href='https://ionicframework.com/docs/components/#checkbox' target='_blank'>Checkbox</a>.<br/><br/><u>Note</u>:</br>Make sure to add your component under a <i>ListItem or &lt;ion-item&gt;</i> to make it work properly in form",
       "group": "Forms",
       "icon16": "input_checkbox_16x16.png",
       "icon32": "input_checkbox_32x32.png",
@@ -2932,7 +2932,7 @@
     "DateTime": {
       "tag": "ion-datetime",
       "label": "DateTime",
-      "description": "Defines a datetime. | The DateTime component is used to present an interface which makes it easy for users to select dates and times.<br/>The DateTime component is similar to the native <input type='datetime-local'> element, however, Ionic’s DateTime component makes it easy to display the date and time in a preferred format, and manage the datetime values. <br/> For more information: <a href='https://ionicframework.com/docs/components/#datetime' target='_blank'>DateTime</a>",
+      "description": "Defines a datetime. | The DateTime component is used to present an interface which makes it easy for users to select dates and times.<br/>The DateTime component is similar to the native <input type='datetime-local'> element, however, Ionic’s DateTime component makes it easy to display the date and time in a preferred format, and manage the datetime values. <br/> For more information: <a href='https://ionicframework.com/docs/components/#datetime' target='_blank'>DateTime</a>.<br/><br/><u>Note</u>:</br>Make sure to add your component under a <i>ListItem or &lt;ion-item&gt;</i> to make it work properly in form",
       "group": "Forms",
       "icon16": "input_datetime_16x16.png",
       "icon32": "input_datetime_32x32.png",
@@ -2986,7 +2986,7 @@
     "Range": {
       "tag": "ion-range",
       "label": "Range slider",
-      "description": "Defines a range slider. | The Range slider lets users select from a range of values by moving the slider knob.<br/>It can accept dual knobs, but by default one knob controls the value of the range. <br/> For more information: <a href='https://ionicframework.com/docs/components/#range' target='_blank'>Range</a>",
+      "description": "Defines a range slider. | The Range slider lets users select from a range of values by moving the slider knob.<br/>It can accept dual knobs, but by default one knob controls the value of the range. <br/> For more information: <a href='https://ionicframework.com/docs/components/#range' target='_blank'>Range</a>.<br/><br/><u>Note</u>:</br>Make sure to add your component under a <i>ListItem or &lt;ion-item&gt;</i> to make it work properly in form",
       "group": "Forms",
       "icon16": "range_16x16.png",
       "icon32": "range_32x32.png",
