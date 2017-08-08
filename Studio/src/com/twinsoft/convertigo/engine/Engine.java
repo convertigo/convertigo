@@ -43,6 +43,7 @@ import javax.swing.event.EventListenerList;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.auth.AuthPolicy;
+import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
@@ -648,6 +649,7 @@ public class Engine {
 				try {
 					Engine.logEngine.debug("HttpClient initializing...");
 
+					HttpMethodParams.getDefaultParams().setParameter(HttpMethodParams.CREDENTIAL_CHARSET, "UTF-8");
 					Engine.theApp.httpClient = HttpUtils.makeHttpClient3(true);
 					Engine.theApp.httpClient4 = HttpUtils.makeHttpClient4(true);
 
