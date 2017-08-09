@@ -68,8 +68,7 @@ public class UIDynamicTab extends UIDynamicElement {
 		String pageName = getPageName();
 		if (!pageName.isEmpty()) {
 			try {
-				String pageTitle = getApplication().getPageComponentByName(pageName).getTitle();
-				attributes.append(" [root]").append("=").append("\"getPageByName('"+ pageTitle +"')\"");
+				attributes.append(" [root]").append("=").append("\"getPageByName('"+ pageName +"')\"");
 			} catch (Exception e) {}
 		}
 		return attributes;
