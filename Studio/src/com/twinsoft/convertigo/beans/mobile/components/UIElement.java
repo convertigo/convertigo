@@ -169,19 +169,26 @@ public class UIElement extends UIComponent implements IStyleGenerator {
 			String formControlVarName = getFormControlName();
 			if (!formControlVarName.isEmpty()) {
 				StringBuilder constructors = new StringBuilder();
+				StringBuilder asyncConstructors = new StringBuilder();
+				
 				Iterator<UIComponent> it = getUIComponentList().iterator();
 				while (it.hasNext()) {
 					UIComponent component = (UIComponent)it.next();
 					if (component instanceof UIFormValidator) {
 						UIFormValidator validator = (UIFormValidator)component;
 						String constructor = validator.computeConstructor();
-						constructors.append(constructors.length() > 0 && !constructor.isEmpty() ? ",":"").append(constructor);
+						if (validator.isAsync()) {
+							asyncConstructors.append(asyncConstructors.length() > 0 && !constructor.isEmpty() ? ",":"").append(constructor);
+						} else {
+							constructors.append(constructors.length() > 0 && !constructor.isEmpty() ? ",":"").append(constructor);
+						}
 					}
 				}
 				sb.append(System.lineSeparator());
-				sb.append("\t\t\t"+formControlVarName + " : new FormControl('', Validators.compose([");
-				sb.append(constructors);
-				sb.append("]))").append(",");
+				sb.append("\t\t\t"+formControlVarName + " : new FormControl('',")
+					.append(" Validators.compose([").append(constructors).append("]),")
+					.append(" Validators.composeAsync([").append(asyncConstructors).append("])")
+					.append(")").append(",");
 			}
 			else {
 				StringBuilder constructors = new StringBuilder();

@@ -35,4 +35,14 @@ public abstract class UIFormValidator extends UIComponent implements IValidator 
 		UIFormValidator cloned = (UIFormValidator) super.clone();
 		return cloned;
 	}
+	
+	private boolean async = false;
+
+	public boolean isAsync() {
+		return async;
+	}
+
+	public void setAsync(boolean async) {
+		this.async = async;
+	}
 }
