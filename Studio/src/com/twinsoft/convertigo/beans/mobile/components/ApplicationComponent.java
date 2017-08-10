@@ -623,7 +623,11 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
     			throw new EngineException("The mobile application \"" + getName() + "\" already contains a theme! Please delete it first.");
     		}
     		else {
-    			((UITheme)uiComponent).styleContent = getThemeTplScss();
+    			UITheme uiTheme = (UITheme)uiComponent;
+    			if (uiTheme.bNew) {
+    				uiTheme.styleContent = getThemeTplScss();
+    			}
+    			this.theme = uiTheme;
     		}
     	}
 		
@@ -639,9 +643,6 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
         insertOrderedComponent(uiComponent, after);
         
         if (isNew || isCut) {
-        	if (uiComponent instanceof UITheme) {
-        		this.theme = (UITheme)uiComponent;
-        	}
         	markApplicationAsDirty();
         }
 	}
