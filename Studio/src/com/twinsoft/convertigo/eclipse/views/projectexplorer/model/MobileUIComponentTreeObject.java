@@ -249,7 +249,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 	}
 	
 	private String formatStyleContent(UIStyle ms) {
-		String formated = ms.getStyleContent();
+		String formated = ms.getStyleContent().getString();
 		DatabaseObject parentDbo = ms.getParent();
 		if (parentDbo != null) {
 			if (parentDbo instanceof UIElement) {
@@ -326,7 +326,8 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 									IDocumentProvider dp = editor.getDocumentProvider();
 									IDocument doc = dp.getDocument(editor.getEditorInput());
 									String content = unformatStyleContent(ms, doc.get());
-									MobileUIComponentTreeObject.this.setPropertyValue("styleContent", content);
+									FormatedContent formatedContent = new FormatedContent(content);
+									MobileUIComponentTreeObject.this.setPropertyValue("styleContent", formatedContent);
 								}
 							}
 						}

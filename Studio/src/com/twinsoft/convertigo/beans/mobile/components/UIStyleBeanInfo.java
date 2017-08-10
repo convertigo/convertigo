@@ -46,7 +46,7 @@ public class UIStyleBeanInfo extends MySimpleBeanInfo {
 			properties[0] = new PropertyDescriptor("styleContent", beanClass, "getStyleContent", "setStyleContent");
 			properties[0].setDisplayName(getExternalizedString("property.styleContent.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.styleContent.short_description"));
-			
+			properties[0].setHidden(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
