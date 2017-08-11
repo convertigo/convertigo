@@ -300,4 +300,8 @@ public abstract class XpathEvaluatorCompositeWrap {
     public void updateStudio(WrapStudio studio) {
         this.studio = (CheStudio) studio;
     }
+
+    public String getXpath() {
+        return xpath;
+    }
 }

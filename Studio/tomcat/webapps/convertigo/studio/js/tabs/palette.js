@@ -24,6 +24,31 @@ function Palette() {
 
 	$(this.mainDiv).attr("class", "tab-palette");
 	$(this.mainDiv).append(this.divContainer);
+
+	this.projectsView = null;
+
+	var that = this;
+    $(document).on("mousedown touchstart", ".sub-category>div", function (event) {
+        that.projectsView.dnd.palette.started = true;
+        that.projectsView.dnd.palette.lastTargetNodeId = null;
+
+        // Create the floating div
+        return $.vakata.dnd.start(event, {
+                jstree: true,
+                obj: $(this),
+                transferData: "palette",
+                nodes: [{
+                    id: $(this).data("beanclass")
+                }]
+            },
+            '<div id="dnd-bean">' +
+                // Allow status
+                '<i class="draggable allow-status forbidden"></i>' +
+                // Icon to show the bean to create
+                '<i class="draggable ' + $(this).find(">i").attr("class") + '"></i>' +
+            "</div>"
+        );
+    });
 }
 
 Palette.prototype = Object.create(Tab.prototype);
@@ -211,4 +236,8 @@ Palette.prototype.createSubCategories = function (categoryName) {
 
 	// Trigger click event on the default bean
 	$defaultBeanToSelect.click();
+};
+
+Palette.prototype.setProjectsView = function (projectsView) {
+    this.projectsView = projectsView;
 };

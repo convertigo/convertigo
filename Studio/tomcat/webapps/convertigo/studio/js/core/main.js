@@ -148,13 +148,13 @@ var Main = {
 				StyleUtils.injectLinkStyle(Convertigo.createServiceUrl("studio.database_objects.GetPaletteIconsCSS"));
 				StyleUtils.injectLinkStyle(Convertigo.createServiceUrl("studio.database_objects.GetTreeIconsCSS"));
 
-				// All tabs
-				that.sourcePicker = new SourcePicker(theme);
 				var references = new References();
 				var palette = new Palette();
 
                 var propertiesView = new PropertiesView(theme);
 				var projectsView = new ProjectsView(propertiesView, [palette], theme);
+
+				that.sourcePicker = new SourcePicker(projectsView, theme);
 
                 // Will contain projects view + tabs
                 var $mainTabViewDiv = $(".mainTabView");

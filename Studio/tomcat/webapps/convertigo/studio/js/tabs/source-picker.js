@@ -1,4 +1,4 @@
-function SourcePicker(jstreeTheme = "default") {
+function SourcePicker(projectsView, jstreeTheme = "default") {
 	++SourcePicker.nbInstances;
 	Tab.call(this, "sourcepicker" + SourcePicker.nbInstances.toString(), "Source Picker");
 
@@ -9,6 +9,32 @@ function SourcePicker(jstreeTheme = "default") {
 	this.createTopContent();
 	this.createMidContent();
 	this.createBottomContent();
+
+	var that = this;
+    $(document)
+        .on("mousedown touchstart", ".dom-tree a", function (event) {
+            projectsView.dnd.sourcepicker.started = true;
+            projectsView.dnd.sourcepicker.lastTargetNodeId = null;
+
+            that.domTree.jstree().deselect_all();
+            that.domTree.jstree().select_node(event.target);
+
+            // Create the floating div
+            return $.vakata.dnd.start(
+                event, {
+                    jstree: true,
+                    obj: $(this),
+                    transferData: "sourcepicker",
+                    nodes: [{
+                       id: "dummy-id"
+                    }]
+                },
+                '<div id="dnd-node-dom-tree">' +
+                    // Allow status
+                    '<i class="draggable allow-status forbidden"></i>' +
+                "</div>"
+            );
+        });
 }
 
 SourcePicker.prototype = Object.create(Tab.prototype);
@@ -123,7 +149,9 @@ SourcePicker.prototype.createMidContent = function () {
     var that = this;
 
     // Dom tree
-    this.domTree = $("<div/>");
+    this.domTree = $("<div/>", {
+        "class": "dom-tree"
+    });
     this.domTree.jstree({
         core: {
             themes: {
@@ -265,6 +293,13 @@ SourcePicker.prototype.createBottomContent = function () {
         })
         // Content in textarea = enable button
         .on("keyup", this.xpath.selector, function (e) {
+            $.ajax({
+                dataType: "xml",
+                url: Convertigo.createServiceUrl("studio.sourcepicker.ModifyXPathText"),
+                data: {
+                    xpath: that.xpath.val().trim()
+                }
+            });
             that.updateStateEvaluateXpathBtn();
         });
 

@@ -955,7 +955,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				
 				if (!propertyDescriptors.isEmpty()) {
 					// Retrieve Source definition
-					final XMLVector<String> sourceDefinition = new XMLVector<String>();
+					final XMLVector<String> sourceDefinition = new XMLVector<String>(2);
 					sourceDefinition.add(((StepSource) data).getPriority());
 					sourceDefinition.add(((StepSource) data).getXpath());
 					

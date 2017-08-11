@@ -111,4 +111,12 @@ public class SourcePickerViewWrap implements StepSourceListenerWrap {
     public Document getDom() {
         return sourcePicker.getDom();
     }
+
+    public void modifyXpathText(String xpath) {
+        sourcePicker.modifyXpathText(xpath);
+    }
+
+    public Object getDragData() {
+        return sourcePicker.getDragData();
+    }
 }

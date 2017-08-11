@@ -56,6 +56,10 @@ public class XMLVector<E> extends ArrayList<E> implements XMLizable, List<E> {
 	public XMLVector() {
 		super(10);
     }
+	
+    public XMLVector(int initialCapacity) {
+        super(initialCapacity);
+    }
     
     @SuppressWarnings({ "unchecked", "rawtypes" })
 	public XMLVector(XMLVector<E> v) {

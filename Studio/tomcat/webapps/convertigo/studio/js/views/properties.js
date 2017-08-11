@@ -25,7 +25,7 @@ function PropertiesView(jstreeTheme = "default") {
         var node = that.tree.jstree().get_node(idNode);
 
         var $nodeData = $(data).find(">*[qname='" + that.refNodeProjectsView.data.qname + "']").children();
-        var newValue = StringUtils.escapeHTML($nodeData.find("[value]").attr("value").toString());
+        var newValue = that.computePropertyValue($nodeData, property);
 
         node.data.value = newValue;
         that.tree.jstree().redraw_node(node.id);
@@ -295,15 +295,17 @@ PropertiesView.prototype.updateProperties = function ($dboElt) {
                     that.createNodeJsonPropertyCategory(isExtractionRule ? "Selection" : "Expert", true) :
                     that.createNodeJsonPropertyCategory(isExtractionRule ? "Configuration" : "Base properties", true);
             }
-    
+
             var propertyName = $(this).attr("name");
             var tempId = that.computeNodeId(propertyName, counter[key] % 2 === 0 ? "odd" : "even");
+            var propertyValue = that.computePropertyValue($(this), propertyName);
+
             // Add the property to the category
             propertyCategories[key].children.push({
                 id: that.tree.jstree().generateId(tempId),
                 text: $(this).attr("displayName"),
                 data: {
-                    value: StringUtils.escapeHTML($(this).find("[value]").attr("value")),
+                    value: propertyValue,
                     name: propertyName
                 }
             });
@@ -384,4 +386,19 @@ PropertiesView.prototype.updateTreeData = function (data) {
 PropertiesView.prototype.computeNodeId = function (propertyName, parity) {
 	// Parity is used to alternate colors of the rows
     return "pr-" + propertyName.replace(/\s/g, "-") + "-" + parity;
+};
+
+PropertiesView.prototype.computePropertyValue = function ($propElt, propertyName) {
+    var $propValueElt = $propElt.find("[value]");
+    var valueFound = $propValueElt.length !== 0;
+
+    if (propertyName === "sourceDefinition") {
+        var sourceDefValue = valueFound ?
+            // Priority, xPath
+            $propValueElt.eq(0).attr("value").toString() + ", " + $propValueElt.eq(1).attr("value").toString() :
+            ""
+        return propValue = "[" + sourceDefValue + "]";
+    }
+
+    return valueFound ? StringUtils.escapeHTML($propValueElt.attr("value")).toString() : "";
 };

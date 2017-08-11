@@ -1262,22 +1262,29 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		}
 	}
 	
-	public List<DatabaseObject> getDatabaseObjectChildren() throws Exception {
-		final List<DatabaseObject> children = new LinkedList<DatabaseObject>();
-		new WalkHelper() {
+    public List<DatabaseObject> getDatabaseObjectChildren() throws Exception {
+    	return getDatabaseObjectChildren(false);
+    }
+	
+    public List < DatabaseObject > getDatabaseObjectChildren(boolean deep) throws Exception {
+        final List <DatabaseObject> children = new LinkedList<>();
+        new WalkHelper() {
 
-			@Override
-			protected void walk(DatabaseObject databaseObject) throws Exception {
-				if (databaseObject == DatabaseObject.this) {
-					super.walk(databaseObject);
-				} else {
-					children.add(databaseObject);
-				}
-			}
-			
-		}.init(this);
-		return children;
-	}
+            @Override
+            protected void walk(DatabaseObject databaseObject) throws Exception {
+                if (databaseObject == DatabaseObject.this) {
+                    super.walk(databaseObject);
+                }
+                else {
+                    children.add(databaseObject);
+                    if (deep) {
+                        super.walk(databaseObject);
+                    }
+                }
+            }
+        }.init(this);
+        return children;
+    }
 	
 	public DatabaseObject getDatabaseObjectChild(String name) throws Exception {
 		List<DatabaseObject> children = getDatabaseObjectChildren();

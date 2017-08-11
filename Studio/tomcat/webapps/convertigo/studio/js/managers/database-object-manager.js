@@ -32,7 +32,7 @@ var DatabaseObjectManager = {
 			$(this).trigger("database_object_delete.dbo-manager", [qnamesDbosToDelete]);
 		});
 	},
-	notifySetProperty: function (data) {
+	notifySetProperty: function (data, listenersToIgnore = []) {
 		var qnames = [];
 		var propertyName = null;
 		var propertyValue = null;
@@ -50,7 +50,9 @@ var DatabaseObjectManager = {
 
 		// Notify all listeners
 		$.each(DatabaseObjectManager.listeners, function () {
-			$(this).trigger("set_property.dbo-manager", [qnames, propertyName, propertyValue, data]);
+		    if (!listenersToIgnore.includes(this)) {
+		        $(this).trigger("set_property.dbo-manager", [qnames, propertyName, propertyValue, data]);
+		    }
 		});
 	}
 };

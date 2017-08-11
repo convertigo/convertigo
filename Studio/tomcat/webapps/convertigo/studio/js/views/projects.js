@@ -1,4 +1,4 @@
-function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {    
+function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 	TreeViewContainer.call(this, "projects-tree-view", jstreeTheme);
 
 	this.propertiesView = propertiesView;
@@ -6,6 +6,7 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 	this.palettes = {};
 	for (var i = 0; i < palettes.length; ++i) {
 		this.palettes[palettes[i].getId()] = palettes[i];
+		palettes[i].setProjectsView(this);
 	}
 
 	var that = this;
@@ -83,6 +84,115 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 
 	var lastSelectedNodeId = null;
 
+    var updatePropertiesView = function (node) {
+        lastSelectedNodeId = node.id;
+        that.propertiesView.refresh(node);
+    };
+
+    var handleDropPalette = function (operation, node, node_parent, node_position, more) {
+        if (operation === "copy_node") {
+            if (!that.dnd.palette.canCreate) {
+                return false;
+            }
+
+            // By default, insert at the end
+            var afterPriority = null;
+            // Insert at a specific position
+            if (node_position > 0) {
+                var nodeInsertAfter = that.tree.jstree().get_node(node_parent.children[node_position - 1]);
+                var afterPriority = nodeInsertAfter.data.priority;
+            }
+            // Insert at first position
+            else if (node_position == 0 && that.dnd.palette.markerBetweenNodes) {
+                afterPriority = 0;
+            }
+
+            var isFolder = that.isNodeFolder(node_parent);
+            // Get the real parent node
+            var nodeParent = isFolder ? that.tree.jstree().get_node(node_parent.parent) : node_parent;
+            var qname = nodeParent.data.qname;
+
+            // Create
+            $.ajax({
+                dataType: "xml",
+                url: Convertigo.createServiceUrl("studio.database_objects.Create"),
+                data: {
+                    qname: qname,
+                    beanClass: node.id,
+                    folderType: isFolder ? node_parent.data.folderType : null,
+                    afterPriority: afterPriority
+                },
+                success: function (data, textStatus, jqXHR) {
+                    var $adminXml = $(data).find("admin");
+                    var $dboXml = $adminXml.find("dbo");
+                    // Dbo created
+                    if ($dboXml.length) {
+                        // Store the id of the new node to show it at the end of the refresh
+                        that.dnd.palette.newIdNodeCreated = that.computeNodeId($dboXml.attr("qname"));
+
+                        // Store the opened nodes to re-open them at the end of the refresh
+                        var projectNode = that.getProjectNode(node_parent);
+                        that.dnd.palette.openedNodes = that.tree.jstree().get_json(projectNode, {
+                            flat: true
+                        })
+                        // Only get opened nodes
+                        .filter(function(node) {
+                            return node.state.opened;
+                        });
+
+                        // Refresh the parent node to automaticaly generate the new node
+                        that.tree.jstree().refresh_node(nodeParent.id);
+                    }
+                    else {
+                        that.resetDndData();
+                    }
+
+                    // Show errors
+                    $adminXml.find(">*[name='MessageBoxResponse']").reverse().each(function() {
+                        var $msgBoxXml = $(this).find(">*");
+                        ModalUtils.createMessageBox(
+                            $msgBoxXml.find("title").text(),
+                            $msgBoxXml.find("message").text()
+                        );
+                    });
+                }
+            });
+
+            return false;
+        }
+
+        return true;
+    };
+
+    var handleDropSourcePicker = function (operation, node, node_parent, node_position, more) {
+        if (operation === "copy_node") {
+            if (that.dnd.sourcepicker.canCreate) {
+                $.ajax({
+                    dataType: "xml",
+                    url: Convertigo.createServiceUrl("studio.database_objects.SetStepSourceDefinition"),
+                    data: {
+                        qname: node_parent.data.qname
+                    },
+                    success: function (data, textStatus, jqXHR) {
+                        var $adminXml = $(data).find("admin");
+                        if ($adminXml.find("step")) {
+                            updatePropertiesView(node_parent);
+                            /*
+                             * No need to notify the properties view as the "updatePropertiesView"
+                             * function has just updated the properties.
+                             */ 
+                            DatabaseObjectManager.notifySetProperty($adminXml, [that.propertiesView]);
+                            that.resetDndData();
+                        }
+                    }
+                });
+            }
+            return false;
+        }
+
+        return true;
+    };
+
 	// Initialize jstree
 	$(that.tree)
 		.jstree({
@@ -91,77 +201,11 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 				check_callback: function (operation, node, node_parent, node_position, more) {
 					// operation can be 'create_node', 'rename_node', 'delete_node', 'move_node', 'copy_node' or 'edit'
 				    // in case of 'rename_node' node_position is filled with the new node name
-				    if (that.dnd.started) {
-				        if (operation === "copy_node") {
-				            if (!that.dnd.canCreate) {
-				                return false;
-				            }
-
-				            // By default, insert at the end
-				            var afterPriority = null;
-				            // Insert at a specific position
-				            if (node_position > 0) {
-				                var nodeInsertAfter = that.tree.jstree().get_node(node_parent.children[node_position - 1]);
-				                var afterPriority = nodeInsertAfter.data.priority;
-				            }
-                            // Insert at first position
-				            else if (node_position == 0 && that.dnd.markerBetweenNodes) {
-	                            afterPriority = 0;
-				            }
-
-                            var isFolder = that.isNodeFolder(node_parent);
-				            // Get the real parent node
-				            var nodeParent = isFolder ? that.tree.jstree().get_node(node_parent.parent) : node_parent;
-				            var qname = nodeParent.data.qname;
-
-				            // Create
-				            $.ajax({
-				                dataType: "xml",
-				                url: Convertigo.createServiceUrl("studio.database_objects.Create"),
-				                data: {
-				                    qname: qname,
-				                    beanClass: node.id,
-				                    folderType: isFolder ? node_parent.data.folderType : null,
-				                    afterPriority: afterPriority
-				                },
-				                success: function (data, textStatus, jqXHR) {
-				                    var $adminXml = $(data).find("admin");
-				                    var $dboXml = $adminXml.find("dbo");
-				                    // Dbo created
-				                    if ($dboXml.length) {
-				                    	// Store the id of the new node to show it at the end of the refresh
-				                        that.dnd.newIdNodeCreated = that.computeNodeId($dboXml.attr("qname"));
-
-				                        // Store the opened nodes to re-open them at the end of the refresh
-				                        var projectNode = that.getProjectNode(node_parent);
-                                        that.dnd.openedNodes = that.tree.jstree().get_json(projectNode, {
-                                            flat: true
-                                        })
-                                        // Only get opened nodes
-                                        .filter(function(node) {
-                                            return node.state.opened;
-                                        });
-
-				                        // Refresh the parent node to generate the new node
-				                        that.tree.jstree().refresh_node(nodeParent.id);
-				                    }
-				                    else {
-				                    	that.resetDndData();
-				                    }
-
-				                    // Show errors
-				                    $adminXml.find(">*[name='MessageBoxResponse']").reverse().each(function() {
-				                        var $msgBoxXml = $(this).find(">*");
-				                        ModalUtils.createMessageBox(
-				                            $msgBoxXml.find("title").text(),
-				                            $msgBoxXml.find("message").text()
-				                        );
-				                    });
-				                }
-				            });
-
-				            return false;
-				        }
+				    if (that.dnd.palette.started) {
+				        return handleDropPalette(operation, node, node_parent, node_position, more);
+				    }
+				    else if (that.dnd.sourcepicker.started) {
+				        return handleDropSourcePicker(operation, node, node_parent, node_position, more);
 				    }
 
 				    return true;
@@ -207,7 +251,7 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 			],
 			contextmenu: {
 				show_at_node: false,
-				items: function (node) {
+				items: function (node, buildContextMenu) {
 					// Get all nodes
 					var selectedNodes = that.tree.jstree().get_selected(true);
 
@@ -228,7 +272,6 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 					var items = {};
 					if ((folderTypes.length === 1 && qnames.length === 0) ||
 						(qnames.length > 0 && folderTypes.length === 0)) {
-
 						/*
 						 * If only one folder is selected and no node has been selected,
 						 * we send the qname of the parent node of the folder
@@ -242,8 +285,6 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 						$.ajax({
 						    dataType: "xml",
 						    url: Convertigo.createServiceUrl("studio.database_objects.GetMenu"),
-						    // TODO : FIND A SOLUTION TO GENERATE THE MENU ASYNCHRONOUSLY (need to finish the jstreecontextmenuajax plugin)
-						    async: false,
 							data: {
 						    	qnames: qnames,
 						    	folderTypes: folderTypes,
@@ -253,12 +294,11 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 								// Create the menu if it has correctly been generated
 								if ($(data).find("admin>response").attr("state") == "success") {
 									that.createContextMenu(items, $(data).find("admin>menu"));
+									buildContextMenu(items);
 								}
 							}
 						});
 					}
-
-					return items;
 				}
 			},
 			types: {
@@ -276,16 +316,15 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 			}
 		})
 		.on("select_node.jstree", function (event, data) {
-			lastSelectedNodeId = data.node.id;
-			that.propertiesView.refresh(data.node);
+		    updatePropertiesView(data.node);
 
 			/*
 			 * If the condition is true, it means a dbo has been created.
 			 * However when it is created, we select the new node automatically
-			 * so the Palette will be updated and we don't want to do that because
-			 * it is not user friendly.
+			 * so the Palette will be updated with the new categories and we don't want
+			 * to do that because it is not user friendly.
 			 */
-			if (!that.dnd.started) {
+			if (!that.dnd.palette.started) {
 				var qname = null;
 				var folderType = null;
 				// It is not a folder
@@ -330,8 +369,7 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 		})
 		.on("select_cell.jstree-grid", function (event, data) {
 			var node = that.tree.jstree().get_node(data.node[0].id);
-			// Check if the node has a comment (if it hasn't, it's  a folder)
-			if (VariableUtils.isDefined(node.data.comment)) {
+			if (!that.isNodeFolder(node)) {
 				// Removes "// "
 				var editComment = StringUtils.unescapeHTML(node.data.comment.substr(3));
 	            that.editCell(
@@ -357,7 +395,7 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 		})
 		.on("refresh_node.jstree", function (node, nodes) {
 			// Case of drag and drop
-			if (that.dnd.started) {
+			if (that.dnd.palette.started) {
 				// Delete comments columns
 				that.tree.jstree()._clean_grid();
 				// ... and regenerate it (need to do that else comments are shifted, it is not handle by jstreegrid)
@@ -366,13 +404,13 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 				});
 
 				// Show the new created node and select it
-				var idNodes = that.tree.jstree().getIdNodes(that.dnd.newIdNodeCreated);
+				var idNodes = that.tree.jstree().getIdNodes(that.dnd.palette.newIdNodeCreated);
 				that.tree.jstree()._open_to(idNodes[0]);
 				that.tree.jstree().deselect_node(lastSelectedNodeId);
 				that.tree.jstree().select_node(idNodes[0]);
 
 				// Re-open opened nodes
-				that.dnd.openedNodes.forEach(function (node) {
+				that.dnd.palette.openedNodes.forEach(function (node) {
 				    that.tree.jstree().open_node(node);
 				});
 
@@ -420,122 +458,167 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 		    }
 		});
 
-		var lastTargetNodeId = null;
 		var lastDistMarkerNode = null;
-		/*
-		 * Handle drag and drop from the Palette.
-		 * Source: https://groups.google.com/forum/#!msg/jstree/BYppISuCFRE/KKh7oHZzNkwJ
-		 */
-	    $(document)
-	        // When clicking on a bean of the Palette, create a floating div
-		    .on("mousedown", ".sub-category>div", function (event) {
-		        that.dnd.started = true;
-		        lastTargetNodeId = null;
-		    	var idRelatedPalette = $(event.target).parents('[id*="palette"]').attr("id");
 
-		    	// Create the floating div
-		        return $.vakata.dnd.start(event, {
-		                jstree: true,
-		                obj: $(this),
-		                nodes: [{
-		                    id: $(this).data("beanclass"),
-		                    text: $(this).text(),
-		                    data: {
-		                    	currentCategory: that.palettes[idRelatedPalette].getCurrentCategory()
-		                    }
-		                }]
-		            },
-		            '<div id="dnd-bean">' +
-		            	// Allow status
-			            '<i class="draggable allow-status forbidden"></i>' +
-			            // Icon to show the bean to create
-			            '<i class="draggable ' + $(this).find(">i").attr("class") + '"></i>' +
-		            "</div>");
-		    })
-		    .on("dnd_move.vakata", function (event, data) {
-		    	// Target node
-		    	var $targetElt = $(data.event.target);
-		    	var $allowIconElt = data.helper.find(".allow-status");
+		var computeDistMarkerNode = function ($nodeElt) {
+            return $("#jstree-marker").offset().left - $nodeElt.offset().left;
+		};
 
-	            // If on the projects tree view
-		    	if ($targetElt.closest(that.tree).length > 0) {
-		    	    // If on a node
-		    	    var $doppableElement = $targetElt.closest(".drop");
-		    	    if ($doppableElement.length > 0) {
-		    	        // Get the id of the current target
-		    	        var targetId = $doppableElement.attr("id");
+		var isMarkerBetweenNodes = function (distMakerNode) {
+            /*
+             * This condition means that the arrow marker (icon ->) is between two nodes:
+             * - if true (marker between nodes):
+             *       ◢Parent1
+             *           ◢Child1
+             *           -> (marker is here)
+             *           ◢Child2
+             * - if false (marker on a node):
+             *       ◢Parent2
+             *         ->◢Child1 (marker is here)
+             *           ◢Child2
+             */
+            return distMakerNode == -6;
+		};
+		
+		var handleDndMovePalette = function ($targetElt, $allowIconElt, $doppableElement, data) {
+            // Get the id of the current target
+            var targetId = $doppableElement.attr("id");
 
-		    	        var $arrowInsertMaker = $("#jstree-marker");
-		    	        var distMakerNode = $arrowInsertMaker.position().left - $targetElt.position().left;
+            var distMakerNode = computeDistMarkerNode($targetElt);
 
-	                    // If still on the same element or the marker is still on the same position
-		    	        if (lastTargetNodeId !== targetId || lastDistMarkerNode !== distMakerNode) {
-		    	            lastTargetNodeId = targetId;
-		    	            lastDistMarkerNode = distMakerNode;
+            var targetChanged = that.dnd.palette.lastTargetNodeId !== targetId || lastDistMarkerNode !== distMakerNode;
+            if (targetChanged) {
+                that.dnd.palette.lastTargetNodeId = targetId;
+                lastDistMarkerNode = distMakerNode;
 
-		    	            var targetNode = that.tree.jstree().get_node($targetElt);
-		    	            /*
-		    	             * This condition means that the arrow marker (icon ->) is between two nodes:
-		    	             * - if true (marker between nodes):
-		    	             *       ◢Connectors
-		    	             *           ◢Conn1
-		    	             *           -> (marker is here so the target node will now be "Connectors")
-		    	             *           ◢Conn2
-		    	             * - if false (marker on a node):
-                             *       ◢Connectors
-                             *         ->◢Conn1 (marker is here so the target node is still "Conn1")
-                             *           ◢Conn2
-		    	             */
-		                    if (that.dnd.markerBetweenNodes = distMakerNode < 20) {
-		                        targetNode = that.tree.jstree().get_node(targetNode.parent);
-		                    }
+                var targetNode = that.tree.jstree().get_node($targetElt);
 
-		                   	// that.dnd.canCreate = targetNode.id !== "#";
-		                    if (targetNode.id !== "#") {
-    		    	            var qname = null;
-    		    	            var folderType = null;
-    		    	            // It is not a folder
-    		    	            if (!that.isNodeFolder(targetNode)) {
-    		    	                qname = targetNode.data.qname;
-    		    	            }
-    		    	            else {
-    		    	                var parentNode = that.tree.jstree().get_node(targetNode.parent);
-    		    	                if (parentNode.id === "#") {
-    		    	                    qname = targetNode.data.qname;
-    		    	                }
-    		    	                else {
-        		    	                qname = parentNode.data.qname;
-        		    	                folderType = targetNode.data.folderType;
-    		    	                }
-    		    	            }
+                that.dnd.palette.markerBetweenNodes = isMarkerBetweenNodes(distMakerNode);
+                if (that.dnd.palette.markerBetweenNodes) {
+                    targetNode = that.tree.jstree().get_node(targetNode.parent);
+                }
 
-    		    	            // Check if can create
-    		    	            $.ajax({
-    		    	                dataType: "xml",
-    		    	                url: Convertigo.createServiceUrl("studio.database_objects.CanCreate"),
-    		    	                data: {
-    		    	                    qname: qname,
-    		    	                    folderType: folderType,
-    		    	                    beanClass: data.data.nodes[0].id
-    		    	                },
-    		    	                success: function (data, textStatus, jqXHR) {
-    		    	                    // If can create
-    		    	                    that.dnd.canCreate = $(data).find("response").attr("state") === "true";
-    		    	                    if (that.dnd.canCreate) {
-    		    	                    	$allowIconElt.removeClass("forbidden").addClass("checkmark");
-    		    	                    }
-    		    	                    else {
-    		    	                    	$allowIconElt.removeClass("checkmark").addClass("forbidden");
-    		    	                    }
-    		    	                }
-    		    	            });
-		                    }
-		    	        }
-		    	    }
-		    	}
-		    	else {
-		    	    $allowIconElt.removeClass("checkmark").addClass("forbidden");
-		    	}
+                // that.dnd.palette.canCreate = targetNode.id !== "#";
+                if (targetNode.id !== "#") {
+                    var qname = null;
+                    var folderType = null;
+                    // It is not a folder
+                    if (!that.isNodeFolder(targetNode)) {
+                        qname = targetNode.data.qname;
+                    }
+                    else {
+                        var parentNode = that.tree.jstree().get_node(targetNode.parent);
+                        if (parentNode.id === "#") {
+                            qname = targetNode.data.qname;
+                        }
+                        else {
+                            qname = parentNode.data.qname;
+                            folderType = targetNode.data.folderType;
+                        }
+                    }
+
+                    // Check if can create
+                    $.ajax({
+                        dataType: "xml",
+                        url: Convertigo.createServiceUrl("studio.database_objects.CanCreate"),
+                        data: {
+                            qname: qname,
+                            folderType: folderType,
+                            beanClass: data.data.nodes[0].id
+                        },
+                        success: function (data, textStatus, jqXHR) {
+                            // If can create
+                            that.dnd.palette.canCreate = $(data).find("response").attr("state") === "true";
+                            if (that.dnd.palette.canCreate) {
+                                $allowIconElt.removeClass("forbidden").addClass("checkmark");
+                            }
+                            else {
+                                $allowIconElt.removeClass("checkmark").addClass("forbidden");
+                            }
+                        }
+                    });
+                }
+                else {
+                    that.dnd.palette.canCreate = false;
+                    $allowIconElt.removeClass("checkmark").addClass("forbidden");
+                }
+            }
+		};
+
+	    var handleDndMoveSourcePicker = function ($targetElt, $allowIconElt, $doppableElement, data) {
+	        if (!isMarkerBetweenNodes(computeDistMarkerNode($targetElt))) {
+	            // Get the id of the current target
+	            var targetId = $doppableElement.attr("id");
+	            if (that.dnd.sourcepicker.lastTargetNodeId !== targetId) {
+	                that.dnd.sourcepicker.lastTargetNodeId = targetId;
+
+	                var targetNode = that.tree.jstree().get_node($targetElt);
+	                if (!that.isNodeFolder(targetNode)) {
+                        var qname = targetNode.data.qname;
+
+                        // Check if can create
+                        $.ajax({
+                            dataType: "xml",
+                            url: Convertigo.createServiceUrl("studio.sourcepicker.CanCreateSource"),
+                            data: {
+                                qname: qname
+                            },
+                            success: function (data, textStatus, jqXHR) {
+                                that.dnd.sourcepicker.canCreate = $(data).find("response").text() === "true";
+                                if (that.dnd.sourcepicker.canCreate) {
+                                    $allowIconElt.removeClass("forbidden").addClass("checkmark");
+                                }
+                                else {
+                                    $allowIconElt.removeClass("checkmark").addClass("forbidden");
+                                }
+                            }
+                        });
+	                }
+	                else {
+	                    that.dnd.sourcepicker.canCreate = false;
+	                    $allowIconElt.removeClass("checkmark").addClass("forbidden");
+	                }
+	            }
+	        }
+	        else {
+	            that.dnd.sourcepicker.lastTargetNodeId = null;
+                that.dnd.sourcepicker.canCreate = false;
+                $allowIconElt.removeClass("checkmark").addClass("forbidden");
+	        }
+	    };
+
+        $(document)
+            .on("dnd_move.vakata", function (event, data) {
+                // Target node
+                var $targetElt = $(data.event.target);
+                var $allowIconElt = data.helper.find(".allow-status");
+
+                // If on the projects tree view
+                if ($targetElt.closest(that.tree).length > 0) {
+                    // If on a node
+                    var $doppableElement = $targetElt.closest(".drop");
+                    if ($doppableElement.length > 0) {
+                        switch (data.data.transferData) {
+                            case "palette":
+                                handleDndMovePalette($targetElt, $allowIconElt, $doppableElement, data);
+                                break;
+                            case "sourcepicker":
+                                handleDndMoveSourcePicker($targetElt, $allowIconElt, $doppableElement);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    else {
+                        that.dnd.palette.lastTargetNodeId = null;
+                        that.dnd.sourcepicker.lastTargetNodeId = null;
+                    }
+                }
+                else {
+                    that.dnd.palette.lastTargetNodeId = null;
+                    that.dnd.sourcepicker.lastTargetNodeId = null;
+                    $allowIconElt.removeClass("checkmark").addClass("forbidden");
+                }
             })
             .on("dnd_stop.vakata", function (event, data) {
                 // "Cancel" dnd
@@ -803,8 +886,8 @@ ProjectsView.prototype.computeCategoryName = function (category) {
 		return "Responses";
 	}
 
-	var newName = category.substring(0,1).toUpperCase() + category.substring(1);	
-	newName += category.substring(category.length-1) == "s" ? "es" : "s";
+	var newName = category.substring(0, 1).toUpperCase() + category.substring(1);	
+	newName += category.substring(category.length - 1) == "s" ? "es" : "s";
 
 	return newName;
 };
@@ -1034,13 +1117,21 @@ ProjectsView.prototype.editCell = function (obj, col, element, editText) {
 
 ProjectsView.prototype.resetDndData = function () {
 	this.dnd = {
-		started: false,
-		// New node to show at the end of the refresh
-		newIdNodeCreated: null,
-		// Opened nodes to re-open at the end of the refresh
-		openedNodes: null,
-		markerBetweenNodes: null,
-		canCreate: false
+        palette: {
+            lastTargetNodeId: null,
+            started: false,
+            // New node to show at the end of the refresh
+            newIdNodeCreated: null,
+            // Opened nodes to re-open at the end of the refresh
+            openedNodes: null,
+            markerBetweenNodes: null,
+            canCreate: false 
+        },
+        sourcepicker: {
+            lastTargetNodeId: null,
+            started: false,
+            canCreate: false
+        }
 	};
 };
 

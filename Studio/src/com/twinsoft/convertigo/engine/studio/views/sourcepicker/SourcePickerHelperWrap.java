@@ -26,12 +26,14 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.SchemaManager.Option;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.studio.WrapStudio;
+import com.twinsoft.convertigo.engine.studio.dnd.StepSourceWrap;
 import com.twinsoft.convertigo.engine.studio.editors.connectors.htmlconnector.TwsDomTreeWrap;
 import com.twinsoft.convertigo.engine.studio.property_editors.IStepSourceEditorWrap;
 import com.twinsoft.convertigo.engine.studio.property_editors.StepXpathEvaluatorCompositeWrap;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
+import com.twinsoft.util.StringEx;
 
 public class SourcePickerHelperWrap implements IStepSourceEditorWrap {
 
@@ -205,6 +207,7 @@ public class SourcePickerHelperWrap implements IStepSourceEditorWrap {
     public Element getXpathTree(String nodeId) {
         Node node = twsDomTree.getNode(nodeId);
         String xpath = getXpathEvaluator().generateAbsoluteXpath(true, node, true);
+        modifyXpathText(xpath);
         Document doc = getXpathData(currentDom, xpath);
         Node[] childs = XMLUtils.toNodeArray(doc.getChildNodes());
         return TwsDomTreeWrap.getTree2(doc, childs[0], "xpath_tree");
@@ -263,5 +266,24 @@ public class SourcePickerHelperWrap implements IStepSourceEditorWrap {
 
     public String getAnchor() {
         return xpathEvaluator.getAnchor();
+    }
+
+    public void modifyXpathText(String xpath) {
+        xpathEvaluator.setXpathText(xpath, true);
+        String anchor = xpathEvaluator.getAnchor();
+        StringEx sx = new StringEx(xpathEvaluator.getXpath());
+        sx.replace(anchor, ".");
+        String text = sx.toString();
+        if (!text.equals("")) {
+            setSourceXPath(text);
+        }        
+    }
+
+    public Object getDragData() {
+        return new StepSourceWrap(getStepSourceDefinition().get(0), getSourceXPath());
+    }
+
+    public XMLVector<String> getStepSourceDefinition() {
+        return stepSourceDefinition;
     }
 }
