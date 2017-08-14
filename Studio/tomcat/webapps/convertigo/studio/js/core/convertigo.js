@@ -27,7 +27,6 @@ var Convertigo = {
                 );
             },
             beforeSend: function (jqXHR, settings) {
-                console.log("before");
             }
         };
         if (typeof(extra) !== undefined) {
