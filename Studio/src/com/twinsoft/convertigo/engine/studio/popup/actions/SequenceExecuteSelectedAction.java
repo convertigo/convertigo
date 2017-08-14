@@ -29,19 +29,24 @@ public class SequenceExecuteSelectedAction extends AbstractRunnableAction {
     }
 
     @Override
-    protected void run2() {
-        WrapDatabaseObject treeObject = (WrapDatabaseObject) studio.getFirstSelectedTreeObject();
-        if (treeObject != null && treeObject.instanceOf(Sequence.class)) {
-            SequenceView sequenceTreeObject = (SequenceView) treeObject;
-            openEditors(/*explorerView, */sequenceTreeObject);
+    protected void run2() throws Exception {
+        try {
+            WrapDatabaseObject treeObject = (WrapDatabaseObject) studio.getFirstSelectedTreeObject();
+            if (treeObject != null && treeObject.instanceOf(Sequence.class)) {
+                SequenceView sequenceTreeObject = (SequenceView) treeObject;
+                openEditors(/*explorerView, */sequenceTreeObject);
 
-            Sequence sequence = sequenceTreeObject.getObject();
-            ProjectView projectTreeObject = sequenceTreeObject.getProjectView();
-            SequenceEditorWrap sequenceEditor = projectTreeObject.getSequenceEditor(sequence);
-            if (sequenceEditor != null) {
-                //getActivePage().activate(sequenceEditor);
-                sequenceEditor.getDocument(sequence.getName(), null, isStubRequested());
+                Sequence sequence = sequenceTreeObject.getObject();
+                ProjectView projectTreeObject = sequenceTreeObject.getProjectView();
+                SequenceEditorWrap sequenceEditor = projectTreeObject.getSequenceEditor(sequence);
+                if (sequenceEditor != null) {
+                    //getActivePage().activate(sequenceEditor);
+                    sequenceEditor.getDocument(sequence.getName(), null, isStubRequested());
+                }
             }
+        }
+        catch (Exception e) {
+            throw e;
         }
     }
 

@@ -4,7 +4,7 @@ function ProjectsToolbar(container, projectsView) {
     // Refresh action
     this.addAction(
         "refresh-action",
-        Convertigo.createServiceUrl("studio.database_objects.GetMenuIcon?iconPath=icons/studio/refresh.gif"),
+        Convertigo.createServiceUrl("studio.menu.GetIcon?iconPath=icons/studio/refresh.gif"),
         "Refresh",
         function () {
             // Refresh projects tree view
@@ -15,7 +15,7 @@ function ProjectsToolbar(container, projectsView) {
     // Save action
     this.addAction(
         "save-action",
-        Convertigo.createServiceUrl("studio.database_objects.GetMenuIcon?iconPath=icons/studio/project_save.gif"),
+        Convertigo.createServiceUrl("studio.menu.GetIcon?iconPath=icons/studio/project_save.gif"),
         "Save",
         function () {
             var selectedNodeId = projectsView.tree.jstree().get_selected()[0];
@@ -23,13 +23,9 @@ function ProjectsToolbar(container, projectsView) {
 
             // Do not call Save service if no node is selected
             if (projectNode !== null) {
-                $.ajax({
-                    dataType: "xml",
-                    url: Convertigo.createServiceUrl("studio.projects.Save"),
-                    data: {
-                        qname: projectNode.data.qname 
-                    },
-                    success: function (data, textStatus, jqXHR) {
+                Convertigo.callService(
+                    "studio.projects.Save",
+                    function (data, textStatus, jqXHR) {
                         // Show errors
                         $(data).find("admin").find(">*[name='MessageBoxResponse']").reverse().each(function() {
                             var $msgBoxXml = $(this).find(">*");
@@ -38,8 +34,10 @@ function ProjectsToolbar(container, projectsView) {
                                 $msgBoxXml.find("message").text()
                             );
                         });
+                    }, {
+                        qname: projectNode.data.qname 
                     }
-                });
+                );
             }
         }
     );
@@ -47,7 +45,7 @@ function ProjectsToolbar(container, projectsView) {
     // Increase priority action
     this.addAction(
         "increase-priority-action",
-        Convertigo.createServiceUrl("studio.database_objects.GetMenuIcon?iconPath=icons/studio/dbo_increase_priority.gif"),
+        Convertigo.createServiceUrl("studio.menu.GetIcon?iconPath=icons/studio/dbo_increase_priority.gif"),
         "Increase selected object(s) priority",
         function () {
             ModalUtils.createMessageBox("Convertigo", "Not implemented.");
@@ -57,7 +55,7 @@ function ProjectsToolbar(container, projectsView) {
     // Decrease priority action
     this.addAction(
         "decrease-priority-action",
-        Convertigo.createServiceUrl("studio.database_objects.GetMenuIcon?iconPath=icons/studio/dbo_decrease_priority.gif"),
+        Convertigo.createServiceUrl("studio.menu.GetIcon?iconPath=icons/studio/dbo_decrease_priority.gif"),
         "Decrease selected object(s) priority",
         function () {
             ModalUtils.createMessageBox("Convertigo", "Not implemented.");

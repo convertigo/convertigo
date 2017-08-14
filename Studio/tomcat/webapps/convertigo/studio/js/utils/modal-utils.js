@@ -22,8 +22,32 @@ var ModalUtils = {
 				$.modal.close();
 			}
 		});
-		this.createMessageDialog(title, message, [$okBtn]);
+		return this.createMessageDialog(title, message, [$okBtn]);
 	},
+    createStackStraceMessageDialog: function (title, message, stackTrace) {        
+        var $modal = ModalUtils.createMessageBox(title, message);
+        $modal.css("max-width", "initial");
+
+        var $message = $modal.find("p:first");
+        var $stackTrace = $("<pre/>", {
+            text: stackTrace
+        });
+        $stackTrace.hide();
+
+        var $toggleST = $("<p/>", {
+            "class": "toggle-stacktrace",
+            text: "Click to toggle Java stack trace",
+            click: function () {
+                $stackTrace.toggle(350);
+            }
+        });
+        $message
+            .append($("<br/>"))
+            .append($toggleST)
+            .append($stackTrace);
+
+        return $modal;
+    },
 	createMessageDialog: function (title, message, allButtons) {		
 		// Create title and message for the modal
 		var $modal = ModalUtils.createEmptyModal();
@@ -52,5 +76,7 @@ var ModalUtils = {
 			clickClose: false,
 			showClose: false
 		});
+
+		return $modal;
 	}
 };

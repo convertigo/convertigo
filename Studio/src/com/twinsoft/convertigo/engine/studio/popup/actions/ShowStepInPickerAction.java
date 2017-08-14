@@ -21,7 +21,7 @@ public class ShowStepInPickerAction extends AbstractRunnableAction {
     }
 
     @Override
-    protected void run2() {
+    protected void run2() throws Exception {
         try {
             WrapDatabaseObject treeObject = (WrapDatabaseObject) studio.getFirstSelectedTreeObject();
             if (treeObject != null) {
@@ -53,7 +53,8 @@ public class ShowStepInPickerAction extends AbstractRunnableAction {
                 }
             }
         }
-        catch (Throwable e) {
+        catch (Exception e) {
+            throw e;
             // ConvertigoPlugin.logException(e, "Unable to show object in Picker!");
         }
     }

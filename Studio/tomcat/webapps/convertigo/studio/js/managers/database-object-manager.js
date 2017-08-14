@@ -5,18 +5,16 @@ var DatabaseObjectManager = {
 		DatabaseObjectManager.listeners.push(listener);
 	},
 	setProperty: function (qnames, property, value) {
-		$.ajax({
-		    dataType: "xml",
-			url: Convertigo.createServiceUrl("studio.database_objects.Set"),
-			data: {
-				qnames: qnames,
-				property: property,
-				value: value
-			},
-			success: function (data, textStatus, jqXHR) {				
-				DatabaseObjectManager.notifySetProperty($(data).find("admin"));
-			}
-		});
+        Convertigo.callService(
+            "studio.properties.Set",
+            function (data, textStatus, jqXHR) {                
+                DatabaseObjectManager.notifySetProperty($(data).find("admin"));
+            }, {
+                qnames: qnames,
+                property: property,
+                value: value
+            }
+        );
 	},
 	notifyDatabaseObjectDelete: function (data) {
 		var $responses = $(data).find("admin>*");

@@ -13,16 +13,14 @@ var GwtEventsListener = {
         document.addEventListener(
             "SaveTextEditor.jscriptTransaction",
             function (event) {
-                $.ajax({
-                    dataType: "xml",
-                    url: Convertigo.createServiceUrl("studio.database_objects.SaveHandlerTransaction"),
-                    data: {
+                Convertigo.callService(
+                    "studio.database_objects.SaveHandlerTransaction",
+                    function (data, textStatus, jqXHR) {
+                    }, {
                         qname: event.detail.qname,
                         handlers: event.detail.content
-                    },
-                    success: function (data, textStatus, jqXHR) {
                     }
-                });
+                );
             },
             false
         );

@@ -12,6 +12,7 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.admin.services.studio.menu.CallAction;
 import com.twinsoft.convertigo.engine.studio.AbstractRunnableAction;
 import com.twinsoft.convertigo.engine.studio.CheStudio;
 import com.twinsoft.convertigo.engine.studio.views.projectexplorer.actions.LauncEditableEditorAction;
@@ -27,6 +28,8 @@ import com.twinsoft.convertigo.engine.studio.views.projectexplorer.model.WrapDat
         returnValue = ""
     )
 public class CallDblkAction extends XmlService {
+
+    private Exception currentException;
 
     @Override
     protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
@@ -68,14 +71,20 @@ public class CallDblkAction extends XmlService {
 
                 // Execute action if found
                 if (runnableAction != null) {
-                    final CheStudio localCheStudio = cheStudio;
-                    final AbstractRunnableAction localAction = runnableAction;
-                    synchronized (localCheStudio) {
+
+                    synchronized (cheStudio) {
+                        final AbstractRunnableAction localAction = runnableAction;
+                        final CheStudio localCheStudio = cheStudio;
+
                         Engine.execute(() -> {
                             try {
                                 localCheStudio.runAction(localAction);
                             }
                             catch (Exception e) {
+                                synchronized (localCheStudio) {
+                                    currentException = e;
+                                    localCheStudio.notify();
+                                }
                             }
                         });
 
@@ -99,6 +108,10 @@ public class CallDblkAction extends XmlService {
                     cheStudio.wait();
                 }
             }
+        }
+
+        if (currentException != null) {
+            throw currentException;
         }
     }
 }

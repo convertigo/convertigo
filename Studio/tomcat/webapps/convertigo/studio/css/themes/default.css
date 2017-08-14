@@ -74,6 +74,11 @@ div.modal {
     background-color: white;
 }
 
+/* Java Stack trace */
+.toggle-stacktrace:hover {
+    color: #6b6a6a;
+}
+
 /*********************************
 * Palette
 *********************************/

@@ -1,4 +1,4 @@
-package com.twinsoft.convertigo.engine.admin.services.studio.database_objects;
+package com.twinsoft.convertigo.engine.admin.services.studio.menu;
 
 import java.lang.reflect.Constructor;
 import java.util.Arrays;
@@ -32,6 +32,8 @@ public class CallAction extends XmlService {
 
     public final static String PARAM_CHE_STUDIO = "cheStudio";
     public final static String PARAM_LAST_ACTION = "lastAction";
+
+    private Exception currentException;
 
 	@Override
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
@@ -68,12 +70,17 @@ public class CallAction extends XmlService {
 						// Create a new instance of the action then run it
 						AbstractRunnableAction runnableAction = (AbstractRunnableAction) c.newInstance(cheStudio);
 						final CheStudio localCheStudio = cheStudio;
+
 						Engine.execute(() -> {
-							try {
-								localCheStudio.runAction(runnableAction);
-							}
-							catch (Exception e) {
-							}
+                            try {
+                                localCheStudio.runAction(runnableAction);
+                            }
+                            catch (Exception e) {
+                                synchronized (localCheStudio) {
+                                    currentException = e;
+                                    localCheStudio.notify();
+                                }
+                            }
 						});
 
 						cheStudio.wait();
@@ -115,6 +122,10 @@ public class CallAction extends XmlService {
                 }
 		    }
 		}
+
+        if (currentException != null) {
+            throw currentException;
+        }
 	}
 
 	public static boolean isCurrentAction(Class<? extends AbstractRunnableAction> action, HttpSession session) {

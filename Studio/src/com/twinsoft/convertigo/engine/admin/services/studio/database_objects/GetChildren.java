@@ -27,7 +27,7 @@ import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 
 @ServiceDefinition(
 		name = "Get",
-		roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG, Role.PROJECT_DBO_VIEW },
+		roles = { Role.WEB_ADMIN },
 		parameters = {},
 		returnValue = ""
 	)
@@ -35,29 +35,28 @@ public class GetChildren extends XmlService {
 
 	@Override
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
-		String qname = request.getParameter("qname");
-		
-		final Element root = document.getDocumentElement();
-		
-		// Classic database objects
-		if (qname != null) {
-			getChildren(qname, root, 1);
-		}
-		// Project
-		else {
-			for (String qn: Engine.theApp.databaseObjectsManager.getAllProjectNamesList()) {
-				getChildren(qn, root, 0);
-			}
-		}
+        String qname = request.getParameter("qname");
+        Element root = document.getDocumentElement();
+
+        // Classic database objects
+        if (qname != null) {
+            getChildren(qname, root, 1);
+        }
+        // Project
+        else {
+            for (String qn: Engine.theApp.databaseObjectsManager.getAllProjectNamesList()) {
+                getChildren(qn, root, 0);
+            }
+        }
 	}
-	
+
 	public static void getChildren(String qname, Element parent, int depth) throws Exception   {
 		DatabaseObject dbo = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
 		List<DatabaseObject> children = dbo.getDatabaseObjectChildren();
-		
+
 		// Get all children of the dbo
 		Element elt = createDboElement(parent.getOwnerDocument(), dbo, !children.isEmpty());
-		
+
 		/*
 		 *  In case of ScreenClass, we have to get Criteria, ExtractionRule and Sheets manually.
 		 *  If fact, if the dbo is an inherited screen class, inherited Criteria, ExtractionRule and Sheets,
@@ -66,7 +65,7 @@ public class GetChildren extends XmlService {
 		if (dbo instanceof ScreenClass) {
 			ScreenClass sc = (ScreenClass) dbo;
 			boolean hasChildren = false;
-			
+
 			// Get all Criteria
 			List<Criteria> criteria = sc.getCriterias();
 			for (Criteria criterion : criteria) {
@@ -75,7 +74,7 @@ public class GetChildren extends XmlService {
 				elt.appendChild(eltCriterion);
 				hasChildren = true;
 			}
-			
+
 			// Get all Extraction Rules
 			List<ExtractionRule> extractionRules = sc.getExtractionRules();
 			for (ExtractionRule extractionRule : extractionRules) {
@@ -84,7 +83,7 @@ public class GetChildren extends XmlService {
 				elt.appendChild(eltExtractionRule);
 				hasChildren = true;
 			}
-			
+
 			// Get all Sheets
 			List<Sheet> sheets = sc.getSheets();
 			for (Sheet sheet : sheets) {
@@ -93,7 +92,7 @@ public class GetChildren extends XmlService {
 				elt.appendChild(eltSheet);
 				hasChildren = true;
 			}
-			
+
 			// In case of JavelinScreenClass, we also have to get the block factory manually
 			if (dbo instanceof JavelinScreenClass) {
 				JavelinScreenClass jsc = (JavelinScreenClass) sc;
@@ -103,7 +102,7 @@ public class GetChildren extends XmlService {
 				elt.appendChild(eltBlockFactory);
 				hasChildren = true;
 			}
-			
+
 			if (hasChildren) {
 				elt.setAttribute("hasChildren", "true");
 			}
@@ -116,10 +115,10 @@ public class GetChildren extends XmlService {
 			}
 		}
 	}
-	
+
 	private static Element createDboElement(Document document, DatabaseObject dbo, boolean hasChildren) throws DOMException, IntrospectionException {
 		Element elt = document.createElement("dbo");
-		
+
 		elt.setAttribute("qname", dbo.getQName());
 		elt.setAttribute("icon", dbo.getClass().getName() + "-16");
 		elt.setAttribute("name", dbo.toString());
@@ -127,26 +126,25 @@ public class GetChildren extends XmlService {
 		elt.setAttribute("comment", dbo.getComment());
 		elt.setAttribute("hasChildren", Boolean.toString(hasChildren));
 		elt.setAttribute("priority", Long.toString(dbo.priority));
-		
+
 		BeanInfo bi = CachedIntrospector.getBeanInfo(dbo);
 		elt.setAttribute("beanClass", bi.getBeanDescriptor().getBeanClass().getName());
-		
+
 		if (dbo instanceof IEnableAble) {
 			elt.setAttribute("isEnabled", Boolean.toString(((IEnableAble) dbo).isEnabled()));
 		}
 		return elt;
 	}
-	
+
 	private static Element createScreenClassChildElement(Document document, DatabaseObject dbo, DatabaseObject dboParent) throws DOMException, Exception {
 		Element elt = createDboElement(document, dbo, !dbo.getDatabaseObjectChildren().isEmpty());
 		elt.setAttributeNode(createIsInheritedAttr(document, dbo, dboParent));
 		return elt;
 	}
-	
+
 	private static Attr createIsInheritedAttr(Document document, DatabaseObject dbo, DatabaseObject dboParent) {
 		Attr attr = document.createAttribute("isInherited");
 		attr.setNodeValue(Boolean.toString(!dboParent.toString().equals(dbo.getParent().toString())));
 		return attr;
 	}
-
 }

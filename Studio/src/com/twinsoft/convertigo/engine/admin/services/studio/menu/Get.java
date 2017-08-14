@@ -1,4 +1,4 @@
-package com.twinsoft.convertigo.engine.admin.services.studio.database_objects;
+package com.twinsoft.convertigo.engine.admin.services.studio.menu;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -57,12 +57,12 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 
 @ServiceDefinition(
-		name = "GetMenu",
+		name = "Get",
 		roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG },
 		parameters = {},
 		returnValue = ""
 	)
-public class GetMenu extends XmlService {
+public class Get extends XmlService {
 
 	private TwsCachedXPathAPI xpathApi = new TwsCachedXPathAPI();
 	private static Document pluginDocument = null;
@@ -104,7 +104,7 @@ public class GetMenu extends XmlService {
 		folderNameToTypeValue.put("Route", "23");
 		folderNameToTypeValue.put("Page", "24");
 	}
-	
+
 	// Get the model Class from the class name of its relating View
 	private static Map<String, Class<?>> treeObjectToClass = new HashMap<>(33);
 	static {
@@ -166,7 +166,7 @@ public class GetMenu extends XmlService {
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		// Load the plugin.xml where the representation of the context menu is described
 		getPluginDocument();
-		
+
 		String[] qnames = request.getParameterValues("qnames[]");
 		String[] folderTypes = request.getParameterValues("folderTypes[]");
 		String refQnameFolder = request.getParameter("refQnameFolder");
@@ -175,14 +175,14 @@ public class GetMenu extends XmlService {
 		Element eResponse = document.createElement("response");
 		Element eRoot = document.getDocumentElement();
 		eRoot.appendChild(eResponse);
-		
+
 		// Select (folder + database object) or (multiple folders) = no menu generated
 		if (folderTypes != null && (qnames != null || folderTypes.length > 1)) {
 			// It is not really an error but it's ok
 			noEntryMessage(eResponse);
 			return;
 		}
-		
+
 		Element eContextMenu = null;
 		// Generate the menu for database objects
 		if (qnames != null) {
@@ -201,37 +201,37 @@ public class GetMenu extends XmlService {
 					return;
 				}
 			}
-			
+
 			// Generate the new menu with all generated menus
 			eContextMenu = generateFilteredMenu(document, menus);
 		}
 		// Generate the menu for folders
 		else if (folderTypes != null && !refQnameFolder.isEmpty()) {
 			DatabaseObject dbo = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(refQnameFolder);
-			
+
 			// Generate the menu if we found the related dbo
 			boolean generateMenu = dbo != null;
-			
+
 			// In case of Screen Class, if the Criteria folder is selected
 			if (generateMenu && dbo instanceof ScreenClass && "Criteria".equals(folderTypes[0])) {
 				ScreenClass sc = (ScreenClass) dbo;
 				// Generate the menu "New->Criteria" if it is not the default Screen Class
 				generateMenu = sc.getDepth() != 0;
 			}
-			
+
 			if (generateMenu) {
 				eContextMenu = document.createElement("menu");
 				String folderTypeValue = folderNameToTypeValue.get(folderTypes[0]);
 				if (folderTypeValue != null) {	
 					// Get the object contribution related to the folder
 					Element eObjectContribution = (Element) xpathApi.selectNode(pluginDocument, "/plugin/extension[@point='org.eclipse.ui.popupMenus']/objectContribution[@objectClass='com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject']");
-					
+
 					// Search the action of the folder
 					List<Node> nActions = xpathApi.selectList(eObjectContribution, "/*");
 					boolean foundAction = false;
 					for (int i = 0; !foundAction && i < nActions.size(); ++i) {
 						Element eAction = (Element) nActions.get(i);
-						
+
 						/*
 						 *  If we have the right action, we add it to the menu and stop looping.
 						 *  In the Studio, we display other actions as disabled but here we only
@@ -240,7 +240,7 @@ public class GetMenu extends XmlService {
 						 */
 						if (foundAction = evaluateFolderCondition(folderTypeValue, eAction)) {
 							String menubarPath = eAction.getAttribute("menubarPath");
-							
+
 							// Create the action
 							Element eNewAction = createElementActionBaseAttr(
 									document,
@@ -250,7 +250,7 @@ public class GetMenu extends XmlService {
 									true,
 									menubarPath
 							);
-							
+
 							// Create the sub menu
 							int index = menubarPath.indexOf("/");
 							createSubMenu(menubarPath, index, document, eContextMenu, eNewAction, eObjectContribution.getAttribute("id"));		
@@ -259,7 +259,7 @@ public class GetMenu extends XmlService {
 				}
 			}
 		}
-		
+
 		// Create response
 		if (eContextMenu != null && eContextMenu.hasChildNodes()) {
 			eResponse.setAttribute("state", "success");
@@ -275,28 +275,28 @@ public class GetMenu extends XmlService {
 		if (pluginDocument == null) {
 			pluginDocument = XMLUtils.loadXml(rootPath + "plugin.xml");
 		}
-		
+
 		return pluginDocument;
 	}
-	
+
 	private void noEntryMessage(Element response) {
 		response.setAttribute("state", "error");
 		response.setAttribute("message", "Context menu has no entry.");
 	}
-	
+
 	private Element createElementActionBaseAttr(Document document, String id, String label, String className, boolean isEnabled, String menubarPath) {
 		Element newAction = document.createElement("action");
 		newAction.setAttribute("id", id);
 		newAction.setAttribute("label", label);
-		
+
 		// Action class
 		newAction.setAttribute("class", className);
 		newAction.setAttribute("icon", computeIconNameCSS(id));
 		newAction.setAttribute("isEnabled", Boolean.toString(isEnabled));
-		
+
 		// menubarPath = category
 		newAction.setAttribute("menubarPath", menubarPath);
-		
+
 		return newAction;
 	}
 	
@@ -305,24 +305,24 @@ public class GetMenu extends XmlService {
 		if (menus.size() == 1) {
 			return (Element) menus.get(0);
 		}
-		
+
 		/*
 		 *  The new filtered menu : the goal is to look through the menus
 		 *  and only keep similar entries (= same ID).
 		 */
 		Element eFilteredMenu = document.createElement("menu");
-		
+
 		// Get the first menu of the list as the referent
 		Element eReferentMenu = (Element) menus.get(0);
-		
+
 		// Get the action/menu entries
 		List<Node> nEntries = xpathApi.selectList(eReferentMenu, "*");
-		
+
 		// We will check if all entries of the referent menu are also in the other menus
 		for (Node nEntry: nEntries) {
 			// Current entry
 			Element eCurrentEntry = (Element) nEntry;
-			
+
 			// Flags to now if what we will to with this entry
 			boolean isEntryPresentInOtherMenus = true;
 			boolean mustCheckIsEnabled = true;
@@ -333,13 +333,13 @@ public class GetMenu extends XmlService {
 				Node nEntry2 = xpathApi.selectNode(menus.get(i), "/*[@id='" + eCurrentEntry.getAttribute("id") + "']");
 				if (isEntryPresentInOtherMenus = nEntry2 != null) {
 					Element eEntry2 = (Element) nEntry2;
-					
+
 					// Disable the entry if needed
 					if (mustCheckIsEnabled && eEntry2.getAttribute("isEnabled").equals("false")) {
 						mustCheckIsEnabled = false;
 						eCurrentEntry.setAttribute("isEnabled", "false");
 					}
-					
+
 					// Unchecked the entry if needed
 					if (mustCheckIsChecked && eEntry2.getAttribute("isChecked").equals("false")) {
 						mustCheckIsChecked = false;
@@ -347,14 +347,14 @@ public class GetMenu extends XmlService {
 					}
 				}
 			}
-			
+
 			if (isEntryPresentInOtherMenus) {
 				// If the entry is a menu
 				if (eCurrentEntry.getNodeName().equals("menu")) {
 					List<Node> nChildren2 = xpathApi.selectList(eCurrentEntry, "*");
 					for (Node nChild2: nChildren2) {
 						Element eChild2 = (Element) nChild2;
-						
+
 						// Disable all entry
 						if (eChild2.getAttribute("enablesFor").equals("1")) {
 							eChild2.setAttribute("isEnabled", "false");
@@ -371,13 +371,13 @@ public class GetMenu extends XmlService {
 				eFilteredMenu.appendChild(eCurrentEntry);
 			}
 		}
-		
+
 		return eFilteredMenu;
 	}
-	
+
 	private Element createDboMenu(DatabaseObject dbo, Document document) throws ClassNotFoundException, MalformedURLException {
 		Element menuRootElt = document.createElement("menu");
-		
+
 		// Get nodes object contribution
 		for (Node nObjectContribution: xpathApi.selectList(pluginDocument, "/plugin/extension[@point='org.eclipse.ui.popupMenus']/objectContribution[@objectClass]")) {
 			String attrObjectClass = ((Element) nObjectContribution).getAttribute("objectClass");
@@ -404,8 +404,6 @@ public class GetMenu extends XmlService {
 						eNewAction.setAttribute("isChecked", Boolean.toString(actionModel.isChecked));
 						eNewAction.setAttribute("enablesFor", eAction.getAttribute("enablesFor"));
 
-
-						
 						int index = menubarPath.indexOf("/");
 						// Case of a sub-menu
 						if (index != -1) {
@@ -418,7 +416,7 @@ public class GetMenu extends XmlService {
 				}
 			}
 		}
-		
+
 		return menuRootElt;
 	}
 	
@@ -427,7 +425,7 @@ public class GetMenu extends XmlService {
 		String subMenuId = objectContributionId + "." + subMenuLabel;
 		subMenuLabel = idMenuToLabel.get(subMenuLabel);
 		Element subMenuElt = (Element) xpathApi.selectNode(menuRootElt, "/menu[@id='" + subMenuId + "']");
-		
+
 		// Create the sub menu if it does not exist
 		if (subMenuElt == null) {
 			subMenuElt = document.createElement("menu");
@@ -436,14 +434,14 @@ public class GetMenu extends XmlService {
 			subMenuElt.setAttribute("id", subMenuId);
 			menuRootElt.insertBefore(subMenuElt, menuRootElt.getFirstChild());
 		}
-		
+
 		addActionElt(subMenuElt, eNewAction, null, menubarPath);
 	}
 	
 	private String computeIconNameCSS(String classNameCSS) {
 		return classNameCSS.replaceAll("\\.", "-");
 	}
-	
+
 	private void addActionElt(Element root, Element action, String attrObjectClass, String menubarPath) {
 		Element actionObjectClass = attrObjectClass == null ? null : (Element) xpathApi.selectNode(root, "(/action[@objectClass='" + attrObjectClass + "'])[last()]");
 		if (actionObjectClass == null) {
@@ -459,28 +457,28 @@ public class GetMenu extends XmlService {
 			root.insertBefore(action, current == null ? actionObjectClass.getNextSibling() : current);
 		}
 	}
-	
+
 	private boolean evaluateFolderCondition(String folderTypeValue, Node node) {
 		Element eObjectState = (Element) xpathApi.selectNode(node, "*/*");
 		String attrValue = eObjectState.getAttribute("value");
 		return attrValue.equals(folderTypeValue);
 	}
-	
+
 	private boolean evaluateVisibilityCondition(DatabaseObject dbo, Node node) throws ClassNotFoundException {
 		boolean condition = true;
-		
+
 		// Evaluate the tree expression
 		Node nCondition = xpathApi.selectNode(node, "*/*");
 		if (nCondition != null) {
 			condition = evaluateCondition(dbo, nCondition);
 		}
-		
+
 		return condition;
 	}
-	
+
 	private ActionModel evaluateEnablementCondition(DatabaseObject dbo, Node node) throws ClassNotFoundException {
 		boolean condition = evaluateVisibilityCondition(dbo, node);
-		
+
 		ActionModel actionModel = DatabaseObjectsAction.selectionChanged(((Element) node).getAttribute("class"), dbo);
 		if (actionModel.isEnabled != null) {
 			if (!actionModel.isEnabled) {
@@ -490,7 +488,7 @@ public class GetMenu extends XmlService {
 		else {
 			actionModel.isEnabled = condition;
 		}
-		
+
 		return actionModel;
 	}
 	
@@ -498,7 +496,7 @@ public class GetMenu extends XmlService {
 		Element condition = (Element) node;
 		String tCondition = condition.getNodeName();
 		boolean result = true;
-		
+
 		if (tCondition.equals("objectClass")) {
 			result = testObjectClass(dbo, condition.getAttribute("name"));
 		}
@@ -532,7 +530,7 @@ public class GetMenu extends XmlService {
 		else if (tCondition.equals("not")) {
 			result = !evaluateCondition(dbo, xpathApi.selectNode(condition, "*"));
 		}
-		
+
 		return result;
 	}
 	
@@ -542,7 +540,7 @@ public class GetMenu extends XmlService {
 				return true;
 			}
 		}
-		
+
 		return false;
 	}
 	
@@ -550,5 +548,4 @@ public class GetMenu extends XmlService {
 		Class<?> contributionClass = treeObjectToClass.get(objectClassValue);
 		return contributionClass != null && contributionClass.isAssignableFrom(dbo.getClass());
 	}
-
 }

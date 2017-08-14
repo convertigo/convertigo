@@ -15,5 +15,4 @@ public class XmlResponseFactory {
 	public static Element createMessageDialogResponse(Document document, String qname, String title, String message, String[] buttons) throws Exception {
 		return new MessageDialogResponse(title, message, buttons).toXml(document, qname);
 	}
-
 }

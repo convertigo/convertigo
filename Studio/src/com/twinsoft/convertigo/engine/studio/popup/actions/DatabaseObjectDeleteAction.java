@@ -51,7 +51,7 @@ public class DatabaseObjectDeleteAction extends AbstractRunnableAction {
 	}
 
 	@Override
-	protected void run2() {
+	protected void run2() throws Exception {
 		String qname = null;
 		try {
 			treeNodesToUpdate = new ArrayList<WrapDatabaseObject>();
@@ -70,7 +70,6 @@ public class DatabaseObjectDeleteAction extends AbstractRunnableAction {
 						java.text.MessageFormat.format("Do you really want to delete the object \"{0}\" and all its sub-objects?", new Object[] {treeObject.getName()});
 
 					qname = ((DatabaseObject) treeObject.getObject()).getQName();
-					dboExceptionMessages.put(qname, null);
 
 					if (!dialog.shouldBeDeleted(message)) {
 						dboDoDelete.put(qname, false);
@@ -139,13 +138,13 @@ public class DatabaseObjectDeleteAction extends AbstractRunnableAction {
 			//    				
 			// Refresh tree to show potential 'broken' steps
 			//    				explorerView.refreshTree();
-		} catch (Exception e) {
-			// Exception thrown, put the relative message
-			dboExceptionMessages.put(qname, e.getMessage());
+		}
+		catch (Exception e) {
+			throw e;
 		}
 	}
 
-	private void delete(WrapDatabaseObject treeObject) throws ConvertigoException {
+	private void delete(WrapDatabaseObject treeObject) throws ConvertigoException, IOException {
 		WrapDatabaseObject parentTreeObject = null;
 		WrapObject treeParent = treeObject.getParent();
 
@@ -175,7 +174,7 @@ public class DatabaseObjectDeleteAction extends AbstractRunnableAction {
 		}
 	}
 
-	private void delete(DatabaseObject databaseObject) throws EngineException {
+	private void delete(DatabaseObject databaseObject) throws EngineException, IOException {
 		if (databaseObject instanceof Connector) {
 			if (((Connector) databaseObject).isDefault) {
 				throw new EngineException("Cannot delete the default connector!");
@@ -251,7 +250,7 @@ public class DatabaseObjectDeleteAction extends AbstractRunnableAction {
 //		ConvertigoPlugin.logDebug("The object \"" + databaseObject.getQName() + "\" has been deleted from the database repository!");
     }
 
-	private void deleteResourcesFolder(String projectName, String resourcesFolder, String dboName) {
+	private void deleteResourcesFolder(String projectName, String resourcesFolder, String dboName) throws IOException {
 		// Delete soap templates for this connector
 		String dirPath = Engine.PROJECTS_PATH + "/"+ projectName + "/" + resourcesFolder + "/" + dboName;
 		File dir = new File(dirPath);
@@ -266,6 +265,7 @@ public class DatabaseObjectDeleteAction extends AbstractRunnableAction {
 				try {
 					DatabaseObjectsManager.deleteDir(dir);
 				} catch (IOException e) {
+				    throw e;
 					//ConvertigoPlugin.logDebug("Unable to delete directory \""+ dirPath+"\"!");
 				}
 			}

@@ -18,7 +18,7 @@ public class TransactionExecuteDefaultAction extends AbstractRunnableAction {
     }
 
     @Override
-    protected void run2() {
+    protected void run2() throws Exception {
         try {
             WrapDatabaseObject treeObject = (WrapDatabaseObject) studio.getFirstSelectedTreeObject();
             if (treeObject != null) {
@@ -47,6 +47,7 @@ public class TransactionExecuteDefaultAction extends AbstractRunnableAction {
             }
         }
         catch (Exception e) {
+            throw e;
         }
     }
 }

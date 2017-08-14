@@ -12,8 +12,13 @@ public class LaunchConnectorEditorAction extends AbstractRunnableAction {
     }
 
     @Override
-    protected void run2() {
-        WrapDatabaseObject treeObject = (WrapDatabaseObject) studio.getFirstSelectedTreeObject();
-        ((ConnectorView) treeObject).launchEditor();
+    protected void run2() throws Exception {
+        try {
+            WrapDatabaseObject treeObject = (WrapDatabaseObject) studio.getFirstSelectedTreeObject();
+            ((ConnectorView) treeObject).launchEditor();
+        }
+        catch (Exception e) {
+            throw e;
+        }
     }
 }

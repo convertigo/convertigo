@@ -1,4 +1,4 @@
-package com.twinsoft.convertigo.engine.admin.services.studio.database_objects;
+package com.twinsoft.convertigo.engine.admin.services.studio.menu;
 
 import java.util.HashSet;
 import java.util.List;
@@ -19,16 +19,16 @@ import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 
 @ServiceDefinition(
-		name = "GetMenuIconsCSS",
+		name = "GetIconsCSS",
 		roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG, Role.PROJECT_DBO_VIEW },
 		parameters = {},
 		returnValue = ""
 	)
-public class GetMenuIconsCSS extends DownloadService  {
-	
+public class GetIconsCSS extends DownloadService  {
+
 	@Override
 	protected void writeResponseResult(HttpServletRequest request, HttpServletResponse response) throws Exception {
-		Document pluginDocument = GetMenu.getPluginDocument();			
+		Document pluginDocument = Get.getPluginDocument();			
 		
 		TwsCachedXPathAPI xpathApi = new TwsCachedXPathAPI();
 		List<Node> nActions = xpathApi.selectList(pluginDocument, "/plugin/extension[@point='org.eclipse.ui.popupMenus']//action[@icon]");
@@ -44,18 +44,17 @@ public class GetMenuIconsCSS extends DownloadService  {
 				sb.append(".")
 				  .append(eAction.getAttribute("id").replaceAll("\\.", "-"))
 				  .append(" {background-image:url(")
-				  
-				  .append("../../admin/services/studio.database_objects.GetMenuIcon?iconPath=")
+  
+				  .append("../../admin/services/studio.menu.GetIcon?iconPath=")
 				  .append(attrIcon)
 				  .append(") !important;")
 				  .append("}\r\n");
-				
+
 				actionIconAttrs.add(attrIcon);
 			}
 		}
-		
+
 		response.setContentType(MimeType.Css.value());
 		IOUtils.write(sb.toString(), response.getOutputStream(), "UTF-8");
 	}
-
 }

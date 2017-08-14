@@ -1,4 +1,4 @@
-package com.twinsoft.convertigo.engine.admin.services.studio.database_objects;
+package com.twinsoft.convertigo.engine.admin.services.studio.menu;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
@@ -14,18 +14,17 @@ import com.twinsoft.convertigo.engine.admin.services.DownloadService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 
 @ServiceDefinition(
-		name = "GetMenuIcon",
+		name = "GetIcon",
 		roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG, Role.PROJECT_DBO_VIEW },
 		parameters = {},
 		returnValue = ""
 	)
-public class GetMenuIcon extends DownloadService {
+public class GetIcon extends DownloadService {
 
 	@Override
 	protected void writeResponseResult(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		String iconPath = request.getParameter("iconPath");
-	    InputStream imageIs = new BufferedInputStream(new FileInputStream(GetMenu.rootPath + iconPath));
+	    InputStream imageIs = new BufferedInputStream(new FileInputStream(Get.rootPath + iconPath));
 		IOUtils.copy(imageIs, response.getOutputStream());
 	}
-
 }

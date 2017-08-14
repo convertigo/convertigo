@@ -12,8 +12,13 @@ public class LauncEditableEditorAction extends AbstractRunnableAction {
     }
 
     @Override
-    protected void run2() {
-        WrapDatabaseObject treeObject = (WrapDatabaseObject) studio.getFirstSelectedTreeObject();
-        ((IEditableTreeViewWrap) treeObject).launchEditor(null);
+    protected void run2() throws Exception {
+        try {
+            WrapDatabaseObject treeObject = (WrapDatabaseObject) studio.getFirstSelectedTreeObject();
+            ((IEditableTreeViewWrap) treeObject).launchEditor(null);
+        }
+        catch (Exception e) {
+            throw e;
+        }
     }
 }

@@ -1,4 +1,4 @@
-package com.twinsoft.convertigo.engine.admin.services.studio.database_objects;
+package com.twinsoft.convertigo.engine.admin.services.studio.palette;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -15,16 +15,16 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.studio.responses.XmlResponseFactory;
+import com.twinsoft.convertigo.engine.admin.services.studio.database_objects.GetChildren;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 @ServiceDefinition(
-		name = "Create",
+		name = "CreateDbo",
 		roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG, Role.PROJECT_DBO_VIEW },
 		parameters = {},
 		returnValue = ""
 	)
-public class Create extends XmlService {
+public class CreateDbo extends XmlService {
 
 	@Override
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
@@ -34,7 +34,7 @@ public class Create extends XmlService {
 
         DatabaseObject parentDbo = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
         Class<? extends DatabaseObject> beanClassToCreate = GenericUtils.cast(Class.forName(beanClassNameToCreate));
-        Class<? extends DatabaseObject> databaseObjectClass = GetPalette.folderNameToBeanClass.get(folderType);
+        Class<? extends DatabaseObject> databaseObjectClass = Get.folderNameToBeanClass.get(folderType);
         Element root = document.getDocumentElement();
 
         // Before add, we musht check if we can add it
@@ -48,6 +48,7 @@ public class Create extends XmlService {
 
             try {
                 String beanName = newBean.getName();
+
                 // The name of the FullSyncConnector needs to in be lower case
                 if (newBean instanceof FullSyncConnector) {
                     beanName = beanName.toLowerCase();
@@ -86,14 +87,11 @@ public class Create extends XmlService {
                 root.appendChild(response);
             }
             catch (EngineException e) {
-                root.appendChild(XmlResponseFactory.createMessageBoxResponse(document, parentDbo.getQName(),
-                        e.getErrorMessage()));
+                throw e;
             }
         }
         else {
-            root.appendChild(XmlResponseFactory.createMessageBoxResponse(document, parentDbo.getQName(),
-                   "You cannot create a " + beanClassNameToCreate + " object here."));
+            throw new EngineException("You cannot create a " + beanClassNameToCreate + " object here.");
         }
 	}
-
 }

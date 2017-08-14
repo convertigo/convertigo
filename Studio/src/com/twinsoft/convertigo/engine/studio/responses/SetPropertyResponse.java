@@ -31,7 +31,7 @@ public class SetPropertyResponse extends AbstractResponse {
 		Element response = super.toXml(document, qname);
 		response.setAttribute("message", "Property \"" + propertyName + "\" has been successfully updated.");
 		response.appendChild(property);
-	
+
 		return response;
 	}
 }

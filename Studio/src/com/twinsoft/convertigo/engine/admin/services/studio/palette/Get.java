@@ -1,4 +1,4 @@
-package com.twinsoft.convertigo.engine.admin.services.studio.database_objects;
+package com.twinsoft.convertigo.engine.admin.services.studio.palette;
 
 import java.beans.BeanInfo;
 import java.util.ArrayList;
@@ -56,17 +56,16 @@ import com.twinsoft.convertigo.engine.dbo_explorer.DboCategory;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboExplorerManager;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboGroup;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboUtils;
-import com.twinsoft.convertigo.engine.studio.responses.XmlResponseFactory;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 @ServiceDefinition(
-		name = "GetPalette",
+		name = "Get",
 		roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG },
 		parameters = {},
 		returnValue = ""
 	)
-public class GetPalette extends XmlService {
-	
+public class Get extends XmlService {
+
 	// Get the bean class of a folder from its name
 	public static Map<String, Class<? extends DatabaseObject>> folderNameToBeanClass = new HashMap<>(24);
 	static {
@@ -96,12 +95,12 @@ public class GetPalette extends XmlService {
 		folderNameToBeanClass.put("Route", RouteComponent.class);
 		folderNameToBeanClass.put("Page", PageComponent.class);
 	}
-	
+
 	@Override
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		String qname = request.getParameter("qname");
 		String folderType = request.getParameter("folderType");
-		
+
 		DatabaseObject dbo = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
 		Class<? extends DatabaseObject> databaseObjectClass = folderNameToBeanClass.get(folderType);
 		createCategories(document, dbo, databaseObjectClass, document.getDocumentElement());
@@ -109,8 +108,7 @@ public class GetPalette extends XmlService {
 
 	private void createCategories(Document document, DatabaseObject dbo, Class<? extends DatabaseObject> databaseObjectClass, Element root) throws Exception {
 		Element response = document.createElement("response");
-		List<Element> messageBoxes = new ArrayList<>();
-		
+
 		try {
 			List<String> defaultDboList = new ArrayList<>();
 			Class<? extends DatabaseObject> parentObjectClass = dbo.getClass();
@@ -253,7 +251,7 @@ public class GetPalette extends XmlService {
 											else {
 												String message = java.text.MessageFormat.format(
 														"The \"{0}\" does not exist.", new Object[] { beanInfoClassName });
-												messageBoxes.add(XmlResponseFactory.createMessageBoxResponse(document, dbo.getQName(), message));
+			                                    throw new Exception(message);
 											}
 										}
 									}
@@ -262,20 +260,20 @@ public class GetPalette extends XmlService {
 									String message = java.text.MessageFormat.format(
 											"The \"{0}\" class is not a Convertigo database object.",
 											new Object[] { className });
-									messageBoxes.add(XmlResponseFactory.createMessageBoxResponse(document, dbo.getQName(), message));
+									throw new Exception(message);
 								}
 							}
 							catch (ClassNotFoundException e) {
 								String message = java.text.MessageFormat.format(
 										"Unable to analyze the \"{0}\" class.\n\nClass not found: {1}",
 										new Object[] { className, e.getMessage() });
-								messageBoxes.add(XmlResponseFactory.createMessageBoxResponse(document, dbo.getQName(), message));
+                                throw new Exception(message);
 							}
 							catch (Throwable e) {
 								String message = java.text.MessageFormat.format(
 										"Unable to analyze the \"{0}\" Convertigo database object.",
 										new Object[] { className });
-								messageBoxes.add(XmlResponseFactory.createMessageBoxResponse(document, dbo.getQName(),  message));
+                                throw new Exception(message);
 							}
 						}
 					}
@@ -309,16 +307,9 @@ public class GetPalette extends XmlService {
 			}
 		}
 		catch (Exception e) {
-			messageBoxes.add(XmlResponseFactory.createMessageBoxResponse(document, dbo.getQName(), "Unable to load database objects properties."));
-			// ConvertigoPlugin.logException(e, "Unable to load database objects properties.");
+            throw new Exception("Unable to load database objects properties.");
 		}
 
 		root.appendChild(response);
-
-		// Message boxes
-		for (Element messageBox: messageBoxes) {
-			root.appendChild(messageBox);
-		}
 	}
-
 }

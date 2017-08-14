@@ -4,7 +4,7 @@ function EngineLogToolbar(container, engineLogView) {
     // Go to top
     this.addAction(
         "go-to-top-action",
-        Convertigo.createServiceUrl("studio.database_objects.GetMenuIcon?iconPath=icons/studio/dbo_increase_priority.gif"),
+        Convertigo.createServiceUrl("studio.menu.GetIcon?iconPath=icons/studio/dbo_increase_priority.gif"),
         "Go to top",
         function () {
             engineLogView.goToTop();
@@ -14,7 +14,7 @@ function EngineLogToolbar(container, engineLogView) {
     // Go to end
     this.addAction(
         "go-to-end-action",
-        Convertigo.createServiceUrl("studio.database_objects.GetMenuIcon?iconPath=icons/studio/dbo_decrease_priority.gif"),
+        Convertigo.createServiceUrl("studio.menu.GetIcon?iconPath=icons/studio/dbo_decrease_priority.gif"),
         "Go to end",
         function () {
             engineLogView.goToEnd();
@@ -52,10 +52,10 @@ function EngineLogToolbar(container, engineLogView) {
         "Configure Logs level",
         function () {
             that.registerUpdateListeners();
-            $.ajax({
-                dataType: "xml",
-                url: Convertigo.createServiceUrl("configuration.List"),
-                success: function (data, textStatus, jqXHR) {
+
+            Convertigo.callService(
+                "configuration.List",
+                function (data, textStatus, jqXHR) {
                     // Create table with its properties
                     var $logSettingsTable = $("<table/>", {
                         id: "select-logs-level-table"
@@ -90,14 +90,13 @@ function EngineLogToolbar(container, engineLogView) {
                                 $.modal.close();
 
                                 // Update Log levels
-                                $.ajax({
-                                    dataType: "xml",
-                                    data: DOMUtils.domToString2(that.createXmlDoc()),
-                                    url: Convertigo.createServiceUrl("configuration.Update"),
-                                    success: function (data, textStatus, jqXHR) {
+                                Convertigo.callService(
+                                        "configuration.Update",
+                                    function (data, textStatus, jqXHR) {
                                         that.resetPropertyMap();
-                                    }
-                                });
+                                    },
+                                    DOMUtils.domToString2(that.createXmlDoc())
+                                );
                             }
                         }
                     }));
@@ -110,7 +109,7 @@ function EngineLogToolbar(container, engineLogView) {
                         }))
                         .append($("<hr/>"))
                         .append($logSettingsTable)
-                    	.append($buttons);
+                        .append($buttons);
 
                     // Open modal
                     $modal.modal({
@@ -120,7 +119,7 @@ function EngineLogToolbar(container, engineLogView) {
                         showClose: false
                     });
                 }
-            });
+            );
         }
     );
 

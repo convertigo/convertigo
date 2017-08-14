@@ -9,7 +9,7 @@ import org.w3c.dom.Element;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.admin.services.studio.database_objects.CallAction;
+import com.twinsoft.convertigo.engine.admin.services.studio.menu.CallAction;
 import com.twinsoft.convertigo.engine.studio.CheStudio;
 import com.twinsoft.convertigo.engine.studio.editors.connectors.htmlconnector.TwsDomTreeWrap;
 import com.twinsoft.convertigo.engine.studio.editors.connectors.htmlconnector.XpathEvaluatorCompositeWrap;

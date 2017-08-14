@@ -69,6 +69,17 @@ div.modal button {
     margin-right: 10px;
 }
 
+/* Java Stack trace */
+.modal pre {
+	overflow: scroll;
+    user-select: initial;
+}
+
+.toggle-stacktrace {
+	cursor: pointer;
+    font-weight: bold;
+}
+
 /*********************************
 * Palette
 *********************************/

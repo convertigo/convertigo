@@ -16,35 +16,33 @@ public class EnableMobileRouteActionComponentAction extends AbstractRunnableActi
 	public EnableMobileRouteActionComponentAction(WrapStudio studio) {
 		super(studio);
 	}
-	
+
 	@Override
-	protected void run2() {
-//        try {
-    			
-    			WrapObject[] treeObjects = studio.getSelectedObjects().toArray(new WrapObject[0]);
-    			
-				for (int i = treeObjects.length - 1; i >= 0; --i) {
-					WrapDatabaseObject treeObject = (WrapDatabaseObject) treeObjects[i];
-					if (treeObject.instanceOf(RouteActionComponent.class)) {
-						//StepView stepTreeObject = (StepView) treeObject;
+	protected void run2() throws Exception {
+        try {	
+			WrapObject[] treeObjects = studio.getSelectedObjects().toArray(new WrapObject[0]);
 
-						RouteActionComponent component = (RouteActionComponent) treeObject.getObject();
-						component.setEnabled(true);
+			for (int i = treeObjects.length - 1; i >= 0; --i) {
+				WrapDatabaseObject treeObject = (WrapDatabaseObject) treeObjects[i];
+				if (treeObject.instanceOf(RouteActionComponent.class)) {
+					//StepView stepTreeObject = (StepView) treeObject;
 
-						//stepTreeObject.setEnabled(true);
-						//stepTreeObject.hasBeenModified(true);
-		                
+					RouteActionComponent component = (RouteActionComponent) treeObject.getObject();
+					component.setEnabled(true);
+
+					//stepTreeObject.setEnabled(true);
+					//stepTreeObject.hasBeenModified(true);
+
 //		                TreeObjectEvent treeObjectEvent = new TreeObjectEvent(stepTreeObject, "isEnable", false, true);
 //		                explorerView.fireTreeObjectPropertyChanged(treeObjectEvent);
-					}
 				}
-				
+			}
 //				explorerView.refreshSelectedTreeObjects();
-    		
-//        }
-//        catch (Throwable e) {
-//        	ConvertigoPlugin.logException(e, "Unable to enable step!");
-//        }
+        }
+        catch (Throwable e) {
+            throw e;
+        	//ConvertigoPlugin.logException(e, "Unable to enable step!");
+        }
 //        finally {
 //			shell.setCursor(null);
 //			waitCursor.dispose();
@@ -56,8 +54,7 @@ public class EnableMobileRouteActionComponentAction extends AbstractRunnableActi
 		if (response != null) {
 			return response;
 		}
-		
+
 		return new SetPropertyResponse("isEnabled").toXml(document, qname);
 	}
-
 }

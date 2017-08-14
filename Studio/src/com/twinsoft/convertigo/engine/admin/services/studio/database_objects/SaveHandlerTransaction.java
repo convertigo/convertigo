@@ -27,24 +27,14 @@ public class SaveHandlerTransaction extends XmlService {
 
         Element response = document.createElement("response");
         DatabaseObject dbo = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
-        if (dbo != null) {
-            // In case of transaction, save its handlers content
-            if (dbo instanceof Transaction) {
-                ((Transaction) dbo).handlers = handlers;
-                response.setAttribute("status", "success");
-                response.setAttribute("message", "Handler transaction updated.");
-            }
-            else {
-                response.setAttribute("status", "error");
-                response.setAttribute("message", "The database object is not a transaction.");
-            }
-        }
-        else {
-            response.setAttribute("status", "error");
-            response.setAttribute("message", "Database object not found.");
+        if (!(dbo instanceof Transaction)) {
+            throw new Exception("The database object is not a transaction.");
         }
 
+        // In case of transaction, save its handlers content
+        ((Transaction) dbo).handlers = handlers;
+        response.setAttribute("status", "success");
+        response.setAttribute("message", "Handler transaction updated.");
         document.getDocumentElement().appendChild(response);
     }
-
 }

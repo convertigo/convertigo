@@ -3,6 +3,18 @@ var Main = {
 	init: function (authUserName, authPassword) {
 		this.defineScripts();
 
+		var initJQueryAjax = function () {
+	          // To iterate in reverse order
+            jQuery.fn.reverse = [].reverse;
+
+            // Define AJAX setup
+            $.ajaxSetup({
+                xhrFields: {
+                    withCredentials: true
+                }
+            });
+		};
+
         var that = this;
 		require([
 			/**
@@ -124,16 +136,7 @@ var Main = {
 			StyleUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/golden-layout-1.5.8/goldenlayout-base.css"));
 		    StyleUtils.injectLinkStyle(Convertigo.getBaseConvertigoStudioUrl("css/jquery/golden-layout-1.5.8/themes/" + theme + ".css"));
 
-			// To iterate in reverse order
-			jQuery.fn.reverse = [].reverse;
-
-			// Define AJAX setup
-			$.ajaxSetup({
-				type: "POST",
-				xhrFields: {
-					withCredentials: true
-				}
-			});
+		    initJQueryAjax();
 
 			// To add CSS rules dynamically
 			that.sheet =
@@ -144,8 +147,8 @@ var Main = {
 			// Connect to the Convertigo server
 			Convertigo.authenticate(authUserName, authPassword, function () {
 				// Inject CSS that needed an authentification to the Convertigo server
-				StyleUtils.injectLinkStyle(Convertigo.createServiceUrl("studio.database_objects.GetMenuIconsCSS"));
-				StyleUtils.injectLinkStyle(Convertigo.createServiceUrl("studio.database_objects.GetPaletteIconsCSS"));
+				StyleUtils.injectLinkStyle(Convertigo.createServiceUrl("studio.menu.GetIconsCSS"));
+				StyleUtils.injectLinkStyle(Convertigo.createServiceUrl("studio.palette.GetIconsCSS"));
 				StyleUtils.injectLinkStyle(Convertigo.createServiceUrl("studio.database_objects.GetTreeIconsCSS"));
 
 				var references = new References();

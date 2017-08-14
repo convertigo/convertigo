@@ -65,17 +65,10 @@ EngineLogView.prototype.getDiv = function () {
 
 EngineLogView.prototype.getLogs = function () {
     var that = this;
-    // Save latest request for real time logs
-    that.latestLogJqXHR = $.ajax({
-        dataType: "json",
-        data: {
-            nbLines: 50,
-            timeout : 1000,
-            moreResults: that.moreResults,
-            realtime: true
-        },
-        url: Convertigo.createServiceUrl("logs.Get"),
-        success: function (data, textStatus, jqXHR) {
+
+    that.latestLogJqXHR = Convertigo.callJSONService(
+        "logs.Get",
+        function (data, textStatus, jqXHR) {
             if (that.latestLogJqXHR != jqXHR) {
                 // parallel getLogs, keep the latest
                 return;
@@ -101,8 +94,13 @@ EngineLogView.prototype.getLogs = function () {
             // Get next logs
             that.moreResults = data.hasMoreResults;
             that.getLogs();
+        }, {
+            nbLines: 50,
+            timeout : 1000,
+            moreResults: that.moreResults,
+            realtime: true
         }
-    });
+    );
 };
 
 EngineLogView.prototype.getDisplayedColumns = function () {

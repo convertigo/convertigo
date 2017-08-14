@@ -180,17 +180,15 @@ SourcePicker.prototype.createMidContent = function () {
     })
     .on("select_node.jstree", function (event, data) {
         if (data.node.data.isRealNode && that.triggerSelectNodeEvent) {
-            $.ajax({
-                dataType: "xml",
-                url: Convertigo.createServiceUrl("studio.sourcepicker.GetXpathTree"),
-                data: {
-                    nodeId: data.node.id
-                },
-                success: function (data, textStatus, jqXHR) {
+            Convertigo.callService(
+                "studio.sourcepicker.GetXpathTree",
+                function (data, textStatus, jqXHR) {
                     that.createXpathTree($(data).find("xpath_tree>"));
                     that.setXpathText($(data).find("xpath").text(), $(data).find("anchor").text());
+                }, {
+                    nodeId: data.node.id
                 }
-            });
+            );
         }
     });
 
@@ -229,16 +227,14 @@ SourcePicker.prototype.createBottomContent = function () {
     this.evaluateXpathBtn = createBtn(
         "Evaluate XPath",
         function () {
-            $.ajax({
-                dataType: "xml",
-                url: Convertigo.createServiceUrl("studio.sourcepicker.EvaluateXpath"),
-                data: {
-                    xpath: that.xpath.val().trim()
-                },
-                success: function (data, textStatus, jqXHR) {
+            Convertigo.callService(
+                "studio.sourcepicker.EvaluateXpath",
+                function (data, textStatus, jqXHR) {
                     that.createXpathTree($(data).find("xpath_tree>"));
+                }, {
+                    xpath: that.xpath.val().trim()
                 }
-            });
+            );
         },
         Convertigo.getBaseConvertigoStudioUrl("img/editors/calc_xpath.png")
     );
@@ -293,13 +289,14 @@ SourcePicker.prototype.createBottomContent = function () {
         })
         // Content in textarea = enable button
         .on("keyup", this.xpath.selector, function (e) {
-            $.ajax({
-                dataType: "xml",
-                url: Convertigo.createServiceUrl("studio.sourcepicker.ModifyXPathText"),
-                data: {
+            Convertigo.callService(
+                "studio.sourcepicker.ModifyXPathText",
+                function (data, textStatus, jqXHR) {
+                }, {
                     xpath: that.xpath.val().trim()
                 }
-            });
+            );
+
             that.updateStateEvaluateXpathBtn();
         });
 

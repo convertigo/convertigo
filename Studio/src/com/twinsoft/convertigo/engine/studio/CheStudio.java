@@ -3,7 +3,6 @@ package com.twinsoft.convertigo.engine.studio;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -38,27 +37,33 @@ public class CheStudio extends Studio {
 	    }
 	}
 
-	public void runAction(AbstractRunnableAction action) throws DOMException, Exception {
-		// Get all qnames to generate the response later
-		List<String> qnames = new ArrayList<>(getSelectedObjects().size());
-		for (WrapObject wrapObject: getSelectedObjects()) {
-			WrapDatabaseObject wrapDbo = (WrapDatabaseObject) wrapObject;
-			qnames.add(((DatabaseObject) wrapDbo.getObject()).getQName());			
-		}
-
-		action.run();
-		synchronized (this) {
-    		isActionDone = action.isDone();
-
-    		// Generate responses
-    		for (String qname: qnames) {
-    		    Element xmlResponse = action.toXml(document, qname);
-    		    createResponse(xmlResponse);
+	public void runAction(AbstractRunnableAction action) throws Exception {
+	    try {
+    		// Get all qnames to generate the response later
+    		List<String> qnames = new ArrayList<>(getSelectedObjects().size());
+    		for (WrapObject wrapObject: getSelectedObjects()) {
+    			WrapDatabaseObject wrapDbo = (WrapDatabaseObject) wrapObject;
+    			qnames.add(((DatabaseObject) wrapDbo.getObject()).getQName());			
     		}
 
-    		// End of the action: notify
-			notify();
-		}
+    		action.run();
+    		synchronized (this) {
+        		isActionDone = action.isDone();
+
+        		// Generate responses
+        		for (String qname: qnames) {
+        		    Element xmlResponse = action.toXml(document, qname);
+        		    createResponse(xmlResponse);
+        		}
+    
+        		// End of the action: notify
+    			notify();
+    		}
+	    }
+		catch (Exception e) {
+            isActionDone = true;
+            throw e;
+        }
 	}
 
 	@Override

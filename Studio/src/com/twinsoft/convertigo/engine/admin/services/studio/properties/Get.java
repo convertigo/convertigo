@@ -1,4 +1,4 @@
-package com.twinsoft.convertigo.engine.admin.services.studio.database_objects;
+package com.twinsoft.convertigo.engine.admin.services.studio.properties;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,20 +31,20 @@ public class Get extends XmlService {
 
 		return informationProperties;
 	}
-	
+
 	@Override
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		String qname = request.getParameter("qname");
 		DatabaseObject dbo = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
 		Element elt = com.twinsoft.convertigo.engine.admin.services.database_objects.Get.getProperties(dbo, document, qname);
-		
+
 		// Add information properties
 		Map<String, String> infoProperties = getInformationProperties(dbo);
 		for (Map.Entry<String, String> infoProperty : infoProperties.entrySet()) {
 			elt.setAttribute(infoProperty.getKey(), infoProperty.getValue());
 		}
         elt.setAttribute("isExtractionRule", Boolean.toString(dbo instanceof com.twinsoft.convertigo.beans.core.ExtractionRule));
-        
+
 		document.getDocumentElement().appendChild(elt);
 	}
 }

@@ -112,17 +112,9 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
             var nodeParent = isFolder ? that.tree.jstree().get_node(node_parent.parent) : node_parent;
             var qname = nodeParent.data.qname;
 
-            // Create
-            $.ajax({
-                dataType: "xml",
-                url: Convertigo.createServiceUrl("studio.database_objects.Create"),
-                data: {
-                    qname: qname,
-                    beanClass: node.id,
-                    folderType: isFolder ? node_parent.data.folderType : null,
-                    afterPriority: afterPriority
-                },
-                success: function (data, textStatus, jqXHR) {
+            Convertigo.callService(
+                "studio.palette.CreateDbo",
+                function (data, textStatus, jqXHR) {
                     var $adminXml = $(data).find("admin");
                     var $dboXml = $adminXml.find("dbo");
                     // Dbo created
@@ -140,23 +132,19 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
                             return node.state.opened;
                         });
 
-                        // Refresh the parent node to automaticaly generate the new node
+                        // Refresh the parent node to automatically generate the new node
                         that.tree.jstree().refresh_node(nodeParent.id);
                     }
                     else {
                         that.resetDndData();
                     }
-
-                    // Show errors
-                    $adminXml.find(">*[name='MessageBoxResponse']").reverse().each(function() {
-                        var $msgBoxXml = $(this).find(">*");
-                        ModalUtils.createMessageBox(
-                            $msgBoxXml.find("title").text(),
-                            $msgBoxXml.find("message").text()
-                        );
-                    });
+                }, {
+                    qname: qname,
+                    beanClass: node.id,
+                    folderType: isFolder ? node_parent.data.folderType : null,
+                    afterPriority: afterPriority
                 }
-            });
+            );
 
             return false;
         }
@@ -167,13 +155,9 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
     var handleDropSourcePicker = function (operation, node, node_parent, node_position, more) {
         if (operation === "copy_node") {
             if (that.dnd.sourcepicker.canCreate) {
-                $.ajax({
-                    dataType: "xml",
-                    url: Convertigo.createServiceUrl("studio.database_objects.SetStepSourceDefinition"),
-                    data: {
-                        qname: node_parent.data.qname
-                    },
-                    success: function (data, textStatus, jqXHR) {
+                Convertigo.callService(
+                    "studio.properties.SetStepSourceDefinition",
+                    function (data, textStatus, jqXHR) {
                         var $adminXml = $(data).find("admin");
                         if ($adminXml.find("step")) {
                             updatePropertiesView(node_parent);
@@ -184,9 +168,12 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
                             DatabaseObjectManager.notifySetProperty($adminXml, [that.propertiesView]);
                             that.resetDndData();
                         }
+                    }, {
+                        qname: node_parent.data.qname
                     }
-                });
+                );
             }
+
             return false;
         }
 
@@ -219,27 +206,27 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 				// Create nodes
 				data: function (node, cb) {
 					var isRoot = node.id == "#";
-					$.ajax({
-					    dataType: "xml",
-						url: Convertigo.createServiceUrl("studio.database_objects.GetChildren"),
-						data: isRoot ? {} : {qname: node.data.qname},
-						success: function (data, textStatus, jqXHR) {
-							// Node is root : we create project nodes
-							if (isRoot) {
-								var nodes = [];
-								// Create the nodes for each project
-								$(data).find("admin>*").each(function () {
-									nodes.push(that.createNodeJsonDbo(this));
-								});
-							}
-							else {
-								var nodes = that.createChildNodes($(data).find("admin>*"), node);
-							}
 
-							// Creation of the nodes
-							cb.call(this, nodes);
-						}
-					});
+					Convertigo.callService(
+				        "studio.database_objects.GetChildren",
+				        function (data, textStatus, jqXHR) {
+                            // Node is root : we create project nodes
+                            if (isRoot) {
+                                var nodes = [];
+                                // Create the nodes for each project
+                                $(data).find("admin>*").each(function () {
+                                    nodes.push(that.createNodeJsonDbo(this));
+                                });
+                            }
+                            else {
+                                var nodes = that.createChildNodes($(data).find("admin>*"), node);
+                            }
+
+                            // Creation of the nodes
+                            cb.call(this, nodes);
+                        },
+                        isRoot ? {} : {qname: node.data.qname}
+			        );
 				}
 			},
 			plugins: [
@@ -281,23 +268,20 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 							refQnameFolder = parentNode.data.qname;
 						}
 
-						// Get menu
-						$.ajax({
-						    dataType: "xml",
-						    url: Convertigo.createServiceUrl("studio.database_objects.GetMenu"),
-							data: {
-						    	qnames: qnames,
-						    	folderTypes: folderTypes,
-						    	refQnameFolder: refQnameFolder
-						    },
-							success: function (data, textStatus, jqXHR) {										
-								// Create the menu if it has correctly been generated
-								if ($(data).find("admin>response").attr("state") == "success") {
-									that.createContextMenu(items, $(data).find("admin>menu"));
-									buildContextMenu(items);
-								}
-							}
-						});
+                        Convertigo.callService(
+                            "studio.menu.Get",
+                            function(data, textStatus, jqXHR) {
+                                // Create the menu if it has correctly been generated
+                                if ($(data).find("admin>response").attr("state") == "success") {
+                                    that.createContextMenu(items, $(data).find("admin>menu"));
+                                    buildContextMenu(items);
+                                }
+                            }, {
+                                qnames: qnames,
+                                folderTypes: folderTypes,
+                                refQnameFolder: refQnameFolder
+                            }
+                        );
 					}
 				}
 			},
@@ -339,32 +323,20 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 					folderType = data.node.data.folderType;
 				}
 
-				// Get Palette
-				$.ajax({
-				    dataType: "xml",
-					url: Convertigo.createServiceUrl("studio.database_objects.GetPalette"),
-					data: {
-						qname: qname,
-						folderType: folderType
-					},
-					success: function (data, textStatus, jqXHR) {
-						var $adminXml =  $(data).find("admin");
-						var $categoriesXml = $adminXml.find(">:first");
-						// Update all Palette views
-						for (var key in that.palettes) {
-							that.palettes[key].update($categoriesXml);
-						}
-
-						// Show errors
-						$adminXml.find(">*[name='MessageBoxResponse']").reverse().each(function () {
-							var $msgBoxXml = $(this).find(">*");
-							ModalUtils.createMessageBox(
-								$msgBoxXml.find("title").text(),
-								$msgBoxXml.find("message").text()
-							);
-						});
-					}
-				});
+                Convertigo.callService(
+                    "studio.palette.Get",
+                    function (data, textStatus, jqXHR) {
+                        var $adminXml =  $(data).find("admin");
+                        var $categoriesXml = $adminXml.find(">:first");
+                        // Update all Palette views
+                        for (var key in that.palettes) {
+                            that.palettes[key].update($categoriesXml);
+                        }
+                    }, {
+                        qname: qname,
+                        folderType: folderType
+                    }
+                );
 			}
 		})
 		.on("select_cell.jstree-grid", function (event, data) {
@@ -427,34 +399,7 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 		    var selectNode = that.tree.jstree().get_node(target);
 
 		    if (!that.isNodeFolder(selectNode)) {
-		        $.ajax({
-                    dataType: "xml",
-                    url: Convertigo.createServiceUrl("studio.database_objects.CallDblkAction"),
-                    data: {
-                        qname: selectNode.data.qname
-                    },
-                    success: function (data, textStatus, jqXHR) {
-                        var $responses = $(data).find("admin");
-                        $responses.find(">*").each(function () {
-                            if ($(this).attr("state") === "success") {
-                                ResponseActionManager.handleResponse(
-                                    $(this).attr("name"),
-                                    $(data),
-                                    that,
-                                    false
-                                );
-                            }
-                            // Show error
-                            else {
-                                var $response = $responses.find("admin>*>*").first();
-                                ModalUtils.createMessageBox(
-                                    $response.find("title").text(),
-                                    $response.find("message").text()
-                                );
-                            }
-                        });
-                    }
-                });
+		        that.callServiceDblkAction(selectNode.data.qname);
 		    }
 		});
 
@@ -517,16 +462,9 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
                         }
                     }
 
-                    // Check if can create
-                    $.ajax({
-                        dataType: "xml",
-                        url: Convertigo.createServiceUrl("studio.database_objects.CanCreate"),
-                        data: {
-                            qname: qname,
-                            folderType: folderType,
-                            beanClass: data.data.nodes[0].id
-                        },
-                        success: function (data, textStatus, jqXHR) {
+                    Convertigo.callService(
+                        "studio.palette.CanCreateDbo",
+                        function (data, textStatus, jqXHR) {
                             // If can create
                             that.dnd.palette.canCreate = $(data).find("response").attr("state") === "true";
                             if (that.dnd.palette.canCreate) {
@@ -535,8 +473,12 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
                             else {
                                 $allowIconElt.removeClass("checkmark").addClass("forbidden");
                             }
+                        }, {
+                            qname: qname,
+                            folderType: folderType,
+                            beanClass: data.data.nodes[0].id
                         }
-                    });
+                    );
                 }
                 else {
                     that.dnd.palette.canCreate = false;
@@ -556,14 +498,9 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
 	                if (!that.isNodeFolder(targetNode)) {
                         var qname = targetNode.data.qname;
 
-                        // Check if can create
-                        $.ajax({
-                            dataType: "xml",
-                            url: Convertigo.createServiceUrl("studio.sourcepicker.CanCreateSource"),
-                            data: {
-                                qname: qname
-                            },
-                            success: function (data, textStatus, jqXHR) {
+                        Convertigo.callService(
+                            "studio.sourcepicker.CanCreateSource",
+                            function (data, textStatus, jqXHR) {
                                 that.dnd.sourcepicker.canCreate = $(data).find("response").text() === "true";
                                 if (that.dnd.sourcepicker.canCreate) {
                                     $allowIconElt.removeClass("forbidden").addClass("checkmark");
@@ -571,8 +508,10 @@ function ProjectsView(propertiesView, palettes, jstreeTheme = "default") {
                                 else {
                                     $allowIconElt.removeClass("checkmark").addClass("forbidden");
                                 }
+                            }, {
+                                qname: qname
                             }
-                        });
+                        );
 	                }
 	                else {
 	                    that.dnd.sourcepicker.canCreate = false;
@@ -645,13 +584,10 @@ ProjectsView.prototype.addJstreeNodeType = function (classname) {
 
 ProjectsView.prototype.callServiceDblkAction = function (qname) {
     var that = this;
-    $.ajax({
-        dataType: "xml",
-        url: Convertigo.createServiceUrl("studio.database_objects.CallDblkAction"),
-        data: {
-            qname: qname
-        },
-        success: function (data, textStatus, jqXHR) {
+
+    Convertigo.callService(
+        "studio.database_objects.CallDblkAction",
+        function (data, textStatus, jqXHR) {
             var $responses = $(data).find("admin");
             $responses.find(">*").each(function () {
                 if ($(this).attr("state") === "success") {
@@ -662,50 +598,35 @@ ProjectsView.prototype.callServiceDblkAction = function (qname) {
                         false
                     );
                 }
-                // Show error
-                else {
-                    var $response = $responses.find("admin>*>*").first();
-                    ModalUtils.createMessageBox(
-                        $response.find("title").text(),
-                        $response.find("message").text()
-                    );
-                }
             });
+        }, {
+            qname: qname
         }
-    });
+    );
 };
 
 ProjectsView.prototype.callServiceCallAction = function (qnames, classAction, response) {
 	var that = this;
-	$.ajax({
-	    dataType: "xml",
-		url: Convertigo.createServiceUrl("studio.database_objects.CallAction"),
-		data: {
-			qnames: qnames,
-			action: classAction,
-			response: response
-		},
-		success: function (data, textStatus, jqXHR) {
-			var $responses = $(data).find("admin");
-			$responses.find(">*").each(function () {
-				if ($(this).attr("state") === "success") {
-					ResponseActionManager.handleResponse(
-						$(this).attr("name"),
-						$(data),
-						that
-					);
-				}
-				// Show error
-				else {
-					var $response = $responses.find("admin>*>*").first();
-					ModalUtils.createMessageBox(
-						$response.find("title").text(),
-						$response.find("message").text()
-					);
-				}
-			});
-		}
-	});
+
+	Convertigo.callService(
+        "studio.menu.CallAction",
+        function (data, textStatus, jqXHR) {
+            var $responses = $(data).find("admin");
+            $responses.find(">*").each(function () {
+                if ($(this).attr("state") === "success") {
+                    ResponseActionManager.handleResponse(
+                        $(this).attr("name"),
+                        $(data),
+                        that
+                    );
+                }
+            });
+        }, {
+            qnames: qnames,
+            action: classAction,
+            response: response
+        }
+    );
 };
 
 ProjectsView.prototype.createContextMenu = function (parent, $menu) {

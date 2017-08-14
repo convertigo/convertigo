@@ -1,4 +1,4 @@
-package com.twinsoft.convertigo.engine.admin.services.studio.database_objects;
+package com.twinsoft.convertigo.engine.admin.services.studio.palette;
 
 import java.util.Set;
 
@@ -14,12 +14,12 @@ import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 
 @ServiceDefinition(
-		name = "GetPaletteIconsCSS",
+		name = "GetIconsCSS",
 		roles = { Role.WEB_ADMIN, Role.PROJECT_DBO_CONFIG, Role.PROJECT_DBO_VIEW },
 		parameters = {},
 		returnValue = ""
 	)
-public class GetPaletteIconsCSS extends DownloadService {
+public class GetIconsCSS extends DownloadService {
 
 	@Override
 	protected void writeResponseResult(HttpServletRequest request, HttpServletResponse response) throws Exception {
@@ -41,5 +41,4 @@ public class GetPaletteIconsCSS extends DownloadService {
 		response.setContentType(MimeType.Css.value());
 		IOUtils.write(sb.toString(), response.getOutputStream(), "UTF-8");			
 	}
-
 }

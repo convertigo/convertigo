@@ -242,19 +242,16 @@ PropertiesView.prototype.removeTreeData = function () {
 PropertiesView.prototype.refresh = function (refNodeProjectsView) {
     var that = this;
     if (refNodeProjectsView.type !== "default") {
-        // Get properties of the object
-        $.ajax({
-            dataType: "xml",
-            url: Convertigo.createServiceUrl("studio.database_objects.Get"),
-            data: {
-                qname: refNodeProjectsView.data.qname
-            },
-            success: function (data, textStatus, jqXHR) {
+        Convertigo.callService(
+            "studio.properties.Get",
+            function (data, textStatus, jqXHR) {
                 that.refNodeProjectsView = refNodeProjectsView;
                 that.removeTreeData();
                 that.updateProperties($(data).find("admin>*").first());
+            }, {
+                qname: refNodeProjectsView.data.qname
             }
-        });
+        );
     }
     else {
         that.removeTreeData();

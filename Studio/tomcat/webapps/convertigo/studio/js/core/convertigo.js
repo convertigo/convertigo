@@ -12,43 +12,68 @@ var Convertigo = {
 		this.url.baseConvertigoStudioUrl = this.url.baseConvertigoUrl + "studio/";
 		this.url.baseConvertigoAdminServicesUrl = this.url.baseConvertigoUrl + "admin/services/";
 	},
+	ajaxCall: function (httpMethod, url, dataType, data, successFunction, errorFunction, extra) {
+	    var parameters = {
+            type: httpMethod,
+            url: url,
+            dataType: dataType,
+            data: data,
+            success: successFunction,
+            error: function (XMLHttpRequest, typeError, extra) {
+                ModalUtils.createStackStraceMessageDialog(
+                    "Convertigo",
+                    $(XMLHttpRequest.responseXML).find("message").text(),
+                    $(XMLHttpRequest.responseXML).find("error>stacktrace").text()
+                );
+            },
+            beforeSend: function (jqXHR, settings) {
+                console.log("before");
+            }
+        };
+        if (typeof(extra) !== undefined) {
+            $.extend(parameters, extra)
+        }
+        return $.ajax(parameters);
+	},
+	callService: function (serviceName, successFunction, parameters, errorFunction, extra) {
+	    return Convertigo.ajaxCall("POST", Convertigo.createServiceUrl(serviceName), "xml", parameters, successFunction, errorFunction, extra);
+	},
+	callJSONService: function (serviceName, successFunction, parameters, errorFunction, extra) {
+	    return Convertigo.ajaxCall("POST", Convertigo.createServiceUrl(serviceName), "json", parameters, successFunction, errorFunction, extra);
+	},
 	createServiceUrl: function (serviceName) {
 		return this.url.baseConvertigoAdminServicesUrl + serviceName;
 	},
 	authenticate: function (authUserName, authPassword, callback) {
-		$.ajax({
-		    dataType: "xml",
-			url: this.createServiceUrl("engine.Authenticate"),
-			data: {
-				authUserName: authUserName,
-				authPassword: authPassword,
-				authType: "login"
-			},
-			success: function (data, textStatus, jqXHR) {
-				if ($(data).find("role[name='AUTHENTICATED']").length !== 0) {
-					callback();
-				}
-			}
-		});
+	    Convertigo.callService(
+            "engine.Authenticate",
+            function (data, textStatus, jqXHR) {
+                if ($(data).find("role[name='AUTHENTICATED']").length !== 0) {
+                    callback();
+                }
+            }, {
+                authUserName: authUserName,
+                authPassword: authPassword,
+                authType: "login"
+            }
+        );
 	},
 	checkAuthentication: function (everyMs = 180000 /* 3 minutes */) {
 		var that = this;
-		$.ajax({
-		    dataType: "xml",
-			url: that.createServiceUrl("engine.CheckAuthentication"),
-			success: function (xml) {
-				var $xml = $(xml);
-				var $authenticated = $xml.find("authenticated");
-				if ($authenticated.text() == "true") {
-					// Recall check authentication each everyMs ms
-					setTimeout(function() {
-						that.checkAuthentication();
-					}, everyMs);
-				}
-			},
-			error: function (xhr, ajaxOptions, thrownError) {
-			}
-		});
+
+		Convertigo.callService(
+	        "engine.CheckAuthentication",
+	        function (xml) {
+                var $xml = $(xml);
+                var $authenticated = $xml.find("authenticated");
+                if ($authenticated.text() == "true") {
+                    // Recall check authentication each everyMs ms
+                    setTimeout(function() {
+                        that.checkAuthentication();
+                    }, everyMs);
+                }
+            }
+	    );
 	},
 	getBaseConvertigoUrl: function (childUrl = "") {
 		return this.url.baseConvertigoUrl + childUrl;

@@ -16,35 +16,34 @@ public class DisableMobileUIComponentAction extends AbstractRunnableAction {
 	public DisableMobileUIComponentAction(WrapStudio studio) {
 		super(studio);
 	}
-	
+
 	@Override
-	protected void run2() {
-//        try {
-    			
-    			WrapObject[] treeObjects = studio.getSelectedObjects().toArray(new WrapObject[0]);
-    			
-				for (int i = treeObjects.length - 1; i >= 0; --i) {
-					WrapDatabaseObject treeObject = (WrapDatabaseObject) treeObjects[i];
-					if (treeObject.instanceOf(UIComponent.class)) {
-						//StepView stepTreeObject = (StepView) treeObject;
+	protected void run2() throws Exception {
+        try {	
+			WrapObject[] treeObjects = studio.getSelectedObjects().toArray(new WrapObject[0]);
 
-						UIComponent component = (UIComponent) treeObject.getObject();
-						component.setEnabled(false);
+			for (int i = treeObjects.length - 1; i >= 0; --i) {
+				WrapDatabaseObject treeObject = (WrapDatabaseObject) treeObjects[i];
+				if (treeObject.instanceOf(UIComponent.class)) {
+					//StepView stepTreeObject = (StepView) treeObject;
 
-						//stepTreeObject.setEnabled(true);
-						//stepTreeObject.hasBeenModified(true);
-		                
+					UIComponent component = (UIComponent) treeObject.getObject();
+					component.setEnabled(false);
+
+					//stepTreeObject.setEnabled(true);
+					//stepTreeObject.hasBeenModified(true);
+
 //		                TreeObjectEvent treeObjectEvent = new TreeObjectEvent(stepTreeObject, "isEnable", false, true);
 //		                explorerView.fireTreeObjectPropertyChanged(treeObjectEvent);
-					}
 				}
-				
+			}
 //				explorerView.refreshSelectedTreeObjects();
-    		
-//        }
-//        catch (Throwable e) {
-//        	ConvertigoPlugin.logException(e, "Unable to enable step!");
-//        }
+
+        }
+        catch (Throwable e) {
+            throw e;
+        	//ConvertigoPlugin.logException(e, "Unable to enable step!");
+        }
 //        finally {
 //			shell.setCursor(null);
 //			waitCursor.dispose();
@@ -56,8 +55,7 @@ public class DisableMobileUIComponentAction extends AbstractRunnableAction {
 		if (response != null) {
 			return response;
 		}
-		
+
 		return new SetPropertyResponse("isEnabled").toXml(document, qname);
 	}
-
 }

@@ -12,8 +12,13 @@ public class LaunchSequenceEditorAction extends AbstractRunnableAction {
     }
 
     @Override
-    protected void run2() {
-        WrapDatabaseObject treeObject = (WrapDatabaseObject) studio.getFirstSelectedTreeObject();
-        ((SequenceView) treeObject).launchEditor();
+    protected void run2() throws Exception {
+        try {
+            WrapDatabaseObject treeObject = (WrapDatabaseObject) studio.getFirstSelectedTreeObject();
+            ((SequenceView) treeObject).launchEditor();
+        }
+        catch (Exception e) {
+            throw e;
+        }
     }
 }
