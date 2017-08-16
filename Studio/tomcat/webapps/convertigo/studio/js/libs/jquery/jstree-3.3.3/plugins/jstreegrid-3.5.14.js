@@ -6,7 +6,7 @@
  * Licensed under the MIT license:
  *   http://www.opensource.org/licenses/mit-license.php
  * 
- * Works only with jstree version >= 3.0.0
+ * Works only with jstree version >= 3.0.0 
  *
  * $Date: 2015-11-29 $
  * $Revision:  3.4.2 $

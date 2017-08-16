@@ -30,7 +30,7 @@
     		if (typeof this._model.data[newId] === "undefined") {
     			return false;
     		}
-    		
+
     		var ids = [];
        		do {
        			newId = this._computeNameId(id, num)
@@ -38,7 +38,7 @@
        			++num;
        			newId = this._computeNameId(id, num)
     		} while (typeof this._model.data[newId] !== "undefined")
-    		
+
     		return ids;
     	}
     };
