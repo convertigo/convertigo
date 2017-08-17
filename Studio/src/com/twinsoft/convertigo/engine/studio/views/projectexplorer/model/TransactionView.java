@@ -18,6 +18,10 @@ public class TransactionView extends DatabaseObjectView implements IEditableTree
         return new ConnectorView(getObject().getConnector(), studio);
     }
 
+    public ProjectView getProjectView() {
+        return (ProjectView) getParent().getParent();
+    }
+
     @Override
     public Transaction getObject() {
         return (Transaction) super.getObject();
