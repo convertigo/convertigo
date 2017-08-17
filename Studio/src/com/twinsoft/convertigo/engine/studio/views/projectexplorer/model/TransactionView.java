@@ -50,6 +50,8 @@ public class TransactionView extends DatabaseObjectView implements IEditableTree
     private void openJscriptTransactionEditor() {
         Project project = dbo.getProject();
         try {
+            FileUtils.createFolderIfNotExist(project.getDirPath(), "_private");
+
             String fileName = FileUtils.createTmpFileWithUTF8Data(
                 project.getDirPath(),
                 "_private" + "/" + dbo.getProject().getName() + "__" + getObject().getConnector().getName() + "__" + getObject().getName() + "." + JSCRIPT_TRANSACTION_EDITOR,

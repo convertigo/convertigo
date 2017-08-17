@@ -146,4 +146,12 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
         }
         return tempEditorFile.getName();
     }
+
+    public static boolean createFolderIfNotExist(String parent, String child) {
+        File privateFolder = new File(parent, child);
+        if (!privateFolder.exists()) {
+            return privateFolder.mkdir();
+        }
+        return false;
+    }
 }

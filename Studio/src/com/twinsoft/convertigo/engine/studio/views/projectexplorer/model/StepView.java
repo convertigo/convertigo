@@ -53,6 +53,9 @@ public class StepView extends DatabaseObjectView implements IEditableTreeViewWra
     private void openJscriptStepEditor() {
         Project project = dbo.getProject();
         try {
+            // Create private folder if it does not exist
+            FileUtils.createFolderIfNotExist(project.getDirPath(), "_private");
+
             String fileName = FileUtils.createTmpFileWithUTF8Data(
                 project.getDirPath(),
                 "_private" + "/" + Base64.encodeBase64URLSafeString(DigestUtils.sha1(dbo.getQName())) + " " + dbo.getName() + "." + JSCRIPT_STEP_EDITOR,
