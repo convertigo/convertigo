@@ -23,18 +23,26 @@ public class GetEvents extends HttpServlet {
         resp.addHeader("Access-Control-Allow-Origin", "*");
         resp.setContentType("text/event-stream");
         resp.setCharacterEncoding("UTF-8");
-
-        // TODO: CURRENTLY, IT DOES A SHORT POLLING WHICH IS BAD (= MULTIPLE CONNECTIONS).
-        // WE SHOULD FIND ANOTHER SOLUTION AND HAVE AN INFINITE LOOP
+        
         try (PrintWriter writer = resp.getWriter()) {
-            AbstractEvent event = events.poll();
-            if (event != null) {
-                // Reconnect every 500ms
-                writer.append("retry: 500\n");
-                writer.append(createEventMessage(event));
-                writer.flush();
-            }
-        }
+        	synchronized (events) {
+        		while (!writer.checkError()) {
+        			if (events.isEmpty()) {
+        				writer.append("\n");
+        				writer.flush();
+        				events.wait(1000);
+        			} else {
+        				AbstractEvent event = events.poll();
+        				if (event != null) {
+        					writer.append(createEventMessage(event));
+        					writer.flush();
+        				}
+        			}
+        		}
+        	}
+        } catch (InterruptedException e) {
+			throw new IOException(e);
+		}
     }
 
     private String createEventMessage(AbstractEvent event) {
@@ -44,6 +52,9 @@ public class GetEvents extends HttpServlet {
     }
 
     public static void addEvent(AbstractEvent event) {
-        events.add(event);
+    	synchronized (events) {
+            events.add(event);
+			events.notify();
+		}
     }
 }
