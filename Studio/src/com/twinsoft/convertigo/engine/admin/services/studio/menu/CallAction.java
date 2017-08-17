@@ -10,7 +10,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
@@ -20,7 +19,6 @@ import com.twinsoft.convertigo.engine.studio.AbstractRunnableAction;
 import com.twinsoft.convertigo.engine.studio.CheStudio;
 import com.twinsoft.convertigo.engine.studio.WrapStudio;
 import com.twinsoft.convertigo.engine.studio.popup.actions.DatabaseObjectDeleteAction;
-import com.twinsoft.convertigo.engine.studio.responses.XmlResponseFactory;
 
 @ServiceDefinition(
 		name = "CallAction",
@@ -87,16 +85,13 @@ public class CallAction extends XmlService {
 					}
 				}
 				catch (ClassNotFoundException e) {
-					// Action not defined
-					String actionName = actionClassName.substring(actionClassName.lastIndexOf(".") + 1, actionClassName.length());
-					Element response = XmlResponseFactory.createMessageBoxResponse(document, null, "The action " + actionName + " is not defined.");
-					response.setAttribute("state", "error");
-
-					document.getDocumentElement().appendChild(response);
-
 					// We don't forget to delete it from the session to start a new action the next time
 					session.removeAttribute(PARAM_CHE_STUDIO);
 					session.removeAttribute(PARAM_LAST_ACTION);
+
+					// Action not defined
+                    String actionName = actionClassName.substring(actionClassName.lastIndexOf(".") + 1, actionClassName.length());
+					throw new Exception("The action " + actionName + " is not defined yet.");
 				}
 			}
 		}
