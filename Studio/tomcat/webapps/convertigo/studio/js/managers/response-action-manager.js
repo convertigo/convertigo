@@ -77,14 +77,22 @@ var ResponseActionManager = {
 		    // Open the editor in CHE
 		    CheGWTOpenSequenceEditor($response.attr("project"), $response.attr("sequence"));
 
-            ResponseActionManager.continueAction(callAction);
+            // Continue the action when the related editor is opened
+		    $(document).on("OpenGraphicEditor", function () {
+		        ResponseActionManager.continueAction(callAction);
+		        $(document).off("OpenGraphicEditor");
+		    });
 		},
 		SequenceExecuteSelectedOpenConnectorEditorResponse: function ($data, callAction) {
 		    var $response = $data.find("response");
             // Open the editor in CHE
             CheGWTOpenConnectorEditor($response.attr("project"), $response.attr("connector"),  $response.attr("type_editor"));
 
-            ResponseActionManager.continueAction(callAction);
+            // Continue the action when the related editor is opened
+            $(document).on("OpenGraphicEditor", function () {
+                ResponseActionManager.continueAction(callAction);
+                $(document).off("OpenGraphicEditor");
+            });
 		},
 		/*****************************
 		 * Source Picker

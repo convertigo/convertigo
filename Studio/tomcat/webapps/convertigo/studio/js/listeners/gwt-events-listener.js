@@ -35,6 +35,7 @@ var GwtEventsListener = {
                         new SequenceEditor(event.detail.id, projectsView, event.detail.qname)
                     );
                 }
+                $(document).trigger("OpenGraphicEditor");
             },
             false
         );
@@ -49,6 +50,7 @@ var GwtEventsListener = {
                         new CICSConnectorEditor(event.detail.id, projectsView, event.detail.qname)
                     );
                 }
+                $(document).trigger("OpenGraphicEditor");
             },
             false
         );
@@ -63,6 +65,7 @@ var GwtEventsListener = {
                         new CouchDBConnectorEditor(event.detail.id, projectsView, event.detail.qname)
                     );
                 }
+                $(document).trigger("OpenGraphicEditor");
             },
             false
         );
@@ -77,6 +80,7 @@ var GwtEventsListener = {
                         new FullSyncConnectorEditor(event.detail.id, projectsView, event.detail.qname)
                     );
                 }
+                $(document).trigger("OpenGraphicEditor");
             },
             false
         );
@@ -91,6 +95,7 @@ var GwtEventsListener = {
                         new HtmlConnectorEditor(event.detail.id, projectsView, event.detail.qname)
                     );
                 }
+                $(document).trigger("OpenGraphicEditor");
             },
             false
         );
@@ -105,6 +110,7 @@ var GwtEventsListener = {
                         new HttpConnectorEditor(event.detail.id, projectsView, event.detail.qname)
                     );
                 }
+                $(document).trigger("OpenGraphicEditor");
             },
             false
         );
@@ -119,6 +125,7 @@ var GwtEventsListener = {
                         new JavelinConnectorEditor(event.detail.id, projectsView, event.detail.qname)
                     );
                 }
+                $(document).trigger("OpenGraphicEditor");
             },
             false
         );
@@ -133,6 +140,7 @@ var GwtEventsListener = {
                         new ProxyHttpConnectorEditor(event.detail.id, projectsView, event.detail.qname)
                     );
                 }
+                $(document).trigger("OpenGraphicEditor");
             },
             false
         );
@@ -147,6 +155,7 @@ var GwtEventsListener = {
                         new SapJcoConnectorEditor(event.detail.id, projectsView, event.detail.qname)
                     );
                 }
+                $(document).trigger("OpenGraphicEditor");
             },
             false
         );
@@ -161,6 +170,7 @@ var GwtEventsListener = {
                         new SiteClipperConnectorEditor(event.detail.id, projectsView, event.detail.qname)
                     );
                 }
+                $(document).trigger("OpenGraphicEditor");
             },
             false
         );
@@ -175,6 +185,7 @@ var GwtEventsListener = {
                         new SqlConnectorEditor(event.detail.id, projectsView, event.detail.qname)
                     );
                 }
+                $(document).trigger("OpenGraphicEditor");
             },
             false
         );
