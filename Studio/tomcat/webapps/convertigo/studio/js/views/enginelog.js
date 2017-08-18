@@ -127,7 +127,7 @@ EngineLogView.prototype.getDisplayedColumns = function () {
 };
 
 EngineLogView.prototype.getScrollableDiv = function () {
-    if (this.scrollableDiv === null) {
+    if (!this.scrollableDiv) {
         this.scrollableDiv = $(this.mainDiv).parent()[0];
     }
 
@@ -143,11 +143,18 @@ EngineLogView.prototype.toggleLock = function () {
 };
 
 EngineLogView.prototype.goToTop = function () {
-    this.getScrollableDiv().scrollTop = 0;
+	this.setScroll(0);
 };
 
 EngineLogView.prototype.goToEnd = function () {
-    this.getScrollableDiv().scrollTop = $(this.mainDiv)[0].scrollHeight;
+	this.setScroll($(this.mainDiv)[0].scrollHeight);
+};
+
+EngineLogView.prototype.setScroll = function (scrollValue) {
+	var scrollDiv = this.getScrollableDiv();
+	if (scrollDiv) {
+	    scrollDiv.scrollTop = scrollValue;
+	}
 };
 
 EngineLogView.prototype.formatLine = function (nLine, line) {
