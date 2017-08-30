@@ -2070,10 +2070,8 @@
     			"left",
     			"right"
     			]
-    			}
-    			
+    			}	
     		}
-      }
     },
     "ToolBar": {
       "tag": "ion-toolbar",
