@@ -2054,6 +2054,27 @@
       }
     },
 
+    "FabList": {
+      "tag": "ion-fab-list",
+      "label": "Fab List",
+      "description": "ion-fab-list is a container for multiple FAB buttons. They are components of ion-fab and allow you to specificy the buttons position, left, right, top, bottom.",
+      "group": "Buttons",
+      "properties": {
+        "side": {
+    			"attr":"side",
+    			"label": "Side",
+    			"category": "@Properties",
+    			"values":[
+    			"top",
+    			"bottom",
+    			"left",
+    			"right"
+    			]
+    			}
+    			
+    		}
+      }
+    },
     "ToolBar": {
       "tag": "ion-toolbar",
       "label": "ToolBar",
