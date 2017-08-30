@@ -237,6 +237,7 @@
       "category": "Attributes",
       "values": [
         false,
+        "item-start",
         "item-left",
         "item-right",
         "item-content"
