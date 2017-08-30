@@ -2066,6 +2066,158 @@
         "BarMode": false
       }
     },
+    "Refresher":{
+		"tag": "ion-refresher",
+    	"label": "Refresher",
+    	"description": "The Refresher provides pull-to-refresh functionality on a content component. Place the ion-refresher as the first child of your ion-content element.Pages can then listen to the refresher's various output events. The refresh output event is fired when the user has pulled down far enough to kick off the refreshing process. Once the async operation has completed and the refreshing should end, call complete().",
+    	"group": "Forms"			
+	},
+	"RefresherContent":{
+		"tag": "ion-refresher-content",
+    	"label": "RefresherContent",
+    	"description": "By default, Ionic provides the pulling icon and refreshing spinner that looks best for the platform the user is on. However, you can change the default icon and spinner, along with adding text for each state by adding properties to the child ion-refresher-content component.",
+    	"group": "Forms", 
+		"properties": {
+    		"closeDuration": {
+    			"attr":"closeDuration",
+    			"label": "Close Duration",
+    			"description": "How many milliseconds it takes to close the refresher.",
+    			"category": "@Properties",
+    			"value": 280
+    		},
+			"enabled": {
+    			"attr":"enabled",
+    			"label": "Enabled",
+    			"description": "If the refresher is enabled or not. This should be used in place of an ngIf.",
+    			"category": "@Properties",
+    			"value": true,
+				"values":[
+					true,
+					false
+				]
+    		},
+			"pullMax": {
+    			"attr":"pullMax",
+    			"label": "PullMax",
+    			"description": "The maximum distance of the pull until the refresher will automatically go into the refreshing state. By default, the pull maximum will be the result of pullMin + 60.",
+    			"category": "@Properties"
+    		},
+			"pullMin": {
+    			"attr":"pullMin",
+    			"label": "PullMin",
+    			"description": "The min distance the user must pull down until the refresher can go into the refreshing state.",
+    			"category": "@Properties",
+    			"value": 60
+    		},
+			"snapbackDuration": {
+    			"attr":"snapbackDuration",
+    			"label": "SnapbackDuration",
+    			"description": "How many milliseconds it takes the refresher to to snap back to the refreshing state.",
+    			"category": "@Properties",
+    			"value": 280
+    		}
+		}			
+	},
+    "Searchbar": {
+    	"tag": "ion-searchbar",
+    	"label": "Searchbar",
+    	"description": "Manages the display of a Searchbar which can be used to search or filter items.",
+    	"group": "Forms", 	
+    	"properties": {
+    		"animated": {
+    			"attr":"animated",
+    			"label": "Animated",
+    			"description": "If true, enable searchbar animation",
+    			"category": "@Properties",
+    			"value": false,
+    			"values": [
+    				true,
+    				false
+    			]
+    		},
+    		"autocomplete":{
+    			"attr":"autocomplete",
+    			"label": "Autocomplete",
+    			"description": "Set the input's autocomplete property",
+    			"category": "@Properties",
+    			"value": "off",
+    			"values": [
+    				"on",
+    				"off"
+    			]
+    		},
+    		"autocorrect":{
+    			"attr":"autocorrect",
+    			"label": "Autocorrect",
+    			"description": "Set the input's autocorrect property.",
+    			"category": "@Properties",
+    			"value": "off",
+    			"values": [
+    				"on",
+    				"off"
+    			]
+    		},
+    		"cancelButtonText":{
+    			"attr":"cancelButtonText",
+    			"label": "CancelButtonText",
+    			"description": "Set the the cancel button text.",
+    			"category": "@Properties",
+    			"value": "Cancel"
+    		},
+    		"debounce":{
+    			"attr":"debounce",
+    			"label": "Debounce",
+    			"description": "How long, in milliseconds, to wait to trigger the ionInput event after each keystroke",
+    			"category": "@Properties",
+    			"value": "250"
+    		},
+    		"placeholder":{
+    			"attr":"placeholder",
+    			"label": "Placeholder",
+    			"description": "Set the input's placeholder.",
+    			"category": "@Properties",
+    			"value": "Search"
+    		},
+    		"showCancelButton":{
+    			"attr":"showCancelButton",
+    			"label": "ShowCancelButton",
+    			"description": "If true, show the cancel button.",
+    			"category": "@Properties",
+    			"value": "false",
+    			"values": [
+    				"true",
+    				"false"
+    			]
+    		},
+    		"spellcheck":{
+    			"attr":"spellcheck",
+    			"label": "Spellcheck",
+    			"description": "Set the input's spellcheck property.",
+    			"category": "@Properties",
+    			"value": "false",
+    			"values": [
+    				"true",
+    				"false"
+    			]
+    		},
+    		"type":{
+    			"attr":"type",
+    			"label": "Type",
+    			"description": "Set the input's spellcheck property.",
+    			"category": "@Properties",
+    			"value": "search",
+    			"values": [
+    				"search",
+    				"text",
+    				"password",
+    				"email",
+    				"number",
+    				"tel",
+    				"url"    				
+    			]
+    		}
+    	}
+    },
     
     "BarTitle": {
       "tag": "ion-title",
