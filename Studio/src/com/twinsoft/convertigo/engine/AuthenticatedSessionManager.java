@@ -7,6 +7,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -30,7 +31,6 @@ public class AuthenticatedSessionManager implements AbstractManager {
 	public static enum Role {
 		ANONYMOUS,
 		AUTHENTICATED,
-		WEB_ADMIN,
 		TRIAL,
 		MANAGER,
 		MONITOR_AGENT,
@@ -59,13 +59,21 @@ public class AuthenticatedSessionManager implements AbstractManager {
 		SYMBOLS_CONFIG("Configure the symbols part"),
 		TRACE_VIEW("Consult the trace player part"),
 		TRACE_CONFIG("Configure the trace player part"),
-		TEST_PLATFORM("Unlock the testplatform");
+		TEST_PLATFORM("Unlock the testplatform"),
+		TEST_PLATFORM_HIDDEN("Unlock the testplatform and see hidden requestables", TEST_PLATFORM),
+		TEST_PLATFORM_PRIVATE("Unlock the testplatform and see hidden/private requestables", TEST_PLATFORM_HIDDEN),
+		WEB_ADMIN(TEST_PLATFORM_PRIVATE);
 		
 		String description = null;
+		Role[] subroles = null;
 		
-		Role(){}
-		Role(String description) {
+		Role(Role... subroles) {
+			this.subroles = subroles;			
+		}
+		
+		Role(String description, Role... subroles) {
 			this.description = description;
+			this.subroles = subroles;
 		}
 		
 		public String description() {
@@ -123,6 +131,23 @@ public class AuthenticatedSessionManager implements AbstractManager {
 			return false;
 		}
 		return !ListUtils.intersection(Arrays.asList(userRoles), Arrays.asList(requiredRoles)).isEmpty();
+	}
+	
+	public static void addRoles(Set<Role> roles, Role role) {
+		roles.add(role);
+		if (role.subroles != null) {
+			for (Role r: role.subroles) {
+				addRoles(roles, r);
+			}
+		}
+	}
+	
+	public static Role[] toRoles(Role... roles) {
+		Set<Role> rs = new HashSet<AuthenticatedSessionManager.Role>(roles.length * 2);
+		for (Role role: roles) {
+			addRoles(rs, role);
+		}
+		return rs.toArray(new Role[rs.size()]);
 	}
 
 	public Role[] getRoles(HttpSession httpSession) {
@@ -254,7 +279,7 @@ public class AuthenticatedSessionManager implements AbstractManager {
 			Set<Role> roles = new TreeSet<Role>();
 			for (int i = 0; i < array.length(); i++) {
 				try {
-					roles.add(Role.valueOf(array.getString(i)));
+					addRoles(roles, Role.valueOf(array.getString(i)));
 				} catch (IllegalArgumentException e) {
 					Engine.logEngine.warn("Fail to load the role '" + array.getString(i) + "', ignored");
 				}
