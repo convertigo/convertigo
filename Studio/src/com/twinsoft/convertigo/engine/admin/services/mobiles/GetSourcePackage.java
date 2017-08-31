@@ -34,8 +34,8 @@ public class GetSourcePackage extends DownloadService {
 		if (mobileResourceHelper.mobileApplication == null) {
 			throw new ServiceException("no such mobile application");
 		} else {
-			boolean bAdminRole = Engine.authenticatedSessionManager.hasRole(request.getSession(), Role.WEB_ADMIN);
-			if (!bAdminRole && mobileResourceHelper.mobileApplication.getAccessibility() == Accessibility.Private) {
+			boolean bTpPrivateRole = Engine.authenticatedSessionManager.hasRole(request.getSession(), Role.TEST_PLATFORM_PRIVATE);
+			if (!bTpPrivateRole && mobileResourceHelper.mobileApplication.getAccessibility() == Accessibility.Private) {
 				throw new AuthenticationException("Authentication failure: user has not sufficient rights!");
 			}
 		}

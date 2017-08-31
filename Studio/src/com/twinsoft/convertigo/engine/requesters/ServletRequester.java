@@ -76,7 +76,7 @@ public abstract class ServletRequester extends GenericRequester {
 				return;
 			}
 			
-			if (Engine.authenticatedSessionManager.hasRole(context.httpServletRequest.getSession(), Role.WEB_ADMIN)) {
+			if (Engine.authenticatedSessionManager.hasRole(context.httpServletRequest.getSession(), Role.TEST_PLATFORM_PRIVATE)) {
 				// Only admin users can execute private requestables
 				return;
 			}
