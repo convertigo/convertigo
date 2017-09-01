@@ -2060,6 +2060,8 @@
       "label": "Fab List",
       "description": "ion-fab-list is a container for multiple FAB buttons. They are components of ion-fab and allow you to specificy the buttons position, left, right, top, bottom.",
       "group": "Buttons",
+      "icon16": "fablist_color_16x16.png",
+      "icon32": "fablist_color_32x32.png",
       "properties": {
         "side": {
     			"attr":"side",
