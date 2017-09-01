@@ -428,6 +428,11 @@ public class FullSyncServlet extends HttpServlet {
 							IOUtils.write(responseStringEntity, os, charset);
 						}
 					} else {
+						String contentLength = HeaderName.ContentLength.getHeader(newResponse);
+						if (contentLength != null) {
+							HeaderName.ContentLength.addHeader(response, contentLength);
+							debug.append("response Header: " + HeaderName.ContentLength.value() + "=" + contentLength + "\n");
+						}
 						StreamUtils.copyAutoFlush(is, os);
 					}
 				} finally {

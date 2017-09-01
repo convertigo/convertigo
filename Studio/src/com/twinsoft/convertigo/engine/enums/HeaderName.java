@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.http.Header;
+import org.apache.http.HttpMessage;
 import org.apache.http.HttpRequest;
 
 public enum HeaderName {
@@ -109,6 +110,11 @@ public enum HeaderName {
 
 	public String getHeader(HttpServletResponse response) {
 		return response.getHeader(value);
+	}
+
+	public String getHeader(HttpMessage message) {
+		Header header = message.getFirstHeader(value);
+		return header == null ? null : header.getValue();
 	}
 
 	public String getResponseHeader(HttpMethod httpMethod) {
