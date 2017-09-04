@@ -852,9 +852,6 @@ public class HttpConnector extends Connector {
 
 			// Setting the referer
 			referer = sUrl;
-			
-			// Proxy configuration
-			Engine.theApp.proxyManager.setProxy(hostConfiguration, httpState, url);
 
 			Engine.logBeans.debug("(HttpConnector) Https: " + https);
 			
@@ -896,6 +893,9 @@ public class HttpConnector extends Connector {
 			
 			// Retrieving httpState
 			getHttpState(context);
+			
+			// Proxy configuration
+			Engine.theApp.proxyManager.setProxy(hostConfiguration, httpState, url);
 			
 			AbstractHttpTransaction httpTransaction = (AbstractHttpTransaction) context.transaction;
 			
