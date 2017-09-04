@@ -22,7 +22,13 @@
 
 package com.twinsoft.convertigo.beans.variables;
 
+import org.w3c.dom.Element;
+
+import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.DoFileUploadMode;
+import com.twinsoft.convertigo.engine.util.VersionUtils;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class RequestableHttpVariable extends RequestableVariable {
 
@@ -31,6 +37,8 @@ public class RequestableHttpVariable extends RequestableVariable {
 	private String httpMethod = "GET";
 	private String httpName = "";
 	private DoFileUploadMode doFileUploadMode = DoFileUploadMode.none;
+	private String doFileUploadContentType = "";
+	private String doFileUploadCharset = "UTF-8";
 	
 	public RequestableHttpVariable() {
 		super();
@@ -81,4 +89,42 @@ public class RequestableHttpVariable extends RequestableVariable {
 	public String getMtomCid(String value) {
 		return getName() + "_" + value.hashCode();
 	}
+
+	public String getDoFileUploadContentType() {
+		return doFileUploadContentType;
+	}
+
+	public void setDoFileUploadContentType(String doFileUploadContentType) {
+		this.doFileUploadContentType = doFileUploadContentType;
+	}
+
+	public String getDoFileUploadCharset() {
+		return doFileUploadCharset;
+	}
+
+	public void setDoFileUploadCharset(String doFileUploadCharset) {
+		this.doFileUploadCharset = doFileUploadCharset;
+	}
+	
+    @Override
+	public void configure(Element element) throws Exception {
+		super.configure(element);
+		
+        String version = element.getAttribute("version");
+        
+        if (version == null) {
+            String s = XMLUtils.prettyPrintDOM(element);
+            EngineException ee = new EngineException(
+                "Unable to find version number for the database object \"" + getName() + "\".\n" +
+                "XML data: " + s
+            );
+            throw ee;
+        }
+        
+        if (VersionUtils.compare(version, "7.4.7") < 0) {
+        	doFileUploadContentType = "application/octet-stream";
+			hasChanged = true;
+			Engine.logBeans.warn("[HttpStatement] The object \"" + getName()+ "\" has been updated to version 7.4.7");
+        }
+    }
 }

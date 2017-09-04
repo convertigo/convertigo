@@ -58,8 +58,6 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import oauth.signpost.exception.OAuthException;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.Header;
@@ -133,6 +131,8 @@ import com.twinsoft.convertigo.engine.util.URLUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.util.StringEx;
+
+import oauth.signpost.exception.OAuthException;
 
 /**
  * The Connector class is the base class for all connectors.
@@ -1692,7 +1692,12 @@ public class HttpConnector extends Connector {
 			String filepath = Engine.theApp.filePropertyManager.getFilepathFromProperty(stringValue, getProject().getName());
 			File file = new File(filepath);
 			if (file.exists()) {
-				parts.add(new FilePart(httpVariable.getHttpName(), file.getName(), file));
+				String charset = httpVariable.getDoFileUploadCharset();
+				String type = httpVariable.getDoFileUploadContentType();
+				if (org.apache.commons.lang3.StringUtils.isBlank(type)) {
+					type = Engine.getServletContext().getMimeType(file.getName());
+				}
+				parts.add(new FilePart(httpVariable.getHttpName(), file.getName(), file, type, charset));
 			} else {
 				throw new FileNotFoundException(filepath);
 			}

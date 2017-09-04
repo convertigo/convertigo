@@ -111,6 +111,8 @@ public class EngineServlet extends HttpServlet {
 			
 			ServletContext servletContext = servletConfig.getServletContext();
 		
+			Engine.initServletContext(servletContext);
+			
 			String webAppPath = servletContext.getRealPath("").replace('\\', '/');
 			System.out.println("C-EMS web application home: " + webAppPath);
 			Engine.initPaths(webAppPath);
