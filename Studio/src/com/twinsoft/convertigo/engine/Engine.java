@@ -38,6 +38,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.swing.event.EventListenerList;
 
@@ -298,6 +299,7 @@ public class Engine {
 	}
 	
 	private static boolean bInitPathsDone = false;
+	private static ServletContext servletContext = null;
 
 	public static void initPaths(String webappPath) throws IOException {
 		if (bInitPathsDone) return;
@@ -328,6 +330,12 @@ public class Engine {
 		Engine.TEMPLATES_PATH = new File(Engine.WEBAPP_PATH + "/templates").getCanonicalPath();
 		
 		bInitPathsDone = true;
+	}
+
+	public static void initServletContext(ServletContext servletContext) {
+		if (Engine.servletContext == null) {
+			Engine.servletContext  = servletContext;
+		}
 	}
 
 	public static synchronized void start() throws EngineException {
@@ -1436,6 +1444,10 @@ public class Engine {
 		arraySchema += "    </xsd:complexContent>\n";
 		arraySchema += "</xsd:complexType>\n";
 		return arraySchema;
+	}
+	
+	public static ServletContext getServletContext() {
+		return servletContext;
 	}
 
 	private EventListenerList migrationListeners = new EventListenerList();

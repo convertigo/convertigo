@@ -43,7 +43,7 @@ public class RequestableHttpVariableBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 
-			properties = new PropertyDescriptor[3];
+			properties = new PropertyDescriptor[5];
 			
             properties[0] = new PropertyDescriptor("httpMethod", beanClass, "getHttpMethod", "setHttpMethod");
 			properties[0].setDisplayName(getExternalizedString("property.httpMethod.display_name"));
@@ -60,6 +60,15 @@ public class RequestableHttpVariableBeanInfo extends MySimpleBeanInfo {
 			properties[2].setPropertyEditorClass(DoFileUploadMode.class);
 			properties[2].setExpert(true);
 			
+            properties[3] = new PropertyDescriptor("doFileUploadContentType", beanClass, "getDoFileUploadContentType", "setDoFileUploadContentType");
+			properties[3].setDisplayName(getExternalizedString("property.doFileUploadContentType.display_name"));
+			properties[3].setShortDescription(getExternalizedString("property.doFileUploadContentType.short_description"));
+			properties[3].setExpert(true);
+			
+            properties[4] = new PropertyDescriptor("doFileUploadCharset", beanClass, "getDoFileUploadCharset", "setDoFileUploadCharset");
+			properties[4].setDisplayName(getExternalizedString("property.doFileUploadCharset.display_name"));
+			properties[4].setShortDescription(getExternalizedString("property.doFileUploadCharset.short_description"));
+			properties[4].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
