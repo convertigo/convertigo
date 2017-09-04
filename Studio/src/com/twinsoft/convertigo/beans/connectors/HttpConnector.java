@@ -846,9 +846,6 @@ public class HttpConnector extends Connector {
 			// Fire event for plugins
 			long t0 = System.currentTimeMillis();
 			Engine.theApp.pluginsManager.fireHttpConnectorGetDataStart(context);
-			
-			// Retrieving httpState
-			getHttpState(context);
 
 			Engine.logBeans.trace("(HttpConnector) Retrieving data as a bytes array...");
 			Engine.logBeans.debug("(HttpConnector) Connecting to: " + sUrl);
@@ -856,25 +853,21 @@ public class HttpConnector extends Connector {
 			// Setting the referer
 			referer = sUrl;
 			
-			URL url = null;
-			url = new URL(sUrl);
-			
 			// Proxy configuration
 			Engine.theApp.proxyManager.setProxy(hostConfiguration, httpState, url);
 
 			Engine.logBeans.debug("(HttpConnector) Https: " + https);
-
-			String host = "";
-			int port = -1;
+			
+			URL url = new URL(sUrl);
+			String host = url.getHost();
+			int port = url.getPort();
+			
 			if (sUrl.toLowerCase().startsWith("https:")) {
 				if (!https) {
 					Engine.logBeans.debug("(HttpConnector) Setting up SSL properties");
 					certificateManager.collectStoreInformation(context);
 				}
-
-				url = new URL(sUrl);
-				host = url.getHost();
-				port = url.getPort();
+				
 				if (port == -1)
 					port = 443;
 
@@ -897,13 +890,13 @@ public class HttpConnector extends Connector {
 				sUrl = url.getFile();
 				Engine.logBeans.debug("(HttpConnector) Updated URL for SSL purposes: " + sUrl);
 			} else {
-				url = new URL(sUrl);
-				host = url.getHost();
-				port = url.getPort();
-
 				Engine.logBeans.debug("(HttpConnector) Host: " + host + ":" + port);
 				hostConfiguration.setHost(host, port);
 			}
+			
+			// Retrieving httpState
+			getHttpState(context);
+			
 			AbstractHttpTransaction httpTransaction = (AbstractHttpTransaction) context.transaction;
 			
 			// Retrieve HTTP method
