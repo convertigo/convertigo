@@ -87,129 +87,134 @@ public class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 
 	protected IStatus run(IProgressMonitor monitor) {
 		this.monitor = monitor;
-		
-		try {
-			int worksNumber = 2 * ConvertigoPlugin.projectManager.getNumberOfObjects(projectName);
-			monitor.beginTask("Opening project " + projectName + "...", worksNumber);
-
-			if (monitor.isCanceled()) {
-				Status status = new Status(Status.CANCEL, ConvertigoPlugin.PLUGIN_UNIQUE_ID, 0, "Project " + projectName + " not loaded because of user abort", null);
-				return status;
+		synchronized (unloadedProjectTreeObject) {
+			if (unloadedProjectTreeObject.getParent() == null) {
+				return Status.OK_STATUS;
 			}
-
-			monitor.subTask("Refreshing project ressources...");
-			ConvertigoPlugin.projectManager.getProjectExplorerView().createDir(projectName);
-			ConvertigoPlugin.getDefault().getProjectPluginResource(projectName, monitor);
-
-			Engine.theApp.databaseObjectsManager.addDatabaseObjectListener(this);
-			Project project;
 			
 			try {
-				Engine.theApp.databaseObjectsManager.clearCacheIfSymbolError(projectName);
-				project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
-				if (project.undefinedGlobalSymbols) {
-					synchronized (Engine.theApp.databaseObjectsManager) { // parallel projects opening with undefined symbols, check after the first wizard
-						project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
-						if (project.undefinedGlobalSymbols) {
-							new WalkHelper() {
-								boolean create = false;
-								boolean forAll = false;
-								
-								@Override
-								protected void walk(DatabaseObject databaseObject) throws Exception {
-									if (databaseObject.isSymbolError()) {
-										for (Entry<String, Set<String>> entry : databaseObject.getSymbolsErrors().entrySet()) {
-											Set<String> undefinedSymbols = Engine.theApp.databaseObjectsManager.symbolsSetCheckUndefined(entry.getValue());
-											if (!undefinedSymbols.isEmpty()) {
-												if (!forAll) {
-													boolean [] response = ConvertigoPlugin.warningGlobalSymbols(projectName,
-															databaseObject.getName(), databaseObject.getDatabaseType(),
-															entry.getKey(), "" + databaseObject.getCompilablePropertySourceValue(entry.getKey()),
-															undefinedSymbols, true);
-													create = response[0];
-													forAll = response[1];
-												}
-												if (create) {
-													Engine.theApp.databaseObjectsManager.symbolsCreateUndefined(undefinedSymbols);
+				int worksNumber = 2 * ConvertigoPlugin.projectManager.getNumberOfObjects(projectName);
+				monitor.beginTask("Opening project " + projectName + "...", worksNumber);
+	
+				if (monitor.isCanceled()) {
+					Status status = new Status(Status.CANCEL, ConvertigoPlugin.PLUGIN_UNIQUE_ID, 0, "Project " + projectName + " not loaded because of user abort", null);
+					return status;
+				}
+	
+				monitor.subTask("Refreshing project ressources...");
+				ConvertigoPlugin.projectManager.getProjectExplorerView().createDir(projectName);
+				ConvertigoPlugin.getDefault().getProjectPluginResource(projectName, monitor);
+	
+				Engine.theApp.databaseObjectsManager.addDatabaseObjectListener(this);
+				Project project;
+				
+				try {
+					Engine.theApp.databaseObjectsManager.clearCacheIfSymbolError(projectName);
+					project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+					if (project.undefinedGlobalSymbols) {
+						synchronized (Engine.theApp.databaseObjectsManager) { // parallel projects opening with undefined symbols, check after the first wizard
+							project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+							if (project.undefinedGlobalSymbols) {
+								new WalkHelper() {
+									boolean create = false;
+									boolean forAll = false;
+									
+									@Override
+									protected void walk(DatabaseObject databaseObject) throws Exception {
+										if (databaseObject.isSymbolError()) {
+											for (Entry<String, Set<String>> entry : databaseObject.getSymbolsErrors().entrySet()) {
+												Set<String> undefinedSymbols = Engine.theApp.databaseObjectsManager.symbolsSetCheckUndefined(entry.getValue());
+												if (!undefinedSymbols.isEmpty()) {
+													if (!forAll) {
+														boolean [] response = ConvertigoPlugin.warningGlobalSymbols(projectName,
+																databaseObject.getName(), databaseObject.getDatabaseType(),
+																entry.getKey(), "" + databaseObject.getCompilablePropertySourceValue(entry.getKey()),
+																undefinedSymbols, true);
+														create = response[0];
+														forAll = response[1];
+													}
+													if (create) {
+														Engine.theApp.databaseObjectsManager.symbolsCreateUndefined(undefinedSymbols);
+													}
 												}
 											}
 										}
+										super.walk(databaseObject);
 									}
-									super.walk(databaseObject);
-								}
-							}.init(project);
-							project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+								}.init(project);
+								project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+							}
 						}
 					}
 				}
-			}
-			finally {
-				Engine.theApp.databaseObjectsManager.removeDatabaseObjectListener(this);
-			}
-			
-			if (monitor.isCanceled()) {
-				Status status = new Status(Status.CANCEL, ConvertigoPlugin.PLUGIN_UNIQUE_ID, 0, "Project " + projectName + " not loaded because of user abort", null);
+				finally {
+					Engine.theApp.databaseObjectsManager.removeDatabaseObjectListener(this);
+				}
+				
+				if (monitor.isCanceled()) {
+					Status status = new Status(Status.CANCEL, ConvertigoPlugin.PLUGIN_UNIQUE_ID, 0, "Project " + projectName + " not loaded because of user abort", null);
+					return status;
+				}
+	
+				monitor.subTask("Creating connectors...");
+	
+				monitor.subTask("Updating tree view...");
+				TreeParent invisibleRoot = unloadedProjectTreeObject.getParent();
+				projectTreeObject = new ProjectTreeObject(viewer, project);
+				defaultConnectorTreeObject = null;
+				demoTraceTreeObject = null;
+				
+				invisibleRoot.removeChild(unloadedProjectTreeObject);
+				invisibleRoot.addChild(projectTreeObject);
+				ConvertigoPlugin.projectManager.setCurrentProject((ProjectTreeObject)projectTreeObject);
+				
+				loadDatabaseObject(projectTreeObject, project);
+				
+				// Comment out the following line to disable the resources tree part
+				//loadResource(projectTreeObject, "Resources", resourceProject.members());
+				
+				Status status = new Status(Status.OK, ConvertigoPlugin.PLUGIN_UNIQUE_ID, 0, "Project " + projectName + " loaded", null);
 				return status;
 			}
-
-			monitor.subTask("Creating connectors...");
-
-			monitor.subTask("Updating tree view...");
-			TreeParent invisibleRoot = unloadedProjectTreeObject.getParent();
-			projectTreeObject = new ProjectTreeObject(viewer, project);
-			defaultConnectorTreeObject = null;
-			demoTraceTreeObject = null;
-			
-			invisibleRoot.removeChild(unloadedProjectTreeObject);
-			invisibleRoot.addChild(projectTreeObject);
-			ConvertigoPlugin.projectManager.setCurrentProject((ProjectTreeObject)projectTreeObject);
-			
-			loadDatabaseObject(projectTreeObject, project);
-			
-			// Comment out the following line to disable the resources tree part
-			//loadResource(projectTreeObject, "Resources", resourceProject.members());
-			
-			Status status = new Status(Status.OK, ConvertigoPlugin.PLUGIN_UNIQUE_ID, 0, "Project " + projectName + " loaded", null);
-			return status;
-		}
-		catch(Exception e) {
-			Status status = null;
-			unloadedProjectTreeObject.isLoadable = false;
-			if (e.getCause() instanceof ProjectInMigrationProcessException)
-				status = new Status(Status.WARNING, ConvertigoPlugin.PLUGIN_UNIQUE_ID, 0, "Could not open project \""+projectName+"\" while it was still in migration check process", e);
-			else
-				status = new Status(Status.ERROR, ConvertigoPlugin.PLUGIN_UNIQUE_ID, 0, "Error while loading project " + projectName, e);
-			return status;
-		}
-		finally {
-			// Updating the tree viewer
-			Display.getDefault().asyncExec(new Runnable() {
-				public void run() {
-					if (projectTreeObject != null) {
-						viewer.refresh();
-						ISelection selection = new StructuredSelection(projectTreeObject);
-						viewer.setSelection(selection, true);
-						
-						if (defaultConnectorTreeObject != null)
-							defaultConnectorTreeObject.launchEditor();
-
-						TreeObjectEvent treeObjectEvent = null;
-						if (isCopy)
-							treeObjectEvent = new TreeObjectEvent(projectTreeObject,"name",originalName,projectName,0);
-						else
-							treeObjectEvent = new TreeObjectEvent(projectTreeObject);
-						ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectAdded(treeObjectEvent);
-
-						viewer.getControl().getDisplay().asyncExec(new Runnable() {
-							public void run() {
-								if (demoTraceTreeObject != null)
-									demoTraceTreeObject.play(false);
-							}
-						});
-						
+			catch(Exception e) {
+				Status status = null;
+				unloadedProjectTreeObject.isLoadable = false;
+				if (e.getCause() instanceof ProjectInMigrationProcessException)
+					status = new Status(Status.WARNING, ConvertigoPlugin.PLUGIN_UNIQUE_ID, 0, "Could not open project \""+projectName+"\" while it was still in migration check process", e);
+				else
+					status = new Status(Status.ERROR, ConvertigoPlugin.PLUGIN_UNIQUE_ID, 0, "Error while loading project " + projectName, e);
+				return status;
+			}
+			finally {
+				// Updating the tree viewer
+				Display.getDefault().asyncExec(new Runnable() {
+					public void run() {
+						if (projectTreeObject != null) {
+							viewer.refresh();
+							ISelection selection = new StructuredSelection(projectTreeObject);
+							viewer.setSelection(selection, true);
+							
+							if (defaultConnectorTreeObject != null)
+								defaultConnectorTreeObject.launchEditor();
+	
+							TreeObjectEvent treeObjectEvent = null;
+							if (isCopy)
+								treeObjectEvent = new TreeObjectEvent(projectTreeObject,"name",originalName,projectName,0);
+							else
+								treeObjectEvent = new TreeObjectEvent(projectTreeObject);
+							ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectAdded(treeObjectEvent);
+	
+							viewer.getControl().getDisplay().asyncExec(new Runnable() {
+								public void run() {
+									if (demoTraceTreeObject != null)
+										demoTraceTreeObject.play(false);
+								}
+							});
+							
+						}
 					}
-				}
-			});
+				});
+			}
 		}
 	}
 	
