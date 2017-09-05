@@ -226,16 +226,20 @@ public class CouchDbConnector extends Connector {
 
 	@Override
 	public void removeDocument(Document document) throws EngineException {
-		JSONObject jsonDocument = ((JsonDocument)document).getJSONObject();
-		String docid = CouchKey._id.String(jsonDocument);
-		if (docid != null) {
-			String rev = CouchKey._rev.String(jsonDocument);
-			if (rev == null) {
-				getCouchClient().deleteDocument(getDatabaseName(), docid, (Map<String, String>) null);
+		try {
+			JSONObject jsonDocument = ((JsonDocument)document).getJSONObject();
+			String docid = CouchKey._id.String(jsonDocument);
+			if (docid != null) {
+				String rev = CouchKey._rev.String(jsonDocument);
+				if (rev == null) {
+					getCouchClient().deleteDocument(getDatabaseName(), docid, (Map<String, String>) null);
+				}
+				else {
+					getCouchClient().deleteDocument(getDatabaseName(), docid, rev);
+				}
 			}
-			else {
-				getCouchClient().deleteDocument(getDatabaseName(), docid, rev);
-			}
+		} catch (Exception e) {
+			Engine.logBeans.warn("Failed to delete the document on the FullSync server: " + e);
 		}
 		
 		super.removeDocument(document);
