@@ -180,7 +180,9 @@ public class ApplicationComponentEditor extends EditorPart {
 	
 	@Override
 	public void dispose() {
-		c8oBrowser.dispose();
+		if (c8oBrowser != null) {
+			c8oBrowser.dispose();
+		}
 		
 		for (Process p: processes) {
 			p.destroyForcibly();

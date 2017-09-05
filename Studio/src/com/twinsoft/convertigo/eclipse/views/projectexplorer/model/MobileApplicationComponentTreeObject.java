@@ -236,8 +236,13 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 					activePage.activate(editorPart);
 				} else {
 					try {
-						editorPart = (ApplicationComponentEditor) activePage.openEditor(new ApplicationComponentEditorInput(application),
+						IEditorPart editor = activePage.openEditor(new ApplicationComponentEditorInput(application),
 								"com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor");
+						if (editor instanceof ApplicationComponentEditor) {
+							editorPart = (ApplicationComponentEditor) editor;
+						} else {
+							ConvertigoPlugin.logWarning("The Application Component Editor won't open, please see the error log.");
+						}
 					} catch (PartInitException e) {
 						ConvertigoPlugin.logException(e,
 								"Error while loading the page editor '"
