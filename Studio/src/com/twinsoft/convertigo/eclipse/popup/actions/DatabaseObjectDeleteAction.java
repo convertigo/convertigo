@@ -31,6 +31,11 @@ import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.MultiStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
@@ -156,12 +161,27 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
     						}
     					}
     					
-    					delete(treeObject);
     		        	
     					if (treeObject instanceof ProjectTreeObject) {
     		        		explorerView.removeProjectTreeObject(treeObject);
+    		        		final Project project = (Project) treeObject.getObject();
+    		        		Job rmProject = new Job("Remove '" + project.getName() + "' project") {
+
+								@Override
+								protected IStatus run(IProgressMonitor monitor) {
+		    		        		try {
+										delete(project);
+									} catch (Exception e) {
+										return new MultiStatus(ConvertigoPlugin.PLUGIN_UNIQUE_ID, IStatus.ERROR, "Failed to remove the '" + project.getName() + "' project.", e);
+									}
+									return Status.OK_STATUS;
+								}
+    		        			
+    		        		};
+    		        		rmProject.schedule();
     		        	}
     					else {
+        					delete(treeObject);
     						// prevents treeObject and its childs to receive further TreeObjectEvents
     						if (treeObject instanceof TreeObjectListener)
     							explorerView.removeTreeObjectListener(treeObject);
