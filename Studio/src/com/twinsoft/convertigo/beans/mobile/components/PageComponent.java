@@ -382,6 +382,25 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 		this.inAutoMenu = inAutoMenu;
 	}
 
+	private String menu = "";
+	
+	public String getMenu() {
+		return menu;
+	}
+
+	public void setMenu(String menu) {
+		this.menu = menu;
+	}
+	
+	protected String getMenuId() {
+		String menuId = "";
+		if (!menu.isEmpty() && menu.startsWith(getProject().getName())) {
+			try {
+				menuId = menu.substring(menu.lastIndexOf('.')+1);
+			} catch (IndexOutOfBoundsException e) {}
+		}
+		return menuId;
+	}
 	protected FormatedContent scriptContent = new FormatedContent("");
 
 	public FormatedContent getScriptContent() {
@@ -516,6 +535,18 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 	
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
+		// Page menu
+		String menuId = getMenuId();
+		if (!menuId.isEmpty()) {
+			try {
+				String constructor = "this.menuId = '" + menuId +"';" + System.lineSeparator();
+				String constructors = jsonScripts.getString("constructors") + constructor;
+				jsonScripts.put("constructors", constructors);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+		
 		// Page events
 		List<UIPageEvent> eventList = getUIPageEventList();
 		if (!eventList.isEmpty()) {

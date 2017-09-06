@@ -22,6 +22,9 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -42,6 +45,7 @@ import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput;
@@ -50,7 +54,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
-public class MobilePageComponentTreeObject extends MobileComponentTreeObject implements IEditableTreeObject, IOrderableTreeObject {
+public class MobilePageComponentTreeObject extends MobileComponentTreeObject implements IEditableTreeObject, IOrderableTreeObject, INamedSourceSelectorTreeObject {
 	
 	public MobilePageComponentTreeObject(Viewer viewer, PageComponent object) {
 		super(viewer, object);
@@ -278,5 +282,86 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 		} catch (EngineException e) {
 			ConvertigoPlugin.logException(e,
 					"Error while writing the page.ts file for page '" + page.getName() + "'");	}
+	}
+
+	@Override
+	public NamedSourceSelector getNamedSourceSelector() {
+		return new NamedSourceSelector() {
+
+			@Override
+			Object thisTreeObject() {
+				return MobilePageComponentTreeObject.this;
+			}
+			
+			@Override
+			protected List<String> getPropertyNamesForSource(Class<?> c) {
+				List<String> list = new ArrayList<String>();
+				
+				if (getObject() instanceof PageComponent) {
+					if (ProjectTreeObject.class.isAssignableFrom(c) ||
+						MobileApplicationTreeObject.class.isAssignableFrom(c) ||
+						MobileApplicationComponentTreeObject.class.isAssignableFrom(c) ||
+						MobileUIComponentTreeObject.class.isAssignableFrom(c))
+					{
+						list.add("menu");
+					}
+				}
+				
+				return list;
+			}
+			
+			@Override
+			protected boolean isNamedSource(String propertyName) {
+				if (getObject() instanceof PageComponent) {
+					return "menu".equals(propertyName);
+				}
+				return false;
+			}
+			
+			@Override
+			public boolean isSelectable(String propertyName, Object nsObject) {
+				if (getObject() instanceof PageComponent) {
+					if ("menu".equals(propertyName)) {
+						PageComponent pc = getObject();
+						if (nsObject instanceof UIDynamicMenu) {
+							return (((UIDynamicMenu)nsObject).getProject().equals(pc.getProject()));
+						}
+					}
+				}
+				return false;
+			}
+			
+			@Override
+			protected void handleSourceCleared(String propertyName) {
+				// nothing to do
+			}
+			
+			@Override
+			protected void handleSourceRenamed(String propertyName, String oldName, String newName) {
+				if (isNamedSource(propertyName)) {
+					boolean hasBeenRenamed = false;
+					
+					String pValue = (String) getPropertyValue(propertyName);
+					if (pValue != null && pValue.startsWith(oldName)) {
+						String _pValue = newName + pValue.substring(oldName.length());
+						if (!pValue.equals(_pValue)) {
+							if (getObject() instanceof PageComponent) {
+								if ("menu".equals(propertyName)) {
+									getObject().setMenu(_pValue);
+									hasBeenRenamed = true;
+								}
+							}
+						}
+					}
+			
+					if (hasBeenRenamed) {
+						hasBeenModified(true);
+						viewer.refresh();
+						
+						getDescriptors();// refresh editors (e.g labels in combobox)
+					}
+				}
+			}
+		};
 	}
 }

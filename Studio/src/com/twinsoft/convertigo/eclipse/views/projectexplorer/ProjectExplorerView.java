@@ -1126,7 +1126,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 									(theTreeObject instanceof TransactionTreeObject) || 
 									(theTreeObject instanceof VariableTreeObject2) || 
 									(theTreeObject instanceof IDesignTreeObject) ||
-									(theTreeObject instanceof MobilePageComponentTreeObject)) {								
+									(theTreeObject instanceof MobilePageComponentTreeObject) ||
+									(theTreeObject instanceof MobileUIComponentTreeObject)) {								
 								String objectType = "";
 								if (theTreeObject instanceof ProjectTreeObject) {
 									objectType = "project";
@@ -1152,6 +1153,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 								} else if (theTreeObject instanceof MobilePageComponentTreeObject) {
 									objectType = "page";
 									updateDlg = true;
+								} else if (theTreeObject instanceof MobileUIComponentTreeObject) {
+									objectType = "menu";
+									updateDlg = ((DatabaseObject)theTreeObject.getObject()) instanceof UIDynamicMenu ? true:false;
 								}
 								
 								if (updateDlg) {

@@ -55,6 +55,7 @@ import com.twinsoft.convertigo.beans.couchdb.AbstractFullSyncViewListener;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewContentProvider;
@@ -151,6 +152,9 @@ public class NamedSourceSelectorEditorComposite extends AbstractDialogComposite 
 						}
 					}
 					else if (object instanceof ApplicationComponent) {
+						for (UIDynamicMenu menu: ((ApplicationComponent)object).getMenuComponentList()) {
+							tvObject.addObject(menu);
+						}
 						for (PageComponent page: ((ApplicationComponent)object).getPageComponentList()) {
 							tvObject.addObject(page);
 						}
