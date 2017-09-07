@@ -69,6 +69,7 @@ import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
+import com.twinsoft.convertigo.engine.util.LogCleaner;
 import com.twinsoft.convertigo.engine.util.LogWrapper;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.tas.ApplicationException;
@@ -403,7 +404,9 @@ public class Engine {
 			// Logger for compatibility issues
 			Engine.log = new LogWrapper(Engine.logConvertigo);
 			LogWrapper.initWrapper(Engine.logEmulators);
-
+			
+			LogCleaner.start();
+			
 			try {
 				Engine.logEngine.info("===========================================================");
 				Engine.logEngine.info("Web app home: " + Engine.WEBAPP_PATH);
@@ -898,6 +901,8 @@ public class Engine {
 				}
 				Engine.theApp.eventManager = null;
 
+				LogCleaner.stop();
+				
 				isStarted = false;
 				RequestableObject.nbCurrentWorkerThreads = 0;
 
