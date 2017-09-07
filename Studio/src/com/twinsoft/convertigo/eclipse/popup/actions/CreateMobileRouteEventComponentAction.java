@@ -22,10 +22,41 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
+
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+import com.twinsoft.convertigo.engine.studio.ActionModel;
+import com.twinsoft.convertigo.engine.studio.DatabaseObjectsAction;
+
 public class CreateMobileRouteEventComponentAction extends DatabaseObjectCreateAction {
 	
 	public CreateMobileRouteEventComponentAction() {
 		super("com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent");
 	}
 
+	public void selectionChanged(IAction action, ISelection selection) {
+		try {
+			boolean enable = true;
+			super.selectionChanged(action, selection);
+			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
+			TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
+			if (treeObject instanceof ObjectsFolderTreeObject) {
+				ObjectsFolderTreeObject ofto = (ObjectsFolderTreeObject)treeObject;
+				enable = ofto.folderType == ObjectsFolderTreeObject.FOLDER_TYPE_EVENTS;
+				treeObject = ofto.getParent();
+			}
+			if (enable && treeObject instanceof DatabaseObjectTreeObject) {
+				DatabaseObject dbo = (DatabaseObject) treeObject.getObject();
+				ActionModel actionModel = DatabaseObjectsAction.selectionChanged(getClass().getName(), dbo);
+				enable = actionModel.isEnabled;
+			}
+			action.setEnabled(enable);
+		}
+		catch (Exception e) {}
+	}	
 }

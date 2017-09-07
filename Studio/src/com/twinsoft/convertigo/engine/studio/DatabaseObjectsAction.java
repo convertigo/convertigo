@@ -16,6 +16,7 @@ import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
+import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIAttribute;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlAttr;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
@@ -182,6 +183,16 @@ public class DatabaseObjectsAction {
 				if (!actionModel.isEnabled && dbo instanceof UIControlAttr) {
 				    actionModel.isEnabled = true;
 				}
+			}
+			break;
+			
+			case "com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileRouteActionComponentAction": {
+				actionModel.isEnabled = dbo instanceof RouteComponent;
+			}
+			break;
+			
+			case "com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileRouteEventComponentAction": {
+				actionModel.isEnabled = dbo instanceof RouteComponent;
 			}
 			break;
 			

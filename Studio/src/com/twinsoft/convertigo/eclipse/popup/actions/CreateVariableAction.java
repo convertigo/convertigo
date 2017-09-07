@@ -27,6 +27,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.studio.ActionModel;
@@ -45,9 +46,11 @@ public class CreateVariableAction extends DatabaseObjectCreateAction {
 			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 			TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
 			if (treeObject instanceof ObjectsFolderTreeObject) {
-				enable = ((ObjectsFolderTreeObject)treeObject).folderType == ObjectsFolderTreeObject.FOLDER_TYPE_VARIABLES;
+				ObjectsFolderTreeObject ofto = (ObjectsFolderTreeObject)treeObject;
+				enable = ofto.folderType == ObjectsFolderTreeObject.FOLDER_TYPE_VARIABLES;
+				treeObject = ofto.getParent();
 			}
-			else {
+			if (enable && treeObject instanceof DatabaseObjectTreeObject) {
 				DatabaseObject dbo = (DatabaseObject) treeObject.getObject();
 				ActionModel actionModel = DatabaseObjectsAction.selectionChanged(getClass().getName(), dbo);
 				enable = actionModel.isEnabled;
@@ -55,6 +58,6 @@ public class CreateVariableAction extends DatabaseObjectCreateAction {
 			action.setEnabled(enable);
 		}
 		catch (Exception e) {}
-	}
+	}	
 	
 }
