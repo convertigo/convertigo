@@ -122,6 +122,9 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 			if (AttrDirective.ForEach.equals(attrDirective)) {
 				String item = "item"+ this.priority;
 				children.append("let "+ item).append(" of ").append(sbListen);
+				if (!directiveExpression.trim().startsWith(";")) {
+					children.append(";");
+				}
 			}
 			else {
 				children.append(sbListen);
