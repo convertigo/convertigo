@@ -364,7 +364,14 @@ public class MobileBuilder {
 		return null;
 	}
 	
-	public String getTempTsRelativePath(PageComponent page, String functionMarker) throws EngineException {
+	public String getFunctionTempTsRelativePath(PageComponent page) {
+		String pageName = page.getName();
+		File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
+		File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".function.temp.ts");
+		return tempTsFile.getPath().replace(projectDir.getPath(), "/");
+	}
+	
+	public void writeFunctionTempTsFile(PageComponent page, String functionMarker) throws EngineException {
 		try {
 			if (page != null) {
 				String pageName = page.getName();
@@ -393,14 +400,11 @@ public class MobileBuilder {
 				
 				File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".function.temp.ts");
 				FileUtils.write(tempTsFile, tsContent, "UTF-8");
-				String filePath = tempTsFile.getPath().replace(projectDir.getPath(), "/");
-				return filePath;
 			}
 		}
 		catch (Exception e) {
 			throw new EngineException("Unable to write function temp ts file",e);
 		}
-		return null;
 	}
 
 	private void writePageTempTs(PageComponent page) throws EngineException {
