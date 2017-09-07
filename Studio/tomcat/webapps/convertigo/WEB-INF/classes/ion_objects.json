@@ -1023,7 +1023,8 @@
       "icon32": "img_HTML_color_32x32.png",
       "properties": {
         "url": {
-          "attr": "src",
+          "mode":"script",
+          "attr": "[src]",
           "label": "src",
           "description": "The image url. Can be absolute (http(s)://) or relative to project (../assets/myimage.png). Can also be a Base64 Embedded images (data:image/png;base64,iVBORw0.......)",
           "category": "Attributes",
