@@ -226,6 +226,8 @@
       "category": "Attributes",
       "values": [
         false,
+		"icon-start",
+		"icon-end",
         "icon-left",
         "icon-right",
         "icon-only"
@@ -847,6 +849,14 @@
       "properties": {
       }
     },
+    "SpanTag": {
+      "tag": "span",
+      "label": "Span",
+      "description": "Defines a span tag. | This the standard HTML5 span tag. You can use this to write your own HTML in a page.",
+      "group": "HTML",
+      "properties": {
+      }
+    },
 
     "Heading1": {
       "tag": "h1",
@@ -1044,6 +1054,12 @@
             false,
             true
           ]
+        },
+        "alt": {
+          "attr": "alt",
+          "label": "alt",
+          "description": "Set the alt attribute which gets assigned to the inner img element.",
+          "category": "Attributes"          
         }
       }
     },
