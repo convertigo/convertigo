@@ -25,6 +25,8 @@ package com.twinsoft.convertigo.engine.mobile;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -43,6 +45,14 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 
 public class MobileBuilder {
+	private static ThreadLocal<Collection<File>> writtenFiles = new ThreadLocal<Collection<File>>() {
+
+		@Override
+		protected Collection<File> initialValue() {
+			return new HashSet<File>();
+		}
+		
+	};
 	
 	private Project project = null;
 	boolean initDone = false;
@@ -56,6 +66,7 @@ public class MobileBuilder {
 			} catch (Exception e) {
 				Engine.logEngine.error("Failed to initialize mobile builder for project \""+project.getName()+"\"", e);
 			}
+			moveFiles();
 		}
 	}
 	
@@ -89,6 +100,7 @@ public class MobileBuilder {
 			if (appComponentTsFile.exists()) {
 				writeAppComponentTempTs(app);
 			}
+			moveFiles();
 			Engine.logEngine.debug("(MobileBuilder) Handled 'appRootChanged'");
 		}
 	}
@@ -100,6 +112,7 @@ public class MobileBuilder {
 			if (appComponentTsFile.exists()) {
 				writeAppComponentTempTs(app);
 			}
+			moveFiles();
 			Engine.logEngine.debug("(MobileBuilder) Handled 'appRouteChanged'");
 		}
 	}
@@ -129,6 +142,7 @@ public class MobileBuilder {
 	public synchronized void pageEnabled(final PageComponent page) throws EngineException {
 		if (page != null && page.isEnabled() && initDone) {
 			addPage(page);
+			moveFiles();
 			Engine.logEngine.debug("(MobileBuilder) Handled 'pageEnabled'");
 		}
 	}
@@ -136,6 +150,7 @@ public class MobileBuilder {
 	public synchronized void pageDisabled(final PageComponent page) throws EngineException {
 		if (page != null && !page.isEnabled() && initDone) {
 			removePage(page);
+			moveFiles();
 			Engine.logEngine.debug("(MobileBuilder) Handled 'pageDisabled'");
 		}
 	}
@@ -144,12 +159,14 @@ public class MobileBuilder {
 		if (page != null && page.isEnabled() && page.bNew && initDone) {
 			addPage(page);
 			Engine.logEngine.debug("(MobileBuilder) Handled 'pageAdded'");
+			moveFiles();
 		}
 	}
 	
 	public synchronized void pageRemoved(final PageComponent page) throws EngineException {
 		if (page != null && page.isEnabled() && initDone) {
 			removePage(page);
+			moveFiles();
 			Engine.logEngine.debug("(MobileBuilder) Handled 'pageRemoved'");
 		}
 	}
@@ -163,6 +180,7 @@ public class MobileBuilder {
 					writePageSourceFiles(page);
 					writeAppSourceFiles(application);
 					removeUselessPage(oldName);
+					moveFiles();
 					Engine.logEngine.debug("(MobileBuilder) Handled 'pageRenamed'");
 				}
 			}
@@ -172,6 +190,7 @@ public class MobileBuilder {
 	public synchronized void pageTemplateChanged(final PageComponent page) throws EngineException {
 		if (page != null && page.isEnabled() && initDone) {
 			writePageTemplate(page);
+			moveFiles();
 			Engine.logEngine.debug("(MobileBuilder) Handled 'pageComputed'");
 		}
 	}
@@ -179,6 +198,7 @@ public class MobileBuilder {
 	public synchronized void pageStyleChanged(final PageComponent page) throws EngineException {
 		if (page != null && page.isEnabled() && initDone) {
 			writePageStyle(page);
+			moveFiles();
 			Engine.logEngine.debug("(MobileBuilder) Handled 'pageStyleChanged'");
 		}
 	}
@@ -186,6 +206,7 @@ public class MobileBuilder {
 	public synchronized void pageTsChanged(final PageComponent page) throws EngineException {
 		if (page != null && page.isEnabled() && initDone) {
 			writePageTs(page);
+			moveFiles();
 			Engine.logEngine.debug("(MobileBuilder) Handled 'pageTsChanged'");
 		}
 	}
@@ -193,6 +214,7 @@ public class MobileBuilder {
 	public synchronized void appStyleChanged(final ApplicationComponent app) throws EngineException {
 		if (app != null && initDone) {
 			writeAppStyle(app);
+			moveFiles();
 			Engine.logEngine.debug("(MobileBuilder) Handled 'appStyleChanged'");
 		}
 	}
@@ -200,6 +222,7 @@ public class MobileBuilder {
 	public synchronized void appTemplateChanged(final ApplicationComponent app) throws EngineException {
 		if (app != null && initDone) {
 			writeAppTemplate(app);
+			moveFiles();
 			Engine.logEngine.debug("(MobileBuilder) Handled 'appTemplateChanged'");
 		}
 	}
@@ -207,6 +230,7 @@ public class MobileBuilder {
 	public synchronized void appThemeChanged(final ApplicationComponent app) throws EngineException {
 		if (app != null && initDone) {
 			writeAppTheme(app);
+			moveFiles();
 			Engine.logEngine.debug("(MobileBuilder) Handled 'appThemeChanged'");
 		}
 	}
@@ -214,6 +238,7 @@ public class MobileBuilder {
 	public synchronized void appCompTsChanged(final ApplicationComponent app) throws EngineException {
 		if (app != null && initDone) {
 			writeAppComponentTs(app);
+			moveFiles();
 			Engine.logEngine.debug("(MobileBuilder) Handled 'appCompTsChanged'");
 		}
 	}
@@ -221,6 +246,7 @@ public class MobileBuilder {
 	public synchronized void appModuleTsChanged(final ApplicationComponent app) throws EngineException {
 		if (app != null && initDone) {
 			writeAppModuleTs(app);
+			moveFiles();
 			Engine.logEngine.debug("(MobileBuilder) Handled 'appModuleTsChanged'");
 		}
 	}
@@ -271,7 +297,7 @@ public class MobileBuilder {
 				String content = FileUtils.readFileToString(f, "UTF-8");
 				content = content.replaceAll("../DisplayObjects","../../DisplayObjects");
 				content = content.replaceAll("../Flashupdate","../../Flashupdate");
-				FileUtils.write(f, content, "UTF-8");
+				writeFile(f, content, "UTF-8");
 			}
 			Engine.logEngine.debug("(MobileBuilder) Ionic configuration files updated");
 		}
@@ -318,7 +344,7 @@ public class MobileBuilder {
 				File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
 				File pageHtmlFile = new File(pageDir, pageName.toLowerCase() + ".html");
 				String computedTemplate = page.getComputedTemplate();
-				FileUtils.write(pageHtmlFile, computedTemplate, "UTF-8");
+				writeFile(pageHtmlFile, computedTemplate, "UTF-8");
 				
 				Engine.logEngine.debug("(MobileBuilder) Ionic template file generated for page '"+pageName+"'");
 			}
@@ -335,7 +361,7 @@ public class MobileBuilder {
 				File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
 				File pageScssFile = new File(pageDir, pageName.toLowerCase() + ".scss");
 				String computedScss = page.getComputedStyle();
-				FileUtils.write(pageScssFile, computedScss, "UTF-8");
+				writeFile(pageScssFile, computedScss, "UTF-8");
 				
 				Engine.logEngine.debug("(MobileBuilder) Ionic scss file generated for page '"+pageName+"'");
 			}
@@ -399,7 +425,8 @@ public class MobileBuilder {
 				}
 				
 				File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".function.temp.ts");
-				FileUtils.write(tempTsFile, tsContent, "UTF-8");
+				writeFile(tempTsFile, tsContent, "UTF-8");
+				moveFiles();
 			}
 		}
 		catch (Exception e) {
@@ -440,7 +467,7 @@ public class MobileBuilder {
 				}
 				
 				File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".temp.ts");
-				FileUtils.write(tempTsFile, tsContent, "UTF-8");
+				writeFile(tempTsFile, tsContent, "UTF-8");
 			}
 		}
 		catch (Exception e) {
@@ -454,7 +481,7 @@ public class MobileBuilder {
 				String pageName = page.getName();
 				File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
 				File pageTsFile = new File(pageDir, pageName.toLowerCase() + ".ts");
-				FileUtils.write(pageTsFile, getPageTsContent(page), "UTF-8");
+				writeFile(pageTsFile, getPageTsContent(page), "UTF-8");
 				
 				Engine.logEngine.debug("(MobileBuilder) Ionic ts file generated for page '"+pageName+"'");
 			}
@@ -542,7 +569,7 @@ public class MobileBuilder {
 				mContent = mContent.replaceAll("/\\*\\=c8o_PagesLinks\\*/",c8o_PagesLinks);
 				mContent = mContent.replaceAll("/\\*\\=c8o_PagesDeclarations\\*/",c8o_PagesDeclarations);
 				File appModuleTsFile = new File(ionicWorkDir, "src/app/app.module.ts");
-				FileUtils.write(appModuleTsFile, mContent, "UTF-8");
+				writeFile(appModuleTsFile, mContent, "UTF-8");
 				
 				Engine.logEngine.debug("(MobileBuilder) Ionic module ts file generated for 'app'");
 			}
@@ -595,7 +622,7 @@ public class MobileBuilder {
 				}
 				
 				File appComponentTsFile = new File(ionicWorkDir, "src/app/app.component.ts");
-				FileUtils.write(appComponentTsFile, cContent, "UTF-8");
+				writeFile(appComponentTsFile, cContent, "UTF-8");
 				
 				Engine.logEngine.debug("(MobileBuilder) Ionic component ts file generated for 'app'");
 			}
@@ -625,7 +652,7 @@ public class MobileBuilder {
 				String appName = app.getName();
 				File appHtmlFile = new File(ionicWorkDir, "src/app/app.html");
 				String computedTemplate = app.getComputedTemplate();
-				FileUtils.write(appHtmlFile, computedTemplate, "UTF-8");
+				writeFile(appHtmlFile, computedTemplate, "UTF-8");
 				Engine.logEngine.debug("(MobileBuilder) Ionic template file generated for app '"+appName+"'");
 			}
 		}
@@ -640,7 +667,7 @@ public class MobileBuilder {
 				String appName = app.getName();
 				File appScssFile = new File(ionicWorkDir, "src/app/app.scss");
 				String computedScss = app.getComputedStyle();
-				FileUtils.write(appScssFile, computedScss, "UTF-8");
+				writeFile(appScssFile, computedScss, "UTF-8");
 				
 				Engine.logEngine.debug("(MobileBuilder) Ionic scss file generated for app '"+appName+"'");
 			}
@@ -656,7 +683,7 @@ public class MobileBuilder {
 				String appName = app.getName();
 				File themeScssFile = new File(ionicWorkDir, "src/theme/variables.scss");
 				String tContent = app.getComputedTheme();
-				FileUtils.write(themeScssFile, tContent, "UTF-8");
+				writeFile(themeScssFile, tContent, "UTF-8");
 				
 				Engine.logEngine.debug("(MobileBuilder) Ionic theme scss file generated for app '"+appName+"'");
 			}
@@ -755,5 +782,32 @@ public class MobileBuilder {
 			}
 		}
 		return "";
+	}
+	
+	private static File toTmpFile(File file) {
+		return new File(file.getAbsolutePath().replaceFirst("_private(/|\\\\)ionic", "_private$1ionic_tmp"));
+	}
+	
+	private static void writeFile(File file, CharSequence content, String encoding) throws IOException {
+		File nFile = toTmpFile(file); 
+		Engine.logEngine.debug("(MobileBuilder) Defers the write of " + content.length() + " chars to " + nFile.getPath());
+		nFile.getParentFile().mkdirs();
+		writtenFiles.get().add(file);
+		FileUtils.write(nFile, content, encoding);
+	}
+	
+	private static void moveFiles() {
+		StackTraceElement parentMethod = Thread.currentThread().getStackTrace()[3];
+		if (!parentMethod.getClassName().equals("com.twinsoft.convertigo.engine.mobile.MobileBuilder")) {
+			Collection<File> files = writtenFiles.get();
+			Engine.logEngine.debug("(MobileBuilder) Start to move " + files.size() + " files.");
+			for (File file: writtenFiles.get()) {
+				File nFile = toTmpFile(file);
+				file.delete();
+				nFile.renameTo(file);
+			}
+			Engine.logEngine.debug("(MobileBuilder) End to move " + files.size() + " files.");
+			writtenFiles.get().clear();
+		}
 	}
 }
