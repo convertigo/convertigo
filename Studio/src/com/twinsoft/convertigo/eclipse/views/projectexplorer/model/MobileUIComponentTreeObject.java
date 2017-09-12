@@ -215,22 +215,23 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 	
 	private void openHtmlFileEditor() {
 		final UICustom mc = (UICustom)getObject();
-		String filePath = "/_private/" + mc.getQName() + " " + mc.getName()+".html";
+		String filePath = "/_private/" + mc.priority+".html";
 		try {
 			// Refresh project resource
 			String projectName = mc.getProject().getName();
 			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
-			
-			// Create temporary file if needed
 			IFile file = project.getFile(filePath);
-			if (!file.exists()) {
-				try {
-					InputStream is = new ByteArrayInputStream(mc.getCustomTemplate().getBytes("ISO-8859-1"));
-					file.create(is, true, null);
-					file.setCharset("ISO-8859-1", null);
-				} catch (UnsupportedEncodingException e) {
-				}
-			}
+			
+			// Close editor
+			closeComponentFileEditor(file);
+			
+			// Write html file
+			try {
+				InputStream is = new ByteArrayInputStream(mc.getCustomTemplate().getBytes("ISO-8859-1"));
+				file.create(is, true, null);
+				file.setCharset("ISO-8859-1", null);
+			} catch (UnsupportedEncodingException e) {}
+			file.refreshLocal(IResource.DEPTH_ZERO, null);
 			
 			// Open file in editor
 			if (file.exists()) {
@@ -305,22 +306,24 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 	
 	private void openCssFileEditor() {
 		final UIStyle ms = (UIStyle)getObject();
-		String filePath = "/_private/" + ms.getQName() + " " + ms.getName()+".css";
+		String filePath = "/_private/" + ms.priority+".css";
 		try {
 			// Refresh project resource
 			String projectName = ms.getProject().getName();
 			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
-			
-			// Create temporary file if needed
 			IFile file = project.getFile(filePath);
-			if (!file.exists()) {
-				try {
-					String content = formatStyleContent(ms);
-					InputStream is = new ByteArrayInputStream(content.getBytes("UTF-8"));
-					file.create(is, true, null);
-					file.setCharset("UTF-8", null);
-				} catch (UnsupportedEncodingException e) {}
-			}
+			
+			// Close editor
+			closeComponentFileEditor(file);
+			
+			// Write css file
+			try {
+				String content = formatStyleContent(ms);
+				InputStream is = new ByteArrayInputStream(content.getBytes("UTF-8"));
+				file.create(is, true, null);
+				file.setCharset("UTF-8", null);
+			} catch (UnsupportedEncodingException e) {}
+			file.refreshLocal(IResource.DEPTH_ZERO, null);
 			
 			// Open file in editor
 			if (file.exists()) {
