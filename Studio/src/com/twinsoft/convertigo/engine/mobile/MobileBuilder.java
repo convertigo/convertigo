@@ -96,11 +96,12 @@ public class MobileBuilder {
 	public synchronized void appRootChanged(final ApplicationComponent app) throws EngineException {
 		if (app != null && initDone) {
 			writeAppComponentTs(app);
+			moveFiles();
+			
 			File appComponentTsFile = new File(ionicWorkDir, "src/app/app.component.temp.ts");
 			if (appComponentTsFile.exists()) {
 				writeAppComponentTempTs(app);
 			}
-			moveFiles();
 			Engine.logEngine.debug("(MobileBuilder) Handled 'appRootChanged'");
 		}
 	}
@@ -108,11 +109,12 @@ public class MobileBuilder {
 	public synchronized void appRouteChanged(final ApplicationComponent app) throws EngineException {
 		if (app != null && initDone) {
 			writeAppComponentTs(app);
+			moveFiles();
+			
 			File appComponentTsFile = new File(ionicWorkDir, "src/app/app.component.temp.ts");
 			if (appComponentTsFile.exists()) {
 				writeAppComponentTempTs(app);
 			}
-			moveFiles();
 			Engine.logEngine.debug("(MobileBuilder) Handled 'appRouteChanged'");
 		}
 	}
@@ -424,9 +426,9 @@ public class MobileBuilder {
 					}
 				}
 				
+				// Write file (do not need delay)
 				File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".function.temp.ts");
-				writeFile(tempTsFile, tsContent, "UTF-8");
-				moveFiles();
+				FileUtils.write(tempTsFile, tsContent, "UTF-8");
 			}
 		}
 		catch (Exception e) {
@@ -466,8 +468,9 @@ public class MobileBuilder {
 									+ System.lineSeparator() + "}";
 				}
 				
+				// Write file (do not need delay)
 				File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".temp.ts");
-				writeFile(tempTsFile, tsContent, "UTF-8");
+				FileUtils.write(tempTsFile, tsContent, "UTF-8");
 			}
 		}
 		catch (Exception e) {
@@ -638,6 +641,7 @@ public class MobileBuilder {
 				File appTsFile = new File(ionicWorkDir, "src/app/app.component.ts");
 				File tempTsFile = new File(ionicWorkDir, "src/app/app.component.temp.ts");
 				
+				// Write file (do not need delay)
 				FileUtils.copyFile(appTsFile, tempTsFile);
 			}
 		}
