@@ -79,16 +79,19 @@ public class HttpConnectorComposite extends AbstractConnectorComposite implement
 	public void dataChanged(ConnectorEvent connectorEvent) {
 		if (!checkEventSource(connectorEvent))
 			return;
-		setTextData((byte[])connectorEvent.data);
+		setTextData((String) connectorEvent.data);
 	}
 	
-	private void setTextData(byte[] data) {
+	private void setTextData(String data) {
 		if (data != null) {
-			final byte[] buf = data;
 			httpData.getDisplay().asyncExec(new Runnable() {
 				public void run() {
 					try {
-						httpData.setText(new String(buf));
+						if (data.length() < 10000) {
+							httpData.setText(data);	
+						} else {
+							httpData.setText(data.substring(0, 10000));
+						}
 					}
 					catch (Exception e) {;}
 				};

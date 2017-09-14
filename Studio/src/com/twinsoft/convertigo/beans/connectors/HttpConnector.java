@@ -1137,8 +1137,18 @@ public class HttpConnector extends Connector {
 			// Fire event for plugins
 			long t1 = System.currentTimeMillis();
 			Engine.theApp.pluginsManager.fireHttpConnectorGetDataEnd(context, t0, t1);
+			
+			StringBuilder sb = new StringBuilder();
+			sb.append("HTTP result {ContentType: " + context.contentType + ", Length: " + result.length + "}\n\n");
+			
+			if (context.contentType != null
+					&& ( context.contentType.startsWith("text/")
+					|| context.contentType.startsWith("application/xml")
+					|| context.contentType.startsWith("application/json"))) {
+				sb.append(new String(result, "UTF-8"));
+			}
 
-			fireDataChanged(new ConnectorEvent(this, result));
+			fireDataChanged(new ConnectorEvent(this, sb.toString()));
 
 			return result;
 		} finally {
