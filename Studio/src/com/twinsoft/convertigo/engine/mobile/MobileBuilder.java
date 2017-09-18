@@ -793,24 +793,29 @@ public class MobileBuilder {
 	}
 	
 	private static void writeFile(File file, CharSequence content, String encoding) throws IOException {
+	/*
 		File nFile = toTmpFile(file); 
 		Engine.logEngine.debug("(MobileBuilder) Defers the write of " + content.length() + " chars to " + nFile.getPath());
 		nFile.getParentFile().mkdirs();
 		writtenFiles.get().add(file);
 		FileUtils.write(nFile, content, encoding);
+	*/
+		FileUtils.write(file, content, encoding);
 	}
 	
 	private static void moveFiles() {
 		StackTraceElement parentMethod = Thread.currentThread().getStackTrace()[3];
 		if (!parentMethod.getClassName().equals("com.twinsoft.convertigo.engine.mobile.MobileBuilder")) {
 			Collection<File> files = writtenFiles.get();
-			Engine.logEngine.debug("(MobileBuilder) Start to move " + files.size() + " files.");
-			for (File file: writtenFiles.get()) {
-				File nFile = toTmpFile(file);
-				file.delete();
-				nFile.renameTo(file);
+			if (files.size() > 0) {
+				Engine.logEngine.debug("(MobileBuilder) Start to move " + files.size() + " files.");
+				for (File file: writtenFiles.get()) {
+					File nFile = toTmpFile(file);
+					file.delete();
+					nFile.renameTo(file);
+				}
+				Engine.logEngine.debug("(MobileBuilder) End to move " + files.size() + " files.");
 			}
-			Engine.logEngine.debug("(MobileBuilder) End to move " + files.size() + " files.");
 			writtenFiles.get().clear();
 		}
 	}
