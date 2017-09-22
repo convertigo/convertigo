@@ -31,6 +31,7 @@ import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
@@ -466,9 +467,31 @@ public class DatabaseObjectsManager implements AbstractManager {
 	public void deleteProject(String projectName, boolean bCreateBackup, boolean bDataOnly)
 			throws EngineException {
 		try {
+			// Remove all pooled related contexts in server mode
+			if (Engine.isEngineMode()) {
+				// Bugfix #1659: do not call getProjectByName() if the migration
+				// process is ongoing!
+				if (!(Thread.currentThread() instanceof MigrationJob)) {
+					Project projectToDelete = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
+					for (Connector connector : projectToDelete.getConnectorsList()) {
+						Engine.theApp.contextManager.removeDevicePool(connector.getQName());
+					}
+					Engine.theApp.contextManager.removeAll("/" + projectName);
+				}
+			}
+			File projectDir = new File(Engine.PROJECTS_PATH + "/" + projectName);
+			File removeDir = projectDir;
+			
+			if (!bDataOnly) {
+				StringBuilder sb = new StringBuilder(Engine.PROJECTS_PATH + "/_remove_" + projectName);
+				while (!projectDir.renameTo(removeDir = new File(sb.toString()))) {
+					sb.append('_');
+				}
+			}
+			
 			if (bCreateBackup && EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ZIP_BACKUP_OLD_PROJECT)) {
 				Engine.logDatabaseObjectManager.info("Making backup of project \"" + projectName + "\"");
-				makeProjectBackup(projectName);
+				makeProjectBackup(projectName, removeDir);
 			}
 
 			if (bDataOnly) {
@@ -482,21 +505,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 				deleteDir(new File(privateDir));
 			} else {
 				Engine.logDatabaseObjectManager.info("Deleting  project \"" + projectName + "\"");
-				String projectDir = Engine.PROJECTS_PATH + "/" + projectName;
-				deleteDir(new File(projectDir));
-			}
-
-			// Remove all pooled related contexts in server mode
-			if (Engine.isEngineMode()) {
-				// Bugfix #1659: do not call getProjectByName() if the migration
-				// process is ongoing!
-				if (!(Thread.currentThread() instanceof MigrationJob)) {
-					Project projectToDelete = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
-					for (Connector connector : projectToDelete.getConnectorsList()) {
-						Engine.theApp.contextManager.removeDevicePool(connector.getQName());
-					}
-					Engine.theApp.contextManager.removeAll("/" + projectName);
-				}
+				//String projectDir = Engine.PROJECTS_PATH + "/" + projectName;
+				deleteDir(removeDir);
 			}
 
 			clearCache(projectName);
@@ -521,6 +531,22 @@ public class DatabaseObjectsManager implements AbstractManager {
 		Engine.logDatabaseObjectManager.trace("Deleting the directory \"" + dir.getAbsolutePath() + "\"");
 		if (dir.exists()) {
 			if (dir.isDirectory()) {
+				int code = -1;
+				try {
+					if (Engine.isWindows()) {
+						code = new ProcessBuilder("cmd.exe", "/C", "rmdir", "/s", "/q", dir.getCanonicalPath()).start().waitFor();
+					} else {
+						code = new ProcessBuilder("rm", "-rf", dir.getCanonicalPath()).start().waitFor();
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				
+				if (code == 0) {
+					Engine.logDatabaseObjectManager.trace("Deleting the file \"" + dir.getAbsolutePath() + "\" by a native command.");
+					return;
+				}
+				
 				String[] children = dir.list();
 				File subdir;
 				for (int i = 0; i < children.length; i++) {
@@ -537,11 +563,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 	}
 
-	public void makeProjectBackup(String projectName) throws EngineException {
+	public void makeProjectBackup(String projectName, File projectDir) throws EngineException {
 		try {
-			String projectDir = Engine.PROJECTS_PATH + "/" + projectName;
 			
-			if (new File(projectDir).exists()) {
+			if (projectDir.exists()) {
 				Calendar calendar = Calendar.getInstance();
 				int iMonth = (calendar.get(Calendar.MONTH) + 1);
 				int iDay = calendar.get(Calendar.DAY_OF_MONTH);
@@ -560,7 +585,11 @@ public class DatabaseObjectsManager implements AbstractManager {
 				}
 	
 				// Creating backup
-				ZipUtils.makeZip(projectArchiveFilename, projectDir, projectName);
+				ZipUtils.makeZip(projectArchiveFilename, projectDir.getPath(), projectName, Arrays.asList(
+						new File(projectDir, "_private"),
+						new File(projectDir, ".git"),
+						new File(projectDir, ".svn")
+				));
 			} else {
 				Engine.logEngine.warn("Cannot make project archive, the folder '" + projectDir + "' doesn't exist.");
 			}
