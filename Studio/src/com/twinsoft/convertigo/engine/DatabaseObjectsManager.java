@@ -539,11 +539,11 @@ public class DatabaseObjectsManager implements AbstractManager {
 						code = new ProcessBuilder("rm", "-rf", dir.getCanonicalPath()).start().waitFor();
 					}
 				} catch (Exception e) {
-					e.printStackTrace();
+					Engine.logDatabaseObjectManager.debug("Deleting the file \"" + dir.getAbsolutePath() + "\" failed with the native command: (" + e.getClass() + ") " + e.getMessage());
 				}
 				
 				if (code == 0) {
-					Engine.logDatabaseObjectManager.trace("Deleting the file \"" + dir.getAbsolutePath() + "\" by a native command.");
+					Engine.logDatabaseObjectManager.debug("Deleting the file \"" + dir.getAbsolutePath() + "\" by a native command.");
 					return;
 				}
 				
