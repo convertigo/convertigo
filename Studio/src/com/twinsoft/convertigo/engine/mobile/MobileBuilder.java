@@ -25,9 +25,9 @@ package com.twinsoft.convertigo.engine.mobile;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,17 +45,19 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 
 public class MobileBuilder {
-	private static ThreadLocal<Collection<File>> writtenFiles = new ThreadLocal<Collection<File>>() {
-
-		@Override
-		protected Collection<File> initialValue() {
-			return new HashSet<File>();
-		}
-		
-	};
+//	private static ThreadLocal<Collection<File>> writtenFiles = new ThreadLocal<Collection<File>>() {
+//
+//		@Override
+//		protected Collection<File> initialValue() {
+//			return new HashSet<File>();
+//		}
+//		
+//	};
 	
 	private Project project = null;
 	boolean initDone = false;
+	boolean autoBuild = true;
+	Set<File> writtenFiles = new HashSet<File>();
 	
 	File projectDir, ionicTplDir, ionicWorkDir;
 	
@@ -66,7 +68,6 @@ public class MobileBuilder {
 			} catch (Exception e) {
 				Engine.logEngine.error("Failed to initialize mobile builder for project \""+project.getName()+"\"", e);
 			}
-			moveFiles();
 		}
 	}
 	
@@ -408,6 +409,14 @@ public class MobileBuilder {
 				String tsContent;
 				if (page.isEnabled()) {
 					File pageTsFile = new File(pageDir, pageName.toLowerCase() + ".ts");
+					
+					if (writtenFiles.contains(pageTsFile)) {
+						File pageTsFileTmp = toTmpFile(pageTsFile);
+						if (pageTsFileTmp.exists()) {
+							pageTsFile = pageTsFileTmp;
+						}
+					}
+					
 					tsContent = FileUtils.readFileToString(pageTsFile, "UTF-8");
 				} else {
 					tsContent = getPageTsContent(page);
@@ -445,6 +454,14 @@ public class MobileBuilder {
 				String tsContent;
 				if (page.isEnabled()) {
 					File pageTsFile = new File(pageDir, pageName.toLowerCase() + ".ts");
+					
+					if (writtenFiles.contains(pageTsFile)) {
+						File pageTsFileTmp = toTmpFile(pageTsFile);
+						if (pageTsFileTmp.exists()) {
+							pageTsFile = pageTsFileTmp;
+						}
+					}
+					
 					tsContent = FileUtils.readFileToString(pageTsFile, "UTF-8");
 				} else {
 					tsContent = getPageTsContent(page);
@@ -761,6 +778,14 @@ public class MobileBuilder {
 		}
 	}
 	
+	public void setAutoBuild(boolean autoBuild) {
+		this.autoBuild = autoBuild;
+		if (autoBuild) {
+			moveFilesForce();
+		}
+		
+	}
+	
 	public static String getMarkers(String content) {
 		String markers = "";
 		Pattern pattern = Pattern.compile("/\\*Begin_c8o_(.+)\\*/"); // begin c8o marker
@@ -792,31 +817,41 @@ public class MobileBuilder {
 		return new File(file.getAbsolutePath().replaceFirst("_private(/|\\\\)ionic", "_private$1ionic_tmp"));
 	}
 	
-	private static void writeFile(File file, CharSequence content, String encoding) throws IOException {
-	/*
-		File nFile = toTmpFile(file); 
-		Engine.logEngine.debug("(MobileBuilder) Defers the write of " + content.length() + " chars to " + nFile.getPath());
-		nFile.getParentFile().mkdirs();
-		writtenFiles.get().add(file);
-		FileUtils.write(nFile, content, encoding);
-	*/
-		FileUtils.write(file, content, encoding);
+	private void writeFile(File file, CharSequence content, String encoding) throws IOException {
+		if (initDone) {
+			File nFile = toTmpFile(file); 
+			Engine.logEngine.debug("(MobileBuilder) Defers the write of " + content.length() + " chars to " + nFile.getPath());
+			nFile.getParentFile().mkdirs();
+			writtenFiles.add(file);
+			FileUtils.write(nFile, content, encoding);
+		} else {
+			FileUtils.write(file, content, encoding);
+		}
 	}
 	
-	private static void moveFiles() {
-		StackTraceElement parentMethod = Thread.currentThread().getStackTrace()[3];
-		if (!parentMethod.getClassName().equals("com.twinsoft.convertigo.engine.mobile.MobileBuilder")) {
-			Collection<File> files = writtenFiles.get();
-			if (files.size() > 0) {
-				Engine.logEngine.debug("(MobileBuilder) Start to move " + files.size() + " files.");
-				for (File file: writtenFiles.get()) {
-					File nFile = toTmpFile(file);
-					file.delete();
-					nFile.renameTo(file);
-				}
-				Engine.logEngine.debug("(MobileBuilder) End to move " + files.size() + " files.");
+	private void moveFiles() {
+		if (autoBuild) {
+			StackTraceElement parentMethod = Thread.currentThread().getStackTrace()[3];
+			if (!parentMethod.getClassName().equals("com.twinsoft.convertigo.engine.mobile.MobileBuilder")) {
+				moveFilesForce();
 			}
-			writtenFiles.get().clear();
 		}
+	}
+	
+	private void moveFilesForce() {
+		if (writtenFiles.size() > 0) {
+			Engine.logEngine.debug("(MobileBuilder) Start to move " + writtenFiles.size() + " files.");
+			for (File file: writtenFiles) {
+				File nFile = toTmpFile(file);
+				try {
+					FileUtils.copyFile(nFile, file);
+					nFile.delete();
+				} catch (IOException e) {
+					Engine.logEngine.warn("(MobileBuilder) Failed to copy the new content of " + file.getName(), e);
+				}
+			}
+			Engine.logEngine.debug("(MobileBuilder) End to move " + writtenFiles.size() + " files.");
+		}
+		writtenFiles.clear();
 	}
 }

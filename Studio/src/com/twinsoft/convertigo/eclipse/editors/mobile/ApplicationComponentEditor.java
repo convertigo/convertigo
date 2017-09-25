@@ -726,6 +726,20 @@ public class ApplicationComponentEditor extends EditorPart {
 		
 		new ToolItem(toolbar, SWT.SEPARATOR);
 		
+		item = new ToolItem(toolbar, SWT.CHECK);
+		item.setToolTipText("Toggle auto build");
+		item.setSelection(true);
+		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/accumulate.gif")));
+		item.addSelectionListener(new SelectionAdapter() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				MobileBuilder mb = applicationEditorInput.application.getProject().getMobileBuilder();
+				mb.setAutoBuild(((ToolItem) e.widget).getSelection());
+			}
+			
+		});
+		
 		item = new ToolItem(toolbar, SWT.PUSH);
 		item.setToolTipText("Manage modules");
 		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/show_blocks.gif")));
