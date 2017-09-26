@@ -259,6 +259,10 @@ public class MobileBuilder {
 	}
 	
 	private synchronized void init() throws EngineException {
+		if (initDone) {
+			return;
+		}
+		
 		if (isIonicTemplateBased()) {
 			// Copy template directory to working directory
 			copyTemplateFiles();
@@ -270,7 +274,7 @@ public class MobileBuilder {
 			updateSourceFiles();
 		}
 		initDone = true;
-		Engine.logEngine.debug("(MobileBuilder) Initialized builder for ionic project '"+ project.getName() +"')");
+		Engine.logEngine.debug("(MobileBuilder) Initialized builder for ionic project '"+ project.getName() +"'");
 	}
 	
 	private synchronized void release() throws EngineException {
@@ -279,7 +283,7 @@ public class MobileBuilder {
 		}
 		
 		initDone = false;
-		Engine.logEngine.debug("(MobileBuilder) Released builder for ionic project '"+ project.getName() +"')");
+		Engine.logEngine.debug("(MobileBuilder) Released builder for ionic project '"+ project.getName() +"'");
 	}
 		
 	private void copyTemplateFiles() throws EngineException {
