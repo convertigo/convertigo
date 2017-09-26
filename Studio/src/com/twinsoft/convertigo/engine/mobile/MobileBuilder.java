@@ -278,8 +278,13 @@ public class MobileBuilder {
 	}
 	
 	private synchronized void release() throws EngineException {
+		if (!initDone) {
+			return;
+		}
+		
 		if (isIonicTemplateBased()) {
-			// TODO ?
+			moveFilesForce();
+			FileUtils.deleteQuietly(new File(projectDir,"_private/ionic_tmp"));
 		}
 		
 		initDone = false;
