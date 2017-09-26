@@ -660,6 +660,13 @@ public class MobileBuilder {
 		try {
 			if (app != null) {
 				File appTsFile = new File(ionicWorkDir, "src/app/app.component.ts");
+				if (writtenFiles.contains(appTsFile)) {
+					File appTsFileTmp = toTmpFile(appTsFile);
+					if (appTsFileTmp.exists()) {
+						appTsFile = appTsFileTmp;
+					}
+				}
+				
 				File tempTsFile = new File(ionicWorkDir, "src/app/app.component.temp.ts");
 				
 				// Write file (do not need delay)
