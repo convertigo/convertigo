@@ -2318,15 +2318,12 @@
           ]
         },
         "Pager": {
-          "attr": "pager",
+          "mode": "script",
+          "attr": "[pager]",
           "label": "Pager",
           "description": "If true, show the pager. (Little dots for each page)",
           "category": "@Properties",
-          "value": "true",
-          "values": [
-            "true",
-            "false"
-          ]
+          "value": "true"
         },
         "PaginationType": {
           "attr": "paginationType",
@@ -2352,21 +2349,24 @@
           ]
         },
         "SlidesPerView": {
-          "attr": "slidesPerView",
+		  "mode": "script",
+          "attr": "[slidesPerView]",
           "label": "Slides per view",
           "description": "Slides per view. Slides visible at the same time. Default, 1",
           "category": "@Properties",
           "value": "1"
         },
         "SpaceBetween": {
-          "attr": "spaceBetween",
+		  "mode": "script",
+          "attr": "[spaceBetween]",
           "label": "Space between",
           "description": "Distance between slides in px. Default: 0",
           "category": "@Properties",
           "value": "0"
         },
         "Speed": {
-          "attr": "speed",
+          "mode": "script",
+          "attr": "[speed]",
           "label": "Speed",
           "description": "Duration of transition between slides (in milliseconds). Default: 300.",
           "category": "@Properties",
@@ -2384,7 +2384,8 @@
           ]
         },
         "InitialSlide": {
-          "attr": "initialSlide",
+          "mode": "script",
+          "attr": "[initialSlide]",
           "label": "Initial Slide",
           "description": "Index number of initial slide. Default: 0.",
           "category": "@Properties",
