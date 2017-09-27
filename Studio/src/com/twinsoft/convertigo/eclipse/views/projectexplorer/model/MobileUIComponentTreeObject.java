@@ -277,10 +277,12 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 	private String formatStyleContent(UIStyle ms) {
 		String formated = ms.getStyleContent().getString();
 		DatabaseObject parentDbo = ms.getParent();
-		if (parentDbo != null) {
-			if (parentDbo instanceof UIElement) {
-				String dboTagClass = ((UIElement)parentDbo).getTagClass();
+		if (parentDbo != null && parentDbo instanceof UIElement) {
+			String dboTagClass = ((UIElement)parentDbo).getTagClass();
+			if (formated.isEmpty()) {
 				formated = String.format("."+ dboTagClass +" {%n%s%n}", formated);
+			} else {
+				formated = String.format("."+ dboTagClass +" {%n%s}", formated);
 			}
 		}
 		return formated;
@@ -289,15 +291,13 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 	private String unformatStyleContent(UIStyle ms, String s) {
 		String unformated = s;
 		DatabaseObject parentDbo = ms.getParent();
-		if (parentDbo != null) {
+		if (parentDbo != null && parentDbo instanceof UIElement) {
 			try {
-				if (parentDbo instanceof UIElement) {
-					String dboTagClass = ((UIElement)parentDbo).getTagClass();
-					Pattern p = Pattern.compile("\\."+ dboTagClass +" \\{\\r\\n([^\\{\\}]*)\\r\\n\\}");
-					Matcher m = p.matcher(s);
-					if (m.matches()) {
-						unformated = m.group(1);
-					}
+				unformated = null;
+				Pattern p = Pattern.compile("\\.class\\d+\\s?\\{\\r?\\n?([^\\{\\}]*)\\r?\\n?\\}");
+				Matcher m = p.matcher(s);
+				if (m.matches()) {
+					unformated = m.group(1);
 				}
 			} catch (Exception e) {}
 		};
@@ -354,8 +354,10 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 									IDocumentProvider dp = editor.getDocumentProvider();
 									IDocument doc = dp.getDocument(editor.getEditorInput());
 									String content = unformatStyleContent(ms, doc.get());
-									FormatedContent formatedContent = new FormatedContent(content);
-									MobileUIComponentTreeObject.this.setPropertyValue("styleContent", formatedContent);
+									if (content != null) {
+										FormatedContent formatedContent = new FormatedContent(content);
+										MobileUIComponentTreeObject.this.setPropertyValue("styleContent", formatedContent);
+									}
 								}
 							}
 						}
