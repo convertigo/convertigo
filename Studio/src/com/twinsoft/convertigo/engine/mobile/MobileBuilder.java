@@ -254,7 +254,7 @@ public class MobileBuilder {
 		}
 	}
 	
-	private boolean isIonicTemplateBased() {
+	public boolean isIonicTemplateBased() {
 		return ionicTplDir.exists();
 	}
 	
