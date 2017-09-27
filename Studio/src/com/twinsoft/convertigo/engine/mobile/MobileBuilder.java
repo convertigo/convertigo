@@ -272,9 +272,10 @@ public class MobileBuilder {
 			
 			// Write source files (based on bean components)
 			updateSourceFiles();
+			
+			initDone = true;
+			Engine.logEngine.debug("(MobileBuilder) Initialized builder for ionic project '"+ project.getName() +"'");
 		}
-		initDone = true;
-		Engine.logEngine.debug("(MobileBuilder) Initialized builder for ionic project '"+ project.getName() +"'");
 	}
 	
 	private synchronized void release() throws EngineException {
@@ -285,10 +286,10 @@ public class MobileBuilder {
 		if (isIonicTemplateBased()) {
 			moveFilesForce();
 			FileUtils.deleteQuietly(new File(projectDir,"_private/ionic_tmp"));
+			
+			initDone = false;
+			Engine.logEngine.debug("(MobileBuilder) Released builder for ionic project '"+ project.getName() +"'");
 		}
-		
-		initDone = false;
-		Engine.logEngine.debug("(MobileBuilder) Released builder for ionic project '"+ project.getName() +"'");
 	}
 		
 	private void copyTemplateFiles() throws EngineException {
