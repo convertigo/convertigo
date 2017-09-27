@@ -294,10 +294,10 @@ public class MobileBuilder {
 	private void copyTemplateFiles() throws EngineException {
 		try {
 			FileUtils.copyDirectory(ionicTplDir, ionicWorkDir);
-			Engine.logEngine.debug("(MobileBuilder) Ionic template files copied");
+			Engine.logEngine.debug("(MobileBuilder) Template files copied for ionic project '"+ project.getName() +"'");
 		}
 		catch (Exception e) {
-			throw new EngineException("Unable to copy ionic template files",e);
+			throw new EngineException("Unable to copy ionic template files for ionic project '"+ project.getName() +"'",e);
 		}
 	}
 	
@@ -311,10 +311,10 @@ public class MobileBuilder {
 				content = content.replaceAll("../Flashupdate","../../Flashupdate");
 				writeFile(f, content, "UTF-8");
 			}
-			Engine.logEngine.debug("(MobileBuilder) Ionic configuration files updated");
+			Engine.logEngine.debug("(MobileBuilder) Configuration files updated for ionic project '"+ project.getName() +"'");
 		}
 		catch (Exception e) {
-			throw new EngineException("Unable to update ionic configuration files",e);
+			throw new EngineException("Unable to update configuration files for ionic project '"+ project.getName() +"'",e);
 		}
 	}
 	
@@ -340,12 +340,12 @@ public class MobileBuilder {
 					writeAppSourceFiles(application);
 					removeUselessPages(application);
 					
-					Engine.logEngine.debug("(MobileBuilder) Ionic source files updated");
+					Engine.logEngine.debug("(MobileBuilder) Application source files updated for ionic project '"+ project.getName() +"'");
 				}
 			}
 		}
 		catch (Exception e) {
-			throw new EngineException("Unable to update ionic source files",e);
+			throw new EngineException("Unable to update application source files for ionic project '"+ project.getName() +"'",e);
 		}
 	}
 		
@@ -358,7 +358,9 @@ public class MobileBuilder {
 				String computedTemplate = page.getComputedTemplate();
 				writeFile(pageHtmlFile, computedTemplate, "UTF-8");
 				
-				Engine.logEngine.debug("(MobileBuilder) Ionic template file generated for page '"+pageName+"'");
+				if (initDone) {
+					Engine.logEngine.debug("(MobileBuilder) Ionic template file generated for page '"+pageName+"'");
+				}
 			}
 		}
 		catch (Exception e) {
@@ -375,7 +377,9 @@ public class MobileBuilder {
 				String computedScss = page.getComputedStyle();
 				writeFile(pageScssFile, computedScss, "UTF-8");
 				
-				Engine.logEngine.debug("(MobileBuilder) Ionic scss file generated for page '"+pageName+"'");
+				if (initDone) {
+					Engine.logEngine.debug("(MobileBuilder) Ionic scss file generated for page '"+pageName+"'");
+				}
 			}
 		}
 		catch (Exception e) {
@@ -512,7 +516,9 @@ public class MobileBuilder {
 				File pageTsFile = new File(pageDir, pageName.toLowerCase() + ".ts");
 				writeFile(pageTsFile, getPageTsContent(page), "UTF-8");
 				
-				Engine.logEngine.debug("(MobileBuilder) Ionic ts file generated for page '"+pageName+"'");
+				if (initDone) {
+					Engine.logEngine.debug("(MobileBuilder) Ionic ts file generated for page '"+pageName+"'");
+				}
 			}
 		}
 		catch (Exception e) {
@@ -600,7 +606,9 @@ public class MobileBuilder {
 				File appModuleTsFile = new File(ionicWorkDir, "src/app/app.module.ts");
 				writeFile(appModuleTsFile, mContent, "UTF-8");
 				
-				Engine.logEngine.debug("(MobileBuilder) Ionic module ts file generated for 'app'");
+				if (initDone) {
+					Engine.logEngine.debug("(MobileBuilder) Ionic module ts file generated for 'app'");
+				}
 			}
 		}
 		catch (Exception e) {
@@ -653,7 +661,9 @@ public class MobileBuilder {
 				File appComponentTsFile = new File(ionicWorkDir, "src/app/app.component.ts");
 				writeFile(appComponentTsFile, cContent, "UTF-8");
 				
-				Engine.logEngine.debug("(MobileBuilder) Ionic component ts file generated for 'app'");
+				if (initDone) {
+					Engine.logEngine.debug("(MobileBuilder) Ionic component ts file generated for 'app'");
+				}
 			}
 		}
 		catch (Exception e) {
@@ -690,7 +700,10 @@ public class MobileBuilder {
 				File appHtmlFile = new File(ionicWorkDir, "src/app/app.html");
 				String computedTemplate = app.getComputedTemplate();
 				writeFile(appHtmlFile, computedTemplate, "UTF-8");
-				Engine.logEngine.debug("(MobileBuilder) Ionic template file generated for app '"+appName+"'");
+				
+				if (initDone) {
+					Engine.logEngine.debug("(MobileBuilder) Ionic template file generated for app '"+appName+"'");
+				}
 			}
 		}
 		catch (Exception e) {
@@ -706,7 +719,9 @@ public class MobileBuilder {
 				String computedScss = app.getComputedStyle();
 				writeFile(appScssFile, computedScss, "UTF-8");
 				
-				Engine.logEngine.debug("(MobileBuilder) Ionic scss file generated for app '"+appName+"'");
+				if (initDone) {
+					Engine.logEngine.debug("(MobileBuilder) Ionic scss file generated for app '"+appName+"'");
+				}
 			}
 		}
 		catch (Exception e) {
@@ -722,7 +737,9 @@ public class MobileBuilder {
 				String tContent = app.getComputedTheme();
 				writeFile(themeScssFile, tContent, "UTF-8");
 				
-				Engine.logEngine.debug("(MobileBuilder) Ionic theme scss file generated for app '"+appName+"'");
+				if (initDone) {
+					Engine.logEngine.debug("(MobileBuilder) Ionic theme scss file generated for app '"+appName+"'");
+				}
 			}
 		}
 		catch (Exception e) {
@@ -769,11 +786,11 @@ public class MobileBuilder {
 				writeAppStyle(application);
 				writeAppTheme(application);
 
-				Engine.logEngine.debug("(MobileBuilder) Ionic source files generated for application 'app'");
+				Engine.logEngine.debug("(MobileBuilder) Application source files generated for ionic project '"+ project.getName() +"'");
 			}
 		}
 		catch (Exception e) {
-			throw new EngineException("Unable to write source files for application 'app'",e);
+			throw new EngineException("Unable to write application source files for ionic project '"+ project.getName() +"'",e);
 		}
 	}
 	
@@ -787,7 +804,9 @@ public class MobileBuilder {
 			writePageStyle(page);
 			writePageTemplate(page);
 			
-			Engine.logEngine.debug("(MobileBuilder) Ionic source files generated for page '"+pageName+"'");
+			if (initDone) {
+				Engine.logEngine.debug("(MobileBuilder) Ionic source files generated for page '"+pageName+"'");
+			}
 		}
 		catch (Exception e) {
 			throw new EngineException("Unable to write source files for page '"+pageName+"'",e);
