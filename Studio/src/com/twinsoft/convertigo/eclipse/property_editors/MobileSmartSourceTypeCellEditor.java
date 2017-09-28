@@ -37,6 +37,7 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 public class MobileSmartSourceTypeCellEditor extends AbstractDialogCellEditor {
 	
     private MobileSmartSourceType msst;
+    private Button dotButton;
     private List<Button> buttons;
 	private String[] items;
 	private CCombo comboBox;
@@ -61,7 +62,7 @@ public class MobileSmartSourceTypeCellEditor extends AbstractDialogCellEditor {
     
 	@Override
 	protected Control createControl(Composite parent) {
-		final boolean isReadOnly = getStyle() == SWT.READ_ONLY;
+		final boolean itemsReadOnly = getStyle() == SWT.READ_ONLY;
 		final Composite control = new Composite(parent, SWT.NONE);
 		
 		Font font = parent.getFont();
@@ -121,13 +122,12 @@ public class MobileSmartSourceTypeCellEditor extends AbstractDialogCellEditor {
 		fontDefaultData.setHeight(Math.round(fontDefaultData.getHeight() * 0.7f));
 		final Font fontTitle = new Font(parent.getDisplay(), fontDefaultData);
 		
-		Button button = new Button(control, SWT.NONE);
-		button.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, true));
-		button.setFont(fontTitle);
-		button.setText("…");
-		button.setEnabled(!isReadOnly);
+		dotButton = new Button(control, SWT.NONE);
+		dotButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, true));
+		dotButton.setFont(fontTitle);
+		dotButton.setText("…");
 		
-        button.addSelectionListener(new SelectionAdapter() {
+		dotButton.addSelectionListener(new SelectionAdapter() {
         	
             @Override
             public void widgetSelected(SelectionEvent event) {
@@ -161,8 +161,10 @@ public class MobileSmartSourceTypeCellEditor extends AbstractDialogCellEditor {
 				}
 				
 				comboBox.setText(msst.getValue());
-				comboBox.setEditable(!Mode.SOURCE.equals(mode));
+				comboBox.setEditable(!(Mode.PLAIN.equals(mode) && itemsReadOnly) || Mode.SCRIPT.equals(mode));
 				comboBox.setEnabled(!Mode.SOURCE.equals(mode));
+				
+				dotButton.setEnabled(!(Mode.PLAIN.equals(mode) && itemsReadOnly));
 				
 				dialogCompositeClass = GenericUtils.cast(button.getData(DataKeys.EDITOR_CLASS.name()));
 			}
@@ -170,6 +172,8 @@ public class MobileSmartSourceTypeCellEditor extends AbstractDialogCellEditor {
 			public void widgetDefaultSelected(SelectionEvent e) {
 			}
 		};
+		
+		Button button = null;
 		
 		button = new Button(control, SWT.TOGGLE | SWT.FLAT);
 		button.setForeground(ColorEnum.DARK_YELLOW.get());
@@ -198,7 +202,6 @@ public class MobileSmartSourceTypeCellEditor extends AbstractDialogCellEditor {
 			bt.setToolTipText(mode.tooltip());
 			bt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, true));
 			bt.setFont(fontTitle);
-			bt.setEnabled(!isReadOnly);
 			bt.addSelectionListener(selectionListener);
 			bt.addMouseListener(new MouseListener() {
 				
