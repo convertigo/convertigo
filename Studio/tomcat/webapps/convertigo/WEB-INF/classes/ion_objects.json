@@ -3169,6 +3169,13 @@
             true
           ]
         },
+    	"placeholder":{
+    		"attr":"placeholder",
+    		"label": "Placeholder",
+    		"description": "Set the datetime's placeholder.",
+    		"category": "@Properties",
+    		"value": false
+    	},
         "Value": {
           "attr": "[ngModel]",
           "label": "Value",
