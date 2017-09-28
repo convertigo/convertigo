@@ -264,6 +264,14 @@ public class ApplicationComponentEditor extends EditorPart {
 			setDeviceBarVisible(device.getBoolean("visible"));
 			setDeviceOS(DeviceOS.valueOf(device.getString("os")));
 			updateBrowserSize();
+			
+			for (MenuItem m: devicesMenu.getItems()) {
+				if (deviceName.getText().equals(m.getText().substring(2))) {
+					m.setSelection(true);
+					break;
+				}
+			}
+			
 		} catch (Exception e) {
 			devicesMenu.getItems()[0].notifyListeners(SWT.Selection, new Event());
 		}
@@ -919,7 +927,7 @@ public class ApplicationComponentEditor extends EditorPart {
 		for (JSONArray devices: new JSONArray[]{devicesDefinition, devicesDefinitionCustom}) {
 			int len = devices.length();
 			for (int i = 0; i < len; i++) {
-				MenuItem device = new MenuItem(devicesMenu, SWT.NONE);
+				MenuItem device = new MenuItem(devicesMenu, SWT.RADIO);
 				try {
 					JSONObject json = devices.getJSONObject(i);
 					
