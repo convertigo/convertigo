@@ -23,10 +23,16 @@
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PlatformUI;
+
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor;
+import com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput;
 
 public class MobileComponentTreeObject extends DatabaseObjectTreeObject implements IEditableTreeObject {
 	
@@ -82,5 +88,30 @@ public class MobileComponentTreeObject extends DatabaseObjectTreeObject implemen
 			editor.highlightComponent(getObject());
 		}
 		
+	}
+
+	public void closeAllEditors() {
+		MobileComponent mc = getObject();
+		
+		IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+		if (activePage != null) {
+			IEditorReference[] editorRefs = activePage.getEditorReferences();
+			for (int i = 0; i < editorRefs.length; i++) {
+				IEditorReference editorRef = (IEditorReference) editorRefs[i];
+				try {
+					IEditorInput editorInput = editorRef.getEditorInput();
+					if (editorInput != null) {
+						if (editorInput instanceof ComponentFileEditorInput) {
+							if (((ComponentFileEditorInput)editorInput).is(mc) ||
+								((ComponentFileEditorInput)editorInput).isChildOf(mc)) {
+									activePage.closeEditor(editorRef.getEditor(false),false);
+							}
+						}
+					}
+				} catch(Exception e) {
+					
+				}
+			}
+		}
 	}
 }

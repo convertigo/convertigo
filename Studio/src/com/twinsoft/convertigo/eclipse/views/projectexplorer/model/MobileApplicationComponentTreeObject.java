@@ -210,6 +210,32 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 		activeEditor();
 	}
 	
+	@Override
+	public void closeAllEditors() {
+		super.closeAllEditors();// will close any child component editor
+		
+		ApplicationComponent application = (ApplicationComponent) getObject();
+		synchronized (application) {
+			IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+			if (activePage != null) {
+				IEditorReference[] editorRefs = activePage.getEditorReferences();
+				for (int i = 0; i < editorRefs.length; i++) {
+					IEditorReference editorRef = (IEditorReference) editorRefs[i];
+					try {
+						IEditorInput editorInput = editorRef.getEditorInput();
+						if (editorInput != null && editorInput instanceof ApplicationComponentEditorInput) {
+							if (((ApplicationComponentEditorInput) editorInput).is(application)) {
+								activePage.closeEditor(editorRef.getEditor(false),false);
+							}
+						}
+					} catch(Exception e) {
+						
+					}
+				}
+			}
+		}
+	}
+
 	public ApplicationComponentEditor activeEditor() {
 		ApplicationComponentEditor editorPart = null;
 		ApplicationComponent application = (ApplicationComponent) getObject();

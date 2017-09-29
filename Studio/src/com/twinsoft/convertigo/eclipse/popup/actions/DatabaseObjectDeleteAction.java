@@ -70,6 +70,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectListener;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ConnectorTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.SequenceTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject;
@@ -160,8 +161,10 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
     							}
     						}
     					}
+    					else if (treeObject instanceof MobileComponentTreeObject) {
+    						((MobileComponentTreeObject)treeObject).closeAllEditors();
+    					}
     					
-    		        	
     					if (treeObject instanceof ProjectTreeObject) {
     		        		explorerView.removeProjectTreeObject(treeObject);
     		        		final Project project = (Project) treeObject.getObject();
