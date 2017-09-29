@@ -162,7 +162,7 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
     						}
     					}
     					else if (treeObject instanceof MobileComponentTreeObject) {
-    						((MobileComponentTreeObject)treeObject).closeAllEditors();
+    						((MobileComponentTreeObject)treeObject).closeAllEditors(false);
     					}
     					
     					if (treeObject instanceof ProjectTreeObject) {

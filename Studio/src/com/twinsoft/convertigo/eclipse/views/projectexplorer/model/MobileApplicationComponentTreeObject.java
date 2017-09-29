@@ -211,8 +211,8 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 	}
 	
 	@Override
-	public void closeAllEditors() {
-		super.closeAllEditors();// will close any child component editor
+	public void closeAllEditors(boolean save) {
+		super.closeAllEditors(save);// will close any child component editor
 		
 		ApplicationComponent application = (ApplicationComponent) getObject();
 		synchronized (application) {

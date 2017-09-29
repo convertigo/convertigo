@@ -1078,6 +1078,11 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 									case SWT.TRAVERSE_RETURN:
 										newName = text.getText();
 										if (theTreeObject instanceof DatabaseObjectTreeObject) {
+											// Save and close editors
+											if ((theTreeObject instanceof MobilePageComponentTreeObject)) {
+												((MobilePageComponentTreeObject)theTreeObject).closeAllEditors(true);
+											}
+											
 											DatabaseObjectTreeObject dbObjectTreeObject = (DatabaseObjectTreeObject) theTreeObject;
 											if (dbObjectTreeObject.rename(newName, Boolean.TRUE)) {
 												item.setText(newName);

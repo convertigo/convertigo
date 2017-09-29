@@ -90,7 +90,7 @@ public class MobileComponentTreeObject extends DatabaseObjectTreeObject implemen
 		
 	}
 
-	public void closeAllEditors() {
+	public void closeAllEditors(boolean save) {
 		MobileComponent mc = getObject();
 		
 		IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
@@ -100,12 +100,10 @@ public class MobileComponentTreeObject extends DatabaseObjectTreeObject implemen
 				IEditorReference editorRef = (IEditorReference) editorRefs[i];
 				try {
 					IEditorInput editorInput = editorRef.getEditorInput();
-					if (editorInput != null) {
-						if (editorInput instanceof ComponentFileEditorInput) {
-							if (((ComponentFileEditorInput)editorInput).is(mc) ||
-								((ComponentFileEditorInput)editorInput).isChildOf(mc)) {
-									activePage.closeEditor(editorRef.getEditor(false),false);
-							}
+					if (editorInput != null && editorInput instanceof ComponentFileEditorInput) {
+						if (((ComponentFileEditorInput)editorInput).is(mc) ||
+							((ComponentFileEditorInput)editorInput).isChildOf(mc)) {
+								activePage.closeEditor(editorRef.getEditor(false),save);
 						}
 					}
 				} catch(Exception e) {
