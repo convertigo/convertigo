@@ -177,6 +177,7 @@
         "danger",
         "dark",
         "light",
+        "primary",
         "secondary"
       ]
     },
@@ -1091,10 +1092,11 @@
           "value": false,
           "values": [
             false,
-            "danger",
-            "dark",
-            "light",
-            "secondary"
+        	"danger",
+        	"dark",
+        	"light",
+        	"primary",
+        	"secondary"
           ]
         },
         "ToolbarColor": {
@@ -1105,10 +1107,11 @@
           "value": false,
           "values": [
             false,
-            "danger",
-            "dark",
-            "light",
-            "secondary"
+        	"danger",
+        	"dark",
+        	"light",
+        	"primary",
+        	"secondary"
           ]
         },
         "IndicatorColor": {
@@ -1119,10 +1122,11 @@
           "value": false,
           "values": [
             false,
-            "danger",
-            "dark",
-            "light",
-            "secondary"
+        	"danger",
+        	"dark",
+        	"light",
+        	"primary",
+        	"secondary"
           ]
         },
         "BadgeColor": {
@@ -1133,10 +1137,11 @@
           "value": false,
           "values": [
             false,
-            "danger",
-            "dark",
-            "light",
-            "secondary"
+        	"danger",
+        	"dark",
+        	"light",
+        	"primary",
+        	"secondary"
           ]
         },
         "TabsPlacement": {
