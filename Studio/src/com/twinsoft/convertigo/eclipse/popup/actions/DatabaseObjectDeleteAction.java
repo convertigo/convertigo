@@ -175,6 +175,7 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 		    		        		try {
 										delete(project);
 									} catch (Exception e) {
+										ConvertigoPlugin.logException(e, "Unable to delete the '" + project.getName() + "' project.");
 										return new MultiStatus(ConvertigoPlugin.PLUGIN_UNIQUE_ID, IStatus.ERROR, "Failed to remove the '" + project.getName() + "' project.", e);
 									}
 									return Status.OK_STATUS;

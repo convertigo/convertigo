@@ -484,8 +484,11 @@ public class DatabaseObjectsManager implements AbstractManager {
 			
 			if (!bDataOnly) {
 				StringBuilder sb = new StringBuilder(Engine.PROJECTS_PATH + "/_remove_" + projectName);
-				while (!projectDir.renameTo(removeDir = new File(sb.toString()))) {
+				while ((removeDir = new File(sb.toString())).exists()) {
 					sb.append('_');
+				}
+				if (!projectDir.renameTo(removeDir)) {
+					throw new EngineException("Unable to rename project's directory. It may be locked.");
 				}
 			}
 			
