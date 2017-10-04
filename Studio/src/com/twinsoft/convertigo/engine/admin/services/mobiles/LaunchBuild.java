@@ -93,6 +93,7 @@ public class LaunchBuild extends XmlService {
 			//revision and endpoint params
 			params.put("revision", new String[]{mobileResourceHelper.getRevision()});
 			params.put("endpoint", new String[]{mobileApplication.getComputedEndpoint(request)});
+			params.put("appid", new String[]{mobileApplication.getComputedApplicationId()});
 						
 			//iOS
 			if (mobilePlatform instanceof IOs) {
