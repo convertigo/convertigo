@@ -253,10 +253,29 @@ public class ComponentManager {
 			}
 		}
 		
+		groups.remove("Controls");
 		groups.add("Controls");
+		
+		groups.remove("Actions");
 		groups.add("Actions");
+		
 //		groups.add("Sources");
 		return Collections.unmodifiableList(groups);
+	}
+	
+	public static List<Component> getComponentsByGroup() {
+		List<Component> orderedComponents = new ArrayList<Component>(10);
+		List<Component> components = getComponents();
+		
+		for (String group : getGroups()) {
+			for (Component component : components) {
+				if (component.getGroup().equals(group)) {
+					orderedComponents.add(component);
+				}
+			}
+		}
+		
+		return Collections.unmodifiableList(orderedComponents);
 	}
 	
 	public static List<Component> getComponents() {
@@ -356,6 +375,11 @@ public class ComponentManager {
 				}
 				
 				@Override
+				public String getTag() {
+					return bean.getTag();
+				}
+				
+				@Override
 				protected DatabaseObject createBean() {
 					DatabaseObject dbo = bean.createBean();
 					return dbo;
@@ -401,6 +425,11 @@ public class ComponentManager {
 				return MySimpleBeanInfo.getIconName(bi, BeanInfo.ICON_COLOR_32x32);
 			}
 
+			@Override
+			public String getTag() {
+				return "";
+			}
+						
 			@Override
 			public boolean isAllowedIn(DatabaseObject parent) {
 				if (parent instanceof ApplicationComponent) {
@@ -453,7 +482,7 @@ public class ComponentManager {
 				}
 				return null;
 			}
-			
+
 		};
 	}
 

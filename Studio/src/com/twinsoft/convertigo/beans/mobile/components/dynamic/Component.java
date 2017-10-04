@@ -29,6 +29,7 @@ public abstract class Component {
 	public abstract String getName();
 	public abstract String getGroup();
 	public abstract String getLabel();
+	public abstract String getTag();
 	public abstract String getImagePath();
 	public abstract boolean isAllowedIn(DatabaseObject parent);
 	protected abstract DatabaseObject createBean();

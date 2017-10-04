@@ -39,8 +39,14 @@ import org.eclipse.swt.dnd.DragSourceEvent;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.ExpandAdapter;
+import org.eclipse.swt.events.ExpandEvent;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Image;
@@ -50,10 +56,12 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ExpandBar;
 import org.eclipse.swt.widgets.ExpandItem;
+import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.Component;
@@ -114,24 +122,19 @@ public class ComponentExplorerComposite extends Composite {
 		initialize();
 	}
 	
-	protected void findDatabaseObjects() {
+	protected void findDatabaseObjects(String searchText) {
 		if (objectsMap.isEmpty()) {
 			try {
-				//Class<? extends DatabaseObject> parentObjectClass = parentObject.getClass();
-				
 				ComponentManager.refresh(); //TODO: to remove when models file is complete
 				
 				List<String> categories = ComponentManager.getGroups();
-				List<Component> components = ComponentManager.getComponents();
+				List<Component> components = ComponentManager.getComponentsByGroup();
 				
 				handCursor = new Cursor(Display.getDefault(), SWT.CURSOR_HAND);
 				
 				//initialize composites.
 				RowLayout rowLayout = new RowLayout();
-				rowLayout.pack = false;
-				//bar = new ExpandBar(scrolledComposite, SWT.NONE);
-				//bar.setSpacing(8);
-				String itemText = "";
+				//rowLayout.pack = false;
 				int i=0;
 				
 				Iterator<String> iterator = categories.iterator();
@@ -145,23 +148,32 @@ public class ComponentExplorerComposite extends Composite {
 					items[i] = new ExpandItem(bar, SWT.NONE, i);
 					items[i].setControl(composites[i]);
 					items[i].setExpanded(true);
-					itemText = iterator.next();
-					/*if (itemText.equals("")) {
-						itemText = databaseObjectClass.getSimpleName();
-					}*/
-					items[i].setText(itemText);
+					items[i].setText(iterator.next());
 					i++;
 				}
 				
 				boolean bSelected = true;
 				for (Component c : components) {
 					boolean isAllowed = parentObject != null ? c.isAllowedIn(parentObject):true;
-					if (isAllowed) {
+					boolean isMatching = searchText.isEmpty() || 
+											c.getLabel().toLowerCase().indexOf(searchText.toLowerCase()) != -1 ||
+											c.getTag().startsWith(searchText.toLowerCase());
+					if (isAllowed && isMatching) {
 						addLabelEx(c, bSelected);
 						bSelected = false;
 					}
 				}
 
+				for (ExpandItem expandItem : bar.getItems()) {
+					Point size = expandItem.getControl().getSize();
+					if (size.x == 0) { // case of first time composite view is shown
+						size = expandItem.getControl().computeSize(SWT.DEFAULT,SWT.DEFAULT, true);
+						size.x -= scrolledComposite.getVerticalBar().getSize().x;
+					}
+					Point size2 = expandItem.getControl().computeSize(size.x,SWT.DEFAULT);
+					expandItem.setHeight(size2.y);
+				}
+				
 				// We select by default the first item if no default dbo found.
 				if (currentSelectedObject == null && composites[0].getChildren().length > 0) {
 					currentSelectedObject = (CLabel) composites[0].getChildren()[0];
@@ -173,9 +185,9 @@ public class ComponentExplorerComposite extends Composite {
 						updateHelpText(currentSelectedComponent);
 					}
 				}
-				
+
 			} catch (Exception e) {
-				ConvertigoPlugin.logException(e, "Unable to load database objects properties.");
+				ConvertigoPlugin.logException(e, "Unable to load component objects.");
 			}
 		}
 	}
@@ -303,25 +315,73 @@ public class ComponentExplorerComposite extends Composite {
 	 * 
 	 */
 	protected void initialize() {
-
-		layout(true); 
-		layout(true, true); 
-		
 		setLayout(new GridLayout(3, true));
 		
 		GridData gridData;
+		
+		boolean showSearchButton = false;
+		
+		gridData = new GridData();
+		gridData.horizontalAlignment = GridData.FILL;
+		gridData.horizontalSpan = 3;
+		gridData.grabExcessHorizontalSpace = true;
+		gridData.verticalAlignment = GridData.BEGINNING;
+		Composite searchComposite = new Composite(this, SWT.NONE);
+		searchComposite.setLayoutData(gridData);
+		searchComposite.setLayout(new GridLayout(showSearchButton ? 2:1, false));
+		
+		Text searchText = new Text(searchComposite, SWT.LEFT | SWT.BORDER | SWT.SINGLE);
+		searchText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		searchText.setText("");
+		searchText.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				search(searchText.getText());
+			}
+		});
+		
+		if (showSearchButton) {
+			Button searchBtn = new Button(searchComposite, SWT.RIGHT);
+			searchBtn.setText(" search ");
+			searchBtn.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e) {
+					search(searchText.getText());
+		        }
+		    });
+		}
+		
 		gridData = new GridData();
 		gridData.horizontalAlignment = SWT.FILL;
 		gridData.grabExcessHorizontalSpace = true;
 		gridData.horizontalSpan = 2;
-		gridData.verticalAlignment = GridData.BEGINNING;
+		gridData.verticalAlignment = SWT.TOP;
 		gridData.grabExcessVerticalSpace = true;
-
+		
 		scrolledComposite = new ScrolledComposite(this, SWT.V_SCROLL);
 		scrolledComposite.setLayoutData(gridData);
 		
 		bar = new ExpandBar(scrolledComposite, SWT.NONE);
 		bar.setSpacing(8);
+		bar.addExpandListener(new ExpandAdapter() {
+	        @Override
+	        public void itemExpanded(ExpandEvent e) {
+	        	refresh();
+	        }
+	        @Override
+	        public void itemCollapsed(ExpandEvent e) {
+	        	refresh();
+	        }
+	    });
+		
+		scrolledComposite.setContent(bar);
+		scrolledComposite.setExpandVertical(true);
+		scrolledComposite.setExpandHorizontal(true);
+		scrolledComposite.addControlListener(new ControlAdapter() {
+			@Override
+			public void controlResized(ControlEvent e) {
+				refresh();
+			}
+		});
 		
 		helpBrowser = new C8oBrowser(this, SWT.BORDER | SWT.MULTI | SWT.WRAP);
 		gridData = new GridData();
@@ -331,37 +391,46 @@ public class ComponentExplorerComposite extends Composite {
 		gridData.grabExcessHorizontalSpace = true;
 		helpBrowser.setLayoutData(gridData);
 
-		// find associated database objects
-		findDatabaseObjects();
-		
-		for (ExpandItem expandItem : bar.getItems()) {
-			/* update the item's height if needed in response to changes*/ 
-			final ExpandItem item = expandItem;
-			final Composite composite = (Composite) expandItem.getControl();	
-			composite.addControlListener(new ControlAdapter() {
-				public void controlResized(ControlEvent e) {
-					Point size = composite.getSize();
-					Point size2 = composite.computeSize(size.x,
-							SWT.DEFAULT);
-					item.setHeight(size2.y);
-		     }
-		    });
-		}
-		
-		scrolledComposite.setContent(bar);		
-		scrolledComposite.setExpandVertical(true);
-		scrolledComposite.setExpandHorizontal(true);
-		
-		scrolledComposite.addControlListener(new ControlAdapter() {
-			public void controlResized(ControlEvent e) {
-				Rectangle r = scrolledComposite.getClientArea();
-				scrolledComposite.setMinSize(bar.computeSize(r.width, SWT.DEFAULT));
-			}
-		});
-				
-		this.setSize(new org.eclipse.swt.graphics.Point(800, 400));
+		search("");
+       	
+       	//this.setSize(new org.eclipse.swt.graphics.Point(800, 400));
 	}
 	
+	private void search(String text) {
+		removeItems();
+		objectsMap.clear();
+		findDatabaseObjects(text);
+		refresh();
+	}
+	
+	private void removeItems() {
+	    ExpandItem[] items = bar.getItems();
+	    for (int i = items.length - 1; i >= 0; i--)
+	    {
+	        items[i].getControl().dispose();
+	        items[i].dispose();
+	    }
+	}
+	
+	private void refresh() {
+	    //Display.getDefault().timerExec(1, new Runnable()
+		Display.getDefault().asyncExec(new Runnable()
+	    {
+	        @Override
+	        public void run()
+	        {
+				for (ExpandItem expandItem : bar.getItems()) {
+					Point size = expandItem.getControl().getSize();
+					Point size2 = expandItem.getControl().computeSize(size.x,SWT.DEFAULT);
+					expandItem.setHeight(size2.y);
+				}
+	        	
+				Rectangle r = scrolledComposite.getClientArea();
+				scrolledComposite.setMinSize(bar.computeSize(r.width, SWT.DEFAULT));
+	        	scrolledComposite.layout(true, true);
+	        }
+	    });
+	}
 	/*
 	 * (non-Javadoc)
 	 * 
