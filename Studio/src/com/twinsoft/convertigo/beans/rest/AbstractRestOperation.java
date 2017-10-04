@@ -2,6 +2,8 @@ package com.twinsoft.convertigo.beans.rest;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -121,7 +123,7 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 	}
 	
 	@Override
-	@SuppressWarnings("deprecation")
+	@SuppressWarnings({ "deprecation", "unchecked" })
 	public String handleRequest(HttpServletRequest request, HttpServletResponse response) throws EngineException {
 		String targetRequestableQName = getTargetRequestable();
 		if (targetRequestableQName.isEmpty()) {
@@ -202,7 +204,21 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 									parameterName = variableName;
 								}
 							}
-							map.put(parameterName, parameterValue);
+							
+							Object mapValue = map.get(parameterName);
+							if (mapValue == null) {
+								map.put(parameterName, parameterValue);
+							} else {
+								List<String> values = new ArrayList<String>();
+								if (mapValue instanceof String) {
+									values.add((String)mapValue);
+								}
+								else if (mapValue instanceof List) {
+									values.addAll((Collection<? extends String>) GenericUtils.cast(mapValue));
+								}
+								values.add(parameterValue);
+								map.put(parameterName, values);
+							}
 						}
 					}
 				}
