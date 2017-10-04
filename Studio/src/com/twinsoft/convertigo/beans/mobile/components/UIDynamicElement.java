@@ -118,12 +118,7 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 	
 	@Override
 	public String toString() {
-		String label = getName();
-		IonBean ionBean = getIonBean();
-		if (ionBean != null) {
-			label = ionBean.getDisplayName();
-		}
-		return label;
+		return getName();
 	}
 	
 	@Override

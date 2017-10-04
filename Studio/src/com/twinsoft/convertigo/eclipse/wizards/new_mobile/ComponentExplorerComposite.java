@@ -252,10 +252,14 @@ public class ComponentExplorerComposite extends Composite {
 						
 			    		Component c = (Component) objectsMap.get(label);
 						DatabaseObject dbo = ComponentManager.createBean(c);
-						String sXml = ClipboardAction.dnd.copy(dbo);
-						if (sXml != null) {
-							event.doit = true;
-							PaletteSourceTransfer.getInstance().setPaletteSource(new PaletteSource(sXml));
+						if (dbo != null) {
+							String sXml = ClipboardAction.dnd.copy(dbo);
+							if (sXml != null) {
+								event.doit = true;
+								PaletteSourceTransfer.getInstance().setPaletteSource(new PaletteSource(sXml));
+							}
+						} else {
+							throw new Exception("Invalid database object : null");
 						}
 					} catch (Exception e) {
 						ConvertigoPlugin.logException(e, "Cannot drag");

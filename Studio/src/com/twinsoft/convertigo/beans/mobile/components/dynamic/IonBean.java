@@ -32,6 +32,7 @@ import org.codehaus.jettison.json.JSONObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class IonBean {
 	
@@ -332,7 +333,7 @@ public class IonBean {
 			Class<?> c = Class.forName(dboclass);
 			dbo = (UIDynamicElement) c.getConstructor(String.class).newInstance(args);
 			
-			dbo.setName(getName());
+			dbo.setName(StringUtils.normalize(getDisplayName()));//dbo.setName(getName());
 			dbo.setSelfClose(isSelfClose());
 			dbo.setBeanData(getJSONObject().toString());			
 			dbo.bNew = true;
