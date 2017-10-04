@@ -39,6 +39,7 @@ public class IonBean {
 		classname,
 		tag,
 		name,
+		displayName,
 		label,
 		autoClose,
 		group,
@@ -57,6 +58,7 @@ public class IonBean {
 			jsonBean = new JSONObject()
 				.put(Key.classname.name(), "com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement")
 				.put(Key.name.name(), "bean")
+				.put(Key.displayName.name(), "")
 				.put(Key.tag.name(), "tag")
 				.put(Key.label.name(), "label")
 				.put(Key.autoClose.name(), false)
@@ -158,6 +160,16 @@ public class IonBean {
 			jsonBean.put(Key.name.name(), name);
 		} catch (JSONException e) {
 			e.printStackTrace();
+		}
+	}
+	
+	public String getDisplayName() {
+		try {
+			String displayName = jsonBean.getString(Key.displayName.name());
+			return displayName.isEmpty() ? getName(): displayName;
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return "?";
 		}
 	}
 	
