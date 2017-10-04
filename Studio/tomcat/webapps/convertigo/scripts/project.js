@@ -163,7 +163,7 @@ function alignPusher() {
 	}
 }
 
-function showQRCode($td) {	
+function showQRCode($td) {
 	var href = "projects/" + vars.projectName + "/DisplayObjects/mobile/index.html";
 	$td.parents(".mobile_platform:first").find("a.btn_exe_link").attr("href",  href);
 	var build_url = $td.find(".build_url").attr("value");
@@ -312,8 +312,18 @@ function launchPhoneGapBuild($li) {
 }
 
 function getPhoneGapBuildUrl($td) {
-	var platform_name = $td.parents(".platform:first").find(".platform_name").text();
-	var url = vars.base_url + "admin/services/mobiles.GetPackage?project=" + vars.projectName + "&platform=" + platform_name;
+	var url, platform_name = $td.parents(".platform:first").find(".platform_name").text();
+	
+	if ($td.is(".qrcode_ota")) {
+		url = "https://build-dev.convertigo.net/cmb/ota-ios.html#"
+			+ "app=" + encodeURIComponent($("#build_application_name").text())
+			+ "&ep=" + encodeURIComponent($("#build_endpoint").text())
+			+ "&bn=" + encodeURIComponent($td.find(".bn").val())
+			+ "&pl=" + encodeURIComponent(platform_name);
+	} else {
+		url = vars.base_url + "admin/services/mobiles.GetPackage?project=" + vars.projectName + "&platform=" + platform_name;
+	}
+	
 	$td.find(".build_url").attr("value", url);
 	showQRCode($td);
 }
@@ -332,6 +342,7 @@ function getPhoneGapBuildStatus() {
 			var $build = $(xml).find("build:first");
 			if ($build.length > 0) {
 				var status = $build.attr("status");
+				$td.find(".qrcode_message").hide();
 				if (status === "none") {
 					$platform.find(".platform_status").attr("title","Not built").empty().append("<img src=\"images/new/build_none.png\" />");
 					$td.find(".build_status").attr("value","none");
@@ -351,7 +362,13 @@ function getPhoneGapBuildStatus() {
 				else if (status === "complete") {
 					$platform.find(".platform_status").attr("title","Build complete").empty().append("<img src=\"images/new/build_complete.png\" />");
 					$td.find(".build_status").attr("value","complete");
-					getPhoneGapBuildUrl($td);		
+					getPhoneGapBuildUrl($td);
+					var bn = $build.attr("bn");
+					if (bn != null) {
+						$td.parent().find(".bn").val(bn);
+						getPhoneGapBuildUrl($td.siblings(".qrcode_ota").show());
+					}
+					$td.find(".qrcode_message").show();
 					 
 					if ($build.attr("endpoint") !== $("#build_endpoint").text() && $build.attr("endpoint") !== "n/a" ) {
 						$platform.find(".built_endpoint").text( $build.attr("endpoint") );

@@ -1060,6 +1060,15 @@ ul.connectors .acc {
 	background:transparent  url(../images/new/btn_qrcode_over.png);
 	background-repeat:no-repeat;
 }
+.qrcode_ota {
+	display: none;
+}
+.qrcode_ota hr {
+	margin: 50px 0px 50px 0px;
+}
+.qrcode_message {
+	font-size: small;
+}
 .tablegrey {
 	border:2px solid #dadada;
 	background-color:#dadada;

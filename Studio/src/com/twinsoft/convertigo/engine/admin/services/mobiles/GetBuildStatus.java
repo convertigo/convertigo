@@ -116,9 +116,12 @@ public class GetBuildStatus extends XmlService {
 		
 		if (jsonResult.has(platformName + "_status")) {
 			statusElement.setAttribute("status", jsonResult.getString(platformName + "_status"));
-		}
-		else {
+		} else {
 			statusElement.setAttribute("status", "none");
+		}
+				
+		if (jsonResult.has(platformName + "_bn")) {
+			statusElement.setAttribute("bn", jsonResult.getString(platformName + "_bn"));
 		}
 
 		if (jsonResult.has(platformName + "_error")) {
