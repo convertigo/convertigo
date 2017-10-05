@@ -36,10 +36,12 @@ import org.eclipse.ui.internal.console.ConsoleView;
 import org.eclipse.ui.part.EditorPart;
 import org.eclipse.ui.views.properties.PropertySheet;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
+import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
+import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
 
 @SuppressWarnings("restriction")
@@ -102,6 +104,14 @@ public class ConvertigoPartListener implements IPartListener {
 		
 		if (part instanceof EditorPart) {
 			IEditorInput input = ((EditorPart)part).getEditorInput();
+			if (input instanceof ApplicationComponentEditorInput) {
+				try {
+					MobileBuilder mb = ((ApplicationComponentEditorInput)input).getApplication().getProject().getMobileBuilder();
+					mb.setAutoBuild(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
 			if (input instanceof ComponentFileEditorInput) {
 				try {
 					//((EditorPart)part).dispose();// added because html editor throw a ConcurentModificationException (bug)
