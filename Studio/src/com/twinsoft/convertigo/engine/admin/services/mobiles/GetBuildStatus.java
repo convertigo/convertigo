@@ -122,6 +122,7 @@ public class GetBuildStatus extends XmlService {
 				
 		if (jsonResult.has(platformName + "_bn")) {
 			statusElement.setAttribute("bn", jsonResult.getString(platformName + "_bn"));
+			statusElement.setAttribute("bp_url", EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_PLATFORM_URL).replaceFirst("(.*)/.*?$", "$1"));
 		}
 
 		if (jsonResult.has(platformName + "_error")) {

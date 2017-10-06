@@ -315,7 +315,7 @@ function getPhoneGapBuildUrl($td) {
 	var url, platform_name = $td.parents(".platform:first").find(".platform_name").text();
 	
 	if ($td.is(".qrcode_ota")) {
-		url = "https://build-dev.convertigo.net/cmb/ota-ios.html#"
+		url = $td.find(".bp_url").val() + "/ota-ios.html#"
 			+ "app=" + encodeURIComponent($("#build_application_name").text())
 			+ "&ep=" + encodeURIComponent($("#build_endpoint").text())
 			+ "&bn=" + encodeURIComponent($td.find(".bn").val())
@@ -366,6 +366,7 @@ function getPhoneGapBuildStatus() {
 					var bn = $build.attr("bn");
 					if (bn != null) {
 						$td.parent().find(".bn").val(bn);
+						$td.parent().find(".bp_url").val($build.attr("bp_url"));
 						getPhoneGapBuildUrl($td.siblings(".qrcode_ota").show());
 					}
 					$td.find(".qrcode_message").show();
