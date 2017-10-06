@@ -65,15 +65,13 @@
 	
 	<!-- IOs splash -->
 	<platform name="ios">
-	    <splash src="res/splash/Default736hiphone.png"	   		width="1242" height="2208" 	/>	<!-- iPhone 6+ -->
-	    <splash src="res/splash/Default667hiphone.png"			width="750" 	height="1334" 	/>	<!-- iPhone 6 -->
-	    <splash src="res/splash/Default568h2xiphone.png"		width="640" height="1136" 	/>	<!-- iPhone -->
-	    <splash src="res/splash/DefaultLandscape2xipad.png"		width="2048" height="1496" 	/>	<!-- iPad -->
-	    <splash src="res/splash/DefaultLandscapeipad.png"		width="1024" height="748" 	/>	<!-- iPad -->
-	    <splash src="res/splash/DefaultPortrait2xipad.png"		width="1536" height="2008" 	/>	<!-- iPad -->
-	    <splash src="res/splash/DefaultPortraitipad.png"		width="768" height="1004" 	/>	<!-- iPad -->
-	    <splash src="res/splash/Default2xiphone.png"			width="640" height="960" 	/>	<!-- iPhone -->
-	    <splash src="res/splash/Defaultiphone.png"				width="320" height="480" 	/>	<!-- iPhone -->
+	    <splash src="res/splash/Default~iphone.png" width="320" height="480"/>
+	    <splash src="res/splash/Default@2x~iphone.png" width="640" height="960"/>
+	    <splash src="res/splash/Default-Portrait~ipad.png" width="768" height="1024"/>
+	    <splash src="res/splash/Default-Portrait@2x~ipad.png" width="1536" height="2048"/>
+	    <splash src="res/splash/Default-568h@2x~iphone.png" width="640" height="1136"/>
+	    <splash src="res/splash/Default-667h.png" width="750" height="1334"/>
+	    <splash src="res/splash/Default-736h.png" width="1242" height="2208"/>
 	</platform>
 
 	<!-- If you do not want any permissions to be added to your app, add the
