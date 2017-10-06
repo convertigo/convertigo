@@ -1040,7 +1040,7 @@
 	  "displayName": "Image",
       "label": "img",
       "autoClose": true,
-      "description": "img| Defines an image resource. An image can be used alone or within a 'Thumbnail item' or 'Avatar item' component. Configure the 'src' attribute to the source url of the image. It can be a local url (../assets/myimage.png) or a remote url (https://server.data/image/myimage.png) or even a base64 data url.<br /><br />Images used alone can be configured in size with the 'width' and 'height' properties. These can be pixels (100px) or percentage of the available space (100%). To center an Image, place it in a 'Text Format' element with attribute 'Align Center' set",
+      "description": "img| Defines an image resource. An image can be used alone or within a 'Thumbnail item' or 'Avatar item' component. Configure the 'src' attribute to the source url of the image. It can be a local url (assets/myimage.png) or a remote url (https://server.data/image/myimage.png) or even a base64 data url.<br /><br />Images used alone can be configured in size with the 'width' and 'height' properties. These can be pixels (100px) or percentage of the available space (100%). To center an Image, place it in a 'Text Format' element with attribute 'Align Center' set",
       "group": "HTML",
       "icon16": "img_HTML_color_16x16.png",
       "icon32": "img_HTML_color_32x32.png",
@@ -1049,7 +1049,7 @@
           "mode":"script",
           "attr": "[src]",
           "label": "src",
-          "description": "The image url. Can be absolute (http(s)://) or relative to project (../assets/myimage.png). Can also be a Base64 Embedded images (data:image/png;base64,iVBORw0.......)",
+          "description": "The image url. Can be absolute (http(s)://) or relative to project (assets/myimage.png). Can also be a Base64 Embedded images (data:image/png;base64,iVBORw0.......)",
           "category": "Attributes",
           "value": "",
           "values": [
@@ -2131,9 +2131,10 @@
     			}	
     		}
     },
+
     "ToolBar": {
       "tag": "ion-toolbar",
-	  "displayName": "ToolBar",
+  	  "displayName": "ToolBar",
       "label": "ToolBar",
       "description": "ion-toolbar| Defines a toolbar. A toolbar is a generic bar that can be used in an app as a header, sub-header, footer, or even sub-footer.<br/>Since ion-toolbar is based on flexbox, no matter how many toolbars you have in your page, they will be displayed correctly and ion-content will adjust accordingly. <br/> For more information: <a href='https://ionicframework.com/docs/components/#toolbar' target='_blank'>Toolbar</a>",
       "group": "Containers",
@@ -2144,25 +2145,26 @@
         "BarMode": false
       }
     },
+
     "Refresher":{
-		"tag": "ion-refresher",
-		"displayName": "Refresher",
+  		"tag": "ion-refresher",
+		  "displayName": "Refresher",
     	"label": "Refresher",
     	"description": "ion-refresher| The Refresher provides pull-to-refresh functionality on a content component. Place the ion-refresher as the first child of your ion-content element.Pages can then listen to the refresher's various output events. The refresh output event is fired when the user has pulled down far enough to kick off the refreshing process. Once the async operation has completed and the refreshing should end, call complete().",
     	"group": "Forms",
     	"icon16": "refresher_color_16x16.png",
-    	"icon32": "refresher_color_32x32.png",
- 			
-	},
-	"RefresherContent":{
-		"tag": "ion-refresher-content",
-		"displayName": "RefresherContent",
+    	"icon32": "refresher_color_32x32.png"
+    },
+      
+	  "RefresherContent":{
+		  "tag": "ion-refresher-content",
+		  "displayName": "RefresherContent",
     	"label": "RefresherContent",
     	"description": "ion-refresher-content| By default, Ionic provides the pulling icon and refreshing spinner that looks best for the platform the user is on. However, you can change the default icon and spinner, along with adding text for each state by adding properties to the child ion-refresher-content component.",
     	"group": "Forms", 
     	"icon16": "refreshercontent_color_16x16.png",
     	"icon32": "refreshercontent_color_32x32.png",
-		"properties": {
+		  "properties": {
     		"closeDuration": {
     			"attr":"closeDuration",
     			"label": "Close Duration",
@@ -2170,39 +2172,39 @@
     			"category": "@Properties",
     			"value": 280
     		},
-			"enabled": {
+			  "enabled": {
     			"attr":"enabled",
     			"label": "Enabled",
     			"description": "If the refresher is enabled or not. This should be used in place of an ngIf.",
     			"category": "@Properties",
     			"value": true,
-				"values":[
-					true,
-					false
-				]
+          "values":[
+            true,
+            false
+          ]
     		},
-			"pullMax": {
+			  "pullMax": {
     			"attr":"pullMax",
     			"label": "PullMax",
     			"description": "The maximum distance of the pull until the refresher will automatically go into the refreshing state. By default, the pull maximum will be the result of pullMin + 60.",
     			"category": "@Properties"
     		},
-			"pullMin": {
+			  "pullMin": {
     			"attr":"pullMin",
     			"label": "PullMin",
     			"description": "The min distance the user must pull down until the refresher can go into the refreshing state.",
     			"category": "@Properties",
     			"value": 60
     		},
-			"snapbackDuration": {
+			  "snapbackDuration": {
     			"attr":"snapbackDuration",
     			"label": "SnapbackDuration",
     			"description": "How many milliseconds it takes the refresher to to snap back to the refreshing state.",
     			"category": "@Properties",
     			"value": 280
     		}
-		}			
-	},
+		  }			
+	  },
     "Searchbar": {
     	"tag": "ion-searchbar",
 		"displayName": "Searchbar",
@@ -3206,7 +3208,7 @@
       "tag": "ion-datetime",
 	  "displayName": "DateTime",
       "label": "DateTime",
-      "description": "ion-datetime| Defines a datetime. The DateTime component is used to present an interface which makes it easy for users to select dates and times.<br/>The DateTime component is similar to the native <input type='datetime-local'> element, however, Ionic’s DateTime component makes it easy to display the date and time in a preferred format, and manage the datetime values. <br/> For more information: <a href='https://ionicframework.com/docs/components/#datetime' target='_blank'>DateTime</a>.<br/><br/><u>Note</u>:</br>Make sure to add your component under a <i>ListItem or &lt;ion-item&gt;</i> to make it work properly in form",
+      "description": "ion-datetime| Defines a datetime. The DateTime component is used to present an interface which makes it easy for users to select dates and times.<br/>The DateTime component is similar to the native <input type='datetime-local'> element, however, Ionicï¿½s DateTime component makes it easy to display the date and time in a preferred format, and manage the datetime values. <br/> For more information: <a href='https://ionicframework.com/docs/components/#datetime' target='_blank'>DateTime</a>.<br/><br/><u>Note</u>:</br>Make sure to add your component under a <i>ListItem or &lt;ion-item&gt;</i> to make it work properly in form",
       "group": "Forms",
       "icon16": "input_datetime_16x16.png",
       "icon32": "input_datetime_32x32.png",
@@ -4352,7 +4354,65 @@
         }
       }
     },
+
     
+    /*
+     * Video
+     */
+    "Video" : {
+      "tag": "video",
+	    "displayName": "Video",
+      "label": "Video",
+      "description": "Video | Displays a Video from a remote or local video ressource",
+      "group": "Components",
+      "icon16": "video_color_16x16.png",
+      "icon32": "video_color_32x32.png",
+      "properties": {
+        "src": {
+          "attr" : "[src]",
+          "label": "Source",
+          "mode":"script",
+          "description": "The video Source, can be MPEG4 or any other format read by HTML5 video players. This can be a remote source (http://mysource/myvideo.mp4) or an embedded local source (assets/video/myvideo.mp4)",
+          "category": "@Properties",
+          "value": ""
+        },
+        "width": {
+          "attr" : "width",
+          "label": "Width",
+          "description": "The width of the video on the page. Can be Pixels (px) or percentage (%)",
+          "category": "@Properties",
+          "value": ""
+        },
+        "height": {
+          "attr" : "height",
+          "label": "Height",
+          "description": "The height of the video on the page. Can be Pixels (px) or percentage (%)",
+          "category": "@Properties",
+          "value": ""
+        },
+        "control": {
+          "label": "Controls",
+          "description": "If set, the video will have some control buttons displayed",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "controls"
+          ]
+        },
+        "autoplay": {
+          "label": "Autoplay",
+          "description": "If set, the video will play automatically when displayed",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "autoplay"
+          ]
+        }
+      }
+    },
+
     /*
      * Charts
      */
