@@ -45,8 +45,6 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Image;
@@ -56,7 +54,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ExpandBar;
@@ -134,7 +131,7 @@ public class ComponentExplorerComposite extends Composite {
 				
 				//initialize composites.
 				RowLayout rowLayout = new RowLayout();
-				//rowLayout.pack = false;
+				rowLayout.pack = false;
 				int i=0;
 				
 				Iterator<String> iterator = categories.iterator();
@@ -323,8 +320,6 @@ public class ComponentExplorerComposite extends Composite {
 		
 		GridData gridData;
 		
-		boolean showSearchButton = false;
-		
 		gridData = new GridData();
 		gridData.horizontalAlignment = GridData.FILL;
 		gridData.horizontalSpan = 3;
@@ -332,7 +327,10 @@ public class ComponentExplorerComposite extends Composite {
 		gridData.verticalAlignment = GridData.BEGINNING;
 		Composite searchComposite = new Composite(this, SWT.NONE);
 		searchComposite.setLayoutData(gridData);
-		searchComposite.setLayout(new GridLayout(showSearchButton ? 2:1, false));
+		searchComposite.setLayout(new GridLayout(2, false));
+		
+		CLabel searchLabel = new CLabel(searchComposite, SWT.NONE);
+		searchLabel.setText("Search:");
 		
 		Text searchText = new Text(searchComposite, SWT.LEFT | SWT.BORDER | SWT.SINGLE);
 		searchText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -343,16 +341,6 @@ public class ComponentExplorerComposite extends Composite {
 				search(searchText.getText());
 			}
 		});
-		
-		if (showSearchButton) {
-			Button searchBtn = new Button(searchComposite, SWT.RIGHT);
-			searchBtn.setText(" search ");
-			searchBtn.addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent e) {
-					search(searchText.getText());
-		        }
-		    });
-		}
 		
 		gridData = new GridData();
 		gridData.horizontalAlignment = SWT.FILL;
