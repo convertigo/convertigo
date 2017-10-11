@@ -35,9 +35,11 @@ public class IonProperty implements Cloneable {
 		name,
 		attr,
 		label,
+		editor,
 		description,
 		category,
 		mode,
+		type,
 		value,
 		values
 		;
@@ -51,9 +53,11 @@ public class IonProperty implements Cloneable {
 				.put(Key.name.name(), "property")
 				.put(Key.attr.name(), "")
 				.put(Key.label.name(), "label")
+				.put(Key.editor.name(), "")
 				.put(Key.description.name(), "description")
 				.put(Key.category.name(), "Attributes")
 				.put(Key.mode.name(), "plain")
+				.put(Key.type.name(), "string")
 				.put(Key.value.name(), false)
 				.put(Key.values.name(), new JSONArray().put(false).put(true));
 		} catch (JSONException e) {
@@ -103,6 +107,16 @@ public class IonProperty implements Cloneable {
 			return "label";
 		}
 	}
+	
+	public String getEditor() {
+		try {
+			return jsonProperty.getString(Key.editor.name());
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return "";
+		}
+	}
+	
 	public String getAttr() {
 		try {
 			return jsonProperty.getString(Key.attr.name());
@@ -158,6 +172,15 @@ public class IonProperty implements Cloneable {
 		}
 	}
 
+	public String getType() {
+		try {
+			return jsonProperty.getString(Key.type.name());
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return "string";
+		}
+	}
+	
 	public String getMode() {
 		try {
 			return jsonProperty.getString(Key.mode.name());

@@ -99,8 +99,9 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 			Iterator<UIComponent> it = getUIComponentList().iterator();
 			while (it.hasNext()) {
 				UIComponent component = (UIComponent)it.next();
-				if (component instanceof UIControlAction) {
-					String action = ((UIControlAction)component).computeTemplate();
+				//if (component instanceof UIControlAction) {
+				if (component instanceof IAction) {
+					String action = component.computeTemplate();
 					if (!action.isEmpty()) {
 						sb.append("\t\tthis.").append(action).append(";").append(System.lineSeparator());
 					}

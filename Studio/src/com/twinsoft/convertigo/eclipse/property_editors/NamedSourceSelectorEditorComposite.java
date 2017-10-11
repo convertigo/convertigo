@@ -54,6 +54,7 @@ import com.twinsoft.convertigo.beans.couchdb.AbstractFullSyncFilterListener;
 import com.twinsoft.convertigo.beans.couchdb.AbstractFullSyncViewListener;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
+import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -259,7 +260,12 @@ public class NamedSourceSelectorEditorComposite extends AbstractDialogComposite 
 		
 		dboto =  cellEditor.databaseObjectTreeObject;
 		propertyName = (String) cellEditor.propertyDescriptor.getId();
-		sourcedObjectName = (String)dboto.getPropertyValue(propertyName);
+		Object pValue = dboto.getPropertyValue(propertyName);
+		if (pValue instanceof MobileSmartSourceType) {
+			sourcedObjectName = ((MobileSmartSourceType)pValue).getSmartValue();
+		} else {
+			sourcedObjectName = (String)pValue;
+		}
 		
 		initialize();
 	}

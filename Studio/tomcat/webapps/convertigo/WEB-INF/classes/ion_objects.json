@@ -4536,6 +4536,244 @@
           ]
         }
       }
-    }
+    },
+	
+	/*
+	* Actions
+	*/
+    "ToastAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "displayName": "ToastAction",
+      "label": "Toast",
+      "description": "Defines a Toast action. | ",
+      "group": "Actions",
+      "icon16": "toastaction_color_16x16.png",
+      "icon32": "toastaction_color_32x32.png",
+      "properties": {
+        "message": {
+          "label": "Message",
+          "description": "Defines the toast's message",
+          "category": "@Properties",
+          "type": "string",
+          "value": "some message",
+          "values": [
+            false,
+			true
+          ]
+        },
+        "duration": {
+          "label": "Duration",
+          "description": "Defines the toast's duration in milliseconds",
+          "category": "@Properties",
+          "type": "number",
+          "value": "3000",
+          "values": [
+            false,
+			true
+          ]
+        },
+        "position": {
+          "label": "Position",
+          "description": "Defines the toast's position",
+          "category": "@Properties",
+          "type": "string",
+          "value": "bottom",
+          "values": [
+            false,
+			"bottom",
+			"middle",
+			"top",
+			true
+          ]
+        }
+	  }
+	},
+	
+    "ErrorAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "displayName": "ErrorAction",
+      "label": "Error",
+      "description": "Defines an Error action. | ",
+      "group": "Actions",
+      "icon16": "erroraction_color_16x16.png",
+      "icon32": "erroraction_color_32x32.png",
+      "properties": {
+        "message": {
+          "label": "Message",
+          "description": "Defines the toast's message",
+          "category": "@Properties",
+          "type": "string",
+          "value": "some error",
+          "values": [
+            false,
+			true
+          ]
+        }
+	  }
+	},
+	
+    "LogAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "displayName": "LogAction",
+      "label": "Log",
+      "description": "Defines a Log action. | ",
+      "group": "Actions",
+      "icon16": "logaction_color_16x16.png",
+      "icon32": "logaction_color_32x32.png",
+      "properties": {
+        "message": {
+          "label": "Message",
+          "description": "Defines the log message",
+          "category": "@Properties",
+          "type": "string",
+          "value": "some log",
+          "values": [
+            false,
+			true
+          ]
+        }
+	  }
+	},
+	
+    "CallSequenceAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "displayName": "CallSequence",
+      "label": "CallSequence",
+      "description": "Defines a Sequence call. | ",
+      "group": "Actions",
+      "icon16": "callsequenceaction_color_16x16.png",
+      "icon32": "callsequenceaction_color_32x32.png",
+      "properties": {
+        "requestable": {
+          "editor": "NamedSourceSelectorEditor",
+          "label": "Requestable",
+          "description": "Defines the target requestable",
+          "category": "@Properties",
+          "type": "string",
+          "value": "",
+          "values": [
+            false,
+			true
+          ]
+        },
+		"marker": {
+          "label": "Marker",
+          "description": "Defines the requestable's marker",
+          "category": "@Properties",
+          "type": "string",
+          "value": "",
+          "values": [
+            false,
+			true
+          ]
+		},
+		"cachePolicy": {
+          "label": "Local cache policy",
+          "description": "Defines the local cache policy",
+          "category": "@Properties",
+          "type": "string",
+          "value": false,
+          "values": [
+            false,
+			"priority_server",
+			"priority_local"
+          ]
+		},
+		"cacheTtl": {
+          "label": "Local cache time to live",
+          "description": "Defines the local cache time to live (in milliseconds)",
+          "category": "@Properties",
+          "type": "number",
+          "value": "3000",
+          "values": [
+            false,
+			true
+          ]
+		}
+	  }
+	},
+	
+    "CallFullSyncAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "displayName": "CallFullSync",
+      "label": "CallFullSync",
+      "description": "Defines a FullSync call. | ",
+      "group": "Actions",
+      "icon16": "callfullsyncaction_color_16x16.png",
+      "icon32": "callfullsyncaction_color_32x32.png",
+      "properties": {
+        "requestable": {
+          "editor": "NamedSourceSelectorEditor",
+          "label": "Requestable",
+          "description": "Defines the FullSync database",
+          "category": "@Properties",
+          "type": "string",
+          "value": "",
+          "values": [
+            false,
+			true
+          ]
+        },
+		"marker": {
+          "label": "Marker",
+          "description": "Defines the requestable's marker",
+          "category": "@Properties",
+          "type": "string",
+          "value": "",
+          "values": [
+            false,
+			true
+          ]
+		},
+		"verb": {
+          "label": "Verb",
+          "description": "Defines the fullsync verb",
+          "category": "@Properties",
+          "value": "get",
+          "type": "string",
+          "values": [
+			"all",
+			"create",
+			"get",
+			"delete",
+			"delete_attachment",
+			"destroy",
+			"post",
+			"put_attachment",
+			"replicate_pull",
+			"replicate_push",
+			"reset",
+			"sync",
+			"view",
+			true
+          ]
+		}
+	  }
+	},
+	
+    "PushPageAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "displayName": "PushPage",
+      "label": "PushPage",
+      "description": "Defines a page push. | ",
+      "group": "Actions",
+      "icon16": "pushpageaction_color_16x16.png",
+      "icon32": "pushpageaction_color_32x32.png",
+      "properties": {
+        "page": {
+          "editor": "NamedSourceSelectorEditor",
+          "label": "Page",
+          "description": "Defines the target page",
+          "category": "@Properties",
+          "type": "string",
+          "value": "",
+          "values": [
+            false,
+			true
+          ]
+        }
+	  }
+	}
+
   }
 }

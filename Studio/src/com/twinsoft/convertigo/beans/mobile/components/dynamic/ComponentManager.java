@@ -39,6 +39,7 @@ import org.codehaus.jettison.json.JSONObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
+import com.twinsoft.convertigo.beans.mobile.components.IAction;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIAttribute;
@@ -51,6 +52,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIControlCallSequence;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UICustom;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.mobile.components.UIElement;
@@ -337,6 +339,9 @@ public class ComponentManager {
 							return menu != null;
 						}
 					}
+					if (bean.getClassName().startsWith("com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction")) {
+						return parent instanceof UIPageEvent || parent instanceof UIControlEvent || parent instanceof IAction;
+					}
 					
 					if (parent instanceof PageComponent)
 						return true;
@@ -424,12 +429,12 @@ public class ComponentManager {
 			public String getImagePath() {
 				return MySimpleBeanInfo.getIconName(bi, BeanInfo.ICON_COLOR_32x32);
 			}
-
+			
 			@Override
 			public String getTag() {
 				return "";
 			}
-						
+			
 			@Override
 			public boolean isAllowedIn(DatabaseObject parent) {
 				if (parent instanceof ApplicationComponent) {
@@ -441,28 +446,37 @@ public class ComponentManager {
 					if (!UITheme.class.isAssignableFrom(dboClass) &&
 						!UIFormValidator.class.isAssignableFrom(dboClass) &&
 						!UIAttribute.class.isAssignableFrom(dboClass) &&
-						!UIControlAction.class.isAssignableFrom(dboClass)) {
+						//!UIControlAction.class.isAssignableFrom(dboClass)) {
+						!(IAction.class.isAssignableFrom(dboClass))) {
 						return true;
 					}
 				}
 				if (parent instanceof UIPageEvent) {
-					if (UIControlAction.class.isAssignableFrom(dboClass)) {
+					//if (UIControlAction.class.isAssignableFrom(dboClass)) {
+					if (IAction.class.isAssignableFrom(dboClass)) {
 						return true;
 					}
 				}
 				if (parent instanceof UIElement) {
 					if (!UITheme.class.isAssignableFrom(dboClass) &&
-						!(UIControlAction.class.isAssignableFrom(dboClass))) {
+						//!(UIControlAction.class.isAssignableFrom(dboClass))) {
+						!(IAction.class.isAssignableFrom(dboClass))) {
 							return true;
 					}
 				}
 				if (parent instanceof UIControlAttr) {
-					if (UIControlAction.class.isAssignableFrom(dboClass)) {
+					//if (UIControlAction.class.isAssignableFrom(dboClass)) {
+					if (IAction.class.isAssignableFrom(dboClass)) {
 						return true;
 					}
 				}
 				if (parent instanceof UIControlAction) {
 					if (UIControlVariable.class.isAssignableFrom(dboClass)) {
+						return true;
+					}
+				}
+				if (parent instanceof UIDynamicAction) {
+					if (UIDynamicAction.class.isAssignableFrom(dboClass)) {
 						return true;
 					}
 				}
@@ -482,7 +496,7 @@ public class ComponentManager {
 				}
 				return null;
 			}
-
+			
 		};
 	}
 
@@ -493,5 +507,24 @@ public class ComponentManager {
 			}
 		}
 		return null;
+	}
+	
+	public static String getActionTsCode(String name) {
+		InputStream inputstream = null;
+		try {
+			inputstream = instance.getClass().getResourceAsStream("/actionbeans/"+ name +".ts");
+			return IOUtils.toString(inputstream, "UTF-8");
+		} catch (Exception e) {
+			if (Engine.isStarted) {
+				Engine.logBeans.warn("(ComponentManager) Missing action typescript file for pseudo-bean '"+ name +"' !");
+			} else {
+				System.out.println("(ComponentManager) Missing action typescript file for pseudo-bean '"+ name +"' !");
+			}
+		} finally {
+			if (inputstream != null) {
+				IOUtils.closeQuietly(inputstream);
+			}
+		}
+		return "";
 	}
 }

@@ -47,7 +47,8 @@ public abstract class UIControlAttr extends UIAttribute implements ITagsProperty
 			Iterator<UIComponent> it = getUIComponentList().iterator();
 			while (it.hasNext()) {
 				UIComponent component = (UIComponent)it.next();
-				if (component instanceof UIControlAction) {
+				//if (component instanceof UIControlAction) {
+				if (component instanceof IAction) {
 					children.append(children.length() > 0 ? ";":"");
 					children.append(component.computeTemplate());
 				}
