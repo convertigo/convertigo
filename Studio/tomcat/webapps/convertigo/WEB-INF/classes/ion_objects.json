@@ -4545,7 +4545,7 @@
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "ToastAction",
       "label": "Toast",
-      "description": "Defines a Toast action. | ",
+      "description": "Defines a Toast action. | A Toast is a subtle notification commonly used in modern applications. It can be used to provide feedback about an operation or to display a system message. The toast appears on top of the app's content, and can be dismissed by the app to resume user interaction with the app.",
       "group": "Actions",
       "icon16": "toastaction_color_16x16.png",
       "icon32": "toastaction_color_32x32.png",
@@ -4616,7 +4616,7 @@
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "LogAction",
       "label": "Log",
-      "description": "Defines a Log action. | ",
+      "description": "Defines a Log action. | You can use logs actions to display some information in the device logs. These logs will also be automatically sent to the Convertigo Server and will be threaded within the backend sequence execution so that you can follow a full client interaction thread.",
       "group": "Actions",
       "icon16": "logaction_color_16x16.png",
       "icon32": "logaction_color_32x32.png",
@@ -4629,13 +4629,13 @@
           "value": "some log",
           "values": [
             false,
-			true
+      			true
           ]
         }
 	  }
-	},
-	
-    "CallSequenceAction" : {
+  },
+  
+	"CallSequenceAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "CallSequence",
       "label": "CallSequence",
@@ -4697,7 +4697,7 @@
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "CallFullSync",
       "label": "CallFullSync",
-      "description": "Defines a FullSync call. | ",
+      "description": "Defines a FullSync call. | FullSync calls are used to interact with the local offline data synchronized database. You can use this call to get, post, delete and query (View) data from the database. For more information about FullSync and local FullSync verbs see https://www.convertigo.com/document/latest/reference-manual/convertigo-full-sync-architecture/interacting-locally-with-the-data/",
       "group": "Actions",
       "icon16": "callfullsyncaction_color_16x16.png",
       "icon32": "callfullsyncaction_color_32x32.png",
@@ -4751,11 +4751,11 @@
 	  }
 	},
 	
-    "PushPageAction" : {
+  "PushPageAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "PushPage",
       "label": "PushPage",
-      "description": "Defines a page push. | ",
+      "description": "Push (Displays) a page. |  Pushing a new page onto the top of the navigation stack causes the new page to be animated in",
       "group": "Actions",
       "icon16": "pushpageaction_color_16x16.png",
       "icon32": "pushpageaction_color_32x32.png",
@@ -4769,7 +4769,7 @@
           "value": "",
           "values": [
             false,
-			true
+			      true
           ]
         }
 	  }
