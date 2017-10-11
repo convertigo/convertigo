@@ -1123,7 +1123,7 @@ public class ApplicationComponentEditor extends EditorPart {
 			C8oBrowser.run(() -> {
 				String url = baseUrl;
 				if (pageName != null) {
-					url += "#/nav/n4/" + pageName;
+					url += "#/" + pageName;
 				}
 				if (!browser.getURL().equals(url)) {
 					browser.loadURL(url);

@@ -4773,6 +4773,29 @@
           ]
         }
 	  }
+	},
+	"RootPageAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "displayName": "RootPage",
+      "label": "RootPage",
+      "description": "Set a page root. | ",
+      "group": "Actions",
+      "icon16": "rootpageaction_color_16x16.png",
+      "icon32": "rootpageaction_color_32x32.png",
+      "properties": {
+        "page": {
+          "editor": "NamedSourceSelectorEditor",
+          "label": "Page",
+          "description": "Defines the target page",
+          "category": "@Properties",
+          "type": "string",
+          "value": "",
+          "values": [
+            false,
+			true
+          ]
+        }
+	  }
 	}
 
   }
