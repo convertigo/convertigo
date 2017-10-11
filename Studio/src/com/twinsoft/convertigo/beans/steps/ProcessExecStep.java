@@ -186,7 +186,7 @@ public class ProcessExecStep extends Step {
 				long ln = ((org.mozilla.javascript.NativeArray) evaluated).getLength();
 				command = new String[(int) ln];
 				for (int i=0; i < ln; i++) {
-				command[i] = (String) ((org.mozilla.javascript.NativeArray) evaluated).get(i, null);
+					command[i] = "" + ((org.mozilla.javascript.NativeArray) evaluated).get(i, null);
 				}
 			} else {
 				cmd = evaluated.toString();
