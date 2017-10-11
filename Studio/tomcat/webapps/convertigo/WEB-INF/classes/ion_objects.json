@@ -868,6 +868,8 @@
       "label": "Span",
       "description": "span| Defines a span tag. This the standard HTML5 span tag. You can use this to write your own HTML in a page.",
       "group": "HTML",
+      "icon16": "HTML_color_16x16.png",
+      "icon32": "HTML_color_32x32.png",
       "properties": {
       }
     },
