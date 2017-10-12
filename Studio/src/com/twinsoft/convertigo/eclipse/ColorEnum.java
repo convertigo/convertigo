@@ -22,7 +22,8 @@ public enum ColorEnum {
 	BLUE (0,0,0xFF),
 	DARK_BLUE (0,0,0x80),
 	
-	LIGHT_YELLOW (0xFF,0xFF,0x80),
+	// too strong, changed to a tooltips like yellow.  jmc 12/10/2017
+	LIGHT_YELLOW (0xFF,0xFF,0xE0),
 	YELLOW (0xFF,0xFF,0),
 	DARK_YELLOW (0x80,0x80,0),
 
