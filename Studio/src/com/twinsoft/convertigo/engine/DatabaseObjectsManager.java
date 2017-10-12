@@ -1371,6 +1371,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 					}
 				}
 				
+				// Handle symbols in this symbol value
+				symbolValue = getCompiledValue(symbolValue);
+				
 				// Handle environment variables %name%, %name=def%, %name=def\\%%,  
 				symbolValue = replaceEnvValues(symbolValue);
 				
