@@ -42,10 +42,9 @@ public abstract class RouteActionComponent extends MobileComponent implements IR
 	private static final long serialVersionUID = 2529010701434894046L;
 
 	public enum Action {
-		push,
-		root,
-		setRoot,
-		toast,
+		push, 	// push
+		root, 	// setRoot
+		toast,	// toast
 	}
 	
 	public RouteActionComponent() {
