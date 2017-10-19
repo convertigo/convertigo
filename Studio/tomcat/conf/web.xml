@@ -42,7 +42,8 @@
   <!-- parameters (default values are in square brackets):                  -->
   <!--                                                                      -->
   <!--   debug               Debugging detail level for messages logged     -->
-  <!--                       by this servlet.  [0]                          -->
+  <!--                       by this servlet. Useful values are 0, 1, and   -->
+  <!--                       11 where higher values mean more detail. [0]   -->
   <!--                                                                      -->
   <!--   fileEncoding        Encoding to be used to read static resources   -->
   <!--                       [platform default]                             -->
@@ -88,10 +89,16 @@
   <!--                       globalXsltFile[null]                           -->
   <!--                                                                      -->
   <!--   globalXsltFile      Site wide configuration version of             -->
-  <!--                       localXsltFile This argument is expected        -->
-  <!--                       to be a physical file. [null]                  -->
+  <!--                       localXsltFile. This argument must either be an -->
+  <!--                       absolute or relative (to either                -->
+  <!--                       $CATALINA_BASE/conf or $CATALINA_HOME/conf)    -->
+  <!--                       path that points to a location below either    -->
+  <!--                       $CATALINA_BASE/conf (checked first) or         -->
+  <!--                       $CATALINA_HOME/conf (checked second).[null]    -->
   <!--                                                                      -->
-  <!--                                                                      -->
+  <!--   showServerInfo      Should server information be presented in the  -->
+  <!--                       response sent to clients when directory        -->
+  <!--                       listings is enabled? [true]                    -->
 
     <servlet>
         <servlet-name>default</servlet-name>
@@ -156,6 +163,8 @@
   <!--   engineOptionsClass  Allows specifying the Options class used to    -->
   <!--                       configure Jasper. If not present, the default  -->
   <!--                       EmbeddedServletOptions will be used.           -->
+  <!--                       This option is ignored when running under a    -->
+  <!--                       SecurityManager.                               -->
   <!--                                                                      -->
   <!--   errorOnUseBeanInvalidClassAttribute                                -->
   <!--                       Should Jasper issue an error when the value of -->
@@ -217,15 +226,22 @@
   <!--   scratchdir          What scratch directory should we use when      -->
   <!--                       compiling JSP pages?  [default work directory  -->
   <!--                       for the current web application]               -->
+  <!--                       This option is ignored when running under a    -->
+  <!--                       SecurityManager.                               -->
   <!--                                                                      -->
   <!--   suppressSmap        Should the generation of SMAP info for JSR45   -->
   <!--                       debugging be suppressed?  [false]              -->
   <!--                                                                      -->
-  <!--   trimSpaces          Should white spaces in template text between   -->
-  <!--                       actions or directives be trimmed?  [false]     -->
+  <!--   trimSpaces          Should template text that consists entirely of -->
+  <!--                       whitespace be removed from the output? [false] -->
   <!--                                                                      -->
   <!--   xpoweredBy          Determines whether X-Powered-By response       -->
   <!--                       header is added by generated servlet.  [false] -->
+  <!--                                                                      -->
+  <!--   quoteAttributeEL    When EL is used in an attribute value on a     -->
+  <!--                       JSP page should the rules for quoting of       -->
+  <!--                       attributes described in JSP.1.6 be applied to  -->
+  <!--                       the expression? [true]                         -->
 
     <servlet>
         <servlet-name>jsp</servlet-name>
@@ -311,13 +327,34 @@
   <!--                                                                      -->
   <!--   cgiPathPrefix        The CGI search path will start at             -->
   <!--                        webAppRootDir + File.separator + this prefix. -->
-  <!--                        [WEB-INF/cgi]                                 -->
+  <!--                        If not set, then webAppRootDir is used.       -->
+  <!--                        Recommended value: WEB-INF/cgi                -->
   <!--                                                                      -->
-  <!--   debug                Debugging detail level for messages logged    -->
-  <!--                        by this servlet.  [0]                         -->
+  <!--   enableCmdLineArguments                                             -->
+  <!--                        Are command line parameters generated from    -->
+  <!--                        the query string as per section 4.4 of 3875   -->
+  <!--                        RFC? [true]                                   -->
   <!--                                                                      -->
   <!--   executable           Name of the executable used to run the        -->
   <!--                        script. [perl]                                -->
+  <!--                                                                      -->
+  <!--   envHttpHeaders       A regular expression used to select the HTTP  -->
+  <!--                        headers passed to the CGI process as          -->
+  <!--                        environment variables. Note that headers are  -->
+  <!--                        converted to upper case before matching and   -->
+  <!--                        that the entire header name must match the    -->
+  <!--                        pattern.                                      -->
+  <!--                        [ACCEPT[-0-9A-Z]*|CACHE-CONTROL|COOKIE|HOST|  -->
+  <!--                         IF-[-0-9A-Z]*|REFERER|USER-AGENT]            -->
+  <!--                                                                      -->
+  <!--  environment-variable- An environment to be set for the execution    -->
+  <!--                        environment of the CGI script. The name of    -->
+  <!--                        variable is taken from the parameter name.    -->
+  <!--                        To configure an environment variable named    -->
+  <!--                        FOO, configure a parameter named              -->
+  <!--                        environment-variable-FOO. The parameter value -->
+  <!--                        is used as the environment variable value.    -->
+  <!--                        The default is no environment variables.      -->
   <!--                                                                      -->
   <!--   parameterEncoding    Name of parameter encoding to be used with    -->
   <!--                        CGI servlet.                                  -->
@@ -335,14 +372,10 @@
         <servlet-name>cgi</servlet-name>
         <servlet-class>org.apache.catalina.servlets.CGIServlet</servlet-class>
         <init-param>
-          <param-name>debug</param-name>
-          <param-value>0</param-value>
-        </init-param>
-        <init-param>
           <param-name>cgiPathPrefix</param-name>
           <param-value>WEB-INF/cgi</param-value>
         </init-param>
-         <load-on-startup>5</load-on-startup>
+        <load-on-startup>5</load-on-startup>
     </servlet>
 -->
 
@@ -387,6 +420,46 @@
 
 
   <!-- ================== Built In Filter Definitions ===================== -->
+
+  <!-- A filter that sets various security related HTTP Response headers.   -->
+  <!-- This filter supports the following initialization parameters         -->
+  <!-- (default values are in square brackets):                             -->
+  <!--                                                                      -->
+  <!--   hstsEnabled         Should the HTTP Strict Transport Security      -->
+  <!--                       (HSTS) header be added to the response? See    -->
+  <!--                       RFC 6797 for more information on HSTS. [true]  -->
+  <!--                                                                      -->
+  <!--   hstsMaxAgeSeconds   The max age value that should be used in the   -->
+  <!--                       HSTS header. Negative values will be treated   -->
+  <!--                       as zero. [0]                                   -->
+  <!--                                                                      -->
+  <!--   hstsIncludeSubDomains                                              -->
+  <!--                       Should the includeSubDomains parameter be      -->
+  <!--                       included in the HSTS header.                   -->
+  <!--                                                                      -->
+  <!--   antiClickJackingEnabled                                            -->
+  <!--                       Should the anti click-jacking header           -->
+  <!--                       X-Frame-Options be added to every response?    -->
+  <!--                       [true]                                         -->
+  <!--                                                                      -->
+  <!--   antiClickJackingOption                                             -->
+  <!--                       What value should be used for the header. Must -->
+  <!--                       be one of DENY, SAMEORIGIN, ALLOW-FROM         -->
+  <!--                       (case-insensitive). [DENY]                     -->
+  <!--                                                                      -->
+  <!--   antiClickJackingUri IF ALLOW-FROM is used, what URI should be      -->
+  <!--                       allowed? []                                    -->
+  <!--                                                                      -->
+  <!--   blockContentTypeSniffingEnabled                                    -->
+  <!--                       Should the header that blocks content type     -->
+  <!--                       sniffing be added to every response? [true]    -->
+<!--
+    <filter>
+        <filter-name>httpHeaderSecurity</filter-name>
+        <filter-class>org.apache.catalina.filters.HttpHeaderSecurityFilter</filter-class>
+        <async-supported>true</async-supported>
+    </filter>
+-->
 
   <!-- A filter that sets character encoding that is used to decode -->
   <!-- parameters in a POST request -->
@@ -475,6 +548,15 @@
 
 
   <!-- ==================== Built In Filter Mappings ====================== -->
+
+  <!-- The mapping for the HTTP header security Filter -->
+<!--
+    <filter-mapping>
+        <filter-name>httpHeaderSecurity</filter-name>
+        <url-pattern>/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+    </filter-mapping>
+-->
 
   <!-- The mapping for the Set Character Encoding Filter -->
 <!--
@@ -4234,6 +4316,10 @@
     <mime-mapping>
         <extension>woff</extension>
         <mime-type>application/x-font-woff</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>woff2</extension>
+        <mime-type>font/woff2</mime-type>
     </mime-mapping>
     <mime-mapping>
         <extension>wpd</extension>
