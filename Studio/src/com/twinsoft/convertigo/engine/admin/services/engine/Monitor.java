@@ -54,7 +54,11 @@ public class Monitor extends XmlService {
 
 		objectElement = document.createElement("contexts");
 		rootElement.appendChild(objectElement);
-		objectText = document.createTextNode(Engine.isStarted ? "" + Engine.theApp.contextManager.getNumberOfContexts() : "0");
+		try {
+			objectText = document.createTextNode(Engine.isStarted ? "" + Engine.theApp.contextManager.getNumberOfContexts() : "0");
+		} catch (Exception e) {
+			objectText = document.createTextNode("0");
+		}
 		objectElement.appendChild(objectText);
 
 		objectElement = document.createElement("requests");
