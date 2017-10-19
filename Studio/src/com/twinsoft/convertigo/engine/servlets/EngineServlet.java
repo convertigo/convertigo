@@ -104,6 +104,17 @@ public class EngineServlet extends HttpServlet {
     }
     
 	public void init(ServletConfig servletConfig) throws ServletException {
+		
+		// Fix the minifier syntax for tomcat > 7.0.69 that fix the CVE-2016-6816
+		String targetAllow = System.getProperty("tomcat.util.http.parser.HttpParser.requestTargetAllow", "");
+		if (!targetAllow.contains("{")) {
+			targetAllow += "{";
+		}
+		if (!targetAllow.contains("}")) {
+			targetAllow += "}";
+		}
+		System.setProperty("tomcat.util.http.parser.HttpParser.requestTargetAllow", targetAllow);
+		
 		super.init(servletConfig);
 		
 		try {
