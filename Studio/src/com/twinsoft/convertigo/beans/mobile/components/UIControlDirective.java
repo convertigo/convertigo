@@ -163,6 +163,7 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 		String label = getDirectiveName();
 		return label = (label.isEmpty() ? "?":label) + " " 
 							+ directiveSource.getLabel()
+							+ (directiveExpression.trim().startsWith(";") ? "":";")
 							+ directiveExpression;
 	}
 
