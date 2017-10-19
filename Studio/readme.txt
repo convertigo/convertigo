@@ -14,7 +14,7 @@ Convertigo Studio Compilation
 In order to compile Convertigo Studio project, you must import the whole project from
 our SVN repository inside your Eclipse workspace.
 
-Use the Classic 3.4.2 (and higher) eclipse distribution and use JVM 1.5 (and higher).
+Use the Classic 4.6.3 (and higher) eclipse distribution and use JVM 1.8 (and higher).
 
 The following Eclipse components should have been installed:
 
