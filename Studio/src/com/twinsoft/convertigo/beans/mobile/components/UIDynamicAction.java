@@ -28,7 +28,6 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType.Mode;
-import com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonProperty;
 
@@ -55,10 +54,14 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		return new StringBuilder();
 	}
 
-	public String getActionName() {
-		return "ATS"+ this.priority;
+	public String getInputId() {
+		return "_"+ this.priority;
 	}
 	
+	public String getFunctionName() {
+		return "ATS"+ this.priority;
+	}
+
 	protected int numberOfActions() {
 		int num = 0;
 		Iterator<UIComponent> it = getUIComponentList().iterator();
@@ -76,26 +79,75 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	@Override
 	public String computeTemplate() {
 		if (isEnabled()) {
-			StringBuilder parameters = new StringBuilder();
-			parameters.append("$event");
+			String inputs = computeActionInputs();
 			
-			Iterator<UIComponent> it = getUIComponentList().iterator();
-			while (it.hasNext()) {
-				UIComponent component = (UIComponent)it.next();
-				if (component instanceof UIControlVariable) {
-					UIControlVariable variable = (UIControlVariable)component;
-					String parameterValue = variable.getVarValue();
-					parameters.append(parameters.length()> 0 ? ", ":"").append(parameterValue);
+			if (numberOfActions() > 0 || getParent() instanceof UIPageEvent) {
+				return getFunctionName() + "($event, {"+ inputs +"})";
+			} else {
+				IonBean ionBean = getIonBean();
+				if (ionBean != null) {
+					String actionName = ionBean.getName();
+					int i = inputs.indexOf("props:")+"props:".length();
+					int j = inputs.indexOf("vars:")+"vars:".length();
+					String props = inputs.substring(i, inputs.indexOf('}',i)+1);
+					String vars = inputs.substring(j, inputs.indexOf('}',j)+1);
+					return actionName + "("+ props + ","+ vars +")";
 				}
 			}
-			
-			String actionName = getActionName();
-			String computed = actionName + "("+ parameters +")";
-			return computed;
 		}
 		return "";
 	}
 
+	protected String computeActionInputs() {
+		if (isEnabled()) {
+			IonBean ionBean = getIonBean();
+			if (ionBean != null) {
+				StringBuilder sbProps = new StringBuilder();
+				for (IonProperty property : ionBean.getProperties().values()) {
+					String p_name = property.getName();
+					Object p_value = property.getValue();
+					
+					sbProps.append(sbProps.length() > 0 ? ", ":"");
+					sbProps.append(p_name).append(": ");
+					// case value is set
+					if (!p_value.equals(false)) {
+						MobileSmartSourceType msst = property.getSmartType();
+						String smartValue = msst.getValue();
+						if (Mode.PLAIN.equals(msst.getMode()) && property.getType().equalsIgnoreCase("string")) {
+							smartValue = "\'" + smartValue + "\'";
+						}
+						sbProps.append(smartValue);
+					}
+					// case value is not set
+					else {
+						sbProps.append("null");
+					}
+				}
+				
+				StringBuilder sbVars = new StringBuilder();
+				StringBuilder sbActions = new StringBuilder();
+				Iterator<UIComponent> it = getUIComponentList().iterator();
+				while (it.hasNext()) {
+					UIComponent component = (UIComponent)it.next();
+					if (component instanceof UIControlVariable) {
+						String parameter = component.computeTemplate();
+						if (!parameter.isEmpty()) {
+							sbVars.append(sbVars.length() > 0 ? ", ":"").append(parameter);
+						}
+					} else if (component instanceof UIDynamicAction) {
+						String s = ((UIDynamicAction)component).computeActionInputs();
+						if (!s.isEmpty()) {
+							sbActions.append(", ").append(s);
+						}
+					}
+				}
+				
+				return getInputId() +": {props:{"+sbProps+"}, vars:{"+sbVars+"}}" + sbActions;
+			}
+		}
+		return "";
+	}
+	
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
 		String function = computeActionFunction();
@@ -110,42 +162,27 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	public String computeActionFunction() {
 		String computed = "";
 		if (isEnabled()) {
+			StringBuilder parameters = new StringBuilder();
+			parameters.append("event").append(", actions");
+			
 			StringBuilder cartridge = new StringBuilder();
 			cartridge.append("\t/**").append(System.lineSeparator())
-						.append("\t * Function "+ getName()).append(System.lineSeparator());
+						.append("\t * Function "+ getFunctionName()).append(System.lineSeparator());
 			for (String commentLine : getComment().split(System.lineSeparator())) {
 				cartridge.append("\t *   ").append(commentLine).append(System.lineSeparator());
 			}
 			cartridge.append("\t * ").append(System.lineSeparator());
-			
-			StringBuilder parameters = new StringBuilder();
-			parameters.append("event");
 			cartridge.append("\t * @param event , the event received").append(System.lineSeparator());
-			Iterator<UIComponent> it = getUIComponentList().iterator();
-			while (it.hasNext()) {
-				UIComponent component = (UIComponent)it.next();
-				if (component instanceof UIControlVariable) {
-					UIControlVariable variable = (UIControlVariable)component;
-					String paramName = variable.getVarName();
-					String paramComment = variable.getComment();
-					parameters.append(parameters.length()> 0 ? ", ":"").append(paramName);
-					cartridge.append("\t * @param "+paramName);
-					boolean firstLine = true;
-					for (String commentLine : paramComment.split(System.lineSeparator())) {
-						cartridge.append(firstLine ? " , ":"\t *   ").append(commentLine).append(System.lineSeparator());
-						firstLine = false;
-					}
-				}
-			}
+			cartridge.append("\t * @param actions , the object which holds action inputs").append(System.lineSeparator());
 			cartridge.append("\t */").append(System.lineSeparator());
 			
-			String actionName = getActionName();
+			String functionName = getFunctionName();
 			
 			computed += System.lineSeparator();
 			computed += cartridge;
-			computed += "\t"+ actionName + "("+ parameters +") {" + System.lineSeparator();
-			computed += "\t"+ computeActionContent() + System.lineSeparator();
-			computed += "\t\t.catch((error:any) => {console.log('[MB] An error occured : ',error.message)});" + System.lineSeparator();
+			computed += "\t"+ functionName + "("+ parameters +") {" + System.lineSeparator();
+			computed += ""+ computeActionContent();
+			computed += "\t\t.catch((error:any) => {console.log(\"[MB] An error occured : \",error.message)});" + System.lineSeparator();
 			computed += "\t}";
 		}
 		return computed;
@@ -154,29 +191,10 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	protected String computeActionContent() {
 		IonBean ionBean = getIonBean();
 		if (ionBean != null) {
-			String tsCode = ComponentManager.getActionTsCode(ionBean.getName());
-			for (IonProperty property : ionBean.getProperties().values()) {
-				String p_name = property.getName();
-				Object p_value = property.getValue();
-				
-				// case value is set
-				if (!p_value.equals(false)) {
-					MobileSmartSourceType msst = property.getSmartType();
-					String smartValue = msst.getValue();
-					if (Mode.PLAIN.equals(msst.getMode()) && property.getType().equalsIgnoreCase("string")) {
-						smartValue = "\"" + smartValue + "\"";
-					}
-					String regex = "\\$"+p_name+"\\$";
-					tsCode = tsCode.replaceAll(regex, smartValue);
-				} else {
-					String regex = "\\$"+p_name+"\\$";
-					tsCode = tsCode.replaceAll(regex, "null");
-				}
-			}
-			
+			String actionName = ionBean.getName();
+			String actionInputId = getInputId();
 			int numThen = numberOfActions();
 			
-			StringBuilder sbVars = new StringBuilder(); 
 			StringBuilder sbThen = new StringBuilder();  
 			Iterator<UIComponent> it = getUIComponentList().iterator();
 			while (it.hasNext()) {
@@ -185,33 +203,29 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 					if (component instanceof UIDynamicAction) {
 						String s = ((UIDynamicAction)component).computeActionContent();
 						if (!s.isEmpty()) {
-							sbThen.append(sbThen.length()>0 && numThen > 1 ? ","+ System.lineSeparator() :"")
-								.append(s);//.append(System.lineSeparator());
-						}
-					} else if (component instanceof UIControlVariable) {
-						String parameter = component.computeTemplate();
-						if (!parameter.isEmpty()) {
-							sbVars.append(sbVars.length() > 0 ? ", ":"").append(parameter);
+							sbThen.append(sbThen.length()>0 && numThen > 1 ? "\t\t,"+ System.lineSeparator() :"").append(s);
 						}
 					}
 				}
 			}
-			
-			String s = "";
-			if (!tsCode.isEmpty()) {
-				tsCode = tsCode.replaceFirst("/\\*\\=c8o_Vars\\*/", sbVars.toString());
-				if (sbThen.length() > 0) {
-					if (numThen > 1) {
-						tsCode = tsCode.replaceFirst("/\\*\\=c8o_Then\\*/", "return Promise.all(["+sbThen.toString()+"])");
-					} else {
-						tsCode = tsCode.replaceFirst("/\\*\\=c8o_Then\\*/", "return "+ sbThen.toString());
-					}
+
+			String tsCode = "";
+			tsCode +="\t\tthis."+actionName+"(actions."+actionInputId+".props, actions."+actionInputId+".vars)"+ System.lineSeparator();
+			tsCode += "\t\t.then((res:any) => {"+ System.lineSeparator();
+			if (sbThen.length() > 0) {
+				if (numThen > 1) {
+					tsCode += "\t\treturn Promise.all(["+ System.lineSeparator();
+					tsCode += sbThen.toString();
+					tsCode += "\t\t])"+ System.lineSeparator();
 				} else {
-					tsCode = tsCode.replaceFirst("/\\*\\=c8o_Then\\*/","");
+					tsCode += "\t\treturn "+ sbThen.toString().replaceFirst("\t\t", "");
 				}
-				s = tsCode;
+			} else {
+				tsCode += "";
 			}
-			return s;
+			tsCode += "\t\t}, (error: any) => {console.log(\"[MB] "+actionName+" : \", error.message);throw new Error(error);})"+ System.lineSeparator();
+			
+			return tsCode;
 		}
 		return "";
 	}

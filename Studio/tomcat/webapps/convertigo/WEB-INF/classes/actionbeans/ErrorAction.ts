@@ -1,3 +1,10 @@
-Promise.reject($message$)
-.then((res:any) => {
-}, (error: any) => {console.log("[MB] ErrorAction");throw new Error(error);})
+    /**
+     * Function ErrorAction
+     *   
+     * 
+     * @param props , the object which holds properties key-value pairs
+     * @param vars  , the object which holds variables key-value pairs
+     */
+    ErrorAction(props, vars) : Promise<any> {
+        return Promise.reject(props.message);
+    }

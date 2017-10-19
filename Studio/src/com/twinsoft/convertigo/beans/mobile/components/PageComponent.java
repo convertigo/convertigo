@@ -22,12 +22,15 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
@@ -45,6 +48,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIPageEvent.ViewEvent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 @DboCategoryInfo(
@@ -543,6 +547,25 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 				String constructors = jsonScripts.getString("constructors") + constructor;
 				jsonScripts.put("constructors", constructors);
 			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		// Pseudos actions
+		File dir = new File(Engine.WEBAPP_PATH + "/WEB-INF/classes/actionbeans");
+		for (File f: FileUtils.listFiles(dir, FileFilterUtils.suffixFileFilter("ts"), null)) {
+			try {
+				String content = FileUtils.readFileToString(f, "UTF-8");
+				if (!content.isEmpty()) {
+					try {
+						String function = content + System.lineSeparator();
+						String functions = jsonScripts.getString("functions") + function;
+						jsonScripts.put("functions", functions);
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+				}
+			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}

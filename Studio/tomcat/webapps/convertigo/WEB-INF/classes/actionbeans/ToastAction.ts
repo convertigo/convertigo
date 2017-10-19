@@ -1,4 +1,10 @@
-this.routerProvider.toastCtrl.create({message: $message$, duration: $duration$, position: $position$}).present()
-.then((res:any) => {
-/*=c8o_Then*/
-}, (error: any) => {console.log("[MB] ToastAction : ", error.message);throw new Error(error);})
+    /**
+     * Function ToastAction
+     *   
+     * 
+     * @param props , the object which holds properties key-value pairs
+     * @param vars  , the object which holds variables key-value pairs
+     */
+    ToastAction(props, vars) : Promise<any> {
+        return this.routerProvider.toastCtrl.create({message: props.message, duration: props.duration, position: props.position}).present();
+    }
