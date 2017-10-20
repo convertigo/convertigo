@@ -1139,9 +1139,9 @@ public class HttpConnector extends Connector {
 			Engine.theApp.pluginsManager.fireHttpConnectorGetDataEnd(context, t0, t1);
 			
 			StringBuilder sb = new StringBuilder();
-			sb.append("HTTP result {ContentType: " + context.contentType + ", Length: " + result.length + "}\n\n");
+			sb.append("HTTP result {ContentType: " + context.contentType + ", Length: " + (result != null ? result.length : 0) + "}\n\n");
 			
-			if (context.contentType != null
+			if (result != null && context.contentType != null
 					&& ( context.contentType.startsWith("text/")
 					|| context.contentType.startsWith("application/xml")
 					|| context.contentType.startsWith("application/json"))) {
