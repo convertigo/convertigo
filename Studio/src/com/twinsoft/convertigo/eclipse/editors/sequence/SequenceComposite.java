@@ -91,13 +91,16 @@ public class SequenceComposite extends AbstractSequenceComposite implements Sequ
 		catch (Exception e) {}
 	}
 	
-	private void setTextData(String data) {
+	private void setTextData(final String data) {
 		if (data != null) {
-			final String buf = data;
 			httpData.getDisplay().asyncExec(new Runnable() {
 				public void run() {
 					try {
-						httpData.setText(buf);
+						if (data.length() < 10000) {
+							httpData.setText(data);	
+						} else {
+							httpData.setText(data.substring(0, 10000));
+						}
 					}
 					catch (Exception e) {;}
 				};
