@@ -53,8 +53,8 @@ import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UICustom;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
-import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItem;
 import com.twinsoft.convertigo.beans.mobile.components.UIElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIForm;
 import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
@@ -335,23 +335,20 @@ public class ComponentManager {
 					}
 					if (bean.getClassName().startsWith("com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItem")) {
 						if (parent instanceof UIComponent) {
+							if (parent instanceof UIDynamicMenuItem) return false;
 							UIDynamicMenu menu = ((UIComponent)parent).getMenu();
 							return menu != null;
 						}
 					}
-					if (bean.getClassName().startsWith("com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction")) {
-						return parent instanceof UIPageEvent || parent instanceof UIControlEvent || parent instanceof IAction;
-					}
 					
-					if (parent instanceof PageComponent)
-						return true;
-					if (parent instanceof UIDynamicElement)
-						return true;
-					if (parent instanceof UIElement)
-						return true;
-					if (parent instanceof UIControlDirective)
-						return true;
-					return false;
+					Class<?> dboClass;
+					try {
+						dboClass = Class.forName(bean.getClassName());
+						return acceptDatabaseObjects(parent, dboClass);
+					} catch (ClassNotFoundException e) {
+						e.printStackTrace();
+						return false;
+					}
 				}
 				
 				@Override
@@ -392,6 +389,68 @@ public class ComponentManager {
 			});
 		}
 		return Collections.unmodifiableList(components);
+	}
+	
+	public static boolean acceptDatabaseObjects(DatabaseObject parentDatabaseObject, DatabaseObject databaseObject) {
+		return acceptDatabaseObjects(parentDatabaseObject, databaseObject.getClass());
+	}
+	
+	protected static boolean acceptDatabaseObjects(DatabaseObject dboParent, Class<?> dboClass) {
+		if (dboParent instanceof ApplicationComponent) {
+			if (UIStyle.class.isAssignableFrom(dboClass) ||
+				UIDynamicMenu.class.isAssignableFrom(dboClass)) {
+				return true;
+			}
+		} else if (dboParent instanceof PageComponent) {
+			if (!UITheme.class.isAssignableFrom(dboClass) &&
+				!UIDynamicMenu.class.isAssignableFrom(dboClass) &&
+				!UIDynamicMenuItem.class.isAssignableFrom(dboClass) &&
+				!UIFormValidator.class.isAssignableFrom(dboClass) &&
+				!UIAttribute.class.isAssignableFrom(dboClass) &&
+				!UIControlVariable.class.isAssignableFrom(dboClass) &&
+				!IAction.class.isAssignableFrom(dboClass)) {
+				return true;
+			}
+		} else if (dboParent instanceof UIComponent) {
+			if (dboParent instanceof UIPageEvent) {
+				if (IAction.class.isAssignableFrom(dboClass)) {
+					return true;
+				}
+			}
+			else if (dboParent instanceof UIControlAttr) {
+				if (IAction.class.isAssignableFrom(dboClass)) {
+					return true;
+				}
+			}
+			else if (dboParent instanceof UIControlAction) {
+				if (UIControlVariable.class.isAssignableFrom(dboClass)) {
+					return true;
+				}
+			}
+			else if (dboParent instanceof UIDynamicAction) {
+				if (UIDynamicAction.class.isAssignableFrom(dboClass) ||
+						UIControlVariable.class.isAssignableFrom(dboClass)) {
+					return true;
+				}
+			} else if (dboParent instanceof UIDynamicMenuItem) {
+				return false;
+			} else if (dboParent instanceof UIElement) {
+				if (UIDynamicMenuItem.class.isAssignableFrom(dboClass)) {
+					if (dboParent instanceof UIComponent) {
+						UIDynamicMenu menu = ((UIComponent)dboParent).getMenu();
+						return menu != null;
+					}
+				}
+				
+				if (!UIControlVariable.class.isAssignableFrom(dboClass) &&
+					!UIPageEvent.class.isAssignableFrom(dboClass) &&
+					!UITheme.class.isAssignableFrom(dboClass) &&
+					!(IAction.class.isAssignableFrom(dboClass))) {
+						return true;
+				}
+			}
+		}
+		return false;
 	}
 	
 	protected static Component getDboComponent(final Class<? extends DatabaseObject> dboClass, final String group) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
@@ -437,50 +496,7 @@ public class ComponentManager {
 			
 			@Override
 			public boolean isAllowedIn(DatabaseObject parent) {
-				if (parent instanceof ApplicationComponent) {
-					if (UIStyle.class.isAssignableFrom(dboClass)) {
-						return true;
-					}
-				}
-				if (parent instanceof PageComponent) {
-					if (!UITheme.class.isAssignableFrom(dboClass) &&
-						!UIFormValidator.class.isAssignableFrom(dboClass) &&
-						!UIAttribute.class.isAssignableFrom(dboClass) &&
-						//!UIControlAction.class.isAssignableFrom(dboClass)) {
-						!(IAction.class.isAssignableFrom(dboClass))) {
-						return true;
-					}
-				}
-				if (parent instanceof UIPageEvent) {
-					//if (UIControlAction.class.isAssignableFrom(dboClass)) {
-					if (IAction.class.isAssignableFrom(dboClass)) {
-						return true;
-					}
-				}
-				if (parent instanceof UIElement) {
-					if (!UITheme.class.isAssignableFrom(dboClass) &&
-						//!(UIControlAction.class.isAssignableFrom(dboClass))) {
-						!(IAction.class.isAssignableFrom(dboClass))) {
-							return true;
-					}
-				}
-				if (parent instanceof UIControlAttr) {
-					//if (UIControlAction.class.isAssignableFrom(dboClass)) {
-					if (IAction.class.isAssignableFrom(dboClass)) {
-						return true;
-					}
-				}
-				if (parent instanceof UIControlAction) {
-					if (UIControlVariable.class.isAssignableFrom(dboClass)) {
-						return true;
-					}
-				}
-				if (parent instanceof UIDynamicAction) {
-					if (UIDynamicAction.class.isAssignableFrom(dboClass)) {
-						return true;
-					}
-				}
-				return false;
+				return acceptDatabaseObjects(parent, dboClass);
 			}
 
 			@Override

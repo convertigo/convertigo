@@ -62,6 +62,7 @@ import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.IXPathable;
+import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
@@ -74,6 +75,7 @@ import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
+import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlCallSequence;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIForm;
@@ -713,7 +715,6 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 								DatabaseObject databaseObject = (DatabaseObject) list.get(0);
 								DatabaseObject parentDatabaseObject = ((DatabaseObjectTreeObject)target).getObject().getParent();
 								if (!DatabaseObjectsManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
-									//TODO: Modify DatabaseObjectsManager.acceptDatabaseObjects for pseudo beans
 									return false;
 								}
 								return true;
@@ -764,8 +765,12 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						List<Object> list = ConvertigoPlugin.clipboardManagerDND.read(xmlData);
 						DatabaseObject databaseObject = (DatabaseObject) list.get(0);
 						if (!DatabaseObjectsManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
-							//TODO: Modify DatabaseObjectsManager.acceptDatabaseObjects for pseudo beans
 							return false;
+						}
+						if (parentDatabaseObject instanceof MobileComponent && databaseObject instanceof UIComponent) {
+							if (!ComponentManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
+								return false;
+							}
 						}
 						return true;
 					} catch (Exception e) {
