@@ -23,11 +23,14 @@
 package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType.Mode;
+import com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonProperty;
 
@@ -150,16 +153,16 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
-		String function = computeActionFunction();
+		String function = computeActionFunction(jsonScripts);
 		try {
-			String functions = jsonScripts.getString("functions") + function;
+			String functions = jsonScripts.getString("functions") + System.lineSeparator() + function;
 			jsonScripts.put("functions", functions);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	public String computeActionFunction() {
+	protected String computeActionFunction(JSONObject jsonScripts) {
 		String computed = "";
 		if (isEnabled()) {
 			StringBuilder parameters = new StringBuilder();
@@ -181,19 +184,49 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			computed += System.lineSeparator();
 			computed += cartridge;
 			computed += "\t"+ functionName + "("+ parameters +") {" + System.lineSeparator();
-			computed += ""+ computeActionContent();
+			computed += ""+ computeActionContent(jsonScripts);
 			computed += "\t\t.catch((error:any) => {console.log(\"[MB] An error occured : \",error.message)});" + System.lineSeparator();
 			computed += "\t}";
 		}
 		return computed;
 	}
 	
-	protected String computeActionContent() {
+	protected String computeActionContent(JSONObject jsonScripts) {
 		IonBean ionBean = getIonBean();
 		if (ionBean != null) {
+			int numThen = numberOfActions();
 			String actionName = ionBean.getName();
 			String actionInputId = getInputId();
-			int numThen = numberOfActions();
+			String actionCode = ComponentManager.getActionTsCode(actionName);
+			
+			PageComponent page = getPage();
+			
+			try {
+				
+				String imports = jsonScripts.getString("imports");
+				Map<String, List<String>> map = ionBean.getConfig().getPageImports();
+				if (map.size() > 0) {
+					for (String from : map.keySet()) {
+						for (String component: map.get(from)) {
+							if (page.addImport(component, from)) {
+								imports += "import { "+ component +" } from '"+ from +"';" + System.lineSeparator();
+							}
+						}
+					}
+					jsonScripts.put("imports", imports);
+				}
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			
+			if (page.addFunction(actionName, actionCode)) {
+				try {
+					String functions = jsonScripts.getString("functions") + System.lineSeparator() + actionCode;
+					jsonScripts.put("functions", functions);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+			}
 			
 			StringBuilder sbThen = new StringBuilder();  
 			Iterator<UIComponent> it = getUIComponentList().iterator();
@@ -201,7 +234,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				UIComponent component = (UIComponent)it.next();
 				if (component.isEnabled()) {
 					if (component instanceof UIDynamicAction) {
-						String s = ((UIDynamicAction)component).computeActionContent();
+						String s = ((UIDynamicAction)component).computeActionContent(jsonScripts);
 						if (!s.isEmpty()) {
 							sbThen.append(sbThen.length()>0 && numThen > 1 ? "\t\t,"+ System.lineSeparator() :"").append(s);
 						}

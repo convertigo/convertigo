@@ -25,8 +25,10 @@ package com.twinsoft.convertigo.engine.mobile;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -57,6 +59,7 @@ public class MobileBuilder {
 	private Project project = null;
 	boolean initDone = false;
 	boolean autoBuild = true;
+	Map<String,String> pageTplImports = null;
 	Set<File> writtenFiles = new HashSet<File>();
 	
 	File projectDir, ionicTplDir, ionicWorkDir;
@@ -286,6 +289,9 @@ public class MobileBuilder {
 		if (isIonicTemplateBased()) {
 			moveFilesForce();
 			FileUtils.deleteQuietly(new File(projectDir,"_private/ionic_tmp"));
+			
+			pageTplImports.clear();
+			pageTplImports = null;
 			
 			initDone = false;
 			Engine.logEngine.debug("(MobileBuilder) Released builder for ionic project '"+ project.getName() +"'");
@@ -527,6 +533,34 @@ public class MobileBuilder {
 		}
 	}
 	
+	public boolean hasTplImport(String name) {
+		return getPageTplImports().containsKey(name);
+	}
+	
+	private Map<String,String> getPageTplImports() {
+		if (pageTplImports == null) {
+			pageTplImports = new HashMap<String, String>(10);
+			try {
+				File pageTplTs = new File(ionicTplDir, "src/page.tpl");
+				String tsContent = FileUtils.readFileToString(pageTplTs, "UTF-8");
+				
+				Pattern pattern = Pattern.compile("[\\s\\t]*import[\\s\\t]*\\{(.*)\\}[\\s\\t]*from[\\s\\t]*'(.*)'");
+				Matcher matcher = pattern.matcher(tsContent);
+				while (matcher.find()) {
+					String names = matcher.group(1);
+					String path = matcher.group(2);
+					for (String name : names.split(",")) {
+						if (!pageTplImports.containsKey(name)) {
+							pageTplImports.put(name, path);
+						}
+					}
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return pageTplImports;
+	}
 	
 	private String getPageTsContent(PageComponent page) throws IOException {
 		String pageName = page.getName();

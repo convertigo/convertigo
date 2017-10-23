@@ -48,7 +48,8 @@ public class IonBean {
 		icon16,
 		icon32,
 		properties,
-		events
+		events,
+		config
 		;
 	}
 	
@@ -69,6 +70,7 @@ public class IonBean {
 				.put(Key.icon32.name(), "default_color_32x32.png")
 				.put(Key.properties.name(), new JSONObject())
 				.put(Key.events.name(), new JSONObject())
+				.put(Key.config.name(), new JSONObject())
 				;
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -322,6 +324,17 @@ public class IonBean {
 			e.printStackTrace();
 		}
 		return events;
+	}
+	
+	public IonConfig getConfig() {
+		try {
+			JSONObject jsonConfig = jsonBean.getJSONObject(Key.config.name());
+			IonConfig config = new IonConfig(jsonConfig);
+			return config;
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return new IonConfig();
+		}
 	}
 	
 	protected DatabaseObject createBean() {

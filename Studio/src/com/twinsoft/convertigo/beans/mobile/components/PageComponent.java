@@ -22,15 +22,14 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
-import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
@@ -48,7 +47,6 @@ import com.twinsoft.convertigo.beans.mobile.components.UIPageEvent.ViewEvent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 @DboCategoryInfo(
@@ -77,6 +75,8 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 		PageComponent cloned = (PageComponent) super.clone();
 		cloned.newPriority = newPriority;
 		cloned.vUIComponents = new LinkedList<UIComponent>();
+		cloned.pageImports = new HashMap<String, String>();
+		cloned.pageFunctions = new HashMap<String, String>();
 		cloned.computedContents = null;
 		cloned.isRoot = false;
 		return cloned;
@@ -416,6 +416,38 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 	}
 	
 	private transient JSONObject computedContents = null;
+
+	private transient Map<String, String> pageImports = new HashMap<String, String>();
+	private transient Map<String, String> pageFunctions = new HashMap<String, String>();
+	
+	private boolean hasImport(String name) {
+		return pageImports.containsKey(name) ||
+				getProject().getMobileBuilder().hasTplImport(name);
+	}
+	
+	public boolean addImport(String name, String path) {
+		if (name != null && path != null && !name.isEmpty() && !path.isEmpty()) {
+			synchronized (pageImports) {
+				if (!hasImport(name)) {
+					pageImports.put(name, path);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	public boolean addFunction(String name, String code) {
+		if (name != null && code != null && !name.isEmpty() && !code.isEmpty()) {
+			synchronized (pageFunctions) {
+				if (!pageFunctions.containsKey(name)) {
+					pageFunctions.put(name, code);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 	
 	private JSONObject initJsonComputed() {
 		JSONObject jsonObject = null;
@@ -443,9 +475,13 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 	
 	protected synchronized void doComputeContents() {
 		try {
+			pageImports.clear();
+			pageFunctions.clear();
 			JSONObject newComputedContent = initJsonComputed();
 			
-			computeScripts(newComputedContent.getJSONObject("scripts"));
+			JSONObject jsonScripts = newComputedContent.getJSONObject("scripts");
+			computeScripts(jsonScripts);
+			
 			newComputedContent.put("style", computeStyle());
 			newComputedContent.put("template", computeTemplate());
 			
@@ -504,7 +540,7 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 	public String getComputedImports() {
 		try {
 			return getComputedContents().getJSONObject("scripts").getString("imports");
-		} catch (JSONException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return "";
@@ -536,7 +572,7 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 		}
 		return "";
 	}
-	
+
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
 		// Page menu
@@ -547,25 +583,6 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 				String constructors = jsonScripts.getString("constructors") + constructor;
 				jsonScripts.put("constructors", constructors);
 			} catch (JSONException e) {
-				e.printStackTrace();
-			}
-		}
-		
-		// Pseudos actions
-		File dir = new File(Engine.WEBAPP_PATH + "/WEB-INF/classes/actionbeans");
-		for (File f: FileUtils.listFiles(dir, FileFilterUtils.suffixFileFilter("ts"), null)) {
-			try {
-				String content = FileUtils.readFileToString(f, "UTF-8");
-				if (!content.isEmpty()) {
-					try {
-						String function = content + System.lineSeparator();
-						String functions = jsonScripts.getString("functions") + function;
-						jsonScripts.put("functions", functions);
-					} catch (JSONException e) {
-						e.printStackTrace();
-					}
-				}
-			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}

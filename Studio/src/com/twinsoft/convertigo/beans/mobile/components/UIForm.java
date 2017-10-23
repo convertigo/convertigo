@@ -23,7 +23,6 @@
 package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.util.Iterator;
-
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -141,17 +140,24 @@ public class UIForm extends UIElement {
 	public void computeScripts(JSONObject jsonScripts) {
 		if (isEnabled()) {
 			try {
-				String imports = jsonScripts.getString("imports");
+				PageComponent page = getPage();
 				
-				String search = "import { FormGroup, FormControl, Validators}\tfrom '@angular/forms';";
-				if (imports.indexOf(search) == -1) {
-					imports += search + System.lineSeparator();
+				String imports = jsonScripts.getString("imports");
+				if (page.addImport("FormGroup", "@angular/forms")) {
+					imports += "import { FormGroup } from '@angular/forms';" + System.lineSeparator();
 				}
+				if (page.addImport("FormControl", "@angular/forms")) {
+					imports += "import { FormControl } from '@angular/forms';" + System.lineSeparator();
+				}
+				if (page.addImport("Validators", "@angular/forms")) {
+					imports += "import { Validators } from '@angular/forms';" + System.lineSeparator();
+				}
+				
 				jsonScripts.put("imports", imports);
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
-	
+			
 			String declaration = "public "+ getFormGroupName() + " :  FormGroup;" + System.lineSeparator();
 			try {
 				String declarations = jsonScripts.getString("declarations") + declaration;
