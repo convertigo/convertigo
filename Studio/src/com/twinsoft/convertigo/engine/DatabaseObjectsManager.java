@@ -94,6 +94,7 @@ import com.twinsoft.convertigo.engine.migration.Migration7_4_0;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
 import com.twinsoft.convertigo.engine.util.CarUtils;
+import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.Replacement;
@@ -534,18 +535,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 		Engine.logDatabaseObjectManager.trace("Deleting the directory \"" + dir.getAbsolutePath() + "\"");
 		if (dir.exists()) {
 			if (dir.isDirectory()) {
-				int code = -1;
-				try {
-					if (Engine.isWindows()) {
-						code = new ProcessBuilder("cmd.exe", "/C", "rmdir", "/s", "/q", dir.getCanonicalPath()).start().waitFor();
-					} else {
-						code = new ProcessBuilder("rm", "-rf", dir.getCanonicalPath()).start().waitFor();
-					}
-				} catch (Exception e) {
-					Engine.logDatabaseObjectManager.debug("Deleting the file \"" + dir.getAbsolutePath() + "\" failed with the native command: (" + e.getClass() + ") " + e.getMessage());
-				}
-				
-				if (code == 0) {
+				boolean deleted = FileUtils.deleteQuietly(dir);				
+				if (deleted) {
 					Engine.logDatabaseObjectManager.debug("Deleting the file \"" + dir.getAbsolutePath() + "\" by a native command.");
 					return;
 				}

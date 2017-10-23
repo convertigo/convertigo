@@ -154,4 +154,36 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
         }
         return false;
     }
+    
+    public static void deleteDirectory(File dir) throws IOException {
+		if (dir.exists()) {
+			if (dir.isDirectory()) {
+				int code = -1;
+				try {
+					if (Engine.isWindows()) {
+						code = new ProcessBuilder("cmd.exe", "/C", "rmdir", "/s", "/q", dir.getCanonicalPath()).start().waitFor();
+					} else {
+						code = new ProcessBuilder("rm", "-rf", dir.getCanonicalPath()).start().waitFor();
+					}
+				} catch (Exception e) {
+				}
+				
+				if (code != 0) {
+					org.apache.commons.io.FileUtils.deleteDirectory(dir);
+				}
+			}
+		}
+    }
+    
+    public static boolean deleteQuietly(File f) {
+    	if (f != null && f.isDirectory()) {
+    		try {
+        		FileUtils.deleteDirectory(f);
+        		return true;
+    		} catch (Exception e) {
+			}
+    	}
+    	return org.apache.commons.io.FileUtils.deleteQuietly(f);
+    }
+    
 }

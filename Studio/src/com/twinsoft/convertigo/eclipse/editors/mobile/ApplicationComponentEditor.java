@@ -32,7 +32,6 @@ import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -104,6 +103,7 @@ import com.twinsoft.convertigo.engine.DatabaseObjectFoundException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
+import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.ProcessUtils;
 
 public class ApplicationComponentEditor extends EditorPart {
@@ -1025,24 +1025,25 @@ public class ApplicationComponentEditor extends EditorPart {
 					if (forceClean) {
 						appendOutput("...", "...", "Removing existing node_modules... This can take several seconds...");
 						Engine.logStudio.info("Removing existing node_modules... This can take several seconds...");
-						
-						FileUtils.deleteQuietly(nodeModules);
+						com.twinsoft.convertigo.engine.util.FileUtils.deleteQuietly(nodeModules);
 					}
 					appendOutput("Installing node_modules... This can take several minutes depending on your network connection speed...");
 					Engine.logStudio.info("Installing node_modules... This can take several minutes depending on your network connection speed...");
 					
+					long start = System.currentTimeMillis();
 					ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "install");//, "--progress=false");
 					pb.redirectErrorStream(true);
 					pb.directory(ionicDir);
 					Process p = pb.start();
 					Engine.execute(() -> {
 						try {
-							while (running[0] && !nodeModules.exists()) {
-								appendOutput("Waiting for node_modules creation");
+							File staging = new File(nodeModules, ".staging");
+							while (running[0] && !staging.exists()) {
+								appendOutput("Resolving dependences … (" + Math.round(System.currentTimeMillis() - start) + " sec)");
 								Thread.sleep(1000);
 							}
-							while (running[0]) {
-								appendOutput("node_modules: " + FileUtils.byteCountToDisplaySize(FileUtils.sizeOfAsBigInteger(nodeModules)));
+							while (running[0] && staging.exists()) {
+								appendOutput("Collecting node_modules: " + FileUtils.byteCountToDisplaySize(FileUtils.sizeOfAsBigInteger(nodeModules)) + " (" + Math.round(System.currentTimeMillis() - start) + " sec)");
 								Engine.logStudio.info("Installing, node_module size is now : " + FileUtils.byteCountToDisplaySize(FileUtils.sizeOfAsBigInteger(nodeModules)));
 								Thread.sleep(1000);
 							} 
@@ -1056,7 +1057,6 @@ public class ApplicationComponentEditor extends EditorPart {
 					while ((line = br.readLine()) != null) {
 						line = pRemoveEchap.matcher(line).replaceAll("");
 						if (StringUtils.isNotBlank(line)) {
-							running[0] = false;				
 							Engine.logStudio.info(line);
 							appendOutput(line);
 						}
@@ -1066,6 +1066,7 @@ public class ApplicationComponentEditor extends EditorPart {
 				} catch (Exception e) {
 					appendOutput(":( " + e);
 				}
+				running[0] = false;
 			}
 
 			try {
