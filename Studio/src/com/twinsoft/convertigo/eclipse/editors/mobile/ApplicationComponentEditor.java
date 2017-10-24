@@ -1068,7 +1068,11 @@ public class ApplicationComponentEditor extends EditorPart {
 				}
 				running[0] = false;
 			}
-
+			
+			MobileBuilder mb = applicationEditorInput.application.getProject().getMobileBuilder();
+			Object mutex = new Object();
+			mb.setBuildMutex(mutex);
+			
 			try {
 				ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "run", "ionic:serve", "--nobrowser");
 				pb.redirectErrorStream(true);
@@ -1082,6 +1086,11 @@ public class ApplicationComponentEditor extends EditorPart {
 					if (StringUtils.isNotBlank(line)) {
 						Engine.logStudio.info(line);
 						appendOutput(line);
+						if (line.contains("build finished")) {
+							synchronized (mutex) {
+								mutex.notify();								
+							}
+						}
 						Matcher m = pIsServerRunning.matcher(line);
 						if (m.matches()) {
 							baseUrl = m.group(1);
@@ -1092,6 +1101,11 @@ public class ApplicationComponentEditor extends EditorPart {
 				appendOutput("\\o/");
 			} catch (Exception e) {
 				appendOutput(":( " + e);
+			} finally {
+				synchronized (mutex) {
+					mutex.notify();
+				}
+				mb.setBuildMutex(null);
 			}
 			
 		});

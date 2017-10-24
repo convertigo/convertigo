@@ -59,6 +59,7 @@ public class MobileBuilder {
 	private Project project = null;
 	boolean initDone = false;
 	boolean autoBuild = true;
+	Object buildMutex = null;
 	Map<String,String> pageTplImports = null;
 	Set<File> writtenFiles = new HashSet<File>();
 	
@@ -90,6 +91,10 @@ public class MobileBuilder {
 		projectDir = new File(project.getDirPath());
 		ionicTplDir = new File(projectDir,"ionicTpl");
 		ionicWorkDir = new File(projectDir,"_private/ionic");
+	}
+	
+	public void setBuildMutex(Object mutex) {
+		buildMutex = mutex;
 	}
 	
 	public boolean hasNodeModules() {
@@ -856,6 +861,10 @@ public class MobileBuilder {
 		
 	}
 	
+	public boolean isAutoBuild() {
+		return autoBuild;
+	}
+	
 	public static String getMarkers(String content) {
 		String markers = "";
 		Pattern pattern = Pattern.compile("/\\*Begin_c8o_(.+)\\*/"); // begin c8o marker
@@ -888,6 +897,13 @@ public class MobileBuilder {
 	}
 	
 	private void writeFile(File file, CharSequence content, String encoding) throws IOException {
+		if (file.exists()) {
+			String excontent = FileUtils.readFileToString(file, encoding);
+			if (content.equals(excontent)) {
+				Engine.logEngine.debug("(MobileBuilder) No change for " + file.getPath());
+				return;
+			}
+		}
 		if (initDone) {
 			File nFile = toTmpFile(file); 
 			Engine.logEngine.debug("(MobileBuilder) Defers the write of " + content.length() + " chars to " + nFile.getPath());
@@ -910,18 +926,43 @@ public class MobileBuilder {
 	
 	private void moveFilesForce() {
 		if (writtenFiles.size() > 0) {
-			Engine.logEngine.debug("(MobileBuilder) Start to move " + writtenFiles.size() + " files.");
-			for (File file: writtenFiles) {
-				File nFile = toTmpFile(file);
-				try {
-					FileUtils.copyFile(nFile, file);
-					nFile.delete();
-				} catch (IOException e) {
-					Engine.logEngine.warn("(MobileBuilder) Failed to copy the new content of " + file.getName(), e);
+			Engine.execute(() -> {
+				File appModule = null;
+				Engine.logEngine.debug("(MobileBuilder) Start to move " + writtenFiles.size() + " files.");
+				for (File file: writtenFiles) {
+					File nFile = toTmpFile(file);
+					try {
+						if (file.getName().equals("app.module.ts")) {
+							appModule = file;
+						} else {
+							FileUtils.copyFile(nFile, file);
+							nFile.delete();
+							Engine.logEngine.debug("(MobileBuilder) Moved " + file.getPath());
+						}
+					} catch (IOException e) {
+						Engine.logEngine.warn("(MobileBuilder) Failed to copy the new content of " + file.getName(), e);
+					}
 				}
-			}
-			Engine.logEngine.debug("(MobileBuilder) End to move " + writtenFiles.size() + " files.");
+				
+				if (appModule != null) {
+					try {
+						if (buildMutex != null) {
+							synchronized (buildMutex) {
+								buildMutex.wait(60000);							
+							}
+						}
+						File nFile = toTmpFile(appModule);
+						FileUtils.copyFile(nFile, appModule);
+						nFile.delete();
+						Engine.logEngine.debug("(MobileBuilder) Moved " + appModule.getPath());
+					} catch (Exception e) {
+						Engine.logEngine.warn("(MobileBuilder) Failed to copy the new content of " + appModule.getName(), e);
+					}
+				}
+				
+				Engine.logEngine.debug("(MobileBuilder) End to move " + writtenFiles.size() + " files.");
+				writtenFiles.clear();
+			});
 		}
-		writtenFiles.clear();
 	}
 }
