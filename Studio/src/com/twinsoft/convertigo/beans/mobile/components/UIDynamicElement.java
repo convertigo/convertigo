@@ -24,8 +24,12 @@ package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.beans.BeanInfo;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.IDynamicBean;
@@ -232,5 +236,31 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
     		Arrays.sort(eventNames);
     	}
     	return eventNames;
+	}
+
+	@Override
+	public void computeScripts(JSONObject jsonScripts) {
+		if (isEnabled()) {
+			try {
+				PageComponent page = getPage();
+				
+				String imports = jsonScripts.getString("imports");
+				Map<String, List<String>> map = ionBean.getConfig().getPageImports();
+				if (map.size() > 0) {
+					for (String from : map.keySet()) {
+						for (String component: map.get(from)) {
+							if (page.addImport(component, from)) {
+								imports += "import { "+ component +" } from '"+ from +"';" + System.lineSeparator();
+							}
+						}
+					}
+					jsonScripts.put("imports", imports);
+				}
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		super.computeScripts(jsonScripts);
 	}
 }
