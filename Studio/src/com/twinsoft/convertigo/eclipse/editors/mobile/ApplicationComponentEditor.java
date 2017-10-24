@@ -1031,7 +1031,7 @@ public class ApplicationComponentEditor extends EditorPart {
 					Engine.logStudio.info("Installing node_modules... This can take several minutes depending on your network connection speed...");
 					
 					long start = System.currentTimeMillis();
-					ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "install");//, "--progress=false");
+					ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "install", "--no-shrinkwrap", "--no-package-lock");
 					pb.redirectErrorStream(true);
 					pb.directory(ionicDir);
 					Process p = pb.start();
