@@ -41,7 +41,7 @@ public class ApplicationComponentBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[5];
+			properties = new PropertyDescriptor[6];
 			
 			properties[0] = new PropertyDescriptor("orderedPages", beanClass, "getOrderedPages", "setOrderedPages");
 			properties[0].setDisplayName(getExternalizedString("property.orderedPages.display_name"));
@@ -67,6 +67,11 @@ public class ApplicationComponentBeanInfo extends MySimpleBeanInfo {
 			properties[4].setDisplayName(getExternalizedString("property.componentScriptContent.display_name"));
 			properties[4].setShortDescription(getExternalizedString("property.componentScriptContent.short_description"));
 			properties[4].setHidden(true);
+
+			properties[5] = new PropertyDescriptor("tplProjectName", beanClass, "getTplProjectName", "setTplProjectName");
+			properties[5].setDisplayName(getExternalizedString("property.tplProjectName.display_name"));
+			properties[5].setShortDescription(getExternalizedString("property.tplProjectName.short_description"));
+			properties[5].setPropertyEditorClass(getEditorClass("PropertyWithDynamicTagsEditor"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

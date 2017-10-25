@@ -39,10 +39,11 @@ import org.w3c.dom.NodeList;
 import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
+import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
-import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.FileUtils;
@@ -53,7 +54,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 		getCategoryName = "Application",
 		getIconClassCSS = "convertigo-action-newApplicationComponent"
 	)
-public class ApplicationComponent extends MobileComponent implements IStyleGenerator, ITemplateGenerator, IRouteGenerator, IContainerOrdered {
+public class ApplicationComponent extends MobileComponent implements IStyleGenerator, ITemplateGenerator, IRouteGenerator, IContainerOrdered, ITagsProperty {
 	
 	private static final long serialVersionUID = 6142350115354549719L;
 
@@ -61,6 +62,8 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 	private XMLVector<XMLVector<Long>> orderedRoutes = new XMLVector<XMLVector<Long>>();
 	private XMLVector<XMLVector<Long>> orderedPages = new XMLVector<XMLVector<Long>>();
 	private XMLVector<XMLVector<Long>> orderedMenus = new XMLVector<XMLVector<Long>>();
+	
+	private String tplProjectName = "";
 	
 	public ApplicationComponent() {
 		super();
@@ -926,4 +929,31 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		
 		return sb.toString();
 	}
+
+	public String getTplProjectName() {
+		return tplProjectName;
+	}
+
+	public void setTplProjectName(String tplProjectName) {
+		this.tplProjectName = tplProjectName;
+	}
+
+	@Override
+	public String[] getTagsForProperty(String propertyName) {
+		if ("tplProjectName".equals(propertyName)) {
+			List<String> projects = new LinkedList<>();
+			projects.add("");
+			
+			for (String project: Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false)) {
+				if (new File(Engine.PROJECTS_PATH + "/" + project + "/ionicTpl").exists()) {
+					projects.add(project);
+				};
+			}
+			
+			return projects.toArray(new String[projects.size()]);
+		}
+		return null;
+	}
+	
+	
 }

@@ -40,6 +40,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
 
 import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
@@ -115,6 +116,11 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 						if (!newValue.equals(oldValue)) {
 							markComponentTsAsDirty();
 						}
+					} else if (propertyName.equals("tplProjectName")) {
+						Project project = getObject().getProject();
+						MobileBuilder.releaseBuilder(project);
+						MobileBuilder.initBuilder(project);
+						closeAllEditors(false);
 					} else {
 						markApplicationAsDirty();
 					}

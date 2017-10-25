@@ -37,6 +37,7 @@ import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.io.filefilter.FalseFileFilter;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.commons.lang3.StringUtils;
 
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -89,7 +90,6 @@ public class MobileBuilder {
 		this.project = project;
 		
 		projectDir = new File(project.getDirPath());
-		ionicTplDir = new File(projectDir,"ionicTpl");
 		ionicWorkDir = new File(projectDir,"_private/ionic");
 	}
 	
@@ -271,6 +271,16 @@ public class MobileBuilder {
 			return;
 		}
 		
+		String tplProjectName = project.getMobileApplication().getApplicationComponent().getTplProjectName();
+		if (StringUtils.isBlank(tplProjectName)) {
+			tplProjectName = project.getName();
+		}
+		
+		ionicTplDir = new File(Engine.PROJECTS_PATH + "/" + tplProjectName + "/ionicTpl");
+		if (!ionicTplDir.exists()) {
+			throw new EngineException("(MobileBuilder) Missing template directory: " + ionicTplDir.getPath());
+		}
+		
 		if (isIonicTemplateBased()) {
 			// Copy template directory to working directory
 			copyTemplateFiles();
@@ -295,8 +305,10 @@ public class MobileBuilder {
 			moveFilesForce();
 			FileUtils.deleteQuietly(new File(projectDir,"_private/ionic_tmp"));
 			
-			pageTplImports.clear();
-			pageTplImports = null;
+			if (pageTplImports != null) {
+				pageTplImports.clear();
+				pageTplImports = null;
+			}
 			
 			initDone = false;
 			Engine.logEngine.debug("(MobileBuilder) Released builder for ionic project '"+ project.getName() +"'");
