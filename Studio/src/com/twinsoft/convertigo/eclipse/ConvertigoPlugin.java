@@ -133,6 +133,7 @@ import com.twinsoft.convertigo.eclipse.views.references.ReferencesView;
 import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest;
@@ -898,6 +899,21 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 				
 			});
 		}
+		
+		runAtStartup(() -> {
+			for (File tpl: new File(Engine.TEMPLATES_PATH + "/project").listFiles()) {
+				String name = tpl.getName();
+				if (name.startsWith("mobilebuilder_tpl") &&
+						!Engine.theApp.databaseObjectsManager.existsProject(name.substring(0, name.length() - 4))) {
+					try {
+						Project project = Engine.theApp.databaseObjectsManager.deployProject(tpl.getPath(), false);
+						getProjectExplorerView().importProjectTreeObject(project.getName());
+					} catch (Exception e) {
+						Engine.logEngine.error("Failed to deploy " + tpl.getName(), e);
+					}
+				}
+			}
+		});
         
 		studioLog.message("Convertigo studio started");
 	}
