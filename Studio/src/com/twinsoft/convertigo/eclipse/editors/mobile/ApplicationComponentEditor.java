@@ -77,8 +77,6 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.EditorPart;
 
 import com.teamdev.jxbrowser.chromium.Browser;
-import com.teamdev.jxbrowser.chromium.BrowserContext;
-import com.teamdev.jxbrowser.chromium.BrowserContextParams;
 import com.teamdev.jxbrowser.chromium.ContextMenuHandler;
 import com.teamdev.jxbrowser.chromium.ContextMenuParams;
 import com.teamdev.jxbrowser.chromium.JSFunction;
@@ -297,7 +295,7 @@ public class ApplicationComponentEditor extends EditorPart {
 		
 		canvas.setLayout(gl);
 		
-		c8oBrowser = new C8oBrowser(canvas, SWT.NONE, new BrowserContext(new BrowserContextParams(applicationEditorInput.application.getProject().getDirPath() + "/_private/viewer")));
+		c8oBrowser = new C8oBrowser(canvas, SWT.NONE, applicationEditorInput.application.getProject());
 		browserGD = new GridData(SWT.CENTER, SWT.CENTER, true, true);
 		c8oBrowser.setLayoutData(browserGD);
 
@@ -1039,11 +1037,11 @@ public class ApplicationComponentEditor extends EditorPart {
 						try {
 							File staging = new File(nodeModules, ".staging");
 							while (running[0] && !staging.exists()) {
-								appendOutput("Resolving dependences … (" + Math.round(System.currentTimeMillis() - start) + " sec)");
+								appendOutput("Resolving dependences … (" + Math.round(System.currentTimeMillis() - start) / 1000 + " sec)");
 								Thread.sleep(1000);
 							}
 							while (running[0] && staging.exists()) {
-								appendOutput("Collecting node_modules: " + FileUtils.byteCountToDisplaySize(FileUtils.sizeOfAsBigInteger(nodeModules)) + " (" + Math.round(System.currentTimeMillis() - start) + " sec)");
+								appendOutput("Collecting node_modules: " + FileUtils.byteCountToDisplaySize(FileUtils.sizeOfAsBigInteger(nodeModules)) + " (" + Math.round(System.currentTimeMillis() - start) / 1000 + " sec)");
 								Engine.logStudio.info("Installing, node_module size is now : " + FileUtils.byteCountToDisplaySize(FileUtils.sizeOfAsBigInteger(nodeModules)));
 								Thread.sleep(1000);
 							} 
