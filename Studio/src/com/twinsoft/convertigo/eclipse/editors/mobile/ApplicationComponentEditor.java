@@ -615,6 +615,7 @@ public class ApplicationComponentEditor extends EditorPart {
 		ToolBar toolbar = new ToolBar(parent, SWT.VERTICAL);
 		GridData gd = new GridData(GridData.FILL, GridData.FILL, false, true);
 		gd.verticalSpan = 2;
+		gd.verticalIndent = 4;
 		toolbar.setLayoutData(gd);
 
 		ToolItem item = new ToolItem(toolbar, SWT.DROP_DOWN);
