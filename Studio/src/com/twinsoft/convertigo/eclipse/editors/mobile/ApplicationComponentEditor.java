@@ -404,7 +404,7 @@ public class ApplicationComponentEditor extends EditorPart {
 			@Override
 			public void showContextMenu(ContextMenuParams ctx) {
 				java.awt.Point location = ctx.getLocation();
-				highlightPoint((int) Math.round(location.getX() * dpiFactorX), (int) Math.round(location.getY() * dpiFactorY));
+				highlightPoint(location.x, location.y);
 			}
 		});
 	}
@@ -1188,7 +1188,7 @@ public class ApplicationComponentEditor extends EditorPart {
 	private MobileComponent exHighlightMobileComponent = null;
 	
 	private void highlightPoint(int x, int y) {
-		DOMNodeAtPoint nodeAP = browser.getNodeAtPoint(x, y);
+		DOMNodeAtPoint nodeAP = browser.getNodeAtPoint((int) Math.round(x * dpiFactorX), (int) Math.round(y * dpiFactorY));
 		DOMNode node = nodeAP.getNode();
 		while (!(node == null || node instanceof DOMElement)) {
 			node = node.getParent();
