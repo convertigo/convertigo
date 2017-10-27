@@ -94,9 +94,17 @@ import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlAction;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.dnd.PaletteSourceTransfer;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
+import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardAction;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.DatabaseObjectFoundException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
@@ -301,6 +309,62 @@ public class ApplicationComponentEditor extends EditorPart {
 
 		browser = c8oBrowser.getBrowser();
 		debugUrl = browser.getRemoteDebuggingURL();
+		
+		final ApplicationComponentBrowserImpl browserInterface = new ApplicationComponentBrowserImpl(
+				new ApplicationComponentBrowserInterface() {
+			
+			@Override
+			public void onDragOver(JSObject o) {
+//				JSONObject json = new JSONObject();
+//				for (String name: o.getPropertyNames()) {
+//					try {
+//						json.put(name, o.getProperty(name).asNumber().getInteger());
+//
+//					} catch (Exception e) {
+//					}
+//				}
+//				try {
+//					Engine.logStudio.info("onDrag " + json.toString(2));
+//				} catch (Exception e) {
+//					// TODO: handle exception
+//				}
+				int x = o.getProperty("screenX").asNumber().getInteger();
+				int y = o.getProperty("screenY").asNumber().getInteger();
+				highlightPoint(x, y);
+			}
+
+			@Override
+			public void onDrop(JSObject o) {
+				try {
+					String xmlData = PaletteSourceTransfer.getInstance().getPaletteSource().getXmlData();
+					DatabaseObject target = exHighlightMobileComponent;
+					DatabaseObject source = (DatabaseObject) ConvertigoPlugin.clipboardManagerDND.read(xmlData).get(0);
+					if ((source instanceof UIDynamicAction || source instanceof UIControlAction) && exHighlightMobileComponent instanceof UIDynamicElement) {
+						for (UIComponent uic: ((UIDynamicElement) exHighlightMobileComponent).getUIComponentList()) {
+							if (uic instanceof UIControlEvent) {
+								target = uic;
+								break;
+							}
+						}
+					}
+					DatabaseObject fTarget = target;
+					c8oBrowser.getDisplay().asyncExec(() -> {
+						try {
+							ProjectExplorerView view = ConvertigoPlugin.getDefault().getProjectExplorerView();
+							TreeObject treeObject = view.findTreeObjectByUserObject(fTarget);
+							ClipboardAction.dnd.paste(xmlData, ConvertigoPlugin.getMainShell(), view, treeObject, true);
+						} catch (Exception e) {
+							Engine.logStudio.debug("Failed to drop: " + e.getMessage());
+						} finally {
+							PaletteSourceTransfer.getInstance().setPaletteSource(null);
+						}
+					});
+				} catch (Exception e) {
+				}
+			}
+		});
+		
+		
 		browser.addScriptContextListener(new ScriptContextAdapter() {
 
 			@Override
@@ -322,6 +386,8 @@ public class ApplicationComponentEditor extends EditorPart {
 						} else {
 							setItem.invoke(sessionStorage, "_c8ocafsession_storage_data", null);
 						}
+						JSObject window = browser.executeJavaScriptAndReturnValue("window").asObject();
+						window.setProperty("java", browserInterface);
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -338,46 +404,7 @@ public class ApplicationComponentEditor extends EditorPart {
 			@Override
 			public void showContextMenu(ContextMenuParams ctx) {
 				java.awt.Point location = ctx.getLocation();
-				location.setLocation(location.getX() * dpiFactorX, location.getY() * dpiFactorY);
-				DOMNodeAtPoint nodeAP = browser.getNodeAtPoint(location);
-				DOMNode node = nodeAP.getNode();
-				while (!(node == null || node instanceof DOMElement)) {
-					node = node.getParent();
-				}
-				while (node != null) {
-					DOMElement element = (DOMElement) node;
-					String classes = element.getAttribute("class");
-					Matcher mPriority = pPriority.matcher(classes);
-					if (mPriority.find()) {
-						try {
-							node = null;
-							long priority = Long.parseLong(mPriority.group(1));
-							new WalkHelper() {
-
-								@Override
-								protected void walk(DatabaseObject databaseObject) throws Exception {
-									if (databaseObject.priority == priority) {
-										throw new DatabaseObjectFoundException(databaseObject);
-									}
-									super.walk(databaseObject);
-								}
-								
-							}.init(applicationEditorInput.application);
-						} catch (DatabaseObjectFoundException e) {
-							DatabaseObject databaseObject = e.getDatabaseObject();
-
-							c8oBrowser.getDisplay().asyncExec(() -> ConvertigoPlugin.getDefault().getProjectExplorerView().objectSelected(new CompositeEvent(databaseObject)));
-							
-							if (databaseObject instanceof MobileComponent) {
-								highlightComponent((MobileComponent) databaseObject);
-							}
-						} catch (Exception e) {
-							e.printStackTrace();							
-						}
-					} else {
-						node = node.getParent();
-					}
-				}
+				highlightPoint((int) Math.round(location.getX() * dpiFactorX), (int) Math.round(location.getY() * dpiFactorY));
 			}
 		});
 	}
@@ -695,6 +722,8 @@ public class ApplicationComponentEditor extends EditorPart {
 			
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				exHighlightElement = null;
+				exHighlightMobileComponent = null;
 				C8oBrowser.run(() -> browser.executeJavaScript("_c8o_remove_all_overlay()"));
 			}
 			
@@ -1153,6 +1182,55 @@ public class ApplicationComponentEditor extends EditorPart {
 	public void selectPage(String pageName) {
 		this.pageName = pageName;
 		doLoad();
+	}
+	
+	private DOMElement exHighlightElement = null;
+	private MobileComponent exHighlightMobileComponent = null;
+	
+	private void highlightPoint(int x, int y) {
+		DOMNodeAtPoint nodeAP = browser.getNodeAtPoint(x, y);
+		DOMNode node = nodeAP.getNode();
+		while (!(node == null || node instanceof DOMElement)) {
+			node = node.getParent();
+		}
+		while (node != null) {
+			DOMElement element = (DOMElement) node;
+			if (element.equals(exHighlightElement)) {
+				return;
+			}
+			exHighlightElement = element;
+			String classes = element.getAttribute("class");
+			Matcher mPriority = pPriority.matcher(classes);
+			if (mPriority.find()) {
+				try {
+					node = null;
+					long priority = Long.parseLong(mPriority.group(1));
+					new WalkHelper() {
+
+						@Override
+						protected void walk(DatabaseObject databaseObject) throws Exception {
+							if (databaseObject.priority == priority) {
+								throw new DatabaseObjectFoundException(databaseObject);
+							}
+							super.walk(databaseObject);
+						}
+						
+					}.init(applicationEditorInput.application);
+				} catch (DatabaseObjectFoundException e) {
+					DatabaseObject databaseObject = e.getDatabaseObject();
+
+					c8oBrowser.getDisplay().asyncExec(() -> ConvertigoPlugin.getDefault().getProjectExplorerView().objectSelected(new CompositeEvent(databaseObject)));
+					
+					if (databaseObject instanceof MobileComponent && !databaseObject.equals(exHighlightMobileComponent)) {
+						highlightComponent(exHighlightMobileComponent = (MobileComponent) databaseObject);
+					}
+				} catch (Exception e) {
+					e.printStackTrace();							
+				}
+			} else {
+				node = node.getParent();
+			}
+		}
 	}
 
 	public void highlightComponent(MobileComponent mobileComponent) {

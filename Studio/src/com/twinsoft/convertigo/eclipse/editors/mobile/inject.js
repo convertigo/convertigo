@@ -114,3 +114,21 @@ document.addEventListener("DOMContentLoaded", function () {
 	
 	document.head.appendChild(scrollStyle);
 }, false);
+
+window.addEventListener("dragover", function (e) {
+	try {
+		e.preventDefault();
+		e.dataTransfer.dropEffect = "move";
+		window.java.onDragOver(e);
+	} catch (ex) {
+		console.log(ex);
+	}
+});
+
+window.addEventListener("drop", function (e) {
+	try {
+		window.java.onDrop(e);
+	} catch (ex) {
+		console.log(ex);
+	}
+});
