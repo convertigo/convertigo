@@ -673,6 +673,7 @@ public class MobileBuilder {
 			if (app != null) {
 				String c8o_PagesImport = "";
 				String c8o_PagesVariables = "";
+				String c8o_PagesVariablesKeyValue = "";
 				String c8o_RootPage = "null";
 				String c8o_AppComponentMarkers = app.getComponentScriptContent().getString();
 				int i=1;
@@ -688,6 +689,7 @@ public class MobileBuilder {
 					if (isRootPage) c8o_RootPage = pageName;
 					c8o_PagesImport += "import { "+pageName+" } from \"../pages/"+pageName+"/"+pageName.toLowerCase()+"\";\n";
 					c8o_PagesVariables += " { title: \""+pageTitle+"\", component: "+pageName+", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
+					c8o_PagesVariablesKeyValue += pageName+":"+ pageName+ (isLastPage ? "":",");
 					i++;
 				}
 				
@@ -697,6 +699,7 @@ public class MobileBuilder {
 				cContent = cContent.replaceAll("/\\*\\=c8o_PagesImport\\*/",c8o_PagesImport);
 				cContent = cContent.replaceAll("/\\*\\=c8o_RootPage\\*/",c8o_RootPage);
 				cContent = cContent.replaceAll("/\\*\\=c8o_PagesVariables\\*/",c8o_PagesVariables);
+				cContent = cContent.replaceAll("/\\*\\=c8o_PagesVariablesKeyValue\\*/",c8o_PagesVariablesKeyValue);
 				cContent = cContent.replaceAll("/\\*\\=c8o_RoutingTable\\*/",computedRoute);
 				
 				Pattern pattern = Pattern.compile("/\\*Begin_c8o_(.+)\\*/"); // begin c8o marker
