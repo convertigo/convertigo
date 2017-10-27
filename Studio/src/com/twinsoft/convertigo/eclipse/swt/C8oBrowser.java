@@ -14,6 +14,7 @@ import org.eclipse.swt.widgets.Composite;
 import com.teamdev.jxbrowser.chromium.Browser;
 import com.teamdev.jxbrowser.chromium.BrowserContext;
 import com.teamdev.jxbrowser.chromium.BrowserContextParams;
+import com.teamdev.jxbrowser.chromium.BrowserException;
 import com.teamdev.jxbrowser.chromium.BrowserPreferences;
 import com.teamdev.jxbrowser.chromium.events.FailLoadingEvent;
 import com.teamdev.jxbrowser.chromium.events.FinishLoadingEvent;
@@ -33,39 +34,14 @@ public class C8oBrowser extends Composite {
 		int port = 18082;
 		BrowserPreferences.setChromiumSwitches("--remote-debugging-port=" + port);
 	}
-
-	private static BrowserContext getBrowserContext(Project project) {
-		File browserIdFile = new File(project.getDirPath() + "/_private/browser_id");
-		String browserId = Long.toString(System.currentTimeMillis(), Character.MAX_RADIX);
-		try {
-			browserId = FileUtils.readFileToString(browserIdFile, "UTF-8");
-		} catch (Exception e) {
-			try {
-				FileUtils.write(browserIdFile, browserId, "UTF-8");
-			} catch (IOException e1) {
-			}
-		}
-		File browserWorks = new File(Engine.USER_WORKSPACE_PATH + "/browser-works");
-		browserWorks.mkdirs();
-		return new BrowserContext(new BrowserContextParams(Engine.USER_WORKSPACE_PATH + "/browser-works/" + browserId));
-	}
 	
 	private static Thread threadSwt = null;
 
 	private BrowserView browserView;
 
-	public C8oBrowser(Composite parent, int style) {
-		this(parent, style, BrowserContext.defaultContext());
-	}
-
-	public C8oBrowser(Composite parent, int style, Project project) {
-		this(parent, style, getBrowserContext(project));
-	}
-
-	public C8oBrowser(Composite parent, int style, BrowserContext browserContext) {
-		super(parent, style | SWT.EMBEDDED | SWT.NO_BACKGROUND);
-	    Frame frame = SWT_AWT.new_Frame(this);
+	private void init(Composite parent, BrowserContext browserContext) {
 	    browserView = new BrowserView(new Browser(browserContext));
+		Frame frame = SWT_AWT.new_Frame(this);
 		frame.add(browserView);
 		threadSwt = parent.getDisplay().getThread();
 		parent.addDisposeListener(new DisposeListener() {
@@ -75,6 +51,46 @@ public class C8oBrowser extends Composite {
 				dispose();
 			}
 		});
+	}
+	
+	public C8oBrowser(Composite parent, int style) {
+		super(parent, style | SWT.EMBEDDED | SWT.NO_BACKGROUND);
+		init(parent, BrowserContext.defaultContext());
+	}
+
+	public C8oBrowser(Composite parent, int style, Project project) {
+		super(parent, style | SWT.EMBEDDED | SWT.NO_BACKGROUND);
+		boolean retry = false;
+		do {
+			File browserIdFile = new File(project.getDirPath() + "/_private/browser_id");
+			String browserId = Long.toString(System.currentTimeMillis(), Character.MAX_RADIX);
+			try {
+				browserId = FileUtils.readFileToString(browserIdFile, "UTF-8");
+			} catch (Exception e) {
+				try {
+					FileUtils.write(browserIdFile, browserId, "UTF-8");
+				} catch (IOException e1) {
+				}
+			}
+			File browserWorks = new File(Engine.USER_WORKSPACE_PATH + "/browser-works");
+			browserWorks.mkdirs();
+			BrowserContext browserContext = new BrowserContext(new BrowserContextParams(Engine.USER_WORKSPACE_PATH + "/browser-works/" + browserId));
+			try {
+				init(parent, browserContext);
+			} catch (BrowserException e) {
+				if (!retry) {
+					browserIdFile.delete();
+					retry = true;
+				} else {
+					throw e;
+				}
+			}
+		} while (retry);
+	}
+
+	public C8oBrowser(Composite parent, int style, BrowserContext browserContext) {
+		super(parent, style | SWT.EMBEDDED | SWT.NO_BACKGROUND);
+		init(parent, browserContext);
 	}
 	
 	@Override
