@@ -29,6 +29,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
@@ -598,8 +599,7 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 	
 	
 	private String getThemeTplScss() {
-		File projectDir = new File(getProject().getDirPath());
-		File appThemeTpl = new File(projectDir, "ionicTpl/src/theme/variables.scss");
+		File appThemeTpl = new File(getIonicTplDir(), "src/theme/variables.scss");
 		try {
 			return FileUtils.readFileToString(appThemeTpl, "UTF-8");
 		} catch (IOException e) {
@@ -930,6 +930,14 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		return sb.toString();
 	}
 
+	public File getIonicTplDir() {
+		String tplProjectName = getTplProjectName();
+		if (StringUtils.isBlank(tplProjectName)) {
+			tplProjectName = getProject().getName();
+		}
+		return new File(Engine.PROJECTS_PATH + "/" + tplProjectName + "/ionicTpl");
+	}
+	
 	public String getTplProjectName() {
 		return tplProjectName;
 	}
