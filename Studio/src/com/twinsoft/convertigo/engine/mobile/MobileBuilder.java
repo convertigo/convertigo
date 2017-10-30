@@ -63,6 +63,7 @@ public class MobileBuilder {
 	Object buildMutex = null;
 	Map<String,String> pageTplImports = null;
 	Set<File> writtenFiles = new HashSet<File>();
+	Set<File> dirsToDelete = new HashSet<File>();
 	
 	File projectDir, ionicTplDir, ionicWorkDir;
 	
@@ -139,17 +140,6 @@ public class MobileBuilder {
 		}
 	}
 	
-	private void removePage(PageComponent page) throws EngineException {
-		MobileApplication mobileApplication = project.getMobileApplication();
-		if (mobileApplication != null) {
-			ApplicationComponent application = mobileApplication.getApplicationComponent();
-			if (application != null) {
-				writeAppSourceFiles(application);
-				removeUselessPage(page.getName());
-			}
-		}
-	}
-	
 	public synchronized void pageEnabled(final PageComponent page) throws EngineException {
 		if (page != null && page.isEnabled() && initDone) {
 			addPage(page);
@@ -160,25 +150,38 @@ public class MobileBuilder {
 	
 	public synchronized void pageDisabled(final PageComponent page) throws EngineException {
 		if (page != null && !page.isEnabled() && initDone) {
-			removePage(page);
-			moveFiles();
-			Engine.logEngine.debug("(MobileBuilder) Handled 'pageDisabled'");
+			MobileApplication mobileApplication = project.getMobileApplication();
+			if (mobileApplication != null) {
+				ApplicationComponent application = mobileApplication.getApplicationComponent();
+				if (application != null) {
+					writeAppSourceFiles(application);
+					moveFiles();
+					Engine.logEngine.debug("(MobileBuilder) Handled 'pageDisabled'");
+				}
+			}
 		}
 	}
 
 	public synchronized void pageAdded(final PageComponent page) throws EngineException {
 		if (page != null && page.isEnabled() && page.bNew && initDone) {
 			addPage(page);
-			Engine.logEngine.debug("(MobileBuilder) Handled 'pageAdded'");
 			moveFiles();
+			Engine.logEngine.debug("(MobileBuilder) Handled 'pageAdded'");
 		}
 	}
 	
 	public synchronized void pageRemoved(final PageComponent page) throws EngineException {
 		if (page != null && page.isEnabled() && initDone) {
-			removePage(page);
-			moveFiles();
-			Engine.logEngine.debug("(MobileBuilder) Handled 'pageRemoved'");
+			MobileApplication mobileApplication = project.getMobileApplication();
+			if (mobileApplication != null) {
+				ApplicationComponent application = mobileApplication.getApplicationComponent();
+				if (application != null) {
+					writeAppSourceFiles(application);
+					deleteUselessDir(page.getName());
+					moveFiles();
+					Engine.logEngine.debug("(MobileBuilder) Handled 'pageRemoved'");
+				}
+			}
 		}
 	}
 	
@@ -190,7 +193,7 @@ public class MobileBuilder {
 				if (application != null) {
 					writePageSourceFiles(page);
 					writeAppSourceFiles(application);
-					removeUselessPage(oldName);
+					deleteUselessDir(oldName);
 					moveFiles();
 					Engine.logEngine.debug("(MobileBuilder) Handled 'pageRenamed'");
 				}
@@ -202,7 +205,7 @@ public class MobileBuilder {
 		if (page != null && page.isEnabled() && initDone) {
 			writePageTemplate(page);
 			moveFiles();
-			Engine.logEngine.debug("(MobileBuilder) Handled 'pageComputed'");
+			Engine.logEngine.debug("(MobileBuilder) Handled 'pageTemplateChanged'");
 		}
 	}
 	
@@ -802,12 +805,15 @@ public class MobileBuilder {
 		}
 	}
 
-	private void removeUselessPage(String pageName) {
+	private void deleteUselessDir(String pageName) {
 		File pageDir = new File(ionicWorkDir,"src/pages/"+ pageName);
-		try {
+		/*try {
 			FileUtils.deleteDirectory(pageDir);
 		}
-		catch(Exception e) {}
+		catch(Exception e) {
+			e.printStackTrace();
+		}*/
+		deleteDir(pageDir);
 	}
 	
 	private void removeUselessPages(ApplicationComponent application) {
@@ -869,6 +875,7 @@ public class MobileBuilder {
 	}
 	
 	public void setAutoBuild(boolean autoBuild) {
+		Engine.logEngine.debug("(MobileBuilder) AutoBuild mode is "+ (autoBuild ? "ON":"OFF"));
 		this.autoBuild = autoBuild;
 		if (autoBuild) {
 			moveFilesForce();
@@ -911,20 +918,70 @@ public class MobileBuilder {
 		return new File(file.getAbsolutePath().replaceFirst("_private(/|\\\\)ionic", "_private$1ionic_tmp"));
 	}
 	
-	private void writeFile(File file, CharSequence content, String encoding) throws IOException {
-		if (file.exists()) {
-			String excontent = FileUtils.readFileToString(file, encoding);
-			if (content.equals(excontent)) {
-				Engine.logEngine.debug("(MobileBuilder) No change for " + file.getPath());
-				return;
+	private void deleteDir(File dir) {
+		if (initDone) {
+			// Differs deletion if needed
+			if (buildMutex == null) {
+				try {
+					FileUtils.deleteDirectory(dir);
+					Engine.logEngine.debug("(MobileBuilder) Deleted dir " + dir.getPath());
+				} catch (IOException e) {
+					Engine.logEngine.warn("(MobileBuilder) Failed to delete directory " + dir.getPath(), e);
+				}
+			} else {
+				/*File nDir = toTmpFile(dir);
+				if (nDir.exists()) {
+					Engine.logEngine.debug("(MobileBuilder) Defers the deletion of directory " + dir.getPath());
+					try {
+						FileUtils.deleteDirectory(nDir);
+						dirsToDelete.add(dir);
+					} catch (IOException e) {
+						Engine.logEngine.warn("(MobileBuilder) Failed to delete directory " + dir.getPath(), e);
+					}
+				}*/
+			}
+		} else {
+			try {
+				FileUtils.deleteDirectory(dir);
+			} catch (IOException e) {
+				Engine.logEngine.warn("(MobileBuilder) Failed to delete directory " + dir.getPath(), e);
 			}
 		}
+	}
+	
+	private void writeFile(File file, CharSequence content, String encoding) throws IOException {
 		if (initDone) {
-			File nFile = toTmpFile(file); 
-			Engine.logEngine.debug("(MobileBuilder) Defers the write of " + content.length() + " chars to " + nFile.getPath());
-			nFile.getParentFile().mkdirs();
-			writtenFiles.add(file);
-			FileUtils.write(nFile, content, encoding);
+			// Checks for content changes
+			if (file.exists()) {
+				String excontent = null;
+				if (writtenFiles.contains(file)) {
+					File nFile = toTmpFile(file);
+					if (nFile.exists()) {
+						excontent = FileUtils.readFileToString(nFile, encoding);
+					} else {
+						excontent = FileUtils.readFileToString(file, encoding);
+					}
+				} else {
+					excontent = FileUtils.readFileToString(file, encoding);
+				}
+				
+				if (content.equals(excontent)) {
+					Engine.logEngine.debug("(MobileBuilder) No change for " + file.getPath());
+					return;
+				}
+			}
+			
+			// Differs write of files if needed
+			if (buildMutex == null) {
+				FileUtils.write(file, content, encoding);
+				Engine.logEngine.debug("(MobileBuilder) Wrote file " + file.getPath());
+			} else {
+				File nFile = toTmpFile(file);
+				Engine.logEngine.debug("(MobileBuilder) Defers the write of " + content.length() + " chars to " + nFile.getPath());
+				nFile.getParentFile().mkdirs();
+				writtenFiles.add(file);
+				FileUtils.write(nFile, content, encoding);
+			}
 		} else {
 			FileUtils.write(file, content, encoding);
 		}
@@ -934,44 +991,127 @@ public class MobileBuilder {
 		if (autoBuild) {
 			StackTraceElement parentMethod = Thread.currentThread().getStackTrace()[3];
 			if (!parentMethod.getClassName().equals("com.twinsoft.convertigo.engine.mobile.MobileBuilder")) {
+				Engine.logEngine.debug("(MobileBuilder) >>> moveFiles");
 				moveFilesForce();
 			}
 		}
 	}
 	
-	private void moveFilesForce() {
+	private synchronized void moveFilesForce() {
+		Engine.logEngine.debug("(MobileBuilder) >>> moveFilesForce");
 		if (writtenFiles.size() > 0) {
 			Engine.execute(() -> {
-				File appModule = null;
+				boolean hasMovedAppFiles = false;
+				boolean hasMovedFiles = false;
+				Set<File> appFiles = new HashSet<>();
+				
 				Engine.logEngine.debug("(MobileBuilder) Start to move " + writtenFiles.size() + " files.");
 				for (File file: writtenFiles) {
-					File nFile = toTmpFile(file);
 					try {
-						if (file.getName().equals("app.module.ts")) {
-							appModule = file;
+						if (file.getPath().indexOf("\\src\\app\\") != -1) {
+							appFiles.add(file);
 						} else {
-							FileUtils.copyFile(nFile, file);
-							nFile.delete();
-							Engine.logEngine.debug("(MobileBuilder) Moved " + file.getPath());
+							File nFile = toTmpFile(file);
+							if (nFile.exists()) {
+								FileUtils.copyFile(nFile, file);
+								nFile.delete();
+								hasMovedFiles = true;
+								Engine.logEngine.debug("(MobileBuilder) Moved " + file.getPath());
+							}
 						}
 					} catch (IOException e) {
 						Engine.logEngine.warn("(MobileBuilder) Failed to copy the new content of " + file.getName(), e);
 					}
 				}
 				
-				if (appModule != null) {
-					try {
-						if (buildMutex != null) {
-							synchronized (buildMutex) {
-								buildMutex.wait(60000);							
+				String lastModuleContent = null;
+				File lastModuleFile = null;
+				String lastComponentContent = null;
+				File lastComponentFile = null;
+				if (appFiles.size() > 0) {
+					if (buildMutex != null) {
+						synchronized (buildMutex) {
+							try {
+								buildMutex.wait(hasMovedFiles ? 60000 : 100);
+							} catch (InterruptedException e) {}							
+						}
+					}
+					
+					for (File file: appFiles) {
+						try {
+							File nFile = toTmpFile(file);
+							if (nFile.exists()) {
+								if (nFile.getName().equals("app.module.ts")) {
+									lastModuleContent = FileUtils.readFileToString(nFile, "UTF-8");
+									lastModuleFile = file;
+								}
+								if (nFile.getName().equals("app.component.ts")) {
+									lastComponentContent = FileUtils.readFileToString(nFile, "UTF-8");
+									lastComponentFile = file;
+								}
+								FileUtils.copyFile(nFile, file);
+								nFile.delete();
+								hasMovedAppFiles = true;
+								Engine.logEngine.debug("(MobileBuilder) Moved " + file.getPath());
+							}
+						} catch (IOException e) {
+							Engine.logEngine.warn("(MobileBuilder) Failed to copy the new content of " + file.getName(), e);
+						}
+					}
+					appFiles.clear();
+				}
+				
+				/*if (hasMovedAppFiles) {
+					if (buildMutex != null) {
+						synchronized (buildMutex) {
+							try {
+								buildMutex.wait(hasMovedAppFiles ? 60000 : 100);
+							} catch (InterruptedException e) {}							
+						}
+					}
+					if (dirsToDelete.size() > 0) {
+						Engine.logEngine.debug("(MobileBuilder) Start to delete " + dirsToDelete.size() + " directories.");
+						for (File dir: dirsToDelete) {
+							File nDir = toTmpFile(dir);
+							if (!nDir.exists()) {
+								try {
+									FileUtils.deleteDirectory(dir);
+									Engine.logEngine.debug("(MobileBuilder) Deleted dir " + dir.getPath());
+								} catch (IOException e) {
+									Engine.logEngine.warn("(MobileBuilder) Failed to delete directory named " + dir.getName(), e);
+								}
 							}
 						}
-						File nFile = toTmpFile(appModule);
-						FileUtils.copyFile(nFile, appModule);
-						nFile.delete();
-						Engine.logEngine.debug("(MobileBuilder) Moved " + appModule.getPath());
-					} catch (Exception e) {
-						Engine.logEngine.warn("(MobileBuilder) Failed to copy the new content of " + appModule.getName(), e);
+						Engine.logEngine.debug("(MobileBuilder) End to delete " + dirsToDelete.size() + " directories.");
+						dirsToDelete.clear();
+					}
+				}*/
+				
+				if (hasMovedAppFiles) {
+					if (buildMutex != null) {
+						synchronized (buildMutex) {
+							try {
+								buildMutex.wait(hasMovedAppFiles ? 60000 : 100);
+							} catch (InterruptedException e) {}							
+						}
+						
+						if (lastModuleContent != null && lastModuleFile != null) {
+							try {
+								FileUtils.write(lastModuleFile, lastModuleContent, "UTF-8");
+								Engine.logEngine.debug("(MobileBuilder) Moved again " + lastModuleFile.getPath());
+							} catch (IOException e) {
+								Engine.logEngine.warn("(MobileBuilder) Failed to copy the last content of " + lastModuleFile.getName(), e);
+							}
+						}
+						
+						if (lastComponentContent != null && lastComponentFile != null) {
+							try {
+								FileUtils.write(lastComponentFile, lastComponentContent, "UTF-8");
+								Engine.logEngine.debug("(MobileBuilder) Moved again " + lastModuleFile.getPath());
+							} catch (IOException e) {
+								Engine.logEngine.warn("(MobileBuilder) Failed to copy the last content of " + lastComponentFile.getName(), e);
+							}
+						}
 					}
 				}
 				

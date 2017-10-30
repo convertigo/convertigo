@@ -30,6 +30,8 @@ import org.eclipse.jface.viewers.Viewer;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteDataActionComponent;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 
 public class MobileRouteActionComponentTreeObject extends MobileComponentTreeObject implements IOrderableTreeObject, INamedSourceSelectorTreeObject {
@@ -146,8 +148,10 @@ public class MobileRouteActionComponentTreeObject extends MobileComponentTreeObj
 					if (hasBeenRenamed) {
 						hasBeenModified(true);
 						viewer.refresh();
-						
 						getDescriptors();// refresh editors (e.g labels in combobox)
+						
+		    	        TreeObjectEvent treeObjectEvent = new TreeObjectEvent(MobileRouteActionComponentTreeObject.this, propertyName, "", "");
+		    	        ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);
 					}
 				}
 			}

@@ -178,6 +178,7 @@ import com.twinsoft.convertigo.eclipse.dnd.TreeDropAdapter;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.editors.CompositeListener;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
+import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCopyAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCutAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardPasteAction;
@@ -258,6 +259,7 @@ import com.twinsoft.convertigo.engine.MigrationListener;
 import com.twinsoft.convertigo.engine.MigrationManager;
 import com.twinsoft.convertigo.engine.ObjectsProvider;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
+import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
@@ -557,7 +559,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			if (c == SWT.DEL) {
 				Object object = getFirstSelectedTreeObject();
 				if (object instanceof DatabaseObjectTreeObject) {
-					deleteDatabaseObjectAction.run();
+					deleteDatabaseObjectAction.runWithEvent(null);
 				} else if (object instanceof PropertyTableRowTreeObject) {
 					deletePropertyTableRowAction.run();
 				} else if (object instanceof PropertyTableColumnTreeObject) {
@@ -569,13 +571,13 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		if (bCtrl) {
 			// Copy/Cut/Paste
 			if (c == 'c') {
-				copyAction.run();
+				copyAction.runWithEvent(null);
 			}
 			if (c == 'x') {
-				cutAction.run();
+				cutAction.runWithEvent(null);
 			}
 			if (c == 'v') {
-				pasteAction.run();
+				pasteAction.runWithEvent(null);
 			}
 			
 			if (c == 'g') {
@@ -594,10 +596,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		
 		// +/- for Priority
 		if ((c == '+') || (keyCode == SWT.KEYPAD_ADD)) {
-			increasePriorityAction.run();
+			increasePriorityAction.runWithEvent(null);
 		}
 		if ((c == '-') || (keyCode == SWT.KEYPAD_SUBTRACT)) {
-			decreasePriorityAction.run();
+			decreasePriorityAction.runWithEvent(null);
 		}
 	}
 
@@ -1037,6 +1039,19 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				});
 				Listener textListener = new Listener() {
 					public void handleEvent (final Event e) {
+						boolean autoBuild = false;
+						MobileBuilder mba = null;
+						MobileBuilder mbo = null;
+						
+						IEditorPart editorPart = ConvertigoPlugin.getDefault().getApplicationComponentEditor();
+						if (editorPart != null) {
+							IEditorInput input = editorPart.getEditorInput();
+							mba = ((ApplicationComponentEditorInput)input).getApplication().getProject().getMobileBuilder();
+						}
+						if (theTreeObject instanceof DatabaseObjectTreeObject) {
+							mbo = ((DatabaseObjectTreeObject) theTreeObject).getObject().getProject().getMobileBuilder();
+						}
+						
 						String newName = null;
 						String oldName = null;
 						boolean needRefresh = false;
@@ -1076,6 +1091,14 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							case SWT.Traverse:
 								switch (e.detail) {
 									case SWT.TRAVERSE_RETURN:
+										Engine.logStudio.info("---------------------- Rename started ----------------------");
+										if (mba != null) {
+											autoBuild = mba.isAutoBuild();
+											if (autoBuild) {
+												mba.setAutoBuild(false);
+											}
+										}
+										
 										newName = text.getText();
 										if (theTreeObject instanceof DatabaseObjectTreeObject) {
 											// Save and close editors
@@ -1207,6 +1230,23 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							ProjectExplorerView.this.fireTreeObjectPropertyChanged(treeObjectEvent);
 							if (updateReferences && needProjectReload) {
 								((ProjectTreeObject) theTreeObject).save(false);
+							}
+							
+							if (mbo != null) {
+								if (theTreeObject instanceof MobilePageComponentTreeObject) {
+									try {
+										mbo.pageRenamed((PageComponent) theTreeObject.getObject(), oldName);
+									} catch (EngineException e1) {
+										e1.printStackTrace();
+									}
+								}
+							}
+							
+							Engine.logStudio.info("---------------------- Rename ended   ----------------------");
+							if (mba != null) {
+								if (autoBuild) {
+									mba.setAutoBuild(true);
+								}
 							}
 							
 							StructuredSelection structuredSelection = new StructuredSelection(theTreeObject);
@@ -2275,9 +2315,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			(treeObject instanceof TraceTreeObject) ||
 			(treeObject instanceof DesignDocumentViewTreeObject) ||
 			(treeObject instanceof DesignDocumentFilterTreeObject) ||
-			(treeObject instanceof DesignDocumentUpdateTreeObject)
-			)) {
-				edit(treeObject);
+			(treeObject instanceof DesignDocumentUpdateTreeObject))) 
+		{
+			edit(treeObject);
 		}
 	}
 	

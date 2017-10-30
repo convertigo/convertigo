@@ -29,6 +29,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
@@ -38,13 +39,15 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
-
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditorInput;
+import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
+import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
 public abstract class MyAbstractAction extends Action implements IObjectActionDelegate {
 	protected ISelection selection = null;
@@ -64,11 +67,55 @@ public abstract class MyAbstractAction extends Action implements IObjectActionDe
 		this.selection = selection;
 	}
 
+	@Override
+	public String getId() {
+		String id = super.getId();
+		if (id == null) {
+			id = this.getClass().getSimpleName();
+		}
+		return id;
+	}
+
+	@Override
+	public void runWithEvent(Event event) {
+		run(this);
+	}
+
+	@Override
 	public void run(IAction action) {
 		this.action = action;
-		run();
+		
+		MobileBuilder mb = null;
+		boolean autoBuild = false;
+		
+		IEditorPart editorPart = ConvertigoPlugin.getDefault().getApplicationComponentEditor();
+		if (editorPart != null) {
+			IEditorInput input = editorPart.getEditorInput();
+			mb = ((ApplicationComponentEditorInput)input).getApplication().getProject().getMobileBuilder();
+		}
+		
+		try {
+			Engine.logStudio.info("---------------------- Action started: "+ action.getId() + "----------------------");
+			if (mb != null) {
+				autoBuild = mb.isAutoBuild();
+				if (autoBuild) {
+					mb.setAutoBuild(false);
+				}
+			}
+			
+			run();
+			
+		} finally {
+			Engine.logStudio.info("---------------------- Action ended:   "+ action.getId() + "----------------------");
+			if (mb != null) {
+				if (autoBuild) {
+					mb.setAutoBuild(true);
+				}
+			}
+		}
 	}
 	
+	@Override
 	public void run() {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		

@@ -124,6 +124,7 @@ import com.twinsoft.convertigo.eclipse.dialogs.ProjectDeployErrorDialog;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditorInput;
+import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ClipboardManager;
@@ -133,7 +134,6 @@ import com.twinsoft.convertigo.eclipse.views.references.ReferencesView;
 import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest;
@@ -1412,6 +1412,28 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					catch(PartInitException e) {
 						//ConvertigoPlugin.logException(e, "Error while retrieving the jscript transaction editor '" + editorRef.getName() + "'");
 					}
+				}
+			}
+		}
+		return editorPart;
+	}
+	
+	public IEditorPart getApplicationComponentEditor() {
+		IEditorPart editorPart = null;
+		IWorkbenchPage activePage = getActivePage();
+		if (activePage != null) {
+			IEditorReference[] editorRefs = activePage.getEditorReferences();
+			for (int i=0;i<editorRefs.length;i++) {
+				IEditorReference editorRef = (IEditorReference)editorRefs[i];
+				try {
+					IEditorInput editorInput = editorRef.getEditorInput();
+					if ((editorInput != null) && (editorInput instanceof ApplicationComponentEditorInput)) {
+						editorPart = editorRef.getEditor(false);
+						break;
+					}
+				}
+				catch(PartInitException e) {
+					//ConvertigoPlugin.logException(e, "Error while retrieving the connector editor '" + editorRef.getName() + "'");
 				}
 			}
 		}

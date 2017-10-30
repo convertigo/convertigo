@@ -47,6 +47,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.views.properties.IPropertyDescriptor;
 import org.eclipse.ui.views.properties.PropertySheet;
 import org.w3c.dom.Document;
@@ -100,6 +102,7 @@ import com.twinsoft.convertigo.beans.variables.StepMultiValuedVariable;
 import com.twinsoft.convertigo.beans.variables.StepVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
+import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectDecreasePriorityAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectIncreasePriorityAction;
@@ -123,6 +126,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.InvalidOperationException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
+import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector.Property;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -236,119 +240,144 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 	 */
 	@Override
 	public boolean performDrop(Object data) {
-		Object targetObject = getCurrentTarget();
+		boolean autoBuild = false;
+		MobileBuilder mb = null;
 		
-		// Handle tree objects reordering with Drag and Drop
-		if (data instanceof String) {
-			boolean insertBefore = (feedback & DND.FEEDBACK_INSERT_BEFORE) != 0;
-			boolean insertAfter = (feedback & DND.FEEDBACK_INSERT_AFTER) != 0;
-			if (insertBefore || insertAfter) {
-				Object sourceObject = getSelectedObject();
-				TreeParent targetTreeParent = ((TreeObject)targetObject).getParent();
-				List<? extends TreeObject> children = targetTreeParent.getChildren();
-				int destPosition = children.indexOf(targetObject);
-				int srcPosition = children.indexOf(sourceObject);
-				int delta = destPosition - srcPosition;
-				int count = (delta < 0) ? (insertBefore ? delta:delta+1):(insertBefore ? delta-1:delta);
-				if (count != 0) {
-					if (count < 0)
-						new DatabaseObjectIncreasePriorityAction(Math.abs(count)).run();
-					else
-						new DatabaseObjectDecreasePriorityAction(Math.abs(count)).run();
-				}
-				return true;
+		Engine.logStudio.info("---------------------- Drop started ----------------------");
+		try {
+			Object targetObject = getCurrentTarget();
+			
+			IEditorPart editorPart = ConvertigoPlugin.getDefault().getApplicationComponentEditor();
+			if (editorPart != null) {
+				IEditorInput input = editorPart.getEditorInput();
+				mb = ((ApplicationComponentEditorInput)input).getApplication().getProject().getMobileBuilder();
 			}
-		}
-		
-		// Handle objects copy or move with Drag and drop
-		if (targetObject instanceof TreeObject) {
-			TreeObject targetTreeObject = (TreeObject)targetObject;
-			if (targetTreeObject != null) {
-				ProjectExplorerView	explorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
-				
-				Document document = null;
-				try {
-					Shell shell = Display.getDefault().getActiveShell();
-					try {
-						// Try to parse text data into an XML document
-						String source = data.toString();
-						document = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(new StringReader(source)));
-						
-						ClipboardAction.dnd.paste(source, shell, explorerView, targetTreeObject, true);
-			            return true;
-				    } catch (SAXException sax) {
-						// Parse failed probably because data was not XML but an XPATH String
-						// in this case, create DatabaseObjects of the correct Type according to the folder where the XPATH is dropped on  
-						performDrop(data, explorerView, targetTreeObject);
-						return true;
-				    }
-				} catch (Exception e) {
-					if (e instanceof ObjectWithSameNameException) {
-						document = null;
+			if (mb != null) {
+				autoBuild = mb.isAutoBuild();
+				if (autoBuild) {
+					mb.setAutoBuild(false);
+				}
+			}
+			
+			// Handle tree objects reordering with Drag and Drop
+			if (data instanceof String) {
+				boolean insertBefore = (feedback & DND.FEEDBACK_INSERT_BEFORE) != 0;
+				boolean insertAfter = (feedback & DND.FEEDBACK_INSERT_AFTER) != 0;
+				if (insertBefore || insertAfter) {
+					Object sourceObject = getSelectedObject();
+					TreeParent targetTreeParent = ((TreeObject)targetObject).getParent();
+					List<? extends TreeObject> children = targetTreeParent.getChildren();
+					int destPosition = children.indexOf(targetObject);
+					int srcPosition = children.indexOf(sourceObject);
+					int delta = destPosition - srcPosition;
+					int count = (delta < 0) ? (insertBefore ? delta:delta+1):(insertBefore ? delta-1:delta);
+					if (count != 0) {
+						if (count < 0)
+							new DatabaseObjectIncreasePriorityAction(Math.abs(count)).run();
+						else
+							new DatabaseObjectDecreasePriorityAction(Math.abs(count)).run();
 					}
-					if (e instanceof InvalidOperationException) {
-						document = null;
-					}
+					return true;
+				}
+			}
+			
+			// Handle objects copy or move with Drag and drop
+			if (targetObject instanceof TreeObject) {
+				TreeObject targetTreeObject = (TreeObject)targetObject;
+				if (targetTreeObject != null) {
+					ProjectExplorerView	explorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
 					
-					// Case of unauthorized databaseObject paste
-					if (document != null) {
+					Document document = null;
+					try {
+						Shell shell = Display.getDefault().getActiveShell();
 						try {
-							if (!(targetTreeObject instanceof IPropertyTreeObject)) {
-								Element rootElement = document.getDocumentElement();
-								NodeList nodeList = rootElement.getChildNodes();
-								boolean unauthorized = false;
-								int len = nodeList.getLength();
-								Node node;
-								
-								// case of folder, retrieve owner object
-								targetTreeObject = explorerView.getFirstSelectedDatabaseObjectTreeObject(targetTreeObject);
-								
-								if (detail == DND.DROP_COPY) {
-									for (int i = 0 ; i < len ; i++) {
-										node = (Node) nodeList.item(i);
-										if (node.getNodeType() != Node.TEXT_NODE) {
-											// Special objects paste
-											if (!paste(node, targetTreeObject)) {
-												unauthorized = true; // Real unauthorized databaseObject paste
+							// Try to parse text data into an XML document
+							String source = data.toString();
+							document = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(new StringReader(source)));
+							
+							ClipboardAction.dnd.paste(source, shell, explorerView, targetTreeObject, true);
+				            return true;
+					    } catch (SAXException sax) {
+							// Parse failed probably because data was not XML but an XPATH String
+							// in this case, create DatabaseObjects of the correct Type according to the folder where the XPATH is dropped on  
+							performDrop(data, explorerView, targetTreeObject);
+							return true;
+					    }
+					} catch (Exception e) {
+						if (e instanceof ObjectWithSameNameException) {
+							document = null;
+						}
+						if (e instanceof InvalidOperationException) {
+							document = null;
+						}
+						
+						// Case of unauthorized databaseObject paste
+						if (document != null) {
+							try {
+								if (!(targetTreeObject instanceof IPropertyTreeObject)) {
+									Element rootElement = document.getDocumentElement();
+									NodeList nodeList = rootElement.getChildNodes();
+									boolean unauthorized = false;
+									int len = nodeList.getLength();
+									Node node;
+									
+									// case of folder, retrieve owner object
+									targetTreeObject = explorerView.getFirstSelectedDatabaseObjectTreeObject(targetTreeObject);
+									
+									if (detail == DND.DROP_COPY) {
+										for (int i = 0 ; i < len ; i++) {
+											node = (Node) nodeList.item(i);
+											if (node.getNodeType() != Node.TEXT_NODE) {
+												// Special objects paste
+												if (!paste(node, targetTreeObject)) {
+													unauthorized = true; // Real unauthorized databaseObject paste
+												}
 											}
 										}
+										reloadTreeObject(explorerView, targetTreeObject);
 									}
-									reloadTreeObject(explorerView, targetTreeObject);
-								}
-								else if (detail == DND.DROP_MOVE) {
-									for (int i = 0 ; i < len ; i++) {
-										node = (Node) nodeList.item(i);
-										if (node.getNodeType() != Node.TEXT_NODE) {
-											// Special objects move
-											if (!move(node, targetTreeObject)) {
-												unauthorized = true; // Real unauthorized databaseObject move
+									else if (detail == DND.DROP_MOVE) {
+										for (int i = 0 ; i < len ; i++) {
+											node = (Node) nodeList.item(i);
+											if (node.getNodeType() != Node.TEXT_NODE) {
+												// Special objects move
+												if (!move(node, targetTreeObject)) {
+													unauthorized = true; // Real unauthorized databaseObject move
+												}
 											}
 										}
+										reloadTreeObject(explorerView, targetTreeObject);
 									}
-									reloadTreeObject(explorerView, targetTreeObject);
+									else {
+										unauthorized = true; // Real unauthorized databaseObject
+									}
+									
+									if (unauthorized) {
+										throw e;
+									}
+									return true;
 								}
-								else {
-									unauthorized = true; // Real unauthorized databaseObject
-								}
-								
-								if (unauthorized) {
-									throw e;
-								}
-								return true;
+							} catch (Exception ex) {
+								ConvertigoPlugin.errorMessageBox(ex.getMessage());
+								return false;
 							}
-						} catch (Exception ex) {
-							ConvertigoPlugin.errorMessageBox(ex.getMessage());
+						}
+						else {
+							ConvertigoPlugin.errorMessageBox(e.getMessage());
 							return false;
 						}
 					}
-					else {
-						ConvertigoPlugin.errorMessageBox(e.getMessage());
-						return false;
-					}
+				}
+			}
+			return false;
+		} finally {
+			Engine.logStudio.info("---------------------- Drop ended   ----------------------");
+			if (mb != null) {
+				if (autoBuild) {
+					mb.setAutoBuild(true);
 				}
 			}
 		}
-		return false;
 	}
 
 	public DatabaseObject paste(Node node, DatabaseObject parentDatabaseObject, boolean bChangeName) throws EngineException {

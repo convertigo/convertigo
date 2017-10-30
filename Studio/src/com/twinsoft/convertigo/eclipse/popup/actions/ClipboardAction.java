@@ -64,7 +64,6 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.CarUtils;
 
 public class ClipboardAction extends MyAbstractAction {
@@ -250,87 +249,72 @@ public class ClipboardAction extends MyAbstractAction {
 				}
 			}
 			
-			MobileBuilder mb = ((DatabaseObject) targetObject).getProject().getMobileBuilder();
-			boolean autoBuild = false;
-			if (mb != null) {
-				autoBuild = mb.isAutoBuild();
-				if (autoBuild) {
-					mb.setAutoBuild(false);
-				}
-			}
-			
-			try {
-	            if (clipboardManager.isCut) {
-	        		TreeParent targetTreeParent = null;
-	        		String targetPath = targetTreeObject.getPath();
-	        		if (targetTreeObject instanceof DatabaseObjectTreeObject) {
-	        			targetTreeParent = ((DatabaseObjectTreeObject)targetTreeObject).getOwnerDatabaseObjectTreeObject();
-	    			}
-	        		else if (targetTreeObject instanceof IPropertyTreeObject) {
-	        			targetTreeParent = ((IPropertyTreeObject)targetTreeObject).getTreeObjectOwner();
-	        		}
-	        		else if (targetTreeObject instanceof IDesignTreeObject) {
-	        			targetTreeParent = ((IDesignTreeObject)targetTreeObject).getTreeObjectOwner();
-	        		}
-	        			
-	            	for (int i = 0 ; i < clipboardManager.objects.length ; i++) {
-	            		// Cut & paste
-						clipboardManager.cutAndPaste(clipboardManager.objects[i], targetTreeObject);
-						
-						// Updating the tree
-						// Report 4.5: fix #401
-						//explorerView.reloadTreeObject(clipboardManager.parentTreeNodeOfCutObjects[i]);
-						TreeObject parentTreeNodeOfCutObjects = clipboardManager.parentTreeNodeOfCutObjects[i];
-						parentTreeNodeOfCutObjects.getProjectTreeObject().hasBeenModified(true);
-						if (!(parentTreeNodeOfCutObjects instanceof IDesignTreeObject)) {
-							explorerView.reloadTreeObject(parentTreeNodeOfCutObjects);
-						}
-	            	}
-	            	
-	            	if (targetTreeObject != null) {
-	                	if (targetTreeObject.getParent() == null)
-	                		targetTreeObject = explorerView.findTreeObjectByPath(targetTreeParent, targetPath);
-	                	
-	                	if (targetTreeObject != null)
-	                		targetTreeObject.getProjectTreeObject().hasBeenModified(true);// Report 4.5: fix #401
-	            	}
-	            	
-	            	clipboardManager.reset();
-	            }
-	            else if (clipboardManager.isCopy){
-	            	if (source != null) {
-	                	// Paste
-	                    clipboardManager.paste(source, targetObject, true);
-	
-	                    // Case of project copy
-	                    if (clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_PROJECT) {
-	                    	Object[] pastedObjects = clipboardManager.pastedObjects;
-	                    	for (int i=0; i<pastedObjects.length; i++) {
-	                    		Object object = pastedObjects[i];
-	                    		if ((object != null) && (object instanceof Project)) {
-	                    			Project project = (Project)object;
-	                    			String oldName = project.getName();
-	                    			try {
-	                    				Project importedProject = importProjectTempArchive(oldName, explorerView);
-	                    				if (importedProject != null) {
-	                    					String newName = importedProject.getName();
-	                    					explorerView.importProjectTreeObject(newName, true, oldName);
-	                    				}
-	                    				else throw new EngineException("Unable to import project temporary archive");
-	                    			}
-	                    			catch (Exception e) {
-	                    				throw new EngineException("Unable to paste project", e);
-	                    			}
-	                    		}
-	                    	}
-	                    }
-	            	}
-	            }
-			} finally {
-				if (autoBuild) {
-					mb.setAutoBuild(true);
-				}
-			}
+            if (clipboardManager.isCut) {
+        		TreeParent targetTreeParent = null;
+        		String targetPath = targetTreeObject.getPath();
+        		if (targetTreeObject instanceof DatabaseObjectTreeObject) {
+        			targetTreeParent = ((DatabaseObjectTreeObject)targetTreeObject).getOwnerDatabaseObjectTreeObject();
+    			}
+        		else if (targetTreeObject instanceof IPropertyTreeObject) {
+        			targetTreeParent = ((IPropertyTreeObject)targetTreeObject).getTreeObjectOwner();
+        		}
+        		else if (targetTreeObject instanceof IDesignTreeObject) {
+        			targetTreeParent = ((IDesignTreeObject)targetTreeObject).getTreeObjectOwner();
+        		}
+        			
+            	for (int i = 0 ; i < clipboardManager.objects.length ; i++) {
+            		// Cut & paste
+					clipboardManager.cutAndPaste(clipboardManager.objects[i], targetTreeObject);
+					
+					// Updating the tree
+					// Report 4.5: fix #401
+					//explorerView.reloadTreeObject(clipboardManager.parentTreeNodeOfCutObjects[i]);
+					TreeObject parentTreeNodeOfCutObjects = clipboardManager.parentTreeNodeOfCutObjects[i];
+					parentTreeNodeOfCutObjects.getProjectTreeObject().hasBeenModified(true);
+					if (!(parentTreeNodeOfCutObjects instanceof IDesignTreeObject)) {
+						explorerView.reloadTreeObject(parentTreeNodeOfCutObjects);
+					}
+            	}
+            	
+            	if (targetTreeObject != null) {
+                	if (targetTreeObject.getParent() == null)
+                		targetTreeObject = explorerView.findTreeObjectByPath(targetTreeParent, targetPath);
+                	
+                	if (targetTreeObject != null)
+                		targetTreeObject.getProjectTreeObject().hasBeenModified(true);// Report 4.5: fix #401
+            	}
+            	
+            	clipboardManager.reset();
+            }
+            else if (clipboardManager.isCopy){
+            	if (source != null) {
+                	// Paste
+                    clipboardManager.paste(source, targetObject, true);
+
+                    // Case of project copy
+                    if (clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_PROJECT) {
+                    	Object[] pastedObjects = clipboardManager.pastedObjects;
+                    	for (int i=0; i<pastedObjects.length; i++) {
+                    		Object object = pastedObjects[i];
+                    		if ((object != null) && (object instanceof Project)) {
+                    			Project project = (Project)object;
+                    			String oldName = project.getName();
+                    			try {
+                    				Project importedProject = importProjectTempArchive(oldName, explorerView);
+                    				if (importedProject != null) {
+                    					String newName = importedProject.getName();
+                    					explorerView.importProjectTreeObject(newName, true, oldName);
+                    				}
+                    				else throw new EngineException("Unable to import project temporary archive");
+                    			}
+                    			catch (Exception e) {
+                    				throw new EngineException("Unable to paste project", e);
+                    			}
+                    		}
+                    	}
+                    }
+            	}
+            }
 			
             // Updating the tree
             if (targetTreeObject != null) {

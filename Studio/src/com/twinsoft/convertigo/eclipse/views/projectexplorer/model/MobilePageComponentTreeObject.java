@@ -156,22 +156,6 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 	}
 	
 	@Override
-	public boolean rename(String newName, boolean bDialog) {
-		PageComponent page = getObject();
-		String oldName = page.getName();
-		boolean renamed = super.rename(newName, bDialog);
-		if (renamed) {
-			try {
-				page.getProject().getMobileBuilder().pageRenamed(page, oldName);
-			} catch (EngineException e) {
-				ConvertigoPlugin.logException(e,
-						"Error while writting source files for page '" + page.getName() + "'");
-			}
-		}
-		return renamed;
-	}
-
-	@Override
 	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectPropertyChanged(treeObjectEvent);
 		
@@ -357,8 +341,10 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 					if (hasBeenRenamed) {
 						hasBeenModified(true);
 						viewer.refresh();
-						
 						getDescriptors();// refresh editors (e.g labels in combobox)
+						
+		    	        TreeObjectEvent treeObjectEvent = new TreeObjectEvent(MobilePageComponentTreeObject.this, propertyName, "", "");
+		    	        ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);
 					}
 				}
 			}
