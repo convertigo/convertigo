@@ -78,6 +78,7 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 		cloned.pageImports = new HashMap<String, String>();
 		cloned.pageFunctions = new HashMap<String, String>();
 		cloned.computedContents = null;
+		cloned.contributors = null;
 		cloned.isRoot = false;
 		return cloned;
 	}
@@ -415,14 +416,12 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 		this.scriptContent = scriptContent;
 	}
 	
-	private transient JSONObject computedContents = null;
-
 	private transient Map<String, String> pageImports = new HashMap<String, String>();
 	private transient Map<String, String> pageFunctions = new HashMap<String, String>();
 	
 	private boolean hasImport(String name) {
 		return pageImports.containsKey(name) ||
-				getProject().getMobileBuilder().hasTplImport(name);
+				getProject().getMobileBuilder().hasPageTplImport(name);
 	}
 	
 	public boolean addImport(String name, String path) {
@@ -448,6 +447,26 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 		}
 		return false;
 	}
+	
+	private transient List<Contributor> contributors = null;
+	
+	public List<Contributor> getContributors() {
+		if (contributors == null) {
+			doGetContributors();
+		}
+		return contributors;
+	}
+	
+	protected void doGetContributors() {
+		contributors = new ArrayList<Contributor>();
+		//if (isEnabled()) { // Commented until we can delete page folder again... : see forceEnable in MobileBuilder 
+			for (UIComponent uiComponent : getUIComponentList()) {
+				uiComponent.addContributors(contributors);
+			}
+		//}		
+	}
+	
+	private transient JSONObject computedContents = null;
 	
 	private JSONObject initJsonComputed() {
 		JSONObject jsonObject = null;
@@ -520,6 +539,16 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 					getProject().getMobileBuilder().pageTemplateChanged(this);
 				}
 			}
+			
+			String oldContributors = contributors == null ? null: contributors.toString();
+			doGetContributors();
+			String newContributors = contributors == null ? null: contributors.toString();
+			if (oldContributors != null && newContributors != null) {
+				if (!(newComputedContent.equals(newContributors))) {
+					getProject().getMobileBuilder().pageContributorsChanged(this);
+				}
+			}
+			
 			
 		} catch (JSONException e) {
 			e.printStackTrace();

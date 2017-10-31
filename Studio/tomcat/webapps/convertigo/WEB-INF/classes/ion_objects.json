@@ -4629,11 +4629,11 @@
           "value": "some log",
           "values": [
             false,
-      			true
+      		true
           ]
         }
 	  }
-  },
+    },
   
 	"CallSequenceAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
@@ -4751,7 +4751,7 @@
 	  }
 	},
 	
-  "PushPageAction" : {
+    "PushPageAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "PushPage",
       "label": "PushPage",
@@ -4774,6 +4774,7 @@
         }
 	  }
 	},
+	
 	"RootPageAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "RootPage",
@@ -4797,6 +4798,6 @@
         }
 	  }
 	}
-
+	
   }
 }

@@ -22,9 +22,12 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -94,7 +97,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 					int j = inputs.indexOf("vars:")+"vars:".length();
 					String props = inputs.substring(i, inputs.indexOf('}',i)+1);
 					String vars = inputs.substring(j, inputs.indexOf('}',j)+1);
-					return actionName + "("+ props + ","+ vars +")";
+					return "actionBeans."+ actionName + "(this,"+ props + ","+ vars +")";
 				}
 			}
 		}
@@ -153,7 +156,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
-		String function = computeActionFunction(jsonScripts);
+		String function = computeActionFunction();
 		try {
 			String functions = jsonScripts.getString("functions") + System.lineSeparator() + function;
 			jsonScripts.put("functions", functions);
@@ -162,7 +165,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		}
 	}
 	
-	protected String computeActionFunction(JSONObject jsonScripts) {
+	protected String computeActionFunction() {
 		String computed = "";
 		if (isEnabled()) {
 			StringBuilder parameters = new StringBuilder();
@@ -184,49 +187,19 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			computed += System.lineSeparator();
 			computed += cartridge;
 			computed += "\t"+ functionName + "("+ parameters +") {" + System.lineSeparator();
-			computed += ""+ computeActionContent(jsonScripts);
+			computed += ""+ computeActionContent();
 			computed += "\t\t.catch((error:any) => {console.log(\"[MB] An error occured : \",error.message)});" + System.lineSeparator();
 			computed += "\t}";
 		}
 		return computed;
 	}
 	
-	protected String computeActionContent(JSONObject jsonScripts) {
+	protected String computeActionContent() {
 		IonBean ionBean = getIonBean();
 		if (ionBean != null) {
 			int numThen = numberOfActions();
 			String actionName = ionBean.getName();
 			String actionInputId = getInputId();
-			String actionCode = ComponentManager.getActionTsCode(actionName);
-			
-			PageComponent page = getPage();
-			
-			try {
-				
-				String imports = jsonScripts.getString("imports");
-				Map<String, List<String>> map = ionBean.getConfig().getPageImports();
-				if (map.size() > 0) {
-					for (String from : map.keySet()) {
-						for (String component: map.get(from)) {
-							if (page.addImport(component, from)) {
-								imports += "import { "+ component +" } from '"+ from +"';" + System.lineSeparator();
-							}
-						}
-					}
-					jsonScripts.put("imports", imports);
-				}
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}
-			
-			if (page.addFunction(actionName, actionCode)) {
-				try {
-					String functions = jsonScripts.getString("functions") + System.lineSeparator() + actionCode;
-					jsonScripts.put("functions", functions);
-				} catch (JSONException e) {
-					e.printStackTrace();
-				}
-			}
 			
 			StringBuilder sbThen = new StringBuilder();  
 			Iterator<UIComponent> it = getUIComponentList().iterator();
@@ -234,7 +207,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				UIComponent component = (UIComponent)it.next();
 				if (component.isEnabled()) {
 					if (component instanceof UIDynamicAction) {
-						String s = ((UIDynamicAction)component).computeActionContent(jsonScripts);
+						String s = ((UIDynamicAction)component).computeActionContent();
 						if (!s.isEmpty()) {
 							sbThen.append(sbThen.length()>0 && numThen > 1 ? "\t\t,"+ System.lineSeparator() :"").append(s);
 						}
@@ -243,7 +216,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			}
 
 			String tsCode = "";
-			tsCode +="\t\tthis."+actionName+"(actions."+actionInputId+".props, actions."+actionInputId+".vars)"+ System.lineSeparator();
+			tsCode +="\t\tthis.actionBeans."+actionName+"(this, actions."+actionInputId+".props, actions."+actionInputId+".vars)"+ System.lineSeparator();
 			tsCode += "\t\t.then((res:any) => {"+ System.lineSeparator();
 			if (sbThen.length() > 0) {
 				if (numThen > 1) {
@@ -262,4 +235,73 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		}
 		return "";
 	}
+
+	protected Contributor getContributor() {
+		return new Contributor() {
+			@Override
+			public Map<String, String> getActionTsFunctions() {
+				Map<String, String> functions = new HashMap<String, String>();
+				IonBean ionBean = getIonBean();
+				if (ionBean != null) {
+					String actionName = ionBean.getName();
+					functions.put(actionName, ComponentManager.getActionTsCode(actionName));
+				}
+				return functions;
+			}
+
+			@Override
+			public Map<String, String> getActionTsImports() {
+				Map<String, String> imports = new HashMap<String, String>();
+				IonBean ionBean = getIonBean();
+				if (ionBean != null) {
+					Map<String, List<String>> map = ionBean.getConfig().getActionTsImports();
+					if (map.size() > 0) {
+						for (String from : map.keySet()) {
+							for (String component: map.get(from)) {
+								imports.put(component.trim(), from);
+							}
+						}
+					}
+				}
+				return imports;
+			}
+
+			@Override
+			public Map<String, String> getModuleTsImports() {
+				Map<String, String> imports = new HashMap<String, String>();
+				IonBean ionBean = getIonBean();
+				if (ionBean != null) {
+					Map<String, List<String>> map = ionBean.getConfig().getModuleTsImports();
+					if (map.size() > 0) {
+						for (String from : map.keySet()) {
+							for (String component: map.get(from)) {
+								imports.put(component.trim(), from);
+							}
+						}
+					}
+				}
+				return imports;
+			}
+
+			@Override
+			public Set<String> getModuleNgImports() {
+				IonBean ionBean = getIonBean();
+				if (ionBean != null) {
+					return ionBean.getConfig().getModuleNgImports();
+				}
+				return new HashSet<String>();
+			}
+
+			@Override
+			public Set<String> getModuleNgProviders() {
+				IonBean ionBean = getIonBean();
+				if (ionBean != null) {
+					return ionBean.getConfig().getModuleNgProviders();
+				}
+				return new HashSet<String>();
+			}
+			
+		};
+	}	
+	
 }

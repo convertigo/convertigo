@@ -24,8 +24,10 @@ package com.twinsoft.convertigo.beans.mobile.components.dynamic;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
@@ -34,19 +36,17 @@ import org.codehaus.jettison.json.JSONObject;
 public class IonConfig implements Cloneable {
 	
 	enum Key {
-		page_imports
+		action_ts_imports,
+		module_ts_imports,
+		module_ng_imports,
+		module_ng_providers,
 		;
 	}
 	
 	private JSONObject jsonConfig;
 	
 	public IonConfig() {
-		try {
-			jsonConfig = new JSONObject()
-				.put(Key.page_imports.name(), new JSONArray());
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
+		jsonConfig = new JSONObject();
 	}
 
 	public IonConfig(JSONObject jsonOb) {
@@ -66,10 +66,26 @@ public class IonConfig implements Cloneable {
 		return jsonConfig;
 	}
 	
-	public Map<String, List<String>> getPageImports() {
-		Map<String, List<String>> map = new HashMap<String, List<String>>(10);
+	public Map<String, List<String>> getActionTsImports() {
+		return getTsImports(Key.action_ts_imports);
+	}
+	
+	public Map<String, List<String>> getModuleTsImports() {
+		return getTsImports(Key.module_ts_imports);
+	}
+	
+	public Set<String> getModuleNgImports() {
+		return getNgImports(Key.module_ng_imports);
+	}
+	
+	public Set<String> getModuleNgProviders() {
+		return getNgImports(Key.module_ng_providers);
+	}
+	
+	protected Map<String, List<String>> getTsImports(Key key) {
 		try {
-			JSONArray ar = jsonConfig.getJSONArray(Key.page_imports.name());
+			Map<String, List<String>> map = new HashMap<String, List<String>>();
+			JSONArray ar = jsonConfig.getJSONArray(key.name());
 			for (int i=0; i<ar.length(); i++) {
 				Object ob = ar.get(i);
 				if (ob instanceof JSONObject) {
@@ -95,8 +111,23 @@ public class IonConfig implements Cloneable {
 			}
 			return map;
 		} catch (JSONException e) {
-			e.printStackTrace();
 			return new HashMap<String, List<String>>();
+		}
+	}
+	
+	protected Set<String> getNgImports(Key key) {
+		try {
+			Set<String> set = new HashSet<String>();
+			JSONArray ar = jsonConfig.getJSONArray(key.name());
+			for (int i=0; i<ar.length(); i++) {
+				String s = ar.getString(i);
+				if (!s.isEmpty()) {
+					set.add(s);
+				}
+			}
+			return set;
+		} catch (JSONException e) {
+			return new HashSet<String>();
 		}
 	}
 	

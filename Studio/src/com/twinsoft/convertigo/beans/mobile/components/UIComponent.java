@@ -26,7 +26,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-
 import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -389,4 +388,23 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
     		menu.markMenuAsDirty();
     	}
 	}
+
+	protected Contributor getContributor() {
+		return null;
+	}
+	
+	protected void addContributors(List<Contributor> contributors) {
+		//if (isEnabled()) { // Commented until we can delete page folder again... : see forceEnable in MobileBuilder
+			Contributor contributor = getContributor();
+			if (contributor != null) {
+				if (!contributors.contains(contributor)) {
+					contributors.add(contributor);
+				}
+			}
+			for (UIComponent uiComponent : getUIComponentList()) {
+				uiComponent.addContributors(contributors);
+			}
+		//}
+	}
+	
 }

@@ -37,11 +37,10 @@ import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.io.filefilter.FalseFileFilter;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
-import org.apache.commons.lang3.StringUtils;
-
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
+import com.twinsoft.convertigo.beans.mobile.components.Contributor;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -61,7 +60,18 @@ public class MobileBuilder {
 	boolean initDone = false;
 	boolean autoBuild = true;
 	Object buildMutex = null;
-	Map<String,String> pageTplImports = null;
+	
+	// Until we can delete page folder again, we need to retrieve contributors of
+	// all pages for action.beans.service, otherwise we get compilation errors in
+	// page.ts files for (deleted/disabled) pages containing pseudo-actions
+	boolean forceEnable = true;
+	
+	Map<String,String> pageTplTsImports = null;
+	Map<String,String> moduleTplTsImports = null;
+	Map<String,String> actionTplTsImports = null;
+	String moduleTplNgImports = null;
+	String moduleTplNgProviders = null;
+	
 	Set<File> writtenFiles = new HashSet<File>();
 	Set<File> dirsToDelete = new HashSet<File>();
 	
@@ -154,6 +164,7 @@ public class MobileBuilder {
 			if (mobileApplication != null) {
 				ApplicationComponent application = mobileApplication.getApplicationComponent();
 				if (application != null) {
+					writePageSourceFiles(page);
 					writeAppSourceFiles(application);
 					moveFiles();
 					Engine.logEngine.debug("(MobileBuilder) Handled 'pageDisabled'");
@@ -216,6 +227,21 @@ public class MobileBuilder {
 			Engine.logEngine.debug("(MobileBuilder) Handled 'pageStyleChanged'");
 		}
 	}
+
+	public synchronized void pageContributorsChanged(final PageComponent page) throws EngineException {
+		if (page != null && page.isEnabled() && initDone) {
+			MobileApplication mobileApplication = project.getMobileApplication();
+			if (mobileApplication != null) {
+				ApplicationComponent application = mobileApplication.getApplicationComponent();
+				if (application != null) {
+					writeAppServiceTs(application);
+					writeAppModuleTs(application);
+					moveFiles();
+					Engine.logEngine.debug("(MobileBuilder) Handled 'pageContributorsChanged'");
+				}
+			}
+		}
+	}
 	
 	public synchronized void pageTsChanged(final PageComponent page) throws EngineException {
 		if (page != null && page.isEnabled() && initDone) {
@@ -274,12 +300,7 @@ public class MobileBuilder {
 			return;
 		}
 		
-		String tplProjectName = project.getMobileApplication().getApplicationComponent().getTplProjectName();
-		if (StringUtils.isBlank(tplProjectName)) {
-			tplProjectName = project.getName();
-		}
-		
-		ionicTplDir = new File(Engine.PROJECTS_PATH + "/" + tplProjectName + "/ionicTpl");
+		ionicTplDir = project.getMobileApplication().getApplicationComponent().getIonicTplDir();
 		if (!ionicTplDir.exists()) {
 			throw new EngineException("(MobileBuilder) Missing template directory: " + ionicTplDir.getPath());
 		}
@@ -308,9 +329,17 @@ public class MobileBuilder {
 			moveFilesForce();
 			FileUtils.deleteQuietly(new File(projectDir,"_private/ionic_tmp"));
 			
-			if (pageTplImports != null) {
-				pageTplImports.clear();
-				pageTplImports = null;
+			if (pageTplTsImports != null) {
+				pageTplTsImports.clear();
+				pageTplTsImports = null;
+			}
+			if (moduleTplTsImports != null) {
+				moduleTplTsImports.clear();
+				moduleTplTsImports = null;
+			}
+			if (actionTplTsImports != null) {
+				actionTplTsImports.clear();
+				actionTplTsImports = null;
 			}
 			
 			initDone = false;
@@ -553,33 +582,87 @@ public class MobileBuilder {
 		}
 	}
 	
-	public boolean hasTplImport(String name) {
-		return getPageTplImports().containsKey(name);
+	public boolean hasPageTplImport(String name) {
+		return getPageTplTsImports().containsKey(name);
 	}
 	
-	private Map<String,String> getPageTplImports() {
-		if (pageTplImports == null) {
-			pageTplImports = new HashMap<String, String>(10);
+	private Map<String,String> getPageTplTsImports() {
+		if (pageTplTsImports == null) {
+			pageTplTsImports = initTplImports(new File(ionicTplDir, "src/page.tpl"));
+		}
+		return pageTplTsImports;
+	}
+	
+	private Map<String,String> getModuleTplTsImports() {
+		if (moduleTplTsImports == null) {
+			moduleTplTsImports = initTplImports(new File(ionicTplDir, "src/app/app.module.ts"));
+		}
+		return moduleTplTsImports;
+	}
+
+	private String getModuleTplNgImports() {
+		if (moduleTplNgImports == null) {
 			try {
-				File pageTplTs = new File(ionicTplDir, "src/page.tpl");
-				String tsContent = FileUtils.readFileToString(pageTplTs, "UTF-8");
-				
-				Pattern pattern = Pattern.compile("[\\s\\t]*import[\\s\\t]*\\{(.*)\\}[\\s\\t]*from[\\s\\t]*'(.*)'");
-				Matcher matcher = pattern.matcher(tsContent);
-				while (matcher.find()) {
-					String names = matcher.group(1);
-					String path = matcher.group(2);
-					for (String name : names.split(",")) {
-						if (!pageTplImports.containsKey(name)) {
-							pageTplImports.put(name, path);
-						}
-					}
-				}
-			} catch (IOException e) {
+				String tsContent = FileUtils.readFileToString(new File(ionicTplDir, "src/app/app.module.ts"), "UTF-8");
+				moduleTplNgImports = getMarker(tsContent, "NgModules")
+						.replaceAll("/\\*Begin_c8o_NgModules\\*/","")
+						.replaceAll("/\\*End_c8o_NgModules\\*/","")
+						.replaceAll("\r\n", "").replaceAll("\n", "")
+						.replaceAll("\t", "")
+						.replaceAll("\\s", "");
+			} catch (Exception e) {
 				e.printStackTrace();
+				moduleTplNgImports = "";
 			}
 		}
-		return pageTplImports;
+		return moduleTplNgImports;
+	}
+	
+	private String getModuleTplNgProviders() {
+		if (moduleTplNgProviders == null) {
+			try {
+				String tsContent = FileUtils.readFileToString(new File(ionicTplDir, "src/app/app.module.ts"), "UTF-8");
+				moduleTplNgProviders = getMarker(tsContent, "NgProviders")
+						.replaceAll("/\\*Begin_c8o_NgProviders\\*/","")
+						.replaceAll("/\\*End_c8o_NgProviders\\*/","")
+						.replaceAll("\r\n", "").replaceAll("\n", "")
+						.replaceAll("\t", "")
+						.replaceAll("\\s", "");
+			} catch (Exception e) {
+				e.printStackTrace();
+				moduleTplNgProviders = "";
+			}
+		}
+		return moduleTplNgProviders;
+	}
+
+	private Map<String,String> getActionTplTsImports() {
+		if (actionTplTsImports == null) {
+			actionTplTsImports = initTplImports(new File(ionicTplDir, "src/services/actionbeans.service.ts"));
+		}
+		return actionTplTsImports;
+	}
+
+	private static Map<String,String> initTplImports(File file) {
+		Map<String, String> map = new HashMap<String, String>(10);
+		try {
+			String tsContent = FileUtils.readFileToString(file, "UTF-8");
+			Pattern pattern = Pattern.compile("[\\s\\t]*import[\\s\\t]*\\{(.*)\\}[\\s\\t]*from[\\s\\t]*['\"](.*)['\"]");
+			Matcher matcher = pattern.matcher(tsContent);
+			while (matcher.find()) {
+				String names = matcher.group(1);
+				String path = matcher.group(2);
+				for (String name : names.split(",")) {
+					name = name.trim();
+					if (!map.containsKey(name)) {
+						map.put(name, path);
+					}
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return map;
 	}
 	
 	private String getPageTsContent(PageComponent page) throws IOException {
@@ -633,6 +716,51 @@ public class MobileBuilder {
 		return null;
 	}
 	
+	private void writeAppServiceTs(ApplicationComponent app) throws EngineException {
+		try {
+			if (app != null) {
+				Map<String, String> action_ts_imports = new HashMap<>();
+				Map<String, String> action_ts_functions = new HashMap<>();
+				
+				List<PageComponent> pages = forceEnable ? 
+												app.getPageComponentList() :
+														getEnabledPages(app);
+				for (PageComponent page : pages) {
+					List<Contributor> contributors = page.getContributors();
+					for (Contributor contributor : contributors) {
+						action_ts_imports.putAll(contributor.getActionTsImports());
+						action_ts_functions.putAll(contributor.getActionTsFunctions());
+					}
+				}
+				
+				String c8o_ActionTsImports = "";
+				for (String comp : action_ts_imports.keySet()) {
+					if (!getActionTplTsImports().containsKey(comp)) {
+						c8o_ActionTsImports += "import { "+comp+" } from '"+ action_ts_imports.get(comp) +"';"+ System.lineSeparator();
+					}
+				}
+				
+				String c8o_ActionTsFunctions = System.lineSeparator();
+				for (String function : action_ts_functions.values()) {
+					c8o_ActionTsFunctions += function + System.lineSeparator();
+				}
+				
+				File appServiceTpl = new File(ionicTplDir, "src/services/actionbeans.service.ts");
+				String mContent = FileUtils.readFileToString(appServiceTpl, "UTF-8");
+				mContent = mContent.replaceAll("/\\*\\=c8o_ActionTsImports\\*/",c8o_ActionTsImports);
+				mContent = mContent.replaceAll("/\\*\\=c8o_ActionTsFunctions\\*/",c8o_ActionTsFunctions);
+				File appServiceTsFile = new File(ionicWorkDir, "src/services/actionbeans.service.ts");
+				writeFile(appServiceTsFile, mContent, "UTF-8");
+				
+				if (initDone) {
+					Engine.logEngine.debug("(MobileBuilder) Ionic service ts file generated for 'app'");
+				}
+			}
+		} catch (Exception e) {
+			throw new EngineException("Unable to write ionic app service ts file",e);
+		}
+	}
+	
 	private void writeAppModuleTs(ApplicationComponent app) throws EngineException {
 		try {
 			if (app != null) {
@@ -641,23 +769,75 @@ public class MobileBuilder {
 				String c8o_PagesDeclarations = "";
 				int i=1;
 				
+				Map<String, String> module_ts_imports = new HashMap<>();
+				Set<String> module_ng_imports =  new HashSet<String>();
+				Set<String> module_ng_providers =  new HashSet<String>();
 				
 				List<PageComponent> pages = getEnabledPages(app);
 				for (PageComponent page : pages) {
 					String pageName = page.getName();
 					String pageSegment = page.getSegment();
 					boolean isLastPage = i == pages.size();
-					c8o_PagesImport += "import { "+pageName+" } from \"../pages/"+pageName+"/"+pageName.toLowerCase()+"\";\n";
+					c8o_PagesImport += "import { "+pageName+" } from \"../pages/"+pageName+"/"+pageName.toLowerCase()+"\";"+ System.lineSeparator();
 					c8o_PagesLinks += " { component: "+pageName+", name: \""+pageName+"\", segment: \""+pageSegment+"\" }" + (isLastPage ? "":",");
 					c8o_PagesDeclarations += " " + pageName + (isLastPage ? "":",");
+
+					List<Contributor> contributors = page.getContributors();
+					for (Contributor contributor : contributors) {
+						module_ts_imports.putAll(contributor.getModuleTsImports());
+						module_ng_imports.addAll(contributor.getModuleNgImports());
+						module_ng_providers.addAll(contributor.getModuleNgProviders());
+					}
+					
 					i++;
+				}
+				
+				String c8o_ModuleTsImports = "";
+				Map<String, String> tpl_ts_imports = getModuleTplTsImports();
+				if (!tpl_ts_imports.isEmpty()) {
+					for (String comp : module_ts_imports.keySet()) {
+						if (!tpl_ts_imports.containsKey(comp)) {
+							c8o_ModuleTsImports += "import { "+comp+" } from '"+ module_ts_imports.get(comp) +"';"+ System.lineSeparator();
+						}
+					}
+				}
+				
+				String c8o_ModuleNgImports = "";
+				String tpl_ng_imports = getModuleTplNgImports();
+				if (!tpl_ng_imports.isEmpty()) {
+					for (String module: module_ng_imports) {
+						if (!tpl_ng_imports.contains(module)) {
+							c8o_ModuleNgImports += "\t" + module + "," + System.lineSeparator();
+						}
+					}
+					if (!c8o_ModuleNgImports.isEmpty()) {
+						c8o_ModuleNgImports = System.lineSeparator() + c8o_ModuleNgImports;
+					}
+				}
+				
+				String c8o_ModuleNgProviders = "";
+				String tpl_ng_providers = getModuleTplNgProviders();
+				if (!tpl_ng_providers.isEmpty()) {
+					for (String provider: module_ng_providers) {
+						if (!tpl_ng_providers.contains(provider)) {
+							c8o_ModuleNgProviders += "\t" + provider + "," + System.lineSeparator();
+						}
+					}
+					if (!c8o_ModuleNgProviders.isEmpty()) {
+						c8o_ModuleNgProviders = System.lineSeparator() + c8o_ModuleNgProviders;
+					}
 				}
 				
 				File appModuleTpl = new File(ionicTplDir, "src/app/app.module.ts");
 				String mContent = FileUtils.readFileToString(appModuleTpl, "UTF-8");
+				mContent = mContent.replaceAll("/\\*\\=c8o_ModuleTsImports\\*/",c8o_ModuleTsImports);
 				mContent = mContent.replaceAll("/\\*\\=c8o_PagesImport\\*/",c8o_PagesImport);
 				mContent = mContent.replaceAll("/\\*\\=c8o_PagesLinks\\*/",c8o_PagesLinks);
 				mContent = mContent.replaceAll("/\\*\\=c8o_PagesDeclarations\\*/",c8o_PagesDeclarations);
+				mContent = mContent.replaceAll("/\\*Begin_c8o_NgModules\\*/",c8o_ModuleNgImports);
+				mContent = mContent.replaceAll("/\\*End_c8o_NgModules\\*/","");
+				mContent = mContent.replaceAll("/\\*Begin_c8o_NgProviders\\*/",c8o_ModuleNgProviders);
+				mContent = mContent.replaceAll("/\\*End_c8o_NgProviders\\*/","");
 				File appModuleTsFile = new File(ionicWorkDir, "src/app/app.module.ts");
 				writeFile(appModuleTsFile, mContent, "UTF-8");
 				
@@ -690,7 +870,7 @@ public class MobileBuilder {
 					boolean isMenuPage = page.isInAutoMenu();
 					boolean isLastPage = i == pages.size();
 					if (isRootPage) c8o_RootPage = pageName;
-					c8o_PagesImport += "import { "+pageName+" } from \"../pages/"+pageName+"/"+pageName.toLowerCase()+"\";\n";
+					c8o_PagesImport += "import { "+pageName+" } from \"../pages/"+pageName+"/"+pageName.toLowerCase()+"\";" + System.lineSeparator();
 					c8o_PagesVariables += " { title: \""+pageTitle+"\", component: "+pageName+", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
 					c8o_PagesVariablesKeyValue += pageName+":"+ pageName+ (isLastPage ? "":",");
 					i++;
@@ -841,6 +1021,7 @@ public class MobileBuilder {
 	private void writeAppSourceFiles(ApplicationComponent application) throws EngineException {
 		try {
 			if (application != null) {
+				writeAppServiceTs(application);
 				writeAppModuleTs(application);
 				writeAppComponentTs(application);
 				writeAppTemplate(application);
