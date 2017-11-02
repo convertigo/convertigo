@@ -1591,6 +1591,7 @@
       "icon16": "tabbar_color_16x16.png",
       "icon32": "tabbar_color_32x32.png",
       "properties": {
+        "IonColor" : "light",
         "SelectedIndex": {
           "attr": "selectedIndex",
           "label": "selected tab",
@@ -2216,6 +2217,7 @@
     	"icon16": "searchbar_color_16x16.png",
     	"icon32": "searchbar_color_32x32.png",
     	"properties": {
+        "FormControlName": false,
     		"animated": {
     			"attr":"animated",
     			"label": "Animated",
