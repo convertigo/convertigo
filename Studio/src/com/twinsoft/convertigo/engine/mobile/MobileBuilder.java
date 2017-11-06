@@ -37,6 +37,8 @@ import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.io.filefilter.FalseFileFilter;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
+import org.codehaus.jettison.json.JSONObject;
+
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
@@ -234,6 +236,7 @@ public class MobileBuilder {
 			if (mobileApplication != null) {
 				ApplicationComponent application = mobileApplication.getApplicationComponent();
 				if (application != null) {
+					writeAppPackageJson(application);
 					writeAppServiceTs(application);
 					writeAppModuleTs(application);
 					moveFiles();
@@ -724,6 +727,52 @@ public class MobileBuilder {
 		return null;
 	}
 	
+	private void writeAppPackageJson(ApplicationComponent app) throws EngineException {
+		try {
+			if (app != null) {
+				Map<String, String> pkg_dependencies = new HashMap<>();
+				
+				List<PageComponent> pages = forceEnable ? 
+												app.getPageComponentList() :
+														getEnabledPages(app);
+				for (PageComponent page : pages) {
+					List<Contributor> contributors = page.getContributors();
+					for (Contributor contributor : contributors) {
+						pkg_dependencies.putAll(contributor.getPackageDependencies());
+					}
+				}
+				
+				if (!pkg_dependencies.isEmpty()) {
+					File appPkgJson = new File(ionicWorkDir, "package.json");
+					String mContent = FileUtils.readFileToString(appPkgJson, "UTF-8");
+					JSONObject jsonPackage = new JSONObject(mContent);
+					
+					String jsonOldContent = jsonPackage.toString();
+					JSONObject jsonDependencies = jsonPackage.getJSONObject("dependencies");
+					for (String pkg : pkg_dependencies.keySet()) {
+						//if (jsonDependencies.has(pkg)) {
+							jsonDependencies.put(pkg, pkg_dependencies.get(pkg));
+						//}
+					}
+					String jsonNewContent = jsonPackage.toString();
+					
+					if (jsonOldContent.equals(jsonNewContent)) {
+						return;
+					}
+					
+					jsonNewContent = jsonPackage.toString(2);
+					writeConfigFile(appPkgJson, jsonNewContent, "UTF-8");
+					
+					if (initDone) {
+						Engine.logEngine.debug("(MobileBuilder) Ionic package json file generated");
+					}
+				}
+			}
+		} catch (Exception e) {
+			throw new EngineException("Unable to write ionic package json file",e);
+		}
+	}
+	
 	private void writeAppServiceTs(ApplicationComponent app) throws EngineException {
 		try {
 			if (app != null) {
@@ -1029,6 +1078,7 @@ public class MobileBuilder {
 	private void writeAppSourceFiles(ApplicationComponent application) throws EngineException {
 		try {
 			if (application != null) {
+				writeAppPackageJson(application);
 				writeAppServiceTs(application);
 				writeAppModuleTs(application);
 				writeAppComponentTs(application);
@@ -1136,6 +1186,10 @@ public class MobileBuilder {
 				Engine.logEngine.warn("(MobileBuilder) Failed to delete directory " + dir.getPath(), e);
 			}
 		}
+	}
+	
+	private void writeConfigFile(File file, CharSequence content, String encoding) throws IOException {
+		FileUtils.write(file, content, encoding);
 	}
 	
 	private void writeFile(File file, CharSequence content, String encoding) throws IOException {

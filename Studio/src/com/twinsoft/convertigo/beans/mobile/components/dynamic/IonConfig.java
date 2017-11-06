@@ -40,6 +40,7 @@ public class IonConfig implements Cloneable {
 		module_ts_imports,
 		module_ng_imports,
 		module_ng_providers,
+		package_dependencies,
 		;
 	}
 	
@@ -80,6 +81,10 @@ public class IonConfig implements Cloneable {
 	
 	public Set<String> getModuleNgProviders() {
 		return getNgImports(Key.module_ng_providers);
+	}
+	
+	public Map<String, String> getPackageDependencies() {
+		return getPkgImports(Key.package_dependencies);
 	}
 	
 	protected Map<String, List<String>> getTsImports(Key key) {
@@ -128,6 +133,27 @@ public class IonConfig implements Cloneable {
 			return set;
 		} catch (JSONException e) {
 			return new HashSet<String>();
+		}
+	}
+	
+	protected Map<String, String> getPkgImports(Key key) {
+		try {
+			Map<String, String> map = new HashMap<String, String>();
+			JSONArray ar = jsonConfig.getJSONArray(key.name());
+			for (int i=0; i<ar.length(); i++) {
+				Object ob = ar.get(i);
+				if (ob instanceof JSONObject) {
+					JSONObject jsonImport = (JSONObject)ob;
+					String pkg = jsonImport.getString("package");
+					String version = jsonImport.getString("version");
+					if (!pkg.isEmpty() && !version.isEmpty()) {
+						map.put(pkg, version);
+					}
+				}
+			}
+			return map;
+		} catch (JSONException e) {
+			return new HashMap<String, String>();
 		}
 	}
 	

@@ -300,6 +300,15 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				}
 				return new HashSet<String>();
 			}
+
+			@Override
+			public Map<String, String> getPackageDependencies() {
+				IonBean ionBean = getIonBean();
+				if (ionBean != null) {
+					return ionBean.getConfig().getPackageDependencies();
+				}
+				return new HashMap<String, String>();
+			}
 			
 		};
 	}	

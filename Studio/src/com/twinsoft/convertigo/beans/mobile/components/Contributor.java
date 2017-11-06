@@ -29,6 +29,7 @@ public abstract class Contributor {
 	abstract public Map<String, String> getActionTsFunctions();
 	abstract public Map<String, String> getActionTsImports();
 	abstract public Map<String, String> getModuleTsImports();
+	abstract public Map<String, String> getPackageDependencies();
 	abstract public Set<String> getModuleNgImports();
 	abstract public Set<String> getModuleNgProviders();
 }
