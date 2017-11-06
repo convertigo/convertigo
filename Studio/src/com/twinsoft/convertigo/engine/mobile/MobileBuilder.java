@@ -306,6 +306,9 @@ public class MobileBuilder {
 		}
 		
 		if (isIonicTemplateBased()) {
+			// Clean directories 
+			cleanDirectories();
+			
 			// Copy template directory to working directory
 			copyTemplateFiles();
 			
@@ -327,7 +330,6 @@ public class MobileBuilder {
 		
 		if (isIonicTemplateBased()) {
 			moveFilesForce();
-			FileUtils.deleteQuietly(new File(projectDir,"_private/ionic_tmp"));
 			
 			if (pageTplTsImports != null) {
 				pageTplTsImports.clear();
@@ -346,7 +348,13 @@ public class MobileBuilder {
 			Engine.logEngine.debug("(MobileBuilder) Released builder for ionic project '"+ project.getName() +"'");
 		}
 	}
-		
+	
+	private void cleanDirectories() {
+		FileUtils.deleteQuietly(new File(projectDir,"_private/ionic/src"));
+		FileUtils.deleteQuietly(new File(projectDir,"_private/ionic_tmp"));
+		Engine.logEngine.debug("(MobileBuilder) Directories cleaned for ionic project '"+ project.getName() +"'");
+	}
+	
 	private void copyTemplateFiles() throws EngineException {
 		try {
 			FileUtils.copyDirectory(ionicTplDir, ionicWorkDir);
