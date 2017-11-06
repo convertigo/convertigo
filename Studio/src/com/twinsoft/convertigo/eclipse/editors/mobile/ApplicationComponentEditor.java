@@ -72,6 +72,7 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.EditorPart;
@@ -349,14 +350,38 @@ public class ApplicationComponentEditor extends EditorPart {
 					}
 					DatabaseObject fTarget = target;
 					c8oBrowser.getDisplay().asyncExec(() -> {
+						boolean autoBuild = false;
+						MobileBuilder mb = null;
+						
+						Engine.logStudio.info("---------------------- Drop started ----------------------");
 						try {
+							IEditorPart editorPart = ApplicationComponentEditor.this;
+							if (editorPart != null) {
+								IEditorInput input = editorPart.getEditorInput();
+								mb = ((ApplicationComponentEditorInput)input).getApplication().getProject().getMobileBuilder();
+							}
+							if (mb != null) {
+								autoBuild = mb.isAutoBuild();
+								if (autoBuild) {
+									mb.setAutoBuild(false);
+								}
+							}
+							
 							ProjectExplorerView view = ConvertigoPlugin.getDefault().getProjectExplorerView();
 							TreeObject treeObject = view.findTreeObjectByUserObject(fTarget);
 							ClipboardAction.dnd.paste(xmlData, ConvertigoPlugin.getMainShell(), view, treeObject, true);
+							
 						} catch (Exception e) {
 							Engine.logStudio.debug("Failed to drop: " + e.getMessage());
 						} finally {
 							PaletteSourceTransfer.getInstance().setPaletteSource(null);
+							
+							Engine.logStudio.info("---------------------- Drop ended   ----------------------");
+							if (mb != null) {
+								if (autoBuild) {
+									mb.setAutoBuild(true);
+								}
+							}
 						}
 					});
 				} catch (Exception e) {
