@@ -41,6 +41,7 @@ public class IonConfig implements Cloneable {
 		module_ng_imports,
 		module_ng_providers,
 		package_dependencies,
+		cordova_plugins,
 		;
 	}
 	
@@ -84,7 +85,12 @@ public class IonConfig implements Cloneable {
 	}
 	
 	public Map<String, String> getPackageDependencies() {
-		return getPkgImports(Key.package_dependencies);
+		return getCfgImports(Key.package_dependencies, "package", "version");
+	}
+	
+
+	public Map<String, String> getConfigPlugins() {
+		return getCfgImports(Key.cordova_plugins, "plugin", "version");
 	}
 	
 	protected Map<String, List<String>> getTsImports(Key key) {
@@ -136,7 +142,7 @@ public class IonConfig implements Cloneable {
 		}
 	}
 	
-	protected Map<String, String> getPkgImports(Key key) {
+	protected Map<String, String> getCfgImports(Key key, String key1, String key2) {
 		try {
 			Map<String, String> map = new HashMap<String, String>();
 			JSONArray ar = jsonConfig.getJSONArray(key.name());
@@ -144,10 +150,10 @@ public class IonConfig implements Cloneable {
 				Object ob = ar.get(i);
 				if (ob instanceof JSONObject) {
 					JSONObject jsonImport = (JSONObject)ob;
-					String pkg = jsonImport.getString("package");
-					String version = jsonImport.getString("version");
-					if (!pkg.isEmpty() && !version.isEmpty()) {
-						map.put(pkg, version);
+					String val1 = jsonImport.getString(key1);
+					String val2 = jsonImport.getString(key2);
+					if (!val1.isEmpty() && !val2.isEmpty()) {
+						map.put(val1, val2);
 					}
 				}
 			}

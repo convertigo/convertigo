@@ -727,6 +727,24 @@ public class MobileBuilder {
 		return null;
 	}
 	
+	public synchronized Map<String, String> getAppConfigPlugins(final ApplicationComponent app) {
+		Map<String, String> cfg_plugins = new HashMap<>();
+		try {
+			if (app != null && initDone) {
+				List<PageComponent> pages = forceEnable ? 
+												app.getPageComponentList() :
+														getEnabledPages(app);
+				for (PageComponent page : pages) {
+					List<Contributor> contributors = page.getContributors();
+					for (Contributor contributor : contributors) {
+						cfg_plugins.putAll(contributor.getConfigPlugins());
+					}
+				}
+			}
+		} catch (Exception e) {}
+		return cfg_plugins;
+	}
+	
 	private void writeAppPackageJson(ApplicationComponent app) throws EngineException {
 		try {
 			if (app != null) {

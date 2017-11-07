@@ -309,6 +309,15 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				}
 				return new HashMap<String, String>();
 			}
+
+			@Override
+			public Map<String, String> getConfigPlugins() {
+				IonBean ionBean = getIonBean();
+				if (ionBean != null) {
+					return ionBean.getConfig().getConfigPlugins();
+				}
+				return new HashMap<String, String>();
+			}
 			
 		};
 	}	
