@@ -4718,7 +4718,7 @@
         },
 		"marker": {
           "label": "Marker",
-          "description": "Defines the requestable's marker",
+          "description": "Defines the requestable's marker. Markers a used to differentiate fullsync request from on to another so you can handle routes more easily.",
           "category": "@Properties",
           "type": "string",
           "value": "",
@@ -4727,32 +4727,32 @@
 			true
           ]
 		},
-		"verb": {
-          "label": "Verb",
-          "description": "Defines the fullsync verb",
-          "category": "@Properties",
-          "value": "get",
-          "type": "string",
-          "values": [
-			"all",
-			"create",
-			"get",
-			"delete",
-			"delete_attachment",
-			"destroy",
-			"post",
-			"put_attachment",
-			"replicate_pull",
-			"replicate_push",
-			"reset",
-			"sync",
-			"view",
-			true
-          ]
-		}
-	  }
-	},
-	
+    "verb": {
+      "label": "Verb",
+      "description": "Defines the fullsync verb",
+      "category": "@Properties",
+      "value": "get",
+      "type": "string",
+      "values": [
+        "all",
+        "create",
+        "get",
+        "delete",
+        "delete_attachment",
+        "destroy",
+        "post",
+        "put_attachment",
+        "replicate_pull",
+        "replicate_push",
+        "reset",
+        "sync",
+        "view",
+        true
+      ]
+    }
+  }
+},
+
     "PushPageAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "PushPage",
@@ -4781,7 +4781,7 @@
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "RootPage",
       "label": "RootPage",
-      "description": "Set a page root. | ",
+      "description": "Set a page root. | Setting a page as root will place it as the first page in the stack, ie. the page where we will return when the user hits the back button for each of the pages present on the stack.",
       "group": "Actions",
       "icon16": "rootpageaction_color_16x16.png",
       "icon32": "rootpageaction_color_32x32.png",
@@ -4795,11 +4795,161 @@
           "value": "",
           "values": [
             false,
-			true
+			      true
           ]
         }
 	  }
-	}
-	
+	},
+
+  "PopPageAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "displayName": "PopPage",
+      "label": "PopPage",
+      "description": "Pops a page. | Popping a page will return to the previous page in the stack, as if the user had clicked on the back button",
+      "group": "Actions",
+      "icon16": "poppageaction_color_16x16.png",
+      "icon32": "poppageaction_color_32x32.png",
+      "properties": {
+      }
+	},
+
+  /*
+  "OAuthLoginAction" : {
+      "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+      "displayName": "OAuthLogin",
+      "label": "OAuthLogin",
+      "description": "Authenticate using OAuth protocol. | OAuth is used by third party identity managers such as Facebook, Google, Twitter or any other OAuth or OpenID enabled identity provider. Use this Action to pop a user / login screen form this identity provider.<br/>When the user clicks ok, the Sequence you configured will be called provided with a valid OAuth token. This sequence is responsable for checking the token and for calling any provider's API to get more information about the user attached to this token.",
+      "group": "Actions",
+      "icon16": "oauthloginaction_color_16x16.png",
+      "icon32": "oauthloginaction_color_32x32.png",
+      "properties": {
+      }
   }
+  */
+
+  "GooglePlusLoginAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "displayName": "Google Login",
+      "label": "GoogleLogin",
+      "description": "Logs in using Google. | Uses Google Login to authenticate users. Setup needs some configuration. Declare your app in <a target='_blank' href='https://developers.google.com/mobile/add?platform=android&cntapi=signin'>https://developers.google.com/mobile/add?platform=android&cntapi=signin</a> for Android apps.<br/><br/>Use <a href='https://developers.google.com/mobile/add?platform=ios&cntapi=signin' target='_blank'>https://developers.google.com/mobile/add?platform=ios&cntapi=signin</a> for iOS apps. <br /><br />See also some documentation on <a target='_blank' href='https://ionicframework.com/docs/native/google-plus/'>https://ionicframework.com/docs/native/google-plus/</a> about the Cordova plugin used.",
+      "group": "Actions",
+      "icon16": "googleloginaction_color_16x16.png",
+      "icon32": "googleloginaction_color_32x32.png",
+      "properties": {
+      },
+      "config": {
+        "action_ts_imports": [
+          {"from":"@ionic-native/google-plus","components":["GooglePlus"]}
+        ],
+        "module_ts_imports": [
+          {"from":"@ionic-native/google-plus","components":["GooglePlus"]}
+        ],
+        "module_ng_imports": [
+        ],
+        "module_ng_providers": [
+          "GooglePlus"
+        ],
+        "package_dependencies": [
+            {"package":"@ionic-native/google-plus", "version":"4.3.3"}
+        ],
+        "cordova_plugins": [
+          {
+            "plugin":"cordova-plugin-googleplus",
+            "version":"5.1.1",
+            "variables": {
+              "REVERSED_CLIENT_ID":"com.googleusercontent.apps.465373723999-473lfu4591v78mopjgo96t0m4fqmu17u"
+            }
+          }
+      ]
+    }
+  },
+  
+  "FullSyncSyncAction" : {
+	    "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	    "displayName": "DoDataSync",
+      "label": "Sync Data",
+      "description": "Synchronize data using FullSync. | Use this action to synchronize data between your app and the Convertigo server. Sync process can be bi-directional or just pull or push. The sync process can also be one shot or continuous. If the sync is continuous, any data modification made locally on your mobile will be reflected real-time on the Convertigo server FullSync data base.<br /><br />You can use 'FS Sync' when you start an app, but you must have an authenticated session to Convertigo server if you want to be able to push data to it. A typical flow would be :<br /><ul><li>Authenticate the user on your app.</li><li>Then call a 'login' server sequence that will execute the 'setAuthenticatedUser' step providing it with the authenticated user</li><li>Then use 'Sync' to sync the data from/to you mobile app</li></ul><br />The 'Sync' action will be finished when all the data will be synced to/from the device and when finished, you can display the first page of your app using a 'RootPage' action.<br /><br />",
+      "group": "FullSync Actions",
+      "icon16": "fssyncaction_color_16x16.png",
+      "icon32": "fssyncaction_color_32x32.png",
+      "properties": {
+
+        "requestable": {
+          "editor": "NamedSourceSelectorEditor",
+          "label": "Requestable",
+          "description": "Defines the target FullSync Data base to sync",
+          "category": "@Properties",
+          "type": "string",
+          "value": "",
+          "values": [
+            false,
+			      true
+          ]
+        },
+  
+        "Direction": {
+          "label": "Sync direction",
+          "description": "Direction of data synchronization, bi-directionnal, push (Data to Server), pull (Data from server)",
+          "category": "@Properties",
+          "type": "string",
+          "value": "bi-directional",
+          "values": [
+            "bi-directional",
+            "push",
+            "pull"
+          ]
+        },
+
+        "Mode": {
+          "label": "Sync Mode",
+          "description": "Sync mode can be one-shot, or continuous. ",
+          "category": "@Properties",
+          "type": "string",
+          "value": "continuous",
+          "values": [
+            "continuous",
+            "one-shot"
+          ]
+        },
+        "Retry": {
+          "label": "Retry policy",
+          "description": "If true will attempt to retry replications in the case of failure (due to being offline), using a backoff algorithm that retries at longer and longer intervals until a connection is re-established. Only applicable if sync mode is continuous",
+          "category": "@Properties",
+          "type": "string",
+          "value": "true",
+          "values": [
+            "true",
+            "false"
+          ]
+        },
+
+        "BatchSize": {
+          "mode":"script",
+          "label": "Batch Size",
+          "description": "Number of documents to process at a time. Defaults to 100. This affects the number of docs held in memory and the number sent at a time to the Convertigo server.",
+          "category": "@Properties",
+          "type": "string",
+          "value": "100",
+          "values": [
+            "100",
+            true
+          ]
+        },
+
+        "BatchesLimit": {
+          "mode":"script",
+          "label": "Batch Limit",
+          "description": "Number of batches to process at a time. Defaults to 10. This (along with batch_size) controls how many docs are kept in memory at a time, so the maximum docs in memory at once would equal batch_size × batches_limit",
+          "category": "@Properties",
+          "type": "string",
+          "value": "10",
+          "values": [
+            "10",
+            true
+          ]
+        }
+      }
+	}
+
+}
 }
