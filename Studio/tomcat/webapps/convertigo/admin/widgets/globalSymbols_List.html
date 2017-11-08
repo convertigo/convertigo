@@ -34,8 +34,13 @@
 			<button id="selectAll">Select all</button>
 			<button id="validExport">Validate export</button>
 			<button id="cancelExport">Cancel export</button>
-		</div><br/>
+		</div>
 		
+		<p>
+			Global Symbols values can be fixed string, another Global Symbols or Environment Variables.<br/>
+			If a symbol is defined for the Default value, closing curly braces must be escaped by a backslash: <strong>\}</strong>.<br/>
+			Here is a valid value: <strong>value_${sym1=def_${sym2\}}</strong>.
+		</p>
 		<!-- Global Symbols table -->
 		<table id="symbolsList"></table>
 	
