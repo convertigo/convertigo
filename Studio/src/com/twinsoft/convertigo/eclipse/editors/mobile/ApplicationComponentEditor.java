@@ -76,7 +76,6 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.EditorPart;
-
 import com.teamdev.jxbrowser.chromium.Browser;
 import com.teamdev.jxbrowser.chromium.ContextMenuHandler;
 import com.teamdev.jxbrowser.chromium.ContextMenuParams;
@@ -110,10 +109,11 @@ import com.twinsoft.convertigo.engine.DatabaseObjectFoundException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
+import com.twinsoft.convertigo.engine.mobile.MobileEventListener;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.ProcessUtils;
 
-public class ApplicationComponentEditor extends EditorPart {
+public class ApplicationComponentEditor extends EditorPart implements MobileEventListener {
 	
 	private ApplicationComponentEditorInput applicationEditorInput;
 	
@@ -1063,16 +1063,17 @@ public class ApplicationComponentEditor extends EditorPart {
 				throw new RuntimeException(e1);
 			}
 			
-			File ionicDir = new File(applicationEditorInput.application.getProject().getDirPath() + "/_private/ionic");
+			Project project = applicationEditorInput.application.getProject();
+			File ionicDir = new File(project.getDirPath() + "/_private/ionic");
 			File nodeModules = new File(ionicDir, "node_modules");
 			
 			terminateNode();
 			
-			if (forceInstall || !nodeModules.exists()) {
+			MobileBuilder mb = project.getMobileBuilder();
+			
+			if (forceInstall || !nodeModules.exists() || mb.getNeedPkgUpdate()) {
 				boolean[] running = {true};
 				try {
-					MobileBuilder.initBuilder(applicationEditorInput.application.getProject());
-					
 					new File(ionicDir, "package-lock.json").delete();
 					
 					if (forceClean) {
@@ -1122,7 +1123,8 @@ public class ApplicationComponentEditor extends EditorPart {
 				running[0] = false;
 			}
 			
-			MobileBuilder mb = applicationEditorInput.application.getProject().getMobileBuilder();
+			mb.setNeedPkgUpdate(false);
+			
 			Object mutex = new Object();
 			mb.setBuildMutex(mutex);
 			
@@ -1317,5 +1319,21 @@ public class ApplicationComponentEditor extends EditorPart {
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
+	}
+
+	@Override
+	public void onPackageUpdated() {
+		launchBuilder(true);
+		ConvertigoPlugin.getDisplay().syncExec(
+			new Runnable() {
+				public void run() {
+					try {
+						ConvertigoPlugin.infoMessageBox("Some needed packages will be installed");
+					} catch (Throwable t) {
+						t.printStackTrace();
+					}
+				}
+			}
+		);
 	}
 }

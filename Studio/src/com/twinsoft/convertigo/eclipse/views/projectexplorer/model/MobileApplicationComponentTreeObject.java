@@ -118,9 +118,9 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 						}
 					} else if (propertyName.equals("tplProjectName")) {
 						Project project = getObject().getProject();
+						closeAllEditors(false);
 						MobileBuilder.releaseBuilder(project);
 						MobileBuilder.initBuilder(project);
-						closeAllEditors(false);
 					} else {
 						markApplicationAsDirty();
 					}

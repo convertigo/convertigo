@@ -46,6 +46,7 @@ import com.twinsoft.convertigo.beans.mobile.components.Contributor;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.EventHelper;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 
 public class MobileBuilder {
@@ -59,6 +60,7 @@ public class MobileBuilder {
 //	};
 	
 	private Project project = null;
+	boolean needPkgUpdate = false;
 	boolean initDone = false;
 	boolean autoBuild = true;
 	Object buildMutex = null;
@@ -106,8 +108,38 @@ public class MobileBuilder {
 		ionicWorkDir = new File(projectDir,"_private/ionic");
 	}
 	
+	private EventHelper eventHelper;
+	
+	public synchronized void addMobileEventListener(MobileEventListener mobileEventListener) {
+		if (eventHelper != null) {
+			eventHelper.addListener(MobileEventListener.class, mobileEventListener);
+		}
+	}
+	
+	public synchronized void removeMobileEventListener(MobileEventListener mobileEventListener) {
+		if (eventHelper != null) {
+			eventHelper.removeListener(MobileEventListener.class, mobileEventListener);
+		}
+	}
+
+	public synchronized void firePackageUpdated() {
+		if (eventHelper != null) {
+			for (MobileEventListener mobileEventListener: eventHelper.getListeners(MobileEventListener.class)) {
+				mobileEventListener.onPackageUpdated();
+			}
+		}
+	}
+	
 	public void setBuildMutex(Object mutex) {
 		buildMutex = mutex;
+	}
+	
+	public void setNeedPkgUpdate(boolean needPkgUpdate) {
+		this.needPkgUpdate = needPkgUpdate;
+	}
+	
+	public boolean getNeedPkgUpdate() {
+		return this.needPkgUpdate;
 	}
 	
 	public boolean hasNodeModules() {
@@ -309,6 +341,12 @@ public class MobileBuilder {
 		}
 		
 		if (isIonicTemplateBased()) {
+			if (eventHelper == null) {
+				eventHelper = new EventHelper();
+			}
+			
+			setNeedPkgUpdate(false);
+			
 			// Clean directories 
 			cleanDirectories();
 			
@@ -346,6 +384,10 @@ public class MobileBuilder {
 				actionTplTsImports.clear();
 				actionTplTsImports = null;
 			}
+			if (eventHelper != null) {
+				eventHelper = null;
+			}
+			setNeedPkgUpdate(false);
 			
 			initDone = false;
 			Engine.logEngine.debug("(MobileBuilder) Released builder for ionic project '"+ project.getName() +"'");
@@ -745,6 +787,15 @@ public class MobileBuilder {
 		return cfg_plugins;
 	}
 	
+	private boolean existPackage(String pkg) {
+		File nodeModules = new File(ionicWorkDir, "node_modules");
+		if (pkg != null && !pkg.isEmpty()) {
+			File pkgDir = new File(nodeModules,pkg);
+			return pkgDir.exists() && pkgDir.isDirectory();
+		}
+		return true;
+	}
+	
 	private void writeAppPackageJson(ApplicationComponent app) throws EngineException {
 		try {
 			if (app != null) {
@@ -760,30 +811,24 @@ public class MobileBuilder {
 					}
 				}
 				
-				if (!pkg_dependencies.isEmpty()) {
-					File appPkgJson = new File(ionicWorkDir, "package.json");
-					String mContent = FileUtils.readFileToString(appPkgJson, "UTF-8");
-					JSONObject jsonPackage = new JSONObject(mContent);
-					
-					String jsonOldContent = jsonPackage.toString();
-					JSONObject jsonDependencies = jsonPackage.getJSONObject("dependencies");
-					for (String pkg : pkg_dependencies.keySet()) {
-						//if (jsonDependencies.has(pkg)) {
-							jsonDependencies.put(pkg, pkg_dependencies.get(pkg));
-						//}
+				File appPkgJsonTpl = new File(ionicTplDir, "package.json");
+				String mContent = FileUtils.readFileToString(appPkgJsonTpl, "UTF-8");
+				mContent = mContent.replaceAll("../DisplayObjects","../../DisplayObjects");
+				
+				JSONObject jsonPackage = new JSONObject(mContent);
+				JSONObject jsonDependencies = jsonPackage.getJSONObject("dependencies");
+				for (String pkg : pkg_dependencies.keySet()) {
+					jsonDependencies.put(pkg, pkg_dependencies.get(pkg));
+					if (!existPackage(pkg)) {
+						setNeedPkgUpdate(true);
 					}
-					String jsonNewContent = jsonPackage.toString();
-					
-					if (jsonOldContent.equals(jsonNewContent)) {
-						return;
-					}
-					
-					jsonNewContent = jsonPackage.toString(2);
-					writeConfigFile(appPkgJson, jsonNewContent, "UTF-8");
-					
-					if (initDone) {
-						Engine.logEngine.debug("(MobileBuilder) Ionic package json file generated");
-					}
+				}
+				
+				File appPkgJson = new File(ionicWorkDir, "package.json");
+				writeFile(appPkgJson, jsonPackage.toString(2), "UTF-8");
+				
+				if (initDone) {
+					Engine.logEngine.debug("(MobileBuilder) Ionic package json file generated");
 				}
 			}
 		} catch (Exception e) {
@@ -1206,10 +1251,6 @@ public class MobileBuilder {
 		}
 	}
 	
-	private void writeConfigFile(File file, CharSequence content, String encoding) throws IOException {
-		FileUtils.write(file, content, encoding);
-	}
-	
 	private void writeFile(File file, CharSequence content, String encoding) throws IOException {
 		if (initDone) {
 			// Checks for content changes
@@ -1262,15 +1303,19 @@ public class MobileBuilder {
 		Engine.logEngine.debug("(MobileBuilder) >>> moveFilesForce");
 		if (writtenFiles.size() > 0) {
 			Engine.execute(() -> {
+				boolean hasMovedCfgFiles = false;
 				boolean hasMovedAppFiles = false;
 				boolean hasMovedFiles = false;
 				Set<File> appFiles = new HashSet<>();
+				Set<File> cfgFiles = new HashSet<>();
 				
 				Engine.logEngine.debug("(MobileBuilder) Start to move " + writtenFiles.size() + " files.");
 				for (File file: writtenFiles) {
 					try {
 						if (file.getPath().indexOf("\\src\\app\\") != -1) {
 							appFiles.add(file);
+						} else if (file.getName().equals("package.json")) {
+							cfgFiles.add(file);
 						} else {
 							File nFile = toTmpFile(file);
 							if (nFile.exists()) {
@@ -1376,8 +1421,37 @@ public class MobileBuilder {
 					}
 				}
 				
+				if (cfgFiles.size() > 0) {
+					if (buildMutex != null) {
+						synchronized (buildMutex) {
+							try {
+								buildMutex.wait(hasMovedFiles || hasMovedAppFiles ? 60000 : 100);
+							} catch (InterruptedException e) {}							
+						}
+					}
+					
+					for (File file: cfgFiles) {
+						try {
+							File nFile = toTmpFile(file);
+							if (nFile.exists()) {
+								FileUtils.copyFile(nFile, file);
+								nFile.delete();
+								hasMovedCfgFiles = true;
+								Engine.logEngine.debug("(MobileBuilder) Moved " + file.getPath());
+							}
+						} catch (IOException e) {
+							Engine.logEngine.warn("(MobileBuilder) Failed to copy the new content of " + file.getName(), e);
+						}
+					}
+					cfgFiles.clear();
+				}
+				
 				Engine.logEngine.debug("(MobileBuilder) End to move " + writtenFiles.size() + " files.");
 				writtenFiles.clear();
+				
+				if (hasMovedCfgFiles && getNeedPkgUpdate()) {
+					MobileBuilder.this.firePackageUpdated();
+				}
 			});
 		}
 	}

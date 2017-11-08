@@ -36,6 +36,7 @@ import org.eclipse.ui.internal.console.ConsoleView;
 import org.eclipse.ui.part.EditorPart;
 import org.eclipse.ui.views.properties.PropertySheet;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
+import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditor;
@@ -107,6 +108,7 @@ public class ConvertigoPartListener implements IPartListener {
 			if (input instanceof ApplicationComponentEditorInput) {
 				try {
 					MobileBuilder mb = ((ApplicationComponentEditorInput)input).getApplication().getProject().getMobileBuilder();
+					mb.removeMobileEventListener((ApplicationComponentEditor)part);
 					mb.setAutoBuild(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -158,6 +160,18 @@ public class ConvertigoPartListener implements IPartListener {
 							
 						});
 					}
+				}
+			}
+		}
+		if (part instanceof EditorPart) {
+			IEditorInput input = ((EditorPart)part).getEditorInput();
+			if (input instanceof ApplicationComponentEditorInput) {
+				try {
+					MobileBuilder mb = ((ApplicationComponentEditorInput)input).getApplication().getProject().getMobileBuilder();
+					mb.addMobileEventListener((ApplicationComponentEditor)part);
+					mb.setAutoBuild(true);
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 			}
 		}
