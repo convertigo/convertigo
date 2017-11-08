@@ -601,6 +601,9 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 						if (cc.getIonBean().getName().equals("CallFullSyncAction")) {
 							return nsObject instanceof FullSyncConnector;
 						}
+						if (cc.getIonBean().getName().equals("FullSyncSyncAction")) {
+							return nsObject instanceof FullSyncConnector;
+						}
 					}
 					if ("page".equals(propertyName)) {
 						if (nsObject instanceof PageComponent) {
