@@ -636,7 +636,11 @@ public class MobileBuilder {
 	}
 	
 	public boolean hasPageTplImport(String name) {
-		return getPageTplTsImports().containsKey(name);
+		if (initDone) {
+			return getPageTplTsImports().containsKey(name);
+		} else {
+			return false;
+		}
 	}
 	
 	private Map<String,String> getPageTplTsImports() {
@@ -712,7 +716,7 @@ public class MobileBuilder {
 					}
 				}
 			}
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return map;
