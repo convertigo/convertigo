@@ -189,5 +189,9 @@ public class GetStatus extends XmlService {
 		dateTime.setAttribute("locale", locale.toString());
 		dateTime.setAttribute("timezone", timezone);
 		rootElement.appendChild(dateTime);
+		
+		Element mode = document.createElement("mode");
+		mode.setTextContent(Engine.isStudioMode() ? "studio" : "server");
+		rootElement.appendChild(mode);
 	}
 }

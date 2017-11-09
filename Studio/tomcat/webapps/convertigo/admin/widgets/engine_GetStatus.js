@@ -55,6 +55,9 @@ function engine_GetStatus_init() {
 
 function engine_GetStatus_update() {
 	callService("engine.GetStatus", function(xml) {
+		if ($(xml).find("mode").text() == "server") {
+			$(".status-toolbar").show();
+		}
 		if ($(xml).find("engineState").text() == "started") {
 			$("#statusStartedLed").attr("src", "images/convertigo-administration-picto-bullet-green.png");
 			$("#statusStoppedLed").attr("src", "images/convertigo-administration-picto-bullet-gray.png");
