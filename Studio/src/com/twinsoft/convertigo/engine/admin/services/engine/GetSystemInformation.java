@@ -76,7 +76,7 @@ public class GetSystemInformation extends XmlService{
         Runtime runtime = Runtime.getRuntime();
 		
         Element dateElement = document.createElement("currentDate");
-        Text textNode = document.createTextNode(DateFormat.getDateInstance(DateFormat.FULL).format(currentDate)+"-"+DateFormat.getTimeInstance(DateFormat.MEDIUM).format(currentDate));
+        Text textNode = document.createTextNode(DateFormat.getDateInstance(DateFormat.FULL).format(currentDate) + "-" + DateFormat.getTimeInstance(DateFormat.MEDIUM).format(currentDate));
         dateElement.appendChild(textNode);
         rootElement.appendChild(dateElement);
         
@@ -109,15 +109,23 @@ public class GetSystemInformation extends XmlService{
         browserElement.appendChild(browserTextNode);
         rootElement.appendChild(browserElement);
         
-        Element contextsInUseElement = document.createElement("contextsInUse");
-        Text connectedUsersTextNode = document.createTextNode(Integer.toString(Engine.theApp.contextManager.getNumberOfContexts()));
-        contextsInUseElement.appendChild(connectedUsersTextNode);
-        rootElement.appendChild(contextsInUseElement);
+        try {
+	        Element contextsInUseElement = document.createElement("contextsInUse");
+	        Text connectedUsersTextNode = document.createTextNode(Integer.toString(Engine.theApp.contextManager.getNumberOfContexts()));
+	        contextsInUseElement.appendChild(connectedUsersTextNode);
+	        rootElement.appendChild(contextsInUseElement);
+		} catch (Exception e) {
+			Engine.logAdmin.info("Cannot get current contextsInUse: " + e);
+		}
         
-        Element threadsElement = document.createElement("threads");
-        Text threadsTextNode = document.createTextNode(com.twinsoft.convertigo.beans.core.RequestableObject.nbCurrentWorkerThreads+" / "+Integer.parseInt(EnginePropertiesManager.getProperty(PropertyName.DOCUMENT_THREADING_MAX_WORKER_THREADS)));
-        threadsElement.appendChild(threadsTextNode);
-        rootElement.appendChild(threadsElement);
+        try {
+	        Element threadsElement = document.createElement("threads");
+	        Text threadsTextNode = document.createTextNode(com.twinsoft.convertigo.beans.core.RequestableObject.nbCurrentWorkerThreads + " / " + Integer.parseInt(EnginePropertiesManager.getProperty(PropertyName.DOCUMENT_THREADING_MAX_WORKER_THREADS)));
+	        threadsElement.appendChild(threadsTextNode);
+	        rootElement.appendChild(threadsElement);
+		} catch (Exception e) {
+			Engine.logAdmin.info("Cannot get current threads: " + e);
+		}
         
         Element cloudElement = document.createElement("cloud_instance");
         cloudElement.appendChild(document.createTextNode(Boolean.toString(Engine.isCloudMode())));
