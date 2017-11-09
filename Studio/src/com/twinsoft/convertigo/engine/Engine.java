@@ -767,6 +767,9 @@ public class Engine {
 	}
 	
 	public static synchronized void stop() throws EngineException {
+		if (Engine.isStudioMode()) {
+			throw new EngineException("Cannot stop a Convertigo Studio Engine");
+		}
 		if (Engine.theApp != null) {
 			if (!MigrationManager.isMigrationFinished())
 				throw new EngineException("Migration process of projects is still running.");
