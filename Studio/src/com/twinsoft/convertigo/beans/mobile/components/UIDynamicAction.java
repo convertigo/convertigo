@@ -32,7 +32,9 @@ import java.util.Set;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType.Mode;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective.AttrDirective;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonProperty;
@@ -60,9 +62,9 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		return new StringBuilder();
 	}
 
-	public String getInputId() {
+	/*public String getInputId() {
 		return "_"+ this.priority;
-	}
+	}*/
 	
 	public String getFunctionName() {
 		return "ATS"+ this.priority;
@@ -82,16 +84,32 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		return num;
 	}
 	
+	protected String getScope() {
+		String scope = "";
+		DatabaseObject parent = getParent();
+		while (parent != null && !(parent instanceof UIPageEvent)) {
+			if (parent instanceof UIControlDirective) {
+				UIControlDirective uicd = (UIControlDirective)parent;
+				if (AttrDirective.ForEach.equals(AttrDirective.getDirective(uicd.getDirectiveName()))) {
+					scope += !scope.isEmpty() ? ", ":"";
+					scope += "item"+uicd.priority + ": "+ "item"+uicd.priority;
+				}
+			}
+			parent = parent.getParent();
+		}
+		return scope;
+	}
+	
 	@Override
 	public String computeTemplate() {
 		if (isEnabled()) {
-			String inputs = computeActionInputs();
-			
 			if (numberOfActions() > 0 || getParent() instanceof UIPageEvent) {
-				return getFunctionName() + "($event, {"+ inputs +"})";
+				String scope = getScope();
+				return getFunctionName() + "({root: {scope:{"+scope+"}, in:{}, out:$event}})";
 			} else {
 				IonBean ionBean = getIonBean();
 				if (ionBean != null) {
+					String inputs = computeActionInputs(true);
 					String actionName = ionBean.getName();
 					int i = inputs.indexOf("props:")+"props:".length();
 					int j = inputs.indexOf("vars:")+"vars:".length();
@@ -104,7 +122,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		return "";
 	}
 
-	protected String computeActionInputs() {
+	protected String computeActionInputs(boolean forTemplate) {
 		if (isEnabled()) {
 			IonBean ionBean = getIonBean();
 			if (ionBean != null) {
@@ -119,9 +137,29 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 					if (!p_value.equals(false)) {
 						MobileSmartSourceType msst = property.getSmartType();
 						String smartValue = msst.getValue();
-						if (Mode.PLAIN.equals(msst.getMode()) && property.getType().equalsIgnoreCase("string")) {
-							smartValue = "\'" + smartValue + "\'";
+						if (Mode.PLAIN.equals(msst.getMode())) {
+							if (property.getType().equalsIgnoreCase("string")) {
+								smartValue = "\'" + smartValue + "\'";
+							}
 						}
+						
+						if (forTemplate) {
+							smartValue = ""+smartValue;
+						} else {
+							if (Mode.SOURCE.equals(msst.getMode())) {
+								MobileSmartSource mss = msst.getSmartSource();
+								if (mss.getFilter().equals(MobileSmartSource.Filter.Iteration)) {
+									smartValue = "scope."+ smartValue;
+								}
+								else {
+									smartValue = "this."+ smartValue;
+								}
+							}
+							smartValue = smartValue.replaceAll("\\?\\.", ".");
+							smartValue = smartValue.replaceAll("this\\.", "c8oPage.");
+							smartValue = "get(`"+smartValue+"`)";
+						}
+						
 						sbProps.append(smartValue);
 					}
 					// case value is not set
@@ -131,7 +169,6 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				}
 				
 				StringBuilder sbVars = new StringBuilder();
-				StringBuilder sbActions = new StringBuilder();
 				Iterator<UIComponent> it = getUIComponentList().iterator();
 				while (it.hasNext()) {
 					UIComponent component = (UIComponent)it.next();
@@ -140,15 +177,10 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 						if (!parameter.isEmpty()) {
 							sbVars.append(sbVars.length() > 0 ? ", ":"").append(parameter);
 						}
-					} else if (component instanceof UIDynamicAction) {
-						String s = ((UIDynamicAction)component).computeActionInputs();
-						if (!s.isEmpty()) {
-							sbActions.append(", ").append(s);
-						}
 					}
 				}
 				
-				return getInputId() +": {props:{"+sbProps+"}, vars:{"+sbVars+"}}" + sbActions;
+				return "{props:{"+sbProps+"}, vars:{"+sbVars+"}}";
 			}
 		}
 		return "";
@@ -156,8 +188,21 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
-		String function = computeActionFunction();
 		try {
+			String imports = jsonScripts.getString("imports");
+			
+			String search = "import * as ts from 'typescript';";
+			if (imports.indexOf(search) == -1) {
+				imports += search + System.lineSeparator();
+			}
+			jsonScripts.put("imports", imports);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		
+		try {
+			String function = computeActionFunction();
+			
 			String functions = jsonScripts.getString("functions") + System.lineSeparator() + function;
 			jsonScripts.put("functions", functions);
 		} catch (JSONException e) {
@@ -167,9 +212,9 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	
 	protected String computeActionFunction() {
 		String computed = "";
-		if (isEnabled()) {
+		if (isEnabled() && (numberOfActions() > 0 || getParent() instanceof UIPageEvent)) {
 			StringBuilder parameters = new StringBuilder();
-			parameters.append("event").append(", actions");
+			parameters.append("stack");
 			
 			StringBuilder cartridge = new StringBuilder();
 			cartridge.append("\t/**").append(System.lineSeparator())
@@ -178,8 +223,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				cartridge.append("\t *   ").append(commentLine).append(System.lineSeparator());
 			}
 			cartridge.append("\t * ").append(System.lineSeparator());
-			cartridge.append("\t * @param event , the event received").append(System.lineSeparator());
-			cartridge.append("\t * @param actions , the object which holds action inputs").append(System.lineSeparator());
+			cartridge.append("\t * @param stack , the object which holds actions stack").append(System.lineSeparator());
 			cartridge.append("\t */").append(System.lineSeparator());
 			
 			String functionName = getFunctionName();
@@ -187,8 +231,22 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			computed += System.lineSeparator();
 			computed += cartridge;
 			computed += "\t"+ functionName + "("+ parameters +") {" + System.lineSeparator();
+			computed += "\t\tlet c8oPage : C8oPage = this;" + System.lineSeparator();
+			computed += "\t\tlet parent;" + System.lineSeparator();
+			computed += "\t\tlet scope;" + System.lineSeparator();
+			computed += "\t\tlet self;" + System.lineSeparator();
+			computed += "\t\tlet out;" + System.lineSeparator();
+			computed += "\t\t" + System.lineSeparator();
+			computed += "\t\tlet get = function(key) {let val=undefined;try {val=eval(ts.transpile(key));}catch(e){c8oPage.c8o.log.warn(\"[MB] "+functionName+": \"+e.message)}return val;}" + System.lineSeparator();
+			computed += "\t\t" + System.lineSeparator();
+			computed += "\t\tparent = stack[\"root\"];" + System.lineSeparator();
+			computed += "\t\tscope = stack[\"root\"].scope;" + System.lineSeparator();
+			computed += "\t\t" + System.lineSeparator();
+			computed += "\t\tthis.c8o.log.debug(\"[MB] "+functionName+": started\");" + System.lineSeparator();
+			computed += "\t\t" + System.lineSeparator();
 			computed += ""+ computeActionContent();
-			computed += "\t\t.catch((error:any) => {console.log(\"[MB] An error occured : \",error.message)});" + System.lineSeparator();
+			computed += "\t\t.catch((error:any) => {return Promise.resolve(this.c8o.log.debug(\"[MB] "+functionName+": An error occured : \",error.message))})" + System.lineSeparator();
+			computed += "\t\t.then((res:any) => {this.c8o.log.debug(\"[MB] "+functionName+": ended\")});" + System.lineSeparator();
 			computed += "\t}";
 		}
 		return computed;
@@ -199,7 +257,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		if (ionBean != null) {
 			int numThen = numberOfActions();
 			String actionName = ionBean.getName();
-			String actionInputId = getInputId();
+			String inputs = computeActionInputs(false);
 			
 			StringBuilder sbThen = new StringBuilder();  
 			Iterator<UIComponent> it = getUIComponentList().iterator();
@@ -209,15 +267,23 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 					if (component instanceof UIDynamicAction) {
 						String s = ((UIDynamicAction)component).computeActionContent();
 						if (!s.isEmpty()) {
-							sbThen.append(sbThen.length()>0 && numThen > 1 ? "\t\t,"+ System.lineSeparator() :"").append(s);
+							sbThen.append(sbThen.length()>0 && numThen > 1 ? "\t\t,"+ System.lineSeparator() :"")
+							.append(s);
 						}
 					}
 				}
 			}
 
 			String tsCode = "";
-			tsCode +="\t\tthis.actionBeans."+actionName+"(this, actions."+actionInputId+".props, actions."+actionInputId+".vars)"+ System.lineSeparator();
+			tsCode += "\t\tnew Promise((resolve, reject) => {"+ System.lineSeparator();
+			tsCode += "\t\tself = stack[\""+ getName() +"\"] = {};"+ System.lineSeparator();
+			tsCode += "\t\tself.in = "+ inputs +";"+ System.lineSeparator();
+			
+			tsCode +="\t\treturn this.actionBeans."+actionName+"(this, self.in.props, self.in.vars)"+ System.lineSeparator();
 			tsCode += "\t\t.then((res:any) => {"+ System.lineSeparator();
+			tsCode += "\t\tparent = self;"+ System.lineSeparator();
+			tsCode += "\t\tparent.out = res;"+ System.lineSeparator();
+			tsCode += "\t\tout = parent.out;"+ System.lineSeparator();
 			if (sbThen.length() > 0) {
 				if (numThen > 1) {
 					tsCode += "\t\treturn Promise.all(["+ System.lineSeparator();
@@ -230,7 +296,8 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				tsCode += "";
 			}
 			tsCode += "\t\t}, (error: any) => {console.log(\"[MB] "+actionName+" : \", error.message);throw new Error(error);})"+ System.lineSeparator();
-			
+			tsCode += "\t\t.then((res:any) => {resolve(res)}).catch((error:any) => {reject(error)})"+ System.lineSeparator();
+			tsCode += "\t\t})"+ System.lineSeparator();
 			return tsCode;
 		}
 		return "";
