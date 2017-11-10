@@ -32,10 +32,12 @@ public class ApplicationComponentEditorInput implements IEditorInput {
 
 	ApplicationComponent application;
 	private String qname;
+	private boolean autoBuild;
 	
-	public ApplicationComponentEditorInput(ApplicationComponent application) {
+	public ApplicationComponentEditorInput(ApplicationComponent application, boolean autoBuild) {
 		this.application = application;
 		this.qname = application.getQName();
+		this.autoBuild = autoBuild;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -79,6 +81,10 @@ public class ApplicationComponentEditorInput implements IEditorInput {
 
 	public ApplicationComponent getApplication() {
 		return application;
+	}
+	
+	public boolean isAutoBuild() {
+		return autoBuild;
 	}
 	
 }

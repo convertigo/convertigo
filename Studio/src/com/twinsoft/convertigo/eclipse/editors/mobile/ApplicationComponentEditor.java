@@ -283,7 +283,9 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 			devicesMenu.getItems()[0].notifyListeners(SWT.Selection, new Event());
 		}
 		
-		launchBuilder(false);
+		if (applicationEditorInput.isAutoBuild()) {
+			launchBuilder(false);
+		}
 		
 		getSite().getWorkbenchWindow().getActivePage().activate(this);
 	}
@@ -1051,11 +1053,11 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 		});
 	}
 	
-	private void launchBuilder(boolean forceInstall) {
+	public void launchBuilder(boolean forceInstall) {
 		launchBuilder(forceInstall, false);
 	}
 	
-	private void launchBuilder(boolean forceInstall, boolean forceClean) {
+	public void launchBuilder(boolean forceInstall, boolean forceClean) {
 		Engine.execute(() -> {
 			try {
 				browser.loadHTML(IOUtils.toString(getClass().getResourceAsStream("loader.html"), "UTF-8"));

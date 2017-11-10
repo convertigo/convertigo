@@ -243,6 +243,10 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 	}
 
 	public ApplicationComponentEditor activeEditor() {
+		return activeEditor(true);
+	}
+	
+	public ApplicationComponentEditor activeEditor(boolean autoLaunch) {
 		ApplicationComponentEditor editorPart = null;
 		ApplicationComponent application = (ApplicationComponent) getObject();
 		
@@ -270,7 +274,7 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 					activePage.activate(editorPart);
 				} else {
 					try {
-						IEditorPart editor = activePage.openEditor(new ApplicationComponentEditorInput(application),
+						IEditorPart editor = activePage.openEditor(new ApplicationComponentEditorInput(application, autoLaunch),
 								"com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor");
 						if (editor instanceof ApplicationComponentEditor) {
 							editorPart = (ApplicationComponentEditor) editor;

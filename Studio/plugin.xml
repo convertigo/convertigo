@@ -997,6 +997,30 @@
                label="Edit application class"
                menubarPath="default">
          </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ExecuteMobileBuilderReInstallClassAction"
+               enablesFor="1"
+               id="convertigo.action.openMobileBuilderReIntall"
+               label="Re-install packages and Execute"
+               icon="icons/studio/transaction_execute_selected.gif"
+               menubarPath="execute">
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ExecuteMobileBuilderUpdateClassAction"
+               enablesFor="1"
+               id="convertigo.action.openMobileBuilderUpdate"
+               label="Update packages and Execute"
+               icon="icons/studio/transaction_execute_selected.gif"
+               menubarPath="execute">
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ExecuteMobileBuilderClassAction"
+               enablesFor="1"
+               id="convertigo.action.openMobileBuilder"
+               label="Execute"
+               icon="icons/studio/transaction_execute_selected.gif"
+               menubarPath="execute">
+         </action>
       </objectContribution>
       <objectContribution
             id="convertigo.mobileRouteComponentContribution"
