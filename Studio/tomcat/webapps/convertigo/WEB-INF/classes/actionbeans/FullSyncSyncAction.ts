@@ -23,7 +23,9 @@
                     },vars))
                     .progress((progress: any)=>{
                         page.router.sharedObject.FullSyncSyncAction = {  progress: progress }
-                        // page.tick()
+                        if(page != undefined && page.didleave == false){
+                            page.tick();
+                        }
                         return null
                     })
                     .then((response:any, parameters: any) => {
