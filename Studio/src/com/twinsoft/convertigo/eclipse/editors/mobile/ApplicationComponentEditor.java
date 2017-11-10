@@ -1085,7 +1085,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 					Engine.logStudio.info("Installing node_modules... This can take several minutes depending on your network connection speed...");
 					
 					long start = System.currentTimeMillis();
-					ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "install", "--no-shrinkwrap", "--no-package-lock");
+					ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "install", ionicDir.toString(), "--no-shrinkwrap", "--no-package-lock");
 					pb.redirectErrorStream(true);
 					pb.directory(ionicDir);
 					Process p = pb.start();
