@@ -4765,7 +4765,7 @@
         "page": {
           "editor": "NamedSourceSelectorEditor",
           "label": "Page",
-          "description": "Defines the target page",
+          "description": "Defines the target page to push on the stack",
           "category": "@Properties",
           "type": "string",
           "value": "",
@@ -4773,6 +4773,32 @@
             false,
 			      true
           ]
+        },
+        "data": {
+          "label": "Page data",
+          "description": "Additional page data passed to the pushed page",
+          "category": "@Properties",
+          "type": "string",
+          "value": false
+        },
+        "animate": {
+          "label": "Animate",
+          "description": "If true, page will be animated in",
+          "category": "@Properties",
+          "type": "string",
+          "value": "true",
+          "values": [
+            "true",
+			      "false"
+          ]
+        },
+        "animate_duration": {
+          "mode": "script",
+          "label": "Animation duration",
+          "description": "The time in ms for the page animation",
+          "category": "@Properties",
+          "type": "string",
+          "value": "250"
         }
 	  }
 	},
@@ -4868,7 +4894,7 @@
 	    "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	    "displayName": "DoDataSync",
       "label": "Sync Data",
-      "description": "Synchronize data using FullSync. | Use this action to synchronize data between your app and the Convertigo server. Sync process can be bi-directional or just pull or push. The sync process can also be one shot or continuous. If the sync is continuous, any data modification made locally on your mobile will be reflected real-time on the Convertigo server FullSync data base.<br /><br />You can use 'FS Sync' when you start an app, but you must have an authenticated session to Convertigo server if you want to be able to push data to it. A typical flow would be :<br /><ul><li>Authenticate the user on your app.</li><li>Then call a 'login' server sequence that will execute the 'setAuthenticatedUser' step providing it with the authenticated user</li><li>Then use 'Sync' to sync the data from/to you mobile app</li></ul><br />The 'Sync' action will be finished when all the data will be synced to/from the device and when finished, you can display the first page of your app using a 'RootPage' action.<br /><br />",
+      "description": "Synchronize data using FullSync. | Use this action to synchronize data between your app and the Convertigo server. Sync process can be bi-directional or just pull or push. The sync process can also be one shot or continuous. If the sync is continuous, any data modification made locally on your mobile will be reflected real-time on the Convertigo server FullSync data base.<br /><br />You can use 'FS Sync' when you start an app, but you must have an authenticated session to Convertigo server if you want to be able to push data to it. A typical flow would be :<br /><ul><li>Authenticate the user on your app.</li><li>Then call a 'login' server sequence that will execute the 'setAuthenticatedUser' step providing it with the authenticated user</li><li>Then use 'Sync' to sync the data from/to you mobile app</li></ul><br />The 'Sync' action will be finished when all the data will be synced to/from the device and when finished, you can display the first page of your app using a 'RootPage' action.<br /><br />You can access the sync progress information from anywhere in your application using the<br/><code>router.sharedObject.FullSyncSyncAction.progress</code><br />Object.",
       "group": "FullSync Actions",
       "icon16": "fssyncaction_color_16x16.png",
       "icon32": "fssyncaction_color_32x32.png",

@@ -9,7 +9,14 @@
         return new Promise((resolve, reject) => {
             let q:string = props.page; // qname of page
             let p:string = q.substring(q.lastIndexOf('.')+1);
-            page.routerProvider.push(page.getPageByName(p),{},{animate: true, duration: 250})
-            .then((res:any) => {resolve(res)}).catch((error:any) => {reject(error)})
+            page.routerProvider.push(page.getPageByName(p), props.data, { 
+                animate: props.animate == "true" ? true:false,
+                duration: props.animate_duration
+            })
+            .then((res:any) => {
+                resolve(res)
+            }).catch((error:any) => {
+                reject(error)
+            })
         });
     }
