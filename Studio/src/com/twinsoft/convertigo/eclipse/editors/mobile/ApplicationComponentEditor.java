@@ -1305,21 +1305,33 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 	}
 	
 	private void terminateNode() {
+		String projectName = applicationEditorInput.application.getProject().getName();
 		int retry = 10;
 		try {
 			while (retry-- > 0) {
-				Process process = new ProcessBuilder("wmic", "PROCESS", "WHERE",
-					"Name='node.exe' AND CommandLine Like '%\\\\" + applicationEditorInput.application.getProject().getName() + "\\\\_private\\\\%'",
-					"CALL", "TERMINATE").start();
-				String output = IOUtils.toString(process.getInputStream(), Charset.defaultCharset());
-				process.waitFor();
-				int id = output.indexOf('\n');
-				if (id == -1 || output.indexOf('\n', id) == -1) {
-					retry = 0;
+				if (Engine.isWindows()) {
+					Process process = new ProcessBuilder("wmic", "PROCESS", "WHERE",
+						"Name='node.exe' AND CommandLine Like '%\\\\" + projectName + "\\\\_private\\\\%'",
+						"CALL", "TERMINATE").start();
+					String output = IOUtils.toString(process.getInputStream(), Charset.defaultCharset());
+					process.waitFor();
+					int id = output.indexOf('\n');
+					if (id == -1 || output.indexOf('\n', id) == -1) {
+						retry = 0;
+					}
+				} else {
+					//ps -e | sed -n -E "s/ ([0-9]+).*Fli.*/\1/p" | xargs kill
+					Process process = new ProcessBuilder("/bin/bash", "-c",
+						"ps -e | grep -v \"sed -n\" | sed -n -E \"s, ([0-9]+).*node.*/"+ projectName + "/_private/.*,\\1,p\" | xargs kill"
+					).start();
+					int code = process.waitFor();
+					if (code == 0) {
+						retry = 0;
+					}
 				}
 			}
 		} catch (Exception e) {
-			// TODO: handle exception
+			Engine.logStudio.warn("Failed to terminate the node server", e);
 		}
 	}
 
