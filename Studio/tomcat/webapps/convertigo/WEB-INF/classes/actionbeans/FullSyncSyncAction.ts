@@ -19,7 +19,8 @@
                         "continuous": props.Mode == "continuous" ? true:false,
                         "retry": props.Retry == "true" ? true:false,
                         "batch_size": props.BatchSize,
-                        "batches_limit": props.BatchesLimit
+                        "batches_limit": props.BatchesLimit,
+                        "heartbeat": props.Mode == "continuous" ? false:10000
                     },vars))
                     .progress((progress: any)=>{
                         page.router.sharedObject.FullSyncSyncAction = {  progress: progress }
