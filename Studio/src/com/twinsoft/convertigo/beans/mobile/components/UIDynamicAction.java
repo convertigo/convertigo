@@ -174,38 +174,39 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 					UIComponent component = (UIComponent)it.next();
 					if (component instanceof UIControlVariable) {
 						UIControlVariable uicv = (UIControlVariable)component;
-						
-						sbVars.append(sbVars.length() > 0 ? ", ":"");
-						sbVars.append(uicv.getVarName()).append(": ");
-						
-						if (forTemplate) {
-							sbVars.append(uicv.getVarValue());
-						} else {
-							MobileSmartSourceType msst = uicv.getVarSmartType();
-							
-							String smartValue = msst.getValue();
-							if (Mode.PLAIN.equals(msst.getMode())) {
-								smartValue = "\'" + smartValue + "\'";
-							}
+						if (uicv.isEnabled()) {
+							sbVars.append(sbVars.length() > 0 ? ", ":"");
+							sbVars.append(uicv.getVarName()).append(": ");
 							
 							if (forTemplate) {
-								smartValue = ""+smartValue;
+								sbVars.append(uicv.getVarValue());
 							} else {
-								if (Mode.SOURCE.equals(msst.getMode())) {
-									MobileSmartSource mss = msst.getSmartSource();
-									if (mss.getFilter().equals(MobileSmartSource.Filter.Iteration)) {
-										smartValue = "scope."+ smartValue;
-									}
-									else {
-										smartValue = "this."+ smartValue;
-									}
+								MobileSmartSourceType msst = uicv.getVarSmartType();
+								
+								String smartValue = msst.getValue();
+								if (Mode.PLAIN.equals(msst.getMode())) {
+									smartValue = "\'" + smartValue + "\'";
 								}
-								smartValue = smartValue.replaceAll("\\?\\.", ".");
-								smartValue = smartValue.replaceAll("this\\.", "c8oPage.");
-								smartValue = "get(`"+smartValue+"`)";
+								
+								if (forTemplate) {
+									smartValue = ""+smartValue;
+								} else {
+									if (Mode.SOURCE.equals(msst.getMode())) {
+										MobileSmartSource mss = msst.getSmartSource();
+										if (mss.getFilter().equals(MobileSmartSource.Filter.Iteration)) {
+											smartValue = "scope."+ smartValue;
+										}
+										else {
+											smartValue = "this."+ smartValue;
+										}
+									}
+									smartValue = smartValue.replaceAll("\\?\\.", ".");
+									smartValue = smartValue.replaceAll("this\\.", "c8oPage.");
+									smartValue = "get(`"+smartValue+"`)";
+								}
+								
+								sbVars.append(smartValue);
 							}
-							
-							sbVars.append(smartValue);
 						}
 					}
 				}
