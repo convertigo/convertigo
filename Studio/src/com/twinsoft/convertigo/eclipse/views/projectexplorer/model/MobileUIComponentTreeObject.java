@@ -66,6 +66,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIControlListenFullSyncSo
 import com.twinsoft.convertigo.beans.mobile.components.UIControlListenSequenceSource;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlListenSource;
 import com.twinsoft.convertigo.beans.mobile.components.UICustom;
+import com.twinsoft.convertigo.beans.mobile.components.UICustomAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItem;
@@ -120,6 +121,9 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			openCssFileEditor();
 		} else if (uic instanceof UIControlCustomAction) {
 			String functionMarker = "function:"+ ((UIControlCustomAction)uic).getActionName();
+			editPageFunction(uic, functionMarker, "actionValue");
+		} else if (uic instanceof UICustomAction) {
+			String functionMarker = "function:"+ ((UICustomAction)uic).getActionName();
 			editPageFunction(uic, functionMarker, "actionValue");
 		} else if (uic instanceof UIFormCustomValidator) {
 			String functionMarker = "function:"+ ((UIFormCustomValidator)uic).getValidatorName();

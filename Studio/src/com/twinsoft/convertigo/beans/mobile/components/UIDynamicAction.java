@@ -75,7 +75,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		Iterator<UIComponent> it = getUIComponentList().iterator();
 		while (it.hasNext()) {
 			UIComponent component = (UIComponent)it.next();
-			if (component instanceof UIDynamicAction) {
+			if (component instanceof UIDynamicAction || component instanceof UICustomAction) {
 				if (component.isEnabled()) {
 					num++;
 				}
@@ -231,14 +231,19 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			e.printStackTrace();
 		}
 		
-		try {
-			String function = computeActionFunction();
-			
-			String functions = jsonScripts.getString("functions") + System.lineSeparator() + function;
-			jsonScripts.put("functions", functions);
-		} catch (JSONException e) {
-			e.printStackTrace();
+		DatabaseObject parent = getParent();
+		if (parent != null && !(parent instanceof IAction)) {
+			try {
+				String function = computeActionFunction();
+				
+				String functions = jsonScripts.getString("functions") + System.lineSeparator() + function;
+				jsonScripts.put("functions", functions);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
 		}
+		
+		super.computeScripts(jsonScripts);
 	}
 	
 	protected String computeActionFunction() {
@@ -295,12 +300,16 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			while (it.hasNext()) {
 				UIComponent component = (UIComponent)it.next();
 				if (component.isEnabled()) {
+					String s = "";
 					if (component instanceof UIDynamicAction) {
-						String s = ((UIDynamicAction)component).computeActionContent();
-						if (!s.isEmpty()) {
-							sbThen.append(sbThen.length()>0 && numThen > 1 ? "\t\t,"+ System.lineSeparator() :"")
-							.append(s);
-						}
+						s = ((UIDynamicAction)component).computeActionContent();
+					}
+					if (component instanceof UICustomAction) {
+						s = ((UICustomAction)component).computeActionContent();
+					}
+					if (!s.isEmpty()) {
+						sbThen.append(sbThen.length()>0 && numThen > 1 ? "\t\t,"+ System.lineSeparator() :"")
+						.append(s);
 					}
 				}
 			}

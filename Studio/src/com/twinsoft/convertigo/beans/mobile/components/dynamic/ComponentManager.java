@@ -52,6 +52,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIControlCallSequence;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UICustom;
+import com.twinsoft.convertigo.beans.mobile.components.UICustomAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItem;
@@ -306,6 +307,7 @@ public class ComponentManager {
 			components.add(getDboComponent(UIControlCallSequence.class,group));
 			components.add(getDboComponent(UIControlCallFullSync.class,group));
 			components.add(getDboComponent(UIControlVariable.class,group));
+			components.add(getDboComponent(UICustomAction.class,group));
 			
 //			// Add Sources
 //			group = "Sources";
@@ -427,8 +429,10 @@ public class ComponentManager {
 					return true;
 				}
 			}
-			else if (dboParent instanceof UIDynamicAction) {
+			else if (dboParent instanceof UICustomAction ||
+						dboParent instanceof UIDynamicAction) {
 				if (UIDynamicAction.class.isAssignableFrom(dboClass) ||
+						UICustomAction.class.isAssignableFrom(dboClass) ||
 						UIControlVariable.class.isAssignableFrom(dboClass)) {
 					return true;
 				}
