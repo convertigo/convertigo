@@ -4996,11 +4996,12 @@
       },
 
       "fsview": {
+        "editor": "NamedSourceSelectorEditor",
         "label": "View",
         "description": "The view to query (in the form Project.database.DesignDoc.view)",
         "category": "@Query parameters",
         "type": "string",
-        "value": "Design_document.view"
+        "value": ""
       },
 
       "__live": {

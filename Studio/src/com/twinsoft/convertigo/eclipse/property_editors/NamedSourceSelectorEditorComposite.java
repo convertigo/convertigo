@@ -56,6 +56,7 @@ import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
@@ -183,7 +184,8 @@ public class NamedSourceSelectorEditorComposite extends AbstractDialogComposite 
 					else if (object instanceof Document) {
 						if (object instanceof DesignDocument) {
 							JSONObject json = ((DesignDocument)object).getJSONObject();
-							if (dboto.getObject() instanceof AbstractFullSyncViewListener) {
+							DatabaseObject dboo = dboto.getObject();
+							if (dboo instanceof AbstractFullSyncViewListener || dboo instanceof UIDynamicAction) {
 								JSONObject views = CouchKey.views.JSONObject(json);
 								if (views != null) {
 									for (Iterator<String> it = GenericUtils.cast(views.keys()); it.hasNext(); ) {
@@ -193,7 +195,7 @@ public class NamedSourceSelectorEditorComposite extends AbstractDialogComposite 
 									}
 								}
 							}
-							if (dboto.getObject() instanceof AbstractFullSyncFilterListener) {
+							if (dboo instanceof AbstractFullSyncFilterListener) {
 								JSONObject filters = CouchKey.filters.JSONObject(json);
 								if (filters != null) {
 									for (Iterator<String> it = GenericUtils.cast(filters.keys()); it.hasNext(); ) {

@@ -529,9 +529,17 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 							MobileApplicationTreeObject.class.isAssignableFrom(c) ||
 							MobileApplicationComponentTreeObject.class.isAssignableFrom(c) ||
 							MobilePageComponentTreeObject.class.isAssignableFrom(c))
-						{
-							list.add("page");
-						}
+					{
+						list.add("page");
+					}
+					
+					if (ProjectTreeObject.class.isAssignableFrom(c) ||
+						ConnectorTreeObject.class.isAssignableFrom(c) ||
+						DesignDocumentTreeObject.class.isAssignableFrom(c) ||
+						DesignDocumentViewTreeObject.class.isAssignableFrom(c))
+					{
+						list.add("fsview");
+					}
 					
 				}
 				if (getObject() instanceof UIControlListenSource) {
@@ -569,7 +577,9 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 					return "target".equals(propertyName);
 				}
 				if (getObject() instanceof UIDynamicAction) {
-					return "requestable".equals(propertyName) || "page".equals(propertyName);
+					return "requestable".equals(propertyName) || 
+								"fsview".equals(propertyName) ||
+									"page".equals(propertyName);
 				}
 				if (getObject() instanceof UIControlListenSource) {
 					return "target".equals(propertyName);
@@ -607,6 +617,12 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 						}
 						if (cc.getIonBean().getName().equals("FullSyncSyncAction")) {
 							return nsObject instanceof FullSyncConnector;
+						}
+					}
+					if ("fsview".equals(propertyName)) {
+						UIDynamicAction cc = (UIDynamicAction) getObject();
+						if (cc.getIonBean().getName().equals("FullSyncViewAction")) {
+							return nsObject instanceof String;
 						}
 					}
 					if ("page".equals(propertyName)) {
@@ -675,6 +691,11 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 								if ("requestable".equals(propertyName)) {
 									((UIDynamicAction)getObject()).getIonBean().
 										setPropertyValue("requestable", new MobileSmartSourceType(_pValue));
+									hasBeenRenamed = true;
+								}
+								if ("fsview".equals(propertyName)) {
+									((UIDynamicAction)getObject()).getIonBean().
+										setPropertyValue("fsview", new MobileSmartSourceType(_pValue));
 									hasBeenRenamed = true;
 								}
 								if ("page".equals(propertyName)) {
