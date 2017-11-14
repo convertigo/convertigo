@@ -4894,7 +4894,7 @@
 	    "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	    "displayName": "DoDataSync",
       "label": "Sync Data",
-      "description": "Synchronize data using FullSync. | Use this action to synchronize data between your app and the Convertigo server. Sync process can be bi-directional or just pull or push. The sync process can also be one shot or continuous. If the sync is continuous, any data modification made locally on your mobile will be reflected real-time on the Convertigo server FullSync data base.<br /><br />You can use 'FS Sync' when you start an app, but you must have an authenticated session to Convertigo server if you want to be able to push data to it. A typical flow would be :<br /><ul><li>Authenticate the user on your app.</li><li>Then call a 'login' server sequence that will execute the 'setAuthenticatedUser' step providing it with the authenticated user</li><li>Then use 'Sync' to sync the data from/to you mobile app</li></ul><br />The 'Sync' action will be finished when all the data will be synced to/from the device and when finished, you can display the first page of your app using a 'RootPage' action.<br /><br />You can access the sync progress information from anywhere in your application using the<br/><code>router.sharedObject.FullSyncSyncAction.progress</code><br />Object.",
+      "description": "Synchronize data using FullSync. | Use this action to synchronize data between your app and the Convertigo server. Sync process can be bi-directional or just pull or push. The sync process can also be one shot or continuous. If the sync is continuous, any data modification made locally on your mobile will be reflected real-time on the Convertigo server FullSync data base.<br /><br />You can use 'FS Sync' when you start an app, but you must have an authenticated session to Convertigo server if you want to be able to push data to it. A typical flow would be :<br /><ul><li>Authenticate the user on your app.</li><li>Then call a 'login' server sequence that will execute the 'setAuthenticatedUser' step providing it with the authenticated user</li><li>Then use 'Sync' to sync the data from/to you mobile app</li></ul><br />The 'Sync' action will be finished when all the data will be synced to/from the device and when finished, you can display the first page of your app using a 'RootPage' action.<br /><br />You can access the sync progress information from anywhere in your application using the<br/><code>router.sharedObject.FullSyncSyncAction.progress.current</code><br />Object.",
       "group": "FullSync Actions",
       "icon16": "fssyncaction_color_16x16.png",
       "icon32": "fssyncaction_color_32x32.png",
@@ -4975,7 +4975,198 @@
           ]
         }
       }
-	}
+  },
+  
+  "FullSyncViewAction": {
+    "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+    "displayName": "QueryView",
+    "label": "Query View",
+    "description": "Query a fullsync view. | Use this action to query a view. Views are pre-indexed FullSync documents you can query. the views are defined in Convertigo Studio on a given FullSync connector by writing a 'map' function defining how documents are indexed and what data you want place in front of an index.<br /><br />For more information about Views see <a  href='https://www.convertigo.com/document/latest/reference-manual/convertigo-full-sync-architecture/understanding-views-and-queries/' target='_blank'>Understanding views and queries</a><br /><br />To query a view, select the view you need to query and configure the query parameters. Most of the parameters are optional, but the most useful ones are the 'StartKey' and the 'EndKey' defining the range of the index you want to query.<br /><br />See the <a href='https://www.convertigo.com/document/latest/reference-manual/convertigo-full-sync-architecture/interacting-locally-with-the-data/#view' target='_blank'>Query parameters</a> documentation for that.",
+    "group": "FullSync Actions",
+    "icon16": "fsviewaction_color_16x16.png",
+    "icon32": "fsviewsaction_color_32x32.png",
+    "properties": {
 
+      "marker": {
+        "label": "Marker",
+        "description": "Use Markers to differentiate queries in order to be able to listen to a given query response. Use <code>listen([fs://mydatabase.view#MYMARKER])</code> syntax to listen to a given 'Marked' query.",
+        "category": "@Query parameters",
+        "type": "string",
+        "value": false
+      },
+
+      "fsview": {
+        "label": "View",
+        "description": "The view to query (in the form Project.database.DesignDoc.view)",
+        "category": "@Query parameters",
+        "type": "string",
+        "value": "Design_document.view"
+      },
+
+      "__live": {
+        "description": "If 'true' will automatically monitor any database change (From continuous replication or from local changes) and re-run the query. Using 'Live' is the best way to refresh automatically your UI when data changes in the database.",
+        "label": "Live",
+        "category": "@Query parameters",
+        "type": "string",
+        "value": "false",
+        "values": [
+          "false",
+          "true"
+        ]
+      },
+
+      "include_docs": {
+        "description": "Include the document in each row in the doc field. This may be useful for joined queries or if you do not want to 'emit' too much 'values' in your map functions.<br/><br/>See <a href='https://wiki.apache.org/couchdb/Introduction_to_CouchDB_views#Linked_documents' target='_blank'>joined queries</a>.",
+        "label": "include_docs",
+        "category": "@Query parameters",
+        "type": "string",
+        "value": "false",
+        "values": [
+          "false",
+          "true"
+        ]
+      },
+      "conflicts": {
+        "description": "Include conflicts in the _conflicts field of a doc.",
+        "label": "Conflicts",
+        "category": "#Optional Properties",
+        "type": "string",
+        "value": false,
+        "values": [
+          "true",
+          "false"
+        ]
+      },
+      "attachments": {
+        "description": "Include attachment data.",
+        "label": "Attachments",
+        "category": "#Optional Properties",
+        "type": "string",
+        "value": false,
+        "values": [
+          "true",
+          "false"
+        ]
+      },
+
+      "binary": {
+        "description": "Return attachment data as Blobs/Buffers, instead of as base64-encoded strings.",
+        "label": "Attachments binary",
+        "category": "#Optional Properties",
+        "type": "string",
+        "value": false,
+        "values": [
+          "true",
+          "false"
+        ]
+      },
+
+      "startkey": {
+        "description": "Get rows with keys in a certain range (inclusive/inclusive) from the start key.",
+        "label": "StartKey",
+        "category": "@Query parameters",
+        "type": "string",
+        "value": false
+      },
+
+      "endkey": {
+        "description": "Get rows with keys in a certain range (inclusive/inclusive) from the end key.",
+        "label": "EndKey",
+        "category": "@Query parameters",
+        "type": "string",
+        "value": false
+      },
+
+      "inclusive_end": {
+        "description": "Include rows having a key equal to the given options.endkey. Default: true.",
+        "label": "Inclusive end",
+        "category": "#Optional Properties",
+        "type": "string",
+        "value": false,
+        "values": [
+          "true",
+          "false"
+        ]
+      },
+
+      "limit": {
+        "mode":"script",
+        "description": "Maximum number of rows to return. Always limit your queries to some maximum to avoid UI lagging and excessive memory consumption",
+        "label": "limit",
+        "category": "@Query parameters",
+        "type": "string",
+        "value": "500"
+      },
+
+      "skip": {
+        "mode":"script",
+        "description": "Number of rows to skip before returning. Useful for pagination combined with the 'limit' property",
+        "label": "skip",
+        "category": "@Query parameters",
+        "type": "string",
+        "value": false
+      },
+
+      "descending": {
+        "description": "Reverse the order of the output rows.",
+        "label": "Descending",
+        "category": "@Query parameters",
+        "type": "string",
+        "value": false,
+        "values": [
+          "false",
+          "true"
+        ]
+      },
+
+      "key": {
+        "description": "Only return rows matching this key.",
+        "label": "key",
+        "category": "@Query parameters",
+        "type": "string",
+        "value": false
+      },
+
+      "keys": {
+        "description": "Array of keys to fetch in a single shot. Neither startkey nor endkey can be specified with this option. The rows are returned in the same order as the supplied keys array. The row for a deleted document will have the revision ID of the deletion, and an extra key 'deleted':true in the value property. The row for a nonexistent document will just contain an 'error' property with the value 'not_found'",
+        "label": "keys",
+        "category": "#Optional Properties",
+        "type": "string",
+        "value": false
+      },
+
+      "group": {
+        "description": "True if you want the reduce function to group results by keys, rather than returning a single result. Defaults to false.",
+        "label": "group",
+        "category": "#Optional Properties",
+        "type": "string",
+        "value": false,
+        "values": [
+          "false",
+          "true"
+        ]
+      },
+
+      "group_level": {
+        "description": "Number of elements in a key to group by, assuming the keys are arrays. Defaults to the full length of the array.",
+        "label": "Group level",
+        "category": "#Optional Properties",
+        "type": "string",
+        "value": false
+      },
+
+      "stale": {
+        "description": "Can be one of: unspecified (default): Returns the latest results, waiting for the view to build if necessary. 'ok': Returns results immediately, even if they’re out-of-date. 'update_after': Returns results immediately, but kicks off a build afterwards.",
+        "label": "Stale",
+        "category": "#Optional Properties",
+        "type": "string",
+        "value": false,
+        "values": [
+          "ok",
+          "update_after"
+        ]
+      }
+    }
+  }
 }
 }
