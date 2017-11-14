@@ -38,6 +38,7 @@ public class ExecuteMobileBuilderClassAction extends MyAbstractAction {
 
 	protected boolean forceInstall = false;
 	protected boolean forceClean = false;
+	protected boolean buildProd = false;
 
 	public ExecuteMobileBuilderClassAction() {
 		super();
@@ -58,7 +59,7 @@ public class ExecuteMobileBuilderClassAction extends MyAbstractAction {
     				if (treeObject instanceof MobileApplicationComponentTreeObject) {
     					MobileApplicationComponentTreeObject mpcto = (MobileApplicationComponentTreeObject) treeObject;
     					ApplicationComponentEditor editor = mpcto.activeEditor(false);
-    					editor.launchBuilder(forceInstall, forceClean);
+    					editor.launchBuilder(forceInstall, forceClean, buildProd);
     				}
     			}
     		}

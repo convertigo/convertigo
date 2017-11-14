@@ -1021,6 +1021,14 @@
                icon="icons/studio/transaction_execute_selected.gif"
                menubarPath="execute">
          </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.BuildMobileBuilderClassAction"
+               enablesFor="1"
+               id="convertigo.action.openMobileBuilderBuild"
+               label="Build for production"
+               icon="icons/studio/build_prod.gif"
+               menubarPath="build">
+         </action>
       </objectContribution>
       <objectContribution
             id="convertigo.mobileRouteComponentContribution"

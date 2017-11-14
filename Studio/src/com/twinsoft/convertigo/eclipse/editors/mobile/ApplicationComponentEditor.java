@@ -76,6 +76,7 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.EditorPart;
+
 import com.teamdev.jxbrowser.chromium.Browser;
 import com.teamdev.jxbrowser.chromium.ContextMenuHandler;
 import com.teamdev.jxbrowser.chromium.ContextMenuParams;
@@ -107,6 +108,8 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.DatabaseObjectFoundException;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.mobile.MobileEventListener;
@@ -121,7 +124,8 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 	private GridData browserGD;
 	private Menu devicesMenu;
 	private Composite deviceBar;
-	
+
+	private ToolBar toolbar;
 	private ToolItem deviceOsToolItem;
 	private Text deviceName;
 	private Text deviceWidth;
@@ -666,7 +670,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 	}
 
 	private void createToolbar(Composite parent) {		
-		ToolBar toolbar = new ToolBar(parent, SWT.VERTICAL);
+		toolbar = new ToolBar(parent, SWT.VERTICAL);
 		GridData gd = new GridData(GridData.FILL, GridData.FILL, false, true);
 		gd.verticalSpan = 2;
 		gd.verticalIndent = 4;
@@ -821,6 +825,28 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 				if (result < 2) {
 					launchBuilder(true, result == 1);
 				}
+			}
+			
+		});
+
+		item = new ToolItem(toolbar, SWT.PUSH);
+		item.setToolTipText("Build for production");
+		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/build_prod.gif")));
+		item.addSelectionListener(new SelectionAdapter() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				MessageDialog dialog = new MessageDialog(
+						null, "Build for production",
+						null, "This action will build your application for production: automatically remove debug data, unusued code and shrink. "
+								+ "The application will be smaller and start faster yet the build time is a few minutes",
+						MessageDialog.QUESTION,
+						new String[] {"Build", "Cancel"}, 0
+					);
+					int result = dialog.open();
+					if (result == 0) {
+						launchBuilder(false, false, true);
+					}
 			}
 			
 		});
@@ -1054,10 +1080,14 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 	}
 	
 	public void launchBuilder(boolean forceInstall) {
-		launchBuilder(forceInstall, false);
+		launchBuilder(forceInstall, false, false);
 	}
 	
 	public void launchBuilder(boolean forceInstall, boolean forceClean) {
+		launchBuilder(forceInstall, forceClean, false);
+	}
+	
+	public void launchBuilder(boolean forceInstall, boolean forceClean, boolean buildProd) {
 		Engine.execute(() -> {
 			try {
 				browser.loadHTML(IOUtils.toString(getClass().getResourceAsStream("loader.html"), "UTF-8"));
@@ -1131,27 +1161,70 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 			mb.setBuildMutex(mutex);
 			
 			try {
-				ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "run", "ionic:serve", "--nobrowser");
-				pb.redirectErrorStream(true);
-				pb.directory(ionicDir);
-				Process p = pb.start();
-				processes.add(p);
-				BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-				String line;
-				while ((line = br.readLine()) != null) {
-					line = pRemoveEchap.matcher(line).replaceAll("");
-					if (StringUtils.isNotBlank(line)) {
-						Engine.logStudio.info(line);
-						appendOutput(line);
-						if (line.contains("build finished")) {
-							synchronized (mutex) {
-								mutex.notify();								
+				appendOutput("removing previous build directory");
+				com.twinsoft.convertigo.engine.util.FileUtils.deleteQuietly(new File(project.getDirPath() + "/DisplayObjects/mobile/build"));
+				appendOutput("previous build directory removed");
+				
+				if (buildProd) {
+					toolbar.getDisplay().asyncExec(() -> {
+						toolbar.setBackground(toolbar.getDisplay().getSystemColor(SWT.COLOR_YELLOW));
+					});
+					ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "run", "ionic:build:prod", "--nobrowser");
+					pb.redirectErrorStream(true);
+					pb.directory(ionicDir);
+					Process p = pb.start();
+					processes.add(p);
+					BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+					String line;
+					while ((line = br.readLine()) != null) {
+						line = pRemoveEchap.matcher(line).replaceAll("");
+						if (StringUtils.isNotBlank(line)) {
+							Engine.logStudio.info(line);
+							appendOutput(line);
+							if (line.contains("build finished")) {
+								synchronized (mutex) {
+									mutex.notify();								
+								}
+							}
+							Matcher m = pIsServerRunning.matcher(line);
+							if (m.matches()) {
+								baseUrl = m.group(1);
+								doLoad();
 							}
 						}
-						Matcher m = pIsServerRunning.matcher(line);
-						if (m.matches()) {
-							baseUrl = m.group(1);
-							doLoad();
+					}
+					String SERVER_C8O_URL = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
+					baseUrl = SERVER_C8O_URL + "/projects/"	+ project.getName() + "/DisplayObjects/mobile/index.html";
+					doLoad();
+
+					toolbar.getDisplay().asyncExec(() -> {
+						toolbar.setBackground(toolbar.getDisplay().getSystemColor(SWT.COLOR_GREEN));
+					});
+					
+					toast("Application in production mode");
+				} else {
+					ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "run", "ionic:serve", "--nobrowser");
+					pb.redirectErrorStream(true);
+					pb.directory(ionicDir);
+					Process p = pb.start();
+					processes.add(p);
+					BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+					String line;
+					while ((line = br.readLine()) != null) {
+						line = pRemoveEchap.matcher(line).replaceAll("");
+						if (StringUtils.isNotBlank(line)) {
+							Engine.logStudio.info(line);
+							appendOutput(line);
+							if (line.contains("build finished")) {
+								synchronized (mutex) {
+									mutex.notify();								
+								}
+							}
+							Matcher m = pIsServerRunning.matcher(line);
+							if (m.matches()) {
+								baseUrl = m.group(1);
+								doLoad();
+							}
 						}
 					}
 				}
