@@ -47,11 +47,14 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.mozilla.javascript.Undefined;
 import org.mozilla.javascript.UniqueTag;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.w3c.dom.ProcessingInstruction;
 
 import com.twinsoft.convertigo.beans.connectors.SqlConnector;
@@ -63,6 +66,8 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.util.ParameterUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
+import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
+import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class SqlTransaction extends TransactionWithVariables {
@@ -120,11 +125,14 @@ public class SqlTransaction extends TransactionWithVariables {
 
 	public static final int AUTOCOMMIT_END = 2;
 	
-	private int autoCommit = AutoCommitMode.autocommit_each.ordinal(); 
+	private int autoCommit = AutoCommitMode.autocommit_each.ordinal();
 	
+	private boolean generateJsonTypes = true;
+
 	/** Holds value of property xmlOutput. */
-	private int xmlOutput = 0;
+	private int xmlOutput = XmlMode.flat_element.ordinal();
 	private transient XmlMode xmlMode = XmlMode.parse(xmlOutput);
+	private transient Map<String,List<List<Object>>> tables = null;
 	
 	enum XmlMode {
 		raw,						// 0
@@ -716,7 +724,7 @@ public class SqlTransaction extends TransactionWithVariables {
 	}
 	
 	private void getQueryResults(ResultSet rs, int nb, Element xsd_parent, String query, List<String> logHiddenValues, SqlQueryInfos sqlQueryInfos) throws EngineException, SQLException, UnsupportedEncodingException {
-		Map<String,List<List<Object>>> tables = null;
+		tables = null;
 		List<List<Map<String,String>>> rows = null;
 		List<String> columnHeaders = null;
 		List<List<String>> lines = null;
@@ -865,6 +873,14 @@ public class SqlTransaction extends TransactionWithVariables {
 				for(Entry<String,List<List<Object>>> entry : tables.entrySet()) {
 					if (firstLoop) {
 						parentElt = (Element)parentElt.appendChild(doc.createElement("xsd:complexType"));
+						if (generateJsonTypes) {
+							Element attr = doc.createElement("xsd:attribute");
+							attr.setAttribute("name", "type");
+							attr.setAttribute("type", "xsd:string");
+							attr.setAttribute("use", "required");
+							attr.setAttribute("fixed", "array");
+							parentElt.appendChild(attr);
+						}
 						parentElt = (Element)parentElt.appendChild(doc.createElement("xsd:sequence"));
 					} else if (xmlMode.is(XmlMode.auto)) {
 						parentElt = (Element)parentElt.appendChild(doc.createElement("xsd:sequence"));
@@ -884,6 +900,15 @@ public class SqlTransaction extends TransactionWithVariables {
 							child.setAttribute("name", "name");
 							child.setAttribute("fixed", tableName);
 							parentElt.appendChild(child);
+						}
+						
+						if (generateJsonTypes && xmlMode.isFlat()) {
+							child = doc.createElement("xsd:attribute");
+							child.setAttribute("name", "type");
+							child.setAttribute("type", "xsd:string");
+							child.setAttribute("use", "required");
+							child.setAttribute("fixed", "object");
+							parentElt.appendChild(child);							
 						}
 					}
 					
@@ -913,9 +938,24 @@ public class SqlTransaction extends TransactionWithVariables {
 						
 						if (xmlMode.useColumnName()) {
 							child = doc.createElement("xsd:element");
-							child.setAttribute("name",columnName);
-							child.setAttribute("type",type);
+							child.setAttribute("name", columnName);
 							parentElt.appendChild(child);
+							
+							if (generateJsonTypes && xmlMode.is(XmlMode.flat_element)) {
+								child.appendChild(child = doc.createElement("xsd:complexType"));
+								child.appendChild(child = doc.createElement("xsd:simpleContent"));
+								child.appendChild(child = doc.createElement("xsd:extension"));
+								child.setAttribute("base", type);
+								child.appendChild(child = doc.createElement("xsd:attribute"));
+								child.setAttribute("name", "type");
+								child.setAttribute("type", "xsd:string");
+								child.setAttribute("use", "required");
+								child.getParentNode().appendChild(child = doc.createElement("xsd:attribute"));
+								child.setAttribute("name", "originalKeyName");
+								child.setAttribute("type", "xsd:string");
+							} else {
+								child.setAttribute("type",type);
+							}
 						} else if (xmlMode.is(XmlMode.element_with_attributes)) {
 							Element xsdElement = doc.createElement("xsd:element");
 							xsdElement.setAttribute("name",getColumnTagname());
@@ -1086,6 +1126,44 @@ public class SqlTransaction extends TransactionWithVariables {
 						outputDocumentRootElement.appendChild(sql_output);
 					}
 	            }										
+			}
+			
+			if (generateJsonTypes) {
+				TwsCachedXPathAPI xpathApi = context.getXpathApi();
+				Element sql_out = (Element) xpathApi.selectSingleNode(context.outputDocument, "/*/sql_output");
+				Engine.logEngine.warn(XMLUtils.prettyPrintDOM(context.outputDocument));
+				Engine.logEngine.warn(tables.toString());
+				sql_out.setAttribute("type", "array");
+				
+				if (xmlMode == XmlMode.flat_element) {
+					Map<Integer, Pair<String, String>> types = new HashMap<Integer, Pair<String, String>>();
+					for (List<List<Object>> columns: tables.values()) {
+						for (List<Object> col: columns) {
+							String cls = ((String) col.get(2)).toLowerCase();
+							String type = "string";
+							if (cls.startsWith("java.lang.")) {
+								type = cls.substring(10);
+							}
+							types.put((Integer) col.get(0), ImmutablePair.of((String) col.get(1), type));
+						}
+					}
+					NodeList rows = xpathApi.selectNodeList(context.outputDocument, "/*/sql_output/*");
+					for (int i = 0; i < rows.getLength(); i++) {
+						Element row = ((Element) rows.item(i));
+						row.setAttribute("type", "object");
+						if (types != null) {
+							NodeList fields = xpathApi.selectNodeList(row, "*");
+							for (int j = 0; j < fields.getLength(); j++) {
+								Pair<String, String> info = types.get(j + 1);
+								Element field = ((Element) fields.item(j));
+								field.setAttribute("type", info.getRight());
+								if (!field.getTagName().equals(info.getLeft())) {
+									field.setAttribute("originalKeyName", info.getLeft());
+								}
+							}
+						}
+					}
+				}
 			}
 			
 			// Store learned schema
@@ -1469,6 +1547,36 @@ public class SqlTransaction extends TransactionWithVariables {
 		String tagname = getXmlDefaultColumnTagname();
 		tagname = tagname.equals("") ? "column":tagname;
 		return StringUtils.normalize(tagname);
+	}
+	
+	public boolean isGenerateJsonTypes() {
+		return generateJsonTypes;
+	}
+
+	public void setGenerateJsonTypes(boolean generateJsonTypes) {
+		this.generateJsonTypes = generateJsonTypes;
+	}
+
+	@Override
+	public void configure(Element element) throws Exception {
+		super.configure(element);
+		
+        String version = element.getAttribute("version");
+        
+        if (version == null) {
+            String s = XMLUtils.prettyPrintDOM(element);
+            EngineException ee = new EngineException(
+                "Unable to find version number for the database object \"" + getName() + "\".\n" +
+                "XML data: " + s
+            );
+            throw ee;
+        }
+        
+        if (VersionUtils.compare(version, "7.4.7") < 0) {
+        	generateJsonTypes = false;
+			hasChanged = true;
+			Engine.logBeans.warn("[WriteFileStep] The object \"" + getName()+ "\" has been updated to 7.4.7 version");
+        }
 	}
 }
 
