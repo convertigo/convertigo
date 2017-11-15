@@ -20,6 +20,9 @@
             let options = {ddoc:"", view:""}
             
             for (let key in props) {
+                if (key == "__live" && props[key] == "none") {
+                    continue
+                }
                 if (key != "marker" && key!= "fsview")
                     if (props[key] != null) {
                         if (props[key] == "true") 
@@ -28,7 +31,7 @@
                             options[key] = false
                         else
                             options[key] = props[key]
-                    }
+                }
             }
             
             options.ddoc = ddoc; options.view = view

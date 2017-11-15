@@ -5005,14 +5005,19 @@
       },
 
       "__live": {
-        "description": "If 'true' will automatically monitor any database change (From continuous replication or from local changes) and re-run the query. Using 'Live' is the best way to refresh automatically your UI when data changes in the database.",
+        "description": "If set to an ID,  will automatically monitor any database change (From continuous replication or from local changes) and re-run the query. Using 'Live' is the best way to refresh automatically your UI when data changes in the database. You can cancel an 'live' view by calling the this.c8o.cancelLive(id) API",
         "label": "Live",
         "category": "@Query parameters",
         "type": "string",
-        "value": "false",
+        "value": null,
         "values": [
-          "false",
-          "true"
+          "none",
+          "ID1",
+          "ID2",
+          "ID3",
+          "ID4",
+          "ID5",
+          true
         ]
       },
 
