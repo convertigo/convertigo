@@ -39,7 +39,7 @@ public class SqlTransactionBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/images/sqltransaction_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/images/sqltransaction_color_32x32.png";
 
-			properties = new PropertyDescriptor[7];
+			properties = new PropertyDescriptor[8];
 			
 			resourceBundle = getResourceBundle("res/SqlTransaction");
 			
@@ -81,6 +81,11 @@ public class SqlTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[6] = new PropertyDescriptor("xmlDefaultColumnTagname", beanClass, "getXmlDefaultColumnTagname", "setXmlDefaultColumnTagname");
 			properties[6].setDisplayName(getExternalizedString("property.xmlDefaultColumnTagname.display_name"));
 			properties[6].setShortDescription(getExternalizedString("property.xmlDefaultColumnTagname.short_description"));
+			
+			properties[7] = new PropertyDescriptor("generateJsonTypes", beanClass, "isGenerateJsonTypes", "setGenerateJsonTypes");
+			properties[7].setDisplayName(getExternalizedString("property.generateJsonTypes.display_name"));
+			properties[7].setShortDescription(getExternalizedString("property.generateJsonTypes.short_description"));
+			properties[7].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
