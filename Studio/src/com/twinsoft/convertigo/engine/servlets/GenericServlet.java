@@ -42,6 +42,7 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.w3c.dom.Document;
 
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.AttachmentManager.AttachmentDetails;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -55,6 +56,7 @@ import com.twinsoft.convertigo.engine.requesters.WebServiceServletRequester;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpServletRequestTwsWrapper;
+import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.SOAPUtils;
 import com.twinsoft.convertigo.engine.util.ServletUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -145,8 +147,9 @@ public abstract class GenericServlet extends HttpServlet {
 		request = wrapped_request;
 
 		String baseUrl = getServletBaseUrl(request);
-
-		if ((baseUrl.indexOf("/projects/") != -1) || (baseUrl.indexOf("/webclipper/") != -1)) {
+		boolean isProject;
+		
+		if ((isProject = baseUrl.contains("/projects/")) || baseUrl.contains("/webclipper/")) {
 			long t0 = System.currentTimeMillis();
 			try {
 				String encoded = request.getParameter(Parameter.RsaEncoded.getName());
@@ -155,7 +158,52 @@ public abstract class GenericServlet extends HttpServlet {
 					wrapped_request.clearParameters();
 					wrapped_request.addQuery(query);
 				}
+				
+				if (isProject && request.getMethod().equalsIgnoreCase("OPTIONS") && Engine.isStarted) {
+					Project project = null;
+					String projectName = request.getParameter(Parameter.Project.getName());
+					if (projectName == null) {
+						projectName = request.getRequestURI().replaceFirst(".*/projects/(.*?)/.*", "$1");
+					}
+					
+					if (!projectName.contains("/")) {
+						try {
+							project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+						} catch (Exception e) { }
+					}
+					
+					if (project == null) {
+						response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+						return;
+					}
 
+					String origin = HeaderName.Origin.getHeader(request);
+					String corsOrigin = HttpUtils.filterCorsOrigin(project.getCorsOrigin(), origin);
+					
+					if (corsOrigin != null) {
+						HeaderName.AccessControlAllowOrigin.setHeader(response, corsOrigin);
+						HeaderName.AccessControlAllowCredentials.setHeader(response, "true");
+						String method = HeaderName.AccessControlRequestMethod.getHeader(request);
+						if (method != null) {
+							String methods = "GET, POST, PUT, OPTIONS, DELETE";
+							if (!methods.contains(method.toUpperCase())) {
+								methods += ", " + method;
+							}
+							HeaderName.AccessControlAllowMethods.setHeader(response, methods);
+						}
+						
+						String headers = HeaderName.AccessControlRequestHeaders.getHeader(request);
+						if (headers != null) {
+							HeaderName.AccessControlAllowHeaders.setHeader(response, headers);
+						}
+						
+						Engine.logEngine.trace("Add CORS headers for: " + corsOrigin);
+					}
+					
+					response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+					return;
+				}
+				
 				Object result = processRequest(request);
 
 				response.addHeader("Expires", "-1");

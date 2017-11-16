@@ -5,6 +5,8 @@ import java.io.Writer;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -17,6 +19,7 @@ import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.RestApiManager;
+import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.requesters.Requester;
@@ -116,6 +119,38 @@ public class RestApiServlet extends GenericServlet {
 				Collection<UrlMapper> collection = RestApiManager.getInstance().getUrlMappers();
 				
 				if (collection.size() > 0) {
+					if (method.equalsIgnoreCase("OPTIONS")) {
+						Set<String> methods = new HashSet<String>();
+						String corsOrigin = null;
+						for (UrlMapper urlMapper : collection) {
+							String origin = HeaderName.Origin.getHeader(request);
+							String co = HttpUtils.filterCorsOrigin(urlMapper.getProject().getCorsOrigin(), origin);
+							if (co != null) {
+								if (corsOrigin == null || co.length() > corsOrigin.length()) {
+									corsOrigin = co;
+								}
+								urlMapper.addMatchingMethods(wrapped_request, methods);
+							}
+						}
+						
+						if (corsOrigin != null) {
+							HeaderName.AccessControlAllowOrigin.setHeader(response, corsOrigin);
+							HeaderName.AccessControlAllowCredentials.setHeader(response, "true");
+							if (HeaderName.AccessControlRequestMethod.getHeader(request) != null && !methods.isEmpty()) {
+								String allowMethods = String.join(", ", methods);
+								HeaderName.AccessControlAllowMethods.setHeader(response, allowMethods);
+							}
+							
+							String headers = HeaderName.AccessControlRequestHeaders.getHeader(request);
+							if (headers != null) {
+								HeaderName.AccessControlAllowHeaders.setHeader(response, headers);
+							}
+						}
+						
+						response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+						return;
+					}
+					
 					// Found a matching operation
 					UrlMappingOperation urlMappingOperation = null;
 					for (UrlMapper urlMapper : collection) {
