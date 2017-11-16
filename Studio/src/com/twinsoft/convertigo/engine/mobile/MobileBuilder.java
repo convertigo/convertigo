@@ -1494,7 +1494,7 @@ public class MobileBuilder {
 					nFile.getParentFile().mkdirs();
 					FileUtils.write(nFile, content, encoding);
 					
-					// push files to queue
+					// store files modifications
 					Engine.logEngine.debug("(MobileBuilder) Defers the write of " + content.length() + " chars to " + nFile.getPath());
 					if (pushedFiles != null) {
 						synchronized (pushedFiles) {
@@ -1518,6 +1518,7 @@ public class MobileBuilder {
 	}
 	
 	private synchronized void moveFilesForce() {
+		// push files modifications to queue
 		if (pushedFiles != null && queue != null) {
 			synchronized (pushedFiles) {
 				int size = pushedFiles.size();
