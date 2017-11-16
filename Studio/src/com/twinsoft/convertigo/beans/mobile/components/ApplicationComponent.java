@@ -946,6 +946,16 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		this.tplProjectName = tplProjectName;
 	}
 
+	private boolean hasCompatibleTemplate(String project) {
+		// TODO: to be changed after 5.0.0 release...
+		File tplDir = new File(Engine.PROJECTS_PATH + "/" + project + "/ionicTpl");
+		if (tplDir.exists()) {
+			if (new File(tplDir,"src/services/actionbeans.service.ts").exists()) {
+				return true;
+			}
+		}
+		return false;
+	}
 	@Override
 	public String[] getTagsForProperty(String propertyName) {
 		if ("tplProjectName".equals(propertyName)) {
@@ -953,7 +963,7 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 			projects.add("");
 			
 			for (String project: Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false)) {
-				if (new File(Engine.PROJECTS_PATH + "/" + project + "/ionicTpl").exists()) {
+				if (hasCompatibleTemplate(project)) {
 					projects.add(project);
 				};
 			}
