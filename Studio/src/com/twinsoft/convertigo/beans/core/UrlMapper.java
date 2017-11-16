@@ -24,6 +24,8 @@ package com.twinsoft.convertigo.beans.core;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+
 import javax.servlet.http.HttpServletRequest;
 
 import com.twinsoft.convertigo.engine.Engine;
@@ -147,5 +149,18 @@ public class UrlMapper extends DatabaseObject {
 			}
 		}
 		return null;
+	}
+	
+	public void addMatchingMethods(HttpServletRequest request, Set<String> methods) {		
+		for (UrlMapping mapping : getMappingList()) {
+			if (mapping.isMatching(request)) {
+				for (UrlMappingOperation op : mapping.getOperationList()) {
+					String method = op.getMethod();
+					if (method != null) {
+						methods.add(method.toUpperCase());
+					}
+				}
+			}
+		}
 	}
 }

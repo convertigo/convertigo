@@ -40,6 +40,7 @@ public enum HeaderName {
 	AccessControlAllowHeaders("Access-Control-Allow-Headers"),
 	AccessControlAllowMethods("Access-Control-Allow-Methods"),
 	AccessControlAllowOrigin("Access-Control-Allow-Origin"),
+	AccessControlRequestHeaders("Access-Control-Request-Headers"),
 	AccessControlRequestMethod("Access-Control-Request-Method"),
 	CacheControl("Cache-Control"),
 	Connection("Connection"),

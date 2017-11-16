@@ -104,7 +104,7 @@ public class FullSyncServlet extends HttpServlet {
 						// expected response for PouchDB with CORS
 						HeaderName.AccessControlAllowMethods.setHeader(response, "GET, PUT, POST, HEAD, DELETE");
 						HeaderName.AccessControlAllowHeaders.setHeader(response, "content-type");
-						response.setStatus(204);
+						response.setStatus(HttpServletResponse.SC_NO_CONTENT);
 						return;
 					}
 				}
