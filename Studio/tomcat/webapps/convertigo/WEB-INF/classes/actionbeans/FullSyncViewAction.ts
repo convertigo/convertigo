@@ -12,8 +12,8 @@
             
             let r:string = tokens[1]     
             let v:string = "view";
-            let m:string = props.marker;
-            let rvm:string = r + '.' + v + (m != '' ? '#':'')+ m;
+            let m:string = props.marker
+            let rvm:string = r + '.' + v + ((m != '' && m!= null) ? '#' + m:'');
             let ddoc:string = tokens[2]
             let view:string = tokens[3]
             
