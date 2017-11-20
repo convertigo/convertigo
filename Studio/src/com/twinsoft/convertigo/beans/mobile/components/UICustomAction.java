@@ -221,25 +221,23 @@ public class UICustomAction extends UIComponent implements IAction {
 							
 							String smartValue = msst.getValue();
 							if (Mode.PLAIN.equals(msst.getMode())) {
-								smartValue = "\'" + smartValue + "\'";
+								smartValue = msst.escapeStringForTs("\'" + smartValue + "\'");
+							} else {
+								smartValue = msst.escapeStringForTs(smartValue);
 							}
 							
-							if (forTemplate) {
-								smartValue = ""+smartValue;
-							} else {
-								if (Mode.SOURCE.equals(msst.getMode())) {
-									MobileSmartSource mss = msst.getSmartSource();
-									if (mss.getFilter().equals(MobileSmartSource.Filter.Iteration)) {
-										smartValue = "scope."+ smartValue;
-									}
-									else {
-										smartValue = "this."+ smartValue;
-									}
+							if (Mode.SOURCE.equals(msst.getMode())) {
+								MobileSmartSource mss = msst.getSmartSource();
+								if (mss.getFilter().equals(MobileSmartSource.Filter.Iteration)) {
+									smartValue = "scope."+ smartValue;
 								}
-								smartValue = smartValue.replaceAll("\\?\\.", ".");
-								smartValue = smartValue.replaceAll("this\\.", "c8oPage.");
-								smartValue = "get(`"+smartValue+"`)";
+								else {
+									smartValue = "this."+ smartValue;
+								}
 							}
+							smartValue = smartValue.replaceAll("\\?\\.", ".");
+							smartValue = smartValue.replaceAll("this\\.", "c8oPage.");
+							smartValue = "get(`"+smartValue+"`)";
 							
 							sbVars.append(smartValue);
 						}

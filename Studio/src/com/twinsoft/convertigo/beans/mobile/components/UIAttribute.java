@@ -76,14 +76,16 @@ public class UIAttribute extends UIComponent implements ITagsProperty {
 		if (isAttrPropertyBind()) {
 			if (Mode.PLAIN.equals(attrValue.getMode())) {
 				if (!value.startsWith("'") && !value.endsWith("'")) {
-					value = "'" + value + "'";
+					value = attrValue.escapeStringForTpl("'" + value + "'");
 				}
+			} else {
+				value = attrValue.escapeStringForTpl(value);
 			}
 		} else if (isAttrEventBind()) {
 			
 		} else {
 			if (!Mode.PLAIN.equals(attrValue.getMode())) {
-				value = "{{" + value + "}}";
+				value = "{{" + attrValue.escapeStringForTpl(value) + "}}";
 			}
 		}
 		return value;
