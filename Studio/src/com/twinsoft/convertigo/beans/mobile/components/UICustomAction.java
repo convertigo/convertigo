@@ -140,7 +140,7 @@ public class UICustomAction extends UIComponent implements IAction {
 	/*
 	 * The action value
 	 */
-	private FormatedContent actionValue = new FormatedContent("\t\tpage.c8o.log.debug(event.toString());\n\t\tresolve();\n");
+	private FormatedContent actionValue = new FormatedContent("\t\tpage.c8o.log.debug(event ? event.toString():'no event');\n\t\tresolve();\n");
 	
 	public FormatedContent getActionValue() {
 		return actionValue;
