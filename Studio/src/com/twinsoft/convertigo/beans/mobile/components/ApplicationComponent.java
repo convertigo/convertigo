@@ -947,7 +947,7 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 	}
 
 	private boolean hasCompatibleTemplate(String project) {
-		// TODO: to be changed after 5.0.0 release...
+		// TODO: to be changed after 7.5.0 release...
 		File tplDir = new File(Engine.PROJECTS_PATH + "/" + project + "/ionicTpl");
 		if (tplDir.exists()) {
 			if (new File(tplDir,"src/services/actionbeans.service.ts").exists()) {
