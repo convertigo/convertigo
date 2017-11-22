@@ -34,6 +34,9 @@
 	-->
 	<engine name="$(CordovaPlatform)$" spec="~4.3.2" appx="uap" archs="x64" />
 	
+	<!--  Startup page is FlashUpdate  -->
+	<content src="index-fu.html" />
+	
 	<!-- Customize your app and platform with the preference element. -->
     <preference name="phonegap-version"             value="cli-6.1.1" />      <!-- all: current version of PhoneGap -->
     <preference name="orientation"                  value="default" />        <!-- all: default means both landscape and portrait are enabled -->
@@ -102,4 +105,11 @@
 	
 	<!-- Expose access to all URIs, including the file and http protocols -->
 	<access origin="*" subdomains="true"/>
+	
+	<!-- fix issue -->
+	<plugin name="cordova-android-support-gradle-release" spec="~1.1.5">
+        <variable name="ANDROID_SUPPORT_VERSION" value="24.+" />
+    </plugin>
+    <plugin name="cordova-safe" spec="2.0.1" />
+	<!-- Application mandatory plugins -->
 </widget>
