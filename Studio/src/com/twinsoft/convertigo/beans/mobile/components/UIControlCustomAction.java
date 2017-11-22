@@ -176,6 +176,9 @@ public class UIControlCustomAction extends UIControlAction {
 	private String computeActionContent() {
 		String actionName = getActionName();
 		String s = "";
+		s += "\t/* Code below your action in TypeScript. call resolve() to finish and         */" + System.lineSeparator();
+		s += "\t/* execute next action in the tree. You can pass data to resolve(), this data */" + System.lineSeparator();
+		s += "\t/* Will be available to the next action as an 'out' object                    */" + System.lineSeparator();
 		s += "\t/*Begin_c8o_function:"+ actionName +"*/" + System.lineSeparator();
 		s += actionValue.getString();
 		s += "\t/*End_c8o_function:"+ actionName +"*/" + System.lineSeparator();

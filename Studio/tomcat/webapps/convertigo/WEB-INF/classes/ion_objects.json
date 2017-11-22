@@ -3249,6 +3249,30 @@
             true
           ]
         },
+        "monthNames": {
+          "attr": "monthNames",
+          "label": "Month Names",
+          "description": "List of month names separated by a comma, if different from English standard names.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            "Janvier, Février, Mars, Avril, Mai, Juin, Juillet, Aout, Septembre, Octobre, Novembre, Décembre",
+            "Gennaio, Febbraio, Marzo, Aprile, Maggio, Giugno, Luglio, Agosto, Settembre, Ottobre, Novembre, Dicembre",
+            true
+          ]
+        },
+        "dayNames": {
+          "attr": "dayNames",
+          "label": "Day Names",
+          "description": "List of day names separated by a comma, if different from English standard names.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            "Dimanche, Lundi, Mardi, Mercredi, Jeudi, Vendredi, Samedi",
+            "Domenica, Lunedi, Martedi, Mercoledi, Giovedi, Venerdi, Sabato",
+            true
+          ]
+        },
     	"placeholder":{
     		"attr":"placeholder",
     		"label": "Placeholder",
@@ -4902,7 +4926,7 @@
 
         "requestable": {
           "editor": "NamedSourceSelectorEditor",
-          "label": "Requestable",
+          "label": "Database",
           "description": "Defines the target FullSync Data base to sync",
           "category": "@Properties",
           "type": "string",
@@ -4977,6 +5001,53 @@
       }
   },
   
+  "FullSyncPostAction" : {
+    "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+    "displayName": "Post",
+    "label": "Post Data",
+    "description": "Post (write) data to FullSync database. | Use this action to write data to a FullSync database. You can add 'Variables' to this action.<br/><br/>Each variable name will be used as a jSON key with the variable value associated. Variables values can be 'sourced' directly from 'Forms' using the 'Mobile Picker' (Configured in Form mode).<br/><br/>Source to 'FormXXXXX.value' to write the whole form content to the database.",
+    "group": "FullSync Actions",
+    "icon16": "fspostaction_color_16x16.png",
+    "icon32": "fspostaction_color_32x32.png",
+    "properties": {
+      "requestable": {
+        "editor": "NamedSourceSelectorEditor",
+        "label": "Database",
+        "description": "Defines the target FullSync Data base to post data to",
+        "category": "@Properties",
+        "type": "string",
+        "value": "",
+        "values": [
+          false,
+          true
+        ]
+      },
+
+      "_id": {
+        "label": "Unique ID",
+        "description": "The unique ID for this post. Saved data can be retreived later on with a 'Get' action, providing the same ID. If ID is not set, the system will compute automatically an UUID as unique ID for this post.<br /><br />Data saved will be automatically replicated to Convertigo server if a 'DoSync' action has been previously executed in 'continuous' mode.<br /><br />Note: Data can also be retreived using a 'Query' action providing a valid key for the view queryed.",
+        "category": "@Properties",
+        "type": "string",
+        "value": false
+      },
+
+      "_use_policy": {
+        "label": "Policy",
+        "description": "The write policy for this post. can be none (If the ID provided is already present, the post will fail), override (Data for this ID will override any existing object with the same ID in the database), merge (Data with the ID will be merged key by key with the data object already present in the database).",
+        "category": "@Properties",
+        "type": "string",
+        "value": "override",
+        "values": [
+          "none",
+          "merge",
+          "override"
+        ]
+      }
+    }
+},
+
+
+
   "FullSyncViewAction": {
     "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
     "displayName": "QueryView",
@@ -5005,13 +5076,13 @@
       },
 
       "__live": {
-        "description": "If set to an ID,  will automatically monitor any database change (From continuous replication or from local changes) and re-run the query. Using 'Live' is the best way to refresh automatically your UI when data changes in the database. You can cancel an 'live' view by calling the this.c8o.cancelLive(id) API",
+        "description": "If set to an ID,  will automatically monitor any database change (From continuous replication or from local changes) and re-run the query. Using 'Live' is the best way to refresh automatically your UI when data changes in the database. You can cancel an 'live' view by calling the c8o.cancelLive(id) API",
         "label": "Live",
         "category": "@Query parameters",
         "type": "string",
-        "value": null,
+        "value": false,
         "values": [
-          "none",
+          false,
           "ID1",
           "ID2",
           "ID3",
