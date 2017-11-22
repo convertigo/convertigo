@@ -348,6 +348,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		return "";
 	}
 
+	@Override
 	protected Contributor getContributor() {
 		return new Contributor() {
 			@Override
@@ -432,6 +433,81 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			}
 			
 		};
+	}
+
+	@Override
+	protected void addMarkers(Map<String, Set<String>> markerMap) {
+		IonBean ionBean = getIonBean();
+		if (ionBean != null) {
+			String beanName = ionBean.getName(); 
+			if (ionBean.hasProperty("marker")) {
+				String key = null;
+				String marker = null;
+				
+				if (beanName.equals("FullSyncViewAction")) {
+					IonProperty property;
+					Object p_value;
+					
+					property = ionBean.getProperty("fsview");
+					p_value = property.getValue();
+					if (!p_value.equals(false)) {
+						key = p_value.toString() + ".view";
+					}
+					
+					property = ionBean.getProperty("marker");
+					p_value = property.getValue();
+					if (!p_value.equals(false)) {
+						MobileSmartSourceType msst = property.getSmartType();
+						if (!Mode.SOURCE.equals(msst.getMode())) {
+							marker = msst.getValue();
+						}
+					}
+
+					if (key != null && !key.isEmpty()) {
+						Set<String> markers = markerMap.get(key);
+						if (marker != null && !marker.isEmpty()) {
+							if (markers == null) {
+								markers = new HashSet<String>();
+							}
+							markers.add(marker);
+							markerMap.put(key, markers);
+						}
+					}
+				}
+				
+				if (beanName.equals("CallSequenceAction") || beanName.equals("CallFullSyncAction")) {
+					IonProperty property;
+					Object p_value;
+					
+					property = ionBean.getProperty("requestable");
+					p_value = property.getValue();
+					if (!p_value.equals(false)) {
+						key = p_value.toString();
+					}
+					
+					property = ionBean.getProperty("marker");
+					p_value = property.getValue();
+					if (!p_value.equals(false)) {
+						MobileSmartSourceType msst = property.getSmartType();
+						if (!Mode.SOURCE.equals(msst.getMode())) {
+							marker = msst.getValue();
+						}
+					}
+
+					if (key != null && !key.isEmpty()) {
+						Set<String> markers = markerMap.get(key);
+						if (marker != null && !marker.isEmpty()) {
+							if (markers == null) {
+								markers = new HashSet<String>();
+							}
+							markers.add(marker);
+							markerMap.put(key, markers);
+						}
+					}
+				}
+			}
+		}
+		
+		super.addMarkers(markerMap);
 	}	
-	
 }

@@ -281,6 +281,10 @@ public class MobileSmartSource {
 						name = name.replaceFirst("fs://", "");
 						name = name.replaceFirst("\\.view", "");
 						name = name.replaceFirst("\\.get", "");
+						int i = name.indexOf('#');
+						if (i != -1) {
+							name = name.substring(0, i);
+						}
 						
 						int index = name.indexOf('.');
 						String projectName = index != -1 ? name.substring(0, index) : getProjectName();
@@ -300,6 +304,10 @@ public class MobileSmartSource {
 				if (m.find()) {
 					try {
 						String name = m.group(1);
+						int i = name.indexOf('#');
+						if (i != -1) {
+							name = name.substring(0, i);
+						}
 						
 						int index = name.indexOf('.');
 						String projectName = index != -1 ? name.substring(0, index) : getProjectName();

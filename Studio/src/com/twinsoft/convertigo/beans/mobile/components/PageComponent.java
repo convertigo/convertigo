@@ -29,6 +29,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -446,6 +447,14 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 			}
 		}
 		return false;
+	}
+	
+	protected Map<String, Set<String>> getMarkerMap() {
+		Map<String, Set<String>> map = new HashMap<String, Set<String>>();
+		for (UIComponent uiComponent : getUIComponentList()) {
+			uiComponent.addMarkers(map);
+		}
+		return map;
 	}
 	
 	private transient List<Contributor> contributors = null;

@@ -25,6 +25,8 @@ package com.twinsoft.convertigo.eclipse.views.mobile;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.codehaus.jettison.json.JSONArray;
@@ -85,8 +87,9 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 			String param = "";
 			if (object != null) {
 				if (object instanceof Sequence) {
-					Sequence sequence = (Sequence)object;
-					param = "'"+ sequence.getQName() +"'";
+					//Sequence sequence = (Sequence)object;
+					//param = "'"+ sequence.getQName() +"'";
+					param = "'"+ name + "'";
 				} else if (object instanceof DesignDocument) {
 					DesignDocument dd = (DesignDocument)object;
 					String db = parent.parent.parent.getName();
@@ -164,6 +167,8 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 			
 			ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
 			List<String> projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
+
+			Map<String, Set<String>> map = pageComponent.getApplication().getMarkerMap();
 			
 			TVObject root = new TVObject("root", pageComponent);
 			if (filter.equals(Filter.Sequence)) {
@@ -172,7 +177,7 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 					try {
 						Project p = projectExplorerView.getProject(projectName);
 						boolean isReferenced = !p.getName().equals(project.getName());
-						addSequences(tvs, isReferenced ? p:project, isReferenced);
+						addSequences(map, tvs, isReferenced ? p:project, isReferenced);
 					} catch (Exception e) {
 					}
 				}
@@ -183,7 +188,7 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 					try {
 						Project p = projectExplorerView.getProject(projectName);
 						boolean isReferenced = !p.getName().equals(project.getName());
-						addFsObjects(tvd, isReferenced ? p:project, isReferenced);
+						addFsObjects(map, tvd, isReferenced ? p:project, isReferenced);
 					} catch (Exception e) {
 					}
 				}
@@ -221,19 +226,27 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 		return getChildren(element).length > 0;
 	}
 
-	private void addSequences(TVObject tvs, Object object, boolean isReferenced) {
+	private void addSequences(Map<String, Set<String>> map, TVObject tvs, Object object, boolean isReferenced) {
 		if (object != null) {
 			if (object instanceof Project) {
 				Project project = (Project)object;
 				for (Sequence s : project.getSequencesList()) {
 					String label = isReferenced ? s.getQName():s.getName();
+
 					tvs.add(new TVObject(label, s));
+					
+					Set<String> markers = map.get(s.getQName());
+					if (markers != null) {
+						for (String marker: markers) {
+							tvs.add(new TVObject(label+"#"+marker, s));
+						}
+					}
 				}
 			}
 		}
 	}
 	
-	private void addFsObjects(TVObject tvd, Object object, boolean isReferenced) {
+	private void addFsObjects(Map<String, Set<String>> map, TVObject tvd, Object object, boolean isReferenced) {
 		if (object != null) {
 			if (object instanceof Project) {
 				Project project = (Project)object;
@@ -242,16 +255,38 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 						String label = isReferenced ? c.getQName():c.getName();
 						TVObject tvc = tvd.add(new TVObject(label));
 						
+						String key = c.getQName();
+						
 						for (Document d : c.getDocumentsList()) {
 							if (d instanceof DesignDocument) {
+								key += "." + d.getName();
 								TVObject tdd = tvc.add(new TVObject(d.getName()));
 								JSONObject views = CouchKey.views.JSONObject(((DesignDocument)d).getJSONObject());
 								if (views != null) {
 									for (Iterator<String> it = GenericUtils.cast(views.keys()); it.hasNext(); ) {
 										try {
-											TVObject tvv = tdd.add(new TVObject(it.next()));
+											Set<String> markers = null;
+											String view = it.next();
+											key += "." + view;
+											
+											TVObject tvv = tdd.add(new TVObject(view));
+											
 											tvv.add(new TVObject("get", d));
+											markers = map.get(key+ ".get");
+											if (markers != null) {
+												for (String marker: markers) {
+													tvv.add(new TVObject("get#"+marker, d));
+												}
+											}
+											
 											tvv.add(new TVObject("view", d));
+											markers = map.get(key+ ".view");
+											if (markers != null) {
+												for (String marker: markers) {
+													tvv.add(new TVObject("view#"+marker, d));
+												}
+											}
+											
 										} catch (Exception e) {
 											e.printStackTrace();
 										}

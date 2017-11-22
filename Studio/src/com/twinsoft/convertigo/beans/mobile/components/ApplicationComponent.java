@@ -25,9 +25,12 @@ package com.twinsoft.convertigo.beans.mobile.components;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jettison.json.JSONException;
@@ -973,5 +976,11 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		return null;
 	}
 	
-	
+	public Map<String, Set<String>> getMarkerMap() {
+		Map<String, Set<String>> map = new HashMap<String, Set<String>>();
+		for (PageComponent page : getPageComponentList()) {
+			map.putAll(page.getMarkerMap());
+		}
+		return map;
+	}
 }
