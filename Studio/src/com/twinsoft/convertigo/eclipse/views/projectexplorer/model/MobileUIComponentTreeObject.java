@@ -55,6 +55,8 @@ import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
+import com.twinsoft.convertigo.beans.couchdb.FullSyncListener;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
@@ -616,6 +618,12 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 							return nsObject instanceof FullSyncConnector;
 						}
 						if (cc.getIonBean().getName().equals("FullSyncSyncAction")) {
+							return nsObject instanceof FullSyncConnector;
+						}
+						if (cc.getIonBean().getName().equals("FullSyncViewAction")) {
+							return nsObject instanceof DesignDocument;
+						}
+						if (cc.getIonBean().getName().equals("FullSyncPostAction")) {
 							return nsObject instanceof FullSyncConnector;
 						}
 					}
