@@ -62,7 +62,8 @@
       "value": false,
       "values": [
         false,
-        true
+        "false",
+        "true"
       ]
 	},
 	
@@ -5243,6 +5244,372 @@
           "update_after"
         ]
       }
+    }
+  },
+  "FileChooserAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "displayName": "File Chooser",
+      "label": "FileChooser",
+      "description": "Opens the file picker on Android for the user to select a file, returns a file URI.",
+      "group": "File Actions",
+      "icon16": "",
+      "icon32": "",
+      "properties": {
+      },
+      "config": {
+        "action_ts_imports": [
+			
+			{"from":"@ionic-native/file-path","components":["FilePath"]},
+			{"from":"@ionic-native/file-chooser","components":["FileChooser"]}
+        ],
+        "module_ts_imports": [
+			{"from":"@ionic-native/file-chooser","components":["FileChooser"]},
+			{"from":"@ionic-native/file-path","components":["FilePath"]}
+        ],
+        "module_ng_imports": [
+        ],
+        "module_ng_providers": [
+			"FileChooser",
+			"FilePath"
+        ],
+        "package_dependencies": [
+            {"package":"@ionic-native/file-chooser", "version":"4.4.2"},
+             {"package":"@ionic-native/file-path", "version":"4.4.2"}
+        ],
+        "cordova_plugins": [
+          {
+            "plugin":"cordova-plugin-filechooser",
+            "version":"1.0.1"
+          },
+          {
+            "plugin":"cordova-plugin-filepath",
+            "version":"1.1.0"
+          }
+      ]
+    }
+  },
+  "FileOpenerAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "displayName": "File Opener",
+      "label": "FileOpener",
+      "description": "This plugin will open a file on your device file system with its default application.",
+      "group": "File Actions",
+      "icon16": "",
+      "icon32": "",
+      "properties": {
+     
+	      "filePath": {
+	        "label": "filePath",
+	        "description": "The file path",
+	        "category": "@File parameters",
+	        "type": "string",
+	        "value": true
+	      }    
+      
+      },
+      "config": {
+        "action_ts_imports": [
+			{"from":"@ionic-native/file-opener","components":["FileOpener"]}
+        ],
+        "module_ts_imports": [
+			{"from":"@ionic-native/file-opener","components":["FileOpener"]}
+        ],
+        "module_ng_imports": [
+        ],
+        "module_ng_providers": [
+			"FileOpener"
+        ],
+        "package_dependencies": [
+            {"package":"@ionic-native/file-opener", "version":"4.4.2"}
+        ],
+        "cordova_plugins": [
+          {
+            "plugin":"cordova-plugin-file-opener2",
+            "version":"2.0.19"
+          }
+      ]
+    }
+  },
+  "CameraAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "displayName": "Camera",
+      "label": "Camera",
+      "description": "Take a photo or capture video.",
+      "group": "Camera",
+      "icon16": "",
+      "icon32": "",
+      "properties": {
+     
+	      "quality": {
+	        "label": "quality",
+	        "description": "Picture quality in range 0-100. Default is 100",
+	        "category": "@camera options",
+	        "type": "number",
+	        "mode":"script",
+	        "value": 100
+	      },
+	      "destinationType": {
+	        "label": "destinationType",
+	        "description": "Choose the format of the return value. Defined in Camera.DestinationType. Default is FILE_URI. DATA_URL, Return image as base64-encoded string, FILE_URI, Return image file URI, NATIVE_URI, Return image native URI (e.g., assets-library:// on iOS or content:// on Android)",
+	        "category": "@camera options",
+	        "type": "string",
+	        "value": "FILE_URI",
+			"values": [
+				"FILE_URI",
+				"DATA_URL",
+				"NATIVE_URI"
+			]
+	      },
+	      "sourceType": {
+	        "label": "sourceType",
+	        "description": "Set the source of the picture. Defined in Camera.PictureSourceType. Default is CAMERA. PHOTOLIBRARY, CAMERA, SAVEDPHOTOALBUM",
+	        "category": "@camera options",
+	        "type": "string",
+	        "value": "CAMERA",
+	        "values":[
+	        	"CAMERA",
+	        	"PHOTOLIBRARY",
+	        	"SAVEDPHOTOALBUM"
+	        ]
+	      },
+	      "allowEdit": {
+	        "label": "allowEdit",
+	        "description": "Allow simple editing of image before selection.",
+	        "category": "@camera options",
+	        "type": "boolean",
+	        "value": "false",
+	        "values": ["false", "true"]
+	      },
+	      "encodingType": {
+	        "label": "encodingType",
+	        "description": "Choose the returned image file's encoding. Defined in Camera.EncodingType. Default is JPEG. JPEG Return JPEG encoded image, PNG Return PNG encoded image",
+	        "category": "@camera options",
+	        "type": "string",
+	        "value": "JPEG",
+	        "values":[
+	        "JPEG",
+	        "PNG"
+	        ]
+	      },
+	      "targetWidth": {
+	        "label": "targetWidth",
+	        "description": "Width in pixels to scale image. Must be used with targetHeight. Aspect ratio remains constant.",
+	        "category": "@camera options",
+	        "type": "number",
+	        "mode":"script",
+	        "value": false
+	      },
+	      "targetHeight": {
+	        "label": "targetHeight",
+	        "description": "Height in pixels to scale image. Must be used with targetWidth. Aspect ratio remains constant.",
+	        "category": "@camera options",
+	        "type": "number",
+	        "mode":"script",
+	        "value": false
+	      },
+	      "mediaType": {
+	        "label": "mediaType",
+	        "description": "Set the type of media to select from. Only works when PictureSourceType is PHOTOLIBRARY or SAVEDPHOTOALBUM. Defined in Camera.MediaType PICTURE: 0 allow selection of still pictures only. DEFAULT. Will return format specified via DestinationType VIDEO allow selection of video only, WILL ALWAYS RETURN FILE_URI, ALLMEDIA allow selection from all media types",
+	        "category": "@camera options",
+	        "type": "string",
+	        "value": false,
+	        "values": [
+	        	false,
+	        	"PICTURE",
+	        	"VIDEO",
+	        	"ALLMEDIA"
+	        ]
+	      },
+	      "correctOrientation": {
+	        "label": "correctOrientation",
+	        "description": "Rotate the image to correct for the orientation of the device during capture.",
+	        "category": "@camera options",
+	        "type": "boolean",
+	        "value": false,
+	        "values": [
+	        	false,
+	        	"true",
+	        	"false"
+	        ]
+	      },
+	      "saveToPhotoAlbum": {
+	        "label": "saveToPhotoAlbum",
+	        "description": "Save the image to the photo album on the device after capture.",
+	        "category": "@camera options",
+	        "type": "boolean",
+	        "value": false,
+	        "values": [
+	        	false,
+	        	"true",
+	        	"false"
+	        ]
+	      },
+	      "cameraDirection": {
+	        "label": "cameraDirection",
+	        "description": "Choose the camera to use (front- or back-facing). Defined in Camera.Direction.",
+	        "category": "@camera options",
+	        "type": "string",
+	        "value": "BACK",
+	        "values": [
+	        	"BACK",
+	        	"FRONT"
+	        ]
+	      },
+	      "x": {
+	        "label": "x",
+	        "description": "abscissa (only for iOS)",
+	        "category": "@camera popover options",
+	        "type": "number",
+	        "mode":"script",
+	        "value": false
+	      },
+	      "y": {
+	        "label": "y",
+	        "description": "ordered (only for iOS)",
+	        "category": "@camera popover options",
+	        "type": "number",
+	        "mode":"script",
+	        "value": false
+	      },
+	      "width": {
+	        "label": "width",
+	        "description": "width (only for iOS)",
+	        "category": "@camera popover options",
+	        "type": "number",
+	        "mode":"script",
+	        "value": false
+	      },
+	      "height": {
+	        "label": "height",
+	        "description": "height (only for iOS)",
+	        "category": "@camera popover options",
+	        "type": "number",
+	        "mode":"script",
+	        "value": false
+	      },
+	      "arrowDir": {
+	        "label": "arrowDir",
+	        "description": "Direction the arrow on the popover should point. Defined in Camera.PopoverArrowDirection Matches iOS UIPopoverArrowDirection (only for iOS)",
+	        "category": "@camera popover options",
+	        "type": "string",
+	        "value": false,
+	        "values": [
+	        	"ARROW_UP",
+	        	"ARROW_DOWN",
+	        	"ARROW_LEFT",
+	        	"ARROW_RIGHT",
+	        	"ARROW_ANY"
+	        ]
+	      }          
+      
+      },
+      "config": {
+        "action_ts_imports": [
+			{"from":"@ionic-native/camera","components":["Camera"]},
+			{"from":"@ionic-native/camera","components":["CameraOptions"]},
+			{"from":"@ionic-native/camera","components":["CameraPopoverOptions"]}
+        ],
+        "module_ts_imports": [
+			{"from":"@ionic-native/camera","components":["Camera"]}
+        ],
+        "module_ng_imports": [
+        ],
+        "module_ng_providers": [
+			"Camera"
+        ],
+        "package_dependencies": [
+            {"package":"@ionic-native/camera", "version":"4.4.2"}
+        ],
+        "cordova_plugins": [
+          {
+            "plugin":"cordova-plugin-camera",
+            "version":"2.4.0"
+          }
+      ]
+    }
+  },
+  "UninstallAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "displayName": "Uninstaller",
+      "label": "Uninstaller",
+      "description": "This plugin allow you to uninstall application with a package ID.",
+      "group": "Application Actions",
+      "icon16": "",
+      "icon32": "",
+      "properties": {
+     
+	      "packageID": {
+	        "label": "packageID",
+	        "description": "The package id",
+	        "category": "@parameters",
+	        "type": "string",
+	        "value": ""
+	      }    
+      
+      },
+      "config": {
+        "action_ts_imports": [
+			{"from":"@ionic-native/file-opener","components":["FileOpener"]}
+        ],
+        "module_ts_imports": [
+			{"from":"@ionic-native/file-opener","components":["FileOpener"]}
+        ],
+        "module_ng_imports": [
+        ],
+        "module_ng_providers": [
+			"FileOpener"
+        ],
+        "package_dependencies": [
+            {"package":"@ionic-native/file-opener", "version":"4.4.2"}
+        ],
+        "cordova_plugins": [
+          {
+            "plugin":"cordova-plugin-file-opener2",
+            "version":"2.0.19"
+          }
+      ]
+    }
+  },
+  "CheckInstallAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "displayName": "CheckInstall",
+      "label": "CheckInstall",
+      "description": "This plugin allow you to check if an application is installed giving its package ID.",
+      "group": "Application Actions",
+      "icon16": "",
+      "icon32": "",
+      "properties": {
+     
+	      "packageID": {
+	        "label": "packageID",
+	        "description": "The package id",
+	        "category": "@parameters",
+	        "type": "string",
+	        "value": ""
+	      }    
+      
+      },
+      "config": {
+        "action_ts_imports": [
+			{"from":"@ionic-native/file-opener","components":["FileOpener"]}
+        ],
+        "module_ts_imports": [
+			{"from":"@ionic-native/file-opener","components":["FileOpener"]}
+        ],
+        "module_ng_imports": [
+        ],
+        "module_ng_providers": [
+			"FileOpener"
+        ],
+        "package_dependencies": [
+            {"package":"@ionic-native/file-opener", "version":"4.4.2"}
+        ],
+        "cordova_plugins": [
+          {
+            "plugin":"cordova-plugin-file-opener2",
+            "version":"2.0.19"
+          }
+      ]
     }
   }
 }
