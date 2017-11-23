@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
@@ -60,6 +61,7 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 		private String name;
 		private Object object;
 		private TVObject parent;
+		private JSONObject infos;
 		private List<TVObject> children = new ArrayList<TVObject>();
 		
 		private TVObject(String name) {
@@ -67,8 +69,13 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 		}
 		
 		private TVObject (String name, Object object) {
+			this(name, object, null);
+		}
+		
+		private TVObject (String name, Object object, JSONObject infos) {
 			this.name = name;
 			this.object = object;
+			this.infos = infos == null ? new JSONObject(): infos;
 		}
 
 		public String toString() {
@@ -95,8 +102,12 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 					String db = parent.parent.parent.getName();
 					String ddoc = dd.getName();
 					String dview = parent.getName();
-					String verb = name;
-					param = "'fs://"+ db +"."+ verb +", {ddoc='"+ddoc+"', view='"+dview+"'}'";
+					String vm = name;
+					String include_docs = "false";
+					try {
+						include_docs = infos.has("include_docs") ? infos.getString("include_docs"):"false";
+					} catch (JSONException e) {}
+					param = "'fs://"+ db +"."+ vm +", {ddoc='"+ddoc+"', view='"+dview+"', include_docs='"+include_docs+"'}'";
 				} else if (object instanceof UIControlDirective) {
 					UIControlDirective directive = (UIControlDirective)object;
 					param = "item"+ directive.priority;
@@ -114,6 +125,10 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 		
 		public Object getObject() {
 			return object;
+		}
+		
+		public JSONObject getInfos() {
+			return infos;
 		}
 		
 		public String getName() {
@@ -168,7 +183,7 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 			ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
 			List<String> projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
 
-			Map<String, Set<String>> map = pageComponent.getApplication().getMarkerMap();
+			Map<String, Set<String>> map = pageComponent.getApplication().getInfoMap();
 			
 			TVObject root = new TVObject("root", pageComponent);
 			if (filter.equals(Filter.Sequence)) {
@@ -235,10 +250,18 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 
 					tvs.add(new TVObject(label, s));
 					
-					Set<String> markers = map.get(s.getQName());
-					if (markers != null) {
-						for (String marker: markers) {
-							tvs.add(new TVObject(label+"#"+marker, s));
+					Set<String> infos = map.get(s.getQName());
+					if (infos != null) {
+						for (String info: infos) {
+							try {
+								JSONObject jsonInfo = new JSONObject(info);
+								if (jsonInfo.has("marker")) {
+									String marker = jsonInfo.getString("marker");
+									tvs.add(new TVObject(label+"#"+marker, s, jsonInfo));
+								}
+							} catch (JSONException e) {
+								e.printStackTrace();
+							}
 						}
 					}
 				}
@@ -265,25 +288,41 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 								if (views != null) {
 									for (Iterator<String> it = GenericUtils.cast(views.keys()); it.hasNext(); ) {
 										try {
-											Set<String> markers = null;
+											Set<String> infos = null;
 											String view = it.next();
 											key += "." + view;
 											
 											TVObject tvv = tdd.add(new TVObject(view));
 											
 											tvv.add(new TVObject("get", d));
-											markers = map.get(key+ ".get");
-											if (markers != null) {
-												for (String marker: markers) {
-													tvv.add(new TVObject("get#"+marker, d));
+											infos = map.get(key+ ".get");
+											if (infos != null) {
+												for (String info: infos) {
+													try {
+														JSONObject jsonInfo = new JSONObject(info);
+														if (jsonInfo.has("marker")) {
+															String marker = jsonInfo.getString("marker");
+															tvv.add(new TVObject("get#"+marker, d, jsonInfo));
+														}
+													} catch (JSONException e) {
+														e.printStackTrace();
+													}
 												}
 											}
 											
 											tvv.add(new TVObject("view", d));
-											markers = map.get(key+ ".view");
-											if (markers != null) {
-												for (String marker: markers) {
-													tvv.add(new TVObject("view#"+marker, d));
+											infos = map.get(key+ ".view");
+											if (infos != null) {
+												for (String info: infos) {
+													try {
+														JSONObject jsonInfo = new JSONObject(info);
+														if (jsonInfo.has("marker")) {
+															String marker = jsonInfo.getString("marker");
+															tvv.add(new TVObject("view#"+marker, d, jsonInfo));
+														}
+													} catch (JSONException e) {
+														e.printStackTrace();
+													}
 												}
 											}
 											

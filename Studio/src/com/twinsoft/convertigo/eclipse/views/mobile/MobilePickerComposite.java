@@ -635,6 +635,7 @@ public class MobilePickerComposite extends Composite {
 		String searchPath = "";
 		
 		Object object = tvObject.getObject();
+		JSONObject infos = tvObject.getInfos();
 		if (object != null) {
 			try {
 				if (object instanceof RequestableObject) {
@@ -645,6 +646,7 @@ public class MobilePickerComposite extends Composite {
 					DesignDocument dd = (DesignDocument)dbo;
 					params.put("ddoc", dd.getName());
 					params.put("view", tvObject.getParent().getName());
+					params.put("include_docs", infos.has("include_docs") ? infos.getString("include_docs"):"false");
 					searchPath = tvObject.getName().equals("get") ? ".rows.value":"";
 				} else if (object instanceof UIControlDirective) {
 					dbo = (UIControlDirective)object;
@@ -732,6 +734,7 @@ public class MobilePickerComposite extends Composite {
 							String ddoc = params.get("ddoc");
 							String view = params.get("view");
 							String viewName = ddoc + "/" + view;
+							String includeDocs = params.get("include_docs");
 							
 							Display.getDefault().asyncExec(new Runnable() {
 								public void run() {
@@ -756,7 +759,8 @@ public class MobilePickerComposite extends Composite {
 				    					// set transaction's parameters
 				    					Transaction transaction = connector.getTransactionByName(CouchDbConnector.internalView);
 				    					((GetViewTransaction)transaction).setViewname(viewName);
-				    					
+				   						((GetViewTransaction)transaction).setQ_include_docs(includeDocs);
+				   										    					
 				    					Variable view_reduce = ((GetViewTransaction)transaction).getVariable(CouchParam.prefix + "reduce");
 				   						view_reduce.setValueOrNull(false);
 				    					

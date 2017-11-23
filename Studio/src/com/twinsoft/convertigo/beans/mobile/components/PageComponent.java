@@ -449,10 +449,10 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 		return false;
 	}
 	
-	protected Map<String, Set<String>> getMarkerMap() {
+	protected Map<String, Set<String>> getInfoMap() {
 		Map<String, Set<String>> map = new HashMap<String, Set<String>>();
 		for (UIComponent uiComponent : getUIComponentList()) {
-			uiComponent.addMarkers(map);
+			uiComponent.addInfos(map);
 		}
 		return map;
 	}

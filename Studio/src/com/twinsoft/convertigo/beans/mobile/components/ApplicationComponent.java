@@ -976,10 +976,10 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		return null;
 	}
 	
-	public Map<String, Set<String>> getMarkerMap() {
+	public Map<String, Set<String>> getInfoMap() {
 		Map<String, Set<String>> map = new HashMap<String, Set<String>>();
 		for (PageComponent page : getPageComponentList()) {
-			map.putAll(page.getMarkerMap());
+			map.putAll(page.getInfoMap());
 		}
 		return map;
 	}

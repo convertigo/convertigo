@@ -436,78 +436,52 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	}
 
 	@Override
-	protected void addMarkers(Map<String, Set<String>> markerMap) {
+	protected void addInfos(Map<String, Set<String>> infoMap) {
 		IonBean ionBean = getIonBean();
 		if (ionBean != null) {
 			String beanName = ionBean.getName(); 
 			if (ionBean.hasProperty("marker")) {
+				JSONObject json = new JSONObject();
 				String key = null;
-				String marker = null;
 				
-				if (beanName.equals("FullSyncViewAction")) {
-					IonProperty property;
-					Object p_value;
+				for (IonProperty property : ionBean.getProperties().values()) {
+					String p_name = property.getName();
+					Object p_value = property.getValue();
 					
-					property = ionBean.getProperty("fsview");
-					p_value = property.getValue();
 					if (!p_value.equals(false)) {
-						key = p_value.toString() + ".view";
-					}
-					
-					property = ionBean.getProperty("marker");
-					p_value = property.getValue();
-					if (!p_value.equals(false)) {
-						MobileSmartSourceType msst = property.getSmartType();
-						if (!Mode.SOURCE.equals(msst.getMode())) {
-							marker = msst.getValue();
-						}
-					}
-
-					if (key != null && !key.isEmpty()) {
-						Set<String> markers = markerMap.get(key);
-						if (marker != null && !marker.isEmpty()) {
-							if (markers == null) {
-								markers = new HashSet<String>();
+						if (beanName.equals("FullSyncViewAction")) {
+							if (p_name.equals("fsview")) {
+								key = p_value.toString() + ".view";
 							}
-							markers.add(marker);
-							markerMap.put(key, markers);
+						} else if (beanName.equals("CallSequenceAction") || beanName.equals("CallFullSyncAction")) {
+							if (p_name.equals("requestable")) {
+								key = p_value.toString();
+							}
+						}
+					
+						MobileSmartSourceType msst = property.getSmartType();
+						try {
+							json.put(p_name, msst.getValue());
+						} catch (JSONException e) {
+							e.printStackTrace();
 						}
 					}
 				}
 				
-				if (beanName.equals("CallSequenceAction") || beanName.equals("CallFullSyncAction")) {
-					IonProperty property;
-					Object p_value;
-					
-					property = ionBean.getProperty("requestable");
-					p_value = property.getValue();
-					if (!p_value.equals(false)) {
-						key = p_value.toString();
+				if (key != null && !key.isEmpty()) {
+					Set<String> infos = infoMap.get(key);
+					if (infos == null) {
+						infos = new HashSet<String>();
 					}
-					
-					property = ionBean.getProperty("marker");
-					p_value = property.getValue();
-					if (!p_value.equals(false)) {
-						MobileSmartSourceType msst = property.getSmartType();
-						if (!Mode.SOURCE.equals(msst.getMode())) {
-							marker = msst.getValue();
-						}
+					String info = json.toString();
+					if (!info.isEmpty()) {
+						infos.add(info);
 					}
-
-					if (key != null && !key.isEmpty()) {
-						Set<String> markers = markerMap.get(key);
-						if (marker != null && !marker.isEmpty()) {
-							if (markers == null) {
-								markers = new HashSet<String>();
-							}
-							markers.add(marker);
-							markerMap.put(key, markers);
-						}
-					}
+					infoMap.put(key, infos);
 				}
 			}
 		}
 		
-		super.addMarkers(markerMap);
+		super.addInfos(infoMap);
 	}	
 }
