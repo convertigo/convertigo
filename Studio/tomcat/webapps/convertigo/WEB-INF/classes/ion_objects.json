@@ -59,12 +59,7 @@
       "description": "The associated declared form's control name",
       "category": "@Forms",
       "attr": "formControlName",
-      "value": false,
-      "values": [
-        false,
-        "false",
-        "true"
-      ]
+      "value": ""
 	},
 	
     "Disabled": {
