@@ -94,9 +94,12 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 			String param = "";
 			if (object != null) {
 				if (object instanceof Sequence) {
-					//Sequence sequence = (Sequence)object;
-					//param = "'"+ sequence.getQName() +"'";
-					param = "'"+ name + "'";
+					String marker = "";
+					try {
+						marker = infos.has("marker") ? infos.getString("marker"):"";
+					} catch (JSONException e) {}
+					Sequence sequence = (Sequence)object;
+					param = "'"+ sequence.getQName() + (!marker.isEmpty() ? "#":"") + marker + "'";
 				} else if (object instanceof DesignDocument) {
 					DesignDocument dd = (DesignDocument)object;
 					String db = parent.parent.parent.getName();
@@ -257,7 +260,8 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 								JSONObject jsonInfo = new JSONObject(info);
 								if (jsonInfo.has("marker")) {
 									String marker = jsonInfo.getString("marker");
-									tvs.add(new TVObject(label+"#"+marker, s, jsonInfo));
+									label = label + (!marker.isEmpty() ? "#":"")+ marker;
+									tvs.add(new TVObject(label, s, jsonInfo));
 								}
 							} catch (JSONException e) {
 								e.printStackTrace();
@@ -302,7 +306,8 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 														JSONObject jsonInfo = new JSONObject(info);
 														if (jsonInfo.has("marker")) {
 															String marker = jsonInfo.getString("marker");
-															tvv.add(new TVObject("get#"+marker, d, jsonInfo));
+															String name = "get" + (!marker.isEmpty() ? "#":"")+ marker;
+															tvv.add(new TVObject(name, d, jsonInfo));
 														}
 													} catch (JSONException e) {
 														e.printStackTrace();
@@ -318,7 +323,8 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 														JSONObject jsonInfo = new JSONObject(info);
 														if (jsonInfo.has("marker")) {
 															String marker = jsonInfo.getString("marker");
-															tvv.add(new TVObject("view#"+marker, d, jsonInfo));
+															String name = "view" + (!marker.isEmpty() ? "#":"")+ marker;
+															tvv.add(new TVObject(name, d, jsonInfo));
 														}
 													} catch (JSONException e) {
 														e.printStackTrace();
