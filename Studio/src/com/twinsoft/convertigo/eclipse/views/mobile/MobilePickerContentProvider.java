@@ -261,8 +261,7 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 								if (jsonInfo.has("marker")) {
 									String marker = jsonInfo.getString("marker");
 									if (!marker.isEmpty()) {
-										label = label + "#" + marker;
-										tvs.add(new TVObject(label, s, jsonInfo));
+										tvs.add(new TVObject(label + "#" + marker, s, jsonInfo));
 									}
 								}
 							} catch (JSONException e) {
