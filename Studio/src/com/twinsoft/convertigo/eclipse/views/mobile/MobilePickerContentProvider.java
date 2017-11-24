@@ -260,8 +260,10 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 								JSONObject jsonInfo = new JSONObject(info);
 								if (jsonInfo.has("marker")) {
 									String marker = jsonInfo.getString("marker");
-									label = label + (!marker.isEmpty() ? "#":"")+ marker;
-									tvs.add(new TVObject(label, s, jsonInfo));
+									if (!marker.isEmpty()) {
+										label = label + "#" + marker;
+										tvs.add(new TVObject(label, s, jsonInfo));
+									}
 								}
 							} catch (JSONException e) {
 								e.printStackTrace();
@@ -306,8 +308,10 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 														JSONObject jsonInfo = new JSONObject(info);
 														if (jsonInfo.has("marker")) {
 															String marker = jsonInfo.getString("marker");
-															String name = "get" + (!marker.isEmpty() ? "#":"")+ marker;
-															tvv.add(new TVObject(name, d, jsonInfo));
+															if (!marker.isEmpty()) {
+																String name = "get" + "#" + marker;
+																tvv.add(new TVObject(name, d, jsonInfo));
+															}
 														}
 													} catch (JSONException e) {
 														e.printStackTrace();
@@ -323,8 +327,10 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 														JSONObject jsonInfo = new JSONObject(info);
 														if (jsonInfo.has("marker")) {
 															String marker = jsonInfo.getString("marker");
-															String name = "view" + (!marker.isEmpty() ? "#":"")+ marker;
-															tvv.add(new TVObject(name, d, jsonInfo));
+															if (!marker.isEmpty()) {
+																String name = "view" + "#" + marker;
+																tvv.add(new TVObject(name, d, jsonInfo));
+															}
 														}
 													} catch (JSONException e) {
 														e.printStackTrace();

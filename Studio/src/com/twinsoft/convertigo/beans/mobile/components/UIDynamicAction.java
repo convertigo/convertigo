@@ -445,6 +445,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				String key = null;
 				
 				for (IonProperty property : ionBean.getProperties().values()) {
+					MobileSmartSourceType msst = property.getSmartType();
 					String p_name = property.getName();
 					Object p_value = property.getValue();
 					
@@ -458,13 +459,17 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 								key = p_value.toString();
 							}
 						}
+					}
 					
-						MobileSmartSourceType msst = property.getSmartType();
-						try {
-							json.put(p_name, msst.getValue());
-						} catch (JSONException e) {
-							e.printStackTrace();
+					try {
+						if (p_name.equals("marker")) {
+							json.put(p_name, !p_value.equals(false) ? msst.getValue():"");
 						}
+						if (p_name.equals("include_docs")) {
+							json.put(p_name, !p_value.equals(false) ? msst.getValue():"false");
+						}
+					} catch (JSONException e) {
+						e.printStackTrace();
 					}
 				}
 				
