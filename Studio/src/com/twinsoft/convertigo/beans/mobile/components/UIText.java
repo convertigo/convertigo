@@ -67,7 +67,7 @@ public class UIText extends UIComponent implements ITagsProperty {
 	protected String getTextValue() {
 		String value = textValue.getValue();
 		if (!Mode.PLAIN.equals(textValue.getMode())) {
-			value = "{{" + textValue.escapeStringForTpl(value) + "}}";
+			value = "{{" + value + "}}";
 		}
 		return value;
 	}

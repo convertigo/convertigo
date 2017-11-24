@@ -58,9 +58,7 @@ public class UIControlVariable extends UIComponent implements ITagsProperty {
 	protected String getVarValue() {
 		String value = varValue.getValue();
 		if (Mode.PLAIN.equals(varValue.getMode())) {
-			value = varValue.escapeStringForTpl("'" + value + "'");
-		} else {
-			value = varValue.escapeStringForTpl(value);
+			value = "'" + MobileSmartSourceType.escapeStringForTpl(value) + "'";
 		}
 		return value;
 	}

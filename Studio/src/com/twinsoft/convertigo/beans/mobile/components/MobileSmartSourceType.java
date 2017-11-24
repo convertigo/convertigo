@@ -210,19 +210,19 @@ public class MobileSmartSourceType implements XMLizable, Serializable, Cloneable
 		}
 	}
 
-	public String escapeStringForTpl(String s) {
-		String escaped = s.trim();
-		if (escaped.startsWith("'") && escaped.endsWith("'")) {
-			escaped = "'" + escaped.substring(1, escaped.length()-1).replaceAll("([\\\\])++'", "'") + "'";
-			escaped = "'" + escaped.substring(1, escaped.length()-1).replaceAll("([^\\\\])'", "$1\\\\'") + "'";
+	static public String escapeStringForTpl(String s) {
+		String escaped = s;
+		if (escaped.indexOf("'") != -1) {
+			escaped = escaped.replaceAll("([\\\\])++'", "'");
+			escaped = escaped.replaceAll("([^\\\\])'", "$1\\\\'");
 		}
 		return escaped;
 	}
-	public String escapeStringForTs(String s) {
-		String escaped = s.trim();
-		if (escaped.startsWith("'") && escaped.endsWith("'")) {
-			escaped = "'" + escaped.substring(1, escaped.length()-1).replaceAll("([\\\\])++'", "'") + "'";
-			escaped = "'" + escaped.substring(1, escaped.length()-1).replaceAll("([^\\\\])'", "$1\\\\\\\\'") + "'";
+	static public String escapeStringForTs(String s) {
+		String escaped = s;
+		if (escaped.indexOf("'") != -1) {
+			escaped = escaped.replaceAll("([\\\\])++'", "'");
+			escaped = escaped.replaceAll("([^\\\\])'", "$1\\\\\\\\'");
 		}
 		return escaped;
 	}

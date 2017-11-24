@@ -221,9 +221,7 @@ public class UICustomAction extends UIComponent implements IAction {
 							
 							String smartValue = msst.getValue();
 							if (Mode.PLAIN.equals(msst.getMode())) {
-								smartValue = msst.escapeStringForTs("\'" + smartValue + "\'");
-							} else {
-								smartValue = msst.escapeStringForTs(smartValue);
+								smartValue = "\'" + MobileSmartSourceType.escapeStringForTs(smartValue) + "\'";
 							}
 							
 							if (Mode.SOURCE.equals(msst.getMode())) {

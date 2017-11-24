@@ -141,13 +141,9 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 						if (Mode.PLAIN.equals(msst.getMode())) {
 							if (property.getType().equalsIgnoreCase("string")) {
 								smartValue = forTemplate ?
-												msst.escapeStringForTpl("\'" + smartValue + "\'"):
-													msst.escapeStringForTs("\'" + smartValue + "\'");
+										"\'" + MobileSmartSourceType.escapeStringForTpl(smartValue) + "\'":
+											"\'" + MobileSmartSourceType.escapeStringForTs(smartValue) + "\'";
 							}
-						} else {
-							smartValue = forTemplate ?
-											msst.escapeStringForTpl(smartValue):
-												msst.escapeStringForTs(smartValue);
 						}
 						
 						if (forTemplate) {
@@ -192,9 +188,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 								
 								String smartValue = msst.getValue();
 								if (Mode.PLAIN.equals(msst.getMode())) {
-									smartValue = msst.escapeStringForTs("\'" + smartValue + "\'");
-								} else {
-									smartValue = msst.escapeStringForTs(smartValue);
+									smartValue = "\'" + MobileSmartSourceType.escapeStringForTs(smartValue) + "\'";
 								}
 								
 								if (Mode.SOURCE.equals(msst.getMode())) {
