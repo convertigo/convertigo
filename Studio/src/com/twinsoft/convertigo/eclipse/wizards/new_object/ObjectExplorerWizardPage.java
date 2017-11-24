@@ -150,6 +150,10 @@ public class ObjectExplorerWizardPage extends WizardPage {
 		if (bi != null) {
 			try {
 				newBean = (DatabaseObject) bi.getBeanDescriptor().getBeanClass().newInstance();
+				if (parentObject instanceof DatabaseObject) {
+					newBean.setParent((DatabaseObject) parentObject);
+				}
+				
 				if (xpath != null) {
 					if (newBean instanceof IXPathable) {
 						((IXPathable)newBean).setXpath(xpath);

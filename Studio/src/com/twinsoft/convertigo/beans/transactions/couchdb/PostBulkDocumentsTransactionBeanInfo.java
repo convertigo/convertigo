@@ -25,6 +25,7 @@ import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.engine.enums.CouchPostDocumentPolicy;
+import com.twinsoft.convertigo.engine.enums.FullSyncAclPolicy;
 
 public class PostBulkDocumentsTransactionBeanInfo extends MySimpleBeanInfo {
 
@@ -41,7 +42,7 @@ public class PostBulkDocumentsTransactionBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/postbulkdocuments_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/postbulkdocuments_color_32x32.png";
 			
-			properties = new PropertyDescriptor[5];
+			properties = new PropertyDescriptor[6];
 
             properties[0] = new PropertyDescriptor("policy", beanClass, "getPolicy", "setPolicy");
             properties[0].setDisplayName(getExternalizedString("property.policy.display_name"));
@@ -64,6 +65,12 @@ public class PostBulkDocumentsTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[4].setDisplayName(getExternalizedString("property.useHash.display_name"));
 			properties[4].setShortDescription(getExternalizedString("property.useHash.short_description"));
 			properties[4].setValue(BLACK_LIST_PARENT_CLASS, "com.twinsoft.convertigo.beans.connectors.CouchDbConnector");
+            
+			properties[5] = new PropertyDescriptor("fullSyncAclPolicy", beanClass, "getFullSyncAclPolicy", "setFullSyncAclPolicy");
+			properties[5].setDisplayName(getExternalizedString("property.fullSyncAclPolicy.display_name"));
+			properties[5].setShortDescription(getExternalizedString("property.fullSyncAclPolicy.short_description"));
+			properties[5].setPropertyEditorClass(FullSyncAclPolicy.class);
+			properties[5].setValue(BLACK_LIST_PARENT_CLASS, "com.twinsoft.convertigo.beans.connectors.CouchDbConnector");
 			
 		}
 		catch(Exception e) {

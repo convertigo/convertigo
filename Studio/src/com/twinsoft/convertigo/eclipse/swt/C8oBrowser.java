@@ -112,6 +112,11 @@ public class C8oBrowser extends Composite {
 	public void setText(String html) {
 		getBrowser().loadHTML(html);
 	}
+	
+	public void reloadText() {
+		Browser browser = getBrowser();
+		browser.loadHTML(browser.getHTML());
+	}
 
 	public void setUrl(String url) {
 		getBrowser().loadURL(url);

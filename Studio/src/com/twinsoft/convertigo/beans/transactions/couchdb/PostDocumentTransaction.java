@@ -29,9 +29,12 @@ import javax.xml.namespace.QName;
 
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.engine.enums.CouchExtraVariable;
 import com.twinsoft.convertigo.engine.enums.CouchParam;
 import com.twinsoft.convertigo.engine.enums.CouchPostDocumentPolicy;
+import com.twinsoft.convertigo.engine.enums.FullSyncAclPolicy;
+import com.twinsoft.convertigo.engine.providers.couchdb.FullSyncContext;
 
 public class PostDocumentTransaction extends AbstractDatabaseTransaction implements ICouchParametersExtra{
 
@@ -42,6 +45,7 @@ public class PostDocumentTransaction extends AbstractDatabaseTransaction impleme
 	private String p_json_base = "";
 	private String q_batch = "";
 	private boolean useHash = false;
+	private FullSyncAclPolicy fullSyncAclPolicy = FullSyncAclPolicy.fromAuthenticatedUser;
 	
 	public PostDocumentTransaction() {
 		super();
@@ -55,6 +59,7 @@ public class PostDocumentTransaction extends AbstractDatabaseTransaction impleme
 		
 	@Override
 	protected Object invoke() throws Exception {
+		FullSyncContext.get().setFsAclPolicy(getFullSyncAclPolicy());
 		String db = getTargetDatabase();
 		Map<String, String> query = getQueryVariableValues();
 		
@@ -110,8 +115,28 @@ public class PostDocumentTransaction extends AbstractDatabaseTransaction impleme
 		this.useHash = useHash;
 	}
 
+	public FullSyncAclPolicy getFullSyncAclPolicy() {
+		return fullSyncAclPolicy;
+	}
+
+	public void setFullSyncAclPolicy(FullSyncAclPolicy fullSyncAclPolicy) {
+		this.fullSyncAclPolicy = fullSyncAclPolicy;
+	}
+
 	@Override
 	public Collection<CouchExtraVariable> getCouchParametersExtra() {
-		return Arrays.asList(CouchExtraVariable._id, CouchExtraVariable.data, CouchExtraVariable._rev, CouchExtraVariable._deleted);
+		return getConnector() instanceof FullSyncConnector ? Arrays.asList(
+				CouchExtraVariable._id,
+				CouchExtraVariable.data,
+				CouchExtraVariable._rev,
+				CouchExtraVariable._deleted,
+				CouchExtraVariable._c8oAcl,
+				CouchExtraVariable.c8oGrp
+		) : Arrays.asList(
+				CouchExtraVariable._id,
+				CouchExtraVariable.data,
+				CouchExtraVariable._rev,
+				CouchExtraVariable._deleted
+		);
 	}	
 }

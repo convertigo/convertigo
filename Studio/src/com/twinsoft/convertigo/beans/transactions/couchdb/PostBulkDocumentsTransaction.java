@@ -29,10 +29,13 @@ import javax.xml.namespace.QName;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.enums.CouchExtraVariable;
 import com.twinsoft.convertigo.engine.enums.CouchParam;
 import com.twinsoft.convertigo.engine.enums.CouchPostDocumentPolicy;
+import com.twinsoft.convertigo.engine.enums.FullSyncAclPolicy;
+import com.twinsoft.convertigo.engine.providers.couchdb.FullSyncContext;
 
 public class PostBulkDocumentsTransaction extends AbstractDatabaseTransaction implements ICouchParametersExtra{
 
@@ -44,6 +47,7 @@ public class PostBulkDocumentsTransaction extends AbstractDatabaseTransaction im
 	private String p_new_edits = "";
 	private String p_json_base = "";
 	private boolean useHash = false;
+	private FullSyncAclPolicy fullSyncAclPolicy = FullSyncAclPolicy.fromAuthenticatedUser;
 	
 	public PostBulkDocumentsTransaction() {
 		super();
@@ -57,6 +61,8 @@ public class PostBulkDocumentsTransaction extends AbstractDatabaseTransaction im
 	
 	@Override
 	protected Object invoke() throws Exception {
+		FullSyncContext.get().setFsAclPolicy(getFullSyncAclPolicy());
+		
 		JSONObject jsonDoc = null;
 		JSONArray jsonDocuments;
 		
@@ -76,7 +82,9 @@ public class PostBulkDocumentsTransaction extends AbstractDatabaseTransaction im
 		// add document members from variables
 		for (RequestableVariable variable : getVariablesList()) {
 			String variableName = variable.getName();
-			if (variable.isMultiValued() && !variableName.startsWith(CouchParam.prefix)) {
+			if (variable.isMultiValued() &&
+					!variableName.startsWith(CouchParam.prefix) &&
+					!variableName.startsWith("__")) {
 				Object jsonv = toJson(getParameterValue(variableName));
 				
 				if (jsonv != null && jsonv instanceof JSONArray) {
@@ -94,9 +102,23 @@ public class PostBulkDocumentsTransaction extends AbstractDatabaseTransaction im
 			}
 		}
 		
+		
+		for (RequestableVariable variable : getVariablesList()) {
+			String variableName = variable.getName();
+			if (!variable.isMultiValued() &&
+					!variableName.startsWith(CouchParam.prefix) &&
+					!variableName.startsWith("__")) {
+				Object jsonv = toJson(getParameterValue(variableName));
+				
+				for (int i = 0; i < jsonDocuments.length(); i++) {
+					JSONObject jsonDocument = jsonDocuments.getJSONObject(i);
+					addJson(jsonDocument, variableName, jsonv, getParameterDataTypeClass(variableName));
+				}
+			}
+		}
+		
 		boolean all_or_nothing = getParameterBooleanValue(CouchParam.all_or_nothing, false);
 		boolean new_edits = getParameterBooleanValue(CouchParam.new_edits, true);
-		
 		return getCouchClient().postBulkDocs(getTargetDatabase(), jsonDocuments, all_or_nothing, new_edits, policy, useHash);
 	}
 
@@ -145,8 +167,34 @@ public class PostBulkDocumentsTransaction extends AbstractDatabaseTransaction im
 		this.useHash = useHash;
 	}
 
+	public FullSyncAclPolicy getFullSyncAclPolicy() {
+		return fullSyncAclPolicy;
+	}
+
+	public void setFullSyncAclPolicy(FullSyncAclPolicy fullSyncAclPolicy) {
+		this.fullSyncAclPolicy = fullSyncAclPolicy;
+	}
+
 	@Override
 	public Collection<CouchExtraVariable> getCouchParametersExtra() {
-		return Arrays.asList(CouchExtraVariable._ids, CouchExtraVariable._revs, CouchExtraVariable._deleteds, CouchExtraVariable.datas);
+		return getConnector() instanceof FullSyncConnector ? Arrays.asList(
+				CouchExtraVariable._ids,
+				CouchExtraVariable._revs,
+				CouchExtraVariable._deleted,
+				CouchExtraVariable._deleteds,
+				CouchExtraVariable.data,
+				CouchExtraVariable.datas,
+				CouchExtraVariable._c8oAcl,
+				CouchExtraVariable._c8oAcls,
+				CouchExtraVariable.c8oGrp,
+				CouchExtraVariable.c8oGrps
+		) : Arrays.asList(
+				CouchExtraVariable._ids,
+				CouchExtraVariable._revs,
+				CouchExtraVariable._deleted,
+				CouchExtraVariable._deleteds,
+				CouchExtraVariable.data,
+				CouchExtraVariable.datas
+		);
 	}
 }

@@ -34,7 +34,7 @@ public class FullSyncConnector extends CouchDbConnector {
 
 	@Override
 	public void beforeTransactionInvoke() {
-		FullSyncContext.set(context.getAuthenticatedUser());
+		FullSyncContext.get().setAuthenticatedUser(context.getAuthenticatedUser());
 	}
 
 	@Override

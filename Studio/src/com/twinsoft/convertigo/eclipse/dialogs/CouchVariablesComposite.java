@@ -2,7 +2,9 @@ package com.twinsoft.convertigo.eclipse.dialogs;
 
 import java.beans.PropertyDescriptor;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -42,29 +44,20 @@ public class CouchVariablesComposite extends ScrolledComposite {
 	private List<CouchVariable> selectedVariable = null;
 		
 	public CouchVariablesComposite(Composite parent, int style, List<RequestableVariable> allVariables) {
-		super(parent, style);	
+		this(parent, style);	
 		this.allVariables = allVariables;
-		parametersCouch = new ArrayList<String>();
-		selectedVariable = new ArrayList<CouchVariable>();
-		createContents();
 	}
 	
 	public CouchVariablesComposite(Composite parent, int style) {
 		super(parent, style);
 		parametersCouch = new ArrayList<String>();
 		selectedVariable = new ArrayList<CouchVariable>();
-		createContents();
-	}
-
-	protected void createContents() {
-		setLayout(new GridLayout(1, true));
-		setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		setExpandHorizontal(true);
 	}
 
 	public void setPropertyDescriptor(AbstractCouchDbTransaction couchDbTransaction, PropertyDescriptor[] propertyDescriptors, DatabaseObject parentObject) {	
 		cleanGroups();
 		
-		int height = 0;
 		/* Fill the Group widget */
 		for (PropertyDescriptor property : propertyDescriptors) {
 			final String name = property.getName();
@@ -75,7 +68,7 @@ public class CouchVariablesComposite extends ScrolledComposite {
 					if (!parentObject.getClass().getCanonicalName().equals(property.getValue( 
 								MySimpleBeanInfo.BLACK_LIST_PARENT_CLASS))) {
 						Group choosenGroup = name.startsWith("q_") ? groupQueries : groupParameters;
-						height += addToComposite(choosenGroup, name, description, false);
+						addToComposite(choosenGroup, name, description, false);
 					}
 				} 
 			}
@@ -106,22 +99,28 @@ public class CouchVariablesComposite extends ScrolledComposite {
 		
 		if (extraVariables != null ){
 			for (CouchExtraVariable extraVariable : extraVariables) {
-				height += addToComposite(groupData, extraVariable.getVariableName(), extraVariable.getVariableDescription(), extraVariable.isMultiValued());
+				addToComposite(groupData, extraVariable.getVariableName(), extraVariable.getVariableDescription(), extraVariable.isMultiValued());
 			}
 		}
 		
 		if (groupData.getChildren().length == 0){
 			groupData.dispose();
 		}
-
-		//Set the minimal size for the scrolled composite
-		this.setMinSize(getSize().x, height );
 		
-		globalComposite.setSize(getSize());	
-		this.setContent(globalComposite);
-		this.setExpandVertical(true);
+		setContent(globalComposite);
+		globalComposite.pack(true);
 		
-		this.layout(true);
+		// Fix text no displayed in C8oBrowser
+		LinkedList<Control> controls = new LinkedList<>();
+		controls.add(globalComposite);
+		Control c;
+		while ((c = controls.pollFirst()) != null) {
+			if (c instanceof C8oBrowser) {
+				((C8oBrowser) c).reloadText();
+			} else if (c instanceof Composite) {
+				controls.addAll(Arrays.asList(((Composite) c).getChildren()));
+			}
+		}
 	}
 	
 	private void cleanGroups(){	
@@ -129,7 +128,6 @@ public class CouchVariablesComposite extends ScrolledComposite {
 				
 		globalComposite = new Composite(this, SWT.NONE);
 		globalComposite.setLayout(new GridLayout(1, true));
-		globalComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		GridLayout layout = new GridLayout(3, false);
 		layout.horizontalSpacing = 30;	
@@ -143,6 +141,9 @@ public class CouchVariablesComposite extends ScrolledComposite {
 		groupParameters.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
 		groupParameters.setText("Parameters");
 
+		layout = new GridLayout(3, false);
+		layout.horizontalSpacing = 30;	
+		
 		/* Queries */
 		if ((groupQueries != null) && (!groupQueries.isDisposed())) {
 			groupQueries.dispose();
@@ -152,6 +153,9 @@ public class CouchVariablesComposite extends ScrolledComposite {
 		
 		groupQueries.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
 		groupQueries.setText("Queries");
+		
+		layout = new GridLayout(3, false);
+		layout.horizontalSpacing = 30;	
 		
 		/* Extra variables */
 		if ((groupData != null) && (!groupData.isDisposed())) {
@@ -190,8 +194,7 @@ public class CouchVariablesComposite extends ScrolledComposite {
 		parametersCouch.clear();
 	}
 	
-	private int addToComposite(Group choosenGroup, final String name, final String description, final boolean isMultiValued){
-		int height = 0;
+	private void addToComposite(Group choosenGroup, final String name, final String description, final boolean isMultiValued) {
 		boolean isNotChecked = true;
 		
 		if (allVariables != null) {
@@ -216,7 +219,16 @@ public class CouchVariablesComposite extends ScrolledComposite {
 			FontData fontData = labelName.getFont().getFontData()[0];
 			Font font = new Font(this.getDisplay(), new FontData(fontData.getName(), fontData.getHeight(), SWT.BOLD));
 			labelName.setFont(font);
-			labelName.setText((name.startsWith("p_") || name.startsWith("q_") ? name.substring(2) : name ));
+			
+			String label = name;
+			if (label.startsWith("p_") || label.startsWith("q_")) {
+				label = name.substring(2);
+			}
+			if (isMultiValued) {
+				label += " [ ]";
+			}			
+			
+			labelName.setText(label);
 			
 			C8oBrowser browserDescription = new C8oBrowser(choosenGroup, SWT.MULTI | SWT.WRAP);
 			browserDescription.setLayoutData(new GridData(GridData.FILL, GridData.CENTER, true, false));
@@ -233,14 +245,9 @@ public class CouchVariablesComposite extends ScrolledComposite {
 								    "overflow-y: auto;" +
 								    "background-color: #ECEBEB }"+
 							"</style></head><p>" + description + "</p></html>");
-			
-			browserDescription.setSize(browserDescription.getSize().x, 40);
 
 			parametersCouch.add(name);
-			height+=browserDescription.getSize().y + 11;
 		}
-		
-		return height;
 	}
 	
 	private boolean isChecked(List<RequestableVariable> requestableVariables, String name){
