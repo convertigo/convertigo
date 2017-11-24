@@ -284,11 +284,8 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 						String label = isReferenced ? c.getQName():c.getName();
 						TVObject tvc = tvd.add(new TVObject(label));
 						
-						String key = c.getQName();
-						
 						for (Document d : c.getDocumentsList()) {
 							if (d instanceof DesignDocument) {
-								key += "." + d.getName();
 								TVObject tdd = tvc.add(new TVObject(d.getName()));
 								JSONObject views = CouchKey.views.JSONObject(((DesignDocument)d).getJSONObject());
 								if (views != null) {
@@ -296,7 +293,8 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 										try {
 											Set<String> infos = null;
 											String view = it.next();
-											key += "." + view;
+											
+											String key = c.getQName() + "." + d.getName() + "." + view;
 											
 											TVObject tvv = tdd.add(new TVObject(view));
 											
