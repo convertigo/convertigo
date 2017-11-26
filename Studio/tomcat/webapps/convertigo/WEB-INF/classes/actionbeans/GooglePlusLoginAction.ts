@@ -9,7 +9,7 @@
         return new Promise((resolve, reject) => {
             page.getInstance(Platform).ready().then(() => {  
                 page.getInstance(GooglePlus).login({
-                    
+                    "webClientId" : props.webClientId
                 })
                 .then((res: any) => {
                     page.c8o.log.debug(JSON.stringify(res))

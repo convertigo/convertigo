@@ -4882,6 +4882,13 @@
       "icon16": "googleloginaction_color_16x16.png",
       "icon32": "googleloginaction_color_32x32.png",
       "properties": {
+        "webClientId": {
+          "label": "Web Client ID",
+          "description": "The web client ID (Optional). Has to be set if you want to retrieve an 'idToken' or a 'serverAuthCode'.",
+          "category": "@Properties",
+          "type": "string",
+          "value": false
+        }
       },
       "config": {
         "action_ts_imports": [
