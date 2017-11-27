@@ -4561,7 +4561,7 @@
           "mode": "script",
           "attr":"[colors]",
           "label": "Data colors",
-          "description": "data colors, will use default and|or random colors if not specified",
+          "description": "data colors, will use default colors if not specified",
           "category": "@Properties",
           "value": "[{'backgroundColor': 'rgb(0, 127, 255)','borderColor': 'rgb(0, 0, 255)'},{'backgroundColor': 'rgb(136, 77, 167)','borderColor': 'rgb(102,0, 153)'}]",
 		  "values": [
