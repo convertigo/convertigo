@@ -1623,6 +1623,20 @@
             true
           ]
         },
+        "TabBadge": {
+          "attr": "tabBadge",
+          "label": "badge",
+          "description": "Specifies the badge for the tab button",
+          "category": "Attributes",
+          "value": false
+        },
+        "TabBadgeStyle": {
+          "attr": "tabBadgeStyle",
+          "label": "badge color",
+          "description": "Specifies the badge color for the tab button",
+          "category": "Attributes",
+          "value": false
+        },
         "TabIcon": {
           "attr": "tabIcon",
           "label": "icon",
