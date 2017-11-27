@@ -3276,6 +3276,20 @@
     		"category": "@Properties",
     		"value": false
     	},
+    	"min":{
+    		"attr":"min",
+    		"label": "Minimum datetime",
+    		"description": "The minimum datetime allowed. Use ISO 8601 datetime format YYYY-MM-DD. See https://www.w3.org/TR/NOTE-datetime for more formats",
+    		"category": "@Properties",
+    		"value": false
+    	},
+    	"max":{
+    		"attr":"max",
+    		"label": "Maximum datetime",
+    		"description": "The maximum datetime allowed. Use ISO 8601 datetime format YYYY-MM-DD. See https://www.w3.org/TR/NOTE-datetime for more formats",
+    		"category": "@Properties",
+    		"value": false
+    	},
         "Value": {
           "attr": "[ngModel]",
           "label": "Value",
