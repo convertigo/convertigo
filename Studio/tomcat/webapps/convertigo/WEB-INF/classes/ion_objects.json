@@ -5282,8 +5282,8 @@
       "label": "FileChooser",
       "description": "Opens the file picker on Android for the user to select a file, returns a file URI.",
       "group": "File Actions",
-      "icon16": "",
-      "icon32": "",
+      "icon16": "filechooseraction_color_16x16.png",
+      "icon32": "filechooseraction_color_32x32.png",
       "properties": {
       },
       "config": {
@@ -5324,8 +5324,8 @@
       "label": "FileOpener",
       "description": "This plugin will open a file on your device file system with its default application.",
       "group": "File Actions",
-      "icon16": "",
-      "icon32": "",
+      "icon16": "fileopeneraction_color_16x16.png",
+      "icon32": "fileopeneraction_color_32x32.png",
       "properties": {
      
 	      "filePath": {
@@ -5366,8 +5366,8 @@
       "label": "Camera",
       "description": "Take a photo or capture video.",
       "group": "Camera",
-      "icon16": "",
-      "icon32": "",
+      "icon16": "cameraaction_color_16x16.png",
+      "icon32": "cameraaction_color_32x32.png",
       "properties": {
      
 	      "quality": {
@@ -5564,8 +5564,8 @@
       "label": "Uninstaller",
       "description": "This plugin allow you to uninstall application with a package ID.",
       "group": "Application Actions",
-      "icon16": "",
-      "icon32": "",
+      "icon16": "uninstallaction_color_16x16.png",
+      "icon32": "uninstallaction_color_32x32.png",
       "properties": {
      
 	      "packageID": {
@@ -5606,8 +5606,8 @@
       "label": "CheckInstall",
       "description": "This plugin allow you to check if an application is installed giving its package ID.",
       "group": "Application Actions",
-      "icon16": "",
-      "icon32": "",
+      "icon16": "checkinstallaction_color_16x16.png",
+      "icon32": "checkinstallaction_color_32x32.png",
       "properties": {
      
 	      "packageID": {
