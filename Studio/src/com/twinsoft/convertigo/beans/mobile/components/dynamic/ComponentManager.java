@@ -309,12 +309,6 @@ public class ComponentManager {
 			components.add(getDboComponent(UIControlVariable.class,group));
 			components.add(getDboComponent(UICustomAction.class,group));
 			
-//			// Add Sources
-//			group = "Sources";
-//			components.add(getDboComponent(UIControlCustomSource.class,group));
-//			components.add(getDboComponent(UIControlListenSequenceSource.class,group));
-//			components.add(getDboComponent(UIControlListenFullSyncSource.class,group));
-			
 			components.add(getDboComponent(UIForm.class,"Forms"));
 			components.add(getDboComponent(UIFormControlValidator.class,"Forms"));
 			components.add(getDboComponent(UIFormCustomValidator.class,"Forms"));

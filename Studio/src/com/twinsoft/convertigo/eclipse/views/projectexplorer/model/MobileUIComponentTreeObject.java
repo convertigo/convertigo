@@ -56,7 +56,6 @@ import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
-import com.twinsoft.convertigo.beans.couchdb.FullSyncListener;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
@@ -64,9 +63,6 @@ import com.twinsoft.convertigo.beans.mobile.components.UIControlCallAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlCallFullSync;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlCallSequence;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlCustomAction;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlListenFullSyncSource;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlListenSequenceSource;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlListenSource;
 import com.twinsoft.convertigo.beans.mobile.components.UICustom;
 import com.twinsoft.convertigo.beans.mobile.components.UICustomAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
@@ -544,14 +540,6 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 					}
 					
 				}
-				if (getObject() instanceof UIControlListenSource) {
-					if (ProjectTreeObject.class.isAssignableFrom(c) ||
-						SequenceTreeObject.class.isAssignableFrom(c) ||
-						ConnectorTreeObject.class.isAssignableFrom(c))
-					{
-						list.add("target");
-					}
-				}
 				if (getObject() instanceof UIDynamicTab) {
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
 						MobileApplicationTreeObject.class.isAssignableFrom(c) ||
@@ -582,9 +570,6 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 					return "requestable".equals(propertyName) || 
 								"fsview".equals(propertyName) ||
 									"page".equals(propertyName);
-				}
-				if (getObject() instanceof UIControlListenSource) {
-					return "target".equals(propertyName);
 				}
 				if (getObject() instanceof UIDynamicTab) {
 					return "tabpage".equals(propertyName);
@@ -639,17 +624,6 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 						}
 					}
 					
-				}
-				if (getObject() instanceof UIControlListenSource) {
-					if ("target".equals(propertyName)) {
-						UIControlListenSource cc = (UIControlListenSource) getObject();
-						if (cc instanceof UIControlListenSequenceSource) {
-							return nsObject instanceof Sequence;
-						}
-						if (cc instanceof UIControlListenFullSyncSource) {
-							return nsObject instanceof FullSyncConnector;
-						}
-					}
 				}
 				if (getObject() instanceof UIDynamicTab) {
 					if ("tabpage".equals(propertyName)) {
@@ -709,12 +683,6 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 								if ("page".equals(propertyName)) {
 									((UIDynamicAction)getObject()).getIonBean().
 										setPropertyValue("page", new MobileSmartSourceType(_pValue));
-									hasBeenRenamed = true;
-								}
-							}
-							if (getObject() instanceof UIControlListenSource) {
-								if ("target".equals(propertyName)) {
-									((UIControlListenSource)getObject()).setTarget(_pValue);
 									hasBeenRenamed = true;
 								}
 							}

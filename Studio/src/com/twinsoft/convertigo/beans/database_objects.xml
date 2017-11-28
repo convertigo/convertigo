@@ -259,17 +259,6 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustomAction"/>
 				</bean>
 			</beans>
-			<!--<beans groupname="Source Components">
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlCustomSource">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlDirective"/>
-				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlListenSequenceSource">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlDirective"/>
-				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlListenFullSyncSource">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlDirective"/>
-				</bean>
-			</beans>-->
 		</category>
 	</group>
 	
