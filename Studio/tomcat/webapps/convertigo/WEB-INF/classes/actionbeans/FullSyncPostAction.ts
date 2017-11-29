@@ -12,6 +12,7 @@
             let rvm:string = r + '.' + v
             let rootKey = props.RootKey
             let policy = props._use_policy
+            let id     = props._id
             
             delete props.requestable
             delete props.RootKey
@@ -19,7 +20,9 @@
             let data = {}
             data[rootKey] = page.merge(props, vars)
             delete data[rootKey]._use_policy
+            delete data[rootKey]._id
             data["_use_policy"] = policy
+            data["_id"]         = id
            
             page.getInstance(Platform).ready().then(() => {     // We may need the CBL plugin so wait for platform ready.
                 page.c8o.finalizeInit().then(()=>{              // To be sure that FullSync initialized properly on CBL
