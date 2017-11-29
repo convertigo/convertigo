@@ -395,6 +395,14 @@ public class JavelinConnectorComposite extends AbstractConnectorComposite implem
 						&& (tracePlayerThread.connectorName.equals(connector.getName()))) {
 					String tracePlayerPort = ConvertigoPlugin
 							.getProperty(ConvertigoPlugin.PREFERENCE_TRACEPLAYER_PORT);
+					if (javelinConnector.isSslEnabled()) {
+						try {
+							javelinConnector.setSslEnabled(false);
+							renew(true);
+						} finally {
+							javelinConnector.setSslEnabled(true);
+						}
+					}
 					javelinConnector.javelin.Connect("DIR#localhost:" + tracePlayerPort);
 				} else
 					javelinConnector.javelin.connect(timeoutForConnect);
