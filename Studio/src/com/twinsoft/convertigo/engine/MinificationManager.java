@@ -489,6 +489,9 @@ public class MinificationManager implements AbstractManager, PropertyChangeEvent
 						}
 					}
 					
+					if (resourceBundle.resources.isEmpty()) {
+						resourceBundle = null;
+					}
 					
 					return resourceBundle;
 				}
