@@ -366,6 +366,20 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		return "";
 	}
 
+	public UIControlVariable getVariable(String variableName) {
+		Iterator<UIComponent> it = getUIComponentList().iterator();
+		while (it.hasNext()) {
+			UIComponent component = (UIComponent)it.next();
+			if (component instanceof UIControlVariable) {
+				UIControlVariable variable = (UIControlVariable)component;
+				if (variable.getName().equals(variableName)) {
+					return variable;
+				}
+			}
+		}
+		return null;
+	}
+	
 	@Override
 	protected Contributor getContributor() {
 		return new Contributor() {

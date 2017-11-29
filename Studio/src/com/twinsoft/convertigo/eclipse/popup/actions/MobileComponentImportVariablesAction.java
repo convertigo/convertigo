@@ -33,11 +33,20 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchPart;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlCallAction;
+import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
+import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
+import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class MobileComponentImportVariablesAction extends MyAbstractAction {
 
@@ -47,13 +56,18 @@ public class MobileComponentImportVariablesAction extends MyAbstractAction {
 
 	public void selectionChanged(IAction action, ISelection selection) {
 		try {
-			boolean enable = true;
+			boolean enable = false;
 			super.selectionChanged(action, selection);
 			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 			TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
 			if (treeObject instanceof DatabaseObjectTreeObject) {
 				DatabaseObject dbo = (DatabaseObject) treeObject.getObject();
-				enable = dbo instanceof UIControlCallAction;
+				if (dbo instanceof UIDynamicAction) {
+					IonBean ionBean = ((UIDynamicAction)dbo).getIonBean();
+					if (ionBean != null && ionBean.getName().equals("CallSequenceAction")) {
+						enable = true;
+					}
+				}
 			}
 			action.setEnabled(enable);
 		}
@@ -72,14 +86,51 @@ public class MobileComponentImportVariablesAction extends MyAbstractAction {
     		if (explorerView != null) {
     			TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
     			Object databaseObject = treeObject.getObject();
-    			if ((databaseObject != null) && (databaseObject instanceof UIControlCallAction)) {
-    				UIControlCallAction callAction = (UIControlCallAction)databaseObject;
-    				callAction.importVariableDefinition();
-    				if (callAction.hasChanged) {
-    					explorerView.reloadTreeObject(treeObject);
-						StructuredSelection structuredSelection = new StructuredSelection(treeObject);
-						ConvertigoPlugin.getDefault().getPropertiesView().selectionChanged((IWorkbenchPart)explorerView, structuredSelection);
-    				}
+    			if ((databaseObject != null) && (databaseObject instanceof UIDynamicAction)) {
+    				UIDynamicAction dynAction = (UIDynamicAction)databaseObject;
+					IonBean ionBean = ((UIDynamicAction)dynAction).getIonBean();
+					if (ionBean != null && ionBean.getName().equals("CallSequenceAction")) {
+						Object value = ionBean.getProperty("requestable").getValue();
+						if (!value.equals(false)) {
+							String target = value.toString();
+							if (!target.isEmpty()) {
+						    	try {
+						    		String projectName = target.substring(0, target.indexOf('.'));
+						    		String sequenceName = target.substring(target.indexOf('.')+1);
+						    		Project p = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
+						    		Sequence sequence = p.getSequenceByName(sequenceName);
+						    		
+						    		int size = sequence.numberOfVariables();
+						    		for (int i=0; i<size; i++) {
+						    			RequestableVariable variable = (RequestableVariable) sequence.getVariable(i);
+						    			if (variable != null) {
+						    				String variableName = variable.getName();
+						    				if (dynAction.getVariable(variableName) == null) {
+						    					if (!StringUtils.isNormalized(variableName))
+						    						throw new EngineException("Variable name is not normalized : \""+variableName+"\".");
+						    					
+						    					UIControlVariable uiVariable = new UIControlVariable();
+						    					uiVariable.setName(variableName);
+						    					uiVariable.setComment(variable.getDescription());
+						    					uiVariable.setVarSmartType(new MobileSmartSourceType(variable.getDefaultValue().toString()));
+						    					dynAction.addUIComponent(uiVariable);
+
+						    					uiVariable.bNew = true;
+						    					uiVariable.hasChanged = true;
+						    					dynAction.hasChanged = true;
+						    				}
+						    			}
+						    		}
+						    		
+						    	} catch (Exception e) {}
+							}
+						}
+	    				if (dynAction.hasChanged) {
+	    					explorerView.reloadTreeObject(treeObject);
+							StructuredSelection structuredSelection = new StructuredSelection(treeObject);
+							ConvertigoPlugin.getDefault().getPropertiesView().selectionChanged((IWorkbenchPart)explorerView, structuredSelection);
+	    				}
+					}
     			}
     		}
         }
