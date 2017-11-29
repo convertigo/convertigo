@@ -5034,9 +5034,9 @@
   
   "FullSyncPostAction" : {
     "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
-    "displayName": "Post",
+    "displayName": "FullSync Post",
     "label": "Post Data",
-    "description": "Post (write) data to FullSync database. | Use this action to write data to a FullSync database. You can add 'Variables' to this action.<br/><br/>Each variable name will be used as a jSON key with the variable value associated. Variables values can be 'sourced' directly from 'Forms' using the 'Mobile Picker' (Configured in Form mode).<br/><br/>Source to 'FormXXXXX.value' to write the whole form content to the database.",
+    "description": "Post (write) data to FullSync database. | Use this action to write data to a FullSync database. You can add 'Variables' to this action.<br/><br/>Each variable name will be used as a jSON key with the variable value associated. Also, if used in a Form 'submit' event, all form elements will be automatically posted as key / values, the key being the form control name and the value the current value of the field. <br /><br />You can use the 'root key' property to place the posted data in a wrapper object.",
     "group": "FullSync Actions",
     "icon16": "fspostaction_color_16x16.png",
     "icon32": "fspostaction_color_32x32.png",
@@ -5073,6 +5073,13 @@
           "merge",
           "override"
         ]
+      },
+      "RootKey": {
+        "label": "Root Key",
+        "description": "The key used to 'Wrap' all posted key/ value pairs in an object. The key can be simple or composed of a path to the target object, ex : my.super.structure.myObject" ,
+        "category": "@Properties",
+        "type": "string",
+        "value": false
       }
     }
 },

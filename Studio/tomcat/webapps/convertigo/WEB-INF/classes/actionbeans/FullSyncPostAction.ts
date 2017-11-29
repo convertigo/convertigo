@@ -10,8 +10,17 @@
             let r:string = props.requestable.substring(props.requestable.indexOf('.')+1);
             let v:string = 'post'
             let rvm:string = r + '.' + v
+            let rootKey = props.RootKey
+            let policy = props._use_policy
+            
             delete props.requestable
-            let data = page.merge(props, vars)
+            delete props.RootKey
+
+            let data = {}
+            data[rootKey] = page.merge(props, vars)
+            delete data[rootKey]._use_policy
+            data["_use_policy"] = policy
+           
             page.getInstance(Platform).ready().then(() => {     // We may need the CBL plugin so wait for platform ready.
                 page.c8o.finalizeInit().then(()=>{              // To be sure that FullSync initialized properly on CBL
                     page.call("fs://" + rvm, data, null, 500)
