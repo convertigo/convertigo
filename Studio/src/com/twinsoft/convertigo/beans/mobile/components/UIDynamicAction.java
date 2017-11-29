@@ -35,6 +35,7 @@ import org.codehaus.jettison.json.JSONObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType.Mode;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective.AttrDirective;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent.AttrEvent;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonProperty;
@@ -100,12 +101,29 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		return scope;
 	}
 	
+	private boolean underSubmitEvent() {
+		DatabaseObject dbo = getParent();
+		if (dbo != null && dbo instanceof UIControlEvent) {
+			return ((UIControlEvent)dbo).getAttrName().equals(AttrEvent.onSubmit.event());
+		}
+		return false;
+	}
+	
 	@Override
 	public String computeTemplate() {
 		if (isEnabled()) {
+			String formGroupName = null;
+			if (underSubmitEvent()) {
+				UIForm uiForm = getUIForm();
+				if (uiForm != null) {
+					formGroupName = uiForm.getFormGroupName();
+				}
+			}
+			
 			if (numberOfActions() > 0 || getParent() instanceof UIPageEvent) {
 				String scope = getScope();
-				return getFunctionName() + "({root: {scope:{"+scope+"}, in:{}, out:$event}})";
+				String in = formGroupName == null ? "{}": "merge("+formGroupName +".value, {})";
+				return getFunctionName() + "({root: {scope:{"+scope+"}, in:"+ in +", out:$event}})";
 			} else {
 				IonBean ionBean = getIonBean();
 				if (ionBean != null) {
@@ -115,6 +133,11 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 					int j = inputs.indexOf("vars:")+"vars:".length();
 					String props = inputs.substring(i, inputs.indexOf('}',i)+1);
 					String vars = inputs.substring(j, inputs.indexOf('}',j)+1);
+					
+					if (formGroupName != null) {
+						vars = "merge("+formGroupName +".value, "+ vars +")";
+					}
+					
 					return "actionBeans."+ actionName + "(this,"+ props + ","+ vars +")";
 				}
 			}
@@ -209,7 +232,6 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 						}
 					}
 				}
-				
 				return "{props:{"+sbProps+"}, vars:{"+sbVars+"}}";
 			}
 		}
@@ -320,7 +342,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			tsCode += "\t\tself = stack[\""+ getName() +"\"] = {};"+ System.lineSeparator();
 			tsCode += "\t\tself.in = "+ inputs +";"+ System.lineSeparator();
 			
-			tsCode +="\t\treturn this.actionBeans."+actionName+"(this, self.in.props, self.in.vars)"+ System.lineSeparator();
+			tsCode +="\t\treturn this.actionBeans."+actionName+"(this, self.in.props, this.merge(self.in.vars, stack[\"root\"].in))"+ System.lineSeparator();
 			tsCode += "\t\t.then((res:any) => {"+ System.lineSeparator();
 			tsCode += "\t\tparent = self;"+ System.lineSeparator();
 			tsCode += "\t\tparent.out = res;"+ System.lineSeparator();

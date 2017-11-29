@@ -36,6 +36,7 @@ import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType.Mode;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective.AttrDirective;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent.AttrEvent;
 
 public class UICustomAction extends UIComponent implements IAction {
 
@@ -180,18 +181,39 @@ public class UICustomAction extends UIComponent implements IAction {
 		return scope;
 	}
 	
+	private boolean underSubmitEvent() {
+		DatabaseObject dbo = getParent();
+		if (dbo != null && dbo instanceof UIControlEvent) {
+			return ((UIControlEvent)dbo).getAttrName().equals(AttrEvent.onSubmit.event());
+		}
+		return false;
+	}
+	
 	@Override
 	public String computeTemplate() {
 		if (isEnabled()) {
+			String formGroupName = null;
+			if (underSubmitEvent()) {
+				UIForm uiForm = getUIForm();
+				if (uiForm != null) {
+					formGroupName = uiForm.getFormGroupName();
+				}
+			}
+			
 			if (numberOfActions() > 0 || getParent() instanceof UIPageEvent) {
 				String scope = getScope();
-				return getFunctionName() + "({root: {scope:{"+scope+"}, in:{}, out:$event}})";
+				String in = formGroupName == null ? "{}": "merge("+formGroupName +".value, {})";
+				return getFunctionName() + "({root: {scope:{"+scope+"}, in:"+in+", out:$event}})";
 			} else {
 				String inputs = computeActionInputs(true);
 				int i = inputs.indexOf("props:")+"props:".length();
 				int j = inputs.indexOf("vars:")+"vars:".length();
 				String props = inputs.substring(i, inputs.indexOf('}',i)+1);
 				String vars = inputs.substring(j, inputs.indexOf('}',j)+1);
+				
+				if (formGroupName != null) {
+					vars = "merge("+formGroupName +".value, "+ vars +")";
+				}
 				
 				String actionName = getActionName();
 				return ""+ actionName + "(this,"+ props + ","+ vars +", $event)";
@@ -366,7 +388,7 @@ public class UICustomAction extends UIComponent implements IAction {
 		tsCode += "\t\tself = stack[\""+ beanName +"\"] = {};"+ System.lineSeparator();
 		tsCode += "\t\tself.in = "+ inputs +";"+ System.lineSeparator();
 		
-		tsCode +="\t\treturn this."+actionName+"(this, self.in.props, self.in.vars, event)"+ System.lineSeparator();
+		tsCode +="\t\treturn this."+actionName+"(this, self.in.props, this.merge(self.in.vars, stack[\"root\"].in), event)"+ System.lineSeparator();
 		
 		tsCode += "\t\t.then((res:any) => {"+ System.lineSeparator();
 		tsCode += "\t\tparent = self;"+ System.lineSeparator();
