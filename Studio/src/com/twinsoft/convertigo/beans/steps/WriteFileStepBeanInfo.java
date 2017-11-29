@@ -35,7 +35,7 @@ public class WriteFileStepBeanInfo extends MySimpleBeanInfo{
 
 			resourceBundle = getResourceBundle("res/WriteFileStep");
 			
-			properties = new PropertyDescriptor[5];
+			properties = new PropertyDescriptor[6];
 			
 			properties[0] = new PropertyDescriptor("dataFile", beanClass, "getDataFile", "setDataFile");
 			properties[0].setDisplayName(getExternalizedString("property.dataFile.display_name"));
@@ -60,6 +60,11 @@ public class WriteFileStepBeanInfo extends MySimpleBeanInfo{
 			properties[4].setExpert(true);
 			properties[4].setDisplayName(getExternalizedString("property.appendResult.display_name"));
 	        properties[4].setShortDescription(getExternalizedString("property.appendResult.short_description"));
+		    
+		    properties[5] = new PropertyDescriptor("writeOutputFalse", beanClass, "isWriteOutputFalse", "setWriteOutputFalse");
+			properties[5].setExpert(true);
+			properties[5].setDisplayName(getExternalizedString("property.writeOutputFalse.display_name"));
+	        properties[5].setShortDescription(getExternalizedString("property.writeOutputFalse.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

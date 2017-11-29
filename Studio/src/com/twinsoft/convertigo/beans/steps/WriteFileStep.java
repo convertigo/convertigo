@@ -60,8 +60,9 @@ public abstract class WriteFileStep extends Step implements IStepSourceContainer
 	private boolean appendTimestamp = false;
 	private String dataFile = "";	
 	private String encoding= "UTF-8";
-	private boolean appendResult=false;
+	private boolean appendResult = false;
 	private transient String filePath;
+	private boolean writeOutputFalse = true;
 	
 	public WriteFileStep() {
 		super();
@@ -165,8 +166,8 @@ public abstract class WriteFileStep extends Step implements IStepSourceContainer
 					if (!stepSource.inError()) {
 						filePath = evaluateDataFileName(javascriptContext, scope);
 						//Retrieve a view based on context nodes (prevent to modify context nodes, output usefull nodes only)
-						OutputFilter outputFilter = sequence.new OutputFilter(OutputOption.UsefullOnly);
-						NodeList nl = Sequence.ouputDomView(stepSource.getContextOutputNodes(),outputFilter);
+						OutputFilter outputFilter = sequence.new OutputFilter(writeOutputFalse ? OutputOption.UsefullOnly : OutputOption.VisibleOnly);
+						NodeList nl = Sequence.ouputDomView(stepSource.getContextOutputNodes(), outputFilter);
 						writeFile(filePath, nl);
 						filePath = getAbsoluteFilePath(filePath);
 					}
@@ -275,5 +276,13 @@ public abstract class WriteFileStep extends Step implements IStepSourceContainer
 		cType.getAttributes().add(attr);
 		
 		return element;
+	}
+
+	public boolean isWriteOutputFalse() {
+		return writeOutputFalse;
+	}
+
+	public void setWriteOutputFalse(boolean writeOutputFalse) {
+		this.writeOutputFalse = writeOutputFalse;
 	}
 }
