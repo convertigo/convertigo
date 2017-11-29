@@ -194,7 +194,7 @@ public class UICustomAction extends UIComponent implements IAction {
 				String vars = inputs.substring(j, inputs.indexOf('}',j)+1);
 				
 				String actionName = getActionName();
-				return ""+ actionName + "(this,"+ props + ","+ vars +")";
+				return ""+ actionName + "(this,"+ props + ","+ vars +", $event)";
 			}
 		}
 		return "";
@@ -318,10 +318,12 @@ public class UICustomAction extends UIComponent implements IAction {
 			computed += "\t\tlet scope;" + System.lineSeparator();
 			computed += "\t\tlet self;" + System.lineSeparator();
 			computed += "\t\tlet out;" + System.lineSeparator();
+			computed += "\t\tlet event;" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
 			computed += "\t\tlet get = function(key) {let val=undefined;try {val=eval(ts.transpile(key));}catch(e){c8oPage.c8o.log.warn(\"[MB] "+functionName+": \"+e.message)}return val;}" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
 			computed += "\t\tparent = stack[\"root\"];" + System.lineSeparator();
+			computed += "\t\tevent = stack[\"root\"].out;" + System.lineSeparator();
 			computed += "\t\tscope = stack[\"root\"].scope;" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
 			computed += "\t\tthis.c8o.log.debug(\"[MB] "+functionName+": started\");" + System.lineSeparator();
@@ -364,7 +366,7 @@ public class UICustomAction extends UIComponent implements IAction {
 		tsCode += "\t\tself = stack[\""+ beanName +"\"] = {};"+ System.lineSeparator();
 		tsCode += "\t\tself.in = "+ inputs +";"+ System.lineSeparator();
 		
-		tsCode +="\t\treturn this."+actionName+"(this, self.in.props, self.in.vars)"+ System.lineSeparator();
+		tsCode +="\t\treturn this."+actionName+"(this, self.in.props, self.in.vars, event)"+ System.lineSeparator();
 		
 		tsCode += "\t\t.then((res:any) => {"+ System.lineSeparator();
 		tsCode += "\t\tparent = self;"+ System.lineSeparator();
@@ -399,10 +401,11 @@ public class UICustomAction extends UIComponent implements IAction {
 			cartridge.append("\t * ").append(System.lineSeparator());
 			
 			StringBuilder parameters = new StringBuilder();
-			parameters.append("page: C8oPage, props, vars");
+			parameters.append("page: C8oPage, props, vars, event: any");
 			cartridge.append("\t * @param page  , the current page").append(System.lineSeparator());
 			cartridge.append("\t * @param props , the object which holds properties key-value pairs").append(System.lineSeparator());
 			cartridge.append("\t * @param vars  , the object which holds variables key-value pairs").append(System.lineSeparator());
+			cartridge.append("\t * @param event , the current event object").append(System.lineSeparator());
 			cartridge.append("\t */").append(System.lineSeparator());
 			
 			String actionName = getActionName();
