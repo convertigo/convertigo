@@ -18,11 +18,15 @@
             delete props.RootKey
 
             let data = {}
-            data[rootKey] = page.merge(props, vars)
-            delete data[rootKey]._use_policy
-            delete data[rootKey]._id
-            data["_use_policy"] = policy
-            data["_id"]         = id
+            if (rootKey != undefined) {
+                data[rootKey] = page.merge(props, vars)
+                delete data[rootKey]._use_policy
+                delete data[rootKey]._id
+                data["_use_policy"] = policy
+                data["_id"]         = id
+            } else {
+                data = page.merge(props, vars)
+            }
            
             page.getInstance(Platform).ready().then(() => {     // We may need the CBL plugin so wait for platform ready.
                 page.c8o.finalizeInit().then(()=>{              // To be sure that FullSync initialized properly on CBL
