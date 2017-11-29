@@ -78,11 +78,11 @@ import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlCallSequence;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIForm;
 import com.twinsoft.convertigo.beans.mobile.components.UIText;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent.AttrEvent;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
@@ -608,8 +608,13 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						event.bNew = true;
 						event.hasChanged = true;
 						
-						UIControlCallSequence call = new UIControlCallSequence();
-						call.setTarget(projectName + "." + sequence.getName());
+						DatabaseObject call = ComponentManager.createBean(ComponentManager.getComponentByName("CallSequenceAction"));
+						if (call != null && call instanceof UIDynamicAction) {
+							IonBean ionBean = ((UIDynamicAction)call).getIonBean();
+							if (ionBean != null && ionBean.hasProperty("requestable")) {
+								ionBean.setPropertyValue("requestable", new MobileSmartSourceType(projectName + "." + sequence.getName()));
+							}
+						}
 						call.bNew = true;
 						call.hasChanged = true;
 						
