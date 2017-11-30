@@ -43,11 +43,13 @@ import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.IEnableAble;
+import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIPageEvent.ViewEvent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.EnumUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 @DboCategoryInfo(
@@ -55,7 +57,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 		getCategoryName = "Page",
 		getIconClassCSS = "convertigo-action-newPageComponent"
 	)
-public class PageComponent extends MobileComponent implements IStyleGenerator, ITemplateGenerator, IScriptGenerator, IContainerOrdered, IEnableAble {
+public class PageComponent extends MobileComponent implements ITagsProperty, IStyleGenerator, ITemplateGenerator, IScriptGenerator, IContainerOrdered, IEnableAble {
 
 	private static final long serialVersionUID = 188562781669238824L;
 	
@@ -378,6 +380,16 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 		this.title = title;
 	}
 
+	private String icon = "";
+	
+	public String getIcon() {
+		return icon;
+	}
+	
+	public void setIcon(String icon) {
+		this.icon = icon;
+	}
+	
 	private boolean inAutoMenu = true;
 	
 	public boolean isInAutoMenu() {
@@ -743,5 +755,13 @@ public class PageComponent extends MobileComponent implements IStyleGenerator, I
 			uic.updateSmartSource(oldString, newString);
 		}
 		
+	}
+	
+	@Override
+	public String[] getTagsForProperty(String propertyName) {
+		if (propertyName.equals("icon")) {
+			return EnumUtils.toStrings(IonIcon.class);
+		}
+		return new String[0];
 	}
 }

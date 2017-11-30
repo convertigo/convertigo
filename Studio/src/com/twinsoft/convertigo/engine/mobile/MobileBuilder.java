@@ -1195,13 +1195,14 @@ public class MobileBuilder {
 				List<PageComponent> pages = getEnabledPages(app);
 				for (PageComponent page : pages) {
 					String pageName = page.getName();
+					String pageIcon = page.getIcon();
 					String pageTitle = page.getTitle();
 					boolean isRootPage = page.isRoot;
 					boolean isMenuPage = page.isInAutoMenu();
 					boolean isLastPage = i == pages.size();
 					if (isRootPage) c8o_RootPage = pageName;
 					c8o_PagesImport += "import { "+pageName+" } from \"../pages/"+pageName+"/"+pageName.toLowerCase()+"\";" + System.lineSeparator();
-					c8o_PagesVariables += " { title: \""+pageTitle+"\", component: "+pageName+", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
+					c8o_PagesVariables += " { title: \""+pageTitle+"\", icon: \""+ pageIcon +"\", component: "+pageName+", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
 					c8o_PagesVariablesKeyValue += pageName+":"+ pageName+ (isLastPage ? "":",");
 					i++;
 				}

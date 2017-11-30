@@ -70,7 +70,11 @@ public class UIDynamicMenuItems extends UIDynamicMenuItem {
 			String menuId = getMenuId();
 			
 			StringBuilder sb = new StringBuilder();
-			sb.append("<button"+attrclass+ " ion-item menuClose=\""+menuId+"\" *ngFor=\"let p of getPagesIncludedInAutoMenu()\" (click)=\"openPage(p)\">{{p.title}}</button>").append(System.lineSeparator());
+			sb.append("<button"+attrclass+ " ion-item menuClose=\""+menuId+"\" *ngFor=\"let p of getPagesIncludedInAutoMenu()\" (click)=\"openPage(p)\">")
+				.append("<ion-icon name=\"{{p.icon}}\"></ion-icon>&nbsp;")
+				.append("{{p.title}}")
+				.append("</button>")
+				.append(System.lineSeparator());
 			return sb.toString();
 		}
 		return "";

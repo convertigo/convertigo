@@ -24,9 +24,11 @@ package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.util.Iterator;
 
+import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.EnumUtils;
 
-public class UIDynamicMenuItem extends UIDynamicElement {
+public class UIDynamicMenuItem extends UIDynamicElement implements ITagsProperty {
 
 	private static final long serialVersionUID = 3562736859348770057L;
 
@@ -53,7 +55,7 @@ public class UIDynamicMenuItem extends UIDynamicElement {
 	}
 	
 	/*
-	 * The ite's title
+	 * The item's title
 	 */
 	private String itemtitle = "";
 	
@@ -63,6 +65,19 @@ public class UIDynamicMenuItem extends UIDynamicElement {
 
 	public void setItemTitle(String itemtitle) {
 		this.itemtitle = itemtitle;
+	}
+
+	/*
+	 * The item's icon
+	 */
+	private String itemicon = "";
+	
+	public String getItemIcon() {
+		return itemicon;
+	}
+
+	public void setItemIcon(String itemicon) {
+		this.itemicon = itemicon;
 	}
 	
 	/*
@@ -122,16 +137,18 @@ public class UIDynamicMenuItem extends UIDynamicElement {
 			
 			boolean pageIsEnabled = false;
 			String pageName = getPageName();
+			String pageIcon = "";
 			String pageTitle = "Please specify a page for item";
 			if (!pageName.isEmpty()) {
 				try {
 					pageIsEnabled = getApplication().getPageComponentByName(pageName).isEnabled();
 					pageTitle = getApplication().getPageComponentByName(pageName).getTitle();
+					pageIcon = getApplication().getPageComponentByName(pageName).getIcon();
 				} catch (Exception e) {}
 			}
 			
 			String title = itemtitle.isEmpty() ? pageTitle:itemtitle;
-			
+			String icon = itemicon.isEmpty() ? pageIcon:itemicon;
 			String menuId = getMenuId();
 			
 			StringBuilder sb = new StringBuilder();
@@ -140,7 +157,9 @@ public class UIDynamicMenuItem extends UIDynamicElement {
 				.append(pageIsEnabled ? "":" disabled")
 				.append(menuId.isEmpty() ? " menuClose":" menuClose=\""+menuId+"\"")
 				.append(pageName.isEmpty() ? "":" (click)=\"openPageWithName('"+ pageName +"')\"")
-			  	.append(attributes.length()>0 ? attributes:"").append(">").append(title)
+			  	.append(attributes.length()>0 ? attributes:"").append(">")
+			  	.append(icon.isEmpty() ? "":"<ion-icon name=\""+ icon +"\"></ion-icon>&nbsp;")
+			  	.append(title)
 				.append("</").append(getTagName()).append(">").append(System.getProperty("line.separator"));
 			
 			return sb.toString();
@@ -153,4 +172,13 @@ public class UIDynamicMenuItem extends UIDynamicElement {
 		String pageName = getPageName();
 		return super.toString() + ": " + (pageName.isEmpty() ? "?":pageName);
 	}
+	
+	@Override
+	public String[] getTagsForProperty(String propertyName) {
+		if (propertyName.equals("itemicon")) {
+			return EnumUtils.toStrings(IonIcon.class);
+		}
+		return new String[0];
+	}
+	
 }
