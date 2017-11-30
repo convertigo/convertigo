@@ -4660,31 +4660,52 @@
           ]
         }
 	  }
-	},
-	
-    "LogAction" : {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
-	  "displayName": "LogAction",
-      "label": "Log",
-      "description": "Defines a Log action. | You can use logs actions to display some information in the device logs. These logs will also be automatically sent to the Convertigo Server and will be threaded within the backend sequence execution so that you can follow a full client interaction thread.",
-      "group": "Actions",
-      "icon16": "logaction_color_16x16.png",
-      "icon32": "logaction_color_32x32.png",
-      "properties": {
-        "message": {
-          "label": "Message",
-          "description": "Defines the log message",
-          "category": "@Properties",
-          "type": "string",
-          "value": "some log",
-          "values": [
-            false,
-      		true
-          ]
-        }
-	  }
-    },
+  },
   
+  "IfAction": {
+    "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+    "displayName": "If",
+    "label": "If",
+    "description": "Handles decisions. | Tests the result of the 'condition'. If true, will execute the next action underneath. You can use 'If' Action to control the flow of actions within a an action chain by using the <i>parent.out</i> expression in the 'condition' property." ,
+    "group": "Actions",
+    "icon16": "ifaction_color_16x16.png",
+    "icon32": "ifaction_color_32x32.png",
+    "properties": {
+      "condition": {
+        "mode": "script",
+        "label": "Condition",
+        "description": "The expression to be tested.",
+        "category": "@Properties",
+        "type": "string",
+        "value": "parent.out"
+      }
+    }
+  },
+
+  
+  "LogAction": {
+    "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+    "displayName": "LogAction",
+    "label": "Log",
+    "description": "Defines a Log action. | You can use logs actions to display some information in the device logs. These logs will also be automatically sent to the Convertigo Server and will be threaded within the backend sequence execution so that you can follow a full client interaction thread.",
+    "group": "Actions",
+    "icon16": "logaction_color_16x16.png",
+    "icon32": "logaction_color_32x32.png",
+    "properties": {
+      "message": {
+        "label": "Message",
+        "description": "Defines the log message",
+        "category": "@Properties",
+        "type": "string",
+        "value": "some log",
+        "values": [
+          false,
+          true
+        ]
+      }
+    }
+  },
+    
 	"CallSequenceAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "CallSequence",
