@@ -158,7 +158,7 @@ public class UIDynamicMenuItem extends UIDynamicElement implements ITagsProperty
 				.append(menuId.isEmpty() ? " menuClose":" menuClose=\""+menuId+"\"")
 				.append(pageName.isEmpty() ? "":" (click)=\"openPageWithName('"+ pageName +"')\"")
 			  	.append(attributes.length()>0 ? attributes:"").append(">")
-			  	.append(icon.isEmpty() ? "":"<ion-icon name=\""+ icon +"\"></ion-icon>&nbsp;")
+			  	.append(icon.isEmpty() ? "":"<ion-icon name=\""+ icon +"\"></ion-icon>&nbsp;&nbsp;&nbsp;&nbsp;")
 			  	.append(title)
 				.append("</").append(getTagName()).append(">").append(System.getProperty("line.separator"));
 			

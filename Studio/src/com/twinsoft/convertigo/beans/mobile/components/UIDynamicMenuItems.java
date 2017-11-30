@@ -71,7 +71,7 @@ public class UIDynamicMenuItems extends UIDynamicMenuItem {
 			
 			StringBuilder sb = new StringBuilder();
 			sb.append("<button"+attrclass+ " ion-item menuClose=\""+menuId+"\" *ngFor=\"let p of getPagesIncludedInAutoMenu()\" (click)=\"openPage(p)\">")
-				.append("<ion-icon name=\"{{p.icon}}\"></ion-icon>&nbsp;")
+				.append("<ion-icon name=\"{{p.icon}}\"></ion-icon>&nbsp;&nbsp;&nbsp;&nbsp;")
 				.append("{{p.title}}")
 				.append("</button>")
 				.append(System.lineSeparator());
