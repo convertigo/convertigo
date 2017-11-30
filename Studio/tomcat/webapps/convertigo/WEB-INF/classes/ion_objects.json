@@ -163,6 +163,7 @@
         "padding"
       ]
     },
+    
     "IonColor": {
       "label": "color",
       "description": "Specifies ionic color",
@@ -174,9 +175,11 @@
         "dark",
         "light",
         "primary",
-        "secondary"
+        "secondary",
+        true
       ]
     },
+
     "IonShape": {
       "label": "shape",
       "description": "Specifies ionic shape",
