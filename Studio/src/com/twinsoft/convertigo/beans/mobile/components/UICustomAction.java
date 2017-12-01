@@ -347,6 +347,7 @@ public class UICustomAction extends UIComponent implements IAction {
 			computed += "\t\tparent = stack[\"root\"];" + System.lineSeparator();
 			computed += "\t\tevent = stack[\"root\"].out;" + System.lineSeparator();
 			computed += "\t\tscope = stack[\"root\"].scope;" + System.lineSeparator();
+			computed += "\t\tout = event;" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
 			computed += "\t\tthis.c8o.log.debug(\"[MB] "+functionName+": started\");" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
