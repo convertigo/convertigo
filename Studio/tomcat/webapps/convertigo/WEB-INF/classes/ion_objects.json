@@ -5486,7 +5486,7 @@
 	        "description": "Rotate the image to correct for the orientation of the device during capture.",
 	        "category": "@camera options",
 	        "type": "boolean",
-	        "value": false,
+	        "value": true,
 	        "values": [
 	        	false,
 	        	"true",
