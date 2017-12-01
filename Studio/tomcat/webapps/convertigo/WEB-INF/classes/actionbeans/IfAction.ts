@@ -10,7 +10,7 @@
             if (props.condition) {
                 resolve(true)
             } else {
-                reject(false)
+                return false;
             }
         })
     }
