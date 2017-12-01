@@ -356,7 +356,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 					tsCode += "\t\treturn "+ sbThen.toString().replaceFirst("\t\t", "");
 				}
 			} else {
-				tsCode += "";
+				tsCode += "\t\treturn Promise.resolve(res);"+ System.lineSeparator();
 			}
 			tsCode += "\t\t}, (error: any) => {console.log(\"[MB] "+actionName+" : \", error.message);throw new Error(error);})"+ System.lineSeparator();
 			tsCode += "\t\t.then((res:any) => {resolve(res)}).catch((error:any) => {reject(error)})"+ System.lineSeparator();
