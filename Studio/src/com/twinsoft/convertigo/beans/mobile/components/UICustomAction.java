@@ -389,7 +389,7 @@ public class UICustomAction extends UIComponent implements IAction {
 		tsCode += "\t\tself = stack[\""+ beanName +"\"] = {};"+ System.lineSeparator();
 		tsCode += "\t\tself.in = "+ inputs +";"+ System.lineSeparator();
 		
-		tsCode +="\t\treturn this."+actionName+"(this, self.in.props, this.merge(self.in.vars, stack[\"root\"].in), event)"+ System.lineSeparator();
+		tsCode +="\t\treturn this."+actionName+"(this, this.merge(self.in.props, {stack: stack, parent: parent, out: out}), this.merge(self.in.vars, stack[\"root\"].in), event)"+ System.lineSeparator();
 		
 		tsCode += "\t\t.then((res:any) => {"+ System.lineSeparator();
 		tsCode += "\t\tparent = self;"+ System.lineSeparator();
