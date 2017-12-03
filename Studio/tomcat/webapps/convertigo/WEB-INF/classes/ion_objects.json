@@ -4916,7 +4916,7 @@
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "SetGlobal",
       "label": "SetGlobal",
-      "description": "Set data in a global app wide space | In most apps, it is usefull to store some global app-wide properties that can be retrieved from any page. You can use the 'SetGlobal' action for that. The property values can be any object. <br /><br />If you want to use the value of a Global property to be displayed on a page, source a 'Text' compoment in 'TS' mode to : <br/><br/><code>this.router.sharedObject?.my?.property?.path</code><br/><br/> ",
+      "description": "Set data in a global app wide space | In most apps, it is useful to store some global app-wide properties that can be retrieved from any page. You can use the 'SetGlobal' action for that. The property value can be a string or any other object.<br /><br />If you want to use the value of a given global property (for example myProperty) to be displayed on a page, source a 'Text' compoment in 'TS' mode to : <br/><br/><code>this.router.sharedObject?.myProperty</code><br/><br/> ",
       "group": "Actions",
       "icon16": "setglobalaction_color_16x16.png",
       "icon32": "setglobalaction_color_32x32.png",
