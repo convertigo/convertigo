@@ -32,22 +32,27 @@
 		<link>
 			<name>src/com/twinsoft/convertigo/engine/parsers</name>
 			<type>2</type>
-			<locationURI>WORKSPACE_LOC/CemsHtmlParsers_7.5.x/src/com/twinsoft/convertigo/engine/parsers</locationURI>
+			<locationURI>PROJECTS_LOC/CemsHtmlParsers_7.5.x/src/com/twinsoft/convertigo/engine/parsers</locationURI>
 		</link>
 		<link>
 			<name>src/com/twinsoft/convertigo/engine/plugins</name>
 			<type>2</type>
-			<locationURI>WORKSPACE_LOC/Plugins_7.5.x/src/com/twinsoft/convertigo/engine/plugins</locationURI>
+			<locationURI>PROJECTS_LOC/Plugins_7.5.x/src/com/twinsoft/convertigo/engine/plugins</locationURI>
 		</link>
 		<link>
 			<name>src/com/twinsoft/convertigo/engine/providers/couchdb</name>
 			<type>2</type>
-			<locationURI>WORKSPACE_LOC/CouchDBConnector_7.5.x/src/com/twinsoft/convertigo/engine/providers/couchdb</locationURI>
+			<locationURI>PROJECTS_LOC/CouchDBConnector_7.5.x/src/com/twinsoft/convertigo/engine/providers/couchdb</locationURI>
 		</link>
 		<link>
 			<name>src/com/twinsoft/convertigo/engine/providers/sapjco</name>
 			<type>2</type>
-			<locationURI>WORKSPACE_LOC/SapConnector_7.5.x/src/com/twinsoft/convertigo/engine/providers/sapjco</locationURI>
+			<locationURI>PROJECTS_LOC/SapConnector_7.5.x/src/com/twinsoft/convertigo/engine/providers/sapjco</locationURI>
+		</link>
+		<link>
+			<name>src/com/twinsoft/convertigo/engine/plugins</name>
+			<type>2</type>
+			<locationURI>PROJECTS_LOC/Plugins_7.5.x/src/com/twinsoft/convertigo/engine/plugins</locationURI>
 		</link>
 	</linkedResources>
 	<filteredResources>

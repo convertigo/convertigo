@@ -59,8 +59,8 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
 	protected PropertyDescriptor[] properties = new PropertyDescriptor[0];
 	protected PropertyDescriptor[] localProperties = null;
 
-	protected String iconNameC16 = null;
-	protected String iconNameC32 = null;
+	protected String iconNameC16 = "/com/twinsoft/convertigo/beans/core/images/default_color_16x16.png";
+	protected String iconNameC32 = "/com/twinsoft/convertigo/beans/core/images/default_color_32x32.png";
 	protected String iconNameM16 = null;
 	protected String iconNameM32 = null;
 	

@@ -135,97 +135,97 @@
 		</category>
 		<category name="Components">
 			<beans groupname="Application Components">
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.MobileApplication"/>
 				</bean>
 			</beans>
 			<beans groupname="Route Components">
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.RouteComponent">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.RouteComponent">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.RouteComponent"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.RouteSequenceEvent">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.RouteSequenceEvent">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.RouteComponent"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.RouteFullsyncEvent">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.RouteFullsyncEvent">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.RouteComponent"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.RouteDataActionComponent">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.RouteDataActionComponent">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.RouteComponent"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.RouteExceptionActionComponent">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.RouteExceptionActionComponent">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.RouteComponent"/>
 				</bean>
 			</beans>
 			<beans groupname="Page Components">
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent"/>
 				</bean>
 			</beans>
 			<beans groupname="Custom Components">
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UICustom">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustom">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIText">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIText">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIAttribute">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIAttribute">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicTab">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicTab">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItem">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItem">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItems">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItems">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIForm">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIForm">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIPageEvent">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIPageEvent">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIStyle">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIStyle">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UITheme">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UITheme">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIFormControlValidator">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIFormControlValidator">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIFormCustomValidator">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIFormCustomValidator">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
 				</bean>
 			</beans>
 			<beans groupname="Control Components">
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlDirective">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlDirective">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlVariable">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlVariable">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustomAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlCustomAction"/>
@@ -234,25 +234,25 @@
 				</bean>
 			</beans>
 			<beans groupname="Action Components">
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlCustomAction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlCustomAction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIPageEvent"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlCallSequence">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlCallSequence">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIPageEvent"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlCallFullSync">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlCallFullSync">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIPageEvent"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UICustomAction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustomAction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIPageEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustomAction"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIPageEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction"/>

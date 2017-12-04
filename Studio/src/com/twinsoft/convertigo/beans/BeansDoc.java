@@ -31,12 +31,17 @@ import java.io.FileWriter;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.xml.xpath.XPathExpressionException;
 
+import org.apache.commons.jxpath.JXPathContext;
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -46,6 +51,11 @@ import org.w3c.dom.Text;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.ExtractionRule;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
+import com.twinsoft.convertigo.beans.mobile.components.dynamic.Component;
+import com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager;
+import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
+import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonProperty;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboBean;
@@ -62,7 +72,6 @@ public class BeansDoc {
 	private static final Pattern pDescription = Pattern.compile("(.*?)(?:\\|(.*))?");
 
 	public static void main(String[] args) throws Exception {
-		
 		Document documentBeansDoc = CreateDocumentBeansDoc();
 	
 		String sDocument = XMLUtils.prettyPrintDOM(documentBeansDoc);
@@ -71,7 +80,7 @@ public class BeansDoc {
 		writer.write(sDocument);
 		writer.close();
 	}
-
+	
 	public static Document CreateDocumentBeansDoc() throws Exception
 	{
 		// Loggers
@@ -90,7 +99,7 @@ public class BeansDoc {
 
 		Element dbdRoot = documentBeansDoc.createElement("database_objects");
 		documentBeansDoc.appendChild(dbdRoot);
-
+		
 		DboExplorerManager manager = new DboExplorerManager();
 		
 		List<DboGroup> groups = manager.getGroups();
@@ -140,9 +149,79 @@ public class BeansDoc {
 				}
 			}
 		}
+		handleMobileComponents(documentBeansDoc);
 		return documentBeansDoc;
 	}
 	
+	private static void handleMobileComponents(Document doc) {
+		JXPathContext xpath = JXPathContext.newContext(doc);
+		Element category = (Element) xpath.selectSingleNode("/database_objects/group[name = 'Mobile Application']/category[name = 'Components']");
+		xpath = JXPathContext.newContext(category);
+		Map<String, Element> beansMap = new HashMap<String, Element>();
+		
+		for (String group: ComponentManager.getGroups()) {
+			String group_name = group.replaceFirst("s$", "") + " Components";
+			Element beans = (Element) xpath.selectSingleNode("beans[name = '" + group_name + "']");
+			if (beans == null) {
+				beans = (Element) category.appendChild(doc.createElement("beans"));
+				((Element) beans.appendChild(doc.createElement("name"))).setTextContent(group_name);
+			}
+			beansMap.put(group, beans);
+		}
+		for (Component component: ComponentManager.getComponents()) {
+			DatabaseObject dbo = ComponentManager.createBean(component);
+			if (!(dbo instanceof UIDynamicElement)) {
+				System.out.println("no UIDynamicElement but " + dbo.getClass());
+				continue;
+			}
+			
+			IonBean ionBean = ((UIDynamicElement) dbo).getIonBean();
+			
+			Element beans = beansMap.get(component.getGroup());
+			
+			JXPathContext xbeans = JXPathContext.newContext(beans);
+			Element bean = (Element) xbeans.selectSingleNode("bean[display_name = '" + component.getLabel() + "']");
+			if (bean != null) {
+				System.out.println("remove existing " + component.getLabel());
+				bean.getParentNode().removeChild(bean);
+			}
+			
+			bean = (Element) beans.appendChild(doc.createElement("bean"));
+			((Element) bean.appendChild(doc.createElement("class"))).setTextContent(ionBean.getClassName());
+			((Element) bean.appendChild(doc.createElement("icon"))).setTextContent(ionBean.getIconColor32Path());
+			((Element) bean.appendChild(doc.createElement("display_name"))).setTextContent(ionBean.getDisplayName());
+			String description[] = ionBean.getDescription().split("\\|", 2);
+			((Element) bean.appendChild(doc.createElement("short_description"))).setTextContent(description[0].trim());
+			if (description.length > 1) {
+				((Element) bean.appendChild(doc.createElement("long_description"))).setTextContent(description[1].trim());
+			}
+			
+			SortedSet<IonProperty> properties = new TreeSet<IonProperty>(new Comparator<IonProperty>() {
+
+				@Override
+				public int compare(IonProperty o1, IonProperty o2) {
+					int res = o1.getCategory().startsWith("@") ? (o2.getCategory().startsWith("@") ? 0 : -1) : (o2.getCategory().startsWith("@") ? 1 : 0);
+					if (res == 0) {
+						res = o1.getCategory().compareTo(o2.getCategory());
+					}
+					if (res == 0) {
+						res = o1.getLabel().compareTo(o2.getLabel());
+					}
+					return res;
+				}
+			});
+			properties.addAll(ionBean.getProperties().values());
+			for (IonProperty prop: properties) {
+				Element property = (Element) bean.appendChild(doc.createElement("property"));
+				((Element) property.appendChild(doc.createElement("type"))).setTextContent(prop.getType());
+				((Element) property.appendChild(doc.createElement("category"))).setTextContent(prop.getCategory());
+				((Element) property.appendChild(doc.createElement("name"))).setTextContent(prop.getName());
+				((Element) property.appendChild(doc.createElement("display_name"))).setTextContent(prop.getLabel());
+				((Element) property.appendChild(doc.createElement("short_description"))).setTextContent(prop.getDescription());
+			}
+		}
+		doc.toString();
+	}
 	
 	private static void createBeanElement(DboBean bean, Document document, Element parentElement, Boolean bEnable)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IntrospectionException, XPathExpressionException {
