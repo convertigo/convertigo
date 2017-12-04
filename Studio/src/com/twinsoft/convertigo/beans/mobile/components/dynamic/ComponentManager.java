@@ -90,7 +90,7 @@ public class ComponentManager {
 				System.out.println("(ComponentManager) Start loading Ionic objects");
 			}
 			
-			inputstream = getClass().getResourceAsStream("/ion_objects.json");
+			inputstream = getClass().getResourceAsStream("ion_objects.json");
 			String json = IOUtils.toString(inputstream, "UTF-8");
 			//System.out.println(json);
 			
@@ -526,7 +526,7 @@ public class ComponentManager {
 	public static String getActionTsCode(String name) {
 		InputStream inputstream = null;
 		try {
-			inputstream = instance.getClass().getResourceAsStream("/actionbeans/"+ name +".ts");
+			inputstream = instance.getClass().getResourceAsStream("actionbeans/"+ name +".ts");
 			return IOUtils.toString(inputstream, "UTF-8");
 		} catch (Exception e) {
 			if (Engine.isStarted) {

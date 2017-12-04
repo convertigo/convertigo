@@ -109,7 +109,7 @@ public class CustomAdditionsWizardPage extends WizardPage {
 		handCursor = new Cursor(Display.getDefault(), SWT.CURSOR_HAND);
 		
 		Document doc = null;
-		InputStream is = getClass().getResourceAsStream("/custom_additions.xml");
+		InputStream is = getClass().getResourceAsStream("custom_additions.xml");
 		try {
 			doc = XMLUtils.parseDOM(is);
 			//System.out.println(XMLUtils.prettyPrintDOM(doc));
