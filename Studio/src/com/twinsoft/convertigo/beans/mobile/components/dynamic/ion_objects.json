@@ -2175,7 +2175,7 @@
 	  "RefresherContent":{
 		  "tag": "ion-refresher-content",
 		  "displayName": "RefresherContent",
-    	"label": "RefresherContent",
+    	"label": "Refresher Content",
     	"description": "ion-refresher-content| By default, Ionic provides the pulling icon and refreshing spinner that looks best for the platform the user is on. However, you can change the default icon and spinner, along with adding text for each state by adding properties to the child ion-refresher-content component.",
     	"group": "Forms", 
     	"icon16": "refreshercontent_color_16x16.png",
@@ -2224,7 +2224,7 @@
     "Searchbar": {
     	"tag": "ion-searchbar",
 		"displayName": "Searchbar",
-    	"label": "Searchbar",
+    	"label": "Search Bar",
     	"description": "ion-searchbar| Manages the display of a Searchbar which can be used to search or filter items.",
     	"group": "Forms", 	
     	"icon16": "searchbar_color_16x16.png",
@@ -2509,7 +2509,7 @@
     "Segment": {
       "tag": "ion-segment",
 	  "displayName": "Segment",
-      "label": "Segment",
+      "label": "Segment Container",
       "description": "ion-segment| Defines a segment. A Segment is a group of buttons, sometimes known as segmented controls, that allow the user to interact with a compact group of a number of controls.<br/>Segments provide functionality similar to tabs, selecting one will unselect all others. <br/> For more information: <a href='https://ionicframework.com/docs/components/#segment' target='_blank'>Segment</a>",
       "group": "Forms",
       "icon16": "segment_color_16x16.png",
@@ -2534,7 +2534,7 @@
     "SegmentButton": {
       "tag": "ion-segment-button",
 	  "displayName": "SegmentButton",
-      "label": "Segment button",
+      "label": "Segment Button",
       "description": "ion-segment-button| Defines a button in a Segment.",
       "group": "Forms",
       "icon16": "segment-button_color_16x16.png",
@@ -2872,7 +2872,7 @@
     "RadioList": {
       "tag": "ion-list",
 	  "displayName": "RadioList",
-      "label": "Radio list",
+      "label": "Radio List",
       "description": "ion-list| Defines a list for a set of radio buttons. It allows a user to select at most one radio button from a set. Checking one radio button that belongs to a radio list unchecks any previous checked radio button within the same list. <br/> For more information: <a href='https://ionicframework.com/docs/api/components/radio/RadioGroup/' target='_blank'>Radio Group</a>.<br/><br/><u>Note</u>:</br>Make sure to add your component under a <i>ListItem or &lt;ion-item&gt;</i> to make it work properly in form",
       "group": "Forms",
       "icon16": "radiolist_color_16x16.png",
@@ -2901,7 +2901,7 @@
     "RadioButton": {
       "tag": "ion-radio",
 	  "displayName": "RadioButton",
-      "label": "Radio",
+      "label": "Radio Button",
       "description": "ion-radio| Defines a radio button. When radio buttons are inside a RadioList component, exactly one radio button in the list can be checked at any time. You can add each radio button of your list inside a List item. <br/> For more information: <a href='https://ionicframework.com/docs/components/#radio' target='_blank'>Radio</a>",
       "group": "Forms",
       "icon16": "radio_color_16x16.png",
@@ -2937,7 +2937,7 @@
     "Toggle": {
       "tag": "ion-toggle",
 	  "displayName": "Toggle",
-      "label": "Toggle",
+      "label": "Toggle Button",
       "description": "ion-toggle| Defines a toggle. A Toggle component is technically the same thing as an HTML checkbox input, except it looks different and is easier to use on a touch device. Toggles can also have colors assigned to them, by adding any color attribute. <br/> For more information: <a href='https://ionicframework.com/docs/components/#toggle' target='_blank'>Toggle</a><br/><br/><u>Note</u>:</br>Make sure to add your component under a <i>ListItem or &lt;ion-item&gt;</i> to make it work properly in form",
       "group": "Forms",
       "icon16": "toggle_color_16x16.png",
@@ -2967,7 +2967,7 @@
     "Input": {
       "tag": "ion-input",
 	  "displayName": "Input",
-      "label": "Input",
+      "label": "Text Input",
       "description": "ion-input| Defines a form input. ion-input is meant for text type inputs only, such as text, password, email, number, search, tel, and url. <br/> For more information: <a href='https://ionicframework.com/docs/components/#inputs' target='_blank'>Inputs</a>.<br/><br/><u>Note</u>:</br>Make sure to add your component under a <i>ListItem or &lt;ion-item&gt;</i> to make it work properly in form",
       "group": "Forms",
       "icon16": "input_color_16x16.png",
@@ -3102,7 +3102,7 @@
     "TextArea": {
       "tag": "ion-textarea",
 	  "displayName": "TextArea",
-      "label": "TextArea",
+      "label": "Text Area",
       "description": "ion-textarea| Defines a form textarea. ion-textarea is meant for multiline text type inputs only, such as text, password, email, number, search, tel, and url. <br/> For more information: <a href='https://ionicframework.com/docs/components/#inputs' target='_blank'>Inputs</a>.<br/><br/><u>Note</u>:</br>Make sure to add your component under a <i>ListItem or &lt;ion-item&gt;</i> to make it work properly in form",
       "group": "Forms",
       "icon16": "textarea_color_16x16.png",
@@ -3320,11 +3320,11 @@
         }
       }
     },
-
+	
     "Range": {
       "tag": "ion-range",
 	  "displayName": "Range",
-      "label": "Range slider",
+      "label": "Range Slider",
       "description": "ion-range| Defines a range slider. The Range slider lets users select from a range of values by moving the slider knob.<br/>It can accept dual knobs, but by default one knob controls the value of the range. <br/> For more information: <a href='https://ionicframework.com/docs/components/#range' target='_blank'>Range</a>.<br/><br/><u>Note</u>:</br>Make sure to add your component under a <i>ListItem or &lt;ion-item&gt;</i> to make it work properly in form",
       "group": "Forms",
       "icon16": "range_16x16.png",
