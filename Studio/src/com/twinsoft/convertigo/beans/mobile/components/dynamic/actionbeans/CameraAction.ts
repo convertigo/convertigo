@@ -129,6 +129,7 @@
             camera.getPicture(options)
                 .then((imageData) => {
                     page.router.c8o.log.debug("[MB] CameraAction: ", imageData);
+                    console.log(imageData);
                     resolve(imageData);
                 })
                 .catch((e) => {

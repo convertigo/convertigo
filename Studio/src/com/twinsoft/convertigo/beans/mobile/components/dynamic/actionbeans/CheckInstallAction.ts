@@ -9,13 +9,21 @@
         return new Promise((resolve, reject) => {
             const fileOpener : FileOpener = page.getInstance(FileOpener);
             const packageID: string = props.packageID;
-            if(packageID == null) {
+            if(packageID == null || packageID == "") {
                 reject("packageID must be set");
             }
             fileOpener.appIsInstalled(packageID)
             .then((resp) => {
-                page.router.c8o.log.debug("[MB] CheckInstallAction: " + packageID + "status is " + resp);
-                resolve(resp);
+                let installed: boolean;
+                if(resp.status === 0){
+                    installed = false;
+                    page.router.c8o.log.debug("[MB] CheckInstallAction: " + packageID + " is not installed");
+                }
+                else{
+                    installed = true;
+                    page.router.c8o.log.debug("[MB] CheckInstallAction: " + packageID + " is installed");
+                }
+                resolve(installed);
             })
             .catch((e) =>{
                 if(e == "cordova_not_available"){

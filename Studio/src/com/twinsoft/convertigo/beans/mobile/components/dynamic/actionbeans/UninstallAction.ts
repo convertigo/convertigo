@@ -20,7 +20,11 @@
             .catch((e) =>{
                 if(e == "cordova_not_available"){
                     page.router.c8o.log.debug("[MB] UninstallAction :" + e);
-                } 
+                }
+                else if(e.status == 9){
+                    page.router.c8o.log.debug("[MB] UninstallAction: Failed to uninstall " + packageID, e);
+                    resolve(false);
+                }
                 else{
                     page.router.c8o.log.error("[MB] UninstallAction: Failed to uninstall " + packageID, e);
                     reject(e);
