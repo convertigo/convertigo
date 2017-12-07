@@ -451,7 +451,7 @@
              name="FullSync Groups library"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports the Convertigo FullSync Groupes library project.</description>
+          <description>Imports the Convertigo FullSync Groups library project.</description>
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
@@ -832,6 +832,7 @@
                relationship="stack"
                relative="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView">
          </view>
+         <hiddenMenuItem id="org.eclipse.ui.edit.text.openLocalFile"></hiddenMenuItem>
       </perspectiveExtension>
       <perspectiveExtension
             targetID="com.twinsoft.convertigo.eclipse.ConvertigoPerspective.UI">
