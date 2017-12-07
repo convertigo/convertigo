@@ -110,6 +110,7 @@ import com.twinsoft.convertigo.engine.DatabaseObjectFoundException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.mobile.MobileEventListener;
@@ -149,6 +150,8 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 	private double dpiFactorX = 1;
 	private double dpiFactorY = 1;
 	
+	private MobileBuilderBuildMode buildMode = MobileBuilderBuildMode.fast;
+	
 	private static Pattern pIsServerRunning = Pattern.compile(".*?server running: (http\\S*).*");
 	private static Pattern pRemoveEchap = Pattern.compile("\\x1b\\[\\d+m");
 	private static Pattern pPriority = Pattern.compile("class(\\d+)");
@@ -175,7 +178,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 			if (!deviceBar.getParent().isVisible()) {
 				return;
 			}
-			JSONObject device = new JSONObject();
+			JSONObject device = new JSONObject(FileUtils.readFileToString(devicePref, "UTF-8"));
 			device.put("visible", deviceBar.isVisible());
 			device.put("name", deviceName.getText());
 			device.put("width", NumberUtils.toInt(deviceWidth.getText(), -1));
@@ -223,6 +226,8 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 		Project project = application.getProject();
 
 		datasetDir = new File(project.getDirPath() + "/dataset");
+		datasetDir.mkdirs();
+		
 		devicePref = new File(Engine.USER_WORKSPACE_PATH, "studio/device-" + project.getName() + ".json");
 		
 		setPartName(project.getName() + " [A: " + application.getName() + "]");
@@ -274,6 +279,12 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 			zoomFactor = ZoomFactor.get(device.getInt("zoom"));
 			setDeviceBarVisible(device.getBoolean("visible"));
 			setDeviceOS(DeviceOS.valueOf(device.getString("os")));
+			try {
+				buildMode = MobileBuilderBuildMode.valueOf(device.getString("buildMode"));
+			} catch (Exception e) { }
+			if (buildMode == null) {
+				buildMode = MobileBuilderBuildMode.fast;
+			}
 			updateBrowserSize();
 			
 			for (MenuItem m: devicesMenu.getItems()) {
@@ -829,24 +840,44 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 			
 		});
 
-		item = new ToolItem(toolbar, SWT.PUSH);
-		item.setToolTipText("Build for production");
-		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/build_prod.gif")));
+		final ToolItem buildModeItem = item = new ToolItem(toolbar, SWT.DROP_DOWN);
+		
+		final Menu buildModeMenu = new Menu(parent.getShell());
+		SelectionListener buildModeListener = new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				dialogBuild(buildModeItem, (MenuItem) e.widget);
+			}
+			
+		};
+		
+		for (MobileBuilderBuildMode mode: MobileBuilderBuildMode.values()) {
+			MenuItem menuItem = new MenuItem(buildModeMenu, SWT.NONE);
+			menuItem.setText(mode.label());
+			menuItem.setToolTipText(mode.description());
+			menuItem.setData(mode);
+			menuItem.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream(mode.icon())));
+			menuItem.addSelectionListener(buildModeListener);
+			if (mode.equals(buildMode)) {
+				item.setImage(menuItem.getImage());
+				item.setToolTipText(mode.description());
+			}
+		}
+		
 		item.addSelectionListener(new SelectionAdapter() {
 			
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				MessageDialog dialog = new MessageDialog(
-						null, "Build for production",
-						null, "This action will build your application for production: automatically remove debug data, unusued code and shrink. "
-								+ "The application will be smaller and start faster yet the build time is a few minutes",
-						MessageDialog.QUESTION,
-						new String[] {"Build", "Cancel"}, 0
-					);
-					int result = dialog.open();
-					if (result == 0) {
-						launchBuilder(false, false, true);
-					}
+				if (e.detail == SWT.ARROW) {
+					ToolItem item = (ToolItem) e.widget;
+					Rectangle rect = item.getBounds(); 
+					Point pt = item.getParent().toDisplay(new Point(rect.x + 8, rect.y + 8));
+					buildModeMenu.setLocation(pt);
+					buildModeMenu.setVisible(true);
+				} else {
+					dialogBuild(buildMode);
+				}
 			}
 			
 		});
@@ -1035,6 +1066,37 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 		}
 	}
 	
+	private void dialogBuild(ToolItem buildModeItem, MenuItem menuItem) {
+		MobileBuilderBuildMode newBuildMode = (MobileBuilderBuildMode) menuItem.getData();
+		if (dialogBuild(newBuildMode)) {
+			buildModeItem.setImage(menuItem.getImage());
+			buildModeItem.setToolTipText("Rebuild in: " + buildMode.label() + "\n" + buildMode.description());
+			try {
+				JSONObject device = new JSONObject(FileUtils.readFileToString(devicePref, "UTF-8"));
+				device.put("buildMode", buildMode.name());
+				FileUtils.write(devicePref, device.toString(4), "UTF-8");
+			} catch (Exception ex) {
+				Engine.logStudio.debug("Cannot save build mode", ex);
+			}	
+		}
+	}
+	
+	private boolean dialogBuild(MobileBuilderBuildMode buildMode) {
+		MessageDialog dialog = new MessageDialog(
+			null, "Build '" + buildMode.label() + "'",
+			null, "This action will build your application for '" + buildMode.label() + "':\n" + buildMode.description(),
+			MessageDialog.QUESTION,
+			new String[] {"Build", "Cancel"}, 0
+		);
+		int result = dialog.open();
+		if (result == 0) {
+			this.buildMode = buildMode;
+			launchBuilder(false, false);
+			return true;
+		}
+		return false;
+	}
+	
 	private void updateBrowserSize() {
 		int width = NumberUtils.toInt(deviceWidth.getText(), -1);
 		int height = NumberUtils.toInt(deviceHeight.getText(), -1);
@@ -1080,14 +1142,10 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 	}
 	
 	public void launchBuilder(boolean forceInstall) {
-		launchBuilder(forceInstall, false, false);
+		launchBuilder(forceInstall, false);
 	}
 	
 	public void launchBuilder(boolean forceInstall, boolean forceClean) {
-		launchBuilder(forceInstall, forceClean, false);
-	}
-	
-	public void launchBuilder(boolean forceInstall, boolean forceClean, boolean buildProd) {
 		Engine.execute(() -> {
 			try {
 				browser.loadHTML(IOUtils.toString(getClass().getResourceAsStream("loader.html"), "UTF-8"));
@@ -1165,69 +1223,40 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 				com.twinsoft.convertigo.engine.util.FileUtils.deleteQuietly(new File(project.getDirPath() + "/DisplayObjects/mobile/build"));
 				appendOutput("previous build directory removed");
 				
-				if (buildProd) {
-					toolbar.getDisplay().asyncExec(() -> {
-						toolbar.setBackground(toolbar.getDisplay().getSystemColor(SWT.COLOR_YELLOW));
-					});
-					ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "run", "ionic:build:prod", "--nobrowser");
-					pb.redirectErrorStream(true);
-					pb.directory(ionicDir);
-					Process p = pb.start();
-					processes.add(p);
-					BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-					String line;
-					while ((line = br.readLine()) != null) {
-						line = pRemoveEchap.matcher(line).replaceAll("");
-						if (StringUtils.isNotBlank(line)) {
-							Engine.logStudio.info(line);
-							appendOutput(line);
-							if (line.contains("build finished")) {
-								synchronized (mutex) {
-									mutex.notify();								
-								}
-							}
-							Matcher m = pIsServerRunning.matcher(line);
-							if (m.matches()) {
-								baseUrl = m.group(1);
-								doLoad();
+				ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "run", buildMode.command(), "--nobrowser");
+				pb.redirectErrorStream(true);
+				pb.directory(ionicDir);
+				Process p = pb.start();
+				processes.add(p);
+				BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+				String line;
+				
+				while ((line = br.readLine()) != null) {
+					line = pRemoveEchap.matcher(line).replaceAll("");
+					if (StringUtils.isNotBlank(line)) {
+						Engine.logStudio.info(line);
+						appendOutput(line);
+						if (line.contains("build finished")) {
+							synchronized (mutex) {
+								mutex.notify();								
 							}
 						}
-					}
-					String SERVER_C8O_URL = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
-					baseUrl = SERVER_C8O_URL + "/projects/"	+ project.getName() + "/DisplayObjects/mobile/index.html";
-					doLoad();
-
-					toolbar.getDisplay().asyncExec(() -> {
-						toolbar.setBackground(toolbar.getDisplay().getSystemColor(SWT.COLOR_GREEN));
-					});
-					
-					toast("Application in production mode");
-				} else {
-					ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "run", "ionic:serve", "--nobrowser");
-					pb.redirectErrorStream(true);
-					pb.directory(ionicDir);
-					Process p = pb.start();
-					processes.add(p);
-					BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-					String line;
-					while ((line = br.readLine()) != null) {
-						line = pRemoveEchap.matcher(line).replaceAll("");
-						if (StringUtils.isNotBlank(line)) {
-							Engine.logStudio.info(line);
-							appendOutput(line);
-							if (line.contains("build finished")) {
-								synchronized (mutex) {
-									mutex.notify();								
-								}
-							}
-							Matcher m = pIsServerRunning.matcher(line);
-							if (m.matches()) {
-								baseUrl = m.group(1);
-								doLoad();
-							}
+						Matcher m = pIsServerRunning.matcher(line);
+						if (m.matches()) {
+							baseUrl = m.group(1);
+							doLoad();
 						}
 					}
 				}
+				
+				if (MobileBuilderBuildMode.production.equals(buildMode)) {
+					String SERVER_C8O_URL = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
+					baseUrl = SERVER_C8O_URL + "/projects/"	+ project.getName() + "/DisplayObjects/mobile/index.html";
+					doLoad();
+					
+					toast("Application in production mode");
+				}
+				
 				appendOutput("\\o/");
 			} catch (Exception e) {
 				appendOutput(":( " + e);
