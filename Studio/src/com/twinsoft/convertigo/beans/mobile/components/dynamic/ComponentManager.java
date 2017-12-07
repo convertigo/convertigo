@@ -538,8 +538,10 @@ public class ComponentManager {
 					
 					String propertiesDescription = "";
 					for (PropertyDescriptor dbopd : propertyDescriptors) {
-						propertiesDescription += "<li><i>"+ dbopd.getDisplayName() +"</i>" ;
-						propertiesDescription += "</br>"+ dbopd.getShortDescription().replace("|", "") +"</li>";
+						if (!dbopd.isHidden()) {
+							propertiesDescription += "<li><i>"+ dbopd.getDisplayName() +"</i>" ;
+							propertiesDescription += "</br>"+ dbopd.getShortDescription().replace("|", "") +"</li>";
+						}
 					}
 					return propertiesDescription.isEmpty() ? "": "<ul>"+propertiesDescription+"</ul>";
 					
