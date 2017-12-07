@@ -1219,8 +1219,14 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 			mb.setBuildMutex(mutex);
 			
 			try {
+				File displayObjectsMobile = new File(project.getDirPath() + "/DisplayObjects/mobile");
+				
 				appendOutput("removing previous build directory");
-				com.twinsoft.convertigo.engine.util.FileUtils.deleteQuietly(new File(project.getDirPath() + "/DisplayObjects/mobile/build"));
+				for (File f: displayObjectsMobile.listFiles()) {
+					if (!f.getName().equals("assets")) {
+						com.twinsoft.convertigo.engine.util.FileUtils.deleteQuietly(f);
+					}
+				}
 				appendOutput("previous build directory removed");
 				
 				ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "run", buildMode.command(), "--nobrowser");
@@ -1243,6 +1249,9 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 						}
 						Matcher m = pIsServerRunning.matcher(line);
 						if (m.matches()) {
+							JSONObject envJSON = new JSONObject();
+							envJSON.put("remoteBase", EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL) + "/projects/" + project.getName() + "/_private");
+							FileUtils.write(new File(displayObjectsMobile, "env.json"), envJSON.toString(4), "UTF-8");
 							baseUrl = m.group(1);
 							doLoad();
 						}
