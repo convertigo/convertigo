@@ -478,6 +478,8 @@ public class ComponentExplorerComposite extends Composite {
 		beanShortDescription = cleanDescription(beanShortDescription,true);
 		beanLongDescription = cleanDescription(beanLongDescription,true);
 		
+		String propertiesDescription = component.getPropertiesDescription();
+		
 		if (helpBrowser != null) {
 			helpBrowser.setText("<html>" +
 									"<head>" +
@@ -494,7 +496,10 @@ public class ComponentExplorerComposite extends Composite {
 									"</head><p>" 
 								+ "<font size=\"4.5\"><u><b>"+beanDisplayName+"</b></u></font>" + "<br><br>" 
 								+ "<i>"+beanShortDescription+"</i>" + "<br><br>" 
-								+ beanLongDescription + "</p></html>");
+								+ beanLongDescription + "<br><br>"
+								+ (propertiesDescription.isEmpty() ? "":"<u>Properties</u>:<br>")
+								+ propertiesDescription
+								+ "</p></html>");
 		}
 	}
 	

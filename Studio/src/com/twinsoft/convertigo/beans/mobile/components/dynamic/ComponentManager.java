@@ -24,9 +24,14 @@ package com.twinsoft.convertigo.beans.mobile.components.dynamic;
 
 import java.beans.BeanDescriptor;
 import java.beans.BeanInfo;
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.SortedMap;
@@ -378,10 +383,31 @@ public class ComponentManager {
 				}
 				
 				@Override
+				public String getPropertiesDescription() {
+					String propertiesDescription = "";
+					List<IonProperty> properties = new ArrayList<IonProperty>();
+					properties.addAll(bean.getProperties().values());
+					
+					Collections.sort(properties, new Comparator<IonProperty>() {
+						@Override
+						public int compare(IonProperty p1, IonProperty p2) {
+							return p1.getLabel().compareTo(p2.getLabel());
+						}				
+					} );
+					
+					for (IonProperty ionProperty: properties) {
+						propertiesDescription += "<li><i>"+ ionProperty.getLabel() +"</i>" ;
+						propertiesDescription += "</br>"+ ionProperty.getDescription() +"</li>";
+					}
+					return propertiesDescription.isEmpty() ? "": "<ul>"+propertiesDescription+"</ul>";
+				}
+				
+				@Override
 				protected DatabaseObject createBean() {
 					DatabaseObject dbo = bean.createBean();
 					return dbo;
 				}
+
 			});
 		}
 		return Collections.unmodifiableList(components);
@@ -491,6 +517,37 @@ public class ComponentManager {
 			public String getTag() {
 				return "";
 			}
+
+			@Override
+			public String getPropertiesDescription() {
+				BeanInfo beanInfo;
+				try {
+					beanInfo = Introspector.getBeanInfo(dboClass);
+					PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
+					Arrays.sort(propertyDescriptors, new Comparator<PropertyDescriptor>() {
+						@Override
+						public int compare(PropertyDescriptor o1, PropertyDescriptor o2) {
+							if(o1.isExpert() == o2.isExpert())
+								return o1.getDisplayName().compareTo(o2.getDisplayName());
+							else if(o1.isExpert())
+								return 1;
+							else 
+								return -1;
+						}				
+					} );
+					
+					String propertiesDescription = "";
+					for (PropertyDescriptor dbopd : propertyDescriptors) {
+						propertiesDescription += "<li><i>"+ dbopd.getDisplayName() +"</i>" ;
+						propertiesDescription += "</br>"+ dbopd.getShortDescription().replace("|", "") +"</li>";
+					}
+					return propertiesDescription.isEmpty() ? "": "<ul>"+propertiesDescription+"</ul>";
+					
+				} catch (IntrospectionException e) {
+				}
+				
+				return "";
+			}
 			
 			@Override
 			public boolean isAllowedIn(DatabaseObject parent) {
@@ -510,7 +567,6 @@ public class ComponentManager {
 				}
 				return null;
 			}
-			
 		};
 	}
 
