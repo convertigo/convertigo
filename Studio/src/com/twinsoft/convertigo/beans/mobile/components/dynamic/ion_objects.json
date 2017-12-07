@@ -5339,7 +5339,7 @@
 	  "displayName": "File Chooser",
       "label": "FileChooser",
       "description": "<u>Platforms available:</u> <ul> <li>Android</li> </ul> | Opens the file picker on Android for the user to select a file. <br><br> The result is a string, that contains file URI. <br><br> You can acces result using out.",
-      "group": "Actions",
+      "group": "Native Actions",
       "icon16": "filechooseraction_color_16x16.png",
       "icon32": "filechooseraction_color_32x32.png",
       "properties": {
@@ -5381,7 +5381,7 @@
 	  "displayName": "File Opener",
       "label": "FileOpener",
       "description": "<u>Platforms available:</u> <ul> <li>Android</li><li>iOS</li><li>Windows</li><li>Windows Phone 8</li> </ul> |This plugin will open a file on your device file system with its default application. <br><br> The result is a boolean, if file has been opened, returns true. <br><br> You can acces result using out.",
-      "group": "Actions",
+      "group": "Native Actions",
       "icon16": "fileopeneraction_color_16x16.png",
       "icon32": "fileopeneraction_color_32x32.png",
       "properties": {
@@ -5423,7 +5423,7 @@
 	  "displayName": "Camera",
       "label": "Camera",
       "description": "<u>Platforms available:</u> <ul> <li>Android</li><li>iOS</li><li>Windows</li><li>Windows Phone 8</li><li>Browser</li> </ul> | Take a photo or capture video. <br><br> The result is a string, that contains file URI. <br><br> You can acces result using out.",
-      "group": "Actions",
+      "group": "Native Actions",
       "icon16": "cameraaction_color_16x16.png",
       "icon32": "cameraaction_color_32x32.png",
       "properties": {
@@ -5621,7 +5621,7 @@
 	  "displayName": "Uninstaller",
       "label": "Uninstaller",
       "description": "<u>Platforms available:</u> <ul> <li>Android</li><li>iOS</li><li>Windows</li><li>Windows Phone 8</li> </ul> |This plugin allow you to uninstall application with a package ID. <br><br> The result is a boolean, if application has been correctly uninstalled, returns true. <br><br> You can acces result using out.",
-      "group": "Actions",
+      "group": "Native Actions",
       "icon16": "uninstallaction_color_16x16.png",
       "icon32": "uninstallaction_color_32x32.png",
       "properties": {
@@ -5663,7 +5663,7 @@
 	  "displayName": "CheckInstall",
       "label": "CheckInstall",
       "description": "<u>Platforms available:</u> <ul> <li>Android</li><li>iOS</li><li>Windows</li><li>Windows Phone 8</li> </ul> | This plugin allow you to check if an application is installed giving its package ID.  <br><br> The result is a boolean, if application is installed, returns true, else if application is not installed, return false. <br><br> You can acces result using out.",
-      "group": "Actions",
+      "group": "Native Actions",
       "icon16": "checkinstallaction_color_16x16.png",
       "icon32": "checkinstallaction_color_32x32.png",
       "properties": {
