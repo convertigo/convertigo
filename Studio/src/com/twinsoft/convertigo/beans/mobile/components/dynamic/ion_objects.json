@@ -2358,7 +2358,7 @@
       "tag": "ion-slides",
 	  "displayName": "Slides",
       "label": "Slides container",
-      "description": "ion-slides| Defines slides. Slides make it easy to create galleries, tutorials, and page-based layouts. Slides take a number of configuration options on the &lt;ion-slides&gt; component.<br/>The Slides component is a multi-section container. Each section can be swiped or dragged between. It contains any number of Slide components. <br/> For more information: <a href='https://ionicframework.com/docs/components/#slides' target='_blank'>Slides</a>",
+      "description": "ion-slides| Defines a <i>Slides container</i> component.<br/>Slides make it easy to create galleries, tutorials, and page-based layouts. Slides take a number of configuration options.<br/>The <i>Slides container</i> component is a multi-section container. Each section can be swiped or dragged between. It contains any number of <i>Slide Item</i> components. <br/> For more information: <a href='https://ionicframework.com/docs/components/#slides' target='_blank'>Slides</a>",
       "group": "Slides",
       "icon16": "slides_color_16x16.png",
       "icon32": "slides_color_32x32.png",
@@ -2498,7 +2498,7 @@
       "tag": "ion-slide",
 	  "displayName": "Slide",
       "label": "Slide Item",
-      "description": "ion-slide| Defines a slide. A Slide in a &lt;ion-slides&gt; component. <br/> For more information: <a href='https://ionicframework.com/docs/components/#slides' target='_blank'>Slide</a>",
+      "description": "ion-slide| Defines a <i>Slide Item</i> component.<br/>Add <i>Slide Item</i> components inside a <i>Slides</i> component. Any slide content should be written in this component.<br/> For more information: <a href='https://ionicframework.com/docs/components/#slides' target='_blank'>Slide</a>",
       "group": "Slides",
       "icon16": "slide_color_16x16.png",
       "icon32": "slide_color_32x32.png"
