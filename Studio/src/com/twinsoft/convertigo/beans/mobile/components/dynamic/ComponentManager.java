@@ -49,11 +49,7 @@ import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIAttribute;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlAttr;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlCustomAction;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlCallFullSync;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlCallSequence;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UICustom;
@@ -308,9 +304,6 @@ public class ComponentManager {
 			
 			// Add Actions
 			group = "Actions";
-			components.add(getDboComponent(UIControlCustomAction.class,group));
-			components.add(getDboComponent(UIControlCallSequence.class,group));
-			components.add(getDboComponent(UIControlCallFullSync.class,group));
 			components.add(getDboComponent(UIControlVariable.class,group));
 			components.add(getDboComponent(UICustomAction.class,group));
 			
@@ -449,11 +442,6 @@ public class ComponentManager {
 			}
 			else if (dboParent instanceof UIControlAttr) {
 				if (IAction.class.isAssignableFrom(dboClass)) {
-					return true;
-				}
-			}
-			else if (dboParent instanceof UIControlAction) {
-				if (UIControlVariable.class.isAssignableFrom(dboClass)) {
 					return true;
 				}
 			}

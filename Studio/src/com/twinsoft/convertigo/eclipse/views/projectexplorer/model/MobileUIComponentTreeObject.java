@@ -59,10 +59,6 @@ import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlCallAction;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlCallFullSync;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlCallSequence;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlCustomAction;
 import com.twinsoft.convertigo.beans.mobile.components.UICustom;
 import com.twinsoft.convertigo.beans.mobile.components.UICustomAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
@@ -117,9 +113,6 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			openHtmlFileEditor();
 		} else if (uic instanceof UIStyle) {
 			openCssFileEditor();
-		} else if (uic instanceof UIControlCustomAction) {
-			String functionMarker = "function:"+ ((UIControlCustomAction)uic).getActionName();
-			editPageFunction(uic, functionMarker, "actionValue");
 		} else if (uic instanceof UICustomAction) {
 			String functionMarker = "function:"+ ((UICustomAction)uic).getActionName();
 			editPageFunction(uic, functionMarker, "actionValue");
@@ -507,14 +500,6 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			protected List<String> getPropertyNamesForSource(Class<?> c) {
 				List<String> list = new ArrayList<String>();
 				
-				if (getObject() instanceof UIControlCallAction) {
-					if (ProjectTreeObject.class.isAssignableFrom(c) ||
-						SequenceTreeObject.class.isAssignableFrom(c) ||
-						ConnectorTreeObject.class.isAssignableFrom(c))
-					{
-						list.add("target");
-					}
-				}
 				if (getObject() instanceof UIDynamicAction) {
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
 						SequenceTreeObject.class.isAssignableFrom(c) ||
@@ -563,9 +548,6 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			
 			@Override
 			protected boolean isNamedSource(String propertyName) {
-				if (getObject() instanceof UIControlCallAction) {
-					return "target".equals(propertyName);
-				}
 				if (getObject() instanceof UIDynamicAction) {
 					return "requestable".equals(propertyName) || 
 								"fsview".equals(propertyName) ||
@@ -582,17 +564,6 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			
 			@Override
 			public boolean isSelectable(String propertyName, Object nsObject) {
-				if (getObject() instanceof UIControlCallAction) {
-					if ("target".equals(propertyName)) {
-						UIControlCallAction cc = (UIControlCallAction) getObject();
-						if (cc instanceof UIControlCallSequence) {
-							return nsObject instanceof Sequence;
-						}
-						if (cc instanceof UIControlCallFullSync) {
-							return nsObject instanceof FullSyncConnector;
-						}
-					}
-				}
 				if (getObject() instanceof UIDynamicAction) {
 					if ("requestable".equals(propertyName)) {
 						UIDynamicAction cc = (UIDynamicAction) getObject();
@@ -663,12 +634,6 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 					if (pValue != null && pValue.startsWith(oldName)) {
 						String _pValue = newName + pValue.substring(oldName.length());
 						if (!pValue.equals(_pValue)) {
-							if (getObject() instanceof UIControlCallAction) {
-								if ("target".equals(propertyName)) {
-									((UIControlCallAction)getObject()).setTarget(_pValue);
-									hasBeenRenamed = true;
-								}
-							}
 							if (getObject() instanceof UIDynamicAction) {
 								if ("requestable".equals(propertyName)) {
 									((UIDynamicAction)getObject()).getIonBean().

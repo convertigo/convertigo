@@ -95,7 +95,6 @@ import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
@@ -357,7 +356,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 					String xmlData = PaletteSourceTransfer.getInstance().getPaletteSource().getXmlData();
 					DatabaseObject target = exHighlightMobileComponent;
 					DatabaseObject source = (DatabaseObject) ConvertigoPlugin.clipboardManagerDND.read(xmlData).get(0);
-					if ((source instanceof UIDynamicAction || source instanceof UIControlAction) && exHighlightMobileComponent instanceof UIDynamicElement) {
+					if (source instanceof UIDynamicAction && exHighlightMobileComponent instanceof UIDynamicElement) {
 						for (UIComponent uic: ((UIDynamicElement) exHighlightMobileComponent).getUIComponentList()) {
 							if (uic instanceof UIControlEvent) {
 								target = uic;

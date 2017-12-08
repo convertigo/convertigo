@@ -228,24 +228,9 @@
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlVariable">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustomAction"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlCustomAction"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlCallSequence"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlCallFullSync"/>
 				</bean>
 			</beans>
 			<beans groupname="Action Components">
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlCustomAction">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIPageEvent"/>
-				</bean>
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlCallSequence">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIPageEvent"/>
-				</bean>
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlCallFullSync">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIPageEvent"/>
-				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustomAction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIPageEvent"/>
