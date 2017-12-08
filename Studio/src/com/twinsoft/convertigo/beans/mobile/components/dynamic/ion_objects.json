@@ -2074,7 +2074,7 @@
       "tag": "ion-scroll",
 	  "displayName": "Scroll",
       "label": "Scroll Area",
-      "description": "ion-scroll| Defines a scroll area. Scroll is a non-flexboxed scroll area that can scroll horizontally or vertically.<br/>ion-Scroll can be used in places where you may not need a full page scroller, but a highly customized one, such as image scubber or comment scroller.",
+      "description": "ion-scroll| Defines a <i>Scroll Area</i> component.<br/>This component is a non-flexboxed scroll area that can scroll horizontally or vertically.<br/><i>Scroll Area</i> can be used in places where you may not need a full page scroller, but a highly customized one, such as image scubber or comment scroller.<br/>For more information: <a href='https://ionicframework.com/docs/api/components/scroll/Scroll/' target='_blank'>Scroll</a>",
       "group": "Containers",
       "icon16": "scroll_color_16x16.png",
       "icon32": "scroll_color_32x32.png",
@@ -2094,7 +2094,7 @@
         "ScrollY": {
           "attr": "scrollY",
           "label": "Scroll Y",
-          "description": "If true, scrolling along the Y axis is enabled. (requires the following CSS declaration: ion-scroll { white-space: nowrap; })",
+          "description": "If true, scrolling along the Y axis is enabled. (requires the following CSS declaration: <code>ion-scroll { white-space: nowrap; }</code>)",
           "category": "@Properties",
           "value": false,
           "values": [
@@ -2152,7 +2152,7 @@
       "tag": "ion-toolbar",
   	  "displayName": "ToolBar",
       "label": "ToolBar",
-      "description": "ion-toolbar| Defines a toolbar. A toolbar is a generic bar that can be used in an app as a header, sub-header, footer, or even sub-footer.<br/>Since ion-toolbar is based on flexbox, no matter how many toolbars you have in your page, they will be displayed correctly and ion-content will adjust accordingly.<br/> For more information: <a href='https://ionicframework.com/docs/components/#toolbar' target='_blank'>Toolbar</a>",
+      "description": "ion-toolbar| Defines a <i>ToolBar</i> component.<br/>A <i>ToolBar</i> is a generic bar that can be used in an application as a header, sub-header, footer, or even sub-footer.<br/>Since it is based on flexbox, no matter how many toolbars you have in your page, they will be displayed correctly and content will adjust accordingly.<br/>For more information: <a href='https://ionicframework.com/docs/components/#toolbar' target='_blank'>Toolbar</a>",
       "group": "Containers",
       "icon16": "toolbar_color_16x16.png",
       "icon32": "toolbar_color_32x32.png",
