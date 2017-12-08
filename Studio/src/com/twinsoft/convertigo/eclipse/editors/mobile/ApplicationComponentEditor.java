@@ -150,6 +150,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 	private double dpiFactorY = 1;
 	
 	private MobileBuilderBuildMode buildMode = MobileBuilderBuildMode.fast;
+	private int buildCount = 0;
 	
 	private static Pattern pIsServerRunning = Pattern.compile(".*?server running: (http\\S*).*");
 	private static Pattern pRemoveEchap = Pattern.compile("\\x1b\\[\\d+m");
@@ -1145,6 +1146,9 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 	}
 	
 	public void launchBuilder(boolean forceInstall, boolean forceClean) {
+		final MobileBuilderBuildMode buildMode = this.buildMode;
+		final int buildCount = ++this.buildCount;
+		
 		Engine.execute(() -> {
 			try {
 				browser.loadHTML(IOUtils.toString(getClass().getResourceAsStream("loader.html"), "UTF-8"));
@@ -1257,15 +1261,19 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 					}
 				}
 				
-				if (MobileBuilderBuildMode.production.equals(buildMode)) {
-					String SERVER_C8O_URL = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
-					baseUrl = SERVER_C8O_URL + "/projects/"	+ project.getName() + "/DisplayObjects/mobile/index.html";
-					doLoad();
+				if (buildCount == this.buildCount) {
+					if (MobileBuilderBuildMode.production.equals(buildMode)) {
+						String SERVER_C8O_URL = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
+						baseUrl = SERVER_C8O_URL + "/projects/"	+ project.getName() + "/DisplayObjects/mobile/index.html";
+						doLoad();
+						
+						toast("Application in production mode");
+					}
 					
-					toast("Application in production mode");
+					appendOutput("\\o/");
+				} else {
+					appendOutput("previous build canceled !");
 				}
-				
-				appendOutput("\\o/");
 			} catch (Exception e) {
 				appendOutput(":( " + e);
 			} finally {
