@@ -5334,11 +5334,12 @@
       }
     }
   },
+  
   "FileChooserAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "File Chooser",
       "label": "FileChooser",
-      "description": "<u>Platforms available:</u> <ul> <li>Android</li> </ul> | Opens the file picker on Android for the user to select a file. <br><br> The result is a string, that contains file URI. <br><br> You can acces result using out.",
+      "description": "Defines a <i>FileChooser</i> component. | This component helps selecting a file.<br/>It uses the native Android file picker for the user to select a file.<br/>If it succeeds, the <i>FileChooser</i> returns the selected file URI.<br>From an underneath action, you can access this file URI trough the <code>out</code> typescript variable.<br/><u>Supported platorm(s):</u> <ul><li>Android</li></ul><br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/native/file-chooser/'>File Chooser</a>",
       "group": "Native Actions",
       "icon16": "filechooseraction_color_16x16.png",
       "icon32": "filechooseraction_color_32x32.png",
