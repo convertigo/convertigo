@@ -333,19 +333,6 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 			
 			@Override
 			public void onDragOver(JSObject o) {
-//				JSONObject json = new JSONObject();
-//				for (String name: o.getPropertyNames()) {
-//					try {
-//						json.put(name, o.getProperty(name).asNumber().getInteger());
-//
-//					} catch (Exception e) {
-//					}
-//				}
-//				try {
-//					Engine.logStudio.info("onDrag " + json.toString(2));
-//				} catch (Exception e) {
-//					// TODO: handle exception
-//				}
 				int x = o.getProperty("screenX").asNumber().getInteger();
 				int y = o.getProperty("screenY").asNumber().getInteger();
 				highlightPoint(x, y);

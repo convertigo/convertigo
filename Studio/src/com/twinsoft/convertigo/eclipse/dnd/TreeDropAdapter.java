@@ -170,6 +170,10 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			}
 		}
 		
+		if ("gtk".equalsIgnoreCase(SWT.getPlatform()) && event.detail == 0) {
+			event.detail = DND.DROP_MOVE;
+		}
+		
 		detail = event.detail;
 		ConvertigoPlugin.clipboardManagerDND.isCopy = (event.detail == DND.DROP_COPY);
 		ConvertigoPlugin.clipboardManagerDND.isCut = (event.detail == DND.DROP_MOVE);
