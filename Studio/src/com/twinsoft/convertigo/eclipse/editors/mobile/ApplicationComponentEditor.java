@@ -247,6 +247,18 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 
 	@Override
 	public void createPartControl(Composite parent) {
+		try {
+			ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "-version");
+			pb.redirectError(pb.redirectInput());
+			Process process = pb.start();
+			process.waitFor();
+			String output = IOUtils.toString(process.getInputStream(), Charset.defaultCharset());
+			Engine.logStudio.info("npm -version: " + output);
+		} catch (Exception e1) {
+			new InstallNpmComposite(parent, SWT.NONE);
+			return;
+		}
+		
 		{
 			Point dpi = parent.getDisplay().getDPI();
 			dpiFactorX = dpi.x / 96f;
