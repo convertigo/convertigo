@@ -105,6 +105,8 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 
 	private boolean allowDownloadAttachment = false;
 	
+	private boolean followRedirect = true;
+	
     public AbstractHttpTransaction() {
 		super();
 		
@@ -573,5 +575,13 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 
 	public void setAllowDownloadAttachment(boolean allowDownloadAttachment) {
 		this.allowDownloadAttachment = allowDownloadAttachment;
+	}
+
+	public boolean isFollowRedirect() {
+		return followRedirect;
+	}
+
+	public void setFollowRedirect(boolean followRedirect) {
+		this.followRedirect = followRedirect;
 	}
 }

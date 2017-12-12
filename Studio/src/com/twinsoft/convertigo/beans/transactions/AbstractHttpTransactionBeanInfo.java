@@ -39,7 +39,7 @@ public class AbstractHttpTransactionBeanInfo extends MySimpleBeanInfo {
 
 			resourceBundle = getResourceBundle("res/AbstractHttpTransaction");
 
-			properties = new PropertyDescriptor[11];
+			properties = new PropertyDescriptor[12];
 			
 			properties[0] = new PropertyDescriptor("subDir", AbstractHttpTransaction.class, "getSubDir", "setSubDir");
 			properties[0].setDisplayName(getExternalizedString("property.subDir.display_name"));
@@ -96,7 +96,12 @@ public class AbstractHttpTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[10] = new PropertyDescriptor("allowDownloadAttachment", beanClass, "getAllowDownloadAttachment", "setAllowDownloadAttachment");
 			properties[10].setDisplayName(getExternalizedString("property.allowDownloadAttachment.display_name"));
 			properties[10].setShortDescription(getExternalizedString("property.allowDownloadAttachment.short_description"));
-			properties[10].setExpert(true);			
+			properties[10].setExpert(true);
+			
+			properties[11] = new PropertyDescriptor("followRedirect", beanClass, "isFollowRedirect", "setFollowRedirect");
+			properties[11].setDisplayName(getExternalizedString("property.followRedirect.display_name"));
+			properties[11].setShortDescription(getExternalizedString("property.followRedirect.short_description"));
+			properties[11].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

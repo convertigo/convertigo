@@ -840,6 +840,10 @@ public class HttpConnector extends Connector {
 	}
 
 	public byte[] getData(Context context) throws IOException, EngineException {
+		return getData(context, sUrl);
+	}
+	
+	public byte[] getData(Context context, String sUrl) throws IOException, EngineException {
 		HttpMethod method = null;
 
 		try {
@@ -883,9 +887,6 @@ public class HttpConnector extends Connector {
 
 					hostConfiguration.setHost(host, port, myhttps);
 				}
-
-				sUrl = url.getFile();
-				Engine.logBeans.debug("(HttpConnector) Updated URL for SSL purposes: " + sUrl);
 			} else {
 				Engine.logBeans.debug("(HttpConnector) Host: " + host + ":" + port);
 				hostConfiguration.setHost(host, port);
@@ -1201,6 +1202,8 @@ public class HttpConnector extends Connector {
 				+ method.getPath() + ")");
 
 		try {
+			AbstractHttpTransaction transaction = (AbstractHttpTransaction) context.requestedObject;
+			
 			requestHeaders = method.getRequestHeaders();
 			if (Engine.logBeans.isTraceEnabled())
 				Engine.logBeans.trace("(HttpConnector) Request headers :\n"
@@ -1250,9 +1253,7 @@ public class HttpConnector extends Connector {
 					if (context.contentType != null && context.contentType.startsWith("multipart/") && context.requestedObject instanceof AbstractHttpTransaction) {
 						Engine.logBeans.debug("(HttpConnector) Decoding multipart contentType");
 						
-						try {
-							AbstractHttpTransaction transaction = (AbstractHttpTransaction) context.requestedObject;
-														
+						try {														
 							BigMimeMultipart mp = new BigMimeMultipart(new BufferedInputStream(in), context.contentType);
 							
 							ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -1324,14 +1325,13 @@ public class HttpConnector extends Connector {
 				}
 
 				String redirectUrl, newuri;
-				GetMethod redirectMethod = null;
 
 				// Handles REDIRECTION through Location header
-				if ((statuscode == HttpStatus.SC_MOVED_TEMPORARILY)
-						|| (statuscode == HttpStatus.SC_MOVED_PERMANENTLY)
-						|| (statuscode == HttpStatus.SC_SEE_OTHER)
-						|| (statuscode == HttpStatus.SC_TEMPORARY_REDIRECT)) {
-
+				if (transaction.isFollowRedirect() &&
+						(  statuscode == HttpStatus.SC_MOVED_TEMPORARILY
+						|| statuscode == HttpStatus.SC_MOVED_PERMANENTLY
+						|| statuscode == HttpStatus.SC_SEE_OTHER
+						|| statuscode == HttpStatus.SC_TEMPORARY_REDIRECT)) {
 					Header location = method.getResponseHeader("Location");
 					if (location != null) {
 						newuri = location.getValue();
@@ -1347,62 +1347,10 @@ public class HttpConnector extends Connector {
 
 						redirectUrl = getAbsoluteUrl(method, newuri);
 						Engine.logBeans.debug("(HttpConnector) Redirecting to : " + redirectUrl);
-						redirectMethod = new GetMethod(redirectUrl);
-
-						// set headers
-						for (int i = 0; i < requestHeaders.length; i++)
-							redirectMethod.setRequestHeader(requestHeaders[i]);
-
-						referer = redirectUrl.startsWith("http") ? redirectUrl : (hostConfiguration
-								.getHostURL() + redirectUrl);
-
-						result = executeMethod(redirectMethod, context); // recurse
+						result = getData(context, redirectUrl);
 					} else {
 						Engine.logBeans.debug("(HttpConnector) Invalid redirect!");
 					}
-				} else {
-					/*
-					 * String lwContents = contents.toLowerCase(); int index, i,
-					 * j, k, z; // Handles REDIRECTION through META Refresh if
-					 * (((index = lwContents.indexOf("http-equiv='refresh'")) !=
-					 * -1) || ((index =
-					 * lwContents.indexOf("http-equiv=\"refresh\"")) != -1)) {
-					 * if ((i = lwContents.indexOf("content=", index + 20)) !=
-					 * -1) { char c = lwContents.charAt(i+8); if ((j =
-					 * lwContents.indexOf("url=", i)) != -1) { if ((k =
-					 * lwContents.indexOf(c, j + 1)) != -1) { newuri =
-					 * lwContents.substring(j+4, k); redirectUrl =
-					 * getAbsoluteUrl(method,newuri);
-					 * Engine.logBeans.debug("(HttpConnector) Redirecting to : "
-					 * + redirectUrl); redirectMethod = new
-					 * GetMethod(redirectUrl);
-					 * 
-					 * // set headers for (z=0; z<requestHeaders.length; z++)
-					 * redirectMethod.setRequestHeader(requestHeaders[z]);
-					 * 
-					 * referer = redirectUrl; result =
-					 * executeMethod(redirectMethod, context); // recurse } } }
-					 * } // Handles FRAMESET else if
-					 * (lwContents.indexOf("frameset") != -1) {
-					 * Engine.logBeans.debug
-					 * ("(HttpConnector) Analyzing frameset...");
-					 * StringTokenizer st = new StringTokenizer(lwContents);
-					 * StringEx newcontents = new StringEx(lwContents); while
-					 * (st.hasMoreTokens()) { String token = st.nextToken();
-					 * String uri; if (token.startsWith("src=")) { if
-					 * ((token.indexOf("\"") != -1) || (token.indexOf("'") !=
-					 * -1)) { token = token.substring(5); uri =
-					 * token.substring(0,token.length()-1); newuri =
-					 * getAbsoluteUrl(method,uri);
-					 * Engine.logBeans.trace("(HttpConnector) Replaced uri ("+
-					 * uri +") with newuri("+ newuri +")");
-					 * 
-					 * newcontents.replaceAll(token,newuri); } } }
-					 * Engine.logBeans
-					 * .trace("(HttpConnector) New response content:\n"+
-					 * newcontents); result = newcontents.toString().getBytes();
-					 * }
-					 */
 				}
 			}
 			//Added by julienda - #3433 - 04/03/2013
@@ -1410,12 +1358,6 @@ public class HttpConnector extends Connector {
 			
 			if (abstractHttpTransaction.getHttpInfo()) {
 				Document doc = context.outputDocument;
-				
-				//Remove the node HTTPInfo if we have a redirect
-				NodeList nodeList = XMLUtils.findElements(context.outputDocument.getDocumentElement(), abstractHttpTransaction.getHttpInfoTagName());
-				if (nodeList != null) {
-					XMLUtils.removeNodeListContent(nodeList);
-				}
 				
 				//Parent Element
 				httpInfoElement = doc.createElement(abstractHttpTransaction.getHttpInfoTagName());
