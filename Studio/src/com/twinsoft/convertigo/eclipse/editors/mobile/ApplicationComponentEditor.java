@@ -178,9 +178,15 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 			if (!deviceBar.getParent().isVisible()) {
 				return;
 			}
-			JSONObject device = new JSONObject(FileUtils.readFileToString(devicePref, "UTF-8"));
+			JSONObject device;
+			try {
+				device = new JSONObject(FileUtils.readFileToString(devicePref, "UTF-8"));
+			} catch (Exception e) {
+				device = new JSONObject();
+			}
+			
 			device.put("visible", deviceBar.isVisible());
-			device.put("name", deviceName.getText());
+			device.put("name", deviceName.getText().trim());
 			device.put("width", NumberUtils.toInt(deviceWidth.getText(), -1));
 			device.put("height", NumberUtils.toInt(deviceHeight.getText(), -1));
 			device.put("zoom", zoomFactor.percent());
@@ -277,26 +283,25 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 				
 		devicesMenu = new Menu(parent.getShell());
 		
+		JSONObject device = null;
+		try {
+			device = new JSONObject(FileUtils.readFileToString(devicePref, "UTF-8"));
+			buildMode = MobileBuilderBuildMode.get(device.getString("buildMode"));
+		} catch (Exception e) { }
+		
 		updateDevicesMenu();
 		createToolbar(editor);
 		createDeviceBar(editor);
 		createBrowser(editor);
 		
 		try {
-			JSONObject device = new JSONObject(FileUtils.readFileToString(devicePref, "UTF-8"));
 			dataset = device.getString("dataset");
-			deviceName.setText(device.getString("name"));
+			deviceName.setText(device.getString("name").trim());
 			deviceWidth.setText("" + device.getInt("width"));
 			deviceHeight.setText("" + device.getInt("height"));
 			zoomFactor = ZoomFactor.get(device.getInt("zoom"));
 			setDeviceBarVisible(device.getBoolean("visible"));
 			setDeviceOS(DeviceOS.valueOf(device.getString("os")));
-			try {
-				buildMode = MobileBuilderBuildMode.valueOf(device.getString("buildMode"));
-			} catch (Exception e) { }
-			if (buildMode == null) {
-				buildMode = MobileBuilderBuildMode.fast;
-			}
 			updateBrowserSize();
 			
 			for (MenuItem m: devicesMenu.getItems()) {
@@ -305,7 +310,6 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 					break;
 				}
 			}
-			
 		} catch (Exception e) {
 			devicesMenu.getItems()[0].notifyListeners(SWT.Selection, new Event());
 		}

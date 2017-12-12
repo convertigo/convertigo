@@ -33,4 +33,12 @@ public enum MobileBuilderBuildMode {
 	public String icon() {
 		return icon;
 	}
+	
+	public static MobileBuilderBuildMode get(String value) {
+		try {
+			return MobileBuilderBuildMode.valueOf(value);
+		} catch (Exception e) {
+			return MobileBuilderBuildMode.fast;
+		}
+	}
 }
