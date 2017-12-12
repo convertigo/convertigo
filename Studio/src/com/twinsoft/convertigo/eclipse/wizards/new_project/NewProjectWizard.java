@@ -101,150 +101,112 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 
 	// ENTRIES IN WIZARD
 	// Default project templates
-	public static final int TEMPLATE_MISC_EMPTY_PROJECT = 0;
-	public static final int TEMPLATE_WEB_HTML_IBM_3270 = 100;
-	public static final int TEMPLATE_WEB_HTML_IBM_5250 = 101;
-	public static final int TEMPLATE_WEB_HTML_BULL_DKU_7107 = 102;
-	public static final int TEMPLATE_WEB_GREENSCREEN_IBM_3270 = 150;
-	public static final int TEMPLATE_WEB_GREENSCREEN_IBM_5250 = 151;
-	public static final int TEMPLATE_MOBILE_IBM_3270 = 200;
-	public static final int TEMPLATE_MOBILE_IBM_5250 = 201;
-	public static final int TEMPLATE_EAI_IBM_3270 = 300;
-	public static final int TEMPLATE_EAI_IBM_5250 = 301;
-	public static final int TEMPLATE_EAI_BULL_DKU_7107 = 302;
-	public static final int TEMPLATE_EAI_UNIX_VT220 = 304;
-	public static final int TEMPLATE_EAI_HTTP = 305;
-	public static final int TEMPLATE_EAI_CICS_COMMEAREA = 306;
-	public static final int TEMPLATE_EAI_HTML_WEB_SITE = 307;
-	public static final int TEMPLATE_SEQUENCE_CONNECTOR = 500;
-	public static final int TEMPLATE_WEB_SERVICE_REST_REFERENCE = 700;
-	public static final int TEMPLATE_WEB_SERVICE_SOAP_REFERENCE = 701;
-	public static final int TEMPLATE_WEB_SERVICE_SWAGGER_REFERENCE = 702;
-	public static final int TEMPLATE_SQL_CONNECTOR = 400;
-	public static final int TEMPLATE_SITE_CLIPPER = 1100;
-	public static final int TEMPLATE_SAP_CONNECTOR = 1200;
-	public static final int TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE = 1300;
-	public static final int TEMPLATE_MOBILE_BUILDER = 1400;
-
-	// generic sample
-	public static final int SAMPLE_HELLO_WORLD = 620;
+	static final int TEMPLATE_WEB_HTML_IBM_3270 = 100;
+	static final int TEMPLATE_WEB_HTML_IBM_5250 = 101;
+	static final int TEMPLATE_WEB_HTML_BULL_DKU_7107 = 102;
+	static final int TEMPLATE_WEB_GREENSCREEN_IBM_3270 = 150;
+	static final int TEMPLATE_WEB_GREENSCREEN_IBM_5250 = 151;
+	static final int TEMPLATE_MOBILE_IBM_3270 = 200;
+	static final int TEMPLATE_MOBILE_IBM_5250 = 201;
+	static final int TEMPLATE_EAI_IBM_3270 = 300;
+	static final int TEMPLATE_EAI_IBM_5250 = 301;
+	static final int TEMPLATE_EAI_BULL_DKU_7107 = 302;
+	static final int TEMPLATE_EAI_UNIX_VT220 = 304;
+	static final int TEMPLATE_EAI_HTTP = 305;
+	static final int TEMPLATE_EAI_CICS_COMMEAREA = 306;
+	static final int TEMPLATE_EAI_HTML_WEB_SITE = 307;
+	static final int TEMPLATE_SEQUENCE_CONNECTOR = 500;
+	static final int TEMPLATE_WEB_SERVICE_REST_REFERENCE = 700;
+	static final int TEMPLATE_WEB_SERVICE_SOAP_REFERENCE = 701;
+	static final int TEMPLATE_WEB_SERVICE_SWAGGER_REFERENCE = 702;
+	static final int TEMPLATE_SQL_CONNECTOR = 400;
+	static final int TEMPLATE_SITE_CLIPPER = 1100;
+	static final int TEMPLATE_SAP_CONNECTOR = 1200;
+	static final int TEMPLATE_MOBILE_BUILDER = 1400;
+	
 	// documentation samples
-	public static final int SAMPLE_DOCUMENTATION_CLI = 600;
-	public static final int SAMPLE_DOCUMENTATION_CLP = 601;
-	public static final int SAMPLE_DOCUMENTATION_CWI = 602;
-	public static final int SAMPLE_DOCUMENTATION_CWC = 603;
-	public static final int SAMPLE_DOCUMENTATION_CMS = 604;
-	public static final int SAMPLE_DOCUMENTATION_CMC = 605;
-	public static final int SAMPLE_DOCUMENTATION_SITECLIPPER = 607;
+	static final int SAMPLE_DOCUMENTATION_CLI = 600;
+	static final int SAMPLE_DOCUMENTATION_CLP = 601;
+	static final int SAMPLE_DOCUMENTATION_CWI = 602;
+	static final int SAMPLE_DOCUMENTATION_CWC = 603;
+	static final int SAMPLE_DOCUMENTATION_CMS = 604;
+	static final int SAMPLE_DOCUMENTATION_CMC = 605;
+	static final int SAMPLE_DOCUMENTATION_SITECLIPPER = 607;
 	// reference manual samples
-	public static final int SAMPLE_REFMANUAL_SITECLIPPER = 650;
-	public static final int SAMPLE_REFMANUAL_STATEMENTS = 651;
-	public static final int SAMPLE_REFMANUAL_STEPS = 652;
-	public static final int SAMPLE_REFMANUAL_VARIABLES = 653;
-	public static final int SAMPLE_REFMANUAL_HTTP = 654;
-	public static final int SAMPLE_REFMANUAL_WEBCLIPPER = 655;
+	static final int SAMPLE_REFMANUAL_SITECLIPPER = 650;
+	static final int SAMPLE_REFMANUAL_STATEMENTS = 651;
+	static final int SAMPLE_REFMANUAL_STEPS = 652;
+	static final int SAMPLE_REFMANUAL_VARIABLES = 653;
+	static final int SAMPLE_REFMANUAL_HTTP = 654;
+	static final int SAMPLE_REFMANUAL_WEBCLIPPER = 655;
 	// SQL samples
-	public static final int SAMPLE_SQL_HSQLDB = 660;
-	public static final int SAMPLE_SQL_XLS = 661;
+	static final int SAMPLE_SQL_HSQLDB = 660;
+	static final int SAMPLE_SQL_XLS = 661;
 	// libraries
-	public static final int LIBRARY_GOOGLE_MAPS = 800;
-	public static final int LIBRARY_PUSH_MANAGER = 804;
-	public static final int LIBRARY_TWITTER = 805;
-	public static final int LIBRARY_OAUTH = 806;
-	public static final int LIBRARY_POLYMER = 807;
-	public static final int LIBRARY_FILE_TRANSFER = 808;
-	public static final int LIBRARY_SIGFOX = 809;
-	public static final int LIBRARY_SALESFORCE = 810;
-	public static final int LIBRARY_FULLSYNC_GRP = 811;
-	
-	// demos
-	public static final int DEMOS_SALESFORCE = 900;
-	public static final int DEMOS_USDIRECTORY = 901;
-	public static final int DEMOS_LEGACYCRM = 902;
-	public static final int DEMOS_MASHUP = 903;
-	
+	static final int LIBRARY_PUSH_MANAGER = 804;
+	static final int LIBRARY_TWITTER = 805;
+	static final int LIBRARY_OAUTH = 806;
+	static final int LIBRARY_FILE_TRANSFER = 808;
+	static final int LIBRARY_SIGFOX = 809;
+	static final int LIBRARY_SALESFORCE = 810;
+	static final int LIBRARY_FULLSYNC_GRP = 811;	
 	
 	// mobile samples
-	public static final int SAMPLE_MOBILE_VACATION = 1310;
-	public static final int SAMPLE_MOBILE_SEARCH_ROOM = 1311;
-	public static final int SAMPLE_MOBILE_CTF_GALLERY = 1312;
-	public static final int SAMPLE_MOBILE_USDIRECTORY = 1313;
-	public static final int SAMPLE_MOBILE_MOBTV = 1314;
-	
-	public static final int SAMPLE_POLYMER = 1315;
-	public static final int SAMPLE_ANGULARJS = 1316;
-	public static final int SAMPLE_OFFCHAT = 1317;
-	public static final int SAMPLE_RETAILSTORE = 1318;
+	static final int SAMPLE_OFFCHAT = 1317;
+	static final int SAMPLE_RETAILSTORE = 1318;
 	
 	// rest samples
-	public static final int SAMPLE_MAPPERSHOP = 1330;
+	static final int SAMPLE_MAPPERSHOP = 1330;
 	
 	// sequencer samples
-	public static final int SAMPLE_SEQUENCER_1 = 510;
+	static final int SAMPLE_SEQUENCER_1 = 510;
 
 	// FILE NAMES
 	// to import blank project
-	public static final String JAVELIN_PUBLISHER_TEMPLATE_PROJECT_FILE_NAME = "template_javelin.car";
-	public static final String DKU_PUBLISHER_TEMPLATE_PROJECT_FILE_NAME = "template_javelinDKU.car";
-	public static final String JAVELIN_INTEGRATION_TEMPLATE_PROJECT_FILE_NAME = "template_javelinIntegration.car";
-	public static final String WEB_INTEGRATION_TEMPLATE_PROJECT_FILE_NAME = "template_webIntegration.car";
-	public static final String HTTP_INTEGRATION_TEMPLATE_PROJECT_FILE_NAME = "template_HTTP.car";
-	public static final String CICS_INTEGRATION_TEMPLATE_PROJECT_FILE_NAME = "template_CICS.car";
-	public static final String SEQUENCE_TEMPLATE_PROJECT_FILE_NAME = "template_sequence.car";
-	public static final String SQL_TEMPLATE_PROJECT_FILE_NAME = "template_SQL.car";
-	public static final String SAP_TEMPLATE_PROJECT_FILE_NAME = "template_SAP.car";
-	public static final String SITE_CLIPPER_TEMPLATE_PROJECT_FILE_NAME = "template_siteClipper.car";
-	public static final String JQUERYMOBILE_MOBILE_EMPTY_TEMPLATE_PROJECT_FILE_NAME = "template_mobileJQueryMobile.car";
-	public static final String MOBILE_BUILDER_TEMPLATE_PROJECT_FILE_NAME = "template_Ionic2.car";
+	private static final String JAVELIN_PUBLISHER_TEMPLATE_PROJECT_FILE_NAME = "template_javelin.car";
+	private static final String DKU_PUBLISHER_TEMPLATE_PROJECT_FILE_NAME = "template_javelinDKU.car";
+	private static final String JAVELIN_INTEGRATION_TEMPLATE_PROJECT_FILE_NAME = "template_javelinIntegration.car";
+	private static final String WEB_INTEGRATION_TEMPLATE_PROJECT_FILE_NAME = "template_webIntegration.car";
+	private static final String HTTP_INTEGRATION_TEMPLATE_PROJECT_FILE_NAME = "template_HTTP.car";
+	private static final String CICS_INTEGRATION_TEMPLATE_PROJECT_FILE_NAME = "template_CICS.car";
+	private static final String SEQUENCE_TEMPLATE_PROJECT_FILE_NAME = "template_sequence.car";
+	private static final String SQL_TEMPLATE_PROJECT_FILE_NAME = "template_SQL.car";
+	private static final String SAP_TEMPLATE_PROJECT_FILE_NAME = "template_SAP.car";
+	private static final String SITE_CLIPPER_TEMPLATE_PROJECT_FILE_NAME = "template_siteClipper.car";
+	private static final String MOBILE_BUILDER_TEMPLATE_PROJECT_FILE_NAME = "template_Ionic2.car";
 	// documentation samples
-	public static final String CLI_DOC_PROJECT_FILE_NAME = "sample_documentation_CLI.car";
-	public static final String CWI_DOC_PROJECT_FILE_NAME = "sample_documentation_CWI.car";
-	public static final String CLP_DOC_PROJECT_FILE_NAME = "sample_documentation_CLP.car";
-	public static final String CWC_DOC_PROJECT_FILE_NAME = "sample_documentation_CWC.car";
-	public static final String CMS_DOC_PROJECT_FILE_NAME = "sample_documentation_CMS.car";
-	public static final String CMC_DOC_PROJECT_FILE_NAME = "sample_documentation_CMC.car";
-	public static final String SITECLIPPER_DOC_PROJECT_FILE_NAME = "sampleDocumentationSiteClipper.car";
+	private static final String CLI_DOC_PROJECT_FILE_NAME = "sample_documentation_CLI.car";
+	private static final String CWI_DOC_PROJECT_FILE_NAME = "sample_documentation_CWI.car";
+	private static final String CLP_DOC_PROJECT_FILE_NAME = "sample_documentation_CLP.car";
+	private static final String CWC_DOC_PROJECT_FILE_NAME = "sample_documentation_CWC.car";
+	private static final String CMS_DOC_PROJECT_FILE_NAME = "sample_documentation_CMS.car";
+	private static final String CMC_DOC_PROJECT_FILE_NAME = "sample_documentation_CMC.car";
+	private static final String SITECLIPPER_DOC_PROJECT_FILE_NAME = "sampleDocumentationSiteClipper.car";
 	// mobile samples
-	public static final String SAMPLE_MOBILE_VACATION_PROJECT_FILE_NAME = "sampleMobileVacation.car";
-	public static final String SAMPLE_MOBILE_SEARCH_ROOM_PROJECT_FILE_NAME = "sampleMobileSearchRoom.car";
-	public static final String SAMPLE_MOBILE_CTF_GALLERY_PROJECT_FILE_NAME = "sampleMobileCtfGallery.car";
-	public static final String SAMPLE_MOBILE_USDIRECTORY_PROJECT_FILE_NAME = "sampleMobileUsDirectoryDemo.car";
-	public static final String SAMPLE_MOBILE_MOB_TV_PROJECT_FILE_NAME = "sampleMobileMobTV.car";
-	public static final String SAMPLE_POLYMER_PROJECT_FILE_NAME = "samplePolymer.car";
-	public static final String SAMPLE_ANGULARJS_PROJECT_FILE_NAME = "sampleAngularJS.car";
-	public static final String SAMPLE_OFFCHAT_PROJECT_FILE_NAME = "sampleMobileOffChat.car";
-	public static final String SAMPLE_RETAILSTORE_PROJECT_FILE_NAME = "sampleMobileRetailStore.car";
+	private static final String SAMPLE_OFFCHAT_PROJECT_FILE_NAME = "sampleMobileOffChat.car";
+	private static final String SAMPLE_RETAILSTORE_PROJECT_FILE_NAME = "sampleMobileRetailStore.car";
 	// rest samples
-	public static final String SAMPLE_MAPPERSHOP_PROJECT_FILE_NAME = "sampleMapperShop.car";
+	private static final String SAMPLE_MAPPERSHOP_PROJECT_FILE_NAME = "sampleMapperShop.car";
 	// libraries
-	public static final String GOOGLE_MAPS_LIBRARY_PROJECT_FILE_NAME = "lib_GoogleMaps.car";
-	public static final String PUSH_MANAGER_LIBRARY_PROJECT_FILE_NAME = "lib_PushManager.car";
-	public static final String TWITTER_LIBRARY_PROJECT_FILE_NAME = "lib_Twitter.car";
-	public static final String OAUTH_LIBRARY_PROJECT_FILE_NAME = "lib_OAuth.car";
-	public static final String POLYMER_LIBRARY_PROJECT_FILE_NAME = "lib_Polymer.car";
-	public static final String FILE_TRANSFER_LIBRARY_PROJECT_FILE_NAME = "lib_FileTransfer.car";
-	public static final String FULLSYNC_GRP_LIBRARY_PROJECT_FILE_NAME = "lib_FullSyncGrp.car";
-	public static final String SIGFOX_LIBRARY_PROJECT_FILE_NAME = "lib_Sigfox.car";
-	public static final String SALESFORCE_LIBRARY_PROJECT_FILE_NAME = "lib_Salesforce.car";
-	// mashup demo
-	public static final String SALESFORCE_DEMO_PROJECT_FILE_NAME = "demo_SalesForce.car";
-	public static final String USDIRECTORY_DEMO_PROJECT_FILE_NAME = "demo_usDirectory.car";
-	public static final String LEGACYCRM_DEMO_PROJECT_FILE_NAME = "demo_legacyCRM.car";
-	public static final String MASHUP_DEMO_PROJECT_FILE_NAME = "demo_mashup.car";
+	private static final String PUSH_MANAGER_LIBRARY_PROJECT_FILE_NAME = "lib_PushManager.car";
+	private static final String TWITTER_LIBRARY_PROJECT_FILE_NAME = "lib_Twitter.car";
+	private static final String OAUTH_LIBRARY_PROJECT_FILE_NAME = "lib_OAuth.car";
+	private static final String FILE_TRANSFER_LIBRARY_PROJECT_FILE_NAME = "lib_FileTransfer.car";
+	private static final String FULLSYNC_GRP_LIBRARY_PROJECT_FILE_NAME = "lib_FullSyncGrp.car";
+	private static final String SIGFOX_LIBRARY_PROJECT_FILE_NAME = "lib_Sigfox.car";
+	private static final String SALESFORCE_LIBRARY_PROJECT_FILE_NAME = "lib_Salesforce.car";
 	// referemnce manual samples
-	public static final String REFMANUAL_SITECLIPPER_PROJECT_FILE_NAME = "sample_refManual_siteClipper.car";
-	public static final String REFMANUAL_STATEMENTS_PROJECT_FILE_NAME = "sample_refManual_statements.car";
-	public static final String REFMANUAL_STEPS_PROJECT_FILE_NAME = "sample_refManual_steps.car";
-	public static final String REFMANUAL_VARIABLES_PROJECT_FILE_NAME = "sample_refManual_variables.car";
-	public static final String REFMANUAL_HTTP_PROJECT_FILE_NAME = "sample_refManual_http.car";
-	public static final String REFMANUAL_WEBCLIPPER_PROJECT_FILE_NAME = "sample_refManual_webClipper.car";
+	private static final String REFMANUAL_SITECLIPPER_PROJECT_FILE_NAME = "sample_refManual_siteClipper.car";
+	private static final String REFMANUAL_STATEMENTS_PROJECT_FILE_NAME = "sample_refManual_statements.car";
+	private static final String REFMANUAL_STEPS_PROJECT_FILE_NAME = "sample_refManual_steps.car";
+	private static final String REFMANUAL_VARIABLES_PROJECT_FILE_NAME = "sample_refManual_variables.car";
+	private static final String REFMANUAL_HTTP_PROJECT_FILE_NAME = "sample_refManual_http.car";
+	private static final String REFMANUAL_WEBCLIPPER_PROJECT_FILE_NAME = "sample_refManual_webClipper.car";
 	// SQL samples
-	public static final String SQL_HSQLDB_PROJECT_FILE_NAME = "sample_database_HSQLDB.car";
-	public static final String SQL_XLS_PROJECT_FILE_NAME = "sample_database_XLS.car";
-	// generic sample
-	public static final String SAMPLE_HELLO_WORLD_PROJECT_FILE_NAME = "sample_HelloWorld.car";
+	private static final String SQL_HSQLDB_PROJECT_FILE_NAME = "sample_database_HSQLDB.car";
+	private static final String SQL_XLS_PROJECT_FILE_NAME = "sample_database_XLS.car";
 	// sequencer samples
-	public static final String SEQUENCER_1_PROJECT_FILE_NAME = "sample_sequencer.car";
+	private static final String SEQUENCER_1_PROJECT_FILE_NAME = "sample_sequencer.car";
 
 	/**
 	 * Constructor for SampleNewWizard.
@@ -260,7 +222,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	 */
 	public void addPages() {
 		switch (templateId) {
-		case SAMPLE_HELLO_WORLD:
 		case SAMPLE_SEQUENCER_1:
 		case SAMPLE_SQL_HSQLDB:
 		case SAMPLE_SQL_XLS:
@@ -277,29 +238,16 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case SAMPLE_DOCUMENTATION_CWC:
 		case SAMPLE_DOCUMENTATION_CWI:
 		case SAMPLE_DOCUMENTATION_SITECLIPPER:
-		case SAMPLE_MOBILE_VACATION:
-		case SAMPLE_MOBILE_SEARCH_ROOM:
-		case SAMPLE_MOBILE_CTF_GALLERY:
-		case SAMPLE_MOBILE_USDIRECTORY:
-		case SAMPLE_MOBILE_MOBTV:
-		case SAMPLE_POLYMER:
-		case SAMPLE_ANGULARJS:
 		case SAMPLE_OFFCHAT:
 		case SAMPLE_RETAILSTORE:
 		case SAMPLE_MAPPERSHOP:
-		case LIBRARY_GOOGLE_MAPS:
 		case LIBRARY_PUSH_MANAGER:
 		case LIBRARY_TWITTER:
 		case LIBRARY_OAUTH:
-		case LIBRARY_POLYMER:
 		case LIBRARY_FILE_TRANSFER:
 		case LIBRARY_FULLSYNC_GRP:
 		case LIBRARY_SIGFOX:
 		case LIBRARY_SALESFORCE:
-		case DEMOS_SALESFORCE:
-		case DEMOS_USDIRECTORY:
-		case DEMOS_LEGACYCRM:
-		case DEMOS_MASHUP:
 			pageSummarySampleProject = new NewProjectWizardPageSummarySampleProject(selection);
 			addPage(pageSummarySampleProject);
 			break;
@@ -370,8 +318,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			addPage(page2);
 			addPage(configureSAPConnectorPage);
 			break;
-
-		case TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE:
+			
 		case TEMPLATE_MOBILE_BUILDER:
 		case TEMPLATE_SEQUENCE_CONNECTOR:
 			page1 = new NewProjectWizardPage1(selection);
@@ -467,7 +414,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case TEMPLATE_SQL_CONNECTOR:
 			case TEMPLATE_SAP_CONNECTOR:
 			case TEMPLATE_SITE_CLIPPER:
-			case TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE:
 			case TEMPLATE_MOBILE_BUILDER:
 			case TEMPLATE_WEB_SERVICE_REST_REFERENCE:
 				projectName = page1.getProjectName();
@@ -475,7 +421,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				createFromBlankProject(monitor);
 				return;
 
-			case SAMPLE_HELLO_WORLD:
 			case SAMPLE_SEQUENCER_1:
 			case SAMPLE_SQL_HSQLDB:
 			case SAMPLE_SQL_XLS:
@@ -492,29 +437,16 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case SAMPLE_DOCUMENTATION_CWC:
 			case SAMPLE_DOCUMENTATION_CWI:
 			case SAMPLE_DOCUMENTATION_SITECLIPPER:
-			case SAMPLE_MOBILE_VACATION:
-			case SAMPLE_MOBILE_SEARCH_ROOM:
-			case SAMPLE_MOBILE_CTF_GALLERY:
-			case SAMPLE_MOBILE_USDIRECTORY:
-			case SAMPLE_MOBILE_MOBTV:
-			case SAMPLE_POLYMER:
-			case SAMPLE_ANGULARJS:
 			case SAMPLE_OFFCHAT:
 			case SAMPLE_RETAILSTORE:
 			case SAMPLE_MAPPERSHOP:
-			case LIBRARY_GOOGLE_MAPS:
 			case LIBRARY_SALESFORCE:
 			case LIBRARY_PUSH_MANAGER:
 			case LIBRARY_TWITTER:
 			case LIBRARY_OAUTH:
-			case LIBRARY_POLYMER:
 			case LIBRARY_FILE_TRANSFER:
 			case LIBRARY_FULLSYNC_GRP:
 			case LIBRARY_SIGFOX:
-			case DEMOS_SALESFORCE:
-			case DEMOS_USDIRECTORY:
-			case DEMOS_LEGACYCRM:
-			case DEMOS_MASHUP:
 				monitor.beginTask("Creating project", 7);
 				createFromArchiveProject(monitor);
 				return;
@@ -656,12 +588,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SITE_CLIPPER_TEMPLATE_PROJECT_FILE_NAME;
 			oldProjectName = SITE_CLIPPER_TEMPLATE_PROJECT_FILE_NAME.substring(0,
 					SITE_CLIPPER_TEMPLATE_PROJECT_FILE_NAME.indexOf(".car"));
-			break;
-		case TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/"
-					+ JQUERYMOBILE_MOBILE_EMPTY_TEMPLATE_PROJECT_FILE_NAME;
-			oldProjectName = JQUERYMOBILE_MOBILE_EMPTY_TEMPLATE_PROJECT_FILE_NAME.substring(0,
-					JQUERYMOBILE_MOBILE_EMPTY_TEMPLATE_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case TEMPLATE_MOBILE_BUILDER:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/"
@@ -807,7 +733,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			String newConnectorName = "NewConnector";
 			// interactionHub project connector name is by default set to "void"
 			switch (templateId) {
-			case TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE:
 			case TEMPLATE_MOBILE_BUILDER:
 			case TEMPLATE_SEQUENCE_CONNECTOR:
 				newConnectorName = "void";
@@ -1188,10 +1113,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		String projectArchivePath = "";
 
 		switch (templateId) {
-		case SAMPLE_HELLO_WORLD:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_HELLO_WORLD_PROJECT_FILE_NAME;
-			projectName = SAMPLE_HELLO_WORLD_PROJECT_FILE_NAME.substring(0, SAMPLE_HELLO_WORLD_PROJECT_FILE_NAME.indexOf(".car"));
-			break;
 		case SAMPLE_SEQUENCER_1:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SEQUENCER_1_PROJECT_FILE_NAME;
 			projectName = SEQUENCER_1_PROJECT_FILE_NAME.substring(0, SEQUENCER_1_PROJECT_FILE_NAME.indexOf(".car"));
@@ -1256,10 +1177,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SITECLIPPER_DOC_PROJECT_FILE_NAME;
 			projectName = SITECLIPPER_DOC_PROJECT_FILE_NAME.substring(0, SITECLIPPER_DOC_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
-		case LIBRARY_GOOGLE_MAPS:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + GOOGLE_MAPS_LIBRARY_PROJECT_FILE_NAME;
-			projectName = GOOGLE_MAPS_LIBRARY_PROJECT_FILE_NAME.substring(0, GOOGLE_MAPS_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
-			break;
 		case LIBRARY_SALESFORCE:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SALESFORCE_LIBRARY_PROJECT_FILE_NAME;
 			projectName = SALESFORCE_LIBRARY_PROJECT_FILE_NAME.substring(0, SALESFORCE_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
@@ -1276,10 +1193,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + OAUTH_LIBRARY_PROJECT_FILE_NAME;
 			projectName = OAUTH_LIBRARY_PROJECT_FILE_NAME.substring(0, OAUTH_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
-		case LIBRARY_POLYMER:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + POLYMER_LIBRARY_PROJECT_FILE_NAME;
-			projectName = POLYMER_LIBRARY_PROJECT_FILE_NAME.substring(0, POLYMER_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
-			break;
 		case LIBRARY_FILE_TRANSFER:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + FILE_TRANSFER_LIBRARY_PROJECT_FILE_NAME;
 			projectName = FILE_TRANSFER_LIBRARY_PROJECT_FILE_NAME.substring(0, FILE_TRANSFER_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
@@ -1291,50 +1204,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case LIBRARY_SIGFOX:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SIGFOX_LIBRARY_PROJECT_FILE_NAME;
 			projectName = SIGFOX_LIBRARY_PROJECT_FILE_NAME.substring(0, SIGFOX_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
-			break;
-		case DEMOS_SALESFORCE:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SALESFORCE_DEMO_PROJECT_FILE_NAME;
-			projectName = SALESFORCE_DEMO_PROJECT_FILE_NAME.substring(0, SALESFORCE_DEMO_PROJECT_FILE_NAME.indexOf(".car"));
-			break;
-		case DEMOS_USDIRECTORY:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + USDIRECTORY_DEMO_PROJECT_FILE_NAME;
-			projectName = USDIRECTORY_DEMO_PROJECT_FILE_NAME.substring(0, USDIRECTORY_DEMO_PROJECT_FILE_NAME.indexOf(".car"));
-			break;
-		case DEMOS_LEGACYCRM:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + LEGACYCRM_DEMO_PROJECT_FILE_NAME;
-			projectName = LEGACYCRM_DEMO_PROJECT_FILE_NAME.substring(0, LEGACYCRM_DEMO_PROJECT_FILE_NAME.indexOf(".car"));
-			break;
-		case DEMOS_MASHUP:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + MASHUP_DEMO_PROJECT_FILE_NAME;
-			projectName = MASHUP_DEMO_PROJECT_FILE_NAME.substring(0, MASHUP_DEMO_PROJECT_FILE_NAME.indexOf(".car"));
-			break;
-		case SAMPLE_MOBILE_VACATION:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_MOBILE_VACATION_PROJECT_FILE_NAME;
-			projectName = SAMPLE_MOBILE_VACATION_PROJECT_FILE_NAME.substring(0, SAMPLE_MOBILE_VACATION_PROJECT_FILE_NAME.indexOf(".car"));
-			break;
-		case SAMPLE_MOBILE_SEARCH_ROOM:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_MOBILE_SEARCH_ROOM_PROJECT_FILE_NAME;
-			projectName = SAMPLE_MOBILE_SEARCH_ROOM_PROJECT_FILE_NAME.substring(0, SAMPLE_MOBILE_SEARCH_ROOM_PROJECT_FILE_NAME.indexOf(".car"));
-			break;
-		case SAMPLE_MOBILE_CTF_GALLERY:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_MOBILE_CTF_GALLERY_PROJECT_FILE_NAME;
-			projectName = SAMPLE_MOBILE_CTF_GALLERY_PROJECT_FILE_NAME.substring(0, SAMPLE_MOBILE_CTF_GALLERY_PROJECT_FILE_NAME.indexOf(".car"));
-			break;
-		case SAMPLE_MOBILE_USDIRECTORY:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_MOBILE_USDIRECTORY_PROJECT_FILE_NAME;
-			projectName = SAMPLE_MOBILE_USDIRECTORY_PROJECT_FILE_NAME.substring(0, SAMPLE_MOBILE_USDIRECTORY_PROJECT_FILE_NAME.indexOf(".car"));
-			break;
-		case SAMPLE_MOBILE_MOBTV:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_MOBILE_MOB_TV_PROJECT_FILE_NAME;
-			projectName = SAMPLE_MOBILE_MOB_TV_PROJECT_FILE_NAME.substring(0, SAMPLE_MOBILE_MOB_TV_PROJECT_FILE_NAME.indexOf(".car"));
-			break;
-		case SAMPLE_POLYMER:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_POLYMER_PROJECT_FILE_NAME;
-			projectName = SAMPLE_POLYMER_PROJECT_FILE_NAME.substring(0,	SAMPLE_POLYMER_PROJECT_FILE_NAME.indexOf(".car"));
-			break;
-		case SAMPLE_ANGULARJS:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_ANGULARJS_PROJECT_FILE_NAME;
-			projectName = SAMPLE_ANGULARJS_PROJECT_FILE_NAME.substring(0, SAMPLE_ANGULARJS_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case SAMPLE_OFFCHAT:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_OFFCHAT_PROJECT_FILE_NAME;

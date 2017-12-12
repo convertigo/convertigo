@@ -189,10 +189,6 @@
             id="com.twinsoft.convertigo.eclipse.convertigosqlsamples"
             name="SQL Connector samples"
             parentCategory="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"/>
-      <category
-            id="com.twinsoft.convertigo.eclipse.convertigodemos"
-            name="Mashup demo projects"
-            parentCategory="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"/>
 <!-- Mobile projects -->
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo"
@@ -385,16 +381,6 @@
 <!-- Libraries projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryGoogleMapsWizard"
-             icon="icons/studio/library_googleMaps_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryGoogleMapsWizard"
-             name="Google Maps"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the Convertigo Google Maps library project.</description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryPushManagerWizard"
              icon="icons/studio/library_pushManager_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryPushManagerWizard"
@@ -422,16 +408,6 @@
              preferredPerspectives="convertigo"
              project="true">
           <description>Imports the Convertigo OAuth library project.</description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryPolymerWizard"
-             icon="icons/studio/polymer_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryPolymerWizard"
-             name="Polymer library"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the Convertigo Polymer library project.</description>
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
@@ -578,76 +554,6 @@
 <!-- Mobile sample projects -->
        <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerSearchRoomWizard"
-            icon="icons/studio/mobile_HighEnd_color_32x32.png"
-            id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerSearchRoomWizard"
-            name="Searching conference rooms mobile sample project"
-            preferredPerspectives="convertigo"
-            project="true">
-            <description>Imports a mobile sample project allowing to search a conference room, and localize them on a map. The project is based on jQuery Mobile and CTF frameworks, and uses the local cache. When the mobile application receives a response from Convertigo, it is cached locally thanks to JavaScript code. When the mobile application cannot reach Convertigo, or cannot access the network, or when data is stored locally, the local data are used. </description> 
-       </wizard>
-       <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobileCtfGalleryWizard"
-            icon="icons/studio/demo_ctfgallery_color_32x32.png"
-            id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobileCtfGalleryWizard"
-            name="CTF gallery sample project"
-            preferredPerspectives="convertigo"
-            project="true">
-            <description>Imports the CTF gallery project, demonstrating several functionalities of the Convertigo Templating Framework library.</description> 
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerUsDirectoryWizard"
-             icon="icons/studio/demo_usDirectory_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerUsDirectoryWizard"
-             name="Mobile US Directory sample project"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports a sample project creating a US Directory mobile application. The project is based on jQuery Mobile and CTF frameworks, and makes searches on the US Directory website to dynamically get data. It also uses the local cache. When the mobile application receives a response from Convertigo, it is cached locally thanks to JavaScript code. When the mobile application cannot reach Convertigo, or cannot access the network, or when data is stored locally, the local data are used. </description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerMobTvWizard"
-             icon="icons/studio/demo_mobtv_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerMobTvWizard"
-             name="MobTV sample project"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports a sample project creating a MobTV mobile application. The project is based on jQuery Mobile and CTF frameworks, and makes searches on the programme-tv.net website to dynamically get data. It also uses the local cache. When the mobile application receives a response from Convertigo, it is cached locally thanks to JavaScript code. When the mobile application cannot reach Convertigo, or cannot access the network, or when data is stored locally, the local data are used. </description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerVacationWizard"
-             icon="icons/studio/demo_vacations_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerVacationWizard"
-             name="Vacations sample project"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports a vacation management mobile application sample project. The project is based on jQuery Mobile and CTF frameworks, and uses fake data from XML files in the project loaded thanks to a sequence.</description>
-       </wizard>
-       <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleAngularJSWizard"
-            icon="icons/studio/angularjs_color_32x32.png"
-            id="com.twinsoft.convertigo.eclipse.wizards.NewSampleAngularJSWizard"
-            name="AngularJS sample project"
-            preferredPerspectives="convertigo"
-            project="true">
-            <description>Imports a sample mobile AngularJS application project.</description> 
-       </wizard>
-       <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSamplePolymerWizard"
-            icon="icons/studio/polymer_color_32x32.png"
-            id="com.twinsoft.convertigo.eclipse.wizards.NewSamplePolymerWizard"
-            name="Polymer sample project"
-            preferredPerspectives="convertigo"
-            project="true">
-            <description>Imports a sample mobile Polymer application project.</description> 
-       </wizard>
-       <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleOffChatWizard"
             icon="icons/studio/offchat_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleOffChatWizard"
@@ -677,17 +583,6 @@
             project="true">
             <description>Imports a project being exposed as a REST service through its URL mapper. The project is a very simplistic shop which data are stored into a local HSQLDB database. </description> 
        </wizard>
-<!-- HelloWorld sample project -->
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleHelloWorldWizard"
-             icon="icons/convertigo_16x16.gif"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleHelloWorldWizard"
-             name="HelloWorld sample project"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports a sample project containing each type of connector.</description>
-       </wizard>
 <!-- SQL connector sample projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigosqlsamples"
@@ -708,47 +603,6 @@
              preferredPerspectives="convertigo"
              project="true">
           <description>Imports an Excel file database sample project.</description>
-       </wizard>
-<!-- Mashup demo projects -->
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodemos"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDemoSalesForceWizard"
-             icon="icons/studio/demo_salesForce_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewDemoSalesForceWizard"
-             name="SalesForce"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the convertigo SalesForce demo project.</description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodemos"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDemoUsDirectoryWizard"
-             icon="icons/studio/demo_usDirectory_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewDemoUsDirectoryWizard"
-             name="US Directory"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the convertigo US Directory demo project.</description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodemos"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDemoLegacyCRMWizard"
-             icon="icons/studio/demo_legacyCRM_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewDemoLegacyCRMWizard"
-             name="Legacy CRM"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the convertigo Legacy CRM demo project.</description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodemos"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDemoMashupWizard"
-             icon="icons/studio/demo_mashup_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewDemoMashupWizard"
-             name="Mashup demo"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the convertigo mashup demo project.</description>
        </wizard>
    </extension>
    <extension
