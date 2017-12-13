@@ -852,7 +852,7 @@
 
     "DivTag": {
       "tag": "div",
-	  "displayName": "DivTag",
+	  "displayName": "Div",
       "label": "Div",
       "description": "div| Defines a <i>Div</i> component.<br/>This component acts as the standard HTML div tag.<br>A <i>Div</i> defines a division or a section in an HTML document. <br/> For more information: <a href='https://www.w3schools.com/tags/tag_div.asp' target='_blank'>Div</a>",
       "group": "HTML",
@@ -863,7 +863,7 @@
     },
     "SpanTag": {
       "tag": "span",
-	  "displayName": "SpanTag",
+	  "displayName": "Span",
       "label": "Span",
       "description": "span| Defines a <i>Span</i> component.<br/>This component acts as the standard HTML span tag.<br>Use <i>Span</i> with <i>Text</i> components inside to hook part of text in your pages.<br/> For more information: <a href='https://www.w3schools.com/tags/tag_span.asp' target='_blank'>Span</a>",
       "group": "HTML",
@@ -875,7 +875,7 @@
 
     "Heading1": {
       "tag": "h1",
-	  "displayName": "Heading1",
+	  "displayName": "H1",
       "label": "H1",
       "description": "h1| Defines a <i>H1</i> component.<br/>This component acts as the standard HTML h1 tag.<br>The <i>H1</i> to <i>H6</i> are used to define headings, from the most important to the least important ones.<br/>Use them for pages Titles for example. Add <i>Text</i> components inside. <br/> For more information: <a href='https://www.w3schools.com/tags/tag_hn.asp' target='_blank'>H1</a>",
       "group": "HTML",
@@ -898,7 +898,7 @@
     
     "Heading2": {
       "tag": "h2",
-	  "displayName": "Heading2",
+	  "displayName": "H2",
       "label": "H2",
       "description": "h2| Defines a <i>H2</i> component.<br/>This component acts as the standard HTML h2 tag.<br>The <i>H1</i> to <i>H6</i> are used to define headings, from the most important to the least important ones.<br/>Use them for pages Titles for example. Add <i>Text</i> components inside. <br/> For more information: <a href='https://www.w3schools.com/tags/tag_hn.asp' target='_blank'>H2</a>",
       "group": "HTML",
@@ -921,7 +921,7 @@
     
     "Heading3": {
       "tag": "h3",
-	  "displayName": "Heading3",
+	  "displayName": "H3",
       "label": "H3",
       "description": "h3| Defines a <i>H3</i> component.<br/>This component acts as the standard HTML h3 tag.<br>The <i>H1</i> to <i>H6</i> are used to define headings, from the most important to the least important ones.<br/>Use them for pages Titles for example. Add <i>Text</i> components inside. <br/> For more information: <a href='https://www.w3schools.com/tags/tag_hn.asp' target='_blank'>H3</a>",
       "group": "HTML",
@@ -944,7 +944,7 @@
     
     "Heading4": {
       "tag": "h4",
-	  "displayName": "Heading4",
+	  "displayName": "H4",
       "label": "H4",
       "description": "h4| Defines a <i>H4</i> component.<br/>This component acts as the standard HTML h4 tag.<br>The <i>H1</i> to <i>H6</i> are used to define headings, from the most important to the least important ones.<br/>Use them for pages Titles for example. Add <i>Text</i> components inside. <br/> For more information: <a href='https://www.w3schools.com/tags/tag_hn.asp' target='_blank'>H4</a>",
       "group": "HTML",
@@ -967,7 +967,7 @@
     
     "Heading5": {
       "tag": "h5",
-	  "displayName": "Heading5",
+	  "displayName": "H5",
       "label": "H5",
       "description": "h5| Defines a <i>H5</i> component.<br/>This component acts as the standard HTML h5 tag.<br>The <i>H1</i> to <i>H6</i> are used to define headings, from the most important to the least important ones.<br/>Use them for pages Titles for example. Add <i>Text</i> components inside. <br/> For more information: <a href='https://www.w3schools.com/tags/tag_hn.asp' target='_blank'>H5</a>",
       "group": "HTML",
@@ -990,7 +990,7 @@
     
     "Heading6": {
       "tag": "h6",
-	  "displayName": "Heading6",
+	  "displayName": "H6",
       "label": "H6",
       "description": "h6| Defines a <i>H6</i> component.<br/>This component acts as the standard HTML h6 tag.<br>The <i>H1</i> to <i>H6</i> are used to define headings, from the most important to the least important ones.<br/>Use them for pages Titles for example. Add <i>Text</i> components inside. <br/> For more information: <a href='https://www.w3schools.com/tags/tag_hn.asp' target='_blank'>H6</a>",
       "group": "HTML",
@@ -1583,7 +1583,7 @@
   /* Standard Tabs */
 	"Tabs": {
       "tag": "ion-tabs",
-	  "displayName": "Tabs",
+	  "displayName": "TabsContainer",
       "label": "Tabs Container",
       "description": "ion-tabs| Defines a <i>Tabs Container</i> component.<br/>A <i>Tabs Container</i> component is a container of individual <i>Tab Item</i> which make it easy to navigate between different pages. <br/> For more information: <a href='https://ionicframework.com/docs/components/#tabs' target='_blank'>Tabs</a>",
       "group": "Components",
@@ -1608,7 +1608,7 @@
 	"Tab": {
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicTab",
       "tag": "ion-tab",
-	  "displayName": "Tab",
+	  "displayName": "TabItem",
       "label": "Tab Item",
       "description": "ion-tab| Defines a <i>Tab Item</i> component.<br/>A tab has to be inserted in a <i>Tabs Container</i> component.<br/>A tab is associated to a page you can specify through its properties.<br/><br/><u>Note</u>:</br>Make sure the page you associate contains a <i>Content</i> or <code>&lt;ion-content&gt;</code> to make it work properly in tab.<br/> For more information: <a href='https://ionicframework.com/docs/components/#tabs' target='_blank'>Tabs</a>",
       "group": "Components",
@@ -2072,7 +2072,7 @@
 
     "Scroll": {
       "tag": "ion-scroll",
-	  "displayName": "Scroll",
+	  "displayName": "ScrollArea",
       "label": "Scroll Area",
       "description": "ion-scroll| Defines a <i>Scroll Area</i> component.<br/>This component is a non-flexboxed scroll area that can scroll horizontally or vertically.<br/><i>Scroll Area</i> can be used in places where you may not need a full page scroller, but a highly customized one, such as image scubber or comment scroller.<br/>For more information: <a href='https://ionicframework.com/docs/api/components/scroll/Scroll/' target='_blank'>Scroll</a>",
       "group": "Containers",
@@ -2223,7 +2223,7 @@
 	  },
     "Searchbar": {
     	"tag": "ion-searchbar",
-		"displayName": "Searchbar",
+		"displayName": "SearchBar",
     	"label": "Search Bar",
     	"description": "ion-searchbar| Defines a <i>Search Bar</i> component.<br/>This component manages the display of a searchbar which can be used to search or filter items.<br/> For more information: <a href='https://ionicframework.com/docs/api/components/searchbar/Searchbar/' target='_blank'>Searchbar</a>",
     	"group": "Forms", 	
@@ -2356,9 +2356,9 @@
 
     "Slides": {
       "tag": "ion-slides",
-	  "displayName": "Slides",
-      "label": "Slides container",
-      "description": "ion-slides| Defines a <i>Slides container</i> component.<br/>Slides make it easy to create galleries, tutorials, and page-based layouts. Slides take a number of configuration options.<br/>The <i>Slides container</i> component is a multi-section container. Each section can be swiped or dragged between. It contains any number of <i>Slide Item</i> components. <br/> For more information: <a href='https://ionicframework.com/docs/components/#slides' target='_blank'>Slides</a>",
+	  "displayName": "SlidesContainer",
+      "label": "Slides Container",
+      "description": "ion-slides| Defines a <i>Slides Container</i> component.<br/>Slides make it easy to create galleries, tutorials, and page-based layouts. Slides take a number of configuration options.<br/>The <i>Slides Container</i> component is a multi-section container. Each section can be swiped or dragged between. It contains any number of <i>Slide Item</i> components. <br/> For more information: <a href='https://ionicframework.com/docs/components/#slides' target='_blank'>Slides</a>",
       "group": "Slides",
       "icon16": "slides_color_16x16.png",
       "icon32": "slides_color_32x32.png",
@@ -2496,7 +2496,7 @@
 
     "Slide": {
       "tag": "ion-slide",
-	  "displayName": "Slide",
+	  "displayName": "SlideItem",
       "label": "Slide Item",
       "description": "ion-slide| Defines a <i>Slide Item</i> component.<br/>Add <i>Slide Item</i> components inside a <i>Slides</i> component. Any slide content should be written in this component.<br/> For more information: <a href='https://ionicframework.com/docs/components/#slides' target='_blank'>Slide</a>",
       "group": "Slides",
@@ -2508,7 +2508,7 @@
 
     "Segment": {
       "tag": "ion-segment",
-	  "displayName": "Segment",
+	  "displayName": "SegmentContainer",
       "label": "Segment Container",
       "description": "ion-segment| Defines a <i>Segment Container</i> component.<br/>A Segment is a group of buttons, sometimes known as segmented controls, that allow the user to interact with a compact group of a number of controls.<br/>Segments provide functionality similar to tabs, selecting one will unselect all others.<br/>Like any other form's inputs, it has a <i>Control name</i> property you may change for a more friendly name to use in a <i>CustomValidator</i>.<br/>For more information: <a href='https://ionicframework.com/docs/components/#segment' target='_blank'>Segment</a>.<br/><br/><u>Note</u>:Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form",
       "group": "Forms",
@@ -2558,7 +2558,7 @@
     /* Lists */
     "List": {
       "tag": "ion-list",
-	  "displayName": "List",
+	  "displayName": "ListContainer",
       "label": "List Container",
       "description": "ion-list| Defines a <i>List Container</i> component.<br/>Lists are used to display rows of information.<br/>You can insert items or buttons in lists to make list items clickable. You can also add to list items many other components such as icons, avatars or thumbnails. <br/> For more information: <a href='https://ionicframework.com/docs/components/#lists' target='_blank'>Lists</a>",
       "group": "Lists",
@@ -2590,7 +2590,7 @@
 
     "Listheader": {
       "tag": "ion-list-header",
-	  "displayName": "Listheader",
+	  "displayName": "ListHeader",
       "label": "List Header Item",
       "description": "ion-list-header| Defines a <i>List Header Item</i> component.<br/>Each list can include a header at the top of the list. <br/> For more information: <a href='https://ionicframework.com/docs/components/#list-headers' target='_blank'>List Header</a>",
       "group": "Lists",
@@ -2602,7 +2602,7 @@
 
     "Listgroup": {
       "tag": "ion-item-group",
-	  "displayName": "Listgroup",
+	  "displayName": "GroupItem",
       "label": "Group Item",
       "description": "ion-item-group| Defines a <i>Group Item</i> component.<br/>To make groups of items,<li>use <i>Group Item</i> instead of <i>List Container</i></li><li>use <i>Divider Item</i> components to divide the group in to multiple sections</li><br/> For more information: <a href='https://ionicframework.com/docs/components/#list-dividers' target='_blank'>Group Item</a>",
       "group": "Lists",
@@ -2614,7 +2614,7 @@
 
     "Listdivider": {
       "tag": "ion-item-divider",
-	  "displayName": "Listdivider",
+	  "displayName": "DividerItem",
       "label": "Divider Item",
       "description": "ion-item-divider| Defines a <i>Divider Item</i> component.<br/>To make groups of items,<li>use <i>Group Item</i> instead of <i>List Container</i></li><li>use <i>Divider Item</i> components to divide the group in to multiple sections</li><br/> For more information: <a href='https://ionicframework.com/docs/components/#list-dividers' target='_blank'>Divider Item</a>",
       "group": "Lists",
@@ -2627,7 +2627,7 @@
 
     "Avatar": {
       "tag": "ion-avatar",
-	  "displayName": "Avatar",
+	  "displayName": "AvatarItem",
       "label": "Avatar Item",
       "description": "ion-avatar| Defines an <i>Avatar Item</i> component.<br/>Item avatars showcase an image larger than an icon, but smaller than a thumbnail.<br/>To use an <code>&lt;ion-avatar&gt;</code>, add an <i>Avatar Item</i> component inside of a <i>Generic Item</i> component. The <i>position</i> property of the <i>Avatar Item</i> can be set to <code>item-left</code> or <code>item-right</code> value. <br/> For more information: <a href='https://ionicframework.com/docs/components/#avatar-list' target='_blank'>Avatar</a>",
       "group": "Lists",
@@ -2653,7 +2653,7 @@
 
     "Sliding": {
       "tag": "ion-item-sliding",
-	  "displayName": "Sliding",
+	  "displayName": "SlidingItem",
       "label": "Sliding Item",
       "description": "ion-item-sliding| Defines a <i>Sliding Item</i> component.<br/>Sliding items can be swiped to the left or right to reveal a hidden set of buttons.<br/>To use a <code>&lt;ion-item-sliding&gt;</code>, add a <i>Sliding Item</i> component inside of an <i>List Container</i> component.</br>Next, add a <i>Sliding Options</i> component inside of the sliding item to contain the buttons. <br/> For more information: <a href='https://ionicframework.com/docs/components/#sliding-list' target='_blank'>Sliding Item</a>",
       "group": "Lists",
@@ -2689,7 +2689,7 @@
 
     "ListItem": {
       "tag": "ion-item",
-	  "displayName": "ListItem",
+	  "displayName": "GenericItem",
       "label": "Generic Item",
       "description": "ion-item| Defines a <i>Generic Item</i> component.<br/>A <i>Generic Item</i> can be replaced by a <i>Button</i> with its <i>button type</i> property set to <code>ion-item</code> to make the item clickable.<br/>It can also contain <i>Sliding Options</i> to reveal buttons when swiped left or right.<br/> For more information: <a href='https://ionicframework.com/docs/components/#lists' target='_blank'>Generic Item</a>",
       "group": "Lists",
@@ -2751,7 +2751,7 @@
     /**************************************************/
     "Option": {
       "tag": "ion-option",
-	  "displayName": "Option",
+	  "displayName": "SelectOption",
       "label": "Select Option",
       "description": "ion-option| Defines a <i>Select Option</i> component.<br/>Each option component must be placed under a <i>Select Container</i> component to give a list of selectable options.<br>To set the name or label of the option add a <i>Text</i> component to it.<br/>Use the <i>Value</i> property to set its value, and the <i>Disabled</i> property to prevent the user from changing the value.<br/> For more information: <a href='https://ionicframework.com/docs/components/#select' target='_blank'>Select</a>.",
       "group": "Forms",
@@ -2794,7 +2794,7 @@
 
     "Select": {
       "tag": "ion-select",
-	  "displayName": "Select",
+	  "displayName": "SelectContainer",
       "label": "Select Container",
       "description": "ion-select| Defines a <i>Select Container</i> component.<br/>This component is similar to an HTML select tag, however, Ionic's select component makes it easier for users to sort through and select the preferred option or options. When users tap the select component, a dialog will appear with all of the options in a large, easy to select list for users.<br/>Add as many <i>Select Option</i> you want under a <i>Select Container</i> component.<br>Use the <i>Default value</i> property to set its default value. If an option has the same value it will be selected by default, otherwise the first option is selected.<br/>Like any other form's inputs, it has a <i>Control name</i> property you may change for a more friendly name to use in a <i>CustomValidator</i>.<br/>For more information: <a href='https://ionicframework.com/docs/components/#select' target='_blank'>Select</a>.<br/><br/><u>Note</u>:</br>Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form",
       "group": "Forms",
@@ -2936,7 +2936,7 @@
     /**************************************************/
     "Toggle": {
       "tag": "ion-toggle",
-	  "displayName": "Toggle",
+	  "displayName": "ToggleButton",
       "label": "Toggle Button",
       "description": "ion-toggle| Defines a <i>Toggle Button</i> component.<br/>This component is technically the same thing as an HTML checkbox input, except it looks different and is easier to use on a touch device. Toggles can also have colors assigned to them, by adding any color attribute.<br/>Like any other form's inputs, it has a <i>Control name</i> property you may change for a more friendly name to use in a <i>CustomValidator</i>.<br/> For more information: <a href='https://ionicframework.com/docs/components/#toggle' target='_blank'>Toggle</a><br/><br/><u>Note</u>:</br>Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form",
       "group": "Forms",
@@ -2966,7 +2966,7 @@
     /**************************************************/
     "Input": {
       "tag": "ion-input",
-	  "displayName": "Input",
+	  "displayName": "TextInput",
       "label": "Text Input",
       "description": "ion-input| Defines a <i>Text Input</i> component.<br/><i>Text Input</i> is meant for text type inputs only, such as text, password, email, number, search, tel, and url.<br/>Use the <i>Value</i> property to set its value, and the <i>Disabled</i> property to prevent the user from changing the value.<br/>Like any other form's inputs, it has a <i>Control name</i> property you may change for a more friendly name to use in a <i>CustomValidator</i>.<br/> For more information: <a href='https://ionicframework.com/docs/components/#inputs' target='_blank'>Inputs</a>.<br/><br/><u>Note</u>:</br>Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form",
       "group": "Forms",
@@ -3323,7 +3323,7 @@
 	
     "Range": {
       "tag": "ion-range",
-	  "displayName": "Range",
+	  "displayName": "RangeSlider",
       "label": "Range Slider",
       "description": "ion-range| Defines a <i>Range Slider</i> component.<br/>The Range slider lets users select from a range of values by moving the slider knob.<br/>It can accept dual knobs, but by default one knob controls the value of the range.<br/>Like any other form's inputs, it has a <i>Control name</i> property you may change for a more friendly name to use in a <i>CustomValidator</i>.<br/>For more information: <a href='https://ionicframework.com/docs/components/#range' target='_blank'>Range</a>.<br/><br/><u>Note</u>:</br>Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form",
       "group": "Forms",
@@ -3935,7 +3935,7 @@
 
     "Card": {
       "tag": "ion-card",
-	  "displayName": "Card",
+	  "displayName": "CardContainer",
       "label": "Card Container",
       "description": "ion-card| Defines a <i>Card container</i> component.<br/>Cards are a great way to display important pieces of content, and are quickly emerging as a core design pattern for application.<br/>They're are a great way to contain and organize information, while also setting up predictable expectations for the user.<br/>With so much content to display at once, and often so little screen realestate, cards have fast become the design pattern of choice for many companies, including the likes of Google, Twitter, and Spotify. <br/> For more information: <a href='https://ionicframework.com/docs/components/#cards' target='_blank'>Cards</a>",
       "group": "Cards",
@@ -4596,7 +4596,7 @@
 	*/
     "ToastAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
-	  "displayName": "ToastAction",
+	  "displayName": "Toast",
       "label": "Toast",
       "description": "Defines a <i>ToastAction</i> action component. | This component helps displaying some informations.<br/>A Toast is a subtle notification commonly used in modern applications. It can be used to provide feedback about an operation or to display a system message. The toast appears on top of the applications content, and can be dismissed to resume user interaction with the application.<br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/components/#toast'>Toast</a>",
       "group": "Actions",
@@ -4644,7 +4644,7 @@
 	
     "ErrorAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
-	  "displayName": "ErrorAction",
+	  "displayName": "Error",
       "label": "Error",
       "description": "Defines an <i>Error</i> action component. | This component helps generating an error with a given message.",
       "group": "Actions",
@@ -4688,7 +4688,7 @@
   
   "LogAction": {
     "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
-    "displayName": "LogAction",
+    "displayName": "Log",
     "label": "Log",
     "description": "Defines an <i>Log</i> action component. | You can use logs actions to display some information in the device logs. These logs will also be automatically sent to the Convertigo Server and will be threaded within the backend sequence execution so that you can follow a full client interaction thread.",
     "group": "Actions",
@@ -4998,7 +4998,7 @@
   
   "FullSyncSyncAction" : {
 	    "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
-	    "displayName": "DoDataSync",
+	    "displayName": "SyncData",
       "label": "Sync Data",
       "description": "Defines a <i>Sync Data</i> action component. | This component helps synchronizing data using FullSync.<br/>Use this action to synchronize data between your application and the Convertigo server.<br>Sync process can be bi-directional or just a pull or push. It can also be one shot or continuous.<br>If the sync is continuous, any data modification made locally on your mobile will be reflected real-time on the Convertigo server FullSync data base.<br /><br />You can use <i>Sync Data</i> when you start an app, but you must have an authenticated session to Convertigo server if you want to be able to push data to it. A typical flow would be :<br /><ul><li>Authenticate the user on your app.</li><li>Then call a 'login' server <i>Sequence</i> that will execute the <i>SetAuthenticatedUser</i> step providing it with the authenticated user</li><li>Then use <i>Sync Data</i> to sync the data from/to you mobile app</li></ul><br />The <i>Sync Data</i> action will be finished when all the data will be synced to/from the device and when finished, you can display the first page of your app using a <i>RootPage</i> action.<br /><br />You can access the sync progress information from anywhere in your application using the<br><code>router.sharedObject.FullSyncSyncAction.progress.current</code><br>object.<br/>For more information : <a target='_blank' href='https://www.convertigo.com/document/latest/reference-manual/convertigo-full-sync-architecture/interacting-locally-with-the-data/'>interacting-locally-with-the-data/</a>",
       "group": "FullSync Actions",
@@ -5085,7 +5085,7 @@
   
   "FullSyncPostAction" : {
     "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
-    "displayName": "FullSync Post",
+    "displayName": "PostData",
     "label": "Post Data",
     "description": "Defines a <i>Post Data</i> action component. | This component helps writing (post) data to a FullSync database.<br/>You can add <i>Variable</i> components to this action.<br/><br/>Each <i>Variable</i>'s name will be used as a jSON key with the variable value associated.<br>Also, if used in a form <code>submit</code> <i>Event</i>, all form inputs values will be automatically posted as key/value pairs, the key being the form control name and the value the current value of the input field. <br /><br />You can use the <i>root key</i> property to place the posted data in a wrapper object.<br/>For more information : <a target='_blank' href='https://www.convertigo.com/document/latest/reference-manual/convertigo-full-sync-architecture/interacting-locally-with-the-data/'>interacting-locally-with-the-data/</a>",
     "group": "FullSync Actions",

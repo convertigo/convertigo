@@ -168,7 +168,8 @@ public class BeansDoc {
 			}
 			beansMap.put(group, beans);
 		}
-		for (Component component: ComponentManager.getComponents()) {
+		
+		for (Component component: ComponentManager.getComponentsByGroup()) {
 			DatabaseObject dbo = ComponentManager.createBean(component);
 			if (!(dbo instanceof UIDynamicElement)) {
 				System.out.println("no UIDynamicElement but " + dbo.getClass());
@@ -189,7 +190,8 @@ public class BeansDoc {
 			bean = (Element) beans.appendChild(doc.createElement("bean"));
 			((Element) bean.appendChild(doc.createElement("class"))).setTextContent(ionBean.getClassName());
 			((Element) bean.appendChild(doc.createElement("icon"))).setTextContent(ionBean.getIconColor32Path());
-			((Element) bean.appendChild(doc.createElement("display_name"))).setTextContent(ionBean.getDisplayName());
+			//((Element) bean.appendChild(doc.createElement("display_name"))).setTextContent(ionBean.getDisplayName());
+			((Element) bean.appendChild(doc.createElement("display_name"))).setTextContent(ionBean.getLabel());
 			String description[] = ionBean.getDescription().split("\\|", 2);
 			((Element) bean.appendChild(doc.createElement("short_description"))).setTextContent(description[0].trim());
 			if (description.length > 1) {
