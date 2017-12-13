@@ -94,7 +94,7 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 	private String smtpPassword = "";
 	private String smtpPort = "25";
 	private SmtpAuthType smtpAuthType = SmtpAuthType.none;
-	private String smtpSender = "Convertigo <noreply@fakedomain.fake>";
+	private String smtpSender = "\"Convertigo <noreply@fakedomain.fake>\"";
 	private String xslFilepath = "";
 	private String contentType = "";
 	private XMLVector<XMLVector<String>> attachments = new XMLVector<XMLVector<String>>();
@@ -104,6 +104,7 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 	private transient List<BodyPart> bodyParts = new LinkedList<BodyPart>();
 	private transient String sSubject;
 	private transient String sRecipients;
+	private transient String sSender;
 	
 	public SmtpStep() {
 		super();
@@ -237,6 +238,9 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 					evaluate(javascriptContext, scope, this.smtpRecipients, "smtpRecipients", false);
 					sRecipients = evaluated instanceof Undefined ? "" : evaluated.toString();
 					
+					evaluate(javascriptContext, scope, this.smtpSender, "smtpSender", false);
+					sSender = evaluated instanceof Undefined ? "" : evaluated.toString();
+					
 					evaluate(javascriptContext, scope, this.xslFilepath, "xslFilepath", false);
 					String xslFilepath = evaluated instanceof Undefined ? "" : evaluated.toString();
 					evaluate(javascriptContext, scope, contentType, "contentType", false);
@@ -353,11 +357,11 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 	private MimeMessage buildMail(MimeMessage message) {
 		MimeMessage ret = message;
 		try {
-			Address[] replies = {new InternetAddress(smtpSender)};
+			Address[] replies = {new InternetAddress(sSender)};
 			String[] recipients = sRecipients.split(",|;");
 			// Adding sender
-			ret.setFrom(new InternetAddress(smtpSender));
-			ret.setSender(new InternetAddress(smtpSender));
+			ret.setFrom(new InternetAddress(sSender));
+			ret.setSender(new InternetAddress(sSender));
 			ret.setReplyTo(replies);
 			
 			//Adding recipients
@@ -508,16 +512,26 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 	
     @Override
 	public void configure(Element element) throws Exception {
-		super.configure(element);
-		
-		String version = element.getAttribute("version");
-		
-		 if (version!= null && VersionUtils.compareMigrationVersion(version, ".m005") < 0) {
-	        Engine.logDatabaseObjectManager.info("Migration to m005 for SmtpStep subject and recipients");
-	        
-	        smtpSubject = "\"" + smtpSubject + "\"";
-	        smtpRecipients = "\"" + smtpRecipients + "\"";
-		 }
+    	super.configure(element);
+
+    	String version = element.getAttribute("version");
+
+    	if (version != null && VersionUtils.compareMigrationVersion(version, ".m005") < 0) {
+    		Engine.logBeans.warn("[SmtpStep] The object \"" + getName() + "\" (subject and recipients) has been updated to m005");
+
+    		smtpSubject = "\"" + smtpSubject + "\"";
+    		smtpRecipients = "\"" + smtpRecipients + "\"";
+    		
+    		hasChanged = true;
+    	}
+
+    	if (version != null && VersionUtils.compareProductVersion(version, "7.5.0") < 0) {
+    		Engine.logBeans.warn("[SmtpStep] The object \"" + getName() + "\" (sender) has been updated to 7.5.0");
+
+    		smtpSender = "\"" + smtpSender + "\"";
+    		
+    		hasChanged = true;
+    	}
     }
     
 	@Override
