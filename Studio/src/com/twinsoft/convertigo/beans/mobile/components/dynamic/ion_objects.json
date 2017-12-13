@@ -5624,7 +5624,7 @@
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "Uninstaller",
       "label": "Uninstaller",
-      "description": "Defines an <i>Uninstaller</i> action component. |This component helps uninstalling an application on your device.<br/>It uses the native plugin Cordova which allows you to uninstall any application giving its package ID.<br/>If it succeeds, the <i>Uninstaller</i> returns <code>true</code>.<br>From an underneath action, you can access this result trough the <code>out</code> typescript variable.<u>Supported platform(s):</u><ul><li>Android</li><li>iOS</li><li>Windows</li><li>Windows Phone 8</li></ul><br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/native/file-opener/'>File Opener</a>",
+      "description": "Defines an <i>Uninstaller</i> action component. |This component helps uninstalling an application on your device.<br/>It uses the native Cordova plugin which allows you to uninstall any application giving its package ID.<br/>If it succeeds, the <i>Uninstaller</i> returns <code>true</code>.<br>From an underneath action, you can access this result trough the <code>out</code> typescript variable.<br/><u>Supported platform(s):</u><ul><li>Android</li><li>iOS</li><li>Windows</li><li>Windows Phone 8</li></ul><br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/native/file-opener/'>File Opener</a>",
       "group": "Native Actions",
       "icon16": "uninstallaction_color_16x16.png",
       "icon32": "uninstallaction_color_32x32.png",
