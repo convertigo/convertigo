@@ -795,7 +795,7 @@
       "tag": "ion-content",
 	  "displayName": "Content",
       "label": "Content",
-      "description": "ion-content| Defines a <i>Content</i> component.<br/>There should only be one <i>Content</i> per page, as for <i>Header</i> and <i>Footer</i>.<br/>This is the main space where other commponents will be inserted.<br/>You can use the <i>padding</i> property to automatically define some margins.<br/>For more information: <a href='https://ionicframework.com/docs/api/components/content/Content/' target='_blank'>Content</a>",
+      "description": "ion-content| Defines a <i>Content</i> component.<br/>There should only be one <i>Content</i> per page, as for <i>Header</i> and <i>Footer</i>.<br/>This is the main space where other components will be inserted.<br/>You can use the <i>padding</i> property to automatically define some margins.<br/>For more information: <a href='https://ionicframework.com/docs/api/components/content/Content/' target='_blank'>Content</a>",
       "group": "Containers",
       "icon16": "content_color_16x16.png",
       "icon32": "content_color_32x32.png",
