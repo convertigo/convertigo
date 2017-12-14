@@ -887,6 +887,9 @@ public class HttpConnector extends Connector {
 
 					hostConfiguration.setHost(host, port, myhttps);
 				}
+				
+				sUrl = url.getFile();
+				Engine.logBeans.debug("(HttpConnector) Updated URL for SSL purposes: " + sUrl);
 			} else {
 				Engine.logBeans.debug("(HttpConnector) Host: " + host + ":" + port);
 				hostConfiguration.setHost(host, port);
@@ -1194,6 +1197,7 @@ public class HttpConnector extends Connector {
 		byte[] result = null;
 		String contents = null;
 		int statuscode = -1;
+		final String referer = this.referer;
 		
 		if (!context.requestedObject.runningThread.bContinue)
 			return null;
@@ -1364,7 +1368,7 @@ public class HttpConnector extends Connector {
 				
 				//Add requested URL
 				Element urlElement = doc.createElement("url");
-				urlElement.setTextContent(method.getURI().toString());
+				urlElement.setTextContent(referer);
 				httpInfoElement.appendChild(urlElement);
 
 				//Add status code
