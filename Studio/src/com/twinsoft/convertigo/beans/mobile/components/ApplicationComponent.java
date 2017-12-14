@@ -95,6 +95,8 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		cloned.computedContents = null;
 		cloned.rootPage = null;
 		cloned.theme = null;
+		
+		cloned.c8o_version = c8o_version;
 		return cloned;
 	}
 
@@ -126,6 +128,19 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
         catch(Exception e) {
             throw new EngineException("Unable to preconfigure the application component \"" + getName() + "\".", e);
         }
+	}
+
+	
+	@Override
+	public void configure(Element element) throws Exception {
+		super.configure(element);
+
+		String p_version = element.getOwnerDocument().getDocumentElement().getAttribute("version");
+		if (p_version == null) {
+			p_version = "0.0.0";
+		}
+		
+		c8o_version = p_version;
 	}
 
 	@Override
@@ -730,6 +745,12 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		super.remove(databaseObject);
     }
 
+    private transient String c8o_version = "";
+    
+    public String getC8oVersion() {
+    	return c8o_version;
+    }
+    
 	private transient JSONObject computedContents = null;
 	
 	private JSONObject initJsonComputed() {

@@ -1188,6 +1188,7 @@ public class MobileBuilder {
 				String c8o_PagesVariables = "";
 				String c8o_PagesVariablesKeyValue = "";
 				String c8o_RootPage = "null";
+				String c8o_Version = app.getC8oVersion();
 				String c8o_AppComponentMarkers = app.getComponentScriptContent().getString();
 				int i=1;
 				
@@ -1210,11 +1211,15 @@ public class MobileBuilder {
 				String computedRoute = app.getComputedRoute();
 				File appComponentTpl = new File(ionicTplDir, "src/app/app.component.ts");
 				String cContent = FileUtils.readFileToString(appComponentTpl, "UTF-8");
+				
 				cContent = cContent.replaceAll("/\\*\\=c8o_PagesImport\\*/",c8o_PagesImport);
 				cContent = cContent.replaceAll("/\\*\\=c8o_RootPage\\*/",c8o_RootPage);
 				cContent = cContent.replaceAll("/\\*\\=c8o_PagesVariables\\*/",c8o_PagesVariables);
 				cContent = cContent.replaceAll("/\\*\\=c8o_PagesVariablesKeyValue\\*/",c8o_PagesVariablesKeyValue);
 				cContent = cContent.replaceAll("/\\*\\=c8o_RoutingTable\\*/",computedRoute);
+				
+				String c8oInit = "//settings.addHeader(\"x-convertigo-MB\", \""+c8o_Version+"\");\n\t\tthis.c8o.init(";
+				cContent = cContent.replaceFirst("this\\.c8o\\.init\\(", c8oInit);
 				
 				Pattern pattern = Pattern.compile("/\\*Begin_c8o_(.+)\\*/"); // begin c8o marker
 				Matcher matcher = pattern.matcher(cContent);
