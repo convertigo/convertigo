@@ -21,35 +21,36 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
-import javax.xml.namespace.QName;
-
 import org.codehaus.jettison.json.JSONObject;
 
-public class DeleteDatabaseTransaction extends AbstractDatabaseTransaction {
+import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
 
-	private static final long serialVersionUID = 5234196656083833697L;
+public class ResetDatabaseTransaction extends DeleteDatabaseTransaction {
+
+	private static final long serialVersionUID = 5234193344083833697L;
 	
-	public DeleteDatabaseTransaction() {
+	public ResetDatabaseTransaction() {
 		super();
 	}
 
 	@Override
-	public DeleteDatabaseTransaction clone() throws CloneNotSupportedException {
-		DeleteDatabaseTransaction clonedObject =  (DeleteDatabaseTransaction) super.clone();
+	public ResetDatabaseTransaction clone() throws CloneNotSupportedException {
+		ResetDatabaseTransaction clonedObject =  (ResetDatabaseTransaction) super.clone();
 		return clonedObject;
 	}
 	
 	@Override
 	protected JSONObject invoke() throws Exception {
-		String db = getTargetDatabase();
-		
-		JSONObject response = getCouchClient().deleteDatabase(db);
-		
+		JSONObject response = super.invoke();
+		if ((response.has("ok") && response.getBoolean("ok"))
+			|| response.has("error") && "not_found".equals(response.getString("error"))) {
+			CouchDbManager.syncDocument(getConnector());
+			if (response.has("error")) {
+				response.remove("error");
+				response.remove("reason");
+				response.put("ok", true);
+			}
+		}
 		return response;
-	}
-
-	@Override
-	public QName getComplexTypeAffectation() {
-		return new QName(COUCHDB_XSD_NAMESPACE, "deleteDatabaseType");
 	}
 }
