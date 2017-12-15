@@ -1484,6 +1484,23 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					super.init(databaseObject);
 				}
 
+				protected ObjectsFolderTreeObject getFolder(TreeParent treeParent, int folderType) {
+					ObjectsFolderTreeObject ofto = null;
+					for (TreeObject to: treeParent.getChildren()) {
+						if (to instanceof ObjectsFolderTreeObject) {
+							if (((ObjectsFolderTreeObject)to).folderType == folderType) {
+								ofto = (ObjectsFolderTreeObject) to;
+								break;
+							}
+						}
+					}
+					if (ofto == null) {
+						ofto = new ObjectsFolderTreeObject(viewer, folderType);
+						treeParent.addChild(ofto);
+					}
+					return ofto;
+				}
+				
 				@Override
 				protected void walk(DatabaseObject databaseObject) throws Exception {
 					// retrieve recursion parameters
@@ -1661,16 +1678,20 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							// unknow DBO case !!!
 							databaseObjectTreeObject = new DatabaseObjectTreeObject(viewer, databaseObject, false);
 						}
+						
 						// no virtual folder 
 						if (folderType == Integer.MIN_VALUE) {
 							parentTreeObject.addChild(databaseObjectTreeObject);
 						}
 						// virtual folder creation or reuse
 						else {
-							if (currentTreeFolder == null || currentTreeFolder.folderType != folderType) {
-								currentTreeFolder = new ObjectsFolderTreeObject(viewer, folderType);
-								parentTreeObject.addChild(currentTreeFolder);
-							}
+							/* fixed #5416 */
+							//if (currentTreeFolder == null || currentTreeFolder.folderType != folderType) {
+							//	currentTreeFolder = new ObjectsFolderTreeObject(viewer, folderType);
+							//	parentTreeObject.addChild(currentTreeFolder);
+							//}
+							currentTreeFolder = getFolder(parentTreeObject, folderType);
+							
 							currentTreeFolder.addChild(databaseObjectTreeObject);
 						}
 
