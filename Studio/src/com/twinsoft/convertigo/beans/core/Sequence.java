@@ -87,6 +87,7 @@ import com.twinsoft.convertigo.engine.requesters.DefaultRequester;
 import com.twinsoft.convertigo.engine.requesters.GenericRequester;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.ParameterUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.TwsTreeWalker;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
@@ -398,7 +399,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 			vVariables.add("userID="+context.getAuthenticatedUser());
 		for (String variableName : variables.keySet()) {
 			if (includeVariableIntoRequestString(variableName)) {
-				vVariables.add(variableName + "=" + variables.get(variableName));
+				String variableValueAsString = ParameterUtils.toString(variables.get(variableName));
+				vVariables.add(variableName + "=" + variableValueAsString);
 			}
 		}
 		

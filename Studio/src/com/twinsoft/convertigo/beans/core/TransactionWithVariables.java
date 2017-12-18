@@ -687,7 +687,8 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 			vVariables.add("userID="+context.getAuthenticatedUser());
 		for (String variableName : variables.keySet()) {
 			if (includeVariableIntoRequestString(variableName)) {
-				vVariables.add(variableName + "=" + variables.get(variableName));
+				String variableValueAsString = ParameterUtils.toString(variables.get(variableName));
+				vVariables.add(variableName + "=" + variableValueAsString);
 			}
 		}
 		
