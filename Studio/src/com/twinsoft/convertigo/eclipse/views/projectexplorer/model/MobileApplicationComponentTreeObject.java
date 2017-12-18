@@ -261,9 +261,6 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 						if ((editorInput != null) && (editorInput instanceof ApplicationComponentEditorInput)) {
 							if (((ApplicationComponentEditorInput) editorInput).is(application)) {
 								editorPart = (ApplicationComponentEditor) editorRef.getEditor(false);
-							} else {
-								// only one ApplicationComponentEditor at a time
-								activePage.closeEditor(editorRef.getEditor(false),false);
 							}
 						}
 					} catch(PartInitException e) {

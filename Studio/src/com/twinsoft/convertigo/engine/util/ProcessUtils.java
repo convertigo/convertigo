@@ -3,6 +3,7 @@ package com.twinsoft.convertigo.engine.util;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -77,7 +78,7 @@ public class ProcessUtils {
 	}
 	
 	public static ProcessBuilder getProcessBuilder(String paths, String... command) throws IOException {
-		return getProcessBuilder(paths, Arrays.asList(command));
+		return getProcessBuilder(paths, new LinkedList<String>(Arrays.asList(command)));
 	}
 	
 	public static ProcessBuilder getNpmProcessBuilder(String paths, List<String> command) throws IOException {
@@ -118,6 +119,6 @@ public class ProcessUtils {
 	}
 	
 	public static ProcessBuilder getNpmProcessBuilder(String paths, String... command) throws IOException {
-		return getNpmProcessBuilder(paths, Arrays.asList(command));
+		return getNpmProcessBuilder(paths, new LinkedList<String>(Arrays.asList(command)));
 	}
 }

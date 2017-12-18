@@ -29,6 +29,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -114,6 +115,7 @@ import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.mobile.MobileEventListener;
 import com.twinsoft.convertigo.engine.util.FileUtils;
+import com.twinsoft.convertigo.engine.util.NetworkUtils;
 import com.twinsoft.convertigo.engine.util.ProcessUtils;
 
 public class ApplicationComponentEditor extends EditorPart implements MobileEventListener {
@@ -1226,6 +1228,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 			
 			try {
 				File displayObjectsMobile = new File(project.getDirPath() + "/DisplayObjects/mobile");
+				displayObjectsMobile.mkdirs();				
 				
 				appendOutput("removing previous build directory");
 				for (File f: displayObjectsMobile.listFiles()) {
@@ -1236,6 +1239,15 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 				appendOutput("previous build directory removed");
 				
 				ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "run", buildMode.command(), "--nobrowser");
+				if (!MobileBuilderBuildMode.production.equals(buildMode)) {
+					List<String> cmd = pb.command();
+					cmd.add("--port");
+					cmd.add("" + NetworkUtils.nextAvailable(8100));
+					cmd.add("--livereload-port");
+					cmd.add("" + NetworkUtils.nextAvailable(35729));
+					cmd.add("--dev-logger-port");
+					cmd.add("" + NetworkUtils.nextAvailable(53703));
+				}
 				pb.redirectErrorStream(true);
 				pb.directory(ionicDir);
 				Process p = pb.start();
