@@ -30,7 +30,6 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.MinificationManager.ResourceBundle;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
-import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class MobileResourceHelper {
@@ -409,21 +408,16 @@ public class MobileResourceHelper {
 				.replace("$(PlatformType)$", mobilePlatform.getType())
 				.replace("$(CordovaPlatform)$", mobilePlatform.getCordovaPlatform());
 
-		Project p = mobileApplication.getProject();
-		MobileBuilder.initBuilder(p);
-		MobileBuilder mb = p.getMobileBuilder();
-		if (mb != null) {
-			String additionalPlugins = "";
-			Map<String, String> plugins = mb.getAppConfigPlugins(mobileApplication.getApplicationComponent());
-			for (String plugin: plugins.keySet()) {
-				String version = plugins.get(plugin);
-				additionalPlugins += "\t<plugin name=\""+plugin+"\" spec=\""+version+"\" />"+ System.lineSeparator();
-			}
-			if (!additionalPlugins.isEmpty()) {
-				additionalPlugins = "<!-- Application mandatory plugins -->"+ System.lineSeparator()
-									+ additionalPlugins;
-				configText = configText.replace("<!-- Application mandatory plugins -->", additionalPlugins);
-			}
+		String additionalPlugins = "";
+		Map<String, String> plugins = mobileApplication.getApplicationMandatoryPlugins();
+		for (String plugin: plugins.keySet()) {
+			String version = plugins.get(plugin);
+			additionalPlugins += "\t<plugin name=\""+plugin+"\" spec=\""+version+"\" />"+ System.lineSeparator();
+		}
+		if (!additionalPlugins.isEmpty()) {
+			additionalPlugins = "<!-- Application mandatory plugins -->"+ System.lineSeparator()
+								+ additionalPlugins;
+			configText = configText.replace("<!-- Application mandatory plugins -->", additionalPlugins);
 		}
 		
 		FileUtils.write(configFile, configText, "UTF-8");
