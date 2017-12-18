@@ -34,7 +34,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
@@ -71,9 +70,9 @@ import com.twinsoft.convertigo.engine.dbo_explorer.DboExplorerManager;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboGroup;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.RegexpUtils;
 
 public class ObjectsExplorerComposite extends Composite {
-	static private Pattern removeTag = Pattern.compile("</?\\w+ ?/?>");
 	
 	protected Color FOREGROUND_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND);
 	protected Color BACKGROUND_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
@@ -520,7 +519,7 @@ public class ObjectsExplorerComposite extends Composite {
 		label.setImage(beanImage);
 		label.setText(beanName);
 		label.setAlignment(SWT.LEFT);
-		label.setToolTipText(removeTag.matcher(beanShortDescription).replaceAll(""));
+		label.setToolTipText(RegexpUtils.removeTag.matcher(beanShortDescription).replaceAll(""));
 		label.setCursor(handCursor);
 
 		label.setLayoutData(new RowData());

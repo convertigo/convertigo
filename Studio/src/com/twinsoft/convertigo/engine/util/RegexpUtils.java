@@ -29,6 +29,7 @@ public class RegexpUtils {
 	public final static Pattern pattern_invalidChar = Pattern.compile("[\u0000-\u0008\u000b\u000c\u000e-\u001f]");
 	public final static Pattern pattern_and = Pattern.compile("&");
 	public final static Pattern pattern_equals = Pattern.compile("=");
+	public final static Pattern removeTag = Pattern.compile("</?\\w+ ?/?>");
 	
 	static public String inject(Matcher matcher, String injection) {
 		if (matcher.find()) {

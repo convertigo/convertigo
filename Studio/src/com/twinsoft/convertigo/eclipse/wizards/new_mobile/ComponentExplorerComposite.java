@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
@@ -68,6 +69,7 @@ import com.twinsoft.convertigo.eclipse.dnd.PaletteSource;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSourceTransfer;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardAction;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
+import com.twinsoft.convertigo.engine.util.RegexpUtils;
 
 public class ComponentExplorerComposite extends Composite {
 	//static private Pattern removeTag = Pattern.compile("</?\\w+ ?/?>");
@@ -209,8 +211,7 @@ public class ComponentExplorerComposite extends Composite {
 		label.setImage(image);
 		label.setText(component.getLabel());
 		label.setAlignment(SWT.LEFT);
-		//label.setToolTipText(removeTag.matcher(component.getDescription()).replaceAll(""));
-		label.setToolTipText(getShortDescription(component));
+		label.setToolTipText(RegexpUtils.removeTag.matcher(getShortDescription(component)).replaceAll(""));
 		label.setCursor(handCursor);
 		label.setLayoutData(new RowData());
 		
