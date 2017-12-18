@@ -5622,9 +5622,9 @@
 
   "BarcodeAction": {
     "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
-    "displayName": "BarcodeScan",
-    "label": "Bar code scan",
-    "description": "Defines a <i>BarcodeScanner</i> action component. | The Barcode Scanner Plugin opens a camera view and automatically scans a barcode, returning the data back to you. For more info, please see the <a href='https://github.com/phonegap/phonegap-plugin-barcodescanner' target='_blank'>BarcodeScanner plugin docs.</a><br /><br />You can access the scanned data from the next action in the chain in (TS) mode with: <br/><br/><code><ul><li>out.format: The scanned format code</li><li>out.cancelled: true if the user cancelled the scan</li><li>out.text: the scanned result</li></ul></code>",
+    "displayName": "BarcodeScanner",
+    "label": "Barcode Scanner",
+    "description": "Defines a <i>BarcodeScanner</i> action component. | The Barcode Scanner Plugin opens a camera view and automatically scans a barcode, returning the data back to you.<br />You can access the scanned data from the next action in the chain in (TS) mode with: <br/><br/><code><ul><li>out.format: The scanned format code</li><li>out.cancelled: true if the user cancelled the scan</li><li>out.text: the scanned result</li></ul></code><br/>For more information : <a href='https://github.com/phonegap/phonegap-plugin-barcodescanner' target='_blank'>BarcodeScanner plugin docs</a>",
     "group": "Native Actions",
     "icon16": "barcodeaction_color_16x16.png",
     "icon32": "barcodeaction_color_32x32.png",
