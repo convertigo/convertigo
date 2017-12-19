@@ -20,13 +20,13 @@
 
 	<author href="$(ApplicationAuthorWebsite)$" email="$(ApplicationAuthorEmail)$">$(ApplicationAuthorName)$</author>
 	 
-	<engine name="$(CordovaPlatform)$" spec="6.1.2" />
+	<engine name="$(CordovaPlatform)$" spec="6.2.3" />
 	
 	<!--  Startup page is FlashUpdate  -->
 	<content src="index-fu.html" />
 	
 	<!-- Customize your app and platform with the preference element. -->
-    <preference name="phonegap-version"           value="cli-6.5.0" />      <!-- all: current version of PhoneGap CLI -->
+    <preference name="phonegap-version"           value="cli-7.0.1" />      <!-- all: current version of PhoneGap CLI -->
     <preference name="orientation"                value="default" />        <!-- all: default means both landscape and portrait are enabled -->
     <preference name="target-device"              value="universal" />      <!-- all: possible values handset, tablet, or universal -->
     <preference name="fullscreen"                 value="false" />          <!-- all: hides the status bar at the top of the screen -->
