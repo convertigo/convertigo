@@ -23,10 +23,8 @@
 package com.twinsoft.convertigo.beans.core;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,8 +34,6 @@ import org.apache.commons.lang.StringUtils;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
-import com.twinsoft.convertigo.beans.mobile.components.Contributor;
-import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -256,21 +252,6 @@ public class MobileApplication extends DatabaseObject {
     		this.applicationComponent = null;
     	}
     }
-	
-	public Map<String, String> getApplicationMandatoryPlugins() {
-		Map<String, String> cfg_plugins = new HashMap<>();
-		try {
-			if (applicationComponent != null) {
-				for (PageComponent page : applicationComponent.getPageComponentList()) {
-					List<Contributor> contributors = page.getContributors();
-					for (Contributor contributor : contributors) {
-						cfg_plugins.putAll(contributor.getConfigPlugins());
-					}
-				}
-			}
-		} catch (Exception e) {}
-		return cfg_plugins;
-	}
 	
 	public String getComputedApplicationId() {
 		String applicationId = this.applicationId;

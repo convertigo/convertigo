@@ -425,6 +425,7 @@ public class MobileBuilder {
 				ApplicationComponent application = mobileApplication.getApplicationComponent();
 				if (application != null) {
 					writeAppPackageJson(application);
+					writeAppPluginsConfig(application);
 					writeAppServiceTs(application);
 					writeAppModuleTs(application);
 					moveFiles();
@@ -979,10 +980,20 @@ public class MobileBuilder {
 		return null;
 	}
 	
-	/*public synchronized Map<String, String> getAppConfigPlugins(final ApplicationComponent app) {
-		Map<String, String> cfg_plugins = new HashMap<>();
+	private boolean existPackage(String pkg) {
+		File nodeModules = new File(ionicWorkDir, "node_modules");
+		if (pkg != null && !pkg.isEmpty()) {
+			File pkgDir = new File(nodeModules,pkg);
+			return pkgDir.exists() && pkgDir.isDirectory();
+		}
+		return true;
+	}
+	
+	private void writeAppPluginsConfig(ApplicationComponent app) throws EngineException {
 		try {
-			if (app != null && initDone) {
+			if (app != null) {
+				Map<String, String> cfg_plugins = new HashMap<>();
+				
 				List<PageComponent> pages = forceEnable ? 
 												app.getPageComponentList() :
 														getEnabledPages(app);
@@ -992,18 +1003,23 @@ public class MobileBuilder {
 						cfg_plugins.putAll(contributor.getConfigPlugins());
 					}
 				}
+				
+				String mandatoryPlugins = "";
+				for (String plugin: cfg_plugins.keySet()) {
+					String version = cfg_plugins.get(plugin);
+					mandatoryPlugins += "\t<plugin name=\""+plugin+"\" spec=\""+version+"\" />"+ System.lineSeparator();
+				}
+				
+				File appPlgConfig = new File(ionicWorkDir, "../../DisplayObjects/mobile/plugins.txt");
+				writeFile(appPlgConfig, mandatoryPlugins, "UTF-8");
+				
+				if (initDone) {
+					Engine.logEngine.debug("(MobileBuilder) App plugins config file generated");
+				}
 			}
-		} catch (Exception e) {}
-		return cfg_plugins;
-	}*/
-	
-	private boolean existPackage(String pkg) {
-		File nodeModules = new File(ionicWorkDir, "node_modules");
-		if (pkg != null && !pkg.isEmpty()) {
-			File pkgDir = new File(nodeModules,pkg);
-			return pkgDir.exists() && pkgDir.isDirectory();
+		} catch (Exception e) {
+			throw new EngineException("Unable to write app plugins config file",e);
 		}
-		return true;
 	}
 	
 	private void writeAppPackageJson(ApplicationComponent app) throws EngineException {
@@ -1354,6 +1370,7 @@ public class MobileBuilder {
 		try {
 			if (application != null) {
 				writeAppPackageJson(application);
+				writeAppPluginsConfig(application);
 				writeAppServiceTs(application);
 				writeAppModuleTs(application);
 				writeAppComponentTs(application);

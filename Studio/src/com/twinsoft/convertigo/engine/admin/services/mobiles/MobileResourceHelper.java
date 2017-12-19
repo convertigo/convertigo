@@ -9,7 +9,6 @@ import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -391,9 +390,8 @@ public class MobileResourceHelper {
 		
 		write("env.json", json.toString());
 		
-		File configFile = new File(destDir, "config.xml");
-		
 		// Update config.xml
+		File configFile = new File(destDir, "config.xml");
 		String configText = FileUtils.readFileToString(configFile, "UTF-8");
 		
 		configText = configText
@@ -408,16 +406,14 @@ public class MobileResourceHelper {
 				.replace("$(PlatformType)$", mobilePlatform.getType())
 				.replace("$(CordovaPlatform)$", mobilePlatform.getCordovaPlatform());
 
-		String additionalPlugins = "";
-		Map<String, String> plugins = mobileApplication.getApplicationMandatoryPlugins();
-		for (String plugin: plugins.keySet()) {
-			String version = plugins.get(plugin);
-			additionalPlugins += "\t<plugin name=\""+plugin+"\" spec=\""+version+"\" />"+ System.lineSeparator();
-		}
-		if (!additionalPlugins.isEmpty()) {
-			additionalPlugins = "<!-- Application mandatory plugins -->"+ System.lineSeparator()
-								+ additionalPlugins;
-			configText = configText.replace("<!-- Application mandatory plugins -->", additionalPlugins);
+		File pluginsFile = new File(destDir, "plugins.txt");
+		if (pluginsFile.exists()) {
+			String mandatoryPlugins = FileUtils.readFileToString(pluginsFile, "UTF-8");
+			if (!mandatoryPlugins.isEmpty()) {
+				mandatoryPlugins = "<!-- Application mandatory plugins -->"+ System.lineSeparator() + mandatoryPlugins;
+				configText = configText.replace("<!-- Application mandatory plugins -->", mandatoryPlugins);
+			}
+			FileUtils.deleteQuietly(pluginsFile);
 		}
 		
 		FileUtils.write(configFile, configText, "UTF-8");
