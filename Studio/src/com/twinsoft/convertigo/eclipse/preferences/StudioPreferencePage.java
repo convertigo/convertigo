@@ -49,6 +49,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 	private BooleanFieldEditor cbAutoOpenDefaultConnector;
 	private IntegerFieldEditor intTracePlayerPort = null;
 	private StringFieldEditor localBuildAdditionalPath = null;
+	private StringFieldEditor localBuildFolder = null;
 	
 	public StudioPreferencePage() {
 		super();
@@ -143,6 +144,14 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		localBuildAdditionalPath.setPreferenceStore(getPreferenceStore());
 		localBuildAdditionalPath.load();
 		
+
+		localBuildFolder = new StringFieldEditor(
+				ConvertigoPlugin.PREFERENCE_LOCAL_BUILD_FOLDER,
+				"Local Build Folder (where cordova will build applications)", groupLocalBuild);
+		localBuildFolder.setPage(this);
+		localBuildFolder.setPreferenceStore(getPreferenceStore());
+		localBuildFolder.load();
+		
 		BooleanFieldEditor btest = new BooleanFieldEditor("", "", groupLocalBuild);
 		btest.getDescriptionControl(groupLocalBuild).setVisible(false);
 		
@@ -162,6 +171,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbEngineLoadAllProjects.loadDefault();
 		cbAutoOpenDefaultConnector.loadDefault();
 		localBuildAdditionalPath.loadDefault();
+		localBuildFolder.loadDefault();
 		
 		super.performDefaults();
 	}
@@ -184,6 +194,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbEngineLoadAllProjects.store();
 		cbAutoOpenDefaultConnector.store();
 		localBuildAdditionalPath.store();
+		localBuildFolder.store();
 		
 		return super.performOk();
 	}

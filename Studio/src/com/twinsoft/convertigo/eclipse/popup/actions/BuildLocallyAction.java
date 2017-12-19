@@ -39,6 +39,7 @@ import com.twinsoft.convertigo.eclipse.dialogs.BuildLocallyEndingDialog;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.localbuild.BuildLocally;
 
 public class BuildLocallyAction extends MyAbstractAction {
@@ -59,6 +60,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 		Engine.logEngine.debug("Running " + actionID + " action");
 		parentShell = getParentShell();
 		mobilePlatform = getMobilePlatform();
+		final String buildDir = ConvertigoPlugin.getLocalBuildFolder();
 		
 		buildLocally = new BuildLocally(getMobilePlatform()) {
 			
@@ -88,6 +90,14 @@ public class BuildLocallyAction extends MyAbstractAction {
 						buildSuccessDialog.open();
 					}
 		        });
+			}
+			
+			@Override
+			public File getCordovaDir() {
+				return new File(buildDir + "/"
+					+ ProductVersion.productVersion + "/"
+					+ mobilePlatform.getProject().getName() + "/"
+					+ mobilePlatform.getName());
 			}
 		};
 		

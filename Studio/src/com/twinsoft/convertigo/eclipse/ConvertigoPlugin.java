@@ -171,6 +171,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
     public static final String PREFERENCE_SHOW_ENGINE_INTO_CONSOLE = "engine.into.console";
     public static final String PREFERENCE_ENGINE_LOAD_ALL_PROJECTS = "engine.load.all.projects";
     public static final String PREFERENCE_LOCAL_BUILD_ADDITIONAL_PATH = "localBuild.additionalPath";
+    public static final String PREFERENCE_LOCAL_BUILD_FOLDER = "localBuild.folder";
 	public static final String PREFERENCE_AUTO_OPEN_DEFAULT_CONNECTOR = "autoOpen.defaultConnector";
 
     
@@ -995,6 +996,11 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	static public String getLocalBuildAdditionalPath() {
         IPreferenceStore preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore();
         return preferenceStore.getString(ConvertigoPlugin.PREFERENCE_LOCAL_BUILD_ADDITIONAL_PATH);
+	}
+	
+	static public String getLocalBuildFolder() {
+        IPreferenceStore preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore();
+        return preferenceStore.getString(ConvertigoPlugin.PREFERENCE_LOCAL_BUILD_FOLDER);
 	}
 	
 	static public void setLogLevel(int logLevel) {

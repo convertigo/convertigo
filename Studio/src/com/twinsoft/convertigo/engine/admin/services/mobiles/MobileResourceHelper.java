@@ -85,7 +85,8 @@ public class MobileResourceHelper {
 		endpoint = mobileApplication.getComputedEndpoint();
 		
 		projectDir = new File(project.getDirPath());
-		destDir = new File(projectDir, destSubDir);
+		File destDir = new File(destSubDir);
+		this.destDir = destDir.exists() ? destDir : new File(projectDir, destSubDir);
 		mobileDir = Arrays.asList(mobileApplication.getResourceFolder(), mobilePlatform.getResourceFolder());
 	}
 	

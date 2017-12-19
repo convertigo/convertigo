@@ -62,7 +62,7 @@ public abstract class BuildLocally {
 	// private static final Map<String, String> iOSSplashCorrespondences;
 	
 	/** Mobile platform */
-	private MobilePlatform mobilePlatform = null;
+	protected final MobilePlatform mobilePlatform;
 	
 	// For minimal version of cordova required 3.4.x
 	private final int versionMinimalRequiredDecimalPart = 3;
@@ -544,13 +544,13 @@ public abstract class BuildLocally {
 		try {		
 			
 			File cordovaDir = getCordovaDir();
+			File wwwDir = new File(cordovaDir,"www");
+			wwwDir.mkdirs();
 			// Cordova environment is already created, we have to build
 			// Step 1: Call Mobile packager to prepare the source package
-			MobileResourceHelper mobileResourceHelper = new MobileResourceHelper(mobilePlatform, 
-					"_private" + File.separator + "localbuild" + File.separator + mobilePlatform.getName() + 
-					File.separator + BuildLocally.cordovaDir + File.separator + "www");
+			MobileResourceHelper mobileResourceHelper = new MobileResourceHelper(mobilePlatform, wwwDir.getAbsolutePath());
 			
-			File wwwDir = mobileResourceHelper.preparePackage();
+			wwwDir = mobileResourceHelper.preparePackage();
 
 			// Step 2: Add platform and read config.xml to copy needed icons and splash resources
 			

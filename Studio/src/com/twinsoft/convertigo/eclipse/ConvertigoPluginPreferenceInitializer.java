@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.eclipse;
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.core.runtime.preferences.DefaultScope;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.swt.SWT;
 
 public class ConvertigoPluginPreferenceInitializer extends AbstractPreferenceInitializer {
 	
@@ -36,5 +37,6 @@ public class ConvertigoPluginPreferenceInitializer extends AbstractPreferenceIni
 		node.put(ConvertigoPlugin.PREFERENCE_TRACEPLAYER_PORT, "2323");
 		node.put(ConvertigoPlugin.PREFERENCE_TREE_HIGHLIGHT_DETECTED, "true");
 		node.put(ConvertigoPlugin.PREFERENCE_IGNORE_NEWS, "false");
+		node.put(ConvertigoPlugin.PREFERENCE_LOCAL_BUILD_FOLDER, SWT.getPlatform().startsWith("win") ? "C:\\TMP\\C8O_build" : "/tmp/C8O_build");
 	}
 }
