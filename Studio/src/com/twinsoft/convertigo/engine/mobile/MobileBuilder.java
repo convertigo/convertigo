@@ -1010,7 +1010,7 @@ public class MobileBuilder {
 					mandatoryPlugins += "\t<plugin name=\""+plugin+"\" spec=\""+version+"\" />"+ System.lineSeparator();
 				}
 				
-				File appPlgConfig = new File(ionicWorkDir, "../../DisplayObjects/mobile/plugins.txt");
+				File appPlgConfig = new File(ionicWorkDir, "src/plugins.txt");
 				writeFile(appPlgConfig, mandatoryPlugins, "UTF-8");
 				
 				if (initDone) {
