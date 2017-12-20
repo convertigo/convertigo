@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1006,8 +1007,24 @@ public class MobileBuilder {
 				
 				String mandatoryPlugins = "";
 				for (String plugin: cfg_plugins.keySet()) {
-					String version = cfg_plugins.get(plugin);
-					mandatoryPlugins += "\t<plugin name=\""+plugin+"\" spec=\""+version+"\" />"+ System.lineSeparator();
+					try {
+						JSONObject json = new JSONObject(cfg_plugins.get(plugin));
+						String version = json.getString("version");
+						mandatoryPlugins += "\t<plugin name=\""+plugin+"\" spec=\""+version+"\">"+ System.lineSeparator();
+						if (json.has("variables")) {
+							JSONObject jsonVars = json.getJSONObject("variables");
+							@SuppressWarnings("unchecked")
+							Iterator<String> it = jsonVars.keys();
+							while (it.hasNext()) {
+								String variable = it.next();
+								if (!variable.isEmpty()) {
+									String value = jsonVars.getString(variable);
+									mandatoryPlugins += "\t\t<variable name=\""+variable+"\" value=\""+value+"\" />"+ System.lineSeparator();
+								}
+							}
+						}
+						mandatoryPlugins += "\t</plugin>"+ System.lineSeparator();
+					} catch (Exception e) {}
 				}
 				
 				File appPlgConfig = new File(ionicWorkDir, "src/plugins.txt");

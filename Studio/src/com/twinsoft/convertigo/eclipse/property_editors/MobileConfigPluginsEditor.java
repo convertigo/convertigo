@@ -30,8 +30,8 @@ public class MobileConfigPluginsEditor extends TableEditor {
 		super(parent);
 		
         dialogTitle = "Cordova plugins";
-        columnNames = new String[] { "Plugin", "Version" };
-        templateData = new Object[] { "cordova-plugin-statusbar", "~2.1.2" };
+        columnNames = new String[] { "Plugin", "Version", "Variables" };
+        templateData = new Object[] { "cordova-plugin-statusbar", "~2.1.2", "{}" };
 	}
 
 }

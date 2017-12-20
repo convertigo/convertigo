@@ -90,7 +90,7 @@ public class IonConfig implements Cloneable {
 	
 
 	public Map<String, String> getConfigPlugins() {
-		return getCfgImports(Key.cordova_plugins, "plugin", "version");
+		return getCfgPlugins(Key.cordova_plugins, "plugin");
 	}
 	
 	protected Map<String, List<String>> getTsImports(Key key) {
@@ -139,6 +139,26 @@ public class IonConfig implements Cloneable {
 			return set;
 		} catch (JSONException e) {
 			return new HashSet<String>();
+		}
+	}
+	
+	protected Map<String, String> getCfgPlugins(Key key, String keyId) {
+		try {
+			Map<String, String> map = new HashMap<String, String>();
+			JSONArray ar = jsonConfig.getJSONArray(key.name());
+			for (int i=0; i<ar.length(); i++) {
+				Object ob = ar.get(i);
+				if (ob instanceof JSONObject) {
+					JSONObject jsonImport = (JSONObject)ob;
+					String plugin = jsonImport.getString(keyId);
+					if (!plugin.isEmpty() && !jsonImport.toString().isEmpty()) {
+						map.put(plugin, jsonImport.toString());
+					}
+				}
+			}
+			return map;
+		} catch (JSONException e) {
+			return new HashMap<String, String>();
 		}
 	}
 	
