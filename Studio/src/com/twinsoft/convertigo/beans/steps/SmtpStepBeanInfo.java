@@ -88,7 +88,7 @@ public class SmtpStepBeanInfo extends MySimpleBeanInfo {
 			properties[8] = new PropertyDescriptor("smtpSender", beanClass, "getSmtpSender", "setSmtpSender");
             properties[8].setDisplayName(getExternalizedString("property.smtpSender.display_name"));
             properties[8].setShortDescription(getExternalizedString("property.smtpSender.short_description"));
-            properties[5].setValue("scriptable", Boolean.TRUE);
+            properties[8].setValue("scriptable", Boolean.TRUE);
             properties[8].setExpert(true);
 			
 			properties[9] = new PropertyDescriptor("xslFilepath", beanClass, "getXslFilepath", "setXslFilepath");
