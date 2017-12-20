@@ -522,14 +522,14 @@ public class UICustomAction extends UIComponent implements IAction {
 				for (XMLVector<String> v : cordova_plugins) {
 					String plugin = v.get(0).trim();
 					String version = v.get(1).trim();
-					String variables = v.get(2).trim();
+					String variables = v.size() > 2 ? v.get(2).trim():"{}";
 					if (!plugin.isEmpty() && !version.isEmpty()) {
 						if (!plugins.containsKey(plugin)) {
 							JSONObject json = new JSONObject();
 							try {
 								json.put("plugin", version);
 								json.put("version", version);
-								json.put("variables", new JSONObject(variables.isEmpty() ? "{}":variables));
+								json.put("variables", new JSONObject(variables));
 								plugins.put(plugin, json.toString());
 							} catch (Exception e) {}
 						}
