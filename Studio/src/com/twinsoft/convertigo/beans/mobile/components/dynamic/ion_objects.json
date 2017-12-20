@@ -3269,7 +3269,7 @@
           "category": "@Properties",
           "value": false,
           "values": [
-            "Janvier, Février, Mars, Avril, Mai, Juin, Juillet, Aout, Septembre, Octobre, Novembre, Décembre",
+            "Janvier, Fï¿½vrier, Mars, Avril, Mai, Juin, Juillet, Aout, Septembre, Octobre, Novembre, Dï¿½cembre",
             "Gennaio, Febbraio, Marzo, Aprile, Maggio, Giugno, Luglio, Agosto, Settembre, Ottobre, Novembre, Dicembre",
             true
           ]
@@ -5071,7 +5071,7 @@
         "BatchesLimit": {
           "mode":"script",
           "label": "Batch Limit",
-          "description": "Number of batches to process at a time. Defaults to 10. This (along with batch_size) controls how many docs are kept in memory at a time, so the maximum docs in memory at once would equal batch_size × batches_limit",
+          "description": "Number of batches to process at a time. Defaults to 10. This (along with batch_size) controls how many docs are kept in memory at a time, so the maximum docs in memory at once would equal batch_size ï¿½ batches_limit",
           "category": "@Properties",
           "type": "string",
           "value": "10",
@@ -5322,7 +5322,7 @@
       },
 
       "stale": {
-        "description": "Can be one of: unspecified (default): Returns the latest results, waiting for the view to build if necessary. 'ok': Returns results immediately, even if they’re out-of-date. 'update_after': Returns results immediately, but kicks off a build afterwards.",
+        "description": "Can be one of: unspecified (default): Returns the latest results, waiting for the view to build if necessary. 'ok': Returns results immediately, even if theyï¿½re out-of-date. 'update_after': Returns results immediately, but kicks off a build afterwards.",
         "label": "Stale",
         "category": "#Optional Properties",
         "type": "string",
@@ -5614,7 +5614,11 @@
         "cordova_plugins": [
           {
             "plugin":"cordova-plugin-camera",
-            "version":"2.4.0"
+            "version":"2.4.0",
+            "variables": {
+              "CAMERA_USAGE_DESCRIPTION":"To capture photos",
+              "PHOTOLIBRARY_USAGE_DESCRIPTION":"To access photo gallery"
+            }
           }
       ]
     }
@@ -5773,7 +5777,10 @@
       "cordova_plugins": [
         {
           "plugin": "phonegap-plugin-barcodescanner",
-          "version": "6.0.8"
+          "version": "6.0.8",
+          "variables": {
+            "CAMERA_USAGE_DESCRIPTION":"To scan barcodes"
+          }
         }
       ]
     }
