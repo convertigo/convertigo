@@ -23,7 +23,7 @@ public class InstallNpmComposite extends Composite {
 		link.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, true));
 		
 		link.setText(
-"NodeJS and NPM are mandatory to use the Mobile Builder.\n" +
+"NodeJS and NPM (≥ 5) are mandatory to use the Mobile Builder.\n" +
 "To get both, please use the LTS NodeJS installer from <a href=\"https://nodejs.org\">https://nodejs.org</a>.\n" +
 "Install, and then close and re-open this editor."
 				);

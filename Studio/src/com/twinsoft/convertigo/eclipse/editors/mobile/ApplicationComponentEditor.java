@@ -177,7 +177,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 
 	private void saveDeviceBar() {
 		try {
-			if (!deviceBar.getParent().isVisible()) {
+			if (deviceBar == null || !deviceBar.getParent().isVisible()) {
 				return;
 			}
 			JSONObject device;
@@ -262,6 +262,10 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 			process.waitFor();
 			String output = IOUtils.toString(process.getInputStream(), Charset.defaultCharset());
 			Engine.logStudio.info("npm -version: " + output);
+			int major = Integer.parseInt(output.replaceAll("^(\\d+)\\.[\\d\\D]*", "$1")); 
+			if (major < 5) {
+				throw new Exception();
+			};
 		} catch (Exception e1) {
 			new InstallNpmComposite(parent, SWT.NONE);
 			return;
