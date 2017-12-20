@@ -541,8 +541,7 @@ public abstract class BuildLocally {
 	}
 	
 	public Status runBuild(String option, boolean run, String target) {
-		try {		
-			
+		try {			
 			File cordovaDir = getCordovaDir();
 			File wwwDir = new File(cordovaDir,"www");
 			wwwDir.mkdirs();
