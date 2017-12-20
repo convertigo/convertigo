@@ -1251,7 +1251,7 @@ public class MobileBuilder {
 				cContent = cContent.replaceAll("/\\*\\=c8o_PagesVariablesKeyValue\\*/",c8o_PagesVariablesKeyValue);
 				cContent = cContent.replaceAll("/\\*\\=c8o_RoutingTable\\*/",computedRoute);
 				
-				String c8oInit = "//settings.addHeader(\"x-convertigo-MB\", \""+c8o_Version+"\");\n\t\tthis.c8o.init(";
+				String c8oInit = "settings.addHeader(\"x-convertigo-MB\", \""+c8o_Version+"\");\n\t\tthis.c8o.init(";
 				cContent = cContent.replaceFirst("this\\.c8o\\.init\\(", c8oInit);
 				
 				Pattern pattern = Pattern.compile("/\\*Begin_c8o_(.+)\\*/"); // begin c8o marker
