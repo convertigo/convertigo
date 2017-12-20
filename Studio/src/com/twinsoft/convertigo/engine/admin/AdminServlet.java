@@ -54,6 +54,15 @@ public class AdminServlet extends HttpServlet {
         super();
     }
 
+    @Override
+	protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    	String corsOrigin = HttpUtils.applyCorsHeaders(request, response);
+		if (corsOrigin != null) {
+			Engine.logAdmin.trace("Add CORS header for: " + corsOrigin);
+		}
+		response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+	}
+    
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
@@ -110,17 +119,10 @@ public class AdminServlet extends HttpServlet {
 					}
 				}
 				
-				// TODO: temporary solution to accept request from Che
-				//if (true || serviceDefinition.allow_cors()) {
-				try {
-					String corsOrigin = HttpUtils.filterCorsOrigin(request, response);
-					if (corsOrigin != null) {
-						Engine.logAdmin.trace("Add CORS header for: " + corsOrigin);
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
+				String corsOrigin = HttpUtils.applyCorsHeaders(request, response);
+				if (corsOrigin != null) {
+					Engine.logAdmin.trace("Add CORS header for: " + corsOrigin);
 				}
-				//}
 				
 				boolean needsAuthentication = !AuthenticatedSessionManager.hasRole(serviceDefinition.roles(), Role.ANONYMOUS);
 				Engine.logAdmin.debug("Needs authentication: " + needsAuthentication);

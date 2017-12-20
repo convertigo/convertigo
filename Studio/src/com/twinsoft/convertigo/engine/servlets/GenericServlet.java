@@ -176,29 +176,8 @@ public abstract class GenericServlet extends HttpServlet {
 						response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 						return;
 					}
-
-					String origin = HeaderName.Origin.getHeader(request);
-					String corsOrigin = HttpUtils.filterCorsOrigin(project.getCorsOrigin(), origin);
 					
-					if (corsOrigin != null) {
-						HeaderName.AccessControlAllowOrigin.setHeader(response, corsOrigin);
-						HeaderName.AccessControlAllowCredentials.setHeader(response, "true");
-						String method = HeaderName.AccessControlRequestMethod.getHeader(request);
-						if (method != null) {
-							String methods = "GET, POST, PUT, OPTIONS, DELETE";
-							if (!methods.contains(method.toUpperCase())) {
-								methods += ", " + method;
-							}
-							HeaderName.AccessControlAllowMethods.setHeader(response, methods);
-						}
-						
-						String headers = HeaderName.AccessControlRequestHeaders.getHeader(request);
-						if (headers != null) {
-							HeaderName.AccessControlAllowHeaders.setHeader(response, headers);
-						}
-						
-						Engine.logEngine.trace("Add CORS headers for: " + corsOrigin);
-					}
+					HttpUtils.applyFilterCorsHeaders(request, response, project.getCorsOrigin());
 					
 					response.setStatus(HttpServletResponse.SC_NO_CONTENT);
 					return;

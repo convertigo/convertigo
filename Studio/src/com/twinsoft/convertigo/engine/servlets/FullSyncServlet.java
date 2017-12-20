@@ -91,7 +91,7 @@ public class FullSyncServlet extends HttpServlet {
 		String c8oSDK = null;	
 		HttpMethodType method;
 		try {
-			String corsOrigin = HttpUtils.filterCorsOrigin(request, response);
+			String corsOrigin = HttpUtils.applyCorsHeaders(request, response);
 			if (corsOrigin != null) {
 				debug.append("Add CORS header for: " + corsOrigin + "\n");
 			}
@@ -99,15 +99,8 @@ public class FullSyncServlet extends HttpServlet {
 			method = HttpMethodType.valueOf(request.getMethod());
 			
 			if (method == HttpMethodType.OPTIONS) {
-				for (String headerName: Collections.list(request.getHeaderNames())) {
-					if (HeaderName.AccessControlRequestMethod.is(headerName)) {
-						// expected response for PouchDB with CORS
-						HeaderName.AccessControlAllowMethods.setHeader(response, "GET, PUT, POST, HEAD, DELETE");
-						HeaderName.AccessControlAllowHeaders.setHeader(response, "content-type");
-						response.setStatus(HttpServletResponse.SC_NO_CONTENT);
-						return;
-					}
-				}
+				response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+				return;
 			}
 			
 			HttpSessionListener.checkSession(request);

@@ -235,16 +235,48 @@ public class HttpUtils {
 		return json;
 	}
 	
-	public static String filterCorsOrigin(HttpServletRequest request, HttpServletResponse response) {
-		String globalCorsPolicy = EnginePropertiesManager.getOriginalProperty(PropertyName.CORS_POLICY);
-
-		String origin = HeaderName.Origin.getHeader(request);
-		String corsOrigin = filterCorsOrigin(globalCorsPolicy, origin);
+	public static String applyCorsHeaders(HttpServletRequest request, HttpServletResponse response, String corsOrigin, String methods) {
 		if (corsOrigin != null) {
 			HeaderName.AccessControlAllowOrigin.setHeader(response, corsOrigin);
 			HeaderName.AccessControlAllowCredentials.setHeader(response, "true");
+
+			if (request.getMethod().equalsIgnoreCase("OPTIONS")) {
+				String method = HeaderName.AccessControlRequestMethod.getHeader(request);
+				if (method != null) {
+					if (methods == null) {
+						methods = "GET, POST, PUT, OPTIONS, DELETE";
+						if (!methods.contains(method.toUpperCase())) {
+							methods += ", " + method;
+						}
+					}
+	
+					if (StringUtils.isNotBlank(methods)) {
+						HeaderName.AccessControlAllowMethods.setHeader(response, methods);
+					}
+				}
+
+				String headers = HeaderName.AccessControlRequestHeaders.getHeader(request);
+				if (headers != null) {
+					HeaderName.AccessControlAllowHeaders.setHeader(response, headers);
+				}	
+			}
 		}
 		return corsOrigin;
+	}
+	
+	public static String applyCorsHeaders(HttpServletRequest request, HttpServletResponse response, String corsOrigin) {
+		return applyCorsHeaders(request, response, corsOrigin, null);
+	}
+	
+	public static String applyCorsHeaders(HttpServletRequest request, HttpServletResponse response) {
+		String origin = HeaderName.Origin.getHeader(request);
+		String globalCorsPolicy = EnginePropertiesManager.getOriginalProperty(PropertyName.CORS_POLICY);
+		return applyCorsHeaders(request, response, filterCorsOrigin(globalCorsPolicy, origin));
+	}
+	
+	public static String applyFilterCorsHeaders(HttpServletRequest request, HttpServletResponse response, String corsPolicy) {
+		String origin = HeaderName.Origin.getHeader(request);
+		return applyCorsHeaders(request, response, filterCorsOrigin(corsPolicy, origin));
 	}
 	
 	public static String filterCorsOrigin(String corsPolicy, String origin) {

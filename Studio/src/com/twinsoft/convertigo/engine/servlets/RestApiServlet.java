@@ -120,33 +120,23 @@ public class RestApiServlet extends GenericServlet {
 				
 				if (collection.size() > 0) {
 					if (method.equalsIgnoreCase("OPTIONS")) {
-						Set<String> methods = new HashSet<String>();
-						String corsOrigin = null;
-						for (UrlMapper urlMapper : collection) {
-							String origin = HeaderName.Origin.getHeader(request);
-							String co = HttpUtils.filterCorsOrigin(urlMapper.getProject().getCorsOrigin(), origin);
-							if (co != null) {
-								if (corsOrigin == null || co.length() > corsOrigin.length()) {
-									corsOrigin = co;
+						String origin = HeaderName.Origin.getHeader(request);
+						if (origin != null) {
+							Set<String> methods = new HashSet<String>();
+							String corsOrigin = null;
+							
+							for (UrlMapper urlMapper : collection) {
+								String co = HttpUtils.filterCorsOrigin(urlMapper.getProject().getCorsOrigin(), origin);
+								if (co != null) {
+									if (corsOrigin == null || co.length() > corsOrigin.length()) {
+										corsOrigin = co;
+									}
+									urlMapper.addMatchingMethods(wrapped_request, methods);
 								}
-								urlMapper.addMatchingMethods(wrapped_request, methods);
-							}
-						}
-						
-						if (corsOrigin != null) {
-							HeaderName.AccessControlAllowOrigin.setHeader(response, corsOrigin);
-							HeaderName.AccessControlAllowCredentials.setHeader(response, "true");
-							if (HeaderName.AccessControlRequestMethod.getHeader(request) != null && !methods.isEmpty()) {
-								String allowMethods = String.join(", ", methods);
-								HeaderName.AccessControlAllowMethods.setHeader(response, allowMethods);
 							}
 							
-							String headers = HeaderName.AccessControlRequestHeaders.getHeader(request);
-							if (headers != null) {
-								HeaderName.AccessControlAllowHeaders.setHeader(response, headers);
-							}
+							HttpUtils.applyCorsHeaders(request, response, corsOrigin, String.join(", ", methods));
 						}
-						
 						response.setStatus(HttpServletResponse.SC_NO_CONTENT);
 						return;
 					}
