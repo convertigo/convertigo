@@ -4932,6 +4932,7 @@
           "label": "value",
           "description": "Value of the property, can be a simple string or any Object",
           "category": "@Properties",
+          "mode": "script",
           "type": "string",
           "value": ""
         }
