@@ -205,11 +205,11 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
     
     public static String getProperty(String key) {
     	IPreferenceStore preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore();
-    	logDebug2("Looking for property : \"" + key + "\"");
+    	logDebug3("Looking for property : \"" + key + "\"");
 
     	String result = preferenceStore.getString(key);
     	
-        logDebug("==> Getting property " + key + ": \"" + result + "\"");
+        logDebug3("==> Getting property " + key + ": \"" + result + "\"");
         
         return result;
     }
