@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		
+		<!-- You must configure to reduce XSS risks by declaring what dynamic resources are allowed. See http://content-security-policy.com/ -->
+		<meta http-equiv="Content-Security-Policy" content="default-src gap://ready file://* *; script-src 'self' 'unsafe-inline' 'unsafe-eval' *; style-src 'self' 'unsafe-inline' *">
+		
+		<title>Convertigo FlashUpdate</title>
+		
+	<!-- Optimized mobile viewport -->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"/>
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+	<!-- CSS -->
+		<link rel="stylesheet" type="text/css" media="all" href="../../../../css/flashupdate_android.css" />
+	<!-- JS -->	
+		<script src="cordova.js" type="text/javascript"></script>
+		<script src="../../../../scripts/jquery2.min.js" type="text/javascript"></script>
+		<script src="../../../../scripts/flashupdate.js" type="text/javascript"></script>
+	</head>
+	<body>
+		<div id="main" class="container">
+			<h1>Launching Application</h1>
+			<h2 class="dataProjectName"></h2>
+			<h2 id="checkingUpdate">Checking for updates</h2>
+			<div id="requireUserConfirmation" class="bgContainerAlert">
+				<div class="containerAlert">
+					<h2>Update available</h2>
+					<p>Do you want to update your application?</p>
+					<div class="centerBloc"><button value="yes" id="requireUserConfirmationYes" class="btn">yes</button><button value="no" id="requireUserConfirmationNo" class="btn">no</button></div>
+				</div>
+			</div>
+			<div class="titreUpdating">
+				<h2>Updating application …</h2>
+			</div>
+			<div id="progress">
+	 			<div class="progressBloc">
+	 				<div id="progressGaugeColor1"></div>
+	 				<div id="progressGaugeColor2"></div>
+					<canvas id="progressGauge" width="200" height="200"></canvas>
+					<div id="progressMsg">
+						<div><span id="progressCur"></span> KB</div>
+						<hr/>
+						<div><span id="progressTotal"></span> KB</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

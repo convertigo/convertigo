@@ -1004,4 +1004,22 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		}
 		return map;
 	}
+	
+	@Override
+	public void setParent(DatabaseObject databaseObject) {
+		super.setParent(databaseObject);
+		checkFolder();
+	}
+	
+	private void checkFolder() {
+		File folder = new File(getProject().getDirPath() + "/Flashupdate");
+		if (!folder.exists()) {
+			try {
+				File templateFolder = new File(Engine.TEMPLATES_PATH, "base/Flashupdate");
+				FileUtils.copyDirectory(templateFolder, folder);
+			} catch (Exception e) {
+				Engine.logBeans.warn("(MobileApplication) The folder '" + folder.getAbsolutePath() + "' doesn't exist and cannot be created", e);
+			}
+		}
+	}
 }
