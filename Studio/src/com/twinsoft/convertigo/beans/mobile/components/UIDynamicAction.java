@@ -460,7 +460,45 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			public Map<String, String> getConfigPlugins() {
 				IonBean ionBean = getIonBean();
 				if (ionBean != null) {
-					return ionBean.getConfig().getConfigPlugins();
+					Map<String, String> map = ionBean.getConfig().getConfigPlugins();
+					for (String plugin: map.keySet()) {
+						try {
+							JSONObject json = new JSONObject(map.get(plugin));
+							if (json.has("variables")) {
+								boolean hasChanged = false;
+								JSONObject jsonVars = json.getJSONObject("variables");
+								@SuppressWarnings("unchecked")
+								Iterator<String> it = jsonVars.keys();
+								while (it.hasNext()) {
+									String varkey = it.next();
+									String varval = jsonVars.getString(varkey);
+									if (varval.startsWith("@")) {// value = @propertyName
+										String propertyName = varval.substring(1);
+										if (ionBean.hasProperty(propertyName)) {
+											IonProperty ionProperty = ionBean.getProperty(propertyName);
+											Object p_value = ionProperty.getValue();
+											String value = "";
+											if (!p_value.equals(false)) {
+												MobileSmartSourceType msst = ionProperty.getSmartType();
+												String smartValue = msst.getValue();
+												if (Mode.PLAIN.equals(msst.getMode())) {
+													value = smartValue;
+												}
+											}
+											
+											jsonVars.put(varkey, value);
+											hasChanged = true;
+										}
+									}
+								}
+								if (hasChanged) {
+									json.put("variables", jsonVars);
+									map.put(plugin, json.toString());
+								}
+							}
+						} catch (Exception e) {}
+					}
+					return map;
 				}
 				return new HashMap<String, String>();
 			}
