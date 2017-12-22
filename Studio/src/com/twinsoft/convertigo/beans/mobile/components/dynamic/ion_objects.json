@@ -4681,6 +4681,17 @@
         "category": "@Properties",
         "type": "string",
         "value": "parent.out"
+      },
+      "negate": {
+        "label": "Negate",
+        "description": "Negate the condition, useful for 'else' conditions",
+        "category": "@Properties",
+        "type": "boolean",
+        "value": "false",
+        "values": [
+            "false",
+			"true"
+        ]
       }
     }
   },

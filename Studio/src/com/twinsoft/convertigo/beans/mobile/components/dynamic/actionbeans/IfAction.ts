@@ -7,8 +7,12 @@
      */
     IfAction(page: C8oPage, props, vars) : Promise<any> {
         return new Promise((resolve, reject) => {
-            if (props.condition) {
-                resolve(true)
+            let ok = (props.condition) ? true : false;
+            if (props.negate) {
+                ok = !ok;
+            }
+            if (ok) {
+                resolve(true);
             } else {
                 return false;
             }
