@@ -5639,9 +5639,8 @@
         "description": "Prefer front camera. Supported on iOS and Android.",
         "category": "@camera options",
         "type": "boolean",
-        "value": false,
+        "value": "false",
         "values": [
-          false,
           "false",
           "true"
         ]
@@ -5652,9 +5651,8 @@
         "description": "Show flip camera button. Supported on iOS and Android.",
         "category": "@camera options",
         "type": "boolean",
-        "value": false,
+        "value": "false",
         "values": [
-          false,
           "false",
           "true"
         ]
@@ -5665,8 +5663,8 @@
         "description": "Show torch  button. Supported on iOS and Android.",
         "category": "@camera options",
         "type": "boolean",
+        "value": "false",
         "values": [
-          false,
           "false",
           "true"
         ]
@@ -5677,9 +5675,8 @@
         "description": "Disable animations. Supported on iOS only",
         "category": "@camera options",
         "type": "boolean",
-        "value": false,
+        "value": "false",
         "values": [
-          false,
           "false",
           "true"
         ]
@@ -5690,8 +5687,8 @@
         "description": "Disable success beep. Supported on iOS only",
         "category": "@camera options",
         "type": "boolean",
+        "value": "false",
         "values": [
-          false,
           "false",
           "true"
         ]
@@ -5710,7 +5707,7 @@
         "description": "Formats separated by commas. Defaults to all formats except PDF_417 and RSS_EXPANDED",
         "category": "@camera options",
         "type": "string",
-        "value": false
+        "value": "QR_CODE,DATA_MATRIX,UPC_A,UPC_E,EAN_8,EAN_13,CODE_39,CODE_93,CODE_128,CODABAR,ITF,RSS14,PDF417,RSS_EXPANDED,MSI,AZTEC"
       },
 
       "orientation": {
@@ -5731,9 +5728,8 @@
         "description": "Launch with the torch switched on (if available). Supported on Android only.",
         "category": "@camera options",
         "type": "boolean",
-        "value": false,
+        "value": "false",
         "values": [
-          false,
           "true",
           "false"
         ]
