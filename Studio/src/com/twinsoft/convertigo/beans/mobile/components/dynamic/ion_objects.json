@@ -201,11 +201,11 @@
       ]
     },
     "IonClear": {
-      "attr": "clear",
       "label": "clear",
-      "description": "if set make a 'clear' component",
+      "description": "If set make a 'clear' component",
       "category": "Attributes",
-      "values": [ // todo: add all missing
+      "value": false,
+      "values": [
         false,
         "clear"
       ]
