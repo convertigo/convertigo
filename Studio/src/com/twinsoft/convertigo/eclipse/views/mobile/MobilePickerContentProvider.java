@@ -299,6 +299,9 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 											
 											tvv.add(new TVObject("get", d));
 											infos = map.get(key+ ".get");
+											if (infos == null) {
+												infos = map.get(c.getQName() + ".get");
+											}
 											if (infos != null) {
 												for (String info: infos) {
 													try {

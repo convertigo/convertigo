@@ -647,7 +647,7 @@ public class MobilePickerComposite extends Composite {
 					params.put("ddoc", dd.getName());
 					params.put("view", tvObject.getParent().getName());
 					params.put("include_docs", infos.has("include_docs") ? infos.getString("include_docs"):"false");
-					searchPath = tvObject.getName().equals("get") ? ".rows.value":"";
+					searchPath = tvObject.getName().startsWith("get") ? ".rows.value":"";
 				} else if (object instanceof UIControlDirective) {
 					dbo = (UIControlDirective)object;
 					do {
