@@ -270,8 +270,15 @@ public class HttpUtils {
 	
 	public static String applyCorsHeaders(HttpServletRequest request, HttpServletResponse response) {
 		String origin = HeaderName.Origin.getHeader(request);
-		String globalCorsPolicy = EnginePropertiesManager.getOriginalProperty(PropertyName.CORS_POLICY);
-		return applyCorsHeaders(request, response, filterCorsOrigin(globalCorsPolicy, origin));
+		try {
+			String globalCorsPolicy = EnginePropertiesManager.getOriginalProperty(PropertyName.CORS_POLICY);
+			return applyCorsHeaders(request, response, filterCorsOrigin(globalCorsPolicy, origin));
+		} catch (Exception e) {
+			if (Engine.logEngine != null) {
+				Engine.logEngine.warn("(HttpUtils) Failed applyCorsHeaders", e);
+			}
+			return null;
+		}
 	}
 	
 	public static String applyFilterCorsHeaders(HttpServletRequest request, HttpServletResponse response, String corsPolicy) {
@@ -283,9 +290,15 @@ public class HttpUtils {
 		String corsOrigin = null;
 		if (origin != null && StringUtils.isNotBlank(corsPolicy)) {
 			if (corsPolicy.equals("=Global")) {
-				String globalCorsPolicy = EnginePropertiesManager.getOriginalProperty(PropertyName.CORS_POLICY);
-				if (!globalCorsPolicy.equals(corsPolicy)) {
-					corsOrigin = filterCorsOrigin(globalCorsPolicy, origin);
+				try {
+					String globalCorsPolicy = EnginePropertiesManager.getOriginalProperty(PropertyName.CORS_POLICY);
+					if (!globalCorsPolicy.equals(corsPolicy)) {
+						corsOrigin = filterCorsOrigin(globalCorsPolicy, origin);
+					}
+				} catch (Exception e) {
+					if (Engine.logEngine != null) {
+						Engine.logEngine.warn("(HttpUtils) Failed filterCorsOrigin", e);
+					}
 				}
 			} else if (corsPolicy.equals("=Origin")) {
 				corsOrigin = origin;
