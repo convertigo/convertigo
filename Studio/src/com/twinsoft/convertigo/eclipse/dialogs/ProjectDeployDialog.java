@@ -324,7 +324,7 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 	
 			ConvertigoPlugin.logDebug("Trying to connect to the Convertigo remote server...");
      		ConvertigoPlugin.logDebug("Username: " + convertigoUserName);
-			ConvertigoPlugin.logDebug("Password: " + convertigoUserPassword);
+			ConvertigoPlugin.logDebug("Password: " + "**************");
 
 			setTextLabel("Connection to the Convertigo server");
 		   
