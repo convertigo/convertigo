@@ -154,6 +154,8 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	// mobile samples
 	static final int SAMPLE_OFFCHAT = 1317;
 	static final int SAMPLE_RETAILSTORE = 1318;
+	static final int SAMPLE_CONFERENCEAPP = 1319;
+	static final int SAMPLE_FLIGHTSHARE = 1320;
 	
 	// rest samples
 	static final int SAMPLE_MAPPERSHOP = 1330;
@@ -185,6 +187,8 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	// mobile samples
 	private static final String SAMPLE_OFFCHAT_PROJECT_FILE_NAME = "sampleMobileOffChat.car";
 	private static final String SAMPLE_RETAILSTORE_PROJECT_FILE_NAME = "sampleMobileRetailStore.car";
+	private static final String SAMPLE_CONFERENCEAPP_PROJECT_FILE_NAME = "conferenceApp.car";
+	private static final String SAMPLE_FLIGHTSHARE_PROJECT_FILE_NAME = "FlightShare.car";
 	// rest samples
 	private static final String SAMPLE_MAPPERSHOP_PROJECT_FILE_NAME = "sampleMapperShop.car";
 	// libraries
@@ -240,6 +244,8 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case SAMPLE_DOCUMENTATION_SITECLIPPER:
 		case SAMPLE_OFFCHAT:
 		case SAMPLE_RETAILSTORE:
+		case SAMPLE_FLIGHTSHARE:
+		case SAMPLE_CONFERENCEAPP:
 		case SAMPLE_MAPPERSHOP:
 		case LIBRARY_PUSH_MANAGER:
 		case LIBRARY_TWITTER:
@@ -439,6 +445,8 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case SAMPLE_DOCUMENTATION_SITECLIPPER:
 			case SAMPLE_OFFCHAT:
 			case SAMPLE_RETAILSTORE:
+			case SAMPLE_CONFERENCEAPP:
+			case SAMPLE_FLIGHTSHARE:
 			case SAMPLE_MAPPERSHOP:
 			case LIBRARY_SALESFORCE:
 			case LIBRARY_PUSH_MANAGER:
@@ -1212,6 +1220,14 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case SAMPLE_RETAILSTORE:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_RETAILSTORE_PROJECT_FILE_NAME;
 			projectName = SAMPLE_RETAILSTORE_PROJECT_FILE_NAME.substring(0, SAMPLE_RETAILSTORE_PROJECT_FILE_NAME.indexOf(".car"));
+			break;
+		case SAMPLE_CONFERENCEAPP:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_CONFERENCEAPP_PROJECT_FILE_NAME;
+			projectName = SAMPLE_CONFERENCEAPP_PROJECT_FILE_NAME.substring(0, SAMPLE_CONFERENCEAPP_PROJECT_FILE_NAME.indexOf(".car"));
+			break;
+		case SAMPLE_FLIGHTSHARE:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_FLIGHTSHARE_PROJECT_FILE_NAME;
+			projectName = SAMPLE_FLIGHTSHARE_PROJECT_FILE_NAME.substring(0, SAMPLE_FLIGHTSHARE_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case SAMPLE_MAPPERSHOP:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_MAPPERSHOP_PROJECT_FILE_NAME;

@@ -51,30 +51,33 @@
 	<!-- Mandatory preferences for FlashUpdate service -->
 	<preference name="iosPersistentFileLocation" value="Library" />
 
-	<icon src="icon.png"/>
-	
-		<!-- IOs icons -->
 	<platform name="ios">
-	    <icon src="res/icon/icon603x.png"	width="180"		height="180"	/>	<!-- iPhone 6+ -->
-	    <icon src="res/icon/icon602x.png" 	width="120"		height="120" 	/> 	<!-- iPhone 6 -->
-	    <icon src="res/icon/icon57.png"    	width="57"		height="57" 	/> 	<!-- iPhone -->
-	    <icon src="res/icon/icon72.png"   	width="72"		height="72" 	/>	<!-- iPad -->
-	    <icon src="res/icon/icon572x.png"  	width="114"		height="114" 	/>	<!-- iPhone 4 Retina Display -->
-	    <icon src="res/icon/icon722x.png"  	width="144"		height="144" 	/>	<!-- iPad 3 Retina Display -->
-   </platform>
-   
-   <!-- Doesn't work with local build -->
-	<splash src="splash.png" />
-	
-	<!-- IOs splash -->
-	<platform name="ios">
-	    <splash src="res/splash/Default~iphone.png" width="320" height="480"/>
-	    <splash src="res/splash/Default@2x~iphone.png" width="640" height="960"/>
-	    <splash src="res/splash/Default-Portrait~ipad.png" width="768" height="1024"/>
-	    <splash src="res/splash/Default-Portrait@2x~ipad.png" width="1536" height="2048"/>
-	    <splash src="res/splash/Default-568h@2x~iphone.png" width="640" height="1136"/>
-	    <splash src="res/splash/Default-667h.png" width="750" height="1334"/>
-	    <splash src="res/splash/Default-736h.png" width="1242" height="2208"/>
+		<icon height="57" platform="ios" src="res/icons/ios/icon.png" width="57" />
+		<icon height="114" platform="ios" src="res/icons/ios/icon@2x.png" width="114" />
+		<icon height="40" platform="ios" src="res/icons/ios/icon-40.png" width="40" />
+		<icon height="80" platform="ios" src="res/icons/ios/icon-40@2x.png" width="80" />
+		<icon height="50" platform="ios" src="res/icons/ios/icon-50.png" width="50" />
+		<icon height="100" platform="ios" src="res/icons/ios/icon-50@2x.png" width="100" />
+		<icon height="60" platform="ios" src="res/icons/ios/icon-60.png" width="60" />
+		<icon height="120" platform="ios" src="res/icons/ios/icon-60@2x.png" width="120" />
+		<icon height="180" platform="ios" src="res/icons/ios/icon-60@3x.png" width="180" />
+		<icon height="72" platform="ios" src="res/icons/ios/icon-72.png" width="72" />
+		<icon height="144" platform="ios" src="res/icons/ios/icon-72@2x.png" width="144" />
+		<icon height="76" platform="ios" src="res/icons/ios/icon-76.png" width="76" />
+		<icon height="152" platform="ios" src="res/icons/ios/icon-76@2x.png" width="152" />
+		<icon height="29" platform="ios" src="res/icons/ios/icon-small.png" width="29" />
+		<icon height="58" platform="ios" src="res/icons/ios/icon-small@2x.png" width="58" />
+		<icon height="87" platform="ios" src="res/icons/ios/icon-small@3x.png" width="87" />
+		<splash height="1136" platform="ios" src="res/screens/ios/Default-568h@2x~iphone.png" width="640" />
+		<splash height="1334" platform="ios" src="res/screens/ios/Default-667h.png" width="750" />
+		<splash height="2208" platform="ios" src="res/screens/ios/Default-736h.png" width="1242" />
+		<splash height="1242" platform="ios" src="res/screens/ios/Default-Landscape-736h.png" width="2208" />
+		<splash height="1536" platform="ios" src="res/screens/ios/Default-Landscape@2x~ipad.png" width="2048" />
+		<splash height="768" platform="ios" src="res/screens/ios/Default-Landscape~ipad.png" width="1024" />
+		<splash height="2048" platform="ios" src="res/screens/ios/Default-Portrait@2x~ipad.png" width="1536" />
+		<splash height="1024" platform="ios" src="res/screens/ios/Default-Portrait~ipad.png" width="768" />
+		<splash height="960" platform="ios" src="res/screens/ios/Default@2x~iphone.png" width="640" />
+		<splash height="480" platform="ios" src="res/screens/ios/Default~iphone.png" width="320" />
 	</platform>
 
 	<!-- If you do not want any permissions to be added to your app, add the

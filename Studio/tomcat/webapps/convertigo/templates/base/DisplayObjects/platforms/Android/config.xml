@@ -39,29 +39,25 @@
 	<!-- Mandatory preferences for FlashUpdate service -->
 	<preference name="AndroidPersistentFileLocation" value="Internal" />
 	
-	<icon src="icon.png"/>
-	
-	<!-- Android icons -->
 	<platform name="android">
-		<icon src="res/icon/icon36ldpi.png" density="ldpi" />
-	    <icon src="res/icon/icon48mdpi.png" density="mdpi" />
-	    <icon src="res/icon/icon72hdpi.png" density="hdpi" />
-	    <icon src="res/icon/icon96xhdpi.png" density="xhdpi" />
-<!-- 	    <icon src="res/icon/android/icon144xxhdpi.png" density="xxhdpi" /> -->
-    </platform>
-	
-	<splash src="splash.png" />
-	
-	<!-- Android splash -->
-	<platform name="android">
-		<splash src="res/splash/ldpi.png" density="ldpi" />
-	    <splash src="res/splash/mdpi.png" density="mdpi" />
-	    <splash src="res/splash/hdpi.png" density="hdpi" />
-	    <splash src="res/splash/xhdpi.png" density="xhdpi" />
-	    <splash src="res/splash/landscape-ldpi.png" density="land-ldpi" />
-		<splash src="res/splash/landscape-mdpi.png" density="land-mdpi" />
-		<splash src="res/splash/landscape-hdpi.png" density="land-hdpi" />
-		<splash src="res/splash/landscape-xhdpi.png" density="land-xhdpi" />
+		<icon density="ldpi" src="res/icons/android/drawable-ldpi-icon.png" />
+		<icon density="mdpi" src="res/icons/android/drawable-mdpi-icon.png" />
+		<icon density="hdpi" src="res/icons/android/drawable-hdpi-icon.png" />
+		<icon density="xhdpi" src="res/icons/android/drawable-xhdpi-icon.png" />
+		<icon density="xxhdpi" src="res/icons/android/drawable-xxhdpi-icon.png" />
+		<icon density="xxxhdpi" src="res/icons/android/drawable-xxxhdpi-icon.png" />
+		<splash density="land-ldpi" src="res/screens/android/drawable-land-ldpi-screen.png" />
+		<splash density="land-mdpi" src="res/screens/android/drawable-land-mdpi-screen.png" />
+		<splash density="land-hdpi" src="res/screens/android/drawable-land-hdpi-screen.png" />
+		<splash density="land-xhdpi" src="res/screens/android/drawable-land-xhdpi-screen.png" />
+		<splash density="land-xxhdpi" src="res/screens/android/drawable-land-xxhdpi-screen.png" />
+		<splash density="land-xxxhdpi" src="res/screens/android/drawable-land-xxxhdpi-screen.png" />
+		<splash density="port-ldpi" src="res/screens/android/drawable-port-ldpi-screen.png" />
+		<splash density="port-mdpi" src="res/screens/android/drawable-port-mdpi-screen.png" />
+		<splash density="port-hdpi" src="res/screens/android/drawable-port-hdpi-screen.png" />
+		<splash density="port-xhdpi" src="res/screens/android/drawable-port-xhdpi-screen.png" />
+		<splash density="port-xxhdpi" src="res/screens/android/drawable-port-xxhdpi-screen.png" />
+		<splash density="port-xxxhdpi" src="res/screens/android/drawable-port-xxxhdpi-screen.png" />
 	</platform>
     
 	
@@ -77,7 +73,6 @@
     <plugin name="cordova-plugin-splashscreen" spec="~4.0.3"/>
     <plugin name="cordova-plugin-whitelist" spec="~1.3.2"/>
     <plugin name="cordova-plugin-network-information" spec="~1.3.3" />
-    <plugin name="cordova-plugin-statusbar" spec="2.4.0" />
 
 	<!-- Expose access to all URIs, including the file and http protocols -->
     <access origin="*" />

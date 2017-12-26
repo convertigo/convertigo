@@ -91,13 +91,23 @@ public abstract class MobilePlatform extends DatabaseObject {
 	
 	private void checkFolder() {
 		File folder = getResourceFolder();
-		if (!folder.exists()) {
-			try {
-				File templateFolder = new File(Engine.TEMPLATES_PATH, "base/DisplayObjects/platforms/" + getClass().getSimpleName());
+		File templateFolder = new File(Engine.TEMPLATES_PATH, "base/DisplayObjects/platforms/" + getClass().getSimpleName());
+
+		try {
+			if (!folder.exists()) {
 				FileUtils.copyDirectory(templateFolder, folder);
-			} catch (IOException e) {
-				Engine.logBeans.warn("(MobilePlatform) The folder '" + folder.getAbsolutePath() + "' doesn't exist and cannot be created", e);
+			} else {
+				File config = new File(folder, "config.xml");
+				if (!config.exists()) {
+					FileUtils.copyFile(new File(templateFolder, "config.xml"), config);
+				}
+				File res = new File(folder, "res");
+				if (!res.exists()) {
+					FileUtils.copyDirectory(new File(templateFolder, "res"), res);
+				}
 			}
+		} catch (IOException e) {
+			Engine.logBeans.warn("(MobilePlatform) The folder '" + folder.getAbsolutePath() + "' doesn't exist and cannot be created", e);
 		}
 	}
 	

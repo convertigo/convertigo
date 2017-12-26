@@ -178,10 +178,6 @@
             name="Reference Manual examples"
             parentCategory="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"/>
       <category
-            id="com.twinsoft.convertigo.eclipse.convertigomobilesamples"
-            name="Mobile samples"
-            parentCategory="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"/>
-      <category
             id="com.twinsoft.convertigo.eclipse.convertigorestsamples"
             name="Rest samples"
             parentCategory="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"/>
@@ -192,23 +188,13 @@
 <!-- Mobile projects -->
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewEmptyJQueryMobileWizard"
-            icon="icons/studio/mobile_HighEnd_color_32x32.png"
-            id="com.twinsoft.convertigo.eclipse.wizards.NewEmptyJQueryMobileWizard"
-            name="Mobile application project"
-            preferredPerspectives="convertigo"
-            project="true">
-            <description>Creates a Mobile application project based on jQuery Mobile and CTF frameworks.</description> 
-            </wizard>
-      <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewMobileBuilderWizard"
             icon="icons/studio/mobile_HighEnd_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewMobileBuilderWizard"
             name="Mobile Builder application project"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates a Mobile Builder application project based on ionic2 and Convertigo Angular frameworks.</description> 
+            <description>Creates a Mobile Builder application project based on ionic and Convertigo Angular frameworks.</description> 
             </wizard>
 <!-- Legacy publishing projects -->
       <wizard
@@ -552,7 +538,7 @@
           <description>Imports the sample project containing HTTP connector objects examples described in the Reference Manual.</description>
        </wizard>
 <!-- Mobile sample projects -->
-       <wizard
+<!--        <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleOffChatWizard"
             icon="icons/studio/offchat_color_32x32.png"
@@ -560,10 +546,30 @@
             name="OffChat sample project"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Imports a project creating a sampleOffChat application. This application demonstrates FullSync technology used to an “Offline Chat” application. This app enables users to establish conversations between them and chat using text messages and photos. When the device is online, messages will flow from one to the other immediately, using FullSync “live” replications. If the device if offline, posts will be secured in the local FullSync NoSQL database and will be synced automatically when the device is online again.</description> 
+            <description>Imports a project creating a sampleOffChat application. This application demonstrates FullSync technology used to an "Offline Chat" application. This app enables users to establish conversations between them and chat using text messages and photos. When the device is online, messages will flow from one to the other immediately, using FullSync “live” replications. If the device if offline, posts will be secured in the local FullSync NoSQL database and will be synced automatically when the device is online again.</description> 
        </wizard>
        <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
+            category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleConferenceAppWizard"
+            icon="icons/studio/flightshare_color_32x32.png"
+            id="com.twinsoft.convertigo.eclipse.wizards.NewSampleConferenceAppWizard"
+            name="FlightShare sample project"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Imports a project creating a FlightShare application. This application demonstrates FullSync technology used to an "Offline Chat" application. This app enables users to establish conversations between them and chat using text messages and photos. When the device is online, messages will flow from one to the other immediately, using FullSync “live” replications. If the device if offline, posts will be secured in the local FullSync NoSQL database and will be synced automatically when the device is online again.</description> 
+       </wizard>-->
+       <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleFlightShareWizard"
+            icon="icons/studio/flightshare_color_32x32.png"
+            id="com.twinsoft.convertigo.eclipse.wizards.NewSampleFlightShareWizard"
+            name="FlightShare sample project"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Imports a project creating a FlightShare application. Flight Share is an application able to share flights within Pilots using Flyin Club Planes.</description> 
+       </wizard>
+       <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleRetailStoreWizard"
             icon="icons/studio/retail_store_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleRetailStoreWizard"
