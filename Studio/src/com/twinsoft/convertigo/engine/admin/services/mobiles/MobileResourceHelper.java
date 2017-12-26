@@ -367,32 +367,6 @@ public class MobileResourceHelper {
 			throw new ServiceException("Unknow build mode: " + buildMode);
 		}
 		
-		listFiles(json);
-		write("files.json", json.toString());
-		
-		String remoteBase = endpoint + "/projects/" + project.getName() + "/_private/mobile/flashupdate_" + this.mobilePlatform.getName();
-				
-		json = new JSONObject();
-		json.put("applicationAuthorName", mobileApplication.getApplicationAuthorName());
-		json.put("applicationAuthorEmail", mobileApplication.getApplicationAuthorEmail());
-		json.put("applicationAuthorWebsite", mobileApplication.getApplicationAuthorSite());
-		json.put("applicationDescription", mobileApplication.getApplicationDescription());
-		json.put("applicationId", mobileApplication.getComputedApplicationId());
-		json.put("applicationName", finalApplicationName);
-		json.put("builtRevision", destDir.lastModified());
-		json.put("builtVersion", mobileApplication.getComputedApplicationVersion());
-		json.put("currentRevision", destDir.lastModified());
-		json.put("currentVersion", mobileApplication.getComputedApplicationVersion());
-		json.put("endPoint", endpoint);
-		json.put("platform", mobilePlatform.getCordovaPlatform());
-		json.put("platformName", mobilePlatform.getName());
-		json.put("projectName", project.getName());
-		json.put("remoteBase", remoteBase);
-		json.put("timeout", mobileApplication.getFlashUpdateTimeout());
-		json.put("splashRemoveMode", mobileApplication.getSplashRemoveMode().name());
-		
-		write("env.json", json.toString());
-		
 		// Update config.xml
 		File configFile = new File(destDir, "config.xml");
 		String configText = FileUtils.readFileToString(configFile, "UTF-8");
@@ -420,6 +394,32 @@ public class MobileResourceHelper {
 		}
 		
 		FileUtils.write(configFile, configText, "UTF-8");
+		
+		listFiles(json);
+		write("files.json", json.toString());
+		
+		String remoteBase = endpoint + "/projects/" + project.getName() + "/_private/mobile/flashupdate_" + this.mobilePlatform.getName();
+				
+		json = new JSONObject();
+		json.put("applicationAuthorName", mobileApplication.getApplicationAuthorName());
+		json.put("applicationAuthorEmail", mobileApplication.getApplicationAuthorEmail());
+		json.put("applicationAuthorWebsite", mobileApplication.getApplicationAuthorSite());
+		json.put("applicationDescription", mobileApplication.getApplicationDescription());
+		json.put("applicationId", mobileApplication.getComputedApplicationId());
+		json.put("applicationName", finalApplicationName);
+		json.put("builtRevision", destDir.lastModified());
+		json.put("builtVersion", mobileApplication.getComputedApplicationVersion());
+		json.put("currentRevision", destDir.lastModified());
+		json.put("currentVersion", mobileApplication.getComputedApplicationVersion());
+		json.put("endPoint", endpoint);
+		json.put("platform", mobilePlatform.getCordovaPlatform());
+		json.put("platformName", mobilePlatform.getName());
+		json.put("projectName", project.getName());
+		json.put("remoteBase", remoteBase);
+		json.put("timeout", mobileApplication.getFlashUpdateTimeout());
+		json.put("splashRemoveMode", mobileApplication.getSplashRemoveMode().name());
+		
+		write("env.json", json.toString());
 		
 		return destDir;
 	}
@@ -473,6 +473,7 @@ public class MobileResourceHelper {
 				
 				public boolean accept(File pathname) {
 					boolean ok = MobileResourceHelper.defaultFilter.accept(pathname) &&
+						! new File(currentMobileDir, "plugins.txt").equals(pathname) &&
 						! new File(currentMobileDir, "config.xml").equals(pathname) &&
 						! new File(currentMobileDir, "res").equals(pathname) &&
 						! lastEndpoint.equals(pathname);
