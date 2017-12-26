@@ -96,7 +96,7 @@ public class ProjectDeploySuccessfulDialog extends Dialog {
 	 */
 	@Override
 	protected Point getInitialSize() {
-		return new Point(400, 200);
+		return new Point(500, 300);
 	}
 
 }
