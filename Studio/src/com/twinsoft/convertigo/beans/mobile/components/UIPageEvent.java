@@ -60,7 +60,9 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 			if (children.length() > 0) {
 				sb.append(event).append("() {").append(System.lineSeparator());
 				sb.append("\t\tsuper.").append(event).append("();").append(System.lineSeparator());
+				sb.append("\t\tthis.getInstance(Platform).ready().then(()=>{").append(System.lineSeparator());
 				sb.append(children);
+				sb.append("\t\t})").append(System.lineSeparator());
 				sb.append("\t}").append(System.lineSeparator());
 			}
 			return sb.toString();
