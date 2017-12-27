@@ -5215,6 +5215,17 @@
           "false"
         ]
       },
+      "reduce": {
+        "description": "Call the view reduced",
+        "label": "Reduce",
+        "category": "#Optional Properties",
+        "type": "boolean",
+        "value": false,
+        "values": [
+          "true",
+          "false"
+        ]
+      },
       "attachments": {
         "description": "Include attachment data.",
         "label": "Attachments",
