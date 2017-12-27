@@ -36,11 +36,13 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.KeyExpiredException;
+import com.twinsoft.convertigo.engine.MaxCvsExceededException;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.translators.DefaultServletTranslator;
 import com.twinsoft.convertigo.engine.translators.Translator;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
 import com.twinsoft.tas.KeyManager;
@@ -240,17 +242,7 @@ public abstract class ServletRequester extends GenericRequester {
 	public void preGetDocument() throws EngineException {
 		HttpServletRequest request = (HttpServletRequest) inputData;
 		
-		String c8oSDK;
-		
-		if (Engine.isEngineMode() && (c8oSDK = request.getHeader(HeaderName.XConvertigoSDK.value())) != null) {
-			if (!KeyManager.hasExpired(Session.EmulIDSE)) {
-				Engine.logContext.debug("Convertigo-SDK allowed: \"" + c8oSDK + "\"");
-			} else {
-				KeyExpiredException e = new KeyExpiredException("Convertigo Community Edition isn't licenced to accept Convertigo SDK calls, please check your licences keys.");
-				Engine.logContext.error("Convertigo-SDK not allowed: \"" + c8oSDK + "\"\n" + e.getMessage());
-				throw e;
-			}
-		}
+		HttpUtils.checkCV(request);
 
 		String remoteAddr = request.getRemoteAddr();
 		Engine.logContext.info("Remote-Addr: \"" + remoteAddr + "\"");
@@ -288,6 +280,7 @@ public abstract class ServletRequester extends GenericRequester {
 		try {
 			HttpSessionListener.checkSession(request);
 		} catch (TASException e) {
+			HttpUtils.terminateSession(request.getSession());
 			throw new RuntimeException(e);
 		}
 	}

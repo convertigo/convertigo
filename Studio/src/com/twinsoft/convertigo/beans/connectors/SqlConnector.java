@@ -55,6 +55,7 @@ import javax.sql.DataSource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.twinsoft.api.Session;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.ConnectorEvent;
 import com.twinsoft.convertigo.beans.core.Transaction;
@@ -64,6 +65,8 @@ import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.KeyExpiredException;
+import com.twinsoft.convertigo.engine.MaxCvsExceededException;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.servlets.EngineServlet;
@@ -71,6 +74,7 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.tas.KeyManager;
 import com.twinsoft.util.StringEx;
 
 public class SqlConnector extends Connector {
@@ -381,6 +385,16 @@ public class SqlConnector extends Connector {
 			sqlTransaction = (SqlTransaction) context.requestedObject;
 		} catch (ClassCastException e) {
 			throw new EngineException("Requested object is not a SQL transaction", e);
+		}
+		
+		if (Engine.isEngineMode() && KeyManager.getCV(Session.EmulIDSQL) < 1) {
+			String msg;
+			if (KeyManager.has(Session.EmulIDSQL) && KeyManager.hasExpired(Session.EmulIDSQL)) {
+				Engine.logEngine.error(msg = "Key expired for the SQL connector.");
+				throw new KeyExpiredException(msg);
+			}
+			Engine.logEngine.error(msg = "No key for the SQL connector.");
+			throw new MaxCvsExceededException(msg);
 		}
 
 		// Overwrites JDBC url if needed

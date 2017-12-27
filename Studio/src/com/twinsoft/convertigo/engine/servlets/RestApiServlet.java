@@ -14,10 +14,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.twinsoft.api.Session;
 import com.twinsoft.convertigo.beans.core.UrlMapper;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.KeyExpiredException;
+import com.twinsoft.convertigo.engine.MaxCvsExceededException;
 import com.twinsoft.convertigo.engine.RestApiManager;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
@@ -27,6 +30,7 @@ import com.twinsoft.convertigo.engine.util.HttpServletRequestTwsWrapper;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.ServletUtils;
 import com.twinsoft.convertigo.engine.util.SwaggerUtils;
+import com.twinsoft.tas.KeyManager;
 
 public class RestApiServlet extends GenericServlet {
 
@@ -73,6 +77,16 @@ public class RestApiServlet extends GenericServlet {
     		catch(Exception e) {
     			throw new ServletException(e);
     		}
+		}
+		
+		if (Engine.isEngineMode() && KeyManager.getCV(Session.EmulIDURLMAPPER) < 1) {
+			String msg;
+			if (KeyManager.has(Session.EmulIDURLMAPPER) && KeyManager.hasExpired(Session.EmulIDURLMAPPER)) {
+				Engine.logEngine.error(msg = "Key expired for the URL Mapper.");
+				throw new ServletException(new KeyExpiredException(msg));
+			}
+			Engine.logEngine.error(msg = "No key for the URL Mapper.");
+			throw new ServletException(new MaxCvsExceededException(msg));
 		}
 		
 		HttpServletRequestTwsWrapper wrapped_request = new HttpServletRequestTwsWrapper(request);

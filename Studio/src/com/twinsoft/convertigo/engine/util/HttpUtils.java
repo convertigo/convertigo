@@ -55,11 +55,16 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.api.Session;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.KeyExpiredException;
+import com.twinsoft.convertigo.engine.MaxCvsExceededException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpPool;
+import com.twinsoft.tas.KeyManager;
 
 public class HttpUtils {
 	private final static Pattern c8o_request_pattern = Pattern.compile("((.*?)/(?:projects/(.+?)|admin))/.*");
@@ -214,9 +219,16 @@ public class HttpUtils {
 	}
 	
 	public static void terminateSession(HttpSession httpSession) {
+		terminateSession(httpSession, false);
+	}
+	
+	public static void terminateSession(HttpSession httpSession, boolean force) {
 		if (httpSession != null) {
-			if (Engine.authenticatedSessionManager.isAnonymous(httpSession)) {
-				httpSession.setMaxInactiveInterval(1);						
+			if (force || Engine.authenticatedSessionManager.isAnonymous(httpSession)) {
+				httpSession.setMaxInactiveInterval(1);
+				if (Engine.theApp != null && Engine.theApp.contextManager != null) {
+					Engine.theApp.contextManager.removeAll(httpSession.getId());
+				}
 			}
 		}
 	}
@@ -315,5 +327,39 @@ public class HttpUtils {
 			}
 		}
 		return corsOrigin;
+	}
+	
+	public static void checkCV(HttpServletRequest request) throws EngineException {
+		if (Engine.isEngineMode()) {
+			String msg;
+			
+			String c8oMB = request.getHeader(HeaderName.XConvertigoMB.value());
+			if (c8oMB != null) {
+				Engine.logEngine.debug("Request from Mobile Builder: " + c8oMB);
+				if (KeyManager.getCV(Session.EmulIDMOBILEBUILDER) < 1) {
+					HttpUtils.terminateSession(request.getSession());
+					if (KeyManager.has(Session.EmulIDMOBILEBUILDER) && KeyManager.hasExpired(Session.EmulIDMOBILEBUILDER)) {
+						Engine.logEngine.error(msg = "Key expired for the Mobile Builder.");
+						throw new KeyExpiredException(msg);
+					}
+					Engine.logEngine.error(msg = "No key for the Mobile Builder.");
+					throw new MaxCvsExceededException(msg);
+				}
+			}
+			
+			String c8oSDK = request.getHeader(HeaderName.XConvertigoSDK.value());
+			if (c8oSDK != null) {
+				Engine.logEngine.debug("Request from Convertigo SDK: " + c8oSDK);
+				if (c8oMB == null && KeyManager.getCV(Session.EmulIDC8OSDK) < 1) {
+					HttpUtils.terminateSession(request.getSession());
+					if (KeyManager.has(Session.EmulIDC8OSDK) && KeyManager.hasExpired(Session.EmulIDC8OSDK)) {
+						Engine.logEngine.error(msg = "Key expired for the Convertigo SDK.");
+						throw new KeyExpiredException(msg);
+					}
+					Engine.logEngine.error(msg = "No key for the Convertigo SDK.");
+					throw new MaxCvsExceededException(msg);
+				}
+			}
+		}
 	}
 }

@@ -77,6 +77,7 @@ public enum HeaderName {
 	XConvertigoRequestURI("x-convertigo-request-uri"),
 	XConvertigoRequestHost("x-convertigo-request-host"),
 	XConvertigoSDK("x-convertigo-sdk"),
+	XConvertigoMB("x-convertigo-mb"),
 	VOID("");
 	
 	String value;

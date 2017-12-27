@@ -106,7 +106,7 @@
 	<classpathentry kind="lib" path="lib/hibernate/jboss-transaction-api_1.2_spec-1.0.0.Final.jar"/>
 	<classpathentry kind="lib" path="lib/hsqldb.jar"/>
 	<classpathentry kind="lib" path="lib/httpclientAuthHelper.jar"/>
-	<classpathentry kind="lib" path="lib/internal/api-v42641.jar" sourcepath="/ConvertigoLibs/src"/>
+	<classpathentry kind="lib" path="lib/internal/api-v44191.jar" sourcepath="/ConvertigoLibs/src"/>
 	<classpathentry kind="lib" path="lib/internal/aviva-111124.jar"/>
 	<classpathentry kind="lib" path="lib/internal/bull-v24323.jar"/>
 	<classpathentry kind="lib" path="lib/internal/comm.jar"/>
@@ -115,10 +115,10 @@
 	<classpathentry kind="lib" path="lib/internal/ms.jar"/>
 	<classpathentry kind="lib" path="lib/internal/netscape.jar"/>
 	<classpathentry kind="lib" path="lib/internal/phaos.jar"/>
-	<classpathentry kind="lib" path="lib/internal/tas-v43225.jar" sourcepath="/ConvertigoLibs/src"/>
+	<classpathentry kind="lib" path="lib/internal/tas-v44191.jar" sourcepath="/ConvertigoLibs/src"/>
 	<classpathentry kind="lib" path="lib/internal/twinj-v41019.jar" sourcepath="/ConvertigoLibs"/>
 	<classpathentry kind="lib" path="lib/internal/ui-090918.jar"/>
-	<classpathentry kind="lib" path="lib/internal/util-v41019.jar" sourcepath="/ConvertigoLibs/src"/>
+	<classpathentry kind="lib" path="lib/internal/util-v44191.jar" sourcepath="/ConvertigoLibs/src"/>
 	<classpathentry kind="lib" path="lib/internal/vdx-090918.jar"/>
 	<classpathentry kind="lib" path="lib/internal/vt220-v34405.jar"/>
 	<classpathentry kind="lib" path="lib/jCharts-0.7.2.jar"/>

@@ -91,6 +91,8 @@ public class FullSyncServlet extends HttpServlet {
 		String c8oSDK = null;	
 		HttpMethodType method;
 		try {
+			HttpUtils.checkCV(request);
+			
 			String corsOrigin = HttpUtils.applyCorsHeaders(request, response);
 			if (corsOrigin != null) {
 				debug.append("Add CORS header for: " + corsOrigin + "\n");
