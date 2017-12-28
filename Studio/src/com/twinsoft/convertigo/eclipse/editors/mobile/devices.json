@@ -6,14 +6,40 @@
 		"zoom"  : 100,
 		"os"    : "android"
 	}, {
-		"name"  : "Android Phone (35%)",
+		"name"  : "Android Phone (common)",
 		"desc"  : "Galaxy S4-S7\nNexus 5\nLG G3, G4\nHTC One\nSony Xperia Z, S, P",
 		"width" : 360,
 		"height": 640,
 		"zoom"  : 90,
 		"os"    : "android"
 	}, {
-		"name"  : "iPhone 7, 6, 6s",
+		"name"  : "Android Phone (bigger)",
+		"desc"  : "Nexus 5X, 6P",
+		"width" : 412,
+		"height": 732,
+		"zoom"  : 90,
+		"os"    : "android"
+	}, {
+		"name"  : "Android Phone (18:9)",
+		"desc"  : "OnePlus 5T",
+		"width" : 455,
+		"height": 910,
+		"zoom"  : 80,
+		"os"    : "android"
+	}, {
+		"name"  : "iPhone X",
+		"width" : 375,
+		"height": 812,
+		"zoom"  : 90,
+		"os"    : "ios"
+	}, {
+		"name"  : "iPhone 8+, 7+",
+		"width" : 414,
+		"height": 736,
+		"zoom"  : 90,
+		"os"    : "ios"
+	}, {
+		"name"  : "iPhone 8, 7, 6, 6s",
 		"width" : 375,
 		"height": 667,
 		"zoom"  : 90,
