@@ -187,7 +187,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	// mobile samples
 	private static final String SAMPLE_OFFCHAT_PROJECT_FILE_NAME = "sampleMobileOffChat.car";
 	private static final String SAMPLE_RETAILSTORE_PROJECT_FILE_NAME = "sampleMobileRetailStore.car";
-	private static final String SAMPLE_CONFERENCEAPP_PROJECT_FILE_NAME = "conferenceApp.car";
+	private static final String SAMPLE_CONFERENCEAPP_PROJECT_FILE_NAME = "IonicConferenceApp.car";
 	private static final String SAMPLE_FLIGHTSHARE_PROJECT_FILE_NAME = "FlightShare.car";
 	// rest samples
 	private static final String SAMPLE_MAPPERSHOP_PROJECT_FILE_NAME = "sampleMapperShop.car";
