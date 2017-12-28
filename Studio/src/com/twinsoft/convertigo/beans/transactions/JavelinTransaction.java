@@ -284,7 +284,9 @@ public class JavelinTransaction extends TransactionWithVariables {
     					*/
 
                         screenClass = (JavelinScreenClass) ((JavelinConnector) connector).getCurrentScreenClass();
-                        
+                        if (screenClass == null) {
+                        	throw new EngineException("(JavelinTransaction) The currentScreenClass is null, is the emulator connected ?");
+                        }
     					normalizedScreenClassName = StringUtils.normalize(screenClass.getName());
                         context.lastDetectedObject = screenClass;
                         score +=1;
