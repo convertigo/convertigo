@@ -545,8 +545,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					closeButton.setLayoutData(gridData);
 					
 
-					int w = 768;
-					int h = 1024;
+					int w = 600;
+					int h = 800;
 					try {
 						// mod jmc 31/07/2013
 						
