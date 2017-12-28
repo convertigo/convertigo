@@ -16,16 +16,18 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjec
 
 public class DynamicComboBoxPropertyDescriptor extends PropertyDescriptor {
 	private static final ThreadLocal<ComboBoxCellEditor> last = new ThreadLocal<ComboBoxCellEditor>();
+	private static final String SYMBOL = "${symbol}";
 	private DatabaseObjectTreeObject databaseObjectTreeObject;
 	private Method getTagsMethod;
 	private String propertyName;
-	private String[] tags = {"${symbol}"};
+	private String[] tags = {SYMBOL};
 	private ComboBoxCellEditor editor;
+	private ComboBoxLabelProvider labelProvider;
 	
 	public DynamicComboBoxPropertyDescriptor(Object id, String displayName, String[] tags) {
 		super(id, displayName);
     	tags = Arrays.copyOf(tags, tags.length + 1);
-    	tags[tags.length - 1] = this.tags[0];
+    	tags[tags.length - 1] = this.tags[this.tags.length - 1];
     	this.tags = tags;
 	}
 	
@@ -104,26 +106,27 @@ public class DynamicComboBoxPropertyDescriptor extends PropertyDescriptor {
         if (isLabelProviderSet()) {
 			return super.getLabelProvider();
 		}
-		return new ComboBoxLabelProvider(getTags());
+		return labelProvider = new ComboBoxLabelProvider(getTags());
     }
 
     private String[] getTags() {
     	if (getTagsMethod != null) {
 			try {
 				String[] tags = (String[]) getTagsMethod.invoke(null, new Object[] { databaseObjectTreeObject, propertyName } );
-				if (this.tags.length != tags.length + 1) {
+				if (!SYMBOL.equals(tags[tags.length - 1])) {
 					tags = Arrays.copyOf(tags, tags.length + 1);
-			    	tags[tags.length - 1] = this.tags[0];
-			    	this.tags = tags;
-				} else {
-					for (int i = 0; i < tags.length; i++) {
-						this.tags[i] = tags[i];
-					}
+			    	tags[tags.length - 1] = SYMBOL;
 				}
+		    	this.tags = tags;
 			} catch (Exception e) {
-				tags = new String[] {"[symbol]"};
+				tags = new String[] {SYMBOL};
 			}
     	}
+    	
+    	if (labelProvider != null) {
+    		labelProvider.setValues(tags);
+		}
+    	
 		return tags;
     }
 }
