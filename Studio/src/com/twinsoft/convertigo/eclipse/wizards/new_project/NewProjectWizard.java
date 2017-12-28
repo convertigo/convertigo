@@ -175,7 +175,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	private static final String SQL_TEMPLATE_PROJECT_FILE_NAME = "template_SQL.car";
 	private static final String SAP_TEMPLATE_PROJECT_FILE_NAME = "template_SAP.car";
 	private static final String SITE_CLIPPER_TEMPLATE_PROJECT_FILE_NAME = "template_siteClipper.car";
-	private static final String MOBILE_BUILDER_TEMPLATE_PROJECT_FILE_NAME = "template_Ionic2.car";
+	private static final String MOBILE_BUILDER_TEMPLATE_PROJECT_FILE_NAME = "template_mobileBuilderIonic.car";
 	// documentation samples
 	private static final String CLI_DOC_PROJECT_FILE_NAME = "sample_documentation_CLI.car";
 	private static final String CWI_DOC_PROJECT_FILE_NAME = "sample_documentation_CWI.car";
