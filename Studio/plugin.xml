@@ -556,7 +556,7 @@
             name="IonicConferenceApp sample project"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Imports a project creating a IonicConferenceApp application. This application demonstrates FullSync technology used to an "Offline Chat" application. This app enables users to establish conversations between them and chat using text messages and photos. When the device is online, messages will flow from one to the other immediately, using FullSync “live” replications. If the device if offline, posts will be secured in the local FullSync NoSQL database and will be synced automatically when the device is online again.</description> 
+            <description>Imports a project creating a IonicConferenceApp application. This demo is based on Ionic Conference App but using the Convertigo Mobile Builder.</description> 
        </wizard>
        <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"
@@ -567,6 +567,16 @@
             preferredPerspectives="convertigo"
             project="true">
             <description>Imports a project creating a FlightShare application. Flight Share is an application able to share flights within Pilots using Flyin Club Planes.</description> 
+       </wizard>
+       <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleHelloWorldWizard"
+            icon="icons/studio/mobile_HighEnd_color_32x32.png"
+            id="com.twinsoft.convertigo.eclipse.wizards.NewSampleHelloWorldWizard"
+            name="HelloWorld sample project"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Imports a project creating a sample_HelloWorld application. Simple news reader application using the Convertigo Mobile Builder.</description> 
        </wizard>
        <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"
