@@ -47,8 +47,6 @@ public class BuildLocallyAction extends MyAbstractAction {
 	private BuildLocally buildLocally = null;
 	private Shell parentShell = null;
 	private MobilePlatform mobilePlatform = null;
-
-	private static final String cordovaDir = "cordova";
 	
 	public BuildLocallyAction() {
 		super();
@@ -155,35 +153,6 @@ public class BuildLocallyAction extends MyAbstractAction {
 					return;
 				}
 
-				// Cordova Env will be created in the _private directory
-				final File privateDir = new File(Engine.PROJECTS_PATH + File.separator + 
-						ConvertigoPlugin.projectManager.currentProject.getName() + 
-						File.separator + "_private");
-
-				// Just in case .. check that the private directory exists...
-				if (!privateDir.exists()) {
-					ConvertigoPlugin.logInfo("Creating \"_private\" project directory");
-					try {
-						privateDir.mkdirs();
-					} catch(Exception e) {
-						String message = java.text.MessageFormat.format(
-							"Unable to create the private project directory \"{0}\"..",
-							new Object[] {ConvertigoPlugin.projectManager.currentProject.getName()});
-						ConvertigoPlugin.logException(e, message);
-						return;
-					}
-				}
-				// Create a local Cordova Environment
-				final File localBuildDir = new File(privateDir, "localbuild");
-				if (!localBuildDir.exists()) {
-					localBuildDir.mkdir();
-				}
-				
-				final File mobilePlatformDir = new File(localBuildDir, mobilePlatform.getName());
-				if (!mobilePlatformDir.exists()) {
-					mobilePlatformDir.mkdir();
-				}
-
 				// OK we are sure we have a Cordova environment.. Start the build
 				Job buildJob = new Job("Local Cordova Build " + (run ? "and Run " : "") + "in progress...") {
 					
@@ -193,15 +162,6 @@ public class BuildLocallyAction extends MyAbstractAction {
 						BuildLocally.Status status = buildLocally.installCordova();
 						if (status == BuildLocally.Status.CANCEL) {
 							return org.eclipse.core.runtime.Status.CANCEL_STATUS;
-						}
-						
-						// Test to see if the Cordova application has been created		        
-						if (!new File(mobilePlatformDir, cordovaDir).exists()) {
-							status = buildLocally.createCordovaEnvironment(mobilePlatformDir);
-							if (status == BuildLocally.Status.CANCEL) {
-								return org.eclipse.core.runtime.Status.CANCEL_STATUS;
-							}		
-							Engine.logEngine.info("Cordova environment is now ready.");
 						}
 						
 						status = buildLocally.runBuild(option, run, target);
