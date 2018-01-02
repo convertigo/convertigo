@@ -48,6 +48,7 @@ import com.twinsoft.convertigo.beans.mobileplatforms.IOs;
 import com.twinsoft.convertigo.beans.mobileplatforms.Windows;
 import com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhone8;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.admin.services.mobiles.MobileResourceHelper;
 import com.twinsoft.convertigo.engine.util.ProcessUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
@@ -545,6 +546,11 @@ public abstract class BuildLocally {
 			File cordovaDir = getCordovaDir();
 			File wwwDir = new File(cordovaDir,"www");
 			wwwDir.mkdirs();
+			
+			if (!wwwDir.exists()) {
+				throw new EngineException("Cannot create the build folder '" + wwwDir.getAbsolutePath() + "', check the current user can create files or change the Eclipse preference: 'Convertigo/Studio/Local Build Folder'.");
+			}
+			
 			// Cordova environment is already created, we have to build
 			// Step 1: Call Mobile packager to prepare the source package
 			MobileResourceHelper mobileResourceHelper = new MobileResourceHelper(mobilePlatform, wwwDir.getAbsolutePath());
