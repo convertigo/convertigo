@@ -114,7 +114,9 @@ public class MobileResourceHelper {
 			FileUtils.deleteQuietly(destDir);
 			for (File directory: mobileDir) {
 				currentMobileDir = directory;
-				FileUtils.copyDirectory(directory, destDir, fileFilterForCopy, true);
+				if (directory.exists()) {
+					FileUtils.copyDirectory(directory, destDir, fileFilterForCopy, true);
+				}
 			}
 			currentMobileDir = null;
 
