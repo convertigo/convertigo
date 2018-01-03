@@ -8,7 +8,7 @@
     FingerprintAIOAction(page: C8oPage, props, vars) : Promise<any> {
         return new Promise((resolve, reject) => {
             const fingerprint : FingerprintAIO  = page.getInstance(FingerprintAIO);
-            let params =  {};
+            let params : any =  {"clientId": ""};
             if(props.clientID == null) {
                 reject("[MB] FingerprintAIOAction: client ID must be set");
             }
