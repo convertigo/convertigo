@@ -1,5 +1,5 @@
     /**
-     * Function FullSyncPostAction
+     * Function FullSyncGetAction
      *   
      * @param page  , the current page
      * @param props , the object which holds properties key-value pairs
