@@ -23,8 +23,14 @@
                 delete data[rootKey]._use_policy
                 delete data[rootKey]._id
                 data["_use_policy"] = policy
-                data["_id"]         = id
+                if(id != null){
+                    data["_id"]         = id
+                }
+                
             } else {
+                if(id == null){
+                   delete props._id;
+                }
                 data = page.merge(props, vars)
             }
            
