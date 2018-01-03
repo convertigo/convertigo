@@ -24,9 +24,16 @@ package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.util.Iterator;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class UIDynamicMenuItem extends UIDynamicElement implements ITagsProperty {
 
@@ -46,6 +53,36 @@ public class UIDynamicMenuItem extends UIDynamicElement implements ITagsProperty
 		return cloned;
 	}
 	
+	
+	@Override
+	public void preconfigure(Element element) throws Exception {
+		super.preconfigure(element);
+		
+		try {
+			NodeList properties = element.getElementsByTagName("property");
+			
+			// migration of itemtitle from String to MobileSmartSourceType
+			Element propElement = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "itemtitle");
+			if (propElement != null) {
+				Element valueElement = (Element) XMLUtils.findChildNode(propElement, Node.ELEMENT_NODE);
+				if (valueElement != null) {
+					Document document = valueElement.getOwnerDocument();
+					Object content = XMLUtils.readObjectFromXml(valueElement);
+					if (content instanceof String) {
+						MobileSmartSourceType itemTitle = new MobileSmartSourceType((String) content);
+						Element newValueElement = (Element)XMLUtils.writeObjectToXml(document, itemTitle);
+						propElement.replaceChild(newValueElement, valueElement);
+						hasChanged = true;
+						Engine.logBeans.warn("(UIDynamicMenuItem) 'itemtitle' has been updated for the object \"" + getName() + "\"");
+					}
+				}
+			}
+		}
+        catch(Exception e) {
+            throw new EngineException("Unable to preconfigure the menuitem component \"" + getName() + "\".", e);
+        }
+	}
+
 	@Override
 	protected void addUIComponent(UIComponent uiComponent, Long after) throws EngineException {
         if (!(uiComponent instanceof UIAttribute)) {
@@ -57,13 +94,13 @@ public class UIDynamicMenuItem extends UIDynamicElement implements ITagsProperty
 	/*
 	 * The item's title
 	 */
-	private String itemtitle = "";
+	private MobileSmartSourceType itemtitle = new MobileSmartSourceType("");
 	
-	public String getItemTitle() {
+	public MobileSmartSourceType getItemTitle() {
 		return itemtitle;
 	}
 
-	public void setItemTitle(String itemtitle) {
+	public void setItemTitle(MobileSmartSourceType itemtitle) {
 		this.itemtitle = itemtitle;
 	}
 
@@ -147,7 +184,8 @@ public class UIDynamicMenuItem extends UIDynamicElement implements ITagsProperty
 				} catch (Exception e) {}
 			}
 			
-			String title = itemtitle.isEmpty() ? pageTitle:itemtitle;
+			String titleText = itemtitle.getValue();
+			String title = titleText.isEmpty() ? pageTitle:titleText;
 			String icon = itemicon.isEmpty() ? pageIcon:itemicon;
 			String menuId = getMenuId();
 			

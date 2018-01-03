@@ -48,7 +48,8 @@ public class UIDynamicMenuItemBeanInfo extends MySimpleBeanInfo {
 			properties[1] = new PropertyDescriptor("itemtitle", beanClass, "getItemTitle", "setItemTitle");
 			properties[1].setDisplayName(getExternalizedString("property.itemtitle.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.itemtitle.short_description"));
-
+			properties[1].setPropertyEditorClass(getEditorClass("MobileSmartSourcePropertyDescriptor"));
+			
 			properties[2] = new PropertyDescriptor("itemicon", beanClass, "getItemIcon", "setItemIcon");
 			properties[2].setDisplayName(getExternalizedString("property.itemicon.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.itemicon.short_description"));

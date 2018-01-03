@@ -1694,6 +1694,11 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							
 							currentTreeFolder.addChild(databaseObjectTreeObject);
 						}
+						
+						// case databaseObject has been changed through dbo::preconfigure, mark projectTreeObject as modified
+						if ((databaseObject.bNew) || (databaseObject.hasChanged && !databaseObject.bNew)) {
+							databaseObjectTreeObject.hasBeenModified(true);
+						}
 
 						// new value of recursion parameters
 						this.parentTreeObject = databaseObjectTreeObject;
