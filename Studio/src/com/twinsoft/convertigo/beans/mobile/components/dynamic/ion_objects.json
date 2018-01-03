@@ -5504,6 +5504,133 @@
     }
   },
   
+   "ActionSheetAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "displayName": "ActionSheet",
+      "label": "Action Sheet",
+      "description": "Defines an <i>Action Sheet</i> action component. | The ActionSheet plugin shows a native list of options the user can choose from.<br/><u>Supported platorm(s):</u> <ul><li>Android</li><li>iOS</li><li>Browser</li><li>Windows</li><li></li></ul>Windows Phone 8<br/>For more information : <a target='_blank' href='https://github.com/EddyVerbruggen/cordova-plugin-actionsheet'>Action Sheet</a>",
+      "group": "Native Actions",
+      "icon16": "",
+      "icon32": "",
+      "properties": {
+      	"title": {
+	        "label": "title",
+	        "description": "The title for the actionsheet",
+	        "category": "@actionsheet options",
+	        "type": "string",
+	        "value": false
+	      },
+	      "subtitle": {
+	        "label": "subtitle",
+	        "description": "The subtitle for the actionsheet",
+	        "category": "@ios options",
+	        "type": "string",
+	        "value": false
+	      },
+	      "buttonLabels": {
+	        "label": "button Labels",
+	        "description": "The labels for the buttons. Uses the index x",
+	        "category": "@actionsheet options",
+	        "type": "Array",
+	        "mode": "script",
+	        "value": "['']",
+	        
+	      },
+	      "androidTheme": {
+	        "label": "Theme",
+	        "description": "Theme to be used on Android",
+	        "category": "@android options",
+	        "type": "string",
+	        "value": false,
+	        "values": [
+	        	"THEME_DEVICE_DEFAULT_DARK",
+	        	"THEME_DEVICE_DEFAULT_LIGHT",
+	        	"THEME_HOLO_DARK",
+	        	"THEME_HOLO_LIGHT",
+	        	"THEME_TRADITIONAL"
+	        	]
+	      },
+	      "androidEnableCancelButton": {
+	        "label": "Enable Cancel Button",
+	        "description": "Enable a cancel on Android",
+	        "category": "@android options",
+	        "type": "boolean",
+	        "value": false,
+	        "values": [
+	        	"true",
+	        	"false"
+	        ]
+	      },
+	      "winphoneEnableCancelButton": {
+	        "label": "Enable Cancel Button",
+	        "description": "Enable a cancel on Windows Phone",
+	        "category": "@winphone options",
+	        "type": "boolean",
+	        "value": false,
+	        "values": [
+	        	"true",
+	        	"false"
+	        ]
+	      },
+	      "addCancelButtonWithLabel": {
+	        "label": "add Cancel Button With Label",
+	        "description": "Add a cancel button with text",
+	        "category": "@actionsheet options",
+	        "type": "string",
+	        "value": false
+	      },
+	      "addDestructiveButtonWithLabel": {
+	        "label": "add Destructive Button With Label",
+	        "description": "Add a destructive button with text",
+	        "category": "@actionsheet options",
+	        "type": "string",
+	        "value": false
+	      },
+	       "position": {
+	        "label": "position",
+	        "description": "On an iPad, set the X,Y position",
+	        "category": "@iPad options",
+	        "type": "Array",
+	        "value": false
+	      },
+	      "destructiveButtonLast": {
+	        "label": "destructive Button Last",
+	        "description": "Choose if destructive button will be the last",
+	        "category": "@actionsheet options",
+	        "type": "boolean",
+	        "value": false,
+	        "values": [
+	        	"true",
+	        	"false"
+	        ]
+	      }
+	      
+      },
+      "config": {
+        "action_ts_imports": [
+			{"from":"@ionic-native/action-sheet","components":["ActionSheet"]},
+			{"from":"@ionic-native/action-sheet","components":["ActionSheetOptions"]}
+        ],
+        "module_ts_imports": [
+			{"from":"@ionic-native/action-sheet","components":["ActionSheet"]}
+        ],
+        "module_ng_imports": [
+        ],
+        "module_ng_providers": [
+			"ActionSheet"
+        ],
+        "package_dependencies": [
+            {"package":"@ionic-native/action-sheet", "version":"4.5.2"}
+        ],
+        "cordova_plugins": [
+          {
+            "plugin":"cordova-plugin-actionsheet",
+            "version":"2.3.3"
+          }
+      ]
+    }
+  },
+  
   "FileOpenerAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "FileOpener",
