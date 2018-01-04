@@ -55,7 +55,8 @@ public class PageComponentBeanInfo extends MySimpleBeanInfo {
 			properties[2] = new PropertyDescriptor("segment", beanClass, "getSegment", "setSegment");
 			properties[2].setDisplayName(getExternalizedString("property.segment.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.segment.short_description"));
-
+			properties[2].setHidden(true);
+			
 			properties[3] = new PropertyDescriptor("scriptContent", beanClass, "getScriptContent", "setScriptContent");
 			properties[3].setDisplayName(getExternalizedString("property.scriptContent.display_name"));
 			properties[3].setShortDescription(getExternalizedString("property.scriptContent.short_description"));
