@@ -186,7 +186,9 @@ public class UIDynamicMenuItem extends UIDynamicElement implements ITagsProperty
 			
 			String titleText = itemtitle.getValue();
 			if (!itemtitle.getMode().equals(MobileSmartSourceType.Mode.PLAIN)) {
-				titleText = "{{"+ titleText + "}}";
+				if (!titleText.isEmpty()) {
+					titleText = "{{"+ titleText + "}}";
+				}
 			}
 			
 			String title = titleText.isEmpty() ? pageTitle:titleText;
