@@ -4638,6 +4638,43 @@
 			"top",
 			true
           ]
+        },
+        "cssClass": {
+          "label": "Css class",
+          "description": "Additional classes for custom styles, separated by spaces.",
+          "category": "@Properties",
+          "type": "string",
+          "value": false
+        },
+        "showCloseButton": {
+          "label": "Show close button",
+          "description": "Whether or not to show a button to close the toast.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": false,
+          "values": [
+          	"true",
+          	"false"
+          	]
+           
+        },
+        "closeButtonText": {
+          "label": "Close button text",
+          "description": "Text to display in the close button.",
+          "category": "@Properties",
+          "type": "string",
+          "value": false
+        },
+        "dismissOnPageChange": {
+          "label": "Dismiss on page change",
+          "description": "Whether to dismiss the toast when navigating to a new page.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": false,
+          "values": [
+          	"true",
+          	"false"
+          	]
         }
 	  }
 	},
@@ -5635,7 +5672,7 @@
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "SMS",
       "label": "SMS",
-      "description": "Defines an <i>SMS</i> action component. | The SMS plugin allow you to sens sms.<br/><u>Supported platorm(s):</u> <ul><li>Android</li><li>iOS</li><li></li></ul>Windows Phone 8<br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/native/sms/'>Action Sheet</a>",
+      "description": "Defines an <i>SMS</i> action component. | The SMS plugin allows you to send sms.<br/><u>Supported platorm(s):</u> <ul><li>Android</li><li>iOS</li><li>Windows Phone 8</li></ul><br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/native/sms/'>SMS</a>",
       "group": "Native Actions",
       "icon16": "",
       "icon32": "",
