@@ -200,7 +200,7 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 	}
 	
 	@Override
-	public void updateSmartSource(String oldString, String newString) {
+	public boolean updateSmartSource(String oldString, String newString) {
 		if (beanData != null) {
 			if (beanData.indexOf(oldString) != -1 || Pattern.compile(oldString).matcher(beanData).find()) {
 				beanData = beanData.replaceAll(oldString, newString);
@@ -209,7 +209,8 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 			}
 			
 		}
-		super.updateSmartSource(oldString, newString);
+		boolean updated = super.updateSmartSource(oldString, newString);
+		return updated || this.hasChanged;
 	}
 	
 	protected String getEventAttr(String eventName) {

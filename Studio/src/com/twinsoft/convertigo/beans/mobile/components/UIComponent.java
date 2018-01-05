@@ -363,11 +363,14 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		return super.testAttribute(name, value);
 	}
 
-	public void updateSmartSource(String oldString, String newString) {
+	public boolean updateSmartSource(String oldString, String newString) {
+		boolean updated = false;
 		for (UIComponent uic : getUIComponentList()) {
-			uic.updateSmartSource(oldString, newString);
+			if (uic.updateSmartSource(oldString, newString)) {
+				updated = true;
+			}
 		}
-		
+		return updated;
 	}
 	
 	@Override

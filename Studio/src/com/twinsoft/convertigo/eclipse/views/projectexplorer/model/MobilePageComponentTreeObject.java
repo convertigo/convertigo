@@ -40,7 +40,10 @@ import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 import com.twinsoft.convertigo.beans.common.FormatedContent;
+import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
@@ -171,6 +174,61 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)treeObject;
 			DatabaseObject dbo = doto.getObject();
 			try {
+				if (propertyName.equals("name")) {
+					boolean sourcesUpdated = false;
+					boolean fromSameProject = getProjectTreeObject().equals(doto.getProjectTreeObject());
+					if ((treeObjectEvent.update == TreeObjectEvent.UPDATE_ALL) 
+						|| ((treeObjectEvent.update == TreeObjectEvent.UPDATE_LOCAL) && fromSameProject)) {
+						try {
+							if (dbo instanceof Project) {
+								String oldName = (String)oldValue;
+								String newName = (String)newValue;
+								if (!newValue.equals(oldValue)) {
+									if (getObject().updateSmartSource("'"+oldName+"\\.", "'"+newName+".")) {
+										sourcesUpdated = true;
+									}
+									if (getObject().updateSmartSource("\\/"+oldName+"\\.", "/"+newName+".")) {
+										sourcesUpdated = true;
+									}
+								}
+							}
+							else if (dbo instanceof Sequence) {
+								String oldName = (String)oldValue;
+								String newName = (String)newValue;
+								String projectName = dbo.getProject().getName();
+								if (!newValue.equals(oldValue)) {
+									if (getObject().updateSmartSource("'"+projectName+"\\."+oldName, "'"+projectName+"."+newName)) {
+										sourcesUpdated = true;
+									}
+								}
+							}
+							else if (dbo instanceof FullSyncConnector) {
+								String oldName = (String)oldValue;
+								String newName = (String)newValue;
+								String projectName = dbo.getProject().getName();
+								if (!newValue.equals(oldValue)) {
+									if (getObject().updateSmartSource("\\/"+projectName+"\\."+oldName+"\\.", "/"+projectName+"."+newName+".")) {
+										sourcesUpdated = true;
+									}
+									if (getObject().updateSmartSource("\\/"+oldName+"\\.", "/"+newName+".")) {
+										sourcesUpdated = true;
+									}
+								}
+							}
+						} catch (Exception e) {}
+					}
+					
+					if (sourcesUpdated) {
+						ProjectTreeObject projectTree = getProjectTreeObject();
+						if (projectTree != null) {
+							projectTree.hasBeenModified(true);
+						}
+						this.viewer.refresh();
+						markPageAsDirty();
+					}
+					
+				}
+				
 				if (dbo instanceof UIComponent) {
 					UIComponent uic = (UIComponent)dbo;
 					if (getObject().equals(uic.getPage())) {
@@ -180,13 +238,10 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 									String oldSmart = ((MobileSmartSourceType)oldValue).getSmartValue();
 									String newSmart = ((MobileSmartSourceType)newValue).getSmartValue();
 									String form = uic.getUIForm().getFormGroupName();
-									getObject().updateSmartSource(form+"\\?\\.controls\\['"+oldSmart+"'\\]", form+"?.controls['"+newSmart+"']");
-								
-									this.viewer.refresh();
-								}
-								catch (Exception e) {
-									
-								}
+									if (getObject().updateSmartSource(form+"\\?\\.controls\\['"+oldSmart+"'\\]", form+"?.controls['"+newSmart+"']")) {
+										this.viewer.refresh();
+									}
+								} catch (Exception e) {}
 							}
 						}
 						
