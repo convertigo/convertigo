@@ -41,21 +41,24 @@
                     break;
             }
             switch(props.destinationType) {
-                case "DATA_URL ":
+                case "DATA_URL":
                     options["destinationType"] = 0;
                     break;
                 case "FILE_URI":
                     options["destinationType"] = 1;
                     break;
-                case "NATIVE_URI ":
+                case "NATIVE_URI":
                     options["destinationType"] = 3;
                     break;
+               case "FILE_URL":
+                    options["destinationType"] = 1;
+                    break; 
                 default:
                     options["destinationType"] = 1;
                     break;
             }
             switch(props.encodingType) {
-                case "JPEG ":
+                case "JPEG":
                     options["encodingType"] = 0;
                     break;
                 case "PNG":
@@ -66,24 +69,24 @@
                     break;
             }
             switch(props.mediaType) {
-                case "PICTURE ":
+                case "PICTURE":
                     options["mediaType"] = 0;
                     break;
                 case "VIDEO":
                     options["mediaType"] = 1;
                     break;
-                case "ALLMEDIA  ":
+                case "ALLMEDIA":
                     options["mediaType"] = 3;
                     break;
             }
             switch(props.sourceType) {
-                case "PHOTOLIBRARY ":
+                case "PHOTOLIBRARY":
                     options["sourceType"] = 0;
                     break;
-                case "CAMERA ":
+                case "CAMERA":
                     options["sourceType"] = 1;
                     break;
-                case "SAVEDPHOTOALBUM ":
+                case "SAVEDPHOTOALBUM":
                     options["sourceType"] = 2;
                     break;
                 default:
@@ -112,15 +115,15 @@
                     cameraPopoverOptions["sourceType"] = 2;
                     options["cameraPopoverOptions"] = cameraPopoverOptions;
                     break;
-                case "ARROW_LEFT ":
+                case "ARROW_LEFT":
                     cameraPopoverOptions["sourceType"] = 4;
                     options["cameraPopoverOptions"] = cameraPopoverOptions;
                     break;
-                case "ARROW_RIGHT ":
+                case "ARROW_RIGHT":
                     cameraPopoverOptions["sourceType"] = 8;
                     options["cameraPopoverOptions"] = cameraPopoverOptions;
                     break;
-                case "ARROW_ANY ":
+                case "ARROW_ANY":
                     cameraPopoverOptions["sourceType"] = 15;
                     options["cameraPopoverOptions"] = cameraPopoverOptions;
                     break;
@@ -129,15 +132,22 @@
             camera.getPicture(options)
                 .then((imageData) => {
                     page.router.c8o.log.debug("[MB] CameraAction: ", imageData);
-                    resolve(new URL(imageData));
+                    if(props.destinationType == "FILE_URL"){
+                        resolve(new URL(imageData));
+                    }
+                    else{
+                        resolve(imageData);
+                    }
+                    
                 })
                 .catch((e) => {
                     if(e == "cordova_not_available"){
                         page.router.c8o.log.debug("[MB] CameraAction :" + e);
+                        resolve(e);
                     } 
                     else{
                         page.router.c8o.log.error("[MB] CameraAction: ", e);
-                        reject(e); 
+                        resolve(e); 
                     }
                 });
         });

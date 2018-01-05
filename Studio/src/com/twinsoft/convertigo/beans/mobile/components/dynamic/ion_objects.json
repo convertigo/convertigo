@@ -5877,8 +5877,9 @@
 	        "description": "Choose the format of the return value. Defined in Camera.DestinationType. Default is FILE_URI. DATA_URL, Return image as base64-encoded string, FILE_URI, Return image file URI, NATIVE_URI, Return image native URI (e.g., assets-library:// on iOS or content:// on Android)",
 	        "category": "@camera options",
 	        "type": "string",
-	        "value": "FILE_URI",
+	        "value": "FILE_URL",
 			"values": [
+				"FILE_URL",
 				"FILE_URI",
 				"DATA_URL",
 				"NATIVE_URI"
