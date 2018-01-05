@@ -5184,7 +5184,82 @@
       }
     }
 },
+"FullSyncPutAttachmentAction" : {
+    "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+    "displayName": "PutAttachment",
+    "label": "Put Attachment",
+    "description": "Defines a <i>Put Attachment</i> action component. | This component helps putting (put_attachment) attachments on a FullSync database document.<br/> For more information : <a target='_blank' href='https://www.convertigo.com/document/latest/reference-manual/convertigo-full-sync-architecture/interacting-locally-with-the-data/'>interacting-locally-with-the-data/</a>",
+    "group": "FullSync Actions",
+    "icon16": "",
+    "icon32": "",
+    "properties": {
+      "requestable": {
+        "editor": "NamedSourceSelectorEditor",
+        "label": "Database",
+        "description": "Defines the target FullSync Data base to post data to",
+        "category": "@Properties",
+        "type": "string",
+        "value": "",
+        "values": [
+          false,
+          true
+        ]
+      },
 
+      "docid": {
+        "label": "Document ID",
+        "description": "The Document ID for this put",
+        "category": "@Properties",
+        "type": "string",
+        "value": false
+      },
+
+      "name": {
+        "label": "Name",
+        "description": "The name of the attachment to put on the document.",
+        "category": "@Properties",
+        "type": "string",
+        "value": false,
+        
+      },
+      "content_type": {
+        "label": "Content type",
+        "description": "The content type of this attachment." ,
+        "category": "@Properties",
+        "type": "string",
+        "value": false
+      },
+      "content": {
+        "label": "Content",
+        "description": "The content of this attachment. It can be a Binary (Blob), a Base64, or a file URI" ,
+        "category": "@Properties",
+        "type": "string",
+        "value": false
+      }
+    },
+    "config": {
+        "action_ts_imports": [
+			{"from":"@ionic-native/file","components":["File"]}
+        ],
+        "module_ts_imports": [
+			{"from":"@ionic-native/file","components":["File"]}
+        ],
+        "module_ng_imports": [
+        ],
+        "module_ng_providers": [
+			"File"
+        ],
+        "package_dependencies": [
+            {"package":"@ionic-native/file", "version":"4.5.2"}
+        ],
+        "cordova_plugins": [
+          {
+            "plugin":"cordova-plugin-file",
+            "version":"6.0.1"
+          }
+      ]
+    }
+},
 
 "FullSyncGetAction" : {
     "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
