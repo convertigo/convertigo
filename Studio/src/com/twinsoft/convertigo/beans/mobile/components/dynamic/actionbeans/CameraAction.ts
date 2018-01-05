@@ -129,8 +129,7 @@
             camera.getPicture(options)
                 .then((imageData) => {
                     page.router.c8o.log.debug("[MB] CameraAction: ", imageData);
-                    console.log(imageData);
-                    resolve(imageData);
+                    resolve(new URL(imageData));
                 })
                 .catch((e) => {
                     if(e == "cordova_not_available"){
