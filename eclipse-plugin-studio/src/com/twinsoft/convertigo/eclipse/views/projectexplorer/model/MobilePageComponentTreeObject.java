@@ -281,6 +281,37 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 				}
 			} catch (Exception e) {}
 		}
+		else if (treeObject instanceof DesignDocumentViewTreeObject) {
+			DesignDocumentViewTreeObject ddvto = (DesignDocumentViewTreeObject)treeObject;
+			try {
+				if (propertyName.equals("name")) {
+					boolean sourcesUpdated = false;
+					boolean fromSameProject = getProjectTreeObject().equals(ddvto.getProjectTreeObject());
+					if ((treeObjectEvent.update == TreeObjectEvent.UPDATE_ALL) 
+						|| ((treeObjectEvent.update == TreeObjectEvent.UPDATE_LOCAL) && fromSameProject)) {
+						try {
+							String oldName = (String)oldValue;
+							String newName = (String)newValue;
+							if (!newValue.equals(oldValue)) {
+								if (getObject().updateSmartSource("view='"+oldName+"'", "view='"+newName+"'")) {
+									sourcesUpdated = true;
+								}
+							}
+						}
+						catch (Exception e) {}
+					}
+					
+					if (sourcesUpdated) {
+						ProjectTreeObject projectTree = getProjectTreeObject();
+						if (projectTree != null) {
+							projectTree.hasBeenModified(true);
+						}
+						this.viewer.refresh();
+						markPageAsDirty();
+					}
+				}
+			} catch (Exception e) {}
+		}
 	}
 
 	@Override
