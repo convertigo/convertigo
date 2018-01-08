@@ -44,6 +44,7 @@ import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
@@ -211,6 +212,15 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 										sourcesUpdated = true;
 									}
 									if (getObject().updateSmartSource("\\/"+oldName+"\\.", "/"+newName+".")) {
+										sourcesUpdated = true;
+									}
+								}
+							}
+							else if (dbo instanceof DesignDocument) {
+								String oldName = (String)oldValue;
+								String newName = (String)newValue;
+								if (!newValue.equals(oldValue)) {
+									if (getObject().updateSmartSource("ddoc='"+oldName+"'", "ddoc='"+newName+"'")) {
 										sourcesUpdated = true;
 									}
 								}
