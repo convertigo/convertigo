@@ -96,7 +96,7 @@ public class UIDynamicMenuItem extends UIDynamicElement implements ITagsProperty
 	/*
 	 * The item's title
 	 */
-	private String itemtitle = "";
+	private String itemtitle = "'item\\\\'s title'";
 	
 	public String getItemTitle() {
 		return itemtitle;
