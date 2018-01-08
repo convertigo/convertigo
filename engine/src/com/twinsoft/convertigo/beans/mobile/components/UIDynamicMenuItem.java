@@ -30,6 +30,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
+import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType.Mode;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
@@ -61,16 +62,17 @@ public class UIDynamicMenuItem extends UIDynamicElement implements ITagsProperty
 		try {
 			NodeList properties = element.getElementsByTagName("property");
 			
-			// migration of itemtitle from String to MobileSmartSourceType
+			// If needed: migration of itemtitle from MobileSmartSourceType to String (scriptable)
 			Element propElement = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "itemtitle");
 			if (propElement != null) {
 				Element valueElement = (Element) XMLUtils.findChildNode(propElement, Node.ELEMENT_NODE);
 				if (valueElement != null) {
 					Document document = valueElement.getOwnerDocument();
 					Object content = XMLUtils.readObjectFromXml(valueElement);
-					if (content instanceof String) {
-						MobileSmartSourceType itemTitle = new MobileSmartSourceType((String) content);
-						Element newValueElement = (Element)XMLUtils.writeObjectToXml(document, itemTitle);
+					if (content instanceof MobileSmartSourceType) {
+						MobileSmartSourceType itemTitle = (MobileSmartSourceType) content;
+						String itemText = Mode.PLAIN.equals(itemTitle.getMode()) ? "'"+itemTitle.getSmartValue()+"'" : itemTitle.getSmartValue();
+						Element newValueElement = (Element)XMLUtils.writeObjectToXml(document, itemText);
 						propElement.replaceChild(newValueElement, valueElement);
 						hasChanged = true;
 						Engine.logBeans.warn("(UIDynamicMenuItem) 'itemtitle' has been updated for the object \"" + getName() + "\"");
@@ -94,13 +96,13 @@ public class UIDynamicMenuItem extends UIDynamicElement implements ITagsProperty
 	/*
 	 * The item's title
 	 */
-	private MobileSmartSourceType itemtitle = new MobileSmartSourceType("");
+	private String itemtitle = "";
 	
-	public MobileSmartSourceType getItemTitle() {
+	public String getItemTitle() {
 		return itemtitle;
 	}
 
-	public void setItemTitle(MobileSmartSourceType itemtitle) {
+	public void setItemTitle(String itemtitle) {
 		this.itemtitle = itemtitle;
 	}
 
@@ -184,11 +186,9 @@ public class UIDynamicMenuItem extends UIDynamicElement implements ITagsProperty
 				} catch (Exception e) {}
 			}
 			
-			String titleText = itemtitle.getValue();
-			if (!itemtitle.getMode().equals(MobileSmartSourceType.Mode.PLAIN)) {
-				if (!titleText.isEmpty()) {
-					titleText = "{{"+ titleText + "}}";
-				}
+			String titleText = itemtitle;
+			if (!titleText.isEmpty()) {
+				titleText = "{{"+ titleText + "}}";
 			}
 			
 			String title = titleText.isEmpty() ? pageTitle:titleText;
