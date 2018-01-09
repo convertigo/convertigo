@@ -1139,7 +1139,7 @@ public class MobileBuilder {
 				List<PageComponent> pages = getEnabledPages(app);
 				for (PageComponent page : pages) {
 					String pageName = page.getName();
-					String pageSegment = page.getName();//page.getSegment();
+					String pageSegment = page.getSegment();
 					boolean isLastPage = i == pages.size();
 					c8o_PagesImport += "import { "+pageName+" } from \"../pages/"+pageName+"/"+pageName.toLowerCase()+"\";"+ System.lineSeparator();
 					c8o_PagesLinks += " { component: "+pageName+", name: \""+pageName+"\", segment: \""+pageSegment+"\" }" + (isLastPage ? "":",");
