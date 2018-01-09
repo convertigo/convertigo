@@ -28,6 +28,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -127,12 +129,16 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			} else {
 				IonBean ionBean = getIonBean();
 				if (ionBean != null) {
-					String inputs = computeActionInputs(true);
 					String actionName = ionBean.getName();
-					int i = inputs.indexOf("props:")+"props:".length();
-					int j = inputs.indexOf("vars:")+"vars:".length();
-					String props = inputs.substring(i, inputs.indexOf('}',i)+1);
-					String vars = inputs.substring(j, inputs.indexOf('}',j)+1);
+					
+					String props = "{}", vars = "{}";
+					String inputs = computeActionInputs(true);
+					Pattern pattern = Pattern.compile("\\{props:(\\{.*\\}), vars:(\\{.*\\})\\}");
+					Matcher matcher = pattern.matcher(inputs);
+					if (matcher.matches()) {
+						props = matcher.group(1);
+						vars = matcher.group(2);
+					}
 					
 					if (formGroupName != null) {
 						vars = "merge("+formGroupName +".value, "+ vars +")";

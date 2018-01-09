@@ -27,6 +27,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -205,11 +207,14 @@ public class UICustomAction extends UIComponent implements IAction {
 				String in = formGroupName == null ? "{}": "merge("+formGroupName +".value, {})";
 				return getFunctionName() + "({root: {scope:{"+scope+"}, in:"+in+", out:$event}})";
 			} else {
+				String props = "{}", vars = "{}";
 				String inputs = computeActionInputs(true);
-				int i = inputs.indexOf("props:")+"props:".length();
-				int j = inputs.indexOf("vars:")+"vars:".length();
-				String props = inputs.substring(i, inputs.indexOf('}',i)+1);
-				String vars = inputs.substring(j, inputs.indexOf('}',j)+1);
+				Pattern pattern = Pattern.compile("\\{props:(\\{.*\\}), vars:(\\{.*\\})\\}");
+				Matcher matcher = pattern.matcher(inputs);
+				if (matcher.matches()) {
+					props = matcher.group(1);
+					vars = matcher.group(2);
+				}
 				
 				if (formGroupName != null) {
 					vars = "merge("+formGroupName +".value, "+ vars +")";
