@@ -29,6 +29,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.viewers.ICellEditorValidator;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
@@ -53,6 +54,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput;
+import com.twinsoft.convertigo.eclipse.property_editors.validators.MobilePageSegmentValidator;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -89,6 +91,13 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 	}
 
 	@Override
+	protected ICellEditorValidator getValidator(String propertyName) {
+		if ("segment".equals(propertyName))
+			return new MobilePageSegmentValidator(getObject());
+		return super.getValidator(propertyName);
+	} 
+	
+	@Override
     public boolean isEnabled() {
 		setEnabled(getObject().isEnabled());
     	return super.isEnabled();
@@ -97,7 +106,7 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 	@Override
 	public void launchEditor(String editorType) {
 		ApplicationComponentEditor editor = ((MobileApplicationComponentTreeObject) getParentDatabaseObjectTreeObject()).activeEditor();
-		editor.selectPage(getObject().getName());
+		editor.selectPage(getObject().getSegment());
 	}
 	
 	public void editPageTsFile() {
