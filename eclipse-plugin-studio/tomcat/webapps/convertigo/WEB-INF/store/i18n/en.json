@@ -1,0 +1,13 @@
+﻿{
+	"signInButton": "Sign in",
+	"logOutButton": "Log out",
+	"userIdPlaceholder": "Login",
+	"passwordPlaceholder": "Pwd",
+	"defaultUserName": "Anonymous",
+	"installButton": "Install",
+	"guest": "Guest",
+	"noApp": "No mobile application available on this server.",
+	"textBannerPartOne": "The Convertigo application Store lists all the applications available on this server. Some applications may be restricted and available only to authenticated users. In this case, type your login and password and click on Sign in. In order to run Convertigo Store applications, you will need the Convertigo Player App available on App Store, Google Play and Windows Phone Store. Download and install this app on your device, then :",
+	"textBannerPartTwo": "If you are connected to the Convertigo Store from a Desktop browser, clicking on an Application platform’s icon will display a QR Code that you will be able to flash with the Convertigo Player Application. This application will be downloaded and installed on your mobile device. You will have the opportunity to run it through the Convertigo Player.",
+	"textBannerPartThree": "If you are connected to Convertigo Store from your mobile device web browser, Convertigo Store application’s platforms will filtered to display only your current mobile device’s platform. Clicking on the application’s target platform, will automatically launch the Convertigo Player app, and will download and install the target application from Convertigo Store on your device. You will have the opportunity to run it through the Convertigo Player."
+}

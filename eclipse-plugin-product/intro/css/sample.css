@@ -1,0 +1,3 @@
+
+a#Test-introLink img { background-image : url(graphics/sample.gif); }
+a#Test-introLink:hover img { background-image : url(graphics/sample_hov.gif); }

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/com.twinsoft.convertigo.studio.feature_7.5.0.qualifier.jar" id="com.twinsoft.convertigo.studio.feature" version="7.5.0.qualifier">
+      <category name="com.convertigo.studio"/>
+   </feature>
+   <category-def name="com.convertigo.studio" label="Convertigo Studio">
+      <description>
+         The Convertigo Studio
+      </description>
+   </category-def>
+</site>

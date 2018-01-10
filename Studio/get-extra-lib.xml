@@ -1,9 +1,0 @@
-<project name="convertigo" default="all" basedir=".">
-    <property name="dirLib" value="${basedir}/lib" />
-	<property name="jxBrowserUrl" value="http://devus.twinsoft.fr/cosinus/refbin/jxbrowser/6.18" />
-	
-    <target name="all">
-        <get src="${jxBrowserUrl}/jxbrowser.jar" dest="${dirLib}"/>
-    	<get src="${jxBrowserUrl}/jxbrowser-license.jar" dest="${dirLib}"/>
-    </target>
-</project>

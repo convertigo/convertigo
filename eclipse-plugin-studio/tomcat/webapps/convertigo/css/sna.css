@@ -1,0 +1,209 @@
+/*
+ * Copyright (c) 2001-2011 Convertigo SA.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License
+ * as published by the Free Software Foundation; either version 3
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, see<http://www.gnu.org/licenses/>.
+ *
+ * $URL$
+ * $Author$
+ * $Revision$
+ * $Date$
+ */
+
+/* CSS Document */
+SPAN {
+	font-size:   10pt; 
+	font-family: Lucida Console, Verdana, Arial, Helvetica, Sans-Serif;
+	display:     inline-block;
+}
+INPUT {
+	font-size:   8pt; 
+	font-family: Lucida Console, Arial, Helvetica, Sans-Serif;
+}
+.fixed {
+	font-size: 8pt;
+	font-family: Lucida Console;
+}
+.button {
+	font-size: 8pt; 
+}
+.keywordbutton {
+	font-family: Lucida Console, Arial, Helvetica, Sans-Serif;
+	color: #000000;
+	background-color: #F1FAF9;
+}
+
+.colorwhite {
+	color: SteelBlue;
+}
+.colorblack {
+	color: #000000;
+}
+.colorcyan {
+	color: DeepSkyBlue;
+}
+.colormagenta {
+	color: DeepPink;
+}
+.coloryellow {
+	color: gold;
+}
+.colorred {
+	color: red;
+}
+.colorgreen {
+	color: black;
+}
+.colorblue {
+	color: blue;
+}
+
+.bgcolorwhite {
+}
+.bgcolorblack {
+}
+.bgcolorcyan {
+	bgcolor: cyan;
+}
+.bgcolormagenta {
+}
+.bgcoloryellow {
+}
+.bgcolorred {
+}
+.bgcolorgreen {
+}
+.bgcolorblue {
+}
+
+.underline {
+	text-decoration: underline;	
+}
+.blink {
+}
+
+.staticText {
+	font-size: 8pt; 
+	font-family: Lucida Console, Arial, Helvetica, Sans-Serif;
+}
+
+.footerText	{
+	font-size: 9px;
+	line-height: 12px;
+	color: #666666;
+	font-family: Lucida Console, Arial, Helvetica, Sans-Serif;
+	text-decoration: none;
+	font-weight: normal;
+	}
+
+.footerTextBold	{
+	font-size: 10px;
+	line-height: 12px;
+	color: #666666;
+	font-family: Lucida Console, Arial, Helvetica, Sans-Serif;
+	text-decoration: none;
+	font-weight: bold;
+	}
+
+A.menuItem:hover {
+	line-height: 17px;
+	font-size: 8pt;
+	color: #8EDA8A;
+	text-decoration: none;
+	font-weight: normal;
+	font-family: Lucida Console, Arial, Helvetica, Sans-Serif;
+	border: none;
+}
+A.menuItem:visited {
+	line-height: 17px;
+	font-size: 8pt;
+	color: #002B82;
+	text-decoration: none;
+	font-weight: normal;
+	font-family: Lucida Console, Arial, Helvetica, Sans-Serif;
+	border: none;
+}
+A.menuItem:link {
+	line-height: 17px;
+	font-size: 8pt;
+	color: #002B82;
+	text-decoration: none;
+	font-weight: normal;
+	font-family: Lucida Console, Arial, Helvetica, Sans-Serif;
+	border: none;
+}
+A.menuItem:active {
+	line-height: 17px;
+	font-size: 8pt;
+	color: #FCA956;
+	text-decoration: none;
+	font-weight: normal;
+	font-family: Lucida Console, Arial, Helvetica, Sans-Serif;
+	border: none;
+}
+.datatitle {
+	font-size: 8pt; 
+	font-weight: bold;
+	color: black;
+	BACKGROUND-COLOR: #CAD8FD;
+	BORDER-BOTTOM: gray solid 1px;
+} 
+.data {
+	line-height: 17px;
+	font-size: 8pt;
+	font-family: Lucida Console, Arial, Helvetica, Sans-Serif;
+	BORDER-BOTTOM: salmon solid 1px;
+	BORDER-LEFT: salmon solid 1px;
+	BORDER-RIGHT: salmon solid 1px;
+	BORDER-TOP: salmon solid 1px;
+}
+
+
+.panel{
+	BACKGROUND-COLOR:#FEFEF2;
+	BORDER-RIGHT: salmon 1px solid; 
+	BORDER-TOP: salmon 1px solid; 
+	BORDER-LEFT: salmon 1px solid;
+	BORDER-BOTTOM: salmon 1px solid;
+}
+.panelOmbre{
+	BACKGROUND-COLOR:#C8C989 ;
+	BORDER-RIGHT: #DCDCB4 2px solid; 
+	BORDER-BOTTOM: #DCDCB4 2px solid;
+	BORDER-TOP: #DCDCB4 2px solid;
+}	  
+.dataroweven {
+	BACKGROUND-COLOR: #F1FAF9;
+}
+.datarowodd {
+	BACKGROUND-COLOR: #C7E1E0;
+}
+.dataitem {
+	BORDER-LEFT: gray solid 1px;
+}
+
+.actDiv {
+	position: absolute;
+	border: solid 2px;
+	background-color: #FFFFFF;
+	visibility: hidden;
+	overflow: auto;
+	font-family: Verdana, Arial, Helvetica, Sans-Serif;
+}
+
+.cell {
+	border-left-style: solid;
+	border-left-width: 1px;
+	border-left-color: #333333;
+	margin: 10px;
+}

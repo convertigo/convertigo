@@ -1,0 +1,421 @@
+/*
+ * Copyright (c) 2001-2016 Convertigo SA.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License
+ * as published by the Free Software Foundation; either version 3
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, see<http://www.gnu.org/licenses/>.
+ *
+ * $URL$
+ * $Author$
+ * $Revision$
+ * $Date$
+ */
+
+package com.twinsoft.convertigo.beans.mobile.components;
+
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.codehaus.jettison.json.JSONObject;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.IContainerOrdered;
+import com.twinsoft.convertigo.beans.core.IEnableAble;
+import com.twinsoft.convertigo.beans.core.MobileComponent;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.engine.EngineException;
+
+@DboCategoryInfo(
+		getCategoryId = "UIComponent",
+		getCategoryName = "UI Component",
+		getIconClassCSS = "convertigo-action-newUIComponent"
+	)
+public abstract class UIComponent extends MobileComponent implements IScriptGenerator, ITemplateGenerator, IContainerOrdered, IEnableAble {
+	
+	private static final long serialVersionUID = -1872010547443624681L;
+
+	private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();
+	
+	private boolean isEnabled = true;
+	
+	public UIComponent() {
+		super();
+		
+		this.priority = getNewOrderValue();
+		this.newPriority = priority;
+		
+		orderedComponents = new XMLVector<XMLVector<Long>>();
+		orderedComponents.add(new XMLVector<Long>());
+	}
+
+	@Override
+	public UIComponent clone() throws CloneNotSupportedException {
+		UIComponent cloned = (UIComponent) super.clone();
+		cloned.newPriority = newPriority;
+		cloned.vUIComponents = new LinkedList<UIComponent>();
+		return cloned;
+	}
+
+	public XMLVector<XMLVector<Long>> getOrderedComponents() {
+		return orderedComponents;
+	}
+    
+	public void setOrderedComponents(XMLVector<XMLVector<Long>> orderedComponents) {
+		this.orderedComponents = orderedComponents;
+	}
+	
+    private void insertOrderedComponent(UIComponent component, Long after) {
+    	List<Long> ordered = orderedComponents.get(0);
+    	int size = ordered.size();
+    	
+    	if (ordered.contains(component.priority))
+    		return;
+    	
+    	if (after == null) {
+    		after = new Long(0);
+    		if (size>0)
+    			after = ordered.get(ordered.size()-1);
+    	}
+    	
+   		int order = ordered.indexOf(after);
+    	ordered.add(order+1, component.priority);
+    	hasChanged = true;
+    }
+    
+    private void removeOrderedComponent(Long value) {
+        Collection<Long> ordered = orderedComponents.get(0);
+        ordered.remove(value);
+        hasChanged = true;
+    }
+    
+	public void insertAtOrder(DatabaseObject databaseObject, long priority) throws EngineException {
+		increaseOrder(databaseObject, new Long(priority));
+	}
+    
+    private void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
+    	List<Long> ordered = null;
+    	Long value = new Long(databaseObject.priority);
+    	
+    	if (databaseObject instanceof UIComponent)
+    		ordered = orderedComponents.get(0);
+    	
+    	if (ordered == null || !ordered.contains(value))
+    		return;
+    	int pos = ordered.indexOf(value);
+    	if (pos == 0)
+    		return;
+    	
+    	if (before == null)
+    		before = ordered.get(pos-1);
+    	int pos1 = ordered.indexOf(before);
+    	
+    	ordered.add(pos1, value);
+    	ordered.remove(pos+1);
+    	hasChanged = true;
+    	
+    	markAsDirty();
+    }
+    
+    private void decreaseOrder(DatabaseObject databaseObject, Long after) throws EngineException {
+    	List<Long> ordered = null;
+    	long value = databaseObject.priority;
+    	
+    	if (databaseObject instanceof UIComponent)
+    		ordered = orderedComponents.get(0);
+    	
+    	if (ordered == null || !ordered.contains(value))
+    		return;
+    	int pos = ordered.indexOf(value);
+    	if (pos+1 == ordered.size())
+    		return;
+    	
+    	if (after == null)
+    		after = ordered.get(pos+1);
+    	int pos1 = ordered.indexOf(after);
+    	
+    	ordered.add(pos1+1, value);
+    	ordered.remove(pos);
+    	hasChanged = true;
+    	
+    	markAsDirty();
+    }
+    
+	public void increasePriority(DatabaseObject databaseObject) throws EngineException {
+		if (databaseObject instanceof UIComponent)
+			increaseOrder(databaseObject,null);
+	}
+
+	public void decreasePriority(DatabaseObject databaseObject) throws EngineException {
+		if (databaseObject instanceof UIComponent)
+			decreaseOrder(databaseObject,null);
+	}
+    
+    /**
+     * Get order for quick sort.
+     */
+    @Override
+    public Object getOrderedValue() {
+    	return new Long(priority);
+    }
+	
+    /**
+     * Get representation of order for quick sort of a given database object.
+     */
+	@Override
+    public Object getOrder(Object object) throws EngineException	{
+        if (object instanceof UIComponent) {
+        	List<Long> ordered = orderedComponents.get(0);
+        	long time = ((UIComponent)object).priority;
+        	if (ordered.contains(time))
+        		return (long)ordered.indexOf(time);
+        	else throw new EngineException("Corrupted component for page \""+ getName() +"\". UIComponent \""+ ((UIComponent)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
+        }
+        else return super.getOrder(object);
+    }
+    
+	@Override
+	public boolean isEnabled() {
+		return isEnabled;
+	}
+
+	@Override
+	public void setEnabled(boolean isEnabled) {
+		this.isEnabled = isEnabled;
+	}
+	
+	public boolean isFormControlAttribute() {
+		return false;
+		
+	}
+	
+	/**
+	 * The list of available page component for this application.
+	 */
+	transient private List<UIComponent> vUIComponents = new LinkedList<UIComponent>();
+	
+	protected void addUIComponent(UIComponent uiComponent, Long after) throws EngineException {
+		checkSubLoaded();
+		
+		boolean isNew = uiComponent.bNew;
+		boolean isCut = !isNew && uiComponent.getParent() == null;
+		
+		String newDatabaseObjectName = getChildBeanName(vUIComponents, uiComponent.getName(), uiComponent.bNew);
+		uiComponent.setName(newDatabaseObjectName);
+		
+		vUIComponents.add(uiComponent);
+		uiComponent.setParent(this);
+		
+        insertOrderedComponent(uiComponent, after);
+        
+        if (isNew || isCut) {
+        	markAsDirty();
+        }
+	}
+	
+	protected void addUIComponent(UIComponent uiComponent) throws EngineException {
+		addUIComponent(uiComponent, null);
+	}
+
+	protected void removeUIComponent(UIComponent uiComponent) throws EngineException {
+		checkSubLoaded();
+		
+		vUIComponents.remove(uiComponent);
+		uiComponent.setParent(null);
+		
+        removeOrderedComponent(uiComponent.priority);
+        
+    	markAsDirty();
+	}
+
+	public List<UIComponent> getUIComponentList() {
+		checkSubLoaded();
+		return sort(vUIComponents);
+	}
+
+	public boolean hasStyle() {
+		for (UIComponent uic :getUIComponentList()) {
+			if (uic instanceof UIStyle) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public UIComponent getUIComponentByName(String uiName) throws EngineException {
+		checkSubLoaded();
+		for (UIComponent uiComponent : vUIComponents)
+			if (uiComponent.getName().equalsIgnoreCase(uiName)) return uiComponent;
+		throw new EngineException("There is no UI component named \"" + uiName + "\" found into this page.");
+	}
+	
+	@Override
+	public List<DatabaseObject> getAllChildren() {	
+		List<DatabaseObject> rep = super.getAllChildren();
+		rep.addAll(getUIComponentList());
+		return rep;
+	}
+
+	@Override
+	public void add(DatabaseObject databaseObject, Long after) throws EngineException {
+		if (databaseObject instanceof UIComponent) {
+			addUIComponent((UIComponent) databaseObject, after);
+		} else {
+			throw new EngineException("You cannot add to a page component a database object of type " + databaseObject.getClass().getName());
+		}		
+	}
+	
+	@Override
+    public void add(DatabaseObject databaseObject) throws EngineException {
+		add(databaseObject, null);
+    }
+
+    @Override
+    public void remove(DatabaseObject databaseObject) throws EngineException {
+		if (databaseObject instanceof UIComponent) {
+			removeUIComponent((UIComponent) databaseObject);
+		} else {
+			throw new EngineException("You cannot remove from a page component a database object of type " + databaseObject.getClass().getName());
+		}
+		super.remove(databaseObject);
+    }
+	
+	@Override
+	public void configure(Element element) throws Exception {
+		super.configure(element);
+		
+		try {
+			newPriority = new Long(element.getAttribute("newPriority")).longValue();
+			if (newPriority != priority) newPriority = priority;
+		}
+		catch(Exception e) {
+			throw new Exception("Missing \"newPriority\" attribute");
+		}
+	}
+    
+	@Override
+	public Element toXml(Document document) throws EngineException {
+		Element element =  super.toXml(document);
+		
+        element.setAttribute("newPriority", new Long(newPriority).toString());
+		
+		return element;
+	}
+
+	public UIDynamicMenu getMenu() {
+		DatabaseObject databaseObject = this;
+		while (!(databaseObject instanceof UIDynamicMenu) && databaseObject != null) { 
+			databaseObject = databaseObject.getParent();
+		}
+		
+		if (databaseObject == null)
+			return null;
+		else
+			return (UIDynamicMenu) databaseObject;
+	}
+	
+	public PageComponent getPage() {
+		DatabaseObject databaseObject = this;
+		while (!(databaseObject instanceof PageComponent) && databaseObject != null) { 
+			databaseObject = databaseObject.getParent();
+		}
+		
+		if (databaseObject == null)
+			return null;
+		else
+			return (PageComponent) databaseObject;
+	}
+	
+	public UIForm getUIForm() {
+		DatabaseObject databaseObject = this;
+		while (!(databaseObject instanceof PageComponent) && 
+				!(databaseObject instanceof UIForm) && databaseObject != null) { 
+			databaseObject = databaseObject.getParent();
+		}
+		
+		if (databaseObject == null || databaseObject instanceof PageComponent)
+			return null;
+		else
+			return (UIForm) databaseObject;
+	}
+	
+	@Override
+	public boolean testAttribute(String name, String value) {
+		if (name.equals("isEnabled")) {
+			Boolean bool = Boolean.valueOf(value);
+			return bool.equals(Boolean.valueOf(isEnabled()));
+		}
+		return super.testAttribute(name, value);
+	}
+
+	public boolean updateSmartSource(String oldString, String newString) {
+		boolean updated = false;
+		for (UIComponent uic : getUIComponentList()) {
+			if (uic.updateSmartSource(oldString, newString)) {
+				updated = true;
+			}
+		}
+		return updated;
+	}
+	
+	@Override
+	public void computeScripts(JSONObject jsonScripts) {
+		if (isEnabled()) {
+			Iterator<UIComponent> it = getUIComponentList().iterator();
+			while (it.hasNext()) {
+				UIComponent component = (UIComponent)it.next();
+				component.computeScripts(jsonScripts);
+			}
+		}
+	}
+	
+	protected void markAsDirty() throws EngineException {
+    	PageComponent page = getPage();
+    	if (page != null) {
+    		page.markPageAsDirty();
+    	}
+    	UIDynamicMenu menu = getMenu();
+    	if (menu != null) {
+    		menu.markMenuAsDirty();
+    	}
+	}
+
+	protected Contributor getContributor() {
+		return null;
+	}
+	
+	protected void addContributors(List<Contributor> contributors) {
+		//if (isEnabled()) { // Commented until we can delete page folder again... : see forceEnable in MobileBuilder
+			Contributor contributor = getContributor();
+			if (contributor != null) {
+				if (!contributors.contains(contributor)) {
+					contributors.add(contributor);
+				}
+			}
+			for (UIComponent uiComponent : getUIComponentList()) {
+				uiComponent.addContributors(contributors);
+			}
+		//}
+	}
+	
+	protected void addInfos(Map<String, Set<String>> infoMap) {
+		for (UIComponent uiComponent : getUIComponentList()) {
+			uiComponent.addInfos(infoMap);
+		}
+	}
+}

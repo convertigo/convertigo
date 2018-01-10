@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<title>Convertigo continuous integration server</title>
+		<link type="text/css" rel="stylesheet" href="exec.css"/>
+		<script src="scripts/jquery.min.js"></script>
+		<script src="exec.js"></script>
+	</head>
+	<body>
+		<img id="conv" src="images/convertigo.png">
+		<h1>Convertigo Command Exec Tool</h1>
+		<br/>
+		<button type="button" id="stopProcess">
+			<img src="images/stop.png" alt="Stop the current build" title="Stop the current build"/>
+		</button>
+		<br/>
+		<h2>Product build</h2> 
+		<div id="info">
+			<i>
+				<p>Command: <span id="command"></span></p>
+				<p>Launching from: <span></span></p>
+			</i>
+		</div>
+		<br/>
+		<table width="100%" cellpadding="10">
+			<tbody>
+				<tr>
+					<td id="output"></td>
+				</tr>
+			</tbody>
+		</table>
+		</div>
+	</body>
+</html>

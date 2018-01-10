@@ -1,0 +1,1044 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:fo="http://www.w3.org/1999/XSL/Format" version="1.0" xmlns:fox="http://xml.apache.org/fop/extensions">
+	  <xsl:include href="strings.xsl"/>
+	
+	
+	<xsl:param name="default-font-family">Helvetica</xsl:param>
+	<xsl:param name="name-font-family">Helvetica</xsl:param>
+	<xsl:param name="name-font-style">italic</xsl:param>
+	<xsl:param name="name-font-weight">bold</xsl:param>
+	<xsl:param name="font-family-handlers">Courier</xsl:param>
+	<xsl:param name="font-family-property-string">Helvetica</xsl:param>
+	<xsl:param name="default-font-size">8pt</xsl:param>
+	<xsl:param name="font-size-index-category">10pt</xsl:param>
+	<xsl:param name="font-size-object">14pt</xsl:param>
+	<xsl:param name="font-size-property">8pt</xsl:param>
+	<xsl:param name="font-size-handlers">6pt</xsl:param>
+	<xsl:param name="default-space-before">5pt</xsl:param>
+	<xsl:param name="column-width">170</xsl:param>
+	<xsl:param name="column-width-properties-name">60</xsl:param>
+	
+	<xsl:param name="blue1">rgb(0,153,204)</xsl:param>
+	<xsl:param name="orange">rgb(255,153,0)</xsl:param>
+	
+    	
+	<xsl:template match="/convertigo">
+		<fo:root xmlns:fo="http://www.w3.org/1999/XSL/Format">
+			<fo:layout-master-set>
+				<fo:simple-page-master master-name="convertigo-project" page-height="29.7cm" page-width="21cm" margin-top="2cm" margin-bottom="2cm" margin-left="2cm" margin-right="2cm">
+					<fo:region-body margin-top="2cm" margin-bottom="2cm"/>
+					<fo:region-before extent="2cm"/>
+					<fo:region-after extent="2cm"/>
+				</fo:simple-page-master>
+				<fo:simple-page-master master-name="convertigo-first-page" page-height="29.7cm" page-width="21cm" margin-top="4cm" margin-bottom="2cm" margin-left="2cm" margin-right="2cm">
+					<fo:region-body/>
+				</fo:simple-page-master>
+			</fo:layout-master-set>
+			
+			<!-- ########## -->
+			<!-- FIRST PAGE -->
+			<!-- ########## -->
+			<fo:page-sequence master-reference="convertigo-first-page">
+				<fo:flow flow-name="xsl-region-body" text-align="end" font-family="{$default-font-family}">
+					<fo:block><fo:leader leader-pattern="rule" rule-thickness="5.0pt" leader-length="135mm"/></fo:block>
+					<fo:block font-size="32pt" font-weight="bold" space-before.optimum="3mm" space-after.optimum="2mm">
+						<xsl:call-template name="firstLetterUpperCase">				
+							<xsl:with-param name="toClean"><xsl:value-of select="./project/property[@name='name']/java.lang.String/@value"/></xsl:with-param>							
+						</xsl:call-template>						
+					</fo:block>
+					<fo:block font-size="32pt" font-weight="bold" space-after.optimum="2mm"><xsl:value-of select="$strProject_report"/></fo:block>
+					<fo:block font-size="10pt" color="gray"><xsl:value-of select="$strGenerated_by"/>&#160;Convertigo <xsl:value-of select="substring(@engine, 0, 4)"/>&#160;<xsl:value-of select="$stron"/>&#160;<xsl:value-of select="@exported"/></fo:block>
+					<fo:block text-align="center" space-before.optimum="14mm" space-after.optimum="14mm" space-before="3cm">
+						<fo:external-graphic src="{./@path}couv.jpg" height="12cm" content-height="10cm" content-width="10cm"/>
+					</fo:block>
+					<fo:block font-size="10pt"><xsl:value-of select="$strEngine_version"/>&#160;<xsl:value-of select="@engine"/></fo:block>
+					<fo:block font-size="10pt"><xsl:value-of select="$strObjects_version"/>&#160;<xsl:value-of select="@beans"/></fo:block>
+					<fo:block font-size="10pt"><xsl:value-of select="$strStudio_version"/>&#160;<xsl:value-of select="@studio"/></fo:block>
+				</fo:flow>
+			</fo:page-sequence>
+			<!-- ############ -->
+			<!-- NEXT PAGES -->
+			<!-- ############ -->
+			<fo:page-sequence master-reference="convertigo-project" initial-page-number="2">
+				<!-- ######### -->
+				<!-- PROJECT -->
+				<!-- ######### -->
+				<fo:static-content flow-name="xsl-region-before">
+					<fo:table table-layout="fixed">
+						<fo:table-column column-width="120mm"/>
+						<fo:table-column column-width="50mm"/>
+						<fo:table-body>
+							<fo:table-row>
+								<fo:table-cell>
+									<fo:block text-align="start" font-size="{$default-font-size}" font-family="{$default-font-family}" >										
+										<fo:external-graphic src="{./@path}banner.jpg" height="35px" content-width="2cm"/>										
+									</fo:block>
+								</fo:table-cell>
+								<fo:table-cell>
+									<fo:block>
+									</fo:block>
+									<fo:block text-align="end" font-size="{$default-font-size}" font-family="{$default-font-family}">
+										<xsl:value-of select="$strProject"/>&#160;<xsl:value-of select="./project/property[@name='name']/java.lang.String/@value"/>
+									</fo:block>
+								</fo:table-cell>
+							</fo:table-row>
+						</fo:table-body>
+					</fo:table>
+					<fo:block>
+						<fo:leader leader-pattern="rule" leader-length="{$column-width}mm"/>
+					</fo:block>
+				</fo:static-content>
+				<fo:static-content flow-name="xsl-region-after">
+					<fo:block>
+						<fo:leader leader-pattern="rule" leader-length="{$column-width}mm"/>
+					</fo:block>	
+					<fo:table table-layout="fixed">
+						<fo:table-column column-width="120mm"/>
+						<fo:table-column column-width="50mm"/>
+						<fo:table-body>
+							<fo:table-row>
+								<fo:table-cell>
+									<fo:block font-size="{$default-font-size}" text-indent="5cm" font-family="{$default-font-family}" text-align="center" color="blue">
+										<fo:basic-link internal-destination="index">index</fo:basic-link>
+									</fo:block>
+								</fo:table-cell>
+								<fo:table-cell>
+									<fo:block text-align="end" font-size="{$default-font-size}" font-family="{$default-font-family}">
+										<xsl:value-of select="$strPage"/>&#160;<fo:page-number/>
+									</fo:block>								
+								</fo:table-cell>
+							</fo:table-row>
+						</fo:table-body>
+					</fo:table>	
+				</fo:static-content>
+				<fo:flow flow-name="xsl-region-body">
+					<!-- ##### -->
+					<!-- Index -->
+					<!-- ##### -->
+					<fo:block id="index" font-size="{$font-size-object}" font-family="{$default-font-family}" line-height="24pt" space-after.optimum="15pt" color="gray" text-align="center" padding-top="3pt" break-before="page">
+						<xsl:value-of select="$strProject_index"/>
+					</fo:block>						
+					
+					
+					<fo:table table-layout="fixed">
+						<fo:table-column column-width="{$column-width - 10}mm"/>
+						<fo:table-column column-width="10mm"/>
+						<fo:table-body>
+							<xsl:call-template name="content"/>
+						</fo:table-body>
+					</fo:table>	
+									
+					
+					<!-- ##### -->
+					<!-- project -->
+					<!-- ##### -->
+					<!--<xsl:apply-templates select="project"/>-->
+					<xsl:for-each select="*[name()!='property']">	
+						<xsl:call-template name="page">
+							<xsl:with-param name="path">convertigo/<xsl:value-of select="./property[@name='name']/java.lang.String/@value"/></xsl:with-param>
+						</xsl:call-template>
+					</xsl:for-each>
+				</fo:flow>
+			</fo:page-sequence>
+		</fo:root>
+	</xsl:template>
+	
+	<!-- ################### -->
+	<!-- TEMPLATE CONTENT -->
+	<!-- ################### -->	
+	<xsl:template name="content">
+		
+		<xsl:param name="path">convertigo</xsl:param>
+		<xsl:for-each select="*[name()!='property' and count(*[name()='property']) &gt; 0 ]">	
+			<xsl:variable name="localName" select="name()"></xsl:variable>
+			<xsl:if test="position()=1 or not(local-name(.)=local-name((preceding-sibling::*[name()!='property'])[last()]))">
+				<!--type of childs-->			
+				<fo:table-row>
+					<fo:table-cell>
+						<fo:block text-align="start" font-size="{$font-size-index-category}" font-family="{$default-font-family}" >
+							
+							<fo:basic-link internal-destination="null"><xsl:value-of select="name()"/>
+								<xsl:if test="$path!='convertigo'">
+									<xsl:if test="substring(local-name(.),string-length(local-name(.)))='s'">(es)</xsl:if>
+									<xsl:if test="substring(local-name(.),string-length(local-name(.)))!='s'">(s)</xsl:if>									
+									of the <xsl:value-of select="local-name(parent::*)"/>&#160;<xsl:value-of select="parent::*/property[@name='name']/java.lang.String/@value"/>							
+								</xsl:if>
+							</fo:basic-link>							
+						</fo:block>						
+					</fo:table-cell>					
+				</fo:table-row>
+			</xsl:if>	
+			<fo:table-row >
+				<fo:table-cell>
+					<fo:block text-align="start" font-size="{$default-font-size}" font-family="{$default-font-family}" margin-left="3mm" >
+						 <fo:basic-link color="{document('doc.fo.index-color.xml')/colors/*[name()=$localName]/@value}" internal-destination="{$path}/{./property[@name='name']/java.lang.String/@value}">							
+							<xsl:value-of select="./property[@name='name']/java.lang.String/@value"/>
+						</fo:basic-link>
+					</fo:block>						
+				</fo:table-cell>
+				<fo:table-cell>
+						<fo:block text-align="end" font-size="{$default-font-size}" font-family="{$default-font-family}">
+							<fo:page-number-citation ref-id="{$path}/{./property[@name='name']/java.lang.String/@value}"/>
+						</fo:block>
+					</fo:table-cell>
+			</fo:table-row>	
+			
+		</xsl:for-each>
+		
+		<xsl:if test="*[name()!='property' and count(*[name()='property']) &gt; 0 ]">
+			<fo:table-row >
+				<fo:table-cell>
+					<fo:block>
+						<fo:leader leader-pattern="use-content" leader-length="{$column-width}mm" leader-pattern-width="2mm">-</fo:leader>
+					</fo:block>
+				</fo:table-cell>
+			</fo:table-row>	
+		</xsl:if>
+		
+		<xsl:for-each select="*[name()!='property' and count(*[name()='property']) &gt; 0 ]">	
+			<xsl:call-template name="content">				 	
+				<xsl:with-param name="path"><xsl:value-of select="$path"/>/<xsl:value-of select="./property[@name='name']/java.lang.String/@value"/></xsl:with-param>
+			</xsl:call-template>			
+		</xsl:for-each>
+	</xsl:template>
+	
+	<xsl:template name="selectColor">
+				
+	</xsl:template>	
+		
+	<!-- ################### -->
+	<!-- TEMPLATE PROJECT -->
+	<!-- ################### -->
+	<xsl:template name="cleanTag">
+		<xsl:param name="toClean"/>		 
+		   
+		 <xsl:if test="substring($toClean,string-length($toClean))='s'">
+			<xsl:call-template name="cleanTagValue">
+				<xsl:with-param name="term">es</xsl:with-param>
+				<xsl:with-param name="toClean"><xsl:value-of select="$toClean"/></xsl:with-param>
+			</xsl:call-template>
+		</xsl:if>		 
+		 <xsl:if test="not(substring($toClean,string-length($toClean))='s')">
+			 <xsl:call-template name="cleanTagValue">				
+				<xsl:with-param name="toClean"><xsl:value-of select="$toClean"/></xsl:with-param>
+			</xsl:call-template>
+		</xsl:if>			
+	</xsl:template>
+			
+	<xsl:template name="substringPath">	
+		<xsl:param name="toClean"/>			
+		<xsl:if test="substring($toClean,string-length($toClean))='/'">
+			<xsl:value-of select="substring($toClean,0,string-length($toClean))"/>
+		</xsl:if>	
+		<xsl:if test="substring($toClean,string-length($toClean))!='/' and string-length($toClean) >= 1">
+			 <xsl:call-template name="substringPath">				
+				<xsl:with-param name="toClean"><xsl:value-of select="substring($toClean,0,string-length($toClean))"/></xsl:with-param>
+			</xsl:call-template>
+		</xsl:if>
+	</xsl:template>
+		
+	<xsl:template name="firstLetterUpperCase">
+		<xsl:param name="toClean"/>		 
+		 <xsl:call-template name="cleanTagValue">				
+				<xsl:with-param name="toClean"><xsl:value-of select="$toClean"/></xsl:with-param>
+				<xsl:with-param name="term"/>
+		</xsl:call-template>
+	</xsl:template>
+	
+	<xsl:template name="cleanTagValue">
+	<!--first letter in upperCase and terminaison with a term-->		
+		<xsl:param name="term">s</xsl:param> 
+		<xsl:param name="toClean"/>
+		<xsl:value-of select="concat(translate(substring($toClean,1,1),'abcdefghijklmnopqrstuvwxyz', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'),substring($toClean,2,string-length($toClean)),$term)"/>				
+	</xsl:template>
+	
+	<xsl:template name="SetTitle">
+		<xsl:call-template name="firstLetterUpperCase">				
+			<xsl:with-param name="toClean"><xsl:value-of select="name()"/>&#160;<xsl:value-of select="./property[@name='name']/java.lang.String/@value"/></xsl:with-param>							
+		</xsl:call-template>		
+	</xsl:template>
+	
+	<xsl:template name="writeComment">
+			<xsl:param name="commentString"></xsl:param> 			
+			<xsl:choose>
+				<xsl:when test="contains($commentString,'&#10;')">
+					<xsl:value-of select="substring-before($commentString,'&#10;')"></xsl:value-of>					
+					<fo:block></fo:block>
+					<xsl:call-template name="writeComment">
+						<xsl:with-param name="commentString">
+							<xsl:value-of select="substring-after($commentString,'&#10;')"></xsl:value-of>
+						</xsl:with-param>
+					</xsl:call-template>					
+				</xsl:when>
+				<xsl:otherwise>
+					<xsl:value-of select="$commentString"></xsl:value-of>
+				</xsl:otherwise>
+			</xsl:choose>			
+	</xsl:template>	
+	
+	<xsl:template name="replaceAll">
+			<xsl:param name="initialValue"></xsl:param>
+			<xsl:param name="stringToReplace"></xsl:param>
+			<xsl:param name="replacement"></xsl:param> 	 			
+			<xsl:choose>
+				<xsl:when test="contains($initialValue,$replacement)">
+					<xsl:value-of select="substring-before($initialValue,$replacement)"></xsl:value-of>					
+					<xsl:value-of select="$replacement"></xsl:value-of>
+					<xsl:call-template name="replaceAll">
+						<xsl:with-param name="initialValue">
+							<xsl:value-of select="substring-after($initialValue,$replacement)"></xsl:value-of>
+						</xsl:with-param>
+					</xsl:call-template>					
+				</xsl:when>
+				<xsl:otherwise>
+					<xsl:value-of select="$initialValue"></xsl:value-of>
+				</xsl:otherwise>
+			</xsl:choose>			
+	</xsl:template>	
+	
+	<xsl:template name="page">
+		<xsl:param name="path">convertigo</xsl:param>
+		<xsl:param name="pathTransform">
+			<xsl:call-template name="substringPath">				
+				<xsl:with-param name="toClean"><xsl:value-of select="$path"/></xsl:with-param>
+			</xsl:call-template>
+		</xsl:param>
+			
+		<!--title-->
+		<xsl:if test="string-length(property[@name='name']/java.lang.String/@value)  &gt; 0 ">			
+			<fo:block id="{$path}" font-size="{$font-size-object}" font-family="{$default-font-family}" line-height="24pt" space-after.optimum="15pt" background-color="{$blue1}" color="white" text-align="center" padding-top="3pt" break-before="page">
+				<xsl:call-template name="SetTitle"/>
+			</fo:block>
+		</xsl:if>
+		<xsl:if test="string-length(property[@name='name']/java.lang.String/@value) = 0 ">
+			<fo:block font-size="{$font-size-object}" font-family="{$default-font-family}" line-height="24pt" space-after.optimum="15pt" background-color="{$blue1}" color="white" text-align="center" padding-top="3pt" break-before="page">
+				<xsl:call-template name="SetTitle"/>
+			</fo:block>
+		</xsl:if>
+		<!--comments-->
+		<fo:block font-size="{$default-font-size}" font-family="{$default-font-family}">	
+			
+			<xsl:variable name="comment"><xsl:value-of select="./property[@name='comment']/java.lang.String/@value"/></xsl:variable>		
+			<xsl:call-template name="writeComment">
+					<xsl:with-param name="commentString">
+						<xsl:value-of select="$comment"/>							
+					</xsl:with-param>					    
+			</xsl:call-template>
+			
+					 
+		</fo:block>
+		<!--properties-->
+		<fo:block font-size="{$font-size-object - 2}" font-weight="bold" font-family="{$default-font-family}" line-height="14pt" space-before.optimum="15pt" text-align="left" padding-top="3pt">
+			1. Parent				
+		</fo:block>
+		<fo:table table-layout="fixed">
+				<fo:table-column column-width="5mm"/>
+				<fo:table-column column-width="{$column-width - 5}mm"/>
+				<fo:table-body>					
+					<xsl:for-each select="parent::*">
+						<fo:table-row>
+							<fo:table-cell/>	
+							<fo:table-cell>
+								<fo:block font-size="{$default-font-size}" font-family="{$default-font-family}">
+									<fo:basic-link internal-destination="{$pathTransform}">
+										<xsl:value-of select="name()"/>&#160;
+										<xsl:value-of select="./property[@name='name']/java.lang.String/@value"/>
+									</fo:basic-link>
+								</fo:block>
+							</fo:table-cell>
+						</fo:table-row>
+					</xsl:for-each>
+				</fo:table-body>
+		</fo:table>		
+		
+		<fo:block  font-size="{$font-size-object - 2}" font-weight="bold" font-family="{$default-font-family}" line-height="14pt" space-before.optimum="15pt" text-align="left" padding-top="3pt">
+			2. <xsl:value-of select="$strProperties"/>
+		</fo:block>
+		<fo:table table-layout="fixed">
+			<fo:table-column column-width="5mm"/>
+			<fo:table-column column-width="{$column-width - 5}mm"/>
+			<fo:table-body>
+				<fo:table-row>
+					<fo:table-cell/>
+					<fo:table-cell>
+						<xsl:call-template name="output-properties"/>
+					</fo:table-cell>
+				</fo:table-row>
+			</fo:table-body>
+		</fo:table>
+		<!--dependencies-->		
+		<xsl:for-each select="(*[name()!='property' and count(*[name()='property']) &gt; 0 ])[position()=1 or not(local-name(.)=local-name((preceding-sibling::*[name()!='property'])[last()]))]">			
+			<fo:block font-size="{$font-size-object - 2}" font-weight="bold" font-family="{$default-font-family}" line-height="14pt" space-before.optimum="15pt" text-align="left" padding-top="3pt">
+				<xsl:value-of select="position()+2"/>. 
+				<xsl:call-template name="cleanTag">
+					<xsl:with-param name="toClean">
+						<xsl:value-of select="name()"/>
+					</xsl:with-param>
+				</xsl:call-template>
+			</fo:block>
+			<fo:table table-layout="fixed">
+				<fo:table-column column-width="5mm"/>
+				<fo:table-column column-width="{$column-width - 5}mm"/>
+				<fo:table-body>
+					<xsl:variable name="currentName" select='name()' /> 
+					<xsl:for-each select="../*[name()=$currentName]">
+						<fo:table-row>
+							<fo:table-cell/>
+							<fo:table-cell>
+								<fo:block font-size="{$default-font-size}" font-family="{$default-font-family}">
+									<fo:basic-link internal-destination="{$path}/{./property[@name='name']/java.lang.String/@value}"><xsl:value-of select="./property[@name='name']/java.lang.String/@value"/></fo:basic-link>
+								</fo:block>
+							</fo:table-cell>
+						</fo:table-row>
+					</xsl:for-each>
+				</fo:table-body>
+			</fo:table>						
+		</xsl:for-each>
+		<xsl:for-each select="*[name()!='property' and count(*[name()='property']) &gt; 0 ]">
+			<xsl:call-template name="page"> 
+				<xsl:with-param name="path">
+					<xsl:value-of select="$path"/>/<xsl:value-of select="./property[@name='name']/java.lang.String/@value"/></xsl:with-param>
+			</xsl:call-template>
+		</xsl:for-each>		
+	</xsl:template>
+	
+	
+	
+	<xsl:template name="output-properties">
+		<xsl:if test="count(property[@name!='name' and @name!='comment']) != 0">
+			<fo:table table-layout="fixed" space-before="{$default-space-before}">
+				<fo:table-column column-width="5mm"/>
+				<fo:table-column column-width="{$column-width - 10}mm"/>
+				<fo:table-body>
+					<fo:table-row>
+						<fo:table-cell/>
+						<fo:table-cell>
+							<fo:table table-layout="fixed">
+								<fo:table-column column-width="{$column-width-properties-name}mm"/>
+								<fo:table-column column-width="{$column-width - 10 - $column-width-properties-name}mm"/>
+								<fo:table-body>
+									<fo:table-row background-color="#6C684C">
+										<fo:table-cell>
+											<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" font-weight="bold" text-align="center" color="white">
+												<xsl:value-of select="$strName"/>
+											</fo:block>
+										</fo:table-cell>
+										<fo:table-cell>
+											<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" font-weight="bold" text-align="center" color="white">
+												<xsl:value-of select="$strValue"/>
+											</fo:block>
+										</fo:table-cell>
+									</fo:table-row>
+									<fo:table-row>
+										<fo:table-cell background-color="#F7F5E9">
+											<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify">
+												<xsl:value-of select="$strClass_name_used_for_this_object"/>
+											</fo:block>
+										</fo:table-cell>
+										<fo:table-cell background-color="#F7F5E9">
+											<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify">
+												<xsl:value-of select="@classname"/>
+											</fo:block>
+										</fo:table-cell>
+									</fo:table-row>
+									<fo:table-row>
+										<fo:table-cell background-color="#E6E1C0">
+											<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify">
+												<xsl:value-of select="$strClass_version_used_for_this_object"/>
+											</fo:block>
+										</fo:table-cell>
+										<fo:table-cell background-color="#E6E1C0">
+											<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify">
+												<xsl:value-of select="@version"/>
+											</fo:block>
+										</fo:table-cell>
+									</fo:table-row>
+									<fo:table-row>
+										<fo:table-cell background-color="#F7F5E9">
+											<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify">
+												<xsl:value-of select="$strObject_priority"/>
+											</fo:block>
+										</fo:table-cell>
+										<fo:table-cell background-color="#F7F5E9">
+											<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify">
+												<xsl:value-of select="@priority"/>
+											</fo:block>
+										</fo:table-cell>
+									</fo:table-row>
+									<xsl:choose>
+										<xsl:when test="@emulatorID">
+											<fo:table-row>
+												<fo:table-cell background-color="#E6E1C0">
+													<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify">
+														<xsl:value-of select="$strEmulator_used"/>
+													</fo:block>
+												</fo:table-cell>
+												<fo:table-cell background-color="#E6E1C0">
+													<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify">
+														<xsl:choose>
+															<xsl:when test="@emulatorID = 1"><xsl:value-of select="$strEmulatorID_1"/></xsl:when>
+															<xsl:when test="@emulatorID = 2"><xsl:value-of select="$strEmulatorID_2"/></xsl:when>
+															<xsl:when test="@emulatorID = 3"><xsl:value-of select="$strEmulatorID_3"/></xsl:when>
+															<xsl:when test="@emulatorID = 4"><xsl:value-of select="$strEmulatorID_4"/> (<xsl:value-of select="@emulator"/>)</xsl:when>
+															<xsl:when test="@emulatorID = 5"><xsl:value-of select="$strEmulatorID_5"/></xsl:when>
+															<xsl:when test="@emulatorID = 6"><xsl:value-of select="$strEmulatorID_6"/> (<xsl:value-of select="@emulator"/>)</xsl:when>
+															<xsl:when test="@emulatorID = 7"><xsl:value-of select="$strEmulatorID_7"/></xsl:when>
+														</xsl:choose>
+													</fo:block>
+												</fo:table-cell>
+											</fo:table-row>
+										</xsl:when>
+										<xsl:when test="@default">
+											<fo:table-row>
+												<fo:table-cell background-color="#E6E1C0">
+													<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify">
+														<xsl:value-of select="$strDefault_transaction"/>
+													</fo:block>
+												</fo:table-cell>
+												<fo:table-cell background-color="#E6E1C0">
+													<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify">
+														<xsl:value-of select="@default"/>
+													</fo:block>
+												</fo:table-cell>
+											</fo:table-row>
+										</xsl:when>
+										<xsl:otherwise>
+											<fo:table-row>
+												<fo:table-cell background-color="#E6E1C0">
+													<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify">&#160;</fo:block>
+												</fo:table-cell>
+												<fo:table-cell background-color="#E6E1C0"/>
+											</fo:table-row>
+										</xsl:otherwise>
+									</xsl:choose>
+									<xsl:apply-templates select="property[@name!='name' and @name!='comment' and not(starts-with(@name,'ordered'))]">
+										<xsl:sort order="ascending" select="./@name"/>
+									</xsl:apply-templates>
+								</fo:table-body>
+							</fo:table>
+						</fo:table-cell>
+					</fo:table-row>
+				</fo:table-body>
+			</fo:table>
+		</xsl:if>
+	</xsl:template>
+	
+	<!-- ################## -->
+	<!-- TEMPLATE PROPERTY -->
+	<!-- ################## -->
+		<xsl:template match="property">
+		<fo:table-row>
+			<xsl:choose>
+				<xsl:when test="position() mod 2 = 0">	
+					<xsl:call-template name="property-line">
+						<xsl:with-param name="rowColor">#E6E1C0</xsl:with-param>
+					</xsl:call-template>								
+				</xsl:when>
+				<xsl:otherwise>
+					<xsl:call-template name="property-line">
+						<xsl:with-param name="rowColor">#F7F5E9</xsl:with-param>						
+					</xsl:call-template>					
+				</xsl:otherwise>
+			</xsl:choose>
+		</fo:table-row>
+	</xsl:template>
+	
+	
+	<xsl:template name="property-line">
+		<xsl:param name="rowColor"></xsl:param>				
+		<fo:table-cell background-color="{$rowColor}">
+			<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify">
+				 <xsl:value-of select="@displayName"/>							
+			</fo:block>
+		</fo:table-cell>
+		<fo:table-cell background-color="{$rowColor}">
+			<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify">
+				 <xsl:apply-templates/>
+			</fo:block>
+		</fo:table-cell>						
+	</xsl:template>
+	
+	<!-- ####################### -->
+	<!-- TEMPLATE OF XMLVECTOR -->
+	<!-- ####################### -->
+	<xsl:template match="com.twinsoft.convertigo.beans.common.XMLVector">
+		<fo:block font-size="{$font-size-property}" font-family="{$font-family-property-string}" text-align="justify">
+			<xsl:apply-templates/>
+		</fo:block>
+	</xsl:template>
+	
+	<!-- ##############{############ -->
+	<!-- TEMPLATES OF PROPERTIES -->
+	<!-- ########################### -->
+	<xsl:template match="xmlizable">
+		<xsl:choose>
+			<xsl:when test="../@name= 'selectionScreenZone'">
+				<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify">
+					<xsl:value-of select="$strSelectionScreenZone_left"/>&#160;
+					<xsl:value-of select="com.twinsoft.convertigo.beans.common.XMLRectangle/x/java.lang.Integer/@value"/>&#160;
+					<xsl:value-of select="$strSelectionScreenZone_top"/>&#160;
+					<xsl:value-of select="com.twinsoft.convertigo.beans.common.XMLRectangle/y/java.lang.Integer/@value"/>&#160;
+					<xsl:value-of select="$strSelectionScreenZone_width"/>&#160;
+					<xsl:value-of select="com.twinsoft.convertigo.beans.common.XMLRectangle/width/java.lang.Integer/@value"/>&#160;
+					<xsl:value-of select="$strSelectionScreenZone_height"/>&#160;
+					<xsl:value-of select="com.twinsoft.convertigo.beans.common.XMLRectangle/x/java.lang.Integer/@value"/>
+				</fo:block>
+			</xsl:when>
+			<xsl:when test="../@name= 'keywordTable'">
+				<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}">
+					<xsl:value-of select="$strKeyword_Table"/>
+				</fo:block>
+				<xsl:apply-templates/>
+			</xsl:when>
+			<xsl:when test="../@name= 'browserDefinitions'">
+				<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}">
+					<xsl:value-of select="$strBrowserDefinitions"/>
+				</fo:block>
+				<xsl:apply-templates/>
+			</xsl:when>
+			<xsl:when test="../@name= 'actions' and ../../@classname='com.twinsoft.convertigo.beans.common.Table'">
+				<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}">
+					<xsl:value-of select="$strTable"/>
+				</fo:block>
+				<xsl:apply-templates/>
+			</xsl:when>
+			<xsl:when test="../@name= 'columns'">
+				<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}">
+					<xsl:value-of select="$strColumns"/>
+				</fo:block>
+				<xsl:apply-templates/>
+			</xsl:when>
+			<xsl:when test="../@name= 'actions' and ../../@classname='com.twinsoft.convertigo.beans.common.Choice'">
+				<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}">
+					<xsl:value-of select="$strChoice"/>
+				</fo:block>
+				<xsl:apply-templates/>
+			</xsl:when>
+			<xsl:when test="@classname= 'com.twinsoft.convertigo.beans.common.XMLVector'">
+				<xsl:apply-templates/>
+			</xsl:when>
+			<xsl:otherwise>
+				<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify">
+					[xmlizable]
+				</fo:block>
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:template>
+	<xsl:template match="java.lang.String">
+		<xsl:if test="name(..) != 'com.twinsoft.convertigo.beans.common.XMLVector'">
+			<fo:block font-size="{$font-size-property}" font-family="{$font-family-property-string}" text-align="justify">
+				<xsl:if test="string-length(./@compiledValue) &gt; 0">
+					real value :
+				</xsl:if>
+				<xsl:value-of select="@value"/>
+			</fo:block>
+			<xsl:if test="string-length(./@compiledValue) &gt; 0">
+				<fo:block font-size="{$font-size-property}" font-family="{$font-family-property-string}" text-align="justify">
+					calculate value :<xsl:value-of select="@compiledValue"/>
+				</fo:block>
+			</xsl:if>
+		</xsl:if>
+		<xsl:if test="name(..) = 'com.twinsoft.convertigo.beans.common.XMLVector'">
+			<xsl:value-of select="@value"/>
+			<xsl:if test="position() != last()">, </xsl:if>
+		</xsl:if>
+	</xsl:template>
+	<xsl:template match="java.lang.Character">
+		<xsl:if test="name(..) != 'com.twinsoft.convertigo.beans.common.XMLVector'">
+			<fo:block font-size="{$font-size-property}" font-family="{$font-family-property-string}" text-align="justify">
+				<xsl:if test="string-length(./@compiledValue) &gt; 0">
+					real value :
+				</xsl:if>
+				<xsl:value-of select="@value"/>
+			</fo:block>
+			<xsl:if test="string-length(./@compiledValue) &gt; 0">
+				<fo:block font-size="{$font-size-property}" font-family="{$font-family-property-string}" text-align="justify">
+				calculate value :<xsl:value-of select="@compiledValue"/>
+			</fo:block>
+			</xsl:if>			
+		</xsl:if>
+		<xsl:if test="name(..) = 'com.twinsoft.convertigo.beans.common.XMLVector'">
+			<xsl:value-of select="@value"/>
+			<xsl:if test="position() != last()">, </xsl:if>
+		</xsl:if>
+	</xsl:template>
+	<xsl:template match="java.lang.Byte">
+		<xsl:if test="name(..) != 'com.twinsoft.convertigo.beans.common.XMLVector'">
+			<fo:block font-size="{$font-size-property}" font-family="{$font-family-property-string}" text-align="justify">
+				<xsl:if test="string-length(./@compiledValue) &gt; 0">
+					real value :
+				</xsl:if>
+				<xsl:value-of select="@value"/>
+			</fo:block>
+			<xsl:if test="string-length(./@compiledValue) &gt; 0">
+				<fo:block font-size="{$font-size-property}" font-family="{$font-family-property-string}" text-align="justify">
+					calculate value :<xsl:value-of select="@compiledValue"/>
+				</fo:block>
+			</xsl:if>
+		</xsl:if>
+		<xsl:if test="name(..) = 'com.twinsoft.convertigo.beans.common.XMLVector'">
+			<xsl:value-of select="@value"/>
+			<xsl:if test="position() != last()">, </xsl:if>
+		</xsl:if>
+	</xsl:template>
+	<xsl:template match="java.lang.Short">
+		<xsl:if test="name(..) != 'com.twinsoft.convertigo.beans.common.XMLVector'">
+			<fo:block font-size="{$font-size-property}" font-family="{$font-family-property-string}" text-align="justify">
+				<xsl:if test="string-length(./@compiledValue) &gt; 0">
+					real value :
+				</xsl:if>
+				<xsl:value-of select="@value"/>
+			</fo:block>
+			<xsl:if test="string-length(./@compiledValue) &gt; 0">
+				<fo:block font-size="{$font-size-property}" font-family="{$font-family-property-string}" text-align="justify">
+					calculate value :<xsl:value-of select="@compiledValue"/>
+				</fo:block>
+			</xsl:if>
+		</xsl:if>
+		<xsl:if test="name(..) = 'com.twinsoft.convertigo.beans.common.XMLVector'">
+			<xsl:value-of select="@value"/>
+			<xsl:if test="position() != last()">, </xsl:if>
+		</xsl:if>
+	</xsl:template>
+	<xsl:template match="java.lang.Integer">
+		<xsl:choose>
+			<xsl:when test="name(..) = 'com.twinsoft.convertigo.beans.common.XMLVector'">
+				<xsl:value-of select="@value"/>
+				<xsl:if test="position() != last()">, </xsl:if>
+			</xsl:when>
+			<xsl:when test="../@name='attribute' or ../@name='selectionAttribute'">
+				<xsl:choose>
+					<xsl:when test="@value=-1"><xsl:value-of select="$strNo_attribute"/></xsl:when>
+					<xsl:otherwise>
+						<xsl:call-template name="attribute_blink">
+							<xsl:with-param name="value" select="@value"/>
+						</xsl:call-template>
+					</xsl:otherwise>
+				</xsl:choose>
+			</xsl:when>
+			<xsl:when test="../@name='sheetLocation'">
+				<xsl:choose>
+					<xsl:when test="@value=0"><xsl:value-of select="$strSheetLocation_0"/></xsl:when>
+					<xsl:when test="@value=1"><xsl:value-of select="$strSheetLocation_1"/></xsl:when>
+					<xsl:when test="@value=2"><xsl:value-of select="$strSheetLocation_2"/></xsl:when>
+					<xsl:otherwise><xsl:value-of select="$strUnknowed_value"/></xsl:otherwise>
+				</xsl:choose>
+			</xsl:when>
+			<xsl:otherwise>
+				<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify">
+					<xsl:value-of select="@value"/>
+				</fo:block>
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:template>
+	<xsl:template match="java.lang.Long">
+		<xsl:if test="name(..) != 'com.twinsoft.convertigo.beans.common.XMLVector'">
+			<fo:block font-size="{$font-size-property}" font-family="{$font-family-property-string}" text-align="justify">
+				<xsl:if test="string-length(./@compiledValue) &gt; 0">
+					real value :
+				</xsl:if>
+				<xsl:value-of select="@value"/>
+			</fo:block>
+			<xsl:if test="string-length(./@compiledValue) &gt; 0">
+				<fo:block font-size="{$font-size-property}" font-family="{$font-family-property-string}" text-align="justify">
+					calculate value :<xsl:value-of select="@compiledValue"/>
+				</fo:block>
+			</xsl:if>
+		</xsl:if>
+		<xsl:if test="name(..) = 'com.twinsoft.convertigo.beans.common.XMLVector'">
+			<xsl:value-of select="@value"/>
+			<xsl:if test="position() != last()">, </xsl:if>
+		</xsl:if>
+	</xsl:template>
+	<xsl:template match="java.lang.Boolean">
+		<xsl:if test="name(..) != 'com.twinsoft.convertigo.beans.common.XMLVector'">
+			<fo:block font-size="{$font-size-property}" font-family="{$font-family-property-string}" text-align="justify">
+				<xsl:if test="string-length(./@compiledValue) &gt; 0">
+					real value :
+				</xsl:if>
+				<xsl:value-of select="@value"/>
+			</fo:block>
+			<xsl:if test="string-length(./@compiledValue) &gt; 0">
+				<fo:block font-size="{$font-size-property}" font-family="{$font-family-property-string}" text-align="justify">
+					calculate value :<xsl:value-of select="@compiledValue"/>
+				</fo:block>
+			</xsl:if>
+		</xsl:if>
+		<xsl:if test="name(..) = 'com.twinsoft.convertigo.beans.common.XMLVector'">
+			<xsl:value-of select="@value"/>
+			<xsl:if test="position() != last()">, </xsl:if>
+		</xsl:if>
+	</xsl:template>
+	<xsl:template match="java.lang.Float">
+		<xsl:if test="name(..) != 'com.twinsoft.convertigo.beans.common.XMLVector'">
+			<fo:block font-size="{$font-size-property}" font-family="{$font-family-property-string}" text-align="justify">
+				<xsl:if test="string-length(./@compiledValue) &gt; 0">
+					real value :
+				</xsl:if>
+				<xsl:value-of select="@value"/>
+			</fo:block>
+			<xsl:if test="string-length(./@compiledValue) &gt; 0">
+				<fo:block font-size="{$font-size-property}" font-family="{$font-family-property-string}" text-align="justify">
+					calculate value :<xsl:value-of select="@compiledValue"/>
+				</fo:block>
+			</xsl:if>
+		</xsl:if>
+		<xsl:if test="name(..) = 'com.twinsoft.convertigo.beans.common.XMLVector'">
+			<xsl:value-of select="@value"/>
+			<xsl:if test="position() != last()">, </xsl:if>
+		</xsl:if>
+	</xsl:template>
+	<xsl:template match="java.lang.Double">
+		<xsl:if test="name(..) != 'com.twinsoft.convertigo.beans.common.XMLVector'">
+			<fo:block font-size="{$font-size-property}" font-family="{$font-family-property-string}" text-align="justify">
+				<xsl:if test="string-length(./@compiledValue) &gt; 0">
+					real value :
+				</xsl:if>
+				<xsl:value-of select="@value"/>
+			</fo:block>
+			<xsl:if test="string-length(./@compiledValue) &gt; 0">
+				<fo:block font-size="{$font-size-property}" font-family="{$font-family-property-string}" text-align="justify">
+					calculate value :<xsl:value-of select="@compiledValue"/>
+				</fo:block>
+			</xsl:if>
+		</xsl:if>
+		<xsl:if test="name(..) = 'com.twinsoft.convertigo.beans.common.XMLVector'">
+			<xsl:value-of select="@value"/>
+			<xsl:if test="position() != last()">, </xsl:if>
+		</xsl:if>
+	</xsl:template>
+	
+	
+	<xsl:template match="array">
+		<xsl:if test="name(..) != 'includedTagAttributes'">
+			<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify">
+				<xsl:value-of select="@value"/>
+			</fo:block>
+		</xsl:if>
+		<xsl:if test="../@name = 'includedTagAttributes'">
+			<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify">
+				<xsl:value-of select="$strIncludedTagAttributes_1"/>&#160;
+				<xsl:value-of select="java.lang.Boolean[position() = 1]/@value"/>
+			</fo:block>
+			<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify">
+				<xsl:value-of select="$strIncludedTagAttributes_2"/>&#160;
+				<xsl:value-of select="java.lang.Boolean[position() = 2]/@value"/>
+			</fo:block>
+			<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify">
+				<xsl:value-of select="$strIncludedTagAttributes_3"/>&#160;
+				<xsl:value-of select="java.lang.Boolean[position() = 3]/@value"/>
+			</fo:block>
+			<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify">
+				<xsl:value-of select="$strIncludedTagAttributes_4"/>&#160;
+				<xsl:value-of select="java.lang.Boolean[position() = 4]/@value"/>
+			</fo:block>
+			<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify">
+				<xsl:value-of select="$strIncludedTagAttributes_5"/>&#160;
+				<xsl:value-of select="java.lang.Boolean[position() = 5]/@value"/>
+			</fo:block>
+			<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify">
+				<xsl:value-of select="$strIncludedTagAttributes_6"/>&#160;
+				<xsl:value-of select="java.lang.Boolean[position() = 6]/@value"/>
+			</fo:block>
+			<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify">
+				<xsl:value-of select="$strIncludedTagAttributes_7"/>&#160;
+				<xsl:value-of select="java.lang.Boolean[position() = 7]/@value"/>
+			</fo:block>
+			<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify">
+				<xsl:value-of select="$strIncludedTagAttributes_8"/>&#160;
+				<xsl:value-of select="java.lang.Boolean[8]/@value"/>
+			</fo:block>
+			<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify">
+				<xsl:value-of select="$strIncludedTagAttributes_9"/>&#160;
+				<xsl:value-of select="java.lang.Boolean[position() = 9]/@value"/>
+			</fo:block>
+			<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify">
+				<xsl:value-of select="$strIncludedTagAttributes_10"/>&#160;
+				<xsl:value-of select="java.lang.Boolean[position() = 10]/@value"/>
+			</fo:block>
+			<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify">
+				<xsl:value-of select="$strIncludedTagAttributes_11"/>&#160;
+				<xsl:value-of select="java.lang.Boolean[position() = 11]/@value"/>
+			</fo:block>
+		</xsl:if>
+	</xsl:template>
+
+	<!-- ######################## -->
+	<!-- TEMPLATES FOR ATTRIBUTE -->
+	<!-- ######################## -->
+	<xsl:template name="attribute_blink">
+		<xsl:param name="value"/>
+		<xsl:choose>
+			<xsl:when test="($value - 4096) >= 0">
+				<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify" text-decoration="blink">
+					<xsl:value-of select="$strBlink"/>
+				</fo:block>
+				<xsl:call-template name="attribute_bold">
+					<xsl:with-param name="value" select="($value - 4096)"/>
+				</xsl:call-template>
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:call-template name="attribute_bold">
+					<xsl:with-param name="value" select="($value)"/>
+				</xsl:call-template>
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:template>
+	<xsl:template name="attribute_bold">
+		<xsl:param name="value"/>
+		<xsl:choose>
+			<xsl:when test="($value - 2048) >= 0">
+				<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify" font-weight="bold">
+					<xsl:value-of select="$strBold"/>
+				</fo:block>
+				<xsl:call-template name="attribute_invert">
+					<xsl:with-param name="value" select="($value - 2048)"/>
+				</xsl:call-template>
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:call-template name="attribute_invert">
+					<xsl:with-param name="value" select="($value)"/>
+				</xsl:call-template>
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:template>
+	<xsl:template name="attribute_invert">
+		<xsl:param name="value"/>
+		<xsl:choose>
+			<xsl:when test="($value - 512) >= 0">
+				<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify">
+					<xsl:value-of select="$strInvert"/>
+				</fo:block>
+				<xsl:call-template name="attribute_underline">
+					<xsl:with-param name="value" select="($value - 512)"/>
+				</xsl:call-template>
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:call-template name="attribute_underline">
+					<xsl:with-param name="value" select="($value)"/>
+				</xsl:call-template>
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:template>
+	<xsl:template name="attribute_underline">
+		<xsl:param name="value"/>
+		<xsl:choose>
+			<xsl:when test="($value - 256) >= 0">
+				<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify" text-decoration="underline">
+					<xsl:value-of select="$strUnderline"/>
+				</fo:block>
+				<xsl:call-template name="attribute_ink">
+					<xsl:with-param name="value" select="($value - 256)"/>
+				</xsl:call-template>
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:call-template name="attribute_ink">
+					<xsl:with-param name="value" select="($value)"/>
+				</xsl:call-template>
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:template>
+	<xsl:template name="attribute_ink">
+		<xsl:param name="value"/>
+		<xsl:choose>
+			<xsl:when test="($value mod 8) = 0">
+				<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify" color="black">
+					<xsl:value-of select="$strBlack_font"/>
+				</fo:block>
+			</xsl:when>
+			<xsl:when test="($value mod 8) = 1">
+				<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify" color="red">
+					<xsl:value-of select="$strRed_font"/>
+				</fo:block>
+			</xsl:when>
+			<xsl:when test="($value mod 8) = 2">
+				<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify" color="green">
+					<xsl:value-of select="$strGreen_font"/>
+				</fo:block>
+			</xsl:when>
+			<xsl:when test="($value mod 8) = 3">
+				<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify" color="yellow">
+					<xsl:value-of select="$strYellow_font"/>
+				</fo:block>
+			</xsl:when>
+			<xsl:when test="($value mod 8) = 4">
+				<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify" color="blue">
+					<xsl:value-of select="$strBlue_font"/>
+				</fo:block>
+			</xsl:when>
+			<xsl:when test="($value mod 8) = 5">
+				<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify" color="magenta">
+					<xsl:value-of select="$strMagenta_font"/>
+				</fo:block>
+			</xsl:when>
+			<xsl:when test="($value mod 8) = 6">
+				<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify" color="cyan">
+					<xsl:value-of select="$strCyan_font"/>
+				</fo:block>
+			</xsl:when>
+			<xsl:when test="($value mod 8) = 7">
+				<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify" background-color="black" color="white">
+					<xsl:value-of select="$strWhite_font"/>
+				</fo:block>
+			</xsl:when>
+			<xsl:otherwise>
+				<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify">
+					<xsl:value-of select="$strUnknown_font_color"/>
+				</fo:block>
+			</xsl:otherwise>
+		</xsl:choose>
+		<xsl:call-template name="attribute_paper">
+			<xsl:with-param name="value" select="$value - ($value mod 8) "/>
+		</xsl:call-template>
+	</xsl:template>
+	<xsl:template name="attribute_paper">
+		<xsl:param name="value"/>
+		<xsl:choose>
+			<xsl:when test="($value div 8) = 0">
+				<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify" background-color="black" color="white">
+					<xsl:value-of select="$strBackground_black"/>
+				</fo:block>
+			</xsl:when>
+			<xsl:when test="($value div 8) = 1">
+				<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify" background-color="red">
+					<xsl:value-of select="$strBackground_red"/>
+				</fo:block>
+			</xsl:when>
+			<xsl:when test="($value div 8) = 2">
+				<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify" background-color="green">
+					<xsl:value-of select="$strBackground_green"/>
+				</fo:block>
+			</xsl:when>
+			<xsl:when test="($value div 8) = 3">
+				<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify" background-color="yellow">
+					<xsl:value-of select="$strBackground_yellow"/>
+				</fo:block>
+			</xsl:when>
+			<xsl:when test="($value div 8) = 4">
+				<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify" background-color="blue" color="white">
+					<xsl:value-of select="$strBackground_blue"/>
+				</fo:block>
+			</xsl:when>
+			<xsl:when test="($value div 8) = 5">
+				<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify" background-color="magenta">
+					<xsl:value-of select="$strBackground_magenta"/>
+				</fo:block>
+			</xsl:when>
+			<xsl:when test="($value div 8) = 6">
+				<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify" background-color="cyan">
+					<xsl:value-of select="$strBackground_cyan"/>
+				</fo:block>
+			</xsl:when>
+			<xsl:when test="($value div 8) = 7">
+				<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify" background-color="white">
+					<xsl:value-of select="$strBackground_white"/>
+				</fo:block>
+			</xsl:when>
+			<xsl:otherwise>
+				<fo:block font-size="{$font-size-property}" font-family="{$default-font-family}" text-align="justify">
+					<xsl:value-of select="$strUnknown_background_color"/>
+				</fo:block>
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:template>
+</xsl:stylesheet>

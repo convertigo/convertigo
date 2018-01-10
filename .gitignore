@@ -1,0 +1,14 @@
+.classpath
+.project
+META-INF
+
+**/.settings/*
+!**/.settings/org.eclipse.core.resources.prefs
+
+/*/bin
+/*/build
+/*/lib
+/*/target
+
+/.gradle/
+/eclipse-plugin-xulrunner-win32/xulrunner

@@ -1,0 +1,436 @@
+buildscript {
+	repositories {
+		jcenter()
+	}
+
+	dependencies {
+		classpath "com.monochromeroad.gradle-plugins:gradle-aws-s3-sync:0.10"
+	}
+}
+
+//plugins {
+//	id "com.dorongold.task-tree" version "1.3"
+//}
+
+import com.monochromeroad.gradle.plugin.aws.s3.S3Sync
+
+apply plugin: 'eclipse'
+
+eclipse {
+	project {
+		comment = 'Main project to develop the Convertigo platform'
+	}
+}
+
+
+allprojects {
+	version '7.5.0'
+	
+	repositories {
+		mavenLocal()
+		maven {
+			url "https://m2.convertigo.com"
+		}
+		maven {
+			url "http://maven.teamdev.com/repository/products"
+		}
+		jcenter()
+	}
+	
+	if (project.name.startsWith('eclipse')) {
+		apply plugin: 'eclipse'
+	}
+	
+	if (project.name.startsWith('eclipse-plugin')) {
+		apply plugin: 'java'
+		
+		eclipse {
+			project {
+				natures 'org.eclipse.jdt.core.javanature',
+						'org.eclipse.pde.PluginNature',
+						'org.eclipse.buildship.core.gradleprojectnature'
+				buildCommand 'org.eclipse.pde.ManifestBuilder'
+				buildCommand 'org.eclipse.buildship.core.gradleprojectbuilder'
+			}
+		}
+		
+		task syncLib(type: Sync) {
+			into 'lib'
+			from configurations.runtime
+			group 'convertigo'
+		}
+		
+		tasks.removeAll assemble, build, buildDependents, buildNeeded, clean, jar, javadoc, check, test, testClasses, classes
+	}
+	
+	plugins.withType(JavaPlugin) {
+		compileJava.options.encoding = 'UTF-8';
+	}
+}
+
+project(':convertigo-engine') {
+	apply plugin: 'java'
+	
+	sourceSets {
+		main {
+			java {
+				srcDir '../eclipse-plugin-studio/src'
+				exclude 'com/twinsoft/convertigo/eclipse/**'
+				srcDir '../eclipse-plugin-studio/patch'
+				sourceCompatibility = '1.8'
+				targetCompatibility = '1.8'
+			}
+			/*resources {
+				srcDir '../eclipse-plugin-studio/src'
+			}*/
+		}
+	}
+	
+	dependencies {
+		compile 'ca.juliusdavies:not-yet-commons-ssl:0.3.11'
+		compile 'com.convertigo.lib:ctgclient:2010.06.14'
+		compile 'com.convertigo.lib:httpclientAuthHelper:2014.12.23'
+		compile 'com.convertigo.lib:mozilla-interfaces:1.9.0.17'
+		compile 'com.convertigo.lib:sapjco:3'
+		compile 'com.convertigo.lib:soapui-xmlbeans:3.5.1'
+		compile 'com.convertigo.lib:soapui:3.5.1'
+		compile 'com.convertigo.provider:convertigo-provider-couchdb:' + project.version
+		compile 'com.convertigo.provider:convertigo-provider-plugins:' + project.version
+		compile 'com.convertigo.provider:convertigo-provider-sap:' + project.version
+		compile 'com.convertigo.provider:convertigo-provider-xul:' + project.version
+		compile 'com.convertigo.twinsoft.lib:aviva:2017.09.04'
+		compile 'com.convertigo.twinsoft.lib:comm:1998.11.15'
+		compile 'com.convertigo.twinsoft.lib:ms:2002.01.03'
+		compile 'com.convertigo.twinsoft.lib:netscape:2002.01.04'
+		compile 'com.convertigo.twinsoft.lib:phaos:1998.11.15'
+		compile 'com.convertigo.twinsoft:api:2017.12.29'
+		compile 'com.convertigo.twinsoft:ibm:2017.03.10'
+		compile 'com.convertigo.twinsoft:tas:2017.12.29'
+		compile 'com.convertigo.twinsoft:twinj:2016.05.09'
+		compile 'com.convertigo.twinsoft:ui:2009.06.15'
+		compile 'com.convertigo.twinsoft:util:2017.12.29'
+		compile 'com.fasterxml.jackson.core:jackson-core:[2.8,2.9['
+		compile 'com.github.fernandospr:javapns-jdk16:[2.2,2.3['
+		compile 'com.google.gcm:gcm-server:1.0.0'
+		compile 'com.sun.xml.bind:jaxb-xjc:[2.2,2.3['
+		compile 'commons-collections:commons-collections:[3.2,3.3['
+		compile 'commons-fileupload:commons-fileupload:[1.3,1.4['
+		compile 'commons-httpclient:commons-httpclient:3.1'
+		compile 'commons-io:commons-io:[2.5,)'
+		compile 'commons-jxpath:commons-jxpath:1.3'
+		compile 'commons-lang:commons-lang:[2.6,)'
+		compile 'io.swagger:swagger-models:[1.5,1.6['
+		compile 'io.swagger:swagger-parser:[1.0,1.1['
+		compile 'javax.mail:mail:1.4'
+		compile 'log4j:log4j:[1.2,1.3['
+		compile 'oauth.signpost:signpost-core:[1.2.1,1.2.2['
+		compile 'org.apache.axis2:axis2-saaj:1.6.2', { exclude module: 'servlet-api'}
+		compile 'org.apache.commons:commons-lang3:[3,)'
+		compile 'org.apache.httpcomponents:httpclient:[4.5,)'
+		compile 'org.apache.ws.commons.axiom:axiom-api:1.2.13'
+		compile 'org.apache.ws.commons.axiom:axiom-dom:1.2.13'
+		compile 'org.apache.ws.commons.axiom:axiom-impl:1.2.13'
+		compile 'org.apache.ws.commons.schema:XmlSchema:[1.4,1.5['
+		compile 'org.apache.xmlbeans:xmlbeans:[2.6,2.7['
+		compile 'org.apache.xmlgraphics:fop:1.0', { exclude module: 'batik-js'}
+		compile 'org.codehaus.jettison:jettison:[1.3,)'
+		compile 'org.hibernate.javax.persistence:hibernate-jpa-2.1-api:1.0.0.Final'
+		compile 'org.hibernate:hibernate-core:5.2.10.Final'
+		compile 'org.mozilla:rhino:[1.7,)'
+		compile 'org.quartz-scheduler:quartz:[1.7,1.8['
+		compile 'regexp:regexp:1.3'
+		compile 'ro.isdc.wro4j:wro4j-core:[1.6,1.7['
+		compile 'ro.isdc.wro4j:wro4j-extensions:[1.8,1.9['
+		compile 'wsdl4j:wsdl4j:[1.6,1.7['
+		compile 'xalan:xalan:[2.7,)'
+		compile 'xerces:xercesImpl:[2.11,)'
+		compile 'xml-resolver:xml-resolver:1.2'
+		compileOnly 'org.apache.tomcat.embed:tomcat-embed-core:[7.0,7.1['
+		compileOnly 'org.apache.tomcat:tomcat-dbcp:[7.0,7.1['
+		compileOnly 'org.eclipse.swt:org.eclipse.swt.gtk.linux.x86_64:4.3@jar'
+	}
+}
+
+project(':convertigo-war') {
+	apply plugin: 'war'
+	apply plugin: 'eclipse-wtp'
+	
+	group 'com.convertigo.webapp'
+	version '7.5.0'
+	
+	webAppDirName = 'convertigo'
+	
+	eclipse {
+		project {
+			natures 'org.eclipse.buildship.core.gradleprojectnature'
+			buildCommand 'org.eclipse.buildship.core.gradleprojectbuilder'
+			linkedResource name: 'convertigo', type: '2', locationUri: '$%7BPARENT-1-PROJECT_LOC%7D/eclipse-plugin-studio/tomcat/webapps/convertigo'
+			linkedResource name: 'patch', type: '2', locationUri: '$%7BPARENT-1-PROJECT_LOC%7D/eclipse-plugin-studio/patch'
+			linkedResource name: 'src/com/twinsoft/convertigo/engine', type: '2', locationUri: '$%7BPARENT-1-PROJECT_LOC%7D/eclipse-plugin-studio/src/com/twinsoft/convertigo/engine'
+			linkedResource name: 'src/com/twinsoft/convertigo/beans', type: '2', locationUri: '$%7BPARENT-1-PROJECT_LOC%7D/eclipse-plugin-studio/src/com/twinsoft/convertigo/beans'
+		}
+	
+		wtp {
+			component {
+				contextPath = 'convertigo'
+				deployName = 'convertigo'
+				//resource sourcePath: 'convertigo', deployPath: '/'
+				file {
+					withXml {
+						def node = it.asNode()
+						if (node.'wb-module'.'wb-resource'.find { it['@deploy-path'] == '/' } == null) {
+							node = node['wb-module'][0].appendNode('wb-resource')
+							node['@source-path'] = 'convertigo'
+							node['@deploy-path'] = '/'
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	war {
+		archiveName 'convertigo.war'
+		doFirst {
+			project.webAppDirName = '../convertigo-eclipse-plugin/tomcat/webapps/convertigo'
+		}
+	}
+	
+	sourceSets {
+		main {
+			java {
+				srcDir 'src'
+				srcDir 'patch'
+				sourceCompatibility = '1.8'
+				targetCompatibility = '1.8'
+			}
+			resources {
+				srcDir 'src'
+			}
+		}
+	}
+	
+	dependencies {
+		compile project(':convertigo-engine')
+		compileOnly 'org.apache.tomcat.embed:tomcat-embed-core:[7.0,7.1['
+		compileOnly 'org.apache.tomcat:tomcat-dbcp:[7.0,7.1['
+		compileOnly 'org.eclipse.swt:org.eclipse.swt.gtk.linux.x86_64:4.3@jar'
+		compile 'com.convertigo.lib:qrcode:2010.04.22'
+		runtime 'org.mariadb.jdbc:mariadb-java-client:[2,)'
+		runtime 'org.postgresql:postgresql:[42,)'
+		runtime 'net.sourceforge.jtds:jtds:[1.3,)'
+	}
+
+}
+
+project(':eclipse-plugin-jxbrowser-linux64') {
+	
+	dependencies {
+		runtime 'com.teamdev.jxbrowser:jxbrowser-linux64:6.18', { exclude module: 'jxbrowser'}
+	}
+	
+	
+	task writeManifest(dependsOn: syncLib) {
+		doLast {
+			def manifest = file 'META-INF/MANIFEST.MF'
+			project.manifest {
+				from sharedManifest
+				attributes(
+					'Bundle-Name': 'C-EMS Browser Linux 64',
+					'Bundle-SymbolicName': 'com.twinsoft.convertigo.studio.jxbrowser.linux64;singleton:=true',
+					'Fragment-Host': 'com.twinsoft.convertigo.studio',
+					'Eclipse-PlatformFilter': '(& (osgi.ws=gtk) (osgi.os=linux) (osgi.arch=x86_64))',
+					'Bundle-ClassPath': fileTree(dir: 'lib').collect { 'lib/' + it.name }.join(',')
+				)
+			}.writeTo(manifest)
+			manifest.text = manifest.text.replaceAll("Import-Package: .*\\s+", "")
+		}
+		group 'convertigo'
+	}
+}
+
+project(':eclipse-plugin-jxbrowser-mac') {
+	
+	dependencies {
+		runtime 'com.teamdev.jxbrowser:jxbrowser-mac:6.18', { exclude module: 'jxbrowser'}
+	}
+	
+	
+	task writeManifest(dependsOn: syncLib) {
+		doLast {
+			def manifest = file 'META-INF/MANIFEST.MF'
+			project.manifest {
+				from sharedManifest
+				attributes(
+					'Bundle-Name': 'C-EMS Browser MacOS',
+					'Bundle-SymbolicName': 'com.twinsoft.convertigo.studio.jxbrowser.mac;singleton:=true',
+					'Fragment-Host': 'com.twinsoft.convertigo.studio',
+					'Eclipse-PlatformFilter': '(& (osgi.ws=cocoa) (osgi.os=macosx) (osgi.arch=x86_64))',
+					'Bundle-ClassPath': fileTree(dir: 'lib').collect { 'lib/' + it.name }.join(',')
+				)
+			}.writeTo(manifest)
+			manifest.text = manifest.text.replaceAll("Import-Package: .*\\s+", "")
+		}
+		group 'convertigo'
+	}
+}
+
+project(':eclipse-plugin-jxbrowser-win') {
+	
+	dependencies {
+		runtime 'com.teamdev.jxbrowser:jxbrowser-win:6.18', { exclude module: 'jxbrowser'}
+	}
+	
+	
+	task writeManifest(dependsOn: syncLib) {
+		doLast {
+			def manifest = file 'META-INF/MANIFEST.MF'
+			project.manifest {
+				from sharedManifest
+				attributes(
+					'Bundle-Name': 'C-EMS Browser Windows',
+					'Bundle-SymbolicName': 'com.twinsoft.convertigo.studio.jxbrowser.win;singleton:=true',
+					'Fragment-Host': 'com.twinsoft.convertigo.studio',
+					'Eclipse-PlatformFilter': '(& (osgi.ws=win32) (osgi.os=win32) )',
+					'Bundle-ClassPath': fileTree(dir: 'lib').collect { 'lib/' + it.name }.join(',')
+				)
+			}.writeTo(manifest)
+			manifest.text = manifest.text.replaceAll("Import-Package: .*\\s+", "")
+		}
+		group 'convertigo'
+	}
+}
+
+project(':eclipse-plugin-product') {
+
+	task writeManifest(dependsOn: syncLib) {
+		doLast {
+			def manifest = file 'META-INF/MANIFEST.MF'
+			project.manifest {
+				from sharedManifest
+				attributes(
+					'Bundle-Name': 'C-EMS studio product',
+					'Bundle-SymbolicName': 'com.twinsoft.convertigo.studio.product;singleton:=true',
+					'Bundle-Activator': 'com.twinsoft.convertigo.studio.product.Activator',
+					'Bundle-ActivationPolicy': 'lazy',
+					'Bundle-ClassPath': 'convertigo-product.jar',
+					'Export-Package': 'com.twinsoft.convertigo.studio.product;uses:="org.osgi.framework,org.eclipse.core.runtime",'
+						+'com.twinsoft.convertigo.studio.product.splashHandlers;uses:="org.eclipse.ui.splash,org.eclipse.swt.widgets"',
+					'Require-Bundle': ['org.eclipse.core.runtime',
+										 'org.eclipse.ui',
+										 'org.eclipse.ui.intro.universal',
+										 'org.eclipse.ui.intro',
+										 'org.eclipse.swt'].join(',')
+				)
+			}.writeTo(manifest)
+			manifest.text = manifest.text.replaceAll("Import-Package: .*\\s+", "")
+		}
+		group 'convertigo'
+	}
+}
+
+project(':eclipse-plugin-studio') {
+	
+	eclipse {
+		classpath.file.withXml {
+			def node = it.asNode()
+			if (node.classpathentry.find { it.@path == 'org.eclipse.pde.core.requiredPlugins' } == null) {
+				node.appendNode('classpathentry', [kind: 'con', path: 'org.eclipse.pde.core.requiredPlugins'])
+			}
+	    }
+	}
+	
+	sourceSets {
+		main {
+			java {
+				srcDir 'src'
+				srcDir 'patch'
+				sourceCompatibility = '1.8'
+				targetCompatibility = '1.8'
+			}
+		}
+	}
+	
+	dependencies {
+		runtime project(':convertigo-engine')
+		runtime 'com.convertigo.lib:jxbrowser-license:2017.04.26'
+		runtime 'com.teamdev.jxbrowser:jxbrowser:6.18'
+		runtime 'org.apache.tomcat.embed:tomcat-embed-core:7.0.82'
+		runtime 'org.apache.tomcat.embed:tomcat-embed-logging-log4j:7.0.82'
+		runtime 'org.apache.tomcat:tomcat-dbcp:7.0.82'
+		runtime 'org.apache.axis2:axis2-adb:1.6.2@jar'
+	}
+	
+	task writeManifest(dependsOn: syncLib) {
+		doLast {
+			def manifest = file 'META-INF/MANIFEST.MF'
+			project.manifest {
+				from sharedManifest
+				attributes(
+					'Bundle-Name': 'C-EMS studio plugin',
+					'Bundle-SymbolicName': 'com.twinsoft.convertigo.studio; singleton:=true',
+					'Eclipse-BundleShape': 'dir',
+					'Bundle-Activator': 'com.twinsoft.convertigo.eclipse.ConvertigoPlugin',
+					//'Export-Package': 'org.mozilla.xpcom',
+					'Bundle-ActivationPolicy': 'lazy',
+					'Bundle-ClassPath': 'bin/,' + fileTree(dir: 'lib').collect { 'lib/' + it.name }.join(','),
+					'Require-Bundle': ['org.eclipse.core.resources',
+											 'org.eclipse.core.runtime',
+											 'org.eclipse.jface.text',
+											 'org.eclipse.swt',
+											 'org.eclipse.ui',
+											 'org.eclipse.ui.console',
+											 'org.eclipse.ui.ide',
+											 'org.eclipse.ui.views',
+											 'org.eclipse.wst.jsdt.ui',
+											 'org.eclipse.wst.jsdt.core',
+											 'org.eclipse.wst.sse.core',
+											 'org.eclipse.wst.sse.ui',
+											 'org.eclipse.wst.xml.ui'].join(',')
+				)
+			}.writeTo(manifest)
+			manifest.text = manifest.text.replaceAll("Import-Package: .*\\s+", "")
+		}
+		group 'convertigo'
+	}
+}
+
+project(':eclipse-plugin-xulrunner-win32') {
+	configurations {
+		xul
+	}
+	
+	dependencies {
+		xul 'com.convertigo.packages:xulrunner-win32:1.9.0.17-patched3'
+	}
+	
+	task untarXulrunner(type: Copy) {
+		from tarTree(resources.gzip(configurations.xul[0]))
+		into 'xulrunner'
+	}
+	
+}
+
+ext.sharedManifest = project(':convertigo-engine').manifest {
+	attributes(
+		'Bundle-ManifestVersion': '2',
+		'Bundle-Vendor': 'Convertigo',
+		'Bundle-Version': '7.5.0.qualifier',
+		'Bundle-RequiredExecutionEnvironment': 'JavaSE-1.8',
+	)
+}
+
+task writeManifest {
+	group 'convertigo'
+}
+
+task buildStudio(type: Exec) {
+	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
+		commandLine 'cmd', '/c', 'mvn'
+	} else {
+		commandLine 'mvn'
+	}
+	args 'clean', 'install'
+}
+buildStudio.onlyIf { !file('eclipse-repository/target/products').exists() }
+buildStudio.group = 'convertigo'
