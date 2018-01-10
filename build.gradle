@@ -2,7 +2,7 @@ buildscript {
 	repositories {
 		jcenter()
 	}
-
+	
 	dependencies {
 		classpath "com.monochromeroad.gradle-plugins:gradle-aws-s3-sync:0.10"
 	}
@@ -52,6 +52,13 @@ allprojects {
 				buildCommand 'org.eclipse.pde.ManifestBuilder'
 				buildCommand 'org.eclipse.buildship.core.gradleprojectbuilder'
 			}
+			
+			classpath.file.withXml {
+				def node = it.asNode()
+				if (node.classpathentry.find { it.@path == 'org.eclipse.pde.core.requiredPlugins' } == null) {
+					node.appendNode('classpathentry', [kind: 'con', path: 'org.eclipse.pde.core.requiredPlugins'])
+				}
+			}
 		}
 		
 		task syncLib(type: Sync) {
@@ -64,7 +71,9 @@ allprojects {
 	}
 	
 	plugins.withType(JavaPlugin) {
-		compileJava.options.encoding = 'UTF-8';
+		compileJava.options.encoding = 'UTF-8'
+		sourceCompatibility = '1.8'
+		targetCompatibility = '1.8'
 	}
 }
 
@@ -77,8 +86,6 @@ project(':convertigo-engine') {
 				srcDir '../eclipse-plugin-studio/src'
 				exclude 'com/twinsoft/convertigo/eclipse/**'
 				srcDir '../eclipse-plugin-studio/patch'
-				sourceCompatibility = '1.8'
-				targetCompatibility = '1.8'
 			}
 			/*resources {
 				srcDir '../eclipse-plugin-studio/src'
@@ -156,7 +163,6 @@ project(':convertigo-war') {
 	apply plugin: 'eclipse-wtp'
 	
 	group 'com.convertigo.webapp'
-	version '7.5.0'
 	
 	webAppDirName = 'convertigo'
 	
@@ -201,11 +207,6 @@ project(':convertigo-war') {
 			java {
 				srcDir 'src'
 				srcDir 'patch'
-				sourceCompatibility = '1.8'
-				targetCompatibility = '1.8'
-			}
-			resources {
-				srcDir 'src'
 			}
 		}
 	}
@@ -220,15 +221,12 @@ project(':convertigo-war') {
 		runtime 'org.postgresql:postgresql:[42,)'
 		runtime 'net.sourceforge.jtds:jtds:[1.3,)'
 	}
-
 }
 
 project(':eclipse-plugin-jxbrowser-linux64') {
-	
 	dependencies {
 		runtime 'com.teamdev.jxbrowser:jxbrowser-linux64:6.18', { exclude module: 'jxbrowser'}
 	}
-	
 	
 	task writeManifest(dependsOn: syncLib) {
 		doLast {
@@ -250,11 +248,9 @@ project(':eclipse-plugin-jxbrowser-linux64') {
 }
 
 project(':eclipse-plugin-jxbrowser-mac') {
-	
 	dependencies {
 		runtime 'com.teamdev.jxbrowser:jxbrowser-mac:6.18', { exclude module: 'jxbrowser'}
 	}
-	
 	
 	task writeManifest(dependsOn: syncLib) {
 		doLast {
@@ -276,11 +272,9 @@ project(':eclipse-plugin-jxbrowser-mac') {
 }
 
 project(':eclipse-plugin-jxbrowser-win') {
-	
 	dependencies {
 		runtime 'com.teamdev.jxbrowser:jxbrowser-win:6.18', { exclude module: 'jxbrowser'}
 	}
-	
 	
 	task writeManifest(dependsOn: syncLib) {
 		doLast {
@@ -302,7 +296,14 @@ project(':eclipse-plugin-jxbrowser-win') {
 }
 
 project(':eclipse-plugin-product') {
-
+	sourceSets {
+		main {
+			java {
+				srcDir 'src'
+			}
+		}
+	}
+	
 	task writeManifest(dependsOn: syncLib) {
 		doLast {
 			def manifest = file 'META-INF/MANIFEST.MF'
@@ -317,10 +318,10 @@ project(':eclipse-plugin-product') {
 					'Export-Package': 'com.twinsoft.convertigo.studio.product;uses:="org.osgi.framework,org.eclipse.core.runtime",'
 						+'com.twinsoft.convertigo.studio.product.splashHandlers;uses:="org.eclipse.ui.splash,org.eclipse.swt.widgets"',
 					'Require-Bundle': ['org.eclipse.core.runtime',
-										 'org.eclipse.ui',
-										 'org.eclipse.ui.intro.universal',
-										 'org.eclipse.ui.intro',
-										 'org.eclipse.swt'].join(',')
+										'org.eclipse.ui',
+										'org.eclipse.ui.intro.universal',
+										'org.eclipse.ui.intro',
+										'org.eclipse.swt'].join(',')
 				)
 			}.writeTo(manifest)
 			manifest.text = manifest.text.replaceAll("Import-Package: .*\\s+", "")
@@ -330,23 +331,11 @@ project(':eclipse-plugin-product') {
 }
 
 project(':eclipse-plugin-studio') {
-	
-	eclipse {
-		classpath.file.withXml {
-			def node = it.asNode()
-			if (node.classpathentry.find { it.@path == 'org.eclipse.pde.core.requiredPlugins' } == null) {
-				node.appendNode('classpathentry', [kind: 'con', path: 'org.eclipse.pde.core.requiredPlugins'])
-			}
-	    }
-	}
-	
 	sourceSets {
 		main {
 			java {
 				srcDir 'src'
 				srcDir 'patch'
-				sourceCompatibility = '1.8'
-				targetCompatibility = '1.8'
 			}
 		}
 	}
@@ -408,7 +397,6 @@ project(':eclipse-plugin-xulrunner-win32') {
 		from tarTree(resources.gzip(configurations.xul[0]))
 		into 'xulrunner'
 	}
-	
 }
 
 ext.sharedManifest = project(':convertigo-engine').manifest {

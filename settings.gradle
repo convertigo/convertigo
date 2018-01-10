@@ -1,15 +1,3 @@
-/*
-include 'convertigo-eclipse-jxbrowser-linux64'
-include 'convertigo-eclipse-jxbrowser-mac'
-include 'convertigo-eclipse-jxbrowser-win'
-include 'convertigo-eclipse-plugin'
-include 'convertigo-eclipse-repository'
-include 'convertigo-eclipse-xulrunner-win32'
-include 'convertigo-engine'
-include 'convertigo-war'
-include 'convertigo-eclipse-server'
-*/
-
 include 'convertigo-engine'
 include 'convertigo-war'
 include 'eclipse-feature'
