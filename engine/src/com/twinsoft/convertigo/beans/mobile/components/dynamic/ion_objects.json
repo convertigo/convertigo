@@ -5399,6 +5399,7 @@
         "type": "string",
         "value": false,
         "values": [
+          false,
           "true",
           "false"
         ]
@@ -5410,6 +5411,7 @@
         "type": "boolean",
         "value": false,
         "values": [
+          false,
           "true",
           "false"
         ]
@@ -5421,6 +5423,7 @@
         "type": "string",
         "value": false,
         "values": [
+          false,
           "true",
           "false"
         ]
@@ -5433,6 +5436,7 @@
         "type": "string",
         "value": false,
         "values": [
+          false,
           "true",
           "false"
         ]
@@ -5461,6 +5465,7 @@
         "type": "string",
         "value": false,
         "values": [
+          false,
           "true",
           "false"
         ]
@@ -5491,6 +5496,7 @@
         "type": "string",
         "value": false,
         "values": [
+          false,
           "false",
           "true"
         ]
@@ -5519,6 +5525,7 @@
         "type": "string",
         "value": false,
         "values": [
+          false,
           "false",
           "true"
         ]
@@ -5539,6 +5546,7 @@
         "type": "string",
         "value": false,
         "values": [
+          false,
           "ok",
           "update_after"
         ]
