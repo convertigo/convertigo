@@ -3269,6 +3269,7 @@
           "category": "@Properties",
           "value": false,
           "values": [
+            false,
             "Janvier, F�vrier, Mars, Avril, Mai, Juin, Juillet, Aout, Septembre, Octobre, Novembre, D�cembre",
             "Gennaio, Febbraio, Marzo, Aprile, Maggio, Giugno, Luglio, Agosto, Settembre, Ottobre, Novembre, Dicembre",
             true
@@ -3281,6 +3282,7 @@
           "category": "@Properties",
           "value": false,
           "values": [
+            false,
             "Dimanche, Lundi, Mardi, Mercredi, Jeudi, Vendredi, Samedi",
             "Domenica, Lunedi, Martedi, Mercoledi, Giovedi, Venerdi, Sabato",
             true
