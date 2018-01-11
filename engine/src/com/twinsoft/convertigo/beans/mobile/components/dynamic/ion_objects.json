@@ -6006,7 +6006,7 @@
 	        "description": "Rotate the image to correct for the orientation of the device during capture.",
 	        "category": "@camera options",
 	        "type": "boolean",
-	        "value": true,
+	        "value": "true",
 	        "values": [
 	        	false,
 	        	"true",
@@ -6075,6 +6075,7 @@
 	        "type": "string",
 	        "value": false,
 	        "values": [
+	            false,
 	        	"ARROW_UP",
 	        	"ARROW_DOWN",
 	        	"ARROW_LEFT",
