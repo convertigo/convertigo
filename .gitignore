@@ -4,6 +4,8 @@ META-INF
 
 **/.settings/*
 !**/.settings/org.eclipse.core.resources.prefs
+!**/.settings/org.eclipse.jst.jsp.core.prefs
+!**/.settings/org.eclipse.wst.validation.prefs
 
 /*/bin
 /*/build

@@ -76,152 +76,6 @@ allprojects {
 	}
 }
 
-project(':convertigo-engine') {
-	apply plugin: 'java'
-	
-	sourceSets {
-		main {
-			java {
-				srcDir '../eclipse-plugin-studio/src'
-				exclude 'com/twinsoft/convertigo/eclipse/**'
-				srcDir '../eclipse-plugin-studio/patch'
-			}
-			/*resources {
-				srcDir '../eclipse-plugin-studio/src'
-			}*/
-		}
-	}
-	
-	dependencies {
-		compile 'ca.juliusdavies:not-yet-commons-ssl:0.3.11'
-		compile 'com.convertigo.lib:ctgclient:2010.06.14'
-		compile 'com.convertigo.lib:httpclientAuthHelper:2014.12.23'
-		compile 'com.convertigo.lib:mozilla-interfaces:1.9.0.17'
-		compile 'com.convertigo.lib:sapjco:3'
-		compile 'com.convertigo.lib:soapui-xmlbeans:3.5.1'
-		compile 'com.convertigo.lib:soapui:3.5.1'
-		compile 'com.convertigo.provider:convertigo-provider-couchdb:' + project.version
-		compile 'com.convertigo.provider:convertigo-provider-plugins:' + project.version
-		compile 'com.convertigo.provider:convertigo-provider-sap:' + project.version
-		compile 'com.convertigo.provider:convertigo-provider-xul:' + project.version
-		compile 'com.convertigo.twinsoft.lib:aviva:2017.09.04'
-		compile 'com.convertigo.twinsoft.lib:comm:1998.11.15'
-		compile 'com.convertigo.twinsoft.lib:ms:2002.01.03'
-		compile 'com.convertigo.twinsoft.lib:netscape:2002.01.04'
-		compile 'com.convertigo.twinsoft.lib:phaos:1998.11.15'
-		compile 'com.convertigo.twinsoft:api:2017.12.29'
-		compile 'com.convertigo.twinsoft:ibm:2017.03.10'
-		compile 'com.convertigo.twinsoft:tas:2017.12.29'
-		compile 'com.convertigo.twinsoft:twinj:2016.05.09'
-		compile 'com.convertigo.twinsoft:ui:2009.06.15'
-		compile 'com.convertigo.twinsoft:util:2017.12.29'
-		compile 'com.fasterxml.jackson.core:jackson-core:[2.8,2.9['
-		compile 'com.github.fernandospr:javapns-jdk16:[2.2,2.3['
-		compile 'com.google.gcm:gcm-server:1.0.0'
-		compile 'com.sun.xml.bind:jaxb-xjc:[2.2,2.3['
-		compile 'commons-collections:commons-collections:[3.2,3.3['
-		compile 'commons-fileupload:commons-fileupload:[1.3,1.4['
-		compile 'commons-httpclient:commons-httpclient:3.1'
-		compile 'commons-io:commons-io:[2.5,)'
-		compile 'commons-jxpath:commons-jxpath:1.3'
-		compile 'commons-lang:commons-lang:[2.6,)'
-		compile 'io.swagger:swagger-models:[1.5,1.6['
-		compile 'io.swagger:swagger-parser:[1.0,1.1['
-		compile 'javax.mail:mail:1.4'
-		compile 'log4j:log4j:[1.2,1.3['
-		compile 'oauth.signpost:signpost-core:[1.2.1,1.2.2['
-		compile 'org.apache.axis2:axis2-saaj:1.6.2', { exclude module: 'servlet-api'}
-		compile 'org.apache.commons:commons-lang3:[3,)'
-		compile 'org.apache.httpcomponents:httpclient:[4.5,)'
-		compile 'org.apache.ws.commons.axiom:axiom-api:1.2.13'
-		compile 'org.apache.ws.commons.axiom:axiom-dom:1.2.13'
-		compile 'org.apache.ws.commons.axiom:axiom-impl:1.2.13'
-		compile 'org.apache.ws.commons.schema:XmlSchema:[1.4,1.5['
-		compile 'org.apache.xmlbeans:xmlbeans:[2.6,2.7['
-		compile 'org.apache.xmlgraphics:fop:1.0', { exclude module: 'batik-js'}
-		compile 'org.codehaus.jettison:jettison:[1.3,)'
-		compile 'org.hibernate.javax.persistence:hibernate-jpa-2.1-api:1.0.0.Final'
-		compile 'org.hibernate:hibernate-core:5.2.10.Final'
-		compile 'org.mozilla:rhino:[1.7,)'
-		compile 'org.quartz-scheduler:quartz:[1.7,1.8['
-		compile 'regexp:regexp:1.3'
-		compile 'ro.isdc.wro4j:wro4j-core:[1.6,1.7['
-		compile 'ro.isdc.wro4j:wro4j-extensions:[1.8,1.9['
-		compile 'wsdl4j:wsdl4j:[1.6,1.7['
-		compile 'xalan:xalan:[2.7,)'
-		compile 'xerces:xercesImpl:[2.11,)'
-		compile 'xml-resolver:xml-resolver:1.2'
-		compileOnly 'org.apache.tomcat.embed:tomcat-embed-core:[7.0,7.1['
-		compileOnly 'org.apache.tomcat:tomcat-dbcp:[7.0,7.1['
-		compileOnly 'org.eclipse.swt:org.eclipse.swt.gtk.linux.x86_64:4.3@jar'
-	}
-}
-
-project(':convertigo-war') {
-	apply plugin: 'war'
-	apply plugin: 'eclipse-wtp'
-	
-	group 'com.convertigo.webapp'
-	
-	webAppDirName = 'convertigo'
-	
-	eclipse {
-		project {
-			natures 'org.eclipse.buildship.core.gradleprojectnature'
-			buildCommand 'org.eclipse.buildship.core.gradleprojectbuilder'
-			linkedResource name: 'convertigo', type: '2', locationUri: '$%7BPARENT-1-PROJECT_LOC%7D/eclipse-plugin-studio/tomcat/webapps/convertigo'
-			linkedResource name: 'patch', type: '2', locationUri: '$%7BPARENT-1-PROJECT_LOC%7D/eclipse-plugin-studio/patch'
-			linkedResource name: 'src/com/twinsoft/convertigo/engine', type: '2', locationUri: '$%7BPARENT-1-PROJECT_LOC%7D/eclipse-plugin-studio/src/com/twinsoft/convertigo/engine'
-			linkedResource name: 'src/com/twinsoft/convertigo/beans', type: '2', locationUri: '$%7BPARENT-1-PROJECT_LOC%7D/eclipse-plugin-studio/src/com/twinsoft/convertigo/beans'
-		}
-	
-		wtp {
-			component {
-				contextPath = 'convertigo'
-				deployName = 'convertigo'
-				//resource sourcePath: 'convertigo', deployPath: '/'
-				file {
-					withXml {
-						def node = it.asNode()
-						if (node.'wb-module'.'wb-resource'.find { it['@deploy-path'] == '/' } == null) {
-							node = node['wb-module'][0].appendNode('wb-resource')
-							node['@source-path'] = 'convertigo'
-							node['@deploy-path'] = '/'
-						}
-					}
-				}
-			}
-		}
-	}
-	
-	war {
-		archiveName 'convertigo.war'
-		doFirst {
-			project.webAppDirName = '../convertigo-eclipse-plugin/tomcat/webapps/convertigo'
-		}
-	}
-	
-	sourceSets {
-		main {
-			java {
-				srcDir 'src'
-				srcDir 'patch'
-			}
-		}
-	}
-	
-	dependencies {
-		compile project(':convertigo-engine')
-		compileOnly 'org.apache.tomcat.embed:tomcat-embed-core:[7.0,7.1['
-		compileOnly 'org.apache.tomcat:tomcat-dbcp:[7.0,7.1['
-		compileOnly 'org.eclipse.swt:org.eclipse.swt.gtk.linux.x86_64:4.3@jar'
-		compile 'com.convertigo.lib:qrcode:2010.04.22'
-		runtime 'org.mariadb.jdbc:mariadb-java-client:[2,)'
-		runtime 'org.postgresql:postgresql:[42,)'
-		runtime 'net.sourceforge.jtds:jtds:[1.3,)'
-	}
-}
-
 project(':eclipse-plugin-jxbrowser-linux64') {
 	dependencies {
 		runtime 'com.teamdev.jxbrowser:jxbrowser-linux64:6.18', { exclude module: 'jxbrowser'}
@@ -325,22 +179,16 @@ project(':eclipse-plugin-product') {
 			}.writeTo(manifest)
 			manifest.text = manifest.text.replaceAll("Import-Package: .*\\s+", "")
 		}
+		
 		group 'convertigo'
 	}
 }
 
 project(':eclipse-plugin-studio') {
-	sourceSets {
-		main {
-			java {
-				srcDir 'src'
-				srcDir 'patch'
-			}
-		}
-	}
+	sourceSets.main.java.srcDir 'src'
 	
 	dependencies {
-		runtime project(':convertigo-engine')
+		runtime project(':engine')
 		runtime 'com.convertigo.lib:jxbrowser-license:2017.04.26'
 		runtime 'com.teamdev.jxbrowser:jxbrowser:6.18'
 		runtime 'org.apache.tomcat.embed:tomcat-embed-core:7.0.82'
@@ -398,7 +246,136 @@ project(':eclipse-plugin-xulrunner-win32') {
 	}
 }
 
-ext.sharedManifest = project(':convertigo-engine').manifest {
+project(':engine') {
+	apply plugin: 'war'
+	apply plugin: 'eclipse-wtp'
+	
+	group 'com.convertigo.webapp'
+	
+	webAppDirName = 'convertigo'
+	
+	eclipse {
+		project {
+			natures 'org.eclipse.buildship.core.gradleprojectnature'
+			buildCommand 'org.eclipse.buildship.core.gradleprojectbuilder'
+			linkedResource name: 'convertigo', type: '2', locationUri: '$%7BPARENT-1-PROJECT_LOC%7D/eclipse-plugin-studio/tomcat/webapps/convertigo'
+			//linkedResource name: 'patch', type: '2', locationUri: '$%7BPARENT-1-PROJECT_LOC%7D/eclipse-plugin-studio/patch'
+			//linkedResource name: 'src/com/twinsoft/convertigo/engine', type: '2', locationUri: '$%7BPARENT-1-PROJECT_LOC%7D/eclipse-plugin-studio/src/com/twinsoft/convertigo/engine'
+			//linkedResource name: 'src/com/twinsoft/convertigo/beans', type: '2', locationUri: '$%7BPARENT-1-PROJECT_LOC%7D/eclipse-plugin-studio/src/com/twinsoft/convertigo/beans'
+		}
+	
+		wtp {
+			component {
+				contextPath = 'convertigo'
+				deployName = 'convertigo'
+				//resource sourcePath: 'convertigo', deployPath: '/'
+				file {
+					withXml {
+						def node = it.asNode()
+						if (node.'wb-module'.'wb-resource'.find { it['@deploy-path'] == '/' } == null) {
+							node = node['wb-module'][0].appendNode('wb-resource')
+							node['@source-path'] = 'convertigo'
+							node['@deploy-path'] = '/'
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	war {
+		archiveName 'convertigo.war'
+		doFirst {
+			project.webAppDirName = '../convertigo-eclipse-plugin/tomcat/webapps/convertigo'
+		}
+	}
+	
+	sourceSets {
+		main {
+			java {
+				srcDir 'src'
+				srcDir 'patch'
+			}
+		}
+	}
+	/*
+	dependencies {
+		compile project(':engine')
+		compileOnly 'org.apache.tomcat.embed:tomcat-embed-core:[7.0,7.1['
+		compileOnly 'org.apache.tomcat:tomcat-dbcp:[7.0,7.1['
+		compileOnly 'org.eclipse.swt:org.eclipse.swt.gtk.linux.x86_64:4.3@jar'
+		compile 'com.convertigo.lib:qrcode:2010.04.22'
+		runtime 'org.mariadb.jdbc:mariadb-java-client:[2,)'
+		runtime 'org.postgresql:postgresql:[42,)'
+		runtime 'net.sourceforge.jtds:jtds:[1.3,)'
+	}*/
+	
+	dependencies {
+		compile 'ca.juliusdavies:not-yet-commons-ssl:0.3.11'
+		compile 'com.convertigo.lib:ctgclient:2010.06.14'
+		compile 'com.convertigo.lib:httpclientAuthHelper:2014.12.23'
+		compile 'com.convertigo.lib:mozilla-interfaces:1.9.0.17'
+		compile 'com.convertigo.lib:sapjco:3'
+		compile 'com.convertigo.lib:soapui-xmlbeans:3.5.1'
+		compile 'com.convertigo.lib:soapui:3.5.1'
+		compile 'com.convertigo.provider:convertigo-provider-couchdb:' + project.version
+		compile 'com.convertigo.provider:convertigo-provider-plugins:' + project.version
+		compile 'com.convertigo.provider:convertigo-provider-sap:' + project.version
+		compile 'com.convertigo.provider:convertigo-provider-xul:' + project.version
+		compile 'com.convertigo.twinsoft.lib:aviva:2017.09.04'
+		compile 'com.convertigo.twinsoft.lib:comm:1998.11.15'
+		compile 'com.convertigo.twinsoft.lib:ms:2002.01.03'
+		compile 'com.convertigo.twinsoft.lib:netscape:2002.01.04'
+		compile 'com.convertigo.twinsoft.lib:phaos:1998.11.15'
+		compile 'com.convertigo.twinsoft:api:2017.12.29'
+		compile 'com.convertigo.twinsoft:ibm:2017.03.10'
+		compile 'com.convertigo.twinsoft:tas:2017.12.29'
+		compile 'com.convertigo.twinsoft:twinj:2016.05.09'
+		compile 'com.convertigo.twinsoft:ui:2009.06.15'
+		compile 'com.convertigo.twinsoft:util:2017.12.29'
+		compile 'com.fasterxml.jackson.core:jackson-core:[2.8,2.9['
+		compile 'com.github.fernandospr:javapns-jdk16:[2.2,2.3['
+		compile 'com.google.gcm:gcm-server:1.0.0'
+		compile 'com.sun.xml.bind:jaxb-xjc:[2.2,2.3['
+		compile 'commons-collections:commons-collections:[3.2,3.3['
+		compile 'commons-fileupload:commons-fileupload:[1.3,1.4['
+		compile 'commons-httpclient:commons-httpclient:3.1'
+		compile 'commons-io:commons-io:[2.5,)'
+		compile 'commons-jxpath:commons-jxpath:1.3'
+		compile 'commons-lang:commons-lang:[2.6,)'
+		compile 'io.swagger:swagger-models:[1.5,1.6['
+		compile 'io.swagger:swagger-parser:[1.0,1.1['
+		compile 'javax.mail:mail:1.4'
+		compile 'log4j:log4j:[1.2,1.3['
+		compile 'oauth.signpost:signpost-core:[1.2.1,1.2.2['
+		compile 'org.apache.axis2:axis2-saaj:1.6.2', { exclude module: 'servlet-api'}
+		compile 'org.apache.commons:commons-lang3:[3,)'
+		compile 'org.apache.httpcomponents:httpclient:[4.5,)'
+		compile 'org.apache.ws.commons.axiom:axiom-api:1.2.13'
+		compile 'org.apache.ws.commons.axiom:axiom-dom:1.2.13'
+		compile 'org.apache.ws.commons.axiom:axiom-impl:1.2.13'
+		compile 'org.apache.ws.commons.schema:XmlSchema:[1.4,1.5['
+		compile 'org.apache.xmlbeans:xmlbeans:[2.6,2.7['
+		compile 'org.apache.xmlgraphics:fop:1.0', { exclude module: 'batik-js'}
+		compile 'org.codehaus.jettison:jettison:[1.3,)'
+		compile 'org.hibernate.javax.persistence:hibernate-jpa-2.1-api:1.0.0.Final'
+		compile 'org.hibernate:hibernate-core:5.2.10.Final'
+		compile 'org.mozilla:rhino:[1.7,)'
+		compile 'org.quartz-scheduler:quartz:[1.7,1.8['
+		compile 'regexp:regexp:1.3'
+		compile 'ro.isdc.wro4j:wro4j-core:[1.6,1.7['
+		compile 'ro.isdc.wro4j:wro4j-extensions:[1.8,1.9['
+		compile 'wsdl4j:wsdl4j:[1.6,1.7['
+		compile 'xalan:xalan:[2.7,)'
+		compile 'xerces:xercesImpl:[2.11,)'
+		compile 'xml-resolver:xml-resolver:1.2'
+		compileOnly 'org.apache.tomcat.embed:tomcat-embed-core:[7.0,7.1['
+		compileOnly 'org.apache.tomcat:tomcat-dbcp:[7.0,7.1['
+		compileOnly 'org.eclipse.swt:org.eclipse.swt.gtk.linux.x86_64:4.3@jar'
+	}
+}
+
+ext.sharedManifest = project(':engine').manifest {
 	attributes(
 		'Bundle-ManifestVersion': '2',
 		'Bundle-Vendor': 'Convertigo',
