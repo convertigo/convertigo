@@ -5707,6 +5707,7 @@
 	        "type": "string",
 	        "value": false,
 	        "values": [
+	            false,
 	        	"THEME_DEVICE_DEFAULT_DARK",
 	        	"THEME_DEVICE_DEFAULT_LIGHT",
 	        	"THEME_HOLO_DARK",
@@ -5721,6 +5722,7 @@
 	        "type": "boolean",
 	        "value": false,
 	        "values": [
+	            false,
 	        	"true",
 	        	"false"
 	        ]
@@ -5732,6 +5734,7 @@
 	        "type": "boolean",
 	        "value": false,
 	        "values": [
+	            false,
 	        	"true",
 	        	"false"
 	        ]
@@ -5764,6 +5767,7 @@
 	        "type": "boolean",
 	        "value": false,
 	        "values": [
+	            false,
 	        	"true",
 	        	"false"
 	        ]
