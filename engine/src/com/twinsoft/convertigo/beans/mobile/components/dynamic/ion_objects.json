@@ -4655,6 +4655,7 @@
           "type": "boolean",
           "value": false,
           "values": [
+            false,
           	"true",
           	"false"
           	]
@@ -4674,6 +4675,7 @@
           "type": "boolean",
           "value": false,
           "values": [
+            false,
           	"true",
           	"false"
           	]
