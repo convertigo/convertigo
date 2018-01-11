@@ -259,9 +259,6 @@ project(':engine') {
 			natures 'org.eclipse.buildship.core.gradleprojectnature'
 			buildCommand 'org.eclipse.buildship.core.gradleprojectbuilder'
 			linkedResource name: 'convertigo', type: '2', locationUri: '$%7BPARENT-1-PROJECT_LOC%7D/eclipse-plugin-studio/tomcat/webapps/convertigo'
-			//linkedResource name: 'patch', type: '2', locationUri: '$%7BPARENT-1-PROJECT_LOC%7D/eclipse-plugin-studio/patch'
-			//linkedResource name: 'src/com/twinsoft/convertigo/engine', type: '2', locationUri: '$%7BPARENT-1-PROJECT_LOC%7D/eclipse-plugin-studio/src/com/twinsoft/convertigo/engine'
-			//linkedResource name: 'src/com/twinsoft/convertigo/beans', type: '2', locationUri: '$%7BPARENT-1-PROJECT_LOC%7D/eclipse-plugin-studio/src/com/twinsoft/convertigo/beans'
 		}
 	
 		wtp {
@@ -283,10 +280,13 @@ project(':engine') {
 		}
 	}
 	
+	jar.baseName 'convertigo-engine'
+	
 	war {
-		archiveName 'convertigo.war'
+		baseName 'convertigo'
+		classpath = files(configurations.runtime, jar)
 		doFirst {
-			project.webAppDirName = '../convertigo-eclipse-plugin/tomcat/webapps/convertigo'
+			project.webAppDirName = '../eclipse-plugin-studio/tomcat/webapps/convertigo'
 		}
 	}
 	
@@ -389,12 +389,20 @@ task writeManifest {
 }
 
 task buildStudio(type: Exec) {
+	group 'convertigo'
+	
+	onlyIf { !file('eclipse-repository/target/products').exists() }
+	
 	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
 		commandLine 'cmd', '/c', 'mvn'
 	} else {
 		commandLine 'mvn'
 	}
+	
 	args 'clean', 'install'
 }
-buildStudio.onlyIf { !file('eclipse-repository/target/products').exists() }
-buildStudio.group = 'convertigo'
+
+task buildStudioClean(type: Delete) {
+	group 'convertigo'
+	delete 'eclipse-repository/target/products'
+}
