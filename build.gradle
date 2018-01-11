@@ -22,7 +22,6 @@ eclipse {
 	}
 }
 
-
 allprojects {
 	version '7.5.0'
 	
@@ -314,7 +313,7 @@ project(':eclipse-plugin-product') {
 					'Bundle-SymbolicName': 'com.twinsoft.convertigo.studio.product;singleton:=true',
 					'Bundle-Activator': 'com.twinsoft.convertigo.studio.product.Activator',
 					'Bundle-ActivationPolicy': 'lazy',
-					'Bundle-ClassPath': 'convertigo-product.jar',
+					'Bundle-ClassPath': 'lib/convertigo-product.jar',
 					'Export-Package': 'com.twinsoft.convertigo.studio.product;uses:="org.osgi.framework,org.eclipse.core.runtime",'
 						+'com.twinsoft.convertigo.studio.product.splashHandlers;uses:="org.eclipse.ui.splash,org.eclipse.swt.widgets"',
 					'Require-Bundle': ['org.eclipse.core.runtime',
@@ -362,7 +361,7 @@ project(':eclipse-plugin-studio') {
 					'Bundle-Activator': 'com.twinsoft.convertigo.eclipse.ConvertigoPlugin',
 					//'Export-Package': 'org.mozilla.xpcom',
 					'Bundle-ActivationPolicy': 'lazy',
-					'Bundle-ClassPath': 'bin/,' + fileTree(dir: 'lib').collect { 'lib/' + it.name }.join(','),
+					'Bundle-ClassPath': 'bin/,lib/convertigo-eclipse.jar,' + fileTree(dir: 'lib').collect { 'lib/' + it.name }.join(','),
 					'Require-Bundle': ['org.eclipse.core.resources',
 											 'org.eclipse.core.runtime',
 											 'org.eclipse.jface.text',
