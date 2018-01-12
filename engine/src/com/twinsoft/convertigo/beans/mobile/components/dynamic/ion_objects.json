@@ -5185,6 +5185,13 @@
         "category": "@Properties",
         "type": "string",
         "value": false
+      },
+      "c8oGrp": {
+        "label": "Group",
+        "description": "The group name or groups this document will belong to. A given document can bee seen and mofified by any user belonging to the group or the groups defined here. This property can be a single group (give the group name as a string) or a list of groups. In this case, use a jSON object containing one key per group this document will belong to." ,
+        "category": "@Properties",
+        "type": "string",
+        "value": false
       }
     }
 },
