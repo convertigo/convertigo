@@ -29,8 +29,6 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 
 import com.twinsoft.convertigo.beans.core.MobileComponent;
-import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
-import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput;
 
@@ -49,25 +47,13 @@ public class MobileComponentTreeObject extends DatabaseObjectTreeObject implemen
 		return (MobileComponent) super.getObject();
 	}
 
-	protected boolean isSymbolValue(Object value) {
-		if (value != null) {
-			String val = null;
-			if (value instanceof String) {
-				val = String.valueOf(value);
-			} else if (value instanceof MobileSmartSourceType) {
-				val = ((MobileSmartSourceType)value).getValue();
-			}
-			return val != null && val.startsWith("${") && val.endsWith("}");
-		}
+	@Override
+	public boolean acceptSymbols() {
 		return false;
 	}
 	
 	@Override
 	public void setPropertyValue(Object id, Object value) {
-		if (isSymbolValue(value)) {
-			ConvertigoPlugin.logError("Symbols are not allowed for mobile components", true);
-			return;
-		}
 		super.setPropertyValue(id, value);
 	}
 

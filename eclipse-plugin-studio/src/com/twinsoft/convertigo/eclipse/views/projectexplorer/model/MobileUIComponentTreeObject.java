@@ -430,6 +430,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 					}
 	    	        propertyDescriptor.setCategory(property.getCategory());
 	    	        propertyDescriptor.setDescription(property.getDescription());
+	    	        propertyDescriptor.setValidator(getValidator(id));
 	    			l.add(propertyDescriptor);
 	    		}
         	}
@@ -456,11 +457,6 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 
 	@Override
 	public void setPropertyValue(Object id, Object value) {
-		if (isSymbolValue(value)) {
-			ConvertigoPlugin.logError("Symbols are not allowed for mobile components", true);
-			return;
-		}
-		
 		DatabaseObject dbo = getObject();
         if (dbo instanceof UIDynamicElement) {
         	IonBean ionBean = ((UIDynamicElement)dbo).getIonBean();

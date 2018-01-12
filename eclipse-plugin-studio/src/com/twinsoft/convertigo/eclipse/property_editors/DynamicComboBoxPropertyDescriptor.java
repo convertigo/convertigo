@@ -23,17 +23,22 @@ public class DynamicComboBoxPropertyDescriptor extends PropertyDescriptor {
 	private String[] tags = {SYMBOL};
 	private ComboBoxCellEditor editor;
 	private ComboBoxLabelProvider labelProvider;
+	private boolean acceptSymbols = true;
 	
-	public DynamicComboBoxPropertyDescriptor(Object id, String displayName, String[] tags) {
+	public DynamicComboBoxPropertyDescriptor(Object id, String displayName, String[] tags, boolean acceptSymbols) {
 		super(id, displayName);
-    	tags = Arrays.copyOf(tags, tags.length + 1);
-    	tags[tags.length - 1] = this.tags[this.tags.length - 1];
+		this.acceptSymbols = acceptSymbols;
+		if (acceptSymbols) {
+	    	tags = Arrays.copyOf(tags, tags.length + 1);
+	    	tags[tags.length - 1] = this.tags[this.tags.length - 1];
+		}
     	this.tags = tags;
 	}
 	
 	public DynamicComboBoxPropertyDescriptor(Object id, String displayName, Method getTagsMethod,
 			DatabaseObjectTreeObject databaseObjectTreeObject, String propertyName) {
 		super(id, displayName);
+		this.acceptSymbols = databaseObjectTreeObject.acceptSymbols();
 		this.databaseObjectTreeObject = databaseObjectTreeObject;
 		this.getTagsMethod = getTagsMethod;
 		this.propertyName = propertyName;
@@ -113,9 +118,11 @@ public class DynamicComboBoxPropertyDescriptor extends PropertyDescriptor {
     	if (getTagsMethod != null) {
 			try {
 				String[] tags = (String[]) getTagsMethod.invoke(null, new Object[] { databaseObjectTreeObject, propertyName } );
-				if (!SYMBOL.equals(tags[tags.length - 1])) {
-					tags = Arrays.copyOf(tags, tags.length + 1);
-			    	tags[tags.length - 1] = SYMBOL;
+				if (acceptSymbols) {
+					if (!SYMBOL.equals(tags[tags.length - 1])) {
+						tags = Arrays.copyOf(tags, tags.length + 1);
+				    	tags[tags.length - 1] = SYMBOL;
+					}
 				}
 		    	this.tags = tags;
 			} catch (Exception e) {

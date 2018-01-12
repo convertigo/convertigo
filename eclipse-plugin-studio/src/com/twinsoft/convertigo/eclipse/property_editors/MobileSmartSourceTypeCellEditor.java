@@ -10,6 +10,8 @@ import org.eclipse.swt.events.FocusAdapter;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -17,6 +19,8 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.TraverseEvent;
 import org.eclipse.swt.events.TraverseListener;
+import org.eclipse.swt.events.VerifyEvent;
+import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
@@ -110,6 +114,39 @@ public class MobileSmartSourceTypeCellEditor extends AbstractDialogCellEditor {
 			}
 		});
 
+		comboBox.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				if (!isCorrect(comboBox.getText())) {
+					setValueValid(false);
+					setErrorMessage(MessageFormat.format(getErrorMessage(),
+							new Object[] { comboBox.getText() }));
+				} else {
+					setValueValid(true);
+					setErrorMessage(null);
+				}
+			}
+		});
+		
+		comboBox.addVerifyListener(new VerifyListener() {
+			@Override
+			public void verifyText(VerifyEvent e) {
+				String oldS = comboBox.getText();
+				String newS = oldS.substring(0, e.start) + e.text + oldS.substring(e.end);
+				boolean oldValidState = isValueValid();
+				if (!isCorrect(newS)) {
+					setValueValid(false);
+					setErrorMessage(MessageFormat.format(getErrorMessage(),
+							new Object[] { newS }));
+					valueChanged(oldValidState, false);
+				} else {
+					setValueValid(true);
+					setErrorMessage(null);
+					valueChanged(oldValidState, true);
+				}
+			}
+		});
+		
 		comboBox.addFocusListener(new FocusAdapter() {
 			@Override
 			public void focusLost(FocusEvent e) {

@@ -31,6 +31,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.CellEditor;
@@ -72,6 +74,7 @@ import com.twinsoft.convertigo.beans.core.Pool;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.statements.HandlerStatement;
 import com.twinsoft.convertigo.beans.statements.ScDefaultHandlerStatement;
 import com.twinsoft.convertigo.beans.statements.ScHandlerStatement;
@@ -191,6 +194,11 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		}
 	}
 
+	
+	public boolean acceptSymbols() {
+		return true;
+	}
+    
     @Override
 	public void update() {
 		if (isInherited) {
@@ -378,13 +386,41 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	}
     
     // A default validator which accept any value
-    protected ICellEditorValidator getValidator(String propertyName) {
+    /*protected ICellEditorValidator getValidator(String propertyName) {
     	return new ICellEditorValidator() {
         	public String isValid(Object value) {
         		return null;
         	}
         };
-    }
+    }*/
+	protected ICellEditorValidator getValidator(String propertyName) {
+		return new ICellEditorValidator() {
+			@Override
+			public String isValid(Object value) {
+				if (!acceptSymbols() && isSymbolValue(value)) {
+					return "Symbols are not allowed for this component";
+				}
+				return null;
+			}
+		};
+	}
+	
+	protected boolean isSymbolValue(Object value) {
+		if (value != null) {
+			String val = null;
+			if (value instanceof String) {
+				val = String.valueOf(value);
+			} else if (value instanceof MobileSmartSourceType) {
+				val = ((MobileSmartSourceType)value).getValue();
+			}
+			if (val != null) {
+				Pattern pattern = Pattern.compile("\\$\\{(.*)\\}");
+				Matcher matcher = pattern.matcher(val);
+				return matcher.find();
+			}
+		}
+		return false;
+	}
     
     private PropertyDescriptor findPropertyDescriptor(final String name, 
     													String displayName, 
@@ -402,7 +438,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
         if (pec == null) {
 			if (value instanceof Boolean) {
 		    	String[] values = new String[] { "true", "false" };
-				propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, values);
+				propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, values, acceptSymbols());
 		    }
 			else if (value instanceof Number) {
 				propertyDescriptor = new TextPropertyDescriptor(name, displayName);
@@ -424,11 +460,11 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
     			} else if (PropertyWithTagsEditorAdvance.class.isAssignableFrom(pec)){
     				Method getTags = pec.getDeclaredMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
     				tags = (String[]) getTags.invoke(null, new Object[] { this, name } );
-    				propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, tags);
+    				propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, tags, acceptSymbols());
     			} else {
     				Method getTags = pec.getDeclaredMethod("getTags", new Class[] { DatabaseObjectTreeObject.class});
     				tags = (String[]) getTags.invoke(null, new Object[] { this } );
-    				propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, tags);
+    				propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, tags, acceptSymbols());
     			}
    	        }
         	else if (StringComboBoxPropertyDescriptor.class.isAssignableFrom(pec)) {
@@ -471,7 +507,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	        else if (Enum.class.isAssignableFrom(pec)) {
 	        	String[] tags = EnumUtils.toStrings(pec);
 	        	
-	        	propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, tags);
+	        	propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, tags, acceptSymbols());
 	        }
         }
 
@@ -510,6 +546,11 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
     	}
         
     	if (propertyDescriptor != null) {
+    		ICellEditorValidator validator = getValidator(name);
+    		if (validator != null) {
+        		propertyDescriptor.setValidator(validator);
+    		}
+    		
     		final ILabelProvider labelProvider = propertyDescriptor.getLabelProvider();
     		propertyDescriptor.setLabelProvider(new ILabelProvider() {
 				
