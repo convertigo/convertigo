@@ -23,6 +23,9 @@
 package com.twinsoft.convertigo.eclipse.property_editors.validators;
 
 import java.net.URI;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.eclipse.jface.viewers.ICellEditorValidator;
 
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
@@ -49,6 +52,12 @@ public class MobilePageSegmentValidator implements ICellEditorValidator {
 			}
 			if (segment.endsWith("/")) {
 				return "The segment must not end with \"/\"!";
+			}
+
+			Pattern pattern = Pattern.compile("\\$\\{(.*)\\}");
+			Matcher matcher = pattern.matcher(segment);
+			if (matcher.find()) {
+				return "The segment must not contain symbols!";
 			}
 			
 			try {
