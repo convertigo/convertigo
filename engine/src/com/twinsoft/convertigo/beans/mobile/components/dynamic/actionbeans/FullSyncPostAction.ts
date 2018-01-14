@@ -25,7 +25,7 @@
                 delete data[rootKey]._id
                 delete data[rootKey].c8oGrp
                 if (group != null)
-                    data.c8oGrp = group
+                    data["c8oGrp"] = group
                     
                 data["_use_policy"] = policy
                 if(id != null){
