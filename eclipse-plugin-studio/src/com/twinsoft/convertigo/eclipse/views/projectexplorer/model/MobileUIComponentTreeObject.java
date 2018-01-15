@@ -429,7 +429,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 						};
 					}
 	    	        propertyDescriptor.setCategory(property.getCategory());
-	    	        propertyDescriptor.setDescription(property.getDescription());
+	    	        propertyDescriptor.setDescription(cleanDescription(property.getDescription()));
 	    	        propertyDescriptor.setValidator(getValidator(id));
 	    			l.add(propertyDescriptor);
 	    		}

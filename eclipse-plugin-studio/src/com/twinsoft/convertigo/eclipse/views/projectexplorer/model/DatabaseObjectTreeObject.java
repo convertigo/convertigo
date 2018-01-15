@@ -608,7 +608,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
         return propertyDescriptor;
     }
     
-    private String cleanDescription(String description) {
+    protected String cleanDescription(String description) {
 		String cleanDescription = description;
 		// Replace first space
 		if (cleanDescription.charAt(0) == ' ') cleanDescription = cleanDescription.substring(1);
