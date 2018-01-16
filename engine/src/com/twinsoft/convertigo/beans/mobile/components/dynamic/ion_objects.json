@@ -5279,7 +5279,7 @@
     "description": "Defines a <i>Delete Attachment</i> action component. | This component helps deleting (delete_attachment) attachments on a FullSync database document.<br/> For more information : <a target='_blank' href='https://www.convertigo.com/document/latest/reference-manual/convertigo-full-sync-architecture/interacting-locally-with-the-data/'>interacting-locally-with-the-data/</a>",
     "group": "FullSync Actions",
     "icon16": "deleteattachementaction_color_16x16.png",
-    "icon32": "deleteputattachementaction_color_32x32.png",
+    "icon32": "deleteattachementaction_color_32x32.png",
     "properties": {
       "requestable": {
         "editor": "NamedSourceSelectorEditor",
