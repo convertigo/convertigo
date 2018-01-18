@@ -21,7 +21,7 @@
                                     '%20Files.ReadWrite'
                             response_mode = 'fragment&state=12345&nonce=678910'                 // Ask implicitflow
                             response_type = 'id_token+token'
-                            callbackurl = page.c8o.endpointConvertigo + "/projects/lib_OAuth/getToken.html"
+                            callbackurl   = 'https://login.live.com/oauth20_desktop.srf'
                             oAuthUrl = 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize'
                             loginRequestable = "lib_OAuth.loginAzureAdWithAccessToken"
                             checkAccessTokenRequestable = "lib_OAuth.checkAccessToken"
@@ -36,7 +36,9 @@
                         '&response_type='+ response_type +                                      // We ask for implicit flow
                         '&scope=' + scope +
                         '&response_mode=' + response_mode,                                      // Implicit flow
-                        callbackurl,                                                            // the call back URL to check (As declared in the app portal)
+                        window["cordova"] != undefined ?
+                           callbackurl :
+                           page.c8o.endpointConvertigo + "/projects/lib_OAuth/getToken.html",   // the call back URL to check (As declared in the app portal)
                         loginRequestable,                                                       // The server sequence to be launched to login
                         checkAccessTokenRequestable,                                            // The server sequence to be launched to check the access token
                     ).then((response: any )=>{
