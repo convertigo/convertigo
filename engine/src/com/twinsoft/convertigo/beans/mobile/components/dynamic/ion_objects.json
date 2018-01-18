@@ -1089,6 +1089,72 @@
       }
     },
 	
+    "FSImage": {
+      "tag": "img",
+	  "displayName": "FSImage",
+      "label": "FSImage",
+      "autoClose": true,
+      "description": "img| Defines an <i>FSImage</i> component.<br/>This component helps defining an image based on data retrieved from an attachment.",
+      "group": "FullSync Components",
+      "icon16": "img_fs_color_16x16.png",
+      "icon32": "img_fs_color_32x32.png",
+      "properties": {
+        "url": {
+          "hidden": true,
+          "mode":"script",
+          "attr": "[src]",
+          "label": "src",
+          "description": "The image url",
+          "category": "Attributes",
+          "value": "getAttachmentUrl($[docid], $[attachment], $[placeholder], $[requestable])"
+        },
+        "docid": {
+          "composite": true,
+          "label": "Document ID",
+          "description": "The document ID for this attachment",
+          "category": "Attributes",
+          "value": false,
+          "values": [
+            false,
+            true
+          ]
+        },
+        "attachment": {
+          "composite": true,
+          "label": "Attachment name",
+          "description": "The attachment name",
+          "category": "Attributes",
+          "value": false,
+          "values": [
+            false,
+            true
+          ]
+        },
+        "placeholder": {
+          "composite": true,
+          "label": "Attachment placeholder",
+          "description": "The url placeholder for this attachment",
+          "category": "Attributes",
+          "value": false,
+          "values": [
+            false,
+            true
+          ]
+        },
+        "requestable": {
+          "editor": "NamedSourceSelectorEditor",
+          "composite": true,
+          "label": "Database",
+          "description": "The fullsync database",
+          "category": "Attributes",
+          "value": "",
+          "values": [
+            false,
+            true
+          ]
+        }
+      }
+    },
 
   /* Super tabs : Sliding tabs */  
   "SlidingTabs": {
