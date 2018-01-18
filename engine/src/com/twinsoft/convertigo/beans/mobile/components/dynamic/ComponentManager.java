@@ -389,8 +389,10 @@ public class ComponentManager {
 					} );
 					
 					for (IonProperty ionProperty: properties) {
-						propertiesDescription += "<li><i>"+ ionProperty.getLabel() +"</i>" ;
-						propertiesDescription += "</br>"+ ionProperty.getDescription() +"</li>";
+						if (!ionProperty.isHidden()) {
+							propertiesDescription += "<li><i>"+ ionProperty.getLabel() +"</i>" ;
+							propertiesDescription += "</br>"+ ionProperty.getDescription() +"</li>";
+						}
 					}
 					return propertiesDescription.isEmpty() ? "": "<ul>"+propertiesDescription+"</ul>";
 				}

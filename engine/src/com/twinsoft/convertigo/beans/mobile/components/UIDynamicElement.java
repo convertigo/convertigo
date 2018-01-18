@@ -24,11 +24,16 @@ package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.beans.BeanInfo;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.text.StrSubstitutor;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.IDynamicBean;
+import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType.Mode;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonEvent;
@@ -121,6 +126,12 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 		return getName();
 	}
 	
+	protected static boolean isComposedValue(String val) {
+		Pattern pattern = Pattern.compile("\\$\\[(.*)\\]");
+		Matcher matcher = pattern.matcher(val);
+		return matcher.find();
+	}
+	
 	@Override
 	protected StringBuilder initAttributes() {
 		StringBuilder attributes = super.initAttributes();
@@ -129,11 +140,35 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 		
     	if (ionBean != null) {
     		String formControlVarName = getFormControlName();
-    		
+
+    		Map<String, String> vm = new HashMap<String, String>();
+			for (IonProperty property : ionBean.getProperties().values()) {
+				String name = property.getName();
+				Object value = property.getValue();
+				if (!value.equals(false)) {
+					MobileSmartSourceType msst = property.getSmartType();
+					String smartValue = msst.getValue();
+					if (Mode.PLAIN.equals(msst.getMode())) {
+						if (property.getType().equalsIgnoreCase("string")) {
+							if (!isComposedValue(smartValue)) {
+								smartValue = "\'" + MobileSmartSourceType.escapeStringForTpl(smartValue) + "\'";
+							}
+						}
+					}
+					vm.put(name, smartValue);
+				} else {
+					vm.put(name, "null");
+				}
+			}
+			
+			StrSubstitutor sub = new StrSubstitutor(vm,"$[","]");
+			sub.setEnableSubstitutionInVariables(true);
+			
 			for (IonProperty property : ionBean.getProperties().values()) {
 				String name = property.getName();
 				String attr = property.getAttr();
 				Object value = property.getValue();
+				boolean isComposite = property.isComposite();
 				
 				// case value is set
 				if (!value.equals(false)) {
@@ -144,7 +179,6 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 							attributes.append(" [disabled]=\"!").append(formGroupName).append(".valid\"");
 						}
 					} else {
-						String smartValue = property.getSmartValue();
 						if (name.equals("FormControlName") && formControlVarName.isEmpty()) {
 							continue;
 						}
@@ -157,28 +191,35 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 							}
 						}
 						
-						attributes.append(" ");
-						if (attr.isEmpty()) {
-							attributes.append(smartValue);
-						}
-						else if (attr.indexOf("%%") != -1){
-							attributes.append(attr.replaceFirst("%%", smartValue));
-						}
-						else {
-							attributes.append(attr).append("=");
-							attributes.append("\"").append(smartValue).append("\"");
+						String smartValue = property.getSmartValue();
+						smartValue = sub.replace(smartValue);
+						
+						if (!isComposite) {
+							attributes.append(" ");
+							if (attr.isEmpty()) {
+								attributes.append(smartValue);
+							}
+							else if (attr.indexOf("%%") != -1){
+								attributes.append(attr.replaceFirst("%%", smartValue));
+							}
+							else {
+								attributes.append(attr).append("=");
+								attributes.append("\"").append(smartValue).append("\"");
+							}
 						}
 					}
 				}
 				// case value is not set
 				else {
-					if (attr.equals("[ngModel]")) {
-						String tagName = getTagName();
-						if (formControlVarName.isEmpty() 
-								|| tagName.equals("ion-checkbox") || tagName.equals("ion-toggle")) {
-							continue;
-						} else {
-							attributes.append(" [ngModel]=\"null\"");
+					if (!isComposite) {
+						if (attr.equals("[ngModel]")) {
+							String tagName = getTagName();
+							if (formControlVarName.isEmpty() 
+									|| tagName.equals("ion-checkbox") || tagName.equals("ion-toggle")) {
+								continue;
+							} else {
+								attributes.append(" [ngModel]=\"null\"");
+							}
 						}
 					}
 				}

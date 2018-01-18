@@ -36,6 +36,8 @@ public class IonProperty implements Cloneable {
 		attr,
 		label,
 		editor,
+		hidden,
+		composite,
 		description,
 		category,
 		mode,
@@ -54,6 +56,8 @@ public class IonProperty implements Cloneable {
 				.put(Key.attr.name(), "")
 				.put(Key.label.name(), "label")
 				.put(Key.editor.name(), "")
+				.put(Key.hidden.name(), false)
+				.put(Key.composite.name(), false)
 				.put(Key.description.name(), "description")
 				.put(Key.category.name(), "Attributes")
 				.put(Key.mode.name(), "plain")
@@ -114,6 +118,24 @@ public class IonProperty implements Cloneable {
 		} catch (JSONException e) {
 			e.printStackTrace();
 			return "";
+		}
+	}
+	
+	public boolean isHidden() {
+		try {
+			return jsonProperty.getBoolean(Key.hidden.name());
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	public boolean isComposite() {
+		try {
+			return jsonProperty.getBoolean(Key.composite.name());
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return false;
 		}
 	}
 	
