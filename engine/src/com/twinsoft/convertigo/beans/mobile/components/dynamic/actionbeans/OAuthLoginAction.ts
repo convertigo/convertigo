@@ -22,7 +22,12 @@
                             response_mode = 'fragment&state=12345&nonce=678910'                 // Ask implicitflow
                             response_type = 'id_token+token'
                             callbackurl   = 'https://login.live.com/oauth20_desktop.srf'
-                            oAuthUrl = 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize'
+                            oAuthUrl = 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize?' +     
+                                'client_id=' + clientid +                                             
+                                '&response_type='+ response_type +                                    
+                                '&scope=' + scope +
+                                '&response_mode=' + response_mode
+                                
                             loginRequestable = "lib_OAuth.loginAzureAdWithAccessToken"
                             checkAccessTokenRequestable = "lib_OAuth.checkAccessToken"
                             break
@@ -31,11 +36,8 @@
                             page.c8o.log.error("[MB] OAuth login, invalid provider type")
                     }
                         
-                    page.routerProvider.doOAuthLogin(oAuthUrl + '?' +                           // Authorize URL
-                        'client_id=' + clientid +                                               // Client ID as registred in the app portal
-                        '&response_type='+ response_type +                                      // We ask for implicit flow
-                        '&scope=' + scope +
-                        '&response_mode=' + response_mode,                                      // Implicit flow
+                    page.routerProvider.doOAuthLogin(
+                        oAuthUrl, 
                         window["cordova"] != undefined ?
                            callbackurl :
                            page.c8o.endpointConvertigo + "/projects/lib_OAuth/getToken.html",   // the call back URL to check (As declared in the app portal)
