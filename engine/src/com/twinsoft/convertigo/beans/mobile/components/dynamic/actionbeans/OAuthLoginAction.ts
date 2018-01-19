@@ -13,15 +13,19 @@
             let loginRequestable
             let checkAccessTokenRequestable
             if (clientid && provider) {
-                page.getInstance(Platform).ready().then(() => {                                 // Wait for CDV Plugins to be initialized                
+                page.getInstance(Platform).ready().then(() => {                                         // Wait for CDV Plugins to be initialized                
                     switch(provider) {
                         case 'azure':
-                            scope = 'openid' +                                                  // Scopes...
+                            scope = props.scope ? props.scope :'openid' +                               // Scopes...
                                     '%20https%3A%2F%2Fgraph.microsoft.com%2FUser.Read' +
                                     '%20Files.ReadWrite'
-                            response_mode = 'fragment&state=12345&nonce=678910'                 // Ask implicitflow
+                            response_mode = 'fragment&state=12345&nonce=678910'                         // Ask implicitflow
                             response_type = 'id_token+token'
-                            callbackurl   = 'https://login.live.com/oauth20_desktop.srf'
+                                
+                            callbackurl = window["cordova"] != undefined ?
+                                    'https://login.live.com/oauth20_desktop.srf' :
+                                    page.c8o.endpointConvertigo + "/projects/lib_OAuth/getToken.html"   // the call back URL to check (As declared in the app portal)
+                                
                             oAuthUrl = 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize?' +     
                                 'client_id=' + clientid +                                             
                                 '&response_type='+ response_type +                                    
@@ -32,15 +36,31 @@
                             checkAccessTokenRequestable = "lib_OAuth.checkAccessToken"
                             break
                             
+                        case "linkedin":
+                            scope = props.scope ? props.scope : 'r_basicprofile'
+                            response_type = 'code'
+                                    
+                            oAuthUrl = 'https://www.linkedin.com/oauth/v2/authorization?' +     
+                                'client_id=' + clientid +                                             
+                                '&response_type='+ response_type +                                    
+                                '&scope=' + scope +
+                                '&state=c8ocsrf'
+                        
+                            loginRequestable = "lib_OAuth.loginLinkedInWithCode"
+                            checkAccessTokenRequestable = "lib_OAuth.checkAccessTokenLinkedIn"
+                            callbackurl   = window["cordova"] != undefined ? 
+                                    'https://www.convertigo.com/authorize':
+                                    page.c8o.endpointConvertigo + "/projects/lib_OAuth/getTokenLinkedIn.html"
+                                    
+                            break
+                            
                         default:
                             page.c8o.log.error("[MB] OAuth login, invalid provider type")
                     }
                         
                     page.routerProvider.doOAuthLogin(
                         oAuthUrl, 
-                        window["cordova"] != undefined ?
-                           callbackurl :
-                           page.c8o.endpointConvertigo + "/projects/lib_OAuth/getToken.html",   // the call back URL to check (As declared in the app portal)
+                        callbackurl,
                         loginRequestable,                                                       // The server sequence to be launched to login
                         checkAccessTokenRequestable,                                            // The server sequence to be launched to check the access token
                     ).then((response: any )=>{
