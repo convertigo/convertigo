@@ -32,8 +32,8 @@
                                 '&scope=' + scope +
                                 '&response_mode=' + response_mode
                                 
-                            loginRequestable = "lib_OAuth.loginAzureAdWithAccessToken"
-                            checkAccessTokenRequestable = "lib_OAuth.checkAccessToken"
+                            loginRequestable = props.loginRequestable ? props.loginRequestable : "lib_OAuth.loginAzureAdWithAccessToken"
+                            checkAccessTokenRequestable = props.checkAccessTokenRequestable ? props.checkAccessTokenRequestable : "lib_OAuth.checkAccessToken"
                             break
                             
                         case "linkedin":
@@ -46,12 +46,40 @@
                                 '&scope=' + scope +
                                 '&state=c8ocsrf'
                         
-                            loginRequestable = "lib_OAuth.loginLinkedInWithCode"
-                            checkAccessTokenRequestable = "lib_OAuth.checkAccessTokenLinkedIn"
+                            loginRequestable = props.loginRequestable ? props.loginRequestable : "lib_OAuth.loginLinkedInWithCode"
+                            checkAccessTokenRequestable = props.checkAccessTokenRequestable ? props.checkAccessTokenRequestable : "lib_OAuth.checkAccessTokenLinkedIn"
                             callbackurl   = window["cordova"] != undefined ? 
                                     'https://www.convertigo.com/authorize':
                                     page.c8o.endpointConvertigo + "/projects/lib_OAuth/getTokenLinkedIn.html"
                                     
+                            break
+
+                        case "openid":
+                            scope = props.scope ? props.scope : 'openid'
+                            response_type = 'id_token+token'
+                                    
+                            if (!props.authorization_endpoint) {
+                                page.c8o.log.error("[MB] OAuth login, Authorization endpoint no set for OpenID provider")
+                                reject("[MB] OAuth login, Authorization endpoint no set for OpenID provider")
+                                return
+                            }    
+
+                            
+                            if (!props.callbackurl) {
+                                page.c8o.log.error("[MB] OAuth login, redirect URI  no set for OpenID provider")
+                                reject("[MB] OAuth login, redirect URI  no set for OpenID provider")
+                                return
+                            }    
+                            callbackurl = props.callbackurl
+                            oAuthUrl = props.authorization_endpoint + '?' +
+                                'client_id=' + clientid +                                             
+                                '&response_type='+ response_type +                                    
+                                '&scope=' + scope +
+                                '&state=c8ocsrf' +
+                                '&nonce=' + Date.now();
+                        
+                            loginRequestable = props.loginRequestable ? props.loginRequestable : "lib_OAuth.loginOpenID"
+                            checkAccessTokenRequestable = props.checkAccessTokenRequestable ? props.checkAccessTokenRequestable : "lib_OAuth.checkAccessOpenID"
                             break
                             
                         default:
