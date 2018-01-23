@@ -68,16 +68,7 @@
 		<icon height="29" platform="ios" src="res/icons/ios/icon-small.png" width="29" />
 		<icon height="58" platform="ios" src="res/icons/ios/icon-small@2x.png" width="58" />
 		<icon height="87" platform="ios" src="res/icons/ios/icon-small@3x.png" width="87" />
-		<splash height="1136" platform="ios" src="res/screens/ios/Default-568h@2x~iphone.png" width="640" />
-		<splash height="1334" platform="ios" src="res/screens/ios/Default-667h.png" width="750" />
-		<splash height="2208" platform="ios" src="res/screens/ios/Default-736h.png" width="1242" />
-		<splash height="1242" platform="ios" src="res/screens/ios/Default-Landscape-736h.png" width="2208" />
-		<splash height="1536" platform="ios" src="res/screens/ios/Default-Landscape@2x~ipad.png" width="2048" />
-		<splash height="768" platform="ios" src="res/screens/ios/Default-Landscape~ipad.png" width="1024" />
-		<splash height="2048" platform="ios" src="res/screens/ios/Default-Portrait@2x~ipad.png" width="1536" />
-		<splash height="1024" platform="ios" src="res/screens/ios/Default-Portrait~ipad.png" width="768" />
-		<splash height="960" platform="ios" src="res/screens/ios/Default@2x~iphone.png" width="640" />
-		<splash height="480" platform="ios" src="res/screens/ios/Default~iphone.png" width="320" />
+		<splash height="2732" platform="ios" src="res/screens/ios/Default@2x~universal~anyany.png" width="2732" />
 	</platform>
 
 	<!-- If you do not want any permissions to be added to your app, add the
@@ -93,9 +84,6 @@
     <plugin name="cordova-plugin-whitelist" spec="~1.3.2"/>
     <plugin name="cordova-plugin-network-information" spec="~1.3.3" />
 	
-	<!-- Status bar plugin for iOS 7+ -->
-	<plugin name="cordova-plugin-statusbar" spec="~2.2.3"/>
-    
 	
 	<!-- Expose access to all URIs, including the file and http protocols -->
 	<access origin="*" />
