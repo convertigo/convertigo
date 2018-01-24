@@ -47,6 +47,7 @@ import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.IAction;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIActionFailureEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIAttribute;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlAttr;
@@ -300,6 +301,7 @@ public class ComponentManager {
 			group = "Controls";
 			components.add(getDboComponent(UIControlEvent.class,group));
 			components.add(getDboComponent(UIPageEvent.class,group));
+			components.add(getDboComponent(UIActionFailureEvent.class,group));
 			components.add(getDboComponent(UIControlDirective.class,group));
 			
 			// Add Actions
@@ -437,7 +439,8 @@ public class ComponentManager {
 				return true;
 			}
 		} else if (dboParent instanceof UIComponent) {
-			if (dboParent instanceof UIPageEvent) {
+			if (dboParent instanceof UIPageEvent ||
+					dboParent instanceof UIActionFailureEvent) {
 				if (IAction.class.isAssignableFrom(dboClass)) {
 					return true;
 				}
@@ -449,7 +452,8 @@ public class ComponentManager {
 			}
 			else if (dboParent instanceof UICustomAction ||
 						dboParent instanceof UIDynamicAction) {
-				if (UIDynamicAction.class.isAssignableFrom(dboClass) ||
+				if (UIActionFailureEvent.class.isAssignableFrom(dboClass) ||
+						UIDynamicAction.class.isAssignableFrom(dboClass) ||
 						UICustomAction.class.isAssignableFrom(dboClass) ||
 						UIControlVariable.class.isAssignableFrom(dboClass)) {
 					return true;

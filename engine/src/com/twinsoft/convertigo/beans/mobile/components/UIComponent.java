@@ -108,7 +108,7 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		increaseOrder(databaseObject, new Long(priority));
 	}
     
-    private void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
+    protected void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
     	List<Long> ordered = null;
     	Long value = new Long(databaseObject.priority);
     	
@@ -132,7 +132,7 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
     	markAsDirty();
     }
     
-    private void decreaseOrder(DatabaseObject databaseObject, Long after) throws EngineException {
+    protected void decreaseOrder(DatabaseObject databaseObject, Long after) throws EngineException {
     	List<Long> ordered = null;
     	long value = databaseObject.priority;
     	

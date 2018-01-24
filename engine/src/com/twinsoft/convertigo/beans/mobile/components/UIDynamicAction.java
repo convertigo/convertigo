@@ -41,11 +41,14 @@ import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent.AttrEvent;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonProperty;
+import com.twinsoft.convertigo.engine.EngineException;
 
 public class UIDynamicAction extends UIDynamicElement implements IAction {
 
 	private static final long serialVersionUID = 5988583131428053374L;
 
+	private transient UIActionFailureEvent failureEvent = null;
+	
 	public UIDynamicAction() {
 		super();
 	}
@@ -57,9 +60,57 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	@Override
 	public UIDynamicAction clone() throws CloneNotSupportedException {
 		UIDynamicAction cloned = (UIDynamicAction) super.clone();
+		cloned.failureEvent = null;
 		return cloned;
 	}
 
+	@Override
+	protected void addUIComponent(UIComponent uiComponent, Long after) throws EngineException {
+		checkSubLoaded();
+		
+		if (uiComponent instanceof UIActionFailureEvent) {
+    		if (this.failureEvent != null) {
+    			throw new EngineException("The action \"" + getName() + "\" already contains an event! Please delete it first.");
+    		}
+    		else {
+    			this.failureEvent = (UIActionFailureEvent)uiComponent;
+    			after = -1L;// to be first
+    		}
+		}
+		
+		super.addUIComponent(uiComponent, after);
+	}
+	
+	@Override
+	protected void removeUIComponent(UIComponent uiComponent) throws EngineException {
+		super.removeUIComponent(uiComponent);
+		
+        if (uiComponent != null && uiComponent.equals(this.failureEvent)) {
+    		this.failureEvent = null;
+        }
+	}
+	
+	@Override
+	protected void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
+		if (databaseObject.equals(this.failureEvent)) {
+			return;
+		} else if (this.failureEvent != null) {
+			int pos = getOrderedComponents().get(0).indexOf(databaseObject.priority);
+			if (pos-1 <= 0) {
+				return;
+			}
+		}
+		super.increaseOrder(databaseObject, before);
+	}
+	
+	@Override
+	protected void decreaseOrder(DatabaseObject databaseObject, Long after) throws EngineException {
+		if (databaseObject.equals(this.failureEvent)) {
+			return;
+		}
+		super.decreaseOrder(databaseObject, after);
+	}
+	
 	@Override
 	protected StringBuilder initAttributes() {
 		return new StringBuilder();
@@ -85,6 +136,18 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			}
 		}
 		return num;
+	}
+	
+	protected boolean handleFailure() {
+		boolean handleFailure = false;
+		if (this.failureEvent != null) {
+			if (this.failureEvent.isEnabled()) {
+				if (this.failureEvent.numberOfActions() > 0) {
+					handleFailure = true;
+				}
+			}
+		}
+		return handleFailure;
 	}
 	
 	protected String getScope() {
@@ -122,7 +185,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				}
 			}
 			
-			if (numberOfActions() > 0 || getParent() instanceof UIPageEvent) {
+			if (handleFailure() || numberOfActions() > 0 || getParent() instanceof UIPageEvent) {
 				String scope = getScope();
 				String in = formGroupName == null ? "{}": "merge("+formGroupName +".value, {})";
 				return getFunctionName() + "({root: {scope:{"+scope+"}, in:"+ in +", out:$event}})";
@@ -275,7 +338,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	
 	protected String computeActionFunction() {
 		String computed = "";
-		if (isEnabled() && (numberOfActions() > 0 || getParent() instanceof UIPageEvent)) {
+		if (isEnabled() && (handleFailure() || numberOfActions() > 0 || getParent() instanceof UIPageEvent)) {
 			StringBuilder parameters = new StringBuilder();
 			parameters.append("stack");
 			
@@ -325,21 +388,29 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			String actionName = ionBean.getName();
 			String inputs = computeActionInputs(false);
 			
+			StringBuilder sbCatch = new StringBuilder();
 			StringBuilder sbThen = new StringBuilder();  
 			Iterator<UIComponent> it = getUIComponentList().iterator();
 			while (it.hasNext()) {
 				UIComponent component = (UIComponent)it.next();
 				if (component.isEnabled()) {
-					String s = "";
+					String sCatch="", sThen = "";
 					if (component instanceof UIDynamicAction) {
-						s = ((UIDynamicAction)component).computeActionContent();
+						sThen = ((UIDynamicAction)component).computeActionContent();
 					}
 					if (component instanceof UICustomAction) {
-						s = ((UICustomAction)component).computeActionContent();
+						sThen = ((UICustomAction)component).computeActionContent();
 					}
-					if (!s.isEmpty()) {
+					if (component instanceof UIActionFailureEvent) {
+						sCatch = ((UIActionFailureEvent)component).computeEvent();
+					}
+					
+					if (!sCatch.isEmpty()) {
+						sbCatch.append(sCatch);
+					}
+					if (!sThen.isEmpty()) {
 						sbThen.append(sbThen.length()>0 && numThen > 1 ? "\t\t,"+ System.lineSeparator() :"")
-						.append(s);
+						.append(sThen);
 					}
 				}
 			}
@@ -350,6 +421,16 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			tsCode += "\t\tself.in = "+ inputs +";"+ System.lineSeparator();
 			
 			tsCode +="\t\treturn this.actionBeans."+actionName+"(this, self.in.props, this.merge(self.in.vars, stack[\"root\"].in))"+ System.lineSeparator();
+			tsCode += "\t\t.catch((error:any) => {"+ System.lineSeparator();
+			tsCode += "\t\tparent = self;"+ System.lineSeparator();
+			tsCode += "\t\tparent.out = error;"+ System.lineSeparator();
+			tsCode += "\t\tout = parent.out;"+ System.lineSeparator();
+			if (sbCatch.length() > 0) {
+				tsCode += "\t\t"+ sbCatch.toString();
+			} else {
+				tsCode += "\t\treturn Promise.reject(error);"+ System.lineSeparator();
+			}
+			tsCode += "\t\t})"+ System.lineSeparator();
 			tsCode += "\t\t.then((res:any) => {"+ System.lineSeparator();
 			tsCode += "\t\tparent = self;"+ System.lineSeparator();
 			tsCode += "\t\tparent.out = res;"+ System.lineSeparator();
