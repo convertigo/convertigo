@@ -70,7 +70,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		
 		if (uiComponent instanceof UIActionFailureEvent) {
     		if (this.failureEvent != null) {
-    			throw new EngineException("The action \"" + getName() + "\" already contains an event! Please delete it first.");
+    			throw new EngineException("The action \"" + getName() + "\" already contains a failure event! Please delete it first.");
     		}
     		else {
     			this.failureEvent = (UIActionFailureEvent)uiComponent;
@@ -150,6 +150,39 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		return handleFailure;
 	}
 	
+	protected boolean handleError() {
+		boolean handleError = false;
+		UIActionErrorEvent errorEvent = getParentErrorEvent();
+		if (errorEvent != null && errorEvent.isEnabled()) {
+			if (errorEvent.numberOfActions() > 0) {
+				handleError = true;
+			}
+		}
+		return handleError;
+	}
+
+	private UIActionErrorEvent getParentErrorEvent() {
+		DatabaseObject parent = getParent();
+		if (parent != null ) {
+			if (parent instanceof UIControlEvent) {
+				UIControlEvent uiControlEvent = (UIControlEvent)parent;
+				if (uiControlEvent.isEnabled()) {
+					return uiControlEvent.getErrorEvent();
+				}
+			} else if (parent instanceof UIPageEvent) {
+				UIPageEvent uiPageEvent = (UIPageEvent)parent;
+				if (uiPageEvent.isEnabled()) {
+					return uiPageEvent.getErrorEvent();
+				}
+			}
+		}
+		return null;
+	}
+	
+	protected boolean isStacked() {
+		return handleError() || handleFailure() || numberOfActions() > 0 || getParent() instanceof UIPageEvent;
+	}
+	
 	protected String getScope() {
 		String scope = "";
 		DatabaseObject parent = getParent();
@@ -185,7 +218,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				}
 			}
 			
-			if (handleFailure() || numberOfActions() > 0 || getParent() instanceof UIPageEvent) {
+			if (isStacked()) {
 				String scope = getScope();
 				String in = formGroupName == null ? "{}": "merge("+formGroupName +".value, {})";
 				return getFunctionName() + "({root: {scope:{"+scope+"}, in:"+ in +", out:$event}})";
@@ -322,7 +355,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		}
 		
 		DatabaseObject parent = getParent();
-		if (parent != null && !(parent instanceof IAction)) {
+		if (parent != null && !(parent instanceof IAction) && !(parent instanceof UIActionEvent)) {
 			try {
 				String function = computeActionFunction();
 				
@@ -338,7 +371,14 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	
 	protected String computeActionFunction() {
 		String computed = "";
-		if (isEnabled() && (handleFailure() || numberOfActions() > 0 || getParent() instanceof UIPageEvent)) {
+		if (isEnabled() && isStacked()) {
+			
+			StringBuilder sbCatch = new StringBuilder();
+			if (handleError()) {
+				UIActionErrorEvent errorEvent = getParentErrorEvent();
+				sbCatch.append(errorEvent.computeEvent());
+			}
+			
 			StringBuilder parameters = new StringBuilder();
 			parameters.append("stack");
 			
@@ -374,6 +414,14 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			computed += "\t\tthis.c8o.log.debug(\"[MB] "+functionName+": started\");" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
 			computed += ""+ computeActionContent();
+			if (sbCatch.length() > 0) {
+				computed += "\t\t.catch((error:any) => {"+ System.lineSeparator();
+				computed += "\t\tparent = self;"+ System.lineSeparator();
+				computed += "\t\tparent.out = error;"+ System.lineSeparator();
+				computed += "\t\tout = parent.out;"+ System.lineSeparator();
+				computed += "\t\t"+ sbCatch.toString();
+				computed += "\t\t})"+ System.lineSeparator();
+			}			
 			computed += "\t\t.catch((error:any) => {return Promise.resolve(this.c8o.log.debug(\"[MB] "+functionName+": An error occured : \",error.message))})" + System.lineSeparator();
 			computed += "\t\t.then((res:any) => {this.c8o.log.debug(\"[MB] "+functionName+": ended\")});" + System.lineSeparator();
 			computed += "\t}";

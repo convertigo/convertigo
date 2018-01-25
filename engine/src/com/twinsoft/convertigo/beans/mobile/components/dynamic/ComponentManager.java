@@ -47,15 +47,15 @@ import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.IAction;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIActionErrorEvent;
+import com.twinsoft.convertigo.beans.mobile.components.UIActionEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionFailureEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIAttribute;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlAttr;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UICustom;
 import com.twinsoft.convertigo.beans.mobile.components.UICustomAction;
-import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItem;
 import com.twinsoft.convertigo.beans.mobile.components.UIElement;
@@ -264,7 +264,6 @@ public class ComponentManager {
 		groups.remove("Actions");
 		groups.add("Actions");
 		
-//		groups.add("Sources");
 		return Collections.unmodifiableList(groups);
 	}
 	
@@ -301,6 +300,7 @@ public class ComponentManager {
 			group = "Controls";
 			components.add(getDboComponent(UIControlEvent.class,group));
 			components.add(getDboComponent(UIPageEvent.class,group));
+			components.add(getDboComponent(UIActionErrorEvent.class,group));
 			components.add(getDboComponent(UIActionFailureEvent.class,group));
 			components.add(getDboComponent(UIControlDirective.class,group));
 			
@@ -435,27 +435,26 @@ public class ComponentManager {
 				!UIFormValidator.class.isAssignableFrom(dboClass) &&
 				!UIAttribute.class.isAssignableFrom(dboClass) &&
 				!UIControlVariable.class.isAssignableFrom(dboClass) &&
+				!UIActionEvent.class.isAssignableFrom(dboClass) &&
 				!IAction.class.isAssignableFrom(dboClass)) {
 				return true;
 			}
 		} else if (dboParent instanceof UIComponent) {
-			if (dboParent instanceof UIPageEvent ||
-					dboParent instanceof UIActionFailureEvent) {
+			if (dboParent instanceof UIPageEvent || dboParent instanceof UIControlEvent) {
+				if (UIActionErrorEvent.class.isAssignableFrom(dboClass) ||
+					IAction.class.isAssignableFrom(dboClass)) {
+					return true;
+				}
+			}
+			else if (dboParent instanceof UIActionEvent) {
 				if (IAction.class.isAssignableFrom(dboClass)) {
 					return true;
 				}
 			}
-			else if (dboParent instanceof UIControlAttr) {
-				if (IAction.class.isAssignableFrom(dboClass)) {
-					return true;
-				}
-			}
-			else if (dboParent instanceof UICustomAction ||
-						dboParent instanceof UIDynamicAction) {
+			else if (dboParent instanceof IAction) {
 				if (UIActionFailureEvent.class.isAssignableFrom(dboClass) ||
-						UIDynamicAction.class.isAssignableFrom(dboClass) ||
-						UICustomAction.class.isAssignableFrom(dboClass) ||
-						UIControlVariable.class.isAssignableFrom(dboClass)) {
+					UIControlVariable.class.isAssignableFrom(dboClass) ||
+					IAction.class.isAssignableFrom(dboClass)) {
 					return true;
 				}
 			} else if (dboParent instanceof UIDynamicMenuItem) {
@@ -470,8 +469,9 @@ public class ComponentManager {
 				
 				if (!UIControlVariable.class.isAssignableFrom(dboClass) &&
 					!UIPageEvent.class.isAssignableFrom(dboClass) &&
+					!UIActionEvent.class.isAssignableFrom(dboClass) &&
 					!UITheme.class.isAssignableFrom(dboClass) &&
-					!(IAction.class.isAssignableFrom(dboClass))) {
+					!IAction.class.isAssignableFrom(dboClass)) {
 						return true;
 				}
 			}

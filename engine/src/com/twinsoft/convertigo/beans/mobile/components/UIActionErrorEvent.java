@@ -22,22 +22,22 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
-public class UIActionFailureEvent extends UIActionEvent {
+public class UIActionErrorEvent extends UIActionEvent {
 
-	private static final long serialVersionUID = 5515679807142668317L;
+	private static final long serialVersionUID = -1523136294200131569L;
 
-	public UIActionFailureEvent() {
+	public UIActionErrorEvent() {
 		super();
 	}
 	
 	@Override
-	public UIActionFailureEvent clone() throws CloneNotSupportedException {
-		UIActionFailureEvent cloned = (UIActionFailureEvent) super.clone();
+	public UIActionErrorEvent clone() throws CloneNotSupportedException {
+		UIActionErrorEvent cloned = (UIActionErrorEvent) super.clone();
 		return cloned;
 	}
 	
 	@Override
 	public String toString() {
-		return "onFailure";
+		return "onError";
 	}
 }

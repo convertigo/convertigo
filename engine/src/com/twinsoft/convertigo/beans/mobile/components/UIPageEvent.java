@@ -25,13 +25,17 @@ package com.twinsoft.convertigo.beans.mobile.components;
 import java.util.Iterator;
 import java.util.List;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
 public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsProperty {
 
 	private static final long serialVersionUID = -5699915260997234123L;
 
+	private transient UIActionErrorEvent errorEvent = null;
+	
 	public enum ViewEvent {
 		onDidLoad("ionViewDidLoad"),
 		onWillEnter("ionViewWillEnter"),
@@ -76,6 +80,7 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 	@Override
 	public UIPageEvent clone() throws CloneNotSupportedException {
 		UIPageEvent cloned = (UIPageEvent) super.clone();
+		cloned.errorEvent = null;
 		return cloned;
 	}
 
@@ -87,6 +92,57 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 
 	public void setViewEvent(ViewEvent viewEvent) {
 		this.viewEvent = viewEvent;
+	}
+	
+	protected UIActionErrorEvent getErrorEvent() {
+		return this.errorEvent;
+	}
+	
+	@Override
+	protected void addUIComponent(UIComponent uiComponent, Long after) throws EngineException {
+		checkSubLoaded();
+		
+		if (uiComponent instanceof UIActionErrorEvent) {
+    		if (this.errorEvent != null) {
+    			throw new EngineException("The action \"" + getName() + "\" already contains an error event! Please delete it first.");
+    		}
+    		else {
+    			this.errorEvent = (UIActionErrorEvent)uiComponent;
+    			after = -1L;// to be first
+    		}
+		}
+		
+		super.addUIComponent(uiComponent, after);
+	}
+	
+	@Override
+	protected void removeUIComponent(UIComponent uiComponent) throws EngineException {
+		super.removeUIComponent(uiComponent);
+		
+        if (uiComponent != null && uiComponent.equals(this.errorEvent)) {
+    		this.errorEvent = null;
+        }
+	}
+	
+	@Override
+	protected void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
+		if (databaseObject.equals(this.errorEvent)) {
+			return;
+		} else if (this.errorEvent != null) {
+			int pos = getOrderedComponents().get(0).indexOf(databaseObject.priority);
+			if (pos-1 <= 0) {
+				return;
+			}
+		}
+		super.increaseOrder(databaseObject, before);
+	}
+	
+	@Override
+	protected void decreaseOrder(DatabaseObject databaseObject, Long after) throws EngineException {
+		if (databaseObject.equals(this.errorEvent)) {
+			return;
+		}
+		super.decreaseOrder(databaseObject, after);
 	}
 	
 	@Override
@@ -101,7 +157,6 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 			Iterator<UIComponent> it = getUIComponentList().iterator();
 			while (it.hasNext()) {
 				UIComponent component = (UIComponent)it.next();
-				//if (component instanceof UIControlAction) {
 				if (component instanceof IAction) {
 					String action = component.computeTemplate();
 					if (!action.isEmpty()) {

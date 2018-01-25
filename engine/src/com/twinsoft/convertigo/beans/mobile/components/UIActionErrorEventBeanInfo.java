@@ -26,17 +26,17 @@ import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
-public class UIActionFailureEventBeanInfo extends MySimpleBeanInfo {
+public class UIActionErrorEventBeanInfo extends MySimpleBeanInfo {
 	
-	public UIActionFailureEventBeanInfo() {
+	public UIActionErrorEventBeanInfo() {
 		try {
-			beanClass = UIActionFailureEvent.class;
+			beanClass = UIActionErrorEvent.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.mobile.components.UIActionEvent.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/mobile/components/images/uiactionfailureevent_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/mobile/components/images/uiactionfailureevent_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/mobile/components/images/uiactionerrorevent_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/mobile/components/images/uiactionerrorevent_color_32x32.png";
 
-			resourceBundle = getResourceBundle("res/UIActionFailureEvent");
+			resourceBundle = getResourceBundle("res/UIActionErrorEvent");
 
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
