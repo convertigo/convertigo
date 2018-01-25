@@ -22,8 +22,17 @@ eclipse {
 	}
 }
 
+def convertigoVersion = '7.6.0'
+def convertigoTag = 'beta'
+def convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
+
+task updateVersion(dependsOn: [':engine:updateProductVersion', 'updateEclipseVersion']) {
+	group 'convertigo'
+	description 'Run this task after a Convertigo version change.'
+}
+
 allprojects {
-	version '7.5.0'
+	version "${convertigoVersion}${convertigoTag.isEmpty() ? '' : '-' + convertigoTag}"
 	
 	repositories {
 		mavenLocal()
@@ -197,7 +206,9 @@ project(':eclipse-plugin-studio') {
 		runtime 'org.apache.axis2:axis2-adb:1.6.2@jar'
 	}
 	
-	task writeManifest(dependsOn: syncLib) {
+	task writeManifest(dependsOn: [':copyLicense', 'syncLib']) {
+		group 'convertigo'
+		
 		doLast {
 			def manifest = file 'META-INF/MANIFEST.MF'
 			project.manifest {
@@ -209,7 +220,7 @@ project(':eclipse-plugin-studio') {
 					'Bundle-Activator': 'com.twinsoft.convertigo.eclipse.ConvertigoPlugin',
 					//'Export-Package': 'org.mozilla.xpcom',
 					'Bundle-ActivationPolicy': 'lazy',
-					'Bundle-ClassPath': 'bin/,lib/convertigo-eclipse.jar,' + fileTree(dir: 'lib').collect { 'lib/' + it.name }.join(','),
+					'Bundle-ClassPath': 'bin/,icons/,tomcat/webapps/convertigo/WEB-INF/classes,lib/convertigo-eclipse.jar,' + fileTree(dir: 'lib').collect { 'lib/' + it.name }.join(','),
 					'Require-Bundle': ['org.eclipse.core.resources',
 											 'org.eclipse.core.runtime',
 											 'org.eclipse.jface.text',
@@ -227,7 +238,11 @@ project(':eclipse-plugin-studio') {
 			}.writeTo(manifest)
 			manifest.text = manifest.text.replaceAll("Import-Package: .*\\s+", "")
 		}
-		group 'convertigo'
+	}
+	
+	task copyLicense(type: Copy) {
+		from '../license.txt'
+		into 'src/com/twinsoft/convertigo/eclipse/wizards/setup'
 	}
 }
 
@@ -241,8 +256,27 @@ project(':eclipse-plugin-xulrunner-win32') {
 	}
 	
 	task untarXulrunner(type: Copy) {
+		group 'convertigo'
 		from tarTree(resources.gzip(configurations.xul[0]))
 		into 'xulrunner'
+	}
+	
+	task writeManifest(dependsOn: untarXulrunner) {
+		doLast {
+			def manifest = file 'META-INF/MANIFEST.MF'
+			project.manifest {
+				from sharedManifest
+				attributes(
+					'Bundle-Name': 'C-EMS Xulrunner',
+					'Bundle-SymbolicName': 'com.twinsoft.convertigo.studio.xulrunner.win32_win32_x86;singleton:=true',
+					'Fragment-Host': 'com.twinsoft.convertigo.studio',
+					'Eclipse-PlatformFilter': '(& (osgi.ws=win32) (osgi.os=win32) (osgi.arch=x86))',
+					'Eclipse-BundleShape': 'dir'
+				)
+			}.writeTo(manifest)
+			manifest.text = manifest.text.replaceAll("Import-Package: .*\\s+", "")
+		}
+		group 'convertigo'
 	}
 }
 
@@ -280,14 +314,23 @@ project(':engine') {
 		}
 	}
 	
+	configurations {
+		swtLinux32
+	}
+	
 	jar.baseName 'convertigo-engine'
 	
 	war {
 		baseName 'convertigo'
+		
 		classpath = files(configurations.runtime, jar)
+		
 		doFirst {
 			project.webAppDirName = '../eclipse-plugin-studio/tomcat/webapps/convertigo'
 		}
+		
+		exclude '**/keys.txt'
+		rename 'keys_server.txt', 'keys.txt'
 	}
 	
 	sourceSets {
@@ -296,19 +339,11 @@ project(':engine') {
 				srcDir 'src'
 				srcDir 'patch'
 			}
+			resources {
+				srcDir 'src'
+			}
 		}
 	}
-	/*
-	dependencies {
-		compile project(':engine')
-		compileOnly 'org.apache.tomcat.embed:tomcat-embed-core:[7.0,7.1['
-		compileOnly 'org.apache.tomcat:tomcat-dbcp:[7.0,7.1['
-		compileOnly 'org.eclipse.swt:org.eclipse.swt.gtk.linux.x86_64:4.3@jar'
-		compile 'com.convertigo.lib:qrcode:2010.04.22'
-		runtime 'org.mariadb.jdbc:mariadb-java-client:[2,)'
-		runtime 'org.postgresql:postgresql:[42,)'
-		runtime 'net.sourceforge.jtds:jtds:[1.3,)'
-	}*/
 	
 	dependencies {
 		compile 'ca.juliusdavies:not-yet-commons-ssl:0.3.11'
@@ -318,10 +353,10 @@ project(':engine') {
 		compile 'com.convertigo.lib:sapjco:3'
 		compile 'com.convertigo.lib:soapui-xmlbeans:3.5.1'
 		compile 'com.convertigo.lib:soapui:3.5.1'
-		compile 'com.convertigo.provider:convertigo-provider-couchdb:' + project.version
-		compile 'com.convertigo.provider:convertigo-provider-plugins:' + project.version
-		compile 'com.convertigo.provider:convertigo-provider-sap:' + project.version
-		compile 'com.convertigo.provider:convertigo-provider-xul:' + project.version
+		compile 'com.convertigo.provider:convertigo-provider-couchdb:7.5.0'
+		compile 'com.convertigo.provider:convertigo-provider-plugins:7.5.0'
+		compile 'com.convertigo.provider:convertigo-provider-sap:7.5.0'
+		compile 'com.convertigo.provider:convertigo-provider-xul:7.5.0'
 		compile 'com.convertigo.twinsoft.lib:aviva:2017.09.04'
 		compile 'com.convertigo.twinsoft.lib:comm:1998.11.15'
 		compile 'com.convertigo.twinsoft.lib:ms:2002.01.03'
@@ -371,24 +406,118 @@ project(':engine') {
 		compile 'xml-resolver:xml-resolver:1.2'
 		compileOnly 'org.apache.tomcat.embed:tomcat-embed-core:[7.0,7.1['
 		compileOnly 'org.apache.tomcat:tomcat-dbcp:[7.0,7.1['
-		compileOnly 'org.eclipse.swt:org.eclipse.swt.gtk.linux.x86_64:4.3@jar'
+		compileOnly 'com.convertigo.lib:swt:4.4.2-linux32'
+		swtLinux32 'com.convertigo.lib:swt:4.4.2-linux32'
 	}
+	
+	task downloadXulrunnerLinux32(type: Copy) {
+		group 'convertigo'
+		
+		def xul = file 'xulrunner.tgz'
+		ext.dir = file '../resources/xulrunner-linux32'
+		
+		onlyIf {
+			!ext.dir.exists()
+		}
+		
+		doFirst {
+			new URL('https://m2.convertigo.com/com/convertigo/packages/xulrunner-linux32/1.9.0.17-patched3/xulrunner-linux32-1.9.0.17-patched3.tgz')
+				.withInputStream{ i -> xul.withOutputStream{ it << i }}
+			from tarTree(resources.gzip(xul))
+			exclude 'com/**'
+		}
+		
+		from 'src'
+		into ext.dir
+		
+		doLast {
+			xul.delete()
+		}
+	}
+	
+	task downloadXvncLinux32(type: Copy) {
+		group 'convertigo'
+		
+		def vnc = file 'xvnc.tgz'
+		ext.dir = file '../resources/xvnc-linux32'
+		
+		onlyIf {
+			!ext.dir.exists()
+		}
+		
+		doFirst {
+			new URL('https://m2.convertigo.com/com/convertigo/packages/xvnc-linux32/1.3.9/xvnc-linux32-1.3.9.tgz')
+				.withInputStream{ i -> vnc.withOutputStream{ it << i }}
+			from tarTree(resources.gzip(vnc))
+			exclude 'com/**'
+		}
+		
+		from 'src'
+		into ext.dir
+		
+		doLast {
+			vnc.delete()
+		}
+	}
+	
+	task warLinux32(type: Zip, dependsOn: [war, downloadXulrunnerLinux32, downloadXvncLinux32]) {
+		group 'convertigo'
+		
+		archiveName war.archiveName.replace(war.baseName, war.baseName + '-linux32')
+		destinationDir war.destinationDir
+		
+		from zipTree(war.archivePath)
+		
+		from downloadXulrunnerLinux32.ext.dir, {
+			into 'WEB-INF/xulrunner'
+		}
+		
+		from downloadXvncLinux32.ext.dir, {
+			into 'WEB-INF/xvnc'
+		}
+		
+		from configurations.swtLinux32[0], {
+			into 'WEB-INF/lib'
+			rename 'swt-(.*)', 'swt_$1'
+		}
+	}
+	
+	task updateProductVersion {
+		group 'convertigo'
+		
+		doLast {
+			def vers = convertigoVersion.split('\\.')
+			def file = file 'src/com/twinsoft/convertigo/engine/ProductVersion.java'
+			file.text = file.text
+				.replaceFirst('(majorProductVersion = ).*;', "\$1\"${vers[0]}\";")
+				.replaceFirst('(minorProductVersion = ).*;', "\$1\"${vers[1]}\";")
+				.replaceFirst('(servicePack = ).*;', "\$1\"${vers[2]}\";")
+				.replaceFirst('(tag = ).*;', '$1' + (convertigoTag.isEmpty() ? 'null;' : "\"${convertigoTag}\";"))
+				.replaceFirst('(revision = ).*;', '$1' + (convertigoRevision.isEmpty() ? 'null;': "\"${convertigoRevision}\";"))
+		}
+	}
+	
+	compileJava.dependsOn([':copyLicense', 'updateProductVersion'])
 }
 
 ext.sharedManifest = project(':engine').manifest {
 	attributes(
 		'Bundle-ManifestVersion': '2',
 		'Bundle-Vendor': 'Convertigo',
-		'Bundle-Version': '7.5.0.qualifier',
+		'Bundle-Version': "${convertigoVersion}.qualifier",
 		'Bundle-RequiredExecutionEnvironment': 'JavaSE-1.8',
 	)
 }
 
 task writeManifest {
 	group 'convertigo'
+	
+	def wm = getTasksByName 'writeManifest', true
+	wm.remove tasks['writeManifest']
+	dependsOn wm
 }
 
-task buildStudio(type: Exec) {
+task buildStudio(type: Exec, dependsOn: ['writeManifest', 'updateEclipseVersion']) {
 	group 'convertigo'
 	
 	onlyIf { !file('eclipse-repository/target/products').exists() }
@@ -402,7 +531,28 @@ task buildStudio(type: Exec) {
 	args 'clean', 'install'
 }
 
+task updateEclipseVersion(type: Exec, dependsOn: 'writeManifest') {
+	group 'convertigo'
+	
+	onlyIf { !file('pom.xml').text.contains("${convertigoVersion}-SNAPSHOT") }
+	
+	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
+		commandLine 'cmd', '/c', 'mvn'
+	} else {
+		commandLine 'mvn'
+	}
+	
+	args "-DnewVersion=${convertigoVersion}-SNAPSHOT", ' org.eclipse.tycho:tycho-versions-plugin:1.0.0:set-version'
+}
+
 task buildStudioClean(type: Delete) {
 	group 'convertigo'
+	
 	delete 'eclipse-repository/target/products'
+}
+	
+task copyLicense(type: Copy) {
+	from 'license.txt'
+	into 'eclipse-plugin-studio/src/com/twinsoft/convertigo/eclipse/wizards/setup'
+	into 'eclipse-plugin-studio/tomcat/webapps/convertigo/licenses'
 }

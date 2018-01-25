@@ -2,7 +2,7 @@
 <feature
       id="com.twinsoft.convertigo.studio.feature"
       label="Convertigo Studio"
-      version="7.5.0.qualifier"
+      version="7.6.0.qualifier"
       provider-name="Convertigo"
       plugin="com.twinsoft.convertigo.studio.product">
 
@@ -744,14 +744,14 @@ CONVERTIGO &#8211; LICENSE AGREEMENT -2018- SDK
          id="com.twinsoft.convertigo.studio.product"
          download-size="0"
          install-size="0"
-         version="7.5.0.qualifier"
+         version="7.6.0.qualifier"
          unpack="false"/>
 
    <plugin
          id="com.twinsoft.convertigo.studio"
          download-size="0"
          install-size="0"
-         version="7.5.0.qualifier"/>
+         version="7.6.0.qualifier"/>
 
    <plugin
          id="com.twinsoft.convertigo.studio.xulrunner.win32_win32_x86"
@@ -760,7 +760,7 @@ CONVERTIGO &#8211; LICENSE AGREEMENT -2018- SDK
          arch="x86"
          download-size="0"
          install-size="0"
-         version="7.5.0.qualifier"
+         version="7.6.0.qualifier"
          fragment="true"/>
 
    <plugin
@@ -770,7 +770,7 @@ CONVERTIGO &#8211; LICENSE AGREEMENT -2018- SDK
          arch="x86,x86_64"
          download-size="0"
          install-size="0"
-         version="7.5.0.qualifier"
+         version="7.6.0.qualifier"
          fragment="true"/>
          
    <plugin
@@ -780,7 +780,7 @@ CONVERTIGO &#8211; LICENSE AGREEMENT -2018- SDK
          arch="x86_64"
          download-size="0"
          install-size="0"
-         version="7.5.0.qualifier"
+         version="7.6.0.qualifier"
          fragment="true"/>
 
    <plugin
@@ -790,6 +790,6 @@ CONVERTIGO &#8211; LICENSE AGREEMENT -2018- SDK
          arch="x86_64"
          download-size="0"
          install-size="0"
-         version="7.5.0.qualifier"
+         version="7.6.0.qualifier"
          fragment="true"/>
 </feature>

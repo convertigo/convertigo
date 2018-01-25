@@ -1,3 +1,4 @@
+*.war
 .classpath
 .project
 META-INF
@@ -14,4 +15,7 @@ META-INF
 
 /.gradle/
 /eclipse-plugin-xulrunner-win32/xulrunner
+/resources
 /workspace
+/eclipse-plugin-studio/src/com/twinsoft/convertigo/eclipse/wizards/setup/license.txt
+/eclipse-plugin-studio/tomcat/webapps/convertigo/licenses/license.txt
