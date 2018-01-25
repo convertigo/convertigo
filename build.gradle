@@ -26,7 +26,7 @@ def convertigoVersion = '7.6.0'
 def convertigoTag = 'beta'
 def convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
 
-task updateVersion(dependsOn: [':engine:updateProductVersion', 'updateEclipseVersion']) {
+task updateVersion(dependsOn: [':engine:updateProductVersion', 'writeManifest']) {
 	group 'convertigo'
 	description 'Run this task after a Convertigo version change.'
 }
@@ -509,15 +509,16 @@ ext.sharedManifest = project(':engine').manifest {
 	)
 }
 
-task writeManifest {
+task writeManifest(dependsOn: 'updateEclipseVersion') {
 	group 'convertigo'
 	
 	def wm = getTasksByName 'writeManifest', true
 	wm.remove tasks['writeManifest']
+	wm.each { it.dependsOn ':updateEclipseVersion' }
 	dependsOn wm
 }
 
-task buildStudio(type: Exec, dependsOn: ['writeManifest', 'updateEclipseVersion']) {
+task buildStudio(type: Exec, dependsOn: 'writeManifest') {
 	group 'convertigo'
 	
 	onlyIf { !file('eclipse-repository/target/products').exists() }
@@ -531,10 +532,16 @@ task buildStudio(type: Exec, dependsOn: ['writeManifest', 'updateEclipseVersion'
 	args 'clean', 'install'
 }
 
-task updateEclipseVersion(type: Exec, dependsOn: 'writeManifest') {
+task updateEclipseVersion(type: Exec) {
 	group 'convertigo'
 	
-	onlyIf { !file('pom.xml').text.contains("${convertigoVersion}-SNAPSHOT") }
+	def pom = file('pom.xml')
+	
+	onlyIf { !pom.text.contains("${convertigoVersion}-SNAPSHOT") }
+	
+	doLast {
+		pom.text = pom.text.replaceFirst('(<!-- SET-VERSION -->		<version>).*(</version>)', "\$1${convertigoVersion}-SNAPSHOT\$2")
+	}
 	
 	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
 		commandLine 'cmd', '/c', 'mvn'
@@ -542,7 +549,7 @@ task updateEclipseVersion(type: Exec, dependsOn: 'writeManifest') {
 		commandLine 'mvn'
 	}
 	
-	args "-DnewVersion=${convertigoVersion}-SNAPSHOT", ' org.eclipse.tycho:tycho-versions-plugin:1.0.0:set-version'
+	args "-DnewVersion=${convertigoVersion}-SNAPSHOT", 'org.eclipse.tycho:tycho-versions-plugin:1.0.0:set-version'
 }
 
 task buildStudioClean(type: Delete) {
