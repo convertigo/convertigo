@@ -233,6 +233,7 @@ public class MobileBuilder {
 	Map<String,String> actionTplTsImports = null;
 	String moduleTplNgImports = null;
 	String moduleTplNgProviders = null;
+	String cafVersion = null;
 	
 	Set<File> writtenFiles = new HashSet<File>();
 	
@@ -514,6 +515,9 @@ public class MobileBuilder {
 			// Modify configuration files
 			updateConfigurationFiles();
 			
+			// Updated CAF tpl version
+			updateTplCafVersion();
+			
 			// Write source files (based on bean components)
 			updateSourceFiles();
 
@@ -586,6 +590,9 @@ public class MobileBuilder {
 			if (actionTplTsImports != null) {
 				actionTplTsImports.clear();
 				actionTplTsImports = null;
+			}
+			if (cafVersion != null) {
+				cafVersion = null;
 			}
 			if (eventHelper != null) {
 				eventHelper = null;
@@ -840,6 +847,27 @@ public class MobileBuilder {
 		catch (Exception e) {
 			throw new EngineException("Unable to write ionic page ts file",e);
 		}
+	}
+	
+	private void updateTplCafVersion() {
+		if (cafVersion == null) {
+			File pkgJson = new File(ionicWorkDir, "package.json"); 
+			if (pkgJson.exists()) {
+				try {
+					String tsContent = FileUtils.readFileToString(pkgJson, "UTF-8");
+					JSONObject jsonOb = new JSONObject(tsContent);
+					JSONObject jsonDeps = jsonOb.getJSONObject("dependencies");
+					cafVersion = jsonDeps.getString("c8ocaf");
+					Engine.logEngine.debug("(MobileBuilder) Using CAF version: "+ cafVersion+ " for ionic project '"+ project.getName() +"'");
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	public String getTplCafVersion() {
+		return cafVersion;
 	}
 	
 	public boolean hasPageTplImport(String name) {

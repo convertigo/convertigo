@@ -240,7 +240,11 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 						vars = "merge("+formGroupName +".value, "+ vars +")";
 					}
 					
-					return "actionBeans."+ actionName + "(this,"+ props + ","+ vars +")";
+					if (compareToTplCafVersion("1.0.91") >= 0) {
+						return "resolveError(actionBeans."+ actionName + "(this,"+ props + ","+ vars +"))";
+					} else {
+						return "actionBeans."+ actionName + "(this,"+ props + ","+ vars +")";
+					}
 				}
 			}
 		}
