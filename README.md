@@ -11,7 +11,7 @@ Convertigo Community edition is an open source MBaaS (Mobile Back end as a Servi
 
 Convertigo Community edition brought to you by Convertigo SA (Paris & San Francisco). The platform is currently used by more than 100K developers worldwide, building enterprise class mobile apps.
 
-[[convertigo-image]][convertigo-url]
+[![convertigo-image]][convertigo-url]
 > [www.convertigo.com][convertigo-url]
 
 ## License
