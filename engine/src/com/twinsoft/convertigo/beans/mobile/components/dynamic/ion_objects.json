@@ -406,8 +406,8 @@
         "github",
         "glasses",
         "globe",
-        "google",
-        "googleplus",
+        "logo-google",
+        "logo-googleplus",
         "grid",
         "hackernews",
         "hammer",
@@ -599,7 +599,8 @@
         "xbox",
         "yahoo",
         "yen",
-        "youtube"
+        "youtube",
+        true
       ]
     }
   },
