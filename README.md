@@ -19,7 +19,7 @@ Convertigo Community edition brought to you by Convertigo SA (Paris & San Franci
 Convertigo Community Edition is [AGPL](https://www.gnu.org/licenses/agpl-3.0.html) based.
 
 <!-- Markdown link & img dfn's -->
-[ci-image]: https://circleci.com/gh/convertigo/convertigo.svg?style=svg
-[ci-url]: https://circleci.com/gh/convertigo/convertigo
+[ci-image]: https://circleci.com/gh/convertigo/convertigo.svg?style=shield
+[ci-url]: https://circleci.com/gh/convertigo/workflows/convertigo
 [convertigo-image]: https://www.convertigo.com/wp-content/themes/EightDegree/images/logo_convertigo.png
 [convertigo-url]: https://www.convertigo.com
