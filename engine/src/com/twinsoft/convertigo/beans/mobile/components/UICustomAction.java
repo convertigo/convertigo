@@ -475,73 +475,76 @@ public class UICustomAction extends UIComponent implements IAction {
 	}
 	
 	protected String computeActionContent() {
-		int numThen = numberOfActions();
-		String beanName = getName();
-		String actionName = getActionName();
-		String inputs = computeActionInputs(false);
-		
-		StringBuilder sbCatch = new StringBuilder();
-		StringBuilder sbThen = new StringBuilder();  
-		Iterator<UIComponent> it = getUIComponentList().iterator();
-		while (it.hasNext()) {
-			UIComponent component = (UIComponent)it.next();
-			if (component.isEnabled()) {
-				String sCatch="", sThen = "";
-				if (component instanceof UIDynamicAction) {
-					sThen = ((UIDynamicAction)component).computeActionContent();
-				}
-				if (component instanceof UICustomAction) {
-					sThen = ((UICustomAction)component).computeActionContent();
-				}
-				if (component instanceof UIActionFailureEvent) {
-					sCatch = ((UIActionFailureEvent)component).computeEvent();
-				}
-				
-				if (!sCatch.isEmpty()) {
-					sbCatch.append(sCatch);
-				}
-				if (!sThen.isEmpty()) {
-					sbThen.append(sbThen.length()>0 && numThen > 1 ? "\t\t,"+ System.lineSeparator() :"")
-					.append(sThen);
+		if (isEnabled()) {
+			int numThen = numberOfActions();
+			String beanName = getName();
+			String actionName = getActionName();
+			String inputs = computeActionInputs(false);
+			
+			StringBuilder sbCatch = new StringBuilder();
+			StringBuilder sbThen = new StringBuilder();  
+			Iterator<UIComponent> it = getUIComponentList().iterator();
+			while (it.hasNext()) {
+				UIComponent component = (UIComponent)it.next();
+				if (component.isEnabled()) {
+					String sCatch="", sThen = "";
+					if (component instanceof UIDynamicAction) {
+						sThen = ((UIDynamicAction)component).computeActionContent();
+					}
+					if (component instanceof UICustomAction) {
+						sThen = ((UICustomAction)component).computeActionContent();
+					}
+					if (component instanceof UIActionFailureEvent) {
+						sCatch = ((UIActionFailureEvent)component).computeEvent();
+					}
+					
+					if (!sCatch.isEmpty()) {
+						sbCatch.append(sCatch);
+					}
+					if (!sThen.isEmpty()) {
+						sbThen.append(sbThen.length()>0 && numThen > 1 ? "\t\t,"+ System.lineSeparator() :"")
+						.append(sThen);
+					}
 				}
 			}
-		}
-
-		String tsCode = "";
-		tsCode += "\t\tnew Promise((resolve, reject) => {"+ System.lineSeparator();
-		tsCode += "\t\tself = stack[\""+ beanName +"\"] = {};"+ System.lineSeparator();
-		tsCode += "\t\tself.in = "+ inputs +";"+ System.lineSeparator();
-		
-		tsCode +="\t\treturn this."+actionName+"(this, this.merge(self.in.props, {stack: stack, parent: parent, out: out}), this.merge(self.in.vars, stack[\"root\"].in), event)"+ System.lineSeparator();
-		tsCode += "\t\t.catch((error:any) => {"+ System.lineSeparator();
-		tsCode += "\t\tparent = self;"+ System.lineSeparator();
-		tsCode += "\t\tparent.out = error;"+ System.lineSeparator();
-		tsCode += "\t\tout = parent.out;"+ System.lineSeparator();
-		if (sbCatch.length() > 0) {
-			tsCode += "\t\t"+ sbCatch.toString();
-		} else {
-			tsCode += "\t\treturn Promise.reject(error);"+ System.lineSeparator();
-		}
-		tsCode += "\t\t})"+ System.lineSeparator();
-		tsCode += "\t\t.then((res:any) => {"+ System.lineSeparator();
-		tsCode += "\t\tparent = self;"+ System.lineSeparator();
-		tsCode += "\t\tparent.out = res;"+ System.lineSeparator();
-		tsCode += "\t\tout = parent.out;"+ System.lineSeparator();
-		if (sbThen.length() > 0) {
-			if (numThen > 1) {
-				tsCode += "\t\treturn Promise.all(["+ System.lineSeparator();
-				tsCode += sbThen.toString();
-				tsCode += "\t\t])"+ System.lineSeparator();
+	
+			String tsCode = "";
+			tsCode += "\t\tnew Promise((resolve, reject) => {"+ System.lineSeparator();
+			tsCode += "\t\tself = stack[\""+ beanName +"\"] = {};"+ System.lineSeparator();
+			tsCode += "\t\tself.in = "+ inputs +";"+ System.lineSeparator();
+			
+			tsCode +="\t\treturn this."+actionName+"(this, this.merge(self.in.props, {stack: stack, parent: parent, out: out}), this.merge(self.in.vars, stack[\"root\"].in), event)"+ System.lineSeparator();
+			tsCode += "\t\t.catch((error:any) => {"+ System.lineSeparator();
+			tsCode += "\t\tparent = self;"+ System.lineSeparator();
+			tsCode += "\t\tparent.out = error;"+ System.lineSeparator();
+			tsCode += "\t\tout = parent.out;"+ System.lineSeparator();
+			if (sbCatch.length() > 0) {
+				tsCode += "\t\t"+ sbCatch.toString();
 			} else {
-				tsCode += "\t\treturn "+ sbThen.toString().replaceFirst("\t\t", "");
+				tsCode += "\t\treturn Promise.reject(error);"+ System.lineSeparator();
 			}
-		} else {
-			tsCode += "\t\treturn Promise.resolve(res);"+ System.lineSeparator();
+			tsCode += "\t\t})"+ System.lineSeparator();
+			tsCode += "\t\t.then((res:any) => {"+ System.lineSeparator();
+			tsCode += "\t\tparent = self;"+ System.lineSeparator();
+			tsCode += "\t\tparent.out = res;"+ System.lineSeparator();
+			tsCode += "\t\tout = parent.out;"+ System.lineSeparator();
+			if (sbThen.length() > 0) {
+				if (numThen > 1) {
+					tsCode += "\t\treturn Promise.all(["+ System.lineSeparator();
+					tsCode += sbThen.toString();
+					tsCode += "\t\t])"+ System.lineSeparator();
+				} else {
+					tsCode += "\t\treturn "+ sbThen.toString().replaceFirst("\t\t", "");
+				}
+			} else {
+				tsCode += "\t\treturn Promise.resolve(res);"+ System.lineSeparator();
+			}
+			tsCode += "\t\t}, (error: any) => {console.log(\"[MB] "+actionName+" : \", error.message);throw new Error(error);})"+ System.lineSeparator();
+			tsCode += "\t\t.then((res:any) => {resolve(res)}).catch((error:any) => {reject(error)})"+ System.lineSeparator();
+			tsCode += "\t\t})"+ System.lineSeparator();
+			return tsCode;
 		}
-		tsCode += "\t\t}, (error: any) => {console.log(\"[MB] "+actionName+" : \", error.message);throw new Error(error);})"+ System.lineSeparator();
-		tsCode += "\t\t.then((res:any) => {resolve(res)}).catch((error:any) => {reject(error)})"+ System.lineSeparator();
-		tsCode += "\t\t})"+ System.lineSeparator();
-		return tsCode;
+		return "";
 	}
 	
 	protected String computeActionMain() {

@@ -65,18 +65,20 @@ public abstract class UIActionEvent extends UIComponent implements IEventGenerat
 			Iterator<UIComponent> it = getUIComponentList().iterator();
 			while (it.hasNext()) {
 				UIComponent component = (UIComponent)it.next();
-				if (component instanceof IAction) {
-					String s = "";
-					if (component instanceof UIDynamicAction) {
-						s = ((UIDynamicAction)component).computeActionContent();
-					}
-					if (component instanceof UICustomAction) {
-						s = ((UICustomAction)component).computeActionContent();
-					}
-					
-					if (!s.isEmpty()) {
-						sb.append(sb.length()>0 && num > 1 ? "\t\t,"+ System.lineSeparator() :"")
-						.append(s);
+				if (component.isEnabled()) {
+					if (component instanceof IAction) {
+						String s = "";
+						if (component instanceof UIDynamicAction) {
+							s = ((UIDynamicAction)component).computeActionContent();
+						}
+						if (component instanceof UICustomAction) {
+							s = ((UICustomAction)component).computeActionContent();
+						}
+						
+						if (!s.isEmpty()) {
+							sb.append(sb.length()>0 && num > 1 ? "\t\t,"+ System.lineSeparator() :"")
+							.append(s);
+						}
 					}
 				}
 			}

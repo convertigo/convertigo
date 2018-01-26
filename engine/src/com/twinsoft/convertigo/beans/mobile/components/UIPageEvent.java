@@ -121,6 +121,7 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 		
         if (uiComponent != null && uiComponent.equals(this.errorEvent)) {
     		this.errorEvent = null;
+    		markAsDirty();
         }
 	}
 	
