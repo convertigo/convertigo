@@ -1,0 +1,361 @@
+# Java Gradle CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-java/ for more details
+#
+
+defaults: &defaults
+
+  working_directory: /home/circleci/repo
+  
+  environment:
+  - AWS_DEFAULT_REGION: eu-west-3
+  - MAVEN_OPTS: -Xmx2800m
+  
+  docker:
+  - image: convertigo/builder-ci:circleci
+
+version: 2
+jobs:
+  build_engine_jar:
+    <<: *defaults
+    
+    docker:
+    - image: circleci/openjdk:8-jdk
+    
+    steps:
+    
+    - restore_cache:
+        keys:
+        - v1-git-{{ .Revision }}
+        - v1-git-
+        
+    - checkout
+    
+    - save_cache:
+        paths:
+        - .git
+        key: v1-git-{{ .Revision }}
+    
+    # Download and cache dependencies
+    - restore_cache:
+        keys:
+        - v2-dependencies-studio-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        - v2-dependencies-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        - v2-dependencies-
+        
+    - restore_cache:
+        keys:
+        - v2-build-cache-{{ .Revision }}
+        - v2-build-cache-
+    
+    - run: |
+        export CONVERTIGO_VERSION_NUMBER=$(sed -n "s/def convertigoVersion = '\(.*\)'/\\1/p" build.gradle)
+        export CONVERTIGO_VERSION_TAG=$(sed -n "s/def convertigoTag = '\(.*\)'/\\1/p" build.gradle)
+        if [ "$CONVERTIGO_VERSION_TAG" = "" ] ; then
+             export CONVERTIGO_VERSION=$CONVERTIGO_VERSION_NUMBER
+        else
+             export CONVERTIGO_VERSION=$CONVERTIGO_VERSION_NUMBER-$CONVERTIGO_VERSION_TAG
+        fi
+        export CONVERTIGO_BUILD_NUM=$(printf '%05d' $CIRCLE_BUILD_NUM)
+        export CONVERTIGO_BUILD_NAME=$CONVERTIGO_BUILD_NUM-$CIRCLE_BRANCH-$CONVERTIGO_VERSION
+        export CONVERTIGO_URL=https://convertigo-ci.s3-eu-west-3.amazonaws.com/convertigo-$CONVERTIGO_BUILD_NAME
+        mkdir -p ~/s3/convertigo-$CONVERTIGO_BUILD_NAME
+        export CONVERTIGO_DIST=$(cd ~/s3/convertigo-$CONVERTIGO_BUILD_NAME; pwd)
+        env | grep -e "CIRCLE" -e "CONVERTIGO_" | sort > $CONVERTIGO_DIST/env.txt
+        env | grep -e "CONVERTIGO_" > /tmp/build.env
+    
+    - save_cache:
+        paths:
+        - /tmp/build.env
+        key: v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+        
+    - run: |
+        source /tmp/build.env
+        gradle --no-daemon -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :engine:jar
+    
+    - save_cache:
+        paths:
+          - ~/.gradle
+          - .gradle
+        key: v2-dependencies-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        
+    - save_cache:
+        paths:
+        - ~/.gradle/caches/build-cache-1
+        key: v2-build-cache-{{ .Revision }}
+    
+    - run: rm -rf .git
+    
+    - persist_to_workspace:
+        root: ..
+        paths:
+        - .
+        
+  build_engine_war:
+    <<: *defaults
+    
+    steps:
+    
+    - attach_workspace:
+        at: ..
+        
+    - restore_cache:
+        keys:
+        - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+        
+    - restore_cache:
+        keys:
+        - v1-resources-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        - v1-resources-
+        
+    - run: |
+        source /tmp/build.env
+        gradle --no-daemon -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :engine:warLinux32
+    
+    - save_cache:
+        paths:
+        - resources
+        key: v1-resources-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+    
+    - save_cache:
+        paths:
+        - docker
+        key: v1-docker-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+    
+    - run: |
+        source /tmp/build.env
+        mv engine/build/libs/*.war $CONVERTIGO_DIST/
+        aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read ~/s3 s3://convertigo-ci/
+        
+  build_docker_amd64:
+    <<: *defaults
+    
+    docker:
+    - image: docker:latest
+    
+    steps:
+    
+    - restore_cache:
+        keys:
+        - v1-docker-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+    
+    - restore_cache:
+        keys:
+        - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+    
+    - setup_remote_docker
+    
+    - run: |
+        source /tmp/build.env
+        cd docker
+        export TYPE=amd64
+        export CONVERTIGO_WAR_URL=$CONVERTIGO_URL/convertigo-$CONVERTIGO_VERSION.war
+        export FROM=$(eval echo $(sed -n "s/FROM \(.*\)/\1/p" Dockerfile))
+        docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+        if ! docker pull $FROM ; then
+            echo building base $FROM
+            docker build --rm=false -f Dockerfile_base -t $FROM .
+            docker push $FROM
+        fi
+        docker build --rm=false -t convertigo/convertigo-ci:$CIRCLE_BRANCH --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
+        docker tag convertigo/convertigo-ci:$CIRCLE_BRANCH convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME
+        docker tag convertigo/convertigo-ci:$CIRCLE_BRANCH convertigo/convertigo-ci:$CONVERTIGO_VERSION
+        docker push convertigo/convertigo-ci:$CIRCLE_BRANCH
+        docker push convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME
+        docker push convertigo/convertigo-ci:$CONVERTIGO_VERSION
+        
+  build_docker_i386:
+    <<: *defaults
+    
+    docker:
+    - image: docker:latest
+    
+    steps:
+    
+    - restore_cache:
+        keys:
+        - v1-docker-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+    
+    - restore_cache:
+        keys:
+        - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+    
+    - setup_remote_docker
+    
+    - run: |
+        source /tmp/build.env
+        cd docker
+        sed -i "s,tomcat:,i386/tomcat:," Dockerfile_base
+        export TYPE=i386
+        export CONVERTIGO_WAR_URL=$CONVERTIGO_URL/convertigo-linux32-$CONVERTIGO_VERSION.war
+        export FROM=$(eval echo $(sed -n "s/FROM \(.*\)/\1/p" Dockerfile))
+        docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+        if ! docker pull $FROM ; then
+            echo building base $FROM
+            docker build --rm=false -f Dockerfile_base -t $FROM .
+            docker push $FROM
+        fi
+        docker build --rm=false -t convertigo/convertigo-ci:$CIRCLE_BRANCH-$TYPE --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
+        docker tag convertigo/convertigo-ci:$CIRCLE_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE
+        docker tag convertigo/convertigo-ci:$CIRCLE_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
+        docker push convertigo/convertigo-ci:$CIRCLE_BRANCH-$TYPE
+        docker push convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE
+        docker push convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
+        
+  build_docker_alpine:
+    <<: *defaults
+    
+    docker:
+    - image: docker:latest
+    
+    steps:
+    
+    - restore_cache:
+        keys:
+        - v1-docker-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+    
+    - restore_cache:
+        keys:
+        - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+    
+    - setup_remote_docker
+    
+    - run: |
+        source /tmp/build.env
+        cd docker
+        export TYPE=alpine
+        export CONVERTIGO_WAR_URL=$CONVERTIGO_URL/convertigo-$CONVERTIGO_VERSION.war
+        export FROM=$(eval echo $(sed -n "s/FROM \(.*\)/\1/p" Dockerfile))
+        docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+        if ! docker pull $FROM ; then
+            echo building base $FROM
+            docker build --rm=false -f alpine/Dockerfile_base -t $FROM alpine
+            docker push $FROM
+        fi
+        docker build --rm=false -t convertigo/convertigo-ci:$CIRCLE_BRANCH-$TYPE --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
+        docker tag convertigo/convertigo-ci:$CIRCLE_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE
+        docker tag convertigo/convertigo-ci:$CIRCLE_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
+        docker push convertigo/convertigo-ci:$CIRCLE_BRANCH-$TYPE
+        docker push convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE
+        docker push convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
+        
+  qualif_jmx_1:
+    <<: *defaults
+    steps:
+    
+    - restore_cache:
+        keys:
+        - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+    
+    - setup_remote_docker
+    
+    - run: |
+        ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
+        git clone --depth 1 git@bitbucket.org:convertigoqualif/convertigo-qualif-jmx-1.git
+    
+    - run: |
+        source /tmp/build.env
+        CONVERTIGO_IMAGE=convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-i386
+        
+        docker pull $CONVERTIGO_IMAGE
+        docker tag $CONVERTIGO_IMAGE c8o:latest
+        docker pull convertigo/qualif-jmeter:v1
+        
+    - run: |
+        source /tmp/build.env
+        cd convertigo-qualif-jmx-1
+        sh run.sh
+        mkdir -p $CONVERTIGO_DIST
+        mv out $CONVERTIGO_DIST/qualif
+    
+    - run: |
+        source /tmp/build.env
+        aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/.. s3://convertigo-ci/
+    
+  build_studio:
+    <<: *defaults
+    steps:
+    - attach_workspace:
+        at: ..
+    
+    - restore_cache:
+        keys:
+        - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+        
+    - restore_cache:
+        keys:
+        - v2-m2-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        - v2-m2-
+        
+    - run: |
+        source /tmp/build.env
+        gradle --no-daemon -PconvertigoRevision=$CONVERTIGO_BUILD_NAME buildStudio | grep -v -e '^[[:space:]]*$' -e 'Comparing' -e 'Progress'
+    
+    - save_cache:
+        paths:
+        - ~/.m2
+        key: v2-m2-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        
+    - save_cache:
+        paths:
+          - ~/.gradle
+          - .gradle
+        key: v2-dependencies-studio-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        
+    - run: |
+        if [ -d eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86_64 ]; then
+            source /tmp/build.env
+            mv eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86_64 convertigo-studio-$CONVERTIGO_VERSION-win64
+            7z a -mx=2 -bd -bb0 -sfx7zConWin64.sfx $CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-win64.exe convertigo-studio-$CONVERTIGO_VERSION-win64
+        fi
+        
+    - run: |
+        if [ -d eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86 ]; then
+            source /tmp/build.env
+            mv eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86 convertigo-studio-$CONVERTIGO_VERSION-win32
+            7z a -mx=2 -bd -bb0 -sfx7zConWin32.sfx $CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-win32.exe convertigo-studio-$CONVERTIGO_VERSION-win32
+        fi
+        
+    - run: |
+        if [ -d eclipse-repository/target/products/com.convertigo.studio/linux/gtk/x86_64 ]; then
+            source /tmp/build.env
+            mv eclipse-repository/target/products/com.convertigo.studio/linux/gtk/x86_64 convertigo-studio-$CONVERTIGO_VERSION-linux64
+            tar -I "gzip --fast" -cf $CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-linux64.tar.gz convertigo-studio-$CONVERTIGO_VERSION-linux64
+        fi
+        
+    - run: |
+        if [ -d eclipse-repository/target/products/com.convertigo.studio/macosx/cocoa/x86_64 ]; then
+            source /tmp/build.env
+            mv eclipse-repository/target/products/com.convertigo.studio/macosx/cocoa/x86_64 convertigo-studio-$CONVERTIGO_VERSION-macosx
+            tar -I "gzip --fast" -cf $CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-macosx.tar.gz convertigo-studio-$CONVERTIGO_VERSION-macosx
+        fi
+        
+    - run: aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read ~/s3 s3://convertigo-ci/
+    
+workflows:
+  version: 2
+  all:
+    jobs:
+    - build_engine_jar:
+        filters:
+          branches:
+            ignore:
+            - 7.5.x
+    - build_engine_war:
+        requires:
+        - build_engine_jar
+    - build_studio:
+        requires:
+        - build_engine_jar
+    - build_docker_amd64:
+        requires:
+        - build_engine_war
+    - build_docker_i386:
+        requires:
+        - build_engine_war
+    - build_docker_alpine:
+        requires:
+        - build_engine_war
+    - qualif_jmx_1:
+        requires:
+        - build_docker_i386
