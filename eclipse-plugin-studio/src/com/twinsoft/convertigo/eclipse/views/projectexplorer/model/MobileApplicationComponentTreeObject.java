@@ -121,6 +121,18 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 						closeAllEditors(false);
 						MobileBuilder.releaseBuilder(project);
 						MobileBuilder.initBuilder(project);
+						for (TreeObject to: this.getChildren()) {
+							if (to instanceof ObjectsFolderTreeObject) {
+								ObjectsFolderTreeObject ofto = (ObjectsFolderTreeObject)to;
+								if (ofto.folderType == ObjectsFolderTreeObject.FOLDER_TYPE_PAGES) {
+									for (TreeObject cto: ofto.getChildren()) {
+										if (cto instanceof MobilePageComponentTreeObject) {
+											((MobilePageComponentTreeObject)cto).markPageAsDirty();
+										}
+									}
+								}
+							}
+						}
 					} else {
 						markApplicationAsDirty();
 					}

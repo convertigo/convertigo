@@ -7,36 +7,101 @@
      */
     OAuthLoginAction(page: C8oPage, props, vars) : Promise<any> {
         return new Promise((resolve, reject) => {
-            /*
-            let r: string = props.requestable; let m: string = props.marker;
-            let rm: string = r + ( m != '' ? '#' : '' ) + m;
-            */
-            
-            page.routerProvider.doOAuthLogin('https://login.microsoftonline.com/common/oauth2/v2.0/authorize?' +     // Authorize URL
-                'client_id=d26692c4-4181-45e5-856c-7cae5fc78c4d' +                                  // Client ID as registred in the app portal
-                '&response_type=id_token+token' +                                                   // We ask for implicit flow
-                '&scope=openid' +                                                                   // Scopes...
-                '%20https%3A%2F%2Fgraph.microsoft.com%2FUser.Read' +
-                '%20Files.ReadWrite' +
-                '&response_mode=fragment&state=12345&nonce=678910',                                 // Implicit flow
-                'https://login.live.com/oauth20_desktop.srf',                                           // the call back URL to check (As declared in the app portal)
-                'lib_OAuth.loginAzureAdWithAccessToken',                                                // The server sequence to be launched to check the access token
-                'lib_OAuth.checkAccessToken'                                                             // The sequence to execute to check access token
-            ).then((response: any )=>{
-                resolve( response )
-            })
-            .catch((error: any) => {
-                reject( error )
-            })
-            
-            /*
-            page.call( rm, page.merge( { __localCache_priority: props.cachePolicy, __localCache_ttl: props.cacheTtl }, vars ), null, 500 )
-                .then(( res: any ) => {
-                    resolve( res )
-                } )
-                .catch(( error: any ) => {
-                    reject( error )
-                } )
-            */
+            let clientid = props.clientid;
+            let provider = props.provider;
+            let scope, response_mode, response_type, callbackurl, oAuthUrl
+            let loginRequestable
+            let checkAccessTokenRequestable
+            if (clientid && provider) {
+                page.getInstance(Platform).ready().then(() => {                                         // Wait for CDV Plugins to be initialized                
+                    switch(provider) {
+                        case 'azure':
+                            scope = props.scope ? props.scope :'openid' +                               // Scopes...
+                                    '%20https%3A%2F%2Fgraph.microsoft.com%2FUser.Read' +
+                                    '%20Files.ReadWrite'
+                            response_mode = 'fragment&state=12345&nonce=678910'                         // Ask implicitflow
+                            response_type = 'id_token+token'
+                                
+                            callbackurl = window["cordova"] != undefined ?
+                                    'https://login.live.com/oauth20_desktop.srf' :
+                                    page.c8o.endpointConvertigo + "/projects/lib_OAuth/getToken.html"   // the call back URL to check (As declared in the app portal)
+                                
+                            oAuthUrl = 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize?' +     
+                                'client_id=' + clientid +                                             
+                                '&response_type='+ response_type +                                    
+                                '&scope=' + scope +
+                                '&response_mode=' + response_mode
+                                
+                            loginRequestable = props.loginRequestable ? props.loginRequestable : "lib_OAuth.loginAzureAdWithAccessToken"
+                            checkAccessTokenRequestable = props.checkAccessTokenRequestable ? props.checkAccessTokenRequestable : "lib_OAuth.checkAccessToken"
+                            break
+                            
+                        case "linkedin":
+                            scope = props.scope ? props.scope : 'r_basicprofile'
+                            response_type = 'code'
+                                    
+                            oAuthUrl = 'https://www.linkedin.com/oauth/v2/authorization?' +     
+                                'client_id=' + clientid +                                             
+                                '&response_type='+ response_type +                                    
+                                '&scope=' + scope +
+                                '&state=c8ocsrf'
+                        
+                            loginRequestable = props.loginRequestable ? props.loginRequestable : "lib_OAuth.loginLinkedInWithCode"
+                            checkAccessTokenRequestable = props.checkAccessTokenRequestable ? props.checkAccessTokenRequestable : "lib_OAuth.checkAccessTokenLinkedIn"
+                            callbackurl   = window["cordova"] != undefined ? 
+                                    'https://www.convertigo.com/authorize':
+                                    page.c8o.endpointConvertigo + "/projects/lib_OAuth/getTokenLinkedIn.html"
+                                    
+                            break
+
+                        case "openid":
+                            scope = props.scope ? props.scope : 'openid'
+                            response_type = 'id_token+token'
+                                    
+                            if (!props.authorization_endpoint) {
+                                page.c8o.log.error("[MB] OAuth login, Authorization endpoint no set for OpenID provider")
+                                reject("[MB] OAuth login, Authorization endpoint no set for OpenID provider")
+                                return
+                            }    
+
+                            
+                            if (!props.callbackurl) {
+                                page.c8o.log.error("[MB] OAuth login, redirect URI  no set for OpenID provider")
+                                reject("[MB] OAuth login, redirect URI  no set for OpenID provider")
+                                return
+                            }    
+                            callbackurl = props.callbackurl
+                            oAuthUrl = props.authorization_endpoint + '?' +
+                                'client_id=' + clientid +                                             
+                                '&response_type='+ response_type +                                    
+                                '&scope=' + scope +
+                                '&state=c8ocsrf' +
+                                '&nonce=' + Date.now();
+                        
+                            loginRequestable = props.loginRequestable ? props.loginRequestable : "lib_OAuth.loginOpenID"
+                            checkAccessTokenRequestable = props.checkAccessTokenRequestable ? props.checkAccessTokenRequestable : "lib_OAuth.checkAccessOpenID"
+                            break
+                            
+                        default:
+                            page.c8o.log.error("[MB] OAuth login, invalid provider type")
+                    }
+                        
+                    page.routerProvider.doOAuthLogin(
+                        oAuthUrl, 
+                        callbackurl,
+                        loginRequestable,                                                       // The server sequence to be launched to login
+                        checkAccessTokenRequestable,                                            // The server sequence to be launched to check the access token
+                    ).then((response: any )=>{
+                        resolve( response )
+                    })
+                    .catch((error: any) => {
+                        page.c8o.log.error("[MB] OAuth login, Login error" + error)
+                        reject( error )
+                    })
+                })
+            }
+            else {
+                page.c8o.log.error("[MB] OAuth login, Missing Parameters")
+            }
         });
     }

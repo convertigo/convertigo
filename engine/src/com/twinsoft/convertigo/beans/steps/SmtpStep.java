@@ -98,6 +98,8 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 	private String xslFilepath = "";
 	private String contentType = "";
 	private XMLVector<XMLVector<String>> attachments = new XMLVector<XMLVector<String>>();
+	private boolean deliveryReceipt = false;
+	private boolean readReceipt = false;
 	
 	private transient String sMessageText = "";
 	private transient String sContentType;
@@ -227,6 +229,22 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 		this.attachments = attachments;
 	}
 
+	public boolean getDeliveryReceipt() {
+		return deliveryReceipt;
+	}
+	
+	public void setDeliveryReceipt(boolean deliveryReceipt) {
+		this.deliveryReceipt = deliveryReceipt;
+	}
+	
+	public boolean getReadReceipt() {
+		return readReceipt;
+	}
+	
+	public void setReadReceipt(boolean readReceipt) {
+		this.readReceipt = readReceipt;
+	}
+	
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnabled()) {
@@ -385,6 +403,15 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 					ret.addRecipient(Message.RecipientType.CC, new InternetAddress(recipients[i]));
 				}
 			}
+
+			//Add receipts
+			if (getDeliveryReceipt()) {
+				message.setHeader("Return-Receipt-To", new InternetAddress(sSender).toString());
+			}
+			if (getReadReceipt()) {
+				message.setHeader("Disposition-Notification-To", new InternetAddress(sSender).toString());
+			}
+			
 			
 			//Adding mail subject
 			ret.setSubject(sSubject);

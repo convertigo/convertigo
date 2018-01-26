@@ -42,7 +42,7 @@ public class SmtpStepBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
-			properties = new PropertyDescriptor[12];
+			properties = new PropertyDescriptor[14];
 
             properties[0] = new PropertyDescriptor("smtpServer", beanClass, "getSmtpServer", "setSmtpServer");
             properties[0].setDisplayName(getExternalizedString("property.smtpServer.display_name"));
@@ -106,6 +106,16 @@ public class SmtpStepBeanInfo extends MySimpleBeanInfo {
             properties[11].setDisplayName(getExternalizedString("property.attachments.display_name"));
             properties[11].setShortDescription(getExternalizedString("property.attachments.short_description"));
 	        properties[11].setPropertyEditorClass(getEditorClass("SmtpAttachmentEditor"));
+
+	        properties[12] = new PropertyDescriptor("deliveryReceipt", beanClass, "getDeliveryReceipt", "setDeliveryReceipt");
+            properties[12].setDisplayName(getExternalizedString("property.deliveryReceipt.display_name"));
+            properties[12].setShortDescription(getExternalizedString("property.deliveryReceipt.short_description"));
+            properties[12].setExpert(true);
+
+	        properties[13] = new PropertyDescriptor("readReceipt", beanClass, "getReadReceipt", "setReadReceipt");
+            properties[13].setDisplayName(getExternalizedString("property.readReceipt.display_name"));
+            properties[13].setShortDescription(getExternalizedString("property.readReceipt.short_description"));
+            properties[13].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

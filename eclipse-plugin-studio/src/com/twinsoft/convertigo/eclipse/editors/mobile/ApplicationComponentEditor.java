@@ -137,7 +137,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 	private Browser browser;
 	private String debugUrl;
 	private String baseUrl = null;
-	private String pageName = null;
+	private String pagePath = null;
 	private Collection<Process> processes = new LinkedList<>();
 	private File datasetDir;
 	private File devicePref;
@@ -1331,8 +1331,8 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 		if (baseUrl != null) {
 			C8oBrowser.run(() -> {
 				String url = baseUrl;
-				if (pageName != null) {
-					url += "#/" + pageName;
+				if (pagePath != null) {
+					url += "#/" + pagePath;
 				}
 				if (!browser.getURL().equals(url)) {
 					browser.loadURL(url);
@@ -1345,8 +1345,8 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 		return debugUrl;
 	}
 	
-	public void selectPage(String pageName) {
-		this.pageName = pageName;
+	public void selectPage(String pagePath) {
+		this.pagePath = pagePath;
 		doLoad();
 	}
 	
@@ -1402,7 +1402,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 	public void highlightComponent(MobileComponent mobileComponent) {
 		C8oBrowser.run(() -> {
 			if (mobileComponent instanceof UIComponent) {
-				selectPage(((UIComponent) mobileComponent).getPage().getName());
+				selectPage(((UIComponent) mobileComponent).getPage().getSegment());
 			}
 			DOMDocument doc = browser.getDocument();
 			MobileComponent mc = mobileComponent;

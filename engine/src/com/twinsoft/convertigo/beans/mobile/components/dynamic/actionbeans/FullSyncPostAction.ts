@@ -13,6 +13,7 @@
             let rootKey = props.RootKey
             let policy = props._use_policy
             let id     = props._id
+            let group  = props.c8oGrp
             
             delete props.requestable
             delete props.RootKey
@@ -22,6 +23,10 @@
                 data[rootKey] = page.merge(props, vars)
                 delete data[rootKey]._use_policy
                 delete data[rootKey]._id
+                delete data[rootKey].c8oGrp
+                if (group != null)
+                    data["c8oGrp"] = group
+                    
                 data["_use_policy"] = policy
                 if(id != null){
                     data["_id"]         = id
@@ -30,6 +35,9 @@
             } else {
                 if(id == null){
                    delete props._id;
+                }
+                if (group == null) {
+                    delete props.c8oGrp
                 }
                 data = page.merge(props, vars)
             }

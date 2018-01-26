@@ -29,6 +29,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.viewers.ICellEditorValidator;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
@@ -44,6 +45,7 @@ import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
@@ -52,6 +54,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput;
+import com.twinsoft.convertigo.eclipse.property_editors.validators.MobilePageSegmentValidator;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -88,6 +91,13 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 	}
 
 	@Override
+	protected ICellEditorValidator getValidator(String propertyName) {
+		if ("segment".equals(propertyName))
+			return new MobilePageSegmentValidator(getObject());
+		return super.getValidator(propertyName);
+	} 
+	
+	@Override
     public boolean isEnabled() {
 		setEnabled(getObject().isEnabled());
     	return super.isEnabled();
@@ -96,7 +106,7 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 	@Override
 	public void launchEditor(String editorType) {
 		ApplicationComponentEditor editor = ((MobileApplicationComponentTreeObject) getParentDatabaseObjectTreeObject()).activeEditor();
-		editor.selectPage(getObject().getName());
+		editor.selectPage(getObject().getSegment());
 	}
 	
 	public void editPageTsFile() {
@@ -215,6 +225,15 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 									}
 								}
 							}
+							else if (dbo instanceof DesignDocument) {
+								String oldName = (String)oldValue;
+								String newName = (String)newValue;
+								if (!newValue.equals(oldValue)) {
+									if (getObject().updateSmartSource("ddoc='"+oldName+"'", "ddoc='"+newName+"'")) {
+										sourcesUpdated = true;
+									}
+								}
+							}
 						} catch (Exception e) {}
 					}
 					
@@ -266,6 +285,37 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 							markAppComponentTsAsDirty();
 						}
 					} else {
+						markPageAsDirty();
+					}
+				}
+			} catch (Exception e) {}
+		}
+		else if (treeObject instanceof DesignDocumentViewTreeObject) {
+			DesignDocumentViewTreeObject ddvto = (DesignDocumentViewTreeObject)treeObject;
+			try {
+				if (propertyName.equals("name")) {
+					boolean sourcesUpdated = false;
+					boolean fromSameProject = getProjectTreeObject().equals(ddvto.getProjectTreeObject());
+					if ((treeObjectEvent.update == TreeObjectEvent.UPDATE_ALL) 
+						|| ((treeObjectEvent.update == TreeObjectEvent.UPDATE_LOCAL) && fromSameProject)) {
+						try {
+							String oldName = (String)oldValue;
+							String newName = (String)newValue;
+							if (!newValue.equals(oldValue)) {
+								if (getObject().updateSmartSource("view='"+oldName+"'", "view='"+newName+"'")) {
+									sourcesUpdated = true;
+								}
+							}
+						}
+						catch (Exception e) {}
+					}
+					
+					if (sourcesUpdated) {
+						ProjectTreeObject projectTree = getProjectTreeObject();
+						if (projectTree != null) {
+							projectTree.hasBeenModified(true);
+						}
+						this.viewer.refresh();
 						markPageAsDirty();
 					}
 				}

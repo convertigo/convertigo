@@ -55,7 +55,7 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class MobilePickerContentProvider implements ITreeContentProvider {
 	
-	private static Pattern INVALID_CHARACTERS = Pattern.compile("[~:]+");
+	private static Pattern INVALID_CHARACTERS = Pattern.compile("[~:\\-]+");
 	
 	public class TVObject {
 		private String name;

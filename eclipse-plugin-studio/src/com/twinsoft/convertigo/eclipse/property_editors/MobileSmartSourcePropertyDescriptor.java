@@ -46,6 +46,9 @@ public class MobileSmartSourcePropertyDescriptor extends PropertyDescriptor {
     	MobileSmartSourceTypeCellEditor editor = new MobileSmartSourceTypeCellEditor(parent, readOnly ? SWT.READ_ONLY:SWT.NONE, labels);
     	editor.databaseObjectTreeObject = this.databaseObjectTreeObject;
     	editor.propertyDescriptor = this;
+        if (getValidator() != null) {
+			editor.setValidator(getValidator());
+		}    	
         return editor;
     }
 

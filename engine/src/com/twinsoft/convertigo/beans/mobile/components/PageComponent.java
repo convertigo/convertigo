@@ -533,6 +533,10 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISt
 	}
 	
 	public void markPageAsDirty() throws EngineException {
+		if (isImporting) {
+			return;
+		}
+		
 		try {
 			JSONObject oldComputedContent = computedContents == null ? 
 					null :new JSONObject(computedContents.toString());

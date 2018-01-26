@@ -1089,6 +1089,72 @@
       }
     },
 	
+    "FSImage": {
+      "tag": "img",
+	  "displayName": "FSImage",
+      "label": "FSImage",
+      "autoClose": true,
+      "description": "img| Defines an <i>FSImage</i> component.<br/>This component helps defining an image based on data retrieved from an attachment.",
+      "group": "FullSync Components",
+      "icon16": "img_fs_color_16x16.png",
+      "icon32": "img_fs_color_32x32.png",
+      "properties": {
+        "url": {
+          "hidden": true,
+          "mode":"script",
+          "attr": "[src]",
+          "label": "src",
+          "description": "The image url",
+          "category": "Attributes",
+          "value": "getAttachmentUrl($[docid], $[attachment], $[placeholder], $[requestable])"
+        },
+        "docid": {
+          "composite": true,
+          "label": "Document ID",
+          "description": "The document ID for this attachment",
+          "category": "Attributes",
+          "value": false,
+          "values": [
+            false,
+            true
+          ]
+        },
+        "attachment": {
+          "composite": true,
+          "label": "Attachment name",
+          "description": "The attachment name",
+          "category": "Attributes",
+          "value": false,
+          "values": [
+            false,
+            true
+          ]
+        },
+        "placeholder": {
+          "composite": true,
+          "label": "Attachment placeholder",
+          "description": "The url placeholder for this attachment",
+          "category": "Attributes",
+          "value": false,
+          "values": [
+            false,
+            true
+          ]
+        },
+        "requestable": {
+          "editor": "NamedSourceSelectorEditor",
+          "composite": true,
+          "label": "Database",
+          "description": "The fullsync database",
+          "category": "Attributes",
+          "value": "",
+          "values": [
+            false,
+            true
+          ]
+        }
+      }
+    },
 
   /* Super tabs : Sliding tabs */  
   "SlidingTabs": {
@@ -3269,6 +3335,7 @@
           "category": "@Properties",
           "value": false,
           "values": [
+            false,
             "Janvier, F�vrier, Mars, Avril, Mai, Juin, Juillet, Aout, Septembre, Octobre, Novembre, D�cembre",
             "Gennaio, Febbraio, Marzo, Aprile, Maggio, Giugno, Luglio, Agosto, Settembre, Ottobre, Novembre, Dicembre",
             true
@@ -3281,6 +3348,7 @@
           "category": "@Properties",
           "value": false,
           "values": [
+            false,
             "Dimanche, Lundi, Mardi, Mercredi, Jeudi, Vendredi, Samedi",
             "Domenica, Lunedi, Martedi, Mercoledi, Giovedi, Venerdi, Sabato",
             true
@@ -4653,6 +4721,7 @@
           "type": "boolean",
           "value": false,
           "values": [
+            false,
           	"true",
           	"false"
           	]
@@ -4672,6 +4741,7 @@
           "type": "boolean",
           "value": false,
           "values": [
+            false,
           	"true",
           	"false"
           	]
@@ -4987,20 +5057,6 @@
 	  }
 	},
 
-  /*
-  "OAuthLoginAction" : {
-      "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
-      "displayName": "OAuthLogin",
-      "label": "OAuthLogin",
-      "description": "Authenticate using OAuth protocol. | OAuth is used by third party identity managers such as Facebook, Google, Twitter or any other OAuth or OpenID enabled identity provider. Use this Action to pop a user / login screen form this identity provider.<br/>When the user clicks ok, the Sequence you configured will be called provided with a valid OAuth token. This sequence is responsable for checking the token and for calling any provider's API to get more information about the user attached to this token.",
-      "group": "Actions",
-      "icon16": "oauthloginaction_color_16x16.png",
-      "icon32": "oauthloginaction_color_32x32.png",
-      "properties": {
-      }
-  }
-  */
-
   "GooglePlusLoginAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "GoogleLogin",
@@ -5156,7 +5212,7 @@
 
       "_id": {
         "label": "Unique ID",
-        "description": "The unique ID for this post. Saved data can be retreived later on with a 'Get' action, providing the same ID. If ID is not set, the system will compute automatically an UUID as unique ID for this post.<br /><br />Data saved will be automatically replicated to Convertigo server if a 'DoSync' action has been previously executed in 'continuous' mode.<br /><br /><span class='orangetwinsoft'><u>Note:</u></span> Data can also be retreived using a 'Query' action providing a valid key for the view queryed.",
+        "description": "The unique ID for this post.<br/>Posted data can be retreived later on with a <i>Get Data</i> action, providing the same ID, or using a <i>Query View</i> action providing a valid key for the view queryed.<br/>Data will be automatically replicated to Convertigo server if a <i>Sync Data</i> action has been previously executed in <code>continuous</code> mode.<br/><span class='orangetwinsoft'><u>Note:</u></span> If ID is not set, the system will compute automatically an UUID as unique ID for this post.",
         "category": "@Properties",
         "type": "string",
         "value": false
@@ -5178,6 +5234,13 @@
       "RootKey": {
         "label": "Root Key",
         "description": "The key used to 'Wrap' all posted key/ value pairs in an object. The key can be simple or composed of a path to the target object, ex : my.super.structure.myObject" ,
+        "category": "@Properties",
+        "type": "string",
+        "value": false
+      },
+      "c8oGrp": {
+        "label": "Group",
+        "description": "The group name or groups this document will belong to. A given document can bee seen and mofified by any user belonging to the group or the groups defined here. This property can be a single group (give the group name as a string) or a list of groups. In this case, use a jSON object containing one key per group this document will belong to." ,
         "category": "@Properties",
         "type": "string",
         "value": false
@@ -5260,6 +5323,50 @@
       ]
     }
 },
+
+"FullSyncDeleteAttachmentAction" : {
+    "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+    "displayName": "DeleteAttachment",
+    "label": "Delete Attachment",
+    "description": "Defines a <i>Delete Attachment</i> action component. | This component helps deleting (delete_attachment) attachments on a FullSync database document.<br/> For more information : <a target='_blank' href='https://www.convertigo.com/document/latest/reference-manual/convertigo-full-sync-architecture/interacting-locally-with-the-data/'>interacting-locally-with-the-data/</a>",
+    "group": "FullSync Actions",
+    "icon16": "deleteattachementaction_color_16x16.png",
+    "icon32": "deleteattachementaction_color_32x32.png",
+    "properties": {
+      "requestable": {
+        "editor": "NamedSourceSelectorEditor",
+        "label": "Database",
+        "description": "Defines the target FullSync Data base to post data to",
+        "category": "@Properties",
+        "type": "string",
+        "value": "",
+        "values": [
+          false,
+          true
+        ]
+      },
+
+      "docid": {
+        "label": "Document ID",
+        "description": "The Document ID for this delete attachement",
+        "category": "@Properties",
+        "type": "string",
+        "value": false
+      },
+
+      "name": {
+        "label": "Name",
+        "description": "The name of the attachment to be deleted on the document.",
+        "category": "@Properties",
+        "type": "string",
+        "value": false,
+        
+      }
+    }
+},
+
+
+
 
 "FullSyncGetAction" : {
     "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
@@ -5355,6 +5462,7 @@
         "type": "string",
         "value": false,
         "values": [
+          false,
           "true",
           "false"
         ]
@@ -5366,6 +5474,7 @@
         "type": "boolean",
         "value": false,
         "values": [
+          false,
           "true",
           "false"
         ]
@@ -5377,6 +5486,7 @@
         "type": "string",
         "value": false,
         "values": [
+          false,
           "true",
           "false"
         ]
@@ -5389,6 +5499,7 @@
         "type": "string",
         "value": false,
         "values": [
+          false,
           "true",
           "false"
         ]
@@ -5417,6 +5528,7 @@
         "type": "string",
         "value": false,
         "values": [
+          false,
           "true",
           "false"
         ]
@@ -5447,6 +5559,7 @@
         "type": "string",
         "value": false,
         "values": [
+          false,
           "false",
           "true"
         ]
@@ -5475,6 +5588,7 @@
         "type": "string",
         "value": false,
         "values": [
+          false,
           "false",
           "true"
         ]
@@ -5495,6 +5609,7 @@
         "type": "string",
         "value": false,
         "values": [
+          false,
           "ok",
           "update_after"
         ]
@@ -5655,6 +5770,7 @@
 	        "type": "string",
 	        "value": false,
 	        "values": [
+	            false,
 	        	"THEME_DEVICE_DEFAULT_DARK",
 	        	"THEME_DEVICE_DEFAULT_LIGHT",
 	        	"THEME_HOLO_DARK",
@@ -5669,6 +5785,7 @@
 	        "type": "boolean",
 	        "value": false,
 	        "values": [
+	            false,
 	        	"true",
 	        	"false"
 	        ]
@@ -5680,6 +5797,7 @@
 	        "type": "boolean",
 	        "value": false,
 	        "values": [
+	            false,
 	        	"true",
 	        	"false"
 	        ]
@@ -5712,6 +5830,7 @@
 	        "type": "boolean",
 	        "value": false,
 	        "values": [
+	            false,
 	        	"true",
 	        	"false"
 	        ]
@@ -5950,7 +6069,7 @@
 	        "description": "Rotate the image to correct for the orientation of the device during capture.",
 	        "category": "@camera options",
 	        "type": "boolean",
-	        "value": true,
+	        "value": "true",
 	        "values": [
 	        	false,
 	        	"true",
@@ -6019,6 +6138,7 @@
 	        "type": "string",
 	        "value": false,
 	        "values": [
+	            false,
 	        	"ARROW_UP",
 	        	"ARROW_DOWN",
 	        	"ARROW_LEFT",
@@ -6260,6 +6380,84 @@
     }
   },
   
+  "OAuthLoginAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "displayName": "OAuthLogin",
+      "label": "OAuth / OpenID",
+      "description": "OAuth login | Enable the applications to use oAuth compliant authentication services such as LinkedIn, Microsoft Azure or any other OpenID compliant IDP<br/><br/>This action will work on web and devices. On web browsers this will result by opening a popup window asking the user for credentials. On devices, the provider login screen will be pushed on the page stack.<br /><br />This action requires the <b>lib_OAuth</b> project to be installed in the Studio workspace and deployed on the target Convertigo MBaaS servers.<br/><br/>This actions outputs in the <i>out</i> an object that can be:<ul><li><code>{'login':'ok','object':{...provider metadata ...}}</code> if the users starts a new session with Convertigo MBaaS server</li><li><code>{'token':'... OAuth token data ...'}</code> if a session has already been established with Convertigo MBaaS server</li></ul><br/><br/><h2>Provider Specific Documentation</h2><ul><li>Microsoft Azure AD: You have to declare your app in the Microsoft Application Registration Portal (<a href='https://apps.dev.microsoft.com' target='_blank'>https://apps.dev.microsoft.com</a>). You will be given a Client Id, use this to configure the <b>Client ID</b> property.<br /><br />You must also configure two redirections urls: <br /><br /> <i>http://localhost:18080/convertigo/projects/lib_OAuth/getToken.html</i> and<br /> <i>https://login.live.com/oauth20_desktop.srf</i>.<br /><br />The first one will be used for developping in the studio, the second one when the project will be deployed on a Convertigo MBaaS Server</li><br /><li>LinkedIn : You have to declare you app in the LinkedIn API portal (<a href='https://www.linkedin.com/secure/developer?newapp=' target='_blank'>https://www.linkedin.com/secure/developer?newapp=</a>). You will be given a <b>Client ID</b> and a <b>Client Secret</b>.<br /><br />You must also declare two redirection URLs:<br /><br /><i>http://localhost:18080/convertigo/projects/lib_OAuth/getTokenLinkedIn.html</i> and<br /><i>https://www.convertigo.com/authorize</i>.<br /><br />The first one will be used for developping in the studio, the second one when the project will be deployed on a Convertigo MBaaS Server.<br /><br />LinkedIn OAuth requires configuration on the client side and the Convertigo MBaaS server side. On the client side configure the given <b>Client ID</b> value in the <b>Client ID</b> property. On the Convertigo MBaaS side,  configure two symbols with the admin console :<table><tr><td>lib_oauth.linkedin.clientid</td><td>Client ID value</td></tr><tr><td>lib_oauth.linkedin.keysecret</td><td>Client Secret value</td></tr></table></li></ul>",
+      "group": "Actions",
+      "icon16": "oauthloginaction_color_16x16.png",
+      "icon32": "oauthloginaction_color_32x32.png",
+      "properties": {
+          "provider": {
+              "label": "OAuth Provider",
+              "description": "The OAuth login provider: may be one of the predefined providers such as Azure, LinkedIn. If set to a given provider, will automatically configure unset properties to predefined values. These setting can be overriden by explicilty setting a value",
+              "category": "@parameters",
+              "type": "string",
+              "value": "azure",
+              "values": [
+              	false,
+                "azure",
+                "linkedin",
+                "openid"
+              ]
+          },
+          
+          "clientid": {
+            "label": "Client ID",
+            "description": "The OAuth Client ID as configured in the provider's portal",
+            "category": "@parameters",
+            "type": "string",
+            "value": false
+          },
+          
+          "scope": {
+            "label": "Scope",
+            "description": "The Scope permissions. If not set, scopes are automatically configured from the 'provider' setting, by you may override this setting here.",
+            "category": "@parameters",
+            "type": "string",
+            "value": false
+          },
+          
+         "loginRequestable": {
+            "label": "Server LoginSequence",
+            "description": "&lt;Project.Sequence&gt;. The MBaaS Server sequence to call for login. If not set, is automatically configured from the 'provider' setting. You may override this setting here.",
+            "category": "@parameters",
+            "type": "string",
+            "value": false
+          },
+          
+         "checkAccessTokenRequestable": {
+            "label": "Server checkToken",
+            "description": "&lt;Project.Sequence&gt;. The MBaaS Server sequence to call for checking tokens. If not set, is automatically configured from the 'provider' setting. You may override this setting here.",
+            "category": "@parameters",
+            "type": "string",
+            "value": false
+          },
+          
+          "authorization_endpoint": {
+            "label": "Authorization endpoint",
+            "description": "For OpenID only, specifies the authorization end point url. Mandatory.",
+            "category": "@parameters",
+            "type": "string",
+            "value": false
+          },
+
+          "callbackurl": {
+            "label": "Redirect URI",
+            "description": "For OpenID only, specifies an authorized redirect uri. Mandatory.",
+            "category": "@parameters",
+            "type": "string",
+            "value": false
+          }
+          
+          
+    	},
+    	
+      	"config": {
+      	}
+  },
+
     "CheckInstallAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "CheckInstall",

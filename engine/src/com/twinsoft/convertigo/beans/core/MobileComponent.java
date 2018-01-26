@@ -49,4 +49,19 @@ public abstract class MobileComponent extends MobileObject {
 		else
 			return (ApplicationComponent) databaseObject;
 	}
+	
+	private String getTplCafVersion() {
+		return getProject().getMobileBuilder().getTplCafVersion();
+	}
+	
+	protected int compareToTplCafVersion(String version) {
+		int result = -1;
+		if (version != null) {
+			String tplCafVersion = getTplCafVersion();
+			if (tplCafVersion != null) {
+				result = tplCafVersion.compareTo(version);
+			}
+		}
+		return result;
+	}
 }
