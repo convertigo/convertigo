@@ -791,6 +791,10 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 	}
 	
     public void markApplicationAsDirty() throws EngineException {
+		if (isImporting) {
+			return;
+		}
+    	
 		try {
 			JSONObject oldComputedContent = computedContents == null ? 
 					null :new JSONObject(computedContents.toString());
