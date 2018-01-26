@@ -339,8 +339,7 @@ workflows:
     - build_engine_jar
         filters:
           branches:
-            ignore:
-            - 7.5.x
+            ignore: 7.5.x
     - build_engine_war:
         requires:
         - build_engine_jar
