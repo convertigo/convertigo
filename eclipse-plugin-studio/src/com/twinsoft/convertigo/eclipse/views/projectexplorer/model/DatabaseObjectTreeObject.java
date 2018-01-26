@@ -844,7 +844,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		String propertyName = (String) id;
 		
 		ComboBoxCellEditor editor = DynamicComboBoxPropertyDescriptor.getLast();
-		if (editor != null && !Integer.valueOf(editor.getItems().length - 1).equals(value)) {
+		if (editor != null && (!acceptSymbols() || !Integer.valueOf(editor.getItems().length - 1).equals(value))) {
 			editor = null;
 		}
 		

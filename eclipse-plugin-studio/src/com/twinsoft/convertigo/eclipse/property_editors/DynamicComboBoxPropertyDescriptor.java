@@ -52,12 +52,17 @@ public class DynamicComboBoxPropertyDescriptor extends PropertyDescriptor {
 				return i;
 			}
 		}
-		tags[tags.length - 1] = value;
-		if (editor != null) {
-			editor.setItems(tags);
-			editor.setValue(tags.length - 1);
+		
+		if (acceptSymbols) {
+			tags[tags.length - 1] = value;
+			if (editor != null) {
+				editor.setItems(tags);
+				editor.setValue(tags.length - 1);
+			}
+			return tags.length - 1;
+		} else {
+			return 0;
 		}
-		return tags.length - 1;
 	}
 	
 	public static ComboBoxCellEditor getLast() {
