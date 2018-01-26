@@ -22,8 +22,8 @@ eclipse {
 	}
 }
 
-def convertigoVersion = '7.6.0'
-def convertigoTag = 'beta'
+def convertigoVersion = '7.5.0'
+def convertigoTag = ''
 def convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
 
 task updateVersion(dependsOn: [':engine:updateProductVersion', 'writeManifest']) {
