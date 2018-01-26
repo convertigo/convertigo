@@ -136,6 +136,7 @@ public class UIControlEvent extends UIControlAttr implements IControl {
 		
         if (uiComponent != null && uiComponent.equals(this.errorEvent)) {
     		this.errorEvent = null;
+    		markAsDirty();
         }
 	}
 	

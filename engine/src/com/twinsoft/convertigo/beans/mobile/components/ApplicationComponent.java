@@ -646,7 +646,9 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
     		else {
     			UITheme uiTheme = (UITheme)uiComponent;
     			if (uiTheme.bNew) {
-    				uiTheme.styleContent = new FormatedContent(getThemeTplScss());
+    				if (uiTheme.styleContent.getString().equals("")) {
+    					uiTheme.styleContent = new FormatedContent(getThemeTplScss());
+    				}
     			}
     			this.theme = uiTheme;
     		}
