@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.engine.admin.services.configuration;
 
+import java.security.InvalidParameterException;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.w3c.dom.Document;
@@ -69,6 +71,12 @@ public class Update extends XmlService {
 				if (!AuthenticatedSessionManager.hasRole(roles, Role.WEB_ADMIN)
 					&& !AuthenticatedSessionManager.hasRole(roles, property.getCategory().configRoles())) {
 					throw new AuthenticationException("Authentication failure: user has not sufficient rights!");
+				}
+			}
+			if (property == PropertyName.ADMIN_PORT) {
+				String propValue = ((Element) nl.item(i)).getAttribute("value");
+				if (!propValue.isEmpty() && !Integer.toString(request.getLocalPort()).equals(propValue)) {
+					throw new InvalidParameterException("'" + property.getKey() + "' can only be empty or the current port (" + request.getLocalPort() + ")");
 				}
 			}
 		}

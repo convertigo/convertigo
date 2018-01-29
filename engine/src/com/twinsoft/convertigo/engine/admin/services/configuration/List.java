@@ -92,6 +92,8 @@ public class List extends XmlService{
 		        			originalValue = "";
 	        			}
 	        			break;
+					default:
+						break;
 	        		}
 	        		Element propertyElement = document.createElement("property");
 	        		propertyElement.setAttribute("name", property.name());

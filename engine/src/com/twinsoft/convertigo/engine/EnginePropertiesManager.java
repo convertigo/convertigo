@@ -362,6 +362,7 @@ public class EnginePropertiesManager {
 		TEST_PLATFORM_USERNAME ("testplatform.username", "", "Test Platform username (leave it blank for anonymous access)", PropertyCategory.Account),
 		@PropertyOptions(propertyType = PropertyType.PasswordHash)
 		TEST_PLATFORM_PASSWORD ("testplatform.password", ""+"".hashCode(), "Test Platform password", PropertyCategory.Account),
+		ADMIN_PORT ("admin.port", "", "Admin port (leave blank if no filtering)", PropertyCategory.Account),
 		
 		/** LOGS */
 		LOG4J_LOGGER_CEMS ("log4j.logger.cems", LogLevels.INFO.getValue() + ", CemsAppender", "Log4J root logger", PropertyCategory.Logs),
