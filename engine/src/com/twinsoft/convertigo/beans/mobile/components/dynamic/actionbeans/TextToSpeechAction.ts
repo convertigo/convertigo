@@ -7,28 +7,6 @@
      * @param vars  , the object which holds variables key-value pairs
      */
     
-    findLocaleCode(localeOrName) {
-        var voices = window.speechSynthesis.getVoices();
-
-        for (var i=0, len=voices.length; i<len; i++) {
-            var voice = voices[i];
-
-            console.log(voice.name);
-
-            if (localeOrName.length > 5) {   // assume it is a voice name 
-                if (voice.name.indexOf(localeOrName) == 0) { 
-                    return {index:i, lang:voice.lang};
-                }
-            } else {
-                if (voice.lang.indexOf(localeOrName) == 0) { 
-                    return {index:i, lang:voice.lang};
-                }
-            } 
-        }
-
-        return null;
-    };
-    
     TextToSpeechAction(page: C8oPage, props, vars) : Promise<any> {
         return new Promise((resolve, reject) => {
             if (props['text'] === undefined) {
