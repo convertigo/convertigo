@@ -1,4 +1,4 @@
-    
+
     /**
      * Function TextToSpeechAction
      *   
@@ -9,34 +9,25 @@
     
     findLocaleCode(localeOrName) {
         var voices = window.speechSynthesis.getVoices();
-        
-        if (voices == null) {
-            // give a second chance
-            setTimeout(function() { 
-                voices = window.speechSynthesis.getVoices();
-            }, 250);
+
+        for (var i=0, len=voices.length; i<len; i++) {
+            var voice = voices[i];
+
+            console.log(voice.name);
+
+            if (localeOrName.length > 5) {   // assume it is a voice name 
+                if (voice.name.indexOf(localeOrName) == 0) { 
+                    return {index:i, lang:voice.lang};
+                }
+            } else {
+                if (voice.lang.indexOf(localeOrName) == 0) { 
+                    return {index:i, lang:voice.lang};
+                }
+            } 
         }
-        
-        if (voices != null) {
-            for (var i=0, len=voices.length; i<len; i++) try {
-                var voice = voices[i];
-            
-                console.log(voice.name);
-            
-                if (localeOrName.length > 5) {   // assume it is a voice name 
-                    if (voice.name.indexOf(localeOrName) == 0) { 
-                        return {index:i, lang:voice.lang};
-                    }
-                } else {
-                    if (voice.lang.indexOf(localeOrName) == 0) { 
-                        return {index:i, lang:voice.lang};
-                    }
-                } 
-            } catch (e) {
-            }
-        }
+
         return null;
-    };  
+    };
     
     TextToSpeechAction(page: C8oPage, props, vars) : Promise<any> {
         return new Promise((resolve, reject) => {
@@ -64,20 +55,18 @@
                     });                
                 }
             
-                setTimeout(async function() { 
-                    await tts.speak({
-                        text: options.text,
-                        locale: options.locale,
-                        rate: options.rate
-                    }).then((result: any) => {
-                        page.router.c8o.log.debug("[MB] TextToSpeechAction: ", result);
-                        resolve(result);
-                    })
-                    .catch((error: any) => {
-                        page.router.c8o.log.error("[MB] TextToSpeechAction: ", error);
-                        reject(error);
-                    });  
-                }, 0);                               
+                tts.speak({
+                    text: options.text,
+                    locale: options.locale,
+                    rate: options.rate
+                }).then((result: any) => {
+                    page.router.c8o.log.debug("[MB] TextToSpeechAction: ", result);
+                    resolve(result);
+                })
+                .catch((error: any) => {
+                    page.router.c8o.log.error("[MB] TextToSpeechAction: ", error);
+                    reject(error);
+                });  
             } else {
                 if ('speechSynthesis' in window) {
                     if ((options.locale == undefined) || (options.locale == '')) {
@@ -86,30 +75,66 @@
                     
                     speechSynthesis.cancel();                    
                     var utterance  = new SpeechSynthesisUtterance(options.text);
-                    var voices = window.speechSynthesis.getVoices();
                     
-                    var loc = this.findLocaleCode(options.locale);
-                    
-                    if (loc != null) {
-                        utterance.voice = voices[loc.index]; // Note: some voices don't support altering params
-                        utterance.lang = loc.lang;
-        
-                        utterance.volume = options.volume; // 0 to 1
-                        utterance.rate = options.rate; // 0.1 to 10
-                        utterance.pitch = options.pitch; //0 to 2
-            
-                        setTimeout(async function() { await speechSynthesis.speak(utterance); }, 0);
+                   /**
+                    * because of the async loading of the languages
+                    * we must wait until they are loaded
+                    */
+                    var waitTimer = setInterval(function() {
+                        var voices = window.speechSynthesis.getVoices();
 
-                        utterance.onstart = function(e) {
-                            // console.log(options.text + " has been spoken");
-                        };
-                        
-                        utterance.onend = function(e) {
-                            // console.log(options.text + " has been spoken");
-                        };
-                    } else {
-                        reject("[MB] TextToSpeechAction: cannot find locale");
-                    }
+                        if (voices.length !== 0) {
+                            /**
+                             * voices are there, stop the loop
+                             */
+                            clearInterval(waitTimer);
+
+                            var loc = null;
+
+                            for (var i=0, len=voices.length; i<len; i++) {
+                                var voice = voices[i];
+
+                               /**                            
+                                * check for different possible syntaxes
+                                * two letters locale i.e fr, en, es etc...
+                                * five letters locale i.e fr-FR, en-US, es-ES etc...
+                                * assume length > 5 is a voice.name instead of locale
+                                */
+                                if (options.locale.length > 5) {   // assume it is a voice name 
+                                    if (voice.name.indexOf(options.locale) == 0) { 
+                                        loc = {index:i, lang:voice.lang};
+                                        break;
+                                    }
+                                } else {
+                                    if (voice.lang.indexOf(options.locale) == 0) { 
+                                        loc = {index:i, lang:voice.lang};
+                                        break;
+                                    }
+                                } 
+                            }
+                            
+                            if (loc != null) {
+                                var voices = window.speechSynthesis.getVoices();
+                                
+                                utterance.voice = voices[loc.index]; // Note: some voices don't support altering params
+                                utterance.lang = loc.lang;
+                
+                                utterance.volume = options.volume; // 0 to 1
+                                utterance.rate = options.rate; // 0.1 to 10
+                                utterance.pitch = options.pitch; //0 to 2
+                    
+                                try {
+                                    speechSynthesis.speak(utterance);
+                                    resolve("[MB] TextToSpeechAction: spoke " + options.text);
+                                } catch(e) {
+                                    page.router.c8o.log.debug("[MB] TextToSpeechAction: ",  e);
+                                    reject("[MB] TextToSpeechAction: " + e);
+                                }
+                            } else {
+                                reject("[MB] TextToSpeechAction: cannot find locale");
+                            }                            
+                        }
+                    }, 500);
                 } else {
                     reject("[MB] TextToSpeechAction: browser cannot do TextToSpeech");
                 }

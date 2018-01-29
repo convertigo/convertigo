@@ -5666,7 +5666,7 @@
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "TextToSpeech",
       "label": "TextToSpeech",
-      "description": "Defines a <i>TextToSpeech</i> action component. | Speaks a string.<br/><u>Supported platorm(s):</u> <ul><li>Android</li><li>iOS</li></ul><br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/native/text-to-speech//'>TextToSpeech</a>",
+      "description": "Defines a <i>TextToSpeech</i> action component. | Speaks a string.<br/><u>Supported platorm(s):</u> <ul><li>Web</li><li>Android</li><li>iOS</li></ul><br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/native/text-to-speech//'>TextToSpeech</a>",
       "group": "Native Actions",
 		"icon16": "texttospeechaction_color_16x16.png",
     	"icon32": "texttospeechaction_color_32x32.png",
