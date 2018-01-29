@@ -5662,7 +5662,80 @@
       ]
     }
   },
-  
+  "TextToSpeechAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "displayName": "TextToSpeech",
+      "label": "TextToSpeech",
+      "description": "Defines a <i>TextToSpeech</i> action component. | Speaks a string.<br/><u>Supported platorm(s):</u> <ul><li>Web</li><li>Android</li><li>iOS</li></ul><br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/native/text-to-speech//'>TextToSpeech</a>",
+      "group": "Native Actions",
+		"icon16": "texttospeechaction_color_16x16.png",
+    	"icon32": "texttospeechaction_color_32x32.png",
+      "properties": {
+        "text": {
+          "mode": "script",
+          "attr":"[text]",
+          "label": "Text",
+          "description": "String : The string that will be spoken. Punctation and Capitals modify the pitch.",
+          "category": "@texttospeech options",
+          "value": ""
+        },
+        "locale": {
+          "mode": "script",
+          "attr":"[locale]",
+          "label": "Locale",
+          "description": "String : empty or 'en' or 'en-US' or the voice 'name'",
+          "category": "@texttospeech options",
+          "value": ""
+        },
+        "volume": {
+          "mode": "script",
+          "attr":"[volume]",
+          "label": "Volume",
+          "description": "Number : the volume level 0 to 1",
+          "category": "@texttospeech options",
+          "value": "1"
+        },
+        "pitch": {
+          "mode": "script",
+          "attr":"[pitch]",
+          "label": "Pitch",
+          "description": "Number : the pitch level 0 to 2",
+          "category": "@texttospeech options",
+          "value": "0"
+        },
+        "rate": {
+          "mode": "script",
+          "attr":"[rate]",
+          "label": "Rate",
+          "description": "Number : the speech speed level 0.1 to 10",
+          "category": "@texttospeech options",
+          "value": "1"
+        }
+      },
+      "config": {
+        "action_ts_imports": [
+			{"from":"@ionic-native/globalization", "components":["Globalization"]},
+			{"from":"@ionic-native/text-to-speech","components":["TextToSpeech"]}
+        ],
+        "module_ts_imports": [
+        	{"from":"@ionic-native/globalization", "components":["Globalization"]},
+			{"from":"@ionic-native/text-to-speech", "components":["TextToSpeech"]}
+        ],
+        "module_ng_imports": [
+        ],
+        "module_ng_providers": [
+			"TextToSpeech", "Globalization"
+        ],
+        "package_dependencies": [
+        	{"package":"@ionic-native/globalization", "version":"4.5.3"},
+            {"package":"@ionic-native/text-to-speech", "version":"4.5.2"}
+        ],
+        "cordova_plugins": [
+        	{"plugin":"cordova-plugin-globalization", "version":"1.0.9"},
+			{"plugin":"cordova-plugin-tts", "version":"0.2.3"}
+      ]
+    }
+  },
   "FingerprintAIOAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "FingerprintAIO",

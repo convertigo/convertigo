@@ -102,6 +102,15 @@ public class AdminServlet extends HttpServlet {
 					Engine.logAdmin.info("Service name: " + serviceName);
 				}
 				
+				if (serviceName == null || !(serviceName.equals("logs.Add") || serviceName.equals("security_token.Get"))) {
+					String adminPort = EnginePropertiesManager.getProperty(PropertyName.ADMIN_PORT);
+					if (!adminPort.isEmpty() && ! adminPort.equals(Integer.toString(request.getLocalPort()))) {
+						Engine.logAdmin.error("Unauthorized Admin Request from port: " + request.getLocalPort());
+						response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+						return;
+					}
+				}
+				
 				String myPackage = this.getClass().getPackage().getName();
 				Class<?> serviceClass = Class.forName(myPackage + ".services." + serviceName);
 				

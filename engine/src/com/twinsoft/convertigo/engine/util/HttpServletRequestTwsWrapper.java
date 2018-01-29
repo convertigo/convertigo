@@ -32,6 +32,7 @@ import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
+import javax.servlet.http.HttpSession;
 
 import org.apache.commons.io.IOUtils;
 
@@ -41,6 +42,7 @@ import com.twinsoft.convertigo.engine.enums.MimeType;
 public class HttpServletRequestTwsWrapper extends HttpServletRequestWrapper {	
 	protected Map<String, String[]> parameters = new HashMap<String, String[]>();
 	protected String query = null;
+	protected HttpSession session = null;
 	
 	public HttpServletRequestTwsWrapper(HttpServletRequest request) {
 		super(request);
@@ -119,6 +121,20 @@ public class HttpServletRequestTwsWrapper extends HttpServletRequestWrapper {
 	public String getQueryString() {
 		return query != null ? query : super.getQueryString();
 	}
-	
-	
+
+	@Override
+	public HttpSession getSession() {
+		if (session == null) {
+			session = HttpSessionTwsWrapper.wrap(super.getSession());
+		}
+		return session;
+	}
+
+	@Override
+	public HttpSession getSession(boolean create) {
+		if (session == null) {
+			session = HttpSessionTwsWrapper.wrap(super.getSession(create));
+		}
+		return session;
+	}
 }
