@@ -5032,7 +5032,7 @@
         },
         "data": {
           "label": "Page data",
-          "description": "Additional page data passed to the pushed page. You can access this data in the pushed page by using a (TS) expression <code>this.navParams.data</code>",
+          "description": "Additional page data object passed to the pushed page. You can access this data in the pushed page by using a (TS) expression <code>this.navParams.data</code>",
           "category": "@Properties",
           "type": "string",
           "value": false
