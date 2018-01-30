@@ -109,7 +109,7 @@
                                     reject("[MB] TextToSpeechAction: " + e);
                                 }
                             } else {
-                                reject("[MB] TextToSpeechAction: cannot find locale");
+                                reject("[MB] TextToSpeechAction: cannot find locale " + options.locale);
                             }                            
                         }
                     }, 500);
