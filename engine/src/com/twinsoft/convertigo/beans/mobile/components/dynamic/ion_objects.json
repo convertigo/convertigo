@@ -5729,21 +5729,21 @@
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "TextToSpeech",
       "label": "TextToSpeech",
-      "description": "Defines a <i>TextToSpeech</i> action component. | Speaks a string.<br/><u>Supported platorm(s):</u> <ul><li>Web</li><li>Android</li><li>iOS</li></ul><br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/native/text-to-speech//'>TextToSpeech</a>",
+      "description": "Defines a <i>TextToSpeech</i> action component. | Speaks a string.<br/>Note that there are more languages in an external browser<br/><br/><u>Supported platorm(s):</u> <ul><li>Web</li><li>Android</li><li>iOS</li></ul><br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/native/text-to-speech//'>TextToSpeech</a>",
       "group": "Native Actions",
 		"icon16": "texttospeechaction_color_16x16.png",
     	"icon32": "texttospeechaction_color_32x32.png",
       "properties": {
 	    "text": {
 	     	"label": "Text",
-	        "description": "The message to send",
+	        "description": "'not set' or String : the words to be spoken",
 	        "category": "@texttospeech options",
 	        "type": "string",
 	        "value": false
 	    },
         "locale": {
           "label": "Locale",
-          "description": "String : empty or 'en' or 'en-US' or the voice 'name'",
+          "description": "'not set' or String : 'en' or 'en-US' or the voice 'name'",
           "category": "@texttospeech options",
 	      "type": "string",
 	      "value": false
