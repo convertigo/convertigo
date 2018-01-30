@@ -46,7 +46,8 @@ import com.twinsoft.convertigo.engine.util.HttpUtils;
  */
 public class AdminServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-       
+    
+	private static String lastAdminPort = "";
     /**
      * @see HttpServlet#HttpServlet()
      */
@@ -84,7 +85,7 @@ public class AdminServlet extends HttpServlet {
 		try {
 			show_error = !EnginePropertiesManager.getProperty(PropertyName.HIDING_ERROR_INFORMATION).equals("true");
 		} catch (Exception e) {
-			Engine.logAdmin.debug("Failed to retrieve property: " + e.getClass() + " (" + e.getMessage() + ")");
+			Engine.logAdmin.debug("Failed to retrieve property HIDING_ERROR_INFORMATION: " + e.getClass() + " (" + e.getMessage() + ")");
 		}
 				
 		try {
@@ -103,8 +104,13 @@ public class AdminServlet extends HttpServlet {
 				}
 				
 				if (serviceName == null || !(serviceName.equals("logs.Add") || serviceName.equals("security_token.Get"))) {
-					String adminPort = EnginePropertiesManager.getProperty(PropertyName.ADMIN_PORT);
-					if (!adminPort.isEmpty() && ! adminPort.equals(Integer.toString(request.getLocalPort()))) {
+					try {
+						lastAdminPort = EnginePropertiesManager.getProperty(PropertyName.ADMIN_PORT);
+					} catch (Exception e) {
+						Engine.logAdmin.debug("Failed to retrieve property ADMIN_PORT: " + e.getClass() + " (" + e.getMessage() + ")");
+					}
+					
+					if (!lastAdminPort.isEmpty() && ! lastAdminPort.equals(Integer.toString(request.getLocalPort()))) {
 						Engine.logAdmin.error("Unauthorized Admin Request from port: " + request.getLocalPort());
 						response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 						return;
