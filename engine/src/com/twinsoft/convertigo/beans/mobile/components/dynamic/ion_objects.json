@@ -5743,7 +5743,7 @@
 	    },
         "locale": {
           "label": "Locale",
-          "description": "'not set' or String : 'en' or 'en-US' or the voice 'name'",
+          "description": "'not set' or String : 'en-US' or ['en' or voice 'name' for WebApps]",
           "category": "@texttospeech options",
 	      "type": "string",
 	      "value": false
