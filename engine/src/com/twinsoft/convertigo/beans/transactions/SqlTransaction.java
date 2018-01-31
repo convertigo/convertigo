@@ -227,7 +227,7 @@ public class SqlTransaction extends TransactionWithVariables {
 				type = SqlKeywords.rollback;
 			else if (query.toUpperCase().indexOf("CALL ") != -1)
 				type = SqlKeywords.call;
-			else 
+			else
 				type = SqlKeywords.unknown;
 		}
 		
@@ -238,7 +238,7 @@ public class SqlTransaction extends TransactionWithVariables {
 			this.query = prepareParameters(updateDefinitions);
 		}
 		
-		/** We prepare the query and create lists 
+		/** We prepare the query and create lists
 		 * @throws EngineException  **/
 		private String prepareParameters(boolean updateDefinitions) throws EngineException {
 			String preparedSqlQuery = "";
@@ -416,7 +416,7 @@ public class SqlTransaction extends TransactionWithVariables {
 		return variableValue = ((variableValue == null)? new String(""):variableValue);
 	}
 	
-	private String prepareQuery(List<String> logHiddenValues, SqlQueryInfos sqlQueryInfos) throws 
+	private String prepareQuery(List<String> logHiddenValues, SqlQueryInfos sqlQueryInfos) throws
 		SQLException, ClassNotFoundException, EngineException {
 		
 		checkSubLoaded();
@@ -908,7 +908,7 @@ public class SqlTransaction extends TransactionWithVariables {
 							child.setAttribute("type", "xsd:string");
 							child.setAttribute("use", "required");
 							child.setAttribute("fixed", "object");
-							parentElt.appendChild(child);							
+							parentElt.appendChild(child);
 						}
 					}
 					
@@ -993,7 +993,7 @@ public class SqlTransaction extends TransactionWithVariables {
 	
 	@Override
 	public void runCore() throws EngineException {
-		try {
+		try {			
 			// Create an empty list for hidden variable values
 			List<String> logHiddenValues = new ArrayList<String>();
 			
@@ -1115,7 +1115,7 @@ public class SqlTransaction extends TransactionWithVariables {
 					break;
 			}
 			
-			// We commit if auto-commit parameter is false			
+			// We commit if auto-commit parameter is false
 			if (!rollbackDone && (autoCommit == AutoCommitMode.autocommit_end.ordinal())) {
 				try {
 					connector.connection.commit();
@@ -1131,38 +1131,44 @@ public class SqlTransaction extends TransactionWithVariables {
 			if (generateJsonTypes) {
 				TwsCachedXPathAPI xpathApi = context.getXpathApi();
 				Element sql_out = (Element) xpathApi.selectSingleNode(context.outputDocument, "/*/sql_output");
-				Engine.logEngine.warn(XMLUtils.prettyPrintDOM(context.outputDocument));
-				Engine.logEngine.warn(tables.toString());
-				sql_out.setAttribute("type", "array");
-				
-				if (xmlMode == XmlMode.flat_element) {
-					Map<Integer, Pair<String, String>> types = new HashMap<Integer, Pair<String, String>>();
-					for (List<List<Object>> columns: tables.values()) {
-						for (List<Object> col: columns) {
-							String cls = ((String) col.get(2)).toLowerCase();
-							String type = "string";
-							if (cls.startsWith("java.lang.")) {
-								type = cls.substring(10);
+				if (Engine.logBeans.isTraceEnabled()) {
+					Engine.logEngine.trace("(SqlTransaction) outputDocument before json: " + XMLUtils.prettyPrintDOM(context.outputDocument));
+					Engine.logEngine.trace("(SqlTransaction) tables before json: " + tables);
+				}
+				if (tables != null) {
+					sql_out.setAttribute("type", "array");
+					
+					if (xmlMode == XmlMode.flat_element) {
+						Map<Integer, Pair<String, String>> types = new HashMap<Integer, Pair<String, String>>();
+						for (List<List<Object>> columns: tables.values()) {
+							for (List<Object> col: columns) {
+								String cls = ((String) col.get(2)).toLowerCase();
+								String type = "string";
+								if (cls.startsWith("java.lang.")) {
+									type = cls.substring(10);
+								}
+								types.put((Integer) col.get(0), ImmutablePair.of((String) col.get(1), type));
 							}
-							types.put((Integer) col.get(0), ImmutablePair.of((String) col.get(1), type));
 						}
-					}
-					NodeList rows = xpathApi.selectNodeList(context.outputDocument, "/*/sql_output/*");
-					for (int i = 0; i < rows.getLength(); i++) {
-						Element row = ((Element) rows.item(i));
-						row.setAttribute("type", "object");
-						if (types != null) {
-							NodeList fields = xpathApi.selectNodeList(row, "*");
-							for (int j = 0; j < fields.getLength(); j++) {
-								Pair<String, String> info = types.get(j + 1);
-								Element field = ((Element) fields.item(j));
-								field.setAttribute("type", info.getRight());
-								if (!field.getTagName().equals(info.getLeft())) {
-									field.setAttribute("originalKeyName", info.getLeft());
+						NodeList rows = xpathApi.selectNodeList(context.outputDocument, "/*/sql_output/*");
+						for (int i = 0; i < rows.getLength(); i++) {
+							Element row = ((Element) rows.item(i));
+							row.setAttribute("type", "object");
+							if (types != null) {
+								NodeList fields = xpathApi.selectNodeList(row, "*");
+								for (int j = 0; j < fields.getLength(); j++) {
+									Pair<String, String> info = types.get(j + 1);
+									Element field = ((Element) fields.item(j));
+									field.setAttribute("type", info.getRight());
+									if (!field.getTagName().equals(info.getLeft())) {
+										field.setAttribute("originalKeyName", info.getLeft());
+									}
 								}
 							}
 						}
 					}
+				} else {
+					sql_out.setAttribute("type", "string");
 				}
 			}
 			
