@@ -1153,6 +1153,34 @@
             false,
             true
           ]
+        },
+        "width": {
+          "attr": "width",
+          "label": "width",
+          "description": "The image width (in pixels add px eg: 200px, in points add pt eg: 20pt)",
+          "category": "Attributes",
+          "value": "",
+          "values": [
+            false,
+            true
+          ]
+        },
+        "height": {
+          "attr": "height",
+          "label": "height",
+          "description": "The image height (in pixels add px eg: 200px, in points add pt eg: 20pt)",
+          "category": "Attributes",
+          "value": "",
+          "values": [
+            false,
+            true
+          ]
+        },
+        "alt": {
+          "attr": "alt",
+          "label": "alt",
+          "description": "Set the alt attribute which gets assigned to the inner img element.",
+          "category": "Attributes"          
         }
       }
     },
@@ -4687,7 +4715,7 @@
 
         "data": {
           "label": "Page data",
-          "description": "Additional page data passed to the modal page. You can access this data in the modal page by using a (TS) expression <code>this.navParams.data</code>",
+          "description": "Additional page data Object (be sure to use an object not a string) passed to the modal page. You can access this data in the modal page by using a (TS) expression <code>this.navParams.data</code>",
           "category": "@Properties",
           "type": "string",
           "value": false
