@@ -474,14 +474,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		
 		getSite().setSelectionProvider(viewer);
 		
-		ConvertigoPlugin.runAtStartup(new Runnable() {
-
-			@Override
-			public void run() {
-				initialize();
-			}
-			
-		});
+		ConvertigoPlugin.runAtStartup(() -> initialize());
 	}
 
 	public void initialize() {

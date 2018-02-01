@@ -907,11 +907,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 				if (name.startsWith("mobilebuilder_tpl") &&
 						!Engine.theApp.databaseObjectsManager.existsProject(name.substring(0, name.length() - 4))) {
 					try {
-						Project project = Engine.theApp.databaseObjectsManager.deployProject(tpl.getPath(), false);
-						ProjectExplorerView pew = getProjectExplorerView();
-						if (pew != null) {
-							pew.importProjectTreeObject(project.getName());
-						}
+						Engine.theApp.databaseObjectsManager.deployProject(tpl.getPath(), false);
 					} catch (Exception e) {
 						Engine.logEngine.error("Failed to deploy " + tpl.getName(), e);
 					}
