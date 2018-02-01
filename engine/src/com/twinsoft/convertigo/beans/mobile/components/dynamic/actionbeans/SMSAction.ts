@@ -23,7 +23,7 @@
             })
             .catch((err)=>{
                 page.router.c8o.log.error("[MB] SMSAction: ", err);
-                resolve(err);
+                reject(err);
             })
         });
     }

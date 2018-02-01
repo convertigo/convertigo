@@ -143,11 +143,11 @@
                 .catch((e) => {
                     if(e == "cordova_not_available"){
                         page.router.c8o.log.debug("[MB] CameraAction :" + e);
-                        resolve(e);
+                        reject(e);
                     } 
                     else{
                         page.router.c8o.log.error("[MB] CameraAction: ", e);
-                        resolve(e); 
+                        reject(e); 
                     }
                 });
         });

@@ -17,7 +17,7 @@
             page.getInstance(Platform).ready().then(() => {     // We may need the CBL plugin so wait for platform ready.
                 page.c8o.finalizeInit().then(()=>{              // To be sure that FullSync initialized properly on CBL
                     page.call("fs://" + rvm, data, null, 500)
-                    .then((res:any) => {resolve(res)}).catch((error:any) => {resolve(error)})
+                    .then((res:any) => {resolve(res)}).catch((error:any) => {reject(error)})
                 })
             });
         });

@@ -26,7 +26,7 @@
             })
             .catch((err)=>{
                 page.router.c8o.log.error("[MB] ActionSheetAction: ", err);
-                resolve(err);
+                reject(err);
             })
         });
     }
