@@ -118,7 +118,8 @@
       "values": [
         false,
         "reset",
-        "submit"
+        "submit",
+        "button"
       ]
     },
     
@@ -619,7 +620,7 @@
       "icon16": "button_color_16x16.png",
       "icon32": "button_color_32x32.png",
       "properties": {
-        "ButtonFormType" : false,
+        "ButtonFormType" : "button",
         "ButtonType": "ion-button",
         "MenuMode": false,
         "IonColor": false,
