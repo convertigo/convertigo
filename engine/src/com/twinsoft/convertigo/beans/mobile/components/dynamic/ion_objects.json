@@ -648,6 +648,7 @@
         "IonColor": false,
         "IonShape": false,
         "IonOutline": false,
+		"IonClear": false,
         "IonSize": false,
         "IconPosition": false,
         "IconOnly": false,
@@ -679,6 +680,7 @@
         "IonColor": false,
         "IonShape": false,
         "IonOutline": false,
+		"IonClear": false,
         "IonSize": false,
         "IconPosition": false,
         "IconOnly": false
