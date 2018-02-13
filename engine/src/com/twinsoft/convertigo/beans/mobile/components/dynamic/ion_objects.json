@@ -6150,11 +6150,11 @@
      
 	      "quality": {
 	        "label": "quality",
-	        "description": "Picture quality in range 0-100. Default is 100",
+	        "description": "Picture quality in range 0-100. Default is 80",
 	        "category": "@camera options",
 	        "type": "number",
 	        "mode":"script",
-	        "value": 100
+	        "value": 80
 	      },
 	      "destinationType": {
 	        "label": "destinationType",
@@ -6206,7 +6206,7 @@
 	        "category": "@camera options",
 	        "type": "number",
 	        "mode":"script",
-	        "value": false
+	        "value": 800
 	      },
 	      "targetHeight": {
 	        "label": "targetHeight",
@@ -6214,7 +6214,7 @@
 	        "category": "@camera options",
 	        "type": "number",
 	        "mode":"script",
-	        "value": false
+	        "value": 800
 	      },
 	      "mediaType": {
 	        "label": "mediaType",
