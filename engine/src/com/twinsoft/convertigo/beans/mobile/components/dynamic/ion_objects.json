@@ -3182,7 +3182,8 @@
             "number",
             "search",
             "tel",
-            "url"
+            "url",
+            true
           ]
         },
         "Value": {
@@ -5153,6 +5154,182 @@
         }
 	  }
 	},
+
+ 
+  "CalendarPickerAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "displayName": "CalendarPicker",
+      "label": "Calendar Picker",
+      "description": "Defines a <i>Calendar Picker</i> action component. | Use this action to display a Calendar to pick dates.",
+      "group": "Actions",
+      "icon16": "calendaraction_color_16x16.png",
+      "icon32": "calendaraction_color_32x32.png",
+      "properties": {
+        "from":	{
+          "label": "From",
+          "description": "start date, default , today",
+          "category": "@Properties",
+          "type": "date",
+          "value": false
+        },
+        
+        "to":{	
+          "label": "To",
+          "description": "End date, default, infinite",
+          "category": "@Properties",
+          "type": "date",
+          "value": false
+        },
+        
+        "IonColor": "primary",
+        
+        "pickMode":{	
+          "label": "Pick mode",
+          "description": "Picker mode",
+          "category": "@Properties",
+          "type": "string",
+          "value": "single",
+          "values": [
+            "multi",
+            "range",
+            "single"
+          ]
+        },
+
+        "closeLabel":{
+          "label": "Close label",
+          "description": "The close button label",
+          "category": "@Properties",
+          "type": "string",
+          "value": false
+        },
+        
+        "doneLabel":{
+          "label": "Done label",
+          "description": "The done button label",
+          "category": "@Properties",
+          "type": "string",
+          "value": false
+        },
+
+
+        "closeIcon":{
+          "label": "Close icon",
+          "description": "Display close Icon",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": false,
+          "values": [
+            false,
+            "true",
+            "false"
+          ]
+        },
+        
+        "doneIcon":{
+          "label": "Done icon",
+          "description": "Display done icon",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": false,
+          "values": [
+            false,
+            "true",
+            "false"
+          ]
+        },
+
+
+        "title":{
+          "label": "Title",
+          "description": "The calendar title",
+          "category": "@Properties",
+          "type": "string",
+          "value": false
+        },
+
+
+        "defaultTitle":{
+          "label": "Day Title",
+          "description": "The default title displayed for Days",
+          "category": "@Properties",
+          "type": "string",
+          "value": ""
+        },
+
+        "defaultSubtitle":{	
+          "label": "Subtitle",
+          "description": "The default  subtitle displayed for Days",
+          "category": "@Properties",
+          "type": "string",
+          "value": ""
+        },
+
+        "disableWeeks":{	
+          "label": "Disable weeks days",
+          "description": "Weeks days to be disabled (0 to 6)",
+          "category": "@Properties",
+          "type": "string",
+          "mode": "script",
+          "value": "[]"
+        },
+
+        "monthFormat":{	
+          "label": "Month fomat",
+          "description": "Month format ('MMM YYYY')",
+          "category": "@Properties",
+          "type": "string",
+          "value": "MMM YYYY"
+        },
+
+        "weekdays":{	
+          "label": "Weekdays labels",
+          "description": "Define the week days labels",
+          "category": "@Properties",
+          "mode": "script",
+          "type": "string",
+          "value": "['S', 'M', 'T', 'W', 'T', 'F', 'S']"
+        },
+
+        "weekStart":{	
+          "label": "Week start",
+          "description": "Define the week start day",
+          "category": "@Properties",
+          "type": "number",
+          "value": 0,
+          "values": [
+            0,
+            1
+          ]
+        },
+
+        "daysConfig":{
+          "label": "Days configuration",
+          "description": "Define the days configuration",
+          "category": "@Properties",
+          "mode": "script",
+          "type": "string",
+          "value": "[]"
+        }
+      },
+
+      "config": {
+        "action_ts_imports": [
+          {"from":"ion2-calendar","components":["CalendarModal", "CalendarModalOptions", "DayConfig", "CalendarResult"]}
+        ],
+        "module_ts_imports": [
+          {"from":"ion2-calendar","components":["CalendarModule"]}
+        ],
+        "module_ng_imports": [
+          "CalendarModule"
+        ],
+        "package_dependencies": [
+            {"package":"ion2-calendar", "version":"2.1.6-beta.2"}
+        ]
+    }
+  },
+
+
 
   "GooglePlusLoginAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
