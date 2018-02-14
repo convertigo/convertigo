@@ -146,7 +146,14 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
 				Engine.logBeans.error("Property editor '" + className + "' cannot be found", e);
 			
 			return null;
-		} catch (Throwable e) {
+		} catch (NoClassDefFoundError e) {
+			// Server mode => no eclipse.jar, so no editor classes as expected
+			// If studio mode: error!
+			if (!Engine.isEngineMode())
+				Engine.logBeans.error("Property editor '" + className + "' cannot be found", e);
+			
+			return null;
+		}  catch (Throwable e) {
 			// Any Throwable will result in a return null (as NoDefClassFound) 
    			Engine.logBeans.error("Property editor '" + className + "' cannot be found", e);
 			return null;

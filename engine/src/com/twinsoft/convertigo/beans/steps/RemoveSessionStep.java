@@ -56,9 +56,10 @@ public class RemoveSessionStep extends Step {
 		if (isEnabled()) {
 			if (super.stepExecute(javascriptContext, scope) && Engine.isEngineMode()) {
 				if (sequence.context != null && sequence.context.httpSession != null) {
+					String id = sequence.context.httpSession.getId();
 					HttpUtils.terminateSession(sequence.context.httpSession);
 					sequence.context.requireEndOfContext = true;
-					HttpSessionListener.removeSession(sequence.context.httpSession.getId());
+					HttpSessionListener.removeSession(id);
 				} else {
 					Engine.logBeans.warn("(RemoveSessionStep) null httpSession, cannot be removed");
 				}

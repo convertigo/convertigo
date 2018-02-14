@@ -102,7 +102,9 @@ public class FullSyncServlet extends HttpServlet {
 				return;
 			}
 			
-			HttpSessionListener.checkSession(request);
+			if (method != HttpMethodType.HEAD) {
+				HttpSessionListener.checkSession(request);
+			}
 		} catch (Throwable e) {
 			throw new ServletException(e);
 		}
