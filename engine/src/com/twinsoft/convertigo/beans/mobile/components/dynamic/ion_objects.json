@@ -5180,6 +5180,34 @@
       "icon16": "calendaraction_color_16x16.png",
       "icon32": "calendaraction_color_32x32.png",
       "properties": {
+
+        "defaultDate":	{
+          "label": "Default date",
+          "description": "Default selected date as a Javascript <code>Date()</code> object",
+          "category": "@Properties",
+          "type": "string",
+          "mode": "script",
+          "value": "new Date()"
+        },
+
+        "defaultDates":	{
+          "label": "Default dates (multi)",
+          "description": "Default selected dates as an array of Javascript <code>Date()</code> objects. For 'multi' mode only",
+          "category": "@Properties",
+          "type": "string",
+          "mode": "script",
+          "value": "[new Date(),new Date()]"
+        },
+
+        "defaultDateRange":	{
+          "label": "Default range (range)",
+          "description": "Default selected date range as an <code>{from: Date(), to:Date()}</code> object. For 'range' mode only",
+          "category": "@Properties",
+          "type": "string",
+          "mode": "script",
+          "value": "{from: new Date(), to: new Date()}"
+        },
+
         "from":	{
           "label": "From",
           "description": "start date, default , today",
@@ -5227,6 +5255,18 @@
           "value": false
         },
 
+        "canBackwardsSelected":{
+          "label": "Can be backwards selected",
+          "description": "Define if the calendar can be backwards selected",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": false,
+          "values": [
+            false,
+            "true",
+            "false"
+          ]
+        },
 
         "closeIcon":{
           "label": "Close icon",
