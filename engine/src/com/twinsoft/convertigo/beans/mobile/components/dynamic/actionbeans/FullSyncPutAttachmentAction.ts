@@ -24,6 +24,7 @@
                 }
             }
             if (props.content instanceof URL) {
+                props.content.search = "";
                 let file: File = page.getInstance(File);
                 let fileName = props.content.href.substring(props.content.href.lastIndexOf("/") + 1);
                 let path =  props.content.href.substring(0,props.content.href.lastIndexOf("/") + 1);
