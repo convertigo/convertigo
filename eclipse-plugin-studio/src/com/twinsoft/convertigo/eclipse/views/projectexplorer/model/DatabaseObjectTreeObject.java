@@ -794,7 +794,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			            	if (isNull) {
 			            		// Overrides value by fake one used by property editor
 			            		if (value instanceof String)
-			            			value = "null";
+			            			value = "<value is null>";
 			            		if (value instanceof XMLVector) {
 			            			XMLVector<Object> xmlv = new XMLVector<Object>();
 			            			xmlv.add("null");
