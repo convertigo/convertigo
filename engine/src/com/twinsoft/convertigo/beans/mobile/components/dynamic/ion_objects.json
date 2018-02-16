@@ -4708,6 +4708,200 @@
         }
       }
     },
+    
+
+
+    /*
+     * Calendar
+     */
+    "Calendar" : {
+      "tag": "ion-calendar",
+      "displayName": "Calendar",
+      "label": "Calendar",
+      "description": "Calendar | Displays a Calendar with various options configured as properties.<br /><br />Can trigger the (onChange), (monthChange) , (onSelect), (onSelectStart) and (onSelectEnd) events. ",
+      "group": "Forms",
+      "icon16": "calendar_color_16x16.png",
+      "icon32": "calendar_color_32x32.png",
+      "properties": {
+        "FormControlName": false,
+      
+        "type": {
+          "attr" : "[type]",
+          "label": "Type",
+          "description": "Output data type returned",
+          "category": "@Properties",
+          "value": "string",
+          "values": [
+            "string",
+            "js-date",
+            "time",
+            "object",
+            "moment"
+          ]
+        },
+
+        "format": {
+          "attr" : "[format]",
+          "label": "format",
+          "description": "Out data format",
+          "category": "@Properties",
+          "value": "'YYYY-MM-DD'",
+        },
+
+        "IonColor" : "primary",
+
+        "pickMode": {
+          "composite": true,
+          "label": "Pick mode",
+          "description": "Pick mode can be 'single', 'range' or 'multi'",
+          "category": "@Properties",
+          "value": "single",
+          "values": [
+            "single",
+            "multi",
+            "range"
+          ]
+        },
+
+        "from":	{
+          "composite": true,
+          "label": "From",
+          "description": "start date, default , today",
+          "category": "@Properties",
+          "type": "date",
+          "mode": "script",
+          "value": "undefined"
+        },
+        
+        "to":{	
+          "composite": true,
+          "label": "To",
+          "description": "End date, default, infinite",
+          "category": "@Properties",
+          "type": "date",
+          "mode": "script",
+          "value": "undefined"
+        },
+        
+        "showToggleButtons":{
+          "composite": true,
+          "label": "Show toggle buttons",
+          "description": "Show or not toggle buttons to switch to next or previous month",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "true",
+            "false"
+          ]
+        },
+
+        "showMonthPicker":{
+          "composite": true,
+          "label": "Show month picker",
+          "description": "Show or not the month picker to directly pick a month",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "true",
+            "false"
+          ]
+        },
+
+        "defaultTitle":{
+          "composite": true,
+          "label": "Day Title",
+          "description": "The default title displayed for Days",
+          "category": "@Properties",
+          "type": "string",
+          "value": ""
+        },
+
+        "defaultSubtitle":{	
+          "composite": true,
+          "label": "Subtitle",
+          "description": "The default  subtitle displayed for Days",
+          "category": "@Properties",
+          "type": "string",
+          "value": ""
+        },
+
+        "disableWeeks":{	
+          "composite": true,
+          "label": "Disable weeks days",
+          "description": "Weeks days to be disabled (0 to 6)",
+          "category": "@Properties",
+          "type": "string",
+          "mode": "script",
+          "value": "[]"
+        },
+
+        "monthFormat":{	
+          "composite": true,
+          "label": "Month fomat",
+          "description": "Month format ('MMM YYYY')",
+          "category": "@Properties",
+          "type": "string",
+          "value": "MMM YYYY"
+        },
+
+        "monthPickerFormat":{	
+          "composite": true,
+          "label": "Month picker fomat",
+          "description": "Month Labels",
+          "category": "@Properties",
+          "mode": "script",
+          "type": "string",
+          "value": "['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']"
+        },
+
+        "weekdays":{	
+          "composite": true,
+          "label": "Weekdays labels",
+          "description": "Define the week days labels",
+          "category": "@Properties",
+          "mode": "script",
+          "type": "string",
+          "value": "['S', 'M', 'T', 'W', 'T', 'F', 'S']"
+        },
+
+        "weekStart":{	
+          "composite": true,
+          "label": "Week start",
+          "description": "Define the week start day",
+          "category": "@Properties",
+          "type": "number",
+          "value": 0,
+          "values": [
+            0,
+            1
+          ]
+        },
+
+        "daysConfig":{
+          "composite": true,
+          "label": "Days configuration",
+          "description": "Define the days configuration",
+          "category": "@Properties",
+          "mode": "script",
+          "type": "string",
+          "value": "[]"
+        },
+        
+        
+        "options": {
+          "hidden": true,
+          "mode":"script",
+          "attr" : "[options]",
+          "label": "Type",
+          "description": "Calendar options",
+          "category": "@Properties",
+          "value": "{pickMode: $[pickMode], from: $[from], to: $[to], color: $[IonColor], showToggleButtons: $[showToggleButtons], showMonthPicker: $[showMonthPicker], monthPickerFormat: $[monthPickerFormat], defaultTitle: $[defaultTitle], defaultSubtitle: $[defaultSubtitle], disableWeeks: $[disableWeeks], monthFormat: $[monthFormat], weekdays: $[weekdays], weekStart: $[weekStart], daysConfig: $[daysConfig] }"
+        }
+      }
+    },
+        
 	
 	/*
 	* Actions
@@ -5688,7 +5882,7 @@
         "description": "The name of the attachment to be deleted on the document.",
         "category": "@Properties",
         "type": "string",
-        "value": false,
+        "value": false
         
       }
     }
