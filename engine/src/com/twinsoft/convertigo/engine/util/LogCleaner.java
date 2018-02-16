@@ -53,8 +53,8 @@ public class LogCleaner extends AppenderSkeleton {
 				}
 			}
 			
-			count -= EnginePropertiesManager.getPropertyAsLong(PropertyName.LOG4J_APPENDER_CEMSAPPENDER_MAXBACKUPINDEX);
-			while (count-- > 0) {
+			count -= EnginePropertiesManager.getPropertyAsLong(PropertyName.LOG4J_APPENDER_CEMSAPPENDER_MAXBACKUPINDEX) + 1;
+			while (count-- > 0 && !c8oLogFiles.isEmpty()) {
 				c8oLogFiles.remove(0).delete();
 			}
 		}

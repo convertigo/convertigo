@@ -23,6 +23,7 @@
 package com.twinsoft.convertigo.engine.admin.logmanager;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
@@ -272,19 +273,23 @@ public class TemporalInputStream extends InputStream {
 	}
 	
 	private void renameFile(File file, String basename, String extension) throws IOException {
-		Date first_date = null;
-		Date last_date = null;
-		RandomAccessFile raf = new RandomAccessFile(file, "r");
 		try {
-			first_date = findFirstDate(raf);
-			if (first_date != null) {
-				last_date = findLastDate(raf);
+			Date first_date = null;
+			Date last_date = null;
+			RandomAccessFile raf = new RandomAccessFile(file, "r");
+			try {
+				first_date = findFirstDate(raf);
+				if (first_date != null) {
+					last_date = findLastDate(raf);
+				}
+			} finally {
+				raf.close();	
 			}
-		} finally {
-			raf.close();	
-		}
-		if (first_date != null && last_date != null) {
-			file.renameTo(new File(file.getParentFile(), basename + '.' + Long.toString(first_date.getTime(), Character.MAX_RADIX) + '.' + Long.toString(last_date.getTime(), Character.MAX_RADIX) + extension));
+			if (first_date != null && last_date != null) {
+				file.renameTo(new File(file.getParentFile(), basename + '.' + Long.toString(first_date.getTime(), Character.MAX_RADIX) + '.' + Long.toString(last_date.getTime(), Character.MAX_RADIX) + extension));
+			}
+		} catch (FileNotFoundException e) {
+			// can happen while cleanup old files
 		}
 	}
 	
