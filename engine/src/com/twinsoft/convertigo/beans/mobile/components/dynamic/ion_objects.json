@@ -7046,6 +7046,12 @@
     	},
     	
       	"config": {
+	      	"cordova_plugins": [
+	          {
+	            "plugin":"cordova-plugin-inappbrowser",
+	            "version":"2.0.2"
+	          }
+	      ]
       	}
   },
 
