@@ -5912,6 +5912,14 @@
           true
         ]
       },
+      
+      "marker": {
+        "label": "Marker",
+        "description": "Use Markers to differentiate <i>get</i>s in order to be able to listen to a given <i>get</i> response. Use <code>listen([fs://mydatabase.get#MYMARKER])</code> syntax to listen to a given 'Marked' get.",
+        "category": "@Properties",
+        "type": "string",
+        "value": false
+      },
 
       "_id": {
         "label": "Unique ID",
