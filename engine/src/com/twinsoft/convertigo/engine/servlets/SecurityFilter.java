@@ -1,0 +1,512 @@
+/*
+ * Copyright (c) 2001-2011 Convertigo SA.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License
+ * as published by the Free Software Foundation; either version 3
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, see<http://www.gnu.org/licenses/>.
+ *
+ * $URL: svn://devus.twinsoft.fr/convertigo/CEMS_opensource/trunk/Studio/src/com/twinsoft/convertigo/engine/servlets/ProjectsDataFilter.java $
+ * $Author: victorn $
+ * $Revision: 39260 $
+ * $Date: 2015-02-26 18:06:28 +0100 (jeu., 26 févr. 2015) $
+ */
+
+package com.twinsoft.convertigo.engine.servlets;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Level;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONObject;
+
+import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
+import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
+
+public class SecurityFilter implements Filter, PropertyChangeEventListener {
+	
+	private int contextLength = 0;
+	private boolean init = false;
+	private Path config;
+	private List<Rule> rules = Collections.emptyList();
+	private WatchService ws;
+	private WatchKey wk;
+	private boolean enabled = false;
+	
+    public void doFilter(ServletRequest _request, ServletResponse _response, FilterChain chain) throws IOException, ServletException {
+    	HttpServletRequest request = (HttpServletRequest) _request;
+    	HttpServletResponse response = (HttpServletResponse) _response;
+    	
+    	Level level = Level.ERROR;
+    	StringBuilder sb = new StringBuilder();
+    	try {
+    		level = Engine.logSecurityFilter.getLevel();
+    	} catch (Exception e) {
+		}
+    	
+    	checkInit();
+    	
+    	List<Rule> rules = this.rules;
+    	boolean doFilter = true;
+    	
+    	for (Rule rule: rules) {
+    		if (Level.INFO.isGreaterOrEqual(level)) {
+    			sb.append("ip[").append(request.getRemoteAddr()).append("] ");
+    			sb.append("port[").append(request.getLocalPort()).append("] ");
+    			sb.append("uri[").append(request.getRequestURI().substring(contextLength)).append("]");
+    		}
+    		
+    		if (rule.match(request)) {
+    			if (Level.DEBUG.isGreaterOrEqual(level)) {
+    				sb.append("\nmatch ").append(rule);
+    			} else if (Level.INFO.isGreaterOrEqual(level)) {
+    				sb.append(" match ").append(rule.accept ? "keep" : "drop");
+    			}
+    			
+    			if (!rule.accept) {
+    				doFilter = false;
+    				response.setStatus(rule.status);
+    			}
+    			
+    			break;
+    		} else {
+    			if (Level.TRACE.isGreaterOrEqual(level)) {
+    				sb.append("\nno match ").append(rule);
+    			}
+    		}
+    	}
+    	
+		if (sb.length() > 0) {
+			try {
+				Engine.logSecurityFilter.log(level, sb.toString());
+			} catch (Exception e) {
+				System.out.println("[Convertigo Security Filter] " + sb.toString());
+			}
+		}
+		
+		if (doFilter) {
+			chain.doFilter(_request, _response);
+		}
+    }
+    
+    @Override
+	public void onEvent(PropertyChangeEvent event) {
+		PropertyName name = event.getKey();
+		if (name == PropertyName.SECURITY_FILTER) {
+			parse();
+		}
+	}
+    
+    private void checkInit() {
+    	if (!init && Engine.theApp != null && Files.exists(Paths.get(Engine.CONFIGURATION_PATH))) {
+    		init = true;
+    		config = Paths.get(Engine.CONFIGURATION_PATH, "security_filter.json");
+    		
+    		if (Files.exists(config)) {
+    			parse();
+    		}
+    		
+    		Engine.theApp.eventManager.addListener(this, PropertyChangeEventListener.class);
+    		
+    		Engine.execute(new Runnable() {
+
+				@Override
+				public void run() {
+					try {
+						Thread.currentThread().setName("SecurityFilter_watch_config");
+			    		Path parent = config.getParent();
+			    		ws = parent.getFileSystem().newWatchService();
+			    		wk = parent.register(ws, StandardWatchEventKinds.ENTRY_MODIFY);
+			    		
+			    		while (true) {
+			    			WatchKey wk = ws.take();
+			    			
+							for (final WatchEvent<?> event: wk.pollEvents()) {
+								Path ctx = (Path) event.context();
+								
+								if (config.endsWith(ctx)) {
+									parse();
+								}
+							}
+							
+			                if (!wk.reset() || !init) {
+			                	wk.cancel();
+			                	ws.close();
+			                    break;
+			                }
+			    		}
+					} catch (Exception e) {
+						
+					}
+				}
+    			
+    		});
+    		
+    	}
+    }
+    
+    private void parse() {
+		try {
+			enabled = EnginePropertiesManager.getPropertyAsBoolean(PropertyName.SECURITY_FILTER);
+		} catch (Exception e) {
+		}
+    		
+    	parse(enabled);
+    }
+    
+    private void parse(boolean enabled) {
+    	Level level = Level.DEBUG;
+    	StringBuilder sb = new StringBuilder();
+    	try {
+    		level = Engine.logSecurityFilter.getLevel();
+    	} catch (Exception e) {
+		}
+    	
+    	try {
+    		if (enabled) {
+    			String content = new String(Files.readAllBytes(config), "UTF-8");
+				if (Level.WARN.isGreaterOrEqual(level)) {
+					sb.append("parsing ").append(content.length()).append(" chars from ").append(config);
+				}
+				
+        		JSONObject json = new JSONObject(content);
+    			JSONArray jRules = json.getJSONArray("rules");
+    			List<Rule> rules = new ArrayList<Rule>(jRules.length());
+    			for (int i = 0; i < jRules.length(); i++) {
+    				JSONObject rule = jRules.getJSONObject(i);
+    				if (!rule.has("enabled") || rule.getBoolean("enabled")) {
+    					rules.add(new Rule(rule));
+    					
+    					if (Level.DEBUG.isGreaterOrEqual(level)) {
+    						sb.append('\n').append("add  ").append(rules.get(rules.size() - 1));
+    					}
+    				} else {
+    					if (Level.DEBUG.isGreaterOrEqual(level)) {
+    						sb.append('\n').append("skip ").append(rule.toString());
+    					}
+    				}
+    			}
+    			if (Level.INFO.isGreaterOrEqual(level)) {
+					sb.append('\n').append(rules.size()).append(" rules added");
+				}
+    			this.rules = rules;
+			} else {
+				if (Level.WARN.isGreaterOrEqual(level)) {
+					sb.append("parse skipped, security filter is disabled");
+				}
+				this.rules = Collections.emptyList();
+			}
+		} catch (Exception e) {
+			level = Level.FATAL;
+			sb.append("Failed to parse '").append(config).append("' due to ").append(e.getMessage());
+		}
+    	
+		if (sb.length() > 0) {
+			try {
+				Engine.logSecurityFilter.log(level, sb.toString());
+			} catch (Exception e) {
+				System.out.println("[Convertigo Security Filter] " + sb.toString());
+			}
+		}
+    }
+    
+    public void destroy() {
+    	try {
+    		ws.close();
+    	} catch (Exception e) {
+    	}
+    	try {
+    		wk.cancel();
+    	} catch (Exception e) {
+    	}
+    	try {
+        	Engine.theApp.eventManager.removeListener(this, PropertyChangeEventListener.class);
+    	} catch (Exception e) {
+		}
+    	rules = Collections.emptyList();
+    	init = false;
+    }
+
+	public void init(FilterConfig filterConfig) throws ServletException {
+		contextLength = filterConfig.getServletContext().getContextPath().length();
+		System.out.println("Request data filter has been initialized");
+	}
+	
+	private class Rule {
+		
+		Matcher ip = null;
+		Matcher uri = null;
+		Matcher port = null;
+		
+		boolean accept = false;
+		int status = 404;
+
+		public Rule(JSONObject rule) throws Exception {
+			if (rule.has("ip")) {
+				ip = Pattern.compile(rule.getString("ip")).matcher("");
+			}
+			
+			if (rule.has("uri")) {
+				uri = Pattern.compile(rule.getString("uri")).matcher("");
+			}
+			
+			if (rule.has("port")) {
+				port = Pattern.compile(rule.getString("port")).matcher("");
+			}
+			
+			if (rule.has("accept")) {
+				accept = rule.getBoolean("accept");
+			}
+			
+			if (rule.has("status")) {
+				status = rule.getInt("status");
+			}
+		}
+		
+		public boolean match(HttpServletRequest request) {
+			boolean ok = true;
+			
+			if (ok && ip != null) {
+				ip.reset(request.getRemoteAddr());
+				ok = ip.find();
+			}
+			
+			if (ok && uri != null) {
+				uri.reset(request.getRequestURI().substring(contextLength));
+				ok = uri.find();
+			}
+			
+			if (ok && port != null) {
+				port.reset(Integer.toString(request.getLocalPort()));
+				ok = port.find();
+			}
+			
+			return ok;
+		}
+		
+		@Override
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			if (!accept) {
+				sb.append("drop[").append(status).append("] ");
+			} else {
+				sb.append("keep ");
+			}
+			
+			if (ip != null) {
+				sb.append("ip[").append(ip.pattern().pattern()).append("]" );
+			}
+			
+			if (uri != null) {
+				sb.append("uri[").append(uri.pattern().pattern()).append("]" );
+			}
+			
+			if (port != null) {
+				sb.append("port[").append(port.pattern().pattern()).append("]" );
+			}
+			return sb.toString();
+		}
+	}
+
+	public static boolean isAccept(ServletRequest _request) {
+		final boolean accept[] = {false};
+		try {
+			SecurityFilter sf = new SecurityFilter();
+			sf.contextLength = _request.getServletContext().getContextPath().length();
+			sf.init = true;
+			sf.config = Paths.get(Engine.CONFIGURATION_PATH, "security_filter.json");
+			sf.parse(true);
+			
+			sf.doFilter(_request, new HttpServletResponse() {
+
+				@Override
+				public void setLocale(Locale arg0) {}
+
+				@Override
+				public void setContentType(String arg0) {
+				}
+
+				@Override
+				public void setContentLength(int arg0) {}
+
+				@Override
+				public void setCharacterEncoding(String arg0) {}
+
+				@Override
+				public void setBufferSize(int arg0) {}
+
+				@Override
+				public void resetBuffer() {}
+
+				@Override
+				public void reset() {}
+
+				@Override
+				public boolean isCommitted() {
+					return false;
+				}
+
+				@Override
+				public PrintWriter getWriter() throws IOException {
+					return null;
+				}
+
+				@Override
+				public ServletOutputStream getOutputStream() throws IOException {
+					return null;
+				}
+
+				@Override
+				public Locale getLocale() {
+					return null;
+				}
+
+				@Override
+				public String getContentType() {
+					return null;
+				}
+
+				@Override
+				public String getCharacterEncoding() {
+					return null;
+				}
+
+				@Override
+				public int getBufferSize() {
+					return 0;
+				}
+
+				@Override
+				public void flushBuffer() throws IOException {}
+
+				@Override
+				public void setStatus(int arg0, String arg1) {}
+
+				@Override
+				public void setStatus(int arg0) {}
+
+				@Override
+				public void setIntHeader(String arg0, int arg1) {}
+
+				@Override
+				public void setHeader(String arg0, String arg1) {}
+
+				@Override
+				public void setDateHeader(String arg0, long arg1) {}
+
+				@Override
+				public void sendRedirect(String arg0) throws IOException {}
+
+				@Override
+				public void sendError(int arg0, String arg1) throws IOException {}
+
+				@Override
+				public void sendError(int arg0) throws IOException {}
+
+				@Override
+				public int getStatus() {
+					return 0;
+				}
+
+				@Override
+				public Collection<String> getHeaders(String arg0) {
+					return null;
+				}
+
+				@Override
+				public Collection<String> getHeaderNames() {
+					return null;
+				}
+
+				@Override
+				public String getHeader(String arg0) {
+					return null;
+				}
+
+				@Override
+				public String encodeUrl(String arg0) {
+					return null;
+				}
+
+				@Override
+				public String encodeURL(String arg0) {
+					return null;
+				}
+
+				@Override
+				public String encodeRedirectUrl(String arg0) {
+					return null;
+				}
+
+				@Override
+				public String encodeRedirectURL(String arg0) {
+					return null;
+				}
+
+				@Override
+				public boolean containsHeader(String arg0) {
+					return false;
+				}
+
+				@Override
+				public void addIntHeader(String arg0, int arg1) {}
+
+				@Override
+				public void addHeader(String arg0, String arg1) {}
+
+				@Override
+				public void addDateHeader(String arg0, long arg1) {}
+
+				@Override
+				public void addCookie(Cookie arg0) {}
+			}, new FilterChain() {
+
+				@Override
+				public void doFilter(ServletRequest arg0, ServletResponse arg1) throws IOException, ServletException {
+					accept[0] = true;
+				}
+			});
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+
+		return accept[0];
+	}
+}
