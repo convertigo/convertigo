@@ -86,11 +86,17 @@ public class SecurityFilter implements Filter, PropertyChangeEventListener {
     	List<Rule> rules = this.rules;
     	boolean doFilter = true;
     	
+    	boolean first = true;
     	for (Rule rule: rules) {
-    		if (Level.INFO.isGreaterOrEqual(level)) {
-    			sb.append("ip[").append(request.getRemoteAddr()).append("] ");
-    			sb.append("port[").append(request.getLocalPort()).append("] ");
-    			sb.append("uri[").append(request.getRequestURI().substring(contextLength)).append("]");
+    		if (first && Level.INFO.isGreaterOrEqual(level)) {
+    			String uri = request.getRequestURI().substring(contextLength);
+    			if (uri.equals("/admin/services/logs.Get")) {
+    				level = Level.OFF;
+    			} else {
+	    			sb.append("ip[").append(request.getRemoteAddr()).append("] ");
+	    			sb.append("port[").append(request.getLocalPort()).append("] ");
+	    			sb.append("uri[").append(uri).append("]");
+    			}
     		}
     		
     		if (rule.match(request)) {
@@ -111,6 +117,7 @@ public class SecurityFilter implements Filter, PropertyChangeEventListener {
     				sb.append("\nno match ").append(rule);
     			}
     		}
+    		first = false;
     	}
     	
 		if (sb.length() > 0) {
@@ -130,7 +137,9 @@ public class SecurityFilter implements Filter, PropertyChangeEventListener {
 	public void onEvent(PropertyChangeEvent event) {
 		PropertyName name = event.getKey();
 		if (name == PropertyName.SECURITY_FILTER) {
-			parse();
+			Engine.logSecurityFilter.info("Property '" + name + "' changed to " + event.getValue());
+			boolean enabled = "true".equals(event.getValue());
+			parse(enabled);
 		}
 	}
     
