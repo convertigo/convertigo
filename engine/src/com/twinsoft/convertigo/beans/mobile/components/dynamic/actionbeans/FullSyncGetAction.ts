@@ -9,7 +9,8 @@
         return new Promise((resolve, reject) => {
             let r:string = props.requestable.substring(props.requestable.indexOf('.')+1);
             let v:string = 'get';
-            let rvm:string = r + '.' + v;
+            let m:string = props.marker;
+            let rvm:string = r + '.' + v + ((m != '' && m!= null) ? '#' + m:'');
             let id     = props._id;
             let data = {}
             data["docid"]         = id

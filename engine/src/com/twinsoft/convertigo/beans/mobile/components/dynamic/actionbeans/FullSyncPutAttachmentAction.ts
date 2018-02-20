@@ -41,8 +41,17 @@
             return new Promise((resolve, reject) => {
                 delete props.requestable
 
-                if(props.docid == null || props.name == null || props.content_type == null || props.content == null){
-                    reject("[MB] FullSyncPutAttchmentAction: Missing properties");
+                if(props.docid == null){
+                    reject("[MB] FullSyncPutAttchmentAction: Missing property: Document ID, " + props.docid);
+                }
+                if(props.name == null){
+                    reject("[MB] FullSyncPutAttchmentAction: Missing property: Name ," + props.name);
+                }
+                if(props.content_type == null){
+                    reject("[MB] FullSyncPutAttchmentAction: Missing property: Content Type, " + props.content_type);
+                }
+                if(props.content == null){
+                    reject("[MB] FullSyncPutAttchmentAction: Missing property: Content, " + props.content);
                 }
                
                 page.getInstance(Platform).ready().then(() => {     // We may need the CBL plugin so wait for platform ready.
