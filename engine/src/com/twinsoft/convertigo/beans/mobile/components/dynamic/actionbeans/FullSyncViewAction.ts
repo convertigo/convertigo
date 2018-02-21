@@ -8,33 +8,35 @@
     FullSyncViewAction(page: C8oPage, props, vars) : Promise<any> {
         return new Promise((resolve, reject) => {
             // fsview is in the form project.database.designdoc.view
-            let tokens = props.fsview.split('.')
+            let tokens = props.fsview.split('.');
             
-            let r:string = tokens[1]     
+            let r:string = tokens[1];
             let v:string = "view";
-            let m:string = props.marker
-            let rvm:string = r + '.' + v + ((m != '' && m!= null) ? '#' + m:'');
-            let ddoc:string = tokens[2]
-            let view:string = tokens[3]
+            let m:string = props.marker;
+            let rvm:string = r + '.' + v + ((m != '' && m!= null) ? '#' + m : '');
+            let ddoc:string = tokens[2];
+            let view:string = tokens[3];
             
-            let options = {ddoc:"", view:""}
+            let options = {ddoc:"", view:""};
             
             for (let key in props) {
-                if (key == "__live" && props[key] == "none") {
-                    continue
-                }
-                if (key != "marker" && key!= "fsview")
+                if (key != "marker" && key!= "fsview") {
                     if (props[key] != null) {
-                        if (props[key] == "true") 
-                            options[key] = true
-                        else if (props[key] == "false") 
-                            options[key] = false
-                        else
-                            options[key] = props[key]
+                        if (props[key] == "true") { 
+                            options[key] = true;
+                        } else if (props[key] == "false") { 
+                            options[key] = false;
+                        } else {
+                            options[key] = props[key];
+                        }
+                    }
                 }
             }
             
-            options.ddoc = ddoc; options.view = view
+            options.ddoc = ddoc;
+            options.view = view;
+            
+            page.merge(options, vars);
             
             page.getInstance(Platform).ready().then(() => {     // We may need the CBL plugin so wait for platform ready.
                 page.c8o.finalizeInit().then(()=>{              // To be sure that FullSync initialized properly on CBL
