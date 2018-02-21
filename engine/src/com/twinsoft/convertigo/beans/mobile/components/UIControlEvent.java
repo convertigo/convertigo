@@ -60,6 +60,7 @@ public class UIControlEvent extends UIControlAttr implements IControl {
 		ionSlideTap("(ionSlideTap)"),
 		ionSlideWillChange("(ionSlideWillChange)"),
 		ionInput("(ionInput)"),
+		ionChange("(ionChange)"),
 		ionCancel("(ionCancel)"),
 		ionClear("(ionClear)"),
 		ionPull("(ionPull)"),
