@@ -4969,6 +4969,77 @@
 	},
 
 
+  "PopoverAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "displayName": "Popover",
+      "label": "Popover Page",
+      "description": "Displays a Popover Page | The Popover is a view that floats above an app’s content. Popovers provide an easy way to present or gather information from the user and are commonly used in the following situations: <br/><br/><ul><li>Show more info about the current view.</li><li>Select a commonly used tool or configuration.</li><li>Present a list of actions to perform inside one of your views</li></ul>",
+      "group": "Actions",
+      "icon16": "popoveraction_color_16x16.png",
+      "icon32": "popoveraction_color_32x32.png",
+      "properties": {
+        "page": {
+          "editor": "NamedSourceSelectorEditor",
+          "label": "Page",
+          "description": "The page to be displayed as a Popover",
+          "category": "@Properties",
+          "type": "string",
+          "value": ""
+        },
+
+        "data": {
+          "label": "Page data",
+          "description": "Additional page data Object (be sure to use an object not a string) passed to the modal page. You can access this data in the modal page by using a (TS) expression <code>this.navParams.data</code>",
+          "category": "@Properties",
+          "type": "string",
+          "value": false
+        },
+
+        "showBackdrop": {
+          "label": "Show Backdrop",
+          "description": "Show a backdrop (dark background) behind the page. This will only occur if the page is displayed as popup as defined in the <i>Theme</i> component. See <code>$modal-inset-min-width</code>",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": true,
+          "values": [
+            "true",
+            "false"
+          ]
+        },
+
+        "enableBackdropDismiss": {
+          "label": "Enable Backdrop Dismiss",
+          "description": "If true, tapping on the back drop will dismiss the page.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": true,
+          "values": [
+            "true",
+            "false"
+          ]
+        },
+
+        "event": {
+          "hidden": true,
+          "label": "Event",
+          "description": "Event to be passed to the Popover present()",
+          "category": "@Properties",
+          "type": "string",
+          "mode": "script",
+          "value": "$event"
+        },
+
+        "cssClass": {
+          "label": "Css Class",
+          "description": "Additional classes for custom styles, separated by spaces.",
+          "category": "@Properties",
+          "type": "string",
+          "value": false
+        }
+	  }
+	},
+
+
     "ToastAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "Toast",
