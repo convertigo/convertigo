@@ -42,7 +42,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
@@ -122,28 +121,6 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			super.launchEditor(editorType);
 		}
 	}
-
-	private void closeComponentFileEditor(final IFile file) {
-		try {
-			IWorkbenchPage activePage = PlatformUI
-					.getWorkbench()
-					.getActiveWorkbenchWindow()
-					.getActivePage();
-			
-			for (IEditorReference editorReference : activePage.getEditorReferences()) {
-				IEditorInput editorInput = editorReference.getEditorInput();
-				if (editorInput instanceof ComponentFileEditorInput) {
-					ComponentFileEditorInput cfei = (ComponentFileEditorInput) editorInput;
-					if (cfei.getFile().equals(file)) {
-						activePage.closeEditor(editorReference.getEditor(false), true);
-						return;
-					}
-				}
-			}
-		} catch (Exception e) {
-			
-		}
-	}
 	
 	private void editPageFunction(final UIComponent uic, final String functionMarker, final String propertyName) {
 		final PageComponent page = uic.getPage();
@@ -177,6 +154,8 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 					String editorId = desc.getId();
 					
 					IEditorPart editorPart = activePage.openEditor(input, editorId);
+					addMarkers(file, editorPart);
+					
 					editorPart.addPropertyListener(new IPropertyListener() {
 						boolean isFirstChange = false;
 						

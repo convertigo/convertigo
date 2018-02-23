@@ -198,6 +198,7 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 					String editorId = desc.getId();
 					
 					IEditorPart editorPart = activePage.openEditor(input, editorId);
+					addMarkers(file, editorPart);
 					editorPart.addPropertyListener(new IPropertyListener() {
 						boolean isFirstChange = false;
 						
