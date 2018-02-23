@@ -5201,6 +5201,22 @@
           false,
           true
         ]
+      },
+      "level": {
+        "label": "Level",
+        "description": "Defines the log level",
+        "category": "@Properties",
+        "type": "string",
+        "value": "info",
+        "values": [
+          "fatal",
+          "error",
+          "fatal",
+          "warn",
+          "info",
+          "debug",
+          "trace"
+        ]
       }
     }
   },
