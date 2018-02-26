@@ -50,6 +50,21 @@ public abstract class MobileComponent extends MobileObject {
 			return (ApplicationComponent) databaseObject;
 	}
 	
+	protected String getRequiredCafVersion() {
+		return "1.0.88";// the 7.5.0 has been released with CAF 1.0.88
+	}
+
+	public String requiredCafVersion() {
+		return getRequiredCafVersion();
+	}
+	
+	protected boolean isTplCafCompatible() {
+		if (compareToTplCafVersion(getRequiredCafVersion()) >= 0) {
+			return true;
+		}
+		return false;
+	}
+	
 	private String getTplCafVersion() {
 		return getProject().getMobileBuilder().getTplCafVersion();
 	}

@@ -275,4 +275,15 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
     	}
     	return eventNames;
 	}
+
+	@Override
+	protected String getRequiredCafVersion() {
+		IonBean ionBean = getIonBean();
+		if (ionBean != null) {
+			return ionBean.getCafVersion();
+		}
+		return super.getRequiredCafVersion();
+	}
+	
+	
 }
