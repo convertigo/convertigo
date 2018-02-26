@@ -1094,6 +1094,7 @@
     },
 	
     "FSImage": {
+      "cafVersion": "1.0.91",
       "tag": "img",
 	  "displayName": "FSImage",
       "label": "FSImage",
@@ -1110,7 +1111,7 @@
           "label": "src",
           "description": "The image url",
           "category": "Attributes",
-          "value": "getAttachmentUrl($[docid], $[attachment], $[placeholder], $[requestable])"
+          "value": "resolveError(getAttachmentUrl($[docid], $[attachment], $[placeholder], $[requestable]))"
         },
         "docid": {
           "composite": true,
@@ -1159,7 +1160,7 @@
         },
         "width": {
           "attr": "width",
-          "label": "width",
+          "label": "Image width",
           "description": "The image width (in pixels add px eg: 200px, in points add pt eg: 20pt)",
           "category": "Attributes",
           "value": "",
@@ -1170,7 +1171,7 @@
         },
         "height": {
           "attr": "height",
-          "label": "height",
+          "label": "Image height",
           "description": "The image height (in pixels add px eg: 200px, in points add pt eg: 20pt)",
           "category": "Attributes",
           "value": "",
@@ -1181,8 +1182,8 @@
         },
         "alt": {
           "attr": "alt",
-          "label": "alt",
-          "description": "Set the alt attribute which gets assigned to the inner img element.",
+          "label": "Image text",
+          "description": "The image alternate text (optional)",
           "category": "Attributes"          
         }
       }
