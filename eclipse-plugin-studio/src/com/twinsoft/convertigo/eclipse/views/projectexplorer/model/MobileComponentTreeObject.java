@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
+import java.util.List;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,6 +37,7 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.views.properties.PropertyDescriptor;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 import com.twinsoft.convertigo.beans.core.MobileComponent;
@@ -43,6 +46,8 @@ import com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput;
 import com.twinsoft.convertigo.engine.Engine;
 
 public class MobileComponentTreeObject extends DatabaseObjectTreeObject implements IEditableTreeObject {
+	
+	public static final String P_CAF_REQUIRED = "#caf_required";
 	
 	final private Pattern pMarker = Pattern.compile("/\\*Begin_c8o_(.*?)\\*/\\s+(.*?)\\s*/\\*End_c8o_", Pattern.DOTALL);
 	
@@ -64,6 +69,28 @@ public class MobileComponentTreeObject extends DatabaseObjectTreeObject implemen
 		return false;
 	}
 	
+	@Override
+    protected List<PropertyDescriptor> getDynamicPropertyDescriptors() {
+		List<PropertyDescriptor> l = super.getDynamicPropertyDescriptors();
+        PropertyDescriptor propertyDescriptor = new PropertyDescriptor(P_CAF_REQUIRED, "CAF required");
+        propertyDescriptor.setCategory("Information");
+        l.add(propertyDescriptor);
+		return l;
+	}
+	
+	@Override
+	public Object getPropertyValue(Object id) {
+		if (id == null) return null;
+		
+		MobileComponent mobileComponent = getObject();
+		String propertyName = (String) id;
+		
+		if (propertyName.equals(P_CAF_REQUIRED)) {
+			return mobileComponent.requiredCafVersion();
+		}
+		return super.getPropertyValue(id);
+	}
+
 	@Override
 	public void setPropertyValue(Object id, Object value) {
 		super.setPropertyValue(id, value);
