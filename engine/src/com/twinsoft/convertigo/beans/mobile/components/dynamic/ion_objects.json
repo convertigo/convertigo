@@ -1094,12 +1094,12 @@
     },
 	
     "FSImage": {
-      "cafVersion": "1.0.91",
+      "cafVersion": "1.0.97",
       "tag": "img",
 	  "displayName": "FSImage",
       "label": "FSImage",
       "autoClose": true,
-      "description": "img| Defines an <i>FSImage</i> component.<br/>This component helps defining an image based on data retrieved from an attachment.",
+      "description": "img | Defines an <i>FSImage</i> component.<br/>This component helps displaying an image based on data retrieved from a FullSync  attachment. Attachment images are automaticaly cached using the attachmentName as cache key by the CAF to enable fast rendering. In some cases you may want to clear this cache for example if the image contant changes for the same attachmentName. In this case, you can use the :<br /><br /><code>page.resetImageCache(attachmentName)</code><br /><br />in a CustomAction  to clear the cache for a given attachmentName. If you call with no arguments, the cache will be cleared for all entries.",
       "group": "FullSync Components",
       "icon16": "img_fs_color_16x16.png",
       "icon32": "img_fs_color_32x32.png",
@@ -5303,7 +5303,7 @@
         },
 		"marker": {
           "label": "Marker",
-          "description": "Defines the requestable's marker. Markers a used to differentiate fullsync request from on to another so you can handle routes more easily.",
+          "description": "Defines the requestable's marker. Markers are used to differentiate fullsync requests from one to another so you can handle routes more easily.",
           "category": "@Properties",
           "type": "string",
           "value": "",
