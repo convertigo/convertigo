@@ -976,8 +976,7 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		this.tplProjectName = tplProjectName;
 	}
 
-	private boolean hasCompatibleTemplate(String project) {
-		// TODO: to be changed after 7.5.0 release...
+	private boolean isCompatibleTemplate(String project) {
 		File tplDir = new File(Engine.PROJECTS_PATH + "/" + project + "/ionicTpl");
 		if (tplDir.exists()) {
 			if (new File(tplDir,"src/services/actionbeans.service.ts").exists()) {
@@ -993,7 +992,7 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 			projects.add("");
 			
 			for (String project: Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false)) {
-				if (hasCompatibleTemplate(project)) {
+				if (isCompatibleTemplate(project)) {
 					projects.add(project);
 				};
 			}
@@ -1028,4 +1027,17 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 			}
 		}
 	}
+
+	@Override
+	public String requiredCafVersion() {
+		String cafVersion = getRequiredCafVersion();
+		for (PageComponent page : getPageComponentList()) {
+			String pageCafVersion = page.requiredCafVersion();
+			if (cafVersion.compareTo(pageCafVersion) <= 0) {
+				cafVersion = pageCafVersion;
+			}
+		}
+		return cafVersion;
+	}
+	
 }

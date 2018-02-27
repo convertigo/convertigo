@@ -544,9 +544,9 @@ public class MobileBuilder {
 	}
 	
 	private synchronized void release() throws EngineException {
-		if (!initDone) {
+		/*if (!initDone) {
 			return;
-		}
+		}*/
 		
 		if (isIonicTemplateBased()) {
 			moveFilesForce();
@@ -653,13 +653,20 @@ public class MobileBuilder {
 			if (mobileApplication != null) {
 				ApplicationComponent application = mobileApplication.getApplicationComponent();
 				if (application != null) {
-					for (PageComponent page : getEnabledPages(application)) {
-						writePageSourceFiles(page);
+					String appCafVersion = application.requiredCafVersion();
+					if (cafVersion.compareTo(appCafVersion) >= 0) {
+						for (PageComponent page : getEnabledPages(application)) {
+							writePageSourceFiles(page);
+						}
+						writeAppSourceFiles(application);
+						removeUselessPages(application);
+						
+						Engine.logEngine.debug("(MobileBuilder) Application source files updated for ionic project '"+ project.getName() +"'");
+					} else {
+						cleanDirectories();
+						throw new EngineException("CAF "+ appCafVersion +" is required" );
 					}
-					writeAppSourceFiles(application);
-					removeUselessPages(application);
 					
-					Engine.logEngine.debug("(MobileBuilder) Application source files updated for ionic project '"+ project.getName() +"'");
 				}
 			}
 		}

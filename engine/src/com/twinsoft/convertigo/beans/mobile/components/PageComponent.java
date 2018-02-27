@@ -771,4 +771,17 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISt
 		}
 		return new String[0];
 	}
+	
+	@Override
+	public String requiredCafVersion() {
+		String cafVersion = getRequiredCafVersion();
+		for (UIComponent uic : getUIComponentList()) {
+			String uicCafVersion = uic.requiredCafVersion();
+			if (cafVersion.compareTo(uicCafVersion) <= 0) {
+				cafVersion = uicCafVersion;
+			}
+		}
+		return cafVersion;
+	}
+	
 }

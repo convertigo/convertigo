@@ -418,4 +418,17 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 			uiComponent.addInfos(infoMap);
 		}
 	}
+	
+	@Override
+	public String requiredCafVersion() {
+		String cafVersion = getRequiredCafVersion();
+		for (UIComponent uic : getUIComponentList()) {
+			String uicCafVersion = uic.requiredCafVersion();
+			if (cafVersion.compareTo(uicCafVersion) <= 0) {
+				cafVersion = uicCafVersion;
+			}
+		}
+		return cafVersion;
+	}
+	
 }
