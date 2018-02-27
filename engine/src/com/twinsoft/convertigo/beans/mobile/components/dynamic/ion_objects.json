@@ -1111,7 +1111,7 @@
           "label": "src",
           "description": "The image url",
           "category": "Attributes",
-          "value": "resolveError(getAttachmentUrl($[docid], $[attachment], $[placeholder], $[requestable]))"
+          "value": "getAttachmentUrl($[docid], $[attachment], $[placeholder], $[requestable])"
         },
         "docid": {
           "composite": true,
