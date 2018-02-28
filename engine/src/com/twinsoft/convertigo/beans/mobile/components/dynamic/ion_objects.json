@@ -1701,6 +1701,47 @@
             false,
             true
           ]
+        },
+        "TabsHighlight": {
+          "attr": "tabsHighlight",
+          "label": "tabs highlight",
+          "description": "If true, show the tab highlight bar under the selected tab",
+          "category": "Attributes",
+          "type": "boolean",
+          "value": false,
+          "values": [
+            false,
+            "false",
+            "true"
+          ]
+        },
+        "TabsLayout": {
+          "attr": "tabsLayout",
+          "label": "tabs layout",
+          "description": "Set the tabs layout",
+          "category": "Attributes",
+          "value": false,
+          "values": [
+            false,
+          	"icon-top",
+          	"icon-start",
+          	"icon-end",
+          	"icon-bottom",
+          	"icon-hide",
+          	"title-hide"
+          ]
+        },
+        "TabsPlacement": {
+          "attr": "tabsPlacement",
+          "label": "tabs placement",
+          "description": "Set the tabs position",
+          "category": "Attributes",
+          "value": false,
+          "values": [
+            false,
+            "top",
+            "bottom"
+          ]
         }
 	  }
 	},
