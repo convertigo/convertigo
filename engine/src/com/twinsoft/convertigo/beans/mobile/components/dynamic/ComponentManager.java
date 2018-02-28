@@ -42,6 +42,7 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.IAction;
@@ -340,11 +341,14 @@ public class ComponentManager {
 					Class<?> dboClass;
 					try {
 						dboClass = Class.forName(bean.getClassName());
-						return acceptDatabaseObjects(parent, dboClass);
-					} catch (ClassNotFoundException e) {
+						//return acceptDatabaseObjects(parent, dboClass);
+						if (acceptDatabaseObjects(parent, dboClass)) {
+							return isCafCompatible(parent, createBean());
+						}
+					} catch (Exception e) {
 						e.printStackTrace();
-						return false;
 					}
+					return false;
 				}
 				
 				@Override
@@ -419,7 +423,24 @@ public class ComponentManager {
 	}
 	
 	public static boolean acceptDatabaseObjects(DatabaseObject parentDatabaseObject, DatabaseObject databaseObject) {
-		return acceptDatabaseObjects(parentDatabaseObject, databaseObject.getClass());
+		if (parentDatabaseObject instanceof MobileComponent && databaseObject instanceof MobileComponent) {
+			return acceptDatabaseObjects(parentDatabaseObject, databaseObject.getClass());
+		}
+		return true;
+	}
+
+	public static boolean isCafCompatible(DatabaseObject parentDatabaseObject, DatabaseObject databaseObject) {
+		if (parentDatabaseObject instanceof MobileComponent && databaseObject instanceof MobileComponent) {
+			return ((MobileComponent)parentDatabaseObject).compareToTplCafVersion(getCafRequired(databaseObject)) >= 0;
+		}
+		return true;
+	}
+	
+	public static String getCafRequired(DatabaseObject databaseObject) {
+		if (databaseObject instanceof MobileComponent) {
+			return ((MobileComponent)databaseObject).requiredCafVersion();
+		}
+		return "";
 	}
 	
 	protected static boolean acceptDatabaseObjects(DatabaseObject dboParent, Class<?> dboClass) {
@@ -555,7 +576,15 @@ public class ComponentManager {
 			
 			@Override
 			public boolean isAllowedIn(DatabaseObject parent) {
-				return acceptDatabaseObjects(parent, dboClass);
+				//return acceptDatabaseObjects(parent, dboClass);
+				try {
+					if (acceptDatabaseObjects(parent, dboClass)) {
+						return isCafCompatible(parent, createBean());
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return false;
 			}
 
 			@Override
