@@ -1094,7 +1094,7 @@
     },
 	
     "FSImage": {
-      "cafVersion": "1.0.97",
+      "cafVersion": "1.0.98",
       "tag": "img",
 	  "displayName": "FSImage",
       "label": "FSImage",
