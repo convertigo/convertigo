@@ -76,9 +76,11 @@ public class MobileComponentTreeObject extends DatabaseObjectTreeObject implemen
         PropertyDescriptor propertyDescriptor;
         propertyDescriptor = new PropertyDescriptor(P_CAF_REQUIRED, "CAF required");
         propertyDescriptor.setCategory("Information");
+        propertyDescriptor.setDescription("The version of CAF required by this component to work properly");
         l.add(propertyDescriptor);
         propertyDescriptor = new PropertyDescriptor(P_CAF_USED, "CAF used");
         propertyDescriptor.setCategory("Information");
+        propertyDescriptor.setDescription("The version of CAF used by your Template project");
         l.add(propertyDescriptor);
 		return l;
 	}
