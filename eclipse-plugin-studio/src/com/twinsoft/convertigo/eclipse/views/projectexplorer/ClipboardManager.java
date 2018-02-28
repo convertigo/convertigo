@@ -71,6 +71,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.mobile.components.UIForm;
+import com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.statements.ElseStatement;
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
@@ -405,6 +406,13 @@ public class ClipboardManager {
 				// Verify if object is accepted for paste
 				if (!DatabaseObjectsManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
 					throw new EngineException("You cannot paste to a " + parentDatabaseObject.getClass().getSimpleName() + " a database object of type " + databaseObject.getClass().getSimpleName());
+				}
+				if (!ComponentManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
+					throw new EngineException("You cannot paste to a " + parentDatabaseObject.getClass().getSimpleName() + " a database object of type " + databaseObject.getClass().getSimpleName());
+				}
+				if (!ComponentManager.isCafCompatible(parentDatabaseObject, databaseObject)) {
+					String cafVersion = ComponentManager.getCafRequired(databaseObject);
+					throw new EngineException("CAF "+ cafVersion +" compatibility required");
 				}
 				
 				// Disable the isDefault boolean flag when the connector is pasted
@@ -764,6 +772,13 @@ public class ClipboardManager {
         // Verify object is accepted for paste
 		if (!DatabaseObjectsManager.acceptDatabaseObjects(parentDatabaseObject, object)) {
 			throw new EngineException("You cannot cut and paste to a " + parentDatabaseObject.getClass().getSimpleName() + " a database object of type " + object.getClass().getSimpleName());
+		}
+		if (!ComponentManager.acceptDatabaseObjects(parentDatabaseObject, object)) {
+			throw new EngineException("You cannot cut and paste to a " + parentDatabaseObject.getClass().getSimpleName() + " a database object of type " + object.getClass().getSimpleName());
+		}
+		if (!ComponentManager.isCafCompatible(parentDatabaseObject, object)) {
+			String cafVersion = ComponentManager.getCafRequired(object);
+			throw new EngineException("CAF "+ cafVersion +" compatibility required");
 		}
         
         // Verify if a child object with same name exist

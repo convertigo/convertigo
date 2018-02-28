@@ -64,7 +64,6 @@ import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.IXPathable;
-import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
@@ -77,7 +76,6 @@ import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
-import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIForm;
 import com.twinsoft.convertigo.beans.mobile.components.UIText;
@@ -797,7 +795,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			if (target instanceof DatabaseObjectTreeObject) {
 				DatabaseObject parentDatabaseObject = ((DatabaseObjectTreeObject)target).getObject();
 				PaletteSource paletteSource = PaletteSourceTransfer.getInstance().getPaletteSource();
-				if (paletteSource != null) {
+				if (paletteSource != null && parentDatabaseObject != null) {
 					try {
 						String xmlData = paletteSource.getXmlData();
 						List<Object> list = ConvertigoPlugin.clipboardManagerDND.read(xmlData);
@@ -805,10 +803,11 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						if (!DatabaseObjectsManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
 							return false;
 						}
-						if (parentDatabaseObject instanceof MobileComponent && databaseObject instanceof UIComponent) {
-							if (!ComponentManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
-								return false;
-							}
+						if (!ComponentManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
+							return false;
+						}
+						if (!ComponentManager.isCafCompatible(parentDatabaseObject, databaseObject)) {
+							return false;
 						}
 						return true;
 					} catch (Exception e) {

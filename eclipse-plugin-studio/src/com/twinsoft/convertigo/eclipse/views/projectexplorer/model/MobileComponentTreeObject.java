@@ -47,7 +47,8 @@ import com.twinsoft.convertigo.engine.Engine;
 
 public class MobileComponentTreeObject extends DatabaseObjectTreeObject implements IEditableTreeObject {
 	
-	public static final String P_CAF_REQUIRED = "#caf_required";
+	public static final String P_CAF_USED 		= "#caf_used";
+	public static final String P_CAF_REQUIRED 	= "#caf_required";
 	
 	final private Pattern pMarker = Pattern.compile("/\\*Begin_c8o_(.*?)\\*/\\s+(.*?)\\s*/\\*End_c8o_", Pattern.DOTALL);
 	
@@ -72,7 +73,11 @@ public class MobileComponentTreeObject extends DatabaseObjectTreeObject implemen
 	@Override
     protected List<PropertyDescriptor> getDynamicPropertyDescriptors() {
 		List<PropertyDescriptor> l = super.getDynamicPropertyDescriptors();
-        PropertyDescriptor propertyDescriptor = new PropertyDescriptor(P_CAF_REQUIRED, "CAF required");
+        PropertyDescriptor propertyDescriptor;
+        propertyDescriptor = new PropertyDescriptor(P_CAF_REQUIRED, "CAF required");
+        propertyDescriptor.setCategory("Information");
+        l.add(propertyDescriptor);
+        propertyDescriptor = new PropertyDescriptor(P_CAF_USED, "CAF used");
         propertyDescriptor.setCategory("Information");
         l.add(propertyDescriptor);
 		return l;
@@ -88,6 +93,10 @@ public class MobileComponentTreeObject extends DatabaseObjectTreeObject implemen
 		if (propertyName.equals(P_CAF_REQUIRED)) {
 			return mobileComponent.requiredCafVersion();
 		}
+		if (propertyName.equals(P_CAF_USED)) {
+			return mobileComponent.getTplCafVersion();
+		}
+		
 		return super.getPropertyValue(id);
 	}
 
