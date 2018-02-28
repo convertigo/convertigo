@@ -2465,15 +2465,17 @@
       "icon32": "slides_color_32x32.png",
       "properties": {
         "AutoPlay": {
-          "mode": "script",
           "attr": "[autoplay]",
           "label": "Autoplay",
           "description": "Delay between transitions (in milliseconds). If this parameter is not passed, autoplay is disabled. Default does not have a value and does not autoplay. Default: null",
           "category": "@Properties",
-          "value": ""
+          "value": false,
+          "values": [
+            false,
+            true
+          ]
         },
         "Direction": {
-          "mode": "script",
           "attr": "[direction]",
           "label": "Direction",
           "description": "Swipe direction: 'horizontal' or 'vertical'. Default: horizontal.",
@@ -2485,7 +2487,6 @@
           ]
         },
         "Pager": {
-          "mode": "script",
           "attr": "[pager]",
           "label": "Pager",
           "description": "If true, show the pager. (Little dots for each page)",
@@ -2497,7 +2498,6 @@
           ]
         },
         "PaginationType": {
-          "mode": "script",
           "attr": "[paginationType]",
           "label": "Pagination type",
           "description": "Type of pagination. Possible values are: bullets, fraction, progress. Default: bullets. (Note that the pager will not show unless pager input is set to true).",
@@ -2510,7 +2510,6 @@
           ]
         },
         "parallax": {
-          "mode": "script",
           "attr": "[parallax]",
           "label": "Parallax",
           "description": "If true, allows you to use 'parallaxed' elements inside of slider",
@@ -2522,31 +2521,39 @@
           ]
         },
         "SlidesPerView": {
-		  "mode": "script",
           "attr": "[slidesPerView]",
           "label": "Slides per view",
           "description": "Slides per view. Slides visible at the same time. Default, 1",
           "category": "@Properties",
-          "value": "1"
+          "value": "1",
+          "values": [
+            "1",
+            true
+          ]
         },
         "SpaceBetween": {
-		  "mode": "script",
           "attr": "[spaceBetween]",
           "label": "Space between",
           "description": "Distance between slides in px. Default: 0",
           "category": "@Properties",
-          "value": "0"
+          "value": "0",
+          "values": [
+            "0",
+            true
+          ]
         },
         "Speed": {
-          "mode": "script",
           "attr": "[speed]",
           "label": "Speed",
           "description": "Duration of transition between slides (in milliseconds). Default: 300.",
           "category": "@Properties",
-          "value": "300"
+          "value": "300",
+          "values": [
+            "300",
+            true
+          ]
         },
         "Zoom": {
-          "mode": "script",
           "attr": "[zoom]",
           "label": "Zoom",
           "description": "If true, enables zooming functionality.",
@@ -2558,15 +2565,17 @@
           ]
         },
         "InitialSlide": {
-          "mode": "script",
           "attr": "[initialSlide]",
           "label": "Initial Slide",
           "description": "Index number of initial slide. Default: 0.",
           "category": "@Properties",
-          "value": "0"
+          "value": "0",
+          "values": [
+            "0",
+            true
+          ]
         },
         "Effect": {
-          "mode": "script",
           "attr": "[effect]",
           "label": "Effect",
           "description": "The animation effect of the slides. Possible values are: slide, fade, cube, coverflow or flip. Default: slide.",
@@ -2581,7 +2590,6 @@
           ]
         },
         "Loop": {
-          "mode": "script",
           "attr": "[loop]",
           "label": "Loop",
           "description": "If true, continuously loop from the last slide to the first slide.",
