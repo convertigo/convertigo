@@ -664,7 +664,10 @@ public class MobileBuilder {
 						Engine.logEngine.debug("(MobileBuilder) Application source files updated for ionic project '"+ project.getName() +"'");
 					} else {
 						cleanDirectories();
-						throw new EngineException("CAF "+ appCafVersion +" is required" );
+						throw new EngineException("Convertigo Angular Framework (CAF) minimum "+ appCafVersion +" is required for this project. \n\n" +
+							"Be sure to use a project template having this CAF version as dependency in its package.json file. " +
+							"You can change template by configuring\nthe 'Template project' property of your project's 'Application' object. " + 
+							"Then, be sure to update\nthe project node modules packages (Application Right Click->Update packages and execute) \n");
 					}
 					
 				}
