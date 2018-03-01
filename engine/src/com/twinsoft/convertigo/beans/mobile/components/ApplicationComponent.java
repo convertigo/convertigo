@@ -1031,6 +1031,14 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 	@Override
 	public String requiredCafVersion() {
 		String cafVersion = getRequiredCafVersion();
+		
+		for (UIDynamicMenu menu : getMenuComponentList()) {
+			String menuCafVersion = menu.requiredCafVersion();
+			if (cafVersion.compareTo(menuCafVersion) <= 0) {
+				cafVersion = menuCafVersion;
+			}
+		}
+		
 		for (PageComponent page : getPageComponentList()) {
 			String pageCafVersion = page.requiredCafVersion();
 			if (cafVersion.compareTo(pageCafVersion) <= 0) {
