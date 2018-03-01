@@ -727,6 +727,7 @@
           "values": [
             false,
             "left",
+            "center",
             "right"
           ]
         },
@@ -737,6 +738,7 @@
           "values": [
             false,
             "top",
+            "middle",
             "bottom"
           ]
         },
