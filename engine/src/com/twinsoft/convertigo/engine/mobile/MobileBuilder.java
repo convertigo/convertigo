@@ -423,18 +423,18 @@ public class MobileBuilder {
 
 	public synchronized void pageContributorsChanged(final PageComponent page) throws EngineException {
 		if (page != null && page.isEnabled() && initDone) {
-			MobileApplication mobileApplication = project.getMobileApplication();
-			if (mobileApplication != null) {
-				ApplicationComponent application = mobileApplication.getApplicationComponent();
-				if (application != null) {
-					writeAppPackageJson(application);
-					writeAppPluginsConfig(application);
-					writeAppServiceTs(application);
-					writeAppModuleTs(application);
-					moveFiles();
-					Engine.logEngine.debug("(MobileBuilder) Handled 'pageContributorsChanged'");
-				}
-			}
+			appContributorsChanged(page.getApplication());
+		}
+	}
+	
+	public synchronized void appContributorsChanged(final ApplicationComponent app) throws EngineException {
+		if (app != null && initDone) {
+			writeAppPackageJson(app);
+			writeAppPluginsConfig(app);
+			writeAppServiceTs(app);
+			writeAppModuleTs(app);
+			moveFiles();
+			Engine.logEngine.debug("(MobileBuilder) Handled 'appContributorsChanged'");
 		}
 	}
 	
@@ -1061,6 +1061,12 @@ public class MobileBuilder {
 			if (app != null) {
 				Map<String, String> cfg_plugins = new HashMap<>();
 				
+				//Menus contributors
+				for (Contributor contributor : app.getContributors()) {
+					cfg_plugins.putAll(contributor.getConfigPlugins());
+				}
+				
+				//Pages contributors
 				List<PageComponent> pages = forceEnable ? 
 												app.getPageComponentList() :
 														getEnabledPages(app);
@@ -1110,6 +1116,12 @@ public class MobileBuilder {
 			if (app != null) {
 				Map<String, String> pkg_dependencies = new HashMap<>();
 				
+				// Menus contributors
+				for (Contributor contributor : app.getContributors()) {
+					pkg_dependencies.putAll(contributor.getPackageDependencies());
+				}
+				
+				// Pages contributors
 				List<PageComponent> pages = forceEnable ? 
 												app.getPageComponentList() :
 														getEnabledPages(app);
@@ -1151,6 +1163,13 @@ public class MobileBuilder {
 				Map<String, String> action_ts_imports = new HashMap<>();
 				Map<String, String> action_ts_functions = new HashMap<>();
 				
+				//Menus contributors
+				for (Contributor contributor : app.getContributors()) {
+					action_ts_imports.putAll(contributor.getActionTsImports());
+					action_ts_functions.putAll(contributor.getActionTsFunctions());
+				}
+				
+				//Pages contributors
 				List<PageComponent> pages = forceEnable ? 
 												app.getPageComponentList() :
 														getEnabledPages(app);
@@ -1202,6 +1221,14 @@ public class MobileBuilder {
 				Set<String> module_ng_imports =  new HashSet<String>();
 				Set<String> module_ng_providers =  new HashSet<String>();
 				
+				//Menus contributors
+				for (Contributor contributor : app.getContributors()) {
+					module_ts_imports.putAll(contributor.getModuleTsImports());
+					module_ng_imports.addAll(contributor.getModuleNgImports());
+					module_ng_providers.addAll(contributor.getModuleNgProviders());
+				}
+				
+				//Pages contributors
 				List<PageComponent> pages = getEnabledPages(app);
 				for (PageComponent page : pages) {
 					String pageName = page.getName();

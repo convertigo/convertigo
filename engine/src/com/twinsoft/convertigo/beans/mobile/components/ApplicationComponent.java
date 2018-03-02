@@ -24,6 +24,7 @@ package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -93,6 +94,7 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		cloned.vMenuComponents = new LinkedList<UIDynamicMenu>();
 		cloned.vUIComponents = new LinkedList<UIComponent>();
 		cloned.computedContents = null;
+		cloned.contributors = null;
 		cloned.rootPage = null;
 		cloned.theme = null;
 		
@@ -753,6 +755,22 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
     	return c8o_version;
     }
     
+	private transient List<Contributor> contributors = null;
+	
+	public List<Contributor> getContributors() {
+		if (contributors == null) {
+			doGetContributors();
+		}
+		return contributors;
+	}
+	
+	protected void doGetContributors() {
+		contributors = new ArrayList<Contributor>();
+		for (UIDynamicMenu uiMenu : getMenuComponentList()) {
+			uiMenu.addContributors(contributors);
+		}
+	}
+    
 	private transient JSONObject computedContents = null;
 	
 	private JSONObject initJsonComputed() {
@@ -828,6 +846,15 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 				if (!(newComputedContent.getString("template")
 						.equals(oldComputedContent.getString("template")))) {
 					getProject().getMobileBuilder().appTemplateChanged(this);
+				}
+			}
+			
+			String oldContributors = contributors == null ? null: contributors.toString();
+			doGetContributors();
+			String newContributors = contributors == null ? null: contributors.toString();
+			if (oldContributors != null && newContributors != null) {
+				if (!(newComputedContent.equals(newContributors))) {
+					getProject().getMobileBuilder().appContributorsChanged(this);
 				}
 			}
 			
