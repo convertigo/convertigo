@@ -47,7 +47,7 @@ import com.twinsoft.convertigo.engine.Engine;
 
 public class MobileComponentTreeObject extends DatabaseObjectTreeObject implements IEditableTreeObject {
 	
-	public static final String P_CAF_USED 		= "#caf_used";
+	public static final String P_CAF_EMBEDDED 		= "#caf_used";
 	public static final String P_CAF_REQUIRED 	= "#caf_required";
 	
 	final private Pattern pMarker = Pattern.compile("/\\*Begin_c8o_(.*?)\\*/\\s+(.*?)\\s*/\\*End_c8o_", Pattern.DOTALL);
@@ -74,13 +74,13 @@ public class MobileComponentTreeObject extends DatabaseObjectTreeObject implemen
     protected List<PropertyDescriptor> getDynamicPropertyDescriptors() {
 		List<PropertyDescriptor> l = super.getDynamicPropertyDescriptors();
         PropertyDescriptor propertyDescriptor;
-        propertyDescriptor = new PropertyDescriptor(P_CAF_REQUIRED, "CAF required");
+        propertyDescriptor = new PropertyDescriptor(P_CAF_REQUIRED, "CAF version required");
         propertyDescriptor.setCategory("Information");
         propertyDescriptor.setDescription("The version of CAF required by this component to work properly");
         l.add(propertyDescriptor);
-        propertyDescriptor = new PropertyDescriptor(P_CAF_USED, "CAF used");
+        propertyDescriptor = new PropertyDescriptor(P_CAF_EMBEDDED, "CAF version embedded");
         propertyDescriptor.setCategory("Information");
-        propertyDescriptor.setDescription("The version of CAF used by your Template project");
+        propertyDescriptor.setDescription("The version of CAF embedded in your Template project");
         l.add(propertyDescriptor);
 		return l;
 	}
@@ -95,7 +95,7 @@ public class MobileComponentTreeObject extends DatabaseObjectTreeObject implemen
 		if (propertyName.equals(P_CAF_REQUIRED)) {
 			return mobileComponent.requiredCafVersion();
 		}
-		if (propertyName.equals(P_CAF_USED)) {
+		if (propertyName.equals(P_CAF_EMBEDDED)) {
 			return mobileComponent.getTplCafVersion();
 		}
 		
