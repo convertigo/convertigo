@@ -295,6 +295,9 @@ public class MobileBuilder {
 	
 	public void setNeedPkgUpdate(boolean needPkgUpdate) {
 		this.needPkgUpdate = needPkgUpdate;
+		
+		this.cafNodeVersion = null;
+		updateNodeCafVersion();
 	}
 	
 	public boolean getNeedPkgUpdate() {
