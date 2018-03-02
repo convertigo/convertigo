@@ -233,7 +233,8 @@ public class MobileBuilder {
 	Map<String,String> actionTplTsImports = null;
 	String moduleTplNgImports = null;
 	String moduleTplNgProviders = null;
-	String cafVersion = null;
+	String cafTplVersion = null;
+	String cafNodeVersion = null;
 	
 	Set<File> writtenFiles = new HashSet<File>();
 	
@@ -515,7 +516,8 @@ public class MobileBuilder {
 			// Modify configuration files
 			updateConfigurationFiles();
 			
-			// Updated CAF tpl version
+			// Update CAF versions
+			updateNodeCafVersion();
 			updateTplCafVersion();
 			
 			// Write source files (based on bean components)
@@ -591,8 +593,11 @@ public class MobileBuilder {
 				actionTplTsImports.clear();
 				actionTplTsImports = null;
 			}
-			if (cafVersion != null) {
-				cafVersion = null;
+			if (cafTplVersion != null) {
+				cafTplVersion = null;
+			}
+			if (cafNodeVersion != null) {
+				cafNodeVersion = null;
 			}
 			if (eventHelper != null) {
 				eventHelper = null;
@@ -654,7 +659,7 @@ public class MobileBuilder {
 				ApplicationComponent application = mobileApplication.getApplicationComponent();
 				if (application != null) {
 					String appCafVersion = application.requiredCafVersion();
-					if (cafVersion.compareTo(appCafVersion) >= 0) {
+					if (cafTplVersion.compareTo(appCafVersion) >= 0) {
 						for (PageComponent page : getEnabledPages(application)) {
 							writePageSourceFiles(page);
 						}
@@ -860,15 +865,15 @@ public class MobileBuilder {
 	}
 	
 	private void updateTplCafVersion() {
-		if (cafVersion == null) {
+		if (cafTplVersion == null) {
 			File pkgJson = new File(ionicWorkDir, "package.json"); 
 			if (pkgJson.exists()) {
 				try {
 					String tsContent = FileUtils.readFileToString(pkgJson, "UTF-8");
 					JSONObject jsonOb = new JSONObject(tsContent);
 					JSONObject jsonDeps = jsonOb.getJSONObject("dependencies");
-					cafVersion = jsonDeps.getString("c8ocaf");
-					Engine.logEngine.debug("(MobileBuilder) Using CAF version: "+ cafVersion+ " for ionic project '"+ project.getName() +"'");
+					cafTplVersion = jsonDeps.getString("c8ocaf");
+					Engine.logEngine.debug("(MobileBuilder) Embedded CAF version: "+ cafTplVersion+ " for ionic project '"+ project.getName() +"'");
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -877,8 +882,31 @@ public class MobileBuilder {
 	}
 	
 	public String getTplCafVersion() {
-		return cafVersion;
+		return cafTplVersion;
 	}
+	
+	public void updateNodeCafVersion() {
+		if (cafNodeVersion == null) {
+			File pkgJson = new File(ionicWorkDir, "node_modules/c8ocaf/package.json");
+			if (pkgJson.exists()) {
+				try {
+					String tsContent = FileUtils.readFileToString(pkgJson, "UTF-8");
+					JSONObject jsonOb = new JSONObject(tsContent);
+					cafNodeVersion = jsonOb.getString("version");
+					Engine.logEngine.debug("(MobileBuilder) Installed CAF version: "+ cafNodeVersion+ " for ionic project '"+ project.getName() +"'");
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			} else {
+				Engine.logEngine.debug("(MobileBuilder) None CAF installed for ionic project '"+ project.getName() +"'");
+			}
+		}
+	}
+	
+	public String getNodeCafVersion() {
+		return cafNodeVersion;
+	}
+	
 	
 	public boolean hasPageTplImport(String name) {
 		if (initDone) {

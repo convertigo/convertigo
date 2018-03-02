@@ -62,6 +62,10 @@ public abstract class MobileComponent extends MobileObject {
 		return getProject().getMobileBuilder().getTplCafVersion();
 	}
 	
+	public String getNodeCafVersion() {
+		return getProject().getMobileBuilder().getNodeCafVersion();
+	}
+	
 	public int compareToTplCafVersion(String version) {
 		int result = -1;
 		if (version != null) {
