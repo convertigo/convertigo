@@ -1061,14 +1061,14 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		
 		for (UIDynamicMenu menu : getMenuComponentList()) {
 			String menuCafVersion = menu.requiredCafVersion();
-			if (cafVersion.compareTo(menuCafVersion) <= 0) {
+			if (getProject().getMobileBuilder().compare(cafVersion, menuCafVersion) <= 0) {
 				cafVersion = menuCafVersion;
 			}
 		}
 		
 		for (PageComponent page : getPageComponentList()) {
 			String pageCafVersion = page.requiredCafVersion();
-			if (cafVersion.compareTo(pageCafVersion) <= 0) {
+			if (getProject().getMobileBuilder().compare(cafVersion, pageCafVersion) <= 0) {
 				cafVersion = pageCafVersion;
 			}
 		}
