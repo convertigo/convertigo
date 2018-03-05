@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.beans.connectors;
 import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
+import com.twinsoft.convertigo.engine.enums.IbmTerminalType;
 
 public class JavelinConnectorBeanInfo extends MySimpleBeanInfo {
     
@@ -83,6 +84,7 @@ public class JavelinConnectorBeanInfo extends MySimpleBeanInfo {
 			properties[7] = new PropertyDescriptor("ibmTerminalType", beanClass, "getIbmTerminalType", "setIbmTerminalType");
 			properties[7].setDisplayName(getExternalizedString("property.ibmTerminalType.display_name"));
 			properties[7].setShortDescription(getExternalizedString("property.ibmTerminalType.short_description"));
+			properties[7].setPropertyEditorClass(IbmTerminalType.class);
 			properties[7].setExpert(true);
 		}
 		catch(Exception e) {
