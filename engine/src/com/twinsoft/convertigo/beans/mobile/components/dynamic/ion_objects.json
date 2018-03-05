@@ -5532,7 +5532,7 @@
           "category": "@Properties",
           "type": "string",
           "mode": "script",
-          "value": "new Date()"
+          "value": "Date()"
         },
 
         "defaultDates":	{
@@ -5541,7 +5541,7 @@
           "category": "@Properties",
           "type": "string",
           "mode": "script",
-          "value": "[new Date(),new Date()]"
+          "value": "[Date(),Date()]"
         },
 
         "defaultDateRange":	{
@@ -5550,7 +5550,7 @@
           "category": "@Properties",
           "type": "string",
           "mode": "script",
-          "value": "{from: new Date(), to: new Date()}"
+          "value": "{from: Date(), to: Date()}"
         },
 
         "from":	{
