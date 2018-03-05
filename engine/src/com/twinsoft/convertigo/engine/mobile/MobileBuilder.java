@@ -656,7 +656,7 @@ public class MobileBuilder {
 		return pages;
 	}
 	
-	public int compare(String v1, String v2) {
+	public int compareVersions(String v1, String v2) {
 		String s1 = VersionUtils.normalizeVersionString(v1.trim().toLowerCase(), ".", 4);
 		String s2 = VersionUtils.normalizeVersionString(v2.trim().toLowerCase(), ".", 4);
 		int cmp = s1.compareTo(s2);
@@ -670,7 +670,7 @@ public class MobileBuilder {
 				ApplicationComponent application = mobileApplication.getApplicationComponent();
 				if (application != null) {
 					String appCafVersion = application.requiredCafVersion();
-					if (compare(cafTplVersion, appCafVersion) >= 0) {
+					if (compareVersions(cafTplVersion, appCafVersion) >= 0) {
 						for (PageComponent page : getEnabledPages(application)) {
 							writePageSourceFiles(page);
 						}

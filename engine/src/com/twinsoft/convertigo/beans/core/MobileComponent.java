@@ -66,6 +66,10 @@ public abstract class MobileComponent extends MobileObject {
 		return getProject().getMobileBuilder().getNodeCafVersion();
 	}
 	
+	protected int compareVersions(String v1, String v2) {
+		return getProject().getMobileBuilder().compareVersions(v1, v2);
+	}
+	
 	public int compareToTplCafVersion(String version) {
 		int result = -1;
 		if (version != null) {
@@ -74,7 +78,7 @@ public abstract class MobileComponent extends MobileObject {
 				if (tplCafVersion.trim().toLowerCase().equals("latest")) {
 					result = 1;
 				} else {
-					getProject().getMobileBuilder().compare(tplCafVersion, version);
+					compareVersions(tplCafVersion, version);
 				}
 			}
 		}

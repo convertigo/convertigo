@@ -424,7 +424,7 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		String cafVersion = getRequiredCafVersion();
 		for (UIComponent uic : getUIComponentList()) {
 			String uicCafVersion = uic.requiredCafVersion();
-			if (getProject().getMobileBuilder().compare(cafVersion, uicCafVersion) <= 0) {
+			if (compareVersions(cafVersion, uicCafVersion) <= 0) {
 				cafVersion = uicCafVersion;
 			}
 		}
