@@ -52,6 +52,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.EventHelper;
 import com.twinsoft.convertigo.engine.util.FileUtils;
+import com.twinsoft.convertigo.engine.util.VersionUtils;
 
 public class MobileBuilder {
 	class MbWorker extends Thread {
@@ -655,6 +656,13 @@ public class MobileBuilder {
 		return pages;
 	}
 	
+	public int compare(String v1, String v2) {
+		String s1 = VersionUtils.normalizeVersionString(v1.trim().toLowerCase(), ".", 4);
+		String s2 = VersionUtils.normalizeVersionString(v2.trim().toLowerCase(), ".", 4);
+		int cmp = s1.compareTo(s2);
+		return cmp;
+	}
+	
 	private void updateSourceFiles() throws EngineException {
 		try {
 			MobileApplication mobileApplication = project.getMobileApplication();
@@ -662,7 +670,7 @@ public class MobileBuilder {
 				ApplicationComponent application = mobileApplication.getApplicationComponent();
 				if (application != null) {
 					String appCafVersion = application.requiredCafVersion();
-					if (cafTplVersion.compareTo(appCafVersion) >= 0) {
+					if (compare(cafTplVersion, appCafVersion) >= 0) {
 						for (PageComponent page : getEnabledPages(application)) {
 							writePageSourceFiles(page);
 						}

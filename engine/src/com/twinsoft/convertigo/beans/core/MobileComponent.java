@@ -71,11 +71,10 @@ public abstract class MobileComponent extends MobileObject {
 		if (version != null) {
 			String tplCafVersion = getTplCafVersion();
 			if (tplCafVersion != null) {
-				tplCafVersion = tplCafVersion.trim().toLowerCase();
-				if (tplCafVersion.equals("latest")) {
+				if (tplCafVersion.trim().toLowerCase().equals("latest")) {
 					result = 1;
 				} else {
-					result = tplCafVersion.compareTo(version.trim().toLowerCase());
+					getProject().getMobileBuilder().compare(tplCafVersion, version);
 				}
 			}
 		}
