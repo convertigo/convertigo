@@ -5517,6 +5517,7 @@
 
  
   "CalendarPickerAction" : {
+      "cafVersion": "1.0.98",
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "CalendarPicker",
       "label": "Calendar Picker",
