@@ -4951,6 +4951,18 @@
           "category": "@Properties",
           "value": "{pickMode: $[pickMode], from: $[from], to: $[to], color: $[IonColor], showToggleButtons: $[showToggleButtons], showMonthPicker: $[showMonthPicker], monthPickerFormat: $[monthPickerFormat], defaultTitle: $[defaultTitle], defaultSubtitle: $[defaultSubtitle], disableWeeks: $[disableWeeks], monthFormat: $[monthFormat], weekdays: $[weekdays], weekStart: $[weekStart], daysConfig: $[daysConfig] }"
         }
+      },
+      
+      "config": {
+        "module_ts_imports": [
+          {"from":"ion2-calendar","components":["CalendarModule"]}
+        ],
+        "module_ng_imports": [
+          "CalendarModule"
+        ],
+        "package_dependencies": [
+            {"package":"ion2-calendar", "version":"2.1.6-beta.2"}
+        ]
       }
     },
         
