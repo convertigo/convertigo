@@ -4770,7 +4770,7 @@
       "tag": "ion-calendar",
       "displayName": "Calendar",
       "label": "Calendar",
-      "description": "Calendar | Displays a Calendar with various options configured as properties.<br /><br />Can trigger the (onChange), (monthChange) , (onSelect), (onSelectStart) and (onSelectEnd) events. ",
+      "description": "ion-calendar | Displays a Calendar with various options configured as properties.<br /><br />Can trigger the (onChange), (monthChange) , (onSelect), (onSelectStart) and (onSelectEnd) events. ",
       "group": "Forms",
       "icon16": "calendar_color_16x16.png",
       "icon32": "calendar_color_32x32.png",
