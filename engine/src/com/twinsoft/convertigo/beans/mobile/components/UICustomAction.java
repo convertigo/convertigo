@@ -385,11 +385,15 @@ public class UICustomAction extends UIComponent implements IAction {
 				}
 			}
 			
+			String search = "import * as ts from 'typescript';";
+			if (imports.indexOf(search) == -1) {
+				imports += search + System.lineSeparator();
+			}
+			
 			jsonScripts.put("imports", imports);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-		
 		
 		DatabaseObject parent = getParent();
 		if (parent != null && !(parent instanceof IAction) && !(parent instanceof UIActionEvent)) {
