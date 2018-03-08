@@ -4966,6 +4966,173 @@
       }
     },
         
+    /*
+     * SignatureComponent
+     */
+    "SignatureComponent" : {
+      "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicComponent",
+      "tag": "c8o-signature",
+      "displayName": "Signature",
+      "label": "Signature",
+      "description": "c8o-signature | Displays a Signature pad. This component uses an Angular2 component based on the Signature Pad JavaScript library.<br/>For more information: <a href='https://www.npmjs.com/package/angular2-signaturepad' target='_blank'>angular2-signaturepad</a>.<br/><br/><span class='orangetwinsoft'><u>Note:</u></span> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form.<br/>If you'd like to have some label, add a <i>Text</i> under a <i>Div</i>. Do not use <i>Label</i> component.",
+      "group": "Forms",
+      "icon16": "signaturecomponent_color_16x16.png",
+      "icon32": "signaturecomponent_color_32x32.png",
+      
+      "properties": {
+        "FormControlName": false,
+        
+        "DotSize": {
+          "composite": true,
+          "label": "Dot size",
+          "description": "Radius of a single dot. Defaults to 1.5.",
+          "category": "@Properties",
+          "type": "number",
+          "value": false,
+          "values": [
+            false,
+            true
+          ]
+        },
+        "LineMinWidth": {
+          "composite": true,
+          "label": "Line min width",
+          "description": "Minimum width of a line. Defaults to 0.5.",
+          "category": "@Properties",
+          "type": "number",
+          "value": false,
+          "values": [
+            false,
+            true
+          ]
+        },
+        "LineMaxWidth": {
+          "composite": true,
+          "label": "Line max width",
+          "description": "Maximum width of a line. Defaults to 2.5.",
+          "category": "@Properties",
+          "type": "number",
+          "value": false,
+          "values": [
+            false,
+            true
+          ]
+        },
+        "CanvasWidth": {
+          "composite": true,
+          "label": "Canvas width",
+          "description": "Width of the canvas (px).",
+          "category": "@Properties",
+          "type": "number",
+          "value": false,
+          "values": [
+            false,
+            true
+          ]
+        },
+        "CanvasHeight": {
+          "composite": true,
+          "label": "Canvas height",
+          "description": "Height of the canvas (px).",
+          "category": "@Properties",
+          "type": "number",
+          "value": false,
+          "values": [
+            false,
+            true
+          ]
+        },
+        "Throttle": {
+          "composite": true,
+          "label": "Draw throttle",
+          "description": "Draw the next point at most once per every x milliseconds. Set it to 0 to turn off throttling. Defaults to 16.",
+          "category": "@Properties",
+          "type": "number",
+          "value": false,
+          "values": [
+            false,
+            true
+          ]
+        },
+        "VelocityFilterWeight": {
+          "composite": true,
+          "label": "Velocity weight",
+          "description": "Weight used to modify new velocity based on the previous velocity. Defaults to 0.7.",
+          "category": "@Properties",
+          "type": "number",
+          "value": false,
+          "values": [
+            false,
+            true
+          ]
+        },
+        "BackgroundColor": {
+          "composite": true,
+          "label": "Background color",
+          "description": "Color used to clear the background. Defaults to 'rgba(0,0,0,0)' (transparent black). Use a non-transparent color e.g. 'white' or 'rgb(255,255,255)' (opaque white) if you'd like to save signatures as JPEG images.",
+          "category": "@Properties",
+          "type": "string",
+          "value": false,
+          "values": [
+            false,
+            true
+          ]
+        },
+        "PenColor": {
+          "composite": true,
+          "label": "Pen color",
+          "description": "Color used to draw the lines. Defaults to 'black' or 'rgb(0,0,0)'.",
+          "category": "@Properties",
+          "type": "string",
+          "value": false,
+          "values": [
+            false,
+            true
+          ]
+        },
+        
+        "Options": {
+          "hidden": true,
+          "mode":"script",
+          "attr" : "[options]",
+          "label": "Type",
+          "description": "Signature options",
+          "category": "@Properties",
+          "value": "{dotSize: $[DotSize], minWidth: $[LineMinWidth], maxWidth: $[LineMaxWidth], canvasWidth: $[CanvasWidth], canvasHeight: $[CanvasHeight], throttle: $[Throttle], backgroundColor: $[BackgroundColor], penColor: $[PenColor], velocityFilterWeight: $[VelocityFilterWeight]}"
+        }
+      },
+      
+      "events": {
+        "onBeginEvent": {
+          "attr":"(onBeginEvent)",
+          "description": "This event is fired when the user starts drawing."
+        },
+        "onEndEvent": {
+          "attr":"(onEndEvent)",
+          "description": "This event is fired when the user stops drawing."
+        }
+      },
+      
+      "config": {
+        "module_ts_imports": [
+          {"from":"angular2-signaturepad","components":["SignaturePadModule"]},
+          {"from":"../components/SignatureComponent/SignatureComponent","components":["SignatureComponent"]}
+        ],
+        "module_ng_imports": [
+          "SignaturePadModule"
+        ],
+        "module_ng_declarations": [
+          "SignatureComponent"
+        ],
+        "module_ng_components": [
+          "SignatureComponent"
+        ],
+        "package_dependencies": [
+            {"package":"angular2-signaturepad", "version":"2.7.0"}
+        ]
+      }
+      
+    },
 	
 	/*
 	* Actions
