@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -598,6 +599,11 @@ public class UICustomAction extends UIComponent implements IAction {
 			}
 
 			@Override
+			public Map<String, File> getCompBeanDir() {
+				return new HashMap<String, File>();
+			}
+
+			@Override
 			public Map<String, String> getModuleTsImports() {
 				Map<String, String> imports = new HashMap<String, String>();
 				for (XMLVector<String> v : module_ts_imports) {
@@ -640,6 +646,16 @@ public class UICustomAction extends UIComponent implements IAction {
 				return providers;
 			}
 
+			@Override
+			public Set<String> getModuleNgDeclarations() {
+				return new HashSet<String>();
+			}
+			
+			@Override
+			public Set<String> getModuleNgComponents() {
+				return new HashSet<String>();
+			}
+			
 			@Override
 			public Map<String, String> getPackageDependencies() {
 				Map<String, String> dependencies = new HashMap<String, String>();

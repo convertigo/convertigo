@@ -40,6 +40,8 @@ public class IonConfig implements Cloneable {
 		module_ts_imports,
 		module_ng_imports,
 		module_ng_providers,
+		module_ng_declarations,
+		module_ng_components,
 		package_dependencies,
 		cordova_plugins,
 		;
@@ -77,13 +79,21 @@ public class IonConfig implements Cloneable {
 	}
 	
 	public Set<String> getModuleNgImports() {
-		return getNgImports(Key.module_ng_imports);
+		return getNgSet(Key.module_ng_imports);
 	}
 	
 	public Set<String> getModuleNgProviders() {
-		return getNgImports(Key.module_ng_providers);
+		return getNgSet(Key.module_ng_providers);
 	}
 	
+	public Set<String> getModuleNgDeclarations() {
+		return getNgSet(Key.module_ng_declarations);
+	}
+
+	public Set<String> getModuleNgComponents() {
+		return getNgSet(Key.module_ng_components);
+	}
+
 	public Map<String, String> getPackageDependencies() {
 		return getCfgImports(Key.package_dependencies, "package", "version");
 	}
@@ -126,7 +136,7 @@ public class IonConfig implements Cloneable {
 		}
 	}
 	
-	protected Set<String> getNgImports(Key key) {
+	protected Set<String> getNgSet(Key key) {
 		try {
 			Set<String> set = new HashSet<String>();
 			JSONArray ar = jsonConfig.getJSONArray(key.name());

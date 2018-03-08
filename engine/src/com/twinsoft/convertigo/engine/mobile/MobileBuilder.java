@@ -234,6 +234,8 @@ public class MobileBuilder {
 	Map<String,String> actionTplTsImports = null;
 	String moduleTplNgImports = null;
 	String moduleTplNgProviders = null;
+	String moduleTplNgDeclarations = null;
+	String moduleTplNgComponents = null;
 	String cafTplVersion = null;
 	String cafNodeVersion = null;
 	
@@ -656,7 +658,7 @@ public class MobileBuilder {
 		return pages;
 	}
 	
-	public int compareVersions(String v1, String v2) {
+	static public int compareVersions(String v1, String v2) {
 		String s1 = VersionUtils.normalizeVersionString(v1.trim().toLowerCase(), ".", 4);
 		String s2 = VersionUtils.normalizeVersionString(v2.trim().toLowerCase(), ".", 4);
 		int cmp = s1.compareTo(s2);
@@ -977,6 +979,42 @@ public class MobileBuilder {
 		return moduleTplNgProviders;
 	}
 
+	private String getModuleTplNgDeclarations() {
+		if (moduleTplNgDeclarations == null) {
+			try {
+				String tsContent = FileUtils.readFileToString(new File(ionicTplDir, "src/app/app.module.ts"), "UTF-8");
+				moduleTplNgDeclarations = getMarker(tsContent, "NgDeclarations")
+						.replaceAll("/\\*Begin_c8o_NgDeclarations\\*/","")
+						.replaceAll("/\\*End_c8o_NgDeclarations\\*/","")
+						.replaceAll("\r\n", "").replaceAll("\n", "")
+						.replaceAll("\t", "")
+						.replaceAll("\\s", "");
+			} catch (Exception e) {
+				e.printStackTrace();
+				moduleTplNgDeclarations = "";
+			}
+		}
+		return moduleTplNgDeclarations;
+	}
+	
+	private String getModuleTplNgComponents() {
+		if (moduleTplNgComponents == null) {
+			try {
+				String tsContent = FileUtils.readFileToString(new File(ionicTplDir, "src/app/app.module.ts"), "UTF-8");
+				moduleTplNgComponents = getMarker(tsContent, "NgComponents")
+						.replaceAll("/\\*Begin_c8o_NgComponents\\*/","")
+						.replaceAll("/\\*End_c8o_NgComponents\\*/","")
+						.replaceAll("\r\n", "").replaceAll("\n", "")
+						.replaceAll("\t", "")
+						.replaceAll("\\s", "");
+			} catch (Exception e) {
+				e.printStackTrace();
+				moduleTplNgComponents = "";
+			}
+		}
+		return moduleTplNgComponents;
+	}
+	
 	private Map<String,String> getActionTplTsImports() {
 		if (actionTplTsImports == null) {
 			actionTplTsImports = initTplImports(new File(ionicTplDir, "src/services/actionbeans.service.ts"));
@@ -1228,15 +1266,22 @@ public class MobileBuilder {
 				String c8o_PagesDeclarations = "";
 				int i=1;
 				
+				Map<String, File> comp_beans_dirs = new HashMap<>();
 				Map<String, String> module_ts_imports = new HashMap<>();
 				Set<String> module_ng_imports =  new HashSet<String>();
 				Set<String> module_ng_providers =  new HashSet<String>();
+				Set<String> module_ng_declarations =  new HashSet<String>();
+				Set<String> module_ng_components =  new HashSet<String>();
 				
 				//Menus contributors
 				for (Contributor contributor : app.getContributors()) {
+					comp_beans_dirs.putAll(contributor.getCompBeanDir());
+
 					module_ts_imports.putAll(contributor.getModuleTsImports());
 					module_ng_imports.addAll(contributor.getModuleNgImports());
 					module_ng_providers.addAll(contributor.getModuleNgProviders());
+					module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
+					module_ng_components.addAll(contributor.getModuleNgComponents());
 				}
 				
 				//Pages contributors
@@ -1251,9 +1296,13 @@ public class MobileBuilder {
 
 					List<Contributor> contributors = page.getContributors();
 					for (Contributor contributor : contributors) {
+						comp_beans_dirs.putAll(contributor.getCompBeanDir());
+						
 						module_ts_imports.putAll(contributor.getModuleTsImports());
 						module_ng_imports.addAll(contributor.getModuleNgImports());
 						module_ng_providers.addAll(contributor.getModuleNgProviders());
+						module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
+						module_ng_components.addAll(contributor.getModuleNgComponents());
 					}
 					
 					i++;
@@ -1294,7 +1343,33 @@ public class MobileBuilder {
 						c8o_ModuleNgProviders = System.lineSeparator() + c8o_ModuleNgProviders;
 					}
 				}
+
+				String c8o_ModuleNgDeclarations = "";
+				String tpl_ng_declarations = getModuleTplNgDeclarations();
+				if (!tpl_ng_declarations.isEmpty()) {
+					for (String declaration: module_ng_declarations) {
+						if (!tpl_ng_declarations.contains(declaration)) {
+							c8o_ModuleNgDeclarations += "\t" + declaration + "," + System.lineSeparator();
+						}
+					}
+					if (!c8o_ModuleNgDeclarations.isEmpty()) {
+						c8o_ModuleNgDeclarations = System.lineSeparator() + c8o_ModuleNgDeclarations;
+					}
+				}
 				
+				String c8o_ModuleNgComponents = "";
+				String tpl_ng_components = getModuleTplNgComponents();
+				if (!tpl_ng_components.isEmpty()) {
+					for (String component: module_ng_components) {
+						if (!tpl_ng_components.contains(component)) {
+							c8o_ModuleNgComponents += "\t" + component + "," + System.lineSeparator();
+						}
+					}
+					if (!c8o_ModuleNgComponents.isEmpty()) {
+						c8o_ModuleNgComponents = System.lineSeparator() + c8o_ModuleNgComponents;
+					}
+				}
+
 				File appModuleTpl = new File(ionicTplDir, "src/app/app.module.ts");
 				String mContent = FileUtils.readFileToString(appModuleTpl, "UTF-8");
 				mContent = mContent.replaceAll("/\\*\\=c8o_ModuleTsImports\\*/",c8o_ModuleTsImports);
@@ -1305,8 +1380,22 @@ public class MobileBuilder {
 				mContent = mContent.replaceAll("/\\*End_c8o_NgModules\\*/","");
 				mContent = mContent.replaceAll("/\\*Begin_c8o_NgProviders\\*/",c8o_ModuleNgProviders);
 				mContent = mContent.replaceAll("/\\*End_c8o_NgProviders\\*/","");
+				mContent = mContent.replaceAll("/\\*Begin_c8o_NgDeclarations\\*/",c8o_ModuleNgDeclarations);
+				mContent = mContent.replaceAll("/\\*End_c8o_NgDeclarations\\*/","");
+				mContent = mContent.replaceAll("/\\*Begin_c8o_NgComponents\\*/",c8o_ModuleNgComponents);
+				mContent = mContent.replaceAll("/\\*End_c8o_NgComponents\\*/","");
+				
 				File appModuleTsFile = new File(ionicWorkDir, "src/app/app.module.ts");
 				writeFile(appModuleTsFile, mContent, "UTF-8");
+				
+				for (String compbean : comp_beans_dirs.keySet()) {
+					File srcDir = comp_beans_dirs.get(compbean);
+					for (File f: srcDir.listFiles()) {
+						String fContent = FileUtils.readFileToString(f, "UTF-8");
+						File destFile = new File(ionicWorkDir, "src/components/"+ compbean+ "/"+ f.getName());
+						writeFile(destFile, fContent, "UTF-8");
+					}
+				}
 				
 				if (initDone) {
 					Engine.logEngine.debug("(MobileBuilder) Ionic module ts file generated for 'app'");

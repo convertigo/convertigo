@@ -22,19 +22,27 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
-import java.util.Set;
-import java.io.File;
-import java.util.Map;
+import java.beans.PropertyDescriptor;
 
-public abstract class Contributor {
-	abstract public Map<String, File> getCompBeanDir();
-	abstract public Map<String, String> getActionTsFunctions();
-	abstract public Map<String, String> getActionTsImports();
-	abstract public Map<String, String> getModuleTsImports();
-	abstract public Map<String, String> getPackageDependencies();
-	abstract public Map<String, String> getConfigPlugins();
-	abstract public Set<String> getModuleNgImports();
-	abstract public Set<String> getModuleNgProviders();
-	abstract public Set<String> getModuleNgDeclarations();
-	abstract public Set<String> getModuleNgComponents();
+import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
+
+public class UIDynamicComponentBeanInfo extends MySimpleBeanInfo {
+
+	public UIDynamicComponentBeanInfo() {
+		try {
+			beanClass = UIDynamicComponent.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement.class;
+
+			resourceBundle = getResourceBundle("res/UIDynamicComponent");
+
+			displayName = resourceBundle.getString("display_name");
+			shortDescription = resourceBundle.getString("short_description");
+			
+			properties = new PropertyDescriptor[0];
+		}
+		catch(Exception e) {
+			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
+		}
+	}
+
 }

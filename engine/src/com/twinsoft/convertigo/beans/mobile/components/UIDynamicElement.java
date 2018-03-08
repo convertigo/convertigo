@@ -23,6 +23,7 @@
 package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.beans.BeanInfo;
+import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -304,6 +305,11 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 			}
 
 			@Override
+			public Map<String, File> getCompBeanDir() {
+				return new HashMap<String, File>();
+			}
+			
+			@Override
 			public Map<String, String> getModuleTsImports() {
 				Map<String, String> imports = new HashMap<String, String>();
 				IonBean ionBean = getIonBean();
@@ -334,6 +340,24 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 				IonBean ionBean = getIonBean();
 				if (ionBean != null) {
 					return ionBean.getConfig().getModuleNgProviders();
+				}
+				return new HashSet<String>();
+			}
+
+			@Override
+			public Set<String> getModuleNgDeclarations() {
+				IonBean ionBean = getIonBean();
+				if (ionBean != null) {
+					return ionBean.getConfig().getModuleNgDeclarations();
+				}
+				return new HashSet<String>();
+			}
+			
+			@Override
+			public Set<String> getModuleNgComponents() {
+				IonBean ionBean = getIonBean();
+				if (ionBean != null) {
+					return ionBean.getConfig().getModuleNgComponents();
 				}
 				return new HashSet<String>();
 			}
@@ -393,7 +417,7 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 				}
 				return new HashMap<String, String>();
 			}
-			
+
 		};
 	}
 	

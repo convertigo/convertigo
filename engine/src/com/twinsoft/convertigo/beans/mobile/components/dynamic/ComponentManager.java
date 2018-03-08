@@ -27,6 +27,7 @@ import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,6 +72,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIPageEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.URLUtils;
 
 public class ComponentManager {
 	private static ComponentManager instance = new ComponentManager();
@@ -78,6 +80,8 @@ public class ComponentManager {
 	private SortedMap<String, IonProperty> pCache = new TreeMap<String, IonProperty>();
 	private SortedMap<String, IonBean> bCache = new TreeMap<String, IonBean>();
 	private SortedMap<String, IonTemplate> tCache = new TreeMap<String, IonTemplate>();
+	
+	private File compbeansDir;
 	
 	private ComponentManager() {
 		loadModels();
@@ -632,5 +636,26 @@ public class ComponentManager {
 			}
 		}
 		return "";
+	}
+	
+	public static File getCompBeanDir(String name) {
+		try {
+			if (instance.compbeansDir == null) {
+				String path = URLUtils.getFullpathRessources(instance.getClass(), "compbeans");
+				if (path != null) {
+					instance.compbeansDir = new File(path);
+				}
+			}
+			if (instance.compbeansDir != null) {
+				return new File(instance.compbeansDir, name);
+			}
+		} catch (Exception e) {
+			if (Engine.isStarted) {
+				Engine.logBeans.warn("(ComponentManager) Missing component folder for pseudo-bean '"+ name +"' !");
+			} else {
+				System.out.println("(ComponentManager) Missing component folder for pseudo-bean '"+ name +"' !");
+			}
+		}
+		return null;
 	}
 }

@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -555,6 +556,11 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			}
 
 			@Override
+			public Map<String, File> getCompBeanDir() {
+				return contributor.getCompBeanDir();
+			}
+
+			@Override
 			public Map<String, String> getModuleTsImports() {
 				return contributor.getModuleTsImports();
 			}
@@ -569,6 +575,16 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				return contributor.getModuleNgProviders();
 			}
 
+			@Override
+			public Set<String> getModuleNgDeclarations() {
+				return contributor.getModuleNgDeclarations();
+			}
+			
+			@Override
+			public Set<String> getModuleNgComponents() {
+				return contributor.getModuleNgComponents();
+			}
+			
 			@Override
 			public Map<String, String> getPackageDependencies() {
 				return contributor.getPackageDependencies();
