@@ -1292,6 +1292,17 @@
             "true"
           ]
         }
+      },
+      "config": {
+        "module_ts_imports": [
+          {"from":"ionic2-super-tabs","components":["SuperTabsModule"]}
+        ],
+        "module_ng_imports": [
+          "SuperTabsModule.forRoot()"
+        ],
+        "package_dependencies": [
+            {"package":"ionic2-super-tabs", "version":"4.0.1"}
+        ]
       }
   },
 
@@ -4320,6 +4331,17 @@
           "attr":"(zoomChange)",
           "description": "This event is fired when the zoom level has changed."
         }
+      },
+      "config": {
+        "module_ts_imports": [
+          {"from":"@agm/core","components":["AgmCoreModule"]}
+        ],
+        "module_ng_imports": [
+          "AgmCoreModule.forRoot({apiKey: 'AIzaSyB0Nl1dX0kEsB5QZaNf6m-tnb1N-U5dpXs'})"
+        ],
+        "package_dependencies": [
+            {"package":"@agm/core", "version":"1.0.0-beta.2"}
+        ]
       }
     },
     
