@@ -5925,11 +5925,19 @@
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "GoogleLogin",
       "label": "Google Login",
-      "description": "Defines a <i>Google Login</i> action component. | This component helps login in using Google. It uses Google login to authenticate users.<br/>Setup needs some configuration. Declare your app in <a target='_blank' href='https://developers.google.com/mobile/add?platform=android&cntapi=signin'>https://developers.google.com/mobile/add?platform=android&cntapi=signin</a> for Android apps.<br/><br/>Use <a href='https://developers.google.com/mobile/add?platform=ios&cntapi=signin' target='_blank'>https://developers.google.com/mobile/add?platform=ios&cntapi=signin</a> for iOS apps. <br /><br />See also some documentation on <a target='_blank' href='https://ionicframework.com/docs/native/google-plus/'>https://ionicframework.com/docs/native/google-plus/</a> about the Cordova plugin used.",
+      "description": "Defines a <i>Google Login / Logout</i> action component. | This component helps login in or logout using Google. It uses Google login to authenticate users.<br/>Setup needs some configuration. Declare your app in <a target='_blank' href='https://developers.google.com/mobile/add?platform=android&cntapi=signin'>https://developers.google.com/mobile/add?platform=android&cntapi=signin</a> for Android apps.<br/><br/>Use <a href='https://developers.google.com/mobile/add?platform=ios&cntapi=signin' target='_blank'>https://developers.google.com/mobile/add?platform=ios&cntapi=signin</a> for iOS apps. <br /><br />See also some documentation on <a target='_blank' href='https://ionicframework.com/docs/native/google-plus/'>https://ionicframework.com/docs/native/google-plus/</a> about the Cordova plugin used.",
       "group": "Actions",
       "icon16": "googleloginaction_color_16x16.png",
       "icon32": "googleloginaction_color_32x32.png",
       "properties": {
+      "actionGoogle": {
+          "label": "Action",
+          "description": "The action to do can be Login or Logout.",
+          "category": "@Properties",
+          "type": "string",
+          "value": "Login",
+          "values": ["Login", "Logout"]
+        },
         "webClientId": {
           "label": "Web Client ID",
           "description": "The web client ID (Optional). Has to be set if you want to retrieve an 'idToken' or a 'serverAuthCode'.",
