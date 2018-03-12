@@ -6541,8 +6541,8 @@
 			"FilePath"
         ],
         "package_dependencies": [
-            {"package":"@ionic-native/file-chooser", "version":"4.4.2"},
-             {"package":"@ionic-native/file-path", "version":"4.4.2"}
+            {"package":"@ionic-native/file-chooser", "version":"4.5.3"},
+             {"package":"@ionic-native/file-path", "version":"4.5.3"}
         ],
         "cordova_plugins": [
           {
@@ -6551,7 +6551,7 @@
           },
           {
             "plugin":"cordova-plugin-filepath",
-            "version":"1.0.2"
+            "version":"1.2.0"
           }
       ]
     }
