@@ -40,8 +40,8 @@
                     reject(error);
                 });
             })
-            .catch((err)=>{
-                page.router.c8o.log.debug("[MB] FingerprintAIOAction: ", err);
+            .catch((error)=>{
+                page.router.c8o.log.debug("[MB] FingerprintAIOAction: ", error);
                 reject(error);
             });             
         });
