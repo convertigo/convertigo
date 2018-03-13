@@ -4793,6 +4793,17 @@
             true
           ]
         }
+      },
+      "config": {
+        "module_ts_imports": [
+          {"from":"ng2-charts","components":["ChartsModule"]}
+        ],
+        "module_ng_imports": [
+          "ChartsModule"
+        ],
+        "package_dependencies": [
+            {"package":"ng2-charts", "version":"1.6.0"}
+        ]
       }
     },
     
