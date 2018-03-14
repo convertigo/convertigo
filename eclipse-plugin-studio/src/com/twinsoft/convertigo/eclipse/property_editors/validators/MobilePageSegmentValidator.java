@@ -76,6 +76,9 @@ public class MobilePageSegmentValidator implements ICellEditorValidator {
 							else
 								return "A similar segment \"" + p.getSegment() + "\" already exists for the application!";
 						}
+						if (p.getName().equals(segment)) {
+							return "Segment \"" + segment + "\" is invalid: It must not be the name of another page!";
+						}
 					}
 				}
 			}
