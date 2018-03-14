@@ -1054,6 +1054,16 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 				Engine.logBeans.warn("(MobileApplication) The folder '" + folder.getAbsolutePath() + "' doesn't exist and cannot be created", e);
 			}
 		}
+		File index = new File(getParent().getResourceFolder(), "index.html");
+		if (!index.exists()) {
+			try {
+				index.getParentFile().mkdirs();
+				File templateIndex = new File(Engine.TEMPLATES_PATH, "base/index_mb.html");
+				FileUtils.copyFile(templateIndex, index);
+			} catch (Exception e) {
+				Engine.logBeans.warn("(MobileApplication) The file '" + index.getAbsolutePath() + "' doesn't exist and cannot be created", e);
+			}
+		}
 	}
 
 	@Override
