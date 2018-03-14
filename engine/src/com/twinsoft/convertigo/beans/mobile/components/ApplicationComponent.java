@@ -51,6 +51,7 @@ import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -465,7 +466,7 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 			pageComponent.setTitle("Title for "+ newDatabaseObjectName);
 		}
 		if (pageComponent.getSegment().isEmpty() || pageComponent.bNew) {
-			pageComponent.setSegment(newDatabaseObjectName);
+			pageComponent.setSegment("path-to-"+newDatabaseObjectName.toLowerCase());
 		}
 		super.add(pageComponent);
 		
@@ -1061,14 +1062,14 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		
 		for (UIDynamicMenu menu : getMenuComponentList()) {
 			String menuCafVersion = menu.requiredCafVersion();
-			if (compareVersions(cafVersion, menuCafVersion) <= 0) {
+			if (MobileBuilder.compareVersions(cafVersion, menuCafVersion) <= 0) {
 				cafVersion = menuCafVersion;
 			}
 		}
 		
 		for (PageComponent page : getPageComponentList()) {
 			String pageCafVersion = page.requiredCafVersion();
-			if (compareVersions(cafVersion, pageCafVersion) <= 0) {
+			if (MobileBuilder.compareVersions(cafVersion, pageCafVersion) <= 0) {
 				cafVersion = pageCafVersion;
 			}
 		}
