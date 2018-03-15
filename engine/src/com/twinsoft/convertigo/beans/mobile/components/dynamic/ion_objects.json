@@ -6922,34 +6922,34 @@
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "Alert",
       "label": "Alert",
-      "description": "Defines an <i>Alert</i> component. | The Alerts  are a great way to offer the user the ability to choose a specific action or list of actions. They also can provide the user with important information, or require them to make a decision (or multiple decisions). For more information : <a target='_blank' href='https://ionicframework.com/docs/components/#alert'>Alert</a>",
+      "description": "Defines an <i>Alert</i> component. | The Alerts are a great way to offer the user the ability to choose a specific action or list of actions. They also can provide the user with important information, or require them to make a decision. <br/>The return value can be accessed by the navigation stack, using <code> parent.out </code> for example. </br> For more information : <a target='_blank' href='https://ionicframework.com/docs/components/#alert'>Alert</a>",
       "group": "Actions",
 		"icon16": "",
     	"icon32": "",
       "properties": {
       	"title": {
-	        "label": "title",
+	        "label": "Title",
 	        "description": "The title for the alert.",
 	        "category": "@options",
 	        "type": "string",
 	        "value": false
 	      },
 	      "subTitle": {
-	        "label": "subTitle",
+	        "label": "SubTitle",
 	        "description": "The subtitle for the alert.",
 	        "category": "@options",
 	        "type": "string",
 	        "value": false
 	      },
 	      "message": {
-	        "label": "message",
+	        "label": "Message",
 	        "description": "The message for the alert.",
 	        "category": "@options",
 	        "type": "string",
 	        "value": false
 	      },
 	      "cssClass": {
-	        "label": "cssClass",
+	        "label": "CssClass",
 	        "description": "Additional classes for custom styles, separated by spaces.",
 	        "category": "@options",
 	        "type": "string",
@@ -6957,56 +6957,56 @@
 	        
 	      },
 	      "button1": {
-	        "label": "Text",
-	        "description": "A button for the alert.",
+	        "label": "Text 1",
+	        "description": "Text for the button 1.",
 	        "category": "@options button 1",
 	        "type": "string",
 	        "value": false,
 	        
 	      },
 	      "button2": {
-	        "label": "Text",
-	        "description": "A button for the alert.",
+	        "label": "Text 2",
+	        "description": "Text for the button 2.",
 	        "category": "@options button 2",
 	        "type": "string",
 	        "value": false,
 	        
 	      },
 	      "button3": {
-	        "label": "Text",
-	        "description": "A button for the alert.",
+	        "label": "Text 3",
+	        "description": "Text for the button 3",
 	        "category": "@options button 3",
 	        "type": "string",
 	        "value": false,
 	        
 	      },
 	      "value1": {
-	        "label": "Return value",
-	        "description": "A value to return in case of selecting this button.",
+	        "label": "Return value 1",
+	        "description": "A value to return for the button 1.",
 	        "category": "@options button 1",
 	        "type": "string",
 	        "value": false,
 	        
 	      },
 	      "value2": {
-	        "label": "Return value",
-	        "description": "A value to return in case of selecting this button.",
+	        "label": "Return value 2",
+	        "description": "A value to return for the button 2.",
 	        "category": "@options button 2",
 	        "type": "string",
 	        "value": false,
 	        
 	      },
 	      "value3": {
-	        "label": "Return value",
-	        "description": "A value to return in case of selecting this button.",
+	        "label": "Return value 3",
+	        "description": "A value to return for the button 3.",
 	        "category": "@options button 3",
 	        "type": "string",
 	        "value": false,
 	        
 	      },
 	      "cancel1": {
-	        "label": "Role",
-	        "description": "The buttons role, null or cancel.",
+	        "label": "Role 1",
+	        "description": "The button 1 role: null or cancel.",
 	        "category": "@options button 1",
 	        "type": "string",
 	        "value": false,
@@ -7014,8 +7014,8 @@
 	        
 	      },
 	      "cancel2": {
-	        "label": "Role",
-	        "description": "The buttons role, null or cancel.",
+	        "label": "Role 2",
+	        "description": "The button 2 role: null or cancel.",
 	        "category": "@options button 2",
 	        "type": "string",
 	        "value": false,
@@ -7023,8 +7023,8 @@
 	        
 	      },
 	      "cancel3": {
-	        "label": "Role",
-	        "description": "The buttons role, null or cancel.",
+	        "label": "Role 3",
+	        "description": "The button 3 role: null or cancel.",
 	        "category": "@options button 3",
 	        "type": "string",
 	        "value": false,
@@ -7032,24 +7032,24 @@
 	        
 	      },
 	      "css1": {
-	        "label": "Css class",
-	        "description": "A css class for this button.",
+	        "label": "Css class 1",
+	        "description": "A css class for button 1.",
 	        "category": "@options button 1",
 	        "type": "string",
 	        "value": false,
 	        
 	      },
 	      "css2": {
-	        "label": "Css calss",
-	        "description": "A css class for this button.",
+	        "label": "Css class 2",
+	        "description": "A css class for button 2.",
 	        "category": "@options button 2",
 	        "type": "string",
 	        "value": false,
 	        
 	      },
 	      "css3": {
-	        "label": "Css class",
-	        "description": "A css class for this button.",
+	        "label": "Css class 3",
+	        "description": "A css class for button 3.",
 	        "category": "@options button 3",
 	        "type": "string",
 	        "value": false,
@@ -7057,7 +7057,7 @@
 	      },
 	      
 	      "enableBackdropDismiss": {
-	        "label": "enableBackdropDismiss",
+	        "label": "EnableBackdropDismiss",
 	        "description": "Whether the alert should be dismissed by tapping the backdrop. Default true.",
 	        "category": "@options",
 	        "type": "string",
