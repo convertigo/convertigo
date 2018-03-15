@@ -6918,6 +6918,162 @@
       ]
     }
   },
+  "AlertAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "displayName": "Alert",
+      "label": "Alert",
+      "description": "Defines an <i>Alert</i> component. | The Alerts  are a great way to offer the user the ability to choose a specific action or list of actions. They also can provide the user with important information, or require them to make a decision (or multiple decisions). For more information : <a target='_blank' href='https://ionicframework.com/docs/components/#alert'>Alert</a>",
+      "group": "Actions",
+		"icon16": "",
+    	"icon32": "",
+      "properties": {
+      	"title": {
+	        "label": "title",
+	        "description": "The title for the alert.",
+	        "category": "@options",
+	        "type": "string",
+	        "value": false
+	      },
+	      "subTitle": {
+	        "label": "subTitle",
+	        "description": "The subtitle for the alert.",
+	        "category": "@options",
+	        "type": "string",
+	        "value": false
+	      },
+	      "message": {
+	        "label": "message",
+	        "description": "The message for the alert.",
+	        "category": "@options",
+	        "type": "string",
+	        "value": false
+	      },
+	      "cssClass": {
+	        "label": "cssClass",
+	        "description": "Additional classes for custom styles, separated by spaces.",
+	        "category": "@options",
+	        "type": "string",
+	        "value": false,
+	        
+	      },
+	      "button1": {
+	        "label": "Text",
+	        "description": "A button for the alert.",
+	        "category": "@options button 1",
+	        "type": "string",
+	        "value": false,
+	        
+	      },
+	      "button2": {
+	        "label": "Text",
+	        "description": "A button for the alert.",
+	        "category": "@options button 2",
+	        "type": "string",
+	        "value": false,
+	        
+	      },
+	      "button3": {
+	        "label": "Text",
+	        "description": "A button for the alert.",
+	        "category": "@options button 3",
+	        "type": "string",
+	        "value": false,
+	        
+	      },
+	      "value1": {
+	        "label": "Return value",
+	        "description": "A value to return in case of selecting this button.",
+	        "category": "@options button 1",
+	        "type": "string",
+	        "value": false,
+	        
+	      },
+	      "value2": {
+	        "label": "Return value",
+	        "description": "A value to return in case of selecting this button.",
+	        "category": "@options button 2",
+	        "type": "string",
+	        "value": false,
+	        
+	      },
+	      "value3": {
+	        "label": "Return value",
+	        "description": "A value to return in case of selecting this button.",
+	        "category": "@options button 3",
+	        "type": "string",
+	        "value": false,
+	        
+	      },
+	      "cancel1": {
+	        "label": "Role",
+	        "description": "The buttons role, null or cancel.",
+	        "category": "@options button 1",
+	        "type": "string",
+	        "value": false,
+	        "values":["cancel"]
+	        
+	      },
+	      "cancel2": {
+	        "label": "Role",
+	        "description": "The buttons role, null or cancel.",
+	        "category": "@options button 2",
+	        "type": "string",
+	        "value": false,
+	        "values":["cancel"]
+	        
+	      },
+	      "cancel3": {
+	        "label": "Role",
+	        "description": "The buttons role, null or cancel.",
+	        "category": "@options button 3",
+	        "type": "string",
+	        "value": false,
+	        "values":["cancel"]
+	        
+	      },
+	      "css1": {
+	        "label": "Css class",
+	        "description": "A css class for this button.",
+	        "category": "@options button 1",
+	        "type": "string",
+	        "value": false,
+	        
+	      },
+	      "css2": {
+	        "label": "Css calss",
+	        "description": "A css class for this button.",
+	        "category": "@options button 2",
+	        "type": "string",
+	        "value": false,
+	        
+	      },
+	      "css3": {
+	        "label": "Css class",
+	        "description": "A css class for this button.",
+	        "category": "@options button 3",
+	        "type": "string",
+	        "value": false,
+	        
+	      },
+	      
+	      "enableBackdropDismiss": {
+	        "label": "enableBackdropDismiss",
+	        "description": "Whether the alert should be dismissed by tapping the backdrop. Default true.",
+	        "category": "@options",
+	        "type": "string",
+	        "value": "true",
+	        "values": [
+	        	"true",
+	        	"false"
+	        ]
+	        
+	      },
+	      
+      },
+      "config": {
+        
+    }
+  },
   
   "FileOpenerAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
@@ -7330,7 +7486,7 @@
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "Uninstaller",
       "label": "Uninstaller",
-      "description": "Defines an <i>Uninstaller</i> action component. |This component helps uninstalling an application on your device.<br/>It uses the native Cordova plugin which allows you to uninstall any application giving its package ID.<br/>If it succeeds, the <i>Uninstaller</i> returns <code>true</code>.<br>From an underneath action, you can access this result trough the <code>out</code> typescript variable.<br/><u>Supported platform(s):</u><ul><li>Android</li><li>iOS</li><li>Windows</li><li>Windows Phone 8</li></ul><br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/native/file-opener/'>File Opener</a>",
+      "description": "Defines an <i>Uninstaller</i> action component. |This component helps uninstalling an application on your device.<br/>It uses the native Cordova plugin which allows you to uninstall any application giving its package ID.<br/>If it succeeds, the <i>Uninstaller</i> returns <code>true</code>.<br>From an underneath action, you can access this result trough the <code>out</code> typescript variable.<br/><u>Supported platform(s):</u><ul><li>Android</li></ul><br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/native/file-opener/'>File Opener</a>",
       "group": "Native Actions",
       "icon16": "uninstallaction_color_16x16.png",
       "icon32": "uninstallaction_color_32x32.png",
@@ -7457,7 +7613,7 @@
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "CheckInstall",
       "label": "Check Install",
-      "description": "Defines a <i>Check Install</i> action component. |This component helps verifying for application installation on your device.<br/>It uses the native Cordova plugin which allows you to check if an application is installed giving its package ID.<br/>If application is installed, the <i>Check Install</i> returns <code>true</code>.<br>From an underneath action, you can access this result trough the <code>out</code> typescript variable.<br/><u>Supported platform(s):</u><ul><li>Android</li><li>iOS</li><li>Windows</li><li>Windows Phone 8</li></ul><br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/native/file-opener/'>File Opener</a>",
+      "description": "Defines a <i>Check Install</i> action component. |This component helps verifying for application installation on your device.<br/>It uses the native Cordova plugin which allows you to check if an application is installed giving its package ID.<br/>If application is installed, the <i>Check Install</i> returns <code>true</code>.<br>From an underneath action, you can access this result trough the <code>out</code> typescript variable.<br/><u>Supported platform(s):</u><ul><li>Android</li></ul><br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/native/file-opener/'>File Opener</a>",
       "group": "Native Actions",
       "icon16": "checkinstallaction_color_16x16.png",
       "icon32": "checkinstallaction_color_32x32.png",
