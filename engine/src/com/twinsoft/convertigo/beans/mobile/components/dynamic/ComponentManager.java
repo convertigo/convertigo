@@ -466,6 +466,13 @@ public class ComponentManager {
 					return true;
 				}
 			} else if (dboParent instanceof UIComponent) {
+				UIDynamicMenu menu = ((UIComponent)dboParent).getMenu();
+				if (menu != null) {
+					if (UIControlEvent.class.isAssignableFrom(dboClass)) {
+						return false;
+					}
+				}
+				
 				if (dboParent instanceof UIPageEvent || dboParent instanceof UIControlEvent) {
 					if (UIActionErrorEvent.class.isAssignableFrom(dboClass) ||
 						IAction.class.isAssignableFrom(dboClass)) {
@@ -487,10 +494,7 @@ public class ComponentManager {
 					return false;
 				} else if (dboParent instanceof UIElement) {
 					if (UIDynamicMenuItem.class.isAssignableFrom(dboClass)) {
-						if (dboParent instanceof UIComponent) {
-							UIDynamicMenu menu = ((UIComponent)dboParent).getMenu();
-							return menu != null;
-						}
+						return menu != null;
 					}
 					
 					if (!UIControlVariable.class.isAssignableFrom(dboClass) &&
