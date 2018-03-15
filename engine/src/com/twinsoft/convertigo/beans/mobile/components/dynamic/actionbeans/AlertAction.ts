@@ -7,6 +7,7 @@
      */
     AlertAction(page: C8oPage, props, vars) : Promise<any> {
         return new Promise((resolve, reject)=> {
+            let num = 0;
             let alertCtrl = page.getInstance(AlertController);
             let objAlert = {buttons:[]};
             if(props.title != null){
@@ -25,42 +26,44 @@
                 objAlert['enableBackdropDismiss'] = props.enableBackdropDismiss;
             }
             if(props.button1 != null){
-                objAlert['buttons'][0] = {};
-                objAlert['buttons'][0]['text'] = props.button1;
+                objAlert['buttons'][num] = {};
+                objAlert['buttons'][num]['text'] = props.button1;
                 if(props.value1 != null){
-                    objAlert['buttons'][0]['handler'] = ()=>{resolve(props.value1)};
+                    objAlert['buttons'][num]['handler'] = ()=>{resolve(props.value1)};
                 }
                 if(props.cancel1 != null){
-                    objAlert['buttons'][0]['role'] = props.cancel1;
+                    objAlert['buttons'][num]['role'] = props.cancel1;
                 }
                 if(props.css1 != null){
-                    objAlert['buttons'][0]['cssClass'] = props.css1;
+                    objAlert['buttons'][num]['cssClass'] = props.css1;
                 }
+                num += 1;
             }
             if(props.button2 != null){
-                objAlert['buttons'][1] = {};
-                objAlert['buttons'][1]['text'] = props.button2;
+                objAlert['buttons'][num] = {};
+                objAlert['buttons'][num]['text'] = props.button2;
                 if(props.value2 != null){
-                    objAlert['buttons'][1]['handler'] = ()=>{resolve(props.value2)};
+                    objAlert['buttons'][num]['handler'] = ()=>{resolve(props.value2)};
                 }
                 if(props.cancel2 != null){
-                    objAlert['buttons'][1]['role'] = props.cancel2;
+                    objAlert['buttons'][num]['role'] = props.cancel2;
                 }
                 if(props.css2 != null){
-                    objAlert['buttons'][1]['cssClass'] = props.css2;
+                    objAlert['buttons'][num]['cssClass'] = props.css2;
                 }
+                num +=1;
             }
             if(props.button3 != null){
-                objAlert['buttons'][2] = {};
-                objAlert['buttons'][2]['text'] = props.button3;
+                objAlert['buttons'][num] = {};
+                objAlert['buttons'][num]['text'] = props.button3;
                 if(props.value3 != null){
-                    objAlert['buttons'][2]['handler'] = ()=>{resolve(props.value3)};
+                    objAlert['buttons'][num]['handler'] = ()=>{resolve(props.value3)};
                 }
                 if(props.cancel3 != null){
-                    objAlert['buttons'][2]['role'] = props.cancel3;
+                    objAlert['buttons'][num]['role'] = props.cancel3;
                 }
                 if(props.css3 != null){
-                    objAlert['buttons'][2]['cssClass'] = props.css3;
+                    objAlert['buttons'][num]['cssClass'] = props.css3;
                 }
             }
  

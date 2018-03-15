@@ -7006,29 +7006,29 @@
 	      },
 	      "cancel1": {
 	        "label": "Role 1",
-	        "description": "The button 1 role: null or cancel.",
+	        "description": "The button 1 role: not set or cancel.",
 	        "category": "@options button 1",
 	        "type": "string",
 	        "value": false,
-	        "values":["cancel"]
+	        "values":[false, "cancel"]
 	        
 	      },
 	      "cancel2": {
 	        "label": "Role 2",
-	        "description": "The button 2 role: null or cancel.",
+	        "description": "The button 2 role: not set or cancel.",
 	        "category": "@options button 2",
 	        "type": "string",
 	        "value": false,
-	        "values":["cancel"]
+	        "values":[false, "cancel"]
 	        
 	      },
 	      "cancel3": {
 	        "label": "Role 3",
-	        "description": "The button 3 role: null or cancel.",
+	        "description": "The button 3 role: not set or cancel.",
 	        "category": "@options button 3",
 	        "type": "string",
 	        "value": false,
-	        "values":["cancel"]
+	        "values":[false, "cancel"]
 	        
 	      },
 	      "css1": {
