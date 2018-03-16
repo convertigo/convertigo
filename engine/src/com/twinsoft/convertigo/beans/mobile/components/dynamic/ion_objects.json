@@ -3619,7 +3619,8 @@
           "value": false,
           "values": [
             false,
-            "height:100%"
+            "height:100%",
+            true
           ]
         },
         "NoPadding": {
@@ -3666,7 +3667,8 @@
           "value": false,
           "values": [
             false,
-            "height:100%"
+            "height:100%",
+            true
           ]
         },
         "Nowrap": {
