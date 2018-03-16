@@ -26,7 +26,7 @@
             })
             .catch((err)=>{
                 if(err == "cordova_not_available"){
-                    page.router.c8o.log.debug("[MB] ActionSheetAction: cordova isn't available: using mocked response: " + props.mockedResponse");
+                    page.router.c8o.log.debug("[MB] ActionSheetAction: cordova isn't available: using mocked response: " + props.mockedResponse);
                     resolve(props.mockedResponse);
                 }
                 else{
