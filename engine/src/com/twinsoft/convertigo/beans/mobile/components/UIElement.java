@@ -130,7 +130,9 @@ public class UIElement extends UIComponent implements IStyleGenerator {
 			if (component instanceof UIAttribute) {
 				UIAttribute attribute = (UIAttribute)component;
 				if (attribute.getAttrName().equals("formControlName")) {
-					return attribute.getAttrValue();
+					if (attribute.isEnabled()) {
+						return attribute.getAttrValue();
+					}
 				}
 			}
 		}
@@ -256,7 +258,9 @@ public class UIElement extends UIComponent implements IStyleGenerator {
 				} else if (component instanceof UIAttribute) {
 					UIAttribute uiAttribute = (UIAttribute)component;
 					if (uiAttribute.getAttrName().equals("class")) {
-						attrclasses.append(attrclasses.length()>0 ? " ":"").append(uiAttribute.getAttrValue());
+						if (uiAttribute.isEnabled()) {
+							attrclasses.append(attrclasses.length()>0 ? " ":"").append(uiAttribute.getAttrValue());
+						}
 					} else {
 						attributes.append(component.computeTemplate());
 					}
