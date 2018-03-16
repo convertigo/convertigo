@@ -9,12 +9,14 @@
         return new Promise((resolve, reject)=> {
             const barcode : BarcodeScanner = page.getInstance(BarcodeScanner);
             barcode.scan(props).then((barcodeData) => {
-                page.router.c8o.log.debug("[MB] BarcodeAction Success: " + JSON.stringify(barcodeData));
+                page.router.c8o.log.debug("[MB] BarcodeAction Success: response is " + JSON.stringify(barcodeData));
                 resolve(barcodeData)
             })
             .catch((e) => {
                 if(e == "cordova_not_available"){
-                    page.router.c8o.log.debug("[MB] BarcodeAction :" + e);
+                    const resp = {format: props.mockedFormat, cancel: props.mockedCancel, text: props.mockedText};
+                    page.router.c8o.log.debug("[MB] BarcodeAction : cordova isn't available: using mocked response: " + JSON.stringify(resp));
+                    resolve(resp);
                 } 
                 else{
                     page.router.c8o.log.error("[MB] BarcodeAction: ", e);

@@ -7337,11 +7337,33 @@
     "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
     "displayName": "BarcodeScanner",
     "label": "Barcode Scanner",
-    "description": "Defines a <i>BarcodeScanner</i> action component. | The Barcode Scanner Plugin opens a camera view and automatically scans a barcode, returning the data back to you.<br />You can access the scanned data from the next action in the chain in (TS) mode with: <br/><br/><code><ul><li>out.format: The scanned format code</li><li>out.cancelled: true if the user cancelled the scan</li><li>out.text: the scanned result</li></ul></code><br/>For more information : <a href='https://github.com/phonegap/phonegap-plugin-barcodescanner' target='_blank'>BarcodeScanner plugin docs</a>",
+    "description": "Defines a <i>BarcodeScanner</i> action component. | The Barcode Scanner Plugin opens a camera view and automatically scans a barcode, returning the data back to you.<br />You can access the scanned data from the next action in the chain in (TS) mode with: <br/><br/><code><ul><li>out.format: The scanned format code</li><li>out.cancelled: true if the user cancelled the scan</li><li>out.text: the scanned result</li></ul></code><br/>Whenever cordova platform is not available, the value defined in mocked response option is returned. Default value is {format: 'QR_CODE', cancel: false, text: 'http://www.convertigo.com/'}.<br/>For more information : <a href='https://github.com/phonegap/phonegap-plugin-barcodescanner' target='_blank'>BarcodeScanner plugin docs</a>",
     "group": "Native Actions",
     "icon16": "barcodeaction_color_16x16.png",
     "icon32": "barcodeaction_color_32x32.png",
     "properties": {
+    	"mockedFormat": {
+	        "label": "mocked format response",
+	        "description": "The mocked format response for the barcode action in case of running not supported platform. Must be some text.",
+	        "category": "@mocking options",
+	        "type": "string",
+	        "value": "QR_CODE"
+	      },
+	      "mockedCancel": {
+	        "label": "mocked cancel response",
+	        "description": "The mocked cancel response for the barcode action in case of running not supported platform. Must be a boolean.",
+	        "category": "@mocking options",
+	        "type": "boolean",
+	        "value": "false",
+	        "values":["false","true"]
+	      },
+	      "mockedText": {
+	        "label": "mocked text response",
+	        "description": "The mocked text response for the barcode action in case of running not supported platform. Must be a string.",
+	        "category": "@mocking options",
+	        "type": "string",
+	        "value": "http://www.convertigo.com/"
+	      },
       "preferFrontCamera": {
         "label": "Prefer front camera",
         "description": "Prefer front camera. Supported on iOS and Android.",
