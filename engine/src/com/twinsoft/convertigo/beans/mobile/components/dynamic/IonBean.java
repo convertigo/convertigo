@@ -229,7 +229,8 @@ public class IonBean {
 	}
 	public String getIcon16() {
 		try {
-			return jsonBean.getString(Key.icon16.name());
+			String icon = jsonBean.getString(Key.icon16.name());
+			return icon.isEmpty() ? "default_color_16x16.png" : icon;
 		} catch (JSONException e) {
 			e.printStackTrace();
 			return "default_color_16x16.png";
@@ -237,7 +238,8 @@ public class IonBean {
 	}
 	public String getIcon32() {
 		try {
-			return jsonBean.getString(Key.icon32.name());
+			String icon = jsonBean.getString(Key.icon32.name());
+			return icon.isEmpty() ? "default_color_32x32.png" : icon;
 		} catch (JSONException e) {
 			e.printStackTrace();
 			return "default_color_32x32.png";
