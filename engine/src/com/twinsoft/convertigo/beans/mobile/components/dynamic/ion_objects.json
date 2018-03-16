@@ -2330,8 +2330,8 @@
 	  "RefresherContent":{
 		  "tag": "ion-refresher-content",
 		  "displayName": "RefresherContent",
-    	"label": "Refresher Content",
-    	"description": "ion-refresher-content| Defines a <i>Refresher Content</i> component.<br/>By default, Ionic provides the pulling icon and refreshing spinner that looks best for the platform the user is on. However, you can change the default icon and spinner, along with adding text for each state by adding properties to the child <i>Refresher Content</i> component.<br/> For more information: <a href='https://ionicframework.com/docs/api/components/refresher/Refresher/' target='_blank'>Refresher</a>",
+    	"label": "Content Refresher",
+    	"description": "ion-refresher-content| Defines a <i>Content Refresher</i> component.<br/>By default, Ionic provides the pulling icon and refreshing spinner that looks best for the platform the user is on. However, you can change the default icon and spinner, along with adding text for each state by adding properties to the child <i>Refresher Content</i> component.<br/> For more information: <a href='https://ionicframework.com/docs/api/components/refresher/Refresher/' target='_blank'>Refresher</a>",
     	"group": "Forms", 
     	"icon16": "refreshercontent_color_16x16.png",
     	"icon32": "refreshercontent_color_32x32.png",
@@ -2484,8 +2484,8 @@
     "BarTitle": {
       "tag": "ion-title",
 	  "displayName": "BarTitle",
-      "label": "BarTitle",
-      "description": "ion-title| Defines a <i>BarTitle</i> component.<br/><i>BarTitle</i> is a component that sets the title of a <i>ToolBar</i> or <i>NavBar</i> component.<br/> For more information: <a href='http://ionicframework.com/docs/api/components/toolbar/Title/' target='_blank'>Title</a>",
+      "label": "Bar Title",
+      "description": "ion-title| Defines a <i>Bar Title</i> component.<br/><i>Bar Title</i> is a component that sets the title of a <i>ToolBar</i> or <i>NavBar</i> component.<br/> For more information: <a href='http://ionicframework.com/docs/api/components/toolbar/Title/' target='_blank'>Title</a>",
       "group": "Components",
       "icon16": "bartitle_color_16x16.png",
       "icon32": "bartitle_color_32x32.png",
@@ -6806,8 +6806,8 @@
       "label": "Alert",
       "description": "Defines an <i>Alert</i> component. | The Alerts are a great way to offer the user the ability to choose a specific action or list of actions. They also can provide the user with important information, or require them to make a decision. <br/>The return value can be accessed by the navigation stack, using <code> parent.out </code> for example. </br> For more information : <a target='_blank' href='https://ionicframework.com/docs/components/#alert'>Alert</a>",
       "group": "Actions",
-		"icon16": "",
-    	"icon32": "",
+		"icon16": "alertaction_color_16x16.png",
+    	"icon32": "alertaction_color_32x32.png",
       "properties": {
       	"title": {
 	        "label": "Title",
