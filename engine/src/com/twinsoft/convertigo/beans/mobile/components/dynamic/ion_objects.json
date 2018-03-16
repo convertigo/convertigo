@@ -5951,11 +5951,82 @@
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "GoogleLogin",
       "label": "Google Login",
-      "description": "Defines a <i>Google Login / Logout</i> action component. | This component helps login in or logout using Google. It uses Google login to authenticate users.<br/>Setup needs some configuration. Declare your app in <a target='_blank' href='https://developers.google.com/mobile/add?platform=android&cntapi=signin'>https://developers.google.com/mobile/add?platform=android&cntapi=signin</a> for Android apps.<br/><br/>Use <a href='https://developers.google.com/mobile/add?platform=ios&cntapi=signin' target='_blank'>https://developers.google.com/mobile/add?platform=ios&cntapi=signin</a> for iOS apps. <br /><br />See also some documentation on <a target='_blank' href='https://ionicframework.com/docs/native/google-plus/'>https://ionicframework.com/docs/native/google-plus/</a> about the Cordova plugin used.",
+      "description": "Defines a <i>Google Login / Logout</i> action component. | This component helps login in or logout using Google. It uses Google login to authenticate users.<br/><br/>Setup needs some configuration. Declare your app in <a target='_blank' href='https://developers.google.com/mobile/add?platform=android&cntapi=signin'>https://developers.google.com/mobile/add?platform=android&cntapi=signin</a> for Android apps.<br/><br/>Use <a href='https://developers.google.com/mobile/add?platform=ios&cntapi=signin' target='_blank'>https://developers.google.com/mobile/add?platform=ios&cntapi=signin</a> for iOS apps. <br /><br />See also some documentation on <a target='_blank' href='https://ionicframework.com/docs/native/google-plus/'>https://ionicframework.com/docs/native/google-plus/</a> about the Cordova plugin used. <br/> You can access the data from the next action in the chain in (TS) mode with: <br/><br/><code><ul><li>out.email: The email</li><li>out.userId: the user id</li><li>out.displayName: the display name</li><li>out.familyName: the family name</li><li>out.givenName: the given name</li><li>out.imageUrl: the image url</li><li>out.idToken: the id token</li><li>out.serverAuthCode: the server authentication code</li><li>out.accessToken: the access token</li></ul></code> <br/> Whenever cordova platform is not available, the value defined in mocked response option is returned. <br/> Default mocked value for login are <code>{email: 'user@convertigo.com', userId: 'my_id', displayName: 'John Doe', familyName: 'Doe', givenName: 'John', imageUrl: 'http://saffroninteractive.com/wp-content/uploads/2017/10/empty-avatar2.png', idToken'my_id_token', serverAuthCode: '12', accessToken: 'my_access_token'}</code>. <br/> Default mocked value for logout is <code>true</code>",
       "group": "Actions",
       "icon16": "googleloginaction_color_16x16.png",
       "icon32": "googleloginaction_color_32x32.png",
       "properties": {
+      "mockedResponseE": {
+	        "label": "mocked email",
+	        "description": "The mocked response email for the GooglePlus login action in case of running not supported platform. Must be a string.",
+	        "category": "@mocking options login",
+	        "type": "string",
+	        "value": "user@convertigo.com"
+	      },
+	      "mockedResponseU": {
+	        "label": "mocked user id",
+	        "description": "The mocked response user id for the GooglePlus login action in case of running not supported platform. Must be a string.",
+	        "category": "@mocking options login",
+	        "type": "string",
+	        "value": "my_id"
+	      },
+	      "mockedResponseD": {
+	        "label": "mocked display name",
+	        "description": "The mocked response display name for the GooglePlus login action in case of running not supported platform. Must be a string.",
+	        "category": "@mocking options login",
+	        "type": "string",
+	        "value": "John Doe"
+	      },
+	      "mockedResponseF": {
+	        "label": "mocked family name",
+	        "description": "The mocked response family name for the GooglePlus login action in case of running not supported platform. Must be a string.",
+	        "category": "@mocking options login",
+	        "type": "string",
+	        "value": "Doe"
+	      },
+	      "mockedResponseG": {
+	        "label": "mocked given name",
+	        "description": "The mocked response given name for the GooglePlus login action in case of running not supported platform. Must be a boolean.",
+	        "category": "@mocking options login",
+	        "type": "string",
+	        "value": "John"
+	      },
+	      "mockedResponseImg": {
+	        "label": "mocked image url",
+	        "description": "The mocked response image url for the GooglePlus login action in case of running not supported platform. Must be a string.",
+	        "category": "@mocking options login",
+	        "type": "string",
+	        "value": "http://saffroninteractive.com/wp-content/uploads/2017/10/empty-avatar2.png"
+	      },
+	      "mockedResponseId": {
+	        "label": "mocked id token",
+	        "description": "The mocked response token for the GooglePlus login action in case of running not supported platform. Must be a string.",
+	        "category": "@mocking options login",
+	        "type": "string",
+	        "value": "my_id_token"
+	      },
+	      "mockedResponseS": {
+	        "label": "mocked server auth code login",
+	        "description": "The mocked response server auth code for the GooglePlus login action in case of running not supported platform. Must be a string.",
+	        "category": "@mocking options login",
+	        "type": "string",
+	        "value": "12"
+	      },
+	      "mockedResponseA": {
+	        "label": "mocked access token login",
+	        "description": "The mocked response access token for the GooglePlus login action in case of running not supported platform. Must be a string.",
+	        "category": "@mocking options login",
+	        "type": "string",
+	        "value": "my_access_token"
+	      },
+	      "mockedResponseLogout": {
+	        "label": "mocked response logout",
+	        "description": "The mocked response logout for the GooglePlus login action in case of running not supported platform. Must be a boolean.",
+	        "category": "@mocking options logout",
+	        "type": "boolean",
+	        "value": "true",
+	        "values": ["true", "false"]
+	      },
       "actionGoogle": {
           "label": "Action",
           "description": "The action to do can be Login or Logout.",
@@ -7397,11 +7468,19 @@
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "Uninstaller",
       "label": "Uninstaller",
-      "description": "Defines an <i>Uninstaller</i> action component. |This component helps uninstalling an application on your device.<br/>It uses the native Cordova plugin which allows you to uninstall any application giving its package ID.<br/>If it succeeds, the <i>Uninstaller</i> returns <code>true</code>.<br>From an underneath action, you can access this result trough the <code>out</code> typescript variable.<br/><u>Supported platform(s):</u><ul><li>Android</li></ul><br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/native/file-opener/'>File Opener</a>",
+      "description": "Defines an <i>Uninstaller</i> action component. |This component helps uninstalling an application on your device.<br/>It uses the native Cordova plugin which allows you to uninstall any application giving its package ID.<br/>If it succeeds, the <i>Uninstaller</i> returns <code>true</code>.<br>From an underneath action, you can access this result trough the <code>out</code> typescript variable.<br/><u>Supported platform(s):</u><ul><li>Android</li></ul><br/>Whenever cordova platform is not available, the value defined in mocked response option is returned. Default value is true. For more information : <a target='_blank' href='https://ionicframework.com/docs/native/file-opener/'>File Opener</a>",
       "group": "Native Actions",
       "icon16": "uninstallaction_color_16x16.png",
       "icon32": "uninstallaction_color_32x32.png",
       "properties": {
+           	"mockedResponse": {
+	        "label": "mocked response",
+	        "description": "The mocked response for the Uninstaller action in case of running not supported platform. Must be a boolean.",
+	        "category": "@mocking options",
+	        "type": "boolean",
+	        "value": "true",
+	        "values":["true", "false"]
+	      },
      
 	      "packageID": {
 	        "label": "packageID",
