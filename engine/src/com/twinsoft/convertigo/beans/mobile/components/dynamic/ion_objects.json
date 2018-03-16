@@ -6544,11 +6544,18 @@
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "FileChooser",
       "label": "File Chooser",
-      "description": "Defines a <i>File Chooser</i> action component. | This component helps selecting a file.<br/>It uses the native Android file picker for the user to select a file.<br/>If it succeeds, the <i>File Chooser</i> returns the selected file URI.<br>From an underneath action, you can access this file URI trough the <code>out</code> typescript variable.<br/><u>Supported platorm(s):</u> <ul><li>Android</li></ul><br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/native/file-chooser/'>File Chooser</a>",
+      "description": "Defines a <i>File Chooser</i> action component. | This component helps selecting a file.<br/>It uses the native Android file picker for the user to select a file.<br/>If it succeeds, the <i>File Chooser</i> returns the selected file URI.<br>From an underneath action, you can access this file URI trough the <code>out</code> typescript variable.<br/><u>Supported platorm(s):</u> <ul><li>Android</li></ul><br/>Whenever cordova platform is not available, the value defined in mocked response option is returned. Default value is 'https://www.convertigo.com/wp-content/uploads/2015/01/logoStudio.png'. <br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/native/file-chooser/'>File Chooser</a>",
       "group": "Native Actions",
       "icon16": "filechooseraction_color_16x16.png",
       "icon32": "filechooseraction_color_32x32.png",
       "properties": {
+      "mockedResponse": {
+	        "label": "mocked response",
+	        "description": "The mocked response for the File chooser action in case of running not supported platform. Must be a string.",
+	        "category": "@mocking options",
+	        "type": "string",
+	        "value": "https://www.convertigo.com/wp-content/uploads/2015/01/logoStudio.png"
+	      },
       },
       "config": {
         "action_ts_imports": [

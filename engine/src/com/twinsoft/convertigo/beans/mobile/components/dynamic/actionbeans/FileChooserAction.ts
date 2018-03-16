@@ -18,7 +18,8 @@
                 })
                 .catch((e) => {
                     if(e == "cordova_not_available"){
-                        page.router.c8o.log.debug("[MB] FileChooserAction: " + e);
+                        page.router.c8o.log.debug("[MB] FileChooserAction: cordova isn't available: using mocked response: " + props.mockedResponse);
+                        resolve(props.mockedResponse);
                     } 
                     else{
                         page.router.c8o.log.error("[MB] FileChooserAction :", e);
@@ -28,7 +29,8 @@
             })
             .catch((e) => {
                 if(e == "cordova_not_available"){
-                    page.router.c8o.log.debug("[MB] FileChooserAction: " + e);
+                    page.router.c8o.log.debug("[MB] FileChooserAction: cordova isn't available: using mocked response: " + props.mockedResponse);
+                    resolve(props.mockedResponse);
                 } 
                 else{
                     page.router.c8o.log.error("[MB] FileChooserAction :", e);
