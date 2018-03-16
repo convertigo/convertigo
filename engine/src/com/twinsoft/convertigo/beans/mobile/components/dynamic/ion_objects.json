@@ -6724,11 +6724,19 @@
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "ActionSheet",
       "label": "Action Sheet",
-      "description": "Defines an <i>Action Sheet</i> action component. | The ActionSheet plugin shows a native list of options the user can choose from.<br/><u>Supported platorm(s):</u> <ul><li>Android</li><li>iOS</li><li>Browser</li><li>Windows</li><li></li></ul>Windows Phone 8<br/>For more information : <a target='_blank' href='https://github.com/EddyVerbruggen/cordova-plugin-actionsheet'>Action Sheet</a>",
+      "description": "Defines an <i>Action Sheet</i> action component. | The ActionSheet plugin shows a native list of options the user can choose from.<br/><u>Supported platorm(s):</u> <ul><li>Android</li><li>iOS</li><li>Browser</li><li>Windows</li><li></li></ul>Windows Phone 8<br/> Whenever cordova platform is not available, the value defined in mocked response option is returned. Default value is 0.<br/>For more information : <a target='_blank' href='https://github.com/EddyVerbruggen/cordova-plugin-actionsheet'>Action Sheet</a>",
       "group": "Native Actions",
       "icon16": "actionsheetaction_color_16x16.png",
       "icon32": "actionsheetaction_color_32x32.png",
       "properties": {
+      "mockedResponse": {
+	        "label": "mocked response",
+	        "description": "The mocked response for the action sheet in case of running not supported platform. Must be a number.",
+	        "category": "@mocking options",
+	        "type": "number",
+	        "mode": "script",
+	        "value": 0
+	      },
       	"title": {
 	        "label": "title",
 	        "description": "The title for the actionsheet",
