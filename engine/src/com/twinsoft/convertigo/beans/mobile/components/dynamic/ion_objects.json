@@ -7096,12 +7096,19 @@
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "FileOpener",
       "label": "File Opener",
-      "description": "Defines a <i>File Opener</i> action component. | This component helps opening a file.<br/>It uses the native Cordova plugin which open a file on your device system with its default application.<br/>If it succeeds, the <i>File Opener</i> returns <code>true</code>.<br>From an underneath action, you can access this result trough the <code>out</code> typescript variable.<br/><u>Supported platform(s):</u><ul><li>Android</li><li>iOS</li><li>Windows</li><li>Windows Phone 8</li></ul><br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/native/file-opener/'>File Opener</a>",
+      "description": "Defines a <i>File Opener</i> action component. | This component helps opening a file.<br/>It uses the native Cordova plugin which open a file on your device system with its default application.<br/>If it succeeds, the <i>File Opener</i> returns <code>true</code>.<br>From an underneath action, you can access this result trough the <code>out</code> typescript variable.<br/><u>Supported platform(s):</u><ul><li>Android</li><li>iOS</li><li>Windows</li><li>Windows Phone 8</li></ul><br/>Whenever cordova platform is not available, the value defined in mocked response option is returned. Default value is true. </br>For more information : <a target='_blank' href='https://ionicframework.com/docs/native/file-opener/'>File Opener</a>",
       "group": "Native Actions",
       "icon16": "fileopeneraction_color_16x16.png",
       "icon32": "fileopeneraction_color_32x32.png",
       "properties": {
-     
+     	"mockedResponse": {
+	        "label": "mocked response",
+	        "description": "The mocked response for the File opener action in case of running not supported platform. Must be a boolean.",
+	        "category": "@mocking options",
+	        "type": "boolean",
+	        "value": "true",
+	        "values":["true", "false"]
+	      },
 	      "filePath": {
 	        "label": "filePath",
 	        "description": "The file path",
