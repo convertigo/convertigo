@@ -1060,6 +1060,11 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 				index.getParentFile().mkdirs();
 				File templateIndex = new File(Engine.TEMPLATES_PATH, "base/index_mb.html");
 				FileUtils.copyFile(templateIndex, index);
+				
+				File indexFu = new File(getParent().getResourceFolder(), "index-fu.html");
+				if (!indexFu.exists()) {
+					FileUtils.copyFile(templateIndex, indexFu);
+				}
 			} catch (Exception e) {
 				Engine.logBeans.warn("(MobileApplication) The file '" + index.getAbsolutePath() + "' doesn't exist and cannot be created", e);
 			}
