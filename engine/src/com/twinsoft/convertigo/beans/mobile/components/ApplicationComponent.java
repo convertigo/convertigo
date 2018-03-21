@@ -1044,7 +1044,7 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		checkFolder();
 	}
 	
-	private void checkFolder() {
+	public void checkFolder() {
 		File folder = new File(getProject().getDirPath() + "/Flashupdate");
 		if (!folder.exists()) {
 			try {
