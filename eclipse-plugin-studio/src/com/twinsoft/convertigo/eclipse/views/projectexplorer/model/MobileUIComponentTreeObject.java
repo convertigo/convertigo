@@ -27,9 +27,6 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -271,13 +268,12 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		DatabaseObject parentDbo = ms.getParent();
 		if (parentDbo != null && parentDbo instanceof UIElement) {
 			try {
-				unformated = null;
-				Pattern p = Pattern.compile("\\.class\\d+\\s?\\{\\r?\\n?([^\\{\\}]*)\\r?\\n?\\}");
-				Matcher m = p.matcher(s);
-				if (m.matches()) {
-					unformated = m.group(1);
-				}
-			} catch (Exception e) {}
+				unformated = unformated.replaceFirst("^\\.class\\d+\\s?\\{\\r?\\n?", "");
+				unformated = unformated.substring(0, unformated.lastIndexOf("}"));
+			} catch (Exception e) {
+				unformated = s;
+				e.printStackTrace();
+			}
 		};
 		return unformated;
 	}
