@@ -46,8 +46,7 @@ import com.twinsoft.convertigo.engine.util.HttpUtils;
  */
 public class AdminServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-    
-	private static String lastAdminPort = "";
+	
     /**
      * @see HttpServlet#HttpServlet()
      */
@@ -101,20 +100,6 @@ public class AdminServlet extends HttpServlet {
 				serviceName = requestURL.substring(i + 1); 
 				if (serviceName != null && !serviceName.equals("logs.Get")) {
 					Engine.logAdmin.info("Service name: " + serviceName);
-				}
-				
-				if (serviceName == null || !(serviceName.equals("logs.Add") || serviceName.equals("security_token.Get"))) {
-					try {
-						lastAdminPort = EnginePropertiesManager.getProperty(PropertyName.ADMIN_PORT);
-					} catch (Exception e) {
-						Engine.logAdmin.debug("Failed to retrieve property ADMIN_PORT: " + e.getClass() + " (" + e.getMessage() + ")");
-					}
-					
-					if (!lastAdminPort.isEmpty() && ! lastAdminPort.equals(Integer.toString(request.getLocalPort()))) {
-						Engine.logAdmin.error("Unauthorized Admin Request from port: " + request.getLocalPort());
-						response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-						return;
-					}
 				}
 				
 				String myPackage = this.getClass().getPackage().getName();

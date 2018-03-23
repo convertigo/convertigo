@@ -493,6 +493,9 @@ public class ComponentExplorerComposite extends Composite {
 												    "font-size: 14px;"+
 												    "padding-left: 0.3em;"+
 												    "background-color: #ECEBEB }"+
+												  "li {" +
+												    "margin-top: 10px;" +
+												  "}"+
 											"</style>"+
 									"</head><p>" 
 								+ "<font size=\"4.5\"><u><b>"+beanDisplayName+"</b></u></font>" + "<br><br>" 

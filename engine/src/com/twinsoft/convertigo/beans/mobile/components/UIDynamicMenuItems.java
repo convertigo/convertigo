@@ -54,7 +54,9 @@ public class UIDynamicMenuItems extends UIDynamicMenuItem {
 				if (component instanceof UIAttribute) {
 					UIAttribute uiAttribute = (UIAttribute)component;
 					if (uiAttribute.getAttrName().equals("class")) {
-						attrclasses.append(attrclasses.length()>0 ? " ":"").append(uiAttribute.getAttrValue());
+						if (uiAttribute.isEnabled()) {
+							attrclasses.append(attrclasses.length()>0 ? " ":"").append(uiAttribute.getAttrValue());
+						}
 					} else {
 						attributes.append(component.computeTemplate());
 					}

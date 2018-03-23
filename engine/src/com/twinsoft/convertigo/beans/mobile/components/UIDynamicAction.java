@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -408,7 +409,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			computed += "\t\tlet out;" + System.lineSeparator();
 			computed += "\t\tlet event;" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
-			computed += "\t\tlet get = function(key) {let val=undefined;try {val=eval(ts.transpile(key));}catch(e){c8oPage.c8o.log.warn(\"[MB] "+functionName+": \"+e.message)}return val;}" + System.lineSeparator();
+			computed += "\t\tlet get = function(key) {let val=undefined;try {val=eval(ts.transpile('(' + key + ')') );}catch(e){c8oPage.c8o.log.warn(\"[MB] "+functionName+": \"+e.message)}return val;}" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
 			computed += "\t\tparent = stack[\"root\"];" + System.lineSeparator();
 			computed += "\t\tevent = stack[\"root\"].out;" + System.lineSeparator();
@@ -524,6 +525,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	
 	@Override
 	protected Contributor getContributor() {
+		Contributor contributor = super.getContributor();
 		return new Contributor() {
 			@Override
 			public Map<String, String> getActionTsFunctions() {
@@ -554,94 +556,43 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			}
 
 			@Override
+			public Map<String, File> getCompBeanDir() {
+				return contributor.getCompBeanDir();
+			}
+
+			@Override
 			public Map<String, String> getModuleTsImports() {
-				Map<String, String> imports = new HashMap<String, String>();
-				IonBean ionBean = getIonBean();
-				if (ionBean != null) {
-					Map<String, List<String>> map = ionBean.getConfig().getModuleTsImports();
-					if (map.size() > 0) {
-						for (String from : map.keySet()) {
-							for (String component: map.get(from)) {
-								imports.put(component.trim(), from);
-							}
-						}
-					}
-				}
-				return imports;
+				return contributor.getModuleTsImports();
 			}
 
 			@Override
 			public Set<String> getModuleNgImports() {
-				IonBean ionBean = getIonBean();
-				if (ionBean != null) {
-					return ionBean.getConfig().getModuleNgImports();
-				}
-				return new HashSet<String>();
+				return contributor.getModuleNgImports();
 			}
 
 			@Override
 			public Set<String> getModuleNgProviders() {
-				IonBean ionBean = getIonBean();
-				if (ionBean != null) {
-					return ionBean.getConfig().getModuleNgProviders();
-				}
-				return new HashSet<String>();
+				return contributor.getModuleNgProviders();
 			}
 
 			@Override
+			public Set<String> getModuleNgDeclarations() {
+				return contributor.getModuleNgDeclarations();
+			}
+			
+			@Override
+			public Set<String> getModuleNgComponents() {
+				return contributor.getModuleNgComponents();
+			}
+			
+			@Override
 			public Map<String, String> getPackageDependencies() {
-				IonBean ionBean = getIonBean();
-				if (ionBean != null) {
-					return ionBean.getConfig().getPackageDependencies();
-				}
-				return new HashMap<String, String>();
+				return contributor.getPackageDependencies();
 			}
 
 			@Override
 			public Map<String, String> getConfigPlugins() {
-				IonBean ionBean = getIonBean();
-				if (ionBean != null) {
-					Map<String, String> map = ionBean.getConfig().getConfigPlugins();
-					for (String plugin: map.keySet()) {
-						try {
-							JSONObject json = new JSONObject(map.get(plugin));
-							if (json.has("variables")) {
-								boolean hasChanged = false;
-								JSONObject jsonVars = json.getJSONObject("variables");
-								@SuppressWarnings("unchecked")
-								Iterator<String> it = jsonVars.keys();
-								while (it.hasNext()) {
-									String varkey = it.next();
-									String varval = jsonVars.getString(varkey);
-									if (varval.startsWith("@")) {// value = @propertyName
-										String propertyName = varval.substring(1);
-										if (ionBean.hasProperty(propertyName)) {
-											IonProperty ionProperty = ionBean.getProperty(propertyName);
-											Object p_value = ionProperty.getValue();
-											String value = "";
-											if (!p_value.equals(false)) {
-												MobileSmartSourceType msst = ionProperty.getSmartType();
-												String smartValue = msst.getValue();
-												if (Mode.PLAIN.equals(msst.getMode())) {
-													value = smartValue;
-												}
-											}
-											
-											jsonVars.put(varkey, value);
-											hasChanged = true;
-										}
-									}
-								}
-								if (hasChanged) {
-									json.put("variables", jsonVars);
-									map.put(plugin, json.toString());
-								}
-							}
-						} catch (Exception e) {}
-					}
-					return map;
-				}
-				return new HashMap<String, String>();
+				return contributor.getConfigPlugins();
 			}
 			
 		};

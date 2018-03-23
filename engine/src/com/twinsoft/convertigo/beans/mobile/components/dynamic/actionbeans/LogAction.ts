@@ -6,5 +6,6 @@
      * @param vars  , the object which holds variables key-value pairs
      */
     LogAction(page: C8oPage, props, vars) : Promise<any> {
-        return Promise.resolve(console.log(props.message));
+        page.c8o.log[props.level](props.message);
+        return Promise.resolve();
     }

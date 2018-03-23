@@ -22,6 +22,9 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
+import java.security.InvalidParameterException;
+
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -50,6 +53,7 @@ import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor
 import com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
@@ -194,6 +198,7 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 					String editorId = desc.getId();
 					
 					IEditorPart editorPart = activePage.openEditor(input, editorId);
+					addMarkers(file, editorPart);
 					editorPart.addPropertyListener(new IPropertyListener() {
 						boolean isFirstChange = false;
 						
@@ -263,26 +268,32 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 		ApplicationComponent application = (ApplicationComponent) getObject();
 		
 		synchronized (application) {
-			IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-			if (activePage != null) {
-				IEditorReference[] editorRefs = activePage.getEditorReferences();
-				for (int i = 0; i < editorRefs.length; i++) {
-					IEditorReference editorRef = (IEditorReference) editorRefs[i];
-					try {
-						IEditorInput editorInput = editorRef.getEditorInput();
-						if ((editorInput != null) && (editorInput instanceof ApplicationComponentEditorInput)) {
-							if (((ApplicationComponentEditorInput) editorInput).is(application)) {
-								editorPart = (ApplicationComponentEditor) editorRef.getEditor(false);
-							}
-						}
-					} catch(PartInitException e) {
-					}
+			String tpl = application.getTplProjectName();
+			try {
+				if (StringUtils.isBlank(tpl) || Engine.theApp.databaseObjectsManager.getOriginalProjectByName(tpl, false) == null) {
+					throw new InvalidParameterException("The value '" + tpl + "' of the property 'Template project' from '" + application.getQName() + "' is incorrect.");
 				}
-				
-				if (editorPart != null) {
-					activePage.activate(editorPart);
-				} else {
-					try {
+
+				IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+				if (activePage != null) {
+					IEditorReference[] editorRefs = activePage.getEditorReferences();
+					for (int i = 0; i < editorRefs.length; i++) {
+						IEditorReference editorRef = (IEditorReference) editorRefs[i];
+						try {
+							IEditorInput editorInput = editorRef.getEditorInput();
+							if ((editorInput != null) && (editorInput instanceof ApplicationComponentEditorInput)) {
+								if (((ApplicationComponentEditorInput) editorInput).is(application)) {
+									editorPart = (ApplicationComponentEditor) editorRef.getEditor(false);
+								}
+							}
+						} catch(PartInitException e) {
+
+						}
+					}
+
+					if (editorPart != null) {
+						activePage.activate(editorPart);
+					} else {
 						IEditorPart editor = activePage.openEditor(new ApplicationComponentEditorInput(application, autoLaunch),
 								"com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor");
 						if (editor instanceof ApplicationComponentEditor) {
@@ -290,15 +301,14 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 						} else {
 							ConvertigoPlugin.logWarning("The Application Component Editor won't open, please see the error log.");
 						}
-					} catch (PartInitException e) {
-						ConvertigoPlugin.logException(e,
-								"Error while loading the page editor '"
-										+ application.getName() + "'");
 					}
 				}
+			} catch (Exception e) {
+				ConvertigoPlugin.logException(e,
+						"Error while loading the page editor '"
+								+ application.getName() + "'");
 			}
 		}
-		
 		return editorPart;
 	}
 }

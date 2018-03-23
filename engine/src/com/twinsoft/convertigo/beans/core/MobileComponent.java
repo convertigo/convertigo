@@ -22,6 +22,7 @@
 package com.twinsoft.convertigo.beans.core;
 
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
+import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
 public abstract class MobileComponent extends MobileObject {
 
@@ -50,20 +51,31 @@ public abstract class MobileComponent extends MobileObject {
 			return (ApplicationComponent) databaseObject;
 	}
 	
-	private String getTplCafVersion() {
+	protected String getRequiredCafVersion() {
+		return "1.0.88";// the 7.5.0 has been released with CAF 1.0.88
+	}
+
+	public String requiredCafVersion() {
+		return getRequiredCafVersion();
+	}
+	
+	public String getTplCafVersion() {
 		return getProject().getMobileBuilder().getTplCafVersion();
 	}
 	
-	protected int compareToTplCafVersion(String version) {
+	public String getNodeCafVersion() {
+		return getProject().getMobileBuilder().getNodeCafVersion();
+	}
+	
+	public int compareToTplCafVersion(String version) {
 		int result = -1;
 		if (version != null) {
 			String tplCafVersion = getTplCafVersion();
 			if (tplCafVersion != null) {
-				tplCafVersion = tplCafVersion.trim().toLowerCase();
-				if (tplCafVersion.equals("latest")) {
+				if (tplCafVersion.trim().toLowerCase().equals("latest")) {
 					result = 1;
 				} else {
-					result = tplCafVersion.compareTo(version.trim().toLowerCase());
+					result = MobileBuilder.compareVersions(tplCafVersion, version);
 				}
 			}
 		}

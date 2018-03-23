@@ -27,7 +27,13 @@
             })
             .catch((e) =>{
                 if(e == "cordova_not_available"){
-                    page.router.c8o.log.debug("[MB] CheckInstallAction: " + e);
+                    if(!props.mockedResponse){
+                        page.router.c8o.log.debug("[MB] CheckInstallAction: cordova isn't available: using mocked response: " + packageID + " is not installed");
+                    }
+                    else{
+                        page.router.c8o.log.debug("[MB] CheckInstallAction: cordova isn't available: using mocked response: " + packageID + " is installed");
+                    }
+                    resolve(props.mockedResponse);
                 } 
                 else{
                     page.router.c8o.log.error("[MB] CheckInstallAction: Error" , e);

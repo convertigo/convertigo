@@ -98,6 +98,7 @@ public class EngineLogView extends ViewPart {
 	private long lastLogTime = -1;
 	private List<LogLine> logLines = new ArrayList<LogLine>(1000);
 	private Appender appender;
+	private int waiting = 0;
 	private int counter = 0;
 	
 	private long charMeter = 0;
@@ -155,6 +156,7 @@ public class EngineLogView extends ViewPart {
 			@Override
 			protected void append(LoggingEvent arg0) {
 				synchronized (this) {
+					waiting = 0;
 					this.notifyAll();
 				}
 			}
@@ -171,11 +173,15 @@ public class EngineLogView extends ViewPart {
 	@Override
 	public void dispose() {
 		Engine.logConvertigo.removeAppender(appender);
-
 		logViewThread = null;
+		try {
+			logManager.close();
+		} catch (Exception e) {
+		}
 
 		// Notify the log viewer thread possibly waiting on the appender lock
 		synchronized (appender) {
+			waiting = 0;
 			appender.notifyAll();
 		}
 
@@ -1097,20 +1103,21 @@ public class EngineLogView extends ViewPart {
 	private boolean getLogs() {
 		try {
 			JSONArray logs = logManager.getLines();
-			boolean interrupted = false;
-			while (logs.length() == 0 && !interrupted && Thread.currentThread() == logViewThread) {
-				synchronized (appender) {
-					try {
-						appender.wait(300);
-					} catch (InterruptedException e) {
-						interrupted = true;
+			while (logs.length() == 0 && Thread.currentThread() == logViewThread) {
+				waiting = 6;
+				do {
+					synchronized (appender) {
+						try {
+							appender.wait(300);
+						} catch (InterruptedException e) {
+						}
 					}
-				}
-				
-				// Detect if the view has been closed
-				if (Thread.currentThread() != logViewThread) {
-					return false;
-				}
+					
+					// Detect if the view has been closed
+					if (Thread.currentThread() != logViewThread) {
+						return false;
+					}
+				} while(waiting-- > 0);
 				logs = logManager.getLines();
 			}
 			

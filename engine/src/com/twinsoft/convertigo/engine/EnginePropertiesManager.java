@@ -221,7 +221,7 @@ public class EnginePropertiesManager {
     
     public enum PropertyCategory {
     	Main ("Main parameters"),
-    	Account ("Accounts"),
+    	Account ("Accounts and security"),
     	@CategoryOptions(viewRoles = {Role.LOGS_VIEW, Role.LOGS_CONFIG}, configRoles = {Role.LOGS_CONFIG})
     	Logs ("Logs"),
     	@CategoryOptions(viewRoles = {Role.LOGS_VIEW, Role.LOGS_CONFIG}, configRoles = {Role.LOGS_CONFIG})
@@ -362,7 +362,8 @@ public class EnginePropertiesManager {
 		TEST_PLATFORM_USERNAME ("testplatform.username", "", "Test Platform username (leave it blank for anonymous access)", PropertyCategory.Account),
 		@PropertyOptions(propertyType = PropertyType.PasswordHash)
 		TEST_PLATFORM_PASSWORD ("testplatform.password", ""+"".hashCode(), "Test Platform password", PropertyCategory.Account),
-		ADMIN_PORT ("admin.port", "", "Admin port (leave blank if no filtering)", PropertyCategory.Account),
+		@PropertyOptions(propertyType = PropertyType.Boolean)
+		SECURITY_FILTER ("security.filter", "false", "Security Filter", PropertyCategory.Account),
 		
 		/** LOGS */
 		LOG4J_LOGGER_CEMS ("log4j.logger.cems", LogLevels.INFO.getValue() + ", CemsAppender", "Log4J root logger", PropertyCategory.Logs),
@@ -398,6 +399,8 @@ public class EnginePropertiesManager {
 		LOG4J_LOGGER_CEMS_PROXYMANAGER ("log4j.logger.cems.ProxyManager", LogLevels.INFO.getValue(), "Log4J proxy manager logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_SCHEDULER ("log4j.logger.cems.Scheduler", LogLevels.INFO.getValue(), "Log4J scheduler output logger", PropertyCategory.Logs),
+		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
+		LOG4J_LOGGER_CEMS_SECURITYFILTER ("log4j.logger.cems.SecurityFilter", LogLevels.WARN.getValue(), "Log4J security filter output logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_SECURITYTOKENMANAGER ("log4j.logger.cems.SecurityTokenManager", LogLevels.INFO.getValue(), "Log4J security token manager output logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)

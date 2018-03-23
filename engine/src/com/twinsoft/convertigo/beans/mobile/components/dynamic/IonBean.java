@@ -38,6 +38,7 @@ public class IonBean {
 	
 	enum Key {
 		classname,
+		cafVersion,
 		tag,
 		name,
 		displayName,
@@ -59,6 +60,7 @@ public class IonBean {
 		try {
 			jsonBean = new JSONObject()
 				.put(Key.classname.name(), "com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement")
+				.put(Key.cafVersion.name(), "1.0.88")
 				.put(Key.name.name(), "bean")
 				.put(Key.displayName.name(), "")
 				.put(Key.tag.name(), "tag")
@@ -149,6 +151,15 @@ public class IonBean {
 			return "com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement";
 		}
 	}
+	
+	public String getCafVersion() {
+		try {
+			return jsonBean.getString(Key.cafVersion.name());
+		} catch (JSONException e) {
+			return "1.0.88";
+		}
+	}
+	
 	public String getName() {
 		try {
 			return jsonBean.getString(Key.name.name());
@@ -218,7 +229,8 @@ public class IonBean {
 	}
 	public String getIcon16() {
 		try {
-			return jsonBean.getString(Key.icon16.name());
+			String icon = jsonBean.getString(Key.icon16.name());
+			return icon.isEmpty() ? "default_color_16x16.png" : icon;
 		} catch (JSONException e) {
 			e.printStackTrace();
 			return "default_color_16x16.png";
@@ -226,7 +238,8 @@ public class IonBean {
 	}
 	public String getIcon32() {
 		try {
-			return jsonBean.getString(Key.icon32.name());
+			String icon = jsonBean.getString(Key.icon32.name());
+			return icon.isEmpty() ? "default_color_32x32.png" : icon;
 		} catch (JSONException e) {
 			e.printStackTrace();
 			return "default_color_32x32.png";

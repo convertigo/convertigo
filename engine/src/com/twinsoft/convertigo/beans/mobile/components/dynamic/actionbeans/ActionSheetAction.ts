@@ -21,12 +21,18 @@
             }
             actionSheet.show(options)
             .then((buttonIndex: number) => {
-                page.router.c8o.log.debug("[MB] ActionSheetAction: " + buttonIndex);
+                page.router.c8o.log.debug("[MB] ActionSheetAction: response is " + buttonIndex);
                 resolve(buttonIndex);
             })
             .catch((err)=>{
-                page.router.c8o.log.error("[MB] ActionSheetAction: ", err);
-                resolve(err);
+                if(err == "cordova_not_available"){
+                    page.router.c8o.log.debug("[MB] ActionSheetAction: cordova isn't available: using mocked response: " + props.mockedResponse);
+                    resolve(props.mockedResponse);
+                }
+                else{
+                    page.router.c8o.log.error("[MB] ActionSheetAction: ", err);
+                    reject(err); 
+                }
             })
         });
     }

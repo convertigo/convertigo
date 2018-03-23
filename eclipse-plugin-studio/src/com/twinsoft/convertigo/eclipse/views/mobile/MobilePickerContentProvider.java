@@ -38,6 +38,7 @@ import org.eclipse.jface.viewers.Viewer;
 import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Document;
+import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
@@ -179,16 +180,16 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 	public Object[] getChildren(Object parentElement) {
 		if (parentElement instanceof TVObject) {
 			return ((TVObject) parentElement).children.toArray();
-		} else if (parentElement instanceof PageComponent) {
-			PageComponent pageComponent = (PageComponent)parentElement;
-			Project project = pageComponent.getProject();
+		} else if (parentElement instanceof MobileComponent) {
+			MobileComponent mobileComponent = (MobileComponent)parentElement;
+			Project project = mobileComponent.getProject();
 			
 			ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
 			List<String> projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
 
-			Map<String, Set<String>> map = pageComponent.getApplication().getInfoMap();
+			Map<String, Set<String>> map = mobileComponent.getApplication().getInfoMap();
 			
-			TVObject root = new TVObject("root", pageComponent);
+			TVObject root = new TVObject("root", mobileComponent);
 			if (filter.equals(Filter.Sequence)) {
 				TVObject tvs = root.add(new TVObject("sequences"));
 				for (String projectName : projectNames) {
@@ -213,11 +214,11 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 			}
 			if (filter.equals(Filter.Iteration)) {
 				TVObject tvi = root.add(new TVObject("iterations"));
-				addIterations(tvi, pageComponent);
+				addIterations(tvi, mobileComponent);
 			}
 			if (filter.equals(Filter.Form)) {
 				TVObject tvi = root.add(new TVObject("forms"));
-				addForms(tvi, pageComponent);
+				addForms(tvi, mobileComponent);
 			}
 			return root.children.toArray();
 		} else if (parentElement instanceof JSONObject) {

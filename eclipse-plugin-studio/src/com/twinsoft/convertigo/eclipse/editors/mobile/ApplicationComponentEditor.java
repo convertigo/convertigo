@@ -1241,6 +1241,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 					}
 				}
 				appendOutput("previous build directory removed");
+				this.applicationEditorInput.application.checkFolder();
 				
 				ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "run", buildMode.command(), "--nobrowser");
 				if (!MobileBuilderBuildMode.production.equals(buildMode)) {

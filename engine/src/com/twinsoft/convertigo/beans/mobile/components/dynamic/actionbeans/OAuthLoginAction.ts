@@ -102,6 +102,7 @@
             }
             else {
                 page.c8o.log.error("[MB] OAuth login, Missing Parameters")
+                reject("[MB] OAuth login, Missing Parameters")
             }
         });
     }

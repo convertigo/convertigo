@@ -23,7 +23,6 @@
 package com.twinsoft.convertigo.engine.admin.logmanager;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,10 +31,11 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.util.FileReloadInputStream;
 
 public class UnifiedInputStream extends InputStream {
 	private List<File> files;
-	private FileInputStream current_file;
+	private InputStream current_file;
 	private long pre_size = 0;
 	private long current_position;
 	private Iterator<File> chain;
@@ -73,6 +73,9 @@ public class UnifiedInputStream extends InputStream {
 		long size = pre_size + getLastFile().length() - current_position;
 		if (size > Integer.MAX_VALUE) {
 			return Integer.MAX_VALUE;
+		} if (size < 0) {
+			int available = current_file.available();
+			return available;
 		} else {
 			return (int) size;
 		}
@@ -137,13 +140,13 @@ public class UnifiedInputStream extends InputStream {
 		current_position = 0;
 		if (current_file != null) current_file.close();
 		chain = this.files.iterator();
-		current_file = new FileInputStream(chain.next());
+		current_file = new FileReloadInputStream(chain.next());
 	}
 
 	private boolean nextFile() throws IOException {
 		if (chain.hasNext() && current_file != null) {
 			current_file.close();
-			current_file = new FileInputStream(chain.next());
+			current_file = new FileReloadInputStream(chain.next());
 			return true;
 		} else {
 			return false;

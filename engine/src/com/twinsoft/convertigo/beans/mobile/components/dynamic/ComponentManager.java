@@ -27,6 +27,7 @@ import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,6 +43,7 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.IAction;
@@ -70,6 +72,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIPageEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.URLUtils;
 
 public class ComponentManager {
 	private static ComponentManager instance = new ComponentManager();
@@ -77,6 +80,8 @@ public class ComponentManager {
 	private SortedMap<String, IonProperty> pCache = new TreeMap<String, IonProperty>();
 	private SortedMap<String, IonBean> bCache = new TreeMap<String, IonBean>();
 	private SortedMap<String, IonTemplate> tCache = new TreeMap<String, IonTemplate>();
+	
+	private File compbeansDir;
 	
 	private ComponentManager() {
 		loadModels();
@@ -340,11 +345,14 @@ public class ComponentManager {
 					Class<?> dboClass;
 					try {
 						dboClass = Class.forName(bean.getClassName());
-						return acceptDatabaseObjects(parent, dboClass);
-					} catch (ClassNotFoundException e) {
+						//return acceptDatabaseObjects(parent, dboClass);
+						if (acceptDatabaseObjects(parent, dboClass)) {
+							return isCafCompatible(parent, createBean());
+						}
+					} catch (Exception e) {
 						e.printStackTrace();
-						return false;
 					}
+					return false;
 				}
 				
 				@Override
@@ -419,64 +427,88 @@ public class ComponentManager {
 	}
 	
 	public static boolean acceptDatabaseObjects(DatabaseObject parentDatabaseObject, DatabaseObject databaseObject) {
-		return acceptDatabaseObjects(parentDatabaseObject, databaseObject.getClass());
+		if (parentDatabaseObject instanceof MobileComponent && databaseObject instanceof MobileComponent) {
+			return acceptDatabaseObjects(parentDatabaseObject, databaseObject.getClass());
+		}
+		return true;
+	}
+
+	public static boolean isCafCompatible(DatabaseObject parentDatabaseObject, DatabaseObject databaseObject) {
+		if (parentDatabaseObject instanceof MobileComponent && databaseObject instanceof MobileComponent) {
+			return ((MobileComponent)parentDatabaseObject).compareToTplCafVersion(getCafRequired(databaseObject)) >= 0;
+		}
+		return true;
+	}
+	
+	public static String getCafRequired(DatabaseObject databaseObject) {
+		if (databaseObject instanceof MobileComponent) {
+			return ((MobileComponent)databaseObject).requiredCafVersion();
+		}
+		return "";
 	}
 	
 	protected static boolean acceptDatabaseObjects(DatabaseObject dboParent, Class<?> dboClass) {
-		if (dboParent instanceof ApplicationComponent) {
-			if (UIStyle.class.isAssignableFrom(dboClass) ||
-				UIDynamicMenu.class.isAssignableFrom(dboClass)) {
-				return true;
-			}
-		} else if (dboParent instanceof PageComponent) {
-			if (!UITheme.class.isAssignableFrom(dboClass) &&
-				!UIDynamicMenu.class.isAssignableFrom(dboClass) &&
-				!UIDynamicMenuItem.class.isAssignableFrom(dboClass) &&
-				!UIFormValidator.class.isAssignableFrom(dboClass) &&
-				!UIAttribute.class.isAssignableFrom(dboClass) &&
-				!UIControlVariable.class.isAssignableFrom(dboClass) &&
-				!UIActionEvent.class.isAssignableFrom(dboClass) &&
-				!IAction.class.isAssignableFrom(dboClass)) {
-				return true;
-			}
-		} else if (dboParent instanceof UIComponent) {
-			if (dboParent instanceof UIPageEvent || dboParent instanceof UIControlEvent) {
-				if (UIActionErrorEvent.class.isAssignableFrom(dboClass) ||
-					IAction.class.isAssignableFrom(dboClass)) {
+		if (UIComponent.class.isAssignableFrom(dboClass)) {
+			if (dboParent instanceof ApplicationComponent) {
+				if (UIStyle.class.isAssignableFrom(dboClass) ||
+					UIDynamicMenu.class.isAssignableFrom(dboClass)) {
 					return true;
 				}
-			}
-			else if (dboParent instanceof UIActionEvent) {
-				if (IAction.class.isAssignableFrom(dboClass)) {
+			} else if (dboParent instanceof PageComponent) {
+				if (!UITheme.class.isAssignableFrom(dboClass) &&
+					!UIDynamicMenu.class.isAssignableFrom(dboClass) &&
+					!UIDynamicMenuItem.class.isAssignableFrom(dboClass) &&
+					!UIFormValidator.class.isAssignableFrom(dboClass) &&
+					!UIAttribute.class.isAssignableFrom(dboClass) &&
+					!UIControlVariable.class.isAssignableFrom(dboClass) &&
+					!UIActionEvent.class.isAssignableFrom(dboClass) &&
+					!IAction.class.isAssignableFrom(dboClass)) {
 					return true;
 				}
-			}
-			else if (dboParent instanceof IAction) {
-				if (UIActionFailureEvent.class.isAssignableFrom(dboClass) ||
-					UIControlVariable.class.isAssignableFrom(dboClass) ||
-					IAction.class.isAssignableFrom(dboClass)) {
-					return true;
-				}
-			} else if (dboParent instanceof UIDynamicMenuItem) {
-				return false;
-			} else if (dboParent instanceof UIElement) {
-				if (UIDynamicMenuItem.class.isAssignableFrom(dboClass)) {
-					if (dboParent instanceof UIComponent) {
-						UIDynamicMenu menu = ((UIComponent)dboParent).getMenu();
-						return menu != null;
+			} else if (dboParent instanceof UIComponent) {
+				UIDynamicMenu menu = ((UIComponent)dboParent).getMenu();
+				if (menu != null) {
+					if (UIControlEvent.class.isAssignableFrom(dboClass)) {
+						return false;
 					}
 				}
 				
-				if (!UIControlVariable.class.isAssignableFrom(dboClass) &&
-					!UIPageEvent.class.isAssignableFrom(dboClass) &&
-					!UIActionEvent.class.isAssignableFrom(dboClass) &&
-					!UITheme.class.isAssignableFrom(dboClass) &&
-					!IAction.class.isAssignableFrom(dboClass)) {
+				if (dboParent instanceof UIPageEvent || dboParent instanceof UIControlEvent) {
+					if (UIActionErrorEvent.class.isAssignableFrom(dboClass) ||
+						IAction.class.isAssignableFrom(dboClass)) {
 						return true;
+					}
+				}
+				else if (dboParent instanceof UIActionEvent) {
+					if (IAction.class.isAssignableFrom(dboClass)) {
+						return true;
+					}
+				}
+				else if (dboParent instanceof IAction) {
+					if (UIActionFailureEvent.class.isAssignableFrom(dboClass) ||
+						UIControlVariable.class.isAssignableFrom(dboClass) ||
+						IAction.class.isAssignableFrom(dboClass)) {
+						return true;
+					}
+				} else if (dboParent instanceof UIDynamicMenuItem) {
+					return false;
+				} else if (dboParent instanceof UIElement) {
+					if (UIDynamicMenuItem.class.isAssignableFrom(dboClass)) {
+						return menu != null;
+					}
+					
+					if (!UIControlVariable.class.isAssignableFrom(dboClass) &&
+						!UIPageEvent.class.isAssignableFrom(dboClass) &&
+						!UIActionEvent.class.isAssignableFrom(dboClass) &&
+						!UITheme.class.isAssignableFrom(dboClass) &&
+						!IAction.class.isAssignableFrom(dboClass)) {
+							return true;
+					}
 				}
 			}
+			return false;
 		}
-		return false;
+		return true;
 	}
 	
 	protected static Component getDboComponent(final Class<? extends DatabaseObject> dboClass, final String group) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
@@ -555,7 +587,15 @@ public class ComponentManager {
 			
 			@Override
 			public boolean isAllowedIn(DatabaseObject parent) {
-				return acceptDatabaseObjects(parent, dboClass);
+				//return acceptDatabaseObjects(parent, dboClass);
+				try {
+					if (acceptDatabaseObjects(parent, dboClass)) {
+						return isCafCompatible(parent, createBean());
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return false;
 			}
 
 			@Override
@@ -600,5 +640,26 @@ public class ComponentManager {
 			}
 		}
 		return "";
+	}
+	
+	public static File getCompBeanDir(String name) {
+		try {
+			if (instance.compbeansDir == null) {
+				String path = URLUtils.getFullpathRessources(instance.getClass(), "compbeans");
+				if (path != null) {
+					instance.compbeansDir = new File(path);
+				}
+			}
+			if (instance.compbeansDir != null) {
+				return new File(instance.compbeansDir, name);
+			}
+		} catch (Exception e) {
+			if (Engine.isStarted) {
+				Engine.logBeans.warn("(ComponentManager) Missing component folder for pseudo-bean '"+ name +"' !");
+			} else {
+				System.out.println("(ComponentManager) Missing component folder for pseudo-bean '"+ name +"' !");
+			}
+		}
+		return null;
 	}
 }

@@ -27,9 +27,6 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -42,7 +39,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
@@ -122,28 +118,6 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			super.launchEditor(editorType);
 		}
 	}
-
-	private void closeComponentFileEditor(final IFile file) {
-		try {
-			IWorkbenchPage activePage = PlatformUI
-					.getWorkbench()
-					.getActiveWorkbenchWindow()
-					.getActivePage();
-			
-			for (IEditorReference editorReference : activePage.getEditorReferences()) {
-				IEditorInput editorInput = editorReference.getEditorInput();
-				if (editorInput instanceof ComponentFileEditorInput) {
-					ComponentFileEditorInput cfei = (ComponentFileEditorInput) editorInput;
-					if (cfei.getFile().equals(file)) {
-						activePage.closeEditor(editorReference.getEditor(false), true);
-						return;
-					}
-				}
-			}
-		} catch (Exception e) {
-			
-		}
-	}
 	
 	private void editPageFunction(final UIComponent uic, final String functionMarker, final String propertyName) {
 		final PageComponent page = uic.getPage();
@@ -177,6 +151,8 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 					String editorId = desc.getId();
 					
 					IEditorPart editorPart = activePage.openEditor(input, editorId);
+					addMarkers(file, editorPart);
+					
 					editorPart.addPropertyListener(new IPropertyListener() {
 						boolean isFirstChange = false;
 						
@@ -292,13 +268,12 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		DatabaseObject parentDbo = ms.getParent();
 		if (parentDbo != null && parentDbo instanceof UIElement) {
 			try {
-				unformated = null;
-				Pattern p = Pattern.compile("\\.class\\d+\\s?\\{\\r?\\n?([^\\{\\}]*)\\r?\\n?\\}");
-				Matcher m = p.matcher(s);
-				if (m.matches()) {
-					unformated = m.group(1);
-				}
-			} catch (Exception e) {}
+				unformated = unformated.replaceFirst("^\\.class\\d+\\s?\\{\\r?\\n?", "");
+				unformated = unformated.substring(0, unformated.lastIndexOf("}"));
+			} catch (Exception e) {
+				unformated = s;
+				e.printStackTrace();
+			}
 		};
 		return unformated;
 	}
@@ -598,7 +573,13 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 						if (cc.getIonBean().getName().equals("FullSyncGetAction")) {
 							return nsObject instanceof FullSyncConnector;
 						}
+						if (cc.getIonBean().getName().equals("FullSyncDeleteAction")) {
+							return nsObject instanceof FullSyncConnector;
+						}
 						if (cc.getIonBean().getName().equals("FullSyncPutAttachmentAction")) {
+							return nsObject instanceof FullSyncConnector;
+						}
+						if (cc.getIonBean().getName().equals("FullSyncDeleteAttachmentAction")) {
 							return nsObject instanceof FullSyncConnector;
 						}
 						if (cc.getIonBean().getName().equals("FSImage")) {

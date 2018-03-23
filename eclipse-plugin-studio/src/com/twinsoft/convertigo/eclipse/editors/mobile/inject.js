@@ -49,11 +49,17 @@ function _c8o_remove_overlay(overlay) {
 	}
 }
 
+_c8o_highlight_class_previous = null;
 function _c8o_highlight_class(classname) {
-	var i;
+	var i, nl;
 	var ol = [...document.getElementsByClassName("_c8o_overlay")];
-	
-	var nl = document.getElementsByClassName(classname);
+	if (_c8o_highlight_class_previous != classname) {
+		_c8o_highlight_class_previous = classname;
+		nl = document.getElementsByClassName(classname);
+	} else {
+		_c8o_highlight_class_previous = null;
+		nl = [];
+	}
 	for (i = 0; i < nl.length; i++) {
 		var overlay = ol[i];
 		var rect = nl[i].getBoundingClientRect();

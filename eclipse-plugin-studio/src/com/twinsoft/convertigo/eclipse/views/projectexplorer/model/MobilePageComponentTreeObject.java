@@ -121,6 +121,7 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 			String filePath = page.getProject().getMobileBuilder().getTempTsRelativePath(page);
 			IFile file = project.getFile(filePath);
 			file.refreshLocal(IResource.DEPTH_ZERO, null);
+			closeComponentFileEditor(file);
 			
 			// Open file in editor
 			if (file.exists()) {
@@ -139,6 +140,7 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 					String editorId = desc.getId();
 					
 					IEditorPart editorPart = activePage.openEditor(input, editorId);
+					addMarkers(file, editorPart);
 					editorPart.addPropertyListener(new IPropertyListener() {
 						boolean isFirstChange = false;
 						

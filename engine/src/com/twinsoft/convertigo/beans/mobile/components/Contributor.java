@@ -23,9 +23,11 @@
 package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.util.Set;
+import java.io.File;
 import java.util.Map;
 
 public abstract class Contributor {
+	abstract public Map<String, File> getCompBeanDir();
 	abstract public Map<String, String> getActionTsFunctions();
 	abstract public Map<String, String> getActionTsImports();
 	abstract public Map<String, String> getModuleTsImports();
@@ -33,4 +35,6 @@ public abstract class Contributor {
 	abstract public Map<String, String> getConfigPlugins();
 	abstract public Set<String> getModuleNgImports();
 	abstract public Set<String> getModuleNgProviders();
+	abstract public Set<String> getModuleNgDeclarations();
+	abstract public Set<String> getModuleNgComponents();
 }

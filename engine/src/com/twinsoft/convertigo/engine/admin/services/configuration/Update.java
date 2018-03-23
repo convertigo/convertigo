@@ -37,6 +37,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.servlets.SecurityFilter;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -73,10 +74,9 @@ public class Update extends XmlService {
 					throw new AuthenticationException("Authentication failure: user has not sufficient rights!");
 				}
 			}
-			if (property == PropertyName.ADMIN_PORT) {
-				String propValue = ((Element) nl.item(i)).getAttribute("value");
-				if (!propValue.isEmpty() && !Integer.toString(request.getLocalPort()).equals(propValue)) {
-					throw new InvalidParameterException("'" + property.getKey() + "' can only be empty or the current port (" + request.getLocalPort() + ")");
+			if (property == PropertyName.SECURITY_FILTER) {
+				if (!SecurityFilter.isAccept(request)) {
+					throw new InvalidParameterException("Turn on '" + property.getDescription() + "' will block you current session, not allowed.");
 				}
 			}
 		}

@@ -52,6 +52,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.EventHelper;
 import com.twinsoft.convertigo.engine.util.FileUtils;
+import com.twinsoft.convertigo.engine.util.VersionUtils;
 
 public class MobileBuilder {
 	class MbWorker extends Thread {
@@ -233,7 +234,10 @@ public class MobileBuilder {
 	Map<String,String> actionTplTsImports = null;
 	String moduleTplNgImports = null;
 	String moduleTplNgProviders = null;
-	String cafVersion = null;
+	String moduleTplNgDeclarations = null;
+	String moduleTplNgComponents = null;
+	String cafTplVersion = null;
+	String cafNodeVersion = null;
 	
 	Set<File> writtenFiles = new HashSet<File>();
 	
@@ -294,6 +298,9 @@ public class MobileBuilder {
 	
 	public void setNeedPkgUpdate(boolean needPkgUpdate) {
 		this.needPkgUpdate = needPkgUpdate;
+		
+		this.cafNodeVersion = null;
+		updateNodeCafVersion();
 	}
 	
 	public boolean getNeedPkgUpdate() {
@@ -422,18 +429,18 @@ public class MobileBuilder {
 
 	public synchronized void pageContributorsChanged(final PageComponent page) throws EngineException {
 		if (page != null && page.isEnabled() && initDone) {
-			MobileApplication mobileApplication = project.getMobileApplication();
-			if (mobileApplication != null) {
-				ApplicationComponent application = mobileApplication.getApplicationComponent();
-				if (application != null) {
-					writeAppPackageJson(application);
-					writeAppPluginsConfig(application);
-					writeAppServiceTs(application);
-					writeAppModuleTs(application);
-					moveFiles();
-					Engine.logEngine.debug("(MobileBuilder) Handled 'pageContributorsChanged'");
-				}
-			}
+			appContributorsChanged(page.getApplication());
+		}
+	}
+	
+	public synchronized void appContributorsChanged(final ApplicationComponent app) throws EngineException {
+		if (app != null && initDone) {
+			writeAppPackageJson(app);
+			writeAppPluginsConfig(app);
+			writeAppServiceTs(app);
+			writeAppModuleTs(app);
+			moveFiles();
+			Engine.logEngine.debug("(MobileBuilder) Handled 'appContributorsChanged'");
 		}
 	}
 	
@@ -515,7 +522,8 @@ public class MobileBuilder {
 			// Modify configuration files
 			updateConfigurationFiles();
 			
-			// Updated CAF tpl version
+			// Update CAF versions
+			updateNodeCafVersion();
 			updateTplCafVersion();
 			
 			// Write source files (based on bean components)
@@ -544,9 +552,9 @@ public class MobileBuilder {
 	}
 	
 	private synchronized void release() throws EngineException {
-		if (!initDone) {
+		/*if (!initDone) {
 			return;
-		}
+		}*/
 		
 		if (isIonicTemplateBased()) {
 			moveFilesForce();
@@ -591,8 +599,11 @@ public class MobileBuilder {
 				actionTplTsImports.clear();
 				actionTplTsImports = null;
 			}
-			if (cafVersion != null) {
-				cafVersion = null;
+			if (cafTplVersion != null) {
+				cafTplVersion = null;
+			}
+			if (cafNodeVersion != null) {
+				cafNodeVersion = null;
 			}
 			if (eventHelper != null) {
 				eventHelper = null;
@@ -647,19 +658,36 @@ public class MobileBuilder {
 		return pages;
 	}
 	
+	static public int compareVersions(String v1, String v2) {
+		String s1 = VersionUtils.normalizeVersionString(v1.trim().toLowerCase(), ".", 4);
+		String s2 = VersionUtils.normalizeVersionString(v2.trim().toLowerCase(), ".", 4);
+		int cmp = s1.compareTo(s2);
+		return cmp;
+	}
+	
 	private void updateSourceFiles() throws EngineException {
 		try {
 			MobileApplication mobileApplication = project.getMobileApplication();
 			if (mobileApplication != null) {
 				ApplicationComponent application = mobileApplication.getApplicationComponent();
 				if (application != null) {
-					for (PageComponent page : getEnabledPages(application)) {
-						writePageSourceFiles(page);
+					String appCafVersion = application.requiredCafVersion();
+					if (compareVersions(cafTplVersion, appCafVersion) >= 0) {
+						for (PageComponent page : getEnabledPages(application)) {
+							writePageSourceFiles(page);
+						}
+						writeAppSourceFiles(application);
+						removeUselessPages(application);
+						
+						Engine.logEngine.debug("(MobileBuilder) Application source files updated for ionic project '"+ project.getName() +"'");
+					} else {
+						cleanDirectories();
+						throw new EngineException("Convertigo Angular Framework (CAF) minimum "+ appCafVersion +" is required for this project. \n\n" +
+							"Be sure to use a project template having this CAF version as dependency in its package.json file. " +
+							"You can change template by configuring\nthe 'Template project' property of your project's 'Application' object. " + 
+							"Then, be sure to update\nthe project node modules packages (Application Right Click->Update packages and execute) \n");
 					}
-					writeAppSourceFiles(application);
-					removeUselessPages(application);
 					
-					Engine.logEngine.debug("(MobileBuilder) Application source files updated for ionic project '"+ project.getName() +"'");
 				}
 			}
 		}
@@ -850,15 +878,15 @@ public class MobileBuilder {
 	}
 	
 	private void updateTplCafVersion() {
-		if (cafVersion == null) {
+		if (cafTplVersion == null) {
 			File pkgJson = new File(ionicWorkDir, "package.json"); 
 			if (pkgJson.exists()) {
 				try {
 					String tsContent = FileUtils.readFileToString(pkgJson, "UTF-8");
 					JSONObject jsonOb = new JSONObject(tsContent);
 					JSONObject jsonDeps = jsonOb.getJSONObject("dependencies");
-					cafVersion = jsonDeps.getString("c8ocaf");
-					Engine.logEngine.debug("(MobileBuilder) Using CAF version: "+ cafVersion+ " for ionic project '"+ project.getName() +"'");
+					cafTplVersion = jsonDeps.getString("c8ocaf");
+					Engine.logEngine.debug("(MobileBuilder) Embedded CAF version: "+ cafTplVersion+ " for ionic project '"+ project.getName() +"'");
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -867,8 +895,31 @@ public class MobileBuilder {
 	}
 	
 	public String getTplCafVersion() {
-		return cafVersion;
+		return cafTplVersion;
 	}
+	
+	public void updateNodeCafVersion() {
+		if (cafNodeVersion == null) {
+			File pkgJson = new File(ionicWorkDir, "node_modules/c8ocaf/package.json");
+			if (pkgJson.exists()) {
+				try {
+					String tsContent = FileUtils.readFileToString(pkgJson, "UTF-8");
+					JSONObject jsonOb = new JSONObject(tsContent);
+					cafNodeVersion = jsonOb.getString("version");
+					Engine.logEngine.debug("(MobileBuilder) Installed CAF version: "+ cafNodeVersion+ " for ionic project '"+ project.getName() +"'");
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			} else {
+				Engine.logEngine.debug("(MobileBuilder) None CAF installed for ionic project '"+ project.getName() +"'");
+			}
+		}
+	}
+	
+	public String getNodeCafVersion() {
+		return cafNodeVersion;
+	}
+	
 	
 	public boolean hasPageTplImport(String name) {
 		if (initDone) {
@@ -928,6 +979,42 @@ public class MobileBuilder {
 		return moduleTplNgProviders;
 	}
 
+	private String getModuleTplNgDeclarations() {
+		if (moduleTplNgDeclarations == null) {
+			try {
+				String tsContent = FileUtils.readFileToString(new File(ionicTplDir, "src/app/app.module.ts"), "UTF-8");
+				moduleTplNgDeclarations = getMarker(tsContent, "NgDeclarations")
+						.replaceAll("/\\*Begin_c8o_NgDeclarations\\*/","")
+						.replaceAll("/\\*End_c8o_NgDeclarations\\*/","")
+						.replaceAll("\r\n", "").replaceAll("\n", "")
+						.replaceAll("\t", "")
+						.replaceAll("\\s", "");
+			} catch (Exception e) {
+				e.printStackTrace();
+				moduleTplNgDeclarations = "";
+			}
+		}
+		return moduleTplNgDeclarations;
+	}
+	
+	private String getModuleTplNgComponents() {
+		if (moduleTplNgComponents == null) {
+			try {
+				String tsContent = FileUtils.readFileToString(new File(ionicTplDir, "src/app/app.module.ts"), "UTF-8");
+				moduleTplNgComponents = getMarker(tsContent, "NgComponents")
+						.replaceAll("/\\*Begin_c8o_NgComponents\\*/","")
+						.replaceAll("/\\*End_c8o_NgComponents\\*/","")
+						.replaceAll("\r\n", "").replaceAll("\n", "")
+						.replaceAll("\t", "")
+						.replaceAll("\\s", "");
+			} catch (Exception e) {
+				e.printStackTrace();
+				moduleTplNgComponents = "";
+			}
+		}
+		return moduleTplNgComponents;
+	}
+	
 	private Map<String,String> getActionTplTsImports() {
 		if (actionTplTsImports == null) {
 			actionTplTsImports = initTplImports(new File(ionicTplDir, "src/services/actionbeans.service.ts"));
@@ -1023,6 +1110,12 @@ public class MobileBuilder {
 			if (app != null) {
 				Map<String, String> cfg_plugins = new HashMap<>();
 				
+				//Menus contributors
+				for (Contributor contributor : app.getContributors()) {
+					cfg_plugins.putAll(contributor.getConfigPlugins());
+				}
+				
+				//Pages contributors
 				List<PageComponent> pages = forceEnable ? 
 												app.getPageComponentList() :
 														getEnabledPages(app);
@@ -1072,6 +1165,12 @@ public class MobileBuilder {
 			if (app != null) {
 				Map<String, String> pkg_dependencies = new HashMap<>();
 				
+				// Menus contributors
+				for (Contributor contributor : app.getContributors()) {
+					pkg_dependencies.putAll(contributor.getPackageDependencies());
+				}
+				
+				// Pages contributors
 				List<PageComponent> pages = forceEnable ? 
 												app.getPageComponentList() :
 														getEnabledPages(app);
@@ -1113,6 +1212,13 @@ public class MobileBuilder {
 				Map<String, String> action_ts_imports = new HashMap<>();
 				Map<String, String> action_ts_functions = new HashMap<>();
 				
+				//Menus contributors
+				for (Contributor contributor : app.getContributors()) {
+					action_ts_imports.putAll(contributor.getActionTsImports());
+					action_ts_functions.putAll(contributor.getActionTsFunctions());
+				}
+				
+				//Pages contributors
 				List<PageComponent> pages = forceEnable ? 
 												app.getPageComponentList() :
 														getEnabledPages(app);
@@ -1160,10 +1266,25 @@ public class MobileBuilder {
 				String c8o_PagesDeclarations = "";
 				int i=1;
 				
+				Map<String, File> comp_beans_dirs = new HashMap<>();
 				Map<String, String> module_ts_imports = new HashMap<>();
 				Set<String> module_ng_imports =  new HashSet<String>();
 				Set<String> module_ng_providers =  new HashSet<String>();
+				Set<String> module_ng_declarations =  new HashSet<String>();
+				Set<String> module_ng_components =  new HashSet<String>();
 				
+				//Menus contributors
+				for (Contributor contributor : app.getContributors()) {
+					comp_beans_dirs.putAll(contributor.getCompBeanDir());
+
+					module_ts_imports.putAll(contributor.getModuleTsImports());
+					module_ng_imports.addAll(contributor.getModuleNgImports());
+					module_ng_providers.addAll(contributor.getModuleNgProviders());
+					module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
+					module_ng_components.addAll(contributor.getModuleNgComponents());
+				}
+				
+				//Pages contributors
 				List<PageComponent> pages = getEnabledPages(app);
 				for (PageComponent page : pages) {
 					String pageName = page.getName();
@@ -1175,9 +1296,13 @@ public class MobileBuilder {
 
 					List<Contributor> contributors = page.getContributors();
 					for (Contributor contributor : contributors) {
+						comp_beans_dirs.putAll(contributor.getCompBeanDir());
+						
 						module_ts_imports.putAll(contributor.getModuleTsImports());
 						module_ng_imports.addAll(contributor.getModuleNgImports());
 						module_ng_providers.addAll(contributor.getModuleNgProviders());
+						module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
+						module_ng_components.addAll(contributor.getModuleNgComponents());
 					}
 					
 					i++;
@@ -1218,7 +1343,33 @@ public class MobileBuilder {
 						c8o_ModuleNgProviders = System.lineSeparator() + c8o_ModuleNgProviders;
 					}
 				}
+
+				String c8o_ModuleNgDeclarations = "";
+				String tpl_ng_declarations = getModuleTplNgDeclarations();
+				if (!tpl_ng_declarations.isEmpty()) {
+					for (String declaration: module_ng_declarations) {
+						if (!tpl_ng_declarations.contains(declaration)) {
+							c8o_ModuleNgDeclarations += "\t" + declaration + "," + System.lineSeparator();
+						}
+					}
+					if (!c8o_ModuleNgDeclarations.isEmpty()) {
+						c8o_ModuleNgDeclarations = System.lineSeparator() + c8o_ModuleNgDeclarations;
+					}
+				}
 				
+				String c8o_ModuleNgComponents = "";
+				String tpl_ng_components = getModuleTplNgComponents();
+				if (!tpl_ng_components.isEmpty()) {
+					for (String component: module_ng_components) {
+						if (!tpl_ng_components.contains(component)) {
+							c8o_ModuleNgComponents += "\t" + component + "," + System.lineSeparator();
+						}
+					}
+					if (!c8o_ModuleNgComponents.isEmpty()) {
+						c8o_ModuleNgComponents = System.lineSeparator() + c8o_ModuleNgComponents;
+					}
+				}
+
 				File appModuleTpl = new File(ionicTplDir, "src/app/app.module.ts");
 				String mContent = FileUtils.readFileToString(appModuleTpl, "UTF-8");
 				mContent = mContent.replaceAll("/\\*\\=c8o_ModuleTsImports\\*/",c8o_ModuleTsImports);
@@ -1229,8 +1380,22 @@ public class MobileBuilder {
 				mContent = mContent.replaceAll("/\\*End_c8o_NgModules\\*/","");
 				mContent = mContent.replaceAll("/\\*Begin_c8o_NgProviders\\*/",c8o_ModuleNgProviders);
 				mContent = mContent.replaceAll("/\\*End_c8o_NgProviders\\*/","");
+				mContent = mContent.replaceAll("/\\*Begin_c8o_NgDeclarations\\*/",c8o_ModuleNgDeclarations);
+				mContent = mContent.replaceAll("/\\*End_c8o_NgDeclarations\\*/","");
+				mContent = mContent.replaceAll("/\\*Begin_c8o_NgComponents\\*/",c8o_ModuleNgComponents);
+				mContent = mContent.replaceAll("/\\*End_c8o_NgComponents\\*/","");
+				
 				File appModuleTsFile = new File(ionicWorkDir, "src/app/app.module.ts");
 				writeFile(appModuleTsFile, mContent, "UTF-8");
+				
+				for (String compbean : comp_beans_dirs.keySet()) {
+					File srcDir = comp_beans_dirs.get(compbean);
+					for (File f: srcDir.listFiles()) {
+						String fContent = FileUtils.readFileToString(f, "UTF-8");
+						File destFile = new File(ionicWorkDir, "src/components/"+ compbean+ "/"+ f.getName());
+						writeFile(destFile, fContent, "UTF-8");
+					}
+				}
 				
 				if (initDone) {
 					Engine.logEngine.debug("(MobileBuilder) Ionic module ts file generated for 'app'");

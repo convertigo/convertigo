@@ -246,6 +246,7 @@ public class Engine {
 	public static Logger logJobManager;
 	public static Logger logProxyManager;
 	public static Logger logScheduler;
+	public static Logger logSecurityFilter;
 	public static Logger logSecurityTokenManager;
 	public static Logger logSiteClipper;
 	public static Logger logStatistics;
@@ -386,6 +387,7 @@ public class Engine {
 			Engine.logStatistics = Logger.getLogger("cems.Statistics");
 			Engine.logScheduler = Logger.getLogger("cems.Scheduler");
 			Engine.logSiteClipper = Logger.getLogger("cems.SiteClipper");
+			Engine.logSecurityFilter = Logger.getLogger("cems.SecurityFilter");
 			Engine.logStudio = Logger.getLogger("cems.Studio");
 			Engine.logAudit = Logger.getLogger("cems.Context.Audit");
 			

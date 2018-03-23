@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -385,11 +386,15 @@ public class UICustomAction extends UIComponent implements IAction {
 				}
 			}
 			
+			String search = "import * as ts from 'typescript';";
+			if (imports.indexOf(search) == -1) {
+				imports += search + System.lineSeparator();
+			}
+			
 			jsonScripts.put("imports", imports);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-		
 		
 		DatabaseObject parent = getParent();
 		if (parent != null && !(parent instanceof IAction) && !(parent instanceof UIActionEvent)) {
@@ -449,7 +454,7 @@ public class UICustomAction extends UIComponent implements IAction {
 			computed += "\t\tlet out;" + System.lineSeparator();
 			computed += "\t\tlet event;" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
-			computed += "\t\tlet get = function(key) {let val=undefined;try {val=eval(ts.transpile(key));}catch(e){c8oPage.c8o.log.warn(\"[MB] "+functionName+": \"+e.message)}return val;}" + System.lineSeparator();
+			computed += "\t\tlet get = function(key) {let val=undefined;try {val=eval(ts.transpile('('+ key  + ')'));}catch(e){c8oPage.c8o.log.warn(\"[MB] "+functionName+": \"+e.message)}return val;}" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
 			computed += "\t\tparent = stack[\"root\"];" + System.lineSeparator();
 			computed += "\t\tevent = stack[\"root\"].out;" + System.lineSeparator();
@@ -594,6 +599,11 @@ public class UICustomAction extends UIComponent implements IAction {
 			}
 
 			@Override
+			public Map<String, File> getCompBeanDir() {
+				return new HashMap<String, File>();
+			}
+
+			@Override
 			public Map<String, String> getModuleTsImports() {
 				Map<String, String> imports = new HashMap<String, String>();
 				for (XMLVector<String> v : module_ts_imports) {
@@ -636,6 +646,16 @@ public class UICustomAction extends UIComponent implements IAction {
 				return providers;
 			}
 
+			@Override
+			public Set<String> getModuleNgDeclarations() {
+				return new HashSet<String>();
+			}
+			
+			@Override
+			public Set<String> getModuleNgComponents() {
+				return new HashSet<String>();
+			}
+			
 			@Override
 			public Map<String, String> getPackageDependencies() {
 				Map<String, String> dependencies = new HashMap<String, String>();

@@ -794,7 +794,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			            	if (isNull) {
 			            		// Overrides value by fake one used by property editor
 			            		if (value instanceof String)
-			            			value = "null";
+			            			value = "<value is null>";
 			            		if (value instanceof XMLVector) {
 			            			XMLVector<Object> xmlv = new XMLVector<Object>();
 			            			xmlv.add("null");
@@ -944,13 +944,17 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
     			Object[] values = null;
 
     			try {
+					int index = (Integer) value;
     				if (PropertyWithTagsEditorAdvance.class.isAssignableFrom(pec)) {
     					Method getTags = pec.getMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
     					values = (String[]) getTags.invoke(null, new Object[] { this, propertyName } );
-    					value = values[(Integer) value];
+    					value = values[index];
     				} else if (Enum.class.isAssignableFrom(pec)) {
     					values = (Enum[]) pec.getMethod("values").invoke(null);
-    					value = values[(Integer) value];
+    					value = index < values.length ? values[index] : values[0];
+    					if (propertyClass == String.class) {
+    						value = value.toString();
+    					}
     				}
     			} catch (ArrayIndexOutOfBoundsException e) {
     				value = values.length > 0 ? values[0] : "";

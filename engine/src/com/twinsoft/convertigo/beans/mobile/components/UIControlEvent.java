@@ -60,6 +60,7 @@ public class UIControlEvent extends UIControlAttr implements IControl {
 		ionSlideTap("(ionSlideTap)"),
 		ionSlideWillChange("(ionSlideWillChange)"),
 		ionInput("(ionInput)"),
+		ionChange("(ionChange)"),
 		ionCancel("(ionCancel)"),
 		ionClear("(ionClear)"),
 		ionPull("(ionPull)"),
@@ -99,7 +100,7 @@ public class UIControlEvent extends UIControlAttr implements IControl {
 	/*
 	 * The event to bind
 	 */
-	private String eventName = AttrEvent.onClick.name();
+	private String eventName = AttrEvent.onTap.name();
 
 	public String getEventName() {
 		return eventName;

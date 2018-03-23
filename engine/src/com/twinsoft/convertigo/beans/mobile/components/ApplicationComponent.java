@@ -24,6 +24,7 @@ package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -50,6 +51,7 @@ import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -93,6 +95,7 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		cloned.vMenuComponents = new LinkedList<UIDynamicMenu>();
 		cloned.vUIComponents = new LinkedList<UIComponent>();
 		cloned.computedContents = null;
+		cloned.contributors = null;
 		cloned.rootPage = null;
 		cloned.theme = null;
 		
@@ -463,7 +466,7 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 			pageComponent.setTitle("Title for "+ newDatabaseObjectName);
 		}
 		if (pageComponent.getSegment().isEmpty() || pageComponent.bNew) {
-			pageComponent.setSegment(newDatabaseObjectName);
+			pageComponent.setSegment("path-to-"+newDatabaseObjectName.toLowerCase());
 		}
 		super.add(pageComponent);
 		
@@ -753,6 +756,22 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
     	return c8o_version;
     }
     
+	private transient List<Contributor> contributors = null;
+	
+	public List<Contributor> getContributors() {
+		if (contributors == null) {
+			doGetContributors();
+		}
+		return contributors;
+	}
+	
+	protected void doGetContributors() {
+		contributors = new ArrayList<Contributor>();
+		for (UIDynamicMenu uiMenu : getMenuComponentList()) {
+			uiMenu.addContributors(contributors);
+		}
+	}
+    
 	private transient JSONObject computedContents = null;
 	
 	private JSONObject initJsonComputed() {
@@ -828,6 +847,15 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 				if (!(newComputedContent.getString("template")
 						.equals(oldComputedContent.getString("template")))) {
 					getProject().getMobileBuilder().appTemplateChanged(this);
+				}
+			}
+			
+			String oldContributors = contributors == null ? null: contributors.toString();
+			doGetContributors();
+			String newContributors = contributors == null ? null: contributors.toString();
+			if (oldContributors != null && newContributors != null) {
+				if (!(newComputedContent.equals(newContributors))) {
+					getProject().getMobileBuilder().appContributorsChanged(this);
 				}
 			}
 			
@@ -976,8 +1004,7 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		this.tplProjectName = tplProjectName;
 	}
 
-	private boolean hasCompatibleTemplate(String project) {
-		// TODO: to be changed after 7.5.0 release...
+	private boolean isCompatibleTemplate(String project) {
 		File tplDir = new File(Engine.PROJECTS_PATH + "/" + project + "/ionicTpl");
 		if (tplDir.exists()) {
 			if (new File(tplDir,"src/services/actionbeans.service.ts").exists()) {
@@ -993,7 +1020,7 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 			projects.add("");
 			
 			for (String project: Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false)) {
-				if (hasCompatibleTemplate(project)) {
+				if (isCompatibleTemplate(project)) {
 					projects.add(project);
 				};
 			}
@@ -1017,7 +1044,7 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		checkFolder();
 	}
 	
-	private void checkFolder() {
+	public void checkFolder() {
 		File folder = new File(getProject().getDirPath() + "/Flashupdate");
 		if (!folder.exists()) {
 			try {
@@ -1027,5 +1054,41 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 				Engine.logBeans.warn("(MobileApplication) The folder '" + folder.getAbsolutePath() + "' doesn't exist and cannot be created", e);
 			}
 		}
+		File index = new File(getParent().getResourceFolder(), "index.html");
+		if (!index.exists()) {
+			try {
+				index.getParentFile().mkdirs();
+				File templateIndex = new File(Engine.TEMPLATES_PATH, "base/index_mb.html");
+				FileUtils.copyFile(templateIndex, index);
+				
+				File indexFu = new File(getParent().getResourceFolder(), "index-fu.html");
+				if (!indexFu.exists()) {
+					FileUtils.copyFile(templateIndex, indexFu);
+				}
+			} catch (Exception e) {
+				Engine.logBeans.warn("(MobileApplication) The file '" + index.getAbsolutePath() + "' doesn't exist and cannot be created", e);
+			}
+		}
 	}
+
+	@Override
+	public String requiredCafVersion() {
+		String cafVersion = getRequiredCafVersion();
+		
+		for (UIDynamicMenu menu : getMenuComponentList()) {
+			String menuCafVersion = menu.requiredCafVersion();
+			if (MobileBuilder.compareVersions(cafVersion, menuCafVersion) <= 0) {
+				cafVersion = menuCafVersion;
+			}
+		}
+		
+		for (PageComponent page : getPageComponentList()) {
+			String pageCafVersion = page.requiredCafVersion();
+			if (MobileBuilder.compareVersions(cafVersion, pageCafVersion) <= 0) {
+				cafVersion = pageCafVersion;
+			}
+		}
+		return cafVersion;
+	}
+	
 }

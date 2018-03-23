@@ -9,11 +9,15 @@
     
     TextToSpeechAction(page: C8oPage, props, vars) : Promise<any> {
         return new Promise((resolve, reject) => {
+            
+            // Check text property
             if (props['text'] === undefined) {
-                reject("[MB] TextToSpeechAction: text cannot be undefined");
+                page.router.c8o.log.error("[MB] TextToSpeechAction: text property must be defined");
+                reject("text_undefined");
                 return;
             }
-    
+            
+            // Create option object
             let options:any = {
                     text: props['text'],
                     locale: props['locale'],
@@ -22,43 +26,51 @@
                     volume: props['volume']
             };
             
+            // If we are in device mode
             if (window['cordova'] != undefined) {
+                
                 const tts:TextToSpeech = page.getInstance(TextToSpeech);
                 const globalization:Globalization = page.getInstance(Globalization);
-            
+                
+                // Set local preference in case of non defined by user
                 if ((options.locale == undefined) || (options.locale == '')) {
                     options.locale = 'en-US';
                     globalization.getPreferredLanguage().then(result => {
                         options.locale = result.value.substring(0, 2).toLowerCase();
                     });                
                 }
-            
+                
+                // Do the job
                 tts.speak({
                     text: options.text,
                     locale: options.locale,
                     rate: options.rate
-                }).then((result: any) => {
-                    page.router.c8o.log.debug("[MB] TextToSpeechAction: ", result);
-                    resolve(result);
+                }).then(() => {
+                    page.router.c8o.log.debug("[MB] TextToSpeechAction: text spoken: " + props.text);
+                    resolve(true);
                 })
                 .catch((error: any) => {
                     page.router.c8o.log.error("[MB] TextToSpeechAction: ", error);
                     reject(error);
                 });  
-            } else {
+            } 
+            else {
                 if ('speechSynthesis' in window) {
+                    
+                    // Set local preference in case of non defined by user
                     if ((options.locale == undefined) || (options.locale == '')) {
                         options.locale = navigator['language'] || navigator['userLanguage'];
                     }
                     
-                    speechSynthesis.cancel();                    
+                    // Cancel the previous speech
+                    speechSynthesis.cancel();               
                     var utterance  = new SpeechSynthesisUtterance(options.text);
                     
                    /**
                     * because of the async loading of the languages
                     * we must wait until they are loaded
                     */
-                    var waitTimer = setInterval(function() {
+                    var waitTimer = setInterval(() => {
                         var voices = window.speechSynthesis.getVoices();
 
                         if (voices.length !== 0) {
@@ -103,18 +115,23 @@
                     
                                 try {
                                     speechSynthesis.speak(utterance);
-                                    resolve("[MB] TextToSpeechAction: spoke " + options.text);
-                                } catch(e) {
-                                    page.router.c8o.log.debug("[MB] TextToSpeechAction: ",  e);
-                                    reject("[MB] TextToSpeechAction: " + e);
+                                    page.router.c8o.log.debug("[MB] TextToSpeechAction: text spoken: " + props.text);
+                                    resolve(true);
+                                } catch(error) {
+                                    page.router.c8o.log.error("[MB] TextToSpeechAction: ", error);
+                                    reject(error);
                                 }
                             } else {
-                                reject("[MB] TextToSpeechAction: cannot find locale " + options.locale);
+                                const error = "locale_unavailable";
+                                page.router.c8o.log.error("[MB] TextToSpeechAction: "+error+ ": " + options.locale);
+                                reject(error);
                             }                            
                         }
                     }, 500);
                 } else {
-                    reject("[MB] TextToSpeechAction: browser cannot do TextToSpeech");
+                    const error = "textToSpeech_unavailable";
+                    page.router.c8o.log.error("[MB] TextToSpeechAction: "+ error);
+                    reject(error);
                 }
             }
         });

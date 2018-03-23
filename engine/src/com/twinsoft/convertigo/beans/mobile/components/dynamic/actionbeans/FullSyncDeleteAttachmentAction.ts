@@ -15,8 +15,12 @@
         params["name"] = props.name;
         return new Promise((resolve, reject)=>{
             delete props.requestable
-            if(props.docid == null || props.name == null){
-                reject("[MB] FullSyncDeleteAttachmentAction: Missing properties");
+            
+            if(props.docid == null){
+                reject("[MB] FullSyncDeleteAttachmentAction: Missing property: Document ID, " + props.docid);
+            }
+            if(props.name == null){
+                reject("[MB] FullSyncDeleteAttachmentAction: Missing property: Name ," + props.name);
             }
            
             page.getInstance(Platform).ready().then(() => {     // We may need the CBL plugin so wait for platform ready.

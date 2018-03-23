@@ -215,7 +215,7 @@ public class MobileSmartSource {
 		return null;
 	}
 	
-	public DatabaseObject getDatabaseObject(String pageName) {
+	public DatabaseObject getDatabaseObject(String dboName) {
 		List<String> sourceData = getSources();
 		String cafInput = sourceData.size() > 0 ? sourceData.get(0):null;
 		if (cafInput != null) {
@@ -227,7 +227,16 @@ public class MobileSmartSource {
 						final long priority = Long.valueOf(item.replaceFirst("item", ""), 10);
 						String projectName = getProjectName();
 						Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
-						PageComponent page = project.getMobileApplication().getApplicationComponent().getPageComponentByName(pageName);
+						
+						DatabaseObject dbo = null;
+						try {
+							dbo = project.getMobileApplication().getApplicationComponent().getPageComponentByName(dboName);
+						} catch (Exception e1) {
+							try {
+								dbo = project.getMobileApplication().getApplicationComponent().getMenuComponentByName(dboName);
+							} catch (Exception e2) {}
+						}
+						
 						final List<UIControlDirective> directiveList = new ArrayList<UIControlDirective>();
 						new WalkHelper() {
 							@Override
@@ -239,7 +248,7 @@ public class MobileSmartSource {
 									super.walk(databaseObject);
 								}
 							}
-						}.init(page);
+						}.init(dbo);
 						
 						return directiveList.isEmpty() ? null:directiveList.get(0);
 					} catch (Exception e) {
@@ -254,7 +263,16 @@ public class MobileSmartSource {
 						final long priority = Long.valueOf(form.replaceFirst("form", ""), 10);
 						String projectName = getProjectName();
 						Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
-						PageComponent page = project.getMobileApplication().getApplicationComponent().getPageComponentByName(pageName);
+						
+						DatabaseObject dbo = null;
+						try {
+							dbo = project.getMobileApplication().getApplicationComponent().getPageComponentByName(dboName);
+						} catch (Exception e1) {
+							try {
+								dbo = project.getMobileApplication().getApplicationComponent().getMenuComponentByName(dboName);
+							} catch (Exception e2) {}
+						}
+						
 						final List<UIForm> formList = new ArrayList<UIForm>();
 						new WalkHelper() {
 							@Override
@@ -266,7 +284,7 @@ public class MobileSmartSource {
 									super.walk(databaseObject);
 								}
 							}
-						}.init(page);
+						}.init(dbo);
 						
 						return formList.isEmpty() ? null:formList.get(0);
 					} catch (Exception e) {

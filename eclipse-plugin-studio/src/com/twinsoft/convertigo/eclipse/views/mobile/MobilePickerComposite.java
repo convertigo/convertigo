@@ -76,6 +76,7 @@ import org.w3c.dom.Element;
 import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Transaction;
@@ -85,6 +86,7 @@ import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.mobile.components.UIForm;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.Filter;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
@@ -120,7 +122,7 @@ public class MobilePickerComposite extends Composite {
 	private Text text;
 	private Label message;
 	private String currentSource = null;
-	private PageComponent currentPage = null;
+	private MobileComponent currentMC = null;
 	private Object lastSelected;
 	private List<TVObject> checkedList = new ArrayList<TVObject>();
 	private boolean isParentDialog = false;
@@ -436,7 +438,7 @@ public class MobilePickerComposite extends Composite {
 				filter = Filter.Iteration;
 			else if (btnForm.getSelection())
 				filter = Filter.Form;
-			String projectName = currentPage.getProject().getName();
+			String projectName = currentMC.getProject().getName();
 			String input = text.getText();
 			MobileSmartSource cs = new MobileSmartSource(filter, projectName, input);
 			String jsonString = cs.toJsonString();
@@ -554,10 +556,13 @@ public class MobilePickerComposite extends Composite {
 	
 	private void updateMessage(String msg) {
 		String msgTxt = "      ";
-		if (currentPage == null) {
-			msgTxt = msgTxt + "Please select a mobile page";
+		if (currentMC == null) {
+			msgTxt = msgTxt + "Please select a mobile Page or a Menu";
 		} else {
-			msgTxt = msgTxt + "Page : "+ currentPage.getName() + (msg != null ? " -> "+msg:"");
+			if (currentMC instanceof PageComponent)
+				msgTxt = msgTxt + "Page : "+ currentMC.getName() + (msg != null ? " -> "+msg:"");
+			else if (currentMC instanceof UIDynamicMenu)
+				msgTxt = msgTxt + "Menu : "+ currentMC.getName() + (msg != null ? " -> "+msg:"");
 		}
 		message.setText(msgTxt);
 	}
@@ -652,10 +657,17 @@ public class MobilePickerComposite extends Composite {
 					dbo = (UIControlDirective)object;
 					do {
 						UIControlDirective directive = (UIControlDirective)dbo;					
-						String pageName = directive.getPage().getName();
+						
+						String dboName = "";
+						if (directive.getPage() != null) {
+							dboName = directive.getPage().getName();
+						} else if (directive.getMenu() != null) {
+							dboName = directive.getMenu().getName();
+						}
+						
 						MobileSmartSourceType msst = directive.getSourceSmartType();
 						MobileSmartSource mss = msst.getSmartSource();
-						dbo = mss.getDatabaseObject(pageName);
+						dbo = mss.getDatabaseObject(dboName);
 						params.putAll(mss.getParameters());
 						searchPath = mss.getModelPath().replaceAll("\\?\\.", ".") + searchPath;
 					} while (dbo != null && dbo instanceof UIControlDirective);
@@ -903,24 +915,24 @@ public class MobilePickerComposite extends Composite {
 	public void setCurrentInput(Object selected, String source) {
 		if (isUpdating) return;
 		
-		currentPage = null;
+		currentMC = null;
 		setWidgetsEnabled(true);
 		
 		if (selected instanceof MobileComponentTreeObject) {
 			UIComponent uic = null;
 			if (selected instanceof MobilePageComponentTreeObject) {
-				currentPage = ((MobilePageComponentTreeObject) selected).getObject();
+				currentMC = ((MobilePageComponentTreeObject) selected).getObject();
 			} else if (selected instanceof MobileUIComponentTreeObject) {
 				uic = ((MobileUIComponentTreeObject) selected).getObject();
-				currentPage = uic.getPage();
+				currentMC = uic.getPage() == null ? uic.getMenu() : uic.getPage();
 			}
 			
-			if (currentPage == null) {
+			if (currentMC == null) {
 				resetViewers();
 			} else {
-				if (!currentPage.equals(checkboxTreeViewer.getInput())) {
+				if (!currentMC.equals(checkboxTreeViewer.getInput())) {
 					resetViewers();
-					checkboxTreeViewer.setInput(currentPage);
+					checkboxTreeViewer.setInput(currentMC);
 					initTreeSelection(checkboxTreeViewer, null);
 				}
 				
