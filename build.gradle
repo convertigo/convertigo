@@ -87,7 +87,7 @@ allprojects {
 
 project(':eclipse-plugin-jxbrowser-linux64') {
 	dependencies {
-		runtime 'com.teamdev.jxbrowser:jxbrowser-linux64:6.18', { exclude module: 'jxbrowser'}
+		runtime 'com.teamdev.jxbrowser:jxbrowser-linux64:6.19.1', { exclude module: 'jxbrowser'}
 	}
 	
 	task writeManifest(dependsOn: syncLib) {
@@ -111,7 +111,7 @@ project(':eclipse-plugin-jxbrowser-linux64') {
 
 project(':eclipse-plugin-jxbrowser-mac') {
 	dependencies {
-		runtime 'com.teamdev.jxbrowser:jxbrowser-mac:6.18', { exclude module: 'jxbrowser'}
+		runtime 'com.teamdev.jxbrowser:jxbrowser-mac:6.19.1', { exclude module: 'jxbrowser'}
 	}
 	
 	task writeManifest(dependsOn: syncLib) {
@@ -135,7 +135,7 @@ project(':eclipse-plugin-jxbrowser-mac') {
 
 project(':eclipse-plugin-jxbrowser-win') {
 	dependencies {
-		runtime 'com.teamdev.jxbrowser:jxbrowser-win:6.18', { exclude module: 'jxbrowser'}
+		runtime 'com.teamdev.jxbrowser:jxbrowser-win:6.19.1', { exclude module: 'jxbrowser'}
 	}
 	
 	task writeManifest(dependsOn: syncLib) {
@@ -199,7 +199,7 @@ project(':eclipse-plugin-studio') {
 	dependencies {
 		runtime project(':engine')
 		runtime 'com.convertigo.lib:jxbrowser-license:2017.04.26'
-		runtime 'com.teamdev.jxbrowser:jxbrowser:6.18'
+		runtime 'com.teamdev.jxbrowser:jxbrowser:6.19.1'
 		runtime 'org.apache.tomcat.embed:tomcat-embed-core:7.0.82'
 		runtime 'org.apache.tomcat.embed:tomcat-embed-logging-log4j:7.0.82'
 		runtime 'org.apache.tomcat:tomcat-dbcp:7.0.82'

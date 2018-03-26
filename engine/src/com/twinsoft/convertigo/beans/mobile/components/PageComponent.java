@@ -49,6 +49,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIPageEvent.ViewEvent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -777,7 +778,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISt
 		String cafVersion = getRequiredCafVersion();
 		for (UIComponent uic : getUIComponentList()) {
 			String uicCafVersion = uic.requiredCafVersion();
-			if (compareVersions(cafVersion, uicCafVersion) <= 0) {
+			if (MobileBuilder.compareVersions(cafVersion, uicCafVersion) <= 0) {
 				cafVersion = uicCafVersion;
 			}
 		}
