@@ -1,0 +1,45 @@
+{
+	"comment": "This file configures URL filters for security. Enabled by the 'security.filter' of 'engine.properties'",
+	"samples": [
+		{
+			"comment"        : "All fields sample. If ip/uri/port are defined, their regular expressions must 'find' to apply the rule",
+			"enabled"        : true,
+			"enabled_comment": "[optional] default true: false skip this rule",
+			"ip"             : "^127\.0\.0\.1$|^0:.*:1$",
+			"ip_comment"     : "[optional] regular expression of the incoming IP",
+			"uri"            : "^/admin",
+			"uri_comment"    : "[optional] regular expression of the incoming request path",
+			"port"           : "^18080$",
+			"port_comment"   : "[optional] regular expression of the currently used port",
+			"accept"         : false,
+			"accept_comment" : "[optional] default false: in case of rule apply, true will execute the request, false will return a failure",
+			"status"         : 500,
+			"status_comment" : "[optional] default 404: in case of rule apply and accept is false, return this HTTP status code" 
+		},
+		{
+			"comment": "All fields with default value (drops all requests)",
+			"enabled": true,
+			"ip"     : "",
+			"uri"    : "",
+			"port"   : "",
+			"accept" : false,
+			"status" : 404 
+		}
+	],
+	"rules": [
+		{
+			"comment": "Allows all for the admin port",
+			"port"   : "^28081$",
+			"accept" : true
+		},
+		{
+			"comment": "Allows logs.Add for the remote log feature",
+			"uri"    : "^/admin/services/logs.Add$",
+			"accept" : true
+		},
+		{
+			"comment": "Hide all admin and testplatform for all other ports",
+			"uri"    : "^/admin/|^/[^/]+.html|^/$"
+		}
+	]
+}

@@ -249,10 +249,10 @@ function endWait() {
 	$("#progressBarDialog").dialog("close");
 }
 
-function showError(message, javaStackTrace) {
+function showError(message, javaStackTrace, callback) {
 	$("#dlgErrorMessage").html(message);
 	
-	if(typeof(javaStackTrace) === "undefined"){
+	if(typeof(javaStackTrace) == "undefined"){
 		$("#dlgErrorJavaStackTraceTitle").hide();
 		$("#dlgErrorJavaStackTrace").empty();
 	}else{
@@ -260,7 +260,11 @@ function showError(message, javaStackTrace) {
 		$("#dlgErrorJavaStackTraceTitle").show();
 	}	
 	
-	$("#dlgError").dialog("open").parent().css("width", "auto");
+	$("#dlgError").dialog("open").on("dialogclose", function () {
+		if (typeof(callback) == "function") {
+			callback();
+		}
+	}).parent().css("width", "auto");
 }
 
 function showInfo(message) {

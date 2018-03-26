@@ -11,14 +11,20 @@
             let p:string = q.substring(q.lastIndexOf('.')+1);
             let data = props.data ? props.data: {} 
         
-            let Popover = page.getInstance(PopoverController)
-            Popover.create(page.getPageByName(p), data, {
+            let PopoverCtrl = page.getInstance(PopoverController)
+            let pop = PopoverCtrl.create(page.getPageByName(p), data, {
                 showBackdrop            : props.showBackdrop,
                 enableBackdropDismiss   : props.enableBackdropDismiss,
                 cssClass                : props.cssClass
-            }).present({ev: props.event}).then((data) => {
+            })
+            
+            pop.onDidDismiss((data) => {
+                page.c8o.log.debug("[MB] Popover Dismissed: " + JSON.stringify(data));
+                resolve(data)
+            })
+            
+            pop.present({ev: props.event}).then((data) => {
                 page.c8o.log.debug("[MB] Popover Page displayed: " + JSON.stringify(data));
-                resolve();
             })
         });
     }

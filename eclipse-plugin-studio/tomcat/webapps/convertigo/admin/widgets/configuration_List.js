@@ -265,9 +265,11 @@ function updateConfiguration () {
 			showInfo("The configuration has been successfully updated!");
 			propertyMap = {};
 			$(".config-update").button("disable");
-		}, domToString2(xmlDoc), function() {
-			propertyMap = {};
-			$(".config-update").button("disable");
+		}, domToString2(xmlDoc), function(xml) {
+			var $xml = $(xml);
+			showError($xml.find("message:first").text(), undefined, function () {
+				window.location.reload();				
+			});
 		}, {contentType : "application/xml"});
 	} else {
 		$(".config-update").button("disable");

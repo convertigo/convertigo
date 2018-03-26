@@ -40,6 +40,7 @@ import com.twinsoft.convertigo.beans.core.IEnableAble;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
 @DboCategoryInfo(
 		getCategoryId = "UIComponent",
@@ -424,7 +425,7 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		String cafVersion = getRequiredCafVersion();
 		for (UIComponent uic : getUIComponentList()) {
 			String uicCafVersion = uic.requiredCafVersion();
-			if (compareVersions(cafVersion, uicCafVersion) <= 0) {
+			if (MobileBuilder.compareVersions(cafVersion, uicCafVersion) <= 0) {
 				cafVersion = uicCafVersion;
 			}
 		}
