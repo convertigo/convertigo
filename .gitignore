@@ -19,3 +19,4 @@ META-INF
 /workspace
 /eclipse-plugin-studio/src/com/twinsoft/convertigo/eclipse/wizards/setup/license.txt
 /eclipse-plugin-studio/tomcat/webapps/convertigo/licenses/license.txt
+/eclipse-plugin-studio/tomcat/work/*
