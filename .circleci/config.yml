@@ -303,32 +303,24 @@ jobs:
         key: v2-dependencies-studio-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
         
     - run: |
+        source /tmp/build.env
         if [ -d eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86_64 ]; then
-            source /tmp/build.env
-            mv eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86_64 convertigo-studio-$CONVERTIGO_VERSION-win64
-            7z a -mx=2 -bd -bb0 -sfx7zConWin64.sfx $CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-win64.exe convertigo-studio-$CONVERTIGO_VERSION-win64
+            makensis -DConvertigoVersion=$CONVERTIGO_VERSION -DArch=x86_64 -DOutFile=$CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-win64.exe installers/nsis/studio.nsi &
         fi
-        
-    - run: |
         if [ -d eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86 ]; then
-            source /tmp/build.env
-            mv eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86 convertigo-studio-$CONVERTIGO_VERSION-win32
-            7z a -mx=2 -bd -bb0 -sfx7zConWin32.sfx $CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-win32.exe convertigo-studio-$CONVERTIGO_VERSION-win32
+            makensis -DConvertigoVersion=$CONVERTIGO_VERSION -DArch=x86 -DOutFile=$CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-win32.exe installers/nsis/studio.nsi &
         fi
-        
-    - run: |
         if [ -d eclipse-repository/target/products/com.convertigo.studio/linux/gtk/x86_64 ]; then
-            source /tmp/build.env
             mv eclipse-repository/target/products/com.convertigo.studio/linux/gtk/x86_64 convertigo-studio-$CONVERTIGO_VERSION-linux64
-            tar -I "gzip --fast" -cf $CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-linux64.tar.gz convertigo-studio-$CONVERTIGO_VERSION-linux64
+            tar -I "gzip --fast" -cf $CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-linux64.tar.gz convertigo-studio-$CONVERTIGO_VERSION-linux64 &
         fi
-        
-    - run: |
         if [ -d eclipse-repository/target/products/com.convertigo.studio/macosx/cocoa/x86_64 ]; then
-            source /tmp/build.env
             mv eclipse-repository/target/products/com.convertigo.studio/macosx/cocoa/x86_64 convertigo-studio-$CONVERTIGO_VERSION-macosx
-            tar -I "gzip --fast" -cf $CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-macosx.tar.gz convertigo-studio-$CONVERTIGO_VERSION-macosx
+            tar -I "gzip --fast" -cf $CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-macosx.tar.gz convertigo-studio-$CONVERTIGO_VERSION-macosx &
         fi
+        for job in $(jobs -p); do
+            wait $job
+        done
         
     - run: aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read ~/s3 s3://convertigo-ci/
     
