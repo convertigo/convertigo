@@ -34,6 +34,7 @@ import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType.Mod
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
+import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class UIDynamicMenuItem extends UIDynamicElement implements ITagsProperty {
@@ -59,30 +60,41 @@ public class UIDynamicMenuItem extends UIDynamicElement implements ITagsProperty
 	public void preconfigure(Element element) throws Exception {
 		super.preconfigure(element);
 		
-		try {
-			NodeList properties = element.getElementsByTagName("property");
-			
-			// If needed: migration of itemtitle from MobileSmartSourceType to String (scriptable)
-			Element propElement = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "itemtitle");
-			if (propElement != null) {
-				Element valueElement = (Element) XMLUtils.findChildNode(propElement, Node.ELEMENT_NODE);
-				if (valueElement != null) {
-					Document document = valueElement.getOwnerDocument();
-					Object content = XMLUtils.readObjectFromXml(valueElement);
-					if (content instanceof MobileSmartSourceType) {
-						MobileSmartSourceType itemTitle = (MobileSmartSourceType) content;
-						String itemText = Mode.PLAIN.equals(itemTitle.getMode()) ? "'"+itemTitle.getSmartValue()+"'" : itemTitle.getSmartValue();
-						Element newValueElement = (Element)XMLUtils.writeObjectToXml(document, itemText);
-						propElement.replaceChild(newValueElement, valueElement);
-						hasChanged = true;
-						Engine.logBeans.warn("(UIDynamicMenuItem) 'itemtitle' has been updated for the object \"" + getName() + "\"");
+		String version = element.getAttribute("version");
+
+		if (VersionUtils.compare(version, "7.5.1") < 0) {
+			try {
+				NodeList properties = element.getElementsByTagName("property");
+				
+				// If needed: migration of itemtitle from MobileSmartSourceType to String (scriptable)
+				Element propElement = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "itemtitle");
+				if (propElement != null) {
+					Element valueElement = (Element) XMLUtils.findChildNode(propElement, Node.ELEMENT_NODE);
+					if (valueElement != null) {
+						Document document = valueElement.getOwnerDocument();
+						Object content = XMLUtils.readObjectFromXml(valueElement);
+						if (content instanceof MobileSmartSourceType) {
+							MobileSmartSourceType itemTitle = (MobileSmartSourceType) content;
+							String itemText = Mode.PLAIN.equals(itemTitle.getMode()) ? "'"+itemTitle.getSmartValue()+"'" : itemTitle.getSmartValue();
+							Element newValueElement = (Element)XMLUtils.writeObjectToXml(document, itemText);
+							propElement.replaceChild(newValueElement, valueElement);
+							hasChanged = true;
+							Engine.logBeans.warn("(UIDynamicMenuItem) 'itemtitle' has been updated for the object \"" + getName() + "\"");
+						} else if (content instanceof String) {
+							String itemTitle = (String) content;
+							String itemText = "'"+itemTitle+"'";
+							Element newValueElement = (Element)XMLUtils.writeObjectToXml(document, itemText);
+							propElement.replaceChild(newValueElement, valueElement);
+							hasChanged = true;
+							Engine.logBeans.warn("(UIDynamicMenuItem) 'itemtitle' has been updated for the object \"" + getName() + "\"");
+						}
 					}
 				}
 			}
+	        catch(Exception e) {
+	            throw new EngineException("Unable to preconfigure the menuitem component \"" + getName() + "\".", e);
+	        }
 		}
-        catch(Exception e) {
-            throw new EngineException("Unable to preconfigure the menuitem component \"" + getName() + "\".", e);
-        }
 	}
 
 	@Override
