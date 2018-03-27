@@ -58,7 +58,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 		getCategoryName = "Page",
 		getIconClassCSS = "convertigo-action-newPageComponent"
 	)
-public class PageComponent extends MobileComponent implements ITagsProperty, IStyleGenerator, ITemplateGenerator, IScriptGenerator, IContainerOrdered, IEnableAble {
+public class PageComponent extends MobileComponent implements ITagsProperty, IScriptComponent, IStyleGenerator, ITemplateGenerator, IScriptGenerator, IContainerOrdered, IEnableAble {
 
 	private static final long serialVersionUID = 188562781669238824L;
 	
@@ -80,7 +80,6 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISt
 		cloned.newPriority = newPriority;
 		cloned.vUIComponents = new LinkedList<UIComponent>();
 		cloned.pageImports = new HashMap<String, String>();
-		cloned.pageFunctions = new HashMap<String, String>();
 		cloned.computedContents = null;
 		cloned.contributors = null;
 		cloned.isRoot = false;
@@ -431,7 +430,6 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISt
 	}
 	
 	private transient Map<String, String> pageImports = new HashMap<String, String>();
-	private transient Map<String, String> pageFunctions = new HashMap<String, String>();
 	
 	private boolean hasImport(String name) {
 		return pageImports.containsKey(name) ||
@@ -443,18 +441,6 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISt
 			synchronized (pageImports) {
 				if (!hasImport(name)) {
 					pageImports.put(name, path);
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-	
-	public boolean addFunction(String name, String code) {
-		if (name != null && code != null && !name.isEmpty() && !code.isEmpty()) {
-			synchronized (pageFunctions) {
-				if (!pageFunctions.containsKey(name)) {
-					pageFunctions.put(name, code);
 					return true;
 				}
 			}
@@ -517,7 +503,6 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISt
 	protected synchronized void doComputeContents() {
 		try {
 			pageImports.clear();
-			pageFunctions.clear();
 			JSONObject newComputedContent = initJsonComputed();
 			
 			JSONObject jsonScripts = newComputedContent.getJSONObject("scripts");

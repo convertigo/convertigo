@@ -140,16 +140,16 @@ public class UIForm extends UIElement {
 	public void computeScripts(JSONObject jsonScripts) {
 		if (isEnabled()) {
 			try {
-				PageComponent page = getPage();
+				IScriptComponent main = getMainScriptComponent();
 				
 				String imports = jsonScripts.getString("imports");
-				if (page.addImport("FormGroup", "@angular/forms")) {
+				if (main.addImport("FormGroup", "@angular/forms")) {
 					imports += "import { FormGroup } from '@angular/forms';" + System.lineSeparator();
 				}
-				if (page.addImport("FormControl", "@angular/forms")) {
+				if (main.addImport("FormControl", "@angular/forms")) {
 					imports += "import { FormControl } from '@angular/forms';" + System.lineSeparator();
 				}
-				if (page.addImport("Validators", "@angular/forms")) {
+				if (main.addImport("Validators", "@angular/forms")) {
 					imports += "import { Validators } from '@angular/forms';" + System.lineSeparator();
 				}
 				
