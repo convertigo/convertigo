@@ -19,6 +19,7 @@ SetCompressor /FINAL lzma
 
 !ifndef Arch
  !error "Missing Arch (x86, x86_64)
+!endif
 
 !define COMPANY "Convertigo Mobility Platform"
 !define URL http://www.convertigo.com
@@ -100,7 +101,7 @@ SectionEnd
 Function .onInit
     InitPluginsDir
     Push $R1
-    File "/oname=$PLUGINSDIR\spltmp.bmp" "..\data\splash.bmp"
+    File "/oname=$PLUGINSDIR\spltmp.bmp" "..\..\eclipse-plugin-product\splash.bmp"
     advsplash::show 1000 1000 1000 -1 $PLUGINSDIR\spltmp
     Pop $R1
     Pop $R1

@@ -305,10 +305,10 @@ jobs:
     - run: |
         source /tmp/build.env
         if [ -d eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86_64 ]; then
-            makensis -DConvertigoVersion=$CONVERTIGO_VERSION -DArch=x86_64 -DOutFile=$CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-win64.exe installers/nsis/studio.nsi &
+            makensis -V1 -DConvertigoVersion=$CONVERTIGO_VERSION_NUMBER -DArch=x86_64 -DOutFile=$CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-win64.exe installers/nsis/studio.nsi &
         fi
         if [ -d eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86 ]; then
-            makensis -DConvertigoVersion=$CONVERTIGO_VERSION -DArch=x86 -DOutFile=$CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-win32.exe installers/nsis/studio.nsi &
+            makensis -V1 -DConvertigoVersion=$CONVERTIGO_VERSION_NUMBER -DArch=x86 -DOutFile=$CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-win32.exe installers/nsis/studio.nsi &
         fi
         if [ -d eclipse-repository/target/products/com.convertigo.studio/linux/gtk/x86_64 ]; then
             mv eclipse-repository/target/products/com.convertigo.studio/linux/gtk/x86_64 convertigo-studio-$CONVERTIGO_VERSION-linux64
