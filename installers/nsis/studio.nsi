@@ -6,7 +6,7 @@
 
 Name "${APPNAME}"
 
-SetCompressor /FINAL lzma
+SetCompressor /FINAL zlib
 
 # Defines
 !ifndef ConvertigoVersion
@@ -18,7 +18,7 @@ SetCompressor /FINAL lzma
 !endif
 
 !ifndef Arch
- !error "Missing Arch (x86, x86_64)
+ !error "Missing Arch (x86, x86_64)"
 !endif
 
 !define COMPANY "Convertigo Mobility Platform"
