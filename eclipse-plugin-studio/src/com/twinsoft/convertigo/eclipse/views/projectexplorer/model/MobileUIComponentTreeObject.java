@@ -52,6 +52,7 @@ import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
+import com.twinsoft.convertigo.beans.mobile.components.IScriptComponent;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
@@ -110,28 +111,29 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			openCssFileEditor();
 		} else if (uic instanceof UICustomAction) {
 			String functionMarker = "function:"+ ((UICustomAction)uic).getActionName();
-			editPageFunction(uic, functionMarker, "actionValue");
+			editFunction(uic, functionMarker, "actionValue");
 		} else if (uic instanceof UIFormCustomValidator) {
 			String functionMarker = "function:"+ ((UIFormCustomValidator)uic).getValidatorName();
-			editPageFunction(uic, functionMarker , "validatorValue");
+			editFunction(uic, functionMarker , "validatorValue");
 		} else {
 			super.launchEditor(editorType);
 		}
 	}
 	
-	private void editPageFunction(final UIComponent uic, final String functionMarker, final String propertyName) {
-		final PageComponent page = uic.getPage();
+	private void editFunction(final UIComponent uic, final String functionMarker, final String propertyName) {
 		try {
+			IScriptComponent main = uic.getMainScriptComponent();
+			
 			// Refresh project resources for editor
-			String projectName = page.getProject().getName();
+			String projectName = uic.getProject().getName();
 			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
 			project.refreshLocal(IResource.DEPTH_INFINITE, null);
 			
 			// Close editor and Reopen it after file has been rewritten
-			String relativePath = page.getProject().getMobileBuilder().getFunctionTempTsRelativePath(page);
+			String relativePath = uic.getProject().getMobileBuilder().getFunctionTempTsRelativePath(main);
 			IFile file = project.getFile(relativePath);
 			closeComponentFileEditor(file);
-			page.getProject().getMobileBuilder().writeFunctionTempTsFile(page, functionMarker);
+			uic.getProject().getMobileBuilder().writeFunctionTempTsFile(main, functionMarker);
 			file.refreshLocal(IResource.DEPTH_ZERO, null);
 			
 			// Open file in editor
@@ -184,7 +186,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 				}			
 			}
 		} catch (Exception e) {
-			ConvertigoPlugin.logException(e, "Unable to edit function for page '" + page.getName() + "'!");
+			ConvertigoPlugin.logException(e, "Unable to edit function for '"+ uic.getName() +"' component!");
 		}
 	}
 	
