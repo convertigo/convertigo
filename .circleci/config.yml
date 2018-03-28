@@ -271,6 +271,41 @@ jobs:
     - run: |
         source /tmp/build.env
         aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/.. s3://convertigo-ci/
+
+  download_jre:
+    <<: *defaults
+    
+    docker:
+    - image: circleci/openjdk:8-jdk
+    
+    steps:
+    
+    - restore_cache:
+        keys:
+        - v1-git-{{ .Revision }}
+        - v1-git-
+        
+    - checkout
+    
+    - restore_cache:
+        keys:
+        - v1-jre-{{ checksum "installers/nsis/download-jdk.sh" }}
+    
+    - run: |
+        if [ ! -d /tmp/c8o_jre ] ; then
+            JDK_ARCH=x86 sh installers/nsis/download-jdk.sh
+            JDK_ARCH=x86_64 sh installers/nsis/download-jdk.sh
+            for job in $(jobs -p); do
+                wait $job
+            done
+        fi
+        ls -lh /tmp/c8o_jre 
+        du -sh /tmp/c8o_jre
+    
+    - save_cache:
+        paths:
+        - /tmp/c8o_jre
+        key: v1-jre-{{ checksum "installers/nsis/download-jdk.sh" }}
     
   build_studio:
     <<: *defaults
@@ -301,13 +336,34 @@ jobs:
           - ~/.gradle
           - .gradle
         key: v2-dependencies-studio-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+
+    - restore_cache:
+        keys:
+        - v1-jre-{{ checksum "installers/nsis/download-jdk.sh" }}
         
+    - run: |
+        if [ ! -d /tmp/c8o_jre ] ; then
+            JDK_ARCH=x86 sh installers/nsis/download-jdk.sh &
+            JDK_ARCH=x86_64 sh installers/nsis/download-jdk.sh &
+            for job in $(jobs -p); do
+                wait $job
+            done
+        fi
+        du -sh /tmp/c8o_jre/*
+        
+    - save_cache:
+        paths:
+        - /tmp/c8o_jre
+        key: v1-jre-{{ checksum "installers/nsis/download-jdk.sh" }}
+                
     - run: |
         source /tmp/build.env
         if [ -d eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86_64 ]; then
+            mv /tmp/c8o_jre/x86_64 eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86_64/jre
             makensis -V1 -DConvertigoVersion=$CONVERTIGO_VERSION_NUMBER -DArch=x86_64 -DOutFile=$CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-win64.exe installers/nsis/studio.nsi &
         fi
         if [ -d eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86 ]; then
+            mv /tmp/c8o_jre/x86 eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86/jre
             makensis -V1 -DConvertigoVersion=$CONVERTIGO_VERSION_NUMBER -DArch=x86 -DOutFile=$CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-win32.exe installers/nsis/studio.nsi &
         fi
         if [ -d eclipse-repository/target/products/com.convertigo.studio/linux/gtk/x86_64 ]; then
