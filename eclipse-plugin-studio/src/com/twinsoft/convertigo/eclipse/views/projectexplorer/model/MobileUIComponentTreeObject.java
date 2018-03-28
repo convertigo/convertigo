@@ -52,6 +52,7 @@ import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
+import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.IScriptComponent;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
@@ -133,6 +134,14 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			String relativePath = uic.getProject().getMobileBuilder().getFunctionTempTsRelativePath(main);
 			IFile file = project.getFile(relativePath);
 			closeComponentFileEditor(file);
+			
+			if (main instanceof ApplicationComponent) {
+				if (uic.compareToTplCafVersion("1.0.101") < 0) {
+					ConvertigoPlugin.logError("The ability to use forms or actions inside a menu is avalaible since 7.5.2 version."
+							+ "\nPlease change your Template project for the 'mobilebuilder_tpl_7_5_2' template.", true);
+					return;
+				}
+			}
 			uic.getProject().getMobileBuilder().writeFunctionTempTsFile(main, functionMarker);
 			file.refreshLocal(IResource.DEPTH_ZERO, null);
 			
