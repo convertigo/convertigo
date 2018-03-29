@@ -141,11 +141,11 @@ public class InternalRequester extends GenericRequester {
 	
 	@Override
     public void initContext(Context context) throws Exception {
-    	super.initContext(context);
-
     	if (httpServletRequest != null) {
     		context.setRequest(httpServletRequest);
     	}
+    	
+    	super.initContext(context);
     	
     	Map<String, Object> request = GenericUtils.cast(inputData);
 
