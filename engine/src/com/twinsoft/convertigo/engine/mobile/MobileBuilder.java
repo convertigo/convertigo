@@ -1088,8 +1088,7 @@ public class MobileBuilder {
 		Map<String, String> map = new HashMap<String, String>(10);
 		try {
 			String tsContent = FileUtils.readFileToString(file, "UTF-8");
-			//Pattern pattern = Pattern.compile("[\\s\\t]*import[\\s\\t]*\\{(.*)\\}[\\s\\t]*from[\\s\\t]*['\"](.*)['\"]", Pattern.DOTALL);
-			Pattern pattern = Pattern.compile("[\\s\\t]*import[\\s\\t]*\\{(.*)\\}[\\s\\t]*from[\\s\\t]*['\"](.*)['\"]");
+			Pattern pattern = Pattern.compile("[\\s\\t]*import[\\s\\t]*\\{(.*?)\\}[\\s\\t]*from[\\s\\t]*['\"](.*?)['\"]", Pattern.DOTALL);
 			Matcher matcher = pattern.matcher(tsContent);
 			while (matcher.find()) {
 				String names = matcher.group(1);
