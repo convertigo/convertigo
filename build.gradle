@@ -15,20 +15,24 @@ buildscript {
 import com.monochromeroad.gradle.plugin.aws.s3.S3Sync
 
 apply plugin: 'eclipse'
+apply plugin: 'maven-publish'
+
+def convertigoVersion = '7.6.0'
+def convertigoTag = 'beta'
+def convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
+def jxBrowserVersion = '6.19.1'
+
+def convertigoEngineAPI = '7.6.0-SNAPSHOT'
+
+task updateVersion(dependsOn: [':engine:updateProductVersion', 'writeManifest']) {
+	group 'convertigo'
+	description 'Run this task after a Convertigo version change.'
+}
 
 eclipse {
 	project {
 		comment = 'Main project to develop the Convertigo platform'
 	}
-}
-
-def convertigoVersion = '7.6.0'
-def convertigoTag = 'beta'
-def convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
-
-task updateVersion(dependsOn: [':engine:updateProductVersion', 'writeManifest']) {
-	group 'convertigo'
-	description 'Run this task after a Convertigo version change.'
 }
 
 allprojects {
@@ -85,9 +89,50 @@ allprojects {
 	}
 }
 
+publishing {
+	publications {
+		engineApi (MavenPublication) {
+			groupId 'com.convertigo.lib'
+			artifactId 'convertigo-engine-api'
+			version convertigoEngineAPI
+			artifact project('engine').engineApiJar
+			pom.withXml {
+				def dependencies = asNode().appendNode('dependencies')
+				[
+					'com.convertigo.twinsoft:api:2017.12.29',
+					'com.convertigo.twinsoft:tas:2017.12.29',
+					'com.convertigo.twinsoft:util:2017.12.29',
+					'commons-io:commons-io:[2.2,)',
+					'javax.servlet:servlet-api:2.5',
+					'log4j:log4j:[1.2,)',
+					'org.apache.commons:commons-lang3:[3,)',
+					'org.apache.httpcomponents:httpclient:[4.5,)',
+					'org.codehaus.jettison:jettison:[1.3,)'
+				].each {
+					def values = it.split(':')
+					def dependency = dependencies.appendNode('dependency')
+					dependency.appendNode('groupId', values[0])
+					dependency.appendNode('artifactId', values[1])
+					dependency.appendNode('version', values[2])
+				}
+			}
+		}
+	}
+	
+	repositories {
+		maven {
+			url project.properties['c8o.m2.url']
+			credentials(AwsCredentials) {
+				accessKey project.properties['c8o.m2.ak']
+				secretKey project.properties['c8o.m2.sk']
+			}
+		}
+	}
+}
+
 project(':eclipse-plugin-jxbrowser-linux64') {
 	dependencies {
-		runtime 'com.teamdev.jxbrowser:jxbrowser-linux64:6.19.1', { exclude module: 'jxbrowser'}
+		runtime 'com.teamdev.jxbrowser:jxbrowser-linux64:' + jxBrowserVersion, { exclude module: 'jxbrowser'}
 	}
 	
 	task writeManifest(dependsOn: syncLib) {
@@ -111,7 +156,7 @@ project(':eclipse-plugin-jxbrowser-linux64') {
 
 project(':eclipse-plugin-jxbrowser-mac') {
 	dependencies {
-		runtime 'com.teamdev.jxbrowser:jxbrowser-mac:6.19.1', { exclude module: 'jxbrowser'}
+		runtime 'com.teamdev.jxbrowser:jxbrowser-mac:' + jxBrowserVersion, { exclude module: 'jxbrowser'}
 	}
 	
 	task writeManifest(dependsOn: syncLib) {
@@ -135,7 +180,7 @@ project(':eclipse-plugin-jxbrowser-mac') {
 
 project(':eclipse-plugin-jxbrowser-win') {
 	dependencies {
-		runtime 'com.teamdev.jxbrowser:jxbrowser-win:6.19.1', { exclude module: 'jxbrowser'}
+		runtime 'com.teamdev.jxbrowser:jxbrowser-win:' + jxBrowserVersion, { exclude module: 'jxbrowser'}
 	}
 	
 	task writeManifest(dependsOn: syncLib) {
@@ -199,7 +244,7 @@ project(':eclipse-plugin-studio') {
 	dependencies {
 		runtime project(':engine')
 		runtime 'com.convertigo.lib:jxbrowser-license:2017.04.26'
-		runtime 'com.teamdev.jxbrowser:jxbrowser:6.19.1'
+		runtime 'com.teamdev.jxbrowser:jxbrowser:' + jxBrowserVersion
 		runtime 'org.apache.tomcat.embed:tomcat-embed-core:7.0.82'
 		runtime 'org.apache.tomcat.embed:tomcat-embed-logging-log4j:7.0.82'
 		runtime 'org.apache.tomcat:tomcat-dbcp:7.0.82'
@@ -293,6 +338,10 @@ project(':engine') {
 			natures 'org.eclipse.buildship.core.gradleprojectnature'
 			buildCommand 'org.eclipse.buildship.core.gradleprojectbuilder'
 			linkedResource name: 'convertigo', type: '2', locationUri: '$%7BPARENT-1-PROJECT_LOC%7D/eclipse-plugin-studio/tomcat/webapps/convertigo'
+			linkedResource name: 'src/com/twinsoft/convertigo/engine/parsers', type: '2', locationUri: '$%7BPARENT-2-PROJECT_LOC%7D/convertigo-provider-xul/src/com/twinsoft/convertigo/engine/parsers'
+			linkedResource name: 'src/com/twinsoft/convertigo/engine/plugins', type: '2', locationUri: '$%7BPARENT-2-PROJECT_LOC%7D/convertigo-provider-plugins/src/com/twinsoft/convertigo/engine/plugins'
+			linkedResource name: 'src/com/twinsoft/convertigo/engine/providers/couchdb', type: '2', locationUri: '$%7BPARENT-2-PROJECT_LOC%7D/convertigo-provider-couchdb/src/com/twinsoft/convertigo/engine/providers/couchdb'
+			linkedResource name: 'src/com/twinsoft/convertigo/engine/providers/sapjco', type: '2', locationUri: '$%7BPARENT-2-PROJECT_LOC%7D/convertigo-provider-sap/src/com/twinsoft/convertigo/engine/providers/sapjco'
 		}
 	
 		wtp {
@@ -336,10 +385,18 @@ project(':engine') {
 	sourceSets {
 		main {
 			java {
+				exclude 'com/twinsoft/convertigo/engine/plugins/EnvoiSMSBiller.java'
+				exclude 'com/twinsoft/convertigo/engine/plugins/InfogreffeBiller.java'
+				exclude 'com/twinsoft/convertigo/engine/plugins/InseeBiller.java'
+				exclude 'com/twinsoft/convertigo/engine/plugins/LCABiller.java'
 				srcDir 'src'
 				srcDir 'patch'
 			}
 			resources {
+				exclude 'com/twinsoft/convertigo/engine/plugins/EnvoiSMSBiller.java'
+				exclude 'com/twinsoft/convertigo/engine/plugins/InfogreffeBiller.java'
+				exclude 'com/twinsoft/convertigo/engine/plugins/InseeBiller.java'
+				exclude 'com/twinsoft/convertigo/engine/plugins/LCABiller.java'
 				srcDir 'src'
 			}
 		}
@@ -353,10 +410,10 @@ project(':engine') {
 		compile 'com.convertigo.lib:sapjco:3'
 		compile 'com.convertigo.lib:soapui-xmlbeans:3.5.1'
 		compile 'com.convertigo.lib:soapui:3.5.1'
-		compile 'com.convertigo.provider:convertigo-provider-couchdb:7.5.0'
-		compile 'com.convertigo.provider:convertigo-provider-plugins:7.5.0'
-		compile 'com.convertigo.provider:convertigo-provider-sap:7.5.0'
-		compile 'com.convertigo.provider:convertigo-provider-xul:7.5.0'
+		compile 'com.convertigo.provider:convertigo-provider-couchdb:7.6.0-SNAPSHOT'
+		compile 'com.convertigo.provider:convertigo-provider-plugins:7.6.0-SNAPSHOT'
+		compile 'com.convertigo.provider:convertigo-provider-sap:7.6.0-SNAPSHOT'
+		compile 'com.convertigo.provider:convertigo-provider-xul:7.6.0-SNAPSHOT'
 		compile 'com.convertigo.twinsoft.lib:aviva:2017.09.04'
 		compile 'com.convertigo.twinsoft.lib:comm:1998.11.15'
 		compile 'com.convertigo.twinsoft.lib:ms:2002.01.03'
@@ -495,6 +552,15 @@ project(':engine') {
 				.replaceFirst('(tag = ).*;', '$1' + (convertigoTag.isEmpty() ? 'null;' : "\"${convertigoTag}\";"))
 				.replaceFirst('(revision = ).*;', '$1' + (convertigoRevision.isEmpty() ? 'null;': "\"${convertigoRevision}\";"))
 		}
+	}
+	
+	task engineApiJar(type: Jar) {
+		baseName 'convertigo-engine-api'
+		from 'bin'
+		include '**/*.class'
+		exclude 'com/twinsoft/convertigo/engine/parsers/**'
+		exclude 'com/twinsoft/convertigo/engine/plugins/**'
+		exclude 'com/twinsoft/convertigo/engine/providers/**'
 	}
 	
 	compileJava.dependsOn([':copyLicense', 'updateProductVersion'])
