@@ -322,6 +322,16 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		return eventList;
 	}
 
+	public List<UIEventSubscriber> getUIEventSubscriberList() {
+		List<UIEventSubscriber> eventList = new ArrayList<>();
+		for (UIComponent uiComponent : getUIComponentList()) {
+			if (uiComponent instanceof UIEventSubscriber) {
+				eventList.add((UIEventSubscriber) uiComponent);
+			}
+		}
+		return eventList;
+	}
+
 	public UIComponent getUIComponentByName(String uiName) throws EngineException {
 		checkSubLoaded();
 		for (UIComponent uiComponent : vUIComponents)
@@ -619,9 +629,32 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		String menuId = getMenuId();
 		if (!menuId.isEmpty()) {
 			try {
-				String constructor = "this.menuId = '" + menuId +"';" + System.lineSeparator();
+				String constructor = System.lineSeparator() + "\t\tthis.menuId = '" + menuId +"';"
+									+ System.lineSeparator() + "\t\t";
 				String constructors = jsonScripts.getString("constructors") + constructor;
 				jsonScripts.put("constructors", constructors);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		// Page subscribers
+		List<UIEventSubscriber> subscriberList = getUIEventSubscriberList();
+		if (!subscriberList.isEmpty()) {
+			try {
+				String subscribers = UIEventSubscriber.computeConstructors(subscriberList)
+									+ System.lineSeparator() + "\t\t";
+				String constructors = jsonScripts.getString("constructors") + subscribers;
+				jsonScripts.put("constructors", constructors);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			
+			try {
+				String function = UIEventSubscriber.computeNgDestroy(subscriberList) 
+								+ System.lineSeparator() + "\t";
+				String functions = jsonScripts.getString("functions") + function;
+				jsonScripts.put("functions", functions);
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}

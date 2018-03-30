@@ -121,6 +121,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		return "_"+ this.priority;
 	}*/
 	
+	@Override
 	public String getFunctionName() {
 		return "ATS"+ this.priority;
 	}
@@ -175,19 +176,25 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				if (uiPageEvent.isEnabled()) {
 					return uiPageEvent.getErrorEvent();
 				}
+			} else if (parent instanceof UIEventSubscriber) {
+				UIEventSubscriber uiEventSubscriber = (UIEventSubscriber)parent;
+				if (uiEventSubscriber.isEnabled()) {
+					return uiEventSubscriber.getErrorEvent();
+				}
 			}
 		}
 		return null;
 	}
 	
 	protected boolean isStacked() {
-		return handleError() || handleFailure() || numberOfActions() > 0 || getParent() instanceof UIPageEvent;
+		return handleError() || handleFailure() || numberOfActions() > 0 || 
+				getParent() instanceof UIPageEvent || getParent() instanceof UIEventSubscriber;
 	}
 	
 	protected String getScope() {
 		String scope = "";
 		DatabaseObject parent = getParent();
-		while (parent != null && !(parent instanceof UIPageEvent)) {
+		while (parent != null && !(parent instanceof UIPageEvent) && !(parent instanceof UIEventSubscriber)) {
 			if (parent instanceof UIControlDirective) {
 				UIControlDirective uicd = (UIControlDirective)parent;
 				if (AttrDirective.ForEach.equals(AttrDirective.getDirective(uicd.getDirectiveName()))) {

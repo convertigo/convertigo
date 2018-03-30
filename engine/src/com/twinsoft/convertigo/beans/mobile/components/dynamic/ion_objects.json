@@ -7695,6 +7695,41 @@
           }
       ]
     }
+  },
+  
+    "PublishEventAction" : {
+      "cafVersion": "1.0.101",
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "displayName": "PublishEvent",
+      "label": "PublishEvent",
+      "description": "Defines an <i>PublishEvent</i> action component. |This component helps publishing an event.<br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/api/util/Events/'>Events</a>",
+      "group": "Actions",
+      "icon16": "publisheventaction_color_16x16.png",
+      "icon32": "publisheventaction_color_32x32.png",
+      "properties": {
+	      "topic": {
+	        "label": "Event topic",
+	        "description": "The event topic",
+	        "category": "@parameters",
+	        "type": "string",
+	        "value": false,
+	        "values": [false,true]
+	      },   
+	      "data": {
+	        "label": "Event data",
+	        "description": "The event data",
+	        "category": "@parameters",
+	        "type": "string",
+	        "mode": "script",
+	        "value": false,
+	        "values": [false,true]
+	      }
+      },
+      "config": {
+        "action_ts_imports": [
+			{"from":"ionic-angular", "components":["Events"]}
+        ]
+      }
+    }
   }
-}
 }

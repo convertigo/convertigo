@@ -22,6 +22,6 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
-public interface IAction {
-	public abstract String getFunctionName();
+public interface IEventListener {
+	
 }
