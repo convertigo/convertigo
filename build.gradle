@@ -316,7 +316,9 @@ project(':eclipse-plugin-xulrunner-win32') {
 					'Bundle-SymbolicName': 'com.twinsoft.convertigo.studio.xulrunner.win32_win32_x86;singleton:=true',
 					'Fragment-Host': 'com.twinsoft.convertigo.studio',
 					'Eclipse-PlatformFilter': '(& (osgi.ws=win32) (osgi.os=win32) (osgi.arch=x86))',
-					'Eclipse-BundleShape': 'dir'
+					'Eclipse-BundleShape': 'dir',
+					'Export-Package': 'org.mozilla.xpcom',
+					'Bundle-ClassPath': 'xulrunner/MozillaGlue.jar, xulrunner/MozillaInterfaces.jar'
 				)
 			}.writeTo(manifest)
 			manifest.text = manifest.text.replaceAll("Import-Package: .*\\s+", "")
