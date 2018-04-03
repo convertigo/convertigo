@@ -1,3 +1,20 @@
+/*
+ * Copyright (c) 2001-2018 Convertigo SA.
+ * 
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License
+ * as published by the Free Software Foundation; either version 3
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, see<http://www.gnu.org/licenses/>.
+ */
+
 package com.twinsoft.convertigo.eclipse.wizards.setup;
 
 import java.io.IOException;
@@ -62,7 +79,7 @@ public class PscKeyPage extends WizardPage implements RegisterCallback, SummaryG
 			RegistrationPage registrationPage = (RegistrationPage) previousPage;
 			if (registrationPage.isConnected()) {
 				if (registrationPage.register(this)) {
-					infoLink.setText("Online registration in progress, please waitâ€¦");
+					infoLink.setText("Online registration in progress, please wait…");
 				}
 			} else {
 				infoLink.setText("Studio offline. Please register manually on " + RegistrationPage.registrationLink + " and paste your PSC here.");
