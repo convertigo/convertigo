@@ -1,23 +1,18 @@
 /*
- * Copyright (c) 2001-2011 Convertigo SA.
- *
+ * Copyright (c) 2001-2018 Convertigo SA.
+ * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License
  * as published by the Free Software Foundation; either version 3
  * of the License, or (at your option) any later version.
- *
+ * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
- *
- * $URL$
- * $Author$
- * $Revision$
- * $Date$
  */
 
 package com.twinsoft.convertigo.beans.common;
@@ -41,15 +36,15 @@ public class SplitFields extends ComplexExtractionRule {
 	/** Tag du tableau */
 	private String tagTable = "table";
 
-	/** SÃ©parateur de dÃ©but et fin de tableau */
+	/** Séparateur de début et fin de tableau */
 	private String separatorTableStart 	= "";
 	private String separatorTableEnd	= "";
 	
-	/** SÃ©parateur de dÃ©but et fin de ligne */
+	/** Séparateur de début et fin de ligne */
 	private String separatorRowStart	= "";
 	private String separatorRowEnd		= "";
 	
-	/** SÃ©parateur de dÃ©but et fin de cellule */
+	/** Séparateur de début et fin de cellule */
 	private String separatorCelStart	= "";
 	private String separatorCelEnd		= "";
 	
@@ -138,7 +133,7 @@ public class SplitFields extends ComplexExtractionRule {
 		int size = columns.size();
 		
 		
-		/** copie dans un tableau pour un accÃ¨s direct */
+		/** copie dans un tableau pour un accès direct */
 		cols = new String[size];
 		
 		for(List<String> column: columns)
@@ -182,16 +177,16 @@ public class SplitFields extends ComplexExtractionRule {
 		abstract List<String> splitWith(String s);
 	}
 
-	/** sans sÃ©parateur */
+	/** sans séparateur */
 	class DontSplit implements SplitWith{
 		
-		/** retourne la chaÃ®ne directement dans un vecteur */
+		/** retourne la chaîne directement dans un vecteur */
 		public List<String> splitWith(String s){
 			return Arrays.asList(new String[]{s});
 		}	
 	}
 	
-	/** sÃ©parateur au dÃ©but */
+	/** séparateur au début */
 	class SplitStartWith implements SplitWith{
 		private String _sep;
 		private int _lsep;
@@ -213,7 +208,7 @@ public class SplitFields extends ComplexExtractionRule {
 		}
 	}
 	
-	/** sÃ©parateur Ã  la fin */
+	/** séparateur à la fin */
 	class SplitEndWith implements SplitWith{
 		private String _sep;
 		private int _lsep;
@@ -238,7 +233,7 @@ public class SplitFields extends ComplexExtractionRule {
 		
 	}
 	
-	/** sous chaÃ®nes entourÃ©es par deux sÃ©parateurs */
+	/** sous chaînes entourées par deux séparateurs */
 	class SplitStartEndWith implements SplitWith{
 		private String _sepstart;
 		private String _sepend;
@@ -268,7 +263,7 @@ public class SplitFields extends ComplexExtractionRule {
 		
 	}	
 	
-	/** retourne le spliteur adaptÃ© aux sÃ©parateurs */
+	/** retourne le spliteur adapté aux séparateurs */
 	SplitWith getBestSplitWith(String sepstart,String sepend){
 		if(sepstart.equals("") && sepend.equals("")) return new DontSplit();
 		if(sepend.equals("")) return new SplitStartWith(sepstart);
@@ -298,7 +293,7 @@ public class SplitFields extends ComplexExtractionRule {
 	 *         query.
 	 */
 	public JavelinExtractionRuleResult execute(iJavelin javelin, Block block, BlockFactory blockFactory, org.w3c.dom.Document dom) {
-		/* Devrait dÃ©jÃ  Ãªtre initialisÃ©, Ã  voir pourquoi les setter ne sont pas appelÃ© lors d'un load */
+		/* Devrait déjà être initialisé, à voir pourquoi les setter ne sont pas appelé lors d'un load */
 		if(tab==null)tab=getBestSplitWith(separatorTableStart,separatorTableEnd);
 		if(row==null)row=getBestSplitWith(separatorRowStart,separatorRowEnd);
 		if(cel==null)cel=getBestSplitWith(separatorCelStart,separatorCelEnd);

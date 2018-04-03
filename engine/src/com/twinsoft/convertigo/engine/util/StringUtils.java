@@ -1,23 +1,18 @@
 /*
- * Copyright (c) 2001-2011 Convertigo SA.
- *
+ * Copyright (c) 2001-2018 Convertigo SA.
+ * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License
  * as published by the Free Software Foundation; either version 3
  * of the License, or (at your option) any later version.
- *
+ * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
- *
- * $URL$
- * $Author$
- * $Revision$
- * $Date$
  */
 
 package com.twinsoft.convertigo.engine.util;
@@ -109,25 +104,25 @@ public class StringUtils {
             if (c == ' ') {
                 aText[len++] = '_';
             }
-            else if ((c == 'Ã ') || (c == 'Ã¢') || (c == 'Ã¤')) {
+            else if ((c == 'à') || (c == 'â') || (c == 'ä')) {
                 aText[len++] = 'a';
             }
-            else if ((c == 'Ã©') || (c == 'Ã¨') || (c == 'Ãª') || (c == 'Ã«')) {
+            else if ((c == 'é') || (c == 'è') || (c == 'ê') || (c == 'ë')) {
                 aText[len++] = 'e';
             }
-            else if ((c == 'Ã®') || (c == 'Ã¯')) {
+            else if ((c == 'î') || (c == 'ï')) {
                 aText[len++] = 'i';
             }
-            else if ((c == 'Ã´') || (c == 'Ã¶')) {
+            else if ((c == 'ô') || (c == 'ö')) {
                 aText[len++] = 'o';
             }
-            else if ((c == 'Ã¹') || (c == 'Ã»') || (c == 'Ã¼')) {
+            else if ((c == 'ù') || (c == 'û') || (c == 'ü')) {
                 aText[len++] = 'u';
             }
-            else if ((c == 'Ã¿')) {
+            else if ((c == 'ÿ')) {
                 aText[len++] = 'y';
             }
-            else if ((c == 'Ã§')) {
+            else if ((c == 'ç')) {
                 aText[len++] = 'c';
             }
             else if ((c >= (char) 48) && (c <= (char) 57)) { // Numbers
@@ -230,7 +225,7 @@ public class StringUtils {
 
 	public static String reduce(String str, int max) {
 		if (str.length() > max) {
-			return str.subSequence(0, max - 1) + "â€¦";
+			return str.subSequence(0, max - 1) + "…";
 		}
 		return str;
 	}
