@@ -12,7 +12,7 @@ to create mobile enterprise applications
    </description>
 
    <copyright>
-      Copyright (c) 2001-((CURRENT_YEAR)) Convertigo.  All rights reserved.
+      Copyright (c) 2001-2018 Convertigo.  All rights reserved.
    </copyright>
 
    <license url="http://www.convertigo.com/en/license.txt">
@@ -722,6 +722,7 @@ CONVERTIGO &#8211; LICENSE AGREEMENT -2018- SDK
       <import plugin="org.eclipse.wst.sse.core"/>
       <import plugin="org.eclipse.wst.sse.ui"/>
       <import plugin="org.eclipse.wst.xml.ui"/>
+      <import feature="org.eclipse.egit"/>
       <import feature="org.eclipse.jdt"/>
       <import feature="org.eclipse.pde"/>
       <import feature="org.eclipse.platform"/>
