@@ -175,6 +175,9 @@
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIAttribute">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
 				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIAnimation">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
+				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>

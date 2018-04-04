@@ -87,7 +87,7 @@ public class XulWebViewerImpl extends AbstractXulWebViewer implements nsIHttpHea
 	nsIHttpChannel lastChannel;
 	byte[] lastData;
 	
-	// Nécessaire pour appeler 'protected void checkWidget()' de Composite
+	// NÃ©cessaire pour appeler 'protected void checkWidget()' de Composite
 	private class CompositeCheckWidget extends Composite{
 		CompositeCheckWidget(Composite parent,int style){
 			super(parent,style);
@@ -183,7 +183,7 @@ public class XulWebViewerImpl extends AbstractXulWebViewer implements nsIHttpHea
         toolBar.setXulWebViewer(this);
 	}
 	
-	// doit être appelé à  la destruction
+	// doit Ãªtre appelÃ© Ã Â  la destruction
 	@Override
 	public void removeBrowser() {
 //		Context ctx = context;

@@ -49,6 +49,7 @@ import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionErrorEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionFailureEvent;
+import com.twinsoft.convertigo.beans.mobile.components.UIAnimation;
 import com.twinsoft.convertigo.beans.mobile.components.UIAttribute;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
@@ -294,6 +295,7 @@ public class ComponentManager {
 			group = "Customs";
 			components.add(getDboComponent(UIElement.class,group));
 			components.add(getDboComponent(UIAttribute.class,group));
+			components.add(getDboComponent(UIAnimation.class,group));
 			components.add(getDboComponent(UICustom.class,group));
 			components.add(getDboComponent(UIText.class,group));
 			components.add(getDboComponent(UIStyle.class,group));
@@ -497,7 +499,9 @@ public class ComponentManager {
 						return true;
 					}
 				} else if (dboParent instanceof UIDynamicMenuItem) {
-					return false;
+					if (UIAttribute.class.isAssignableFrom(dboClass)) {
+						return true;
+					}
 				} else if (dboParent instanceof UIElement) {
 					if (UIDynamicMenuItem.class.isAssignableFrom(dboClass)) {
 						return menu != null;

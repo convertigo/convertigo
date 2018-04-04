@@ -35,7 +35,7 @@ import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.twinj.iJavelin;
 
-// TODO: propriété tagName à mettre en reg exp ?
+// TODO: propriÃ©tÃ© tagName Ã  mettre en reg exp ?
 
 public class RemoveBlocks extends JavelinExtractionRule {
 

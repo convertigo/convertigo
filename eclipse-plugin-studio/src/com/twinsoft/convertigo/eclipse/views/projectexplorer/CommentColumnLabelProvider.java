@@ -43,7 +43,7 @@ public class CommentColumnLabelProvider extends ColumnLabelProvider {
 				return "// " + comment;
 			}
 			if (dbot.isSelected()) {
-				return "…";
+				return "â€¦";
 			}
 		}
 		return "";

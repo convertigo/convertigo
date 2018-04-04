@@ -661,12 +661,12 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			// load xml content of file in dom
 			Document dom = null;
 
-			// création du docBuilderFactory
+			// crÃ©ation du docBuilderFactory
 			DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
 			docBuilderFactory.setIgnoringElementContentWhitespace(true);
 			docBuilderFactory.setNamespaceAware(true);
 
-			// création du docBuilder
+			// crÃ©ation du docBuilder
 			DocumentBuilder docBuilder;
 			try {
 				docBuilder = docBuilderFactory.newDocumentBuilder();

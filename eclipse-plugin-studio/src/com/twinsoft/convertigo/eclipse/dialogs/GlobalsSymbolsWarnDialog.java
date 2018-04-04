@@ -164,7 +164,7 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 		
 		labelProject = new StyledText(container, SWT.WRAP);
 		labelProject.setEnabled(false);
-		labelProject.setText("     ‚ó?  Project: "+projectName);
+		labelProject.setText("     ‚óè  Project: "+projectName);
 		labelProject.setLayoutData(gridData);
 		labelProject.setBackground(back);
 		
@@ -181,7 +181,7 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 		
 		labelObjectType = new StyledText(container, SWT.WRAP);
 		labelObjectType.setEnabled(false);
-		labelObjectType.setText("     ‚ó?  "+objectType+": "+objectName);
+		labelObjectType.setText("     ‚óè  "+objectType+": "+objectName);
 		labelObjectType.setLayoutData(gridData);
 		labelObjectType.setBackground(back);
 		
@@ -198,7 +198,7 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 		
 		labelProperty = new StyledText(container, SWT.WRAP);
 		labelProperty.setEnabled(false);
-		labelProperty.setText("     ‚ó?  " + propertyName + ": " + propertyValue);
+		labelProperty.setText("     ‚óè  " + propertyName + ": " + propertyValue);
 		labelProperty.setLayoutData(gridData);
 		labelProperty.setBackground(back);
 		

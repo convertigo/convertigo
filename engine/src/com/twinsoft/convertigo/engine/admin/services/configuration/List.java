@@ -84,7 +84,7 @@ public class List extends XmlService{
 	        			}
 	        		case PasswordPlain:
 	        			if (value.length() > 0) {
-	        				originalValue = value = "••••••••••••••••";
+	        				originalValue = value = "â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢";
 	        			} else {
 		        			originalValue = "";
 	        			}

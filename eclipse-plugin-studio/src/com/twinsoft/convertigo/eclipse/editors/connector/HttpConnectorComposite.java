@@ -104,10 +104,10 @@ public class HttpConnectorComposite extends AbstractConnectorComposite implement
 	}
 
 	public void refresh() {
-		// TODO gérer le refresh
+		// TODO gÃ©rer le refresh
 	}
 
 	public void monitor(ToolItem ti) {
-		// TODO gérer le monitoring du connecteur pour l'affichage du bouton
+		// TODO gÃ©rer le monitoring du connecteur pour l'affichage du bouton
 	}
 }

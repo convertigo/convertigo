@@ -790,7 +790,7 @@ public class JavelinTransaction extends TransactionWithVariables {
     								if ((block != null) && (value.length() != 0)) {
     									String historyBlock = block.getOptionalAttribute("history");
     									if ((block.type.equals("field")) && (historyBlock != null) && (historyBlock.equals("true")) && (value.length() > 0)) {
-    										// TODO: paramétrer la liste des tagname à historiser
+    										// TODO: paramÃ©trer la liste des tagname Ã  historiser
     										List<String> values = GenericUtils.cast(context.httpSession.getAttribute(block.tagName));
     										if (values == null) {
     											values = new ArrayList<String>(10);

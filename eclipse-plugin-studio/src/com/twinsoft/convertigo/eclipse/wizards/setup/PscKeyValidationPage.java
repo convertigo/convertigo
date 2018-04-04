@@ -95,7 +95,7 @@ public class PscKeyValidationPage extends WizardPage implements RegisterCallback
 				"A Personal Studio Configuration (PSC) is required to start Convertigo Studio. " +
 				"A PSC automatically configures your Studio for project deployments on Convertigo Cloud and Convertigo Servers.\n\n" +
 				"Note that previous Convertigo \"personal registration certificates\" are also valid PSCs.\n\n" +
-				"Included with Convertigo Community Edition, you get access to a free « Convertigo Cloud » account. This cloud is named Convertigo Trial Cloud and can be accessed at the following URL: <a href=\"http://trial.convertigo.net\">http://trial.convertigo.net</a>. You will be able to deploy your projects on this shared cloud for free.\n\n" +
+				"Included with Convertigo Community Edition, you get access to a free Â« Convertigo Cloud Â» account. This cloud is named Convertigo Trial Cloud and can be accessed at the following URL: <a href=\"http://trial.convertigo.net\">http://trial.convertigo.net</a>. You will be able to deploy your projects on this shared cloud for free.\n\n" +
 				"You can access the Convertigo Support Forum by clicking this link: <a href=\"http://www.convertigo.com/Forums\">http://www.convertigo.com/Forums</a>\n\n" +
 				"As a result of the registration process, you will receive a PSC by email that will configure your Studio for projects deployment on Convertigo Trial Cloud. \n"
 		);

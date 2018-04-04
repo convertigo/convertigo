@@ -106,25 +106,25 @@ public class StringUtils {
             if (c == ' ') {
                 aText[len++] = '_';
             }
-            else if ((c == 'à') || (c == 'â') || (c == 'ä')) {
+            else if ((c == 'Ã ') || (c == 'Ã¢') || (c == 'Ã¤')) {
                 aText[len++] = 'a';
             }
-            else if ((c == 'é') || (c == 'è') || (c == 'ê') || (c == 'ë')) {
+            else if ((c == 'Ã©') || (c == 'Ã¨') || (c == 'Ãª') || (c == 'Ã«')) {
                 aText[len++] = 'e';
             }
-            else if ((c == 'î') || (c == 'ï')) {
+            else if ((c == 'Ã®') || (c == 'Ã¯')) {
                 aText[len++] = 'i';
             }
-            else if ((c == 'ô') || (c == 'ö')) {
+            else if ((c == 'Ã´') || (c == 'Ã¶')) {
                 aText[len++] = 'o';
             }
-            else if ((c == 'ù') || (c == 'û') || (c == 'ü')) {
+            else if ((c == 'Ã¹') || (c == 'Ã»') || (c == 'Ã¼')) {
                 aText[len++] = 'u';
             }
-            else if ((c == 'ÿ')) {
+            else if ((c == 'Ã¿')) {
                 aText[len++] = 'y';
             }
-            else if ((c == 'ç')) {
+            else if ((c == 'Ã§')) {
                 aText[len++] = 'c';
             }
             else if ((c >= (char) 48) && (c <= (char) 57)) { // Numbers
@@ -227,7 +227,7 @@ public class StringUtils {
 
 	public static String reduce(String str, int max) {
 		if (str.length() > max) {
-			return str.subSequence(0, max - 1) + "…";
+			return str.subSequence(0, max - 1) + "â€¦";
 		}
 		return str;
 	}
