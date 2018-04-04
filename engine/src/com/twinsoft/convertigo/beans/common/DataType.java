@@ -148,7 +148,7 @@ public class DataType extends JavelinExtractionRule {
 					Engine.logBeans.trace("The block is not a floating point number.");
 				}
 
-				// TODO: gérer le type date
+				// TODO: gÃ©rer le type date
 
 				// Default type
 				block.setOptionalAttribute("datatype", "string");

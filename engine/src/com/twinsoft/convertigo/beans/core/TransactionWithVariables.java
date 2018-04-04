@@ -536,7 +536,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		RequestableVariable variable;
 		boolean bMulti;
 		
-		// TODO: gérer les variables dites persistantes
+		// TODO: gÃ©rer les variables dites persistantes
 
 		variables.clear();
 		

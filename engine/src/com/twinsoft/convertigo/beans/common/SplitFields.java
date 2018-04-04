@@ -38,15 +38,15 @@ public class SplitFields extends ComplexExtractionRule {
 	/** Tag du tableau */
 	private String tagTable = "table";
 
-	/** Séparateur de début et fin de tableau */
+	/** SÃ©parateur de dÃ©but et fin de tableau */
 	private String separatorTableStart 	= "";
 	private String separatorTableEnd	= "";
 	
-	/** Séparateur de début et fin de ligne */
+	/** SÃ©parateur de dÃ©but et fin de ligne */
 	private String separatorRowStart	= "";
 	private String separatorRowEnd		= "";
 	
-	/** Séparateur de début et fin de cellule */
+	/** SÃ©parateur de dÃ©but et fin de cellule */
 	private String separatorCelStart	= "";
 	private String separatorCelEnd		= "";
 	
@@ -135,7 +135,7 @@ public class SplitFields extends ComplexExtractionRule {
 		int size = columns.size();
 		
 		
-		/** copie dans un tableau pour un accès direct */
+		/** copie dans un tableau pour un accÃ¨s direct */
 		cols = new String[size];
 		
 		for(List<String> column: columns)
@@ -179,16 +179,16 @@ public class SplitFields extends ComplexExtractionRule {
 		abstract List<String> splitWith(String s);
 	}
 
-	/** sans séparateur */
+	/** sans sÃ©parateur */
 	class DontSplit implements SplitWith{
 		
-		/** retourne la chaîne directement dans un vecteur */
+		/** retourne la chaÃ®ne directement dans un vecteur */
 		public List<String> splitWith(String s){
 			return Arrays.asList(new String[]{s});
 		}	
 	}
 	
-	/** séparateur au début */
+	/** sÃ©parateur au dÃ©but */
 	class SplitStartWith implements SplitWith{
 		private String _sep;
 		private int _lsep;
@@ -210,7 +210,7 @@ public class SplitFields extends ComplexExtractionRule {
 		}
 	}
 	
-	/** séparateur à la fin */
+	/** sÃ©parateur Ã  la fin */
 	class SplitEndWith implements SplitWith{
 		private String _sep;
 		private int _lsep;
@@ -235,7 +235,7 @@ public class SplitFields extends ComplexExtractionRule {
 		
 	}
 	
-	/** sous chaînes entourées par deux séparateurs */
+	/** sous chaÃ®nes entourÃ©es par deux sÃ©parateurs */
 	class SplitStartEndWith implements SplitWith{
 		private String _sepstart;
 		private String _sepend;
@@ -265,7 +265,7 @@ public class SplitFields extends ComplexExtractionRule {
 		
 	}	
 	
-	/** retourne le spliteur adapté aux séparateurs */
+	/** retourne le spliteur adaptÃ© aux sÃ©parateurs */
 	SplitWith getBestSplitWith(String sepstart,String sepend){
 		if(sepstart.equals("") && sepend.equals("")) return new DontSplit();
 		if(sepend.equals("")) return new SplitStartWith(sepstart);
@@ -295,7 +295,7 @@ public class SplitFields extends ComplexExtractionRule {
 	 *         query.
 	 */
 	public JavelinExtractionRuleResult execute(iJavelin javelin, Block block, BlockFactory blockFactory, org.w3c.dom.Document dom) {
-		/* Devrait déjà être initialisé, à voir pourquoi les setter ne sont pas appelé lors d'un load */
+		/* Devrait dÃ©jÃ  Ãªtre initialisÃ©, Ã  voir pourquoi les setter ne sont pas appelÃ© lors d'un load */
 		if(tab==null)tab=getBestSplitWith(separatorTableStart,separatorTableEnd);
 		if(row==null)row=getBestSplitWith(separatorRowStart,separatorRowEnd);
 		if(cel==null)cel=getBestSplitWith(separatorCelStart,separatorCelEnd);

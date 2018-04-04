@@ -224,7 +224,7 @@ public class PseudoCertificate {
 			}
 			
 			saveFile(outputFilePath, encrypted.getBytes());
-			System.out.println("Pseudo-certificat \""+ inputFilePath +"\" créé.");
+			System.out.println("Pseudo-certificat \""+ inputFilePath +"\" crÃ©Ã©.");
 		}
 		catch(Exception e) {
 			System.out.println("Erreur lors de l'encryptage des donnees: " + e.getMessage());
@@ -271,7 +271,7 @@ public class PseudoCertificate {
 			return decrypted.getBytes();
 		}
 		catch(Exception e) {
-			System.out.println("Erreur lors du décryptage des donnees: " + e.getMessage());
+			System.out.println("Erreur lors du dÃ©cryptage des donnees: " + e.getMessage());
 			return null;
 		}
 	}

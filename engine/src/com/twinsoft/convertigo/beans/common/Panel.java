@@ -314,7 +314,7 @@ public class Panel extends JavelinExtractionRule {
 								lePanel.UL.column, lePanel.UL.line,
 								lePanel.UR.column - lePanel.UL.column,
 								lePanel.LR.line - lePanel.UR.line);
-						Engine.logBeans.trace("Entrée avec " + block.getText());
+						Engine.logBeans.trace("EntrÃ©e avec " + block.getText());
 						Engine.logBeans.trace("Panel : " + "column="
 								+ lePanel.UL.column + ", line="
 								+ lePanel.UL.line + ", width="

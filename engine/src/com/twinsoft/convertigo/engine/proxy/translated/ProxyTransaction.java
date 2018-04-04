@@ -28,7 +28,7 @@ public class ProxyTransaction extends TransactionWithVariables {
 
 	public void runCore() throws EngineException {
 		// Do nothing
-		// TODO: intégrer le code du proxy servlet dans le runcore
+		// TODO: intÃ©grer le code du proxy servlet dans le runcore
 	}
 	
 	public void setStatisticsOfRequestFromCache() {

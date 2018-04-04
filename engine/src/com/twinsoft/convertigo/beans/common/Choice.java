@@ -70,7 +70,7 @@ public class Choice extends JavelinExtractionRule {
 		// removing automatic radio mode : now it's a property
         //boolean	bSetToRadio = false;        
         
-        // S'il faut prendre les valeurs des options sur l'écran
+        // S'il faut prendre les valeurs des options sur l'Ã©cran
         if(actionsFromScreen){
             String textBlock = block.getText().trim();
             

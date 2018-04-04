@@ -120,7 +120,7 @@ public class WriteXMLStep extends WriteFileStep {
 					if (isUTF8) {
 						for (int i = 0; i < buf.capacity(); i++) {
 							sbuf = new String(buf.array(), i, nb - i, enc);
-							if (!sbuf.startsWith("�")) {
+							if (!sbuf.startsWith("ï¿½")) {
 								pos += i;
 								break;
 							}	

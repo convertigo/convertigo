@@ -198,7 +198,7 @@ public class SecurityTokenManager implements AbstractManager, PropertyChangeEven
 	
 	private void removeExpired() {
 		if (System.currentTimeMillis() >= nextExpireCheck) {
-			Engine.logSecurityTokenManager.debug("(SecurityTokenManager) Remove all expired tokens …");
+			Engine.logSecurityTokenManager.debug("(SecurityTokenManager) Remove all expired tokens â€¦");
 			
 			if (tokens != null) {
 				int removeCpt = 0;

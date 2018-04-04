@@ -350,7 +350,7 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		ZIP_BACKUP_OLD_PROJECT ("project.zip_backup_old", "true", "Automatically performs a dated zip backup of replaced projects", PropertyCategory.Main),
 		@PropertyOptions(advance = true)
-		CORS_POLICY ("cors.policy", "=Origin", "CORS Policy\n• empty: disallow all\n• '=Origin': use client 'Origin' header\n• 'url1#url2#url3': allow if 'Origin' one of 'url'", PropertyCategory.Main),
+		CORS_POLICY ("cors.policy", "=Origin", "CORS Policy\nâ€¢ empty: disallow all\nâ€¢ '=Origin': use client 'Origin' header\nâ€¢ 'url1#url2#url3': allow if 'Origin' one of 'url'", PropertyCategory.Main),
 		
 		/** ACCOUNTS */
 		ADMIN_USERNAME ("admin.username", "admin", "Admin username", PropertyCategory.Account),

@@ -35,10 +35,10 @@ public class Crypto {
 
 	/*public static final void main(String[] args) {
 	    String sample = "twinsoft", message;
-	    //System.out.println("Clé               : " + skey1 + skey2 + skey3);
+	    //System.out.println("ClÃ©               : " + skey1 + skey2 + skey3);
 	    System.out.println("Message original  : [" + sample + "]");
-	    System.out.println("Message chiffré   : [" + (message = encodeToHexString(sample)) + "]");
-	    System.out.println("Message déchiffré : [" + (message = decodeFromHexString(message)) + "]");
+	    System.out.println("Message chiffrÃ©   : [" + (message = encodeToHexString(sample)) + "]");
+	    System.out.println("Message dÃ©chiffrÃ© : [" + (message = decodeFromHexString(message)) + "]");
 	}*/
 
 	private static final String skey1 = "0606f60909f60606";
