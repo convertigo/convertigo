@@ -38,13 +38,17 @@ public class UIAnimationBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[1];
+			properties = new PropertyDescriptor[2];
 			
 			properties[0] = new PropertyDescriptor("animationName", beanClass, "getAnimationName", "setAnimationName");
 			properties[0].setDisplayName(getExternalizedString("property.animationName.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.animationName.short_description"));
 			properties[0].setPropertyEditorClass(getEditorClass("StringComboBoxPropertyDescriptor"));
 			
+			properties[1] = new PropertyDescriptor("isInfinite", beanClass, "isInfinite", "setInfinite");
+			properties[1].setDisplayName(getExternalizedString("property.isInfinite.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.isInfinite.short_description"));
+
 			getPropertyDescriptor("attrName").setHidden(true);
 			getPropertyDescriptor("attrValue").setHidden(true);
 			

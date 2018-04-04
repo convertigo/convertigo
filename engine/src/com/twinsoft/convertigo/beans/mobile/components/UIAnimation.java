@@ -72,7 +72,7 @@ public class UIAnimation extends UIAttribute {
 
 	@Override
 	protected String getAttrValue() {
-		return animationName.isEmpty() ? "":"animated "+ animationName;
+		return animationName.isEmpty() ? "":"animated "+ (isInfinite ? "infinite ":"") +animationName;
 	}
 	
 	private String animationName = "";
@@ -85,6 +85,16 @@ public class UIAnimation extends UIAttribute {
 		this.animationName = animationName;
 	}
 	
+	private boolean isInfinite = false;
+	
+	public boolean isInfinite() {
+		return isInfinite;
+	}
+	
+	public void setInfinite(boolean isInfinite) {
+		this.isInfinite = isInfinite;
+	}
+
 	@Override
 	public String toString() {
 		String label = "animation=" + (animationName.isEmpty() ? "none":animationName);
