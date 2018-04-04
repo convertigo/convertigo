@@ -373,7 +373,7 @@ public class SqlTransaction extends TransactionWithVariables {
 		Matcher matcher = p_semicolon.matcher(sqlQuery);
 		while (matcher.find()) {
 			String query = matcher.group().trim();
-			if (!query.replaceAll("Ã‚Â ", "").isEmpty()) {
+			if (!query.replaceAll("Â ", "").isEmpty()) {
 				SqlQueryInfos sqlQueryInfos = new SqlQueryInfos(query, this, updateDefinitions);
 				// skip sql comments (-- query....)
 				if (sqlQueryInfos.getType() != SqlKeywords.doubledash) {

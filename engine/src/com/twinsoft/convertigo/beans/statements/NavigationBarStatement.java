@@ -74,7 +74,7 @@ public class NavigationBarStatement extends Statement implements ITagsProperty, 
 
 				if(!success) Engine.logBeans.debug("NavigationBarStatement has failed");
 				
-				success = true; //TODO: ?a boucle ? false
+				success = true;
 				return success;
 			}
 		}

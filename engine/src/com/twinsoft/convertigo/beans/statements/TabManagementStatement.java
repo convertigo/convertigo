@@ -82,7 +82,7 @@ public class TabManagementStatement extends Statement implements ITagsProperty{
 						evaluate(javascriptContext, scope, code, "ContextGet", true);
 					}
 				}
-				success = true; //TODO: ?a boucle ? false
+				success = true;
 				return success;
 			}
 		}
