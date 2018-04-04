@@ -181,7 +181,7 @@ public class MobileSmartSourceTypeCellEditor extends AbstractDialogCellEditor {
 		dotButton = new Button(control, SWT.NONE);
 		dotButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, true));
 		dotButton.setFont(fontTitle);
-		dotButton.setText("â€¦");
+		dotButton.setText("…");
 		
 		dotButton.addSelectionListener(new SelectionAdapter() {
         	

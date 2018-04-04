@@ -496,7 +496,7 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
 		Set<String> listVariablesNames = new HashSet<String>();
 		
 		for (String query: arrayQueries) {
-			if (!query.trim().replaceAll("Â ", "").equals("")) {				
+			if (!query.trim().replaceAll(" ", "").equals("")) {				
 				Pattern pattern = Pattern.compile("\\{\\{([a-zA-Z0-9_]+)\\}\\}");
 				Matcher matcher = pattern.matcher(sqlQueries);
 				

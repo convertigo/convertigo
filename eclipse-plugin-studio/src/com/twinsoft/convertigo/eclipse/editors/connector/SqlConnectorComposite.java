@@ -140,11 +140,11 @@ public class SqlConnectorComposite extends AbstractConnectorComposite implements
 	}
 
 	public void renew() {
-		// TODO gÃ©rer le renew		
+		// TODO gérer le renew		
 	}
 	
 	public void monitor(ToolItem ti) {
-		// TODO gÃ©rer le monitoring du connecteur pour l'affichage du bouton
+		// TODO gérer le monitoring du connecteur pour l'affichage du bouton
 	}
 
 	protected void clearContent() {
