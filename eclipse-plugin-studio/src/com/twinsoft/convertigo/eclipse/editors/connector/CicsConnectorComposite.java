@@ -147,10 +147,10 @@ public class CicsConnectorComposite extends AbstractConnectorComposite implement
 	}
 
 	public void renew() {
-		// TODO: gérer le renew
+		// TODO: gÃ©rer le renew
 	}
 
 	public void monitor(ToolItem ti) {
-		// TODO gérer le monitoring du connecteur pour l'affichage du bouton
+		// TODO gÃ©rer le monitoring du connecteur pour l'affichage du bouton
 	}
 }

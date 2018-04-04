@@ -176,7 +176,7 @@ public class SetupWizard extends Wizard {
 			File eclipseWorkspace = new File(Engine.PROJECTS_PATH);
 
 			ConvertigoPlugin
-					.logInfo("The current Eclipse workspace is a pre-6.2.0 CEMS workspace. Migration starting …");
+					.logInfo("The current Eclipse workspace is a pre-6.2.0 CEMS workspace. Migration starting â€¦");
 
 			boolean projectsMoveFailed = false;
 
@@ -185,7 +185,7 @@ public class SetupWizard extends Wizard {
 					try {
 						ConvertigoPlugin
 								.logInfo("Migration in progress: moving "
-										+ file.getName() + " …");
+										+ file.getName() + " â€¦");
 						FileUtils.moveToDirectory(file, userWorkspace, false);
 					} catch (IOException e) {
 						projectsMoveFailed = projectsMoveFailed
@@ -201,7 +201,7 @@ public class SetupWizard extends Wizard {
 
 			if (!projectsMoveFailed) {
 				ConvertigoPlugin
-						.logInfo("Migration in progress: move move back CEMS projects to the Eclipse workspace …");
+						.logInfo("Migration in progress: move move back CEMS projects to the Eclipse workspace â€¦");
 				File exMetadata = new File(userWorkspace, "projects/.metadata");
 				try {
 					FileUtils.copyDirectoryToDirectory(exMetadata,
@@ -219,7 +219,7 @@ public class SetupWizard extends Wizard {
 						ConvertigoPlugin
 								.logInfo("Migration in progress: moving the file "
 										+ file.getName()
-										+ " into the Eclipse Workspace …");
+										+ " into the Eclipse Workspace â€¦");
 						FileUtils
 								.moveToDirectory(file, eclipseWorkspace, false);
 					} catch (IOException e) {

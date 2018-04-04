@@ -222,7 +222,7 @@ public class ColumnEditor extends JavelinPropertyTableEditor implements SwingVal
         if (Table.class.isAssignableFrom(databaseObject.getClass())) {
         	vTmp = ((Table)databaseObject).getColumns();
         } else { } // not a table => no columns
-// TODO trouver quelle colonne est sélectionnée dans la combo box et la mettre à jour
+// TODO trouver quelle colonne est sÃ©lectionnÃ©e dans la combo box et la mettre Ã  jour
         /*Vector v = new XMLVector();
         v.add(jTmp.javelin.getString(zone.x, zone.y, zone.width).trim());
         v.add(new Integer(zone.x));
@@ -261,7 +261,7 @@ public class ColumnEditor extends JavelinPropertyTableEditor implements SwingVal
         	vTmp = ((Table)databaseObject).getColumns();
         } else { } // not a table => no columns
 
-// TODO trouver quelle colonne est sélectionnée dans la combo box et la mettre à jour
+// TODO trouver quelle colonne est sÃ©lectionnÃ©e dans la combo box et la mettre Ã  jour
         
         /*Vector v = new XMLVector();
         v.add(jTmp.javelin.getString(zone.x, zone.y, zone.width).trim());

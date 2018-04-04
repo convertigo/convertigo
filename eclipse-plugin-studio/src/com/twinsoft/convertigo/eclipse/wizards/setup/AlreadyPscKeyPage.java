@@ -95,7 +95,7 @@ public class AlreadyPscKeyPage extends WizardPage {
 		
 		Link details = new Link(container, SWT.WRAP);
 		details.setText(
-				"\nIncluded with Convertigo Community Edition, you get access to a free « Convertigo Cloud » account. This cloud is named Convertigo Trial Cloud and can be accessed at the following URL: <a href=\"http://trial.convertigo.net\">http://trial.convertigo.net</a>. You will be able to deploy your projects on this shared cloud for free.\n\n" +
+				"\nIncluded with Convertigo Community Edition, you get access to a free Â« Convertigo Cloud Â» account. This cloud is named Convertigo Trial Cloud and can be accessed at the following URL: <a href=\"http://trial.convertigo.net\">http://trial.convertigo.net</a>. You will be able to deploy your projects on this shared cloud for free.\n\n" +
 				"Choose the \"I do not have a PSC and I want to register now\" option and fill in the creation form in the next page. This form automatically creates for you a Convertigo Trial Cloud account as well as a free Convertigo Support Forum account. \n\n" +
 				"You can access the Convertigo Support Forum by clicking this link: <a href=\"http://www.convertigo.com/en/how-to/developer-forum.html\">http://www.convertigo.com/en/how-to/developer-forum.html</a>.\n\n" +
 				"As a result of the registration process, you will receive a PSC by email that will configure your Studio for projects deployment on Convertigo Trial Cloud. \n\n" +

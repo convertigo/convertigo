@@ -48,7 +48,7 @@ public class NewProjectWizardComposite1 extends Composite {
         GridData gridData2 = new org.eclipse.swt.layout.GridData();
         gridData2.horizontalSpan = 3;
         label1 = new Label(this, SWT.NONE);
-        label1.setText("Please use a relevant project name. Avoid the use of special characters  (âàéèêù...)\nand punctuation characters as space, pound or others. We suggest you use only lowercase letters. \nIf you use uppercase letters, be sure use the same letter case when you will call\ntransactions using the convertigo's url interface.\n\nThe project name also defines the Convertigo's physical and virtual directories:\n\n- All your project's ressources will be held in the <your_workspace>/convertigo/projects/<your_project_name> directory.\n- Your project's URL will be http://<server_name>:<port>/convertigo/projects/<your_project_name>\n\n");
+        label1.setText("Please use a relevant project name. Avoid the use of special characters  (Ã¢Ã Ã©Ã¨ÃªÃ¹...)\nand punctuation characters as space, pound or others. We suggest you use only lowercase letters. \nIf you use uppercase letters, be sure use the same letter case when you will call\ntransactions using the convertigo's url interface.\n\nThe project name also defines the Convertigo's physical and virtual directories:\n\n- All your project's ressources will be held in the <your_workspace>/convertigo/projects/<your_project_name> directory.\n- Your project's URL will be http://<server_name>:<port>/convertigo/projects/<your_project_name>\n\n");
         label1.setLayoutData(gridData2);
         GridData gridData1 = new org.eclipse.swt.layout.GridData();
         gridData1.grabExcessHorizontalSpace = true;

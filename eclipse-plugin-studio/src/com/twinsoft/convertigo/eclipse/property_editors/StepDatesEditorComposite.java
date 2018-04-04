@@ -121,7 +121,7 @@ public class StepDatesEditorComposite extends AbstractDialogComposite {
 
 	private void createCalendars() {
 		Label labelStart = new Label(this, SWT.NONE);
-		labelStart.setText("Date de début");
+		labelStart.setText("Date de dÃ©but");
 		start = new DateTime(this, SWT.DATE | SWT.LONG);
 		
 		Label labelStop = new Label(this, SWT.NONE);

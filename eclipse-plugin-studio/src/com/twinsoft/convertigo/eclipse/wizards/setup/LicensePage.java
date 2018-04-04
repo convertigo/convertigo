@@ -72,7 +72,7 @@ public class LicensePage extends WizardPage implements SummaryGenerator {
 	
 		Label acceptation = new Label(container, SWT.WRAP);
 		acceptation.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		acceptation.setText("BY INDICATING YOUR ACCEPTANCE BY CLICKING ìAccept licenseî BELOW, "
+		acceptation.setText("BY INDICATING YOUR ACCEPTANCE BY CLICKING ‚ÄúAccept license‚Äù BELOW, "
 				+ "OR INSTALLING OR USING THE SOFTWARE, YOU ARE AGREEING TO BE BOUND "
 				+ "BY THE TERMS OF THIS AGREEMENT.");
 		

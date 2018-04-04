@@ -112,7 +112,7 @@ public class SmartTypeCellEditor extends AbstractDialogCellEditor {
 		Button button = new Button(control, SWT.NONE);
 		button.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, true));
 		button.setFont(fontTitle);
-		button.setText("…");
+		button.setText("â€¦");
 		
         button.addSelectionListener(new SelectionAdapter() {
         	

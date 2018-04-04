@@ -116,8 +116,8 @@ class ViewLabelProvider extends LabelProvider implements IFontProvider, IColorPr
 			boolean isMac = osname.toLowerCase().startsWith("mac");
 			
 			if (dbo instanceof RequestableObject && !notShownSpecialChar ) {
-				return ( ((RequestableObject) dbo).getAccessibility() == Accessibility.Private ? "🔒 " : ( 
-						((RequestableObject) dbo).getAccessibility() == Accessibility.Hidden ? "👓 " : (isMac ? "🚪 " : " 🚪  " ) ) ) + obj.toString();
+				return ( ((RequestableObject) dbo).getAccessibility() == Accessibility.Private ? "ðŸ”’ " : ( 
+						((RequestableObject) dbo).getAccessibility() == Accessibility.Hidden ? "ðŸ‘“ " : (isMac ? "ðŸšª " : " ðŸšª  " ) ) ) + obj.toString();
 			}
 		}
 		return obj.toString();

@@ -1055,7 +1055,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 					} catch (Exception e) {	}
 					
 					device.addSelectionListener(selectionAdapter);
-					device.setText((devices == devicesDefinition ? "🔒 " : "👤 ") + json.getString("name"));
+					device.setText((devices == devicesDefinition ? "ðŸ”’ " : "ðŸ‘¤ ") + json.getString("name"));
 					device.setImage(os.image());
 					device.setData("width", json.getInt("width"));
 					device.setData("height", json.getInt("height"));
@@ -1192,7 +1192,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 						try {
 							File staging = new File(nodeModules, ".staging");
 							while (running[0] && !staging.exists()) {
-								appendOutput("Resolving dependences … (" + Math.round(System.currentTimeMillis() - start) / 1000 + " sec)");
+								appendOutput("Resolving dependences â€¦ (" + Math.round(System.currentTimeMillis() - start) / 1000 + " sec)");
 								Thread.sleep(1000);
 							}
 							while (running[0] && staging.exists()) {

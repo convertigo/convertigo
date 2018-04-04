@@ -379,7 +379,7 @@ public class RegistrationPage extends WizardPage implements CheckConnectedCallba
 				country.add(line);
 			}
 		} catch (IOException e1) {
-			country.add("Failed to load countries …");
+			country.add("Failed to load countries â€¦");
 		}
 		
 		for (String line : new String[] {
@@ -427,7 +427,7 @@ public class RegistrationPage extends WizardPage implements CheckConnectedCallba
 		checkValidity();
 		SetupWizard wizard = (SetupWizard) super.getWizard();
 		setControlsEnabled(false);
-		notConnectedLink.setText("Checking for connection to " + registrationLink + " …");
+		notConnectedLink.setText("Checking for connection to " + registrationLink + " â€¦");
 		((GridData) notConnectedLink.getLayoutData()).exclude = false;
 		notConnectedLink.setVisible(true);
 		notConnectedLink.getParent().layout();

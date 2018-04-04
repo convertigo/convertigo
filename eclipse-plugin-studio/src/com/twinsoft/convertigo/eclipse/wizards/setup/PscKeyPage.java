@@ -81,7 +81,7 @@ public class PscKeyPage extends WizardPage implements RegisterCallback, SummaryG
 			RegistrationPage registrationPage = (RegistrationPage) previousPage;
 			if (registrationPage.isConnected()) {
 				if (registrationPage.register(this)) {
-					infoLink.setText("Online registration in progress, please wait…");
+					infoLink.setText("Online registration in progress, please waitâ€¦");
 				}
 			} else {
 				infoLink.setText("Studio offline. Please register manually on " + RegistrationPage.registrationLink + " and paste your PSC here.");
