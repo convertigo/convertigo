@@ -1,23 +1,20 @@
 /*
- * Copyright (c) 2001-2016 Convertigo SA.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; either version 3
- * of the License, or (at your option) any later version.
- *
+ * Copyright (c) 2001-2018 Convertigo SA.
+ * 
+ * This program  is free software; you  can redistribute it and/or
+ * Modify  it  under the  terms of the  GNU  Affero General Public
+ * License  as published by  the Free Software Foundation;  either
+ * version  3  of  the  License,  or  (at your option)  any  later
+ * version.
+ * 
  * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * but WITHOUT ANY WARRANTY;  without even the implied warranty of
+ * MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see<http://www.gnu.org/licenses/>.
- *
- * $URL$
- * $Author$
- * $Revision$
- * $Date$
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program;
+ * if not, see <http://www.gnu.org/licenses/>.
  */
 
 package com.twinsoft.convertigo.beans.mobile.components;
@@ -121,6 +118,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		return "_"+ this.priority;
 	}*/
 	
+	@Override
 	public String getFunctionName() {
 		return "ATS"+ this.priority;
 	}
@@ -175,19 +173,25 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				if (uiPageEvent.isEnabled()) {
 					return uiPageEvent.getErrorEvent();
 				}
+			} else if (parent instanceof UIEventSubscriber) {
+				UIEventSubscriber uiEventSubscriber = (UIEventSubscriber)parent;
+				if (uiEventSubscriber.isEnabled()) {
+					return uiEventSubscriber.getErrorEvent();
+				}
 			}
 		}
 		return null;
 	}
 	
 	protected boolean isStacked() {
-		return handleError() || handleFailure() || numberOfActions() > 0 || getParent() instanceof UIPageEvent;
+		return handleError() || handleFailure() || numberOfActions() > 0 || 
+				getParent() instanceof UIPageEvent || getParent() instanceof UIEventSubscriber;
 	}
 	
 	protected String getScope() {
 		String scope = "";
 		DatabaseObject parent = getParent();
-		while (parent != null && !(parent instanceof UIPageEvent)) {
+		while (parent != null && !(parent instanceof UIPageEvent) && !(parent instanceof UIEventSubscriber)) {
 			if (parent instanceof UIControlDirective) {
 				UIControlDirective uicd = (UIControlDirective)parent;
 				if (AttrDirective.ForEach.equals(AttrDirective.getDirective(uicd.getDirectiveName()))) {

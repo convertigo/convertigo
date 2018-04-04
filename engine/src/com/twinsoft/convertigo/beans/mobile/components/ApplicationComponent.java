@@ -1,23 +1,20 @@
 /*
- * Copyright (c) 2001-2016 Convertigo SA.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; either version 3
- * of the License, or (at your option) any later version.
- *
+ * Copyright (c) 2001-2018 Convertigo SA.
+ * 
+ * This program  is free software; you  can redistribute it and/or
+ * Modify  it  under the  terms of the  GNU  Affero General Public
+ * License  as published by  the Free Software Foundation;  either
+ * version  3  of  the  License,  or  (at your option)  any  later
+ * version.
+ * 
  * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * but WITHOUT ANY WARRANTY;  without even the implied warranty of
+ * MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see<http://www.gnu.org/licenses/>.
- *
- * $URL$
- * $Author$
- * $Revision$
- * $Date$
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program;
+ * if not, see <http://www.gnu.org/licenses/>.
  */
 
 package com.twinsoft.convertigo.beans.mobile.components;
@@ -60,7 +57,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 		getCategoryName = "Application",
 		getIconClassCSS = "convertigo-action-newApplicationComponent"
 	)
-public class ApplicationComponent extends MobileComponent implements IStyleGenerator, ITemplateGenerator, IRouteGenerator, IContainerOrdered, ITagsProperty {
+public class ApplicationComponent extends MobileComponent implements IScriptComponent, IScriptGenerator, IStyleGenerator, ITemplateGenerator, IRouteGenerator, IContainerOrdered, ITagsProperty {
 	
 	private static final long serialVersionUID = 6142350115354549719L;
 
@@ -94,6 +91,7 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		cloned.vPageComponents = new LinkedList<PageComponent>();
 		cloned.vMenuComponents = new LinkedList<UIDynamicMenu>();
 		cloned.vUIComponents = new LinkedList<UIComponent>();
+		cloned.appImports = new HashMap<String, String>();
 		cloned.computedContents = null;
 		cloned.contributors = null;
 		cloned.rootPage = null;
@@ -756,6 +754,25 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
     	return c8o_version;
     }
     
+	private transient Map<String, String> appImports = new HashMap<String, String>();
+	
+	private boolean hasImport(String name) {
+		return appImports.containsKey(name) ||
+				getProject().getMobileBuilder().hasAppTplImport(name);
+	}
+	
+	public boolean addImport(String name, String path) {
+		if (name != null && path != null && !name.isEmpty() && !path.isEmpty()) {
+			synchronized (appImports) {
+				if (!hasImport(name)) {
+					appImports.put(name, path);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+    
 	private transient List<Contributor> contributors = null;
 	
 	public List<Contributor> getContributors() {
@@ -778,6 +795,11 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		JSONObject jsonObject = null;
 		try {
 			jsonObject = new JSONObject()
+						.put("scripts", 
+								new JSONObject().put("imports", "")
+												.put("declarations", "")
+												.put("constructors", "")
+												.put("functions", ""))
 						.put("style", "")
 						.put("theme", "")
 						.put("route", "")
@@ -797,7 +819,11 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 	
 	protected synchronized void doComputeContents() {
 		try {
+			appImports.clear();
 			JSONObject newComputedContent = initJsonComputed();
+			
+			JSONObject jsonScripts = newComputedContent.getJSONObject("scripts");
+			computeScripts(jsonScripts);
 			
 			newComputedContent.put("style", computeStyle());
 			newComputedContent.put("theme", computeTheme());
@@ -825,6 +851,12 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 			JSONObject newComputedContent = computedContents == null ? 
 					null :new JSONObject(computedContents.toString());
 			
+			if (oldComputedContent != null && newComputedContent != null) {
+				if (!(newComputedContent.getJSONObject("scripts").toString()
+						.equals(oldComputedContent.getJSONObject("scripts").toString()))) {
+					getProject().getMobileBuilder().appTsChanged(this);
+				}
+			}
 			if (oldComputedContent != null && newComputedContent != null) {
 				if (!(newComputedContent.getString("style")
 						.equals(oldComputedContent.getString("style")))) {
@@ -907,6 +939,51 @@ public class ApplicationComponent extends MobileComponent implements IStyleGener
 		return sb.toString();
 	}
 
+	@Override
+	public void computeScripts(JSONObject jsonScripts) {
+		Iterator<UIDynamicMenu> it = getMenuComponentList().iterator();
+		while (it.hasNext()) {
+			UIDynamicMenu menu = (UIDynamicMenu)it.next();
+			menu.computeScripts(jsonScripts);
+		}
+	}
+	
+	public String getComputedImports() {
+		try {
+			return getComputedContents().getJSONObject("scripts").getString("imports");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return "";
+	}
+	
+	public String getComputedDeclarations() {
+		try {
+			return getComputedContents().getJSONObject("scripts").getString("declarations");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return "";
+	}
+
+	public String getComputedConstructors() {
+		try {
+			return getComputedContents().getJSONObject("scripts").getString("constructors");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return "";
+	}
+	
+	public String getComputedFunctions() {
+		try {
+			return getComputedContents().getJSONObject("scripts").getString("functions");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return "";
+	}
+	
 	/*
 	 * The computed routing table (see app.component.ts)
 	 */

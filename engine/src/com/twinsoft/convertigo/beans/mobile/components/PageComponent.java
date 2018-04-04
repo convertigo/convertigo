@@ -1,23 +1,20 @@
 /*
- * Copyright (c) 2001-2016 Convertigo SA.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; either version 3
- * of the License, or (at your option) any later version.
- *
+ * Copyright (c) 2001-2018 Convertigo SA.
+ * 
+ * This program  is free software; you  can redistribute it and/or
+ * Modify  it  under the  terms of the  GNU  Affero General Public
+ * License  as published by  the Free Software Foundation;  either
+ * version  3  of  the  License,  or  (at your option)  any  later
+ * version.
+ * 
  * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * but WITHOUT ANY WARRANTY;  without even the implied warranty of
+ * MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see<http://www.gnu.org/licenses/>.
- *
- * $URL$
- * $Author$
- * $Revision$
- * $Date$
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program;
+ * if not, see <http://www.gnu.org/licenses/>.
  */
 
 package com.twinsoft.convertigo.beans.mobile.components;
@@ -58,7 +55,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 		getCategoryName = "Page",
 		getIconClassCSS = "convertigo-action-newPageComponent"
 	)
-public class PageComponent extends MobileComponent implements ITagsProperty, IStyleGenerator, ITemplateGenerator, IScriptGenerator, IContainerOrdered, IEnableAble {
+public class PageComponent extends MobileComponent implements ITagsProperty, IScriptComponent, IStyleGenerator, ITemplateGenerator, IScriptGenerator, IContainerOrdered, IEnableAble {
 
 	private static final long serialVersionUID = 188562781669238824L;
 	
@@ -80,7 +77,6 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISt
 		cloned.newPriority = newPriority;
 		cloned.vUIComponents = new LinkedList<UIComponent>();
 		cloned.pageImports = new HashMap<String, String>();
-		cloned.pageFunctions = new HashMap<String, String>();
 		cloned.computedContents = null;
 		cloned.contributors = null;
 		cloned.isRoot = false;
@@ -323,6 +319,16 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISt
 		return eventList;
 	}
 
+	public List<UIEventSubscriber> getUIEventSubscriberList() {
+		List<UIEventSubscriber> eventList = new ArrayList<>();
+		for (UIComponent uiComponent : getUIComponentList()) {
+			if (uiComponent instanceof UIEventSubscriber) {
+				eventList.add((UIEventSubscriber) uiComponent);
+			}
+		}
+		return eventList;
+	}
+
 	public UIComponent getUIComponentByName(String uiName) throws EngineException {
 		checkSubLoaded();
 		for (UIComponent uiComponent : vUIComponents)
@@ -431,7 +437,6 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISt
 	}
 	
 	private transient Map<String, String> pageImports = new HashMap<String, String>();
-	private transient Map<String, String> pageFunctions = new HashMap<String, String>();
 	
 	private boolean hasImport(String name) {
 		return pageImports.containsKey(name) ||
@@ -443,18 +448,6 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISt
 			synchronized (pageImports) {
 				if (!hasImport(name)) {
 					pageImports.put(name, path);
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-	
-	public boolean addFunction(String name, String code) {
-		if (name != null && code != null && !name.isEmpty() && !code.isEmpty()) {
-			synchronized (pageFunctions) {
-				if (!pageFunctions.containsKey(name)) {
-					pageFunctions.put(name, code);
 					return true;
 				}
 			}
@@ -517,7 +510,6 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISt
 	protected synchronized void doComputeContents() {
 		try {
 			pageImports.clear();
-			pageFunctions.clear();
 			JSONObject newComputedContent = initJsonComputed();
 			
 			JSONObject jsonScripts = newComputedContent.getJSONObject("scripts");
@@ -634,9 +626,32 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISt
 		String menuId = getMenuId();
 		if (!menuId.isEmpty()) {
 			try {
-				String constructor = "this.menuId = '" + menuId +"';" + System.lineSeparator();
+				String constructor = System.lineSeparator() + "\t\tthis.menuId = '" + menuId +"';"
+									+ System.lineSeparator() + "\t\t";
 				String constructors = jsonScripts.getString("constructors") + constructor;
 				jsonScripts.put("constructors", constructors);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		// Page subscribers
+		List<UIEventSubscriber> subscriberList = getUIEventSubscriberList();
+		if (!subscriberList.isEmpty()) {
+			try {
+				String subscribers = UIEventSubscriber.computeConstructors(subscriberList)
+									+ System.lineSeparator() + "\t\t";
+				String constructors = jsonScripts.getString("constructors") + subscribers;
+				jsonScripts.put("constructors", constructors);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			
+			try {
+				String function = UIEventSubscriber.computeNgDestroy(subscriberList) 
+								+ System.lineSeparator() + "\t";
+				String functions = jsonScripts.getString("functions") + function;
+				jsonScripts.put("functions", functions);
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}

@@ -1,23 +1,20 @@
 /*
- * Copyright (c) 2001-2011 Convertigo SA.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; either version 3
- * of the License, or (at your option) any later version.
- *
+ * Copyright (c) 2001-2018 Convertigo SA.
+ * 
+ * This program  is free software; you  can redistribute it and/or
+ * Modify  it  under the  terms of the  GNU  Affero General Public
+ * License  as published by  the Free Software Foundation;  either
+ * version  3  of  the  License,  or  (at your option)  any  later
+ * version.
+ * 
  * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * but WITHOUT ANY WARRANTY;  without even the implied warranty of
+ * MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see<http://www.gnu.org/licenses/>.
- *
- * $URL$
- * $Author$
- * $Revision$
- * $Date$
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program;
+ * if not, see <http://www.gnu.org/licenses/>.
  */
 
 package com.twinsoft.convertigo.engine;
@@ -29,7 +26,6 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -314,7 +310,7 @@ public class ContextManager extends AbstractRunnableManager {
 		try {
 			HttpSession httpSession = HttpSessionListener.getHttpSession(sessionID);
 			synchronized (httpSession) {
-				ArrayList<Context> contextList = GenericUtils.cast(httpSession.getAttribute("contexts"));
+				List<Context> contextList = GenericUtils.cast(httpSession.getAttribute("contexts"));
 				int size = contextList.size();
 				Engine.logContextManager.debug("(ContextManager) Contexts from the session " + sessionID + ": "+ size);
 				return size > 0 ? false:true;
@@ -386,19 +382,19 @@ public class ContextManager extends AbstractRunnableManager {
 			return;
 		}
 
-    	// To prevent from deadlock, we must synchronize on the context itself (see #3048)
-    	// to avoid another request thread to try to use the context simultaneously.
-    	// This lock must occur BEFORE acquiring lock the the contexts table.
-    	synchronized (context) {
+		if (context.isDestroying) {
+			return;
+		}
+		context.isDestroying = true;
+		
+		try {
 			String contextID = context.contextID;
 			Engine.logContextManager.info("Removing context " + contextID);
 			
-            synchronized(contexts) {
-            	contexts.remove(contextID);
-            }
-			
-			context.isDestroying = true;
-
+	        synchronized(contexts) {
+	        	contexts.remove(contextID);
+	        }
+	
 			if ((context.requestedObject != null) && (context.requestedObject.runningThread != null)) {
 				Engine.logContextManager.debug("Stopping requestable thread for context " + contextID);
 				//context.requestedObject.runningThread.bContinue = false;
@@ -451,13 +447,13 @@ public class ContextManager extends AbstractRunnableManager {
 					});
 				}
 			}
-
+	
 			context.clearConnectors();
 			
 			// Set TwsCachedXPathAPI to null
 			context.cleanXpathApi();
 			
-            Engine.theApp.sessionManager.removeSession(contextID);
+	        Engine.theApp.sessionManager.removeSession(contextID);
 			String projectName = (String) context.projectName;
 			
 			/* Fix: #1754 - Slower transaction execution with many session */
@@ -470,7 +466,7 @@ public class ContextManager extends AbstractRunnableManager {
 			if (httpSession != null) {
 				synchronized (httpSession) {
 					try {
-						ArrayList<Context> contextList = GenericUtils.cast(httpSession.getAttribute("contexts"));
+						List<Context> contextList = GenericUtils.cast(httpSession.getAttribute("contexts"));
 						if ((contextList != null) && contextList.contains(context)) {
 							contextList.remove(context);
 							Engine.logContextManager.debug("(ContextManager) context " + contextID + " has been removed from http session's context list");
@@ -482,33 +478,20 @@ public class ContextManager extends AbstractRunnableManager {
 					}
 				}
 			}
-
-            Engine.logContextManager.debug("Context " + contextID + " has been removed");
-            Engine.logContext.debug("[" + contextID + "] Context removed, project: " + projectName);
-            Engine.logContextManager.info("Current in-use contexts: " + contexts.size());
-            Engine.logUsageMonitor.info("[Contexts] Current in-use contexts: " + contexts.size());
-        }
+	
+	        Engine.logContextManager.debug("Context " + contextID + " has been removed");
+	        Engine.logContext.debug("[" + contextID + "] Context removed, project: " + projectName);
+	        Engine.logContextManager.info("Current in-use contexts: " + contexts.size());
+	        Engine.logUsageMonitor.info("[Contexts] Current in-use contexts: " + contexts.size());
+		} catch (Exception e) {
+			Engine.logContextManager.warn("Failed to remove the context " + context.contextID, e);
+		}
     }
 
 	public void removeAll(String sessionID) {
-//		Engine.logContextManager.debug("Removing all contexts from the session " + sessionID + "...");
-//		try {
-//			for (String contextID : GenericUtils.clone(contexts).keySet()) {
-//				Engine.logContextManager.debug("Analyzing contextID " + contextID);
-//				if (contextID.startsWith(sessionID)) {
-//					remove(contextID);
-//				}
-//			}
-//		} catch(NullPointerException e) {
-//			// Nothing to do: the Engine object has yet been deleted
-//		}
-		
-		/* Fix: #1754 - Slower transaction execution with many session */
-		// HTTP session maintain its own context list in order to
-		// improve context removal on session unbound process
 		try {
 			HttpSession httpSession = HttpSessionListener.getHttpSession(sessionID);
-			List<Context> contextList = GenericUtils.cast(httpSession.getAttribute("contexts"));
+			List<Context> contextList = GenericUtils.clone(GenericUtils.cast(httpSession.getAttribute("contexts")));
 			
 			for (Context context: contextList) {
 				remove(context);
@@ -516,13 +499,13 @@ public class ContextManager extends AbstractRunnableManager {
 		} catch (Exception e) {
 			if (e instanceof IllegalStateException || e instanceof NullPointerException) {
 				try {
-					for (Iterator<String> i = contexts.keySet().iterator(); i.hasNext();){
-						String contextID = i.next();
+					for (String contextID: GenericUtils.clone(contexts).keySet()) {
 						if (contextID.startsWith(sessionID)) {
 							remove(contextID);
 						}
 					}
 				} catch (Exception e2) {
+					Engine.logContextManager.debug("Failed to removeAll for " + sessionID, e2);
 					// prevent exception propagation
 				}
 			}

@@ -1,23 +1,20 @@
 /*
- * Copyright (c) 2001-2011 Convertigo SA.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; either version 3
- * of the License, or (at your option) any later version.
- *
+ * Copyright (c) 2001-2018 Convertigo SA.
+ * 
+ * This program  is free software; you  can redistribute it and/or
+ * Modify  it  under the  terms of the  GNU  Affero General Public
+ * License  as published by  the Free Software Foundation;  either
+ * version  3  of  the  License,  or  (at your option)  any  later
+ * version.
+ * 
  * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * but WITHOUT ANY WARRANTY;  without even the implied warranty of
+ * MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see<http://www.gnu.org/licenses/>.
- *
- * $URL$
- * $Author$
- * $Revision$
- * $Date$
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program;
+ * if not, see <http://www.gnu.org/licenses/>.
  */
 
 package com.twinsoft.convertigo.engine.requesters;
@@ -30,6 +27,7 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
 import java.util.Map.Entry;
@@ -78,6 +76,7 @@ import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -344,6 +343,26 @@ public abstract class GenericRequester extends Requester {
 			context.isNewSession = true;
 			context.projectName = projectName;
 			Log4jHelper.mdcPut(mdcKeys.Project, context.projectName);
+		}
+		
+		/* Fix: #1754 - Slower transaction execution with many session */
+		// HTTP session maintain its own context list in order to
+		// improve context removal on session unbound process
+		if (context.httpSession != null) {
+			synchronized (context.httpSession) {
+				try {
+					ArrayList<Context> contextList = GenericUtils.cast(context.httpSession.getAttribute("contexts"));
+					if (contextList == null)
+						contextList = new ArrayList<Context>();
+						context.httpSession.setAttribute("contexts", contextList);
+					if (!contextList.contains(context)) {
+						contextList.add(context);
+						Engine.logContext.debug("(ServletRequester) context " + context.contextID + " has been added to http session's context list");
+					}
+				}
+				catch (Exception e) {
+				}
+			}
 		}
 	}
 

@@ -1,3 +1,22 @@
+/*
+ * Copyright (c) 2001-2018 Convertigo SA.
+ * 
+ * This program  is free software; you  can redistribute it and/or
+ * Modify  it  under the  terms of the  GNU  Affero General Public
+ * License  as published by  the Free Software Foundation;  either
+ * version  3  of  the  License,  or  (at your option)  any  later
+ * version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY;  without even the implied warranty of
+ * MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program;
+ * if not, see <http://www.gnu.org/licenses/>.
+ */
+
 package com.twinsoft.convertigo.eclipse.wizards.setup;
 
 import org.eclipse.jface.wizard.IWizard;
@@ -76,7 +95,7 @@ public class AlreadyPscKeyPage extends WizardPage {
 		
 		Link details = new Link(container, SWT.WRAP);
 		details.setText(
-				"\nIncluded with Convertigo Community Edition, you get access to a free Â« Convertigo Cloud Â» account. This cloud is named Convertigo Trial Cloud and can be accessed at the following URL: <a href=\"http://trial.convertigo.net\">http://trial.convertigo.net</a>. You will be able to deploy your projects on this shared cloud for free.\n\n" +
+				"\nIncluded with Convertigo Community Edition, you get access to a free « Convertigo Cloud » account. This cloud is named Convertigo Trial Cloud and can be accessed at the following URL: <a href=\"http://trial.convertigo.net\">http://trial.convertigo.net</a>. You will be able to deploy your projects on this shared cloud for free.\n\n" +
 				"Choose the \"I do not have a PSC and I want to register now\" option and fill in the creation form in the next page. This form automatically creates for you a Convertigo Trial Cloud account as well as a free Convertigo Support Forum account. \n\n" +
 				"You can access the Convertigo Support Forum by clicking this link: <a href=\"http://www.convertigo.com/en/how-to/developer-forum.html\">http://www.convertigo.com/en/how-to/developer-forum.html</a>.\n\n" +
 				"As a result of the registration process, you will receive a PSC by email that will configure your Studio for projects deployment on Convertigo Trial Cloud. \n\n" +

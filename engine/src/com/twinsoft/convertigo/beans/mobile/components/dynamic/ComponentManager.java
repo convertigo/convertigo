@@ -1,23 +1,20 @@
 /*
- * Copyright (c) 2001-2016 Convertigo SA.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; either version 3
- * of the License, or (at your option) any later version.
- *
+ * Copyright (c) 2001-2018 Convertigo SA.
+ * 
+ * This program  is free software; you  can redistribute it and/or
+ * Modify  it  under the  terms of the  GNU  Affero General Public
+ * License  as published by  the Free Software Foundation;  either
+ * version  3  of  the  License,  or  (at your option)  any  later
+ * version.
+ * 
  * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * but WITHOUT ANY WARRANTY;  without even the implied warranty of
+ * MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see<http://www.gnu.org/licenses/>.
- *
- * $URL$
- * $Author$
- * $Revision$
- * $Date$
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program;
+ * if not, see <http://www.gnu.org/licenses/>.
  */
 
 package com.twinsoft.convertigo.beans.mobile.components.dynamic;
@@ -61,6 +58,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UICustomAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItem;
 import com.twinsoft.convertigo.beans.mobile.components.UIElement;
+import com.twinsoft.convertigo.beans.mobile.components.UIEventSubscriber;
 import com.twinsoft.convertigo.beans.mobile.components.UIForm;
 import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
 import com.twinsoft.convertigo.beans.mobile.components.UIText;
@@ -305,6 +303,7 @@ public class ComponentManager {
 			group = "Controls";
 			components.add(getDboComponent(UIControlEvent.class,group));
 			components.add(getDboComponent(UIPageEvent.class,group));
+			components.add(getDboComponent(UIEventSubscriber.class,group));
 			components.add(getDboComponent(UIActionErrorEvent.class,group));
 			components.add(getDboComponent(UIActionFailureEvent.class,group));
 			components.add(getDboComponent(UIControlDirective.class,group));
@@ -435,7 +434,12 @@ public class ComponentManager {
 
 	public static boolean isCafCompatible(DatabaseObject parentDatabaseObject, DatabaseObject databaseObject) {
 		if (parentDatabaseObject instanceof MobileComponent && databaseObject instanceof MobileComponent) {
-			return ((MobileComponent)parentDatabaseObject).compareToTplCafVersion(getCafRequired(databaseObject)) >= 0;
+			boolean compatible = ((MobileComponent)parentDatabaseObject).compareToTplCafVersion(getCafRequired(databaseObject)) >= 0;
+			if (!compatible) {
+				Engine.logStudio.warn("The '"+databaseObject.getName()+"' component isn't compatible with your Template project."
+						+ " Please change your Template project for a newer one to use it.");
+				return false;
+			}
 		}
 		return true;
 	}
@@ -473,7 +477,9 @@ public class ComponentManager {
 					}
 				}
 				
-				if (dboParent instanceof UIPageEvent || dboParent instanceof UIControlEvent) {
+				if (dboParent instanceof UIPageEvent || 
+					dboParent instanceof UIEventSubscriber || 
+					dboParent instanceof UIControlEvent) {
 					if (UIActionErrorEvent.class.isAssignableFrom(dboClass) ||
 						IAction.class.isAssignableFrom(dboClass)) {
 						return true;
@@ -499,6 +505,7 @@ public class ComponentManager {
 					
 					if (!UIControlVariable.class.isAssignableFrom(dboClass) &&
 						!UIPageEvent.class.isAssignableFrom(dboClass) &&
+						!UIEventSubscriber.class.isAssignableFrom(dboClass) &&
 						!UIActionEvent.class.isAssignableFrom(dboClass) &&
 						!UITheme.class.isAssignableFrom(dboClass) &&
 						!IAction.class.isAssignableFrom(dboClass)) {

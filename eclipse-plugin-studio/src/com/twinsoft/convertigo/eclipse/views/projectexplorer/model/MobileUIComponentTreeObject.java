@@ -1,23 +1,20 @@
 /*
- * Copyright (c) 2001-2011 Convertigo SA.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; either version 3
- * of the License, or (at your option) any later version.
- *
+ * Copyright (c) 2001-2018 Convertigo SA.
+ * 
+ * This program  is free software; you  can redistribute it and/or
+ * Modify  it  under the  terms of the  GNU  Affero General Public
+ * License  as published by  the Free Software Foundation;  either
+ * version  3  of  the  License,  or  (at your option)  any  later
+ * version.
+ * 
  * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * but WITHOUT ANY WARRANTY;  without even the implied warranty of
+ * MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see<http://www.gnu.org/licenses/>.
- *
- * $URL: svn://devus.twinsoft.fr/convertigo/CEMS_opensource/trunk/Studio/src/com/twinsoft/convertigo/eclipse/views/projectexplorer/model/ReferenceTreeObject.java $
- * $Author: nathalieh $
- * $Revision: 39934 $
- * $Date: 2015-06-11 19:30:12 +0200 (jeu., 11 juin 2015) $
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program;
+ * if not, see <http://www.gnu.org/licenses/>.
  */
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
@@ -52,6 +49,8 @@ import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
+import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
+import com.twinsoft.convertigo.beans.mobile.components.IScriptComponent;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
@@ -110,28 +109,37 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			openCssFileEditor();
 		} else if (uic instanceof UICustomAction) {
 			String functionMarker = "function:"+ ((UICustomAction)uic).getActionName();
-			editPageFunction(uic, functionMarker, "actionValue");
+			editFunction(uic, functionMarker, "actionValue");
 		} else if (uic instanceof UIFormCustomValidator) {
 			String functionMarker = "function:"+ ((UIFormCustomValidator)uic).getValidatorName();
-			editPageFunction(uic, functionMarker , "validatorValue");
+			editFunction(uic, functionMarker , "validatorValue");
 		} else {
 			super.launchEditor(editorType);
 		}
 	}
 	
-	private void editPageFunction(final UIComponent uic, final String functionMarker, final String propertyName) {
-		final PageComponent page = uic.getPage();
+	private void editFunction(final UIComponent uic, final String functionMarker, final String propertyName) {
 		try {
+			IScriptComponent main = uic.getMainScriptComponent();
+			
 			// Refresh project resources for editor
-			String projectName = page.getProject().getName();
+			String projectName = uic.getProject().getName();
 			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
 			project.refreshLocal(IResource.DEPTH_INFINITE, null);
 			
 			// Close editor and Reopen it after file has been rewritten
-			String relativePath = page.getProject().getMobileBuilder().getFunctionTempTsRelativePath(page);
+			String relativePath = uic.getProject().getMobileBuilder().getFunctionTempTsRelativePath(main);
 			IFile file = project.getFile(relativePath);
 			closeComponentFileEditor(file);
-			page.getProject().getMobileBuilder().writeFunctionTempTsFile(page, functionMarker);
+			
+			if (main instanceof ApplicationComponent) {
+				if (uic.compareToTplCafVersion("1.0.101") < 0) {
+					ConvertigoPlugin.logError("The ability to use forms or actions inside a menu is avalaible since 7.5.2 version."
+							+ "\nPlease change your Template project for the 'mobilebuilder_tpl_7_5_2' template.", true);
+					return;
+				}
+			}
+			uic.getProject().getMobileBuilder().writeFunctionTempTsFile(main, functionMarker);
 			file.refreshLocal(IResource.DEPTH_ZERO, null);
 			
 			// Open file in editor
@@ -184,7 +192,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 				}			
 			}
 		} catch (Exception e) {
-			ConvertigoPlugin.logException(e, "Unable to edit function for page '" + page.getName() + "'!");
+			ConvertigoPlugin.logException(e, "Unable to edit function for '"+ uic.getName() +"' component!");
 		}
 	}
 	
