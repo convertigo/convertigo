@@ -39,10 +39,11 @@ public class ResourceTreeObject extends TreeObject {
 		return getObject().getName();
 	}
 	
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Object getAdapter(Class adapter) {
-		if (adapter == IWorkbenchAdapter.class)
+		if (adapter == IWorkbenchAdapter.class) {
 			return getObject().getAdapter(adapter);
+		}
 //		if (adapter.equals(IContributorResourceAdapter.class))
 //			return object;
 		return super.getAdapter(adapter);

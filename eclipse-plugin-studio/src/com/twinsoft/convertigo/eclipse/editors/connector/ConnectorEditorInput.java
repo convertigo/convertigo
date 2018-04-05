@@ -56,6 +56,7 @@ public class ConnectorEditorInput implements IEditorInput {
 		return connector.getParent().getName() + "/" + connector.getName();
 	}
 
+	@SuppressWarnings("unchecked")
 	public Object getAdapter(@SuppressWarnings("rawtypes") Class adapter) {
 		return null;
 	}

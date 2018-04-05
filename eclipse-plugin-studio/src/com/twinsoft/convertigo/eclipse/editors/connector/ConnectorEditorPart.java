@@ -981,8 +981,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 		// test if the compositeConnector needs a zoneListener
 		// if (ILinkable.class.isAssignableFrom(compositeConnectorClass)) {
 		// ToolItem[] ti_tab = toolBar.getItems();
-		// // retrouve le tool item qui va bien pour le passer à la méthode
-		// monitor
+		// 
 		// int i = ((Integer)toolItemsIds.get("Link")).intValue();
 		// ((ILinkable) compositeConnector).monitor(ti_tab[i]);
 		// }

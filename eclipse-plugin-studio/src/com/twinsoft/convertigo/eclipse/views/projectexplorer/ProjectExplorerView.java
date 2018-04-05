@@ -141,9 +141,9 @@ import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
+import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIAttribute;
-import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlAttr;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
@@ -206,13 +206,13 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IDesignTreeOb
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IEditableTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IPropertyTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ListenerTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplicationTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplicationComponentTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplicationTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobilePageComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobilePlatformTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteActionComponentTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteEventComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteComponentTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteEventComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileUIComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
@@ -404,6 +404,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	 * This is a callback that will allow us
 	 * to create the viewer and initialize it.
 	 */
+	@SuppressWarnings("deprecation")
 	public void createPartControl(Composite parent) {
 		viewContentProvider = new ViewContentProvider(this);
 		
@@ -2014,7 +2015,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		ConvertigoPlugin.projectManager.setProjectExplorerView(null);
 	}
 	
-	private ListenerList selectionChangedListeners = new ListenerList();
+	private ListenerList<ISelectionChangedListener> selectionChangedListeners = new ListenerList<ISelectionChangedListener>();
 	
     public synchronized void addSelectionChangedListener(ISelectionChangedListener listener) {
         selectionChangedListeners.add(listener);

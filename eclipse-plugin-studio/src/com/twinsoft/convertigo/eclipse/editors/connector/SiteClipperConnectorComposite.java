@@ -99,11 +99,9 @@ public class SiteClipperConnectorComposite extends AbstractConnectorComposite im
 	}
 	
 	public void renew() {
-		// TODO gérer le renew		
 	}
 	
 	public void monitor(ToolItem ti) {
-		// TODO gérer le monitoring du connecteur pour l'affichage du bouton
 	}
 
 	protected void clearContent() {

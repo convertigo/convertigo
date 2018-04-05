@@ -142,15 +142,11 @@ public class CicsConnectorComposite extends AbstractConnectorComposite implement
 	}
 
 	public void initConnector(Transaction transaction) {
-		// TODO Auto-generated method stub
-
 	}
 
 	public void renew() {
-		// TODO: gérer le renew
 	}
 
 	public void monitor(ToolItem ti) {
-		// TODO gérer le monitoring du connecteur pour l'affichage du bouton
 	}
 }

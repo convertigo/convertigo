@@ -43,7 +43,7 @@ public class JscriptTreeFunctionEditor extends EditorPart implements IPropertyLi
 	private IFile file;
 	private IEditorSite eSite;
 	private IEditorInput eInput;
-	private ListenerList listenerList;
+	private ListenerList<IPropertyListener> listenerList;
 	private IFunctionTreeObject treeObject;
 	private MyJScriptEditor jsEditor;
 	
@@ -187,7 +187,7 @@ public class JscriptTreeFunctionEditor extends EditorPart implements IPropertyLi
 	@Override
 	public void addPropertyListener(IPropertyListener l) {
 		if (listenerList == null) {
-			listenerList = new ListenerList();
+			listenerList = new ListenerList<IPropertyListener>();
 		}
 		listenerList.add(l);
 	}

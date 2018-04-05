@@ -165,12 +165,14 @@ public abstract class TreeObject implements IAdaptable {
 		return object.toString();
 	}
 
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Object getAdapter(Class adapter) {
-		if (adapter.isInstance(object))
+		if (adapter.isInstance(object)) {
 			return object;
-		if (adapter.isInstance(viewer))
+		}
+		if (adapter.isInstance(viewer)) {
 			return viewer;
+		}
 		return Platform.getAdapterManager().getAdapter(this, adapter);
 	}
 	

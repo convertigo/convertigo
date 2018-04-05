@@ -66,7 +66,7 @@ public class XslRuleEditor extends EditorPart implements IPropertyListener {
 
 	private SashForm sashForm = null;
 
-	private ListenerList listenerList;
+	private ListenerList<IPropertyListener> listenerList;
 
 	private Sheet parentStyleSheet;
 	
@@ -242,8 +242,9 @@ public class XslRuleEditor extends EditorPart implements IPropertyListener {
 
 	@Override
 	public void addPropertyListener(IPropertyListener l) {
-		if (listenerList == null)
-			listenerList = new ListenerList();
+		if (listenerList == null) {
+			listenerList = new ListenerList<IPropertyListener>();
+		}
 		listenerList.add(l);
 	}
 

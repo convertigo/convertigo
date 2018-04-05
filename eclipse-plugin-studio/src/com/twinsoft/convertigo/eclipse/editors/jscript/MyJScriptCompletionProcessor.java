@@ -45,9 +45,6 @@ import com.twinsoft.util.QuickSort;
 import com.twinsoft.util.QuickSortItem;
 import com.twinsoft.util.StringEx;
 
-
-
-
 public class MyJScriptCompletionProcessor implements IJavaCompletionProposalComputer
 {
 	protected 	char 	completionProposalAutoActivationCharacters[] = {'.'};
@@ -214,7 +211,7 @@ public class MyJScriptCompletionProcessor implements IJavaCompletionProposalComp
 	/*
 	 * @see org.eclipse.jface.text.contentassist.ICompletionProposalComputer#computeContextInformation(org.eclipse.jface.text.contentassist.TextContentAssistInvocationContext, org.eclipse.core.runtime.IProgressMonitor)
 	 */
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public List computeContextInformation(ContentAssistInvocationContext context, IProgressMonitor monitor) {
 		return null;
