@@ -75,7 +75,7 @@ public class Supervision extends TextService {
 				bCacheDatabase = true;
 			}
 			catch(Exception e) {
-				System.err.println("supervision: erreur lors de l'accès à la base de données Cache Convertigo");
+				System.err.println("supervision: error while the database access for the Convertigo Cache");
 				e.printStackTrace();
 			}
 		}

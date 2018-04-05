@@ -35,8 +35,6 @@ import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.twinj.iJavelin;
 
-// TODO: propriété tagName à mettre en reg exp ?
-
 public class RemoveBlocks extends JavelinExtractionRule {
 
 	public static final long serialVersionUID = -6735666205939933877L;

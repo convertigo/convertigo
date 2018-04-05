@@ -224,10 +224,10 @@ public class PseudoCertificate {
 			}
 			
 			saveFile(outputFilePath, encrypted.getBytes());
-			System.out.println("Pseudo-certificat \""+ inputFilePath +"\" créé.");
+			System.out.println("Pseudo-certificate \""+ inputFilePath +"\" created.");
 		}
 		catch(Exception e) {
-			System.out.println("Erreur lors de l'encryptage des donnees: " + e.getMessage());
+			System.out.println("Error while ciphering the data: " + e.getMessage());
 		}
 	}
 	
@@ -271,7 +271,7 @@ public class PseudoCertificate {
 			return decrypted.getBytes();
 		}
 		catch(Exception e) {
-			System.out.println("Erreur lors du décryptage des donnees: " + e.getMessage());
+			System.out.println("Error while deciphering the data: " + e.getMessage());
 			return null;
 		}
 	}
@@ -286,7 +286,7 @@ public class PseudoCertificate {
 			return result;
 		}
 		catch (Exception e) {
-			System.out.println("Probleme lors de la lecture du fichier: " + e.getMessage());
+			System.out.println("Error while reading the file: " + e.getMessage());
 			return null;
 		}
 	}
@@ -298,7 +298,7 @@ public class PseudoCertificate {
 			out.close();
 		}
 		catch (Exception e) {
-			System.out.println("Probleme lors de la sauvegarde du fichier: " + e.getMessage());
+			System.out.println("Error while saving the file: " + e.getMessage());
 		}
 	}
 	

@@ -43,7 +43,7 @@ public class ConnectorBeanInfo extends MySimpleBeanInfo {
 			properties[1].setShortDescription(getExternalizedString("property.isTasAuthenticationRequired.short_description"));
 			properties[1].setExpert(true);
 			
-			// TODO: combo box pour le choix de la classe de billing et dont les données proviennent d'un fichier de conf
+			// TODO: combo box to choose the billing class from a configuration file
 			properties[2] = new PropertyDescriptor("billingClassName", Connector.class, "getBillingClassName", "setBillingClassName");
 			properties[2].setDisplayName(getExternalizedString("property.billingClassName.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.billingClassName.short_description"));

@@ -35,22 +35,22 @@ public class SplitFields extends ComplexExtractionRule {
 	
 	private static final long serialVersionUID = 3408126699479451113L;
 
-	/** Tag du tableau */
+	/** Tag of the table */
 	private String tagTable = "table";
 
-	/** Séparateur de début et fin de tableau */
+	/** begin/end separator of the table */
 	private String separatorTableStart 	= "";
 	private String separatorTableEnd	= "";
 	
-	/** Séparateur de début et fin de ligne */
+	/** begin/end separator of the row */
 	private String separatorRowStart	= "";
 	private String separatorRowEnd		= "";
 	
-	/** Séparateur de début et fin de cellule */
+	/** begin/end separator of the cell */
 	private String separatorCelStart	= "";
 	private String separatorCelEnd		= "";
 	
-	/** Noms des colonnes */
+	/** columns names */
 	private XMLVector<XMLVector<String>> columns = new XMLVector<XMLVector<String>>();
 	
 	/** Holds value of property doNotAccumulate. */
@@ -131,15 +131,16 @@ public class SplitFields extends ComplexExtractionRule {
 	public void setColumns(XMLVector<XMLVector<String>> columns) {
 		this.columns = columns;
 		
-		int i=0;
+		int i = 0;
 		int size = columns.size();
 		
 		
-		/** copie dans un tableau pour un accès direct */
+		/** copy in an array for a direct access */
 		cols = new String[size];
 		
-		for(List<String> column: columns)
+		for (List<String> column: columns) {
 			cols[i++] = column.get(0);
+		}
 	}	
 
 	/** Getter for property doNotAccumulate.
@@ -174,21 +175,21 @@ public class SplitFields extends ComplexExtractionRule {
 		super();
 	}
 
-	/** il y a plusieurs type de split */
+	/** their is multiple kind of split */
 	interface SplitWith{
 		abstract List<String> splitWith(String s);
 	}
 
-	/** sans séparateur */
+	/** without split */
 	class DontSplit implements SplitWith{
 		
-		/** retourne la chaîne directement dans un vecteur */
+		/** return the string in a vector */
 		public List<String> splitWith(String s){
 			return Arrays.asList(new String[]{s});
 		}	
 	}
 	
-	/** séparateur au début */
+	/** begin separator */
 	class SplitStartWith implements SplitWith{
 		private String _sep;
 		private int _lsep;
@@ -210,7 +211,7 @@ public class SplitFields extends ComplexExtractionRule {
 		}
 	}
 	
-	/** séparateur à la fin */
+	/** end separator */
 	class SplitEndWith implements SplitWith{
 		private String _sep;
 		private int _lsep;
@@ -235,7 +236,7 @@ public class SplitFields extends ComplexExtractionRule {
 		
 	}
 	
-	/** sous chaînes entourées par deux séparateurs */
+	/** sub string inside separators */
 	class SplitStartEndWith implements SplitWith{
 		private String _sepstart;
 		private String _sepend;
@@ -255,29 +256,31 @@ public class SplitFields extends ComplexExtractionRule {
 			boolean start = true;
 			int nextindex = 0;
 			int curindex = str.indexOf(_sepstart, 0);
-			while(nextindex != -1 && curindex != -1)
-				if(start=!start){
-					strings.add(str.substring(curindex + _lsepstart,nextindex));
+			while(nextindex != -1 && curindex != -1) {
+				if (start =! start) {
+					strings.add(str.substring(curindex + _lsepstart, nextindex));
 					curindex = str.indexOf(_sepstart,nextindex + _lsepend);
-				} else nextindex = str.indexOf(_sepend,curindex + _lsepstart);
+				} else {
+					nextindex = str.indexOf(_sepend,curindex + _lsepstart);
+				}
+			}
 			return strings;
 		}
 		
 	}	
 	
-	/** retourne le spliteur adapté aux séparateurs */
-	SplitWith getBestSplitWith(String sepstart,String sepend){
-		if(sepstart.equals("") && sepend.equals("")) return new DontSplit();
-		if(sepend.equals("")) return new SplitStartWith(sepstart);
-		if(sepstart.equals("")) return new SplitEndWith(sepend);
+	SplitWith getBestSplitWith(String sepstart, String sepend) {
+		if (sepstart.equals("") && sepend.equals("")) {
+			return new DontSplit();
+		}
+		if (sepend.equals("")) {
+			return new SplitStartWith(sepstart);
+		}
+		if (sepstart.equals("")) {
+			return new SplitEndWith(sepend);
+		}
 		return new SplitStartEndWith(sepstart,sepend);
 	}
-	
-//	private void insertBefore(BlockFactory bf, Block block, Block before){
-//		bf.insertBlock(block,before);
-//		bf.removeBlock(before);
-//		bf.insertBlock(before,block);
-//	}
 	
 	/**
 	 * Applies the extraction rule to the current iJavelin object.
@@ -295,21 +298,29 @@ public class SplitFields extends ComplexExtractionRule {
 	 *         query.
 	 */
 	public JavelinExtractionRuleResult execute(iJavelin javelin, Block block, BlockFactory blockFactory, org.w3c.dom.Document dom) {
-		/* Devrait déjà être initialisé, à voir pourquoi les setter ne sont pas appelé lors d'un load */
-		if(tab==null)tab=getBestSplitWith(separatorTableStart,separatorTableEnd);
-		if(row==null)row=getBestSplitWith(separatorRowStart,separatorRowEnd);
-		if(cel==null)cel=getBestSplitWith(separatorCelStart,separatorCelEnd);
-		if(cols==null)setColumns(columns);
+		if (tab == null) {
+			tab=getBestSplitWith(separatorTableStart, separatorTableEnd);
+		}
+		if (row == null) {
+			row = getBestSplitWith(separatorRowStart, separatorRowEnd);
+		}
+		if (cel == null) {
+			cel = getBestSplitWith(separatorCelStart, separatorCelEnd);
+		}
+		if (cols == null) {
+			setColumns(columns);
+		}
 		
 		JavelinExtractionRuleResult xrs = new JavelinExtractionRuleResult();
 		Block curBlock = block;
 
 		StringBuffer strbuf = new StringBuffer();
 		
-		while(!canBlockBeSelected(curBlock) && curBlock != null)
+		while (!canBlockBeSelected(curBlock) && curBlock != null) {
 			curBlock = blockFactory.getNextBlock(curBlock);
+		}
 		
-		if(curBlock == null){
+		if (curBlock == null) {
 			Engine.logBeans.trace("SplitFields extraction have no block");
 			xrs.hasMatched = false;
 			xrs.newCurrentBlock = curBlock;
@@ -321,19 +332,22 @@ public class SplitFields extends ComplexExtractionRule {
 		blockFactory.insertBlock(tmpBlock, blockFactory.getPreviousBlock(block));
 		//insertBefore(blockFactory,tmpBlock,curBlock);
 		
-		while(curBlock != null)
-			if(canBlockBeSelected(curBlock)){
+		while(curBlock != null) {
+			if (canBlockBeSelected(curBlock)) {
 				strbuf.append(curBlock.getText());
 				curBlock = blockFactory.getNextBlock(curBlock);
 				//blockFactory.removeBlock(exBlock);				
-			} else curBlock=blockFactory.getNextBlock(curBlock);
+			} else {
+				curBlock = blockFactory.getNextBlock(curBlock);
+			}
+		}
 		
 		Block lastBlock = tmpBlock;
 		int tab_count = 1;
 		
-		for(String ltab : tab.splitWith(strbuf.toString())){
+		for (String ltab : tab.splitWith(strbuf.toString())) {
 			Block tableBlock;
-			if(accumulatedData == null || doNotAccumulate){
+			if (accumulatedData == null || doNotAccumulate) {
 				tableBlock = new Block();
 				accumulatedData = tableBlock;
 				blockFactory.insertBlock(tableBlock,lastBlock);
@@ -346,10 +360,12 @@ public class SplitFields extends ComplexExtractionRule {
 				tableBlock.type = "table";
 				tableBlock.tagName = tagTable;
 				tableBlock.setText("");
-			}else tableBlock = accumulatedData;
+			} else {
+				tableBlock = accumulatedData;
+			}
 			
 			lastBlock = tableBlock;
-			for(String lrow : row.splitWith(ltab)){
+			for (String lrow : row.splitWith(ltab)) {
 				Block rowBlock = new Block();
 				rowBlock.name = "";
 				rowBlock.type = "row";
@@ -358,7 +374,7 @@ public class SplitFields extends ComplexExtractionRule {
 				tableBlock.addOptionalChildren(rowBlock);
 				
 				int i = 0;
-				for(String lcel : cel.splitWith(lrow)){
+				for (String lcel : cel.splitWith(lrow)) {
 					Block celBlock = new Block();
 					celBlock.name = "";
 					celBlock.type = "static";
