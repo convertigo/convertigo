@@ -45,7 +45,7 @@ public class XMLSequenceStepEditor extends EditorPart implements IPropertyListen
 	private IFile file;
 	private IEditorSite eSite;
 	private IEditorInput eInput;
-	private ListenerList listenerList;
+	private ListenerList<IPropertyListener> listenerList;
 	private SequenceStep step;
 	private XMLMultiPageEditorPart xmlEditor;
 	
@@ -191,8 +191,9 @@ public class XMLSequenceStepEditor extends EditorPart implements IPropertyListen
 
 	@Override
 	public void addPropertyListener(IPropertyListener l) {
-		if (listenerList == null)
-			listenerList = new ListenerList();
+		if (listenerList == null) {
+			listenerList = new ListenerList<IPropertyListener>();
+		}
 		listenerList.add(l);
 	}
 

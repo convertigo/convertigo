@@ -46,7 +46,6 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Transaction;
-import com.twinsoft.convertigo.beans.statements.FunctionStatement;
 import com.twinsoft.convertigo.beans.statements.HandlerStatement;
 import com.twinsoft.convertigo.beans.statements.ScEntryHandlerStatement;
 import com.twinsoft.convertigo.beans.statements.ScExitHandlerStatement;
@@ -244,7 +243,8 @@ public class ComponentInfoWizardPage extends WizardPage {
 	
 	public IWizardPage getNextPage() {
 		try {
-			DatabaseObject dbo = ((ComponentExplorerWizardPage)getWizard().getPage("ComponentExplorerWizardPage")).getCreatedBean();
+//			DatabaseObject dbo =
+					((ComponentExplorerWizardPage) getWizard().getPage("ComponentExplorerWizardPage")).getCreatedBean();
 			/*if (dbo instanceof XMLTable) {
 				return getWizard().getPage("XMLTableWizardPage");
 			}

@@ -44,7 +44,7 @@ public class JscriptStepEditor extends EditorPart implements IPropertyListener {
 	private IFile file;
 	private IEditorSite eSite;
 	private IEditorInput eInput;
-	private ListenerList listenerList;
+	private ListenerList<IPropertyListener> listenerList;
 	private SimpleStep step;
 	private MyJScriptEditor jsEditor;
 	
@@ -193,7 +193,7 @@ public class JscriptStepEditor extends EditorPart implements IPropertyListener {
 	@Override
 	public void addPropertyListener(IPropertyListener l) {
 		if (listenerList == null) {
-			listenerList = new ListenerList();
+			listenerList = new ListenerList<IPropertyListener>();
 		}
 		listenerList.add(l);
 	}

@@ -45,7 +45,7 @@ public class JscriptStatementEditor extends EditorPart implements IPropertyListe
 	private IFile file;
 	private IEditorSite eSite;
 	private IEditorInput eInput;
-	private ListenerList listenerList;
+	private ListenerList<IPropertyListener> listenerList;
 	private SimpleStatement statement;
 	private MyJScriptEditor jsEditor;
 	
@@ -195,7 +195,7 @@ public class JscriptStatementEditor extends EditorPart implements IPropertyListe
 	@Override
 	public void addPropertyListener(IPropertyListener l) {
 		if (listenerList == null) {
-			listenerList = new ListenerList();
+			listenerList = new ListenerList<IPropertyListener>();
 		}
 		listenerList.add(l);
 	}

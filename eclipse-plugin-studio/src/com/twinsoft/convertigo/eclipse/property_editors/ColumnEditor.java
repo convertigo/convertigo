@@ -137,7 +137,7 @@ public class ColumnEditor extends JavelinPropertyTableEditor implements SwingVal
 //        firePropertyChange();
     }
     
-    private JComboBox jComboBoxColumns = new JComboBox();
+    private JComboBox<String> jComboBoxColumns = new JComboBox<String>();
     
     public void customizePanel(JPanel valuePanel, Container buttonsPanel) {
         valuePanel.setLayout(new BorderLayout());
@@ -222,7 +222,7 @@ public class ColumnEditor extends JavelinPropertyTableEditor implements SwingVal
         if (Table.class.isAssignableFrom(databaseObject.getClass())) {
         	vTmp = ((Table)databaseObject).getColumns();
         } else { } // not a table => no columns
-// TODO trouver quelle colonne est sélectionnée dans la combo box et la mettre à jour
+        // TODO find the column is selected in the combo and update
         /*Vector v = new XMLVector();
         v.add(jTmp.javelin.getString(zone.x, zone.y, zone.width).trim());
         v.add(new Integer(zone.x));
@@ -261,8 +261,7 @@ public class ColumnEditor extends JavelinPropertyTableEditor implements SwingVal
         	vTmp = ((Table)databaseObject).getColumns();
         } else { } // not a table => no columns
 
-// TODO trouver quelle colonne est sélectionnée dans la combo box et la mettre à jour
-        
+        // TODO find the column is selected in the combo and update
         /*Vector v = new XMLVector();
         v.add(jTmp.javelin.getString(zone.x, zone.y, zone.width).trim());
         v.add(new Integer(zone.x));

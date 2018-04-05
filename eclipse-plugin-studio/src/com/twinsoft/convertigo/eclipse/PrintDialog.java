@@ -126,9 +126,7 @@ public class PrintDialog extends Dialog {
 				convertigoPrint.setProduct(com.twinsoft.convertigo.eclipse.Version.productVersion);				
 				outputFileName=convertigoPrint.print(printDialogArea.getFileLocation());
 				this.getButton(IDialogConstants.OK_ID).setText(openFileText);
-				ConvertigoPlugin
-				.logInfo("Votre rapport de documentation est prêt et se trouve dans le fichier :"
-						+ outputFileName);
+				ConvertigoPlugin.logInfo("Your documentation report is ready in the file :" + outputFileName);
 			} catch (Exception e) {
 				ConvertigoPlugin.logException(e, "Unable to print");
 			}

@@ -56,6 +56,7 @@ public class SequenceEditorInput implements IEditorInput {
 		return sequence.getParent().getName() + "/" + sequence.getName();
 	}
 
+	@SuppressWarnings("unchecked")
 	public Object getAdapter(@SuppressWarnings("rawtypes") Class adapter) {
 		return null;
 	}

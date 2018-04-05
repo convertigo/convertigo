@@ -45,7 +45,7 @@ public class XMLTransactionStepEditor extends EditorPart implements IPropertyLis
 	private IFile file;
 	private IEditorSite eSite;
 	private IEditorInput eInput;
-	private ListenerList listenerList;
+	private ListenerList<IPropertyListener> listenerList;
 	private TransactionStep step;
 	private XMLMultiPageEditorPart xmlEditor;
 	
@@ -191,8 +191,9 @@ public class XMLTransactionStepEditor extends EditorPart implements IPropertyLis
 
 	@Override
 	public void addPropertyListener(IPropertyListener l) {
-		if (listenerList == null)
-			listenerList = new ListenerList();
+		if (listenerList == null) {
+			listenerList = new ListenerList<IPropertyListener>();
+		}
 		listenerList.add(l);
 	}
 

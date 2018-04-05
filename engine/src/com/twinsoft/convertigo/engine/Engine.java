@@ -943,8 +943,7 @@ public class Engine {
 				connectorsMonitor.setVisible(true);
 				sessionManager.setMonitorFrame(connectorsMonitor);
 				sessionManager.setMonitor(true);
-				// TODO: ajouter tous les connecteurs déjà chargés dans les
-				// contextes
+				// TODO: add all connectors already loaded in contexts
 			} else if (connectorsMonitor != null) {
 				connectorsMonitor.setVisible(false);
 			}

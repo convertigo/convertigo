@@ -86,6 +86,8 @@ public class PropertySheetView extends ViewPart {
 					getSharedImages().getImage(ISharedImages.IMG_OBJ_ELEMENT);
 		}
 	}
+	
+	@SuppressWarnings("deprecation")
 	class NameSorter extends ViewerSorter {
 	}
 
@@ -99,6 +101,7 @@ public class PropertySheetView extends ViewPart {
 	 * This is a callback that will allow us
 	 * to create the viewer and initialize it.
 	 */
+	@SuppressWarnings("deprecation")
 	public void createPartControl(Composite parent) {
 		viewer = new TableViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
 		viewer.setContentProvider(new ViewContentProvider());

@@ -44,7 +44,7 @@ public class JscriptTransactionEditor extends EditorPart implements IPropertyLis
 	private IFile file;
 	private IEditorSite eSite;
 	private IEditorInput eInput;
-	private ListenerList listenerList;
+	private ListenerList<IPropertyListener> listenerList;
 	private Transaction transaction;
 	private MyJScriptEditor jsEditor;
 	
@@ -196,7 +196,7 @@ public class JscriptTransactionEditor extends EditorPart implements IPropertyLis
 	@Override
 	public void addPropertyListener(IPropertyListener l) {
 		if (listenerList == null) {
-			listenerList = new ListenerList();
+			listenerList = new ListenerList<IPropertyListener>();
 		}
 		listenerList.add(l);
 	}

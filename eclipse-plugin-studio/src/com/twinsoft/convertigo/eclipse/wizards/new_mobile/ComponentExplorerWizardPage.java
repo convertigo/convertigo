@@ -20,31 +20,22 @@
 package com.twinsoft.convertigo.eclipse.wizards.new_mobile;
 
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-
-import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.PlatformUI;
-import org.osgi.framework.Bundle;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.Component;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager;
-import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 
 public class ComponentExplorerWizardPage extends WizardPage {
 	private Class<DatabaseObject> beanClass = null;
 	private Object parentObject = null;
 	private Composite composite = null;
 	private DatabaseObject newBean = null;
-	private String helpString = null;
+//	private String helpString = null;
 	
 	public ComponentExplorerWizardPage(Object parentObject, Class<DatabaseObject> beanClass) {
 		super("ComponentExplorerWizardPage");
@@ -74,59 +65,59 @@ public class ComponentExplorerWizardPage extends WizardPage {
 		PlatformUI.getWorkbench().getHelpSystem().displayHelpResource(helpPageUri);
 	}
 
-	private String getBeanHelpHref(String displayName) {
-		String href = null;
-		try {
-			int i, j, k, z;
-			String s = getHelpString();
-			if (s != null) {
-				i = s.indexOf(">"+displayName+"<");
-				if (i != -1) {
-					s = s.substring(0, i+1);
-					j = s.lastIndexOf("href=\"");
-					if (j != 1) {
-						k = j+"href=\"".length();
-						z = s.indexOf("\"", k);
-						if (z != -1) {
-							href = s.substring(k, z);
-						}
-					}
-				}
-			}
-		}
-		catch (Exception e) {
-			href = null;
-			ConvertigoPlugin.logWarning(e, "Error while analyzing help file \"convertigoObjects.html\"", Boolean.FALSE);
-		}
-		return href;
-	}
+//	private String getBeanHelpHref(String displayName) {
+//		String href = null;
+//		try {
+//			int i, j, k, z;
+//			String s = getHelpString();
+//			if (s != null) {
+//				i = s.indexOf(">"+displayName+"<");
+//				if (i != -1) {
+//					s = s.substring(0, i+1);
+//					j = s.lastIndexOf("href=\"");
+//					if (j != 1) {
+//						k = j+"href=\"".length();
+//						z = s.indexOf("\"", k);
+//						if (z != -1) {
+//							href = s.substring(k, z);
+//						}
+//					}
+//				}
+//			}
+//		}
+//		catch (Exception e) {
+//			href = null;
+//			ConvertigoPlugin.logWarning(e, "Error while analyzing help file \"convertigoObjects.html\"", Boolean.FALSE);
+//		}
+//		return href;
+//	}
 	
-	private String getHelpString() {
-		if (helpString == null) {
-			InputStream is = null;
-			try {
-				Bundle bundle = Platform.getBundle("com.twinsoft.convertigo.studio.help"); 
-				is = FileLocator.openStream(bundle, new Path("help/helpRefManual/convertigoObjects.html"), false);
-				if (is != null) {
-					String line;
-					BufferedReader br = new BufferedReader(new InputStreamReader(is));
-					while((line = br.readLine()) != null) {
-						if (helpString == null) helpString = "";
-						helpString += line +"\n";
-					}
-				}
-			}
-			catch (Exception e) {
-				helpString = null;
-				ConvertigoPlugin.logWarning(e, "Error while parsing help file \"convertigoObjects.html\"", Boolean.FALSE);
-			}
-			finally {
-				try {if (is != null) is.close();}
-				catch (Exception e) {}
-			}
-		}
-		return helpString;
-	}
+//	private String getHelpString() {
+//		if (helpString == null) {
+//			InputStream is = null;
+//			try {
+//				Bundle bundle = Platform.getBundle("com.twinsoft.convertigo.studio.help"); 
+//				is = FileLocator.openStream(bundle, new Path("help/helpRefManual/convertigoObjects.html"), false);
+//				if (is != null) {
+//					String line;
+//					BufferedReader br = new BufferedReader(new InputStreamReader(is));
+//					while((line = br.readLine()) != null) {
+//						if (helpString == null) helpString = "";
+//						helpString += line +"\n";
+//					}
+//				}
+//			}
+//			catch (Exception e) {
+//				helpString = null;
+//				ConvertigoPlugin.logWarning(e, "Error while parsing help file \"convertigoObjects.html\"", Boolean.FALSE);
+//			}
+//			finally {
+//				try {if (is != null) is.close();}
+//				catch (Exception e) {}
+//			}
+//		}
+//		return helpString;
+//	}
 	
 	public Component getCurrentSelectedComponent() {
 		Component c = null;

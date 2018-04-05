@@ -31,6 +31,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTable
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UnloadedProjectTreeObject;
 import com.twinsoft.convertigo.engine.EngineException;
 
+@SuppressWarnings("deprecation")
 class TreeObjectSorter extends ViewerSorter {
 	
 	@Override
