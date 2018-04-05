@@ -1,0 +1,83 @@
+def licenseText = '''\
+Copyright (c) 2001-2018 Convertigo SA.
+
+This program  is free software; you  can redistribute it and/or
+Modify  it  under the  terms of the  GNU  Affero General Public
+License  as published by  the Free Software Foundation;  either
+version  3  of  the  License,  or  (at your option)  any  later
+version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY;  without even the implied warranty of
+MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public
+License along with this program;
+if not, see <http://www.gnu.org/licenses/>.
+'''
+
+task updateJavaHeaders {
+	group 'convertigo'
+	
+	def files = fileTree(dir: 'engine/src', include: '**/*.java')
+		.plus(fileTree(dir: 'eclipse-plugin-studio/src', include: '**/*.java'))
+	
+	doFirst {
+		def javaHeader = licenseText.replaceAll('(.*)\r?\n', ' * $1' + System.lineSeparator());
+		files.each {
+			println "replacing ${it}"
+			it.write(it.getText('UTF-8').replaceFirst('[\\d\\D]*?package ', "/*${System.lineSeparator()}${javaHeader} */${System.lineSeparator()}${System.lineSeparator()}package "), 'UTF-8')
+		}
+	}
+}
+
+task updatePropertiesHeaders {
+	group 'convertigo'
+	
+	def files = fileTree(dir: 'engine/src', include: '**/*.properties')
+	
+	doFirst {
+		def propertiesHeader = licenseText.replaceAll('(.*)\r?\n', '# $1' + System.lineSeparator());
+		files.each {
+			println "replacing ${it}"
+			it.write(it.getText('UTF-8').replaceFirst('^(#.*\r?\n)*(\r?\n)*', "${propertiesHeader}${System.lineSeparator()}"), 'UTF-8')
+		}
+	}
+}
+
+task updateHtmlHeaders {
+	group 'convertigo'
+	
+	def files = fileTree(dir: 'eclipse-plugin-studio/tomcat/webapps/convertigo', include: ['admin/**/*.html', '*.html'])
+	
+	doFirst {
+		files.each {
+			println "replacing ${it}"
+			it.write(it.getText('UTF-8').replaceFirst('^(<!--[\\D\\d]*?-->)?\\s*', "<!--${System.lineSeparator()}${licenseText}-->${System.lineSeparator()}"), 'UTF-8')
+		}
+	}
+}
+
+task updateJavascriptHeaders {
+	group 'convertigo'
+	
+	def files = fileTree(dir: 'eclipse-plugin-studio/tomcat/webapps/convertigo', include: [
+		'admin/widgets/*.js',
+		'admin/js/admin.js',
+		'admin/js/login.js',
+		'scripts/**/*.js'
+	], exclude: ['**/jquery*', '**/pouch*'])
+	
+	doFirst {
+		def javascriptHeader = licenseText.replaceAll('(.*)\r?\n', ' * $1' + System.lineSeparator());
+		files.each {
+			println "replacing ${it}"
+			it.write(it.getText('UTF-8').replaceFirst('^(/\\*[\\d\\D]*?\\*/)?\\s*', "/*${System.lineSeparator()}${javascriptHeader} */${System.lineSeparator()}${System.lineSeparator()}"), 'UTF-8')
+		}
+	}
+}
+
+task updateAllHeaders (dependsOn: [updateJavaHeaders, updatePropertiesHeaders, updateHtmlHeaders, updateJavascriptHeaders]) {
+	group 'convertigo'
+}

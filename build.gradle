@@ -14,6 +14,7 @@ buildscript {
 
 import com.monochromeroad.gradle.plugin.aws.s3.S3Sync
 
+apply from: 'headers.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
