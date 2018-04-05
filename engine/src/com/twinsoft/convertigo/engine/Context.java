@@ -573,7 +573,7 @@ public class Context extends AbstractContext implements Cloneable {
 	}
 	
 	public boolean removalRequired() {
-		return this.requireRemoval;
+		return this.requireRemoval && !this.isDestroying;
 	}
 	
 	public String getLogFilename(){

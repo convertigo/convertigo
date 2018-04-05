@@ -381,11 +381,11 @@ public class ContextManager extends AbstractRunnableManager {
 			Engine.logContextManager.warn("The context cannot be removed because it does not exist any more!");
 			return;
 		}
-
 		if (context.isDestroying) {
 			return;
 		}
 		context.isDestroying = true;
+		context.requireRemoval(false);
 		
 		try {
 			String contextID = context.contextID;
@@ -402,44 +402,46 @@ public class ContextManager extends AbstractRunnableManager {
 			}
 			
 			// Trying to execute the end transaction (only in the engine mode)
-			if ((Engine.isEngineMode()) && (context.getConnector() != null)) {
-				// Execute the end transaction
-				String endTransactionName ="n/a";
-				try {
-					endTransactionName = context.getConnector().getEndTransactionName();
-					if ((endTransactionName != null) && (!endTransactionName.equals(""))) {
-						Engine.logContextManager.debug("Trying to execute the end transaction: \"" + endTransactionName + "\"");
-						context.transactionName = endTransactionName;
-						DefaultRequester defaultRequester = new DefaultRequester();
-						// #4910 - prevent loop for destroying context renew
-						context.isDestroying = false;
-						defaultRequester.processRequest(context);
-						Engine.logContextManager.debug("End transaction successfull");
-					}
-				} catch (Throwable e) {
-					Engine.logContextManager.error("Unable to execute the end transaction; " +
-						"context: " + context.contextID + ", " +
-						"project: " + context.projectName + ", " +
-						"connector: " + context.connectorName + ", " +
-						"end transaction: " + endTransactionName,
-						e);
-				} finally {
-					context.isDestroying = true;					
-				}
-				// Unlocks device if any
-				// WARNING: removing the device pool MUST BE DONE AFTER the end transaction!!!
-				String connectorQName = context.getConnector().getQName();
-				DevicePool devicePool = getDevicePool(connectorQName);
-				if (devicePool != null) {
-					long contextNum = (Long.valueOf(Integer.toString(context.contextNum,10))).longValue();
-					Engine.logContextManager.trace("DevicePool for '"+ connectorQName +"' exist: unlocking device for context number "+ contextNum +".");
-					devicePool.unlockDevice(contextNum);
-				}
-			}
 			if (Engine.isEngineMode()) {
-				for (final Connector connector : context.getOpenedConnectors()) {
-					Engine.logContextManager.trace("Releasing " + connector.getName() + " connector ("
-							+ connector.getClass().getName() + ") for context id " + context.contextID);
+				for (Connector connector: context.getOpenedConnectors()) {
+					// Execute the end transaction
+					String endTransactionName = "n/a";
+					try {
+						endTransactionName = connector.getEndTransactionName();
+						if (endTransactionName != null && !endTransactionName.equals("")) {
+							Engine.logContextManager.debug("Trying to execute the end transaction: \"" + endTransactionName + "\"");
+							context.connectorName = connector.getName();
+							context.connector = connector;
+							context.transactionName = endTransactionName;
+							context.sequenceName = null;
+							DefaultRequester defaultRequester = new DefaultRequester();
+							// #4910 - prevent loop for destroying context renew
+							context.isDestroying = false;
+							context.requireRemoval(false);
+							defaultRequester.processRequest(context);
+							Engine.logContextManager.debug("End transaction successfull");
+						}
+					} catch (Throwable e) {
+						Engine.logContextManager.error("Unable to execute the end transaction; " +
+							"context: " + context.contextID + ", " +
+							"project: " + context.projectName + ", " +
+							"connector: " + context.connectorName + ", " +
+							"end transaction: " + endTransactionName,
+							e);
+					} finally {
+						context.isDestroying = true;					
+					}
+					// Unlocks device if any
+					// WARNING: removing the device pool MUST BE DONE AFTER the end transaction!!!
+					String connectorQName = connector.getQName();
+					DevicePool devicePool = getDevicePool(connectorQName);
+					if (devicePool != null) {
+						long contextNum = (Long.valueOf(Integer.toString(context.contextNum,10))).longValue();
+						Engine.logContextManager.trace("DevicePool for '"+ connectorQName +"' exist: unlocking device for context number "+ contextNum +".");
+						devicePool.unlockDevice(contextNum);
+					}
+					
+					Engine.logContextManager.trace("Releasing " + connector.getName() + " connector (" + connector.getClass().getName() + ") for context id " + context.contextID);
 					Engine.execute(new Runnable() {
 						public void run() {
 							connector.release();

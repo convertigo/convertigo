@@ -215,6 +215,7 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 				} catch (EngineException e) {
 					Engine.logBillers.error("Error on BillingManager.renewManager", e);
 				}
+			default: break;
 		}
 	}
 }

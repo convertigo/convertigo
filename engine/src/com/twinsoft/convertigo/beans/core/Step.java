@@ -777,6 +777,8 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 			smartType.setEvaluated(evaluated);
 			evaluated = null;
 			break;
+		default:
+			break;
 		}
 	}
 	
