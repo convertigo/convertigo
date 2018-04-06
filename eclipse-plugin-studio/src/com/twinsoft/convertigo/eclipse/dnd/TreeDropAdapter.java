@@ -170,8 +170,14 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		}
 		
 		detail = event.detail;
-		ConvertigoPlugin.clipboardManagerDND.isCopy = (event.detail == DND.DROP_COPY);
-		ConvertigoPlugin.clipboardManagerDND.isCut = (event.detail == DND.DROP_MOVE);
+		if (ConvertigoPlugin.clipboardManagerDND.objects == null) {
+			// DRAG not done from the treeview
+			ConvertigoPlugin.clipboardManagerDND.isCopy = true;
+			ConvertigoPlugin.clipboardManagerDND.isCut = false;
+		} else {
+			ConvertigoPlugin.clipboardManagerDND.isCopy = (event.detail == DND.DROP_COPY);
+			ConvertigoPlugin.clipboardManagerDND.isCut = (event.detail == DND.DROP_MOVE);
+		}
 		super.drop(event);
 	}
 
