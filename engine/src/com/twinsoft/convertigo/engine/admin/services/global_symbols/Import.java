@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.engine.admin.services.global_symbols;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
@@ -58,7 +59,7 @@ public class Import extends UploadService {
 		//We save the global symbols imported file
 		Properties prop = new Properties();
 		try {
-			prop.load(item.getInputStream());				
+			prop.load(new InputStreamReader(item.getInputStream(), "UTF-8"));				
 		} catch (IOException ioe) {
 			String message = "Unable to load property file:\n" + ioe.getMessage();
 			ServiceUtils.addMessage(document, document.getDocumentElement(), message, "message", false);

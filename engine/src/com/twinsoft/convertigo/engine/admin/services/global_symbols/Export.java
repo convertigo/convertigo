@@ -19,12 +19,13 @@
 
 package com.twinsoft.convertigo.engine.admin.services.global_symbols;
 
-import java.io.PrintStream;
+import java.io.Writer;
 import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -47,13 +48,12 @@ public class Export extends DownloadService {
 	@Override
 	protected void writeResponseResult(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		//We recover selected symbols 
-		String symbols = "{ symbols : [" + request.getParameter("symbols") + "] }";
+		String symbols = request.getParameter("symbols");
 		
 		
-		if ( symbols != null && !symbols.equals("") ) {
+		if (StringUtils.isNotEmpty(symbols)) {
 			//Parse string requested parameter to JSON
-			JSONObject jsonObj = new JSONObject(symbols);
-			JSONArray symbolsNames = jsonObj.getJSONArray("symbols");
+			JSONArray symbolsNames = new JSONArray(symbols);
 			
 			//Write header information
 			String writedString = "#global symbols\n";
@@ -70,12 +70,10 @@ public class Export extends DownloadService {
 			HeaderName.ContentDisposition.setHeader(response,
 					"attachment; filename=\"global_symbols.properties\"");
 			response.setContentType(MimeType.Plain.value());
-			
-			//We directly write the concatenated string into the output stream of response
-			PrintStream printStream = new PrintStream(response.getOutputStream());
-			printStream.print(writedString);
-			printStream.close();
-
+			response.setCharacterEncoding("UTF-8");
+			try (Writer writer = response.getWriter()) {;
+				writer.write(writedString);
+			}
 			String message = "The global symbols file has been exported.";
 			Engine.logAdmin.info(message);
 		} else {
