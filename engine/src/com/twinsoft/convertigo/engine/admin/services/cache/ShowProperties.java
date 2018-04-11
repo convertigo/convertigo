@@ -19,7 +19,6 @@
 
 package com.twinsoft.convertigo.engine.admin.services.cache;
 
-import java.io.FileInputStream;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
@@ -27,14 +26,15 @@ import javax.servlet.http.HttpServletRequest;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.cache.DatabaseCacheManager;
 import com.twinsoft.convertigo.engine.util.Crypto2;
+import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 
 @ServiceDefinition(
 		name = "Clear",
@@ -53,22 +53,20 @@ public class ShowProperties extends XmlService {
 		cacheTypeElt.setTextContent(cacheType);
 		root.appendChild(cacheTypeElt);
 		
-		if(!cacheType.equals(cacheManagerFileType)){
+		if (!cacheType.equals(cacheManagerFileType)) {
+			String dbCachePropFileName = Engine.CONFIGURATION_PATH + DatabaseCacheManager.DB_PROP_FILE_NAME;
+			Properties dbCacheProp = PropertiesUtils.load(dbCachePropFileName);
 			
-			Properties dbCacheProp = new Properties();
-			String dbCachePropFileName = Engine.CONFIGURATION_PATH + DatabaseCacheManager.DB_PROP_FILE_NAME;		
-			dbCacheProp.load(new FileInputStream(dbCachePropFileName.toString()));
+			String url, databaseType, serverName, port, databaseName;
 			
-			String url,databaseType,serverName,port,databaseName;
-			
-			url=dbCacheProp.getProperty("jdbc.url");
+			url = dbCacheProp.getProperty("jdbc.url");
 				
-			databaseType=url.replaceFirst("://(.*)", "").replaceAll("(.*):", "");
-			url=url.replaceFirst("(.*)://", "");
-			serverName=url.replaceFirst("\\:(.*)", "");
-			url=url.replaceFirst("(.*)\\:", "");
-			port=url.replaceFirst("/(.*)", "");
-			databaseName=url.replaceFirst("(.*)/", "");
+			databaseType = url.replaceFirst("://(.*)", "").replaceAll("(.*):", "");
+			url = url.replaceFirst("(.*)://", "");
+			serverName = url.replaceFirst("\\:(.*)", "");
+			url = url.replaceFirst("(.*)\\:", "");
+			port = url.replaceFirst("/(.*)", "");
+			databaseName = url.replaceFirst("(.*)/", "");
 			
 			Element databaseTypeElt= document.createElement("databaseType");					
 			databaseTypeElt.setTextContent(databaseType);

@@ -20,8 +20,6 @@
 package com.twinsoft.convertigo.engine.admin.services.certificates;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -41,6 +39,7 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceParameterDefinition;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 import com.twinsoft.convertigo.engine.util.Crypto2;
+import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 
 @ServiceDefinition(
 		name = "Configure",
@@ -73,10 +72,7 @@ public class Configure extends XmlService {
 	
 			
 		File file = new File(Engine.CERTIFICATES_PATH + CertificateManager.STORES_PROPERTIES_FILE_NAME);
-		Properties storesProperties = new Properties();
-		FileInputStream fis = new FileInputStream(file);
-		storesProperties.load(fis);
-		fis.close();
+		Properties storesProperties = PropertiesUtils.load(file);
 
 		// Creation of the vector containing the certificates and the one containing the links
 		//Vector<String> certifVector = new ArrayList<String>();
@@ -127,11 +123,7 @@ public class Configure extends XmlService {
 			certifName = (String) storesKeysEnum.nextElement();
 			storesProperties.setProperty(certifName, storesProperties.getProperty(certifName));
 		}
-		
-		FileOutputStream fos = new FileOutputStream(file);
-		storesProperties.store(fos , "");
-		fos.flush();
-		fos.close();
+		PropertiesUtils.store(storesProperties, file);
 		ServiceUtils.addMessage(document,rootElement,"The certificates have successfully been updated.","message");
 	}
 }	

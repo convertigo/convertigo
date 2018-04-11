@@ -705,6 +705,12 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		for (Sequence sequence : getSequencesList()) {
 			getNeededProjects(neededProjects, sequence);
 		}
+		
+		try {
+			neededProjects.add(mobileApplication.getApplicationComponent().getTplProjectName());
+		} catch (Exception e) {
+		}
+		
 		return neededProjects;
 	}
 	
@@ -756,6 +762,12 @@ public class Project extends DatabaseObject implements IInfoProperty {
 				i.remove();
 			}
 		}
+		
+		try {
+			missingProjects.remove(mobileApplication.getApplicationComponent().getTplProjectName());
+		} catch (Exception e) {
+		}
+		
 		return missingProjects;
 	}
 	

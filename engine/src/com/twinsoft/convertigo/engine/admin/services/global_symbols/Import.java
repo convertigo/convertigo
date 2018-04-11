@@ -33,6 +33,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.admin.services.UploadService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
+import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 
 @ServiceDefinition(
 		name = "Import",
@@ -58,7 +59,7 @@ public class Import extends UploadService {
 		//We save the global symbols imported file
 		Properties prop = new Properties();
 		try {
-			prop.load(item.getInputStream());				
+			PropertiesUtils.load(item.getInputStream());
 		} catch (IOException ioe) {
 			String message = "Unable to load property file:\n" + ioe.getMessage();
 			ServiceUtils.addMessage(document, document.getDocumentElement(), message, "message", false);

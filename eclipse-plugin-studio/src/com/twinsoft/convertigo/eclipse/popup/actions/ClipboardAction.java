@@ -282,36 +282,33 @@ public class ClipboardAction extends MyAbstractAction {
             	}
             	
             	clipboardManager.reset();
-            }
-            else if (clipboardManager.isCopy){
-            	if (source != null) {
-                	// Paste
-                    clipboardManager.paste(source, targetObject, true);
+            } else if (source != null) {
+            	// Paste
+                clipboardManager.paste(source, targetObject, true);
 
-                    // Case of project copy
-                    if (clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_PROJECT) {
-                    	Object[] pastedObjects = clipboardManager.pastedObjects;
-                    	for (int i=0; i<pastedObjects.length; i++) {
-                    		Object object = pastedObjects[i];
-                    		if ((object != null) && (object instanceof Project)) {
-                    			Project project = (Project)object;
-                    			String oldName = project.getName();
-                    			try {
-                    				Project importedProject = importProjectTempArchive(oldName, explorerView);
-                    				if (importedProject != null) {
-                    					String newName = importedProject.getName();
-                    					explorerView.importProjectTreeObject(newName, true, oldName);
-                    				}
-                    				else throw new EngineException("Unable to import project temporary archive");
-                    			}
-                    			catch (Exception e) {
-                    				throw new EngineException("Unable to paste project", e);
-                    			}
-                    		}
-                    	}
-                    }
-            	}
-            }
+                // Case of project copy
+                if (clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_PROJECT) {
+                	Object[] pastedObjects = clipboardManager.pastedObjects;
+                	for (int i=0; i<pastedObjects.length; i++) {
+                		Object object = pastedObjects[i];
+                		if ((object != null) && (object instanceof Project)) {
+                			Project project = (Project)object;
+                			String oldName = project.getName();
+                			try {
+                				Project importedProject = importProjectTempArchive(oldName, explorerView);
+                				if (importedProject != null) {
+                					String newName = importedProject.getName();
+                					explorerView.importProjectTreeObject(newName, true, oldName);
+                				}
+                				else throw new EngineException("Unable to import project temporary archive");
+                			}
+                			catch (Exception e) {
+                				throw new EngineException("Unable to paste project", e);
+                			}
+                		}
+                	}
+                }
+        	}
 			
             // Updating the tree
             if (targetTreeObject != null) {

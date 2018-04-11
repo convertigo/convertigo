@@ -23,9 +23,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
@@ -34,14 +31,15 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
-import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.PropertiesUtils;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.tas.Key;
 import com.twinsoft.tas.KeyManager;
 
@@ -78,9 +76,8 @@ public class Remove extends XmlService{
 			}
 		});
 
-		Properties keysProperties = new Properties();
-		keysProperties.load(new FileInputStream(tasRoot + "/Java/keys.txt"));
-
+		Properties keysProperties = PropertiesUtils.load(tasRoot + "/Java/keys.txt");
+		
 		for (int i = 0; i < nl.getLength(); i++) {
 			String oldKey = ((Element) nl.item(i)).getAttribute("text");
 			
@@ -113,6 +110,6 @@ public class Remove extends XmlService{
 			}
 		}
 		
-		keysProperties.store(new FileOutputStream(tasRoot + "/Java/keys.txt"), null);
+		PropertiesUtils.store(keysProperties, tasRoot + "/Java/keys.txt");
 	}
 }

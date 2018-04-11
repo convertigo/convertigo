@@ -19,7 +19,6 @@
 
 package com.twinsoft.convertigo.engine;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Enumeration;
@@ -28,6 +27,8 @@ import java.util.Map;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
+
+import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 
 public class PluginsManager {
 	public static final String PROPERTIES_FILE_NAME = "/plugins.properties";
@@ -38,15 +39,13 @@ public class PluginsManager {
 	
     public void init() {
     	properties = new Properties();
-
-		FileInputStream propsInputStream = null;
+    	
 		String pluginsPropertiesFile = Engine.CONFIGURATION_PATH + PROPERTIES_FILE_NAME;
         try {
         	Engine.logEngine.info("Loading Convertigo plugins properties from " + pluginsPropertiesFile);
 
     		try {
-        		propsInputStream = new FileInputStream(pluginsPropertiesFile);
-    			properties.load(propsInputStream);
+    			PropertiesUtils.load(properties, pluginsPropertiesFile);
     			
     			for (Enumeration<Object> e = properties.keys(); e.hasMoreElements() ;) {
    		         	String key = (String) e.nextElement();
@@ -73,14 +72,6 @@ public class PluginsManager {
         catch(IOException e) {
         	properties = null;
         	Engine.logEngine.warn("Unable to load the Convertigo plugins configuration file '" + PROPERTIES_FILE_NAME + "'.", e);
-        }
-        finally {
-        	if (propsInputStream != null) {
-        		try {
-					propsInputStream.close();
-				} catch (IOException e) {
-				}
-        	}
         }
     }
 

@@ -53,6 +53,7 @@ import org.apache.commons.httpclient.protocol.ProtocolSocketFactory;
 import org.apache.commons.httpclient.protocol.SecureProtocolSocketFactory;
 
 import com.twinsoft.convertigo.engine.util.Crypto2;
+import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 
 public class MySSLSocketFactory implements SecureProtocolSocketFactory {
 	static Map<String, MySSLSocketFactory> cache = new HashMap<String, MySSLSocketFactory>();
@@ -133,8 +134,7 @@ public class MySSLSocketFactory implements SecureProtocolSocketFactory {
 			File file = new File(keyStore);
 
 	
-			Properties properties = new Properties();
-			properties.load(new FileInputStream(Engine.CERTIFICATES_PATH + CertificateManager.STORES_PROPERTIES_FILE_NAME));
+			Properties properties = PropertiesUtils.load(Engine.CERTIFICATES_PATH + CertificateManager.STORES_PROPERTIES_FILE_NAME);
 			String p = properties.getProperty(file.getName(), "");
 			int i = p.indexOf('/');
 			if (i != -1) {

@@ -20,8 +20,6 @@
 package com.twinsoft.convertigo.engine.admin.services.cache;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.util.Properties;
 
@@ -30,18 +28,19 @@ import javax.servlet.http.HttpServletRequest;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceParameterDefinition;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 import com.twinsoft.convertigo.engine.cache.CacheManager;
 import com.twinsoft.convertigo.engine.cache.DatabaseCacheManager;
 import com.twinsoft.convertigo.engine.util.Crypto2;
+import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 import com.twinsoft.convertigo.engine.util.SqlRequester;
 
 @ServiceDefinition(
@@ -114,11 +113,10 @@ public class Configure extends XmlService {
 
 		String create = request.getParameter("create");	
 		dbCachePropFileName = Engine.CONFIGURATION_PATH + DatabaseCacheManager.DB_PROP_FILE_NAME;
-		dbCacheProp.load(new FileInputStream(dbCachePropFileName.toString()));
+		PropertiesUtils.load(dbCacheProp, dbCachePropFileName);
 
 		try {
 			saveProps(request);
-
 		} catch(Exception e) {			
 			throw new ServiceException("Unable to save the cache manager properties.",e.getCause());
 		}
@@ -233,11 +231,8 @@ public class Configure extends XmlService {
 			dbCacheProp.setProperty("jdbc.url", databaseUrl);			
 			dbCacheProp.setProperty("jdbc.user.name", request.getParameter("user"));
 			dbCacheProp.setProperty("jdbc.user.password", Crypto2.encodeToHexString(request.getParameter("password")));
-
-			FileOutputStream fos = new FileOutputStream(dbCachePropFileName.toString());
-			dbCacheProp.store(fos, "");
-			fos.flush();
-			fos.close();
+			
+			PropertiesUtils.store(dbCacheProp, dbCachePropFileName);
 		} 	
 		ServiceUtils.addMessage(document,root,"Cache manager properties succesfully saved.","message");
 	}

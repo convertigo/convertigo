@@ -54,12 +54,14 @@ public class JscriptTransactionEditor extends EditorPart implements IPropertyLis
 
 	@Override
 	public void dispose() {
-		jsEditor.removePropertyListener(this);
-		jsEditor.dispose();
+		if (jsEditor != null) {
+			jsEditor.removePropertyListener(this);
+			jsEditor.dispose();
+		}
 		super.dispose();
 
 		// When the editor is closed, delete the temporary file created when we opened the editor
-		if (file.exists()) {
+		if (file != null && file.exists()) {
 			try {
 				file.delete(true, null);
 			} catch (CoreException e) {

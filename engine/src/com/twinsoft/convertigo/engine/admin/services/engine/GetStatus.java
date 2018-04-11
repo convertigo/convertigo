@@ -40,6 +40,7 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 import com.twinsoft.tas.Key;
 import com.twinsoft.tas.KeyManager;
 import com.twinsoft.util.TWSKey;
@@ -137,7 +138,7 @@ public class GetStatus extends XmlService {
 			ServletContext servletContext = request.getSession().getServletContext();
 			InputStream buildInfoFile = servletContext.getResourceAsStream("/WEB-INF/build.txt");
 			if (buildInfoFile != null) {
-				properties.load(buildInfoFile);
+				PropertiesUtils.load(properties, buildInfoFile);
 				buildElement.setAttribute("date", properties.getProperty("build.date"));
 				buildElement.setAttribute("filename", properties.getProperty("build.filename"));
 				buildElement.setAttribute("version", properties.getProperty("build.version"));

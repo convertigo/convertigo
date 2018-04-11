@@ -41,6 +41,8 @@ import org.eclipse.swt.events.ExpandAdapter;
 import org.eclipse.swt.events.ExpandEvent;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Color;
@@ -52,6 +54,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ExpandBar;
@@ -325,7 +328,7 @@ public class ComponentExplorerComposite extends Composite {
 		gridData.verticalAlignment = GridData.BEGINNING;
 		Composite searchComposite = new Composite(this, SWT.NONE);
 		searchComposite.setLayoutData(gridData);
-		searchComposite.setLayout(new GridLayout(2, false));
+		searchComposite.setLayout(new GridLayout(3, false));
 		
 		CLabel searchLabel = new CLabel(searchComposite, SWT.NONE);
 		searchLabel.setText("Search:");
@@ -339,6 +342,23 @@ public class ComponentExplorerComposite extends Composite {
 				search(searchText.getText());
 			}
 		});
+		
+		Button btnClear = new Button(searchComposite, SWT.NONE);
+		btnClear.addSelectionListener(new SelectionListener()
+		  {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				searchText.setText("");
+				searchText.setFocus();
+			}
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				searchText.setText("");
+				searchText.setFocus();
+			}
+		  });
+		btnClear.setText("Clear");
 		
 		gridData = new GridData();
 		gridData.horizontalAlignment = SWT.FILL;

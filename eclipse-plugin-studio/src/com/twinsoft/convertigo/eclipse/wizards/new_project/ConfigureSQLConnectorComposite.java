@@ -39,6 +39,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Text;
 
+import com.twinsoft.convertigo.engine.util.PropertiesUtils;
+
 public class ConfigureSQLConnectorComposite extends Composite {
 
 	private Text jdbcURL = null;
@@ -74,8 +76,7 @@ public class ConfigureSQLConnectorComposite extends Composite {
 		jdbcDriver.setLayoutData( new GridData (GridData.FILL, GridData.CENTER, true, false) );
 
 		try {
-			Properties properties = new Properties();
-			properties.load(getClass().getResourceAsStream("/jdbc_drivers.properties"));
+			Properties properties = PropertiesUtils.load(getClass().getResourceAsStream("/jdbc_drivers.properties"));
 
 			jdbcDrivers = new HashMap<String, String>(properties.size());
 			for (Object sDriverName : properties.values()) {

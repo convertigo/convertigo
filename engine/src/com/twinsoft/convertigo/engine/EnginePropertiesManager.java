@@ -19,13 +19,12 @@
 
 package com.twinsoft.convertigo.engine;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.StringReader;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
@@ -48,6 +47,7 @@ import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 
 public class EnginePropertiesManager {
 	enum Visibility { VISIBLE, HIDDEN, HIDDEN_CLOUD, HIDDEN_SERVER };
@@ -869,8 +869,7 @@ public class EnginePropertiesManager {
     
     public static synchronized void loadProperties(boolean configureLog4J) throws EngineException {
 		if (properties != null) return;
-
-		FileInputStream propsInputStream = null;
+		
 		String enginePropertiesFile = Engine.CONFIGURATION_PATH + PROPERTIES_FILE_NAME;
         try {
         	EnginePropertiesManager.initProperties();
@@ -878,8 +877,7 @@ public class EnginePropertiesManager {
     		System.out.println("Loading Convertigo engine properties from " + enginePropertiesFile);
 
     		try {
-        		propsInputStream = new FileInputStream(enginePropertiesFile);
-    			properties.load(propsInputStream);
+    			PropertiesUtils.load(properties, enginePropertiesFile);
     		}
             catch(FileNotFoundException e) {
             	String message = "Unable to find the Convertigo engine configuration file '" + enginePropertiesFile + "'. Creating a new one...";
@@ -934,17 +932,6 @@ public class EnginePropertiesManager {
         catch(IOException e) {
         	properties = null;
             throw new EngineException("Unable to load the Convertigo engine configuration file '" + PROPERTIES_FILE_NAME + "'.", e);
-        }
-        finally {
-        	if (propsInputStream != null) {
-        		try {
-					propsInputStream.close();
-				} catch (IOException e) {
-		            // Silently ignore
-					System.out.println("Unable to close the configuration properties file");
-					e.printStackTrace();
-				}
-        	}
         }
     }
     
@@ -1005,7 +992,7 @@ public class EnginePropertiesManager {
     			modifiedProperties.put(property.getKey(), propertyValue);
     		}
     	}
-    	modifiedProperties.store(outputStream, comments);
+    	PropertiesUtils.store(modifiedProperties, outputStream, comments);
     }
 
     public static String getPropertiesAsString(String title, Properties propertiesToGet) {
@@ -1057,11 +1044,11 @@ public class EnginePropertiesManager {
 		properties = null;
 	}
 
-	public static void load(ByteArrayInputStream byteArrayInputStream) throws IOException {
+	public static void load(String sProperties) throws IOException {
 		if (properties == null) {
 			throw new IllegalStateException("Not initialized EnginePropertiesManager");
 		}
-		properties.load(byteArrayInputStream);		
+		PropertiesUtils.load(properties, new StringReader(sProperties));
 	}
 	
 	private static String encodeValue(PropertyType propertyType, String value) {

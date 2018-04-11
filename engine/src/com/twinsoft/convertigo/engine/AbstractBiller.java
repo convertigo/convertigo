@@ -19,18 +19,18 @@
 
 package com.twinsoft.convertigo.engine;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
+
+import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 
 public abstract class AbstractBiller {
 	public abstract void insertBilling(Context context) throws EngineException;
 	
 	protected Properties loadFromFile(Context context) throws FileNotFoundException, IOException {
-		Properties properties = new Properties();
 		String propertiesFileName = context.getProjectDirectory() + "/biller.properties";
-		properties.load(new FileInputStream(propertiesFileName));
+		Properties properties = PropertiesUtils.load(propertiesFileName);
 		return properties;
 	}
 		

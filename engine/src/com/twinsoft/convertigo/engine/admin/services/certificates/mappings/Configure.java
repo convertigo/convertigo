@@ -20,8 +20,6 @@
 package com.twinsoft.convertigo.engine.admin.services.certificates.mappings;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -39,6 +37,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
+import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 
 @ServiceDefinition(
 		name = "Configure",
@@ -54,10 +53,7 @@ public class Configure extends XmlService {
 		File file;
 		
 		file = new File(Engine.CERTIFICATES_PATH + "/" + CertificateManager.STORES_PROPERTIES_FILE_NAME);
-		Properties storesProperties = new Properties();
-		FileInputStream fis = new FileInputStream(file);
-		storesProperties.load(fis);
-		fis.close();
+		Properties storesProperties = PropertiesUtils.load(file);
 
 		// Creation of the vector containing the certificates and the one containing the links
 		List<String> certifVector = new ArrayList<String>();
@@ -120,10 +116,7 @@ public class Configure extends XmlService {
 			}
 		}
 		
-		FileOutputStream fos = new FileOutputStream(file);
-		storesProperties.store(fos , "");
-		fos.flush();
-		fos.close();
+		PropertiesUtils.store(storesProperties, file);
 		ServiceUtils.addMessage(document,rootElement,"The mappings have successfully been updated.","message");
 	}
 		

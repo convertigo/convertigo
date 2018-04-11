@@ -19,7 +19,6 @@
 
 package com.twinsoft.convertigo.engine.util;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -60,8 +59,7 @@ public class SqlRequester {
 	 */
 	public SqlRequester(String propertiesFileName) throws IOException {
 		this.propertiesFileName = propertiesFileName;
-		properties = new Properties();
-		properties.load(new FileInputStream(Engine.CONFIGURATION_PATH + propertiesFileName));
+		properties = PropertiesUtils.load(Engine.CONFIGURATION_PATH + propertiesFileName);
 	}
 
 	public String getProperty(String key) {
