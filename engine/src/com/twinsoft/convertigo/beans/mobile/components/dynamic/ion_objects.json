@@ -5138,7 +5138,6 @@
             true
           ]
         },
-        
         "Options": {
           "hidden": true,
           "mode":"script",
@@ -5181,6 +5180,177 @@
       }
       
     },
+    /*
+     * TreeviewComponent
+     */
+    "TreeviewComponent" : {
+      "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicComponent",
+      "tag": "c8o-treeview",
+      "displayName": "Treeview",
+      "label": "Treeview",
+      "description": "c8o-treeview. | Displays a Treeview.",
+      "group": "Lists",
+      "icon16": "treeviewcomponent_color_16x16.png",
+      "icon32": "treeviewcomponent_color_32x32.png",
+      
+      "properties": {
+        "FormControlName": false,
+        "treenodes": {
+          "mode": "script",
+          "attr":"[nodes]",
+          "label": "Tree data",
+          "description": "JSON tree nodes",
+          "category": "@Properties",
+          "value": "[{'id': 1,'name': 'root1','children': [{'id': 2,'name': 'child1'}, {'id': 3,'name': 'child2'}]}]"
+		},
+        "displayField": {
+          "composite": true,
+          "label": "Displayed Field",
+          "description": "Name of the field to display. Defaults to 'name'.",
+          "category": "@Properties",
+          "type": "string",
+          "value": "name",
+          "values": [
+            false,
+            true
+          ]
+        },
+        "childrenField": {
+          "composite": true,
+          "label": "Children Node Name",
+          "description": "Name of the children nodes. Defaults to 'children'.",
+          "category": "@Properties",
+          "type": "string",
+          "value": "children",
+          "values": [
+            false,
+            true
+          ]
+        },
+        "hasChildrenField": {
+          "composite": true,
+          "label": "Has Children Field",
+          "description": "Attribute that indicates the node has children. Defaults to 'hasChildrenField'.",
+          "category": "@Properties",
+          "type": "string",
+          "value": "hasChildren",
+          "values": [
+            false,
+            true
+          ]
+        },
+        "idField": {
+          "composite": true,
+          "label": "ID Attribute",
+          "description": "Attribute of the node that contains a unique ID. Defaults to 'id'.",
+          "category": "@Properties",
+          "type": "string",
+          "value": "id",
+          "values": [
+            false,
+            true
+          ]
+        },
+        "isExpandedField": {
+          "composite": true,
+          "label": "Is Expanded Field",
+          "description": "Attribute that indicates the node starts as expanded. Defaults to 'expanded'.",
+          "category": "@Properties",
+          "type": "string",
+          "value": "expanded",
+          "values": [
+            false,
+            true
+          ]
+        },
+        "RTL": {
+          "composite": true,
+          "label": "Right to Left",
+          "description": "Display direction. Defaults to 'false'.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "true",
+            "false"
+          ]
+        },
+        "scrollOnSelect": {
+          "composite": true,
+          "label": "Scroll On Select",
+          "description": "Whether to scroll to the node to make it visible when it is selected / activated. Defaults to 'true'.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "true",
+          "values": [
+            "true",
+            "false"
+          ]
+        },
+        "useCheckbox": {
+          "composite": true,
+          "label": "Use Checkbox",
+          "description": "Whether to display a checkbox next to the node or not. Defaults to 'false'.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "true",
+            "false"
+          ]
+        },
+        "Options": {
+          "hidden": true,
+          "mode":"script",
+          "attr" : "[options]",
+          "label": "Type",
+          "description": "Treeview options",
+          "category": "@Properties",
+          "value": "{childrenField: $[childrenField], displayField: $[displayField], idField:$[idField], hasChildrenField:$[hasChildrenField], isExpandedField:$[isExpandedField], rtl:$[RTL], scrollOnSelect:$[scrollOnSelect], useCheckbox:$[useCheckbox]}"
+        }
+	  },	  	  
+      "events": {      
+        "onTreeInitialized": {
+          "attr":"(onInitialized)",
+          "description": "Triggers after tree model is created"
+        },        
+        "onNodeToggleExpanded": {
+          "attr":"(onToggleExpanded)",
+          "description": "Triggers when a tree node expand or closes, by clicking on the node, or by using the Enter or Space keys"
+        },
+        "onNodeActivate": {
+          "attr":"(onActivate)",
+          "description": "Triggers when activating a tree node, by clicking on the node, or by using the Enter or Space keys"
+        },
+        "onNodeDeactivate": {
+          "attr":"(onDeactivate)",
+          "description": "Triggers when deactivating a tree node, by clicking on the node, or by using the Enter or Space keys"
+        },
+        "onNodeFocus": {
+          "attr":"(onFocus)",
+          "description": "Triggers when focusing on a node, by moving with the arrow keys"
+        }        
+      },	  
+	  "config": {
+        "module_ts_imports": [
+          {"from":"angular-tree-component", "components":["TreeModule"]},
+          {"from":"../components/TreeviewComponent/TreeviewComponent", "components":["TreeviewComponent"]}
+        ],
+        "module_ng_imports": [
+          "TreeModule"
+        ],
+        "module_ng_declarations": [
+          "TreeviewComponent"
+        ],
+        "module_ng_components": [
+          "TreeviewComponent"
+        ],
+        "package_dependencies": [
+            {"package":"angular-tree-component", "version":"7.0.2"}
+        ]
+      }	        
+    },
+	
 	
 	/*
 	* Actions
