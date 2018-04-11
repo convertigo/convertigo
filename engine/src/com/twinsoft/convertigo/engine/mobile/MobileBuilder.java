@@ -247,7 +247,12 @@ public class MobileBuilder {
 			try {
 				project.getMobileBuilder().init();
 			} catch (Exception e) {
-				Engine.logEngine.error("Failed to initialize mobile builder for project \""+project.getName()+"\"", e);
+				String message = e.getMessage();
+				if (message.startsWith("Missing the template project")) {
+					Engine.logEngine.error("Failed to initialize mobile builder for project '" + project.getName() + "'\n" + message);
+				} else {
+					Engine.logEngine.error("Failed to initialize mobile builder for project '" +project.getName() + "'", e);
+				}
 			}
 		}
 	}
@@ -508,9 +513,11 @@ public class MobileBuilder {
 			return;
 		}
 		
-		ionicTplDir = project.getMobileApplication().getApplicationComponent().getIonicTplDir();
+		ApplicationComponent application = project.getMobileApplication().getApplicationComponent();
+		
+		ionicTplDir = application.getIonicTplDir();
 		if (!ionicTplDir.exists()) {
-			throw new EngineException("(MobileBuilder) Missing template directory: " + ionicTplDir.getPath());
+			throw new EngineException("Missing the template project '" + application.getTplProjectName() + "'\nThe template folder should be in: " + ionicTplDir.getPath());
 		}
 		
 		if (isIonicTemplateBased()) {
