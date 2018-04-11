@@ -22,10 +22,11 @@ package com.twinsoft.convertigo.eclipse;
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
@@ -40,7 +41,6 @@ import java.util.Set;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
@@ -139,6 +139,7 @@ import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.LogWrapper;
+import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 import com.twinsoft.convertigo.engine.util.SimpleCipher;
 import com.twinsoft.util.Log;
 
@@ -1681,7 +1682,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 				} else {
 					
 					try {
-						properties.load(IOUtils.toInputStream(decipheredPSC, "utf8"));
+						properties.load(new StringReader(decipheredPSC));
 					} catch (IOException e) {
 						throw new PscException("Invalid PSC (cannot load properties)!");
 					}
@@ -1690,7 +1691,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 				try {
 					String decipheredPSC = SimpleCipher.decode(psc);
 					
-					properties.load(IOUtils.toInputStream(decipheredPSC, "utf8"));
+					properties.load(new StringReader(decipheredPSC));
 					
 					String server = properties.getProperty("server");
 					String user = properties.getProperty("admin.user");
@@ -1752,12 +1753,11 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		DeploymentKey.adminUser.setValue(properties, 1, anonEmail);
 		DeploymentKey.adminPassword.setValue(properties, 1, "");
 		DeploymentKey.server.setValue(properties, 1, "");
-		
-		ByteArrayOutputStream os = new ByteArrayOutputStream();
-		properties.store(os, " PSC file");
-		String psc = new String(os.toByteArray(), "iso8859-1");
-		psc = Crypto2.encodeToHexString("registration", psc);
-		
+		String psc;
+		try (StringWriter sw = new StringWriter()) {
+			PropertiesUtils.store(properties, sw, " PSC file");
+			psc = Crypto2.encodeToHexString("registration", sw.toString());
+		}
 		return psc;
 	}
 	

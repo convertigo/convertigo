@@ -19,12 +19,11 @@
 
 package com.twinsoft.convertigo.eclipse.learnproxy.util;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Properties;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 
 //import org.apache.commons.logging.Log;
 //import org.apache.commons.logging.LogFactory;
@@ -50,8 +49,7 @@ public class ConfigManager {
     		return false;
         
     	try {
-            InputStream inStream = new FileInputStream(fileName);
-            props.load(inStream);
+    		PropertiesUtils.load(props, fileName);
             /*Iterator iter = props.keySet().iterator();
             logger.debug("Properties:");
             while (iter.hasNext()) {
