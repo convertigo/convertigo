@@ -20,7 +20,6 @@
 package com.twinsoft.convertigo.engine.admin.util;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -45,6 +44,7 @@ import com.twinsoft.convertigo.engine.CertificateManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.enums.MimeType;
+import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class ServiceUtils {
@@ -84,9 +84,7 @@ public class ServiceUtils {
 		File file = new File(Engine.CERTIFICATES_PATH + CertificateManager.STORES_PROPERTIES_FILE_NAME);
 		Properties storesProperties = new Properties();
 		try {
-			FileInputStream fis = new FileInputStream(file);
-			storesProperties.load(fis);
-			fis.close();
+			PropertiesUtils.load(storesProperties, file);
 		} catch (FileNotFoundException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();

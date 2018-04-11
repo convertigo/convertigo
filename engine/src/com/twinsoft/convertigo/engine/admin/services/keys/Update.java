@@ -19,8 +19,6 @@
 
 package com.twinsoft.convertigo.engine.admin.services.keys;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Map;
@@ -40,6 +38,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.tas.Key;
 import com.twinsoft.tas.KeyManager;
@@ -100,8 +99,7 @@ public class Update extends XmlService {
 								keyElement.setAttribute("text", newKey);
 								keysListElement.appendChild(keyElement);
 							} else {
-								Properties keysProperties = new Properties();
-								keysProperties.load(new FileInputStream(tasRoot + "/Java/keys.txt"));
+								Properties keysProperties = PropertiesUtils.load(tasRoot + "/Java/keys.txt");
 								
 								// Check if key already exists
 								if (keysProperties.getProperty(newKey) != null) {
@@ -112,7 +110,7 @@ public class Update extends XmlService {
 								}
 								else {
 									keysProperties.setProperty(newKey, "");
-									keysProperties.store(new FileOutputStream(tasRoot + "/Java/keys.txt"), null);
+									PropertiesUtils.store(keysProperties, tasRoot + "/Java/keys.txt");
 									
 									KeyManager.addKey(newKey, keyInfos);
 									keyElement.setAttribute("valid", "true");
@@ -154,8 +152,7 @@ public class Update extends XmlService {
 		try {
 			boolean changed = false;
 			String tasRoot = EnginePropertiesManager.getProperty(PropertyName.CARIOCA_URL);
-			Properties keysProperties = new Properties();
-			keysProperties.load(new FileInputStream(tasRoot + "/Java/keys.txt"));		
+			Properties keysProperties = PropertiesUtils.load(tasRoot + "/Java/keys.txt");
 			Enumeration<Object> enumeration = keysProperties.keys();
 			String sEval = DESKey.encodeToHexString("eval").toUpperCase(); // A4E2F2A4A778C2C1
 			String sKey;
@@ -174,8 +171,9 @@ public class Update extends XmlService {
 				}
 			}
 			
-			if (changed)
-				keysProperties.store(new FileOutputStream(tasRoot + "/Java/keys.txt"), null);
+			if (changed) {
+				PropertiesUtils.store(keysProperties, tasRoot + "/Java/keys.txt");
+			}
 		} catch(Exception e) {
 			Engine.logAdmin.info("The key file cannot be updated");
 		}

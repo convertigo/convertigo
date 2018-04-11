@@ -20,7 +20,7 @@
 package com.twinsoft.convertigo.engine.admin.services.global_symbols;
 
 import java.io.Writer;
-import java.util.Date;
+import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -35,6 +35,7 @@ import com.twinsoft.convertigo.engine.admin.services.DownloadService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
+import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 
 @ServiceDefinition(
 		name = "Export", 
@@ -55,24 +56,21 @@ public class Export extends DownloadService {
 			//Parse string requested parameter to JSON
 			JSONArray symbolsNames = new JSONArray(symbols);
 			
-			//Write header information
-			String writedString = "#global symbols\n";
-			writedString += "#" + new Date() + "\n";
+			Properties properties = new Properties();
 
 			//Write symbols saved with name and value for each requested/selected symbols
 			for (int i = 0; i < symbolsNames.length(); i++) {
 				JSONObject jo = symbolsNames.getJSONObject(i);
-				String symbolValue = Engine.theApp.databaseObjectsManager
-						.symbolsGetValue(jo.getString("name"));
-				writedString += jo.getString("name") + "=" + symbolValue + "\n";
+				String symbolValue = Engine.theApp.databaseObjectsManager.symbolsGetValue(jo.getString("name"));
+				properties.setProperty(jo.getString("name"), symbolValue);
 			}
 
 			HeaderName.ContentDisposition.setHeader(response,
 					"attachment; filename=\"global_symbols.properties\"");
 			response.setContentType(MimeType.Plain.value());
 			response.setCharacterEncoding("UTF-8");
-			try (Writer writer = response.getWriter()) {;
-				writer.write(writedString);
+			try (Writer writer = response.getWriter()) {
+				PropertiesUtils.store(properties, writer, "global symbols");
 			}
 			String message = "The global symbols file has been exported.";
 			Engine.logAdmin.info(message);

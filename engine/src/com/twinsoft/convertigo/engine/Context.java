@@ -23,9 +23,7 @@ import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -81,6 +79,7 @@ import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
+import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.URLrewriter;
 import com.twinsoft.twinj.Javelin;
@@ -282,9 +281,7 @@ public class Context extends AbstractContext implements Cloneable {
 		// Loads properties from file
 		if (file.exists()) {
 			try {
-    			FileInputStream fin = new FileInputStream(file);
-	            Properties properties = new Properties();
-	            properties.load(fin);
+	            Properties properties = PropertiesUtils.load(file);
 	            return properties;
 			} catch (FileNotFoundException e) {
 				Engine.logContext.warn("Problems occured while loading properties : file  '"+ path +"' not found!");
@@ -335,10 +332,7 @@ public class Context extends AbstractContext implements Cloneable {
 		// Store properties to file
 		if (file.exists()) {
 			try {
-				FileOutputStream fos = new FileOutputStream(file);
-				properties.store(fos, "");
-				fos.flush();
-				fos.close();
+				PropertiesUtils.store(properties, file);
 				return true;
 			} catch (FileNotFoundException e) {
 				Engine.logContext.warn("Problems occured while saving properties '"+ name +"': file  '"+ path +"' not found!");

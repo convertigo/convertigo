@@ -21,15 +21,14 @@ package com.twinsoft.convertigo.engine;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
 import com.twinsoft.convertigo.engine.util.Crypto2;
+import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 
 public class InstallCerts {
 
@@ -122,11 +121,10 @@ public class InstallCerts {
 		try {
 			String propertiesFileName = currentDir + "/" + CertificateManager.STORES_PROPERTIES_FILE_NAME;
 			File propertiesFile = new File(propertiesFileName);
-			Properties properties = new Properties();
-			properties.load(new FileInputStream(propertiesFile));
+			Properties properties = PropertiesUtils.load(propertiesFile);
 			properties.setProperty(fileName, Crypto2.encodeToHexString(password));
 			properties.setProperty(fileName + ".type", "client");
-			properties.store(new FileOutputStream(propertiesFile), null);
+			PropertiesUtils.store(properties, propertiesFile);
 		}
 		catch(IOException e) {
 			System.out.println("  (!) Erreur lors de l'acces au fichier de proprietes de certificats : " + e.getMessage());

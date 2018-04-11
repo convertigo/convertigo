@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.engine;
 
 import com.twinsoft.util.DESKey;
+import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 import com.twinsoft.convertigo.engine.util.SimpleSHA1;
 import com.twinsoft.util.UnsignedLong;
 
@@ -170,13 +171,10 @@ public class PseudoCertificate {
 		}
 		
 		try {
-			if (!props.containsKey("certificate"))
+			if (!props.containsKey("certificate")) {
 				props.setProperty("certificate", fileName);
-			
-			FileOutputStream fos = new FileOutputStream(file);
-			props.store(fos, "");
-			fos.flush();
-			fos.close();
+			}
+			PropertiesUtils.store(props, file);
 		} catch (Exception e) {
 			System.out.println("Erreur pendant l'archivage du fichier: " + e.getMessage());
 			e.printStackTrace();

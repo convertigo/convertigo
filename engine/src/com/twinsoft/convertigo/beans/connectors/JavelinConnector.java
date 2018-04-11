@@ -21,7 +21,6 @@ package com.twinsoft.convertigo.beans.connectors;
 
 import java.awt.Rectangle;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -54,6 +53,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.plugins.VicApi;
 import com.twinsoft.convertigo.engine.util.LogWrapper;
+import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 import com.twinsoft.tas.Authentication;
 import com.twinsoft.tas.Key;
 import com.twinsoft.tas.KeyManager;
@@ -140,10 +140,8 @@ public class JavelinConnector extends ConnectorWithScreenClasses {
 
 	public long findEmulatorId() throws EngineException {
 		try {
-			Properties properties = new Properties();
-			InputStream propsInputstream = getClass().getResourceAsStream("/emulators.properties");
-			properties.load(propsInputstream);
-
+			Properties properties = PropertiesUtils.load(getClass().getResourceAsStream("/emulators.properties"));
+			
 			// Enumeration of the properties
 			Enumeration<?> propsEnum = properties.propertyNames();
 			String propertyName, propertyValue;

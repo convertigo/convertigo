@@ -32,6 +32,7 @@ import java.util.Enumeration;
 import java.util.Properties;
 
 import com.twinsoft.convertigo.engine.util.Crypto2;
+import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 
 public class CertificateManager {
 	
@@ -144,8 +145,7 @@ public class CertificateManager {
 			previousProjectName = context.projectName;
 
 			File file = new File(Engine.CERTIFICATES_PATH + CertificateManager.STORES_PROPERTIES_FILE_NAME);
-			storesProperties = new Properties();
-			storesProperties.load(new FileInputStream(file));
+			storesProperties = PropertiesUtils.load(file);
 		
 			keyStore = "";
 			keyStoreName = "";
@@ -279,20 +279,21 @@ public class CertificateManager {
 				byte[] buf = PseudoCertificate.decrypt(Engine.CERTIFICATES_PATH + "/" + clientStore, cryptKey);
 				if (buf != null) {
 					// load properties
-					udvProperties = new Properties();
-					udvProperties.load(new ByteArrayInputStream(buf));
-					for (Enumeration<Object> e = udvProperties.keys(); e.hasMoreElements() ;) {
-				         key = (String) e.nextElement();
-				         value = udvProperties.getProperty(key);
-				         if (key.equalsIgnoreCase("certificate")) {
-				        	 Engine.logCertificateManager.debug("Overriding client keystore with '"+value+"'");
-				        	 cStore = value;
-				         }
-				         else {
-					         context.set(key, value);
-					         Engine.logCertificateManager.debug("Adding user defined variable : "+key+"="+value);
-				         }
-				     }
+					try (InputStream is = new ByteArrayInputStream(buf)) {
+						udvProperties = PropertiesUtils.load(is);
+						for (Enumeration<Object> e = udvProperties.keys(); e.hasMoreElements() ;) {
+							key = (String) e.nextElement();
+							value = udvProperties.getProperty(key);
+							if (key.equalsIgnoreCase("certificate")) {
+								Engine.logCertificateManager.debug("Overriding client keystore with '"+value+"'");
+								cStore = value;
+							}
+							else {
+								context.set(key, value);
+								Engine.logCertificateManager.debug("Adding user defined variable : "+key+"="+value);
+							}
+						}
+					}
 				}
 			} catch (FileNotFoundException e) {
 				Engine.logCertificateManager.debug("Could not find file '"+ cStore +"'.");

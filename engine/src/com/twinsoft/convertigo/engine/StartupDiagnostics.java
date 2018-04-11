@@ -21,11 +21,9 @@ package com.twinsoft.convertigo.engine;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Collection;
 import java.util.List;
@@ -35,6 +33,7 @@ import java.util.regex.Pattern;
 import org.apache.log4j.Level;
 
 import com.twinsoft.convertigo.engine.util.FileUtils;
+import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class StartupDiagnostics {
@@ -80,10 +79,7 @@ public class StartupDiagnostics {
 			testsSummary += " - WAR architecture ........................... ";
 			File buildInfoFile = new File(Engine.WEBAPP_PATH + "/WEB-INF/build.txt");
 			try {
-				InputStream buildInfoFIS = new FileInputStream(buildInfoFile);
-				
-				Properties buildProperties = new Properties();
-				buildProperties.load(buildInfoFIS);
+				Properties buildProperties = PropertiesUtils.load(buildInfoFile);
 
 				String buildFileName = buildProperties.getProperty("build.filename");
 				if (buildFileName == null) {

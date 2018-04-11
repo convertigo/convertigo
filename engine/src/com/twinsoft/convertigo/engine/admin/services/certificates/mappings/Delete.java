@@ -20,7 +20,6 @@
 package com.twinsoft.convertigo.engine.admin.services.certificates.mappings;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
@@ -28,11 +27,12 @@ import javax.servlet.http.HttpServletRequest;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.util.FileAndProperties;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
+import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 
 @ServiceDefinition(
 		name = "Delete",
@@ -59,9 +59,6 @@ public class Delete extends XmlService {
 			ServiceUtils.deleteMapping(storesProperties, link, document, rootElement);
 			i++;
 		}
-		FileOutputStream fos = new FileOutputStream(file);
-		storesProperties.store(fos , "");
-		fos.flush();
-		fos.close();			
+		PropertiesUtils.store(storesProperties, file);	
 	}
 }	

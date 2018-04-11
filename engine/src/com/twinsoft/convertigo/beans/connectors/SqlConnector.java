@@ -20,7 +20,6 @@
 package com.twinsoft.convertigo.beans.connectors;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.sql.CallableStatement;
@@ -64,6 +63,7 @@ import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.servlets.EngineServlet;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -433,10 +433,8 @@ public class SqlConnector extends Connector {
 			url = jdbc.get(jdbcDriverClassName);
 		if (url.equals("")) {
 			try {
-				Properties properties = new Properties();
-				InputStream propsInputstream = getClass().getResourceAsStream("/jdbc_drivers.properties");
-				properties.load(propsInputstream);
-
+				Properties properties = PropertiesUtils.load(getClass().getResourceAsStream("/jdbc_drivers.properties"));
+				
 				// Enumeration of the properties
 				for(Map.Entry<String, String> prop : GenericUtils.<Set<Map.Entry<String,String>>>cast(properties.entrySet())){
 					String propertyValue = prop.getValue()!=null?prop.getValue():"";
@@ -545,8 +543,7 @@ public class SqlConnector extends Connector {
 			String[] sDriverNames = new String[0];
 			
 			try {
-				Properties properties = new Properties();
-				properties.load(getClass().getResourceAsStream("/jdbc_drivers.properties"));
+				Properties properties = PropertiesUtils.load(getClass().getResourceAsStream("/jdbc_drivers.properties"));
 				
 				sDriverNames = properties.values().toArray(new String[properties.size()]);
 				for(int i=0;i<sDriverNames.length;i++)

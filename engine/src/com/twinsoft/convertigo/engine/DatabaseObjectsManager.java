@@ -20,15 +20,9 @@
 package com.twinsoft.convertigo.engine;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.io.Writer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -98,6 +92,7 @@ import com.twinsoft.convertigo.engine.util.CarUtils;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
+import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 import com.twinsoft.convertigo.engine.util.Replacement;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
@@ -1584,8 +1579,8 @@ public class DatabaseObjectsManager implements AbstractManager {
                         Engine.CONFIGURATION_PATH + "/global_symbols.properties")); 		
 		Properties prop = new Properties();
 
-		try (Reader reader = new InputStreamReader(new FileInputStream(globalSymbolsFilePath), "UTF-8")) { 
-			prop.load(reader);
+		try {
+			PropertiesUtils.load(prop, globalSymbolsFilePath);
 		} catch (FileNotFoundException e) {
 			Engine.logDatabaseObjectManager.warn("The symbols file specified in JVM argument as \""
 					+ globalSymbolsFilePath + "\" does not exist! Creating a new one...");
@@ -1593,8 +1588,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 			// Create the global_symbols.properties file into the default workspace
 			File globalSymbolsProperties = new File(Engine.CONFIGURATION_PATH + "/global_symbols.properties");
 			globalSymbolsFilePath = globalSymbolsProperties.getAbsolutePath();
-			try (Writer writer = new OutputStreamWriter(new FileOutputStream(globalSymbolsProperties.getAbsolutePath()), "UTF-8")) {
-				prop.store(writer, "global symbols");
+			
+			try {
+				PropertiesUtils.store(prop, globalSymbolsProperties, "global symbols");
 				Engine.logDatabaseObjectManager.info("New global symbols file created: " + globalSymbolsProperties.getAbsolutePath());
 			} catch (Exception e1) {
 				Engine.logDatabaseObjectManager.error("Error while creating the global_symbols.properties file; symbols won't be calculated.", e1);
@@ -1632,9 +1628,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 	
 	public void symbolsStore(OutputStream out) throws IOException {
-		try (Writer writer = new OutputStreamWriter(out, "UTF-8")) {
-			symbolsProperties.store(writer, "global symbols");
-		}
+		PropertiesUtils.store(symbolsProperties, out, "global symbols");
 	}
 	
 	public void symbolsUpdate(Properties map, String importAction) {
@@ -1699,8 +1693,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 
 	private void symbolsUpdated() {
-		try (Writer writer = new OutputStreamWriter(new FileOutputStream(globalSymbolsFilePath), "UTF-8")) {
-			symbolsProperties.store(writer, "global symbols");
+		try {
+			PropertiesUtils.store(symbolsProperties, globalSymbolsFilePath, "global symbols");
 		} catch (Exception e) {
 			Engine.logEngine.error("Failed to store symbols!", e);
 		}

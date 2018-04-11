@@ -20,12 +20,11 @@
 package com.twinsoft.convertigo.engine;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Properties;
@@ -41,6 +40,7 @@ import javax.mail.internet.MimeMessage;
 
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 import com.twinsoft.convertigo.engine.util.SimpleCipher;
 import com.twinsoft.tas.ApplicationException;
 import com.twinsoft.tas.ParsingException;
@@ -247,7 +247,7 @@ public class RemoteAdministration {
 		try {
 			Engine.logEngine.debug("[RemoteAdministration] syncProperties() Received properties:\n"
 					+ sProperties);
-			EnginePropertiesManager.load(new ByteArrayInputStream(sProperties.getBytes()));
+			EnginePropertiesManager.load(sProperties);
 			EnginePropertiesManager.saveProperties();
 		} catch (Exception e) {
 			Engine.logEngine.error("[RemoteAdministration] syncProperties() Unable to synchronize properties",
@@ -267,11 +267,7 @@ public class RemoteAdministration {
 
 			File file = new File(Engine.CERTIFICATES_PATH + "/"
 					+ CertificateManager.STORES_PROPERTIES_FILE_NAME);
-			Properties storesProperties = new Properties();
-
-			FileInputStream fis = new FileInputStream(file);
-			storesProperties.load(fis);
-			fis.close();
+			Properties storesProperties = PropertiesUtils.load(file);
 
 			Enumeration<String> enumKeys = GenericUtils.cast(storesProperties.keys());
 			String key;
@@ -298,13 +294,10 @@ public class RemoteAdministration {
 					}
 				}
 			}
-
-			storesProperties.load(new ByteArrayInputStream(sProperties.getBytes()));
-
-			FileOutputStream fos = new FileOutputStream(file);
-			storesProperties.store(fos, "");
-			fos.flush();
-			fos.close();
+			
+			PropertiesUtils.load(storesProperties, new StringReader(sProperties));
+			
+			PropertiesUtils.store(storesProperties, file);
 		} catch (Exception e) {
 			Engine.logEngine.error(
 					"[RemoteAdministration] syncCertificates() Unable to synchronize certificates", e);

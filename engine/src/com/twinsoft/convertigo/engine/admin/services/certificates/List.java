@@ -20,7 +20,6 @@
 package com.twinsoft.convertigo.engine.admin.services.certificates;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -39,6 +38,7 @@ import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.util.Crypto2;
+import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 
 @ServiceDefinition(
 		name = "List",
@@ -56,13 +56,10 @@ public class List extends XmlService {
         
         File file = new File(Engine.CERTIFICATES_PATH + CertificateManager.STORES_PROPERTIES_FILE_NAME);
         Properties storesProperties = new Properties();
-        FileInputStream fis;
 		try {
-			fis = new FileInputStream(file);
-			storesProperties.load(fis);
-	        fis.close();
+			PropertiesUtils.load(storesProperties, file);
 		} catch (Exception e) {
-			String message="Unexpected exception";
+			String message = "Unexpected exception";
 			Engine.logAdmin.error(message, e);
 			throw new ServiceException(message,e);
 		}
@@ -75,10 +72,12 @@ public class List extends XmlService {
         while(storesKeysEnum.hasMoreElements()) {
         	tmp = (String)storesKeysEnum.nextElement();
         	if ( tmp.indexOf("projects.")!=0 && tmp.indexOf("tas.")!=0 ) {
-        		if ( !tmp.endsWith(".type") && !tmp.endsWith(".group") )
+        		if ( !tmp.endsWith(".type") && !tmp.endsWith(".group") ) {
         			certifVector.add(tmp);
-        	} else
+        		}
+        	} else {
         		linksVector.add(tmp);
+        	}
         }
         Collections.sort(linksVector);
 		
