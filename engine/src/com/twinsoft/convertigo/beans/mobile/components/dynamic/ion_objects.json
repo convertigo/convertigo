@@ -7900,6 +7900,222 @@
 			{"from":"ionic-angular", "components":["Events"]}
         ]
       }
+    },
+    
+    "AnimateAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAnimate",
+	  "displayName": "Animate",
+      "label": "Animate",
+      "description": "Defines an <i>Animate</i> action component. |This component helps animating a comopnent.<br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/native/file-opener/'>File Opener</a>",
+      "group": "Actions",
+      "icon16": "animateaction_color_16x16.png",
+      "icon32": "animateaction_color_32x32.png",
+      "properties": {
+	      "useVisibility": {
+	        "label": "Use visbility",
+	        "description": "Specify whether the animation use visibility instead of hidden attribute",
+	        "category": "@Parameters",
+	        "type": "boolean",
+	        "value": false,
+	        "values": [false,"false","true"]
+	      },   
+	      "disabled": {
+	        "label": "Is disabled",
+	        "description": "Specify whether the animation is disabled",
+	        "category": "@Parameters",
+	        "type": "boolean",
+	        "value": false,
+	        "values": [false,"false","true"]
+	      },   
+	      "fixed": {
+	        "label": "Is fixed",
+	        "description": "Specify whether the component's position is fixed",
+	        "category": "@Parameters",
+	        "type": "boolean",
+	        "value": false,
+	        "values": [false,"false","true"]
+	      },   
+	      "pin": {
+	        "label": "Is pined",
+	        "description": "Specify whether the component's style is pined",
+	        "category": "@Parameters",
+	        "type": "boolean",
+	        "value": false,
+	        "values": [false,"false","true"]
+	      },   
+	      "type": {
+	        "label": "Animation name",
+	        "description": "Specify the animation name",
+	        "category": "@Parameters",
+	        "type": "string",
+	        "value": false,
+			"values": [
+				false,
+				"bounce",
+				"bounceIn",
+				"bounceInDown",
+				"bounceInLeft",
+				"bounceInRight",
+				"bounceInUp",
+				"bounceOut",
+				"bounceOutDown",
+				"bounceOutLeft",
+				"bounceOutRight",
+				"bounceOutUp",
+				"fadeIn",
+				"fadeInDown",
+				"fadeInDownBig",
+				"fadeInLeft",
+				"fadeInLeftBig",
+				"fadeInRight",
+				"fadeInRightBig",
+				"fadeInUp",
+				"fadeInUpBig",
+				"fadeOut",
+				"fadeOutDown",
+				"fadeOutDownBig",
+				"fadeOutLeft",
+				"fadeOutLeftBig",
+				"fadeOutRight",
+				"fadeOutRightBig",
+				"fadeOutUp",
+				"fadeOutUpBig",
+				"flash",
+				"flipInX",
+				"flipInY",
+				"flipOutX",
+				"flipOutY",
+				"headShake",
+				"hinge",
+				"jackInTheBox",
+				"jello",
+				"lightSpeedIn",
+				"lightSpeedOut",
+				"pulse",
+				"rollIn",
+				"rollOut",
+				"rotateIn",
+				"rotateInDownLeft",
+				"rotateInDownRight",
+				"rotateInUpLeft",
+				"rotateInUpRight",
+				"rotateOut",
+				"rotateOutDownLeft",
+				"rotateOutDownRight",
+				"rotateOutUpLeft",
+				"rotateOutUpRight",
+				"rubberBand",
+				"shake",
+				"slideInDown",
+				"slideInLeft",
+				"slideInRight",
+				"slideInUp",
+				"slideOutDown",
+				"slideOutLeft",
+				"slideOutRight",
+				"slideOutUp",
+				"swing",
+				"tada",
+				"wobble",
+				"zoomIn",
+				"zoomInDown",
+				"zoomInLeft",
+				"zoomInRight",
+				"zoomInUp",
+				"zoomOut",
+				"zoomOutDown",
+				"zoomOutLeft",
+				"zoomOutRight",
+				"zoomOutUp",
+				true
+			]
+	      },   
+	      "timingFunction": {
+	        "label": "Timing function",
+	        "description": "Specify the animation timing function",
+	        "category": "@Parameters",
+	        "type": "string",
+	        "value": false,
+	        "values": [
+				false,
+				"ease",
+				"ease-in",
+				"ease-in-out",
+				"ease-out",
+				"linear",
+				"step-start",
+				"step-end", 
+				true
+			]
+	      },   
+	      "playState": {
+	        "label": "Play state",
+	        "description": "Specify the animation play state",
+	        "category": "@Parameters",
+	        "type": "string",
+	        "value": false,
+	        "values": [
+				false,
+				"paused",
+				"running",
+				true
+			]
+	      },   
+	      "direction": {
+	        "label": "Direction",
+	        "description": "Specify the animation direction",
+	        "category": "@Parameters",
+	        "type": "string",
+	        "value": false,
+	        "values": [
+				false,
+				"alternate",
+				"alternate-reverse",
+				"normal",
+				"reverse",
+				true
+			]
+	      },   
+	      "fillMode": {
+	        "label": "Fill mode",
+	        "description": "Specify the animation fill mode",
+	        "category": "@Parameters",
+	        "type": "string",
+	        "value": false,
+	        "values": [
+				false,
+				"backwards",
+				"both",
+				"forwards",
+				"none",
+				true
+			]
+	      },   
+	      "iterationCount": {
+	        "label": "Iteration count",
+	        "description": "Specify the animation iteration count",
+	        "category": "@Parameters",
+	        "type": "number",
+	        "value": false,
+	        "values": [false,true]
+	      },   
+	      "duration": {
+	        "label": "Duration",
+	        "description": "Specify the animation duration in ms",
+	        "category": "@Parameters",
+	        "type": "number",
+	        "value": false,
+	        "values": [false,true]
+	      },   
+	      "delay": {
+	        "label": "Delay",
+	        "description": "Specify the animation delay",
+	        "category": "@Parameters",
+	        "type": "number",
+	        "value": false,
+	        "values": [false,true]
+	      }
+      }
     }
   }
 }

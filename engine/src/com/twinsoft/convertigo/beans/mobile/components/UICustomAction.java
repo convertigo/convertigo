@@ -279,6 +279,13 @@ public class UICustomAction extends UIComponent implements IAction {
 					scope += "item"+uicd.priority + ": "+ "item"+uicd.priority;
 				}
 			}
+			if (parent instanceof UIElement) {
+				String identifier = ((UIElement)parent).getIdentifier();
+				if (!identifier.isEmpty()) {
+					scope += !scope.isEmpty() ? ", ":"";
+					scope += identifier+ ": "+ identifier;
+				}			
+			}
 			parent = parent.getParent();
 		}
 		return scope;

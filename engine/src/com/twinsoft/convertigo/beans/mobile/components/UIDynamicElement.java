@@ -126,7 +126,8 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 	
 	@Override
 	public String toString() {
-		return getName();
+		String id = getIdentifier();
+		return getName() + (id.isEmpty() ? "":" #"+id);
 	}
 	
 	protected static boolean isComposedValue(String val) {

@@ -19,44 +19,12 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
 public class UIAnimation extends UIAttribute {
 
 	private static final long serialVersionUID = -2272380428896703765L;
 
-	private List<String> animations = Arrays.asList("",
-			"bounce","flash","pulse","rubberBand",
-			"shake","headShake","swing","tada",
-			"wobble","jello","bounceIn","bounceInDown",
-			"bounceInLeft","bounceInRight","bounceInUp","bounceOut",
-			"bounceOutDown","bounceOutLeft","bounceOutRight","bounceOutUp",
-			"fadeIn","fadeInDown","fadeInDownBig","fadeInLeft",
-			"fadeInLeftBig","fadeInRight","fadeInRightBig","fadeInUp",
-			"fadeInUpBig","fadeOut","fadeOutDown","fadeOutDownBig",
-			"fadeOutLeft","fadeOutLeftBig","fadeOutRight","fadeOutRightBig",
-			"fadeOutUp","fadeOutUpBig","flipInX","flipInY",
-			"flipOutX","flipOutY","lightSpeedIn","lightSpeedOut",
-			"rotateIn","rotateInDownLeft","rotateInDownRight","rotateInUpLeft",
-			"rotateInUpRight","rotateOut","rotateOutDownLeft","rotateOutDownRight",
-			"rotateOutUpLeft","rotateOutUpRight","hinge","jackInTheBox",
-			"rollIn","rollOut","zoomIn","zoomInDown",
-			"zoomInLeft","zoomInRight","zoomInUp","zoomOut",
-			"zoomOutDown","zoomOutLeft","zoomOutRight","zoomOutUp",
-			"slideInDown","slideInLeft","slideInRight","slideInUp",
-			"slideOutDown","slideOutLeft","slideOutRight","slideOutUp");
-
 	public UIAnimation() {
 		super();
-		Collections.sort(animations, new Comparator<String>() {
-			@Override
-			public int compare(String s1, String s2) {
-				return s1.compareTo(s2);
-			}				
-		} );
 	}
 
 	@Override
@@ -109,7 +77,7 @@ public class UIAnimation extends UIAttribute {
 	@Override
 	public String[] getTagsForProperty(String propertyName) {
 		if (propertyName.equals("animationName")) {
-			return (String[]) animations.toArray();
+			return CssAnimation.names();
 		}
 		return new String[0];
 	}

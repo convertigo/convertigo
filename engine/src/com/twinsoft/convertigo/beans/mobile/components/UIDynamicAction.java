@@ -190,6 +190,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	
 	protected String getScope() {
 		String scope = "";
+		
 		DatabaseObject parent = getParent();
 		while (parent != null && !(parent instanceof UIPageEvent) && !(parent instanceof UIEventSubscriber)) {
 			if (parent instanceof UIControlDirective) {
@@ -199,6 +200,14 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 					scope += "item"+uicd.priority + ": "+ "item"+uicd.priority;
 				}
 			}
+			if (parent instanceof UIElement) {
+				String identifier = ((UIElement)parent).getIdentifier();
+				if (!identifier.isEmpty()) {
+					scope += !scope.isEmpty() ? ", ":"";
+					scope += identifier+ ": "+ identifier;
+				}			
+			}
+			
 			parent = parent.getParent();
 		}
 		return scope;
@@ -256,11 +265,15 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		return "";
 	}
 
+	protected StringBuilder initProps(boolean forTemplate) {
+		return new StringBuilder();
+	}
+	
 	protected String computeActionInputs(boolean forTemplate) {
 		if (isEnabled()) {
 			IonBean ionBean = getIonBean();
 			if (ionBean != null) {
-				StringBuilder sbProps = new StringBuilder();
+				StringBuilder sbProps = initProps(forTemplate);
 				for (IonProperty property : ionBean.getProperties().values()) {
 					String p_name = property.getName();
 					Object p_value = property.getValue();
