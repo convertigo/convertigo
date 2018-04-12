@@ -7872,7 +7872,7 @@
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "PublishEvent",
       "label": "PublishEvent",
-      "description": "Defines an <i>PublishEvent</i> action component. |This component helps publishing an event.<br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/api/util/Events/'>Events</a>",
+      "description": "Defines a <i>PublishEvent</i> action component. |This component helps publishing an event giving its topic and optional data. The event may be handled by an existing <i>Subscribe Handler</i> component in any available page.<br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/api/util/Events/'>Events</a>",
       "group": "Actions",
       "icon16": "publisheventaction_color_16x16.png",
       "icon32": "publisheventaction_color_32x32.png",
