@@ -1523,7 +1523,12 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 			IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
 			IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
 			IProject resourceProject = myWorkspaceRoot.getProject(projectName);
-			isOpen = resourceProject != null && resourceProject.isOpen();
+			if (resourceProject != null) {
+				if (!resourceProject.exists() && Engine.theApp.databaseObjectsManager.existsProject(projectName)) {
+					resourceProject = createProjectPluginResource(projectName, null);
+				}
+				isOpen = resourceProject.isOpen();
+			}
 		} catch (Exception e) {
 			logWarning(e, "Error when checking if '" + projectName + "' is open", false);
 		}

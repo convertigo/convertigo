@@ -832,8 +832,8 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		
 		final Project project = getObject();
 		
-		final Set<String> missingProjects = project.getMissingProjects();
-		final Set<String> missingProjectReferences = project.getMissingProjectReferences();
+		final Set<String> missingProjects = project.getMissingProjects().keySet();
+		final Set<String> missingProjectReferences = project.getMissingProjectReferences().keySet();
 
 		if (!missingProjects.isEmpty() || !missingProjectReferences.isEmpty()) {
 			isCheckMissingProjects = true;
