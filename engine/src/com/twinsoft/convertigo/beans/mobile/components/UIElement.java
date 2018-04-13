@@ -381,9 +381,6 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 
 	@Override
 	public String[] getTagsForProperty(String propertyName) {
-		if (propertyName.equals("mbIdentifier")) {
-			return getPage().getTagsForProperty(propertyName);
-		}
 		return new String[0];
 	}
 
