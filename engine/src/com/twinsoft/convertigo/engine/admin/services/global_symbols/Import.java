@@ -59,7 +59,7 @@ public class Import extends UploadService {
 		//We save the global symbols imported file
 		Properties prop = new Properties();
 		try {
-			PropertiesUtils.load(item.getInputStream());
+			PropertiesUtils.load(prop, item.getInputStream());
 		} catch (IOException ioe) {
 			String message = "Unable to load property file:\n" + ioe.getMessage();
 			ServiceUtils.addMessage(document, document.getDocumentElement(), message, "message", false);
