@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -41,7 +42,7 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 		onDidLeave("ionViewDidLeave"),
 		onWillUnload("ionViewWillUnload"),
 		onCanEnter("ionViewCanEnter"),
-		oncanLeave("ionViewCanLeave");
+		onCanLeave("ionViewCanLeave");
 		
 		String event;
 		ViewEvent(String event) {
@@ -61,25 +62,30 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 			
 			StringBuffer sb = new StringBuffer();
 			if (children.length() > 0) {
+				sb.append(System.lineSeparator());
+				
 				//Supporting ionViewCan Events
-				if(event == "ionViewCanEnter" || event == "ionViewCanLeave"){
-					sb.append(event).append("() {").append(System.lineSeparator());
+				if (this.equals(ViewEvent.onCanEnter) || this.equals(ViewEvent.onCanLeave)) {
+					sb.append("\t"+event).append("() {").append(System.lineSeparator());
 					sb.append("\t\tsuper.").append(event).append("();").append(System.lineSeparator());
 					sb.append("\t\treturn new Promise((resolve, reject)=>{").append(System.lineSeparator());
 					sb.append("\t\t\tthis.getInstance(Platform).ready().then(()=>{").append(System.lineSeparator());
-					sb.append("\t\t").append(children).append(System.lineSeparator());
+					sb.append("\t\t\t\tPromise.all([").append(System.lineSeparator());
+					sb.append(children);
+					sb.append("\t\t\t\t])").append(System.lineSeparator());
 					sb.append("\t\t\t\t.then((resp)=>{").append(System.lineSeparator());
-					sb.append("\t\t\t\t\tresolve(resp);").append(System.lineSeparator());
+					sb.append("\t\t\t\t\tlet ret = resp.find((item) => {return item === false;});").append(System.lineSeparator());
+					sb.append("\t\t\t\t\tresolve(ret === false ? false : true);").append(System.lineSeparator());
 					sb.append("\t\t\t\t});").append(System.lineSeparator());
 					sb.append("\t\t\t});").append(System.lineSeparator());
 					sb.append("\t\t});").append(System.lineSeparator());
 					sb.append("\t}").append(System.lineSeparator());
 				}
-				else{
-					sb.append(event).append("() {").append(System.lineSeparator());
+				else {
+					sb.append("\t"+event).append("() {").append(System.lineSeparator());
 					sb.append("\t\tsuper.").append(event).append("();").append(System.lineSeparator());
 					sb.append("\t\tthis.getInstance(Platform).ready().then(()=>{").append(System.lineSeparator());				
-					sb.append("\t").append(children).append(";").append(System.lineSeparator());	
+					sb.append(children);	
 					sb.append("\t\t});").append(System.lineSeparator());
 					sb.append("\t}").append(System.lineSeparator());
 				}
@@ -169,15 +175,25 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 	@Override
 	public String computeEvent() {
 		if (isEnabled()) {
-			StringBuilder sb = new StringBuilder();
+			List<String> list = new ArrayList<String>();
 			Iterator<UIComponent> it = getUIComponentList().iterator();
 			while (it.hasNext()) {
 				UIComponent component = (UIComponent)it.next();
 				if (component instanceof IAction) {
 					String action = component.computeTemplate();
 					if (!action.isEmpty()) {
-						sb.append("\t\tthis.").append(action);
+						list.add("this."+action);
 					}
+				}
+			}
+			
+			StringBuilder sb = new StringBuilder();
+			String last = list.get(list.size()-1);
+			for (String s: list) {
+				if (viewEvent.equals(ViewEvent.onCanEnter) || viewEvent.equals(ViewEvent.onCanLeave)) {
+					sb.append("\t\t\t\t\t").append(s).append(s.equals(last) ? "":",").append(System.lineSeparator());
+				} else {
+					sb.append("\t\t\t").append(s).append(";").append(System.lineSeparator());
 				}
 			}
 			return sb.toString();
