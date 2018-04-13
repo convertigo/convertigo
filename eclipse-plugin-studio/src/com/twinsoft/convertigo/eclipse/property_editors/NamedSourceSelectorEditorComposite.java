@@ -248,7 +248,7 @@ public class NamedSourceSelectorEditorComposite extends AbstractDialogComposite 
 								.getContentProvider()).getProjectRootObject(projectName);
 						if (projectTreeObject instanceof UnloadedProjectTreeObject) {
 							project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
-						} else {
+						} else if (projectTreeObject != null) { 
 							project = projectExplorerView.getProject(projectName);
 						}
 					}
