@@ -188,12 +188,14 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 			}
 			
 			StringBuilder sb = new StringBuilder();
-			String last = list.get(list.size()-1);
-			for (String s: list) {
-				if (viewEvent.equals(ViewEvent.onCanEnter) || viewEvent.equals(ViewEvent.onCanLeave)) {
-					sb.append("\t\t\t\t\t").append(s).append(s.equals(last) ? "":",").append(System.lineSeparator());
-				} else {
-					sb.append("\t\t\t").append(s).append(";").append(System.lineSeparator());
+			if (!list.isEmpty()) {
+				String last = list.get(list.size()-1);
+				for (String s: list) {
+					if (viewEvent.equals(ViewEvent.onCanEnter) || viewEvent.equals(ViewEvent.onCanLeave)) {
+						sb.append("\t\t\t\t\t").append(s).append(s.equals(last) ? "":",").append(System.lineSeparator());
+					} else {
+						sb.append("\t\t\t").append(s).append(";").append(System.lineSeparator());
+					}
 				}
 			}
 			return sb.toString();
