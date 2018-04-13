@@ -242,7 +242,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 	public Project getOriginalProjectByName(String projectName, boolean checkOpenable) throws EngineException {
 		Engine.logDatabaseObjectManager.trace("Requiring loading of project \"" + projectName + "\"");
 		
-		if (checkOpenable && !canOpenProject(projectName)) {
+		String projectPath = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml";
+		
+		if (checkOpenable && !canOpenProject(projectName) || !new File(projectPath).exists()) {
 			Engine.logDatabaseObjectManager.trace("The project \"" + projectName + "\" cannot be open");
 			clearCache(projectName);
 			return null;
@@ -259,7 +261,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 			try {
 				checkForEngineMigrationProcess(projectName);
-				project = importProject(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml");
+				project = importProject(projectPath);
 			} catch (ClassCastException e) {
 				throw new EngineException("The requested object \"" + projectName + "\" is not a project!", e);
 			} catch (ProjectInMigrationProcessException e) {
