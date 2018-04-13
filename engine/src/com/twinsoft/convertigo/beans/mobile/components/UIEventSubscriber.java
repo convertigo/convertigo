@@ -133,25 +133,31 @@ public class UIEventSubscriber extends UIComponent implements IEventListener {
 		return "";
 	}
 
-	static public String computeConstructors(List<UIEventSubscriber> subscriberList) {
-		String computed = System.lineSeparator();
+	static public String computeConstructors(String nbi, List<UIEventSubscriber> subscriberList) {
+		String computed = ""+nbi+"++;"+System.lineSeparator();
+		computed += "\t\tif ("+nbi+" == 1) {"+System.lineSeparator();
 		for (UIEventSubscriber subscriber: subscriberList) {
 			if (subscriber.isEnabled() && !subscriber.getTopic().isEmpty()) {
-				computed += "\t\tthis.events.subscribe('"+subscriber.getTopic()+"', "
+				computed += "\t\t\tthis.events.subscribe('"+subscriber.getTopic()+"', "
 							+ "(data) => {this."+subscriber.getFunctionName()+"(data)});"+ System.lineSeparator();
 			}
 		}
+		computed += "\t\t}"+ System.lineSeparator();
 		computed += "\t\t";
 		return computed;
 	}
 
-	static public String computeNgDestroy(List<UIEventSubscriber> subscriberList) {
+	static public String computeNgDestroy(String nbi, List<UIEventSubscriber> subscriberList) {
 		String computed = "ngOnDestroy() {"+ System.lineSeparator();
+		computed += "\t\t"+nbi+"--;"+ System.lineSeparator();
+		computed += "\t\tif ("+nbi+" <= 0) {"+ System.lineSeparator();
 		for (UIEventSubscriber subscriber: subscriberList) {
 			if (subscriber.isEnabled() && !subscriber.getTopic().isEmpty()) {
-				computed += "\t\tthis.events.unsubscribe('"+subscriber.getTopic()+"');"+ System.lineSeparator();
+				computed += "\t\t\tthis.events.unsubscribe('"+subscriber.getTopic()+"');"+ System.lineSeparator();
 			}
 		}
+		computed += "\t\t\t"+nbi+" = 0;"+ System.lineSeparator();
+		computed += "\t\t}"+ System.lineSeparator();
 		computed += "\t\tsuper.ngOnDestroy();"+ System.lineSeparator();
 		computed += "\t}"+ System.lineSeparator();
 		computed += "\t";

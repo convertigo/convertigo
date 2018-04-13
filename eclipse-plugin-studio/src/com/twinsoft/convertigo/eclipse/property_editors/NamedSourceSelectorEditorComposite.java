@@ -53,6 +53,7 @@ import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -71,6 +72,7 @@ public class NamedSourceSelectorEditorComposite extends AbstractDialogComposite 
 
 	private class TVObject {
 		private String name;
+		private String label;
 		private boolean isSelectable = false;
 		private TVObject parent;
 		private List<Object> children = new ArrayList<Object>();
@@ -80,7 +82,12 @@ public class NamedSourceSelectorEditorComposite extends AbstractDialogComposite 
 		}
 		
 		public TVObject (String name, boolean isSelectable) {
+			this(name, name, isSelectable);
+		}
+		
+		public TVObject (String name, String label, boolean isSelectable) {
 			this.name = name;
+			this.label = label;
 			this.isSelectable = isSelectable;
 		}
 		
@@ -130,7 +137,7 @@ public class NamedSourceSelectorEditorComposite extends AbstractDialogComposite 
 				if (object instanceof DatabaseObject) {
 					DatabaseObject dbo = (DatabaseObject)object;
 					
-					TVObject tvObject = add(new TVObject(dbo.getName(), isSelectable(dbo)));
+					TVObject tvObject = add(new TVObject(dbo.getName(), dbo.toString(), isSelectable(dbo)));
 					
 					if (object instanceof Project) {
 						MobileApplication mba = ((Project)object).getMobileApplication();
@@ -156,6 +163,21 @@ public class NamedSourceSelectorEditorComposite extends AbstractDialogComposite 
 						}
 						for (PageComponent page: ((ApplicationComponent)object).getPageComponentList()) {
 							tvObject.addObject(page);
+						}
+					}
+					else if (object instanceof UIDynamicMenu) {
+						for (UIComponent uic: ((UIDynamicMenu)object).getUIComponentList()) {
+							tvObject.addObject(uic);
+						}
+					}
+					else if (object instanceof PageComponent) {
+						for (UIComponent uic: ((PageComponent)object).getUIComponentList()) {
+							tvObject.addObject(uic);
+						}
+					}
+					else if (object instanceof UIComponent) {
+						for (UIComponent uic: ((UIComponent)object).getUIComponentList()) {
+							tvObject.addObject(uic);
 						}
 					}
 					else if (object instanceof Connector) {
@@ -226,7 +248,7 @@ public class NamedSourceSelectorEditorComposite extends AbstractDialogComposite 
 								.getContentProvider()).getProjectRootObject(projectName);
 						if (projectTreeObject instanceof UnloadedProjectTreeObject) {
 							project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
-						} else {
+						} else if (projectTreeObject != null) { 
 							project = projectExplorerView.getProject(projectName);
 						}
 					}
@@ -374,7 +396,7 @@ public class NamedSourceSelectorEditorComposite extends AbstractDialogComposite 
 	@Override
 	public String getText(Object element) {
 		if (element instanceof TVObject) {
-			return ((TVObject) element).name;
+			return ((TVObject) element).label;
 		}
 		return null;
 	}

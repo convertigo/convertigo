@@ -594,10 +594,14 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
             String[] beanDescriptions = beanDescription.split("\\|");
             String beanShortDescription = beanDescriptions[0];
 
-            if (isExtractionRule)
+            if (isExtractionRule) {
 				propertyDescriptor.setCategory(databaseObjectPropertyDescriptor.isExpert() ? "Selection" : "Configuration");
-			else
-				propertyDescriptor.setCategory(databaseObjectPropertyDescriptor.isExpert() ? "Expert" : "Base properties");
+            } else {
+				Object categoryValue = databaseObjectPropertyDescriptor.getValue("category");
+				String category = categoryValue == null ? "Base properties" : String.valueOf(categoryValue);
+				
+				propertyDescriptor.setCategory(databaseObjectPropertyDescriptor.isExpert() ? "Expert" : category);
+			}
             
             beanShortDescription = cleanDescription(beanShortDescription);
             propertyDescriptor.setDescription(beanShortDescription);

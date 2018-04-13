@@ -37,6 +37,7 @@ public class UIDynamicActionBeanInfo extends MySimpleBeanInfo {
 			
 			properties = new PropertyDescriptor[0];
 			
+			getPropertyDescriptor("identifier").setHidden(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

@@ -22,12 +22,13 @@ package com.twinsoft.convertigo.beans.core;
 import java.io.File;
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -39,8 +40,8 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.RestApiManager;
 import com.twinsoft.convertigo.engine.enums.JsonOutput;
-import com.twinsoft.convertigo.engine.enums.XPathEngine;
 import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
+import com.twinsoft.convertigo.engine.enums.XPathEngine;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
@@ -690,8 +691,8 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		return getInfoForProperty(propertyName, Locale.getDefault());
 	}
 	
-	public Set<String> getNeededProjects() {
-		Set<String> neededProjects = new HashSet<String>();
+	public Map<String, Boolean> getNeededProjects() {
+		Map<String, Boolean> neededProjects = new HashMap<>();
 		
 		// needed projects by mapping operations
 		getNeededProjects(neededProjects, getUrlMapper());
@@ -707,14 +708,17 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		}
 		
 		try {
-			neededProjects.add(mobileApplication.getApplicationComponent().getTplProjectName());
+			String tplProject = mobileApplication.getApplicationComponent().getTplProjectName();
+			if (!neededProjects.containsKey(tplProject)) {
+				neededProjects.put(tplProject, false);
+			}
 		} catch (Exception e) {
 		}
 		
 		return neededProjects;
 	}
 	
-	private void getNeededProjects(Set<String> projectList, DatabaseObject dbo) {
+	private void getNeededProjects(Map<String, Boolean> neededProjects, DatabaseObject dbo) {
 		if (dbo instanceof UrlMapper) {
 			UrlMapper urlMapper = (UrlMapper)dbo;
 			if (urlMapper != null) {
@@ -725,7 +729,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 							int index = targetRequestableQName.indexOf(".");
 							if (index != -1) {
 								String targetProjectName = targetRequestableQName.substring(0, index);
-								projectList.add(targetProjectName);
+								neededProjects.put(targetProjectName, true);
 							}
 						}
 					}
@@ -733,15 +737,15 @@ public class Project extends DatabaseObject implements IInfoProperty {
 			}
 		}
 		else if (dbo instanceof ProjectSchemaReference) {
-			String targetProjectName = ((ProjectSchemaReference)dbo).getProjectName();
-			projectList.add(targetProjectName);
+			String targetProjectName = ((ProjectSchemaReference) dbo).getProjectName();
+			neededProjects.put(targetProjectName, true);
 		}
 		else if (dbo instanceof Sequence) {
-			getNeededProjects(projectList, ((Sequence)dbo).getSteps());
+			getNeededProjects(neededProjects, ((Sequence) dbo).getSteps());
 		}
 	}
 	
-	private void getNeededProjects(Set<String> projectList, List<Step> steps) {
+	private void getNeededProjects(Map<String, Boolean> projectList, List<Step> steps) {
 		for (Step step : steps) {
 			if (step instanceof StepWithExpressions) {
 				getNeededProjects(projectList, ((StepWithExpressions) step).getSteps());
@@ -749,17 +753,17 @@ public class Project extends DatabaseObject implements IInfoProperty {
 				RequestableStep transactionStep = (RequestableStep) step;
 				String targetProjectName = transactionStep.getProjectName();
 				if (!targetProjectName.equals(getName())) {
-					projectList.add(targetProjectName);
+					projectList.put(targetProjectName, true);
 				}
 			}
 		}
 	}
 	
-	public Set<String> getMissingProjectReferences() {
-		Set<String> missingProjects = getNeededProjects();
-		for (Iterator<String> i = missingProjects.iterator(); i.hasNext();) {
-			if (ProjectUtils.existProjectSchemaReference(this, i.next())) {
-				i.remove();
+	public Map<String, Boolean> getMissingProjectReferences() {
+		Map<String, Boolean> missingProjects = getNeededProjects();
+		for (String project: new HashSet<>(missingProjects.keySet())) {
+			if (ProjectUtils.existProjectSchemaReference(this, project)) {
+				missingProjects.remove(project);
 			}
 		}
 		
@@ -771,12 +775,12 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		return missingProjects;
 	}
 	
-	public Set<String> getMissingProjects() {
-		Set<String> missingProjects = getNeededProjects();
-		for (Iterator<String> i = missingProjects.iterator(); i.hasNext();) {
+	public Map<String, Boolean> getMissingProjects() {
+		Map<String, Boolean> missingProjects = getNeededProjects();
+		for (Entry<String, Boolean> project: new HashMap<>(missingProjects).entrySet()) {
 			try {
-				if (Engine.theApp.databaseObjectsManager.getOriginalProjectByName(i.next()) != null) {
-					i.remove();
+				if (Engine.theApp.databaseObjectsManager.getOriginalProjectByName(project.getKey(), project.getValue()) != null) {
+					missingProjects.remove(project.getKey());
 				}
 			} catch (Exception e) {
 			}

@@ -59,6 +59,7 @@ public class UIControlDirectiveBeanInfo extends MySimpleBeanInfo {
 			
 			getPropertyDescriptor("tagName").setValue("disable", Boolean.TRUE);
 			getPropertyDescriptor("selfClose").setHidden(true);
+			getPropertyDescriptor("identifier").setHidden(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

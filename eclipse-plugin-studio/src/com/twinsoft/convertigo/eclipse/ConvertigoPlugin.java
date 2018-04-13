@@ -901,18 +901,22 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		
 		runAtStartup(() -> {
 			for (File tpl: new File(Engine.TEMPLATES_PATH + "/project").listFiles()) {
-				String name = tpl.getName();
-				if (name.startsWith("mobilebuilder_tpl") &&
-						!Engine.theApp.databaseObjectsManager.existsProject(name.substring(0, name.length() - 4))) {
-					try {
-						Engine.theApp.databaseObjectsManager.deployProject(tpl.getPath(), false);
-					} catch (Exception e) {
-						Engine.logEngine.error("Failed to deploy " + tpl.getName(), e);
+				try {
+					String name = tpl.getName();
+					name = name.substring(0, name.length() - 4);
+					if (name.startsWith("mobilebuilder_tpl")) {
+						if (!Engine.theApp.databaseObjectsManager.existsProject(name)) {
+							Engine.theApp.databaseObjectsManager.deployProject(tpl.getPath(), false);
+						}
+						ConvertigoPlugin.getDefault().getProjectPluginResource(name, null);
 					}
+
+				} catch (Exception e) {
+					Engine.logEngine.error("Failed to deploy " + tpl.getName(), e);
 				}
 			}
 		});
-        
+
 		studioLog.message("Convertigo studio started");
 	}
 
@@ -1523,7 +1527,12 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 			IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
 			IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
 			IProject resourceProject = myWorkspaceRoot.getProject(projectName);
-			isOpen = resourceProject != null && resourceProject.isOpen();
+			if (resourceProject != null) {
+				if (!resourceProject.exists() && Engine.theApp.databaseObjectsManager.existsProject(projectName)) {
+					resourceProject = createProjectPluginResource(projectName, null);
+				}
+				isOpen = resourceProject.isOpen();
+			}
 		} catch (Exception e) {
 			logWarning(e, "Error when checking if '" + projectName + "' is open", false);
 		}

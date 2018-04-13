@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 
+import java.io.File;
 import java.util.Collection;
 
 import org.eclipse.core.resources.IFolder;
@@ -158,12 +159,16 @@ public class ViewContentProvider implements IStructuredContentProvider, ITreeCon
 	}
 
 	private void loadProjectRootObject(String projectName) throws Exception {
-		TreeObject treeObject = getProjectRootObject(projectName);
-		if (treeObject == null) {
-			UnloadedProjectTreeObject unloadedProjectTreeObject = new UnloadedProjectTreeObject(projectExplorerView.viewer, projectName);
-			invisibleRoot.addChild(unloadedProjectTreeObject);
-			if (ConvertigoPlugin.getDefault().isProjectOpened(projectName)) {
-				projectExplorerView.loadProject(unloadedProjectTreeObject);
+		if (projectName.startsWith("mobilebuilder_tpl_") && new File(Engine.TEMPLATES_PATH + "/project/" + projectName + ".car").exists()) {
+			ConvertigoPlugin.logDebug("Skip loading of the mobilebuilder template project '" + projectName +"'.");
+		} else {
+			TreeObject treeObject = getProjectRootObject(projectName);
+			if (treeObject == null) {
+				UnloadedProjectTreeObject unloadedProjectTreeObject = new UnloadedProjectTreeObject(projectExplorerView.viewer, projectName);
+				invisibleRoot.addChild(unloadedProjectTreeObject);
+				if (ConvertigoPlugin.getDefault().isProjectOpened(projectName)) {
+					projectExplorerView.loadProject(unloadedProjectTreeObject);
+				}
 			}
 		}
 	}

@@ -279,6 +279,13 @@ public class UICustomAction extends UIComponent implements IAction {
 					scope += "item"+uicd.priority + ": "+ "item"+uicd.priority;
 				}
 			}
+			if (parent instanceof UIElement) {
+				String identifier = ((UIElement)parent).getIdentifier();
+				if (!identifier.isEmpty()) {
+					scope += !scope.isEmpty() ? ", ":"";
+					scope += identifier+ ": "+ identifier;
+				}			
+			}
 			parent = parent.getParent();
 		}
 		return scope;
@@ -450,7 +457,7 @@ public class UICustomAction extends UIComponent implements IAction {
 			
 			computed += System.lineSeparator();
 			computed += cartridge;
-			computed += "\t"+ functionName + "("+ parameters +") {" + System.lineSeparator();
+			computed += "\t"+ functionName + "("+ parameters +"): Promise<any> {" + System.lineSeparator();
 			computed += "\t\tlet c8oPage : C8oPage = this;" + System.lineSeparator();
 			computed += "\t\tlet parent;" + System.lineSeparator();
 			computed += "\t\tlet scope;" + System.lineSeparator();
@@ -466,7 +473,7 @@ public class UICustomAction extends UIComponent implements IAction {
 			computed += "\t\tout = event;" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
 			computed += "\t\tthis.c8o.log.debug(\"[MB] "+functionName+": started\");" + System.lineSeparator();
-			computed += "\t\t" + System.lineSeparator();
+			computed += "\t\treturn new Promise((resolveP, rejectP)=>{" + System.lineSeparator();
 			computed += ""+ computeActionContent();
 			if (sbCatch.length() > 0) {
 				computed += "\t\t.catch((error:any) => {"+ System.lineSeparator();
@@ -476,8 +483,9 @@ public class UICustomAction extends UIComponent implements IAction {
 				computed += "\t\t"+ sbCatch.toString();
 				computed += "\t\t})"+ System.lineSeparator();
 			}			
-			computed += "\t\t.catch((error:any) => {return Promise.resolve(this.c8o.log.debug(\"[MB] "+functionName+": An error occured : \",error.message))})" + System.lineSeparator();
-			computed += "\t\t.then((res:any) => {this.c8o.log.debug(\"[MB] "+functionName+": ended\")});" + System.lineSeparator();
+			computed += "\t\t.catch((error:any) => {this.c8o.log.debug(\"[MB] "+functionName+": An error occured : \",error.message); resolveP(false);})" + System.lineSeparator();
+			computed += "\t\t.then((res:any) => {this.c8o.log.debug(\"[MB] "+functionName+": ended\"); resolveP(res)});" + System.lineSeparator();
+			computed += "\t\t});"+System.lineSeparator();
 			computed += "\t}";
 		}
 		return computed;
@@ -548,7 +556,7 @@ public class UICustomAction extends UIComponent implements IAction {
 			} else {
 				tsCode += "\t\treturn Promise.resolve(res);"+ System.lineSeparator();
 			}
-			tsCode += "\t\t}, (error: any) => {console.log(\"[MB] "+actionName+" : \", error.message);throw new Error(error);})"+ System.lineSeparator();
+			tsCode += "\t\t}, (error: any) => {this.c8o.log.debug(\"[MB] "+actionName+" : \", error.message);throw new Error(error);})"+ System.lineSeparator();
 			tsCode += "\t\t.then((res:any) => {resolve(res)}).catch((error:any) => {reject(error)})"+ System.lineSeparator();
 			tsCode += "\t\t})"+ System.lineSeparator();
 			return tsCode;

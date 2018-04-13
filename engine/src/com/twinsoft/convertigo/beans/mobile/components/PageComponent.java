@@ -639,7 +639,16 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		List<UIEventSubscriber> subscriberList = getUIEventSubscriberList();
 		if (!subscriberList.isEmpty()) {
 			try {
-				String subscribers = UIEventSubscriber.computeConstructors(subscriberList)
+				String declaration = "public static nbInstance = 0;" + System.lineSeparator();
+				String declarations = jsonScripts.getString("declarations") + declaration;
+				jsonScripts.put("declarations", declarations);
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+			
+			String nbi = getName() +".nbInstance";
+			try {
+				String subscribers = UIEventSubscriber.computeConstructors(nbi, subscriberList)
 									+ System.lineSeparator() + "\t\t";
 				String constructors = jsonScripts.getString("constructors") + subscribers;
 				jsonScripts.put("constructors", constructors);
@@ -648,7 +657,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 			}
 			
 			try {
-				String function = UIEventSubscriber.computeNgDestroy(subscriberList) 
+				String function = UIEventSubscriber.computeNgDestroy(nbi, subscriberList) 
 								+ System.lineSeparator() + "\t";
 				String functions = jsonScripts.getString("functions") + function;
 				jsonScripts.put("functions", functions);

@@ -5138,7 +5138,6 @@
             true
           ]
         },
-        
         "Options": {
           "hidden": true,
           "mode":"script",
@@ -5181,6 +5180,177 @@
       }
       
     },
+    /*
+     * TreeviewComponent
+     */
+    "TreeviewComponent" : {
+      "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicComponent",
+      "tag": "c8o-treeview",
+      "displayName": "Treeview",
+      "label": "Treeview",
+      "description": "c8o-treeview. | Displays a Treeview.",
+      "group": "Lists",
+      "icon16": "treeviewcomponent_color_16x16.png",
+      "icon32": "treeviewcomponent_color_32x32.png",
+      
+      "properties": {
+        "FormControlName": false,
+        "treenodes": {
+          "mode": "script",
+          "attr":"[nodes]",
+          "label": "Tree data",
+          "description": "JSON tree nodes",
+          "category": "@Properties",
+          "value": "[{'id': 1,'name': 'root1','children': [{'id': 2,'name': 'child1'}, {'id': 3,'name': 'child2'}]}]"
+		},
+        "displayField": {
+          "composite": true,
+          "label": "Displayed Field",
+          "description": "Name of the field to display. Defaults to 'name'.",
+          "category": "@Properties",
+          "type": "string",
+          "value": "name",
+          "values": [
+            false,
+            true
+          ]
+        },
+        "childrenField": {
+          "composite": true,
+          "label": "Children Node Name",
+          "description": "Name of the children nodes. Defaults to 'children'.",
+          "category": "@Properties",
+          "type": "string",
+          "value": "children",
+          "values": [
+            false,
+            true
+          ]
+        },
+        "hasChildrenField": {
+          "composite": true,
+          "label": "Has Children Field",
+          "description": "Attribute that indicates the node has children. Defaults to 'hasChildrenField'.",
+          "category": "@Properties",
+          "type": "string",
+          "value": "hasChildren",
+          "values": [
+            false,
+            true
+          ]
+        },
+        "idField": {
+          "composite": true,
+          "label": "ID Attribute",
+          "description": "Attribute of the node that contains a unique ID. Defaults to 'id'.",
+          "category": "@Properties",
+          "type": "string",
+          "value": "id",
+          "values": [
+            false,
+            true
+          ]
+        },
+        "isExpandedField": {
+          "composite": true,
+          "label": "Is Expanded Field",
+          "description": "Attribute that indicates the node starts as expanded. Defaults to 'expanded'.",
+          "category": "@Properties",
+          "type": "string",
+          "value": "expanded",
+          "values": [
+            false,
+            true
+          ]
+        },
+        "RTL": {
+          "composite": true,
+          "label": "Right to Left",
+          "description": "Display direction. Defaults to 'false'.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "true",
+            "false"
+          ]
+        },
+        "scrollOnSelect": {
+          "composite": true,
+          "label": "Scroll On Select",
+          "description": "Whether to scroll to the node to make it visible when it is selected / activated. Defaults to 'true'.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "true",
+          "values": [
+            "true",
+            "false"
+          ]
+        },
+        "useCheckbox": {
+          "composite": true,
+          "label": "Use Checkbox",
+          "description": "Whether to display a checkbox next to the node or not. Defaults to 'false'.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "true",
+            "false"
+          ]
+        },
+        "Options": {
+          "hidden": true,
+          "mode":"script",
+          "attr" : "[options]",
+          "label": "Type",
+          "description": "Treeview options",
+          "category": "@Properties",
+          "value": "{childrenField: $[childrenField], displayField: $[displayField], idField:$[idField], hasChildrenField:$[hasChildrenField], isExpandedField:$[isExpandedField], rtl:$[RTL], scrollOnSelect:$[scrollOnSelect], useCheckbox:$[useCheckbox]}"
+        }
+	  },	  	  
+      "events": {      
+        "onTreeInitialized": {
+          "attr":"(onInitialized)",
+          "description": "Triggers after tree model is created"
+        },        
+        "onNodeToggleExpanded": {
+          "attr":"(onToggleExpanded)",
+          "description": "Triggers when a tree node expand or closes, by clicking on the node, or by using the Enter or Space keys"
+        },
+        "onNodeActivate": {
+          "attr":"(onActivate)",
+          "description": "Triggers when activating a tree node, by clicking on the node, or by using the Enter or Space keys"
+        },
+        "onNodeDeactivate": {
+          "attr":"(onDeactivate)",
+          "description": "Triggers when deactivating a tree node, by clicking on the node, or by using the Enter or Space keys"
+        },
+        "onNodeFocus": {
+          "attr":"(onFocus)",
+          "description": "Triggers when focusing on a node, by moving with the arrow keys"
+        }        
+      },	  
+	  "config": {
+        "module_ts_imports": [
+          {"from":"angular-tree-component", "components":["TreeModule"]},
+          {"from":"../components/TreeviewComponent/TreeviewComponent", "components":["TreeviewComponent"]}
+        ],
+        "module_ng_imports": [
+          "TreeModule"
+        ],
+        "module_ng_declarations": [
+          "TreeviewComponent"
+        ],
+        "module_ng_components": [
+          "TreeviewComponent"
+        ],
+        "package_dependencies": [
+            {"package":"angular-tree-component", "version":"7.0.2"}
+        ]
+      }	        
+    },
+	
 	
 	/*
 	* Actions
@@ -7702,7 +7872,7 @@
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "PublishEvent",
       "label": "PublishEvent",
-      "description": "Defines an <i>PublishEvent</i> action component. |This component helps publishing an event.<br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/api/util/Events/'>Events</a>",
+      "description": "Defines a <i>PublishEvent</i> action component. |This component helps publishing an event giving its topic and optional data. The event may be handled by an existing <i>Subscribe Handler</i> component in any available page.<br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/api/util/Events/'>Events</a>",
       "group": "Actions",
       "icon16": "publisheventaction_color_16x16.png",
       "icon32": "publisheventaction_color_32x32.png",
@@ -7729,6 +7899,222 @@
         "action_ts_imports": [
 			{"from":"ionic-angular", "components":["Events"]}
         ]
+      }
+    },
+    
+    "AnimateAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAnimate",
+	  "displayName": "Animate",
+      "label": "Animate",
+      "description": "Defines an <i>Animate</i> action component. |This component helps animating a comopnent.<br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/native/file-opener/'>File Opener</a>",
+      "group": "Actions",
+      "icon16": "animateaction_color_16x16.png",
+      "icon32": "animateaction_color_32x32.png",
+      "properties": {
+	      "useVisibility": {
+	        "label": "Use visbility",
+	        "description": "Specify whether the animation use visibility instead of hidden attribute",
+	        "category": "@Parameters",
+	        "type": "boolean",
+	        "value": false,
+	        "values": [false,"false","true"]
+	      },   
+	      "disabled": {
+	        "label": "Is disabled",
+	        "description": "Specify whether the animation is disabled",
+	        "category": "@Parameters",
+	        "type": "boolean",
+	        "value": false,
+	        "values": [false,"false","true"]
+	      },   
+	      "fixed": {
+	        "label": "Is fixed",
+	        "description": "Specify whether the component's position is fixed",
+	        "category": "@Parameters",
+	        "type": "boolean",
+	        "value": false,
+	        "values": [false,"false","true"]
+	      },   
+	      "pin": {
+	        "label": "Is pined",
+	        "description": "Specify whether the component's style is pined",
+	        "category": "@Parameters",
+	        "type": "boolean",
+	        "value": false,
+	        "values": [false,"false","true"]
+	      },   
+	      "type": {
+	        "label": "Animation name",
+	        "description": "Specify the animation name",
+	        "category": "@Parameters",
+	        "type": "string",
+	        "value": false,
+			"values": [
+				false,
+				"bounce",
+				"bounceIn",
+				"bounceInDown",
+				"bounceInLeft",
+				"bounceInRight",
+				"bounceInUp",
+				"bounceOut",
+				"bounceOutDown",
+				"bounceOutLeft",
+				"bounceOutRight",
+				"bounceOutUp",
+				"fadeIn",
+				"fadeInDown",
+				"fadeInDownBig",
+				"fadeInLeft",
+				"fadeInLeftBig",
+				"fadeInRight",
+				"fadeInRightBig",
+				"fadeInUp",
+				"fadeInUpBig",
+				"fadeOut",
+				"fadeOutDown",
+				"fadeOutDownBig",
+				"fadeOutLeft",
+				"fadeOutLeftBig",
+				"fadeOutRight",
+				"fadeOutRightBig",
+				"fadeOutUp",
+				"fadeOutUpBig",
+				"flash",
+				"flipInX",
+				"flipInY",
+				"flipOutX",
+				"flipOutY",
+				"headShake",
+				"hinge",
+				"jackInTheBox",
+				"jello",
+				"lightSpeedIn",
+				"lightSpeedOut",
+				"pulse",
+				"rollIn",
+				"rollOut",
+				"rotateIn",
+				"rotateInDownLeft",
+				"rotateInDownRight",
+				"rotateInUpLeft",
+				"rotateInUpRight",
+				"rotateOut",
+				"rotateOutDownLeft",
+				"rotateOutDownRight",
+				"rotateOutUpLeft",
+				"rotateOutUpRight",
+				"rubberBand",
+				"shake",
+				"slideInDown",
+				"slideInLeft",
+				"slideInRight",
+				"slideInUp",
+				"slideOutDown",
+				"slideOutLeft",
+				"slideOutRight",
+				"slideOutUp",
+				"swing",
+				"tada",
+				"wobble",
+				"zoomIn",
+				"zoomInDown",
+				"zoomInLeft",
+				"zoomInRight",
+				"zoomInUp",
+				"zoomOut",
+				"zoomOutDown",
+				"zoomOutLeft",
+				"zoomOutRight",
+				"zoomOutUp",
+				true
+			]
+	      },   
+	      "timingFunction": {
+	        "label": "Timing function",
+	        "description": "Specify the animation timing function",
+	        "category": "@Parameters",
+	        "type": "string",
+	        "value": false,
+	        "values": [
+				false,
+				"ease",
+				"ease-in",
+				"ease-in-out",
+				"ease-out",
+				"linear",
+				"step-start",
+				"step-end", 
+				true
+			]
+	      },   
+	      "playState": {
+	        "label": "Play state",
+	        "description": "Specify the animation play state",
+	        "category": "@Parameters",
+	        "type": "string",
+	        "value": false,
+	        "values": [
+				false,
+				"paused",
+				"running",
+				true
+			]
+	      },   
+	      "direction": {
+	        "label": "Direction",
+	        "description": "Specify the animation direction",
+	        "category": "@Parameters",
+	        "type": "string",
+	        "value": false,
+	        "values": [
+				false,
+				"alternate",
+				"alternate-reverse",
+				"normal",
+				"reverse",
+				true
+			]
+	      },   
+	      "fillMode": {
+	        "label": "Fill mode",
+	        "description": "Specify the animation fill mode",
+	        "category": "@Parameters",
+	        "type": "string",
+	        "value": false,
+	        "values": [
+				false,
+				"backwards",
+				"both",
+				"forwards",
+				"none",
+				true
+			]
+	      },   
+	      "iterationCount": {
+	        "label": "Iteration count",
+	        "description": "Specify the animation iteration count",
+	        "category": "@Parameters",
+	        "type": "number",
+	        "value": false,
+	        "values": [false,true]
+	      },   
+	      "duration": {
+	        "label": "Duration",
+	        "description": "Specify the animation duration in ms",
+	        "category": "@Parameters",
+	        "type": "number",
+	        "value": false,
+	        "values": [false,true]
+	      },   
+	      "delay": {
+	        "label": "Delay",
+	        "description": "Specify the animation delay",
+	        "category": "@Parameters",
+	        "type": "number",
+	        "value": false,
+	        "values": [false,true]
+	      }
       }
     }
   }

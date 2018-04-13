@@ -29,15 +29,15 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public abstract class TreeParent extends TreeObject {
 	private List<TreeObject> children;
-	
+
 	public TreeParent(Viewer viewer, Object object) {
 		super(viewer, object);
 		children = new ArrayList<TreeObject>();
 	}
-	
+
 	public void addChild(TreeObject child) {
 		synchronized (children) {
-			children.add(child);			
+			children.add(child);
 		}
 		child.setParent(this);
 	}
@@ -48,7 +48,7 @@ public abstract class TreeParent extends TreeObject {
 		}
 		child.setParent(this);
 	}
-	
+
 	public void removeChild(TreeObject child) {
 		synchronized (children) {
 			children.remove(child);
@@ -58,18 +58,18 @@ public abstract class TreeParent extends TreeObject {
 			((TreeParent) child).removeAllChildren();
 		}
 	}
-	
+
 	public void removeAllChildren() {
 		if (!children.isEmpty()) {
-	    	for (TreeObject child : GenericUtils.clone(getChildren())) {
-	    		if (child instanceof TreeParent) {
-	    			((TreeParent) child).removeAllChildren();
-	    		}
-	    		removeChild(child);
-	    	}
-	    }
+			for (TreeObject child : GenericUtils.clone(getChildren())) {
+				if (child instanceof TreeParent) {
+					((TreeParent) child).removeAllChildren();
+				}
+				removeChild(child);
+			}
+		}
 	}
-	
+
 	public TreeObject getPreviousSibling(TreeObject child) {
 		TreeObject prevChild = null;
 		synchronized (children) {
@@ -100,26 +100,26 @@ public abstract class TreeParent extends TreeObject {
 		}
 		return nextChild;
 	}
-	
+
 	public List<? extends TreeObject> getChildren() {
 		synchronized (children) {
 			return GenericUtils.clone(children);
 		}
 	}
-	
+
 	public List<? extends TreeObject> getAllChildren() {
 		List<TreeObject> list = new ArrayList<TreeObject>(); 
 		if (hasChildren()) {
-	    	for(TreeObject child : getChildren()) {
-	    		list.add(child);
-	    		if (child instanceof TreeParent) {
-	    			list.addAll(((TreeParent) child).getAllChildren());
-	    		}
-	    	}
-	    }
+			for(TreeObject child : getChildren()) {
+				list.add(child);
+				if (child instanceof TreeParent) {
+					list.addAll(((TreeParent) child).getAllChildren());
+				}
+			}
+		}
 		return list;
 	}
-	
+
 	public TreeObject findTreeObjectByUserObject(Object databaseObject) {
 		TreeObject treeObject = null;
 		if (databaseObject != null) {
@@ -138,19 +138,19 @@ public abstract class TreeParent extends TreeObject {
 		}
 		return treeObject;
 	}
-	
+
 	public boolean hasChildren() {
 		synchronized (children) {
 			return !children.isEmpty();
 		}
 	}
-	
+
 	public int indexOf(TreeObject child) {
 		synchronized (children) {
 			return children.indexOf(child);
 		}
 	}
-	
+
 	public int numberOfChildren() {
 		synchronized (children) {
 			return children.size();

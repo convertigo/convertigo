@@ -20,13 +20,14 @@
 package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.util.Iterator;
-
+import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
 import com.twinsoft.convertigo.engine.EngineException;
 
-public class UIElement extends UIComponent implements IStyleGenerator {
+public class UIElement extends UIComponent implements ITagsProperty, IStyleGenerator {
 	
 	private static final long serialVersionUID = -8671694717057158581L;
 
@@ -71,7 +72,16 @@ public class UIElement extends UIComponent implements IStyleGenerator {
 		this.selfClose = selfClose;
 	}
 	
+	private String identifier = "";
 	
+	public String getIdentifier() {
+		return identifier;
+	}
+
+	public void setIdentifier(String identifier) {
+		this.identifier = identifier;
+	}
+
 	@Override
 	public void addUIComponent(UIComponent uiComponent) throws EngineException {
 	    addUIComponent(uiComponent, null);
@@ -112,8 +122,9 @@ public class UIElement extends UIComponent implements IStyleGenerator {
 
 	@Override
 	public String toString() {
+		String id = getIdentifier();
 		String label = getTagName();
-		return label.isEmpty() ? super.toString() : label;
+		return label.isEmpty() ? super.toString() : label + (id.isEmpty() ? "":" #"+id);
 	}
 
 	public String getTagClass() {
@@ -137,7 +148,11 @@ public class UIElement extends UIComponent implements IStyleGenerator {
 	}
 
 	protected StringBuilder initAttributes() {
-		return new StringBuilder();
+		StringBuilder sb = new StringBuilder();
+		if (!identifier.isEmpty()) {
+			sb.append(" #"+ identifier);
+		}
+		return sb;
 	}
 	
 	protected String computeJsonModel() {
@@ -235,6 +250,44 @@ public class UIElement extends UIComponent implements IStyleGenerator {
 	
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
+		if (!identifier.isEmpty()) {
+			try {
+				IScriptComponent main = getMainScriptComponent();
+				
+				String imports = jsonScripts.getString("imports");
+				if (main.addImport("ViewChild", "@angular/forms")) {
+					imports += "import { ViewChild } from '@angular/core';" + System.lineSeparator();
+				}
+				if (main.addImport("ViewChildren", "@angular/forms")) {
+					imports += "import { ViewChildren } from '@angular/core';" + System.lineSeparator();
+				}
+				if (main.addImport("QueryList", "@angular/forms")) {
+					imports += "import { QueryList } from '@angular/core';" + System.lineSeparator();
+				}
+				
+				jsonScripts.put("imports", imports);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			
+			try {
+				String viewChildren = "@ViewChildren(\""+ identifier +"\") public all_"+ identifier+" : QueryList<any>;";
+				String viewChild = "@ViewChild(\""+ identifier +"\") public "+ identifier+";";
+				
+				String declarations = jsonScripts.getString("declarations") + System.lineSeparator();
+				if (declarations.indexOf(viewChildren) == -1) {
+					declarations += "\t" + viewChildren + System.lineSeparator();
+				}
+				if (declarations.indexOf(viewChild) == -1) {
+					declarations += "\t"+ viewChild + System.lineSeparator();
+				}
+				
+				jsonScripts.put("declarations", declarations);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+		
 		super.computeScripts(jsonScripts);
 	}
 		
@@ -324,6 +377,11 @@ public class UIElement extends UIComponent implements IStyleGenerator {
 			sb.append(others);
 		}
 		return sb.toString();
+	}
+
+	@Override
+	public String[] getTagsForProperty(String propertyName) {
+		return new String[0];
 	}
 
 }
