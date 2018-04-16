@@ -1094,7 +1094,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	public String[] getTagsForProperty(String propertyName) {
 		if ("tplProjectName".equals(propertyName)) {
 			List<String> projects = new LinkedList<>();
-			projects.add("");
+			//projects.add("");
 			
 			for (String project: Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false)) {
 				if (isCompatibleTemplate(project)) {
