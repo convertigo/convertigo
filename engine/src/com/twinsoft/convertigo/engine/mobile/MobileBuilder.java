@@ -517,7 +517,7 @@ public class MobileBuilder {
 		
 		ionicTplDir = application.getIonicTplDir();
 		if (!ionicTplDir.exists()) {
-			throw new EngineException("Missing the template project '" + application.getTplProjectName() + "'\nThe template folder should be in: " + ionicTplDir.getPath());
+			throw new EngineException("Missing template project '" + application.getTplProjectName() + "'\nThe template folder should be in: " + ionicTplDir.getPath());
 		}
 		
 		if (isIonicTemplateBased()) {
