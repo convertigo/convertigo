@@ -42,6 +42,8 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.events.TraverseEvent;
 import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.graphics.Image;
@@ -78,11 +80,11 @@ import com.twinsoft.convertigo.beans.statements.ScHandlerStatement;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.property_editors.AbstractDialogCellEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.ArrayOrNullEditor;
-import com.twinsoft.convertigo.eclipse.property_editors.MobileSmartSourcePropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.DataOrNullPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.DynamicComboBoxPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.DynamicInfoPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.EmulatorTechnologyEditor;
+import com.twinsoft.convertigo.eclipse.property_editors.MobileSmartSourcePropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithDynamicInfoEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithDynamicTagsEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithTagsEditor;
@@ -1194,6 +1196,16 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		}
 		if (name.equals("canPaste")) {
 			canPaste = ((ConvertigoPlugin.clipboardManagerSystem.isCopy) || (ConvertigoPlugin.clipboardManagerSystem.isCut));
+			if (!canPaste) {
+				try {
+					Clipboard cb = new Clipboard(Display.getCurrent());
+					String content = (String) cb.getContents(TextTransfer.getInstance());
+					List<Object> dbos = ConvertigoPlugin.clipboardManagerSystem.read(content);
+					canPaste = !dbos.isEmpty();
+				} catch (Exception e) {
+					// can fail if the clipboad doesn't contain text
+				}
+			}
 			Boolean bool = Boolean.valueOf(value);
 			return bool.equals(Boolean.valueOf(canPaste));
 		}

@@ -739,7 +739,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 	@Override
 	public boolean validateDrop(Object target, int operation, TransferData transferType) {
 		if (TextTransfer.getInstance().isSupportedType(transferType)) {
-			if (getCurrentOperation() == DND.DROP_MOVE) {
+			if (getCurrentOperation() == DND.DROP_MOVE || getCurrentOperation() == DND.DROP_COPY) {
 				Object targetObject = getCurrentTarget();
 				Object sourceObject = getSelectedObject();
 				if ((sourceObject != null) && (targetObject != null)) {
@@ -752,7 +752,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 								String xmlData = TextTransfer.getInstance().nativeToJava(transferType).toString();
 								List<Object> list = ConvertigoPlugin.clipboardManagerDND.read(xmlData);
 								DatabaseObject databaseObject = (DatabaseObject) list.get(0);
-								DatabaseObject parentDatabaseObject = ((DatabaseObjectTreeObject)target).getObject().getParent();
+								DatabaseObject parentDatabaseObject = ((DatabaseObjectTreeObject)target).getObject();
 								if (!DatabaseObjectsManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
 									return false;
 								}
