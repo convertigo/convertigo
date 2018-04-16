@@ -7906,7 +7906,7 @@
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAnimate",
 	  "displayName": "Animate",
       "label": "Animate",
-      "description": "Defines an <i>Animate</i> action component. |This component helps animating a comopnent.<br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/native/file-opener/'>File Opener</a>",
+      "description": "Defines an <i>Animate</i> action component. | You can use the <i>Animate</i> action to animate a component when an event occurs. To do this, just place the action under the event. It can be a (click) or (tap) event or even a Page didEnter event. The animation will take place when the event is triggered. <br /><br />You can also chain animations to animate in parrallel (Sibling <i>Animate</i> actions) or serial (Child <i>Animate actions</i>). <br /><br />Animatons are based on the <a href='https://daneden.github.io/animate.css/' target='_blank'>animate.css</a> package",
       "group": "Actions",
       "icon16": "animateaction_color_16x16.png",
       "icon32": "animateaction_color_32x32.png",
@@ -7945,7 +7945,7 @@
 	      },   
 	      "type": {
 	        "label": "Animation name",
-	        "description": "Specify the animation name",
+	        "description": "Specify the animation name see <a href='https://daneden.github.io/animate.css/' target='_blank'>animate.css</a>",
 	        "category": "@Parameters",
 	        "type": "string",
 	        "value": false,
