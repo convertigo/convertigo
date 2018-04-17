@@ -1192,7 +1192,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 						try {
 							File staging = new File(nodeModules, ".staging");
 							while (running[0] && !staging.exists()) {
-								appendOutput("Resolving dependences … (" + Math.round(System.currentTimeMillis() - start) / 1000 + " sec)");
+								appendOutput("Resolving dependencies … (" + Math.round(System.currentTimeMillis() - start) / 1000 + " sec)");
 								Thread.sleep(1000);
 							}
 							while (running[0] && staging.exists()) {

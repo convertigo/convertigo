@@ -248,7 +248,7 @@ public class MobileBuilder {
 				project.getMobileBuilder().init();
 			} catch (Exception e) {
 				String message = e.getMessage();
-				if (message.startsWith("Missing the template project")) {
+				if (message.startsWith("Missing template project") || message.contains("is required for this")) {
 					Engine.logEngine.error("Failed to initialize mobile builder for project '" + project.getName() + "'\n" + message);
 				} else {
 					Engine.logEngine.error("Failed to initialize mobile builder for project '" +project.getName() + "'", e);
@@ -517,7 +517,7 @@ public class MobileBuilder {
 		
 		ionicTplDir = application.getIonicTplDir();
 		if (!ionicTplDir.exists()) {
-			throw new EngineException("Missing the template project '" + application.getTplProjectName() + "'\nThe template folder should be in: " + ionicTplDir.getPath());
+			throw new EngineException("Missing template project '" + application.getTplProjectName() + "'\nThe template folder should be in: " + ionicTplDir.getPath());
 		}
 		
 		if (isIonicTemplateBased()) {
@@ -708,6 +708,9 @@ public class MobileBuilder {
 					
 				}
 			}
+		}
+		catch (EngineException e) {
+			throw e;
 		}
 		catch (Exception e) {
 			throw new EngineException("Unable to update application source files for ionic project '"+ project.getName() +"'",e);
