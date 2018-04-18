@@ -189,7 +189,7 @@ jobs:
         export TYPE=i386
         export CONVERTIGO_WAR_URL=$CONVERTIGO_URL/convertigo-linux32-$CONVERTIGO_VERSION.war
         export FROM=$(eval echo $(sed -n "s/FROM \(.*\)/\1/p" Dockerfile))
-        docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+        echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
         if ! docker pull $FROM ; then
             echo building base $FROM
             docker build --rm=false -f Dockerfile_base -t $FROM .
@@ -226,7 +226,7 @@ jobs:
         export TYPE=alpine
         export CONVERTIGO_WAR_URL=$CONVERTIGO_URL/convertigo-$CONVERTIGO_VERSION.war
         export FROM=$(eval echo $(sed -n "s/FROM \(.*\)/\1/p" Dockerfile))
-        docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+        echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
         if ! docker pull $FROM ; then
             echo building base $FROM
             docker build --rm=false -f alpine/Dockerfile_base -t $FROM alpine
