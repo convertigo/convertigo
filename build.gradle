@@ -588,7 +588,7 @@ project(':engine') {
 		group 'convertigo'
 		
 		from '../license.txt'
-		into 'tomcat/webapps/convertigo/licenses'
+		into '../eclipse-plugin-studio/tomcat/webapps/convertigo/licenses'
 	}
 	
 	compileJava.dependsOn(['copyLicense', 'updateProductVersion'])
