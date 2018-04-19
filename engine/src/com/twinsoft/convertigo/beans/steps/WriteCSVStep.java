@@ -28,8 +28,11 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.opencsv.CSVWriter;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.EndlineType;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class WriteCSVStep extends WriteFileStep {
 
@@ -37,6 +40,7 @@ public class WriteCSVStep extends WriteFileStep {
 
 	private String separator = ";";
 	private boolean titleLine = false;
+	private EndlineType endline = EndlineType.windows;
 
 	public WriteCSVStep() {
 		super();
@@ -70,6 +74,14 @@ public class WriteCSVStep extends WriteFileStep {
 		this.titleLine = titleLine;
 	}
 
+	public EndlineType getEndline() {
+		return endline;
+	}
+
+	public void setEndline(EndlineType endline) {
+		this.endline = endline;
+	}
+
 	@Override
 	public String toString() {
 		String label = "";
@@ -86,8 +98,8 @@ public class WriteCSVStep extends WriteFileStep {
 			throw new EngineException("Unable to write to xml file: element is Null");
 		}
 
-		if (separator.equals("")) {
-			throw new EngineException("The separator is empty");
+		if (separator.length() != 1) {
+			throw new EngineException("The separator must be 1 char");
 		}
 
 		String fullPathName = getAbsoluteFilePath(filePath);
@@ -97,8 +109,6 @@ public class WriteCSVStep extends WriteFileStep {
 
 				boolean appendResult = isAppendResult();
 				String encoding = getEncoding();
-				OutputStreamWriter sortie = new OutputStreamWriter(new FileOutputStream(fullPathName,
-						appendResult), (encoding.length() > 0) ? encoding : "iso-8859-1");
 
 				List<List<String>> lines = new ArrayList<List<String>>();
 
@@ -110,7 +120,7 @@ public class WriteCSVStep extends WriteFileStep {
 				for (int i = 0; i < nodeList.getLength(); i++) {
 					Node nodey = nodeList.item(i);
 					if (nodey.getNodeType() == Node.ELEMENT_NODE) {// first
-																	// level
+						// level
 						if (titleLine) {
 							titlesY.add(transform(((Element) nodey).getTagName()));
 						}
@@ -121,7 +131,7 @@ public class WriteCSVStep extends WriteFileStep {
 							for (int j = 0; j < listx.getLength(); j++) {
 								Node nodex = listx.item(j);
 								if (nodex.getNodeType() == Node.ELEMENT_NODE) {// second
-																				// level
+									// level
 									if (titleLine && (i == 0)) {
 										titlesX.add(transform(((Element) nodex).getTagName()));
 									}
@@ -145,8 +155,7 @@ public class WriteCSVStep extends WriteFileStep {
 				}
 
 				// Writes to file
-				if (cols > 0) {
-
+				if (cols > 0) {					
 					// Fills the array
 					int dimX = cols;
 					int dimY = lines.size();
@@ -161,46 +170,34 @@ public class WriteCSVStep extends WriteFileStep {
 							}
 						}
 					}
-
-					String lineSeparator = System.getProperty("line.separator");
-					if (!skipTitle) {
-						// Writes titles
-						List<String> v = (verticalDirection ? titlesY : titlesX);
-						if (v.size() > 0) {
-							for (int i = 0; i < v.size(); i++) {
-								sortie.write(v.get(i));
-								if (i + 1 < v.size()) {
-									sortie.write(separator);
-								}
+					try (CSVWriter csvWriter = new CSVWriter(
+							new OutputStreamWriter(new FileOutputStream(fullPathName, appendResult), encoding.isEmpty() ? "iso-8859-1" : encoding),
+							separator.charAt(0), CSVWriter.DEFAULT_QUOTE_CHARACTER, CSVWriter.DEFAULT_ESCAPE_CHARACTER, endline.endline())) {
+						
+						if (!skipTitle) {
+							// Writes titles
+							List<String> v = verticalDirection ? titlesY : titlesX;
+							if (!v.isEmpty()) {
+								csvWriter.writeNext(GenericUtils.cast(v.toArray(new String[v.size()])), false);
 							}
-							sortie.write(lineSeparator);
 						}
-					}
 
-					// Writes datas
-					if (verticalDirection) {
-						for (int i = 0; i < dimX; i++) {
-							for (int j = 0; j < dimY; j++) {
-								sortie.write(table[j][i]);
-								if (j + 1 < dimY)
-									sortie.write(separator);
-							}
-							sortie.write(lineSeparator);
-						}
-					} else {
-						for (int i = 0; i < dimY; i++) {
-							for (int j = 0; j < dimX; j++) {
-								sortie.write(table[i][j]);
-								if (j + 1 < dimX) {
-									sortie.write(separator);
+						// Writes datas
+						if (verticalDirection) {
+							String[] row = new String[dimY];
+							for (int i = 0; i < dimX; i++) {
+								for (int j = 0; j < dimY; j++) {
+									row[j] = table[j][i];
 								}
+								csvWriter.writeNext(row, false);
 							}
-							sortie.write(lineSeparator);
+						} else {
+							for (int i = 0; i < dimY; i++) {
+								csvWriter.writeNext(table[i], false);
+							}
 						}
 					}
 				}
-
-				sortie.close();
 			} catch (Exception e) {
 				throw new EngineException("Unable to write to csv file", e);
 			} finally {

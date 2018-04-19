@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.beans.steps;
 import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
+import com.twinsoft.convertigo.engine.enums.EndlineType;
 
 public class WriteCSVStepBeanInfo extends MySimpleBeanInfo{
 	
@@ -38,19 +39,23 @@ public class WriteCSVStepBeanInfo extends MySimpleBeanInfo{
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");	          
 			
-			properties = new PropertyDescriptor[2];
+			properties = new PropertyDescriptor[3];
 			
 			properties[0] = new PropertyDescriptor("separator", beanClass, "getSeparator", "setSeparator");
 			properties[0].setExpert(true);
 			properties[0].setDisplayName(getExternalizedString("property.separator.display_name"));
-	        properties[0].setShortDescription(getExternalizedString("property.separator.short_description"));            
+	        properties[0].setShortDescription(getExternalizedString("property.separator.short_description"));
 	       
 	        properties[1] = new PropertyDescriptor("titleLine", beanClass, "isTitleLine", "setTitleLine");
 			properties[1].setExpert(true);
 			properties[1].setDisplayName(getExternalizedString("property.titleLine.display_name"));
 	        properties[1].setShortDescription(getExternalizedString("property.titleLine.short_description"));
-	     
-			
+	       
+	        properties[2] = new PropertyDescriptor("endline", beanClass, "getEndline", "setEndline");
+			properties[2].setExpert(true);
+			properties[2].setDisplayName(getExternalizedString("property.endline.display_name"));
+	        properties[2].setShortDescription(getExternalizedString("property.endline.short_description"));
+	        properties[2].setPropertyEditorClass(EndlineType.class);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

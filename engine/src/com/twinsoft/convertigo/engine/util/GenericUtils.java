@@ -88,6 +88,11 @@ public class GenericUtils {
 	public static <E> List<E> asList(Object... o) {
 		return cast(Arrays.asList(o));
 	}
+
+	@SuppressWarnings("unchecked")
+	public static <E> E[] asArray(Collection<E> v) {
+		return (E[]) v.toArray();
+	}
 	
 	public static <E> E[] copyOf(E[] original, int newLength) {
 		if (original.length != newLength) {
