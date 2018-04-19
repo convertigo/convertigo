@@ -21,13 +21,10 @@ package com.twinsoft.convertigo.beans.steps;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
-import java.util.StringTokenizer;
-import java.util.regex.Pattern;
 
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
@@ -38,11 +35,14 @@ import org.apache.ws.commons.schema.constants.Constants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.opencsv.CSVParserBuilder;
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
-import com.twinsoft.util.StringEx;
 
 public class ReadCSVStep extends ReadFileStep {
 	private static final long serialVersionUID = -6548050468297488381L;
@@ -128,149 +128,66 @@ public class ReadCSVStep extends ReadFileStep {
 		
 		return "ReadCSV :" + label;
 	}
-
-	private String removeCRLF(String line) {
-		if (line != null) {
-			int len = line.length();
-			if (line.endsWith("\r\n")) {
-				line = line.substring(0, len-2);
-			}
-			else if (line.endsWith("\n")) {
-				line = line.substring(0, len-1);
-			}
-			else if (line.endsWith("\r")) {
-				line = line.substring(0, len-1);
+	
+	protected void processTitleLine(String[] row) {
+		if (titleLine && row != null) {
+			for (int i = 0; i < row.length; i++) {
+				String cell = row[i];
+				if (org.apache.commons.lang3.StringUtils.isBlank(cell)) {
+					cell = "title" + i;
+				}
+				row[i] = StringUtils.normalize(cell);
 			}
 		}
-		return line;
+	}
+	
+	protected CSVReader getCSVReader(Reader reader) {
+		return new CSVReaderBuilder(reader).withCSVParser(new CSVParserBuilder().withSeparator(separator.charAt(0)).build()).build();
 	}
 	
 	protected Document read(String filePath, boolean schema) throws EngineException {
-		if (separator.equals(""))
-			throw new EngineException("The separator is empty");
+		if (separator.length() != 1) {
+			throw new EngineException("The separator must be 1 char");
+		}
 		
 		Document csvDoc = null;
-		Scanner scanner = null;
-		try {
-			File csvFile = new File(getAbsoluteFilePath(filePath));
-			if (!csvFile.exists()) {
-				throw new EngineException("The CSV file \""+ filePath +"\" does not exist.");
-			}
-			
+		
+		File csvFile = new File(getAbsoluteFilePath(filePath));
+		if (!csvFile.exists()) {
+			throw new EngineException("The CSV file \""+ filePath +"\" does not exist.");
+		}
+		
+		try (Reader reader = new InputStreamReader(new FileInputStream(csvFile), encoding.isEmpty() ? "iso-8859-1" : encoding)) {
 			//construction of the DOM's root
 			csvDoc = XMLUtils.getDefaultDocumentBuilder().newDocument();				
 			Element root = csvDoc.createElement("document");
 			csvDoc.appendChild(root);
 			
 			
-			List<List<String>> vLines = new ArrayList<List<String>>();
-			int lines = 0, cols = 0, tokens = 0;
-			String str, data, value = "";
-			boolean start = false;
-			StringTokenizer st;
+			List<String[]> vLines = new ArrayList<String[]>();
 			
 			// Reads file line by line
-			scanner = new Scanner(new InputStreamReader(
-                    new FileInputStream(getAbsoluteFilePath(filePath)),(encoding.length() > 0)? encoding : "iso-8859-1"));
-			scanner.useDelimiter(System.getProperty("line.separator"));
-			while (scanner.hasNext()) {
-				str = scanner.next();
-				str = removeCRLF(str);
-				
-				if (str.startsWith(separator)) {
-					str = "_empty_"+str;
-				}
-				if (str.endsWith(separator)) {
-					str = str + "_empty_";
-				}
-				
-				StringEx tmp = new StringEx(str);
-				while(tmp.toString().contains(separator+separator)){
-					tmp.replaceAll(separator+separator, separator+ "_empty_" + separator);
-				}
-				
-				if (titleLine && (lines == 0)) {
-					tmp.replaceAll("\n",""); // remove any LF in title line
-				}
-				
-				str = tmp.toString();
-				
-				st = new StringTokenizer(str, separator, true);
-				tokens = st.countTokens();
-				if (tokens > 0) {
-					List<String> vCol = new ArrayList<String>();
-					while (st.hasMoreTokens()) {
-						data = st.nextToken();
-						if (!start && data.equals(separator)) {
-							tokens--;
-							continue;
-						}
-						
-						value += data;
-						if (!start && (data.startsWith("\"")) && !(data.endsWith("\""))) {
-								start = true;
-							tokens--;
-							continue;
-						}
-						if (start) {
-							if (data.equals(separator)) {
-								tokens--;
-								continue;
-							}
-							else if (data.endsWith("\"")) {
-								start = false;
-							}
-							else {
-								throw new EngineException("File '"+ filePath +"': corrupted at line="+ lines);
-							}
-						}
-						vCol.add(value);
-						value = "";
-					}
-					vLines.add(vCol);
-					cols = (tokens>cols)? tokens:cols;
-					lines++;
-				}
+			getCSVReader(reader).forEach(row -> vLines.add(row));
+			
+			if (vLines.isEmpty()) {
+				return csvDoc;
 			}
 			
-			// Constructs array
-			String[][] table = new String[lines][cols];
-			for (int i = 0; i < lines; i++) {
-				List<String> vCol  = vLines.get(i);
-				for (int j = 0; j < cols; j++) {
-					try {
-						data = vCol.get(j);
-						if (data.equals("_empty_")) {
-							data = "";
-						}
-					}
-					catch (ArrayIndexOutOfBoundsException e) {
-						data = "";
-					}
-					
-					if (titleLine && (i == 0)) {
-						// Title tag name must not be empty!
-						if (data.trim().equals("")) {
-							data = "titre"+j;
-						}
-						// Normalize tag name
-						data = StringUtils.normalize(data);
-					}
-					table[i][j] = data;
-				}
-			}
+			int lines = vLines.size(), cols = vLines.get(0).length;
+			
+			processTitleLine(vLines.get(0));
 			
 			// Generates dom
 			Element line, col;
-			int i=0, j=0;
+			int i = 0, j = 0;
 			if (verticalDirection) {
 				while (j < cols) {
 					i = (titleLine ? 1 : 0);
-					col = csvDoc.createElement(titleLine ? table[0][j]:getTagColName());
+					col = csvDoc.createElement(titleLine ? vLines.get(0)[j] : getTagColName());
 					while (i < lines) {
 						line = csvDoc.createElement(getTagLineName());
 						if (!schema) {
-							line.appendChild(csvDoc.createTextNode(table[i][j]));
+							line.appendChild(csvDoc.createTextNode(vLines.get(i)[j]));
 						}
 						col.appendChild(line);
 						i++;
@@ -280,16 +197,15 @@ public class ReadCSVStep extends ReadFileStep {
 					root.appendChild(col);
 					//if (schema && !titleLine)break; // comment/uncomment this line to see or not iterations
 				}
-			}
-			else {
+			} else {
 				i = (titleLine ? 1 : 0);
 				while ((i < lines && !schema) || (i < 2 && schema)) {
-					j=0;
+					j = 0;
 					line = csvDoc.createElement(getTagLineName());
 					while (j < cols) {
-						col = csvDoc.createElement(titleLine ? table[0][j]:getTagColName());
+						col = csvDoc.createElement(titleLine ? vLines.get(0)[j]:getTagColName());
 						if (!schema) {
-							col.appendChild(csvDoc.createTextNode(table[i][j]));
+							col.appendChild(csvDoc.createTextNode(vLines.get(i)[j]));
 						}
 						line.appendChild(col);
 						j++;
@@ -302,14 +218,6 @@ public class ReadCSVStep extends ReadFileStep {
 			}
 		} catch (Exception e) {
 			throw new EngineException("An error occured while creating dom of csv file",e);
-		} finally {
-			if (scanner != null) {
-				try {
-					scanner.close();
-				} catch (Exception e) {
-					throw new EngineException("An error occured while creating dom of csv file",e);
-				}
-			}
 		}
 		
 		return csvDoc;
@@ -350,30 +258,15 @@ public class ReadCSVStep extends ReadFileStep {
 		}
 
 		if (titleLine) {
-			File file = getFile();
+			File csvFile = getFile();
 			String[] cols = null;
-			if (file != null && file.exists()) {
-				Scanner scanner = null;
-				try {
-					scanner = new Scanner(new InputStreamReader(
-		                    new FileInputStream(file),(encoding.length() > 0)? encoding : "iso-8859-1"));
-					scanner.useDelimiter(System.getProperty("line.separator"));
-					if (scanner.hasNext()) {
-						String line = scanner.next(); // retrieve title line
-						line = removeCRLF(line);
-						if (line != null) {
-							cols = line.split(Pattern.quote(separator));
-						}
-					}
-				} catch (IOException e) {
-					e.printStackTrace();
-				} finally {
-					if (scanner != null) {
-						try {
-							scanner.close();
-						} catch (Exception e) {
-						}
-					}
+			if (csvFile != null && csvFile.exists()) {
+				try (Reader reader = new InputStreamReader(new FileInputStream(csvFile), encoding.isEmpty() ? "iso-8859-1" : encoding)) {
+					CSVReader csvReader = getCSVReader(reader);
+					cols = csvReader.readNext();
+					processTitleLine(cols);
+				} catch (Exception e) {
+					Engine.logBeans.warn("Failed to read the CVS file: " + csvFile, e);
 				}
 				
 				if (cols != null) {
