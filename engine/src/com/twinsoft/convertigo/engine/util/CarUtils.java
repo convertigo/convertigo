@@ -152,6 +152,11 @@ public class CarUtils {
 		try {
 			Transformer transformer = TransformerFactory.newInstance().newTransformer();
 			
+			File file = new File(fileName);
+			if (!file.exists()) {
+				file.getParentFile().mkdirs();
+			}
+			
 			boolean isCR = FileUtils.isCRLF();
 			
 			Writer writer = isCR ? new StringWriter() : new FileWriterWithEncoding(fileName, "UTF-8");
