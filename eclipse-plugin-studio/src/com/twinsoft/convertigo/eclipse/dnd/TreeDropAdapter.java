@@ -74,13 +74,13 @@ import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
-import com.twinsoft.convertigo.beans.mobile.components.UIForm;
-import com.twinsoft.convertigo.beans.mobile.components.UIText;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent.AttrEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
+import com.twinsoft.convertigo.beans.mobile.components.UIForm;
+import com.twinsoft.convertigo.beans.mobile.components.UIText;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
-import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.rest.FormParameter;
 import com.twinsoft.convertigo.beans.rest.QueryParameter;
 import com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass;
@@ -739,27 +739,30 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 	@Override
 	public boolean validateDrop(Object target, int operation, TransferData transferType) {
 		if (TextTransfer.getInstance().isSupportedType(transferType)) {
-			if (getCurrentOperation() == DND.DROP_MOVE || getCurrentOperation() == DND.DROP_COPY) {
+			if (getCurrentOperation() == DND.DROP_MOVE) {
 				Object targetObject = getCurrentTarget();
 				Object sourceObject = getSelectedObject();
-				if ((sourceObject != null) && (targetObject != null)) {
-					if ((sourceObject instanceof TreeObject) && (targetObject instanceof TreeObject)) {
-						if (((TreeObject)targetObject).isChildOf((TreeObject)sourceObject)) {
+				if (targetObject != null && targetObject instanceof TreeObject) {
+					TreeObject targetTreeObject = (TreeObject) targetObject;
+					if (sourceObject != null && sourceObject instanceof TreeObject) {
+						TreeObject sourceTreeObject = (TreeObject) sourceObject;
+						boolean isFocus = sourceTreeObject.viewer.getControl().isFocusControl();
+						if (isFocus && (sourceObject == targetObject || targetTreeObject.isChildOf(sourceTreeObject))) {
 							return false;
 						}
-						if ((sourceObject instanceof DatabaseObjectTreeObject) && (targetObject instanceof DatabaseObjectTreeObject)) {
-							try {
-								String xmlData = TextTransfer.getInstance().nativeToJava(transferType).toString();
-								List<Object> list = ConvertigoPlugin.clipboardManagerDND.read(xmlData);
-								DatabaseObject databaseObject = (DatabaseObject) list.get(0);
-								DatabaseObject parentDatabaseObject = ((DatabaseObjectTreeObject)target).getObject();
-								if (!DatabaseObjectsManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
-									return false;
-								}
-								return true;
-							} catch (Exception e) {
-								e.printStackTrace(System.out);
+					}
+					if (targetObject instanceof DatabaseObjectTreeObject) {
+						try {
+							String xmlData = TextTransfer.getInstance().nativeToJava(transferType).toString();
+							List<Object> list = ConvertigoPlugin.clipboardManagerDND.read(xmlData);
+							DatabaseObject databaseObject = (DatabaseObject) list.get(0);
+							DatabaseObject parentDatabaseObject = ((DatabaseObjectTreeObject) target).getObject();
+							if (!DatabaseObjectsManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
+								return false;
 							}
+							return true;
+						} catch (Exception e) {
+							e.printStackTrace(System.out);
 						}
 					}
 				}
