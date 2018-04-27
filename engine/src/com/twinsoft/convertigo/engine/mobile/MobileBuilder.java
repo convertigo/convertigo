@@ -302,8 +302,10 @@ public class MobileBuilder {
 	public void setNeedPkgUpdate(boolean needPkgUpdate) {
 		this.needPkgUpdate = needPkgUpdate;
 		
-		this.tplVersion = null;
-		updateTplVersion();
+		if (needPkgUpdate) {
+			this.tplVersion = null;
+			updateTplVersion();
+		}
 	}
 	
 	public boolean getNeedPkgUpdate() {
