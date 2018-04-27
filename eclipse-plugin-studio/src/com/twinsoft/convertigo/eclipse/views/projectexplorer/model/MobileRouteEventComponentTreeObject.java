@@ -127,7 +127,8 @@ public class MobileRouteEventComponentTreeObject extends MobileComponentTreeObje
 			
 					if (hasBeenRenamed) {
 						hasBeenModified(true);
-						viewer.refresh();
+						
+						ConvertigoPlugin.projectManager.getProjectExplorerView().updateTreeObject(MobileRouteEventComponentTreeObject.this);
 						getDescriptors();// refresh editors (e.g labels in combobox)
 						
 		    	        TreeObjectEvent treeObjectEvent = new TreeObjectEvent(MobileRouteEventComponentTreeObject.this, propertyName, "", "");

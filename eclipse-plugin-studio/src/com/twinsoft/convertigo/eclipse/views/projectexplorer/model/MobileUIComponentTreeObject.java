@@ -709,7 +709,8 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			
 					if (hasBeenRenamed) {
 						hasBeenModified(true);
-						viewer.refresh();
+						
+						ConvertigoPlugin.projectManager.getProjectExplorerView().updateTreeObject(MobileUIComponentTreeObject.this);
 						getDescriptors();// refresh editors (e.g labels in combobox)
 						
 		    	        TreeObjectEvent treeObjectEvent = new TreeObjectEvent(MobileUIComponentTreeObject.this, propertyName, "", "");

@@ -160,8 +160,8 @@ public class StepTreeObject extends DatabaseObjectTreeObject implements INamedSo
 			
 					if (hasBeenRenamed) {
 						hasBeenModified(true);
-						viewer.refresh();
 						
+						ConvertigoPlugin.projectManager.getProjectExplorerView().updateTreeObject(StepTreeObject.this);
 						getDescriptors();// refresh editors (e.g labels in combobox)
 					}
 				}

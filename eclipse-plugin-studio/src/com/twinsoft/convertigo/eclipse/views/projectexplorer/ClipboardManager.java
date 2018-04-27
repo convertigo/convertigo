@@ -700,9 +700,18 @@ public class ClipboardManager {
 		
 		if (object instanceof DatabaseObjectTreeObject) {
 			if (targetTreeObject instanceof DatabaseObjectTreeObject) {
-				DatabaseObject databaseObject = (DatabaseObject) ((DatabaseObjectTreeObject) object).getObject();
+				DatabaseObjectTreeObject sourceTreeObject = (DatabaseObjectTreeObject) object;
+				DatabaseObject databaseObject = (DatabaseObject) sourceTreeObject.getObject();
 				DatabaseObject targetObject = (DatabaseObject) targetTreeObject.getObject();
+				String oldQName = databaseObject.getQName();
 				cutAndPaste(databaseObject, targetObject);
+				String newQName = databaseObject.getQName();
+				
+				ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
+				if (projectExplorerView != null) {
+					TreeObjectEvent treeObjectEvent = new TreeObjectEvent(sourceTreeObject, "qname", oldQName, newQName, TreeObjectEvent.UPDATE_ALL);
+					projectExplorerView.fireTreeObjectPropertyChanged(treeObjectEvent);
+				}
 			}
 		} else if (object instanceof IPropertyTreeObject) {
 			if (targetTreeObject instanceof IPropertyTreeObject) {
