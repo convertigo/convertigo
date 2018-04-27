@@ -331,7 +331,7 @@ public class ClipboardManager {
 				UIComponent uic = (UIComponent)ob;
 				for (Entry<String, UIComponent> entry : pastedComponents.entrySet()) {
 					uic.updateSmartSource(entry.getKey(), String.valueOf(entry.getValue().priority));
-					uic.getPage().markPageAsDirty();
+					uic.markAsDirty();
 				}
 			}
 		}
@@ -407,9 +407,9 @@ public class ClipboardManager {
 				if (!ComponentManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
 					throw new EngineException("You cannot paste to a " + parentDatabaseObject.getClass().getSimpleName() + " a database object of type " + databaseObject.getClass().getSimpleName());
 				}
-				if (!ComponentManager.isCafCompatible(parentDatabaseObject, databaseObject)) {
-					String cafVersion = ComponentManager.getCafRequired(databaseObject);
-					throw new EngineException("CAF "+ cafVersion +" compatibility required");
+				if (!ComponentManager.isTplCompatible(parentDatabaseObject, databaseObject)) {
+					String tplVersion = ComponentManager.getTplRequired(databaseObject);
+					throw new EngineException("Template project "+ tplVersion +" compatibility required");
 				}
 				
 				// Disable the isDefault boolean flag when the connector is pasted
@@ -773,9 +773,9 @@ public class ClipboardManager {
 		if (!ComponentManager.acceptDatabaseObjects(parentDatabaseObject, object)) {
 			throw new EngineException("You cannot cut and paste to a " + parentDatabaseObject.getClass().getSimpleName() + " a database object of type " + object.getClass().getSimpleName());
 		}
-		if (!ComponentManager.isCafCompatible(parentDatabaseObject, object)) {
-			String cafVersion = ComponentManager.getCafRequired(object);
-			throw new EngineException("CAF "+ cafVersion +" compatibility required");
+		if (!ComponentManager.isTplCompatible(parentDatabaseObject, object)) {
+			String tplVersion = ComponentManager.getTplRequired(object);
+			throw new EngineException("Template project "+ tplVersion +" compatibility required");
 		}
         
         // Verify if a child object with same name exist

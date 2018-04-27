@@ -812,7 +812,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						if (!ComponentManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
 							return false;
 						}
-						if (!ComponentManager.isCafCompatible(parentDatabaseObject, databaseObject)) {
+						if (!ComponentManager.isTplCompatible(parentDatabaseObject, databaseObject)) {
 							return false;
 						}
 						return true;

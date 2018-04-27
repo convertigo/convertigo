@@ -42,6 +42,7 @@ import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
+import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -106,8 +107,22 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 				}
 				// for any UI component inside a menu
 				else if (dbo instanceof UIComponent) {
-					UIDynamicMenu menu = ((UIComponent)dbo).getMenu();
+					UIComponent uic = (UIComponent)dbo;
+					UIDynamicMenu menu = uic.getMenu();
 					if (menu != null && getObject().equals(menu.getParent())) {
+						if (propertyName.equals("FormControlName") || uic.isFormControlAttribute()) {
+							if (!newValue.equals(oldValue)) {
+								try {
+									String oldSmart = ((MobileSmartSourceType)oldValue).getSmartValue();
+									String newSmart = ((MobileSmartSourceType)newValue).getSmartValue();
+									String form = uic.getUIForm().getFormGroupName();
+									if (menu.updateSmartSource(form+"\\?\\.controls\\['"+oldSmart+"'\\]", form+"?.controls['"+newSmart+"']")) {
+										this.viewer.refresh();
+									}
+								} catch (Exception e) {}
+							}
+						}
+						
 						markApplicationAsDirty();
 					}
 				}
