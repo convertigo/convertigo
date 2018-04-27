@@ -5,7 +5,7 @@
      * @param props , the object which holds properties key-value pairs
      * @param vars  , the object which holds variables key-value pairs
      */
-    CallFullSyncAction(page: C8oPage, props, vars) : Promise<any> {
+    CallFullSyncAction(page: C8oPageBase, props, vars) : Promise<any> {
         return new Promise((resolve, reject) => {
             let r:string = props.requestable.substring(props.requestable.indexOf('.')+1);
             let v:string = props.verb;

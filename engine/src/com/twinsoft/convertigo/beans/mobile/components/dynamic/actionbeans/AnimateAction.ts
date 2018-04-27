@@ -5,7 +5,7 @@
      * @param props , the object which holds properties key-value pairs
      * @param vars  , the object which holds variables key-value pairs
      */
-    AnimateAction(page: C8oPage, props, vars) : Promise<any> {
+    AnimateAction(page: C8oPageBase, props, vars) : Promise<any> {
         return new Promise((resolve, reject)=> {
             let animator : AnimationBuilder = page.getInstance(AnimationService).builder();
             if (animator != null) {

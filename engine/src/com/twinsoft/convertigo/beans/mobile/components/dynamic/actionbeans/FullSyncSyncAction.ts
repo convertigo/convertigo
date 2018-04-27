@@ -5,7 +5,7 @@
      * @param props , the object which holds properties key-value pairs
      * @param vars  , the object which holds variables key-value pairs
      */
-    FullSyncSyncAction(page: C8oPage, props, vars) : Promise<any> {
+    FullSyncSyncAction(page: C8oPageBase, props, vars) : Promise<any> {
         return new Promise((resolve, reject) => {
             let dir:string = "sync"
             if (props.Direction === "push")  dir = "replicate_push"

@@ -5,7 +5,7 @@
      * @param props , the object which holds properties key-value pairs
      * @param vars  , the object which holds variables key-value pairs
      */
-    FullSyncViewAction(page: C8oPage, props, vars) : Promise<any> {
+    FullSyncViewAction(page: C8oPageBase, props, vars) : Promise<any> {
         return new Promise((resolve, reject) => {
             // fsview is in the form project.database.designdoc.view
             let tokens = props.fsview.split('.');

@@ -346,9 +346,8 @@ public class ComponentManager {
 					Class<?> dboClass;
 					try {
 						dboClass = Class.forName(bean.getClassName());
-						//return acceptDatabaseObjects(parent, dboClass);
 						if (acceptDatabaseObjects(parent, dboClass)) {
-							return isCafCompatible(parent, createBean());
+							return isTplCompatible(parent, createBean());
 						}
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -434,9 +433,9 @@ public class ComponentManager {
 		return true;
 	}
 
-	public static boolean isCafCompatible(DatabaseObject parentDatabaseObject, DatabaseObject databaseObject) {
+	public static boolean isTplCompatible(DatabaseObject parentDatabaseObject, DatabaseObject databaseObject) {
 		if (parentDatabaseObject instanceof MobileComponent && databaseObject instanceof MobileComponent) {
-			boolean compatible = ((MobileComponent)parentDatabaseObject).compareToTplCafVersion(getCafRequired(databaseObject)) >= 0;
+			boolean compatible = ((MobileComponent)parentDatabaseObject).compareToTplVersion(getTplRequired(databaseObject)) >= 0;
 			if (!compatible) {
 				Engine.logStudio.warn("The '"+databaseObject.getName()+"' component isn't compatible with your Template project."
 						+ " Please change your Template project for a newer one to use it.");
@@ -446,9 +445,9 @@ public class ComponentManager {
 		return true;
 	}
 	
-	public static String getCafRequired(DatabaseObject databaseObject) {
+	public static String getTplRequired(DatabaseObject databaseObject) {
 		if (databaseObject instanceof MobileComponent) {
-			return ((MobileComponent)databaseObject).requiredCafVersion();
+			return ((MobileComponent)databaseObject).requiredTplVersion();
 		}
 		return "";
 	}
@@ -474,8 +473,11 @@ public class ComponentManager {
 			} else if (dboParent instanceof UIComponent) {
 				UIDynamicMenu menu = ((UIComponent)dboParent).getMenu();
 				if (menu != null) {
-					if (UIControlEvent.class.isAssignableFrom(dboClass)) {
-						return false;
+					if (UIControlEvent.class.isAssignableFrom(dboClass) ||
+						UIFormValidator.class.isAssignableFrom(dboClass)) {
+						if (menu.compareToTplVersion("7.5.2.0") < 0) {
+							return false;
+						}
 					}
 				}
 				
@@ -505,6 +507,10 @@ public class ComponentManager {
 				} else if (dboParent instanceof UIElement) {
 					if (UIDynamicMenuItem.class.isAssignableFrom(dboClass)) {
 						return menu != null;
+					}
+					
+					if (UIFormValidator.class.isAssignableFrom(dboClass)) {
+						return ((UIComponent)dboParent).getUIForm() != null;
 					}
 					
 					if (!UIControlVariable.class.isAssignableFrom(dboClass) &&
@@ -598,10 +604,9 @@ public class ComponentManager {
 			
 			@Override
 			public boolean isAllowedIn(DatabaseObject parent) {
-				//return acceptDatabaseObjects(parent, dboClass);
 				try {
 					if (acceptDatabaseObjects(parent, dboClass)) {
-						return isCafCompatible(parent, createBean());
+						return isTplCompatible(parent, createBean());
 					}
 				} catch (Exception e) {
 					e.printStackTrace();

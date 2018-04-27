@@ -5,7 +5,7 @@
      * @param props , the object which holds properties key-value pairs
      * @param vars  , the object which holds variables key-value pairs
      */
-    CheckInstallAction(page: C8oPage, props, vars) : Promise<any> {
+    CheckInstallAction(page: C8oPageBase, props, vars) : Promise<any> {
         return new Promise((resolve, reject) => {
             const fileOpener : FileOpener = page.getInstance(FileOpener);
             const packageID: string = props.packageID;

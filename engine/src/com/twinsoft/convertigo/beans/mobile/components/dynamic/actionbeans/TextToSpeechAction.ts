@@ -7,7 +7,7 @@
      * @param vars  , the object which holds variables key-value pairs
      */
     
-    TextToSpeechAction(page: C8oPage, props, vars) : Promise<any> {
+    TextToSpeechAction(page: C8oPageBase, props, vars) : Promise<any> {
         return new Promise((resolve, reject) => {
             
             // Check text property

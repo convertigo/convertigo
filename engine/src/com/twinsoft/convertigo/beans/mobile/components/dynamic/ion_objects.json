@@ -1096,7 +1096,7 @@
     },
 	
     "FSImage": {
-      "cafVersion": "1.0.100",
+      "tplVersion": "1.0.100",
       "tag": "img",
 	  "displayName": "FSImage",
       "label": "FSImage",
@@ -5902,7 +5902,7 @@
 
  
   "CalendarPickerAction" : {
-      "cafVersion": "1.0.98",
+      "tplVersion": "1.0.98",
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "CalendarPicker",
       "label": "Calendar Picker",
@@ -7868,7 +7868,7 @@
   },
   
     "PublishEventAction" : {
-      "cafVersion": "1.0.101",
+      "tplVersion": "7.5.2.0",
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "PublishEvent",
       "label": "PublishEvent",
@@ -7903,6 +7903,7 @@
     },
     
     "AnimateAction" : {
+      "tplVersion": "7.5.2.0",
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAnimate",
 	  "displayName": "Animate",
       "label": "Animate",

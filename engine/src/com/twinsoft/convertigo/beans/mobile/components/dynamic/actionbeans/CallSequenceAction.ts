@@ -5,7 +5,7 @@
      * @param props , the object which holds properties key-value pairs
      * @param vars  , the object which holds variables key-value pairs
      */
-    CallSequenceAction(page: C8oPage, props, vars) : Promise<any> {
+    CallSequenceAction(page: C8oPageBase, props, vars) : Promise<any> {
         return new Promise((resolve, reject) => {
             let r:string = props.requestable; let m:string = props.marker;
             let rm:string = r + (m != '' ? '#':'')+ m;

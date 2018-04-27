@@ -31,7 +31,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.text.StrSubstitutor;
+import org.apache.commons.text.StrSubstitutor;
 import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Element;
 
@@ -281,12 +281,12 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 	}
 
 	@Override
-	protected String getRequiredCafVersion() {
+	protected String getRequiredTplVersion() {
 		IonBean ionBean = getIonBean();
 		if (ionBean != null) {
-			return ionBean.getCafVersion();
+			return ionBean.getTplVersion();
 		}
-		return super.getRequiredCafVersion();
+		return super.getRequiredTplVersion();
 	}
 
 	@Override

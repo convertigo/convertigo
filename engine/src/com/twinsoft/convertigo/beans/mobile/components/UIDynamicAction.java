@@ -232,9 +232,11 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				}
 			}
 			
+			String cafMerge = compareToTplVersion("7.5.2.0") >= 0 ? "C8oCafUtils.merge":"merge";
+			
 			if (isStacked()) {
 				String scope = getScope();
-				String in = formGroupName == null ? "{}": "merge("+formGroupName +".value, {})";
+				String in = formGroupName == null ? "{}": cafMerge + "("+formGroupName +".value, {})";
 				return getFunctionName() + "({root: {scope:{"+scope+"}, in:"+ in +", out:$event}})";
 			} else {
 				IonBean ionBean = getIonBean();
@@ -251,10 +253,10 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 					}
 					
 					if (formGroupName != null) {
-						vars = "merge("+formGroupName +".value, "+ vars +")";
+						vars = cafMerge + "("+formGroupName +".value, "+ vars +")";
 					}
 					
-					if (compareToTplCafVersion("1.0.91") >= 0) {
+					if (compareToTplVersion("1.0.91") >= 0) {
 						return "resolveError(actionBeans."+ actionName + "(this,"+ props + ","+ vars +"))";
 					} else {
 						return "actionBeans."+ actionName + "(this,"+ props + ","+ vars +")";
@@ -414,12 +416,13 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			cartridge.append("\t * @param stack , the object which holds actions stack").append(System.lineSeparator());
 			cartridge.append("\t */").append(System.lineSeparator());
 			
+			String cafPageType = compareToTplVersion("7.5.2.0") >= 0 ? "C8oPageBase":"C8oPage";
 			String functionName = getFunctionName();
 			
 			computed += System.lineSeparator();
 			computed += cartridge;
 			computed += "\t"+ functionName + "("+ parameters +"): Promise<any> {" + System.lineSeparator();
-			computed += "\t\tlet c8oPage : C8oPage = this;" + System.lineSeparator();
+			computed += "\t\tlet c8oPage : "+ cafPageType +" = this;" + System.lineSeparator();
 			computed += "\t\tlet parent;" + System.lineSeparator();
 			computed += "\t\tlet scope;" + System.lineSeparator();
 			computed += "\t\tlet self;" + System.lineSeparator();
@@ -487,12 +490,14 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 					}
 				}
 	
+				String cafMerge = compareToTplVersion("7.5.2.0") >= 0 ? "C8oCafUtils.merge":"merge";
+				
 				String tsCode = "";
 				tsCode += "\t\tnew Promise((resolve, reject) => {"+ System.lineSeparator();
 				tsCode += "\t\tself = stack[\""+ getName() +"\"] = {};"+ System.lineSeparator();
 				tsCode += "\t\tself.in = "+ inputs +";"+ System.lineSeparator();
 				
-				tsCode +="\t\treturn this.actionBeans."+actionName+"(this, self.in.props, this.merge(self.in.vars, stack[\"root\"].in))"+ System.lineSeparator();
+				tsCode +="\t\treturn this.actionBeans."+actionName+"(this, self.in.props, "+ cafMerge +"(self.in.vars, stack[\"root\"].in))"+ System.lineSeparator();
 				tsCode += "\t\t.catch((error:any) => {"+ System.lineSeparator();
 				tsCode += "\t\tparent = self;"+ System.lineSeparator();
 				tsCode += "\t\tparent.out = error;"+ System.lineSeparator();
@@ -551,7 +556,13 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				IonBean ionBean = getIonBean();
 				if (ionBean != null) {
 					String actionName = ionBean.getName();
-					functions.put(actionName, ComponentManager.getActionTsCode(actionName));
+					
+					String actionCode = ComponentManager.getActionTsCode(actionName);
+					if (compareToTplVersion("7.5.2.0") < 0 ) {
+						actionCode = actionCode.replaceFirst("C8oPageBase", "C8oPage");
+					}
+					
+					functions.put(actionName, actionCode);
 				}
 				return functions;
 			}

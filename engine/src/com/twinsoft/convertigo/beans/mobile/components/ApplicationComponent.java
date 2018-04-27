@@ -1149,23 +1149,23 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	}
 
 	@Override
-	public String requiredCafVersion() {
-		String cafVersion = getRequiredCafVersion();
+	public String requiredTplVersion() {
+		String tplVersion = getRequiredTplVersion();
 		
 		for (UIDynamicMenu menu : getMenuComponentList()) {
-			String menuCafVersion = menu.requiredCafVersion();
-			if (MobileBuilder.compareVersions(cafVersion, menuCafVersion) <= 0) {
-				cafVersion = menuCafVersion;
+			String menuTplVersion = menu.requiredTplVersion();
+			if (MobileBuilder.compareVersions(tplVersion, menuTplVersion) <= 0) {
+				tplVersion = menuTplVersion;
 			}
 		}
 		
 		for (PageComponent page : getPageComponentList()) {
-			String pageCafVersion = page.requiredCafVersion();
-			if (MobileBuilder.compareVersions(cafVersion, pageCafVersion) <= 0) {
-				cafVersion = pageCafVersion;
+			String pageTplVersion = page.requiredTplVersion();
+			if (MobileBuilder.compareVersions(tplVersion, pageTplVersion) <= 0) {
+				tplVersion = pageTplVersion;
 			}
 		}
-		return cafVersion;
+		return tplVersion;
 	}
 	
 }

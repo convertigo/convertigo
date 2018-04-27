@@ -21,7 +21,7 @@ package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType.Mode;

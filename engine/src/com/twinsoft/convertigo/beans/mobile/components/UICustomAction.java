@@ -310,9 +310,11 @@ public class UICustomAction extends UIComponent implements IAction {
 				}
 			}
 			
+			String cafMerge = compareToTplVersion("7.5.2.0") >= 0 ? "C8oCafUtils.merge":"merge";
+			
 			if (isStacked()) {
 				String scope = getScope();
-				String in = formGroupName == null ? "{}": "merge("+formGroupName +".value, {})";
+				String in = formGroupName == null ? "{}": cafMerge + "("+formGroupName +".value, {})";
 				return getFunctionName() + "({root: {scope:{"+scope+"}, in:"+in+", out:$event}})";
 			} else {
 				String props = "{}", vars = "{}";
@@ -325,7 +327,7 @@ public class UICustomAction extends UIComponent implements IAction {
 				}
 				
 				if (formGroupName != null) {
-					vars = "merge("+formGroupName +".value, "+ vars +")";
+					vars = cafMerge + "("+formGroupName +".value, "+ vars +")";
 				}
 				
 				String actionName = getActionName();
@@ -386,13 +388,13 @@ public class UICustomAction extends UIComponent implements IAction {
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
 		try {
-			PageComponent page = getPage();
+			IScriptComponent main = getMainScriptComponent();
 			
 			String imports = jsonScripts.getString("imports");
 			for (XMLVector<String> v : page_ts_imports) {
 				String name = v.get(0).trim();
 				String path = v.get(1).trim();
-				if (page.addImport(name, path)) {
+				if (main.addImport(name, path)) {
 					imports += "import { "+name+" } from '"+path+"';" + System.lineSeparator();
 				}
 			}
@@ -453,12 +455,13 @@ public class UICustomAction extends UIComponent implements IAction {
 			cartridge.append("\t * @param stack , the object which holds actions stack").append(System.lineSeparator());
 			cartridge.append("\t */").append(System.lineSeparator());
 			
+			String cafPageType = compareToTplVersion("7.5.2.0") >= 0 ? "C8oPageBase":"C8oPage";
 			String functionName = getFunctionName();
 			
 			computed += System.lineSeparator();
 			computed += cartridge;
 			computed += "\t"+ functionName + "("+ parameters +"): Promise<any> {" + System.lineSeparator();
-			computed += "\t\tlet c8oPage : C8oPage = this;" + System.lineSeparator();
+			computed += "\t\tlet c8oPage : "+ cafPageType +" = this;" + System.lineSeparator();
 			computed += "\t\tlet parent;" + System.lineSeparator();
 			computed += "\t\tlet scope;" + System.lineSeparator();
 			computed += "\t\tlet self;" + System.lineSeparator();
@@ -525,12 +528,15 @@ public class UICustomAction extends UIComponent implements IAction {
 				}
 			}
 	
+			String cafMerge = compareToTplVersion("7.5.2.0") >= 0 ? "C8oCafUtils.merge":"merge";
+			
 			String tsCode = "";
 			tsCode += "\t\tnew Promise((resolve, reject) => {"+ System.lineSeparator();
 			tsCode += "\t\tself = stack[\""+ beanName +"\"] = {};"+ System.lineSeparator();
 			tsCode += "\t\tself.in = "+ inputs +";"+ System.lineSeparator();
 			
-			tsCode +="\t\treturn this."+actionName+"(this, this.merge(self.in.props, {stack: stack, parent: parent, out: out}), this.merge(self.in.vars, stack[\"root\"].in), event)"+ System.lineSeparator();
+			tsCode +="\t\treturn this."+actionName+"(this, "+ cafMerge +"(self.in.props, {stack: stack, parent: parent, out: out}), "+ 
+														cafMerge +"(self.in.vars, stack[\"root\"].in), event)"+ System.lineSeparator();
 			tsCode += "\t\t.catch((error:any) => {"+ System.lineSeparator();
 			tsCode += "\t\tparent = self;"+ System.lineSeparator();
 			tsCode += "\t\tparent.out = error;"+ System.lineSeparator();
@@ -575,8 +581,10 @@ public class UICustomAction extends UIComponent implements IAction {
 			}
 			cartridge.append("\t * ").append(System.lineSeparator());
 			
+			String cafPageType = compareToTplVersion("7.5.2.0") >= 0 ? "C8oPageBase":"C8oPage";
+			
 			StringBuilder parameters = new StringBuilder();
-			parameters.append("page: C8oPage, props, vars, event: any");
+			parameters.append("page: "+ cafPageType +", props, vars, event: any");
 			cartridge.append("\t * @param page  , the current page").append(System.lineSeparator());
 			cartridge.append("\t * @param props , the object which holds properties key-value pairs").append(System.lineSeparator());
 			cartridge.append("\t * @param vars  , the object which holds variables key-value pairs").append(System.lineSeparator());

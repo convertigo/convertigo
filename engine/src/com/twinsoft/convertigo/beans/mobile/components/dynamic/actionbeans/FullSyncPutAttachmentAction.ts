@@ -5,7 +5,7 @@
      * @param props , the object which holds properties key-value pairs
      * @param vars  , the object which holds variables key-value pairs
      */
-    FullSyncPutAttachmentAction(page: C8oPage, props, vars) : Promise<any> {
+    FullSyncPutAttachmentAction(page: C8oPageBase, props, vars) : Promise<any> {
         let r:string = props.requestable.substring(props.requestable.indexOf('.') + 1);
         let v:string = 'put_attachment';
         let rvm:string = r + '.' + v;

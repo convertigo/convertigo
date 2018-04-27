@@ -5,7 +5,7 @@
      * @param props , the object which holds properties key-value pairs
      * @param vars  , the object which holds variables key-value pairs
      */
-    CameraAction(page: C8oPage, props, vars) : Promise<any> {
+    CameraAction(page: C8oPageBase, props, vars) : Promise<any> {
         var HIGHEST_POSSIBLE_Z_INDEX = '2147483647';
         
         var btLeft, btMiddle, btRight, btSet, parent;

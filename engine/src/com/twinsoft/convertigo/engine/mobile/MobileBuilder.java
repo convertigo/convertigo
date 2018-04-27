@@ -235,8 +235,7 @@ public class MobileBuilder {
 	String moduleTplNgProviders = null;
 	String moduleTplNgDeclarations = null;
 	String moduleTplNgComponents = null;
-	String cafTplVersion = null;
-	String cafNodeVersion = null;
+	String tplVersion = null;
 	
 	Set<File> writtenFiles = new HashSet<File>();
 	
@@ -303,8 +302,8 @@ public class MobileBuilder {
 	public void setNeedPkgUpdate(boolean needPkgUpdate) {
 		this.needPkgUpdate = needPkgUpdate;
 		
-		this.cafNodeVersion = null;
-		updateNodeCafVersion();
+		this.tplVersion = null;
+		updateTplVersion();
 	}
 	
 	public boolean getNeedPkgUpdate() {
@@ -536,9 +535,8 @@ public class MobileBuilder {
 			// Modify configuration files
 			updateConfigurationFiles();
 			
-			// Update CAF versions
-			updateNodeCafVersion();
-			updateTplCafVersion();
+			// Tpl version
+			updateTplVersion();
 			
 			// Write source files (based on bean components)
 			updateSourceFiles();
@@ -617,11 +615,8 @@ public class MobileBuilder {
 				actionTplTsImports.clear();
 				actionTplTsImports = null;
 			}
-			if (cafTplVersion != null) {
-				cafTplVersion = null;
-			}
-			if (cafNodeVersion != null) {
-				cafNodeVersion = null;
+			if (tplVersion != null) {
+				tplVersion = null;
 			}
 			if (eventHelper != null) {
 				eventHelper = null;
@@ -635,6 +630,7 @@ public class MobileBuilder {
 	
 	private void cleanDirectories() {
 		FileUtils.deleteQuietly(new File(projectDir,"_private/ionic/src"));
+		FileUtils.deleteQuietly(new File(projectDir,"_private/ionic/version.json"));
 		FileUtils.deleteQuietly(new File(projectDir,"_private/ionic_tmp"));
 		Engine.logEngine.debug("(MobileBuilder) Directories cleaned for ionic project '"+ project.getName() +"'");
 	}
@@ -689,8 +685,8 @@ public class MobileBuilder {
 			if (mobileApplication != null) {
 				ApplicationComponent application = mobileApplication.getApplicationComponent();
 				if (application != null) {
-					String appCafVersion = application.requiredCafVersion();
-					if (compareVersions(cafTplVersion, appCafVersion) >= 0) {
+					String appTplVersion = application.requiredTplVersion();
+					if (compareVersions(tplVersion, appTplVersion) >= 0) {
 						for (PageComponent page : getEnabledPages(application)) {
 							writePageSourceFiles(page);
 						}
@@ -700,10 +696,9 @@ public class MobileBuilder {
 						Engine.logEngine.debug("(MobileBuilder) Application source files updated for ionic project '"+ project.getName() +"'");
 					} else {
 						cleanDirectories();
-						throw new EngineException("Convertigo Angular Framework (CAF) minimum "+ appCafVersion +" is required for this project. \n\n" +
-							"Be sure to use a project template having this CAF version as dependency in its package.json file. " +
-							"You can change template by configuring\nthe 'Template project' property of your project's 'Application' object. " + 
-							"Then, be sure to update\nthe project node modules packages (Application Right Click->Update packages and execute) \n");
+						throw new EngineException("Template project minimum "+ appTplVersion +" is required for this project.\n" +
+							"You can change template by configuring the 'Template project' property of your project's 'Application' object.\n" + 
+							"Then, be sure to update the project node modules packages (Application Right Click->Update packages and execute) \n");
 					}
 					
 				}
@@ -929,47 +924,36 @@ public class MobileBuilder {
 		}
 	}
 	
-	private void updateTplCafVersion() {
-		if (cafTplVersion == null) {
-			File pkgJson = new File(ionicWorkDir, "package.json"); 
-			if (pkgJson.exists()) {
+	private void updateTplVersion() {
+		if (tplVersion == null) {
+			File versionJson = new File(ionicWorkDir, "version.json"); // since 7.5.2
+			if (versionJson.exists()) {
 				try {
-					String tsContent = FileUtils.readFileToString(pkgJson, "UTF-8");
+					String tsContent = FileUtils.readFileToString(versionJson, "UTF-8");
 					JSONObject jsonOb = new JSONObject(tsContent);
-					JSONObject jsonDeps = jsonOb.getJSONObject("dependencies");
-					cafTplVersion = jsonDeps.getString("c8ocaf");
-					Engine.logEngine.debug("(MobileBuilder) Embedded CAF version: "+ cafTplVersion+ " for ionic project '"+ project.getName() +"'");
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		}
-	}
-	
-	public String getTplCafVersion() {
-		return cafTplVersion;
-	}
-	
-	public void updateNodeCafVersion() {
-		if (cafNodeVersion == null) {
-			File pkgJson = new File(ionicWorkDir, "node_modules/c8ocaf/package.json");
-			if (pkgJson.exists()) {
-				try {
-					String tsContent = FileUtils.readFileToString(pkgJson, "UTF-8");
-					JSONObject jsonOb = new JSONObject(tsContent);
-					cafNodeVersion = jsonOb.getString("version");
-					Engine.logEngine.debug("(MobileBuilder) Installed CAF version: "+ cafNodeVersion+ " for ionic project '"+ project.getName() +"'");
+					tplVersion = jsonOb.getString("version");
+					Engine.logEngine.debug("(MobileBuilder) Template version: "+ tplVersion+ " for ionic project '"+ project.getName() +"'");
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			} else {
-				Engine.logEngine.debug("(MobileBuilder) None CAF installed for ionic project '"+ project.getName() +"'");
+				File pkgJson = new File(ionicWorkDir, "package.json"); 
+				if (pkgJson.exists()) {
+					try {
+						String tsContent = FileUtils.readFileToString(pkgJson, "UTF-8");
+						JSONObject jsonOb = new JSONObject(tsContent);
+						JSONObject jsonDeps = jsonOb.getJSONObject("dependencies");
+						tplVersion = jsonDeps.getString("c8ocaf");
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
 			}
 		}
 	}
 	
-	public String getNodeCafVersion() {
-		return cafNodeVersion;
+	public String getTplVersion() {
+		return tplVersion;
 	}
 	
 	
