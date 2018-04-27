@@ -67,6 +67,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	private XMLVector<XMLVector<Long>> orderedMenus = new XMLVector<XMLVector<Long>>();
 	
 	private String tplProjectName = "";
+	private String tplProjectVersion = "";
 	
 	public ApplicationComponent() {
 		super();
@@ -1081,6 +1082,15 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		this.tplProjectName = tplProjectName;
 	}
 
+	public String getTplProjectVersion() {
+		this.tplProjectVersion = getTplVersion();
+		return this.tplProjectVersion;
+	}
+
+	public void setTplProjectVersion(String tplProjectVersion) {
+		// does nothing
+	}
+	
 	private boolean isCompatibleTemplate(String project) {
 		File tplDir = new File(Engine.PROJECTS_PATH + "/" + project + "/ionicTpl");
 		if (tplDir.exists()) {
