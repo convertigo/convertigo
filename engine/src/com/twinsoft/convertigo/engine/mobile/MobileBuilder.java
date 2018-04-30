@@ -955,20 +955,10 @@ public class MobileBuilder {
 	
 	
 	public boolean hasAppTplImport(String name) {
-		/*if (initDone) {
-			return getAppTplTsImports().containsKey(name);
-		} else {
-			return false;
-		}*/
 		return getAppTplTsImports().containsKey(name);
 	}
 	
 	public boolean hasPageTplImport(String name) {
-		/*if (initDone) {
-			return getPageTplTsImports().containsKey(name);
-		} else {
-			return false;
-		}*/
 		return getPageTplTsImports().containsKey(name);
 	}
 	
@@ -1076,6 +1066,8 @@ public class MobileBuilder {
 		Map<String, String> map = new HashMap<String, String>(10);
 		try {
 			String tsContent = FileUtils.readFileToString(file, "UTF-8");
+			
+			// case : import {...} from '...'
 			Pattern pattern = Pattern.compile("[\\s\\t]*import[\\s\\t]*\\{(.*?)\\}[\\s\\t]*from[\\s\\t]*['\"](.*?)['\"]", Pattern.DOTALL);
 			Matcher matcher = pattern.matcher(tsContent);
 			while (matcher.find()) {
@@ -1088,6 +1080,21 @@ public class MobileBuilder {
 					}
 				}
 			}
+			
+			// case : import ... as ... from '...'
+			Pattern pattern1 = Pattern.compile("[\\s\\t]*import[\\s\\t]*([^\\{\\}]*?)[\\s\\t]*from[\\s\\t]*['\"](.*?)['\"]", Pattern.DOTALL);
+			Matcher matcher1 = pattern1.matcher(tsContent);
+			while (matcher1.find()) {
+				String names = matcher1.group(1);
+				String path = matcher1.group(2);
+				for (String name : names.split(",")) {
+					name = name.trim();
+					if (!map.containsKey(name)) {
+						map.put(name, path);
+					}
+				}
+			}
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -1363,7 +1370,11 @@ public class MobileBuilder {
 				if (!tpl_ts_imports.isEmpty()) {
 					for (String comp : module_ts_imports.keySet()) {
 						if (!tpl_ts_imports.containsKey(comp)) {
-							c8o_ModuleTsImports += "import { "+comp+" } from '"+ module_ts_imports.get(comp) +"';"+ System.lineSeparator();
+							if (comp.indexOf(" as ") != -1) {
+								c8o_ModuleTsImports += "import "+comp+" from '"+ module_ts_imports.get(comp) +"';"+ System.lineSeparator();
+							} else {
+								c8o_ModuleTsImports += "import { "+comp+" } from '"+ module_ts_imports.get(comp) +"';"+ System.lineSeparator();
+							}
 						}
 					}
 				}

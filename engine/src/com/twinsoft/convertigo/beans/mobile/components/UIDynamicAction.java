@@ -367,12 +367,14 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
 		try {
+			IScriptComponent main = getMainScriptComponent();
+			
 			String imports = jsonScripts.getString("imports");
 			
-			String search = "import * as ts from 'typescript';";
-			if (imports.indexOf(search) == -1) {
-				imports += search + System.lineSeparator();
-			}
+			if (main.addImport("* as ts", "typescript")) {
+				imports += "import * as ts from 'typescript';" + System.lineSeparator();
+			}			
+			
 			jsonScripts.put("imports", imports);
 		} catch (JSONException e) {
 			e.printStackTrace();

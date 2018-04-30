@@ -395,13 +395,16 @@ public class UICustomAction extends UIComponent implements IAction {
 				String name = v.get(0).trim();
 				String path = v.get(1).trim();
 				if (main.addImport(name, path)) {
-					imports += "import { "+name+" } from '"+path+"';" + System.lineSeparator();
+					if (name.indexOf(" as ") != -1) {
+						imports += "import "+name+" from '"+path+"';" + System.lineSeparator();
+					} else {
+						imports += "import { "+name+" } from '"+path+"';" + System.lineSeparator();
+					}
 				}
 			}
 			
-			String search = "import * as ts from 'typescript';";
-			if (imports.indexOf(search) == -1) {
-				imports += search + System.lineSeparator();
+			if (main.addImport("* as ts", "typescript")) {
+				imports += "import * as ts from 'typescript';" + System.lineSeparator();
 			}
 			
 			jsonScripts.put("imports", imports);
