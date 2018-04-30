@@ -19,8 +19,6 @@
 
 package com.twinsoft.convertigo.beans.scheduler;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +26,7 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.util.URLUtils;
 
 public abstract class AbstractConvertigoJob extends AbstractJob {
 	public static final String prob_noProject = "the project name cannot be empty";
@@ -97,14 +96,9 @@ public abstract class AbstractConvertigoJob extends AbstractJob {
 		StringBuffer sb = new StringBuffer();
 		sb.append("/projects/").append(projectName).append("/.pxml?");
 		for (Entry<String, String[]> entry : parameters.entrySet()) {
-			try {
-				String[] val = entry.getValue();
-				for (int i = 0; i < val.length ; ++i){
-					sb.append(URLEncoder.encode(entry.getKey(), "UTF-8")).append('=').append(URLEncoder.encode(val[i], "UTF-8")).append('&');
-				}
-				
-			} catch (UnsupportedEncodingException e) {
-				// improbable case
+			String[] val = entry.getValue();
+			for (int i = 0; i < val.length; ++i) {
+				sb.append(URLUtils.encodePart(entry.getKey(), val[i])).append('&');
 			}
 		}
 		return sb.substring(0, sb.length() - 1); // suppress the last & or ?

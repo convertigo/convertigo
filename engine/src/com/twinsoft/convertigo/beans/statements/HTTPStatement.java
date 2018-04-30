@@ -21,7 +21,6 @@ package com.twinsoft.convertigo.beans.statements;
 
 
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -58,6 +57,7 @@ import com.twinsoft.convertigo.engine.parsers.triggers.ITriggerOwner;
 import com.twinsoft.convertigo.engine.parsers.triggers.TriggerXMLizer;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
+import com.twinsoft.convertigo.engine.util.URLUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.util.StringEx;
@@ -838,13 +838,11 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 			return "";
 		}
 		
-		if (httpVariable.equals(""))
+		if (httpVariable.equals("")) {
 			return query;
+		}
 		
-		if (methodToAnalyse.equalsIgnoreCase("POST"))
-			query += (firstParam ? "&" : "") + URLEncoder.encode(httpVariable, urlEncodingCharset) + "=" + URLEncoder.encode(httpVariableValue, urlEncodingCharset);
-		else if (methodToAnalyse.equalsIgnoreCase("GET"))
-			query += (firstParam ? "&" : "") + httpVariable + "=" + URLEncoder.encode(httpVariableValue, urlEncodingCharset);
+		query += (firstParam ? "&" : "") + URLUtils.encodePart(httpVariable, httpVariableValue);
 		return query;
 	}
 	

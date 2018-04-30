@@ -223,4 +223,17 @@ public class URLUtils {
 			return part;
 		}
 	}
+	
+	public static String encodePart(String key, String value) {
+		return encodePart(key, value, "UTF-8");
+	}
+	
+	public static String encodePart(String key, String value, String encoding) {
+		try {
+			return URLEncoder.encode(key, encoding) + "=" + URLEncoder.encode(value, encoding);
+		} catch (Throwable t) {
+			Engine.logEngine.warn("(URLUtils) encodePart failed", t);
+			return key + "=" + value;
+		}
+	}
 }
