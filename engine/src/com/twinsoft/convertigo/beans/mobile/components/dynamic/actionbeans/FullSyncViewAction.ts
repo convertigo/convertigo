@@ -36,7 +36,7 @@
             options.ddoc = ddoc;
             options.view = view;
             
-            page.merge(options, vars);
+            C8oCafUtils.merge(options, vars);
             
             page.getInstance(Platform).ready().then(() => {     // We may need the CBL plugin so wait for platform ready.
                 page.c8o.finalizeInit().then(()=>{              // To be sure that FullSync initialized properly on CBL

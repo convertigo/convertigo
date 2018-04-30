@@ -35,7 +35,7 @@
                             }
                     })
                     
-                    page.c8o.callJsonObject("fs://" + rvm,page.merge({
+                    page.c8o.callJsonObject("fs://" + rvm,C8oCafUtils.merge({
                         "continuous": props.Mode == "continuous" ? true:false,
                         "retry": props.Retry == "true" ? true:false,
                         "batch_size": props.BatchSize,

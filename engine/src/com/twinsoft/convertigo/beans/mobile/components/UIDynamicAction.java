@@ -562,6 +562,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 					String actionCode = ComponentManager.getActionTsCode(actionName);
 					if (compareToTplVersion("7.5.2.0") < 0 ) {
 						actionCode = actionCode.replaceFirst("C8oPageBase", "C8oPage");
+						actionCode = actionCode.replaceAll("C8oCafUtils\\.merge", "page.merge");
 					}
 					
 					functions.put(actionName, actionCode);

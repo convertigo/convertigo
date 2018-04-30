@@ -20,7 +20,7 @@
 
             let data = {}
             if (rootKey != undefined) {
-                data[rootKey] = page.merge(props, vars)
+                data[rootKey] = C8oCafUtils.merge(props, vars)
                 delete data[rootKey]._use_policy
                 delete data[rootKey]._id
                 delete data[rootKey].c8oGrp
@@ -39,7 +39,7 @@
                 if (group == null) {
                     delete props.c8oGrp
                 }
-                data = page.merge(props, vars)
+                data = C8oCafUtils.merge(props, vars)
             }
            
             page.getInstance(Platform).ready().then(() => {     // We may need the CBL plugin so wait for platform ready.
