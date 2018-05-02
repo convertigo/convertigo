@@ -6,6 +6,19 @@
      * @param vars  , the object which holds variables key-value pairs
      */
     AnimateAction(page: C8oPageBase, props, vars) : Promise<any> {
+        
+        var getNativeElement = function (ob) {
+            let nativeElement;
+            if (ob.classList != undefined) {
+                nativeElement = ob;
+            } else if (ob.nativeElement != undefined) {
+                nativeElement = ob.nativeElement;
+            } else if (ob._elementRef != undefined) {
+                nativeElement = ob._elementRef.nativeElement;
+            }
+            return nativeElement;
+        };
+        
         return new Promise((resolve, reject)=> {
             let animator : AnimationBuilder = page.getInstance(AnimationService).builder();
             if (animator != null) {
@@ -61,30 +74,36 @@
                 let mode = props.mode == null ? "single":props.mode;
                 
                 if (mode === "single") {
+                    let nativeElement;
                     if (animatable != null) {
-                        animator.animate(animatable).then(() => {
+                        nativeElement = getNativeElement(animatable);
+                    } else if (animatables != null) {
+                        nativeElement = getNativeElement(animatables.first);
+                    }
+                    
+                    if (nativeElement != undefined) {
+                        animator.animate(nativeElement).then(() => {
                             resolve(true);
                         });
                     } else {
-                        if (animatables != null) {
-                            let first = animatables.first;
-                            animator.animate(first.nativeElement).then(() => {
-                                resolve(true);
-                            });
-                        } else {
-                            page.router.c8o.log.warn("[MB] AnimateAction: Animatable is not defined");
-                            resolve(true);
-                        }
+                        page.router.c8o.log.warn("[MB] AnimateAction: Animatable is not defined");
+                        resolve(true);
                     }
+                    
                 }
                 else if (mode === "all") {
                     if (animatables != null) {
                         animatables.forEach(
                             x => {
-                                //console.log(x);
-                                animator.animate(x.nativeElement).then(() => {
+                                let nativeElement = getNativeElement(x);
+                                if (nativeElement != undefined) {
+                                    animator.animate(nativeElement).then(() => {
+                                        resolve(true);
+                                    });
+                                } else {
+                                    page.router.c8o.log.warn("[MB] AnimateAction: Animatable is not defined");
                                     resolve(true);
-                                });
+                                }
                             }
                         );
                     } else {

@@ -7913,7 +7913,7 @@
       "icon32": "animateaction_color_32x32.png",
       "properties": {
 	      "useVisibility": {
-	        "label": "Use visbility",
+	        "label": "Use visibility",
 	        "description": "Specify whether the animation use visibility instead of hidden attribute",
 	        "category": "@Parameters",
 	        "type": "boolean",
