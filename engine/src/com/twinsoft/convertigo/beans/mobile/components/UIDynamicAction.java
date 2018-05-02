@@ -232,11 +232,12 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				}
 			}
 			
-			String cafMerge = compareToTplVersion("7.5.2.0") >= 0 ? "C8oCafUtils.merge":"merge";
+			//String cafMerge = compareToTplVersion("7.5.2.0") >= 0 ? "C8oCafUtils.merge":"merge";
 			
 			if (isStacked()) {
 				String scope = getScope();
-				String in = formGroupName == null ? "{}": cafMerge + "("+formGroupName +".value, {})";
+				//String in = formGroupName == null ? "{}": cafMerge + "("+formGroupName +".value, {})";
+				String in = formGroupName == null ? "{}": "merge("+formGroupName +".value, {})";
 				return getFunctionName() + "({root: {scope:{"+scope+"}, in:"+ in +", out:$event}})";
 			} else {
 				IonBean ionBean = getIonBean();
@@ -253,7 +254,8 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 					}
 					
 					if (formGroupName != null) {
-						vars = cafMerge + "("+formGroupName +".value, "+ vars +")";
+						//vars = cafMerge + "("+formGroupName +".value, "+ vars +")";
+						vars = "merge("+formGroupName +".value, "+ vars +")";
 					}
 					
 					if (compareToTplVersion("1.0.91") >= 0) {

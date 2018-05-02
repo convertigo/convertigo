@@ -310,11 +310,12 @@ public class UICustomAction extends UIComponent implements IAction {
 				}
 			}
 			
-			String cafMerge = compareToTplVersion("7.5.2.0") >= 0 ? "C8oCafUtils.merge":"merge";
+			//String cafMerge = compareToTplVersion("7.5.2.0") >= 0 ? "C8oCafUtils.merge":"merge";
 			
 			if (isStacked()) {
 				String scope = getScope();
-				String in = formGroupName == null ? "{}": cafMerge + "("+formGroupName +".value, {})";
+				//String in = formGroupName == null ? "{}": cafMerge + "("+formGroupName +".value, {})";
+				String in = formGroupName == null ? "{}": "merge("+formGroupName +".value, {})";
 				return getFunctionName() + "({root: {scope:{"+scope+"}, in:"+in+", out:$event}})";
 			} else {
 				String props = "{}", vars = "{}";
@@ -327,7 +328,8 @@ public class UICustomAction extends UIComponent implements IAction {
 				}
 				
 				if (formGroupName != null) {
-					vars = cafMerge + "("+formGroupName +".value, "+ vars +")";
+					//vars = cafMerge + "("+formGroupName +".value, "+ vars +")";
+					vars = "merge("+formGroupName +".value, "+ vars +")";
 				}
 				
 				String actionName = getActionName();
