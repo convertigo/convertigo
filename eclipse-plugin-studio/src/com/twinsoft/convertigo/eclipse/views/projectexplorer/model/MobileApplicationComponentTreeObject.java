@@ -149,6 +149,7 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 								}
 							}
 						}
+						markApplicationAsDirty();
 					} else {
 						markApplicationAsDirty();
 					}
