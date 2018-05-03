@@ -397,6 +397,16 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		this.icon = icon;
 	}
 	
+	private String iconPosition = "";
+	
+	public String getIconPosition() {
+		return iconPosition;
+	}
+
+	public void setIconPosition(String iconPosition) {
+		this.iconPosition = iconPosition;
+	}
+	
 	private boolean inAutoMenu = true;
 	
 	public boolean isInAutoMenu() {
@@ -793,6 +803,9 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 	public String[] getTagsForProperty(String propertyName) {
 		if (propertyName.equals("icon")) {
 			return EnumUtils.toStrings(IonIcon.class);
+		}
+		if (propertyName.equals("iconPosition")) {
+			return new String[] {"item-left","item-end","item-right","item-start"};
 		}
 		return new String[0];
 	}

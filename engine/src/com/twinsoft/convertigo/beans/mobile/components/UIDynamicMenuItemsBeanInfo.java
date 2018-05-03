@@ -39,6 +39,8 @@ public class UIDynamicMenuItemsBeanInfo extends MySimpleBeanInfo {
 			
 			getPropertyDescriptor("itempage").setHidden(true);
 			getPropertyDescriptor("itemtitle").setHidden(true);
+			getPropertyDescriptor("itemicon").setHidden(true);
+			getPropertyDescriptor("itemiconPos").setHidden(true);
 			
 		}
 		catch(Exception e) {

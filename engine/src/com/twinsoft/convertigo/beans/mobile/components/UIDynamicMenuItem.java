@@ -129,6 +129,19 @@ public class UIDynamicMenuItem extends UIDynamicElement implements ITagsProperty
 	}
 	
 	/*
+	 * The item's icon position
+	 */
+	private String itemiconPos = "";
+	
+	public String getItemIconPosition() {
+		return itemiconPos;
+	}
+
+	public void setItemIconPosition(String itemiconPos) {
+		this.itemiconPos = itemiconPos;
+	}
+	
+	/*
 	 * The page associated with item
 	 */
 	private String itempage = "";
@@ -187,13 +200,14 @@ public class UIDynamicMenuItem extends UIDynamicElement implements ITagsProperty
 			
 			boolean pageIsEnabled = false;
 			String pageName = getPageName();
-			String pageIcon = "";
+			String pageIcon = "", pageIconPos = "";
 			String pageTitle = "Please specify a page for item";
 			if (!pageName.isEmpty()) {
 				try {
 					pageIsEnabled = getApplication().getPageComponentByName(pageName).isEnabled();
 					pageTitle = getApplication().getPageComponentByName(pageName).getTitle();
 					pageIcon = getApplication().getPageComponentByName(pageName).getIcon();
+					pageIconPos = getApplication().getPageComponentByName(pageName).getIconPosition();
 				} catch (Exception e) {}
 			}
 			
@@ -203,6 +217,7 @@ public class UIDynamicMenuItem extends UIDynamicElement implements ITagsProperty
 			}
 			
 			String title = titleText.isEmpty() ? pageTitle:titleText;
+			String pos = itemiconPos.isEmpty() ? pageIconPos:itemiconPos;
 			String icon = itemicon.isEmpty() ? pageIcon:itemicon;
 			String menuId = getMenuId();
 			
@@ -213,9 +228,13 @@ public class UIDynamicMenuItem extends UIDynamicElement implements ITagsProperty
 				.append(menuId.isEmpty() ? " menuClose":" menuClose=\""+menuId+"\"")
 				.append(pageName.isEmpty() ? "":" (click)=\"openPageWithName('"+ pageName +"')\"")
 			  	.append(attributes.length()>0 ? attributes:"").append(">")
-			  	.append(icon.isEmpty() ? "":"<ion-icon name=\""+ icon +"\"></ion-icon>&nbsp;&nbsp;&nbsp;&nbsp;")
+			  	.append(System.getProperty("line.separator"))
+			  	.append(icon.isEmpty() ? "":"<ion-icon name=\""+ icon+ "\" "+ pos + "></ion-icon>")
+			  	.append(System.getProperty("line.separator"))
 			  	.append(title)
-				.append("</").append(getTagName()).append(">").append(System.getProperty("line.separator"));
+			  	.append(System.getProperty("line.separator"))
+				.append("</").append(getTagName()).append(">")
+				.append(System.getProperty("line.separator"));
 			
 			return sb.toString();
 		}
@@ -232,6 +251,9 @@ public class UIDynamicMenuItem extends UIDynamicElement implements ITagsProperty
 	public String[] getTagsForProperty(String propertyName) {
 		if (propertyName.equals("itemicon")) {
 			return EnumUtils.toStrings(IonIcon.class);
+		}
+		if (propertyName.equals("itemiconPos")) {
+			return new String[] {"item-left","item-end","item-right","item-start"};
 		}
 		return new String[0];
 	}

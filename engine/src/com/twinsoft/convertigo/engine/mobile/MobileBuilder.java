@@ -1486,13 +1486,18 @@ public class MobileBuilder {
 		for (PageComponent page : pages) {
 			String pageName = page.getName();
 			String pageIcon = page.getIcon();
+			String pageIconPos = page.getIconPosition();
 			String pageTitle = page.getTitle();
 			boolean isRootPage = page.isRoot;
 			boolean isMenuPage = page.isInAutoMenu();
 			boolean isLastPage = i == pages.size();
 			if (isRootPage) c8o_RootPage = pageName;
 			c8o_PagesImport += "import { "+pageName+" } from \"../pages/"+pageName+"/"+pageName.toLowerCase()+"\";" + System.lineSeparator();
-			c8o_PagesVariables += " { title: \""+pageTitle+"\", icon: \""+ pageIcon +"\", component: "+pageName+", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
+			if (app.compareToTplVersion("7.5.2.1") < 0) {
+				c8o_PagesVariables += " { title: \""+pageTitle+"\", icon: \""+ pageIcon +"\", component: "+pageName+", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
+			} else {
+				c8o_PagesVariables += " { title: \""+pageTitle+"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\", component: "+pageName+", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
+			}
 			c8o_PagesVariablesKeyValue += pageName+":"+ pageName+ (isLastPage ? "":",");
 			i++;
 		}
