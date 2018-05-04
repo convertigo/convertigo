@@ -533,7 +533,7 @@ public class UICustomAction extends UIComponent implements IAction {
 				}
 			}
 	
-			String cafMerge = compareToTplVersion("7.5.2.0") >= 0 ? "C8oCafUtils.merge":"merge";
+			String cafMerge = compareToTplVersion("7.5.2.0") >= 0 ? "C8oCafUtils.merge":"this.merge";
 			
 			String tsCode = "";
 			tsCode += "\t\tnew Promise((resolve, reject) => {"+ System.lineSeparator();
