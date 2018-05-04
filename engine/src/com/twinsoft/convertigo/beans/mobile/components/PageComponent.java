@@ -572,7 +572,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 			doGetContributors();
 			String newContributors = contributors == null ? null: contributors.toString();
 			if (oldContributors != null && newContributors != null) {
-				if (!(newComputedContent.equals(newContributors))) {
+				if (!(oldContributors.equals(newContributors))) {
 					getProject().getMobileBuilder().pageContributorsChanged(this);
 				}
 			}

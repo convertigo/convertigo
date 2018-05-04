@@ -887,7 +887,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 			doGetContributors();
 			String newContributors = contributors == null ? null: contributors.toString();
 			if (oldContributors != null && newContributors != null) {
-				if (!(newComputedContent.equals(newContributors))) {
+				if (!(oldContributors.equals(newContributors))) {
 					getProject().getMobileBuilder().appContributorsChanged(this);
 				}
 			}
