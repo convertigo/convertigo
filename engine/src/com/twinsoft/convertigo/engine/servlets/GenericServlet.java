@@ -41,6 +41,7 @@ import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.AttachmentManager.AttachmentDetails;
+import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
@@ -524,15 +525,23 @@ public abstract class GenericServlet extends HttpServlet {
 		}
 	}
 	
-	void processRequestEnd(HttpServletRequest request, Requester requester) {		
-		request.setAttribute("convertigo.cookies", requester.context.getCookieStrings());
+	void processRequestEnd(HttpServletRequest request, Requester requester) {
+		Context context = requester.context;
 		
-		String trSessionId = requester.context.getSequenceTransactionSessionId();
+		request.setAttribute("convertigo.cookies", context.getCookieStrings());
+		
+		String trSessionId = context.getSequenceTransactionSessionId();
 		if (trSessionId != null) {
 			request.setAttribute("sequence.transaction.sessionid", trSessionId);
 		}
-
-		if (requester.context.requireEndOfContext) {
+		
+		boolean isNew = true;
+		HttpSession session = request.getSession(false);
+		if (session != null) {
+			isNew = session.isNew();
+		}
+		
+		if (requester.context.requireEndOfContext || (isNew && context.isErrorDocument)) {
 			// request.setAttribute("convertigo.requireEndOfContext",
 			// requester);
 			request.setAttribute("convertigo.requireEndOfContext", Boolean.TRUE);
@@ -544,17 +553,17 @@ public abstract class GenericServlet extends HttpServlet {
 			// webclipper
 			// servlet
 			// (#320)
-			request.setAttribute("convertigo.contentType", requester.context.contentType);
+			request.setAttribute("convertigo.contentType", context.contentType);
 		}
 		
-		request.setAttribute("convertigo.cacheControl", requester.context.cacheControl);
-		request.setAttribute("convertigo.context.contextID", requester.context.contextID);
-		request.setAttribute("convertigo.isErrorDocument", new Boolean(requester.context.isErrorDocument));
-		request.setAttribute("convertigo.context.removalRequired", new Boolean(requester.context.removalRequired()));
+		request.setAttribute("convertigo.cacheControl", context.cacheControl);
+		request.setAttribute("convertigo.context.contextID", context.contextID);
+		request.setAttribute("convertigo.isErrorDocument", new Boolean(context.isErrorDocument));
+		request.setAttribute("convertigo.context.removalRequired", new Boolean(context.removalRequired()));
 		
-		if (requester.context.requestedObject != null) { // #397 : charset HTTP
+		if (context.requestedObject != null) { // #397 : charset HTTP
 			// header missing
-			request.setAttribute("convertigo.charset", requester.context.requestedObject.getEncodingCharSet());
+			request.setAttribute("convertigo.charset", context.requestedObject.getEncodingCharSet());
 		}
 		else { // #3803
 			Engine.logEngine.warn("(GenericServlet) requestedObject is null. Set encoding to UTF-8 for processRequest.");
