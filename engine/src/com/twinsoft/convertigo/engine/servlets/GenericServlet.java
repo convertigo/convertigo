@@ -48,6 +48,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.requesters.ServletRequester;
 import com.twinsoft.convertigo.engine.requesters.WebServiceServletRequester;
@@ -538,7 +539,11 @@ public abstract class GenericServlet extends HttpServlet {
 		boolean isNew = true;
 		HttpSession session = request.getSession(false);
 		if (session != null) {
-			isNew = session.isNew();
+			if (SessionAttribute.isNew.has(session)) {
+				isNew = false;
+			} else {
+				SessionAttribute.isNew.set(session, true);
+			}
 		}
 		
 		if (requester.context.requireEndOfContext || (isNew && context.isErrorDocument)) {

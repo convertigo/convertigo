@@ -25,6 +25,7 @@ public enum SessionAttribute {
 	authenticatedUser,
 	authenticatedUserGrp,
 	authenticatedUserGrpCheck,
+	isNew,
 	httpClient3("__httpClient3__"),
 	httpClient4("__httpClient4__");
 	
@@ -54,6 +55,13 @@ public enum SessionAttribute {
 			return (E) session.getAttribute(value());
 		}
 		return null;
+	}
+	
+	public boolean has(HttpSession session) {
+		if (session != null) {
+			return session.getAttribute(value()) != null;
+		}
+		return false;
 	}
 	
 	public void remove(HttpSession session) {
