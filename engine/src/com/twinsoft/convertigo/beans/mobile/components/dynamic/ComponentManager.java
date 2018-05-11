@@ -54,6 +54,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIAttribute;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
 import com.twinsoft.convertigo.beans.mobile.components.UICustom;
 import com.twinsoft.convertigo.beans.mobile.components.UICustomAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
@@ -61,14 +62,13 @@ import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItem;
 import com.twinsoft.convertigo.beans.mobile.components.UIElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIEventSubscriber;
 import com.twinsoft.convertigo.beans.mobile.components.UIForm;
-import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
-import com.twinsoft.convertigo.beans.mobile.components.UIText;
-import com.twinsoft.convertigo.beans.mobile.components.UITheme;
 import com.twinsoft.convertigo.beans.mobile.components.UIFormControlValidator;
 import com.twinsoft.convertigo.beans.mobile.components.UIFormCustomValidator;
 import com.twinsoft.convertigo.beans.mobile.components.UIFormValidator;
 import com.twinsoft.convertigo.beans.mobile.components.UIPageEvent;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
+import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
+import com.twinsoft.convertigo.beans.mobile.components.UIText;
+import com.twinsoft.convertigo.beans.mobile.components.UITheme;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.URLUtils;
@@ -164,38 +164,40 @@ public class ComponentManager {
 				String key = it.next();
 				if (!key.isEmpty()) {
 					JSONObject jsonObject = beans.getJSONObject(key);
-					JSONObject jsonProperties = (JSONObject) jsonObject.remove("properties");
 					
-					IonBean bean = new IonBean(jsonObject.toString());
-					bean.setName(key);
-					if (jsonProperties != null) {
-						@SuppressWarnings("unchecked")
-						Iterator<String> itp = jsonProperties.keys();
-						while (itp.hasNext()) {
-							String pkey = itp.next();
-							if (!pkey.isEmpty()) {
-								Object value = jsonProperties.get(pkey);
-								// This is a bean property (available for this bean only)
-								if (value instanceof JSONObject) {
-									IonProperty property = new IonProperty((JSONObject) value);
-									property.setName(pkey);
-									bean.putProperty(property);
-								}
-								else {
-									// This is model property (available for all beans)
-									IonProperty original = pCache.get(pkey);
-									if (original != null) {
-										String jsonString = original.getJSONObject().toString();
-										IonProperty property = new IonProperty(new JSONObject(jsonString));
-										property.setValue(value);
+					if (!jsonObject.has("enabled") || Boolean.TRUE.equals(jsonObject.remove("enabled"))) {					
+						JSONObject jsonProperties = (JSONObject) jsonObject.remove("properties");
+						
+						IonBean bean = new IonBean(jsonObject.toString());
+						bean.setName(key);
+						if (jsonProperties != null) {
+							@SuppressWarnings("unchecked")
+							Iterator<String> itp = jsonProperties.keys();
+							while (itp.hasNext()) {
+								String pkey = itp.next();
+								if (!pkey.isEmpty()) {
+									Object value = jsonProperties.get(pkey);
+									// This is a bean property (available for this bean only)
+									if (value instanceof JSONObject) {
+										IonProperty property = new IonProperty((JSONObject) value);
+										property.setName(pkey);
 										bean.putProperty(property);
+									}
+									else {
+										// This is model property (available for all beans)
+										IonProperty original = pCache.get(pkey);
+										if (original != null) {
+											String jsonString = original.getJSONObject().toString();
+											IonProperty property = new IonProperty(new JSONObject(jsonString));
+											property.setValue(value);
+											bean.putProperty(property);
+										}
 									}
 								}
 							}
 						}
+						bCache.put(key, bean);
 					}
-					bCache.put(key, bean);
-					
 				}
 			}
 		} catch (Exception e) {
