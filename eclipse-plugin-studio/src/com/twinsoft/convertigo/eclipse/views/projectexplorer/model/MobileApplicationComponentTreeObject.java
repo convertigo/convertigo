@@ -130,7 +130,7 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 				else if (this.equals(doto)) {
 					if (propertyName.equals("componentScriptContent")) {
 						if (!newValue.equals(oldValue)) {
-							markComponentTsAsDirty();
+							markApplicationAsDirty();
 						}
 					} else if (propertyName.equals("tplProjectName")) {
 						Project project = getObject().getProject();

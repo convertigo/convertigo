@@ -269,7 +269,7 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 				else if (this.equals(doto)) {
 					if (propertyName.equals("scriptContent")) {
 						if (!newValue.equals(oldValue)) {
-							markPageTsAsDirty();
+							markPageAsDirty();
 						}
 					} else if (propertyName.equals("isEnabled")) {
 						if (!newValue.equals(oldValue)) {
