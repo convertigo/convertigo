@@ -762,10 +762,21 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 				getProject().getMobileBuilder().hasAppTplImport(name);
 	}
 	
+	private boolean hasCustomImport(String name) {
+		synchronized (componentScriptContent) {
+			String c8o_UserCustoms = componentScriptContent.getString();
+			String importMarker = MobileBuilder.getMarker(c8o_UserCustoms, "AppImport");
+			Map<String, String> map = new HashMap<String, String>(10);
+			MobileBuilder.initMapImports(map, importMarker);
+			return map.containsKey(name);
+		}
+	}
+	
+	
 	public boolean addImport(String name, String path) {
 		if (name != null && path != null && !name.isEmpty() && !path.isEmpty()) {
 			synchronized (appImports) {
-				if (!hasImport(name)) {
+				if (!hasImport(name) && !hasCustomImport(name)) {
 					appImports.put(name, path);
 					return true;
 				}

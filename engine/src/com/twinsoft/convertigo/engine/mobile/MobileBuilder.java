@@ -448,6 +448,14 @@ public class MobileBuilder {
 		if (page != null && page.isEnabled() && initDone) {
 			writePageTs(page);
 			moveFiles();
+			
+			String pageName = page.getName();
+			File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
+			File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".temp.ts");
+			if (tempTsFile.exists()) {
+				writePageTempTs(page);
+			}
+			
 			Engine.logEngine.debug("(MobileBuilder) Handled 'pageTsChanged'");
 		}
 	}
@@ -456,6 +464,12 @@ public class MobileBuilder {
 		if (app != null && initDone) {
 			writeAppComponentTs(app);
 			moveFiles();
+			
+			File tempTsFile = new File(ionicWorkDir, "src/app/app.component.temp.ts");
+			if (tempTsFile.exists()) {
+				writeAppComponentTempTs(app);
+			}
+			
 			Engine.logEngine.debug("(MobileBuilder) Handled 'appTsChanged'");
 		}
 	}
@@ -1062,11 +1076,8 @@ public class MobileBuilder {
 		return actionTplTsImports;
 	}
 
-	private static Map<String,String> initTplImports(File file) {
-		Map<String, String> map = new HashMap<String, String>(10);
-		try {
-			String tsContent = FileUtils.readFileToString(file, "UTF-8");
-			
+	public static void initMapImports(Map<String,String> map, String tsContent) {
+		if (map != null && tsContent != null) {
 			// case : import {...} from '...'
 			Pattern pattern = Pattern.compile("[\\s\\t]*import[\\s\\t]*\\{(.*?)\\}[\\s\\t]*from[\\s\\t]*['\"](.*?)['\"]", Pattern.DOTALL);
 			Matcher matcher = pattern.matcher(tsContent);
@@ -1094,7 +1105,14 @@ public class MobileBuilder {
 					}
 				}
 			}
-			
+		}
+	}
+	
+	private static Map<String,String> initTplImports(File file) {
+		Map<String, String> map = new HashMap<String, String>(10);
+		try {
+			String tsContent = FileUtils.readFileToString(file, "UTF-8");
+			initMapImports(map, tsContent);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
