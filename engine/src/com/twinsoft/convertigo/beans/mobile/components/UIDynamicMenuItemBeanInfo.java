@@ -35,7 +35,7 @@ public class UIDynamicMenuItemBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[3];
+			properties = new PropertyDescriptor[4];
 			
 			properties[0] = new PropertyDescriptor("itempage", beanClass, "getItemPage", "setItemPage");
 			properties[0].setDisplayName(getExternalizedString("property.itempage.display_name"));
@@ -51,6 +51,11 @@ public class UIDynamicMenuItemBeanInfo extends MySimpleBeanInfo {
 			properties[2].setDisplayName(getExternalizedString("property.itemicon.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.itemicon.short_description"));
 			properties[2].setPropertyEditorClass(getEditorClass("StringComboBoxPropertyDescriptor"));
+
+			properties[3] = new PropertyDescriptor("itemiconPos", beanClass, "getItemIconPosition", "setItemIconPosition");
+			properties[3].setDisplayName(getExternalizedString("property.itemiconPos.display_name"));
+			properties[3].setShortDescription(getExternalizedString("property.itemiconPos.short_description"));
+			properties[3].setPropertyEditorClass(getEditorClass("StringComboBoxPropertyDescriptor"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

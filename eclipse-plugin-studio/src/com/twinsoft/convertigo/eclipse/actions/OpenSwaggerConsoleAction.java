@@ -19,8 +19,6 @@
 
 package com.twinsoft.convertigo.eclipse.actions;
 
-import java.net.URLEncoder;
-
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.program.Program;
@@ -29,6 +27,7 @@ import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.util.URLUtils;
 
 public class OpenSwaggerConsoleAction implements IWorkbenchWindowActionDelegate {
 
@@ -41,8 +40,8 @@ public class OpenSwaggerConsoleAction implements IWorkbenchWindowActionDelegate 
 	public void run(IAction action) {
 		try {
 			Program.launch(
-					EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue()+"/swagger/ui/index.html?url=" + 
-					URLEncoder.encode(EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue()+"/api?YAML","UTF-8"));
+					EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue()+"/swagger/ui/index.html?" + 
+					URLUtils.encodePart("url", EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue() + "/api?YAML"));
 		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "Error while opening the Swagger console");
 		}

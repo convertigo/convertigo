@@ -269,7 +269,7 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 				else if (this.equals(doto)) {
 					if (propertyName.equals("scriptContent")) {
 						if (!newValue.equals(oldValue)) {
-							markPageTsAsDirty();
+							markPageAsDirty();
 						}
 					} else if (propertyName.equals("isEnabled")) {
 						if (!newValue.equals(oldValue)) {
@@ -279,7 +279,10 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 						if (!newValue.equals(oldValue)) {
 							markAppModuleTsAsDirty();
 						}
-					} else if (propertyName.equals("title") || propertyName.equals("icon") || propertyName.equals("inAutoMenu")) {
+					} else if (propertyName.equals("title") || 
+								propertyName.equals("icon") ||
+								propertyName.equals("iconPosition") || 
+								propertyName.equals("inAutoMenu")) {
 						if (!newValue.equals(oldValue)) {
 							markAppComponentTsAsDirty();
 						}
@@ -444,7 +447,8 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 			
 					if (hasBeenRenamed) {
 						hasBeenModified(true);
-						viewer.refresh();
+						
+						ConvertigoPlugin.projectManager.getProjectExplorerView().updateTreeObject(MobilePageComponentTreeObject.this);
 						getDescriptors();// refresh editors (e.g labels in combobox)
 						
 		    	        TreeObjectEvent treeObjectEvent = new TreeObjectEvent(MobilePageComponentTreeObject.this, propertyName, "", "");

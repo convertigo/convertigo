@@ -45,21 +45,27 @@ public abstract class NamedSourceSelector {
 				handleSourceCleared(propertyName);
 			}
 		}
-		else if (update != TreeObjectEvent.UPDATE_NONE && propertyName.equals("name")) {
+		else if (update != TreeObjectEvent.UPDATE_NONE) {
 			if (!newValue.equals(oldValue)) {
 				String oldTokenPath = null, newTokenPath = null;
-				if (treeObject instanceof DatabaseObjectTreeObject) {
-					if (treeObject.getObject() instanceof ITokenPath) {
-						oldTokenPath = ((ITokenPath)treeObject.getObject()).getTokenPath((String)oldValue);
-						newTokenPath = ((ITokenPath)treeObject.getObject()).getTokenPath((String)newValue);
+				
+				if (propertyName.equals("name")) {
+					if (treeObject instanceof DatabaseObjectTreeObject) {
+						if (treeObject.getObject() instanceof ITokenPath) {
+							oldTokenPath = ((ITokenPath)treeObject.getObject()).getTokenPath((String)oldValue);
+							newTokenPath = ((ITokenPath)treeObject.getObject()).getTokenPath((String)newValue);
+						}
 					}
-				}
-				else if (treeObject instanceof IDesignTreeObject) {
-					TreeObject nsTreeObject = (TreeObject) ((IDesignTreeObject)treeObject).getParentDesignTreeObject();
-					if (nsTreeObject.getObject() instanceof ITokenPath) {
-						oldTokenPath = ((ITokenPath)nsTreeObject.getObject()).getTokenPath(null) +"."+ (String)oldValue;
-						newTokenPath = ((ITokenPath)nsTreeObject.getObject()).getTokenPath(null) +"."+ (String)newValue;
+					else if (treeObject instanceof IDesignTreeObject) {
+						TreeObject nsTreeObject = (TreeObject) ((IDesignTreeObject)treeObject).getParentDesignTreeObject();
+						if (nsTreeObject.getObject() instanceof ITokenPath) {
+							oldTokenPath = ((ITokenPath)nsTreeObject.getObject()).getTokenPath(null) +"."+ (String)oldValue;
+							newTokenPath = ((ITokenPath)nsTreeObject.getObject()).getTokenPath(null) +"."+ (String)newValue;
+						}
 					}
+				} else if (propertyName.equals("qname")) {
+					oldTokenPath = (String)oldValue;
+					newTokenPath = (String)newValue;
 				}
 				
 				if (oldTokenPath != null && newTokenPath != null) {

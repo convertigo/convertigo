@@ -142,8 +142,8 @@ public class MobileApplicationTreeObject extends DatabaseObjectTreeObject implem
 			
 					if (hasBeenRenamed) {
 						hasBeenModified(true);
-						viewer.refresh();
 						
+						ConvertigoPlugin.projectManager.getProjectExplorerView().updateTreeObject(MobileApplicationTreeObject.this);
 						getDescriptors();// refresh editors (e.g labels in combobox)
 					}
 				}

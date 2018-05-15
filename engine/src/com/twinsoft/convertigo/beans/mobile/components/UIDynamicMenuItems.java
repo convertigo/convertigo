@@ -69,11 +69,32 @@ public class UIDynamicMenuItems extends UIDynamicMenuItem {
 			String menuId = getMenuId();
 			
 			StringBuilder sb = new StringBuilder();
-			sb.append("<button"+attrclass+ " ion-item menuClose=\""+menuId+"\" *ngFor=\"let p of getPagesIncludedInAutoMenu()\" (click)=\"openPage(p)\">")
-				.append("<ion-icon name=\"{{p.icon}}\"></ion-icon>&nbsp;&nbsp;&nbsp;&nbsp;")
+			if (compareToTplVersion("7.5.2.1") < 0) {
+				sb.append("<button"+attrclass+ " ion-item menuClose=\""+menuId+"\" *ngFor=\"let p of getPagesIncludedInAutoMenu()\" (click)=\"openPage(p)\" >")
+				.append(System.lineSeparator())
+				.append("<ion-icon name=\"{{p.icon}}\" ></ion-icon>")
+				.append(System.lineSeparator())
 				.append("{{p.title}}")
+				.append(System.lineSeparator())
 				.append("</button>")
 				.append(System.lineSeparator());
+				
+			} else {
+				sb.append("<button"+attrclass+ " ion-item menuClose=\""+menuId+"\" *ngFor=\"let p of getPagesIncludedInAutoMenu()\" (click)=\"openPage(p)\" [ngSwitch]=\"p.iconPos\">")
+					.append(System.lineSeparator())
+					.append("<ion-icon name=\"{{p.icon}}\" *ngSwitchCase=\"'item-start'\" item-start></ion-icon>")
+					.append(System.lineSeparator())
+					.append("<ion-icon name=\"{{p.icon}}\" *ngSwitchCase=\"'item-end'\" item-end></ion-icon>")
+					.append(System.lineSeparator())
+					.append("<ion-icon name=\"{{p.icon}}\" *ngSwitchCase=\"'item-right'\" item-right></ion-icon>")
+					.append(System.lineSeparator())
+					.append("<ion-icon name=\"{{p.icon}}\" *ngSwitchDefault item-left></ion-icon>")
+					.append(System.lineSeparator())
+					.append("{{p.title}}")
+					.append(System.lineSeparator())
+					.append("</button>")
+					.append(System.lineSeparator());
+			}
 			return sb.toString();
 		}
 		return "";

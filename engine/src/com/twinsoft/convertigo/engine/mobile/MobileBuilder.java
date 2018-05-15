@@ -235,8 +235,7 @@ public class MobileBuilder {
 	String moduleTplNgProviders = null;
 	String moduleTplNgDeclarations = null;
 	String moduleTplNgComponents = null;
-	String cafTplVersion = null;
-	String cafNodeVersion = null;
+	String tplVersion = null;
 	
 	Set<File> writtenFiles = new HashSet<File>();
 	
@@ -302,9 +301,6 @@ public class MobileBuilder {
 	
 	public void setNeedPkgUpdate(boolean needPkgUpdate) {
 		this.needPkgUpdate = needPkgUpdate;
-		
-		this.cafNodeVersion = null;
-		updateNodeCafVersion();
 	}
 	
 	public boolean getNeedPkgUpdate() {
@@ -452,6 +448,14 @@ public class MobileBuilder {
 		if (page != null && page.isEnabled() && initDone) {
 			writePageTs(page);
 			moveFiles();
+			
+			String pageName = page.getName();
+			File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
+			File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".temp.ts");
+			if (tempTsFile.exists()) {
+				writePageTempTs(page);
+			}
+			
 			Engine.logEngine.debug("(MobileBuilder) Handled 'pageTsChanged'");
 		}
 	}
@@ -460,6 +464,12 @@ public class MobileBuilder {
 		if (app != null && initDone) {
 			writeAppComponentTs(app);
 			moveFiles();
+			
+			File tempTsFile = new File(ionicWorkDir, "src/app/app.component.temp.ts");
+			if (tempTsFile.exists()) {
+				writeAppComponentTempTs(app);
+			}
+			
 			Engine.logEngine.debug("(MobileBuilder) Handled 'appTsChanged'");
 		}
 	}
@@ -536,9 +546,8 @@ public class MobileBuilder {
 			// Modify configuration files
 			updateConfigurationFiles();
 			
-			// Update CAF versions
-			updateNodeCafVersion();
-			updateTplCafVersion();
+			// Tpl version
+			updateTplVersion();
 			
 			// Write source files (based on bean components)
 			updateSourceFiles();
@@ -617,11 +626,8 @@ public class MobileBuilder {
 				actionTplTsImports.clear();
 				actionTplTsImports = null;
 			}
-			if (cafTplVersion != null) {
-				cafTplVersion = null;
-			}
-			if (cafNodeVersion != null) {
-				cafNodeVersion = null;
+			if (tplVersion != null) {
+				tplVersion = null;
 			}
 			if (eventHelper != null) {
 				eventHelper = null;
@@ -635,6 +641,7 @@ public class MobileBuilder {
 	
 	private void cleanDirectories() {
 		FileUtils.deleteQuietly(new File(projectDir,"_private/ionic/src"));
+		FileUtils.deleteQuietly(new File(projectDir,"_private/ionic/version.json"));
 		FileUtils.deleteQuietly(new File(projectDir,"_private/ionic_tmp"));
 		Engine.logEngine.debug("(MobileBuilder) Directories cleaned for ionic project '"+ project.getName() +"'");
 	}
@@ -689,8 +696,8 @@ public class MobileBuilder {
 			if (mobileApplication != null) {
 				ApplicationComponent application = mobileApplication.getApplicationComponent();
 				if (application != null) {
-					String appCafVersion = application.requiredCafVersion();
-					if (compareVersions(cafTplVersion, appCafVersion) >= 0) {
+					String appTplVersion = application.requiredTplVersion();
+					if (compareVersions(tplVersion, appTplVersion) >= 0) {
 						for (PageComponent page : getEnabledPages(application)) {
 							writePageSourceFiles(page);
 						}
@@ -700,10 +707,9 @@ public class MobileBuilder {
 						Engine.logEngine.debug("(MobileBuilder) Application source files updated for ionic project '"+ project.getName() +"'");
 					} else {
 						cleanDirectories();
-						throw new EngineException("Convertigo Angular Framework (CAF) minimum "+ appCafVersion +" is required for this project. \n\n" +
-							"Be sure to use a project template having this CAF version as dependency in its package.json file. " +
-							"You can change template by configuring\nthe 'Template project' property of your project's 'Application' object. " + 
-							"Then, be sure to update\nthe project node modules packages (Application Right Click->Update packages and execute) \n");
+						throw new EngineException("Template project minimum "+ appTplVersion +" is required for this project.\n" +
+							"You can change template by configuring the 'Template project' property of your project's 'Application' object.\n" + 
+							"Then, be sure to update the project node modules packages (Application Right Click->Update packages and execute) \n");
 					}
 					
 				}
@@ -929,65 +935,44 @@ public class MobileBuilder {
 		}
 	}
 	
-	private void updateTplCafVersion() {
-		if (cafTplVersion == null) {
-			File pkgJson = new File(ionicWorkDir, "package.json"); 
-			if (pkgJson.exists()) {
+	private void updateTplVersion() {
+		if (tplVersion == null) {
+			File versionJson = new File(ionicWorkDir, "version.json"); // since 7.5.2
+			if (versionJson.exists()) {
 				try {
-					String tsContent = FileUtils.readFileToString(pkgJson, "UTF-8");
+					String tsContent = FileUtils.readFileToString(versionJson, "UTF-8");
 					JSONObject jsonOb = new JSONObject(tsContent);
-					JSONObject jsonDeps = jsonOb.getJSONObject("dependencies");
-					cafTplVersion = jsonDeps.getString("c8ocaf");
-					Engine.logEngine.debug("(MobileBuilder) Embedded CAF version: "+ cafTplVersion+ " for ionic project '"+ project.getName() +"'");
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		}
-	}
-	
-	public String getTplCafVersion() {
-		return cafTplVersion;
-	}
-	
-	public void updateNodeCafVersion() {
-		if (cafNodeVersion == null) {
-			File pkgJson = new File(ionicWorkDir, "node_modules/c8ocaf/package.json");
-			if (pkgJson.exists()) {
-				try {
-					String tsContent = FileUtils.readFileToString(pkgJson, "UTF-8");
-					JSONObject jsonOb = new JSONObject(tsContent);
-					cafNodeVersion = jsonOb.getString("version");
-					Engine.logEngine.debug("(MobileBuilder) Installed CAF version: "+ cafNodeVersion+ " for ionic project '"+ project.getName() +"'");
+					tplVersion = jsonOb.getString("version");
+					Engine.logEngine.debug("(MobileBuilder) Template version: "+ tplVersion+ " for ionic project '"+ project.getName() +"'");
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			} else {
-				Engine.logEngine.debug("(MobileBuilder) None CAF installed for ionic project '"+ project.getName() +"'");
+				File pkgJson = new File(ionicWorkDir, "package.json"); 
+				if (pkgJson.exists()) {
+					try {
+						String tsContent = FileUtils.readFileToString(pkgJson, "UTF-8");
+						JSONObject jsonOb = new JSONObject(tsContent);
+						JSONObject jsonDeps = jsonOb.getJSONObject("dependencies");
+						tplVersion = jsonDeps.getString("c8ocaf");
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
 			}
 		}
 	}
 	
-	public String getNodeCafVersion() {
-		return cafNodeVersion;
+	public String getTplVersion() {
+		return tplVersion;
 	}
 	
 	
 	public boolean hasAppTplImport(String name) {
-		/*if (initDone) {
-			return getAppTplTsImports().containsKey(name);
-		} else {
-			return false;
-		}*/
 		return getAppTplTsImports().containsKey(name);
 	}
 	
 	public boolean hasPageTplImport(String name) {
-		/*if (initDone) {
-			return getPageTplTsImports().containsKey(name);
-		} else {
-			return false;
-		}*/
 		return getPageTplTsImports().containsKey(name);
 	}
 	
@@ -1091,10 +1076,9 @@ public class MobileBuilder {
 		return actionTplTsImports;
 	}
 
-	private static Map<String,String> initTplImports(File file) {
-		Map<String, String> map = new HashMap<String, String>(10);
-		try {
-			String tsContent = FileUtils.readFileToString(file, "UTF-8");
+	public static void initMapImports(Map<String,String> map, String tsContent) {
+		if (map != null && tsContent != null) {
+			// case : import {...} from '...'
 			Pattern pattern = Pattern.compile("[\\s\\t]*import[\\s\\t]*\\{(.*?)\\}[\\s\\t]*from[\\s\\t]*['\"](.*?)['\"]", Pattern.DOTALL);
 			Matcher matcher = pattern.matcher(tsContent);
 			while (matcher.find()) {
@@ -1107,6 +1091,28 @@ public class MobileBuilder {
 					}
 				}
 			}
+			
+			// case : import ... as ... from '...'
+			Pattern pattern1 = Pattern.compile("[\\s\\t]*import[\\s\\t]*([^\\{\\}]*?)[\\s\\t]*from[\\s\\t]*['\"](.*?)['\"]", Pattern.DOTALL);
+			Matcher matcher1 = pattern1.matcher(tsContent);
+			while (matcher1.find()) {
+				String names = matcher1.group(1);
+				String path = matcher1.group(2);
+				for (String name : names.split(",")) {
+					name = name.trim();
+					if (!map.containsKey(name)) {
+						map.put(name, path);
+					}
+				}
+			}
+		}
+	}
+	
+	private static Map<String,String> initTplImports(File file) {
+		Map<String, String> map = new HashMap<String, String>(10);
+		try {
+			String tsContent = FileUtils.readFileToString(file, "UTF-8");
+			initMapImports(map, tsContent);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -1382,7 +1388,11 @@ public class MobileBuilder {
 				if (!tpl_ts_imports.isEmpty()) {
 					for (String comp : module_ts_imports.keySet()) {
 						if (!tpl_ts_imports.containsKey(comp)) {
-							c8o_ModuleTsImports += "import { "+comp+" } from '"+ module_ts_imports.get(comp) +"';"+ System.lineSeparator();
+							if (comp.indexOf(" as ") != -1) {
+								c8o_ModuleTsImports += "import "+comp+" from '"+ module_ts_imports.get(comp) +"';"+ System.lineSeparator();
+							} else {
+								c8o_ModuleTsImports += "import { "+comp+" } from '"+ module_ts_imports.get(comp) +"';"+ System.lineSeparator();
+							}
 						}
 					}
 				}
@@ -1494,13 +1504,18 @@ public class MobileBuilder {
 		for (PageComponent page : pages) {
 			String pageName = page.getName();
 			String pageIcon = page.getIcon();
+			String pageIconPos = page.getIconPosition();
 			String pageTitle = page.getTitle();
 			boolean isRootPage = page.isRoot;
 			boolean isMenuPage = page.isInAutoMenu();
 			boolean isLastPage = i == pages.size();
 			if (isRootPage) c8o_RootPage = pageName;
 			c8o_PagesImport += "import { "+pageName+" } from \"../pages/"+pageName+"/"+pageName.toLowerCase()+"\";" + System.lineSeparator();
-			c8o_PagesVariables += " { title: \""+pageTitle+"\", icon: \""+ pageIcon +"\", component: "+pageName+", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
+			if (app.compareToTplVersion("7.5.2.1") < 0) {
+				c8o_PagesVariables += " { title: \""+pageTitle+"\", icon: \""+ pageIcon +"\", component: "+pageName+", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
+			} else {
+				c8o_PagesVariables += " { title: \""+pageTitle+"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\", component: "+pageName+", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
+			}
 			c8o_PagesVariablesKeyValue += pageName+":"+ pageName+ (isLastPage ? "":",");
 			i++;
 		}

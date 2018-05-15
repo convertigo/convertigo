@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.beans.mobile.components;
 import java.util.regex.Pattern;
 
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
+import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType.Mode;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
 public class UIControlDirective extends UIElement implements IControl, ITagsProperty {
@@ -117,8 +118,28 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 		if (sbListen.length() > 0) {
 			AttrDirective attrDirective = AttrDirective.getDirective(getDirectiveName());
 			if (AttrDirective.ForEach.equals(attrDirective)) {
+				String ob = null, path = null;
+				
+				if (compareToTplVersion("7.5.2.0") >= 0) {
+					if (Mode.SOURCE.equals(directiveSource.getMode())) {
+						path = directiveSource.getSmartSource().getModelPath();
+						int index = sbListen.indexOf(path);
+						if (index > 0) {
+							ob = sbListen.substring(0, index);
+							path = path.replaceAll("\\?\\.", ".");
+							path = path.replaceFirst("\\.", "");
+						}
+					}
+				}
+				
 				String item = "item"+ this.priority;
-				children.append("let "+ item).append(" of ").append(sbListen);
+				
+				if (ob != null && path != null) {
+					children.append("let "+ item).append(" of ").append("resolveArray("+ ob +",'"+ path +"')");
+				} else {
+					children.append("let "+ item).append(" of ").append(sbListen);
+				}
+				
 				if (!directiveExpression.trim().startsWith(";")) {
 					children.append(";");
 				}

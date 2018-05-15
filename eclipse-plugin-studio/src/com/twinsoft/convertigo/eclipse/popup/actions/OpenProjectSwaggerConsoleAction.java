@@ -19,19 +19,18 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
-import java.net.URLEncoder;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.program.Program;
 
 import com.twinsoft.convertigo.beans.core.Project;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.util.URLUtils;
 
 public class OpenProjectSwaggerConsoleAction extends MyAbstractAction {
 
@@ -55,8 +54,8 @@ public class OpenProjectSwaggerConsoleAction extends MyAbstractAction {
     			if ((databaseObject != null) && (databaseObject instanceof Project)) {
     				Project project = (Project)treeObject.getObject();
     				Program.launch(
-    						EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue()+"/swagger/ui/index.html?url=" + 
-    						URLEncoder.encode(EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue()+"/api?YAML&__project=" + project.getName(),"UTF-8"));
+    						EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue()+"/swagger/ui/index.html?" + 
+    						URLUtils.encodePart("url", EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue()+"/api?YAML&__project=" + project.getName()));
     			}
     		}
         	

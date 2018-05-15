@@ -28,11 +28,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -274,6 +272,32 @@ public class HttpConnector extends Connector {
 		return charset;
 	}
 
+	private String appendToQuery(String query, String key, Object value) {
+		if (!query.isEmpty()) {
+			query += "&";
+		}
+		return query + URLUtils.encodePart(key, ParameterUtils.toString(value));
+	}
+	
+	private String appendToQuery(String queryString, boolean isMultiValued, String httpVariable, Object httpObjectVariableValue) {
+		if (isMultiValued) {
+			if (httpObjectVariableValue instanceof Collection<?>) {
+				for (Object httpVariableValue : (Collection<?>) httpObjectVariableValue) {
+					queryString = appendToQuery(queryString, httpVariable, httpVariableValue);
+				}
+			} else if (httpObjectVariableValue.getClass().isArray()) {
+				for (Object httpVariableValue : (Object[]) httpObjectVariableValue) {
+					queryString = appendToQuery(queryString, httpVariable, httpVariableValue);
+				}
+			}
+		}
+		// standard case
+		else {
+			queryString = appendToQuery(queryString, httpVariable, httpObjectVariableValue);
+		}
+		return queryString;
+	}
+	
 	@Override
 	public void prepareForTransaction(Context context) throws EngineException {	
 		Engine.logBeans.debug("(HttpConnector) Preparing for transaction");
@@ -443,7 +467,7 @@ public class HttpConnector extends Connector {
 				
 				Engine.logBeans.trace("(HttpConnector) Path variable: " + varName + " => (" + method + ") " + httpVariable);
 				
-				sUrl = sUrl.replaceAll("\\{"+varName+"\\}", ParameterUtils.toString(httpObjectVariableValue));
+				sUrl = sUrl.replaceAll("\\{" + varName + "\\}", ParameterUtils.toString(httpObjectVariableValue));
 			}
 		}
 		
@@ -463,25 +487,7 @@ public class HttpConnector extends Connector {
 			
 			if (!bIgnoreVariable) {
 				Engine.logBeans.trace("(HttpConnector) Query variable: " + variable + " => (" + method + ") " + httpVariable);
-				
-				try {
-					// handle multivalued variable
-					if (isMultiValued) {
-						if (httpObjectVariableValue instanceof Collection<?>) {
-							for (Object httpVariableValue : (Collection<?>) httpObjectVariableValue) {
-								queryString += ((queryString.length() != 0) ? "&" : "");
-								queryString += httpVariable + "=" + URLEncoder.encode(ParameterUtils.toString(httpVariableValue), urlEncodingCharset);
-							}
-						}
-					}
-					// standard case
-					else {
-						queryString += ((queryString.length() != 0) ? "&" : "");
-						queryString += httpVariable + "=" + URLEncoder.encode(ParameterUtils.toString(httpObjectVariableValue), urlEncodingCharset);
-					}
-				} catch (UnsupportedEncodingException e) {
-					throw new EngineException(urlEncodingCharset + " encoding is not supported.", e);
-				}
+				queryString = appendToQuery(queryString, isMultiValued, httpVariable, httpObjectVariableValue);
 			}
 		}
 
@@ -640,23 +646,7 @@ public class HttpConnector extends Connector {
 						// Replace variable value in postQuery
 						if (httpObjectVariableValue != null) {
 							// handle multivalued variable
-							if (isMultiValued) {
-								if (httpObjectVariableValue instanceof Collection<?>)
-									for (Object httpVariableValue : (Collection<?>) httpObjectVariableValue) {
-										postQuery += ((postQuery.length() != 0) ? "&" : "");
-										postQuery += httpVariable + "=" + ParameterUtils.toString(httpVariableValue);
-									}
-								else if (httpObjectVariableValue.getClass().isArray())
-									for (Object httpVariableValue : (Object[]) httpObjectVariableValue) {
-										postQuery += ((postQuery.length() != 0) ? "&" : "");
-										postQuery += httpVariable + "=" + ParameterUtils.toString(httpVariableValue);
-									}
-							}
-							// standard case
-							else {
-								postQuery += ((postQuery.length() != 0) ? "&" : "");
-								postQuery += httpVariable + "=" + ParameterUtils.toString(httpObjectVariableValue);
-							}
+							postQuery = appendToQuery(postQuery, isMultiValued, httpVariable, httpObjectVariableValue);
 						}
 					}
 					// Content-Type is 'text/xml'

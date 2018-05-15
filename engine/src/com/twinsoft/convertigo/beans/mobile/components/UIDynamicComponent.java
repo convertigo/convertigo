@@ -47,12 +47,12 @@ public class UIDynamicComponent extends UIDynamicElement {
 	}
 	
 	@Override
-	protected String getRequiredCafVersion() {
+	protected String getRequiredTplVersion() {
 		IonBean ionBean = getIonBean();
 		if (ionBean != null) {
-			String beanCafVersion = ionBean.getCafVersion();
-			if (MobileBuilder.compareVersions(beanCafVersion, "1.0.100") >= 0) {
-				return beanCafVersion;
+			String beanTplVersion = ionBean.getTplVersion();
+			if (MobileBuilder.compareVersions(beanTplVersion, "1.0.100") >= 0) {
+				return beanTplVersion;
 			}
 		}
 		return "1.0.100";

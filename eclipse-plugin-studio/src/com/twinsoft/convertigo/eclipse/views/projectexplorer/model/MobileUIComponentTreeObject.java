@@ -136,7 +136,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			closeComponentFileEditor(file);
 			
 			if (main instanceof ApplicationComponent) {
-				if (uic.compareToTplCafVersion("1.0.101") < 0) {
+				if (uic.compareToTplVersion("7.5.2.0") < 0) {
 					ConvertigoPlugin.logError("The ability to use forms or actions inside a menu is avalaible since 7.5.2 version."
 							+ "\nPlease change your Template project for the 'mobilebuilder_tpl_7_5_2' template.", true);
 					return;
@@ -709,7 +709,8 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			
 					if (hasBeenRenamed) {
 						hasBeenModified(true);
-						viewer.refresh();
+						
+						ConvertigoPlugin.projectManager.getProjectExplorerView().updateTreeObject(MobileUIComponentTreeObject.this);
 						getDescriptors();// refresh editors (e.g labels in combobox)
 						
 		    	        TreeObjectEvent treeObjectEvent = new TreeObjectEvent(MobileUIComponentTreeObject.this, propertyName, "", "");

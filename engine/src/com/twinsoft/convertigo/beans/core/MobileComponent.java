@@ -49,31 +49,27 @@ public abstract class MobileComponent extends MobileObject {
 			return (ApplicationComponent) databaseObject;
 	}
 	
-	protected String getRequiredCafVersion() {
+	protected String getRequiredTplVersion() {
 		return "1.0.88";// the 7.5.0 has been released with CAF 1.0.88
 	}
 
-	public String requiredCafVersion() {
-		return getRequiredCafVersion();
+	public String requiredTplVersion() {
+		return getRequiredTplVersion();
 	}
 	
-	public String getTplCafVersion() {
-		return getProject().getMobileBuilder().getTplCafVersion();
+	public String getTplVersion() {
+		return getProject().getMobileBuilder().getTplVersion();
 	}
 	
-	public String getNodeCafVersion() {
-		return getProject().getMobileBuilder().getNodeCafVersion();
-	}
-	
-	public int compareToTplCafVersion(String version) {
+	public int compareToTplVersion(String version) {
 		int result = -1;
 		if (version != null) {
-			String tplCafVersion = getTplCafVersion();
-			if (tplCafVersion != null) {
-				if (tplCafVersion.trim().toLowerCase().equals("latest")) {
+			String tplVersion = getTplVersion();
+			if (tplVersion != null) {
+				if (tplVersion.trim().toLowerCase().equals("latest")) {
 					result = 1;
 				} else {
-					result = MobileBuilder.compareVersions(tplCafVersion, version);
+					result = MobileBuilder.compareVersions(tplVersion, version);
 				}
 			}
 		}

@@ -59,8 +59,8 @@ public class UIEventSubscriber extends UIComponent implements IEventListener {
 	}
 
 	@Override
-	protected String getRequiredCafVersion() {
-		return "1.0.101";// since _tpl_7_5_2
+	protected String getRequiredTplVersion() {
+		return "7.5.2.0";// since _tpl_7_5_2
 	}
 
 	@Override

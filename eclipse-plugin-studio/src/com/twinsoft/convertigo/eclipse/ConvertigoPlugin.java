@@ -28,7 +28,6 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -141,6 +140,7 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.LogWrapper;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 import com.twinsoft.convertigo.engine.util.SimpleCipher;
+import com.twinsoft.convertigo.engine.util.URLUtils;
 import com.twinsoft.util.Log;
 
 /**
@@ -666,8 +666,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		} catch (Exception e) {}
 
 		String url = "http://www.convertigo.com/index.php?option=com_content&view=article&id=269&Itemid=364&lang=en&ConvertigoStudio=true";
-		url += "&user=" + URLEncoder.encode(username, "utf8");
-		url += "&version=" + URLEncoder.encode(ProductVersion.fullProductVersion, "utf8");
+		url += "&" + URLUtils.encodePart("user", username);
+		url += "&" + URLUtils.encodePart("version", ProductVersion.fullProductVersion);
 		
 		browser.addProgressListener(progressListener);
 		browser.setUrl(url);

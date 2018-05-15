@@ -113,11 +113,7 @@ public abstract class AbstractContext {
 	public Context parentContext = null;
 	
 	public String getAuthenticatedUser() {
-		if (tasUserName == null) {
-			return SessionAttribute.authenticatedUser.string(httpSession);
-		} else {
-			return tasUserName;
-		}
+		return SessionAttribute.authenticatedUser.string(httpSession);
 	}
 	
 	public void setAuthenticatedUser(String authenticatedUser){

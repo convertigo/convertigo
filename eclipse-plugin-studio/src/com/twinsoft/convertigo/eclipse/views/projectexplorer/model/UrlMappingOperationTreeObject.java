@@ -27,6 +27,7 @@ import org.eclipse.jface.viewers.Viewer;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 
 public class UrlMappingOperationTreeObject extends DatabaseObjectTreeObject implements INamedSourceSelectorTreeObject {
 
@@ -112,8 +113,8 @@ public class UrlMappingOperationTreeObject extends DatabaseObjectTreeObject impl
 			
 					if (hasBeenRenamed) {
 						hasBeenModified(true);
-						viewer.refresh();
 						
+						ConvertigoPlugin.projectManager.getProjectExplorerView().updateTreeObject(UrlMappingOperationTreeObject.this);
 						getDescriptors();// refresh editors (e.g labels in combobox)
 					}
 				}

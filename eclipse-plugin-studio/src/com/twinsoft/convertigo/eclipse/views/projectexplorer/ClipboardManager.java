@@ -331,7 +331,7 @@ public class ClipboardManager {
 				UIComponent uic = (UIComponent)ob;
 				for (Entry<String, UIComponent> entry : pastedComponents.entrySet()) {
 					uic.updateSmartSource(entry.getKey(), String.valueOf(entry.getValue().priority));
-					uic.getPage().markPageAsDirty();
+					uic.markAsDirty();
 				}
 			}
 		}
@@ -407,9 +407,9 @@ public class ClipboardManager {
 				if (!ComponentManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
 					throw new EngineException("You cannot paste to a " + parentDatabaseObject.getClass().getSimpleName() + " a database object of type " + databaseObject.getClass().getSimpleName());
 				}
-				if (!ComponentManager.isCafCompatible(parentDatabaseObject, databaseObject)) {
-					String cafVersion = ComponentManager.getCafRequired(databaseObject);
-					throw new EngineException("CAF "+ cafVersion +" compatibility required");
+				if (!ComponentManager.isTplCompatible(parentDatabaseObject, databaseObject)) {
+					String tplVersion = ComponentManager.getTplRequired(databaseObject);
+					throw new EngineException("Template project "+ tplVersion +" compatibility required");
 				}
 				
 				// Disable the isDefault boolean flag when the connector is pasted
@@ -700,9 +700,18 @@ public class ClipboardManager {
 		
 		if (object instanceof DatabaseObjectTreeObject) {
 			if (targetTreeObject instanceof DatabaseObjectTreeObject) {
-				DatabaseObject databaseObject = (DatabaseObject) ((DatabaseObjectTreeObject) object).getObject();
+				DatabaseObjectTreeObject sourceTreeObject = (DatabaseObjectTreeObject) object;
+				DatabaseObject databaseObject = (DatabaseObject) sourceTreeObject.getObject();
 				DatabaseObject targetObject = (DatabaseObject) targetTreeObject.getObject();
+				String oldQName = databaseObject.getQName();
 				cutAndPaste(databaseObject, targetObject);
+				String newQName = databaseObject.getQName();
+				
+				ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
+				if (projectExplorerView != null) {
+					TreeObjectEvent treeObjectEvent = new TreeObjectEvent(sourceTreeObject, "qname", oldQName, newQName, TreeObjectEvent.UPDATE_ALL);
+					projectExplorerView.fireTreeObjectPropertyChanged(treeObjectEvent);
+				}
 			}
 		} else if (object instanceof IPropertyTreeObject) {
 			if (targetTreeObject instanceof IPropertyTreeObject) {
@@ -773,9 +782,9 @@ public class ClipboardManager {
 		if (!ComponentManager.acceptDatabaseObjects(parentDatabaseObject, object)) {
 			throw new EngineException("You cannot cut and paste to a " + parentDatabaseObject.getClass().getSimpleName() + " a database object of type " + object.getClass().getSimpleName());
 		}
-		if (!ComponentManager.isCafCompatible(parentDatabaseObject, object)) {
-			String cafVersion = ComponentManager.getCafRequired(object);
-			throw new EngineException("CAF "+ cafVersion +" compatibility required");
+		if (!ComponentManager.isTplCompatible(parentDatabaseObject, object)) {
+			String tplVersion = ComponentManager.getTplRequired(object);
+			throw new EngineException("Template project "+ tplVersion +" compatibility required");
 		}
         
         // Verify if a child object with same name exist

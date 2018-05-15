@@ -5,7 +5,7 @@
      * @param props , the object which holds properties key-value pairs
      * @param vars  , the object which holds variables key-value pairs
      */
-    FullSyncPostAction(page: C8oPage, props, vars) : Promise<any> {
+    FullSyncPostAction(page: C8oPageBase, props, vars) : Promise<any> {
         return new Promise((resolve, reject) => {
             let r:string = props.requestable.substring(props.requestable.indexOf('.')+1);
             let v:string = 'post'
@@ -20,7 +20,7 @@
 
             let data = {}
             if (rootKey != undefined) {
-                data[rootKey] = page.merge(props, vars)
+                data[rootKey] = C8oCafUtils.merge(props, vars)
                 delete data[rootKey]._use_policy
                 delete data[rootKey]._id
                 delete data[rootKey].c8oGrp
@@ -39,7 +39,7 @@
                 if (group == null) {
                     delete props.c8oGrp
                 }
-                data = page.merge(props, vars)
+                data = C8oCafUtils.merge(props, vars)
             }
            
             page.getInstance(Platform).ready().then(() => {     // We may need the CBL plugin so wait for platform ready.

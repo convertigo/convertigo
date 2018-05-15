@@ -394,7 +394,7 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		}
 	}
 	
-	protected void markAsDirty() throws EngineException {
+	public void markAsDirty() throws EngineException {
     	PageComponent page = getPage();
     	if (page != null) {
     		page.markPageAsDirty();
@@ -430,15 +430,14 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 	}
 	
 	@Override
-	public String requiredCafVersion() {
-		String cafVersion = getRequiredCafVersion();
+	public String requiredTplVersion() {
+		String tplVersion = getRequiredTplVersion();
 		for (UIComponent uic : getUIComponentList()) {
-			String uicCafVersion = uic.requiredCafVersion();
-			if (MobileBuilder.compareVersions(cafVersion, uicCafVersion) <= 0) {
-				cafVersion = uicCafVersion;
+			String uicTplVersion = uic.requiredTplVersion();
+			if (MobileBuilder.compareVersions(tplVersion, uicTplVersion) <= 0) {
+				tplVersion = uicTplVersion;
 			}
 		}
-		return cafVersion;
+		return tplVersion;
 	}
-	
 }

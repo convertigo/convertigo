@@ -5,7 +5,7 @@
      * @param props , the object which holds properties key-value pairs
      * @param vars  , the object which holds variables key-value pairs
      */
-    BarcodeAction(page: C8oPage, props, vars) : Promise<any> {
+    BarcodeAction(page: C8oPageBase, props, vars) : Promise<any> {
         return new Promise((resolve, reject)=> {
             const barcode : BarcodeScanner = page.getInstance(BarcodeScanner);
             barcode.scan(props).then((barcodeData) => {

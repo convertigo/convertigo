@@ -35,7 +35,7 @@ public class IonBean {
 	
 	enum Key {
 		classname,
-		cafVersion,
+		tplVersion,
 		tag,
 		name,
 		displayName,
@@ -57,7 +57,7 @@ public class IonBean {
 		try {
 			jsonBean = new JSONObject()
 				.put(Key.classname.name(), "com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement")
-				.put(Key.cafVersion.name(), "1.0.88")
+				.put(Key.tplVersion.name(), "1.0.88")
 				.put(Key.name.name(), "bean")
 				.put(Key.displayName.name(), "")
 				.put(Key.tag.name(), "tag")
@@ -149,9 +149,9 @@ public class IonBean {
 		}
 	}
 	
-	public String getCafVersion() {
+	public String getTplVersion() {
 		try {
-			return jsonBean.getString(Key.cafVersion.name());
+			return jsonBean.getString(Key.tplVersion.name());
 		} catch (JSONException e) {
 			return "1.0.88";
 		}

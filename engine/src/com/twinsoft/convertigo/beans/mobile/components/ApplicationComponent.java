@@ -67,6 +67,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	private XMLVector<XMLVector<Long>> orderedMenus = new XMLVector<XMLVector<Long>>();
 	
 	private String tplProjectName = "";
+	private String tplProjectVersion = "";
 	
 	public ApplicationComponent() {
 		super();
@@ -761,10 +762,21 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 				getProject().getMobileBuilder().hasAppTplImport(name);
 	}
 	
+	private boolean hasCustomImport(String name) {
+		synchronized (componentScriptContent) {
+			String c8o_UserCustoms = componentScriptContent.getString();
+			String importMarker = MobileBuilder.getMarker(c8o_UserCustoms, "AppImport");
+			Map<String, String> map = new HashMap<String, String>(10);
+			MobileBuilder.initMapImports(map, importMarker);
+			return map.containsKey(name);
+		}
+	}
+	
+	
 	public boolean addImport(String name, String path) {
 		if (name != null && path != null && !name.isEmpty() && !path.isEmpty()) {
 			synchronized (appImports) {
-				if (!hasImport(name)) {
+				if (!hasImport(name) && !hasCustomImport(name)) {
 					appImports.put(name, path);
 					return true;
 				}
@@ -886,7 +898,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 			doGetContributors();
 			String newContributors = contributors == null ? null: contributors.toString();
 			if (oldContributors != null && newContributors != null) {
-				if (!(newComputedContent.equals(newContributors))) {
+				if (!(oldContributors.equals(newContributors))) {
 					getProject().getMobileBuilder().appContributorsChanged(this);
 				}
 			}
@@ -1081,6 +1093,15 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		this.tplProjectName = tplProjectName;
 	}
 
+	public String getTplProjectVersion() {
+		this.tplProjectVersion = getTplVersion();
+		return this.tplProjectVersion;
+	}
+
+	public void setTplProjectVersion(String tplProjectVersion) {
+		// does nothing
+	}
+	
 	private boolean isCompatibleTemplate(String project) {
 		File tplDir = new File(Engine.PROJECTS_PATH + "/" + project + "/ionicTpl");
 		if (tplDir.exists()) {
@@ -1149,23 +1170,23 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	}
 
 	@Override
-	public String requiredCafVersion() {
-		String cafVersion = getRequiredCafVersion();
+	public String requiredTplVersion() {
+		String tplVersion = getRequiredTplVersion();
 		
 		for (UIDynamicMenu menu : getMenuComponentList()) {
-			String menuCafVersion = menu.requiredCafVersion();
-			if (MobileBuilder.compareVersions(cafVersion, menuCafVersion) <= 0) {
-				cafVersion = menuCafVersion;
+			String menuTplVersion = menu.requiredTplVersion();
+			if (MobileBuilder.compareVersions(tplVersion, menuTplVersion) <= 0) {
+				tplVersion = menuTplVersion;
 			}
 		}
 		
 		for (PageComponent page : getPageComponentList()) {
-			String pageCafVersion = page.requiredCafVersion();
-			if (MobileBuilder.compareVersions(cafVersion, pageCafVersion) <= 0) {
-				cafVersion = pageCafVersion;
+			String pageTplVersion = page.requiredTplVersion();
+			if (MobileBuilder.compareVersions(tplVersion, pageTplVersion) <= 0) {
+				tplVersion = pageTplVersion;
 			}
 		}
-		return cafVersion;
+		return tplVersion;
 	}
 	
 }

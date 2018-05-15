@@ -5,7 +5,7 @@
      * @param props , the object which holds properties key-value pairs
      * @param vars  , the object which holds variables key-value pairs
      */
-    GooglePlusLoginAction(page: C8oPage, props, vars) : Promise<any> {
+    GooglePlusLoginAction(page: C8oPageBase, props, vars) : Promise<any> {
         return new Promise((resolve, reject) => {
             page.getInstance(Platform).ready().then(() => {
                 // If Action selected is Login

@@ -397,6 +397,16 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		this.icon = icon;
 	}
 	
+	private String iconPosition = "";
+	
+	public String getIconPosition() {
+		return iconPosition;
+	}
+
+	public void setIconPosition(String iconPosition) {
+		this.iconPosition = iconPosition;
+	}
+	
 	private boolean inAutoMenu = true;
 	
 	public boolean isInAutoMenu() {
@@ -443,10 +453,20 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 				getProject().getMobileBuilder().hasPageTplImport(name);
 	}
 	
+	private boolean hasCustomImport(String name) {
+		synchronized (scriptContent) {
+			String c8o_UserCustoms = scriptContent.getString();
+			String importMarker = MobileBuilder.getMarker(c8o_UserCustoms, "PageImport");
+			Map<String, String> map = new HashMap<String, String>(10);
+			MobileBuilder.initMapImports(map, importMarker);
+			return map.containsKey(name);
+		}
+	}
+	
 	public boolean addImport(String name, String path) {
 		if (name != null && path != null && !name.isEmpty() && !path.isEmpty()) {
 			synchronized (pageImports) {
-				if (!hasImport(name)) {
+				if (!hasImport(name) && !hasCustomImport(name)) {
 					pageImports.put(name, path);
 					return true;
 				}
@@ -562,7 +582,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 			doGetContributors();
 			String newContributors = contributors == null ? null: contributors.toString();
 			if (oldContributors != null && newContributors != null) {
-				if (!(newComputedContent.equals(newContributors))) {
+				if (!(oldContributors.equals(newContributors))) {
 					getProject().getMobileBuilder().pageContributorsChanged(this);
 				}
 			}
@@ -794,19 +814,22 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		if (propertyName.equals("icon")) {
 			return EnumUtils.toStrings(IonIcon.class);
 		}
+		if (propertyName.equals("iconPosition")) {
+			return new String[] {"item-left","item-end","item-right","item-start"};
+		}
 		return new String[0];
 	}
 	
 	@Override
-	public String requiredCafVersion() {
-		String cafVersion = getRequiredCafVersion();
+	public String requiredTplVersion() {
+		String tplVersion = getRequiredTplVersion();
 		for (UIComponent uic : getUIComponentList()) {
-			String uicCafVersion = uic.requiredCafVersion();
-			if (MobileBuilder.compareVersions(cafVersion, uicCafVersion) <= 0) {
-				cafVersion = uicCafVersion;
+			String uicTplVersion = uic.requiredTplVersion();
+			if (MobileBuilder.compareVersions(tplVersion, uicTplVersion) <= 0) {
+				tplVersion = uicTplVersion;
 			}
 		}
-		return cafVersion;
+		return tplVersion;
 	}
 	
 }

@@ -1096,12 +1096,12 @@
     },
 	
     "FSImage": {
-      "cafVersion": "1.0.100",
+      "tplVersion": "1.0.100",
       "tag": "img",
 	  "displayName": "FSImage",
       "label": "FSImage",
       "autoClose": true,
-      "description": "img. | Defines an <i>FSImage</i> component.<br/>This component helps displaying an image based on data retrieved from a FullSync  attachment.<br/><br/>Attachment images are automatically cached using the attachmentName as cache key by the CAF to enable fast rendering. In some cases you may want to clear this cache for example if the image content changes for the same attachmentName. In this case, you can use the :<br/><br/><code>page.resetImageCache(attachmentName)</code>.<br/><br/>in a CustomAction  to clear the cache for a given attachmentName.<br/><br/>If you call with no arguments, the cache will be cleared for all entries.",
+      "description": "img. | Defines an <i>FSImage</i> component.<br/>This component helps displaying an image based on data retrieved from a FullSync  attachment.<br/><br/>Attachment images are automatically cached using the attachmentName as cache key by the CAF to enable fast rendering.<br/><br/>In some cases you may want to clear this cache for example if the image content changes for the same attachmentName.<br>In this case, use below code in a <i>CustomAction</i> :<br/>- to clear the cache for a given documentID and attachmentName<br><code>page.resetImageCache(documentID/attachmentName)</code><br/>- to clear all cache entries<br><code>page.resetImageCache()</code>",
       "group": "FullSync Components",
       "icon16": "img_fs_color_16x16.png",
       "icon32": "img_fs_color_32x32.png",
@@ -5184,6 +5184,7 @@
      * TreeviewComponent
      */
     "TreeviewComponent" : {
+      "enabled": false,
       "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicComponent",
       "tag": "c8o-treeview",
       "displayName": "Treeview",
@@ -5902,7 +5903,7 @@
 
  
   "CalendarPickerAction" : {
-      "cafVersion": "1.0.98",
+      "tplVersion": "1.0.98",
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "CalendarPicker",
       "label": "Calendar Picker",
@@ -7868,7 +7869,7 @@
   },
   
     "PublishEventAction" : {
-      "cafVersion": "1.0.101",
+      "tplVersion": "7.5.2.0",
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "PublishEvent",
       "label": "PublishEvent",
@@ -7903,16 +7904,17 @@
     },
     
     "AnimateAction" : {
+      "tplVersion": "7.5.2.0",
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAnimate",
 	  "displayName": "Animate",
       "label": "Animate",
-      "description": "Defines an <i>Animate</i> action component. | You can use the <i>Animate</i> action to animate a component when an event occurs. To do this, just place the action under the event. It can be a (click) or (tap) event or even a Page didEnter event. The animation will take place when the event is triggered. <br /><br />You can also chain animations to animate in parrallel (Sibling <i>Animate</i> actions) or serial (Child <i>Animate actions</i>). <br /><br />Animatons are based on the <a href='https://daneden.github.io/animate.css/' target='_blank'>animate.css</a> package",
+      "description": "Defines an <i>Animate</i> action component. | You can use the <i>Animate</i> action to animate a component when an event occurs. To do this, just place the action under the event. It can be a (click) or (tap) event or even a Page didEnter event. The animation will take place when the event is triggered. <br /><ul><li><i>Animatable</i> <br />View the elements with an <b>Identifier</b> property set. Select here one element Identifier to animate.</li><li><i>Apply mode</i> <br />Animate only the selected element (single) or all elements (all) with the same <b>Identifier</b> value.</li></ul> <br />You can also chain animations to animate in parrallel (Sibling <i>Animate</i> actions) or serial (Child <i>Animate actions</i>). <br /><br />Animations are based on the <a href='https://daneden.github.io/animate.css/' target='_blank'>animate.css</a> package",
       "group": "Actions",
       "icon16": "animateaction_color_16x16.png",
       "icon32": "animateaction_color_32x32.png",
       "properties": {
 	      "useVisibility": {
-	        "label": "Use visbility",
+	        "label": "Use visibility",
 	        "description": "Specify whether the animation use visibility instead of hidden attribute",
 	        "category": "@Parameters",
 	        "type": "boolean",

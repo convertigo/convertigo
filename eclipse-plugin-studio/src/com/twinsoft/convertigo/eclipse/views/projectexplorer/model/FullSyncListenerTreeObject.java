@@ -29,6 +29,7 @@ import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.couchdb.AbstractFullSyncFilterListener;
 import com.twinsoft.convertigo.beans.couchdb.AbstractFullSyncListener;
 import com.twinsoft.convertigo.beans.couchdb.AbstractFullSyncViewListener;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 
 public class FullSyncListenerTreeObject extends ListenerTreeObject implements INamedSourceSelectorTreeObject {
 
@@ -127,8 +128,8 @@ public class FullSyncListenerTreeObject extends ListenerTreeObject implements IN
 			
 					if (hasBeenRenamed) {
 						hasBeenModified(true);
-						viewer.refresh();
 						
+						ConvertigoPlugin.projectManager.getProjectExplorerView().updateTreeObject(FullSyncListenerTreeObject.this);
 						getDescriptors();// refresh editors (e.g labels in combobox)
 					}
 				}
