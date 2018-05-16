@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.eclipse.property_editors;
 
+import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
@@ -31,16 +32,14 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Text;
 
 
-public class StringOrNullEditor extends AbstractDialogCellEditor implements INullEditor {
+public class StringOrNullEditor extends TextCellEditor implements INullEditor {
 
 	private Boolean isNull = false;
 	private Boolean wasNull = false;
 	private Composite editor;
 	private Button buttonNullCtrl;
-	private Text textCtrl;
 	
 	public StringOrNullEditor(Composite parent) {
 		this(parent, SWT.NONE);
@@ -64,7 +63,14 @@ public class StringOrNullEditor extends AbstractDialogCellEditor implements INul
 		Font font = parent.getFont();
         Color bg = parent.getBackground();
  
-        editor = new Composite(parent, getStyle());
+        editor = new Composite(parent, getStyle()) {
+
+			@Override
+			public boolean isFocusControl() {
+				return true;
+			}
+        	
+        };
         editor.setFont(font);
         editor.setBackground(bg);
         
@@ -72,25 +78,9 @@ public class StringOrNullEditor extends AbstractDialogCellEditor implements INul
 		gl.horizontalSpacing = gl.marginHeight = gl.marginWidth = gl.verticalSpacing = 0;
         editor.setLayout(gl);
 
-        textCtrl = new Text(editor, SWT.NONE);
-        textCtrl.addKeyListener(new KeyListener(){
-			public void keyPressed(KeyEvent keyEvent) {
-				if (keyEvent.character == '\u001b') { // Escape character
-					isNull = wasNull;
-					fireCancelEditor();
-				} else {
-					isNull = false;
-					if (keyEvent.character == '\r') { // Return key
-						fireApplyEditorValue();
-						deactivate();
-					}
-				}
-			}
-			public void keyReleased(KeyEvent keyEvent) {
-			}
-		});
+        super.createControl(editor);
         
-        textCtrl.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        text.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
     	buttonNullCtrl = new Button(editor, SWT.PUSH);
         buttonNullCtrl.setToolTipText("Set null value");
@@ -119,7 +109,7 @@ public class StringOrNullEditor extends AbstractDialogCellEditor implements INul
 	}
 
 	private void handleButtonSelected() {
-		textCtrl.setText("");
+		text.setText("");
 		isNull = true;
 		fireApplyEditorValue();
 		deactivate();		
@@ -131,28 +121,23 @@ public class StringOrNullEditor extends AbstractDialogCellEditor implements INul
 		if (isNull) {
 			return "<value is null>";
 		}
-		return textCtrl.getText();
+		return text.getText();
 	}
 	
 	@Override
 	protected void doSetValue(Object value) {
-		if (isNull || value == null) {
+		if (wasNull || value == null) {
 			isNull = true;
-			textCtrl.setText("");
+			text.setText("");
 		} else {
-			textCtrl.setText(value.toString());
+			text.setText(value.toString());
 		}
-	}
-
-	@Override
-	protected void doSetFocus() {
-		textCtrl.setFocus();
-		textCtrl.setSelection(0, textCtrl.getText().length());
 	}
 	
 	@Override
 	public void activate() {
 		super.activate();
-	    textCtrl.setEnabled(true);
+		isNull = false;
 	}
+	
 }

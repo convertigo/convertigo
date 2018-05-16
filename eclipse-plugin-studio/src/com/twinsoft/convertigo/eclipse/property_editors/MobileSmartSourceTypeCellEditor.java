@@ -86,7 +86,14 @@ public class MobileSmartSourceTypeCellEditor extends AbstractDialogCellEditor {
 	@Override
 	protected Control createControl(Composite parent) {
 		final boolean itemsReadOnly = getStyle() == SWT.READ_ONLY;
-		final Composite control = new Composite(parent, SWT.NONE);
+		final Composite control = new Composite(parent, SWT.NONE) {
+
+			@Override
+			public boolean isFocusControl() {
+				return true;
+			}
+        	
+        };
 		
 		Font font = parent.getFont();
 		Color bg = parent.getBackground();
@@ -403,4 +410,53 @@ public class MobileSmartSourceTypeCellEditor extends AbstractDialogCellEditor {
 	public Object getEditorData() {
 		return msst.getEditorData();
 	}
+	
+    @Override
+	public boolean isCopyEnabled() {
+    	return !comboBox.getText().isEmpty();
+    }
+    
+    @Override
+	public boolean isCutEnabled() {
+    	return !comboBox.getText().isEmpty();
+    }
+    
+    @Override
+	public boolean isDeleteEnabled() {
+        return !comboBox.getText().isEmpty();
+    }
+    
+    @Override
+	public boolean isPasteEnabled() {
+        return true;
+    }
+    
+    public boolean isSaveAllEnabled() {
+        return true;
+    }
+    
+    @Override
+	public boolean isSelectAllEnabled() {
+        return !comboBox.getText().isEmpty();
+    }
+    
+    @Override
+	public void performCopy() {
+    	comboBox.copy();
+    }
+    
+    @Override
+	public void performCut() {
+    	comboBox.cut();
+    }
+    
+    @Override
+	public void performDelete() {
+    	comboBox.setText("");
+    }
+    
+    @Override
+	public void performPaste() {
+    	comboBox.paste();
+    }
 }
