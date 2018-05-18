@@ -150,7 +150,7 @@ public class XMLSortStep extends XMLCopyStep implements IStepSourceContainer {
 			final CachedXPathAPI cachedXPathAPI = new CachedXPathAPI();
 			
 			// Convert the NodeList to ArrayList
-			List<Node> nodes = XMLUtils.toArrayList(list);
+			List<Node> nodes = XMLUtils.toArrayList(list, true, true);
 			
 			// Comparator which permit to sort
 			Comparator<Node> comparator =  new Comparator<Node>() {

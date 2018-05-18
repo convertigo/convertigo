@@ -1003,6 +1003,17 @@ public class XMLUtils {
 		return res;
 	}
 	
+	public static List<Node> toArrayList(NodeList nl, boolean clone, boolean deep) {
+		if (clone) {
+			List<Node> res = new ArrayList<Node>();
+			for (int i = 0 ; i < nl.getLength() ; i++) {
+				res.add(nl.item(i).cloneNode(deep));
+			}
+			return res;
+		}
+		return toArrayList(nl);
+	}
+	
 	public static NodeList toNodeList(List<Node> nl) {	
 		Document doc = getDefaultDocumentBuilder().newDocument();
 		Element root = doc.createElement("root");
@@ -1011,7 +1022,7 @@ public class XMLUtils {
 		}
 		return root.getChildNodes();
 	}
-		
+	
 	public static void spreadNamespaces(Node node, String tns, boolean overwrite) {
 		Document doc = node instanceof Document ? (Document) node : node.getOwnerDocument();
 		boolean isParent = false;
