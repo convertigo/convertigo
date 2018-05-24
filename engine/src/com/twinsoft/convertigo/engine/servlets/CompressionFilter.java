@@ -25,7 +25,7 @@ import com.twinsoft.convertigo.engine.enums.HeaderName;
 public class CompressionFilter implements Filter {
 
 	Pattern pKO = Pattern.compile(
-		"^/qrcode|^/webclipper|^/rproxy/|\\.proxy$|\\.siteclipper/|"
+		"^/qrcode|^/webclipper|^/rproxy/|\\.proxy$|\\.siteclipper/|^/fullsync/.+?/.+?/.+?|"
 		+ "^/admin/services/(?:.*GetIcon|logs.Download|mobiles.GetPackage|"
 		+ "mobiles.GetSourcePackage|projects.Export|store.DownloadStoreFolder)");
 	Pattern pOK = Pattern.compile(

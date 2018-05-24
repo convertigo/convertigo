@@ -201,7 +201,15 @@ public class FullSyncServlet extends HttpServlet {
 			String special = requestParser.getSpecial();
 			
 			boolean isChanges = "_changes".equals(special);
-			
+			boolean isCBL = false;
+			{
+				String agent = HeaderName.UserAgent.getHeader(request);
+				isCBL = agent != null && agent.startsWith("CouchbaseLite/1.");
+				if (isCBL) {
+					String version = Engine.theApp.couchDbManager.getFullSyncClient().getServerVersion();
+					isCBL = version != null && version.compareTo("1.7") >= 0;
+				}
+			}
 			for (String headerName: Collections.list(request.getHeaderNames())) {
 				if (!(HeaderName.TransferEncoding.is(headerName)
 						|| HeaderName.ContentLength.is(headerName)
@@ -368,18 +376,24 @@ public class FullSyncServlet extends HttpServlet {
 			
 			response.setStatus(code);
 			
-			for (Header header: newResponse.getAllHeaders()) {
-				if (!(HeaderName.TransferEncoding.is(header)
-						|| HeaderName.ContentLength.is(header)
-						|| HeaderName.AccessControlAllowOrigin.is(header)
-						|| (isChanges && (HeaderName.ETag.is(header)
-								|| HeaderName.LastModified.is(header)
-								|| HeaderName.CacheControl.is(header)
-						)))) {
-					response.addHeader(header.getName(), header.getValue());
-					debug.append("response Header: " + header.getName() + "=" + header.getValue() + "\n");
-				} else {
-					debug.append("skip response Header: " + header.getName() + "=" + header.getValue() + "\n");
+			boolean isCblBulkGet = isCBL && "_bulk_get".equals(special);
+			
+			if (!isCblBulkGet) {
+				for (Header header: newResponse.getAllHeaders()) {
+					if (isCBL && HeaderName.Server.is(header)) {
+						response.addHeader("Server", "Couchbase Sync Gateway/0.81");
+					} else if (!(HeaderName.TransferEncoding.is(header)
+							|| HeaderName.ContentLength.is(header)
+							|| HeaderName.AccessControlAllowOrigin.is(header)
+							|| (isChanges && (HeaderName.ETag.is(header)
+									|| HeaderName.LastModified.is(header)
+									|| HeaderName.CacheControl.is(header)
+							)))) {
+						response.addHeader(header.getName(), header.getValue());
+						debug.append("response Header: " + header.getName() + "=" + header.getValue() + "\n");
+					} else {
+						debug.append("skip response Header: " + header.getName() + "=" + header.getValue() + "\n");
+					}
 				}
 			}
 			
@@ -427,8 +441,12 @@ public class FullSyncServlet extends HttpServlet {
 							debug.append("\n");
 							responseStringEntity = sb.toString();
 
-							Engine.theApp.couchDbManager.handleDocResponse(method, requestParser.getSpecial(), requestParser.getDocId(), fsAuth, responseStringEntity);
-							IOUtils.write(responseStringEntity, os, charset);
+							JSONObject document = Engine.theApp.couchDbManager.handleDocResponse(method, requestParser.getSpecial(), requestParser.getDocId(), fsAuth, responseStringEntity);
+							if (!isCblBulkGet) {
+								IOUtils.write(responseStringEntity, os, charset);
+							} else {
+								Engine.theApp.couchDbManager.handleCblBulkGet(response, document);
+							}
 						}
 					} else {
 						String contentLength = HeaderName.ContentLength.getHeader(newResponse);
