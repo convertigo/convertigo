@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPInputStream;
 
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
@@ -321,8 +322,20 @@ public class FullSyncServlet extends HttpServlet {
 						}
 					};
 				} else {
-					requestStringEntity = IOUtils.toString(request.getInputStream(), "UTF-8");
-					debug.append("request Entity:\n" + requestStringEntity + "\n");
+					InputStream is = null;
+					try {
+						if ("gzip".equals(HeaderName.ContentEncoding.getHeader(request))) {
+							is = new GZIPInputStream(request.getInputStream());
+						} else {
+							is = request.getInputStream();
+						}
+						requestStringEntity = IOUtils.toString(is, "UTF-8");
+						debug.append("request Entity:\n" + requestStringEntity + "\n");
+					} finally {
+						if (is != null) {
+							is.close();
+						}
+					}
 				}
 			}
 			
