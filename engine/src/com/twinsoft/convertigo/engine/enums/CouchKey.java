@@ -29,6 +29,7 @@ public enum CouchKey {
 	_deleted,
 	_design("_design/"),
 	_global("_global/"),
+	_attachments,
 	_c8oMeta,
 	id,
 	items,

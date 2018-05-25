@@ -130,6 +130,7 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 				else if (this.equals(doto)) {
 					if (propertyName.equals("componentScriptContent")) {
 						if (!newValue.equals(oldValue)) {
+							markComponentTsAsDirty();
 							markApplicationAsDirty();
 						}
 					} else if (propertyName.equals("tplProjectName")) {
@@ -189,9 +190,13 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
 			project.refreshLocal(IResource.DEPTH_INFINITE, null);
 			
-			// Get filepath of application.component.ts file
+			// Close editor
 			String filePath = application.getProject().getMobileBuilder().getTempTsRelativePath(application);
 			IFile file = project.getFile(filePath);
+			closeComponentFileEditor(file);
+			
+			// Write temporary file
+			application.getProject().getMobileBuilder().writeAppComponentTempTs(application);
 			file.refreshLocal(IResource.DEPTH_ZERO, null);
 			
 			// Open file in editor

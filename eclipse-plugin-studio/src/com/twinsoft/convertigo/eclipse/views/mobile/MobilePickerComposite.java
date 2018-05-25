@@ -539,8 +539,10 @@ public class MobilePickerComposite extends Composite {
 					checkedList.clear();
 					fillCheckedList(null, cs.getSources());
 					updateGrayChecked();
+					updateText(cs.getInput());
+				} else {
+					updateText();
 				}
-				updateText(cs.getInput());
 			} else {
 				updateText();
 			}

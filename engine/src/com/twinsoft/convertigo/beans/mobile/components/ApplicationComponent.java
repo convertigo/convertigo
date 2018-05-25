@@ -866,7 +866,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 			if (oldComputedContent != null && newComputedContent != null) {
 				if (!(newComputedContent.getJSONObject("scripts").toString()
 						.equals(oldComputedContent.getJSONObject("scripts").toString()))) {
-					getProject().getMobileBuilder().appTsChanged(this);
+					getProject().getMobileBuilder().appTsChanged(this, true);
 				}
 			}
 			if (oldComputedContent != null && newComputedContent != null) {

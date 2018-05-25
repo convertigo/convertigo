@@ -22,6 +22,8 @@ package com.twinsoft.convertigo.engine.enums;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.mail.BodyPart;
+import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -66,6 +68,7 @@ public enum HeaderName {
 	Origin("Origin"),
 	Pragma("Pragma"),
 	Referer("Referer"),
+	Server("Server"),
 	SetCookie("Set-Cookie"),
 	TransferEncoding("Transfer-Encoding"),
 	UserAgent("User-Agent"),
@@ -143,5 +146,9 @@ public enum HeaderName {
 	public static HeaderName parse(String name) {
 		HeaderName headerName = cache.get(name.toLowerCase());
 		return headerName != null ? headerName : VOID;
+	}
+
+	public void addHeader(BodyPart part, String headerValue) throws MessagingException {
+		part.addHeader(value, headerValue);
 	}
 }

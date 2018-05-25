@@ -444,7 +444,7 @@ public class MobileBuilder {
 		}
 	}
 	
-	public synchronized void pageTsChanged(final PageComponent page) throws EngineException {
+	public synchronized void pageTsChanged(final PageComponent page, boolean forceTemp) throws EngineException {
 		if (page != null && page.isEnabled() && initDone) {
 			writePageTs(page);
 			moveFiles();
@@ -452,7 +452,7 @@ public class MobileBuilder {
 			String pageName = page.getName();
 			File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
 			File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".temp.ts");
-			if (tempTsFile.exists()) {
+			if (forceTemp && tempTsFile.exists()) {
 				writePageTempTs(page);
 			}
 			
@@ -460,13 +460,13 @@ public class MobileBuilder {
 		}
 	}
 
-	public synchronized void appTsChanged(final ApplicationComponent app) throws EngineException {
+	public synchronized void appTsChanged(final ApplicationComponent app, boolean forceTemp) throws EngineException {
 		if (app != null && initDone) {
 			writeAppComponentTs(app);
 			moveFiles();
 			
 			File tempTsFile = new File(ionicWorkDir, "src/app/app.component.temp.ts");
-			if (tempTsFile.exists()) {
+			if (forceTemp && tempTsFile.exists()) {
 				writeAppComponentTempTs(app);
 			}
 			
@@ -767,9 +767,6 @@ public class MobileBuilder {
 				String pageName = page.getName();
 				File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
 				File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".temp.ts");
-				if (!tempTsFile.exists()) {
-					writePageTempTs(page);
-				}
 				String filePath = tempTsFile.getPath().replace(projectDir.getPath(), "/");
 				return filePath;
 			}
@@ -865,7 +862,7 @@ public class MobileBuilder {
 		}
 	}
 	
-	private void writePageTempTs(PageComponent page) throws EngineException {
+	public void writePageTempTs(PageComponent page) throws EngineException {
 		try {
 			if (page != null) {
 				String pageName = page.getName();
@@ -1160,9 +1157,6 @@ public class MobileBuilder {
 		try {
 			if (app != null) {
 				File appComponentTsFile = new File(ionicWorkDir, "src/app/app.component.temp.ts");
-				if (!appComponentTsFile.exists()) {
-					writeAppComponentTempTs(app);
-				}
 				String filePath = appComponentTsFile.getPath().replace(projectDir.getPath(), "/");
 				return filePath;
 			}
@@ -1569,7 +1563,7 @@ public class MobileBuilder {
 		}
 	}
 	
-	private void writeAppComponentTempTs(ApplicationComponent app) throws EngineException {
+	public void writeAppComponentTempTs(ApplicationComponent app) throws EngineException {
 		try {
 			if (app != null) {
 				File appTsFile = new File(ionicWorkDir, "src/app/app.component.ts");
@@ -1677,6 +1671,8 @@ public class MobileBuilder {
 	private void writeAppSourceFiles(ApplicationComponent application) throws EngineException {
 		try {
 			if (application != null) {
+				FileUtils.deleteQuietly(new File(ionicWorkDir, "src/app/app.component.temp.ts"));
+				
 				writeAppPackageJson(application);
 				writeAppPluginsConfig(application);
 				writeAppServiceTs(application);
@@ -1699,6 +1695,8 @@ public class MobileBuilder {
 		try {
 			File pageDir = new File(ionicWorkDir,"src/pages/"+pageName);
 			pageDir.mkdirs();
+			
+			FileUtils.deleteQuietly(new File(pageDir, pageName.toLowerCase() + ".temp.ts"));
 			
 			writePageTs(page);
 			writePageStyle(page);

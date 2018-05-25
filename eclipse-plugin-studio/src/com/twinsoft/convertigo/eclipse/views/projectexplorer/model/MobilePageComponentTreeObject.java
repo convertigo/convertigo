@@ -114,12 +114,15 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
 			project.refreshLocal(IResource.DEPTH_INFINITE, null);
 			
-			// Get filepath of page's temporary TypeScript file
+			// Close editor
 			String filePath = page.getProject().getMobileBuilder().getTempTsRelativePath(page);
 			IFile file = project.getFile(filePath);
-			file.refreshLocal(IResource.DEPTH_ZERO, null);
 			closeComponentFileEditor(file);
 			
+			// Write temporary file
+			page.getProject().getMobileBuilder().writePageTempTs(page);
+			file.refreshLocal(IResource.DEPTH_ZERO, null);
+
 			// Open file in editor
 			if (file.exists()) {
 				IEditorInput input = new ComponentFileEditorInput(file, page);
@@ -269,6 +272,7 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 				else if (this.equals(doto)) {
 					if (propertyName.equals("scriptContent")) {
 						if (!newValue.equals(oldValue)) {
+							markPageTsAsDirty();
 							markPageAsDirty();
 						}
 					} else if (propertyName.equals("isEnabled")) {

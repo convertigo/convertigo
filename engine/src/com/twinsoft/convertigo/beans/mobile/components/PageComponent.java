@@ -562,7 +562,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 			if (oldComputedContent != null && newComputedContent != null) {
 				if (!(newComputedContent.getJSONObject("scripts").toString()
 						.equals(oldComputedContent.getJSONObject("scripts").toString()))) {
-					getProject().getMobileBuilder().pageTsChanged(this);
+					getProject().getMobileBuilder().pageTsChanged(this, true);
 				}
 			}
 			if (oldComputedContent != null && newComputedContent != null) {
@@ -594,7 +594,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 	}
 	
 	public void markPageTsAsDirty() throws EngineException {
-		getProject().getMobileBuilder().pageTsChanged(this);
+		getProject().getMobileBuilder().pageTsChanged(this, false);
 	}
 	
 	public void markPageEnabledAsDirty() throws EngineException {
