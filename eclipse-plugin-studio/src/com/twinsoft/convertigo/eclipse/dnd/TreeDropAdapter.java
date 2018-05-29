@@ -756,11 +756,15 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							String xmlData = TextTransfer.getInstance().nativeToJava(transferType).toString();
 							List<Object> list = ConvertigoPlugin.clipboardManagerDND.read(xmlData);
 							DatabaseObject databaseObject = (DatabaseObject) list.get(0);
-							DatabaseObject parentDatabaseObject = ((DatabaseObjectTreeObject) target).getObject();
-							if (!DatabaseObjectsManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
-								return false;
+							DatabaseObject targetDatabaseObject = ((DatabaseObjectTreeObject) target).getObject();
+							if (DatabaseObjectsManager.acceptDatabaseObjects(targetDatabaseObject, databaseObject)) {
+								return true;
 							}
-							return true;
+							DatabaseObject parentDatabaseObject = targetDatabaseObject.getParent();
+							if (parentDatabaseObject != null && DatabaseObjectsManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
+								return true;
+							}
+							return false;
 						} catch (Exception e) {
 							e.printStackTrace(System.out);
 						}
