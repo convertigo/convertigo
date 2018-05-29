@@ -879,6 +879,31 @@
       }
     },
 
+    "Heading": {
+      "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicTag",
+      "tag": "h1",
+      "tags": ["h1","h2","h3","h4","h5","h6"],
+	  "displayName": "Heading",
+      "label": "Heading",
+      "description": " | Defines a <i>Heading</i> component.<br/>This component acts as the standard HTML heading tag.<br/>The <i>h1</i> to <i>h6</i> tags are used to define headings, from the most important to the least important ones.<br/>Use them for pages Titles for example. Add <i>Text</i> components inside.<br/> For more information: <a href='https://www.w3schools.com/tags/tag_hn.asp' target='_blank'>Headings</a>.",
+      "group": "HTML",
+      "icon16": "HTML_color_16x16.png",
+      "icon32": "HTML_color_32x32.png",
+      "properties": {
+        "ionText": {
+          "value": false,
+          "label": "Ion-Text",
+          "description": "The ion-text attribute should be added to the element in order to pass a color from the Sass $colors map and change the text color of that element.",
+          "category": "Attributes",
+          "values": [
+            false,
+            "ion-text"
+          ]
+        },
+        "IonColor": false
+      }
+    },
+    
     "Heading1": {
       "tag": "h1",
 	  "displayName": "H1",

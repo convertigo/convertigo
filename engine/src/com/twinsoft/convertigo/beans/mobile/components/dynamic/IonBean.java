@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -37,6 +38,7 @@ public class IonBean {
 		classname,
 		tplVersion,
 		tag,
+		tags,
 		name,
 		displayName,
 		label,
@@ -61,6 +63,7 @@ public class IonBean {
 				.put(Key.name.name(), "bean")
 				.put(Key.displayName.name(), "")
 				.put(Key.tag.name(), "tag")
+				.put(Key.tags.name(), new JSONArray())
 				.put(Key.label.name(), "label")
 				.put(Key.autoClose.name(), false)
 				.put(Key.group.name(), "Components")
@@ -192,6 +195,27 @@ public class IonBean {
 			return "tag";
 		}
 	}
+	
+	public String[] getTags() {
+		try {
+			JSONArray ar = jsonBean.getJSONArray(Key.tags.name());
+			String[] tags = new String[0];
+			if (ar.length() > 0) {
+				tags = new String[ar.length()];
+				for (int i=0; i<ar.length(); i++) {
+					tags[i] = (String) ar.get(i);
+				}
+			} else {
+				tags = new String[1];
+				tags[0] = getTag();
+			}
+			return tags;
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return new String[0];
+		}
+	}
+	
 	public String getGroup() {
 		try {
 			return jsonBean.getString(Key.group.name());
