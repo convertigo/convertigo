@@ -22,8 +22,11 @@ package com.twinsoft.convertigo.eclipse.popup.actions;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
@@ -93,104 +96,108 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 		shell.setCursor(waitCursor);
 		
         try {
-        	treeNodesToUpdate = new ArrayList<DatabaseObjectTreeObject>();
+        	treeNodesToUpdate = new ArrayList<>();
         	
     		ProjectExplorerView explorerView = getProjectExplorerView();
     		if (explorerView != null) {
-    			TreeObject[] treeObjects = explorerView.getSelectedTreeObjects();
-    			if (treeObjects != null) {
-    				DatabaseObjectTreeObject treeObject = null;
-    				String message = "";
-    				MultipleDeletionDialog dialog;
-    				
-    				if (treeObjects.length == 1) {
-    					dialog = new MultipleDeletionDialog(shell, "Object Deletion", false);
-    				}
-    				else {
-    					dialog = new MultipleDeletionDialog(shell, "Object Deletion", true);
-    				}
-    				 
-    				int len;
-    				
-    				len = treeObjects.length;
-    				for (int i = 0 ; i < len ; i++) {
-    					treeObject = (DatabaseObjectTreeObject) treeObjects[i];
-    		        	
-    					if (treeObject instanceof ProjectTreeObject) {
-        					message = java.text.MessageFormat.format("Do you really want to delete the project \"{0}\" and all its sub-objects?", new Object[] {treeObject.getName()});
+    			TreeObject[] selectedTreeObjects = explorerView.getSelectedTreeObjects();
+    			if (selectedTreeObjects != null) {
+    				Collection<DatabaseObjectTreeObject> treeObjects = new HashSet<>(selectedTreeObjects.length);
+    				for (TreeObject t: Arrays.asList(selectedTreeObjects)) {
+    					if (t instanceof DatabaseObjectTreeObject) {
+    						treeObjects.add((DatabaseObjectTreeObject) t);
     					}
-    					else {
-        					message = java.text.MessageFormat.format("Do you really want to delete the object \"{0}\" and all its sub-objects?", new Object[] {treeObject.getName()});
-    					}	
-    					
-    		        	if (!dialog.shouldBeDeleted(message))
-    		        		continue;
-    		        	
-    					if (treeObject instanceof ProjectTreeObject) {
-    						((ProjectTreeObject)treeObject).closeAllEditors();
-    		        	}
-    					else if (treeObject instanceof SequenceTreeObject) {
-    						((ProjectTreeObject) ((SequenceTreeObject) treeObject).getParent().getParent()).closeSequenceEditors((Sequence)treeObject.getObject());
-    		        	}
-    					else if (treeObject instanceof ConnectorTreeObject) {
-    						((ProjectTreeObject) ((ConnectorTreeObject) treeObject).getParent().getParent()).closeConnectorEditors((Connector)treeObject.getObject());
-    		        	}
-    					else if (treeObject instanceof StepTreeObject) {
-    						// We close the editor linked with the SimpleStep (=SequenceJsStep)
-    						if ( treeObject.getObject() instanceof SimpleStep) {
-    							boolean find = false;
-    							SimpleStep simpleStep = (SimpleStep) treeObject.getObject();
-    							IWorkbenchPage page = this.getActivePage();	
-    							IEditorReference[] editors = page.getEditorReferences();
-    							int _i = 0;
-    							while (find != true && _i < editors.length) {
-    								IEditorReference editor = editors[_i];
-    								IEditorPart editorPart = page.findEditor(editor.getEditorInput());
-    								if (editorPart != null && editorPart instanceof JscriptStepEditor) {
-    									JscriptStepEditor jscriptEditor = (JscriptStepEditor) editorPart;
-    									if (jscriptEditor.getSimpleStepLinked().equals(simpleStep)) {
- 		    							   find = true;
-		    							   page.activate(editorPart);
-		    							   page.closeEditor(editorPart, false);
-    									}
-    								}
-    								++_i;
+    				};
+    				
+    				
+    				if (treeObjects.size() > 1) {
+    					for (DatabaseObjectTreeObject t: new ArrayList<>(treeObjects)) {
+    						TreeObject parent = t.getParent();
+    						while (parent != null) {
+    							if (treeObjects.contains(parent)) {
+    								treeObjects.remove(t);
+    								parent = null;
+    							} else {
+    								parent = parent.getParent();
     							}
     						}
-    					}
-    					else if (treeObject instanceof MobileComponentTreeObject) {
-    						((MobileComponentTreeObject)treeObject).closeAllEditors(false);
-    					}
-    					
-    					if (treeObject instanceof ProjectTreeObject) {
-    		        		explorerView.removeProjectTreeObject(treeObject);
-    		        		final Project project = (Project) treeObject.getObject();
-    		        		Job rmProject = new Job("Remove '" + project.getName() + "' project") {
-
-								@Override
-								protected IStatus run(IProgressMonitor monitor) {
-		    		        		try {
-										delete(project);
-									} catch (Exception e) {
-										ConvertigoPlugin.logException(e, "Unable to delete the '" + project.getName() + "' project.");
-										return new MultiStatus(ConvertigoPlugin.PLUGIN_UNIQUE_ID, IStatus.ERROR, "Failed to remove the '" + project.getName() + "' project.", e);
-									}
-									return Status.OK_STATUS;
-								}
-    		        			
-    		        		};
-    		        		rmProject.schedule();
-    		        	}
-    					else {
-        					delete(treeObject);
-    						// prevents treeObject and its childs to receive further TreeObjectEvents
-    						if (treeObject instanceof TreeObjectListener)
-    							explorerView.removeTreeObjectListener(treeObject);
-    						treeObject.removeAllChildren();
-    					}
-    					
-    					explorerView.fireTreeObjectRemoved(new TreeObjectEvent(treeObject));
+    					};
     				}
+    				
+    				MultipleDeletionDialog dialog = new MultipleDeletionDialog(shell, "Object Deletion", treeObjects.size() != 1);
+    				 
+    				for (DatabaseObjectTreeObject treeObject: treeObjects) {
+    		        	String message = java.text.MessageFormat.format("Do you really want to delete the {0} \"{1}\" and all its sub-objects?", treeObject instanceof ProjectTreeObject ? "project" : "object", treeObject.getName());
+    					
+    		        	if (!dialog.shouldBeDeleted(message)) {
+    		        		continue;
+    		        	}
+    		        	
+    		        	try {
+	    					if (treeObject instanceof ProjectTreeObject) {
+	    						((ProjectTreeObject) treeObject).closeAllEditors();
+	    		        	} else if (treeObject instanceof SequenceTreeObject) {
+	    						((ProjectTreeObject) ((SequenceTreeObject) treeObject).getParent().getParent()).closeSequenceEditors((Sequence) treeObject.getObject());
+	    		        	} else if (treeObject instanceof ConnectorTreeObject) {
+	    						((ProjectTreeObject) ((ConnectorTreeObject) treeObject).getParent().getParent()).closeConnectorEditors((Connector) treeObject.getObject());
+	    		        	} else if (treeObject instanceof StepTreeObject) {
+	    						// We close the editor linked with the SimpleStep (=SequenceJsStep)
+	    						if (treeObject.getObject() instanceof SimpleStep) {
+	    							boolean find = false;
+	    							SimpleStep simpleStep = (SimpleStep) treeObject.getObject();
+	    							IWorkbenchPage page = this.getActivePage();	
+	    							IEditorReference[] editors = page.getEditorReferences();
+	    							int _i = 0;
+	    							while (find != true && _i < editors.length) {
+	    								IEditorReference editor = editors[_i];
+	    								IEditorPart editorPart = page.findEditor(editor.getEditorInput());
+	    								if (editorPart != null && editorPart instanceof JscriptStepEditor) {
+	    									JscriptStepEditor jscriptEditor = (JscriptStepEditor) editorPart;
+	    									if (jscriptEditor.getSimpleStepLinked().equals(simpleStep)) {
+	 		    							   find = true;
+			    							   page.activate(editorPart);
+			    							   page.closeEditor(editorPart, false);
+	    									}
+	    								}
+	    								++_i;
+	    							}
+	    						}
+	    					} else if (treeObject instanceof MobileComponentTreeObject) {
+	    						((MobileComponentTreeObject) treeObject).closeAllEditors(false);
+	    					}
+	    					
+	    					if (treeObject instanceof ProjectTreeObject) {
+	    		        		explorerView.removeProjectTreeObject(treeObject);
+	    		        		final Project project = (Project) treeObject.getObject();
+	    		        		Job rmProject = new Job("Remove '" + project.getName() + "' project") {
+	
+									@Override
+									protected IStatus run(IProgressMonitor monitor) {
+			    		        		try {
+											delete(project);
+										} catch (Exception e) {
+											ConvertigoPlugin.logException(e, "Unable to delete the '" + project.getName() + "' project.");
+											return new MultiStatus(ConvertigoPlugin.PLUGIN_UNIQUE_ID, IStatus.ERROR, "Failed to remove the '" + project.getName() + "' project.", e);
+										}
+										return Status.OK_STATUS;
+									}
+	    		        			
+	    		        		};
+	    		        		rmProject.schedule();
+	    		        	} else {
+	        					delete(treeObject);
+	    						// prevents treeObject and its childs to receive further TreeObjectEvents
+	    						if (treeObject instanceof TreeObjectListener) {
+	    							explorerView.removeTreeObjectListener(treeObject);
+	    						}
+	    						treeObject.removeAllChildren();
+	    					}
+	    					
+	    					explorerView.fireTreeObjectRemoved(new TreeObjectEvent(treeObject));
+    		        	} catch (Exception e) {
+    		        		ConvertigoPlugin.logException(e, "Unable to delete the current selected object.");
+						}
+    				};
     				
     				// Updating the tree and the properties panel
     				Enumeration<DatabaseObjectTreeObject> enumeration = Collections.enumeration(treeNodesToUpdate);

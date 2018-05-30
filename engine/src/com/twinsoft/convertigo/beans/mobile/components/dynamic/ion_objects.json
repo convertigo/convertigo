@@ -879,6 +879,31 @@
       }
     },
 
+    "Heading": {
+      "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicTag",
+      "tag": "h1",
+      "tags": ["h1","h2","h3","h4","h5","h6"],
+	  "displayName": "Heading",
+      "label": "Heading",
+      "description": " | Defines a <i>Heading</i> component.<br/>This component acts as the standard HTML heading tag.<br/>The <i>h1</i> to <i>h6</i> tags are used to define headings, from the most important to the least important ones.<br/>Use them for pages Titles for example. Add <i>Text</i> components inside.<br/> For more information: <a href='https://www.w3schools.com/tags/tag_hn.asp' target='_blank'>Headings</a>.",
+      "group": "HTML",
+      "icon16": "HTML_color_16x16.png",
+      "icon32": "HTML_color_32x32.png",
+      "properties": {
+        "ionText": {
+          "value": false,
+          "label": "Ion-Text",
+          "description": "The ion-text attribute should be added to the element in order to pass a color from the Sass $colors map and change the text color of that element.",
+          "category": "Attributes",
+          "values": [
+            false,
+            "ion-text"
+          ]
+        },
+        "IonColor": false
+      }
+    },
+    
     "Heading1": {
       "tag": "h1",
 	  "displayName": "H1",
@@ -2850,11 +2875,24 @@
       }
     },
 
-    "ListItem": {
+    "GenericItem": {
       "tag": "ion-item",
 	  "displayName": "GenericItem",
       "label": "Generic Item",
       "description": "ion-item| Defines a <i>Generic Item</i> component.<br/>A <i>Generic Item</i> can be replaced by a <i>Button</i> with its <i>button type</i> property set to <code>ion-item</code> to make the item clickable.<br/>It can also contain <i>Sliding Options</i> to reveal buttons when swiped left or right.<br/> For more information: <a href='https://ionicframework.com/docs/components/#lists' target='_blank'>Generic Item</a>.",
+      "group": "Containers",
+      "icon16": "generic_item_16x16.png",
+      "icon32": "generic_item_32x32.png",
+      "properties": {
+        "ItemPosition": false
+      }
+    },
+
+    "ListItem": {
+      "tag": "ion-item",
+	  "displayName": "ListItem",
+      "label": "List Item",
+      "description": "ion-item| Defines a <i>List Item</i> component.<br/>A <i>List Item</i> can be replaced by a <i>Button</i> with its <i>button type</i> property set to <code>ion-item</code> to make the item clickable.<br/>It can also contain <i>Sliding Options</i> to reveal buttons when swiped left or right.<br/> For more information: <a href='https://ionicframework.com/docs/components/#lists' target='_blank'>List Item</a>.",
       "group": "Lists",
       "icon16": "list_item_16x16.png",
       "icon32": "list_item_32x32.png",
@@ -2863,8 +2901,20 @@
       }
     },
 
-
     /* Forms */
+    "FormItem": {
+      "tag": "ion-item",
+	  "displayName": "FormItem",
+      "label": "Form Item",
+      "description": "ion-item| Defines a <i>Form Item</i> component.<br/>A <i>Form Item</i> may be used to contain form's input components such as <i>Label</i> or <i>Text Input</i>.<br/> For more information: <a href='https://ionicframework.com/docs/components/#lists' target='_blank'>Form Item</a>.",
+      "group": "Forms",
+      "icon16": "form_item_16x16.png",
+      "icon32": "form_item_32x32.png",
+      "properties": {
+        "ItemPosition": false
+      }
+    },
+    
     "Label": {
       "tag": "ion-label",
 	  "displayName": "Label",

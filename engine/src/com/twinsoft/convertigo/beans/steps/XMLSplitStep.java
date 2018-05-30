@@ -92,10 +92,17 @@ public class XMLSplitStep extends XMLElementStep {
 	
 	public String getTag(int index) {
 		if (!tags.isEmpty()) {
-			
-			String tag =""; 
-			if(tags.size()>index)
-				tag=(tags.get(index)).get(0);
+			int size = tags.size();
+			String tag = ""; 
+			if (size > 0) {
+				try {
+					tag =(tags.get(index)).get(0);
+				} catch (Exception e) {
+					if (size == 1) {
+						tag = (tags.get(0)).get(0);
+					}
+				}
+			}
 			return tag.equals("") ? "split":tag;
 		}
 		return "split";

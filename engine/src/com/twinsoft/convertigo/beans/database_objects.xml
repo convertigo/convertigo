@@ -201,6 +201,9 @@
 				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicTab">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
 				</bean>
+				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicTag">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
+				</bean>
 			</beans>
 			<beans groupname="Form Components">
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIForm">
