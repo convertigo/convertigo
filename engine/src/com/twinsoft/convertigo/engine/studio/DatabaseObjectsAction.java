@@ -39,7 +39,6 @@ import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIAttribute;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlAttr;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
-import com.twinsoft.convertigo.beans.mobile.components.UICustom;
 import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
 import com.twinsoft.convertigo.beans.mobile.components.UIText;
 import com.twinsoft.convertigo.beans.references.WebServiceReference;
@@ -197,7 +196,7 @@ public class DatabaseObjectsAction {
 			break;
 			
 			case "com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileUIComponentAction": {
-				actionModel.isEnabled = !(dbo instanceof UICustom || dbo instanceof UIText ||
+				actionModel.isEnabled = !(dbo instanceof UIText ||
 					    dbo instanceof UIAttribute || dbo instanceof UIStyle || dbo instanceof UIControlVariable);
 				if (!actionModel.isEnabled && dbo instanceof UIControlAttr) {
 				    actionModel.isEnabled = true;

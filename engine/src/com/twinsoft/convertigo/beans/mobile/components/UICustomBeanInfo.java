@@ -43,6 +43,7 @@ public class UICustomBeanInfo extends MySimpleBeanInfo {
 			properties[0] = new PropertyDescriptor("htmlTemplate", beanClass, "getCustomTemplate", "setCustomTemplate");
 			properties[0].setDisplayName(getExternalizedString("property.htmlTemplate.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.htmlTemplate.short_description"));
+			properties[0].setHidden(true);
 			
 		}
 		catch(Exception e) {

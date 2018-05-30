@@ -523,6 +523,12 @@ public class ComponentManager {
 						!IAction.class.isAssignableFrom(dboClass)) {
 							return true;
 					}
+				} else if (dboParent instanceof UICustom) {
+					if (UIText.class.isAssignableFrom(dboClass) ||
+						UICustom.class.isAssignableFrom(dboClass) ||
+						UIElement.class.isAssignableFrom(dboClass)) {
+						return true;
+					}					
 				}
 			}
 			return false;
