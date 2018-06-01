@@ -19,8 +19,13 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
-import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.engine.EngineException;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import com.twinsoft.convertigo.engine.Engine;
 
 public class UICustom extends UIComponent {
 	
@@ -36,16 +41,6 @@ public class UICustom extends UIComponent {
 		return cloned;
 	}
 
-	@Override
-	public void add(DatabaseObject databaseObject) throws EngineException {
-		add(databaseObject, null);
-	}
-	
-    @Override
-    public void add(DatabaseObject databaseObject, Long after) throws EngineException {
-        throw new EngineException("You cannot add to a custom component a database object of type " + databaseObject.getClass().getName());
-    }
-
 	protected String htmlTemplate = "";
 
 	public String getCustomTemplate() {
@@ -58,10 +53,64 @@ public class UICustom extends UIComponent {
 	
 	@Override
 	public String computeTemplate() {
-		if (isEnabled())
-			return getCustomTemplate();
-		else
+		if (isEnabled()) {
+			Map<Long, String> subBeans = new LinkedHashMap<>();
+			
+			Iterator<UIComponent> it = getUIComponentList().iterator();
+			while (it.hasNext()) {
+				UIComponent component = (UIComponent)it.next();
+				String uicTpl = component.computeTemplate();
+				Long uicPriority = component.priority;
+				subBeans.put(uicPriority, uicTpl);
+			}
+			
+			// Retrieve HTML
+			String template = getCustomTemplate();
+			
+			// Replace each <!--<c8o-sub-bean id="xxx" />--> with corresponding sub-bean template
+			Pattern pattern = Pattern.compile("<!--\\s*<c8o-sub-bean\\s*(id=['\"](.*)['\\\"])\\s*/>\\s*-->");
+			Matcher matcher = pattern.matcher(template);
+			while (matcher.find()) {
+				String sequence = matcher.group(0);
+				String marker = matcher.group(1);
+				if (marker != null) {
+					String id = matcher.group(2);
+					if (id != null) {
+						try {
+							Long uicPriority = Long.valueOf(id);
+							String uicTpl = subBeans.get(uicPriority);
+							if (!uicTpl.isEmpty()) {
+								template = template.replace(sequence, System.lineSeparator() + uicTpl);
+							}
+							subBeans.remove(uicPriority);
+						} catch (Exception e) {
+							Engine.logStudio.warn("Could not replace template for id='"+ id +"' in fragment component");
+						}
+					}
+				}
+			}
+			
+			// Replace first <!--<c8o-sub-beans />--> with remaining sub-bean templates
+			pattern = Pattern.compile("<!--\\s*<c8o-sub-beans\\s*/>\\s*-->"); // begin c8o marker
+			matcher = pattern.matcher(template);
+			while (matcher.find()) {
+				String sequence = matcher.group(0);
+				if (sequence != null) {
+					String uicTpl = "";
+					for (String s: subBeans.values()) {
+						uicTpl += s;
+					}
+					if (!uicTpl.isEmpty()) {
+						template = template.replaceFirst(sequence, System.lineSeparator() + uicTpl);
+					}
+					break;
+				}
+			}
+			
+			return template;
+		} else {
 			return "";
+		}
 	}
 
 }
