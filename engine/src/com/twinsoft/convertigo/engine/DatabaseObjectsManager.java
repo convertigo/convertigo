@@ -40,7 +40,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -108,11 +107,21 @@ public class DatabaseObjectsManager implements AbstractManager {
 	private static Pattern pFindSymbol = Pattern.compile("\\$\\{([^\\{\\r\\n]*?)(?:=(.*?(?<!\\\\)))?}");
 	private static Pattern pFindEnv = Pattern.compile("\\%([^\\r\\n]*?)(?:=(.*?(?<!\\\\)))?\\%");
 	
-	public static interface OpenableProject {
-		boolean canOpen(String projectName);
+	public static interface StudioProjects {
+		default boolean canOpen(String projectName) {
+			return true;
+		}
+		
+		default public Map<String, File> getProjects(boolean checkOpenable) {
+			return Collections.emptyMap();
+		}
+		
+		default public File getProjectXml(String projectName) {
+			return null;
+		}
 	}
 	
-	public static OpenableProject openableProject = null;
+	public static StudioProjects studioProjects = new StudioProjects() {};
 	
 	private Map<String, Project> projects;
 	
@@ -172,25 +181,21 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 	}
 
-	@Deprecated
-	public Vector<String> getAllProjectNames() throws EngineException {
-		return new Vector<String>(getAllProjectNamesList());
-	}
-
 	public List<String> getAllProjectNamesList() {
 		return getAllProjectNamesList(true);
 	}
 	
-	public List<String> getAllProjectNamesList(boolean checkOpenable) {
+	public List<String> getAllProjectNamesList(boolean checkOpenable) {		
 		Engine.logDatabaseObjectManager.trace("Retrieving all project names from \"" + Engine.PROJECTS_PATH + "\"");
 		
 		File projectsDir = new File(Engine.PROJECTS_PATH);
 		SortedSet<String> projectNames = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
+		projectNames.addAll(studioProjects.getProjects(checkOpenable).keySet());
 		
 		for (File projectDir : projectsDir.listFiles()) {
 			String projectName = projectDir.getName();
 			
-			if (projectDir.isDirectory() && new File(projectDir, projectName + ".xml").exists()) {
+			if (!projectNames.contains(projectName) && projectDir.isDirectory() && new File(projectDir, projectName + ".xml").exists()) {
 				if (!checkOpenable || canOpenProject(projectName)) {
 					projectNames.add(projectName);
 				} else {
@@ -242,9 +247,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 	public Project getOriginalProjectByName(String projectName, boolean checkOpenable) throws EngineException {
 		Engine.logDatabaseObjectManager.trace("Requiring loading of project \"" + projectName + "\"");
 		
-		String projectPath = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml";
+		File projectPath = studioProjects.getProjectXml(projectName);
+		if (projectPath == null) {
+			projectPath = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml");
+		}
 		
-		if (checkOpenable && !canOpenProject(projectName) || !new File(projectPath).exists()) {
+		if (checkOpenable && !canOpenProject(projectName) || !projectPath.exists()) {
 			Engine.logDatabaseObjectManager.trace("The project \"" + projectName + "\" cannot be open");
 			clearCache(projectName);
 			return null;
@@ -928,6 +936,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 			}
 		}
 		parentElem.removeChild(includeElem);
+	}
+	
+	public Project importProject(File importFileName) throws EngineException {
+		return importProject(importFileName.getAbsolutePath());
 	}
 
 	public Project importProject(String importFileName) throws EngineException {
@@ -1853,7 +1865,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 	
 	public boolean canOpenProject(String projectName) {
-		return openableProject == null || openableProject.canOpen(projectName);
+		return studioProjects.canOpen(projectName);
 	}
 	
 	public DatabaseObject getDatabaseObjectByQName(String qname) throws Exception {

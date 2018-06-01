@@ -28,6 +28,11 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -129,6 +134,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectManager;
 import com.twinsoft.convertigo.eclipse.views.references.ReferencesView;
 import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
+import com.twinsoft.convertigo.engine.DatabaseObjectsManager.StudioProjects;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.enums.Parameter;
@@ -146,7 +152,7 @@ import com.twinsoft.util.Log;
 /**
  * The main plugin class to be used in the desktop.
  */
-public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
+public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, StudioProjects {
 	
 	public static final String PLUGIN_UNIQUE_ID = "com.twinsoft.convertigo.eclipse.ConvertigoPlugin"; //$NON-NLS-1$
 	
@@ -765,17 +771,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		// Adds listeners
 		addListeners();
 		
-		DatabaseObjectsManager.openableProject = new DatabaseObjectsManager.OpenableProject() {
-			
-			@Override
-			public boolean canOpen(String projectName) {
-				if ("true".equals(ConvertigoPlugin.getProperty(PREFERENCE_ENGINE_LOAD_ALL_PROJECTS))) {
-					return true;
-				}
-				return isProjectOpened(projectName);
-			}
-			
-		};
+		DatabaseObjectsManager.studioProjects = this;
 		
 		final Exception afterPscException[] = { null };
 		final Runnable afterPscOk = new Runnable() {
@@ -1521,24 +1517,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		return createProjectPluginResource(projectName, null);
 	}
 	
-	public boolean isProjectOpened(String projectName) {
-		boolean isOpen = false;
-		try {
-			IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
-			IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
-			IProject resourceProject = myWorkspaceRoot.getProject(projectName);
-			if (resourceProject != null) {
-				if (!resourceProject.exists() && Engine.theApp.databaseObjectsManager.existsProject(projectName)) {
-					resourceProject = createProjectPluginResource(projectName, null);
-				}
-				isOpen = resourceProject.isOpen();
-			}
-		} catch (Exception e) {
-			logWarning(e, "Error when checking if '" + projectName + "' is open", false);
-		}
-		return isOpen;
-	}
-	
 	public IProject createProjectPluginResource(String projectName, IProgressMonitor monitor) throws CoreException {
 		IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
 		IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
@@ -1779,5 +1757,91 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 			plugin.runAtStartup.add(runnable);
 		}
 		
+	}
+	
+	public boolean isProjectOpened(String projectName) {
+		boolean isOpen = false;
+		try {
+			IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
+			IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
+			IProject resourceProject = myWorkspaceRoot.getProject(projectName);
+			if (resourceProject != null) {
+				if (!resourceProject.exists() && Engine.theApp.databaseObjectsManager.existsProject(projectName)) {
+					resourceProject = createProjectPluginResource(projectName, null);
+				}
+				isOpen = resourceProject.isOpen();
+			}
+		} catch (Exception e) {
+			logWarning(e, "Error when checking if '" + projectName + "' is open", false);
+		}
+		return isOpen;
+	}
+	
+	@Override
+	public boolean canOpen(String projectName) {
+		if ("true".equals(ConvertigoPlugin.getProperty(PREFERENCE_ENGINE_LOAD_ALL_PROJECTS))) {
+			return true;
+		}
+		return isProjectOpened(projectName);
+	}
+	
+	@Override
+	public Map<String, File> getProjects(boolean checkOpenable) {
+		IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
+		IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
+		IProject[] iProjects = myWorkspaceRoot.getProjects();
+		Map<String, File> projects = new HashMap<>(iProjects.length);
+		for (IProject iProject: iProjects) {
+			IPath iPath = iProject.getLocation();
+			String sPath = iPath.toOSString();
+			File file = new File(sPath);
+			file = new File(file, file.getName() + ".xml");
+			if (file.exists()) {
+				projects.put(file.getName(), file);
+			}
+		}
+		return projects;
+	}
+	
+	@Override
+	public File getProjectXml(String projectName) {
+		return null;
+	}
+	
+	
+	public Collection<java.nio.file.Path> listProject() {
+		try {
+			IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
+			IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
+			IProject[] iProjects = myWorkspaceRoot.getProjects();
+			Collection<java.nio.file.Path> projects = new ArrayList<>(iProjects.length);
+			for (IProject iProject: iProjects) {
+				IPath iPath = iProject.getLocation();
+				String sPath = iPath.toOSString();
+				java.nio.file.Path file = Paths.get(sPath);
+				if (Files.exists(file.resolve(file.getFileName() + ".xml"))) {
+					projects.add(file);
+				}
+			}
+			return projects;
+		} catch (Exception e) {
+			logWarning(e, "Error when list projects", false);
+		}
+		return Collections.emptyList();
+	}
+	
+	
+	public java.nio.file.Path getProjectPath(String projectName) {
+		try {
+			IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
+			IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
+			IProject resourceProject = myWorkspaceRoot.getProject(projectName);
+			if (resourceProject != null) {
+				return Paths.get(resourceProject.getLocation().toOSString());
+			}
+		} catch (Exception e) {
+			logWarning(e, "Error when list projects", false);
+		}
+		return null;
 	}
 }
