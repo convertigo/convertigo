@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.beans.steps;
 import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
+import com.twinsoft.convertigo.engine.enums.FileSortByPolicy;
 
 public class ListDirStepBeanInfo extends MySimpleBeanInfo {
 
@@ -38,12 +39,17 @@ public class ListDirStepBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[1];
+			properties = new PropertyDescriptor[2];
 	
 	        properties[0] = new PropertyDescriptor("sourceDirectory", beanClass, "getSourceDirectory", "setSourceDirectory");
 	        properties[0].setDisplayName(getExternalizedString("property.sourceDirectory.display_name"));
 	        properties[0].setShortDescription(getExternalizedString("property.sourceDirectory.short_description"));
 	        properties[0].setValue("scriptable", Boolean.TRUE);
+
+	        properties[1] = new PropertyDescriptor("fileSortByPolicy", beanClass, "getFileSortByPolicy", "setFileSortByPolicy");
+	        properties[1].setDisplayName(getExternalizedString("property.fileSortByPolicy.display_name"));
+	        properties[1].setShortDescription(getExternalizedString("property.fileSortByPolicy.short_description"));
+	        properties[1].setPropertyEditorClass(FileSortByPolicy.class);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
