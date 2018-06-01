@@ -206,9 +206,10 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			// Refresh project resource
 			String projectName = mc.getProject().getName();
 			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
-			IFile file = project.getFile(filePath);
+			project.refreshLocal(IResource.DEPTH_INFINITE, null);
 			
 			// Close editor
+			IFile file = project.getFile(filePath);
 			closeComponentFileEditor(file);
 			
 			// Write html file
@@ -296,9 +297,10 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			// Refresh project resource
 			String projectName = ms.getProject().getName();
 			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
-			IFile file = project.getFile(filePath);
+			project.refreshLocal(IResource.DEPTH_INFINITE, null);
 			
 			// Close editor
+			IFile file = project.getFile(filePath);
 			closeComponentFileEditor(file);
 			
 			// Write css file

@@ -57,7 +57,8 @@ jobs:
              export CONVERTIGO_VERSION=$CONVERTIGO_VERSION_NUMBER-$CONVERTIGO_VERSION_TAG
         fi
         export CONVERTIGO_BUILD_NUM=$(printf '%05d' $CIRCLE_BUILD_NUM)
-        export CONVERTIGO_BUILD_NAME=$CONVERTIGO_BUILD_NUM-$CIRCLE_BRANCH-$CONVERTIGO_VERSION
+        export CONVERTIGO_BRANCH=$(echo $CIRCLE_BRANCH | sed "s,/,-,")
+        export CONVERTIGO_BUILD_NAME=$CONVERTIGO_BUILD_NUM-$CONVERTIGO_BRANCH-$CONVERTIGO_VERSION
         export CONVERTIGO_URL=https://convertigo-ci.s3-eu-west-3.amazonaws.com/convertigo-$CONVERTIGO_BUILD_NAME
         mkdir -p ~/s3/convertigo-$CONVERTIGO_BUILD_NAME
         export CONVERTIGO_DIST=$(cd ~/s3/convertigo-$CONVERTIGO_BUILD_NAME; pwd)
@@ -157,10 +158,10 @@ jobs:
             docker build --rm=false -f Dockerfile_base -t $FROM .
             docker push $FROM
         fi
-        docker build --rm=false -t convertigo/convertigo-ci:$CIRCLE_BRANCH --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
-        docker tag convertigo/convertigo-ci:$CIRCLE_BRANCH convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME
-        docker tag convertigo/convertigo-ci:$CIRCLE_BRANCH convertigo/convertigo-ci:$CONVERTIGO_VERSION
-        docker push convertigo/convertigo-ci:$CIRCLE_BRANCH
+        docker build --rm=false -t convertigo/convertigo-ci:$CONVERTIGO_BRANCH --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
+        docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME
+        docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH convertigo/convertigo-ci:$CONVERTIGO_VERSION
+        docker push convertigo/convertigo-ci:$CONVERTIGO_BRANCH
         docker push convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME
         docker push convertigo/convertigo-ci:$CONVERTIGO_VERSION
         
@@ -195,10 +196,10 @@ jobs:
             docker build --rm=false -f Dockerfile_base -t $FROM .
             docker push $FROM
         fi
-        docker build --rm=false -t convertigo/convertigo-ci:$CIRCLE_BRANCH-$TYPE --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
-        docker tag convertigo/convertigo-ci:$CIRCLE_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE
-        docker tag convertigo/convertigo-ci:$CIRCLE_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
-        docker push convertigo/convertigo-ci:$CIRCLE_BRANCH-$TYPE
+        docker build --rm=false -t convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
+        docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE
+        docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
+        docker push convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE
         docker push convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE
         docker push convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
         
@@ -232,10 +233,10 @@ jobs:
             docker build --rm=false -f alpine/Dockerfile_base -t $FROM alpine
             docker push $FROM
         fi
-        docker build --rm=false -t convertigo/convertigo-ci:$CIRCLE_BRANCH-$TYPE --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
-        docker tag convertigo/convertigo-ci:$CIRCLE_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE
-        docker tag convertigo/convertigo-ci:$CIRCLE_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
-        docker push convertigo/convertigo-ci:$CIRCLE_BRANCH-$TYPE
+        docker build --rm=false -t convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
+        docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE
+        docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
+        docker push convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE
         docker push convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE
         docker push convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
         
