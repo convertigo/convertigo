@@ -57,7 +57,7 @@ public class List extends XmlService{
     		try {
     			Project project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
     			String deployDate = "n/a";
-    			File file = new File(Engine.PROJECTS_PATH + "/" + projectName + ".car");
+    			File file = new File(Engine.projectDir(projectName) + ".car");
     			if (file.exists())
     				deployDate = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, request.getLocale()).format(new Date(file.lastModified()));
 

@@ -34,6 +34,8 @@ import java.util.StringTokenizer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -1642,5 +1644,58 @@ public class Engine {
 				}
 			}
 		});
+	}
+	
+	public static File projectFile(String projectName) {
+		File file = DatabaseObjectsManager.studioProjects.getProject(projectName);
+		return file;
+	}
+	
+	public static String projectDir(String projectName) {
+		File file = DatabaseObjectsManager.studioProjects.getProject(projectName);
+		if (file == null) {
+			file = new File(Engine.PROJECTS_PATH + "/" + projectName);
+		}
+		try {
+			return file.getParentFile().getCanonicalPath();
+		} catch (IOException e) {
+			return file.getParentFile().getAbsolutePath();
+		}
+	}
+	
+	public static String resolveProjectPath(String path) {
+		if (Engine.isStudioMode()) {
+			File file = new File(path);
+			file = resolveProjectPath(file);
+			try {
+				path = file.getCanonicalPath();
+			} catch (IOException e) {
+				path = file.getAbsolutePath();
+			}
+		}
+		return path;
+	}
+	
+	public static File resolveProjectPath(File file) {
+		if (Engine.isStudioMode()) {
+			String path;
+			try {
+				path = file.getCanonicalPath();
+			} catch (IOException e) {
+				path = file.getAbsolutePath();
+			}
+			String projectPath = Engine.PROJECTS_PATH + File.separator;
+			if (path.startsWith(projectPath)) {
+				path = path.substring(projectPath.length());
+				Pattern reProject = Pattern.compile("(.*?)(" + Pattern.quote(File.separator) + ".*|$)");
+				Matcher mProject = reProject.matcher(path);
+				if (mProject.matches()) {
+					String projectName = mProject.group(1);
+					path = Engine.projectDir(projectName) + mProject.group(2);
+					file = new File(path);
+				}
+			}
+		}
+		return file;
 	}
 }

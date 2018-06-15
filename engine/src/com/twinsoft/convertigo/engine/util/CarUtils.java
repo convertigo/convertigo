@@ -54,11 +54,11 @@ public class CarUtils {
 	}
 
 	public static void makeArchive(Project project) throws EngineException {
-		makeArchive(Engine.PROJECTS_PATH, project);
+		makeArchive(new File(project.getDirPath()).getParent(), project);
 	}
 	
 	public static void makeArchive(Project project, List<TestCase> listTestCasesSelected) throws EngineException {
-		makeArchive(Engine.PROJECTS_PATH, project, listTestCasesSelected);
+		makeArchive(new File(project.getDirPath()).getParent(), project, listTestCasesSelected);
 	}
 
 	public static void makeArchive(String dir, Project project) throws EngineException {
@@ -74,12 +74,12 @@ public class CarUtils {
 		String projectName = project.getName();
 		try {
 			// Export the project
-			String exportedProjectFileName = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml";
+			String exportedProjectFileName = Engine.projectDir(projectName) + "/" + projectName + ".xml";
 			exportProject(project, exportedProjectFileName);
 			
 			// Create Convertigo archive
 			String projectArchiveFilename = dir + "/" + exportName + ".car";
-			ZipUtils.makeZip(projectArchiveFilename, Engine.PROJECTS_PATH + "/" + projectName, projectName, undeployedFiles);
+			ZipUtils.makeZip(projectArchiveFilename, Engine.projectDir(projectName), projectName, undeployedFiles);
 		} catch(Exception e) {
 			throw new EngineException("Unable to make the archive file for the project \"" + projectName + "\".", e);
 		}
@@ -91,12 +91,12 @@ public class CarUtils {
 		String projectName = project.getName();
 		try {
 			// Export the project
-			String exportedProjectFileName = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml";
+			String exportedProjectFileName = Engine.projectDir(projectName) + "/" + projectName + ".xml";
 			exportProject(project, exportedProjectFileName, listTestCasesSelected);
 			
 			// Create Convertigo archive
 			String projectArchiveFilename = dir + "/" + exportName + ".car";
-			ZipUtils.makeZip(projectArchiveFilename, Engine.PROJECTS_PATH + "/" + projectName, projectName, undeployedFiles);
+			ZipUtils.makeZip(projectArchiveFilename, Engine.projectDir(projectName), projectName, undeployedFiles);
 		} catch(Exception e) {
 			throw new EngineException("Unable to make the archive file for the project \"" + projectName + "\".", e);
 		}
@@ -105,7 +105,7 @@ public class CarUtils {
 	private static List<File> getUndeployedFiles(String projectName){
 		final List<File> undeployedFiles = new LinkedList<File>();
 		
-		File projectDir = new File(Engine.PROJECTS_PATH + "/" + projectName);
+		File projectDir = new File(Engine.projectDir(projectName));
 		
 		File privateDir = new File(projectDir, "_private");
 		undeployedFiles.add(privateDir);

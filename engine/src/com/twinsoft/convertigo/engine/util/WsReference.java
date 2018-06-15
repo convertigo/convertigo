@@ -915,7 +915,7 @@ public class WsReference {
 					} catch (Exception ex) {}
 				}*/
 				if (soapServiceReference.bNew || exportDir == null) {	// for other cases
-					String projectDir = Engine.PROJECTS_PATH + "/"+ project.getName();
+					String projectDir = project.getDirPath();
 					exportDir = new File(projectDir + "/wsdl/" + definitionName);
 			   		for (int index = 1; exportDir.exists(); index++) {
 			   			exportDir = new File(projectDir + "/wsdl/" + definitionName + index);
@@ -1159,7 +1159,7 @@ public class WsReference {
 			// Serialize request/response into template xml files
 			String projectName = project.getName();
 			String connectorName = httpConnector.getName();
-			String templateDir = Engine.PROJECTS_PATH + "/"+ projectName + "/soap-templates/" + connectorName;
+			String templateDir = Engine.projectDir(projectName) + "/soap-templates/" + connectorName;
 			File dir = new File(templateDir);
 			if (!dir.exists())
 				dir.mkdirs();

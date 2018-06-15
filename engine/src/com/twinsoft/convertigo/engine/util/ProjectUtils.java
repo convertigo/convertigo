@@ -88,7 +88,7 @@ import com.twinsoft.convertigo.engine.proxy.translated.ProxyTransaction;
 public class ProjectUtils {
 
 	public static void copyIndexFile(String projectName) throws Exception {
-    	String projectRoot = Engine.PROJECTS_PATH + '/' +  projectName;
+    	String projectRoot = Engine.projectDir(projectName);
     	String templateBase = Engine.TEMPLATES_PATH + "/base";
     	File indexPage = new File(projectRoot + "/index.html");
     	if (!indexPage.exists()) {
@@ -263,13 +263,16 @@ public class ProjectUtils {
 	}
 	
 	public static void makeReplacementsInFile(List<Replacement> replacements, String filePath) throws Exception {
-		File file = new File(filePath);
+		makeReplacementsInFile(replacements, new File(filePath));
+	}
+	
+	public static void makeReplacementsInFile(List<Replacement> replacements, File file) throws Exception {
 		if (file.exists()) {
 			String line;
 			StringBuffer sb = new StringBuffer();
 			
-			BufferedReader br = new BufferedReader(new FileReader(filePath));
-			while((line = br.readLine()) != null) {
+			BufferedReader br = new BufferedReader(new FileReader(file));
+			while ((line = br.readLine()) != null) {
 				for (Replacement replacement: replacements) {
 					String lineBegin = replacement.getStartsWith();
 					if ((lineBegin == null) || (line.trim().startsWith(lineBegin))) {
@@ -280,12 +283,12 @@ public class ProjectUtils {
 			}
 			br.close();
 			
-			BufferedWriter out= new BufferedWriter(new FileWriter(filePath));
+			BufferedWriter out = new BufferedWriter(new FileWriter(file));
 			out.write(sb.toString());
 			out.close();
 		}
 		else {
-			throw new Exception("File \""+filePath+"\" does not exist");
+			throw new Exception("File \"" + file.getAbsolutePath() + "\" does not exist");
 		}
 	}
 

@@ -610,7 +610,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 
 		String temporaryDir = new File(Engine.USER_WORKSPACE_PATH + "/temp").getCanonicalPath();
 		String tempProjectDir = temporaryDir + "/" + oldProjectName;
-		String newProjectDir = Engine.PROJECTS_PATH + "/" + newProjectName;
+		String newProjectDir = Engine.projectDir(newProjectName);
 
 		try {
 			try {

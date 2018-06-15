@@ -85,7 +85,7 @@ public class DeploymentConfigurationManager {
 		ConvertigoPlugin.logDebug("Projects deployment configurations migration starting...");
 
 		for (String projectName: projectsNames) {			
-			String filePath = Engine.PROJECTS_PATH + "/" + projectName + "/_private/deploy.ser";			
+			String filePath = Engine.projectDir(projectName) + "/_private/deploy.ser";			
 			File deploySer = new File(filePath);
 			deploymentInformation = null;
 

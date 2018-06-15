@@ -224,7 +224,7 @@ public class Context extends AbstractContext implements Cloneable {
 	public String getProjectDirectory() {
 		String dir = null;
 		if (projectName != null) {
-			dir = Engine.PROJECTS_PATH + "/" + projectName;
+			dir = Engine.projectDir(projectName);
 		}
 		return dir;
 	}

@@ -158,7 +158,7 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 				            projectDeployDialogComposite.fillList();
 				        }
 			
-				        File projectDir = new File(Engine.PROJECTS_PATH + "/" + ConvertigoPlugin.projectManager.currentProject.getName() + "/_private");
+				        File projectDir = new File(ConvertigoPlugin.projectManager.currentProject.getDirPath() + "/_private");
 				        if (!projectDir.exists()) {
 				        	ConvertigoPlugin.logInfo("Creating \"_private\" project directory");
 				            try {

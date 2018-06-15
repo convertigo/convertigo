@@ -120,7 +120,7 @@ public class JavelinConnectorComposite extends AbstractConnectorComposite implem
 		String traceFilePath = null;
 		if (bRecord) {
 			Timestamp ts = new Timestamp(System.currentTimeMillis());
-			traceFilePath = Engine.PROJECTS_PATH + "/" + connector.getProject().getName() + "/Traces/"
+			traceFilePath = connector.getProject().getDirPath() + "/Traces/"
 					+ connector.getName() + "/";
 			traceFilePath += ts.toString().substring(0, 10) + "_trace.etr";
 			File file = new File(traceFilePath);

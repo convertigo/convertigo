@@ -193,6 +193,10 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 			projectSelected = getProject(projectNameSelected, projectExplorerView);
 		}
 		
+		if (projectSelected == null) {
+			return;
+		}
+		
 		String projectNameSelected = projectSelected.getName();
 		
 		treeViewer.setInput(null);

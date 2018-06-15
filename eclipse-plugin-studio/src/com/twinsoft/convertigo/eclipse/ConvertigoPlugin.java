@@ -28,11 +28,6 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -896,19 +891,22 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		}
 		
 		runAtStartup(() -> {
-			for (File tpl: new File(Engine.TEMPLATES_PATH + "/project").listFiles()) {
-				try {
-					String name = tpl.getName();
-					name = name.substring(0, name.length() - 4);
-					if (name.startsWith("mobilebuilder_tpl")) {
-						if (!Engine.theApp.databaseObjectsManager.existsProject(name)) {
-							Engine.theApp.databaseObjectsManager.deployProject(tpl.getPath(), false);
+			File[] templates = new File(Engine.TEMPLATES_PATH + "/project").listFiles();
+			if (templates != null) {
+				for (File tpl: templates) {
+					try {
+						String name = tpl.getName();
+						name = name.substring(0, name.length() - 4);
+						if (name.startsWith("mobilebuilder_tpl")) {
+							if (!Engine.theApp.databaseObjectsManager.existsProject(name)) {
+								Engine.theApp.databaseObjectsManager.deployProject(tpl.getPath(), false);
+							}
+							ConvertigoPlugin.getDefault().getProjectPluginResource(name, null);
 						}
-						ConvertigoPlugin.getDefault().getProjectPluginResource(name, null);
+	
+					} catch (Exception e) {
+						Engine.logEngine.error("Failed to deploy " + tpl.getName(), e);
 					}
-
-				} catch (Exception e) {
-					Engine.logEngine.error("Failed to deploy " + tpl.getName(), e);
 				}
 			}
 		});
@@ -1514,27 +1512,33 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	}
 	
 	public IProject createProjectPluginResource(String projectName) throws CoreException {
-		return createProjectPluginResource(projectName, null);
+		return createProjectPluginResource(projectName, null, null);
 	}
 	
-	public IProject createProjectPluginResource(String projectName, IProgressMonitor monitor) throws CoreException {
+	public IProject createProjectPluginResource(String projectName, String projectDir) throws CoreException {
+		return createProjectPluginResource(projectName, projectDir, null);
+	}
+	
+	public IProject createProjectPluginResource(String projectName, String projectDir, IProgressMonitor monitor) throws CoreException {
 		IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
 		IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
 		IProject resourceProject = myWorkspaceRoot.getProject(projectName);
 		
-		if (!resourceProject.exists()) {		
-			if(myWorkspaceRoot.getLocation().toFile().equals(new Path(Engine.PROJECTS_PATH).toFile())){
+		if (!resourceProject.exists()) {
+			if (projectDir == null) {
 				logDebug("createProjectPluginResource : project is in the workspace folder");
 				
 				resourceProject.create(monitor);
-			}else{
-				logDebug("createProjectPluginResource: project isn't in the workspace folder");
-		
-				IPath projectPath = new Path(Engine.PROJECTS_PATH + "/" + projectName).makeAbsolute();
+			} else {
+				logDebug("createProjectPluginResource: project isn't in the workspace folder");				
+				IPath projectPath = new Path(projectDir).makeAbsolute();
 				IProjectDescription description = myWorkspace.newProjectDescription(projectName);
 				description.setLocation(projectPath);
 				resourceProject.create(description, monitor);
+				resourceProject.open(monitor);
 			}
+		} else {
+			resourceProject.refreshLocal(IResource.DEPTH_INFINITE, monitor);
 		}
 		
 		return resourceProject;
@@ -1545,13 +1549,16 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	}
 	
 	public IProject getProjectPluginResource(String projectName, IProgressMonitor monitor) throws CoreException {
-		if (cacheIProject.containsKey(projectName)) return (IProject)cacheIProject.get(projectName);
+		if (cacheIProject.containsKey(projectName)) {
+			return (IProject) cacheIProject.get(projectName);
+		}
 		
 		IProject resourceProject = createProjectPluginResource(projectName);
 		if (resourceProject.exists()) {
 			resourceProject.refreshLocal(IResource.DEPTH_INFINITE, monitor);			
-			if (!resourceProject.isOpen())
+			if (!resourceProject.isOpen()) {
 				resourceProject.open(monitor);
+			}
 		}
 		cacheIProject.put(projectName, resourceProject);
 		
@@ -1563,9 +1570,10 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
 		IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
 		IProject resourceProject = myWorkspaceRoot.getProject(projectName);
-		
 		if (resourceProject.exists()) {
-			IPath newProjectPath = new Path(Engine.PROJECTS_PATH + "/" + newName).makeAbsolute();
+			File dir = new File(resourceProject.getLocation().toOSString());
+			dir = new File(dir.getParentFile(), newName);
+			IPath newProjectPath = new Path(dir.getAbsolutePath()).makeAbsolute();
         	IProjectDescription description = myWorkspace.newProjectDescription(newName);
 			description.setLocation(newProjectPath);
         	resourceProject.move(description, false, null);
@@ -1759,22 +1767,57 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		
 	}
 	
+	private IProject getIProject(String projectName) {
+		IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
+		IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
+		return myWorkspaceRoot.getProject(projectName);
+	}
+	
+	private File getProjectFile(IProject iProject) {
+		File file = null;
+		if (iProject != null) {
+			String name = iProject.getName();
+			IPath iPath = iProject.getLocation();
+			if (iPath != null) {
+				String sPath = iPath.toOSString();
+				file = new File(sPath);
+				file = new File(file, name + ".xml");
+			}
+		}
+		return file;
+	}
+	
+	public File getProject(String projectName) {
+		IProject iProject = getIProject(projectName);
+		return getProjectFile(iProject);
+	}
+	
 	public boolean isProjectOpened(String projectName) {
 		boolean isOpen = false;
 		try {
-			IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
-			IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
-			IProject resourceProject = myWorkspaceRoot.getProject(projectName);
-			if (resourceProject != null) {
-				if (!resourceProject.exists() && Engine.theApp.databaseObjectsManager.existsProject(projectName)) {
-					resourceProject = createProjectPluginResource(projectName, null);
-				}
-				isOpen = resourceProject.isOpen();
+			IProject iProject = getIProject(projectName);
+			if (iProject != null) {
+//				if (!resourceProject.exists() && Engine.theApp.databaseObjectsManager.existsProject(projectName)) {
+//					resourceProject = createProjectPluginResource(projectName, null);
+//				}
+				isOpen = iProject.isOpen();
 			}
 		} catch (Exception e) {
 			logWarning(e, "Error when checking if '" + projectName + "' is open", false);
 		}
 		return isOpen;
+	}
+	
+	@Override
+	public void declareProject(File projectXml) {
+		String name = projectXml.getName();
+		if (projectXml.getParentFile().exists() && name.endsWith(".xml")) {
+			try {
+				createProjectPluginResource(name.substring(0, name.length() - 4), projectXml.getParentFile().getAbsolutePath());
+			} catch (CoreException e) {
+				ConvertigoPlugin.logException(e, "Failed to declare the project from " + projectXml.getAbsolutePath());
+			}
+		}
 	}
 	
 	@Override
@@ -1791,57 +1834,15 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
 		IProject[] iProjects = myWorkspaceRoot.getProjects();
 		Map<String, File> projects = new HashMap<>(iProjects.length);
+		checkOpenable &= !"true".equals(ConvertigoPlugin.getProperty(PREFERENCE_ENGINE_LOAD_ALL_PROJECTS));
 		for (IProject iProject: iProjects) {
-			IPath iPath = iProject.getLocation();
-			String sPath = iPath.toOSString();
-			File file = new File(sPath);
-			file = new File(file, file.getName() + ".xml");
-			if (file.exists()) {
-				projects.put(file.getName(), file);
+			if (!checkOpenable || iProject.isOpen()) {
+				File file = getProjectFile(iProject);
+				if (file != null && file.exists()) {
+					projects.put(iProject.getName(), file);
+				}
 			}
 		}
 		return projects;
-	}
-	
-	@Override
-	public File getProjectXml(String projectName) {
-		return null;
-	}
-	
-	
-	public Collection<java.nio.file.Path> listProject() {
-		try {
-			IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
-			IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
-			IProject[] iProjects = myWorkspaceRoot.getProjects();
-			Collection<java.nio.file.Path> projects = new ArrayList<>(iProjects.length);
-			for (IProject iProject: iProjects) {
-				IPath iPath = iProject.getLocation();
-				String sPath = iPath.toOSString();
-				java.nio.file.Path file = Paths.get(sPath);
-				if (Files.exists(file.resolve(file.getFileName() + ".xml"))) {
-					projects.add(file);
-				}
-			}
-			return projects;
-		} catch (Exception e) {
-			logWarning(e, "Error when list projects", false);
-		}
-		return Collections.emptyList();
-	}
-	
-	
-	public java.nio.file.Path getProjectPath(String projectName) {
-		try {
-			IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
-			IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
-			IProject resourceProject = myWorkspaceRoot.getProject(projectName);
-			if (resourceProject != null) {
-				return Paths.get(resourceProject.getLocation().toOSString());
-			}
-		} catch (Exception e) {
-			logWarning(e, "Error when list projects", false);
-		}
-		return null;
 	}
 }

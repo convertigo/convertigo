@@ -275,7 +275,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
     	NodeList properties = projectNode.getElementsByTagName("property");
 		Element pName = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "name");
 		String projectName = (String) XMLUtils.readObjectFromXml((Element) XMLUtils.findChildNode(pName, Node.ELEMENT_NODE));
-    	return Engine.PROJECTS_PATH + "/"+ projectName + "/backup-wsdl";
+    	return Engine.projectDir(projectName) + "/backup-wsdl";
     }
     
     protected void backupWsdlTypes(Element element) throws TransformerFactoryConfigurationError, Exception {

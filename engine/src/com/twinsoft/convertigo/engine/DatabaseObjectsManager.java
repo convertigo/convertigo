@@ -108,6 +108,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 	private static Pattern pFindEnv = Pattern.compile("\\%([^\\r\\n]*?)(?:=(.*?(?<!\\\\)))?\\%");
 	
 	public static interface StudioProjects {
+		default void declareProject(File projectXml) {
+		}
+		
 		default boolean canOpen(String projectName) {
 			return true;
 		}
@@ -116,8 +119,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 			return Collections.emptyMap();
 		}
 		
-		default public File getProjectXml(String projectName) {
-			return null;
+		default public File getProject(String projectName) {
+			return Engine.projectFile(projectName);
 		}
 	}
 	
@@ -247,12 +250,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 	public Project getOriginalProjectByName(String projectName, boolean checkOpenable) throws EngineException {
 		Engine.logDatabaseObjectManager.trace("Requiring loading of project \"" + projectName + "\"");
 		
-		File projectPath = studioProjects.getProjectXml(projectName);
+		File projectPath = studioProjects.getProjects(checkOpenable).get(projectName);
 		if (projectPath == null) {
-			projectPath = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml");
+			projectPath = Engine.projectFile(projectName);
 		}
 		
-		if (checkOpenable && !canOpenProject(projectName) || !projectPath.exists()) {
+		if (checkOpenable && !canOpenProject(projectName) || projectPath == null || !projectPath.exists()) {
 			Engine.logDatabaseObjectManager.trace("The project \"" + projectName + "\" cannot be open");
 			clearCache(projectName);
 			return null;
@@ -451,7 +454,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 
 	public boolean existsProject(String projectName) {
-		File file = new File(Engine.PROJECTS_PATH + "/" + projectName);
+		File file = studioProjects.getProjects(false).get(projectName);
+		if (file == null) {
+			file = new File(Engine.PROJECTS_PATH + "/" + projectName);
+		}
 		return file.exists();
 	}
 
@@ -486,7 +492,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 					Engine.theApp.contextManager.removeAll("/" + projectName);
 				}
 			}
-			File projectDir = new File(Engine.PROJECTS_PATH + "/" + projectName);
+			File projectDir = new File(Engine.projectDir(projectName));
 			File removeDir = projectDir;
 			
 			if (!bDataOnly) {
@@ -530,7 +536,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		try {
 			deleteProject(projectName);
 
-			String projectArchive = Engine.PROJECTS_PATH + "/" + projectName + ".car";
+			String projectArchive = Engine.projectDir(projectName) + ".car";
 			deleteDir(new File(projectArchive));
 		} catch (Exception e) {
 			throw new EngineException("Unable to delete the project \"" + projectName + "\".", e);
@@ -672,7 +678,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 		// Export project
 		Engine.logDatabaseObjectManager.debug("Saving project \"" + projectName + "\" to XML file ...");
-		String exportedProjectFileName = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml";
+		String exportedProjectFileName = Engine.projectFile(projectName).getAbsolutePath();
 		CarUtils.exportProject(project, exportedProjectFileName);
 		RestApiManager.getInstance().putUrlMapper(project);
 		Engine.logDatabaseObjectManager.info("Project \"" + projectName + "\" saved!");
@@ -853,7 +859,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		String projectName = project.getName();
 
 		if (bAssembleXsl) {
-			String projectDir = Engine.PROJECTS_PATH + "/" + projectName;
+			String projectDir = Engine.projectDir(projectName);
 			String xmlFilePath = projectDir + "/" + projectName + ".xml";
 			try {
 				Document document = XMLUtils.loadXml(xmlFilePath);
@@ -962,13 +968,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 	private boolean needsMigration(String projectName) throws EngineException {
 		if (projectName != null) {
-			String projectFileName = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml";
-			File projectXmlFile = new File(projectFileName);
+			File projectXmlFile = Engine.projectFile(projectName);
 			if (projectXmlFile.exists()) {
 				try {
 					final String[] version = { null };
 					try {
-						XMLUtils.saxParse(new File(projectFileName), new DefaultHandler() {
+						XMLUtils.saxParse(projectXmlFile, new DefaultHandler() {
 
 							@Override
 							public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
@@ -999,7 +1004,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 						return true;
 					}
 				} catch (Exception e) {
-					throw new EngineException("Unable to retrieve project's version from \"" + projectFileName + "\".", e);
+					throw new EngineException("Unable to retrieve project's version from \"" + projectXmlFile + "\".", e);
 				}
 			}
 		}
@@ -1358,84 +1363,74 @@ public class DatabaseObjectsManager implements AbstractManager {
 	public void renameProject(Project project, String newName, boolean keepOldReferences) throws ConvertigoException {
 		String oldName = project.getName();
 		
-		if (!oldName.equals(newName)) {
-			// Rename dir
-			File file = new File(Engine.PROJECTS_PATH + "/" + oldName);
-			if (!file.renameTo(new File(Engine.PROJECTS_PATH + "/" + newName))) {
-				throw new EngineException(
-						"Unable to rename the object path \""
-								+ Engine.PROJECTS_PATH
-								+ "/"
-								+ oldName
-								+ "\" to \""
-								+ Engine.PROJECTS_PATH
-								+ "/"
-								+ newName
-								+ "\".\n This directory already exists or is probably locked by another application.");
-			}
-
-			// update transaction schema files with new project's name
-			List<Replacement> replacements = new ArrayList<Replacement>();
-			replacements.add(new Replacement("/"+oldName, "/"+newName));
-			replacements.add(new Replacement(oldName+"_ns", newName+"_ns"));
-			for (Connector connector: project.getConnectorsList()) {
-				for (Transaction transaction: connector.getTransactionsList()) {
-					String oldSchemaFilePath = transaction.getSchemaFilePath();
-					String newSchemaFilePath = oldSchemaFilePath.replaceAll(oldName, newName);
-					if (new File(newSchemaFilePath).exists()) {
-						try {
-							ProjectUtils.makeReplacementsInFile(replacements, newSchemaFilePath);
-						} catch (Exception e) {
-							Engine.logBeans.error("Could rename \""+oldName+"\" to \""+newName+"\" in schema file \""+newSchemaFilePath+"\" !", e);
-						}
-					}
-				}
-			}
-			
-			clearCache(project);
-			project.setName(newName);
-			project.hasChanged = true;
-			exportProject(project);
-			
-		    // Make reference replacements in xml file
-			String xmlFilePath = Engine.PROJECTS_PATH + "/" + newName + "/" + newName + ".xml";
-			if (new File(xmlFilePath).exists()) {
-				replacements = new ArrayList<Replacement>();
-				try {
-					// replace project's bean name
-					replacements.add(new Replacement("<!--<Project : " + oldName + ">", "<!--<Project : " + newName + ">"));
-					replacements.add(new Replacement("value=\""+oldName+"\"", "value=\""+newName+"\"", "<!--<Project"));
-					replacements.add(new Replacement("<!--</Project : " + oldName + ">", "<!--</Project : " + newName + ">"));
-					
-					// replace project's name references
-					if (!keepOldReferences) {
-						replacements.add(new Replacement("value=\""+oldName+"\\.", "value=\""+newName+"\\."));
-					}
-					
-					ProjectUtils.makeReplacementsInFile(replacements, xmlFilePath);
-				} catch (Exception e) {
-				}
-			}
-			
-			// Delete the old .xml file
-	        String oldXmlFilePath = Engine.PROJECTS_PATH + "/" + newName + "/" + oldName + ".xml";
-	        File xmlFile = new File(oldXmlFilePath);
-	        if (!xmlFile.exists()) {
-	        	throw new ConvertigoException("The xml file \"" + oldName + ".xml\" doesn't exist.");
-	        }
-	        if (!xmlFile.canWrite()) {
-	    		throw new ConvertigoException("Unable to access the xml file \"" + oldName + ".xml\".");
-	        }
-	        if (!xmlFile.delete()) {
-				throw new ConvertigoException("Unable to delete the xml file \"" + oldName + ".xml\".");
-			}
-			
-	        // Delete .project file
-	        String ressourcePath = Engine.PROJECTS_PATH + "/" + newName + "/.project";
-	        File ressourceFile = new File(ressourcePath);
-	        ressourceFile.delete();
+		if (oldName.equals(newName)) {
+			return;
 		}
-
+		// Rename dir
+		File file = Engine.projectFile(oldName);
+		if (file == null || !file.exists()) {
+			return;
+		}
+		
+		file = file.getParentFile();
+		File newDir = new File(file.getParentFile(), newName);
+		if (!file.renameTo(newDir)) {
+			throw new EngineException(
+					"Unable to rename the object path \""
+							+ file.getAbsolutePath()
+							+ "\" to \""
+							+ newDir.getAbsolutePath()
+							+ "\".\n This directory already exists or is probably locked by another application.");
+		}
+		
+	    // Make reference replacements in xml file
+		File xmlFile = new File(newDir, newName + ".xml");
+		
+		studioProjects.declareProject(xmlFile);
+		
+		// update transaction schema files with new project's name
+		List<Replacement> replacements = new ArrayList<Replacement>();
+		replacements.add(new Replacement("/" + oldName, "/" + newName));
+		replacements.add(new Replacement(oldName + "_ns", newName + "_ns"));
+		for (Connector connector: project.getConnectorsList()) {
+			for (Transaction transaction: connector.getTransactionsList()) {
+				String oldSchemaFilePath = transaction.getSchemaFilePath();
+				String newSchemaFilePath = oldSchemaFilePath.replaceAll(oldName, newName);
+				if (new File(newSchemaFilePath).exists()) {
+					try {
+						ProjectUtils.makeReplacementsInFile(replacements, newSchemaFilePath);
+					} catch (Exception e) {
+						Engine.logBeans.error("Could rename \"" + oldName + "\" to \"" + newName + "\" in schema file \"" + newSchemaFilePath + "\" !", e);
+					}
+				}
+			}
+		}
+		
+		clearCache(project);
+		project.setName(newName);
+		project.hasChanged = true;
+		exportProject(project);
+		
+		if (xmlFile.exists()) {
+			replacements = new ArrayList<Replacement>();
+			try {
+				// replace project's bean name
+				replacements.add(new Replacement("<!--<Project : " + oldName + ">", "<!--<Project : " + newName + ">"));
+				replacements.add(new Replacement("value=\""+oldName+"\"", "value=\""+newName+"\"", "<!--<Project"));
+				replacements.add(new Replacement("<!--</Project : " + oldName + ">", "<!--</Project : " + newName + ">"));
+				
+				// replace project's name references
+				if (!keepOldReferences) {
+					replacements.add(new Replacement("value=\""+oldName+"\\.", "value=\""+newName+"\\."));
+				}
+				
+				ProjectUtils.makeReplacementsInFile(replacements, xmlFile);
+			} catch (Exception e) {
+			}
+		}
+		
+        FileUtils.deleteQuietly(new File(newDir, oldName + ".xml"));
+        FileUtils.deleteQuietly(new File(newDir, ".project"));
 	}
 	
 	public String getCompiledValue(String value) throws UndefinedSymbolsException {
@@ -1799,7 +1794,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 	
 	public boolean symbolsProjectCheckUndefined(String projectName) throws Exception {
-		final Project project = getOriginalProjectByName(projectName);
+		final Project project = getOriginalProjectByName(projectName, false);
+		if (project == null) {
+			return false;
+		}
 		if (project.undefinedGlobalSymbols) {
 			project.undefinedGlobalSymbols = false;
 			new WalkHelper() {
