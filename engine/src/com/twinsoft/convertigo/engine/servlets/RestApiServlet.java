@@ -47,6 +47,7 @@ import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.util.HttpServletRequestTwsWrapper;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
+import com.twinsoft.convertigo.engine.util.OpenApiUtils;
 import com.twinsoft.convertigo.engine.util.ServletUtils;
 import com.twinsoft.convertigo.engine.util.SwaggerUtils;
 import com.twinsoft.tas.KeyManager;
@@ -73,6 +74,28 @@ public class RestApiServlet extends GenericServlet {
 		else {
 			Collection<UrlMapper> collection = RestApiManager.getInstance().getUrlMappers();
 			definition = isYaml ? SwaggerUtils.getYamlDefinition(requestUrl, collection): SwaggerUtils.getJsonDefinition(requestUrl, collection);
+		}
+		return definition;
+	}
+
+	private String buildOpenApiDefinition(String requestUrl, String projectName, boolean isYaml) throws EngineException, JsonProcessingException {
+		String definition = null;
+		
+		// Build a given project definition
+		if (projectName != null) {
+			UrlMapper urlMapper = RestApiManager.getInstance().getUrlMapper(projectName);
+			if (urlMapper != null) {
+				definition = isYaml ? OpenApiUtils.getYamlDefinition(requestUrl, urlMapper): OpenApiUtils.getJsonDefinition(requestUrl, urlMapper);
+			}
+			else {
+				Engine.logEngine.warn("Project \""+projectName+"\" does not contain any UrlMapper.");
+				definition = isYaml ? OpenApiUtils.getYamlDefinition(requestUrl, projectName): OpenApiUtils.getJsonDefinition(requestUrl, projectName);
+			}
+		}
+		// Build all project definitions
+		else {
+			Collection<UrlMapper> collection = RestApiManager.getInstance().getUrlMappers();
+			definition = isYaml ? OpenApiUtils.getYamlDefinition(requestUrl, collection): OpenApiUtils.getJsonDefinition(requestUrl, collection);
 		}
 		return definition;
 	}
@@ -134,7 +157,9 @@ public class RestApiServlet extends GenericServlet {
 		if ("GET".equalsIgnoreCase(method) && (isYaml || isJson)) {
     		try {
     			String requestUrl = HttpUtils.originalRequestURL(request);
-    			String output = buildSwaggerDefinition(requestUrl, request.getParameter("__project"), isYaml);
+    			String output = uri.indexOf("/api") != -1 ?
+    								buildSwaggerDefinition(requestUrl, request.getParameter("__project"), isYaml):
+    									buildOpenApiDefinition(requestUrl, request.getParameter("__project"), isYaml);
     			response.setCharacterEncoding("UTF-8");    			
     			response.setContentType((isYaml ? MimeType.Yaml : MimeType.Json).value());
                 Writer writer = response.getWriter();

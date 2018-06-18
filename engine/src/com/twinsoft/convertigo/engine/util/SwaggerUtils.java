@@ -42,10 +42,12 @@ import io.swagger.models.properties.IntegerProperty;
 import io.swagger.models.properties.Property;
 import io.swagger.models.properties.RefProperty;
 import io.swagger.models.properties.StringProperty;
+import io.swagger.models.utils.PropertyModelConverter;
 import io.swagger.parser.SwaggerParser;
 import io.swagger.util.Json;
 import io.swagger.util.Yaml;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -76,6 +78,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
+import com.twinsoft.convertigo.engine.servlets.WebServiceServlet;
 
 public class SwaggerUtils {
 	private static Pattern parseRequestUrl = Pattern.compile("http(s)?://(.*?)(/.*?api)");
@@ -177,8 +180,67 @@ public class SwaggerUtils {
 		return swagger;
 	}
 	
+	private static String getModels(String requestUrl, UrlMapper urlMapper) {
+		Project project = urlMapper.getProject();
+		String projectName = project.getName();
+		
+		// User defined models
+		String models = "{}";
+		String mapperModels = urlMapper.getModels();
+		if (!mapperModels.isEmpty()) {
+			models = mapperModels;
+		}
+		
+		// Generated models from XSD
+		File targetDir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/oas");
+		try {
+			File jsonschemaFile = new File(targetDir, projectName+".jsonschema" );
+			boolean doit = Engine.isStudioMode() || !jsonschemaFile.exists();
+			if (doit) {
+				File wsdlFile = new File(targetDir, projectName+".wsdl" );
+				String wsdlUrl = getProjectWsdlUrl(requestUrl, projectName);
+				String wsdl = WebServiceServlet.generateWsdlForDocLiteral(wsdlUrl, projectName);
+				FileUtils.write(wsdlFile, wsdl, "UTF-8");
+				if (wsdlFile.exists()) { 
+					String schemaUrl = getProjectJsonSchemaUrl(requestUrl, projectName);
+			    	JsonixUtils.runJsonixCompiler(schemaUrl, targetDir, projectName, wsdlFile);
+				}
+			}
+		} catch (Throwable t) {
+			t.printStackTrace();
+			try {
+				FileUtils.deleteDirectory(targetDir);
+			} catch (Exception e) {}
+		}
+		
+		return models;
+	}
+	
+	private static String getProjectWsdlUrl(String requestUrl, String projectName) {
+		String wsdlUrl = requestUrl.substring(0,requestUrl.indexOf("/api")) +
+							"/projects/"+ projectName + "/.wsl?WSDL";
+		return wsdlUrl;
+	}
+	
+	private static String getProjectJsonSchemaUrl(String requestUrl, String projectName) {
+		String schemaUrl = requestUrl.substring(0,requestUrl.indexOf("/api")) + 
+								"/projects/"+ projectName + "/oas/"+projectName+".jsonschema";
+		return schemaUrl;
+	}
+	
+	private static String refactorModelReference(String modelReference, String schemaUrl, String projectName) {
+		if (modelReference.startsWith(projectName + ".jsonschema#")) {
+			return modelReference.replaceFirst(projectName+"\\.jsonschema", schemaUrl);
+		}
+		return modelReference;
+	}
+	
 	public static Swagger parse(String requestUrl, UrlMapper urlMapper) {
 		Project project = urlMapper.getProject();
+		String projectName = project.getName();
+		
+		String schemaUrl = getProjectJsonSchemaUrl(requestUrl, projectName);
+		
 		Swagger swagger = parseCommon(requestUrl, project);
 		
 		List<Tag> tags = new ArrayList<Tag>();
@@ -190,7 +252,7 @@ public class SwaggerUtils {
 		
 		Map<String, Model> swagger_models = new HashMap<String, Model>();		
 		try {
-			String models = urlMapper.getModels();
+			String models = getModels(requestUrl, urlMapper);
 			if (!models.isEmpty()) {
 				ObjectMapper mapper = Json.mapper();
 				JsonNode definitionNode = mapper.readTree(models);
@@ -270,9 +332,10 @@ public class SwaggerUtils {
 						else if (ump.getType() == Type.Body) {
 							s_parameter = new BodyParameter();
 							if (ump instanceof IMappingRefModel) {
-								String modelreference = ((IMappingRefModel)ump).getModelReference();
-								if (!modelreference.isEmpty()) {
-									RefModel refModel = new RefModel(modelreference);
+								String modelReference = ((IMappingRefModel)ump).getModelReference();
+								if (!modelReference.isEmpty()) {
+									modelReference = refactorModelReference(modelReference, schemaUrl, projectName);
+									RefModel refModel = new RefModel(modelReference);
 									((BodyParameter)s_parameter).setSchema(refModel);
 								}
 							}
@@ -345,10 +408,11 @@ public class SwaggerUtils {
 								//response.setDescription(umr.getComment());
 								response.setDescription(umr.getStatusText());
 								if (umr instanceof IMappingRefModel) {
-									String modelreference = ((IMappingRefModel)umr).getModelReference();
-									if (!modelreference.isEmpty()) {
-										RefProperty refProperty = new RefProperty(modelreference);
-										response.setSchema(refProperty);
+									String modelReference = ((IMappingRefModel)umr).getModelReference();
+									if (!modelReference.isEmpty()) {
+										modelReference = refactorModelReference(modelReference, schemaUrl, projectName);
+										RefProperty refProperty = new RefProperty(modelReference);
+										response.setResponseSchema(new PropertyModelConverter().propertyToModel(refProperty));
 									}
 								}
 								responses.put(statusCode, response);

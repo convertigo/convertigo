@@ -67,6 +67,6 @@ $(document).ready(function () {
 			});	
 		});
 		
-		$("#swaggerLink").attr("href", "swagger/ui/index.html?url="+getEncodedYamlUri());
+		$("#swaggerLink").attr("href", "swagger/dist/index.html?url="+getEncodedYamlUri());
 	});
 });

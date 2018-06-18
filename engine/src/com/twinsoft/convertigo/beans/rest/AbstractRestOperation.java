@@ -39,7 +39,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import com.twinsoft.convertigo.beans.core.IMappingRefModel;
 import com.twinsoft.convertigo.beans.core.UrlMapping;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
@@ -299,7 +298,7 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 			        		// Transform input data
 			        		try {
 				        		if (dataInput.equals(DataContent.toJson)) {
-				        			String modelName = param instanceof IMappingRefModel ? ((IMappingRefModel)param).getModelReference() : "";
+				        			String modelName = "";//param instanceof IMappingRefModel ? ((IMappingRefModel)param).getModelReference() : "";
 				        			String objectName = modelName.isEmpty() ? paramName : modelName;
 				        			Document doc = XMLUtils.parseDOMFromString("<"+objectName+"/>");
 				        			Element root = doc.getDocumentElement();

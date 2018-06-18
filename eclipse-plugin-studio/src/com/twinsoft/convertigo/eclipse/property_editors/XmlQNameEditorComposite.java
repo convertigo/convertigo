@@ -84,7 +84,7 @@ public class XmlQNameEditorComposite extends AbstractDialogComposite {
 			collection = Engine.theApp.schemaManager.getSchemasForProject(project.getName());
 			currentNamespace = project.getTargetNamespace();
 			if ("xmlTypeAffectation".equals(propertyName)) {
-				// useComplexType = true; // TODO: add complex type support for input variables 
+				useComplexType = true; // TODO: add complex type support for input variables 
 				useSimpleType = true;
 			} else {
 				useComplexType = "xmlComplexTypeAffectation".equals(propertyName);

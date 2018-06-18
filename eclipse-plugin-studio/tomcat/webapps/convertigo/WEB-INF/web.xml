@@ -232,6 +232,10 @@
         <servlet-name>RestApiServlet</servlet-name>
         <url-pattern>/api/*</url-pattern>
     </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>RestApiServlet</servlet-name>
+        <url-pattern>/openapi/*</url-pattern>
+    </servlet-mapping>
 	
     <!-- HTTP print entry point -->
 	<!--  Disabled in this version
