@@ -17,6 +17,7 @@ META-INF
 /build
 /eclipse-plugin-studio/src/com/twinsoft/convertigo/eclipse/wizards/setup/license.txt
 /eclipse-plugin-studio/tomcat/webapps/convertigo/licenses/license.txt
+/eclipse-plugin-studio/tomcat/webapps/convertigo/templates/project/*
 /eclipse-plugin-studio/tomcat/work/*
 /eclipse-plugin-xulrunner-win32/xulrunner
 /resources
