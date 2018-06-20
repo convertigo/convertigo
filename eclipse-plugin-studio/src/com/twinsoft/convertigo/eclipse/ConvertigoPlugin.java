@@ -1787,6 +1787,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		return file;
 	}
 	
+	@Override
 	public File getProject(String projectName) {
 		IProject iProject = getIProject(projectName);
 		return getProjectFile(iProject);

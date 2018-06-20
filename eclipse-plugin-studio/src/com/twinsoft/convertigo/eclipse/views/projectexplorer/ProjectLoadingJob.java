@@ -111,8 +111,10 @@ public class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 					}
 
 					monitor.subTask("Refreshing project ressources...");
+					String projectDir = Engine.projectDir(projectName);
 					ConvertigoPlugin.projectManager.getProjectExplorerView().createDir(projectName);
-					ConvertigoPlugin.getDefault().getProjectPluginResource(projectName, monitor);
+					//ConvertigoPlugin.getDefault().getProjectPluginResource(projectName, projectDir, monitor);
+					ConvertigoPlugin.getDefault().createProjectPluginResource(projectName, projectDir, monitor);
 		
 					Engine.theApp.databaseObjectsManager.addDatabaseObjectListener(this);
 					

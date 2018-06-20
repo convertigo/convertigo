@@ -1648,18 +1648,18 @@ public class Engine {
 	
 	public static File projectFile(String projectName) {
 		File file = DatabaseObjectsManager.studioProjects.getProject(projectName);
+		if (file == null) {
+			file = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml");
+		}
 		return file;
 	}
 	
 	public static String projectDir(String projectName) {
-		File file = DatabaseObjectsManager.studioProjects.getProject(projectName);
-		if (file == null) {
-			file = new File(Engine.PROJECTS_PATH + "/" + projectName);
-		}
+		File file = projectFile(projectName).getParentFile();
 		try {
-			return file.getParentFile().getCanonicalPath();
+			return file.getCanonicalPath();
 		} catch (IOException e) {
-			return file.getParentFile().getAbsolutePath();
+			return file.getAbsolutePath();
 		}
 	}
 	

@@ -30,6 +30,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -39,6 +41,7 @@ import org.apache.commons.io.IOUtils;
 import com.twinsoft.convertigo.engine.Engine;
 
 public class ZipUtils {
+	private static final Pattern reProjectFromCAR = Pattern.compile("(.*?)/\\1\\.xml");
 	
 	public static void makeZip(String archiveFileName, String sDir, String sRelativeDir) throws Exception {
 		FileOutputStream fos = new FileOutputStream(archiveFileName);
@@ -112,11 +115,14 @@ public class ZipUtils {
 			Engine.logEngine.debug("Root directory created");
 		}
 		
+		if (prefixDir != null && !prefixDir.endsWith("/")) {
+			prefixDir = prefixDir + "/";
+		}
+		
 		ZipInputStream zis = new ZipInputStream(new BufferedInputStream(new FileInputStream(zipFileName)));
 		
 		try {
 			ZipEntry entry;
-			int prefixSize = prefixDir != null ? prefixDir.length() : 0;
 			
 			while ((entry = zis.getNextEntry()) != null) {
 				// Ignoring directories
@@ -130,22 +136,22 @@ public class ZipUtils {
 					try {
 						// Ignore entry if does not belong to the project directory
 						if ((prefixDir == null) || entryName.startsWith(prefixDir)) {
-							
+							if (prefixDir != null) {
+								entryName = entryName.substring(prefixDir.length());
+							}
 							// Ignore entry from _data or _private directory
-							if ((entryName.indexOf("/_data/") != prefixSize ) && (entryName.indexOf("/_private/") != prefixSize)) {
+							if (!entryName.startsWith("/_data/") && !entryName.startsWith("/_private/")) {
 								Engine.logEngine.debug("  The entry is accepted");
-								String s1 = rootDir + "/" + entryName;
-								String dir = s1.substring(0, s1.lastIndexOf('/'));
+								File file = new File(rootDir + "/" + entryName);
 								
 								// Creating the directory if needed
-								ftmp = new File(dir);
+								ftmp = file.getParentFile();
 								if (!ftmp.exists()) {
 									ftmp.mkdirs();
 									Engine.logEngine.debug("  Directory created");
 								}
 								
 								// Writing the files to the disk
-								File file = new File(rootDir + "/" + entryName);
 								FileOutputStream fos = new FileOutputStream(file);
 								try {
 									IOUtils.copy(zis, fos);
@@ -173,21 +179,20 @@ public class ZipUtils {
  	 * @return filename: the project name
  	 * @throws IOException */
      public static String getProjectName(String path) throws IOException {
- 		Engine.logEngine.trace("PATH: "+path);
+ 		Engine.logEngine.trace("PATH: " + path);
  		
  		ZipInputStream zis = new ZipInputStream(new FileInputStream(path));
- 	    ZipEntry ze = null;	  
- 	    String fileName = null;
+ 	    ZipEntry ze = null;
+ 	    Matcher matcher = reProjectFromCAR.matcher("");
  	    try {
- 	        if((ze = zis.getNextEntry()) != null){
- 	        	fileName = ze.getName().replaceAll("/.*","");
- 	        	Engine.logEngine.trace("ZipUtils.getProjectName() - fileName: "+fileName);
+ 	        while(!matcher.matches() && (ze = zis.getNextEntry()) != null) {
+ 	        	matcher.reset(ze.getName());
  	        }
  	    }
  	    finally {
  	        zis.close();
  	    }
- 		return fileName;
+ 	    return matcher.group(1);
  	}
  	
  	/*** Added by julienda - 10/09/2012

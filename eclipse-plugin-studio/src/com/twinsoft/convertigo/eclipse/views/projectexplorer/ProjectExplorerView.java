@@ -2897,10 +2897,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 	
 	public boolean importProject(String filePath, String targetProjectName) throws EngineException, IOException, CoreException {
-		return importProject(filePath, targetProjectName, false);
-	}
-
-	public boolean importProject(String filePath, String targetProjectName, boolean reload) throws EngineException, IOException, CoreException {
 		TreeObject projectTreeObject = null;
 		if (targetProjectName != null) {
 			projectTreeObject = ((ViewContentProvider) viewer.getContentProvider()).getProjectRootObject(targetProjectName);
@@ -2912,10 +2908,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				DatabaseObjectsManager.deleteDir(new File(Engine.projectDir(targetProjectName) + "/_data"));
 				DatabaseObjectsManager.deleteDir(new File(Engine.projectDir(targetProjectName) + "/_private"));
 			}
-			if (!reload) {
-				// delete project resource (but not content)
-				ConvertigoPlugin.getDefault().deleteProjectPluginResource(false, targetProjectName);
-			}
+			// delete project resource (but not content)
+//			ConvertigoPlugin.getDefault().deleteProjectPluginResource(false, targetProjectName);
 		}
 		
 		ConvertigoPlugin.logInfo("Import project from file \"" + filePath + "\"");
