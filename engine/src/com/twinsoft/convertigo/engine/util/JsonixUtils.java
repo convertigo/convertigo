@@ -85,7 +85,7 @@ public class JsonixUtils {
 		File jsonschemaFile = new File(targetDir, projectName+".jsonschema" );
 		if (jsonschemaFile.exists()) {
 			String content = FileUtils.readFileToString(jsonschemaFile, "UTF-8");
-			content = content.replaceFirst("\"id\":\"[^#]+#\"", "\"id\":\""+ schemaUrl +"#\"");
+			content = content.replaceFirst("\"id\":\"[^#]*#\"", "\"id\":\""+ schemaUrl +"#\"");
 			content = content.replaceAll(XMLSCHEMA_JSONSCHEMA_URL, xmlSchemaUrl);
 			FileUtils.write(jsonschemaFile, content, "UTF-8");
 		}

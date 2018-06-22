@@ -43,6 +43,7 @@ public class BodyParameterBeanInfo extends MySimpleBeanInfo {
             properties[0] = new PropertyDescriptor("modelReference", beanClass, "getModelReference", "setModelReference");
             properties[0].setDisplayName(getExternalizedString("property.modelReference.display_name"));
             properties[0].setShortDescription(getExternalizedString("property.modelReference.short_description"));
+            properties[0].setPropertyEditorClass(getEditorClass("ModelObjectEditor"));
             
 			getPropertyDescriptor("multiValued").setHidden(true);
 			getPropertyDescriptor("inputContent").setHidden(false);

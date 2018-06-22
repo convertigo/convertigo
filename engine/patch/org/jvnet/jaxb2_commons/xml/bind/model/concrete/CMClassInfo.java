@@ -103,20 +103,19 @@ public class CMClassInfo<T, C extends T> implements MClassInfo<T, C> {
 		if (elementName != null) {
 			String localPart = elementName.getLocalPart();
 			if (!localName.equals(localPart)) {
-				System.out.println("Replacing class \""+ localName +" with \""+ localPart +"\"");
+				System.out.println("c8o patch: replacing class \""+ localName +" with \""+ localPart +"\"");
 				return localPart;
 			}
 		} else if (typeName != null) {
 			String localPart = typeName.getLocalPart();
 			if (!localName.equals(localPart)) {
-				System.out.println("Replacing class \""+ localName +" with \""+ localPart +"\"");
+				System.out.println("c8o patch: replacing class \""+ localName +" with \""+ localPart +"\"");
 				return localPart;
 			}
 		}
-		
 		return localName;
 	}
-
+	
 	public MContainer getContainer() {
 		return container;
 	}
@@ -193,3 +192,4 @@ public class CMClassInfo<T, C extends T> implements MClassInfo<T, C> {
 		return visitor.visitClassInfo(this);
 	}
 }
+
