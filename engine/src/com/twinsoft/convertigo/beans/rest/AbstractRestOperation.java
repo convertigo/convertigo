@@ -38,6 +38,7 @@ import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.core.UrlMapping;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
@@ -298,17 +299,33 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 			        		// Transform input data
 			        		try {
 				        		if (dataInput.equals(DataContent.toJson)) {
-				        			String modelName = "";//param instanceof IMappingRefModel ? ((IMappingRefModel)param).getModelReference() : "";
-				        			String objectName = modelName.isEmpty() ? paramName : modelName;
-				        			Document doc = XMLUtils.parseDOMFromString("<"+objectName+"/>");
+				        			//String modelName = param instanceof IMappingRefModel ? ((IMappingRefModel)param).getModelReference() : "";
+				        			//String objectName = modelName.isEmpty() ? paramName : modelName;
+				        			//Document doc = XMLUtils.parseDOMFromString("<"+objectName+"/>");
+				        			Document doc = XMLUtils.parseDOMFromString("<"+paramName+"/>");
 				        			Element root = doc.getDocumentElement();
 				        			JSONObject json = new JSONObject((String) paramValue);
 				        			XMLUtils.jsonToXml(json, root);
 				        			paramValue = root.getChildNodes();
 				        		}
 				        		else if (dataInput.equals(DataContent.toXml)) {
-				        			Document doc = XMLUtils.parseDOMFromString((String)paramValue);
-				        			paramValue = doc.getDocumentElement();
+				        			//Document doc = XMLUtils.parseDOMFromString((String)paramValue);
+				        			//paramValue = doc.getDocumentElement();
+				        			Document xml = XMLUtils.parseDOMFromString((String)paramValue);
+				        			if (xml.getDocumentElement().getTagName().equals(paramName)) {
+				        				paramValue = xml.getDocumentElement();
+				        			} else {
+					        			NodeList nl = xml.getDocumentElement().getChildNodes();
+					        			Document doc = XMLUtils.parseDOMFromString("<"+paramName+"/>");
+					        			Element root = doc.getDocumentElement();
+					        			for (int i = 0 ; i < nl.getLength() ; i++) {
+					        				Node node = nl.item(i);
+					        				if (node.getNodeType() == Node.ELEMENT_NODE) {
+					        					root.appendChild(doc.adoptNode(node));
+					        				}
+					        			}
+					        			paramValue = doc.getDocumentElement();
+				        			}
 				        		}
 			        		}
 			        		catch (Exception e) {
