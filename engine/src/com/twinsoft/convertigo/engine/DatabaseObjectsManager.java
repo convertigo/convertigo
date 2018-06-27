@@ -506,7 +506,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			File projectDir = new File(Engine.projectDir(projectName));
 			File removeDir = projectDir;
 			
-			if (!bDataOnly) {
+			if (!bDataOnly && !bPreserveEclipe && !bPreserveVCS) {
 				StringBuilder sb = new StringBuilder(Engine.PROJECTS_PATH + "/_remove_" + projectName);
 				while ((removeDir = new File(sb.toString())).exists()) {
 					sb.append('_');
@@ -971,47 +971,51 @@ public class DatabaseObjectsManager implements AbstractManager {
 			throw new EngineException("An error occured while importing project", e);
 		}
 	}
+	
+	static public String getProjectVersion(File projectXmlFile) throws EngineException {
+		final String[] version = { null };
+		if (projectXmlFile.exists()) {
+			try {
+				XMLUtils.saxParse(projectXmlFile, new DefaultHandler() {
 
+					@Override
+					public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
+						if ("convertigo".equals(qName)) {
+							// since 6.0.6 (fix #2804)
+							version[0] = attributes.getValue("beans");
+						} else if ("project".equals(qName)) {
+							String projectVersion = attributes.getValue("version");
+							if (projectVersion != null) {
+								// before 6.0.6
+								version[0] = projectVersion;
+							}
+						}
+						throw new SAXException("stop");
+					}
+
+				});
+			} catch (SAXException e) {
+				if (!"stop".equals(e.getMessage())) {
+					throw new EngineException("Unable to find the project version", e);
+				}
+			} catch (IOException e) {
+				throw new EngineException("Unable to parse the xml: " + projectXmlFile.getAbsolutePath(), e);
+			}
+		}
+		return version[0];
+	}
+	
 	private boolean needsMigration(String projectName) throws EngineException {
 		if (projectName != null) {
 			File projectXmlFile = Engine.projectFile(projectName);
-			if (projectXmlFile.exists()) {
-				try {
-					final String[] version = { null };
-					try {
-						XMLUtils.saxParse(projectXmlFile, new DefaultHandler() {
-
-							@Override
-							public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-								if ("convertigo".equals(qName)) {
-									// since 6.0.6 (fix #2804)
-									version[0] = attributes.getValue("beans");
-								} else if ("project".equals(qName)) {
-									String projectVersion = attributes.getValue("version");
-									if (projectVersion != null) {
-										// before 6.0.6
-										version[0] = projectVersion;
-									}
-									throw new SAXException("find");	
-								}
-							}
-
-						});
-						throw new EngineException("Unable to find the project version");
-					} catch (SAXException e) {
-						if (!"find".equals(e.getMessage())) {
-							throw e;
-						}
-					}					
-
-					String currentVersion = com.twinsoft.convertigo.beans.Version.version;
-					if (VersionUtils.compare(version[0], currentVersion) < 0) {
-						Engine.logDatabaseObjectManager.warn("Project '" + projectName + "': migration to " + currentVersion + " beans version is required");
-						return true;
-					}
-				} catch (Exception e) {
-					throw new EngineException("Unable to retrieve project's version from \"" + projectXmlFile + "\".", e);
-				}
+			String version = getProjectVersion(projectXmlFile);
+			if (version == null) {
+				throw new EngineException("Unable to retrieve project's version from \"" + projectXmlFile + "\".");
+			}
+			String currentVersion = com.twinsoft.convertigo.beans.Version.version;
+			if (VersionUtils.compare(version, currentVersion) < 0) {
+				Engine.logDatabaseObjectManager.warn("Project '" + projectName + "': migration to " + currentVersion + " beans version is required");
+				return true;
 			}
 		}
 		return false;
