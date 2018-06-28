@@ -462,6 +462,7 @@ project(':engine') {
 		compile 'com.convertigo.lib:ctgclient:2010.06.14'
 		compile 'com.convertigo.lib:httpclientAuthHelper:2014.12.23'
 		compile 'com.convertigo.lib:mozilla-interfaces:1.9.0.17'
+		runtime 'com.convertigo.lib:qrcode:2011.05.19'
 		compile 'com.convertigo.lib:sapjco:3'
 		compile 'com.convertigo.lib:soapui-xmlbeans:3.5.1'
 		compile 'com.convertigo.lib:soapui:3.5.1'
@@ -685,4 +686,12 @@ task buildStudioClean(type: Delete) {
 	group 'convertigo'
 	
 	delete 'eclipse-repository/target/products'
+}
+
+task generateEclipseConfiguration(dependsOn: [getTasksByName('cleanEclipse', true), getTasksByName('eclipse', true)]) {
+	group 'convertigo'
+}
+
+task generateEclipseConfigurationWithManifest(dependsOn: ['generateEclipseConfiguration', 'writeManifest']) {
+	group 'convertigo'
 }
