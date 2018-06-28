@@ -39,7 +39,7 @@ public class UIDynamicTagBeanInfo extends MySimpleBeanInfo {
 			
 			getPropertyDescriptor("tagName").setValue("category", "@Component");
 			getPropertyDescriptor("tagName").setValue("disable", Boolean.FALSE);
-			getPropertyDescriptor("tagName").setPropertyEditorClass(getEditorClass("StringComboBoxPropertyDescriptor"));
+			getPropertyDescriptor("tagName").setPropertyEditorClass(getEditorClass("PropertyWithDynamicTagsEditor"));
 			
 		}
 		catch(Exception e) {
