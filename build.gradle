@@ -285,10 +285,11 @@ project(':eclipse-plugin-studio') {
 		
 		classpath.file.withXml {
 			def node = it.asNode()
-			if (node.classpathentry.find { it.@path == 'org.eclipse.pde.core.requiredPlugins' } == null) {
-				def accessrules = node.appendNode('accessrules')
-				accessrules.appendNode('accessrule', [kind: 'accessible', path: 'org/eclipse/egit/ui/**'])
+			def rp = null
+			if ((rp = node.classpathentry.find { it.@path == 'org.eclipse.pde.core.requiredPlugins' }) == null) {
+				rp = node.appendNode('classpathentry', [kind: 'con', path: 'org.eclipse.pde.core.requiredPlugins'])
 			}
+			rp.appendNode('accessrules').appendNode('accessrule', [kind: 'accessible', pattern: 'org/eclipse/egit/ui/**'])
 		}
 	}
 	
