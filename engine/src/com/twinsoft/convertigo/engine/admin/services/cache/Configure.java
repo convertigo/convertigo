@@ -57,7 +57,7 @@ import com.twinsoft.convertigo.engine.util.SqlRequester;
 					),
 				@ServiceParameterDefinition(
 						name = "databaseDriver",
-						description = "the driver of the database to use: mysql | sqlserver(default)"
+						description = "the driver of the database to use: mysql | oracle | sqlserver(default)"
 					),
 				@ServiceParameterDefinition(
 						name = "databaseServerName",
@@ -78,7 +78,11 @@ import com.twinsoft.convertigo.engine.util.SqlRequester;
 				@ServiceParameterDefinition(
 						name = "password",
 						description = "the password in the database"
-					)				
+					),
+				@ServiceParameterDefinition(
+						name = "cacheTableName",
+						description = "the cache table name: <schema>.<table> | CacheTable(default)"
+					)
 		},
 		returnValue = ""
 	)
@@ -92,6 +96,7 @@ public class Configure extends XmlService {
 	
 	String sqlServerDriver = "net.sourceforge.jtds.jdbc.Driver";
 	String mySQLDriver = "com.mysql.jdbc.Driver";
+	String oracleDriver = "oracle.jdbc.driver.OracleDriver";
 	
 	String cacheManagerDatabaseType = "com.twinsoft.convertigo.engine.cache.DatabaseCacheManager";
 	String cacheManagerFileType = "com.twinsoft.convertigo.engine.cache.FileCacheManager";
@@ -127,11 +132,15 @@ public class Configure extends XmlService {
 			try {
 				String databaseDriver = dbCacheProp.getProperty("jdbc.driver.class_name");
 				String sqlCreateTableFileName = "/create_cache_table_";
-				if (sqlServerDriver.equals(databaseDriver))
+				if (sqlServerDriver.equals(databaseDriver)) {
 					sqlCreateTableFileName += "sqlserver.sql";
-				else if (mySQLDriver.equals(databaseDriver))
+				} else if (mySQLDriver.equals(databaseDriver)) {
 					sqlCreateTableFileName += "mysql.sql";
-			
+				} else if (oracleDriver.equals(databaseDriver)) {
+					sqlCreateTableFileName += "oracle.sql";
+					throw new Exception("Oracle database creation not supported");
+				}
+				
 				String fileName = Engine.WEBAPP_PATH + "/WEB-INF/sql" + sqlCreateTableFileName;
 				BufferedReader br = new BufferedReader(new FileReader(fileName.toString()));
 				
@@ -143,12 +152,14 @@ public class Configure extends XmlService {
 							sqlRequester = new SqlRequester(DatabaseCacheManager.DB_PROP_FILE_NAME);
 							sqlRequester.open();
 
+							String cacheTableName = sqlRequester.getProperty(DatabaseCacheManager.PROPERTIES_SQL_CACHE_TABLE_NAME,"CacheTable");
 							sqlRequest = sqlRequest.substring(0, sqlRequest.length() - 1);
+							sqlRequest = sqlRequest.replaceAll("CacheTable", cacheTableName);						
+							
 							statement = sqlRequester.connection.createStatement();
 							statement.execute(sqlRequest);
 							ServiceUtils.addMessage(document, root, "Request: \"" + sqlRequest
 									+ "\" executed.", "message");
-
 						} finally {
 							if (statement != null) {
 								statement.close();
@@ -201,12 +212,20 @@ public class Configure extends XmlService {
 		}
 		
 		if ( cacheManagerDatabaseType.equals(cacheType)) {
-			String databaseDriver = request.getParameter("databaseDriver");
-			if(databaseDriver.equals("mysql")){
-				databaseDriver=mySQLDriver;
+			String cacheTableName = request.getParameter("cacheTableName");
+			if (cacheTableName == null || cacheTableName.isEmpty()) {
+				cacheTableName = "CacheTable";
 			}
-			else{
+			
+			dbCacheProp.setProperty("sql.table.name", cacheTableName);
+			
+			String databaseDriver = request.getParameter("databaseDriver");
+			if (databaseDriver.equals("mysql")) {
+				databaseDriver=mySQLDriver;
+			} else if(databaseDriver.equals("sqlserver")) {
 				databaseDriver=sqlServerDriver;
+			} else if(databaseDriver.equals("oracle")) {
+				databaseDriver=oracleDriver;
 			}
 			
 			dbCacheProp.setProperty("jdbc.driver.class_name", databaseDriver);
@@ -216,6 +235,8 @@ public class Configure extends XmlService {
 				databaseUrl += "jtds:sqlserver://";
 			else if (mySQLDriver.equals(databaseDriver))
 				databaseUrl += "mysql://";
+			else if (oracleDriver.equals(databaseDriver))
+				databaseUrl += "oracle:thin:@//";
 
 			String databaseServerName = request.getParameter("databaseServerName");
 			if (!databaseServerName.equals(""))
@@ -223,10 +244,9 @@ public class Configure extends XmlService {
 			String databaseServerPort = request.getParameter("databaseServerPort");
 			if (!databaseServerPort.equals(""))
 				databaseUrl += ":" + databaseServerPort;
-			databaseUrl += "/";
 			String databaseName = request.getParameter("databaseName");
 			if (!databaseName.equals(""))
-				databaseUrl += databaseName;
+				databaseUrl += "/"+ databaseName;
 
 			dbCacheProp.setProperty("jdbc.url", databaseUrl);			
 			dbCacheProp.setProperty("jdbc.user.name", request.getParameter("user"));
