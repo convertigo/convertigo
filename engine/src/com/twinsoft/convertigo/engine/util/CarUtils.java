@@ -48,28 +48,28 @@ import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 
 public class CarUtils {
 
-	public static void makeArchive(String projectName) throws EngineException {
+	public static File makeArchive(String projectName) throws EngineException {
 		Project project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
-		makeArchive(project);
+		return makeArchive(project);
 	}
 
-	public static void makeArchive(Project project) throws EngineException {
-		makeArchive(new File(project.getDirPath()).getParent(), project);
+	public static File makeArchive(Project project) throws EngineException {
+		return makeArchive(Engine.PROJECTS_PATH, project);
 	}
 	
-	public static void makeArchive(Project project, List<TestCase> listTestCasesSelected) throws EngineException {
-		makeArchive(new File(project.getDirPath()).getParent(), project, listTestCasesSelected);
+	public static File makeArchive(Project project, List<TestCase> listTestCasesSelected) throws EngineException {
+		return makeArchive(Engine.PROJECTS_PATH, project, listTestCasesSelected);
 	}
 
-	public static void makeArchive(String dir, Project project) throws EngineException {
-		makeArchive(dir, project, project.getName());
+	public static File makeArchive(String dir, Project project) throws EngineException {
+		return makeArchive(dir, project, project.getName());
 	}
 	
-	public static void makeArchive(String dir, Project project, List<TestCase> listTestCasesSelected) throws EngineException {
-		makeArchive(dir, project, project.getName(), listTestCasesSelected);
+	public static File makeArchive(String dir, Project project, List<TestCase> listTestCasesSelected) throws EngineException {
+		return makeArchive(dir, project, project.getName(), listTestCasesSelected);
 	}
 	
-	public static void makeArchive(String dir, Project project, String exportName) throws EngineException {
+	public static File makeArchive(String dir, Project project, String exportName) throws EngineException {
 		List<File> undeployedFiles=getUndeployedFiles(project.getName());	
 		String projectName = project.getName();
 		try {
@@ -79,13 +79,13 @@ public class CarUtils {
 			
 			// Create Convertigo archive
 			String projectArchiveFilename = dir + "/" + exportName + ".car";
-			ZipUtils.makeZip(projectArchiveFilename, Engine.projectDir(projectName), projectName, undeployedFiles);
+			return ZipUtils.makeZip(projectArchiveFilename, Engine.projectDir(projectName), projectName, undeployedFiles);
 		} catch(Exception e) {
 			throw new EngineException("Unable to make the archive file for the project \"" + projectName + "\".", e);
 		}
 	}
 	
-	public static void makeArchive(String dir, Project project, String exportName, 
+	public static File makeArchive(String dir, Project project, String exportName, 
 			List<TestCase> listTestCasesSelected) throws EngineException {
 		List<File> undeployedFiles= getUndeployedFiles(project.getName());	
 		String projectName = project.getName();
@@ -96,7 +96,7 @@ public class CarUtils {
 			
 			// Create Convertigo archive
 			String projectArchiveFilename = dir + "/" + exportName + ".car";
-			ZipUtils.makeZip(projectArchiveFilename, Engine.projectDir(projectName), projectName, undeployedFiles);
+			return ZipUtils.makeZip(projectArchiveFilename, Engine.projectDir(projectName), projectName, undeployedFiles);
 		} catch(Exception e) {
 			throw new EngineException("Unable to make the archive file for the project \"" + projectName + "\".", e);
 		}

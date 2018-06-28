@@ -442,6 +442,7 @@ public class MinificationManager implements AbstractManager, PropertyChangeEvent
 						}
 						
 						File relativeFile = new File(Engine.PROJECTS_PATH + "/" + RequestPart.pathFromProject.value(requestMatcher)).getParentFile();
+						relativeFile = Engine.resolveProjectPath(relativeFile);
 						Engine.logEngine.trace("(MinificationManager) Solve relative resource from '" + relativeFile.toString() + "'");
 						
 						int optionsLength = files.length();

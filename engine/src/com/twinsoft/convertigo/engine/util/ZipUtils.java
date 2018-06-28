@@ -43,18 +43,22 @@ import com.twinsoft.convertigo.engine.Engine;
 public class ZipUtils {
 	private static final Pattern reProjectFromCAR = Pattern.compile("(.*?)/\\1\\.xml");
 	
-	public static void makeZip(String archiveFileName, String sDir, String sRelativeDir) throws Exception {
-		FileOutputStream fos = new FileOutputStream(archiveFileName);
+	public static File makeZip(String archiveFileName, String sDir, String sRelativeDir) throws Exception {
+		File file = new File(archiveFileName);
+		FileOutputStream fos = new FileOutputStream(file);
 		ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fos));
 		int nbZipEntries = ZipUtils.putEntries(zos, sDir, sRelativeDir, Collections.<File>emptyList());
 		if (nbZipEntries > 0) zos.close();
+		return file;
 	}
     
-	public static void makeZip(String archiveFileName, String sDir, String sRelativeDir, List<File> excludedFiles) throws Exception {
-		FileOutputStream fos = new FileOutputStream(archiveFileName);
+	public static File makeZip(String archiveFileName, String sDir, String sRelativeDir, List<File> excludedFiles) throws Exception {
+		File file = new File(archiveFileName);
+		FileOutputStream fos = new FileOutputStream(file);
 		ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fos));
 		int nbZipEntries = ZipUtils.putEntries(zos, sDir, sRelativeDir, excludedFiles);
 		if (nbZipEntries > 0) zos.close();
+		return file;
 	}
     
 	private static int putEntries(ZipOutputStream zos, String sDir, String sRelativeDir, final List<File> excludedFiles) throws Exception {
