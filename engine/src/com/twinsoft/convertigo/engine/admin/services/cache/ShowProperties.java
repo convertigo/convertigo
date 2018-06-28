@@ -57,17 +57,28 @@ public class ShowProperties extends XmlService {
 			String dbCachePropFileName = Engine.CONFIGURATION_PATH + DatabaseCacheManager.DB_PROP_FILE_NAME;
 			Properties dbCacheProp = PropertiesUtils.load(dbCachePropFileName);
 			
-			String url, databaseType, serverName, port, databaseName;
+			String cacheTableName = dbCacheProp.getProperty("sql.table.name","CacheTable");
 			
-			url = dbCacheProp.getProperty("jdbc.url");
-				
-			databaseType = url.replaceFirst("://(.*)", "").replaceAll("(.*):", "");
-			url = url.replaceFirst("(.*)://", "");
-			serverName = url.replaceFirst("\\:(.*)", "");
-			url = url.replaceFirst("(.*)\\:", "");
-			port = url.replaceFirst("/(.*)", "");
-			databaseName = url.replaceFirst("(.*)/", "");
+			String url = dbCacheProp.getProperty("jdbc.url");
 			
+			String driver = dbCacheProp.getProperty("jdbc.driver.class_name");
+			
+			String databaseType = "sqlserver";
+			if (driver.equals("net.sourceforge.jtds.jdbc.Driver")) {
+				databaseType = "sqlserver";
+			} else if (driver.equals("com.mysql.jdbc.Driver")) {
+				databaseType = "mysql";
+			} else if (driver.equals("oracle.jdbc.driver.OracleDriver")) {
+				databaseType = "oracle";
+			}
+			
+			String s, serverName, port, databaseName;
+			s = url.replaceFirst("(.*):@?//", "");
+			serverName = s.replaceFirst("\\:(.*)", "");
+			s = s.replaceFirst("(.*)\\:", "");
+			port = s.replaceFirst("/(.*)", "");
+			databaseName = s.indexOf("/") != -1 ? s.replaceFirst("(.*)/", ""):"";
+
 			Element databaseTypeElt= document.createElement("databaseType");					
 			databaseTypeElt.setTextContent(databaseType);
 			root.appendChild(databaseTypeElt);
@@ -92,6 +103,9 @@ public class ShowProperties extends XmlService {
 			password.setTextContent(Crypto2.decodeFromHexString(dbCacheProp.getProperty("jdbc.user.password")));
 			root.appendChild(password);		
 			
+			Element cacheTableNameElt= document.createElement("cacheTableName");					
+			cacheTableNameElt.setTextContent(cacheTableName);
+			root.appendChild(cacheTableNameElt);
 		}
 		
        

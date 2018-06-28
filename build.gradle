@@ -255,20 +255,26 @@ project(':eclipse-plugin-studio') {
 				exclude 'com/twinsoft/convertigo/engine/plugins/InfogreffeBiller.java'
 				exclude 'com/twinsoft/convertigo/engine/plugins/InseeBiller.java'
 				exclude 'com/twinsoft/convertigo/engine/plugins/LCABiller.java'
+				exclude '.placeholder'
 				srcDir 'src'
+				srcDir 'patch'
 			}
 			resources {
 				exclude 'com/twinsoft/convertigo/engine/plugins/EnvoiSMSBiller.java'
 				exclude 'com/twinsoft/convertigo/engine/plugins/InfogreffeBiller.java'
 				exclude 'com/twinsoft/convertigo/engine/plugins/InseeBiller.java'
 				exclude 'com/twinsoft/convertigo/engine/plugins/LCABiller.java'
+				exclude '.placeholder'
 				srcDir 'src'
+				srcDir 'patch'
 			}
 		}
 	}
 	
 	eclipse {
 		project {
+			linkedResource name: 'patch/com', type: '2', locationUri: '$%7BPARENT-1-PROJECT_LOC%7D/engine/patch/com'
+			linkedResource name: 'patch/org', type: '2', locationUri: '$%7BPARENT-1-PROJECT_LOC%7D/engine/patch/org'
 			linkedResource name: 'src/com/twinsoft/convertigo/engine', type: '2', locationUri: '$%7BPARENT-1-PROJECT_LOC%7D/engine/src/com/twinsoft/convertigo/engine'
 			linkedResource name: 'src/com/twinsoft/convertigo/beans', type: '2', locationUri: '$%7BPARENT-1-PROJECT_LOC%7D/engine/src/com/twinsoft/convertigo/beans'
 			linkedResource name: 'src/com/twinsoft/convertigo/engine/parsers', type: '2', locationUri: '$%7BPARENT-2-PROJECT_LOC%7D/convertigo-provider-xul/src/com/twinsoft/convertigo/engine/parsers'
@@ -466,6 +472,7 @@ project(':engine') {
 		compile 'com.convertigo.lib:ctgclient:2010.06.14'
 		compile 'com.convertigo.lib:httpclientAuthHelper:2014.12.23'
 		compile 'com.convertigo.lib:mozilla-interfaces:1.9.0.17'
+		runtime 'com.convertigo.lib:qrcode:2011.05.19'
 		compile 'com.convertigo.lib:sapjco:3'
 		compile 'com.convertigo.lib:soapui-xmlbeans:3.5.1'
 		compile 'com.convertigo.lib:soapui:3.5.1'
@@ -691,7 +698,7 @@ task buildStudioClean(type: Delete) {
 	delete 'eclipse-repository/target/products'
 }
 
-task generateEclipseConfiguration(dependsOn: ['cleanEclipse', 'eclipse']) {
+task generateEclipseConfiguration(dependsOn: [getTasksByName('cleanEclipse', true), getTasksByName('eclipse', true)]) {
 	group 'convertigo'
 }
 

@@ -44,6 +44,8 @@ public class DatabaseCacheManager extends CacheManager {
 	public static final String PROPERTIES_SQL_REQUEST_REMOVE_EXPIRED_CACHE_ENTRY	= "sql.request.remove_expired_cache_entry";
 	public static final String PROPERTIES_SQL_REQUEST_GET_CACHE_ENTRY				= "sql.request.get_cache_entry";
 	
+	public static final String PROPERTIES_SQL_CACHE_TABLE_NAME						= "sql.table.name";
+	
 	public static final String DB_PROP_FILE_NAME			 						= "/database_cache_manager.properties";
 
 	private SqlRequester sqlRequester = null;
@@ -84,6 +86,9 @@ public class DatabaseCacheManager extends CacheManager {
 			Engine.logCacheManager.debug("Trying to update cache entry: " + cacheEntry);
 			
 			StringEx sqlRequest = new StringEx(sqlRequester.getProperty(DatabaseCacheManager.PROPERTIES_SQL_REQUEST_UPDATE_CACHE_ENTRY));
+			
+			String cacheTableName = sqlRequester.getProperty(DatabaseCacheManager.PROPERTIES_SQL_CACHE_TABLE_NAME, "CacheTable");
+			sqlRequest.replace("CacheTable", cacheTableName);
 
 			sqlRequest.replace("{ExpiryDate}", Long.toString(dbCacheEntry.expiryDate));
 			sqlRequest.replace("{SheetUrl}", dbCacheEntry.sheetUrl);
@@ -132,6 +137,9 @@ public class DatabaseCacheManager extends CacheManager {
 			
 			StringEx sqlRequest = new StringEx(sqlRequester.getProperty(DatabaseCacheManager.PROPERTIES_SQL_REQUEST_REMOVE_EXPIRED_CACHE_ENTRY));
 			
+			String cacheTableName = sqlRequester.getProperty(DatabaseCacheManager.PROPERTIES_SQL_CACHE_TABLE_NAME, "CacheTable");
+			sqlRequest.replace("CacheTable", cacheTableName);
+			
 			sqlRequest.replace("{CurrentTime}", Long.toString(time));
 			String sSqlRequest = sqlRequest.toString();
 			Engine.logCacheManager.debug("SQL: " + sSqlRequest);
@@ -164,6 +172,9 @@ public class DatabaseCacheManager extends CacheManager {
 			Engine.logCacheManager.debug("Trying to get the cache entry from this request string: "+requestString);
 			
 			StringEx sqlRequest = new StringEx(sqlRequester.getProperty(DatabaseCacheManager.PROPERTIES_SQL_REQUEST_GET_CACHE_ENTRY));
+			
+			String cacheTableName = sqlRequester.getProperty(DatabaseCacheManager.PROPERTIES_SQL_CACHE_TABLE_NAME, "CacheTable");
+			sqlRequest.replace("CacheTable", cacheTableName);
 
 			sqlRequest.replace("{RequestString}", escapeString(requestString));
 			String sSqlRequest = sqlRequest.toString();
@@ -216,6 +227,9 @@ public class DatabaseCacheManager extends CacheManager {
 			Engine.logCacheManager.debug("Trying to store the response in the cache Database");
 			
 			StringEx sqlRequest = new StringEx(sqlRequester.getProperty(DatabaseCacheManager.PROPERTIES_SQL_REQUEST_STORE_RESPONSE));
+			
+			String cacheTableName = sqlRequester.getProperty(DatabaseCacheManager.PROPERTIES_SQL_CACHE_TABLE_NAME, "CacheTable");
+			sqlRequest.replace("CacheTable", cacheTableName);
 
 			String jdbcURL = sqlRequester.getProperty(SqlRequester.PROPERTIES_JDBC_URL);
 			boolean isSqlServerDatabase = jdbcURL.indexOf(":sqlserver:") != -1;
@@ -275,6 +289,9 @@ public class DatabaseCacheManager extends CacheManager {
 			Engine.logCacheManager.debug("Trying to get from the cache the stored response corresponding to this cache entry.");
 				
 			StringEx sqlRequest = new StringEx(sqlRequester.getProperty(DatabaseCacheManager.PROPERTIES_SQL_REQUEST_GET_STORED_RESPONSE));
+			
+			String cacheTableName = sqlRequester.getProperty(DatabaseCacheManager.PROPERTIES_SQL_CACHE_TABLE_NAME, "CacheTable");
+			sqlRequest.replace("CacheTable", cacheTableName);
 	
 			long id = dbCacheEntry.id;
 			sqlRequest.replace("{Id}", Long.toString(id));
@@ -324,6 +341,9 @@ public class DatabaseCacheManager extends CacheManager {
 			Engine.logCacheManager.debug("Trying to remove stored response from the cache Database");
 			
 			StringEx sqlRequest = new StringEx(sqlRequester.getProperty(DatabaseCacheManager.PROPERTIES_SQL_REQUEST_REMOVE_RESPONSE));
+			
+			String cacheTableName = sqlRequester.getProperty(DatabaseCacheManager.PROPERTIES_SQL_CACHE_TABLE_NAME, "CacheTable");
+			sqlRequest.replace("CacheTable", cacheTableName);
 
 			id = dbCacheEntry.id;
 			sqlRequest.replace("{Id}", Long.toString(id));
@@ -355,6 +375,9 @@ public class DatabaseCacheManager extends CacheManager {
 			Engine.logCacheManager.debug("Trying to get Id.");
 				
 			StringEx sqlRequest = new StringEx(sqlRequester.getProperty(DatabaseCacheManager.PROPERTIES_SQL_REQUEST_GET_ID));
+			
+			String cacheTableName = sqlRequester.getProperty(DatabaseCacheManager.PROPERTIES_SQL_CACHE_TABLE_NAME, "CacheTable");
+			sqlRequest.replace("CacheTable", cacheTableName);
 	
 			sqlRequest.replace("{RequestString}", escapeString(requestString));
 

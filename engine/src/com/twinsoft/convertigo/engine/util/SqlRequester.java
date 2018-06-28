@@ -63,16 +63,13 @@ public class SqlRequester {
 	}
 
 	public String getProperty(String key) {
-		String result = properties.getProperty(key);
-
-		/*if (result == null) {
-			if (key.equals(CARIOCA_URL)) return "http://localhost/carioca";
-			else return "";
-		}*/
-
-		return result;
+		return properties.getProperty(key);
 	}
     
+	public String getProperty(String key, String defaultValue) {
+		return properties.getProperty(key, defaultValue);
+	}
+	
 	/**
 	 * Opens or reopens the connection to database.
 	 * 
