@@ -500,7 +500,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				ProjectExplorerView.this.fillContextMenu(manager);
 			}
 		});
-		
+		menuMgr.setOverrides(new ConvertigoContributionManager());
 		Menu menu = menuMgr.createContextMenu(viewer.getControl());
 		viewer.getControl().setMenu(menu);
 		getSite().registerContextMenu(menuMgr, viewer);
