@@ -45,6 +45,15 @@ class ConvertigoContributionManager implements IContributionManagerOverrides {
 			return false;
 		}
 		String id = item.getId();
+		
+		if (id == null) {
+			return true;
+		}
+		
+		if (id.contains("convertigo")) {
+			return true;
+		}
+		
 		String cn = item.getClass().getSimpleName();
 		if (cn.equals("DynamicMenuContributionItem") || cn.equals("HandledContributionItem")) {
 			return id.startsWith("org.eclipse.egit.ui");
@@ -53,7 +62,7 @@ class ConvertigoContributionManager implements IContributionManagerOverrides {
 			return id.startsWith("egit.") || id.startsWith("team.");
 		}
 		if (cn.equals("PluginActionContributionItem")) {
-			return id.startsWith("convertigo.") || id.contains("org.eclipse.team");
+			return id.contains("org.eclipse.team");
 		}
 		return true;
 	}
