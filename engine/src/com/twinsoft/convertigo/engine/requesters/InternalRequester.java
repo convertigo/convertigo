@@ -117,6 +117,9 @@ public class InternalRequester extends GenericRequester {
 		
 		context = Engine.theApp.contextManager.get(this, contextName, sessionID, poolName, projectName, connectorName, sequenceName);
 
+		if (context.remoteAddr == null) {
+			context.remoteAddr = httpServletRequest.getRemoteAddr();
+		}
 		return context;
 	}
 
