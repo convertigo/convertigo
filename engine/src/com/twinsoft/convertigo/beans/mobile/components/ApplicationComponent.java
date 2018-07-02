@@ -68,6 +68,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	
 	private String tplProjectName = "";
 	private String tplProjectVersion = "";
+	private String splitPaneLayout = "not set";
 	
 	public ApplicationComponent() {
 		super();
@@ -936,6 +937,15 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	public String computeTemplate() {
 		StringBuilder sb = new StringBuilder();
 		
+		String layout = getSplitPaneLayout();
+		boolean hasSplitPane = !layout.equals("not set");
+		if (hasSplitPane) {
+			if (layout.isEmpty())
+				sb.append("<ion-split-pane>").append(System.lineSeparator());
+			else
+				sb.append("<ion-split-pane when=\""+ layout +"\">").append(System.lineSeparator());
+		}
+		
 		Iterator<UIDynamicMenu> it = getMenuComponentList().iterator();
 		while (it.hasNext()) {
 			UIDynamicMenu menu = it.next();
@@ -945,9 +955,12 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 			}
 		}
 		
-		sb.append("<ion-nav [root]=\"rootPage\" #content swipeBackEnabled=\"false\"></ion-nav>");
+		sb.append("<ion-nav [root]=\"rootPage\" main #content swipeBackEnabled=\"false\"></ion-nav>");
 		sb.append(System.lineSeparator());
 		
+		if (hasSplitPane) {
+			sb.append("</ion-split-pane>").append(System.lineSeparator());
+		}
 		return sb.toString();
 	}
 
@@ -1102,6 +1115,14 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		// does nothing
 	}
 	
+	public String getSplitPaneLayout() {
+		return splitPaneLayout;
+	}
+
+	public void setSplitPaneLayout(String splitPaneLayout) {
+		this.splitPaneLayout = splitPaneLayout;
+	}
+
 	private boolean isCompatibleTemplate(String project) {
 		File tplDir = new File(Engine.projectDir(project) + "/ionicTpl");
 		if (tplDir.exists()) {
@@ -1125,7 +1146,10 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 			
 			return projects.toArray(new String[projects.size()]);
 		}
-		return null;
+		if (propertyName.equals("splitPaneLayout")) {
+			return new String[] {"not set","xs","sm","md","lg","xl"};
+		}
+		return new String[0];
 	}
 	
 	public Map<String, Set<String>> getInfoMap() {

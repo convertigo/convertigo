@@ -234,6 +234,7 @@ public abstract class GenericRequester extends Requester {
 					Log4jHelper.mdcPut(mdcKeys.UID, Long.toHexString(uniqueRequestID));
 					Log4jHelper.mdcPut(mdcKeys.ContextID, context.contextID);
 					Log4jHelper.mdcPut(mdcKeys.Project, context.projectName);
+					Log4jHelper.mdcPut(mdcKeys.ClientIP, context.remoteAddr);
 					
 					if (inputData instanceof HttpServletRequest) {
 						HttpServletRequest request = (HttpServletRequest) inputData;

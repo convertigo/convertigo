@@ -606,4 +606,15 @@ public class NewObjectWizard extends Wizard {
 		}
 		return true;
 	}
+
+	@Override
+	public boolean performCancel() {
+		if (objectExplorerPage != null) {
+			objectExplorerPage.doCancel();
+		}
+		newBean = null;
+		return super.performCancel();
+	}
+	
+	
 }
