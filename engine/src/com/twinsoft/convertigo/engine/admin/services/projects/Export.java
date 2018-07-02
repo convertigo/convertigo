@@ -52,9 +52,9 @@ public class Export extends DownloadService {
 		response.setContentType(MimeType.Zip.value());	   
 		
 		// if any, backup existing CAR file
-		File f = new File(Engine.PROJECTS_PATH + "/" + projectName + ".car");
+		File f = new File(Engine.projectDir(projectName) + ".car");
 		if (f.exists()) {
-			f.renameTo(new File(Engine.PROJECTS_PATH + "/" + projectName + ".car.old"));
+			f.renameTo(new File(Engine.projectDir(projectName) + ".car.old"));
 		}
 
 		if (!Engine.theApp.databaseObjectsManager.existsProject(projectName)) {
@@ -65,7 +65,7 @@ public class Export extends DownloadService {
 		Engine.theApp.databaseObjectsManager.buildCar(projectName);
 	
 		// upload CAR file to admin
-		f = new File(Engine.PROJECTS_PATH + "/" + projectName + ".car");
+		f = new File(Engine.projectDir(projectName) + ".car");
 		HeaderName.ContentLength.setHeader(response, "" + f.length());
 		if (f.exists()) {
 			BufferedInputStream bis = new BufferedInputStream(new FileInputStream(f));

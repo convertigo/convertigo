@@ -64,8 +64,8 @@ public class ExportWizardPage extends WizardPage {
 		fileSelectionArea.setLayout(fileSelectionLayout);
 		
 		String projectName = getSelectedProject();
-		projectName = (projectName == null) ? "":Engine.PROJECTS_PATH + "/" + projectName + ".car";
-		editor = new ProjectFileFieldEditor("fileSelect","Select File: ",fileSelectionArea);
+		projectName = (projectName == null) ? "" : Engine.projectDir(projectName) + ".car";
+		editor = new ProjectFileFieldEditor("fileSelect","Select File: ", fileSelectionArea);
 		editor.getTextControl(fileSelectionArea).addModifyListener(new ModifyListener(){
 			public void modifyText(ModifyEvent e) {
 				IPath path = new Path(ExportWizardPage.this.editor.getStringValue());

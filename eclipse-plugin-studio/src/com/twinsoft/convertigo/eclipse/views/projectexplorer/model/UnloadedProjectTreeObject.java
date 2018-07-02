@@ -29,9 +29,9 @@ import com.twinsoft.convertigo.engine.Engine;
 public class UnloadedProjectTreeObject extends TreeObject implements IActionFilter {
 	public boolean isLoadable = true;
 	
-	public UnloadedProjectTreeObject(Viewer viewer, String object) {
-		super(viewer, object);
-        String fileName = Engine.PROJECTS_PATH + "/" + object + "/" + object + ".xml";
+	public UnloadedProjectTreeObject(Viewer viewer, String projectName) {
+		super(viewer, projectName);
+        String fileName = Engine.projectDir(projectName) + "/" + projectName + ".xml";
 		File file = new File(fileName);
 		isLoadable = file.exists();
 	}

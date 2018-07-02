@@ -3386,6 +3386,23 @@
                   </enablement-->
                 </action>
 	      </objectContribution>
+	      <objectContribution
+	            id="convertigo.importXmlContribution"
+	            objectClass="org.eclipse.core.resources.IFile"
+	            nameFilter="*.xml">
+               <action
+                     class="com.twinsoft.convertigo.eclipse.commands.CommandImportXmlProject"
+                     enablesFor="1"
+                     id="convertigo.action.importXmlContribution"
+                     label="Import as Convertigo project"
+                     icon="icons/studio/beans/mappings/formparameter_16x16.png">
+                  <!--enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.steps.AttributeStep" />
+                  </enablement-->
+                </action>
+	      </objectContribution>
    </extension>
    <extension
          point="org.eclipse.ui.preferencePages">
@@ -3514,6 +3531,21 @@
                 <objectState name="isLoadable" value="false"/>
             </and>
          </enablement>
+      </decorator>
+   </extension>
+   <extension
+         point="org.eclipse.ui.decorators">
+      <decorator
+            lightweight="true"
+            adaptable="true"
+            label="Convertigo decorator"
+            class="com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewLabelDecorator"
+            state="true"
+            id="com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewLabelDecorator">
+            <enablement>
+              <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject"/>
+            </enablement>
+         <description>Decorates Convertigo Objects</description>
       </decorator>
    </extension>
    <extension
@@ -3710,11 +3742,43 @@
        	   </proposalComputer>
 		           
 	</extension>
- <extension
-       point="org.eclipse.ui.startup">
-    <startup
-          class="com.twinsoft.convertigo.eclipse.ConvertigoPlugin">
-    </startup>
- </extension>
-   
+	
+	<extension
+		point="org.eclipse.ui.handlers">
+		<handler
+			commandId="com.twinsoft.convertigo.eclipse.commands.CommandImportXmlProject">
+			<class
+				class="com.twinsoft.convertigo.eclipse.commands.CommandImportXmlProject">
+			</class>
+		</handler>
+	</extension>
+	
+	<extension
+		point="org.eclipse.ui.menus">
+		<menuContribution
+			locationURI="popup:org.eclipse.egit.ui.RepositoriesView?after=repo-3">
+			<command
+				commandId="com.twinsoft.convertigo.eclipse.commands.CommandImportXmlProject"
+				label="Import as Convertigo project(s)"
+				icon="icons/convertigo_16x16.gif"
+				style="push">
+				<visibleWhen checkEnabled="true" />
+			</command>
+		</menuContribution>
+	</extension>
+	
+	<extension
+		point="org.eclipse.ui.commands">
+		<command
+			id="com.twinsoft.convertigo.eclipse.commands.CommandImportXmlProject"
+			name="CommandImportXmlProject">
+		</command>
+	</extension>
+	
+	<extension
+		point="org.eclipse.ui.startup">
+		<startup
+			class="com.twinsoft.convertigo.eclipse.ConvertigoPlugin">
+		</startup>
+	</extension>
 </plugin>

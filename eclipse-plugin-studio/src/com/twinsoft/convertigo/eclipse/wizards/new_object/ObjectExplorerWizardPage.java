@@ -42,6 +42,7 @@ import com.twinsoft.convertigo.beans.core.IXPathable;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.statements.XpathableStatement;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.engine.EngineException;
 
 public class ObjectExplorerWizardPage extends WizardPage {
 	private Class<DatabaseObject> beanClass = null;
@@ -229,4 +230,16 @@ public class ObjectExplorerWizardPage extends WizardPage {
 		}
 	}
 
+	public void doCancel() {
+		if (newBean != null) {
+			DatabaseObject dbo = newBean.getParent();
+			if (dbo != null) {
+				try {
+					dbo.remove(newBean);
+				} catch (EngineException e) {}
+				dbo.hasChanged = false;
+			}
+		}
+		newBean = null;
+	}
 }

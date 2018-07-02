@@ -86,7 +86,7 @@ public class PrintDialog extends Dialog {
 	protected Control createDialogArea(Composite parent) {
 		printDialogArea = new PrintDialogArea(parent, 0);		
 		String projectName = project.getName();
-		String outputFileName = Engine.PROJECTS_PATH + "\\" + projectName;
+		String outputFileName = Engine.projectDir(projectName);
 		printDialogArea.setFileLocation(outputFileName);
 		return printDialogArea;
 	}

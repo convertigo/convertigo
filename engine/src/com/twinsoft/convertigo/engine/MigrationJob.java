@@ -44,11 +44,11 @@ public class MigrationJob extends Thread {
 		Engine.logEngine.trace("MigrationJob for project \"" + projectName + "\" started.");
 		try {
 			// Migrates project
-			File projectDir = new File(Engine.PROJECTS_PATH + "/" + projectName);
+			File projectDir = new File(Engine.projectDir(projectName));
 			if (projectDir.exists())
-				Engine.theApp.databaseObjectsManager.updateProject(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml");
+				Engine.theApp.databaseObjectsManager.updateProject(Engine.projectDir(projectName) + "/" + projectName + ".xml");
 			else
-				Engine.theApp.databaseObjectsManager.updateProject(Engine.PROJECTS_PATH + "/" + projectName + ".car");
+				Engine.theApp.databaseObjectsManager.updateProject(Engine.projectDir(projectName) + ".car");
 			
 			// Migration 3.0.0 specifics
 			Migration3_0_0.projectRenameFilesWithDollarSign(projectDir);

@@ -193,6 +193,10 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 			projectSelected = getProject(projectNameSelected, projectExplorerView);
 		}
 		
+		if (projectSelected == null) {
+			return;
+		}
+		
 		String projectNameSelected = projectSelected.getName();
 		
 		treeViewer.setInput(null);
@@ -479,46 +483,47 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 			//Searching all objects are used transaction selected 
 			for (String projectName : projectNames) {
 				project = getProject(projectName, projectExplorerView);
-
-				projectFolder = new ProjectNode(isUsedByNode, project.getName(), project);
-				
-				UrlMapper urlMapper = project.getUrlMapper();
-				if (urlMapper != null) {
-					MapperNode mapperNode = new MapperNode(projectFolder, urlMapper.getName(), urlMapper);
-					List<UrlMapping> mappings = urlMapper.getMappingList();
-					for (UrlMapping mapping: mappings) {
-						MappingPathNode pathNode = new MappingPathNode(mapperNode, mapping.getPath(), mapping);
-						List<UrlMappingOperation> operations = mapping.getOperationList();
-						for (UrlMappingOperation operation: operations) {
-							String targetRequestable = operation.getTargetRequestable();
-							if (targetRequestable.equals(transactionProjectName +"."+ transactionConnectorName +"."+ transactionName)) {
-								MappingOperationNode operationNode = new MappingOperationNode(pathNode, operation.getName(), operation);
-								pathNode.addChild(operationNode);
+				if (project != null) {
+					projectFolder = new ProjectNode(isUsedByNode, project.getName(), project);
+					
+					UrlMapper urlMapper = project.getUrlMapper();
+					if (urlMapper != null) {
+						MapperNode mapperNode = new MapperNode(projectFolder, urlMapper.getName(), urlMapper);
+						List<UrlMapping> mappings = urlMapper.getMappingList();
+						for (UrlMapping mapping: mappings) {
+							MappingPathNode pathNode = new MappingPathNode(mapperNode, mapping.getPath(), mapping);
+							List<UrlMappingOperation> operations = mapping.getOperationList();
+							for (UrlMappingOperation operation: operations) {
+								String targetRequestable = operation.getTargetRequestable();
+								if (targetRequestable.equals(transactionProjectName +"."+ transactionConnectorName +"."+ transactionName)) {
+									MappingOperationNode operationNode = new MappingOperationNode(pathNode, operation.getName(), operation);
+									pathNode.addChild(operationNode);
+								}
+							}
+							if (pathNode.hasChildren()) {
+								mapperNode.addChild(pathNode);
 							}
 						}
-						if (pathNode.hasChildren()) {
-							mapperNode.addChild(pathNode);
+						if (mapperNode.hasChildren()) {
+							projectFolder.addChild(mapperNode);
 						}
 					}
-					if (mapperNode.hasChildren()) {
-						projectFolder.addChild(mapperNode);
+					
+					List<Sequence> sequences = project.getSequencesList();
+					for (Sequence sequence : sequences) {
+						List<Step> stepList = sequence.getAllSteps();
+						SequenceNode sequenceNode = new SequenceNode(projectFolder, sequence.getName(), sequence);
+						for (Step step : stepList) {
+							getTransactionReferencing (step, projectExplorerView, sequenceNode, transactionProjectName, transactionConnectorName, transactionName);						
+						}
+						if (sequenceNode.hasChildren()) {
+							projectFolder.addChild(sequenceNode);
+						}
 					}
+					if (projectFolder.hasChildren()) {
+						isUsedByNode.addChild(projectFolder);
+					} 
 				}
-				
-				List<Sequence> sequences = project.getSequencesList();
-				for (Sequence sequence : sequences) {
-					List<Step> stepList = sequence.getAllSteps();
-					SequenceNode sequenceNode = new SequenceNode(projectFolder, sequence.getName(), sequence);
-					for (Step step : stepList) {
-						getTransactionReferencing (step, projectExplorerView, sequenceNode, transactionProjectName, transactionConnectorName, transactionName);						
-					}
-					if (sequenceNode.hasChildren()) {
-						projectFolder.addChild(sequenceNode);
-					}
-				}
-				if (projectFolder.hasChildren()) {
-					isUsedByNode.addChild(projectFolder);
-				} 
 			}
 			if (requiresNode.hasChildren()) {
 				transactionFolder.addChild(requiresNode);
@@ -602,49 +607,50 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 		// Searching all objects that reference the selected sequence
 		for (String projectName : projectNames) {
 			Project project = getProject(projectName, projectExplorerView);
-			
-			ProjectNode projectFolder = null;
-			projectFolder = new ProjectNode(isUsedByNode, project.getName(), project);
-			List<Sequence> sequences = project.getSequencesList();
-			referencingSequence.clear();
-			
-			UrlMapper urlMapper = project.getUrlMapper();
-			if (urlMapper != null) {
-				MapperNode mapperNode = new MapperNode(projectFolder, urlMapper.getName(), urlMapper);
-				List<UrlMapping> mappings = urlMapper.getMappingList();
-				for (UrlMapping mapping: mappings) {
-					MappingPathNode pathNode = new MappingPathNode(mapperNode, mapping.getPath(), mapping);
-					List<UrlMappingOperation> operations = mapping.getOperationList();
-					for (UrlMappingOperation operation: operations) {
-						String targetRequestable = operation.getTargetRequestable();
-						if (targetRequestable.equals(projectName +"."+ sequenceSelectedName)) {
-							MappingOperationNode operationNode = new MappingOperationNode(pathNode, operation.getName(), operation);
-							pathNode.addChild(operationNode);
+			if (project != null) {
+				ProjectNode projectFolder = null;
+				projectFolder = new ProjectNode(isUsedByNode, project.getName(), project);
+				List<Sequence> sequences = project.getSequencesList();
+				referencingSequence.clear();
+				
+				UrlMapper urlMapper = project.getUrlMapper();
+				if (urlMapper != null) {
+					MapperNode mapperNode = new MapperNode(projectFolder, urlMapper.getName(), urlMapper);
+					List<UrlMapping> mappings = urlMapper.getMappingList();
+					for (UrlMapping mapping: mappings) {
+						MappingPathNode pathNode = new MappingPathNode(mapperNode, mapping.getPath(), mapping);
+						List<UrlMappingOperation> operations = mapping.getOperationList();
+						for (UrlMappingOperation operation: operations) {
+							String targetRequestable = operation.getTargetRequestable();
+							if (targetRequestable.equals(projectName +"."+ sequenceSelectedName)) {
+								MappingOperationNode operationNode = new MappingOperationNode(pathNode, operation.getName(), operation);
+								pathNode.addChild(operationNode);
+							}
+						}
+						if (pathNode.hasChildren()) {
+							mapperNode.addChild(pathNode);
 						}
 					}
-					if (pathNode.hasChildren()) {
-						mapperNode.addChild(pathNode);
+					if (mapperNode.hasChildren()) {
+						projectFolder.addChild(mapperNode);
 					}
 				}
-				if (mapperNode.hasChildren()) {
-					projectFolder.addChild(mapperNode);
-				}
-			}
-			
-			for (Sequence sequence : sequences) {
-				List<Step> steps = sequence.getSteps();
 				
-				for (Step step : steps) {
-					SequenceNode sequenceNode = new SequenceNode(projectFolder, sequence.getName(), sequence);
-					getSequenceReferencingIsUsedBy(step, sequenceSelected, sequenceNode);
-					if (sequenceNode.hasChildren()) {
-						projectFolder.addChild(sequenceNode);
+				for (Sequence sequence : sequences) {
+					List<Step> steps = sequence.getSteps();
+					
+					for (Step step : steps) {
+						SequenceNode sequenceNode = new SequenceNode(projectFolder, sequence.getName(), sequence);
+						getSequenceReferencingIsUsedBy(step, sequenceSelected, sequenceNode);
+						if (sequenceNode.hasChildren()) {
+							projectFolder.addChild(sequenceNode);
+						}
 					}
 				}
-			}
-			
-			if (projectFolder.hasChildren()) {
-				isUsedByNode.addChild(projectFolder);
+				
+				if (projectFolder.hasChildren()) {
+					isUsedByNode.addChild(projectFolder);
+				}
 			}
 		}
 		
@@ -762,47 +768,47 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 			// Searching all objects that are referenced by the selected connector
 			for (String projectName : projectNames) {
 				project = getProject(projectName, projectExplorerView);
-				
-				
-				projectFolder = new ProjectNode(isUsedByNode, projectName, project);
-				
-				UrlMapper urlMapper = project.getUrlMapper();
-				if (urlMapper != null) {
-					MapperNode mapperNode = new MapperNode(projectFolder, urlMapper.getName(), urlMapper);
-					List<UrlMapping> mappings = urlMapper.getMappingList();
-					for (UrlMapping mapping: mappings) {
-						MappingPathNode pathNode = new MappingPathNode(mapperNode, mapping.getPath(), mapping);
-						List<UrlMappingOperation> operations = mapping.getOperationList();
-						for (UrlMappingOperation operation: operations) {
-							String targetRequestable = operation.getTargetRequestable();
-							if (targetRequestable.startsWith(projectConnectorSelected +"."+ connectorSelectedName +".")) {
-								MappingOperationNode operationNode = new MappingOperationNode(pathNode, operation.getName(), operation);
-								pathNode.addChild(operationNode);
+				if (project != null) {
+					projectFolder = new ProjectNode(isUsedByNode, projectName, project);
+					
+					UrlMapper urlMapper = project.getUrlMapper();
+					if (urlMapper != null) {
+						MapperNode mapperNode = new MapperNode(projectFolder, urlMapper.getName(), urlMapper);
+						List<UrlMapping> mappings = urlMapper.getMappingList();
+						for (UrlMapping mapping: mappings) {
+							MappingPathNode pathNode = new MappingPathNode(mapperNode, mapping.getPath(), mapping);
+							List<UrlMappingOperation> operations = mapping.getOperationList();
+							for (UrlMappingOperation operation: operations) {
+								String targetRequestable = operation.getTargetRequestable();
+								if (targetRequestable.startsWith(projectConnectorSelected +"."+ connectorSelectedName +".")) {
+									MappingOperationNode operationNode = new MappingOperationNode(pathNode, operation.getName(), operation);
+									pathNode.addChild(operationNode);
+								}
+							}
+							if (pathNode.hasChildren()) {
+								mapperNode.addChild(pathNode);
 							}
 						}
-						if (pathNode.hasChildren()) {
-							mapperNode.addChild(pathNode);
+						if (mapperNode.hasChildren()) {
+							projectFolder.addChild(mapperNode);
 						}
 					}
-					if (mapperNode.hasChildren()) {
-						projectFolder.addChild(mapperNode);
+					
+					List<Sequence> sequences = project.getSequencesList();
+					
+					for (Sequence sequence : sequences) {
+						List<Step> steps = sequence.getSteps();
+						SequenceNode sequenceNode = new SequenceNode(projectFolder, sequence.getName(), sequence);
+						for (Step step : steps) {
+								getConnectorReferencingIsUsedBy(step, projectExplorerView, sequenceNode, transactions, connectorProjectName, connectorSelectedName);
+						}
+						if (sequenceNode.hasChildren()) {
+							projectFolder.addChild(sequenceNode);
+						}
 					}
-				}
-				
-				List<Sequence> sequences = project.getSequencesList();
-				
-				for (Sequence sequence : sequences) {
-					List<Step> steps = sequence.getSteps();
-					SequenceNode sequenceNode = new SequenceNode(projectFolder, sequence.getName(), sequence);
-					for (Step step : steps) {
-							getConnectorReferencingIsUsedBy(step, projectExplorerView, sequenceNode, transactions, connectorProjectName, connectorSelectedName);
+					if (projectFolder.hasChildren()) {
+						isUsedByNode.addChild(projectFolder);
 					}
-					if (sequenceNode.hasChildren()) {
-						projectFolder.addChild(sequenceNode);
-					}
-				}
-				if (projectFolder.hasChildren()) {
-					isUsedByNode.addChild(projectFolder);
 				}
 			}
 			if (requiresNode.hasChildren()) {
@@ -1241,26 +1247,28 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 		int count = st.countTokens();
 		String projectName = st.nextToken();
 		Project project = getProject(projectName, projectExplorerView);
-		ProjectNode requiresProjectNode = new ProjectNode(requiresNode, projectName, project);
-		if (count == 2) {
-			String sequenceName = count == 2 ? st.nextToken():"";
-			Sequence sequence = project.getSequenceByName(sequenceName);
-			SequenceNode sequenceNode = new SequenceNode(requiresProjectNode, sequenceName, sequence);
-			requiresProjectNode.addChild(sequenceNode);
-		}
-		else if (count == 3) {
-			String connectorName = count == 3 ? st.nextToken():"";
-			Connector connector = project.getConnectorByName(connectorName);
-			ConnectorNode connectorNode = new ConnectorNode(requiresProjectNode, connectorName, connector);
-			requiresProjectNode.addChild(connectorNode);
-			
-			String transactionName = count == 3 ? st.nextToken():"";
-			Transaction transaction = connector.getTransactionByName(transactionName);
-			TransactionNode transactionNode = new TransactionNode(connectorNode, transactionName, transaction);
-			connectorNode.addChild(transactionNode);
-		}
-		if (requiresProjectNode.hasChildren()) {
-			requiresNode.addChild(requiresProjectNode);
+		if (project != null) {
+			ProjectNode requiresProjectNode = new ProjectNode(requiresNode, projectName, project);
+			if (count == 2) {
+				String sequenceName = count == 2 ? st.nextToken():"";
+				Sequence sequence = project.getSequenceByName(sequenceName);
+				SequenceNode sequenceNode = new SequenceNode(requiresProjectNode, sequenceName, sequence);
+				requiresProjectNode.addChild(sequenceNode);
+			}
+			else if (count == 3) {
+				String connectorName = count == 3 ? st.nextToken():"";
+				Connector connector = project.getConnectorByName(connectorName);
+				ConnectorNode connectorNode = new ConnectorNode(requiresProjectNode, connectorName, connector);
+				requiresProjectNode.addChild(connectorNode);
+				
+				String transactionName = count == 3 ? st.nextToken():"";
+				Transaction transaction = connector.getTransactionByName(transactionName);
+				TransactionNode transactionNode = new TransactionNode(connectorNode, transactionName, transaction);
+				connectorNode.addChild(transactionNode);
+			}
+			if (requiresProjectNode.hasChildren()) {
+				requiresNode.addChild(requiresProjectNode);
+			}
 		}
 	}
 }

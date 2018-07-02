@@ -114,7 +114,7 @@ public class NewProjectWizardPage1 extends WizardPage {
 	}
 	
 	private boolean projectAlreadyExists(String projectName) {
-		File file = new File(Engine.PROJECTS_PATH + "/" + projectName); //$NON-NLS-1$
+		File file = new File(Engine.projectDir(projectName)); //$NON-NLS-1$
 		return file.exists();
 	}
 }

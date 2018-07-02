@@ -84,6 +84,7 @@ public class ProjectsDataFilter implements Filter {
     	String pathInfo = (m_projects.find()) ? m_projects.group(1) : "";
 
     	String requestedObject = Engine.PROJECTS_PATH + pathInfo;
+    	requestedObject = Engine.resolveProjectPath(requestedObject);
     	Engine.logContext.debug("requestedObject=" + requestedObject);
     	
     	Matcher m_forbidden = p_forbidden.matcher(pathInfo); 
@@ -108,7 +109,7 @@ public class ProjectsDataFilter implements Filter {
     	File file = new File(requestedObject);
     	
     	String s = file.getCanonicalPath();
-    	if (!s.startsWith(Engine.PROJECTS_PATH)) {
+    	if (!Engine.isStudioMode() && !s.startsWith(Engine.PROJECTS_PATH)) {
     		if (hide_error == false) {
     			Engine.logContext.error(requestURI + ": access to directories outside the projects repository is not allowed!");
     			response.sendError(HttpServletResponse.SC_FORBIDDEN, requestURI + ": access to directories outside the projects repository is not allowed!");

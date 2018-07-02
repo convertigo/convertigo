@@ -31,6 +31,7 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.twinsoft.api.Session;
@@ -39,17 +40,21 @@ import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.KeyExpiredException;
+import com.twinsoft.convertigo.engine.LogParameters;
 import com.twinsoft.convertigo.engine.MaxCvsExceededException;
 import com.twinsoft.convertigo.engine.RestApiManager;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.requesters.Requester;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpServletRequestTwsWrapper;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
+import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.OpenApiUtils;
 import com.twinsoft.convertigo.engine.util.ServletUtils;
 import com.twinsoft.convertigo.engine.util.SwaggerUtils;
+import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
 import com.twinsoft.tas.KeyManager;
 
 public class RestApiServlet extends GenericServlet {
@@ -133,6 +138,19 @@ public class RestApiServlet extends GenericServlet {
 		
 		HttpServletRequestTwsWrapper wrapped_request = new HttpServletRequestTwsWrapper(request);
 		request = wrapped_request;
+		
+		HttpSession httpSession = request.getSession();
+		
+		LogParameters logParameters = GenericUtils.cast(httpSession.getAttribute(RestApiServlet.class.getCanonicalName()));
+		
+		if (logParameters == null) {
+			httpSession.setAttribute(RestApiServlet.class.getCanonicalName(), logParameters = new LogParameters());
+			logParameters.put(mdcKeys.ContextID.toString().toLowerCase(), httpSession.getId());
+		}
+
+		Log4jHelper.mdcSet(logParameters);
+		
+		logParameters.put(mdcKeys.ClientIP.toString().toLowerCase(), request.getRemoteAddr());
 		
 		String encoded = request.getParameter(Parameter.RsaEncoded.getName());
 		if (encoded != null) {

@@ -234,6 +234,7 @@ public abstract class GenericRequester extends Requester {
 					Log4jHelper.mdcPut(mdcKeys.UID, Long.toHexString(uniqueRequestID));
 					Log4jHelper.mdcPut(mdcKeys.ContextID, context.contextID);
 					Log4jHelper.mdcPut(mdcKeys.Project, context.projectName);
+					Log4jHelper.mdcPut(mdcKeys.ClientIP, context.remoteAddr);
 					
 					if (inputData instanceof HttpServletRequest) {
 						HttpServletRequest request = (HttpServletRequest) inputData;
@@ -646,13 +647,13 @@ public abstract class GenericRequester extends Requester {
 		            String localeExtension = "";
 		            if (Locale.getDefault().toString().startsWith("fr")) localeExtension = "_fr";
 		    		
-		        	errorXsl = Engine.PROJECTS_PATH + "/" + context.projectName + "/error" + localeExtension +".xsl";
+		        	errorXsl = context.getProjectDirectory() + "/error" + localeExtension +".xsl";
 		        	context.sheetUrl = "error" + localeExtension +".xsl";
 		        	
 		        	file = new File(errorXsl);
 		        	if (!file.exists()) {
 			        	Engine.logContext.debug("File " + errorXsl + " not found");
-		    	    	errorXsl = Engine.PROJECTS_PATH + "/" + context.projectName + "/error.xsl";
+		    	    	errorXsl = context.getProjectDirectory() + "/error.xsl";
 			        	context.sheetUrl = "error.xsl";
 		    	    	file = new File(errorXsl);
 		    	    	if (!file.exists()) {
@@ -780,13 +781,11 @@ public abstract class GenericRequester extends Requester {
 					Engine.logContext.debug("Storing found sheet into the execution context (__currentSheet)");
 					context.sheetUrl = sheet.getUrl();
 				}
-
-				String projectDirectoryName = context.project.getName();
-
+				
 				Engine.logContext.debug("Using XSL data from \"" + context.sheetUrl + "\"");
 
 				// Search relatively to the Convertigo servlet application base directory
-				context.absoluteSheetUrl = Engine.PROJECTS_PATH + "/" + projectDirectoryName + "/" + (context.subPath.length() > 0 ? context.subPath + "/" : "") + context.sheetUrl;
+				context.absoluteSheetUrl = context.getProjectDirectory() + "/" + (context.subPath.length() > 0 ? context.subPath + "/" : "") + context.sheetUrl;
 				Engine.logContext.debug("Url: " + context.absoluteSheetUrl);
 				File xslFile =  new File(context.absoluteSheetUrl);
 				if (!xslFile.exists()) {
@@ -909,7 +908,7 @@ public abstract class GenericRequester extends Requester {
 
                         //String transletOutput = (context.project == null ? Engine.PROJECTS_PATH : Engine.PROJECTS_PATH + "/" + context.projectName) + "/_private/xsltc/";
                         //transletOutput = new File(transletOutput).toURI().toASCIIString();
-                        String transletOutput = (context.project == null ? Engine.PROJECTS_PATH : Engine.PROJECTS_PATH + "/" + context.projectName) + "/_private/xsltc";
+                        String transletOutput = (context.project == null ? Engine.PROJECTS_PATH : context.getProjectDirectory()) + "/_private/xsltc";
                         transletOutput = new File(transletOutput).getCanonicalPath();
                         tFactory.setAttribute("destination-directory", transletOutput);
                         Engine.logContext.debug("Translet output: " + transletOutput);

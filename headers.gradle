@@ -78,6 +78,29 @@ task updateJavascriptHeaders {
 	}
 }
 
-task updateAllHeaders (dependsOn: [updateJavaHeaders, updatePropertiesHeaders, updateHtmlHeaders, updateJavascriptHeaders]) {
+task updateCssHeaders {
+	group 'convertigo'
+	
+	def files = fileTree(dir: 'eclipse-plugin-studio/tomcat/webapps/convertigo', include: '**/*.css',
+	exclude: [
+		'**/axis*',
+		'**/custom.css',
+		'**/jquery*',
+		'**/knacss.css',
+		'**/prism*',
+		'**/roboto*',
+		'**/swagger*'
+	])
+	
+	doFirst {
+		def javascriptHeader = licenseText.replaceAll('(.*)\r?\n', ' * $1' + System.lineSeparator());
+		files.each {
+			println "replacing ${it}"
+			it.write(it.getText('UTF-8').replaceFirst('^(/\\*[\\d\\D]*?\\*/)?\\s*', "/*${System.lineSeparator()}${javascriptHeader} */${System.lineSeparator()}${System.lineSeparator()}"), 'UTF-8')
+		}
+	}
+}
+
+task updateAllHeaders (dependsOn: [updateJavaHeaders, updatePropertiesHeaders, updateHtmlHeaders, updateJavascriptHeaders, updateCssHeaders]) {
 	group 'convertigo'
 }

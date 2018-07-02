@@ -78,7 +78,7 @@ public class PdfServletRequester extends ServletRequester {
     		try {
 	        	// Configure foUserAgent as desired
 	        	FOUserAgent foUserAgent = fopFactory.newFOUserAgent();
-	        	foUserAgent.setBaseURL(new File(Engine.PROJECTS_PATH + "/" + context.projectName).toURI().toASCIIString());
+	        	foUserAgent.setBaseURL(new File(context.getProjectDirectory()).toURI().toASCIIString());
 	        	foUserAgent.setAuthor("Convertigo EMS");
 	        	
 	        	// Setup output

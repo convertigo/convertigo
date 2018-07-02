@@ -88,7 +88,7 @@ import com.twinsoft.convertigo.engine.proxy.translated.ProxyTransaction;
 public class ProjectUtils {
 
 	public static void copyIndexFile(String projectName) throws Exception {
-    	String projectRoot = Engine.PROJECTS_PATH + '/' +  projectName;
+    	String projectRoot = Engine.projectDir(projectName);
     	String templateBase = Engine.TEMPLATES_PATH + "/base";
     	File indexPage = new File(projectRoot + "/index.html");
     	if (!indexPage.exists()) {
@@ -112,6 +112,91 @@ public class ProjectUtils {
     	}
 	}
 
+	public static File renameProjectFile(File oldXml, String newName, boolean keepOldReferences) throws Exception {		
+		if (!oldXml.getName().endsWith(".xml")) {
+			throw new Exception("File \"" + oldXml.getAbsolutePath() + "\" isn't a xml file");
+		}
+		
+		if (!oldXml.exists()) {
+			throw new Exception("File \"" + oldXml.getAbsolutePath() + "\" does not exist");
+		}
+		
+		File newXml = new File(oldXml.getParentFile(), newName + ".xml");
+		
+		if (newXml.exists()) {
+			throw new Exception("File \"" + newXml.getAbsolutePath() + "\" already exists");
+		}
+		
+		if (!oldXml.renameTo(newXml)) {
+			throw new Exception("Unable to rename \"" + oldXml.getAbsolutePath() + "\" to \"" + newXml.getAbsolutePath() + "\"");
+		}
+		
+		String oldName = oldXml.getName();
+		oldName = oldName.substring(0, oldName.length() - 4);
+		
+		List<Replacement> replacements = new ArrayList<>(10);
+		if (isPreviousXmlFileFormat(newXml)) {
+			// replace project's bean name
+			replacements.add(new Replacement("value=\"" + oldName + "\"", "value=\"" + newName + "\""));
+		} else {
+			// replace project's bean name
+			replacements.add(new Replacement("<!--<Project : " + oldName + ">", "<!--<Project : " + newName + ">"));
+			replacements.add(new Replacement("value=\"" + oldName + "\"", "value=\"" + newName + "\"", "<!--<Project"));
+			replacements.add(new Replacement("<!--</Project : " + oldName + ">", "<!--</Project : " + newName + ">"));
+		}
+		
+		// replace project's name references
+		if (!keepOldReferences) {
+			replacements.add(new Replacement("value=\"" + oldName + "\\.", "value=\"" + newName + "\\."));
+		}
+		
+		makeReplacementsInFile(replacements, newXml);
+
+		ArrayList<File> deep = CarUtils.deepListFiles(oldXml.getParent() + "/xsd/internal", ".xsd");
+		File xsd = new File(oldXml.getParentFile(), "xsd/" + oldName + ".xsd");
+		if (!xsd.exists()) {
+			xsd = new File(oldXml.getParentFile(), oldName + ".xsd");
+		}
+		if (xsd.exists()) {
+			File oldXsd = xsd;
+			oldXsd.renameTo(xsd = new File(oldXml.getParentFile(), newName + ".xsd"));
+			deep.add(xsd);
+		}
+		
+		if (deep != null && !deep.isEmpty()) {
+			// update transaction schema files with new project's name
+			replacements.clear();;
+			replacements.add(new Replacement("/" + oldName, "/" + newName));
+			replacements.add(new Replacement(oldName + "_ns", newName + "_ns"));
+			for (File schema : deep) {
+				try {
+					ProjectUtils.makeReplacementsInFile(replacements, schema.getAbsolutePath());
+					Engine.logDatabaseObjectManager.debug("Successfully updated schema file \"" + schema.getAbsolutePath() + "\"");
+				} catch (Exception e) {
+					Engine.logDatabaseObjectManager.warn("Unable to update schema file \"" + schema.getAbsolutePath() + "\"");
+				}
+			}
+		}
+		
+		File wsld = new File(oldXml.getParentFile(), oldName + ".wsdl");
+		if (wsld.exists()) {
+			File oldWsld = wsld;
+			oldWsld.renameTo(wsld = new File(oldXml.getParentFile(), newName + ".wsld"));
+			replacements.clear();
+			replacements.add(new Replacement("/" + oldName, "/" + newName));
+			replacements.add(new Replacement(oldName + "_ns", newName + "_ns"));
+			replacements.add(new Replacement(oldName + ".xsd", newName+".xsd"));
+			replacements.add(new Replacement(oldName + "Port", newName+"Port"));
+			replacements.add(new Replacement(oldName + "SOAP", newName+"SOAP"));
+			replacements.add(new Replacement("soapAction=\"" + oldName + "\\?", "soapAction=\"" + newName + "\\?"));
+			replacements.add(new Replacement("definitions name=\"" + oldName + "\"", "definitions name=\"" + newName + "\""));
+			replacements.add(new Replacement("service name=\"" + oldName + "\"", "service name=\"" + newName + "\""));
+			makeReplacementsInFile(replacements, wsld);
+		}
+		
+		return newXml;
+	}
+
 	public static void renameProjectFile(String projectsDir, String sourceProjectName, String targetProjectName) throws Exception {
 		String oldPath = projectsDir + "/" + targetProjectName + "/" + sourceProjectName + ".xml";
 		File oldFile = new File(oldPath);
@@ -121,36 +206,32 @@ public class ProjectUtils {
 			if (!newFile.exists()) {
 				if (oldFile.renameTo(newFile)) {
 					List<Replacement> replacements = new ArrayList<Replacement>();
-					if (isPreviousXmlFileFormat(newPath)) {
+					if (isPreviousXmlFileFormat(newFile)) {
 						// replace project's bean name
-						replacements.add(new Replacement("value=\""+sourceProjectName+"\"", "value=\""+targetProjectName+"\""));
+						replacements.add(new Replacement("value=\"" + sourceProjectName + "\"", "value=\"" + targetProjectName + "\""));
 						makeReplacementsInFile(replacements, newPath);
-					}
-					else {
+					} else {
 						// replace project's bean name
 						replacements.add(new Replacement("<!--<Project : " + sourceProjectName + ">", "<!--<Project : " + targetProjectName + ">"));
-						replacements.add(new Replacement("value=\""+sourceProjectName+"\"", "value=\""+targetProjectName+"\"", "<!--<Project"));
+						replacements.add(new Replacement("value=\"" + sourceProjectName + "\"", "value=\"" + targetProjectName + "\"", "<!--<Project"));
 						replacements.add(new Replacement("<!--</Project : " + sourceProjectName + ">", "<!--</Project : " + targetProjectName + ">"));
 						makeReplacementsInFile(replacements, newPath);
 					}
+				} else {
+					throw new Exception("Unable to rename \"" + oldPath + "\" to \"" + newPath + "\"");
 				}
-				else {
-					throw new Exception("Unable to rename \""+oldPath+"\" to \""+newPath+"\"");
-				}
+			} else {
+				throw new Exception("File \"" + newPath + "\" already exists");
 			}
-			else {
-				throw new Exception("File \""+newPath+"\" already exists");
-			}
-		}
-		else {
-			throw new Exception("File \""+oldPath+"\" does not exist");
+		} else {
+			throw new Exception("File \"" + oldPath + "\" does not exist");
 		}
 	}
 
-	public static boolean isPreviousXmlFileFormat(String filePath) throws Exception { 
+	public static boolean isPreviousXmlFileFormat(File file) throws Exception { 
 		boolean isPreviousFormat = false;
 		String line= null;
-		BufferedReader br = new BufferedReader(new FileReader(filePath));
+		BufferedReader br = new BufferedReader(new FileReader(file));
 		while ((line = br.readLine()) != null) {
 			if (line.indexOf("<project classname=\"com.twinsoft.convertigo.beans.core.Project\"")!=-1) {
 				isPreviousFormat = !line.trim().startsWith("<!--<Project");
@@ -159,48 +240,7 @@ public class ProjectUtils {
 		}
 		br.close();
 		return isPreviousFormat;
-	}
-	
-	public static void renameXmlProject(String projectsDir, String sourceProjectName, String targetProjectName) throws Exception {
-		String oldPath = projectsDir + "/" + targetProjectName + "/" + sourceProjectName + ".xml";
-		File oldFile = new File(oldPath);
-		if (oldFile.exists()) {
-			String newPath = projectsDir + "/" + targetProjectName + "/" + targetProjectName + ".xml";
-			File newFile = new File(newPath);
-			if (!newFile.exists()) {
-				if (oldFile.renameTo(newFile)) {
-					List<Replacement> replacements = new ArrayList<Replacement>();
-					if (isPreviousXmlFileFormat(newPath)) {
-						// replace project's bean name
-						replacements.add(new Replacement("value=\""+sourceProjectName+"\"", "value=\""+targetProjectName+"\""));
-						// replace project's name references
-						replacements.add(new Replacement("value=\""+sourceProjectName+"\\.", "value=\""+targetProjectName+"\\."));
-						makeReplacementsInFile(replacements, newPath);
-					}
-					else {
-						// replace project's bean name
-						replacements.add(new Replacement("<!--<Project : " + sourceProjectName + ">", "<!--<Project : " + targetProjectName + ">"));
-						replacements.add(new Replacement("value=\""+sourceProjectName+"\"", "value=\""+targetProjectName+"\"", "<!--<Project"));
-						replacements.add(new Replacement("<!--</Project : " + sourceProjectName + ">", "<!--</Project : " + targetProjectName + ">"));
-						// replace project's name references
-						replacements.add(new Replacement("value=\""+sourceProjectName+"\\.", "value=\""+targetProjectName+"\\."));
-						makeReplacementsInFile(replacements, newPath);
-					}
-				}
-				else {
-					throw new Exception("Unable to rename \""+oldPath+"\" to \""+newPath+"\"");
-				}
-			}
-			else {
-				throw new Exception("File \""+newPath+"\" already exists");
-			}
-		}
-		else {
-			throw new Exception("File \""+oldPath+"\" does not exist");
-		}
-	}
-	
-	
+	}	
 	
 	public static void renameXsdFile(String projectsDir, String sourceProjectName, String targetProjectName) throws Exception {
 		String oldPath = projectsDir + "/" + targetProjectName + "/" + sourceProjectName + ".xsd";
@@ -263,13 +303,16 @@ public class ProjectUtils {
 	}
 	
 	public static void makeReplacementsInFile(List<Replacement> replacements, String filePath) throws Exception {
-		File file = new File(filePath);
+		makeReplacementsInFile(replacements, new File(filePath));
+	}
+	
+	public static void makeReplacementsInFile(List<Replacement> replacements, File file) throws Exception {
 		if (file.exists()) {
 			String line;
 			StringBuffer sb = new StringBuffer();
 			
-			BufferedReader br = new BufferedReader(new FileReader(filePath));
-			while((line = br.readLine()) != null) {
+			BufferedReader br = new BufferedReader(new FileReader(file));
+			while ((line = br.readLine()) != null) {
 				for (Replacement replacement: replacements) {
 					String lineBegin = replacement.getStartsWith();
 					if ((lineBegin == null) || (line.trim().startsWith(lineBegin))) {
@@ -280,12 +323,12 @@ public class ProjectUtils {
 			}
 			br.close();
 			
-			BufferedWriter out= new BufferedWriter(new FileWriter(filePath));
+			BufferedWriter out = new BufferedWriter(new FileWriter(file));
 			out.write(sb.toString());
 			out.close();
 		}
 		else {
-			throw new Exception("File \""+filePath+"\" does not exist");
+			throw new Exception("File \"" + file.getAbsolutePath() + "\" does not exist");
 		}
 	}
 

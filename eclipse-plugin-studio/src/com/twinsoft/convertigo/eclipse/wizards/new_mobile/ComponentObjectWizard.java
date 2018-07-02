@@ -145,6 +145,15 @@ public class ComponentObjectWizard extends Wizard {
 		return true;
 	}
 	
+	@Override
+	public boolean performCancel() {
+		if (objectExplorerPage != null) {
+			objectExplorerPage.doCancel();
+		}
+		newBean = null;
+		return super.performCancel();
+	}
+	
 	private void doFinish(IProgressMonitor monitor) throws CoreException {
 		String dboName, name;
 		boolean bContinue = true;

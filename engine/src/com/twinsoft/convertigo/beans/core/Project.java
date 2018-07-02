@@ -514,7 +514,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		if (version!= null) {
 			if (VersionUtils.compareMigrationVersion(version, ".m002") < 0) {
 				Engine.logDatabaseObjectManager.info("Project's file migration to m002 index.html ...");
-				String projectRoot = Engine.PROJECTS_PATH+'/'+getName();
+				String projectRoot = Engine.projectDir(getName());
 				File indexPage = new File(projectRoot+"/index.html");
 				if(indexPage.exists()){
 					Engine.logDatabaseObjectManager.info("index.html found, rename it to index_old.html");
@@ -621,7 +621,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	}
 	
 	public String getDirPath() {
-		return Engine.PROJECTS_PATH + "/" + getName();
+		return Engine.projectDir(getName());
 	}
 	
 	public String getXsdDirPath() {
@@ -664,9 +664,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	 */
 	public long getExportTime() {
 		try {
-			String projectName = getName();
-			String exportedProjectFileName = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml";
-			File f = new File(exportedProjectFileName);
+			File f = Engine.projectFile(getName());
 			return f.lastModified();
 		} catch (Throwable t) {}
 		return 0L;

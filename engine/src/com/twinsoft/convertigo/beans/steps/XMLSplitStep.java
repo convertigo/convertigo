@@ -98,9 +98,7 @@ public class XMLSplitStep extends XMLElementStep {
 				try {
 					tag =(tags.get(index)).get(0);
 				} catch (Exception e) {
-					if (size == 1) {
-						tag = (tags.get(0)).get(0);
-					}
+					tag = (tags.get(size-1)).get(0);
 				}
 			}
 			return tag.equals("") ? "split":tag;

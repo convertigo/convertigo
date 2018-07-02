@@ -141,4 +141,13 @@ public class StatementGeneratorWizard extends Wizard {
 		return true;
 	}
 
+	@Override
+	public boolean performCancel() {
+		if (statementGeneratorPage != null) {
+			statementGeneratorPage.doCancel();
+		}
+		newBean = null;
+		return super.performCancel();
+	}
+	
 }
