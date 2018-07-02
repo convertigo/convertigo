@@ -898,9 +898,10 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		Object obj = super.getAdapter(adapter);
 		
 		if (obj == null) {
-			if (adapter.isAssignableFrom(IProject.class)) {
-				obj = getIProject();
-			}			
+			obj = getIProject();
+			if (obj != null && !adapter.isAssignableFrom(IProject.class)) {
+				obj = ((IProject) obj).getAdapter(adapter);
+			}
 		}
 		
 		return obj;

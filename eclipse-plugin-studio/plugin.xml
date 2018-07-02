@@ -3534,6 +3534,21 @@
       </decorator>
    </extension>
    <extension
+         point="org.eclipse.ui.decorators">
+      <decorator
+            lightweight="true"
+            adaptable="true"
+            label="Convertigo decorator"
+            class="com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewLabelDecorator"
+            state="true"
+            id="com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewLabelDecorator">
+            <enablement>
+              <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject"/>
+            </enablement>
+         <description>Decorates Convertigo Objects</description>
+      </decorator>
+   </extension>
+   <extension
          point="org.eclipse.ui.viewActions">
       <viewContribution
             id="com.twinsoft.convertigo.eclipse.views.projectexplorer.viewContribution"

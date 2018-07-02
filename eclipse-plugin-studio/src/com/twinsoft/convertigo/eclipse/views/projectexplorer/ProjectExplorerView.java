@@ -449,7 +449,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		TreeViewerColumn treeViewerColumn = new TreeViewerColumn(viewer, SWT.LEFT);
 		
 		ILabelProvider lp = new ViewLabelProvider();
-		ILabelDecorator ld = new ViewLabelDecorator();
+		ILabelDecorator ld = PlatformUI.getWorkbench().getDecoratorManager().getLabelDecorator();
 		
 		treeViewerColumn.setLabelProvider(new DecoratingColumnLabelProvider(lp, ld));
 		
