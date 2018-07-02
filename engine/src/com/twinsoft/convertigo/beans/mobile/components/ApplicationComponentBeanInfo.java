@@ -38,7 +38,7 @@ public class ApplicationComponentBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[7];
+			properties = new PropertyDescriptor[8];
 			
 			properties[0] = new PropertyDescriptor("orderedPages", beanClass, "getOrderedPages", "setOrderedPages");
 			properties[0].setDisplayName(getExternalizedString("property.orderedPages.display_name"));
@@ -75,6 +75,10 @@ public class ApplicationComponentBeanInfo extends MySimpleBeanInfo {
 			properties[6].setShortDescription(getExternalizedString("property.tplProjectVersion.short_description"));
 			properties[6].setValue("disable", Boolean.TRUE);
 			
+			properties[7] = new PropertyDescriptor("splitPaneLayout", beanClass, "getSplitPaneLayout", "setSplitPaneLayout");
+			properties[7].setDisplayName(getExternalizedString("property.splitPaneLayout.display_name"));
+			properties[7].setShortDescription(getExternalizedString("property.splitPaneLayout.short_description"));
+			properties[7].setPropertyEditorClass(getEditorClass("StringComboBoxPropertyDescriptor"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
