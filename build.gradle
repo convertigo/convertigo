@@ -150,6 +150,7 @@ project(':eclipse-plugin-jxbrowser-linux64') {
 			project.manifest {
 				from sharedManifest
 				attributes(
+					'Automatic-Module-Name': 'com.twinsoft.convertigo.studio.jxbrowser.linux64',
 					'Bundle-Name': 'C-EMS Browser Linux 64',
 					'Bundle-SymbolicName': 'com.twinsoft.convertigo.studio.jxbrowser.linux64;singleton:=true',
 					'Fragment-Host': 'com.twinsoft.convertigo.studio',
@@ -174,6 +175,7 @@ project(':eclipse-plugin-jxbrowser-mac') {
 			project.manifest {
 				from sharedManifest
 				attributes(
+					'Automatic-Module-Name': 'com.twinsoft.convertigo.studio.jxbrowser.mac',
 					'Bundle-Name': 'C-EMS Browser MacOS',
 					'Bundle-SymbolicName': 'com.twinsoft.convertigo.studio.jxbrowser.mac;singleton:=true',
 					'Fragment-Host': 'com.twinsoft.convertigo.studio',
@@ -198,6 +200,7 @@ project(':eclipse-plugin-jxbrowser-win') {
 			project.manifest {
 				from sharedManifest
 				attributes(
+					'Automatic-Module-Name': 'com.twinsoft.convertigo.studio.jxbrowser.win',
 					'Bundle-Name': 'C-EMS Browser Windows',
 					'Bundle-SymbolicName': 'com.twinsoft.convertigo.studio.jxbrowser.win;singleton:=true',
 					'Fragment-Host': 'com.twinsoft.convertigo.studio',
@@ -226,6 +229,7 @@ project(':eclipse-plugin-product') {
 			project.manifest {
 				from sharedManifest
 				attributes(
+					'Automatic-Module-Name': 'com.twinsoft.convertigo.studio.product.linux64',
 					'Bundle-Name': 'C-EMS studio product',
 					'Bundle-SymbolicName': 'com.twinsoft.convertigo.studio.product;singleton:=true',
 					'Bundle-Activator': 'com.twinsoft.convertigo.studio.product.Activator',
@@ -311,6 +315,7 @@ project(':eclipse-plugin-studio') {
 			project.manifest {
 				from sharedManifest
 				attributes(
+					'Automatic-Module-Name': 'com.twinsoft.convertigo.studio',
 					'Bundle-Name': 'C-EMS studio plugin',
 					'Bundle-SymbolicName': 'com.twinsoft.convertigo.studio; singleton:=true',
 					'Eclipse-BundleShape': 'dir',
@@ -376,6 +381,7 @@ project(':eclipse-plugin-xulrunner-win32') {
 			project.manifest {
 				from sharedManifest
 				attributes(
+					'Automatic-Module-Name': 'com.twinsoft.convertigo.studio.xulrunner.win32_win32_x86',
 					'Bundle-Name': 'C-EMS Xulrunner',
 					'Bundle-SymbolicName': 'com.twinsoft.convertigo.studio.xulrunner.win32_win32_x86;singleton:=true',
 					'Fragment-Host': 'com.twinsoft.convertigo.studio',

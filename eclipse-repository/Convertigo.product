@@ -58,7 +58,6 @@ Matrix about Convertigo Editions features is available at : http://www.convertig
    <launcher name="ConvertigoStudio">
       <linux icon="images/convertigo_256x256_8.xpm"/>
       <macosx icon="images/convertigo.icns"/>
-      <solaris/>
       <win useIco="true">
          <ico path="images/product.ico"/>
          <bmp/>
@@ -73,8 +72,7 @@ Matrix about Convertigo Editions features is available at : http://www.convertig
    <license>
         <url>http://www.convertigo.com/en/license.txt</url>
         <text>
-
-===================================================== 
+   ===================================================== 
  CONVERTIGO MOBILITY PLATFORM LICENCE AGREEMENT 
 =====================================================
 
@@ -101,7 +99,7 @@ number of licenses acquired by such Organization.
 &lt;&lt; Community Edition &gt;&gt;
 Edition of the Software delivered by CONVERTIGO without activation keys to activate the Convertigo Mobile Builder 
 components as codeless mobile UI developments or Convertigo MBaaS components as SQL, HTML, MAINFRAME, 
-SAP connectors, Full Sync off line data, Url mapper, or SDK beyond the 30 days&#39; trial period and 5 Sessions. 
+SAP connectors, Full Sync off line data, Url mapper, or SDK beyond the 30 days&apos; trial period and 5 Sessions. 
 Community Edition includes basic Convertigo MBaaS Edition Studio and Server capabilities as orchestration and 
 sequencer on REST and SOAP Convertigo Connectors.
 
@@ -132,7 +130,7 @@ appropriate keys.
 &lt;&lt; MBaaS Edition &gt;&gt;
 Edition of the Software which allows You to use the Software MBaaS Edition components and configurations 
 including SQL, HTML, MAINFRAME, SAP connectors, Full Sync off line data, Url Mapper and mobile SDK beyond the 
-30 days&#39; trial period and 5 Sessions with activation keys delivered by Convertigo .
+30 days&apos; trial period and 5 Sessions with activation keys delivered by Convertigo .
 The Software MBaaS Edition components are delivered and bundled with the Software Studio. They are running 
 under the minimal mono user Software Server installed with the Software Studio and are free of use for 
 development purpose only. 
@@ -152,9 +150,9 @@ configure Software Server.
 
 &lt;&lt; Mobile Builder Edition &gt;&gt;
 Edition of the Software which allows You to use the Software Mobile Builder Edition components and 
-configurations including mobile rapid application developments beyond 30 days&#39; trial period and 5 Sessions with 
+configurations including mobile rapid application developments beyond 30 days&apos; trial period and 5 Sessions with 
 activation keys delivered by Convertigo.
-Standard Edition doesn&#39;t include Convertigo MBaaS Edition components as SQL, HTML, MAINFRAME, SAP 
+Standard Edition doesn&apos;t include Convertigo MBaaS Edition components as SQL, HTML, MAINFRAME, SAP 
 connectors,Full Sync off line data, Url Mapper or mobile SDK.
 The Software Mobile Builder Edition components are delivered and bundled with the Software Studio. They are 
 running under the minimal mono user Software Server installed with the Software Studio and are free of use for 
@@ -365,7 +363,7 @@ UNINTERRUPTED OR THAT CONVERTIGO WILL CORRECT ALL SOFTWARE ERRORS.
 
 4.7	Customer Remedies
 
-Convertigo&#39;s entire liability and the exclusive remedy of the Organization shall be: at Convertigo&#39;s option, either (a) 
+Convertigo&apos;s entire liability and the exclusive remedy of the Organization shall be: at Convertigo&apos;s option, either (a) 
 return of the price paid or (b) repair or replacement of the Software that does not meet the above Limited 
 Warranty. Any replacement Software will be warranted for the remainder of the original warranty period.
 
@@ -643,7 +641,7 @@ trademarks, copyrights or rights in any confidential information or trade-secret
 also do not acquire any rights in or related to the Software, or any components thereof, other than the rights 
 expressly licensed to You under this Agreement or in another mutually agreed upon, written agreement that You 
 may have with Convertigo. Any grants not expressly granted herein are reserved. The Software is only licensed to 
-your Organization as expressly set out herein and is protected by copyright and &quot;droit d&#39;auteur&quot;. There are severe 
+your Organization as expressly set out herein and is protected by copyright and &quot;droit d&apos;auteur&quot;. There are severe 
 penalties both civil and criminal for intellectual property infringement.
 
 9.	Confidentiality
@@ -657,7 +655,7 @@ derive the source code of the Software and agree not to authorize, allow or enab
 
 10.	Indemnification.
 
-You shall defend, indemnify, and hold harmless Convertigo, Convertigo&#39;s suppliers, successors, affiliates, agents and 
+You shall defend, indemnify, and hold harmless Convertigo, Convertigo&apos;s suppliers, successors, affiliates, agents and 
 assigns (each a &quot;Convertigo Indemnified Party&quot;) from any claims, damages, losses, or expenses (including without 
 limitation attorney fees and costs) incurred by a Convertigo Indemnified Party in connection with all claims, suits, 
 judgments and causes of action (i) for infringement of patents or other intellectual property or proprietary rights 
@@ -675,7 +673,7 @@ nor shall it be construed to be, exclusive of any other remedy provided herein o
 all such remedies shall be cumulative. In the event of the termination of this Agreement for Your breach, You shall 
 pay to Convertigo all attorney fees, collection fees, and related expenses, expended or incurred by Convertigo in 
 the enforcement of any right or privilege hereunder (including, but not limited to, telephone, freight, express and 
-postal charges, expenses of paid investigators and reasonable compensation for time of Convertigo&#39;s 
+postal charges, expenses of paid investigators and reasonable compensation for time of Convertigo&apos;s 
 representatives).
 
 11.	Right to Audit
@@ -685,7 +683,7 @@ reproduction and user of the Software during the term of this Agreement and for 
 thereafter. During this period, Convertigo may cause an audit to be made of the applicable records in order to 
 verify your compliance with this Agreement and prompt adjustment shall be made to compensate for any errors or 
 omissions disclosed by such audit. Any such audit shall be conducted by an independent certified public accountant 
-selected by Convertigo and shall be conducted during the regular business hours at your Organization&#39;s offices and 
+selected by Convertigo and shall be conducted during the regular business hours at your Organization&apos;s offices and 
 in such a manner as not to reasonably interfere with your normal business activities. Any such audit shall be paid 
 for by Convertigo unless material discrepancies are disclosed. For such purposes, &quot;material discrepancies&quot; shall 
 mean three percent (3%) or more of the number of Authorized Licenses pursuant to this Agreement. If material 
@@ -739,8 +737,8 @@ invalid or unenforceable provision or provisions, and the rights and obligations
 enforced accordingly.
 
 14.6	Language. It is the express will of the parties that this Agreement and all related documents be drawn up in 
-English. C&#39;est la volont&#233; expresse des parties que la pr&#233;sente convention ainsi que les documents qui s&#39;y rattachent 
-soient r&#233;dig&#233;s en anglais.
+English. C&apos;est la volonté expresse des parties que la présente convention ainsi que les documents qui s&apos;y rattachent 
+soient rédigés en anglais.
 
 14.7	Entire Agreement. This Agreement constitutes the entire agreement between the parties hereto with 
 respect to the subject matter hereof and cancels and supersedes any prior understandings and agreements 
@@ -755,7 +753,7 @@ been given, You shall be deemed to have accepted this change.
 
 
 
-CONVERTIGO &#8211; LICENSE AGREEMENT -2018- SDK
+CONVERTIGO – LICENSE AGREEMENT -2018- SDK
          </text>
    </license>
 
@@ -764,46 +762,47 @@ CONVERTIGO &#8211; LICENSE AGREEMENT -2018- SDK
 
    <features>
       <feature id="com.twinsoft.convertigo.studio.feature" version="7.6.0.qualifier"/>
-      <feature id="org.eclipse.ecf.filetransfer.httpclient4.feature"/>
-      <feature id="org.eclipse.help"/>
-      <feature id="org.eclipse.pde"/>
-      <feature id="org.eclipse.ecf.filetransfer.httpclient4.ssl.feature"/>
-      <feature id="org.eclipse.wst.jsdt.nodejs.feature"/>
-      <feature id="org.eclipse.jdt"/>
-      <feature id="org.eclipse.emf.common"/>
-      <feature id="org.eclipse.equinox.p2.core.feature"/>
-      <feature id="org.eclipse.wst.xml_ui.feature"/>
-      <feature id="org.eclipse.wst.xml_core.feature"/>
-      <feature id="org.eclipse.wst.web_ui.feature"/>
-      <feature id="org.eclipse.wst.common_core.feature"/>
-      <feature id="org.eclipse.ecf.core.ssl.feature"/>
-      <feature id="org.eclipse.ecf.filetransfer.ssl.feature"/>
-      <feature id="org.eclipse.wst.web_userdoc.feature"/>
-      <feature id="org.eclipse.wst.server_userdoc.feature"/>
-      <feature id="org.eclipse.emf.ecore"/>
-      <feature id="org.eclipse.equinox.p2.user.ui"/>
-      <feature id="org.eclipse.wst.xsl.feature"/>
-      <feature id="org.eclipse.equinox.p2.extras.feature"/>
-      <feature id="org.eclipse.wst.json_ui.feature"/>
-      <feature id="org.eclipse.rcp"/>
-      <feature id="org.eclipse.ecf.core.feature"/>
-      <feature id="org.eclipse.equinox.p2.rcp.feature"/>
-      <feature id="org.eclipse.wst.server_ui.feature"/>
-      <feature id="org.eclipse.ecf.filetransfer.feature"/>
-      <feature id="org.eclipse.wst.server_core.feature"/>
-      <feature id="org.eclipse.platform"/>
-      <feature id="org.eclipse.wst.xml_userdoc.feature"/>
-      <feature id="org.eclipse.wst.json_core.feature"/>
-      <feature id="org.eclipse.wst.web_core.feature"/>
-      <feature id="org.eclipse.wst.xml.xpath2.processor.feature"/>
       <feature id="org.eclipse.e4.rcp"/>
-      <feature id="org.eclipse.wst.jsdt.feature"/>
+      <feature id="org.eclipse.ecf.core.feature"/>
+      <feature id="org.eclipse.ecf.core.ssl.feature"/>
+      <feature id="org.eclipse.ecf.filetransfer.feature"/>
+      <feature id="org.eclipse.ecf.filetransfer.httpclient4.feature"/>
+      <feature id="org.eclipse.ecf.filetransfer.httpclient4.ssl.feature"/>
+      <feature id="org.eclipse.ecf.filetransfer.ssl.feature"/>
+      <feature id="org.eclipse.egit"/>
+      <feature id="org.eclipse.egit.gitflow.feature"/>
+      <feature id="org.eclipse.emf.common"/>
+      <feature id="org.eclipse.emf.ecore"/>
+      <feature id="org.eclipse.equinox.p2.core.feature"/>
+      <feature id="org.eclipse.equinox.p2.extras.feature"/>
+      <feature id="org.eclipse.equinox.p2.rcp.feature"/>
+      <feature id="org.eclipse.equinox.p2.user.ui"/>
+      <feature id="org.eclipse.help"/>
+      <feature id="org.eclipse.jdt"/>
+      <feature id="org.eclipse.jgit.lfs"/>
+      <feature id="org.eclipse.pde"/>
+      <feature id="org.eclipse.platform"/>
+      <feature id="org.eclipse.rcp"/>
+      <feature id="org.eclipse.wst.common_core.feature"/>
       <feature id="org.eclipse.wst.common_ui.feature"/>
+      <feature id="org.eclipse.wst.jsdt.feature"/>
+      <feature id="org.eclipse.wst.jsdt.nodejs.feature"/>
+      <feature id="org.eclipse.wst.json_core.feature"/>
+      <feature id="org.eclipse.wst.json_ui.feature"/>
+      <feature id="org.eclipse.wst.server_core.feature"/>
+      <feature id="org.eclipse.wst.server_ui.feature"/>
+      <feature id="org.eclipse.wst.server_userdoc.feature"/>
+      <feature id="org.eclipse.wst.web_core.feature"/>
+      <feature id="org.eclipse.wst.web_ui.feature"/>
+      <feature id="org.eclipse.wst.web_userdoc.feature"/>
+      <feature id="org.eclipse.wst.xml.xpath2.processor.feature"/>
+      <feature id="org.eclipse.wst.xml_core.feature"/>
+      <feature id="org.eclipse.wst.xml_ui.feature"/>
+      <feature id="org.eclipse.wst.xml_userdoc.feature"/>
+      <feature id="org.eclipse.wst.xsl.feature"/>
       <feature id="ts-feature"/>
       <feature id="ts-jsdt-feature"/>
       <feature id="ts-json-feature"/>
-      <feature id="ts-nodejs.embed-feature"/>
-      <feature id="ts-validation-feature"/>
    </features>
 
    <configurations>
