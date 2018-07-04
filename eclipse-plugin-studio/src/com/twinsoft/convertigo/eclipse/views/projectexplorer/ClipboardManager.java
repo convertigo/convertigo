@@ -446,6 +446,7 @@ public class ClipboardManager {
 			int index = 0;
 			long oldPriority = databaseObject.priority;
 			
+	        // Verify if a child object with same name exist and change name
 			while (bContinue) {
 				if (bChangeName) {
 					if (index == 0) name = dboName;
@@ -456,197 +457,237 @@ public class ClipboardManager {
 				databaseObject.hasChanged = true;
 				databaseObject.bNew = true;
 				
-				try {
-					if (parentDatabaseObject instanceof ScreenClass) {
-						if (parentDatabaseObject instanceof JavelinScreenClass) {
-							JavelinScreenClass screenClass = (JavelinScreenClass) parentDatabaseObject;
-							if (databaseObject instanceof BlockFactory) {
-								screenClass.add(databaseObject);
-								screenClass.setBlockFactory((BlockFactory)databaseObject);
-							}
+		        try {
+		        	new WalkHelper() {
+		        		boolean root = true;
+		        		boolean find = false;
+						
+						@Override
+						protected boolean before(DatabaseObject dbo, Class<? extends DatabaseObject> dboClass) {
+							boolean isInstance = dboClass.isInstance(databaseObject);
+							find |= isInstance;
+							return isInstance;
 						}
 						
-						ScreenClass screenClass = (ScreenClass) parentDatabaseObject;
-						if (databaseObject instanceof Criteria) {
-							if ((!screenClass.bNew) && (screenClass.equals(((IScreenClassContainer<?>) screenClass.getConnector()).getDefaultScreenClass()))) {
-								throw new EngineException("You cannot paste a new criterion to the default screen class");								
-							}
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							screenClass.add(databaseObject);
-						} else if (databaseObject instanceof ExtractionRule) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							screenClass.add(databaseObject);
-						} else if (databaseObject instanceof Sheet) {
-							screenClass.add(databaseObject);
-						} else if (databaseObject instanceof ScreenClass) {
-							databaseObject.priority = screenClass.priority + 1;
-							XMLVector<XMLVector<Long>> orderedCriterias = new XMLVector<XMLVector<Long>>();
-							orderedCriterias.add(new XMLVector<Long>());
-							((ScreenClass) databaseObject).setOrderedCriterias(orderedCriterias);
-							XMLVector<XMLVector<Long>> orderedExtractionRules = new XMLVector<XMLVector<Long>>();
-							orderedExtractionRules.add(new XMLVector<Long>());
-							((ScreenClass) databaseObject).setOrderedExtractionRules(orderedExtractionRules);
-							screenClass.add(databaseObject);
-						}
-					} else if (parentDatabaseObject instanceof HtmlTransaction) {
-						HtmlTransaction transaction = (HtmlTransaction) parentDatabaseObject;
-						if (databaseObject instanceof Sheet) {
-							transaction.add(databaseObject);
-						} else if (databaseObject instanceof TestCase) {
-							transaction.add(databaseObject);
-						} else if (databaseObject instanceof Variable) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							transaction.add(databaseObject);
-						} else if (databaseObject instanceof FunctionStatement) {
-							if (databaseObject instanceof StatementWithExpressions) {
-								databaseObject.priority = 0;
-								databaseObject.newPriority = databaseObject.priority;
-							}
-							transaction.add(databaseObject);
-						} else {
-							throw new EngineException("You cannot paste to an HtmlTransaction a database object of type " + databaseObject.getClass().getName());
-						}
-					} else if (parentDatabaseObject instanceof TransactionWithVariables) {
-						TransactionWithVariables transaction = (TransactionWithVariables) parentDatabaseObject;
-						if (databaseObject instanceof Sheet) {
-							transaction.add(databaseObject);
-						} else if (databaseObject instanceof TestCase) {
-							transaction.add(databaseObject);
-						} else if (databaseObject instanceof Variable) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							transaction.add(databaseObject);
-						}
-					} else if (parentDatabaseObject instanceof Sequence) {
-						Sequence sequence = (Sequence) parentDatabaseObject;
-						if (databaseObject instanceof Sheet) {
-							sequence.add(databaseObject);
-						} else if (databaseObject instanceof TestCase) {
-							sequence.add(databaseObject);
-						} else if (databaseObject instanceof Step) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							sequence.add(databaseObject);
-						} else if (databaseObject instanceof Variable) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							sequence.add(databaseObject);
-						} else {
-							throw new EngineException("You cannot paste to a Sequence a database object of type " + databaseObject.getClass().getName());
-						}
-					} else if (parentDatabaseObject instanceof StatementWithExpressions) {
-						StatementWithExpressions statement = (StatementWithExpressions) parentDatabaseObject;
-						databaseObject.priority = databaseObject.getNewOrderValue();
-						databaseObject.newPriority = databaseObject.priority;
-						statement.add(databaseObject);
-					} else if (parentDatabaseObject instanceof HTTPStatement) {
-						HTTPStatement statement = (HTTPStatement) parentDatabaseObject;
-						if (databaseObject instanceof Variable) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							statement.add(databaseObject);
-						}
-					} else if (parentDatabaseObject instanceof StepWithExpressions) {
-						StepWithExpressions step = (StepWithExpressions) parentDatabaseObject;
-						databaseObject.priority = databaseObject.getNewOrderValue();
-						databaseObject.newPriority = databaseObject.priority;
-						step.add(databaseObject);
-					} else if (parentDatabaseObject instanceof RequestableStep) {
-						RequestableStep step = (RequestableStep) parentDatabaseObject;
-						if (databaseObject instanceof Variable) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							step.add(databaseObject);
-						}
-					} else if (parentDatabaseObject instanceof TestCase) {
-						TestCase testCase = (TestCase) parentDatabaseObject;
-						if (databaseObject instanceof Variable) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							testCase.add(databaseObject);
-						}
-					} else if (parentDatabaseObject instanceof ApplicationComponent) {
-						ApplicationComponent app = (ApplicationComponent) parentDatabaseObject;
-						if (databaseObject instanceof PageComponent) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							app.add(databaseObject);
-						}
-						else if (databaseObject instanceof RouteComponent) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							app.add(databaseObject);
-						}
-						else if (databaseObject instanceof UIDynamicMenu) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							app.add(databaseObject);
-						}
-						else if (databaseObject instanceof UIComponent) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							app.add(databaseObject);
-						}
-					} else if (parentDatabaseObject instanceof RouteComponent) {
-						RouteComponent route = (RouteComponent)parentDatabaseObject;
-						if (databaseObject instanceof RouteActionComponent) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							RouteActionComponent rac = (RouteActionComponent)databaseObject;
-							int i = rac.getPage().lastIndexOf(".");
-							if (i != -1) {
-								String pageName = rac.getPage().substring(i);
-								String pageQName = route.getParent().getQName() + pageName;
-								rac.setPage(pageQName);
-							}
-							route.add(rac);
-						}
-						else if (databaseObject instanceof RouteEventComponent) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							route.add(databaseObject);
-						}
-					} else if (parentDatabaseObject instanceof PageComponent) {
-						PageComponent page = (PageComponent) parentDatabaseObject;
-						if (databaseObject instanceof UIComponent) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							page.add(databaseObject);
-						}
-					} else if (parentDatabaseObject instanceof UIDynamicMenu) {
-						UIDynamicMenu menu = (UIDynamicMenu) parentDatabaseObject;
-						if (databaseObject instanceof UIComponent) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							menu.add(databaseObject);
-						}
-					} else if (parentDatabaseObject instanceof UIComponent) {
-						UIComponent component = (UIComponent) parentDatabaseObject;
-						databaseObject.priority = databaseObject.getNewOrderValue();
-						databaseObject.newPriority = databaseObject.priority;
-						component.add(databaseObject);
-					} else if (parentDatabaseObject == null) {
-						if (databaseObject instanceof Project) {
-							if (Engine.theApp.databaseObjectsManager.existsProject(databaseObject.getName())) {
-								throw new ObjectWithSameNameException("Project already exist!");
+						@Override
+						protected void walk(DatabaseObject dbo) throws Exception {
+							if (root) {
+								root = false;
+								super.walk(dbo);
+								if (!find) {
+									// ignore: we must accept special paste: e.g. transaction over sequence
+								}
+							} else {
+								if (databaseObject.getName().equalsIgnoreCase(dbo.getName())) {
+									throw new ObjectWithSameNameException("Unable to paste the object because an object with the same name already exists in target.");
+								}
 							}
 						}
-					} else {
-						parentDatabaseObject.add(databaseObject);
-					}
-					bContinue = false;
-				} catch(ObjectWithSameNameException owsne) {
+
+		        	}.init(parentDatabaseObject);
+		        	bContinue = false;
+		        } catch (ObjectWithSameNameException owsne) {
 					if ((parentDatabaseObject instanceof HtmlTransaction) && (databaseObject instanceof Statement)) {
 						throw new EngineException("HtmlTransaction already contains a statement named \""+ name +"\".", owsne);
 					}
-					if ((parentDatabaseObject instanceof Sequence) && (databaseObject instanceof Step)) {
-						throw new EngineException("Sequence already contains a step named \""+ name +"\".", owsne);
-					}
+		        	
 					// Silently ignore
 					index++;
+		        } catch (EngineException ee) {
+		        	throw ee;
+				} catch (Exception e) {
+					throw new EngineException("Exception in paste", e);
+				}
+			}
+			
+			// Now add dbo to target
+			try {
+				if (parentDatabaseObject instanceof ScreenClass) {
+					if (parentDatabaseObject instanceof JavelinScreenClass) {
+						JavelinScreenClass screenClass = (JavelinScreenClass) parentDatabaseObject;
+						if (databaseObject instanceof BlockFactory) {
+							screenClass.add(databaseObject);
+							screenClass.setBlockFactory((BlockFactory)databaseObject);
+						}
+					}
+					
+					ScreenClass screenClass = (ScreenClass) parentDatabaseObject;
+					if (databaseObject instanceof Criteria) {
+						if ((!screenClass.bNew) && (screenClass.equals(((IScreenClassContainer<?>) screenClass.getConnector()).getDefaultScreenClass()))) {
+							throw new EngineException("You cannot paste a new criterion to the default screen class");								
+						}
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						databaseObject.newPriority = databaseObject.priority;
+						screenClass.add(databaseObject);
+					} else if (databaseObject instanceof ExtractionRule) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						databaseObject.newPriority = databaseObject.priority;
+						screenClass.add(databaseObject);
+					} else if (databaseObject instanceof Sheet) {
+						screenClass.add(databaseObject);
+					} else if (databaseObject instanceof ScreenClass) {
+						databaseObject.priority = screenClass.priority + 1;
+						XMLVector<XMLVector<Long>> orderedCriterias = new XMLVector<XMLVector<Long>>();
+						orderedCriterias.add(new XMLVector<Long>());
+						((ScreenClass) databaseObject).setOrderedCriterias(orderedCriterias);
+						XMLVector<XMLVector<Long>> orderedExtractionRules = new XMLVector<XMLVector<Long>>();
+						orderedExtractionRules.add(new XMLVector<Long>());
+						((ScreenClass) databaseObject).setOrderedExtractionRules(orderedExtractionRules);
+						screenClass.add(databaseObject);
+					}
+				} else if (parentDatabaseObject instanceof HtmlTransaction) {
+					HtmlTransaction transaction = (HtmlTransaction) parentDatabaseObject;
+					if (databaseObject instanceof Sheet) {
+						transaction.add(databaseObject);
+					} else if (databaseObject instanceof TestCase) {
+						transaction.add(databaseObject);
+					} else if (databaseObject instanceof Variable) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						databaseObject.newPriority = databaseObject.priority;
+						transaction.add(databaseObject);
+					} else if (databaseObject instanceof FunctionStatement) {
+						if (databaseObject instanceof StatementWithExpressions) {
+							databaseObject.priority = 0;
+							databaseObject.newPriority = databaseObject.priority;
+						}
+						transaction.add(databaseObject);
+					} else {
+						throw new EngineException("You cannot paste to an HtmlTransaction a database object of type " + databaseObject.getClass().getName());
+					}
+				} else if (parentDatabaseObject instanceof TransactionWithVariables) {
+					TransactionWithVariables transaction = (TransactionWithVariables) parentDatabaseObject;
+					if (databaseObject instanceof Sheet) {
+						transaction.add(databaseObject);
+					} else if (databaseObject instanceof TestCase) {
+						transaction.add(databaseObject);
+					} else if (databaseObject instanceof Variable) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						databaseObject.newPriority = databaseObject.priority;
+						transaction.add(databaseObject);
+					}
+				} else if (parentDatabaseObject instanceof Sequence) {
+					Sequence sequence = (Sequence) parentDatabaseObject;
+					if (databaseObject instanceof Sheet) {
+						sequence.add(databaseObject);
+					} else if (databaseObject instanceof TestCase) {
+						sequence.add(databaseObject);
+					} else if (databaseObject instanceof Step) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						databaseObject.newPriority = databaseObject.priority;
+						sequence.add(databaseObject);
+					} else if (databaseObject instanceof Variable) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						databaseObject.newPriority = databaseObject.priority;
+						sequence.add(databaseObject);
+					} else {
+						throw new EngineException("You cannot paste to a Sequence a database object of type " + databaseObject.getClass().getName());
+					}
+				} else if (parentDatabaseObject instanceof StatementWithExpressions) {
+					StatementWithExpressions statement = (StatementWithExpressions) parentDatabaseObject;
+					databaseObject.priority = databaseObject.getNewOrderValue();
+					databaseObject.newPriority = databaseObject.priority;
+					statement.add(databaseObject);
+				} else if (parentDatabaseObject instanceof HTTPStatement) {
+					HTTPStatement statement = (HTTPStatement) parentDatabaseObject;
+					if (databaseObject instanceof Variable) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						databaseObject.newPriority = databaseObject.priority;
+						statement.add(databaseObject);
+					}
+				} else if (parentDatabaseObject instanceof StepWithExpressions) {
+					StepWithExpressions step = (StepWithExpressions) parentDatabaseObject;
+					databaseObject.priority = databaseObject.getNewOrderValue();
+					databaseObject.newPriority = databaseObject.priority;
+					step.add(databaseObject);
+				} else if (parentDatabaseObject instanceof RequestableStep) {
+					RequestableStep step = (RequestableStep) parentDatabaseObject;
+					if (databaseObject instanceof Variable) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						databaseObject.newPriority = databaseObject.priority;
+						step.add(databaseObject);
+					}
+				} else if (parentDatabaseObject instanceof TestCase) {
+					TestCase testCase = (TestCase) parentDatabaseObject;
+					if (databaseObject instanceof Variable) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						databaseObject.newPriority = databaseObject.priority;
+						testCase.add(databaseObject);
+					}
+				} else if (parentDatabaseObject instanceof ApplicationComponent) {
+					ApplicationComponent app = (ApplicationComponent) parentDatabaseObject;
+					if (databaseObject instanceof PageComponent) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						databaseObject.newPriority = databaseObject.priority;
+						app.add(databaseObject);
+					}
+					else if (databaseObject instanceof RouteComponent) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						databaseObject.newPriority = databaseObject.priority;
+						app.add(databaseObject);
+					}
+					else if (databaseObject instanceof UIDynamicMenu) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						databaseObject.newPriority = databaseObject.priority;
+						app.add(databaseObject);
+					}
+					else if (databaseObject instanceof UIComponent) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						databaseObject.newPriority = databaseObject.priority;
+						app.add(databaseObject);
+					}
+				} else if (parentDatabaseObject instanceof RouteComponent) {
+					RouteComponent route = (RouteComponent)parentDatabaseObject;
+					if (databaseObject instanceof RouteActionComponent) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						databaseObject.newPriority = databaseObject.priority;
+						RouteActionComponent rac = (RouteActionComponent)databaseObject;
+						int i = rac.getPage().lastIndexOf(".");
+						if (i != -1) {
+							String pageName = rac.getPage().substring(i);
+							String pageQName = route.getParent().getQName() + pageName;
+							rac.setPage(pageQName);
+						}
+						route.add(rac);
+					}
+					else if (databaseObject instanceof RouteEventComponent) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						databaseObject.newPriority = databaseObject.priority;
+						route.add(databaseObject);
+					}
+				} else if (parentDatabaseObject instanceof PageComponent) {
+					PageComponent page = (PageComponent) parentDatabaseObject;
+					if (databaseObject instanceof UIComponent) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						databaseObject.newPriority = databaseObject.priority;
+						page.add(databaseObject);
+					}
+				} else if (parentDatabaseObject instanceof UIDynamicMenu) {
+					UIDynamicMenu menu = (UIDynamicMenu) parentDatabaseObject;
+					if (databaseObject instanceof UIComponent) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						databaseObject.newPriority = databaseObject.priority;
+						menu.add(databaseObject);
+					}
+				} else if (parentDatabaseObject instanceof UIComponent) {
+					UIComponent component = (UIComponent) parentDatabaseObject;
+					databaseObject.priority = databaseObject.getNewOrderValue();
+					databaseObject.newPriority = databaseObject.priority;
+					component.add(databaseObject);
+				} else if (parentDatabaseObject == null) {
+					if (databaseObject instanceof Project) {
+						if (Engine.theApp.databaseObjectsManager.existsProject(databaseObject.getName())) {
+							throw new ObjectWithSameNameException("Project already exist!");
+						}
+					}
+				} else {
+					parentDatabaseObject.add(databaseObject);
+				}
+			} catch(ObjectWithSameNameException owsne) {
+				if ((parentDatabaseObject instanceof HtmlTransaction) && (databaseObject instanceof Statement)) {
+					throw new EngineException("HtmlTransaction already contains a statement named \""+ name +"\".", owsne);
+				}
+				if ((parentDatabaseObject instanceof Sequence) && (databaseObject instanceof Step)) {
+					throw new EngineException("Sequence already contains a step named \""+ name +"\".", owsne);
 				}
 			}
 			
@@ -830,7 +871,7 @@ public class ClipboardManager {
 							throw new EngineException("You cannot cut and paste to a " + databaseObject.getClass().getSimpleName() + " a database object of type " + object.getClass().getSimpleName());
 						}
 					} else {
-						if (object.getName().equals(databaseObject.getName())) {
+						if (object.getName().equalsIgnoreCase(databaseObject.getName())) {
 							throw new ObjectWithSameNameException("Unable to cut the object because an object with the same name already exists in target.");
 						}
 					}
