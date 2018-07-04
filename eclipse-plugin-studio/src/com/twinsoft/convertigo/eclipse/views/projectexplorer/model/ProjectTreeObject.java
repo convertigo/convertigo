@@ -319,6 +319,10 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 					CouchDbManager.syncDocument(couchDbConnector);
 				}
 			}
+			
+			if (treeObject.getProjectTreeObject() == this) {
+				Engine.theApp.schemaManager.clearCache(getName());
+			}
 		}
 	}
 	
@@ -349,8 +353,6 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 								
 								// refresh folder
 								parentFolder.refreshLocal(IResource.DEPTH_ONE, null);
-								
-								Engine.theApp.schemaManager.clearCache(getName());
 							} catch (Exception e) {
 								ConvertigoPlugin.logWarning(e, "Could not delete folder \""+ folderPath +"\"!");
 							}
@@ -375,8 +377,6 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 								
 								// refresh folder
 								parentFolder.refreshLocal(IResource.DEPTH_ONE, null);
-								
-								Engine.theApp.schemaManager.clearCache(getName());
 							} catch (Exception e) {
 								ConvertigoPlugin.logWarning(e, "Could not delete file \""+ filePath +"\"!");
 							}
@@ -385,6 +385,11 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 				}
 				else if (databaseObject instanceof ProjectSchemaReference) {
 					checkMissingProjects();
+				}
+				
+				// Clear schema cache
+				if (treeObject.getProjectTreeObject() == this) {
+					Engine.theApp.schemaManager.clearCache(getName());
 				}
 			}
 		}
@@ -431,6 +436,11 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 					|| (databaseObject instanceof ProjectSchemaReference && propertyName.equals("projectName"))) {
 				checkMissingProjects();
 			}
+			
+			// Clear schema cache
+			if (treeObject.getProjectTreeObject() == this) {
+				Engine.theApp.schemaManager.clearCache(getName());
+			}			
 		}
 	}
 	

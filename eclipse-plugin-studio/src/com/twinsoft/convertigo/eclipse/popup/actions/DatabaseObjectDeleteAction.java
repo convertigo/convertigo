@@ -369,6 +369,8 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 			}
 		}
 		
+		String dboQName = databaseObject.getQName();
+		
 		if (databaseObject instanceof Project) {
 			// Deleted project will be backup, car will be deleted to avoid its deployment at engine restart
 			//Engine.theApp.databaseObjectsManager.deleteProject(databaseObject.getName());
@@ -394,7 +396,7 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 			}
 		}
 		
-		ConvertigoPlugin.logDebug("The object \"" + databaseObject.getQName() + "\" has been deleted from the database repository!");
+		ConvertigoPlugin.logDebug("The object \"" + dboQName + "\" has been deleted from the database repository!");
     }
 	
 	//TODO : add DeleteEdit class
