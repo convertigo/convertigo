@@ -15,15 +15,28 @@ buildscript {
 import com.monochromeroad.gradle.plugin.aws.s3.S3Sync
 
 apply from: 'headers.gradle'
+apply from: 'convertigo-splash/build.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
 def convertigoVersion = '7.6.0'
 def convertigoTag = 'beta'
+def convertigoCodename = 'osmium'
+def convertigoCode = 'Os'
 def convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
 def jxBrowserVersion = '6.19.1'
 
 def convertigoEngineAPI = '7.6.0-SNAPSHOT'
+
+def convertigoVersionFull = "${convertigoVersion}${convertigoTag.isEmpty() ? '' : '-' + convertigoTag}"
+
+tasks.getByPath('convertigo-splash:run').systemProperties(
+	'c8o_version': "V ${convertigoVersionFull}",
+	'c8o_codename': convertigoCodename,
+	'c8o_code': convertigoCode,
+	'c8o_copyright': "Copyright © 2001-${Calendar.getInstance().get(Calendar.YEAR)} - Convertigo",
+	'c8o_output': '../eclipse-plugin-product/splash.bmp'
+)
 
 task updateVersion(dependsOn: [':engine:updateProductVersion', 'writeManifest']) {
 	group 'convertigo'
@@ -37,7 +50,7 @@ eclipse {
 }
 
 allprojects {
-	version "${convertigoVersion}${convertigoTag.isEmpty() ? '' : '-' + convertigoTag}"
+	version convertigoVersionFull
 	
 	repositories {
 		mavenLocal()
@@ -656,7 +669,7 @@ ext.sharedManifest = project(':engine').manifest {
 	)
 }
 
-task writeManifest(dependsOn: 'updateEclipseVersion') {
+task writeManifest(dependsOn:  ['updateEclipseVersion', 'makeSplash']) {
 	group 'convertigo'
 	
 	def wm = getTasksByName 'writeManifest', true
@@ -710,5 +723,9 @@ task generateEclipseConfiguration(dependsOn: [getTasksByName('cleanEclipse', tru
 }
 
 task generateEclipseConfigurationWithManifest(dependsOn: ['generateEclipseConfiguration', 'writeManifest']) {
+	group 'convertigo'
+}
+
+task makeSplash(dependsOn: 'convertigo-splash:run') {
 	group 'convertigo'
 }

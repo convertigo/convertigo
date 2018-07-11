@@ -15,6 +15,8 @@ META-INF
 
 /.gradle
 /build
+/convertigo-splash/splash.bmp
+/eclipse-plugin-product/splash.bmp
 /eclipse-plugin-studio/src/com/twinsoft/convertigo/eclipse/wizards/setup/license.txt
 /eclipse-plugin-studio/tomcat/webapps/convertigo/licenses/license.txt
 /eclipse-plugin-studio/tomcat/webapps/convertigo/templates/project/*
