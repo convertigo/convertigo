@@ -5234,7 +5234,7 @@
      * TreeviewComponent
      */
     "TreeviewComponent" : {
-      "enabled": false,
+      "enabled": true,
       "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicComponent",
       "tag": "c8o-treeview",
       "displayName": "Treeview",
