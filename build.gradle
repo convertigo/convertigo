@@ -88,9 +88,10 @@ allprojects {
 		}
 		
 		task syncLib(type: Sync) {
+			group 'convertigo'
+			
 			into 'lib'
 			from configurations.runtime
-			group 'convertigo'
 		}
 		
 		tasks.removeAll assemble, build, buildDependents, buildNeeded, clean, jar, javadoc, check, test, testClasses, classes
@@ -158,6 +159,8 @@ project(':eclipse-plugin-jxbrowser-linux64') {
 	}
 	
 	task writeManifest(dependsOn: syncLib) {
+		group 'convertigo'
+		
 		doLast {
 			def manifest = file 'META-INF/MANIFEST.MF'
 			project.manifest {
@@ -173,7 +176,6 @@ project(':eclipse-plugin-jxbrowser-linux64') {
 			}.writeTo(manifest)
 			manifest.text = manifest.text.replaceAll("Import-Package: .*\\s+", "")
 		}
-		group 'convertigo'
 	}
 }
 
@@ -183,6 +185,8 @@ project(':eclipse-plugin-jxbrowser-mac') {
 	}
 	
 	task writeManifest(dependsOn: syncLib) {
+		group 'convertigo'
+		
 		doLast {
 			def manifest = file 'META-INF/MANIFEST.MF'
 			project.manifest {
@@ -198,7 +202,6 @@ project(':eclipse-plugin-jxbrowser-mac') {
 			}.writeTo(manifest)
 			manifest.text = manifest.text.replaceAll("Import-Package: .*\\s+", "")
 		}
-		group 'convertigo'
 	}
 }
 
@@ -208,6 +211,8 @@ project(':eclipse-plugin-jxbrowser-win') {
 	}
 	
 	task writeManifest(dependsOn: syncLib) {
+		group 'convertigo'
+		
 		doLast {
 			def manifest = file 'META-INF/MANIFEST.MF'
 			project.manifest {
@@ -223,7 +228,6 @@ project(':eclipse-plugin-jxbrowser-win') {
 			}.writeTo(manifest)
 			manifest.text = manifest.text.replaceAll("Import-Package: .*\\s+", "")
 		}
-		group 'convertigo'
 	}
 }
 
@@ -237,6 +241,8 @@ project(':eclipse-plugin-product') {
 	}
 	
 	task writeManifest(dependsOn: syncLib) {
+		group 'convertigo'
+		
 		doLast {
 			def manifest = file 'META-INF/MANIFEST.MF'
 			project.manifest {
@@ -259,8 +265,6 @@ project(':eclipse-plugin-product') {
 			}.writeTo(manifest)
 			manifest.text = manifest.text.replaceAll("Import-Package: .*\\s+", "")
 		}
-		
-		group 'convertigo'
 	}
 }
 
@@ -384,11 +388,14 @@ project(':eclipse-plugin-xulrunner-win32') {
 	
 	task untarXulrunner(type: Copy) {
 		group 'convertigo'
+		
 		from tarTree(resources.gzip(configurations.xul[0]))
 		into 'xulrunner'
 	}
 	
 	task writeManifest(dependsOn: untarXulrunner) {
+		group 'convertigo'
+		
 		doLast {
 			def manifest = file 'META-INF/MANIFEST.MF'
 			project.manifest {
@@ -406,15 +413,14 @@ project(':eclipse-plugin-xulrunner-win32') {
 			}.writeTo(manifest)
 			manifest.text = manifest.text.replaceAll("Import-Package: .*\\s+", "")
 		}
-		group 'convertigo'
 	}
 }
 
 project(':engine') {
+	group 'com.convertigo.webapp'
+	
 	apply plugin: 'war'
 	apply plugin: 'eclipse-wtp'
-	
-	group 'com.convertigo.webapp'
 	
 	webAppDirName = 'convertigo'
 	
