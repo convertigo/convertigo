@@ -459,7 +459,11 @@ project(':engine') {
 		swtLinux32
 	}
 	
-	jar.baseName 'convertigo-engine'
+	jar {
+		baseName 'convertigo-engine'
+		
+		include 'com/twinsoft/**'
+	}
 	
 	war {
 		baseName 'convertigo'
@@ -495,6 +499,12 @@ project(':engine') {
 				srcDir 'patch'
 			}
 		}
+	}
+	
+	task patchJar(type: Jar, dependsOn: classes) {
+		baseName 'aa-convertigo-patch'
+		from compileJava.destinationDir
+		exclude 'com/twinsoft/**'
 	}
 	
 	dependencies {
@@ -562,6 +572,7 @@ project(':engine') {
 		compileOnly 'org.apache.tomcat:tomcat-dbcp:[7.0,7.1['
 		compileOnly 'com.convertigo.lib:swt:4.4.2-linux32'
 		swtLinux32 'com.convertigo.lib:swt:4.4.2-linux32'
+		runtime files(patchJar.archivePath)
 	}
 	
 	task downloadXulrunnerLinux32(type: Copy) {
@@ -668,6 +679,7 @@ project(':engine') {
 	}
 	
 	compileJava.dependsOn(['copyLicense', 'updateProductVersion'])
+	jar.dependsOn('patchJar')
 }
 
 ext.sharedManifest = project(':engine').manifest {
