@@ -17,6 +17,7 @@ sourceSets {
 	}
 }
 
+/*
 eclipse {
 	classpath {
 		file {
@@ -31,5 +32,6 @@ eclipse {
 	    }
 	}
 }
+*/
 
 mainClassName = "com.convertigo.splash.MakeSplash"

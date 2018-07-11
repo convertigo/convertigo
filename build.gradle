@@ -70,6 +70,19 @@ allprojects {
 	if (project.name.startsWith('eclipse-plugin')) {
 		apply plugin: 'java'
 		
+		sourceSets {
+			main {
+				java {
+					exclude '.placeholder'
+					srcDir 'src'
+				}
+				resources {
+					exclude '.placeholder'
+					srcDir 'src'
+				}
+			}
+		}
+		
 		eclipse {
 			project {
 				natures 'org.eclipse.jdt.core.javanature',
@@ -232,14 +245,6 @@ project(':eclipse-plugin-jxbrowser-win') {
 }
 
 project(':eclipse-plugin-product') {
-	sourceSets {
-		main {
-			java {
-				srcDir 'src'
-			}
-		}
-	}
-	
 	task writeManifest(dependsOn: syncLib) {
 		group 'convertigo'
 		
@@ -276,8 +281,6 @@ project(':eclipse-plugin-studio') {
 				exclude 'com/twinsoft/convertigo/engine/plugins/InfogreffeBiller.java'
 				exclude 'com/twinsoft/convertigo/engine/plugins/InseeBiller.java'
 				exclude 'com/twinsoft/convertigo/engine/plugins/LCABiller.java'
-				exclude '.placeholder'
-				srcDir 'src'
 				srcDir 'patch'
 			}
 			resources {
@@ -285,8 +288,6 @@ project(':eclipse-plugin-studio') {
 				exclude 'com/twinsoft/convertigo/engine/plugins/InfogreffeBiller.java'
 				exclude 'com/twinsoft/convertigo/engine/plugins/InseeBiller.java'
 				exclude 'com/twinsoft/convertigo/engine/plugins/LCABiller.java'
-				exclude '.placeholder'
-				srcDir 'src'
 				srcDir 'patch'
 			}
 		}
@@ -480,6 +481,7 @@ project(':engine') {
 				exclude 'com/twinsoft/convertigo/engine/plugins/InfogreffeBiller.java'
 				exclude 'com/twinsoft/convertigo/engine/plugins/InseeBiller.java'
 				exclude 'com/twinsoft/convertigo/engine/plugins/LCABiller.java'
+				exclude '.placeholder'
 				srcDir 'src'
 				srcDir 'patch'
 			}
@@ -488,7 +490,9 @@ project(':engine') {
 				exclude 'com/twinsoft/convertigo/engine/plugins/InfogreffeBiller.java'
 				exclude 'com/twinsoft/convertigo/engine/plugins/InseeBiller.java'
 				exclude 'com/twinsoft/convertigo/engine/plugins/LCABiller.java'
+				exclude '.placeholder'
 				srcDir 'src'
+				srcDir 'patch'
 			}
 		}
 	}
