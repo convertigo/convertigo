@@ -13,9 +13,10 @@ buildscript {
 //}
 
 import com.monochromeroad.gradle.plugin.aws.s3.S3Sync
+import org.apache.tools.ant.filters.ReplaceTokens
+import groovy.xml.XmlUtil
 
 apply from: 'headers.gradle'
-apply from: 'convertigo-splash/build.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
@@ -29,15 +30,22 @@ def jxBrowserVersion = '6.19.1'
 def convertigoEngineAPI = '7.6.0-SNAPSHOT'
 
 def convertigoVersionFull = "${convertigoVersion}${convertigoTag.isEmpty() ? '' : '-' + convertigoTag}"
+def currentYear = Calendar.getInstance().get(Calendar.YEAR)
+/*
+makeSplash {
+	inputs.properties(
+		'convertigoVersionFull': convertigoVersionFull,
+		'convertigoCodename': convertigoCodename,
+		'convertigoCode': convertigoCode,
+		'currentYear': currentYear
+	)
+}
 
-tasks.getByPath('convertigo-splash:run').systemProperties(
-	'c8o_version': "V ${convertigoVersionFull}",
-	'c8o_codename': convertigoCodename,
-	'c8o_code': convertigoCode,
-	'c8o_copyright': "Copyright © 2001-${Calendar.getInstance().get(Calendar.YEAR)} - Convertigo",
-	'c8o_output': '../eclipse-plugin-product/splash.bmp'
-)
 
+	
+tasks.getByPath('convertigo-splash:run').inputs.files 'convertigo-splash/convertigo_background.png', 'convertigo-splash/eclipse_builton.png'
+tasks.getByPath('convertigo-splash:run').outputs.dir file("$buildDir/generated")
+*/
 task updateVersion(dependsOn: [':engine:updateProductVersion', 'writeManifest']) {
 	group 'convertigo'
 	description 'Run this task after a Convertigo version change.'
@@ -46,6 +54,39 @@ task updateVersion(dependsOn: [':engine:updateProductVersion', 'writeManifest'])
 eclipse {
 	project {
 		comment = 'Main project to develop the Convertigo platform'
+	}
+}
+
+project(':convertigo-splash') {
+	apply plugin: 'eclipse'
+	apply plugin: 'java'
+	apply plugin: 'application'
+	
+	sourceSets {
+		main {
+			java {
+				srcDir 'src'
+			}
+			resources {
+				srcDir 'src'
+			}
+		}
+	}
+	
+	mainClassName = "com.convertigo.splash.MakeSplash"
+	
+	run.systemProperties(
+		'c8o_version': "V ${convertigoVersionFull}",
+		'c8o_codename': convertigoCodename,
+		'c8o_code': convertigoCode,
+		'c8o_copyright': "Copyright © 2001-${currentYear} - Convertigo",
+		'c8o_output': '../eclipse-plugin-product/splash.bmp'
+	)
+	
+	run {
+		inputs.files 'convertigo-splash/convertigo_background.png', 'convertigo-splash/eclipse_builton.png'
+		inputs.properties run.systemProperties
+		outputs.file '../eclipse-plugin-product/splash.bmp'
 	}
 }
 
@@ -271,6 +312,33 @@ project(':eclipse-plugin-product') {
 			manifest.text = manifest.text.replaceAll("Import-Package: .*\\s+", "")
 		}
 	}
+	
+	task writePluginXml(type: Copy) {
+		group 'convertigo'
+		
+		def aboutTextFile = file('aboutText.txt')
+		
+		inputs.properties(
+			'currentYear': currentYear,
+			'convertigoVersionFull': convertigoVersionFull
+		)
+		inputs.files aboutTextFile
+		
+		def aboutText = ''
+		
+		doFirst {
+			def xml = new XmlSlurper().parseText('<elt/>')
+			xml.@value = aboutTextFile.text
+				.replace('@CEMS_VERSION@', convertigoVersionFull)
+				.replace('@CURRENT_YEAR@', '' + currentYear)
+			aboutText = XmlUtil.serialize(xml).replaceFirst('[\\d\\D]*?value="(.*)"/>[\\d\\D]*','$1')
+		}
+		
+		from 'plugin.xml.tpl'
+		filter { it.replace('@aboutText@', aboutText) }
+		into '.'
+		rename '.*', 'plugin.xml'
+	}
 }
 
 project(':eclipse-plugin-studio') {	
@@ -414,6 +482,32 @@ project(':eclipse-plugin-xulrunner-win32') {
 			}.writeTo(manifest)
 			manifest.text = manifest.text.replaceAll("Import-Package: .*\\s+", "")
 		}
+	}
+}
+
+project(':eclipse-feature') {
+	task updateFeature(type: Copy) {
+		group 'convertigo'
+		
+		def licenseTextFile = file('../license.txt')
+		
+		inputs.properties(
+			'currentYear': currentYear,
+		)
+		inputs.files licenseTextFile
+		
+		def licenseText = ''
+		
+		doFirst {
+			def xml = new XmlSlurper().parseText('<elt/>')			
+			xml.replaceBody licenseTextFile.text
+			licenseText = XmlUtil.serialize(xml).replaceFirst('[\\d\\D]*<elt>([\\d\\D]*)</elt>[\\d\\D]*','$1')
+		}
+		
+		from 'feature.xml.tpl'
+		filter { it.replace('@CURRENT_YEAR@', '' + currentYear).replace('@licenseText@', licenseText) }
+		into '.'
+		rename '.*', 'feature.xml'
 	}
 }
 
@@ -714,7 +808,39 @@ task buildStudio(type: Exec, dependsOn: 'writeManifest') {
 	args 'clean', 'install'
 }
 
-task updateEclipseVersion(type: Exec) {
+task updateEclipseProduct(type: Copy) {
+	group 'convertigo'
+	
+	def aboutTextFile = file('eclipse-plugin-product/aboutText.txt')
+	def licenseTextFile = file('license.txt')
+	
+	inputs.properties(
+		'currentYear': currentYear,
+		'convertigoVersionFull': convertigoVersionFull
+	)
+	inputs.files aboutTextFile, licenseTextFile
+	
+	def aboutText = ''
+	def licenseText = ''
+	
+	doFirst {
+		def xml = new XmlSlurper().parseText('<elt/>')
+		xml.replaceBody aboutTextFile.text
+			.replace('@CEMS_VERSION@', convertigoVersionFull)
+			.replace('@CURRENT_YEAR@', '' + currentYear)
+		aboutText = XmlUtil.serialize(xml).replaceFirst('[\\d\\D]*<elt>([\\d\\D]*)</elt>[\\d\\D]*','$1')
+		
+		xml.replaceBody licenseTextFile.text
+		licenseText = XmlUtil.serialize(xml).replaceFirst('[\\d\\D]*<elt>([\\d\\D]*)</elt>[\\d\\D]*','$1')
+	}
+	
+	from 'eclipse-repository/Convertigo.product.tpl'
+	filter { it.replace('@aboutText@', aboutText).replace('@licenseText@', licenseText) }
+	into 'eclipse-repository'
+	rename '.*', 'Convertigo.product'
+}
+
+task updateEclipseVersion(type: Exec, dependsOn: [':updateEclipseProduct', ':eclipse-plugin-product:writePluginXml', ':eclipse-feature:updateFeature']) {
 	group 'convertigo'
 	
 	def pom = file('pom.xml')
