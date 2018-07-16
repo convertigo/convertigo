@@ -30,7 +30,7 @@ def jxBrowserVersion = '6.19.1'
 def convertigoEngineAPI = '7.6.0-SNAPSHOT'
 
 def convertigoVersionFull = "${convertigoVersion}${convertigoTag.isEmpty() ? '' : '-' + convertigoTag}"
-def currentYear = Calendar.getInstance().get(Calendar.YEAR)
+def currentYear = '' + Calendar.getInstance().get(Calendar.YEAR)
 /*
 makeSplash {
 	inputs.properties(
@@ -330,7 +330,7 @@ project(':eclipse-plugin-product') {
 			def xml = new XmlSlurper().parseText('<elt/>')
 			xml.@value = aboutTextFile.text
 				.replace('@CEMS_VERSION@', convertigoVersionFull)
-				.replace('@CURRENT_YEAR@', '' + currentYear)
+				.replace('@CURRENT_YEAR@', currentYear)
 			aboutText = XmlUtil.serialize(xml).replaceFirst('[\\d\\D]*?value="(.*)"/>[\\d\\D]*','$1')
 		}
 		
@@ -338,6 +338,19 @@ project(':eclipse-plugin-product') {
 		filter { it.replace('@aboutText@', aboutText) }
 		into '.'
 		rename '.*', 'plugin.xml'
+	}
+	
+	task writeAboutIni(type: Copy) {
+		group 'convertigo'
+		
+		inputs.properties(
+			'currentYear': currentYear
+		)
+		
+		from 'about.ini.tpl'
+		filter { it.replace('((CURRENT_YEAR))', currentYear) }
+		into '.'
+		rename '.*', 'about.ini'
 	}
 }
 
@@ -505,7 +518,7 @@ project(':eclipse-feature') {
 		}
 		
 		from 'feature.xml.tpl'
-		filter { it.replace('@CURRENT_YEAR@', '' + currentYear).replace('@licenseText@', licenseText) }
+		filter { it.replace('@CURRENT_YEAR@', currentYear).replace('@licenseText@', licenseText) }
 		into '.'
 		rename '.*', 'feature.xml'
 	}
@@ -827,7 +840,7 @@ task updateEclipseProduct(type: Copy) {
 		def xml = new XmlSlurper().parseText('<elt/>')
 		xml.replaceBody aboutTextFile.text
 			.replace('@CEMS_VERSION@', convertigoVersionFull)
-			.replace('@CURRENT_YEAR@', '' + currentYear)
+			.replace('@CURRENT_YEAR@', currentYear)
 		aboutText = XmlUtil.serialize(xml).replaceFirst('[\\d\\D]*<elt>([\\d\\D]*)</elt>[\\d\\D]*','$1')
 		
 		xml.replaceBody licenseTextFile.text
@@ -840,7 +853,7 @@ task updateEclipseProduct(type: Copy) {
 	rename '.*', 'Convertigo.product'
 }
 
-task updateEclipseVersion(type: Exec, dependsOn: [':updateEclipseProduct', ':eclipse-plugin-product:writePluginXml', ':eclipse-feature:updateFeature']) {
+task updateEclipseVersion(type: Exec, dependsOn: [':updateEclipseProduct', ':eclipse-plugin-product:writeAboutIni', ':eclipse-plugin-product:writePluginXml', ':eclipse-feature:updateFeature']) {
 	group 'convertigo'
 	
 	def pom = file('pom.xml')
