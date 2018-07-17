@@ -17,32 +17,26 @@
  * if not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.twinsoft.convertigo.eclipse.editors.jscript;
+package com.twinsoft.convertigo.beans.core;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.ui.part.FileEditorInput;
-
-import com.twinsoft.convertigo.beans.core.Statement;
-
-public class JscriptStatementEditorInput extends FileEditorInput {
-
-
-	public Statement statement;
+public interface IJScriptContainer {
+	public String getExpression();
+	public void setExpression(String expression);
+	public String getName();
 	
-	public JscriptStatementEditorInput(IFile file) {
-		super(file);
+	public default DatabaseObject getDatabaseObject() {
+		if (this instanceof DatabaseObject) {
+			return (DatabaseObject) this;
+		}
+		return null;
 	}
 	
-	public JscriptStatementEditorInput(IFile file, Statement statement) {
-		super(file);
-		this.statement = statement;
+	public default String getFullName() {
+		DatabaseObject dbo = getDatabaseObject();
+		return dbo != null ? dbo.getQName() : getName();
 	}
-
-	public Statement getStatement() {
-		return statement;
-	}
-
-	public void setStatement(Statement statement) {
-		this.statement = statement;
+	
+	public default String getEditorName() {
+		return getName();
 	}
 }

@@ -67,9 +67,7 @@ import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
-import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptStatementEditorInput;
-import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptStepEditorInput;
-import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditorInput;
+import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditor;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditorInput;
@@ -667,18 +665,9 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 							}
 						}
 						// close js editors
-						else if (editorInput instanceof JscriptTransactionEditorInput) {
-							if (((JscriptTransactionEditorInput)editorInput).getTransaction().getProject().equals(project)) {
-								closeEditor(activePage, editorRef);
-							}
-						}
-						else if (editorInput instanceof JscriptStatementEditorInput) {
-							if (((JscriptStatementEditorInput)editorInput).getStatement().getProject().equals(project)) {
-								closeEditor(activePage, editorRef);
-							}
-						}
-						else if (editorInput instanceof JscriptStepEditorInput) {
-							if (((JscriptStepEditorInput)editorInput).getStep().getProject().equals(project)) {
+						else if (editorInput instanceof JScriptEditorInput) {
+							DatabaseObject dbo = ((JScriptEditorInput) editorInput).getJScriptContainer().getDatabaseObject();
+							if (dbo != null && project.equals(dbo.getProject())) {
 								closeEditor(activePage, editorRef);
 							}
 						}

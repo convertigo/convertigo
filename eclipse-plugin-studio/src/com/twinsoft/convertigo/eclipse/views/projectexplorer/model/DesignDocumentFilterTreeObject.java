@@ -19,11 +19,9 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 
-import com.twinsoft.convertigo.beans.core.Document;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentTreeObject.FilterObject;
@@ -48,20 +46,6 @@ public class DesignDocumentFilterTreeObject extends DesignDocumentFunctionTreeOb
 	@Override
 	public FilterObject getObject() {
 		return (FilterObject) super.getObject();
-	}
-
-	@Override
-	protected String getTempFileName(IProject project) {
-		TreeObject object = getTreeObjectOwner();
-		
-		Document document = (Document)object.getObject();
-		
-		String tempFileName = 	"_private/"+project.getName()+
-				"__"+getConnectorTreeObject().getName()+
-				"__"+document.getName()+
-				"__filters."+getName();
-		
-		return tempFileName;
 	}
 	
 	@Override

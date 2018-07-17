@@ -19,7 +19,6 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IDocument;
@@ -32,8 +31,8 @@ import org.eclipse.ui.texteditor.IDocumentProvider;
 
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditor;
-import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditorInput;
+import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditor;
+import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.jscript.MyJScriptEditor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 
@@ -84,13 +83,7 @@ public class HandlersDeclarationTreeObject extends TreeObject implements IEditab
 			object = object.getParent();
 		}
 		
-		Transaction transaction = (Transaction)object.getObject();
-		
-		String tempFileName = 	"_private/"+project.getName()+
-								"__"+getConnectorTreeObject().getName()+
-								"__"+object.getName();
-		
-		IFile file = project.getFile(tempFileName);
+		Transaction transaction = (Transaction) object.getObject();
 
 		IWorkbenchPage activePage = PlatformUI
 										.getWorkbench()
@@ -98,8 +91,8 @@ public class HandlersDeclarationTreeObject extends TreeObject implements IEditab
 										.getActivePage();
 		if (activePage != null) {
 			try {
-				activePage.openEditor(new JscriptTransactionEditorInput(file,transaction),
-										"com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditor");
+				activePage.openEditor(new JScriptEditorInput(transaction, project),
+										"com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditor");
 				moveTo(selectedHandler.getName());
 			} catch(PartInitException e) {
 				ConvertigoPlugin.logException(e, "Error while loading the transaction editor '" + transaction.getName() + "'");
@@ -115,8 +108,8 @@ public class HandlersDeclarationTreeObject extends TreeObject implements IEditab
 									.getActivePage()
 									.getActiveEditor();
 		
-		if (editor instanceof JscriptTransactionEditor) {
-			JscriptTransactionEditor myEditor = (JscriptTransactionEditor) editor;
+		if (editor instanceof JScriptEditor) {
+			JScriptEditor myEditor = (JScriptEditor) editor;
 			MyJScriptEditor jsEditor = myEditor.getEditor();
 			IDocumentProvider provider = jsEditor.getDocumentProvider();
 			IDocument document = provider.getDocument(editor.getEditorInput());
