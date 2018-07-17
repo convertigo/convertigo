@@ -119,7 +119,7 @@ import com.twinsoft.convertigo.eclipse.dialogs.GlobalsSymbolsWarnDialog;
 import com.twinsoft.convertigo.eclipse.dialogs.ProjectDeployErrorDialog;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
-import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditorInput;
+import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView;
@@ -1409,8 +1409,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					IEditorReference editorRef = (IEditorReference)editorRefs[i];
 					try {
 						IEditorInput editorInput = editorRef.getEditorInput();
-						if ((editorInput != null) && (editorInput instanceof JscriptTransactionEditorInput)) {
-							if (((JscriptTransactionEditorInput)editorInput).transaction.equals(transaction)) {
+						if ((editorInput != null) && (editorInput instanceof JScriptEditorInput)) {
+							if (transaction.equals(((JScriptEditorInput) editorInput).getJScriptContainer().getDatabaseObject())) {
 								editorPart = editorRef.getEditor(false);
 								break;
 							}

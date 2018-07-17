@@ -22,8 +22,6 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -40,7 +38,7 @@ import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.SimpleStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptStepEditorInput;
+import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.xml.XMLSequenceStepEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionStepEditorInput;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
@@ -243,22 +241,17 @@ public class StepTreeObject extends DatabaseObjectTreeObject implements INamedSo
 	}
 	
 	private void openJscriptStepEditor(IProject project) {
-		Step step = (Step) this.getObject();
-
-
-		IFile file = project.getFile("/_private/" + Base64.encodeBase64URLSafeString(DigestUtils.sha1(step.getQName())) + " " + step.getName());
-		
 		IWorkbenchPage activePage = PlatformUI
 										.getWorkbench()
 										.getActiveWorkbenchWindow()
 										.getActivePage();
-		if (activePage != null) {
+		if (activePage != null && getObject() instanceof SimpleStep) {
 			try {
-				activePage.openEditor(new JscriptStepEditorInput(file,step),
-										"com.twinsoft.convertigo.eclipse.editors.jscript.JscriptStepEditor");
+				activePage.openEditor(new JScriptEditorInput((SimpleStep) getObject(), project),
+										"com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditor");
 			}
 			catch(PartInitException e) {
-				ConvertigoPlugin.logException(e, "Error while loading the step editor '" + step.getName() + "'");
+				ConvertigoPlugin.logException(e, "Error while loading the step editor '" + getObject().getName() + "'");
 			} 
 		}
 	}
