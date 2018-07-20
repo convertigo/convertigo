@@ -1107,7 +1107,11 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	}
 
 	public String getTplProjectVersion() {
-		this.tplProjectVersion = getTplVersion();
+		try {
+			this.tplProjectVersion = getTplVersion();
+		} catch (NullPointerException e) {
+			// ignore error for BeansDefaultValues
+		}
 		return this.tplProjectVersion;
 	}
 

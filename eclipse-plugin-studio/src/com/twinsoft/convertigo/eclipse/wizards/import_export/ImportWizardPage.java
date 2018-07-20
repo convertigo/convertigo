@@ -32,6 +32,8 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 
+import com.twinsoft.convertigo.engine.Engine;
+
 
 public class ImportWizardPage extends WizardPage {
 	protected ProjectFileFieldEditor editor = null;
@@ -74,7 +76,7 @@ public class ImportWizardPage extends WizardPage {
 		String message = null;
 		if (filePath.equals(""))
 			message = "Please select a file";
-		else if (!filePath.endsWith(".xml") && !filePath.endsWith(".car"))
+		else if (!Engine.isProjectFile(filePath) && !filePath.endsWith(".car"))
 			message = "Please select a compatible file extension";
 		else if (!new File(filePath).exists())
 			message = "Please select an existing compatible file";
@@ -91,7 +93,7 @@ public class ImportWizardPage extends WizardPage {
 	 */
 	@Override
 	public IWizardPage getNextPage() {
-		if (filePath.endsWith(".xml")) return null;
+		if (Engine.isProjectFile(filePath)) return null;
 		return super.getNextPage();
 	}
 

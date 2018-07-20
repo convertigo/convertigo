@@ -133,7 +133,7 @@ public class Get extends XmlService {
 			Class<? extends DatabaseObject> parentObjectClass = dbo.getClass();
 
 			Map<String, DboCategoryData> categoryNameToDboCategory = new HashMap<>();
-			DboExplorerManager manager = new DboExplorerManager();
+			DboExplorerManager manager = Engine.theApp.getDboExplorerManager();
 			for (DboGroup group : manager.getGroups()) {
 				for (DboCategory category : group.getCategories()) {
 					for (DboBeans beansCategory : category.getBeans()) {

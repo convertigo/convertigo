@@ -40,6 +40,7 @@ import java.util.regex.Pattern;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.swing.event.EventListenerList;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.auth.AuthPolicy;
@@ -48,6 +49,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 
 import com.twinsoft.api.SessionManager;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -56,6 +58,7 @@ import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.cache.CacheManager;
+import com.twinsoft.convertigo.engine.dbo_explorer.DboExplorerManager;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
@@ -955,6 +958,15 @@ public class Engine {
 	public boolean isMonitored() {
 		return bMonitored;
 	}
+	
+	private DboExplorerManager dboExplorerManager = null;
+	
+	public synchronized DboExplorerManager getDboExplorerManager() throws SAXException, IOException, ParserConfigurationException {
+		if (dboExplorerManager == null) {
+			dboExplorerManager = new DboExplorerManager(); 
+		}
+		return dboExplorerManager;
+	};
 
 	/**
 	 * Constructs a new Engine object.
@@ -1654,6 +1666,14 @@ public class Engine {
 		return file;
 	}
 	
+	public static File projectYamlFile(String projectName) {
+		File file = DatabaseObjectsManager.studioProjects.getProject(projectName);
+		if (file == null) {
+			file = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".yaml");
+		}
+		return file;
+	}
+	
 	public static String projectDir(String projectName) {
 		File file = projectFile(projectName).getParentFile();
 		try {
@@ -1697,5 +1717,9 @@ public class Engine {
 			}
 		}
 		return file;
+	}
+
+	public static boolean isProjectFile(String filePath) {
+		return filePath.endsWith(".xml") || filePath.endsWith(".yaml");
 	}
 }

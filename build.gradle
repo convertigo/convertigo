@@ -785,8 +785,19 @@ project(':engine') {
 		into '../eclipse-plugin-studio/tomcat/webapps/convertigo/licenses'
 	}
 	
+	task updateBeansDefaultValues(type: JavaExec) {
+		group 'convertigo'
+		
+		classpath sourceSets.main.compileClasspath
+		classpath sourceSets.main.runtimeClasspath 
+		
+		main = 'com.twinsoft.convertigo.beans.BeansDefaultValues'
+		
+		args 'src', sourceSets.main.output.resourcesDir
+	}
+	
 	compileJava.dependsOn(['copyLicense', 'updateProductVersion'])
-	jar.dependsOn('patchJar')
+	jar.dependsOn(['patchJar', 'updateBeansDefaultValues'])
 }
 
 ext.sharedManifest = project(':engine').manifest {

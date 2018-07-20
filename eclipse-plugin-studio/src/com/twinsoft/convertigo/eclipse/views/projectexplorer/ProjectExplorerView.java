@@ -2904,7 +2904,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		
 		// if project already exists, backup it and delete it after
 		if (projectTreeObject != null) {
-			if (filePath.endsWith(".xml")) {
+			if (Engine.isProjectFile(filePath)) {
 				DatabaseObjectsManager.deleteDir(new File(Engine.projectDir(targetProjectName) + "/_data"));
 				DatabaseObjectsManager.deleteDir(new File(Engine.projectDir(targetProjectName) + "/_private"));
 			}
@@ -2915,7 +2915,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		ConvertigoPlugin.logInfo("Import project from file \"" + filePath + "\"");
 		
 		Project importedProject = null;
-		if (filePath.endsWith(".xml")) {
+		if (Engine.isProjectFile(filePath)) {
 			ConvertigoPlugin.getDefault().createProjectPluginResource(targetProjectName, new File(filePath).getParent());
 			importedProject = Engine.theApp.databaseObjectsManager.importProject(filePath);
 		} else if (filePath.endsWith(".car") && (targetProjectName != null)) {

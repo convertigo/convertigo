@@ -54,6 +54,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import com.twinsoft.convertigo.beans.BeansDefaultValues;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -96,6 +97,7 @@ import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.convertigo.engine.util.YamlConverter;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 /**
@@ -253,7 +255,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 		
 		File projectPath = studioProjects.getProjects(checkOpenable).get(projectName);
 		if (projectPath == null) {
-			projectPath = Engine.projectFile(projectName);
+			projectPath = Engine.projectYamlFile(projectName);
+			if (projectPath == null || !projectPath.exists()) {
+				projectPath = Engine.projectFile(projectName);
+			}
 		}
 		
 		if (checkOpenable && !canOpenProject(projectName) || projectPath == null || !projectPath.exists()) {
@@ -309,7 +314,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			Class<? extends DatabaseObject> parentObjectClass = parentObject.getClass();
 			Class<? extends DatabaseObject> objectClass = object.getClass();
 
-			DboExplorerManager manager = new DboExplorerManager();
+			DboExplorerManager manager = Engine.theApp.getDboExplorerManager();
 			List<DboGroup> groups = manager.getGroups();
 			for (DboGroup group : groups) {
 				List<DboCategory> categories = group.getCategories();
@@ -358,8 +363,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	public static boolean acceptDatabaseObjects(DatabaseObject parentObject, Class<? extends DatabaseObject> objectClass, Class<? extends DatabaseObject> folderBeanClass) {
         try {
             Class<? extends DatabaseObject> parentObjectClass = parentObject.getClass();
-
-            DboExplorerManager manager = new DboExplorerManager();
+            DboExplorerManager manager = Engine.theApp.getDboExplorerManager();
             List<DboGroup> groups = manager.getGroups();
             for (DboGroup group : groups) {
                 List<DboCategory> categories = group.getCategories();
@@ -629,15 +633,19 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 	}
 
+	public Project updateProject(File projectFile) throws EngineException {
+		return updateProject(projectFile.getAbsolutePath());
+	}
+	
 	public Project updateProject(String projectFileName) throws EngineException {
 		try {
 			boolean isArchive = false, needsMigration = false;
 			String projectName = null;
 			Project project = null;
 
-			Engine.logDatabaseObjectManager.trace("DatabaseObjectsManager.updateProject() - projectFileName  :  "+projectFileName);
+			Engine.logDatabaseObjectManager.trace("DatabaseObjectsManager.updateProject() - projectFileName  :  " + projectFileName);
 			File projectFile = new File(projectFileName);
-			Engine.logDatabaseObjectManager.trace("DatabaseObjectsManager.updateProject() - projectFile.exists()  :  "+projectFile.exists());
+			Engine.logDatabaseObjectManager.trace("DatabaseObjectsManager.updateProject() - projectFile.exists()  :  " + projectFile.exists());
 			
 			if (projectFile.exists()) {
 				String fName = projectFile.getName();
@@ -1025,7 +1033,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 		try {
 			Engine.logDatabaseObjectManager.info("Importing project ...");
 			if (importFileName != null) {
-				document = XMLUtils.getDefaultDocumentBuilder().parse(new File(importFileName));
+				if (importFileName.endsWith(".yaml")) {
+					document = YamlConverter.readYaml(new File(importFileName));
+					BeansDefaultValues.unshrinkProject(document);
+				} else {
+					document = XMLUtils.loadXml(importFileName);
+				}
 			}
 
 			// Performs necessary XML migration

@@ -39,6 +39,7 @@ import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.twinsoft.convertigo.beans.BeansDefaultValues;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.TestCase;
@@ -140,12 +141,23 @@ public class CarUtils {
 	public static void exportProject(Project project, String fileName) throws EngineException {
 		Document document = exportProject(project, new ArrayList<TestCase>());
 		exportXMLProject(fileName, document);
+		exportYAMLProject(fileName, document);
 	}
 	
 	public static void exportProject(Project project, String fileName, 
 			List<TestCase> selectedTestCases) throws EngineException {
 		Document document = exportProject(project, selectedTestCases);
 		exportXMLProject(fileName, document);
+		exportYAMLProject(fileName, document);
+	}
+	
+	private static void exportYAMLProject(String fileName, Document document) throws EngineException {
+		try {
+			BeansDefaultValues.shrinkProject(document);
+			YamlConverter.writeYaml(document, new File(fileName.replaceFirst("\\.xml$", ".yaml")));
+		} catch (Exception e) {
+			throw new EngineException("(CarUtils) exportProject in YAML failed", e);
+		}
 	}
 	
 	private static void exportXMLProject(String fileName, Document document) throws EngineException {

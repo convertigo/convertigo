@@ -45,9 +45,20 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.enums.XPathEngine;
 
 public class TwsCachedXPathAPI implements EventListener {
+	private static TwsCachedXPathAPI instance;
+	
 	protected DocumentImpl lastDocument = null;
 	protected CachedXPathAPI xpathApi = null;
 	protected XPathEngine xpathEngine = XPathEngine.JXPath;
+	
+	public static TwsCachedXPathAPI getInstance() {
+		synchronized (TwsCachedXPathAPI.class) {
+			if (instance == null) {
+				instance = new TwsCachedXPathAPI();
+			}
+			return instance;
+		}
+	}
 	
 	public TwsCachedXPathAPI() {
 	}

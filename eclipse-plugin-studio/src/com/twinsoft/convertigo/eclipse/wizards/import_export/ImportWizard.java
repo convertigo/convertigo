@@ -30,6 +30,7 @@ import org.eclipse.ui.IWorkbench;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class ImportWizard extends Wizard implements IImportWizard {
@@ -119,7 +120,7 @@ public class ImportWizard extends Wizard implements IImportWizard {
 		}
 		
 		// XML file case
-		if (filePath.toLowerCase().endsWith(".xml")) {
+		if (Engine.isProjectFile(filePath.toLowerCase())) {
 			return projectName;
 		}
 
@@ -137,10 +138,5 @@ public class ImportWizard extends Wizard implements IImportWizard {
 			projectName = getDefaultProjectName();
 		}
 		return projectName;
-	}
-	
-	protected boolean isProjectXML(){
-		String filePath = fileChooserPage.getFilePath();
-		return filePath.toLowerCase().endsWith(".xml");
 	}
 }

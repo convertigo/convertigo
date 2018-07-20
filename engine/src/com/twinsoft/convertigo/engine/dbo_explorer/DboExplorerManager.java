@@ -36,16 +36,17 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class DboExplorerManager {
 
-	Document documentBeansXmlDatabase;
+	private Document documentBeansXmlDatabase;
 
-	List<DboGroup> groups;
+	private List<DboGroup> groups;
 
 	public DboExplorerManager() throws SAXException, IOException,
 			ParserConfigurationException {
 		
-		InputStream dbInputstream = getClass().getResourceAsStream(
-				"/com/twinsoft/convertigo/beans/database_objects.xml");
-		documentBeansXmlDatabase = XMLUtils.getDefaultDocumentBuilder().parse(dbInputstream);
+		try (InputStream dbInputstream = getClass().getResourceAsStream(
+				"/com/twinsoft/convertigo/beans/database_objects.xml")) {
+			documentBeansXmlDatabase = XMLUtils.getDefaultDocumentBuilder().parse(dbInputstream);
+		}
 
 		NodeList nodeListGroups = documentBeansXmlDatabase.getDocumentElement()
 				.getElementsByTagName("group");
