@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.eclipse.property_editors;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 
@@ -36,6 +37,7 @@ import org.eclipse.swt.widgets.List;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.UrlMapper;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.servlets.RestApiServlet;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 
 public class ModelObjectEditorComposite extends AbstractDialogComposite {
@@ -87,15 +89,16 @@ public class ModelObjectEditorComposite extends AbstractDialogComposite {
 				
 				try {
 					String projectName = project.getName();
-					File targetDir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/oas");
-					File jsonschemaFile = new File(targetDir, projectName+".jsonschema" );
-					if (!jsonschemaFile.exists()) {
-						// TODO runJsonix
-					}
-					if (jsonschemaFile.exists()) {
-						String content = FileUtils.readFileToString(jsonschemaFile, "UTF-8");
+					File targetDir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/oas2");
+					RestApiServlet.buildSwaggerDefinition(projectName, false);
+					
+					Collection<File> jsonschemas = FileUtils.listFiles(targetDir, new String[] { "jsonschema" }, false);
+					for (File file : jsonschemas) {
+						String id = file.getName() + "#";
+						if (file.getName().equals(projectName+".jsonschema")) continue;
+						
+						String content = FileUtils.readFileToString(file, "UTF-8");
 						JSONObject json = new JSONObject(content);
-						String id = projectName+".jsonschema#";//json.getString("id");
 						JSONObject definitions = json.getJSONObject("definitions");
 						Iterator<?> it = definitions.keys();
 						while (it.hasNext()) {
@@ -103,6 +106,7 @@ public class ModelObjectEditorComposite extends AbstractDialogComposite {
 							modelList.add(id + "/definitions/"+ key); 
 						}
 					}
+					
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

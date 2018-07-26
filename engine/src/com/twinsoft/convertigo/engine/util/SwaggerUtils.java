@@ -60,6 +60,12 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.constants.Constants;
+import org.apache.ws.commons.schema.utils.NamespaceMap;
+import org.codehaus.jettison.json.JSONObject;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -77,8 +83,8 @@ import com.twinsoft.convertigo.beans.rest.AbstractRestOperation;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.SchemaManager.Option;
 import com.twinsoft.convertigo.engine.enums.MimeType;
-import com.twinsoft.convertigo.engine.servlets.WebServiceServlet;
 
 public class SwaggerUtils {
 	private static Pattern parseRequestUrl = Pattern.compile("http(s)?://(.*?)(/.*?api)");
@@ -192,54 +198,46 @@ public class SwaggerUtils {
 		}
 		
 		// Generated models from XSD
-		File targetDir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/oas");
-		try {
-			File jsonschemaFile = new File(targetDir, projectName+".jsonschema" );
-			boolean doit = Engine.isStudioMode() || !jsonschemaFile.exists();
-			if (doit) {
-				File wsdlFile = new File(targetDir, projectName+".wsdl" );
-				String wsdlUrl = getProjectWsdlUrl(requestUrl, projectName);
-				String wsdl = WebServiceServlet.generateWsdlForDocLiteral(wsdlUrl, projectName);
-				FileUtils.write(wsdlFile, wsdl, "UTF-8");
-				if (wsdlFile.exists()) { 
-					String schemaUrl = getProjectJsonSchemaUrl(requestUrl, projectName);
-			    	JsonixUtils.runJsonixCompiler(schemaUrl, targetDir, projectName, wsdlFile);
-				}
-			}
-		} catch (Throwable t) {
-			t.printStackTrace();
+		File targetDir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/oas2");
+		boolean doIt = Engine.isStudioMode() || !targetDir.exists();
+		if (doIt) {
 			try {
-				FileUtils.deleteDirectory(targetDir);
-			} catch (Exception e) {}
+				File xsdFile = new File(targetDir, "xsd.jsonschema");
+				if (!xsdFile.exists()) {
+					FileUtils.copyFile(new File(Engine.WEBAPP_PATH + "/oas/xsd2.jsonschema"), xsdFile, true);
+				}
+				
+				XmlSchemaCollection xmlSchemaCollection = Engine.theApp.schemaManager.getSchemasForProject(projectName, Option.noCache);
+				NamespaceMap nsMap = (NamespaceMap) xmlSchemaCollection.getNamespaceContext();
+				for (XmlSchema xmlSchema : xmlSchemaCollection.getXmlSchemas()) {
+					String tns = xmlSchema.getTargetNamespace();
+					if (tns.equals(Constants.URI_2001_SCHEMA_XSD)) continue;
+					if (tns.equals(SchemaUtils.URI_SOAP_ENC)) continue;
+	
+					String prefix = nsMap.getPrefix(tns);
+					File jsonschemaFile = new File(targetDir, prefix+".jsonschema" );
+					JSONObject jsonObject = JsonSchemaUtils.getJsonSchema(xmlSchemaCollection, xmlSchema, true);
+					String content = jsonObject.toString(4);
+					FileUtils.write(jsonschemaFile, content, "UTF-8");
+					//System.out.println(content);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				try {
+					Engine.logEngine.warn("Unexpected exception while generating Oas2 models from XSD", e);
+					FileUtils.deleteDirectory(targetDir);
+				} catch (Exception ex) {}
+			}
 		}
 		
 		return models;
-	}
-	
-	private static String getProjectWsdlUrl(String requestUrl, String projectName) {
-		String wsdlUrl = requestUrl.substring(0,requestUrl.indexOf("/api")) +
-							"/projects/"+ projectName + "/.wsl?WSDL";
-		return wsdlUrl;
-	}
-	
-	private static String getProjectJsonSchemaUrl(String requestUrl, String projectName) {
-		String schemaUrl = requestUrl.substring(0,requestUrl.indexOf("/api")) + 
-								"/projects/"+ projectName + "/oas/"+projectName+".jsonschema";
-		return schemaUrl;
-	}
-	
-	private static String refactorModelReference(String modelReference, String schemaUrl, String projectName) {
-		if (modelReference.startsWith(projectName + ".jsonschema#")) {
-			return modelReference.replaceFirst(projectName+"\\.jsonschema", schemaUrl);
-		}
-		return modelReference;
 	}
 	
 	public static Swagger parse(String requestUrl, UrlMapper urlMapper) {
 		Project project = urlMapper.getProject();
 		String projectName = project.getName();
 		
-		String schemaUrl = getProjectJsonSchemaUrl(requestUrl, projectName);
+		String oasUrl = requestUrl.substring(0,requestUrl.indexOf("/api")) + "/projects/"+ projectName + "/oas2/";
 		
 		Swagger swagger = parseCommon(requestUrl, project);
 		
@@ -334,7 +332,9 @@ public class SwaggerUtils {
 							if (ump instanceof IMappingRefModel) {
 								String modelReference = ((IMappingRefModel)ump).getModelReference();
 								if (!modelReference.isEmpty()) {
-									modelReference = refactorModelReference(modelReference, schemaUrl, projectName);
+									if (modelReference.indexOf(".jsonschema") != -1) {
+										modelReference = oasUrl + modelReference;
+									}
 									RefModel refModel = new RefModel(modelReference);
 									((BodyParameter)s_parameter).setSchema(refModel);
 								}
@@ -410,7 +410,9 @@ public class SwaggerUtils {
 								if (umr instanceof IMappingRefModel) {
 									String modelReference = ((IMappingRefModel)umr).getModelReference();
 									if (!modelReference.isEmpty()) {
-										modelReference = refactorModelReference(modelReference, schemaUrl, projectName);
+										if (modelReference.indexOf(".jsonschema") != -1) {
+											modelReference = oasUrl + modelReference;
+										}
 										RefProperty refProperty = new RefProperty(modelReference);
 										response.setResponseSchema(new PropertyModelConverter().propertyToModel(refProperty));
 									}

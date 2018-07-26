@@ -61,7 +61,17 @@ public class RestApiServlet extends GenericServlet {
 
 	private static final long serialVersionUID = 6926586430359873778L;
 
-	private String buildSwaggerDefinition(String requestUrl, String projectName, boolean isYaml) throws EngineException, JsonProcessingException {
+	public static String buildSwaggerDefinition(String projectName, boolean isYaml) throws EngineException, JsonProcessingException {
+		String requestUrl = Engine.WEBAPP_PATH + "/api"; // Oas2
+		return RestApiServlet.buildSwaggerDefinition(requestUrl, projectName, isYaml);
+	}
+	
+	public static String buildOpenApiDefinition(String projectName, boolean isYaml) throws EngineException, JsonProcessingException {
+		String requestUrl = Engine.WEBAPP_PATH + "/openapi"; // Oas3
+		return RestApiServlet.buildOpenApiDefinition(requestUrl, projectName, isYaml);
+	}
+	
+	private static String buildSwaggerDefinition(String requestUrl, String projectName, boolean isYaml) throws EngineException, JsonProcessingException {
 		String definition = null;
 		
 		// Build a given project definition
@@ -83,7 +93,7 @@ public class RestApiServlet extends GenericServlet {
 		return definition;
 	}
 
-	private String buildOpenApiDefinition(String requestUrl, String projectName, boolean isYaml) throws EngineException, JsonProcessingException {
+	private static String buildOpenApiDefinition(String requestUrl, String projectName, boolean isYaml) throws EngineException, JsonProcessingException {
 		String definition = null;
 		
 		// Build a given project definition

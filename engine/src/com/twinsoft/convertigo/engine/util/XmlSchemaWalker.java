@@ -576,11 +576,7 @@ public class XmlSchemaWalker {
 			}
 		}
 		
-		XmlSchemaObjectCollection facets = obj.getFacets();
-        for (int i = 0; i < facets.getCount(); i++) {
-        	XmlSchemaFacet facet = (XmlSchemaFacet) facets.getItem(i);
-        	walkFacet(xmlSchema, facet);
-        }
+        walkFacets(xmlSchema, obj.getFacets());
 	}
 	
 	protected void walkSimpleTypeList(XmlSchema xmlSchema, XmlSchemaSimpleTypeList obj) {
@@ -590,9 +586,16 @@ public class XmlSchemaWalker {
 	protected void walkSimpleTypeUnion(XmlSchema xmlSchema, XmlSchemaSimpleTypeUnion obj) {
 		walkAnnotated(xmlSchema, obj);
 		QName[] members = obj.getMemberTypesQNames();
-		if (members != null) {
+		if (members != null && deep) {
 			for (QName qname : members) {
 				walkByTypeName(xmlSchema, qname);
+			}
+		} else {
+			XmlSchemaObjectCollection types = obj.getBaseTypes();
+			if (types != null) {
+				for (int i = 0; i < types.getCount(); i++) {
+					walk(xmlSchema, types.getItem(i));
+				}
 			}
 		}
 	}
@@ -776,11 +779,14 @@ public class XmlSchemaWalker {
 		if (xmlSchemaAnyAttribute != null) {
 			walkAnyAttribute(xmlSchema, xmlSchemaAnyAttribute);
 		}
-        XmlSchemaObjectCollection facets = obj.getFacets();
+        walkFacets(xmlSchema, obj.getFacets());
+	}
+	
+	protected void walkFacets(XmlSchema xmlSchema, XmlSchemaObjectCollection facets) {
         for (int i = 0; i < facets.getCount(); i++) {
-        	XmlSchemaObject facet = facets.getItem(i);
-        	walkFacet(xmlSchema, (XmlSchemaFacet)facet);
-        }
+        	XmlSchemaFacet facet = (XmlSchemaFacet) facets.getItem(i);
+        	walkFacet(xmlSchema, facet);
+        }		
 	}
 	
 	protected void walkFacet(XmlSchema xmlSchema, XmlSchemaFacet obj) {
@@ -943,7 +949,7 @@ public class XmlSchemaWalker {
 		
 		if ((refName != null) && deep) {
 			walkByAttributeRef(xmlSchema, refName);
-		} else if (typeName != null) {
+		} else if (typeName != null && deep) {
 			walkByTypeName(xmlSchema, typeName);
 		} else if (xmlSchemaSimpleType != null) {
 			walkSimpleType(xmlSchema, xmlSchemaSimpleType);

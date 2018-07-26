@@ -20,18 +20,22 @@
 package com.twinsoft.convertigo.engine.util;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.constants.Constants;
+import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.codehaus.jettison.json.JSONObject;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.twinsoft.convertigo.beans.core.IMappingRefModel;
@@ -48,10 +52,9 @@ import com.twinsoft.convertigo.beans.rest.AbstractRestOperation;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.SchemaManager.Option;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.MimeType;
-import com.twinsoft.convertigo.engine.servlets.WebServiceServlet;
-
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.core.util.Yaml;
 import io.swagger.v3.oas.models.Components;
@@ -97,23 +100,48 @@ public class OpenApiUtils {
 		return new OpenAPIV3Parser().read(url);
 	}
 	
-	private static String getProjectWsdlUrl(String requestUrl, String projectName) {
-		String wsdlUrl = requestUrl.substring(0,requestUrl.indexOf("/openapi")) +
-								"/projects/"+ projectName + "/.wsl?WSDL";
-		return wsdlUrl;
-	}
-	
-	private static String getProjectJsonSchemaUrl(String requestUrl, String projectName) {
-		String schemaUrl = requestUrl.substring(0,requestUrl.indexOf("/openapi")) + 
-								"/projects/"+ projectName + "/oas/"+projectName+".jsonschema";
-		return schemaUrl;
-	}
-	
-	private static String refactorModelReference(String modelReference, String schemaUrl, String projectName) {
-		if (modelReference.startsWith(projectName + ".jsonschema#")) {
-			return modelReference.replaceFirst(projectName+"\\.jsonschema", schemaUrl);
+	@SuppressWarnings("unused")
+	private static void toOas3Content(File jsonschemaFile) {
+		try {
+			File targetDir = jsonschemaFile.getParentFile();
+			String name = jsonschemaFile.getName().substring(0, jsonschemaFile.getName().indexOf('.'));
+			
+			String content = FileUtils.readFileToString(jsonschemaFile, "UTF-8");
+			content = content.replaceAll(name+"\\.jsonschema#", "#");
+			content = content.replaceAll("\"#\\\\/definitions", "\"#/components/schemas");
+			content = content.replaceAll("\\.jsonschema#\\\\/definitions", ".json#/components/schemas");
+			
+			JSONObject jsonModels = new JSONObject();
+			JSONObject jsonSchemas = new JSONObject(content).getJSONObject("definitions");
+			@SuppressWarnings("rawtypes")
+			Iterator it = jsonSchemas.keys();
+			while (it.hasNext()) {
+				String key = (String) it.next();
+				Object ob = jsonSchemas.get(key);
+				if (ob != null) {
+					jsonModels.put(key, ob);
+				}
+			}
+			//models = jsonModels.toString();
+			
+			OpenAPI oa = new OpenAPI();
+			String s = Json.pretty(oa.info(new Info()));
+			JSONObject json = new JSONObject(s);
+			json.put("components", new JSONObject());
+			json.getJSONObject("components").put("schemas", jsonModels);
+			
+			JsonNode rootNode = Json.mapper().readTree(json.toString());
+			OpenAPIDeserializer ds = new OpenAPIDeserializer();
+			SwaggerParseResult result = ds.deserialize(rootNode);
+			
+			String openApiContent = Json.pretty(result.getOpenAPI());
+			//System.out.println(openApiContent);
+			
+			File jsonFile = new File(targetDir, name+".json");
+			FileUtils.write(jsonFile, openApiContent, "UTF-8");
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-		return modelReference;
 	}
 	
 	private static String getModels(String requestUrl, UrlMapper urlMapper) {
@@ -128,60 +156,39 @@ public class OpenApiUtils {
 		}
 		
 		// Generated models from XSD
-		File targetDir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/oas");
-		try {
-			File jsonschemaFile = new File(targetDir, projectName+".jsonschema" );
-			boolean doit = Engine.isStudioMode() || !jsonschemaFile.exists();
-			if (doit) {
-				File wsdlFile = new File(targetDir, projectName+".wsdl" );
-				String wsdlUrl = getProjectWsdlUrl(requestUrl, projectName);
-				String wsdl = WebServiceServlet.generateWsdlForDocLiteral(wsdlUrl, projectName);
-				FileUtils.write(wsdlFile, wsdl, "UTF-8");
-				
-				if (wsdlFile.exists()) { 
-					String schemaUrl = getProjectJsonSchemaUrl(requestUrl, projectName);
-			    	JsonixUtils.runJsonixCompiler(schemaUrl, targetDir, projectName, wsdlFile);
-					
-					/*File jsonschemaFile = new File(targetDir, projectName+".jsonschema" );
-					if (jsonschemaFile.exists()) {
-						String content = FileUtils.readFileToString(jsonschemaFile, "UTF-8");
-						content = content.replaceAll("\"#/definitions/", "\"#/components/schemas/");
-						//System.out.println(content);
-						String mapperModels = urlMapper.getModels();
-						JSONObject jsonModels = mapperModels.isEmpty() ? new JSONObject():new JSONObject(mapperModels);
-						JSONObject jsonSchemas = new JSONObject(content).getJSONObject("definitions");
-						@SuppressWarnings("rawtypes")
-						Iterator it = jsonSchemas.keys();
-						while (it.hasNext()) {
-							String key = (String) it.next();
-							Object ob = jsonSchemas.get(key);
-							if (ob != null) {
-								jsonModels.put(key, ob);
-							}
-						}
-						//models = jsonModels.toString();
-						
-						OpenAPI oa = new OpenAPI();
-						String s = Json.pretty(oa.info(new Info()));
-						JSONObject json = new JSONObject(s);
-						json.put("components", new JSONObject());
-						json.getJSONObject("components").put("schemas", jsonModels);
-						
-						JsonNode rootNode = Json.mapper().readTree(json.toString());
-						OpenAPIDeserializer ds = new OpenAPIDeserializer();
-						SwaggerParseResult result = ds.deserialize(rootNode);
-						
-						String openApiContent = Json.pretty(result.getOpenAPI());
-						File jsonFile = new File(targetDir, projectName+".json" );
-						FileUtils.write(jsonFile, openApiContent, "UTF-8");
-					}*/
-				}
-			}
-		} catch (Throwable t) {
-			t.printStackTrace();
+		File targetDir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/oas3");
+		boolean doIt = Engine.isStudioMode() || !targetDir.exists();
+		if (doIt) {
 			try {
-				FileUtils.deleteDirectory(targetDir);
-			} catch (IOException e) {}
+				
+				File xsdFile = new File(targetDir, "xsd.jsonschema");
+				if (!xsdFile.exists()) {
+					FileUtils.copyFile(new File(Engine.WEBAPP_PATH + "/oas/xsd3.jsonschema"), xsdFile, true);
+					//toOas3Content(xsdFile);
+				}
+				
+				XmlSchemaCollection xmlSchemaCollection = Engine.theApp.schemaManager.getSchemasForProject(projectName, Option.noCache);
+				NamespaceMap nsMap = (NamespaceMap) xmlSchemaCollection.getNamespaceContext();
+				for (XmlSchema xmlSchema : xmlSchemaCollection.getXmlSchemas()) {
+					String tns = xmlSchema.getTargetNamespace();
+					if (tns.equals(Constants.URI_2001_SCHEMA_XSD)) continue;
+					if (tns.equals(SchemaUtils.URI_SOAP_ENC)) continue;
+	
+					String prefix = nsMap.getPrefix(tns);
+					File jsonschemaFile = new File(targetDir, prefix+".jsonschema" );
+					JSONObject jsonObject = JsonSchemaUtils.getJsonSchema(xmlSchemaCollection, xmlSchema, false);
+					String content = jsonObject.toString(4);
+					FileUtils.write(jsonschemaFile, content, "UTF-8");
+					//toOas3Content(jsonschemaFile);
+					//System.out.println(content);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				try {
+					Engine.logEngine.warn("Unexpected exception while generating Oas3 models from XSD", e);
+					FileUtils.deleteDirectory(targetDir);
+				} catch (Exception ex) {}
+			}
 		}
 		
 		return models;
@@ -281,7 +288,7 @@ public class OpenApiUtils {
 		
 	}
 	
-	private static void addBodyParameter(Operation operation, UrlMappingParameter ump) {
+	private static void addBodyParameter(Operation operation, UrlMappingParameter ump, String oasUrl) {
 		RequestBody requestBody = operation.getRequestBody();
 		if (requestBody == null) {
 			operation.setRequestBody(new RequestBody());
@@ -290,7 +297,9 @@ public class OpenApiUtils {
 			MediaType mediaType = new MediaType();
 			String modelReference = ((IMappingRefModel)ump).getModelReference();
 			if (!modelReference.isEmpty()) {
-				//TODO: modelReference = refactorModelReference(modelReference, schemaUrl, projectName);
+				if (modelReference.indexOf(".jsonschema") != -1) {
+					modelReference = oasUrl + modelReference;
+				}
 				ObjectSchema oschema = new ObjectSchema();
 				oschema.set$ref(modelReference);
 				mediaType.setSchema(oschema);
@@ -310,7 +319,7 @@ public class OpenApiUtils {
 		Project project = urlMapper.getProject();
 		String projectName = project.getName();
 		
-		String schemaUrl = getProjectJsonSchemaUrl(requestUrl, projectName);
+		String oasUrl = requestUrl.substring(0,requestUrl.indexOf("/openapi")) + "/projects/"+ projectName + "/oas3/";
 		
 		OpenAPI openAPI = parseCommon(requestUrl, project);
 		
@@ -390,7 +399,7 @@ public class OpenApiUtils {
 						} else if (ump.getType() == Type.Form) {
 							addFormParameter(operation, ump);
 						} else if (ump.getType() == Type.Body) {
-							addBodyParameter(operation, ump);
+							addBodyParameter(operation, ump, oasUrl);
 						} else if (ump.getType() == Type.Header) {
 							parameter = new HeaderParameter();
 						} else if (ump.getType() == Type.Path) {
@@ -438,7 +447,10 @@ public class OpenApiUtils {
 								
 								String modelReference = ((IMappingRefModel)umr).getModelReference();
 								if (!modelReference.isEmpty() && !produces.isEmpty()) {
-									modelReference = refactorModelReference(modelReference, schemaUrl, projectName);
+									if (modelReference.indexOf(".jsonschema") != -1) {
+										//modelReference = modelReference.replace(".jsonschema#/definitions/", ".json#/components/schemas/");
+										modelReference = oasUrl + modelReference;
+									}
 									Content content = new Content();
 									response.setContent(content);
 									for (String mt: produces) {
@@ -611,4 +623,5 @@ public class OpenApiUtils {
 			Yaml.prettyPrint(openAPI);
 		}
 	}
+	
 }

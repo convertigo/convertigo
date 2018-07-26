@@ -1,349 +1,304 @@
 {
-	"id" : "http://localhost:18080/convertigo/oas/XMLSchema.jsonschema#",
+	"id" : "xsd.jsonschema#",
 	"definitions" : {
 		"anyType" : {
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/2001/REC-xmlschema-1-20010502/#key-urType"
 		},
 		"anySimpleType" : {
-			"type" : "string",
+			"anyOf" : [ {"type" : "string"}, {"type" : "number"}, {"type" : "integer"}, {"type" : "boolean"}],
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#dt-anySimpleType"
 		},
 		"string" : {
 			"type" : "string",
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#string"
 		},
 		"normalizedString" : {
-			"anyOf" : [ {
-				"type" : "string"
-			}, {
-				"type" : "null"
-			} ],
+			"type" : "string",
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#normalizedString"
 		},
 		"token" : {
-			"anyOf" : [ {
-				"type" : "string"
-			}, {
-				"type" : "null"
-			} ],
+			"type" : "string",
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#normalizedString"
 		},
 		"language" : {
-			"anyOf" : [ {
-				"type" : "string"
-			}, {
-				"type" : "null"
-			} ],
+			"type" : "string",
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#language"
 		},
 		"Name" : {
-			"anyOf" : [ {
-				"type" : "string"
-			}, {
-				"type" : "null"
-			} ],
+			"type" : "string",
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#Name"
 		},
 		"NCName" : {
-			"anyOf" : [ {
-				"type" : "string"
-			}, {
-				"type" : "null"
-			} ],
+			"type" : "string",
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#NCName"
 		},
 		"ID" : {
-			"anyOf" : [ {
-				"type" : "string"
-			}, {
-				"type" : "null"
-			} ],
+			"type" : "string",
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#ID"
 		},
 		"IDREF" : {
-			"anyOf" : [ {
-				"type" : "string"
-			}, {
-				"type" : "null"
-			} ],
+			"type" : "string",
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#IDREF"
 		},
 		"IDREFS" : {
-			"anyOf" : [ {
+			"allOf" : [ {
 				"type" : "array",
-				"item" : {
+				"items" : {
 					"type" : "string"
 				}
-			}, {
-				"type" : "null"
-			} ],
+			}],
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#IDREFS"
 		},
 		"ENTITY" : {
-			"anyOf" : [ {
-				"type" : "string"
-			}, {
-				"type" : "null"
-			} ],
+			"type" : "string",
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#ENTITY"
 		},
 		"ENTITIES" : {
-			"anyOf" : [ {
+			"allOf" : [ {
 				"type" : "array",
-				"item" : {
+				"items" : {
 					"type" : "string"
 				}
-			}, {
-				"type" : "null"
-			} ],
+			}],
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#ENTITIES"
 		},
 		"NMTOKEN" : {
-			"anyOf" : [ {
-				"type" : "string"
-			}, {
-				"type" : "null"
-			} ],
+			"type" : "string",
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#NMTOKEN"
 		},
 		"NMTOKENS" : {
-			"anyOf" : [ {
+			"allOf" : [ {
 				"type" : "array",
-				"item" : {
+				"items" : {
 					"type" : "string"
 				}
-			}, {
-				"type" : "null"
-			} ],
+			}],
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#NMTOKENS"
 		},
 		"boolean" : {
 			"type" : "boolean",
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#boolean"
 		},
 		"base64Binary" : {
-			"anyOf" : [ {
+			"allOf" : [ {
 				"type" : "array",
-				"item" : {
+				"items" : {
 					"$ref" : "#/definitions/unsignedByte"
 				}
-			}, {
-				"type" : "null"
-			} ],
+			}],
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#base64Binary"
 		},
 		"hexBinary" : {
-			"anyOf" : [ {
+			"allOf" : [ {
 				"type" : "array",
-				"item" : {
+				"items" : {
 					"$ref" : "#/definitions/unsignedByte"
 				}
-			}, {
-				"type" : "null"
-			} ],
+			}],
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#hexBinary"
 		},
 		"float" : {
 			"type" : "number",
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#float"
 		},
 		"decimal" : {
 			"type" : "number",
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#decimal"
 		},
 		"integer" : {
 			"type" : "integer",
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#decimal"
 		},
 		"nonPositiveInteger" : {
-			"anyOf" : [ {
+			"allOf" : [ {
 				"type" : "integer",
 				"maximum" : 0,
 				"exclusiveMaximum" : false
-			}, {
-				"type" : "null"
-			} ],
+			}],
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#nonPositiveInteger"
 		},
 		"negativeInteger" : {
-			"anyOf" : [ {
+			"allOf" : [ {
 				"type" : "integer",
 				"maximum" : 0,
 				"exclusiveMaximum" : true
-			}, {
-				"type" : "null"
-			} ],
+			}],
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#negativeInteger"
 		},
 		"long" : {
-			"anyOf" : [ {
+			"allOf" : [ {
 				"type" : "integer",
 				"maximum" : 9223372036854775807,
 				"exclusiveMaximum" : false,
 				"minimum" : -9223372036854775808,
 				"exclusiveMinimum" : false
-			}, {
-				"type" : "null"
-			} ],
+			}],
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#long"
 		},
 		"int" : {
-			"anyOf" : [ {
+			"allOf" : [ {
 				"type" : "integer",
 				"maximum" : 2147483647,
 				"exclusiveMaximum" : false,
 				"minimum" : -2147483648,
 				"exclusiveMinimum" : false
-			}, {
-				"type" : "null"
-			} ],
+			}],
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#int"
 		},
 		"short" : {
-			"anyOf" : [ {
+			"allOf" : [ {
 				"type" : "integer",
 				"maximum" : 32767,
 				"exclusiveMaximum" : false,
 				"minimum" : -32768,
 				"exclusiveMinimum" : false
-			}, {
-				"type" : "null"
-			} ],
+			}],
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#short"
 		},
 		"byte" : {
-			"anyOf" : [ {
+			"allOf" : [ {
 				"type" : "integer",
 				"maximum" : 127,
 				"exclusiveMaximum" : false,
 				"minimum" : -128,
 				"exclusiveMinimum" : false
-			}, {
-				"type" : "null"
-			} ],
+			}],
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#byte"
 		},
 		"nonNegativeInteger" : {
-			"anyOf" : [ {
+			"allOf" : [ {
 				"type" : "integer",
 				"minimum" : 0,
 				"exclusiveMinimum" : false
-			}, {
-				"type" : "null"
-			} ],
+			}],
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#nonNegativeInteger"
 		},
 		"unsignedLong" : {
-			"anyOf" : [ {
+			"allOf" : [ {
 				"type" : "integer",
 				"minimum" : 0,
 				"exclusiveMinimum" : false,
 				"maximum" : 18446744073709551615,
 				"exclusiveMaximum" : false
-			}, {
-				"type" : "null"
-			} ],
+			}],
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#unsignedLong"
 		},
 		"unsignedInt" : {
-			"anyOf" : [ {
+			"allOf" : [ {
 				"type" : "integer",
 				"minimum" : 0,
 				"exclusiveMinimum" : false,
 				"maximum" : 4294967295,
 				"exclusiveMaximum" : false
-			}, {
-				"type" : "null"
-			} ],
+			}],
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#unsignedInt"
 		},
 		"unsignedShort" : {
-			"anyOf" : [ {
+			"allOf" : [ {
 				"type" : "integer",
 				"minimum" : 0,
 				"exclusiveMinimum" : false,
 				"maximum" : 65535,
 				"exclusiveMaximum" : false
-			}, {
-				"type" : "null"
-			} ],
+			}],
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#unsignedShort"
 		},
 		"unsignedByte" : {
-			"anyOf" : [ {
+			"allOf" : [ {
 				"type" : "integer",
 				"minimum" : 0,
 				"exclusiveMinimum" : false,
 				"maximum" : 255,
 				"exclusiveMaximum" : false
-			}, {
-				"type" : "null"
-			} ],
+			}],
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#unsignedByte"
 		},
 		"positiveInteger" : {
-			"anyOf" : [ {
+			"allOf" : [ {
 				"type" : "integer",
 				"minimum" : 0,
 				"exclusiveMinimum" : true
-			}, {
-				"type" : "null"
-			} ],
+			}],
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#positiveInteger"
 		},
 		"double" : {
 			"type" : "number",
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#double"
 		},
 		"anyURI" : {
-			"anyOf" : [ {
+			"allOf" : [ {
 				"type" : "string",
 				"format" : "uri"
-			}, {
-				"type" : "null"
-			} ],
+			}],
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#anyURI"
 		},
 		"QName" : {
-			"anyOf" : [ {
+			"allOf" : [ {
 				"type" : "object",
 				"properties" : {
 					"namespaceURI" : {
-						"anyOf" : [ {
+						"allOf" : [ {
 							"$ref" : "#/definitions/anyURI"
-						}, {
-							"type" : "string",
-							"enum" : [ "" ]
-						} ]
+						}]
 					},
 					"localPart" : {
 						"$ref" : "#/definitions/NCName"
 					},
 					"prefix" : {
-						"anyOf" : [ {
+						"allOf" : [ {
 							"$ref" : "#/definitions/NCName"
-						}, {
-							"type" : "string",
-							"enum" : [ "" ]
-						} ]
+						}]
 					}
 				},
 				"required" : [ "localPart" ]
-			}, {
-				"type" : "null"
-			} ],
+			}],
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#QName"
 		},
 		"NOTATION" : {
-			"anyOf" : [ {
+			"allOf" : [ {
 				"$ref" : "#/definitions/QName"
-			}, {
-				"type" : "null"
-			} ],
+			}],
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#NOTATION"
 		},
 		"duration" : {
-			"anyOf" : [ {
+			"allOf" : [ {
 				"type" : "object",
 				"properties" : {
 					"sign" : {
@@ -375,13 +330,12 @@
 					}
 				},
 				"minProperties" : 1
-			}, {
-				"type" : "null"
-			} ],
+			}],
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#duration"
 		},
 		"dateTime" : {
-			"anyOf" : [ {
+			"allOf" : [ {
 				"type" : "object",
 				"properties" : {
 					"year" : {
@@ -458,13 +412,12 @@
 						} ]
 					}
 				}
-			}, {
-				"type" : "null"
-			} ],
+			}],
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#dateTime"
 		},
 		"date" : {
-			"anyOf" : [ {
+			"allOf" : [ {
 				"type" : "object",
 				"properties" : {
 					"year" : {
@@ -501,13 +454,12 @@
 						} ]
 					}
 				}
-			}, {
-				"type" : "null"
-			} ],
+			}],
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#date"
 		},
 		"time" : {
-			"anyOf" : [ {
+			"allOf" : [ {
 				"type" : "object",
 				"properties" : {
 					"hour" : {
@@ -561,13 +513,12 @@
 						} ]
 					}
 				}
-			}, {
-				"type" : "null"
-			} ],
+			}],
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#time"
 		},
 		"gYearMonth" : {
-			"anyOf" : [ {
+			"allOf" : [ {
 				"type" : "object",
 				"properties" : {
 					"year" : {
@@ -594,13 +545,12 @@
 						} ]
 					}
 				}
-			}, {
-				"type" : "null"
-			} ],
+			}],
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#gYearMonth"
 		},
 		"gYear" : {
-			"anyOf" : [ {
+			"allOf" : [ {
 				"type" : "object",
 				"properties" : {
 					"year" : {
@@ -617,13 +567,12 @@
 						} ]
 					}
 				}
-			}, {
-				"type" : "null"
-			} ],
+			}],
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#gYear"
 		},
 		"gMonthDay" : {
-			"anyOf" : [ {
+			"allOf" : [ {
 				"type" : "object",
 				"properties" : {
 					"month" : {
@@ -657,13 +606,12 @@
 						} ]
 					}
 				}
-			}, {
-				"type" : "null"
-			} ],
+			}],
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#gMonthDay"
 		},
 		"gDay" : {
-			"anyOf" : [ {
+			"allOf" : [ {
 				"type" : "object",
 				"properties" : {
 					"day" : {
@@ -687,13 +635,12 @@
 						} ]
 					}
 				}
-			}, {
-				"type" : "null"
-			} ],
+			}],
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#gDay"
 		},
 		"gMonth" : {
-			"anyOf" : [ {
+			"allOf" : [ {
 				"type" : "object",
 				"properties" : {
 					"month" : {
@@ -717,9 +664,8 @@
 						} ]
 					}
 				}
-			}, {
-				"type" : "null"
-			} ],
+			}],
+			"nullable" : true,
 			"description" : "http://www.w3.org/TR/xmlschema-2/#gMonth"
 		}
 	}

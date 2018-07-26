@@ -538,7 +538,6 @@ project(':engine') {
 		compile 'xerces:xercesImpl:[2.11,)'
 		compile 'xml-resolver:xml-resolver:1.2'
 		runtime 'org.hsqldb:hsqldb:1.8.0.10'
-		compile 'org.hisrc.jsonix:jsonix-schema-compiler-full:2.3.9'
 		compileOnly 'org.apache.tomcat.embed:tomcat-embed-core:[7.0,7.1['
 		compileOnly 'org.apache.tomcat:tomcat-dbcp:[7.0,7.1['
 		compileOnly 'com.convertigo.lib:swt:4.4.2-linux32'
