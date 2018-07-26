@@ -107,12 +107,19 @@ public class CarUtils {
 		
 		File projectDir = new File(Engine.projectDir(projectName));
 		
+		// Private - Data directories
 		File privateDir = new File(projectDir, "_private");
 		undeployedFiles.add(privateDir);
 		File dataDir = new File(projectDir, "_data");
 		undeployedFiles.add(dataDir);
 		File carFile = new File(projectDir, projectName + ".car");
 		undeployedFiles.add(carFile);
+
+		// UrlMapper - JsonSchema directories
+		File oas2Dir = new File(projectDir, "oas2");
+		undeployedFiles.add(oas2Dir);
+		File oas3Dir = new File(projectDir, "oas3");
+		undeployedFiles.add(oas3Dir);
 		
 		for (File file : projectDir.listFiles()) {
 			if (file.getName().startsWith(".")) {
