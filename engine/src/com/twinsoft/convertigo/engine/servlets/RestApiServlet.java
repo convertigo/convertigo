@@ -62,12 +62,12 @@ public class RestApiServlet extends GenericServlet {
 	private static final long serialVersionUID = 6926586430359873778L;
 
 	public static String buildSwaggerDefinition(String projectName, boolean isYaml) throws EngineException, JsonProcessingException {
-		String requestUrl = Engine.WEBAPP_PATH + "/api"; // Oas2
+		String requestUrl = Engine.WEBAPP_PATH + "/" + SwaggerUtils.servletMappingPath; // Oas2
 		return RestApiServlet.buildSwaggerDefinition(requestUrl, projectName, isYaml);
 	}
 	
 	public static String buildOpenApiDefinition(String projectName, boolean isYaml) throws EngineException, JsonProcessingException {
-		String requestUrl = Engine.WEBAPP_PATH + "/openapi"; // Oas3
+		String requestUrl = Engine.WEBAPP_PATH + "/" + OpenApiUtils.servletMappingPath; // Oas3
 		return RestApiServlet.buildOpenApiDefinition(requestUrl, projectName, isYaml);
 	}
 	
@@ -177,7 +177,8 @@ public class RestApiServlet extends GenericServlet {
 		boolean isYaml = request.getParameter("YAML") != null;
 		boolean isJson = request.getParameter("JSON") != null;
 		
-		if ("GET".equalsIgnoreCase(method) && uri.endsWith("/api") && (query == null || query.isEmpty())) {
+		if ("GET".equalsIgnoreCase(method) && (query == null || query.isEmpty()) && 
+			(uri.endsWith("/"+ SwaggerUtils.servletMappingPath) || uri.endsWith("/"+ OpenApiUtils.servletMappingPath))) {
 			isJson = true;
 		}
 		
@@ -185,7 +186,7 @@ public class RestApiServlet extends GenericServlet {
 		if ("GET".equalsIgnoreCase(method) && (isYaml || isJson)) {
     		try {
     			String requestUrl = HttpUtils.originalRequestURL(request);
-    			String output = uri.indexOf("/api") != -1 ?
+    			String output = uri.indexOf("/"+ SwaggerUtils.servletMappingPath) != -1 ?
     								buildSwaggerDefinition(requestUrl, request.getParameter("__project"), isYaml):
     									buildOpenApiDefinition(requestUrl, request.getParameter("__project"), isYaml);
     			response.setCharacterEncoding("UTF-8");    			

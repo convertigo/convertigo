@@ -87,7 +87,9 @@ import com.twinsoft.convertigo.engine.SchemaManager.Option;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 
 public class SwaggerUtils {
-	private static Pattern parseRequestUrl = Pattern.compile("http(s)?://(.*?)(/.*?api)");
+	public static String servletMappingPath = "api";
+	public static String jsonSchemaDirectory = "oas2";
+	private static Pattern parseRequestUrl = Pattern.compile("http(s)?://(.*?)(/.*?"+servletMappingPath+")");
 
 	public static Swagger read(String url) {
 		return new SwaggerParser().read(url);
@@ -123,7 +125,7 @@ public class SwaggerUtils {
 			String webAppPath = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
 			int index = webAppPath.indexOf("://") + 3;
 			host = webAppPath.substring(index, webAppPath.indexOf('/', index));
-			basePath = webAppPath.substring(index + host.length()) + "/api";
+			basePath = webAppPath.substring(index + host.length()) + "/" + servletMappingPath;
 			schemes.add(Scheme.HTTP);
 			schemes.add(Scheme.HTTPS);
 		}
@@ -198,7 +200,7 @@ public class SwaggerUtils {
 		}
 		
 		// Generated models from XSD
-		File targetDir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/oas2");
+		File targetDir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + jsonSchemaDirectory);
 		boolean doIt = Engine.isStudioMode() || !targetDir.exists();
 		if (doIt) {
 			try {
@@ -237,7 +239,8 @@ public class SwaggerUtils {
 		Project project = urlMapper.getProject();
 		String projectName = project.getName();
 		
-		String oasUrl = requestUrl.substring(0,requestUrl.indexOf("/api")) + "/projects/"+ projectName + "/oas2/";
+		String oasUrl = requestUrl.substring(0,requestUrl.indexOf("/" + servletMappingPath)) + 
+								"/projects/"+ projectName + "/"+ jsonSchemaDirectory+"/";
 		
 		Swagger swagger = parseCommon(requestUrl, project);
 		
@@ -272,7 +275,7 @@ public class SwaggerUtils {
 				Path swagger_path = new Path();
 				for (UrlMappingOperation umo : urlMapping.getOperationList()) {
 					Operation s_operation = new Operation();
-					s_operation.setOperationId(umo.getName());
+					s_operation.setOperationId(umo.getQName());
 					s_operation.setDescription(umo.getComment());
 					s_operation.setSummary(umo.getComment());
 					

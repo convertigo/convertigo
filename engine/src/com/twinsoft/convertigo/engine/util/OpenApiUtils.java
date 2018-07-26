@@ -94,7 +94,9 @@ import io.swagger.v3.parser.util.OpenAPIDeserializer;
 
 public class OpenApiUtils {
 
-	private static Pattern parseRequestUrl = Pattern.compile("http(s)?://(.*?)(/.*?api)");
+	public static String servletMappingPath = "openapi";
+	private static String jsonSchemaDirectory = "oas3";
+	private static Pattern parseRequestUrl = Pattern.compile("http(s)?://(.*?)(/.*?"+servletMappingPath+")");
 	
 	public static OpenAPI read(String url) {
 		return new OpenAPIV3Parser().read(url);
@@ -156,7 +158,7 @@ public class OpenApiUtils {
 		}
 		
 		// Generated models from XSD
-		File targetDir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/oas3");
+		File targetDir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + jsonSchemaDirectory);
 		boolean doIt = Engine.isStudioMode() || !targetDir.exists();
 		if (doIt) {
 			try {
@@ -220,7 +222,7 @@ public class OpenApiUtils {
 			int index = webAppPath.indexOf("://") + 3;
 			scheme = webAppPath.substring(0, webAppPath.indexOf("://"));
 			host = webAppPath.substring(index, webAppPath.indexOf('/', index));
-			basePath = webAppPath.substring(index + host.length()) + "/openapi";
+			basePath = webAppPath.substring(index + host.length()) + "/" + servletMappingPath;
 			serverUrl = scheme+ "://"+ host + basePath;
 		}
 		
@@ -319,7 +321,8 @@ public class OpenApiUtils {
 		Project project = urlMapper.getProject();
 		String projectName = project.getName();
 		
-		String oasUrl = requestUrl.substring(0,requestUrl.indexOf("/openapi")) + "/projects/"+ projectName + "/oas3/";
+		String oasUrl = requestUrl.substring(0,requestUrl.indexOf("/"+servletMappingPath)) + 
+										"/projects/"+ projectName + "/"+ jsonSchemaDirectory +"/";
 		
 		OpenAPI openAPI = parseCommon(requestUrl, project);
 		
@@ -362,7 +365,7 @@ public class OpenApiUtils {
 				PathItem item = new PathItem();
 				for (UrlMappingOperation umo : urlMapping.getOperationList()) {
 					Operation operation = new Operation();
-					operation.setOperationId(umo.getName());
+					operation.setOperationId(umo.getQName());
 					operation.setDescription(umo.getComment());
 					operation.setSummary(umo.getComment());
 					

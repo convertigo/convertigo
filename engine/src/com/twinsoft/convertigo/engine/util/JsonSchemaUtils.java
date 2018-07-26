@@ -183,7 +183,7 @@ public class JsonSchemaUtils {
 							}
 							
 							if (list.size() == 0) {
-								Engine.logEngine.debug("(JSonSchemaUtils) Warn: empty \"+ jParent.get(\"objType\") + \" \" + jParent.toString()");
+								Engine.logEngine.debug("(JSonSchemaUtils) Warn: empty "+ jParent.get("objType") + " " + jParent.toString());
 								list.add(new JSONObject().put("type", "string"));
 							} else {
 								int size = list.size();
