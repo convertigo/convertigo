@@ -19,11 +19,9 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 
-import com.twinsoft.convertigo.beans.core.Document;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentTreeObject.UpdateObject;
@@ -48,20 +46,6 @@ public class DesignDocumentUpdateTreeObject extends DesignDocumentFunctionTreeOb
 	@Override
 	public UpdateObject getObject() {
 		return (UpdateObject) super.getObject();
-	}
-
-	@Override
-	protected String getTempFileName(IProject project) {
-		TreeObject object = getTreeObjectOwner();
-		
-		Document document = (Document)object.getObject();
-		
-		String tempFileName = 	"_private/"+project.getName()+
-				"__"+getConnectorTreeObject().getName()+
-				"__"+document.getName()+
-				"__updates."+getName();
-		
-		return tempFileName;
 	}
 	
 	@Override

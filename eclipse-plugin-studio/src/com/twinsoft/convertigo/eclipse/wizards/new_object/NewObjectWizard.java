@@ -102,7 +102,9 @@ import com.twinsoft.convertigo.eclipse.wizards.references.WsdlSchemaFileWizardPa
 import com.twinsoft.convertigo.eclipse.wizards.references.XsdSchemaFileWizardPage;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
+import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.ImportWsReference;
 import com.twinsoft.convertigo.engine.util.StringUtils;
@@ -381,6 +383,7 @@ public class NewObjectWizard extends Wizard {
 				if (!StringUtils.isNormalized(dboName))
 					throw new EngineException("Bean name is not normalized : \""+dboName+"\".");
             	
+		        // Verify if a child object with same name exist and change name
 				while (bContinue) {
 					if (index == 0) name = dboName;
 					else name = dboName + index;
@@ -388,186 +391,228 @@ public class NewObjectWizard extends Wizard {
 					newBean.hasChanged = true;
 					newBean.bNew = true;
 					
-					try {
-						if ((newBean instanceof Statement) && (parentObject instanceof Transaction)) {
-							newBean.priority = 0;
-							newBean.newPriority = 0;
-						}
-						
-						if (newBean instanceof ScreenClass)
-							newBean.priority = parentObject.priority + 1;
-						
-						if (newBean instanceof Criteria) {
-							Connector connector = parentObject.getConnector();
-							if (parentObject.equals(((IScreenClassContainer<?>)connector).getDefaultScreenClass()))
-								throw new EngineException("You cannot add a new criterion on default screenclass.");
-						}
+			        try {
+			        	new WalkHelper() {
+			        		boolean root = true;
+			        		boolean find = false;
 							
-						parentObject.add(newBean);
-		    			monitor.setTaskName("Object added");
-		    			monitor.worked(1);
-						
-						if (newBean instanceof HTTPStatement) {
-							HTTPStatement httpStatement = (HTTPStatement)newBean;
-							HtmlConnector connector = (HtmlConnector)httpStatement.getParentTransaction().getParent();
-							httpStatement.setMethod("GET");
-							httpStatement.setHost(connector.getServer());
-							httpStatement.setPort(connector.getPort());
-							httpStatement.setHttps(connector.isHttps());
-						}
-
-						if (newBean instanceof ContinueWithSiteClipperStatement) {
-							Project project = newBean.getProject();	
-							if (project != null) {
-								
-								String[] connectorWithSiteClipperConnector = ContinueWithSiteClipperStatement
-										.getSiteClippersConnectorNames(project);
-								if (connectorWithSiteClipperConnector.length > 0) {
-									((ContinueWithSiteClipperStatement) newBean)
-											.setSiteClipperConnectorName(connectorWithSiteClipperConnector[0]);
+							@Override
+							protected boolean before(DatabaseObject dbo, Class<? extends DatabaseObject> dboClass) {
+								boolean isInstance = dboClass.isInstance(newBean);
+								find |= isInstance;
+								return isInstance;
+							}
+							
+							@Override
+							protected void walk(DatabaseObject dbo) throws Exception {
+								if (root) {
+									root = false;
+									super.walk(dbo);
+									if (!find) {
+										throw new EngineException("You cannot add to a " + newBean.getClass().getSimpleName() + " a database object of type " + parentObject.getClass().getSimpleName());
+									}
+								} else {
+									if (newBean.getName().equalsIgnoreCase(dbo.getName())) {
+										throw new ObjectWithSameNameException("Unable to add the object because an object with the same name already exists in target.");
+									}
 								}
 							}
-						}
-						
-						if (newBean instanceof Connector) {
-							Project project = (Project)parentObject;
-							if (project.getDefaultConnector() == null)
-								project.setDefaultConnector((Connector)newBean);
-							
-							Connector.setupConnector(newBean);
-						}
-						
-						if (newBean instanceof PageComponent) {
-							ApplicationComponent application = (ApplicationComponent)parentObject;
-							if (application.getRootPage() == null)
-								application.setRootPage((PageComponent)newBean);
-						}
-						
-						if (newBean instanceof SequenceStep) {
-							Project project = newBean.getProject();
-							
-							((SequenceStep) newBean).setSourceSequence(project.getName() + TransactionStep.SOURCE_SEPARATOR +
-									project.getSequencesList().get(0));
-						}
-						
-						if (newBean instanceof TransactionStep) {
-							Project project = newBean.getProject();
-							Connector connector = project.getDefaultConnector();
-							Transaction transaction = connector.getDefaultTransaction();
-							
-							((TransactionStep) newBean).setSourceTransaction(
-									project.getName() + TransactionStep.SOURCE_SEPARATOR +
-									connector.getName() + TransactionStep.SOURCE_SEPARATOR +
-									transaction.getName());
-						}
-						
-						if (newBean instanceof IThenElseContainer) {
-							ThenStep thenStep = new ThenStep();
-							((IThenElseContainer)newBean).addStep(thenStep);
-							
-							ElseStep elseStep = new ElseStep();
-							((IThenElseContainer)newBean).addStep(elseStep);
-						}						
-						
-						if (newBean instanceof IThenElseStatementContainer) {
-							ThenStatement thenStatement = new ThenStatement();
-							((IThenElseStatementContainer)newBean).addStatement(thenStatement);
-							
-							ElseStatement elseStatement = new ElseStatement();
-							((IThenElseStatementContainer)newBean).addStatement(elseStatement);
-						}
-						
-						if (newBean instanceof Sheet) {
-							InputStream is = null;
-							try {
-								String sheetName = newBean.getName()+".xsl";
-								is = new FileInputStream(new File(Engine.XSL_PATH + "/customsheet.xsl"));
-								String projectName = ((DatabaseObject)parentObject).getProject().getName();
-								IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
-								final IFile file = project.getFile(sheetName);
-								if (!file.exists()) file.create(is, true, null);
-								((Sheet)newBean).setUrl(sheetName);
-							} catch (Exception e) {}
-							finally {
-								if (is != null) {
-									try {is.close();}
-									catch (IOException e) {}
-								}
-							}
-						}
-						
-						if (newBean instanceof TestCase) {
-							TestCase testCase = (TestCase)newBean;
-		    				testCase.importRequestableVariables((RequestableObject)testCase.getParent());
-						}
-						
-						if (newBean instanceof RequestableHttpVariable) {
-							RequestableHttpVariable variable = (RequestableHttpVariable)newBean;
-							AbstractHttpTransaction httpTransaction = (AbstractHttpTransaction) variable.getParent();
-							HttpMethodType httpMethodType = httpTransaction.getHttpVerb();
-							boolean isVarPost = httpMethodType.equals(HttpMethodType.PUT) || httpMethodType.equals(HttpMethodType.POST);
-							variable.setHttpMethod(isVarPost ? HttpMethodType.POST.name() : HttpMethodType.GET.name());
-							if (!(httpTransaction instanceof HtmlTransaction)) {
-								variable.setHttpName(variable.getName());
-							}
-						}
-						
-						if (newBean instanceof WebServiceReference) {
-							try {
-								Project project = (Project)parentObject;
-								WebServiceReference webServiceReference = (WebServiceReference)newBean;
-								ImportWsReference wsr = new ImportWsReference(webServiceReference);
-								wsr.importInto(project);
-							} catch (Exception e){
-								if (newBean != null) {
-									parentObject.remove(newBean);
-								}
-								throw new Exception(e.getMessage());
-							}
-						}
-						
-						if (newBean instanceof RestServiceReference) {
-							try {
-								Project project = (Project)parentObject;
-								RestServiceReference restServiceReference = (RestServiceReference)newBean;
-								ImportWsReference wsr = new ImportWsReference(restServiceReference);
-								wsr.importInto(project);
-							} catch (Exception e){
-								if (newBean != null) {
-									parentObject.remove(newBean);
-								}
-								throw new Exception(e.getMessage());
-							}
-						}
-						
-						if (newBean instanceof SqlTransaction) {
-							SqlTransaction sqlTransaction = (SqlTransaction)newBean;
-							sqlTransaction.setSqlQuery(sqlQueriesWizardPage.getSQLQueries());
-							sqlTransaction.initializeQueries(true);
-						}
-						
-						if (newBean instanceof SapJcoLogonTransaction) {
-							SapJcoLogonTransaction sapLogonTransaction = (SapJcoLogonTransaction)newBean;
-							sapLogonTransaction.addCredentialsVariables();
-						}
 
-						if (newBean instanceof AbstractCouchDbTransaction) {
-							AbstractCouchDbTransaction abstractCouchDbTransaction = (AbstractCouchDbTransaction) newBean;
-							List<CouchVariable> selectedVariables = objectInfoPage.getSelectedParameters();
-							abstractCouchDbTransaction.createVariables(selectedVariables);
+			        	}.init(parentObject);
+			        	bContinue = false;
+			        } catch (ObjectWithSameNameException owsne) {
+						if ((parentObject instanceof HtmlTransaction) && (newBean instanceof Statement)) {
+							throw new EngineException("HtmlTransaction already contains a statement named \""+ name +"\".", owsne);
 						}
-
-						ConvertigoPlugin.logInfo("New object class '"+ this.className +"' named '" + newBean.getName() + "' has been added");
-		    			monitor.setTaskName("Object setted up");
-		    			monitor.worked(1);
-
-						bContinue = false;
-					}
-					catch(com.twinsoft.convertigo.engine.ObjectWithSameNameException owsne) {
-						if (newBean instanceof HandlerStatement) {
-							throw owsne;
-						}
+			        	
+						// Silently ignore
 						index++;
+			        } catch (EngineException ee) {
+			        	throw ee;
+					} catch (Exception e) {
+						throw new EngineException("Exception in create", e);
+					}
+				}
+				
+				// Now add bean to target
+				try {
+					if ((newBean instanceof Statement) && (parentObject instanceof Transaction)) {
+						newBean.priority = 0;
+						newBean.newPriority = 0;
+					}
+					
+					if (newBean instanceof ScreenClass)
+						newBean.priority = parentObject.priority + 1;
+					
+					if (newBean instanceof Criteria) {
+						Connector connector = parentObject.getConnector();
+						if (parentObject.equals(((IScreenClassContainer<?>)connector).getDefaultScreenClass()))
+							throw new EngineException("You cannot add a new criterion on default screenclass.");
+					}
+						
+					parentObject.add(newBean);
+	    			monitor.setTaskName("Object added");
+	    			monitor.worked(1);
+					
+					if (newBean instanceof HTTPStatement) {
+						HTTPStatement httpStatement = (HTTPStatement)newBean;
+						HtmlConnector connector = (HtmlConnector)httpStatement.getParentTransaction().getParent();
+						httpStatement.setMethod("GET");
+						httpStatement.setHost(connector.getServer());
+						httpStatement.setPort(connector.getPort());
+						httpStatement.setHttps(connector.isHttps());
+					}
+
+					if (newBean instanceof ContinueWithSiteClipperStatement) {
+						Project project = newBean.getProject();	
+						if (project != null) {
+							
+							String[] connectorWithSiteClipperConnector = ContinueWithSiteClipperStatement
+									.getSiteClippersConnectorNames(project);
+							if (connectorWithSiteClipperConnector.length > 0) {
+								((ContinueWithSiteClipperStatement) newBean)
+										.setSiteClipperConnectorName(connectorWithSiteClipperConnector[0]);
+							}
+						}
+					}
+					
+					if (newBean instanceof Connector) {
+						Project project = (Project)parentObject;
+						if (project.getDefaultConnector() == null)
+							project.setDefaultConnector((Connector)newBean);
+						
+						Connector.setupConnector(newBean);
+					}
+					
+					if (newBean instanceof PageComponent) {
+						ApplicationComponent application = (ApplicationComponent)parentObject;
+						if (application.getRootPage() == null)
+							application.setRootPage((PageComponent)newBean);
+					}
+					
+					if (newBean instanceof SequenceStep) {
+						Project project = newBean.getProject();
+						
+						((SequenceStep) newBean).setSourceSequence(project.getName() + TransactionStep.SOURCE_SEPARATOR +
+								project.getSequencesList().get(0));
+					}
+					
+					if (newBean instanceof TransactionStep) {
+						Project project = newBean.getProject();
+						Connector connector = project.getDefaultConnector();
+						Transaction transaction = connector.getDefaultTransaction();
+						
+						((TransactionStep) newBean).setSourceTransaction(
+								project.getName() + TransactionStep.SOURCE_SEPARATOR +
+								connector.getName() + TransactionStep.SOURCE_SEPARATOR +
+								transaction.getName());
+					}
+					
+					if (newBean instanceof IThenElseContainer) {
+						ThenStep thenStep = new ThenStep();
+						((IThenElseContainer)newBean).addStep(thenStep);
+						
+						ElseStep elseStep = new ElseStep();
+						((IThenElseContainer)newBean).addStep(elseStep);
+					}						
+					
+					if (newBean instanceof IThenElseStatementContainer) {
+						ThenStatement thenStatement = new ThenStatement();
+						((IThenElseStatementContainer)newBean).addStatement(thenStatement);
+						
+						ElseStatement elseStatement = new ElseStatement();
+						((IThenElseStatementContainer)newBean).addStatement(elseStatement);
+					}
+					
+					if (newBean instanceof Sheet) {
+						InputStream is = null;
+						try {
+							String sheetName = newBean.getName()+".xsl";
+							is = new FileInputStream(new File(Engine.XSL_PATH + "/customsheet.xsl"));
+							String projectName = ((DatabaseObject)parentObject).getProject().getName();
+							IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
+							final IFile file = project.getFile(sheetName);
+							if (!file.exists()) file.create(is, true, null);
+							((Sheet)newBean).setUrl(sheetName);
+						} catch (Exception e) {}
+						finally {
+							if (is != null) {
+								try {is.close();}
+								catch (IOException e) {}
+							}
+						}
+					}
+					
+					if (newBean instanceof TestCase) {
+						TestCase testCase = (TestCase)newBean;
+	    				testCase.importRequestableVariables((RequestableObject)testCase.getParent());
+					}
+					
+					if (newBean instanceof RequestableHttpVariable) {
+						RequestableHttpVariable variable = (RequestableHttpVariable)newBean;
+						AbstractHttpTransaction httpTransaction = (AbstractHttpTransaction) variable.getParent();
+						HttpMethodType httpMethodType = httpTransaction.getHttpVerb();
+						boolean isVarPost = httpMethodType.equals(HttpMethodType.PUT) || httpMethodType.equals(HttpMethodType.POST);
+						variable.setHttpMethod(isVarPost ? HttpMethodType.POST.name() : HttpMethodType.GET.name());
+						if (!(httpTransaction instanceof HtmlTransaction)) {
+							variable.setHttpName(variable.getName());
+						}
+					}
+					
+					if (newBean instanceof WebServiceReference) {
+						try {
+							Project project = (Project)parentObject;
+							WebServiceReference webServiceReference = (WebServiceReference)newBean;
+							ImportWsReference wsr = new ImportWsReference(webServiceReference);
+							wsr.importInto(project);
+						} catch (Exception e){
+							if (newBean != null) {
+								parentObject.remove(newBean);
+							}
+							throw new Exception(e.getMessage());
+						}
+					}
+					
+					if (newBean instanceof RestServiceReference) {
+						try {
+							Project project = (Project)parentObject;
+							RestServiceReference restServiceReference = (RestServiceReference)newBean;
+							ImportWsReference wsr = new ImportWsReference(restServiceReference);
+							wsr.importInto(project);
+						} catch (Exception e){
+							if (newBean != null) {
+								parentObject.remove(newBean);
+							}
+							throw new Exception(e.getMessage());
+						}
+					}
+					
+					if (newBean instanceof SqlTransaction) {
+						SqlTransaction sqlTransaction = (SqlTransaction)newBean;
+						sqlTransaction.setSqlQuery(sqlQueriesWizardPage.getSQLQueries());
+						sqlTransaction.initializeQueries(true);
+					}
+					
+					if (newBean instanceof SapJcoLogonTransaction) {
+						SapJcoLogonTransaction sapLogonTransaction = (SapJcoLogonTransaction)newBean;
+						sapLogonTransaction.addCredentialsVariables();
+					}
+
+					if (newBean instanceof AbstractCouchDbTransaction) {
+						AbstractCouchDbTransaction abstractCouchDbTransaction = (AbstractCouchDbTransaction) newBean;
+						List<CouchVariable> selectedVariables = objectInfoPage.getSelectedParameters();
+						abstractCouchDbTransaction.createVariables(selectedVariables);
+					}
+
+					ConvertigoPlugin.logInfo("New object class '"+ this.className +"' named '" + newBean.getName() + "' has been added");
+	    			monitor.setTaskName("Object setted up");
+	    			monitor.worked(1);
+
+					bContinue = false;
+				}
+				catch(com.twinsoft.convertigo.engine.ObjectWithSameNameException owsne) {
+					if (newBean instanceof HandlerStatement) {
+						throw owsne;
 					}
 				}
             }
@@ -578,7 +623,9 @@ public class NewObjectWizard extends Wizard {
 		catch (Exception e) {
             String message = "Unable to create a new object from class '"+ this.className +"'.";
             ConvertigoPlugin.logException(e, message);
-            newBean = null;
+    		if (objectExplorerPage != null) {
+    			objectExplorerPage.doCancel();
+    		}
 		}
 	}
 	

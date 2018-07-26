@@ -75,7 +75,7 @@ import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 		getCategoryName = "Transaction",
 		getIconClassCSS = "convertigo-action-newTransaction"
 	)
-public abstract class Transaction extends RequestableObject implements ISchemaIncludeGenerator {
+public abstract class Transaction extends RequestableObject implements ISchemaIncludeGenerator, IJScriptContainer {
     
 	private static final long serialVersionUID = 8629312962446057509L;
 	
@@ -909,4 +909,16 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 		return super.testAttribute(name, value);
 	}
 
+	@Override
+	public String getExpression() {
+		return handlers;
+	}
+
+	@Override
+	public void setExpression(String expression) {
+		if (!handlers.equals(expression)) {
+			handlers = expression;
+			changed();
+		}
+	}
 }

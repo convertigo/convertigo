@@ -22,10 +22,11 @@ package com.twinsoft.convertigo.beans.statements;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
+import com.twinsoft.convertigo.beans.core.IJScriptContainer;
 import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.engine.EngineException;
 
-public class SimpleStatement extends Statement {
+public class SimpleStatement extends Statement implements IJScriptContainer {
 
 	private static final long serialVersionUID = 5555147220832481093L;
 
@@ -43,13 +44,16 @@ public class SimpleStatement extends Statement {
 	public String toString() {
 		return this.getName();
 	}
-
+	
 	public String getExpression() {
 		return expression;
 	}
 
 	public void setExpression(String expression) {
-		this.expression = expression;
+		if (!this.expression.equals(expression)) {
+			this.expression = expression;
+			changed();
+		}
 	}
 	
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {

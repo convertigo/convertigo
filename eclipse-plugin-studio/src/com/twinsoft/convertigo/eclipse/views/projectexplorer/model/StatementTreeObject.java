@@ -21,7 +21,6 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
 import java.util.List;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.Viewer;
@@ -41,7 +40,7 @@ import com.twinsoft.convertigo.beans.statements.HandlerStatement;
 import com.twinsoft.convertigo.beans.statements.ScHandlerStatement;
 import com.twinsoft.convertigo.beans.statements.SimpleStatement;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptStatementEditorInput;
+import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.parsers.triggers.AbstractTrigger;
@@ -245,13 +244,15 @@ public class StatementTreeObject extends DatabaseObjectTreeObject implements IEd
 			// Get editor type
 			if (editorType == null) {
 				editorType = "UnknownEditor";
-				if (getObject() instanceof SimpleStatement)
+				if (getObject() instanceof SimpleStatement) {
 					editorType = "JscriptStatementEditor";
+				}
 			}
 				
 			// Open editor
-			if (editorType.equals("JscriptStatementEditor"))
+			if (editorType.equals("JscriptStatementEditor")) {
 				openJscriptStatementEditor(project);
+			}
 			
 		} catch (CoreException e) {
 			ConvertigoPlugin.logException(e, "Unable to open project named '" + projectName + "'!");
@@ -259,21 +260,16 @@ public class StatementTreeObject extends DatabaseObjectTreeObject implements IEd
 	}
 	
 	private void openJscriptStatementEditor(IProject project) {
-		Statement statement = this.getObject();
-
-		IFile file = project.getFile("/_private/" + statement.getQName() + " " + statement.getName());
-
 		IWorkbenchPage activePage = PlatformUI
 										.getWorkbench()
 										.getActiveWorkbenchWindow()
 										.getActivePage();
-		if (activePage != null) {
+		if (activePage != null && getObject() instanceof SimpleStatement) {
 			try {
-				activePage.openEditor(new JscriptStatementEditorInput(file, statement),
-										"com.twinsoft.convertigo.eclipse.editors.jscript.JscriptStatementEditor");
-			}
-			catch(PartInitException e) {
-				ConvertigoPlugin.logException(e, "Error while loading the statement editor '" + statement.getName() + "'");
+				activePage.openEditor(new JScriptEditorInput((SimpleStatement) getObject(), project),
+										"com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditor");
+			} catch(PartInitException e) {
+				ConvertigoPlugin.logException(e, "Error while loading the statement editor '" + getObject().getName() + "'");
 			} 
 		}
 	}

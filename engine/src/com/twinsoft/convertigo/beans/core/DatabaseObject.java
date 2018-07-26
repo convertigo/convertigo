@@ -794,7 +794,9 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			EngineException ee = new EngineException(message, e);
 			throw ee;
 		}
-
+		
+		databaseObject.isImporting = true;
+		
 		try {
 			// Performs custom configuration before object de-serialization
 			databaseObject.preconfigure(element);
@@ -1206,7 +1208,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	}
 	
 	public void changed() {
-		if (!isImporting && !hasChanged) {
+		if (!isImporting) {
 			hasChanged = true;
 		}
 	}

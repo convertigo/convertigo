@@ -28,7 +28,6 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -511,10 +510,6 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		else if (object instanceof DesignDocumentUpdateTreeObject) {
 			removeUpdate((DesignDocumentUpdateTreeObject)object);
 		}
-	}
-	
-	public static Object read(Node node) throws EngineException {
-		return DatabaseObject.read(node);
 	}
 	
 	@Override

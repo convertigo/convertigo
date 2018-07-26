@@ -136,6 +136,10 @@ public class StatementGeneratorWizard extends Wizard {
 		catch (Exception e) {
             String message = "Unable to create new statement.";
             ConvertigoPlugin.logException(e, message);
+    		if (statementGeneratorPage != null) {
+    			statementGeneratorPage.doCancel();
+    		}
+    		newBean = null;
 		}
 		
 		return true;

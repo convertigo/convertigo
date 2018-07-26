@@ -38,7 +38,7 @@ import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.CreateHandlerDialog;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
-import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditor;
+import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TransactionTreeObject;
@@ -115,8 +115,8 @@ public class TransactionCreateHandlerAction extends MyAbstractAction {
 				    					
 										// Update the opened handlers editor if any
 										IEditorPart jspart = ConvertigoPlugin.getDefault().getJscriptTransactionEditor(transaction);
-										if ((jspart != null) && (jspart instanceof JscriptTransactionEditor)) {
-											JscriptTransactionEditor jscriptTransactionEditor = (JscriptTransactionEditor)jspart;
+										if ((jspart != null) && (jspart instanceof JScriptEditor)) {
+											JScriptEditor jscriptTransactionEditor = (JScriptEditor) jspart;
 											jscriptTransactionEditor.reload();
 										}
 				    				}

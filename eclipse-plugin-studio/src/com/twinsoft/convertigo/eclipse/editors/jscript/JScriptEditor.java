@@ -19,11 +19,6 @@
 
 package com.twinsoft.convertigo.eclipse.editors.jscript;
 
-import java.io.InputStream;
-
-import org.apache.commons.io.IOUtils;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.ListenerList;
@@ -34,39 +29,35 @@ import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.EditorPart;
-import org.eclipse.ui.part.FileEditorInput;
 
-import com.twinsoft.convertigo.beans.statements.SimpleStatement;
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.IJScriptContainer;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 
 @SuppressWarnings("restriction")
-public class JscriptStatementEditor extends EditorPart implements IPropertyListener {
-	private IFile file;
+public class JScriptEditor extends EditorPart implements IPropertyListener {
 	private IEditorSite eSite;
-	private IEditorInput eInput;
+	private JScriptEditorInput eInput;
 	private ListenerList<IPropertyListener> listenerList;
-	private SimpleStatement statement;
+	private IJScriptContainer jsContainer;
 	private MyJScriptEditor jsEditor;
 	
-	public JscriptStatementEditor() {
+	public JScriptEditor() {
 		super();
 	}
 
 	@Override
 	public void dispose() {
-		jsEditor.removePropertyListener(this);
-		jsEditor.dispose();
-		super.dispose();
-
-		// When the editor is closed, delete the temporary file created when we opened the editor
-		if (file.exists()) {
-			try {
-				file.delete(true, null);
-			} catch (CoreException e) {
-				//ConvertigoPlugin.logWarning(e,"Error while deleting temporary file", Boolean.FALSE);
-			}
+		if (jsEditor != null) {
+			jsEditor.removePropertyListener(this);
+			jsEditor.dispose();
 		}
+		try {
+			eInput.getFile().delete(true, null);
+		} catch (CoreException e) {
+		}
+		super.dispose();
 	}
 
 	/*
@@ -76,18 +67,18 @@ public class JscriptStatementEditor extends EditorPart implements IPropertyListe
 	 */
 	public void doSave(IProgressMonitor monitor) {
 		jsEditor.doSave(monitor);
+		
 		try {
-			// Get the jsEditor content and transfer it to the statement object
-			statement.setExpression(IOUtils.toString(file.getContents(), "UTF-8")); 
+			// Get the jsEditor content and transfer it to the step object
+			jsContainer.setExpression(jsEditor.getDocumentProvider().getDocument(jsEditor.getEditorInput()).get());
 		} catch (Exception e) {
-			ConvertigoPlugin.logWarning("Error writing statement jscript code '" + eInput.getName() + "' : " + e.getMessage());
+			ConvertigoPlugin.logWarning("Error writing step jscript code '" + eInput.getName() + "' : "+e.getMessage());
 		}
 		
-		statement.hasChanged = true;
 		// Refresh tree
 		ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
 		if (projectExplorerView != null) {
-			projectExplorerView.updateDatabaseObject(statement);
+			projectExplorerView.updateDatabaseObject(jsContainer.getDatabaseObject());
 		}
 	}
 
@@ -106,7 +97,7 @@ public class JscriptStatementEditor extends EditorPart implements IPropertyListe
 	 * @see org.eclipse.ui.part.EditorPart#isDirty()
 	 */
 	public boolean isDirty() {
-		return (jsEditor.isDirty());
+		return jsEditor.isDirty();
 	}
 
 	/*
@@ -131,6 +122,8 @@ public class JscriptStatementEditor extends EditorPart implements IPropertyListe
 			ConvertigoPlugin.logException(e, "Error inialiazing  Javascript editor'" + eInput.getName() + "'");
 		}
 		jsEditor.createPartControl(parent);
+		reload();
+		jsEditor.doSave(null);
 	}
 
 	/*
@@ -148,45 +141,14 @@ public class JscriptStatementEditor extends EditorPart implements IPropertyListe
 	 * @see org.eclipse.ui.part.EditorPart#init(org.eclipse.ui.IEditorSite,
 	 *      org.eclipse.ui.IEditorInput)
 	 */
-	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
-		// Get from the input the necessary objects as the temp IFile to create to hold the jscript code itself.
-		file = ((FileEditorInput) input).getFile();
-		statement = (SimpleStatement) ((JscriptStatementEditorInput) input).getStatement();
-
-		try {
-			file.setCharset("UTF-8", null);
-		} catch (CoreException e1) {
-			ConvertigoPlugin.logDebug("Failed to set UTF-8 charset for editor file: " + e1);
-		}
-
-		try {
-			// Create a temp  file to hold statement jscript code
-			InputStream sbisHandlersStream = IOUtils.toInputStream(statement.getExpression(), "UTF-8");
-			
-			// Overrides temp file with statement jscript code
-			if (file.exists()) {
-				try {
-					file.setContents(sbisHandlersStream, true, false, null);
-				} catch (CoreException e) {
-					ConvertigoPlugin.logException(e, "Error while editing statement jscript code");
-				}
-			}
-			// Create a temp file to hold statement jscript code
-			else {
-				try {
-					file.getParent().refreshLocal(IResource.DEPTH_ONE, null);
-					file.create(sbisHandlersStream, true, null);
-				} catch (CoreException e) {
-					ConvertigoPlugin.logException(e, "Error while editing the statement jscript code");
-				}
-			}
-			
+	public void init(IEditorSite site, IEditorInput input) throws PartInitException {		
+		try {			
 			setSite(site);
 			setInput(input);
 			eSite = site;
-			eInput = input;
-			String[] splits = file.getName().split(" ");
-			setPartName(splits[splits.length - 1]);
+			eInput = (JScriptEditorInput) input;
+			jsContainer = eInput.getJScriptContainer();
+			setPartName(jsContainer.getEditorName());
 		} catch (Exception e) {
 			throw new PartInitException("Unable to create JS editor", e);
 		}
@@ -222,6 +184,14 @@ public class JscriptStatementEditor extends EditorPart implements IPropertyListe
 	
 	public void reload(String toAppend) {
 		IDocument doc = jsEditor.getDocumentProvider().getDocument(getEditorInput());
-		doc.set(statement.getExpression() + toAppend);
+		doc.set(jsContainer.getExpression() + toAppend);
+	}
+
+	public MyJScriptEditor getEditor() {
+		return jsEditor;
+	}
+	
+	public DatabaseObject getDatabaseObject() {
+		return jsContainer.getDatabaseObject();
 	}
 }

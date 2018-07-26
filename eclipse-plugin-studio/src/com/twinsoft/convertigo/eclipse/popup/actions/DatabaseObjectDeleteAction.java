@@ -64,7 +64,7 @@ import com.twinsoft.convertigo.beans.steps.SimpleStep;
 import com.twinsoft.convertigo.beans.steps.ThenStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.MultipleDeletionDialog;
-import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptStepEditor;
+import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectListener;
@@ -177,9 +177,9 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 	    							while (find != true && _i < editors.length) {
 	    								IEditorReference editor = editors[_i];
 	    								IEditorPart editorPart = page.findEditor(editor.getEditorInput());
-	    								if (editorPart != null && editorPart instanceof JscriptStepEditor) {
-	    									JscriptStepEditor jscriptEditor = (JscriptStepEditor) editorPart;
-	    									if (jscriptEditor.getSimpleStepLinked().equals(simpleStep)) {
+	    								if (editorPart != null && editorPart instanceof JScriptEditor) {
+	    									JScriptEditor jscriptEditor = (JScriptEditor) editorPart;
+	    									if (simpleStep.equals(jscriptEditor.getDatabaseObject())) {
 	 		    							   find = true;
 			    							   page.activate(editorPart);
 			    							   page.closeEditor(editorPart, false);
@@ -369,6 +369,8 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 			}
 		}
 		
+		String dboQName = databaseObject.getQName();
+		
 		if (databaseObject instanceof Project) {
 			// Deleted project will be backup, car will be deleted to avoid its deployment at engine restart
 			//Engine.theApp.databaseObjectsManager.deleteProject(databaseObject.getName());
@@ -394,7 +396,7 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 			}
 		}
 		
-		ConvertigoPlugin.logDebug("The object \"" + databaseObject.getQName() + "\" has been deleted from the database repository!");
+		ConvertigoPlugin.logDebug("The object \"" + dboQName + "\" has been deleted from the database repository!");
     }
 	
 	//TODO : add DeleteEdit class

@@ -33,7 +33,7 @@ import com.twinsoft.convertigo.eclipse.editors.connector.AbstractConnectorCompos
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorPart;
 import com.twinsoft.convertigo.eclipse.editors.connector.JavelinConnectorComposite;
-import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditor;
+import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject;
@@ -149,8 +149,8 @@ public class TransactionWriteVariableAction extends MyAbstractAction {
 							
 							// Updating the opened handlers editor if any
 							IEditorPart jspart = getJscriptTransactionEditor(transaction);
-							if ((jspart != null) && (jspart instanceof JscriptTransactionEditor)) {
-								JscriptTransactionEditor jscriptTransactionEditor = (JscriptTransactionEditor)jspart;
+							if ((jspart != null) && (jspart instanceof JScriptEditor)) {
+								JScriptEditor jscriptTransactionEditor = (JScriptEditor) jspart;
 								jscriptTransactionEditor.reload();
 							}
 						}
