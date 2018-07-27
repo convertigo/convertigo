@@ -58,6 +58,7 @@ import com.twinsoft.convertigo.engine.enums.MimeType;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.core.util.Yaml;
 import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
@@ -232,6 +233,14 @@ public class OpenApiUtils {
 		servers.add(server1);
 		openAPI.setServers(servers);
 		
+		String oas2Url = requestUrl.substring(0,requestUrl.indexOf("/" + servletMappingPath)) + "/swagger/dist/index.html?" + 
+				URLUtils.encodePart("url",requestUrl.replace(servletMappingPath, SwaggerUtils.servletMappingPath) 
+					+ "?YAML"+ (project != null ? "&__project=" + project.getName():""));
+		ExternalDocumentation externalDocumentation = new ExternalDocumentation();
+		externalDocumentation.setDescription("Switch to Swagger definition (oas2)");
+		externalDocumentation.setUrl(oas2Url);
+		openAPI.setExternalDocs(externalDocumentation);
+		
 		return openAPI;
 	}
 	
@@ -290,7 +299,7 @@ public class OpenApiUtils {
 		
 	}
 	
-	private static void addBodyParameter(Operation operation, UrlMappingParameter ump, String oasUrl) {
+	private static void addBodyParameter(Operation operation, UrlMappingParameter ump, String oasDirUrl) {
 		RequestBody requestBody = operation.getRequestBody();
 		if (requestBody == null) {
 			operation.setRequestBody(new RequestBody());
@@ -300,7 +309,7 @@ public class OpenApiUtils {
 			String modelReference = ((IMappingRefModel)ump).getModelReference();
 			if (!modelReference.isEmpty()) {
 				if (modelReference.indexOf(".jsonschema") != -1) {
-					modelReference = oasUrl + modelReference;
+					modelReference = oasDirUrl + modelReference;
 				}
 				ObjectSchema oschema = new ObjectSchema();
 				oschema.set$ref(modelReference);
@@ -321,7 +330,7 @@ public class OpenApiUtils {
 		Project project = urlMapper.getProject();
 		String projectName = project.getName();
 		
-		String oasUrl = requestUrl.substring(0,requestUrl.indexOf("/"+servletMappingPath)) + 
+		String oasDirUrl = requestUrl.substring(0,requestUrl.indexOf("/"+servletMappingPath)) + 
 										"/projects/"+ projectName + "/"+ jsonSchemaDirectory +"/";
 		
 		OpenAPI openAPI = parseCommon(requestUrl, project);
@@ -402,7 +411,7 @@ public class OpenApiUtils {
 						} else if (ump.getType() == Type.Form) {
 							addFormParameter(operation, ump);
 						} else if (ump.getType() == Type.Body) {
-							addBodyParameter(operation, ump, oasUrl);
+							addBodyParameter(operation, ump, oasDirUrl);
 						} else if (ump.getType() == Type.Header) {
 							parameter = new HeaderParameter();
 						} else if (ump.getType() == Type.Path) {
@@ -452,7 +461,7 @@ public class OpenApiUtils {
 								if (!modelReference.isEmpty() && !produces.isEmpty()) {
 									if (modelReference.indexOf(".jsonschema") != -1) {
 										//modelReference = modelReference.replace(".jsonschema#/definitions/", ".json#/components/schemas/");
-										modelReference = oasUrl + modelReference;
+										modelReference = oasDirUrl + modelReference;
 									}
 									Content content = new Content();
 									response.setContent(content);

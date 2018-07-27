@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.engine.util;
 
 import io.swagger.models.Contact;
+import io.swagger.models.ExternalDocs;
 import io.swagger.models.Info;
 import io.swagger.models.Model;
 import io.swagger.models.Operation;
@@ -135,8 +136,16 @@ public class SwaggerUtils {
 		swagger.setBasePath(basePath);
 		
 		swagger.setConsumes(Arrays.asList("multipart/form-data", MimeType.WwwForm.value(), MimeType.Json.value(), MimeType.Xml.value()));
-		
 		swagger.setProduces(Arrays.asList(MimeType.Json.value(), MimeType.Xml.value()));
+		
+		String oas3Url = requestUrl.substring(0,requestUrl.indexOf("/" + servletMappingPath)) + "/swagger/dist/index.html?" + 
+							URLUtils.encodePart("url",requestUrl.replace(servletMappingPath, OpenApiUtils.servletMappingPath) 
+								+ "?YAML"+ (project != null ? "&__project=" + project.getName():""));
+		ExternalDocs externalDocs = new ExternalDocs();
+		externalDocs.setDescription("Switch to Open Api definition (oas3)");
+		externalDocs.setUrl(oas3Url);
+		swagger.setExternalDocs(externalDocs);
+		
 		return swagger;
 	}
 	
@@ -239,7 +248,7 @@ public class SwaggerUtils {
 		Project project = urlMapper.getProject();
 		String projectName = project.getName();
 		
-		String oasUrl = requestUrl.substring(0,requestUrl.indexOf("/" + servletMappingPath)) + 
+		String oasDirUrl = requestUrl.substring(0,requestUrl.indexOf("/" + servletMappingPath)) + 
 								"/projects/"+ projectName + "/"+ jsonSchemaDirectory+"/";
 		
 		Swagger swagger = parseCommon(requestUrl, project);
@@ -336,7 +345,7 @@ public class SwaggerUtils {
 								String modelReference = ((IMappingRefModel)ump).getModelReference();
 								if (!modelReference.isEmpty()) {
 									if (modelReference.indexOf(".jsonschema") != -1) {
-										modelReference = oasUrl + modelReference;
+										modelReference = oasDirUrl + modelReference;
 									}
 									RefModel refModel = new RefModel(modelReference);
 									((BodyParameter)s_parameter).setSchema(refModel);
@@ -414,7 +423,7 @@ public class SwaggerUtils {
 									String modelReference = ((IMappingRefModel)umr).getModelReference();
 									if (!modelReference.isEmpty()) {
 										if (modelReference.indexOf(".jsonschema") != -1) {
-											modelReference = oasUrl + modelReference;
+											modelReference = oasDirUrl + modelReference;
 										}
 										RefProperty refProperty = new RefProperty(modelReference);
 										response.setResponseSchema(new PropertyModelConverter().propertyToModel(refProperty));
