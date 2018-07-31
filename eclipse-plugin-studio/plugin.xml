@@ -25,31 +25,11 @@
             name="Sequence Editor">
       </editor>
       <editor
-            class="com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditor"
+            class="com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditor"
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
             icon="icons/studio/handlers_sc_entry.gif"
-            id="com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditor"
-            name="Javascript transaction Editor"/>
-      <editor
-            class="com.twinsoft.convertigo.eclipse.editors.jscript.JscriptStatementEditor"
-            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            icon="icons/studio/handlers_sc_entry.gif"
-            id="com.twinsoft.convertigo.eclipse.editors.jscript.JscriptStatementEditor"
-            name="Javascript statement Editor"/>
-      <editor
-            class="com.twinsoft.convertigo.eclipse.editors.jscript.JscriptStepEditor"
-            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            icon="icons/studio/handlers_sc_entry.gif"
-            id="com.twinsoft.convertigo.eclipse.editors.jscript.JscriptStepEditor"
-            name="Javascript step Editor">
-      </editor>
-      <editor
-            class="com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTreeFunctionEditor"
-            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            icon="icons/studio/handlers_sc_entry.gif"
-            id="com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTreeFunctionEditor"
-            name="Javascript function Editor">
-      </editor>
+            id="com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditor"
+            name="Javascript convertigo Editor"/>
       <editor
             class="com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionEditor"
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
@@ -3396,11 +3376,6 @@
                      id="convertigo.action.importXmlContribution"
                      label="Import as Convertigo project"
                      icon="icons/studio/beans/mappings/formparameter_16x16.png">
-                  <!--enablement>
-                     <objectState
-                           name="objectClassName"
-                           value="com.twinsoft.convertigo.beans.steps.AttributeStep" />
-                  </enablement-->
                 </action>
 	      </objectContribution>
    </extension>
