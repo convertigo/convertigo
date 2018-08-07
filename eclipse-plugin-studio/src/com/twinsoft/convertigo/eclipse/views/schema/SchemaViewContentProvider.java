@@ -82,7 +82,6 @@ public class SchemaViewContentProvider implements ITreeContentProvider {
 		}
 	}
 	
-	XmlSchemaCollection collection = null;
 	private int maxDepth = -1;
 	private Map<Object, Integer> depths = null;
 	private Map<Object, Object[]> childrenCache = new HashMap<Object, Object[]>();
@@ -98,15 +97,25 @@ public class SchemaViewContentProvider implements ITreeContentProvider {
 		}
 	}
 
+	private void clear() {
+		parents.clear();
+		childrenCache.clear();
+		if (depths != null) {
+			depths.clear();
+		}
+		System.gc();
+	}
+	
 	public void dispose() {
+		clear();
 	}
 
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+		if (oldInput != null) {
+			clear();
+		}
+		
 		if (newInput != null) {
-			if (newInput instanceof XmlSchemaCollection) {
-				childrenCache.clear();
-				collection = (XmlSchemaCollection) newInput;
-			}
 			if (maxDepth > 0) {
 				depths.clear();
 				depths.put(newInput, 0);
