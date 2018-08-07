@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.xml.parsers.DocumentBuilder;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -270,7 +272,10 @@ public class ClipboardManager {
 	public List<Object> read(String xmlData) throws SAXException, IOException {
 		List<Object> objectList = new ArrayList<Object>();
 		if (xmlData != null) {
-			Document document = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(new StringReader(xmlData)));
+			DocumentBuilder builder = XMLUtils.getDefaultDocumentBuilder();
+			builder.setErrorHandler(null); // avoid 'content not allowed in prolog' to be printed out
+			
+			Document document = builder.parse(new InputSource(new StringReader(xmlData)));
 			
 			Element rootElement = document.getDocumentElement();
 			NodeList nodeList = rootElement.getChildNodes();
