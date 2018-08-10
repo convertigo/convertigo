@@ -163,6 +163,7 @@ public class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 				invisibleRoot.removeChild(unloadedProjectTreeObject);
 				invisibleRoot.addChild(projectTreeObject);
 				ConvertigoPlugin.projectManager.setCurrentProject((ProjectTreeObject)projectTreeObject);
+				ConvertigoPlugin.getDefault().getProjectPluginResource(projectName, monitor).refreshLocal(IResource.DEPTH_INFINITE, monitor);
 				
 				loadDatabaseObject(projectTreeObject, project);
 				

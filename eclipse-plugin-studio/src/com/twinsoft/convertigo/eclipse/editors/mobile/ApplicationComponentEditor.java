@@ -36,6 +36,8 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.JFaceResources;
@@ -1226,6 +1228,9 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 			
 			Object mutex = new Object();
 			mb.setBuildMutex(mutex);
+			try {
+				ConvertigoPlugin.getDefault().getProjectPluginResource(project.getName()).refreshLocal(IResource.DEPTH_INFINITE, null);
+			} catch (CoreException ce) {}
 			
 			try {
 				File displayObjectsMobile = new File(project.getDirPath() + "/DisplayObjects/mobile");
@@ -1298,6 +1303,9 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 					mutex.notify();
 				}
 				mb.setBuildMutex(null);
+				try {
+					ConvertigoPlugin.getDefault().getProjectPluginResource(project.getName()).refreshLocal(IResource.DEPTH_INFINITE, null);
+				} catch (CoreException ce) {}
 			}
 			
 		});
