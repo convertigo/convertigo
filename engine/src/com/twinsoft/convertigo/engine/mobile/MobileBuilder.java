@@ -297,6 +297,7 @@ public class MobileBuilder {
 	
 	public void setBuildMutex(Object mutex) {
 		buildMutex = mutex;
+		FileUtils.deleteQuietly(new File(projectDir,"_private/ionic_tmp"));
 	}
 	
 	public void setNeedPkgUpdate(boolean needPkgUpdate) {
