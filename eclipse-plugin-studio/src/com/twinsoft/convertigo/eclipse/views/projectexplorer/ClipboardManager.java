@@ -781,6 +781,7 @@ public class ClipboardManager {
 				pastedComponents.put(String.valueOf(oldPriority), (UIComponent)databaseObject);
 			}
 			
+			databaseObject.isImporting = false; // needed
 			databaseObject.isSubLoaded = true;
 			return databaseObject;
 		}
