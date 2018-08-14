@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.xml.parsers.DocumentBuilder;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -43,6 +45,7 @@ import com.twinsoft.convertigo.beans.core.Criteria;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.ExportOption;
 import com.twinsoft.convertigo.beans.core.ExtractionRule;
+import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
@@ -270,7 +273,10 @@ public class ClipboardManager {
 	public List<Object> read(String xmlData) throws SAXException, IOException {
 		List<Object> objectList = new ArrayList<Object>();
 		if (xmlData != null) {
-			Document document = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(new StringReader(xmlData)));
+			DocumentBuilder builder = XMLUtils.getDefaultDocumentBuilder();
+			builder.setErrorHandler(null); // avoid 'content not allowed in prolog' to be printed out
+			
+			Document document = builder.parse(new InputSource(new StringReader(xmlData)));
 			
 			Element rootElement = document.getDocumentElement();
 			NodeList nodeList = rootElement.getChildNodes();
@@ -391,6 +397,12 @@ public class ClipboardManager {
 		return null;
 	}
 	
+	private XMLVector<XMLVector<Long>> getNewOrdered() {
+		XMLVector<XMLVector<Long>> ordered = new XMLVector<XMLVector<Long>>();
+		ordered.add(new XMLVector<Long>());
+		return ordered;
+	}
+	
 	public Object paste(Node node, DatabaseObject parentDatabaseObject, boolean bChangeName) throws EngineException {
 		Object object = read(node);
 		if (object instanceof DatabaseObject) {
@@ -500,6 +512,60 @@ public class ClipboardManager {
 				}
 			}
 			
+			// reset ordered properties
+			if (databaseObject instanceof IContainerOrdered) {
+				// Mobile beans
+				if (databaseObject instanceof ApplicationComponent) {
+					((ApplicationComponent)databaseObject).setOrderedRoutes(getNewOrdered());
+					((ApplicationComponent)databaseObject).setOrderedMenus(getNewOrdered());
+					((ApplicationComponent)databaseObject).setOrderedPages(getNewOrdered());
+					((ApplicationComponent)databaseObject).setOrderedComponents(getNewOrdered());
+				}
+				if (databaseObject instanceof RouteComponent) {
+					((RouteComponent)databaseObject).setOrderedActions(getNewOrdered());
+					((RouteComponent)databaseObject).setOrderedEvents(getNewOrdered());
+				}
+				if (databaseObject instanceof PageComponent) {
+					((PageComponent)databaseObject).setOrderedComponents(getNewOrdered());
+				}
+				if (databaseObject instanceof UIComponent) {
+					((UIComponent)databaseObject).setOrderedComponents(getNewOrdered());
+				}
+				
+				// Sequence beans
+				if (databaseObject instanceof Sequence) {
+					((Sequence)databaseObject).setOrderedSteps(getNewOrdered());
+					((Sequence)databaseObject).setOrderedVariables(getNewOrdered());
+				}
+				if (databaseObject instanceof StepWithExpressions) {
+					((StepWithExpressions)databaseObject).setOrderedSteps(getNewOrdered());
+				}
+				if (databaseObject instanceof RequestableStep) {
+					((RequestableStep)databaseObject).setOrderedVariables(getNewOrdered());
+				}
+				
+				// Transaction beans
+				if (databaseObject instanceof TransactionWithVariables) {
+					((TransactionWithVariables)databaseObject).setOrderedVariables(getNewOrdered());
+				}
+				if (databaseObject instanceof StatementWithExpressions) {
+					((StatementWithExpressions)databaseObject).setOrderedStatements(getNewOrdered());
+				}
+				if (databaseObject instanceof HTTPStatement) {
+					((HTTPStatement)databaseObject).setOrderedVariables(getNewOrdered());
+				}
+				if (databaseObject instanceof ScreenClass) {
+					((ScreenClass)databaseObject).setOrderedCriterias(getNewOrdered());
+					((ScreenClass)databaseObject).setOrderedExtractionRules(getNewOrdered());
+				}
+				
+				// TestCase bean
+				if (databaseObject instanceof TestCase) {
+					((TestCase)databaseObject).setOrderedVariables(getNewOrdered());
+				}
+				
+			}
+			
 			// Now add dbo to target
 			try {
 				if (parentDatabaseObject instanceof ScreenClass) {
@@ -527,12 +593,6 @@ public class ClipboardManager {
 						screenClass.add(databaseObject);
 					} else if (databaseObject instanceof ScreenClass) {
 						databaseObject.priority = screenClass.priority + 1;
-						XMLVector<XMLVector<Long>> orderedCriterias = new XMLVector<XMLVector<Long>>();
-						orderedCriterias.add(new XMLVector<Long>());
-						((ScreenClass) databaseObject).setOrderedCriterias(orderedCriterias);
-						XMLVector<XMLVector<Long>> orderedExtractionRules = new XMLVector<XMLVector<Long>>();
-						orderedExtractionRules.add(new XMLVector<Long>());
-						((ScreenClass) databaseObject).setOrderedExtractionRules(orderedExtractionRules);
 						screenClass.add(databaseObject);
 					}
 				} else if (parentDatabaseObject instanceof HtmlTransaction) {
@@ -721,6 +781,7 @@ public class ClipboardManager {
 				pastedComponents.put(String.valueOf(oldPriority), (UIComponent)databaseObject);
 			}
 			
+			databaseObject.isImporting = false; // needed
 			databaseObject.isSubLoaded = true;
 			return databaseObject;
 		}

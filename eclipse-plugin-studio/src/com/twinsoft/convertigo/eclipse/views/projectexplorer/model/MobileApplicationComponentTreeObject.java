@@ -43,6 +43,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
+import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -80,6 +81,30 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 		return super.testAttribute(target, name, value);
 	}
 
+	@Override
+	public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
+		super.treeObjectAdded(treeObjectEvent);
+		
+		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
+		
+		String propertyName = (String)treeObjectEvent.propertyName;
+		propertyName = ((propertyName == null) ? "" : propertyName);
+		
+		if (treeObject instanceof DatabaseObjectTreeObject) {
+			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)treeObject;
+			DatabaseObject dbo = doto.getObject();
+			
+			try {
+				if (dbo instanceof PageComponent && getObject().equals(dbo.getParent())) {
+					PageComponent page = (PageComponent)dbo;
+					if (page.bNew) {
+						page.markPageAsDirty();
+					}
+				}
+			} catch (Exception e) {}
+		}
+	}
+	
 	@Override
 	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectPropertyChanged(treeObjectEvent);
