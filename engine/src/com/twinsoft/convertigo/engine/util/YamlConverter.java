@@ -45,9 +45,8 @@ public class YamlConverter {
 	
 	private void writeYamlText(String indent, String txt) {
 		if (txt.isEmpty()) {
-			return;
-		}
-		if (toQuote.reset(txt).find()) {
+			txt = "''";
+		} else if (toQuote.reset(txt).find()) {
 			txt = '\'' + txt.replace("'", "''") + '\'';
 		}
 		String[] lines = toSplit.split(txt);
@@ -55,47 +54,66 @@ public class YamlConverter {
 			sb.append(txt);
 		} else {
 			sb.append("|");
-			String nextIndent = indent + inc;
 			for (String line: lines) {
-				sb.append('\n').append(nextIndent).append(line);
+				sb.append('\n').append(indent).append(line);
 			}
 		}
 	}
 	
-	private void writeYamlElement(String indent, Element element) {
-		String nextIndent = indent + inc + inc;
-		sb.append(indent).append("- ").append(element.getTagName()).append(sep);
+	private void writeYamlElement(String indent, Element element, boolean inArray) {
+		String nextIndent = indent + inc;
+		String txtIndent = nextIndent;
+		
+		boolean isBean = element.hasAttribute("yaml_key") && element.getTagName().equals("bean");
+		
+		if (!isBean) {
+			txtIndent += inc;
+		}
+		
+		String key = isBean ? element.getAttribute("yaml_key") : element.getTagName();
+		sb.append(indent).append(inArray ? "- " : "").append(key).append(sep);
+		
+		int len = sb.length();
 		
 		NamedNodeMap attributes = element.getAttributes();
 		int attributesLength = attributes.getLength();
 		for (int i = 0; i < attributesLength; i++) {
 			Attr attr = (Attr) attributes.item(i);
-			sb.append('\n').append(nextIndent).append('↑').append(attr.getName()).append(sep);
-			writeYamlText(nextIndent, attr.getValue());
+			String name = attr.getName();
+			if (!name.startsWith("yaml_")) {
+				sb.append('\n').append(nextIndent);
+				if (!isBean) {
+					sb.append("- ");
+					inArray = true;
+				}
+				sb.append('↑').append(name).append(sep);
+				writeYamlText(txtIndent, attr.getValue());
+			}
 		}
 		
-		Node child = element.getFirstChild();
-		boolean hasChildren = false;
-		
+		Node child = element.getFirstChild();		
 		while (child != null) {
 			if (child instanceof Element) {
-				if (!hasChildren) {
-					sb.append('\n').append(nextIndent).append('↓').append(sep);
-					hasChildren = true;
-				}
+				Element eChild = (Element) child;
 				sb.append('\n');
-				writeYamlElement(nextIndent, (Element) child);
+				writeYamlElement(nextIndent, eChild, !isBean);
 			} else if (child instanceof CDATASection) {
 				CDATASection cdata = (CDATASection) child;
 				String txt = cdata.getData();
 				sb.append('\n').append(nextIndent).append('→').append(sep);
-				writeYamlText(nextIndent, txt);
+				writeYamlText(txtIndent, txt);
+			} else if (child.getNodeType() == Node.TEXT_NODE && child.getNextSibling() == null) {
+				String txt = child.getNodeValue();
+				if (len != sb.length() && inArray) {
+					sb.append('\n').append(nextIndent).append("- ").append("→→").append(sep);
+				}
+				writeYamlText(txtIndent, txt);
 			}
 			child = child.getNextSibling();
 		}
 	}
 	
-	private void readYamlArray(Node parent, String indent) throws Exception {
+	private void readYamlArray(Node parent, String indent, boolean isBean) throws Exception {
 		while(checkLine()) {
 			parse.reset(line);
 			if (!parse.matches()) {
@@ -105,7 +123,13 @@ public class YamlConverter {
 				String tagName = parse.group(P_KEY);
 				Element elt = doc.createElement(tagName);
 				parent.appendChild(elt);
-				readYamlElement(elt, indent + inc + inc);
+				String value = parse.group(P_VALUE); 
+				if (!value.isEmpty()) {
+					value = readYalmText(value, indent);
+					elt.setTextContent(value);
+				} else {
+					readYamlArray(elt, indent + inc + inc, isBean);
+				}
 			} else {
 				restoreLine();
 				return;
@@ -113,7 +137,7 @@ public class YamlConverter {
 		}
 	}
 	
-	private void readYamlElement(Element elt, String indent) throws Exception {
+	private void readYamlElement(Element elt, String indent, boolean isBean) throws Exception {
 		while(checkLine()) {
 			parse.reset(line);
 			if (!parse.matches()) {
@@ -129,11 +153,31 @@ public class YamlConverter {
 				value = readYalmText(value, indent);
 				elt.setAttribute(name, value);
 			} else if (parse.group(P_TXT) != null) {
+				String key = parse.group(P_KEY);
 				String value = parse.group(P_VALUE);
 				value = readYalmText(value, indent);
-				elt.appendChild(doc.createCDATASection(value));
+				if (key.equals("→")) {
+					elt.appendChild(doc.createTextNode(value));
+				} else {
+					elt.appendChild(doc.createCDATASection(value));
+				}
 			} else if (parse.group(P_CHILD) != null) {
-				readYamlArray(elt, indent);
+				if (isBean) {
+					Element nElt = doc.createElement("bean");
+					elt.appendChild(nElt);
+					nElt.setAttribute("yaml_key", parse.group(P_KEY));
+					readYamlElement(nElt, indent + inc, isBean);
+				} else {
+					readYamlArray(elt, indent, isBean);
+				}
+			} else {
+				String key = parse.group(P_KEY);
+				String value = parse.group(P_VALUE);
+				value = readYalmText(value, indent);
+				Element nElt = doc.createElement(key);
+				elt.appendChild(nElt);
+				nElt.setTextContent(value);
+				readYamlElement(nElt, indent + inc, false);
 			}
 		}
 	}
@@ -178,8 +222,14 @@ public class YamlConverter {
 		try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(yaml), "UTF-8"))) {
 			YamlConverter y = new YamlConverter();
 			y.doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+			y.doc.appendChild(y.doc.createElement("convertigo"));
 			y.br = br;
-			y.readYamlArray(y.doc, "");
+			try {
+				y.readYamlElement(y.doc.getDocumentElement(), "", true);
+			} catch (Exception e) {
+				y.br.close();
+				return y.doc;
+			}
 			y.br.close();
 			return y.doc;
 		} catch (Exception e) {
@@ -190,7 +240,16 @@ public class YamlConverter {
 	public static void writeYaml(Document document, File yaml) throws IOException {
 		YamlConverter y = new YamlConverter();
 		y.sb = new StringBuilder();
-		y.writeYamlElement("", document.getDocumentElement());
+		Node node = document.getDocumentElement().getFirstChild();
+		while (node != null) {
+			if (node instanceof Element) {
+				if (node.getPreviousSibling() != null) {
+					y.sb.append('\n');
+				}
+				y.writeYamlElement("", (Element) node, false);
+			}
+			node = node.getNextSibling();
+		}
 		FileUtils.write(yaml, y.sb.toString(), "UTF-8");
 	}
 }

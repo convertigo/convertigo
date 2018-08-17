@@ -153,8 +153,13 @@ public class CarUtils {
 	
 	private static void exportYAMLProject(String fileName, Document document) throws EngineException {
 		try {
-			BeansDefaultValues.shrinkProject(document);
-			YamlConverter.writeYaml(document, new File(fileName.replaceFirst("\\.xml$", ".yaml")));
+			Document copy = BeansDefaultValues.shrinkProject(document);
+			FileUtils.write(new File(fileName.replaceFirst("\\.xml$", ".shrink.xml")), XMLUtils.prettyPrintDOMWithEncoding(copy, "UTF-8"), "UTF-8");
+			YamlConverter.writeYaml(copy, new File(fileName.replaceFirst("\\.xml$", ".yaml")));
+			Document nCopy = YamlConverter.readYaml(new File(fileName.replaceFirst("\\.xml$", ".yaml")));
+			FileUtils.write(new File(fileName.replaceFirst("\\.xml$", ".shrink2.xml")), XMLUtils.prettyPrintDOMWithEncoding(nCopy, "UTF-8"), "UTF-8");
+			Document full = BeansDefaultValues.unshrinkProject(nCopy);
+			FileUtils.write(new File(fileName.replaceFirst("\\.xml$", ".full.xml")), XMLUtils.prettyPrintDOMWithEncoding(full, "UTF-8"), "UTF-8");
 		} catch (Exception e) {
 			throw new EngineException("(CarUtils) exportProject in YAML failed", e);
 		}

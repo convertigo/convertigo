@@ -62,7 +62,7 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 		return cloned;
 	}
 
-	private String beanData = null;
+	private String beanData = "";
 	
 	public String getBeanData() {
 		return beanData;

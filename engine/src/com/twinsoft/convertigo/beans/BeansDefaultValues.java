@@ -1,22 +1,24 @@
 package com.twinsoft.convertigo.beans;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Logger;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
-import org.xml.sax.SAXException;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -24,6 +26,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 public class BeansDefaultValues {
 	
 	private static final String XMLPATH = "/com/twinsoft/convertigo/beans/dabase_objects_default.xml";
+	private static final Pattern patternBeanName = Pattern.compile("(.*) \\[(.*)\\]");
 	
 	private static Element nextElement(Node node, boolean checkParameter) {
 		if (node == null || (checkParameter && node instanceof Element)) {
@@ -60,8 +63,8 @@ public class BeansDefaultValues {
 		}
 		
 		if (dElt.getFirstChild() instanceof CDATASection) {
+			String dData = ((CDATASection) dElt.getFirstChild()).getData();
 			if (pElt.getFirstChild() instanceof CDATASection) {
-				String dData = ((CDATASection) dElt.getFirstChild()).getData();
 				String pData = ((CDATASection) pElt.getFirstChild()).getData();
 				if (!dData.equals(pData)) {
 					return false;
@@ -72,6 +75,13 @@ public class BeansDefaultValues {
 		} else {
 			Element dNextElt = nextElement(dElt.getFirstChild(), true);
 			Element pNextElt = nextElement(pElt.getFirstChild(), true);
+			
+			if (dNextElt == null && pNextElt == null) {
+				if (!dElt.getTextContent().equals(pElt.getTextContent())) {
+					return false;
+				}
+			}
+			
 			while (dNextElt != null) {
 				if (!checkIsSame(dNextElt, pNextElt)) {
 					return false;
@@ -88,84 +98,165 @@ public class BeansDefaultValues {
 		return true;
 	}
 	
-	private static void shrinkChildren(Element beans, Element element) {
+	private static void shrinkChildren(Element beans, Element element, Element copy) {
 		TwsCachedXPathAPI xpath = TwsCachedXPathAPI.getInstance();
 		for (Node pBeanNode: xpath.selectList(element, "*[@classname]")) {
 			Element pBean = (Element) pBeanNode;
-			String classname = pBean.getAttribute("classname");
+			String classname = pBean.getAttribute("classname");			
+			String pName = xpath.selectNode(pBean, "property[@name='name']/*/@value").getNodeValue();
+			
+			Element nCopy = copy.getOwnerDocument().createElement("bean");
+			copy.appendChild(nCopy);
+			nCopy.setAttribute("yaml_key", '↓' + pName + " [" + classname.substring(30) + ']');
+			
 			Element dBean = (Element) xpath.selectNode(beans, "*[@classname='" + classname + "']");
 			
-			for (Node dAttr: xpath.selectList(dBean, "@*")) {
-				String name = dAttr.getNodeName(); 
-				if (!name.equals("classname")) {
-					if (dAttr.getNodeValue().equals(pBean.getAttribute(name))) {
-						pBean.removeAttribute(name);
+			//TODO: remove save of newPriority
+			for (Node pAttr: xpath.selectList(pBean, "@*")) {
+				String name = pAttr.getNodeName();
+				if (!name.equals("classname") &&
+						!name.equals("newPriority") && (
+						!dBean.hasAttribute(name) ||
+						!pAttr.getNodeValue().equals(dBean.getAttribute(name))
+				)) {
+					nCopy.setAttribute(name, pAttr.getNodeValue());
+				}
+			}
+			
+			for (Node pPropNode: xpath.selectList(pBean, "property[@name]")) {
+				Element pProp = (Element) pPropNode;
+				String name = pProp.getAttribute("name");
+				Element dProp = (Element) xpath.selectNode(dBean, "property[@name='" + name + "']");
+				//TODO: don't save order* properties (make transient ?)
+				if (!"name".equals(name) &&
+						!name.startsWith("order") &&
+						(dProp == null || !checkIsSame(pProp, dProp)
+				)) {
+					Element nProp = (Element) nCopy.appendChild(nCopy.getOwnerDocument().createElement(name));					
+					Element content = nextElement(pProp.getFirstChild(), true);
+					
+					if (nextElement(content, false) == null && content.getTagName().startsWith("java.lang.")) {
+						nProp.setTextContent(content.getAttribute("value"));
+					} else {
+						nProp.appendChild(nProp.getOwnerDocument().importNode(content, true));
 					}
 				}
 			}
 			
-			for (Node dPropNode: xpath.selectList(dBean, "property[@name]")) {
-				Element dProp = (Element) dPropNode;
-				String name = dProp.getAttribute("name");
-				Element pProp = (Element) xpath.selectNode(pBean, "property[@name='" + name + "']");
-				if (checkIsSame(dProp, pProp)) {
-					pBean.removeChild(pProp);
+			for (Node pOther: xpath.selectList(pBean, "*[local-name()!='property' and not(@classname)]")) {
+				String name = pOther.getNodeName();
+				Element dOther = (Element) xpath.selectNode(dBean, name);
+				if (!checkIsSame(dOther, (Element) pOther)) {
+					Element nImport = (Element) nCopy.getOwnerDocument().importNode(pOther, true);
+					nCopy.appendChild(nImport);
 				}
 			}
 			
-			shrinkChildren(beans, pBean);
+			shrinkChildren(beans, pBean, nCopy);
 		}
 	}
 	
-	public static void shrinkProject(Document project) throws SAXException, IOException {
+	public static Document shrinkProject(Document project) throws Exception {
 		TwsCachedXPathAPI xpath = TwsCachedXPathAPI.getInstance();
 		Document beans;
 		try (InputStream is = BeansDefaultValues.class.getResourceAsStream(XMLPATH)) {
 			beans = XMLUtils.getDefaultDocumentBuilder().parse(is);
 		}
-		shrinkChildren(beans.getDocumentElement(), project.getDocumentElement());
-		for (Node n: xpath.selectList(project, "//@classname")) {
-			n.setNodeValue(n.getNodeValue().replace("com.twinsoft.convertigo.beans.", "c8o."));
+		
+		Document copy = XMLUtils.createDom();
+		Element root = (Element) copy.appendChild(copy.createElement("root"));
+		
+		for (Node attr: xpath.selectList(project.getDocumentElement(), "@*")) {
+			Element eAttr = copy.createElement("bean");
+			root.appendChild(eAttr);
+			eAttr.setAttribute("yaml_key", '↑' + attr.getNodeName());
+			eAttr.setTextContent(attr.getNodeValue());
 		}
+		
+		shrinkChildren(beans.getDocumentElement(), project.getDocumentElement(), root);
+		
+		return copy;
 	}
 	
-	public static void unshrinkProject(Document project) throws SAXException, IOException {
-		TwsCachedXPathAPI xpath = TwsCachedXPathAPI.getInstance();
+	public static Document unshrinkProject(Document project) throws Exception {
 		Document beans;
 		try (InputStream is = BeansDefaultValues.class.getResourceAsStream(XMLPATH)) {
 			beans = XMLUtils.getDefaultDocumentBuilder().parse(is);
 		}
-		for (Node n: xpath.selectList(project, "//@classname")) {
-			n.setNodeValue(n.getNodeValue().replace("c8o.", "com.twinsoft.convertigo.beans."));
-		}
-		unshrinkChildren(beans.getDocumentElement(), project.getDocumentElement());
+		Document doc = XMLUtils.createDom();
+		doc.appendChild(doc.importNode(project.getDocumentElement(), false));
+		unshrinkChildren(beans.getDocumentElement(), project.getDocumentElement(), doc.getDocumentElement());
+		return doc;
 	}
 	
-	private static void unshrinkChildren(Element beans, Element element) {
+	private static void unshrinkChildren(Element beans, Element element, Element nParent) {
 		TwsCachedXPathAPI xpath = TwsCachedXPathAPI.getInstance();
-		for (Node pBeanNode: xpath.selectList(element, "*[@classname]")) {
+		for (Node pBeanNode: xpath.selectList(element, "bean[@yaml_key]")) {
 			Element pBean = (Element) pBeanNode;
-			String classname = pBean.getAttribute("classname");
+			
+			Matcher matcherBeanName = patternBeanName.matcher(pBean.getAttribute("yaml_key"));
+			
+			matcherBeanName.matches();
+			
+			String classname = "com.twinsoft.convertigo.beans." + matcherBeanName.group(2);
 			Element dBean = (Element) xpath.selectNode(beans, "*[@classname='" + classname + "']");
 			
-			for (Node dAttr: xpath.selectList(dBean, "@*")) {
-				String name = dAttr.getNodeName(); 
-				if (!name.equals("classname")) {
-					if (!pBean.hasAttribute(name)) {
-						pBean.setAttribute(name, dAttr.getNodeValue());
+			Element nBean = null;
+			try {
+				nBean = (Element) nParent.getOwnerDocument().importNode(dBean, true);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			nParent.appendChild(nBean);
+			
+			for (Node pAttr: xpath.selectList(pBean, "@*")) {
+				String name = pAttr.getNodeName();
+				if (!name.startsWith("yaml_")) {
+					nBean.setAttribute(name, pAttr.getNodeValue());
+				}
+			}
+			
+			//TODO: remove newPriority property
+			nBean.setAttribute("newPriority", nBean.getAttribute("priority"));
+			
+			((Element) xpath.selectNode(nBean, "property[@name='name']/*")).setAttribute("value", matcherBeanName.group(1));
+			
+			for (Node pPropNode: xpath.selectList(pBean, "*[not(@yaml_key)]")) {
+				Element nProp = (Element) xpath.selectNode(nBean, "property[@name='" + pPropNode.getNodeName() + "']");
+				if (nProp == null) {
+					Element nOther = (Element) xpath.selectNode(nBean, pPropNode.getNodeName());
+					if (nOther != null) {
+						nBean.replaceChild(nBean.getOwnerDocument().importNode(pPropNode, true), nOther);
+						continue;	
+					} else {
+						nProp = (Element) nBean.appendChild(nBean.getOwnerDocument().createElement("property"));
+					}
+				}
+				nProp.setAttribute("name", pPropNode.getNodeName());
+				if (xpath.selectNode(pPropNode, "*") == null) {
+					Element nValue = (Element) xpath.selectNode(nProp, "*");
+					if (nValue == null) {
+						nValue = (Element) nProp.appendChild(nBean.getOwnerDocument().createElement("java.lang.String"));
+					}
+					String value = ((Element) pPropNode).getTextContent();
+					nValue.setAttribute("value", value);
+
+					if (nProp.hasAttribute("isNull")) {
+						nProp.setAttribute("isNull", "false");
+					}
+				} else {
+					while (nProp.getFirstChild() != null) {
+						nProp.removeChild(nProp.getFirstChild());
+					}
+					Node pNode = pPropNode.getFirstChild();
+					while (pNode != null) {
+						nProp.appendChild(nProp.getOwnerDocument().importNode(pNode, true));
+						pNode = pNode.getNextSibling();
 					}
 				}
 			}
 			
-			for (Node dPropNode: xpath.selectList(dBean, "property[@name]")) {
-				Element dProp = (Element) dPropNode;
-				String name = dProp.getAttribute("name");
-				if (null == xpath.selectNode(pBean, "property[@name='" + name + "']")) {
-					pBean.appendChild(element.getOwnerDocument().importNode(dProp, true));
-				}
-			}
-			
-			unshrinkChildren(beans, pBean);
+			unshrinkChildren(beans, pBean, nBean);
 		}
 	}
 	
@@ -179,7 +270,7 @@ public class BeansDefaultValues {
 			SortedSet<Node> nodes = new TreeSet<Node>((n1, n2) -> {
 				return n1.getNodeValue().compareTo(n2.getNodeValue());
 			});
-			nodes.addAll(xpath.selectList(documentBeansXmlDatabase, "//bean[@enable='true']/@classname"));
+			nodes.addAll(xpath.selectList(documentBeansXmlDatabase, "//bean/@classname"));
 			
 			Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
 			Element beans = document.createElement("beans");
@@ -212,6 +303,9 @@ public class BeansDefaultValues {
 			}
 			
 			output = new File(output, XMLPATH);
+			
+			Engine.logBeans = Logger.getRootLogger();
+			
 			updateBeansDefaultValues(output);
 			System.out.println("Beans default values updated in: " + output.getCanonicalPath());
 			for (int i = 1; i < args.length; i++) {
