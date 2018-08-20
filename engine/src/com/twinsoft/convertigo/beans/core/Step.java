@@ -126,7 +126,6 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		
 		// Set priority to creation time since version 4.0.1
 		this.priority = getNewOrderValue();
-		this.newPriority = priority;
 	}
     
 	/* (non-Javadoc)
@@ -145,7 +144,6 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		clonedObject.stepDone = false;
 		clonedObject.sequence = null;
 		clonedObject.vSheets = new LinkedList<Sheet>();
-		clonedObject.newPriority = newPriority;
 		return clonedObject;
 	}
     
@@ -173,22 +171,6 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 			}
 			
 			Engine.logBeans.warn("[Step] The object \"" + getName() + "\" has been updated to version 7.5.0 (property \"isEnable\" changed to \"isEnabled\")");
-		}
-	}
-
-	/* (non-Javadoc)
-	* @see com.twinsoft.convertigo.beans.core.DatabaseObject#configure(org.w3c.dom.Element)
-	*/
-	@Override
-	public void configure(Element element) throws Exception {
-		super.configure(element);
-		
-		try {
-			newPriority = new Long(element.getAttribute("newPriority")).longValue();
-			if (newPriority != priority) newPriority = priority;
-		}
-		catch(Exception e) {
-			throw new Exception("Missing \"newPriority\" attribute");
 		}
 	}
 	
@@ -248,7 +230,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
      */
     @Override
     public Object getOrderedValue() {
-    	return new Long(priority);
+    	return priority;
     }    
 
 	public Sequence getParentSequence() {
@@ -643,7 +625,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 			if (Engine.logBeans.isDebugEnabled())
 				Engine.logBeans.debug("Executing step named '"+ this +"' ("+ this.getName() +")");
 			
-			Long key = new Long(priority);
+			Long key = priority;
 			
 			// We fire engine events only in studio mode.
             if (Engine.isStudioMode()) {
@@ -916,19 +898,6 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	
 	public boolean isGenerateSchema() {
 		return isOutput();
-	}
-
-	/* (non-Javadoc)
-	 * @see com.twinsoft.convertigo.beans.core.DatabaseObject#toXml(org.w3c.dom.Document)
-	 */
-	@Override
-	public Element toXml(Document document) throws EngineException {
-		Element element =  super.toXml(document);
-		
-        // Storing the object "newPriority" value
-        element.setAttribute("newPriority", new Long(newPriority).toString());
-		
-		return element;
 	}
 
 	public String getSchemaDataType() {

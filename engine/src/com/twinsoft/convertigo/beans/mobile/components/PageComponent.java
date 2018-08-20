@@ -38,12 +38,12 @@ import org.w3c.dom.NodeList;
 import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.IEnableAble;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIPageEvent.ViewEvent;
-import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
@@ -65,7 +65,6 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		super();
 		
 		this.priority = getNewOrderValue();
-		this.newPriority = priority;
 		
 		orderedComponents = new XMLVector<XMLVector<Long>>();
 		orderedComponents.add(new XMLVector<Long>());
@@ -74,7 +73,6 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 	@Override
 	public PageComponent clone() throws CloneNotSupportedException {
 		PageComponent cloned = (PageComponent) super.clone();
-		cloned.newPriority = newPriority;
 		cloned.vUIComponents = new LinkedList<UIComponent>();
 		cloned.pageImports = new HashMap<String, String>();
 		cloned.computedContents = null;
@@ -88,8 +86,6 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 	@Override
 	public Element toXml(Document document) throws EngineException {
 		Element element = super.toXml(document);
-        
-		element.setAttribute("newPriority", new Long(newPriority).toString());
 		
 		// Storing the page "isRoot" flag
 		element.setAttribute("isRoot", new Boolean(isRoot).toString());
@@ -106,7 +102,6 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 			if (priority == 0L) {
 				priority = getNewOrderValue();
 				element.setAttribute("priority", ""+priority);
-				element.setAttribute("newPriority", ""+priority);
 			}
 			
 			NodeList properties = element.getElementsByTagName("property");
@@ -138,13 +133,6 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		super.configure(element);
 		
 		try {
-			newPriority = new Long(element.getAttribute("newPriority")).longValue();
-			if (newPriority != priority) newPriority = priority;
-		} catch(Exception e) {
-			throw new Exception("Missing \"newPriority\" attribute");
-		}
-		
-		try {
 			isRoot = new Boolean(element.getAttribute("isRoot")).booleanValue();
 		} catch(Exception e) {
 			throw new EngineException("Unable to configure the property 'isRoot' of the page \"" + getName() + "\".", e);
@@ -167,8 +155,8 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
     		return;
     	
     	if (after == null) {
-    		after = new Long(0);
-    		if (size>0)
+    		after = 0L;
+    		if (size > 0)
     			after = ordered.get(ordered.size()-1);
     	}
     	
@@ -184,7 +172,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
     }
     
 	public void insertAtOrder(DatabaseObject databaseObject, long priority) throws EngineException {
-		increaseOrder(databaseObject, new Long(priority));
+		increaseOrder(databaseObject, priority);
 	}
     
     private void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
@@ -262,7 +250,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
     
     @Override
     public Object getOrderedValue() {
-    	return new Long(priority);
+    	return priority;
     }
 	
 	/**

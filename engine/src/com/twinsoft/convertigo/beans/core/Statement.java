@@ -26,7 +26,6 @@ import org.mozilla.javascript.EcmaError;
 import org.mozilla.javascript.EvaluatorException;
 import org.mozilla.javascript.JavaScriptException;
 import org.mozilla.javascript.Scriptable;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -64,7 +63,6 @@ public abstract class Statement extends DatabaseObject implements IEnableAble {
 		
 		// Set priority to creation time since version 4.0.1
 		this.priority = getNewOrderValue();
-		this.newPriority = priority;
 	}
     
     /*public Statement(String expression) {
@@ -77,7 +75,7 @@ public abstract class Statement extends DatabaseObject implements IEnableAble {
      */
     @Override
     public Object getOrderedValue() {
-    	return new Long(priority);
+    	return priority;
     }
 
 	@Override
@@ -230,7 +228,6 @@ public abstract class Statement extends DatabaseObject implements IEnableAble {
 	@Override
 	public Statement clone() throws CloneNotSupportedException {
 		Statement clonedObject = (Statement) super.clone();
-		clonedObject.newPriority = newPriority;
 		return clonedObject;
 	}
     
@@ -250,55 +247,6 @@ public abstract class Statement extends DatabaseObject implements IEnableAble {
 			
 			Engine.logBeans.warn("[Statement] The object \"" + getName() + "\" has been updated to version 7.5.0 (property \"isEnable\" changed to \"isEnabled\")");
 		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.twinsoft.convertigo.beans.core.DatabaseObject#configure(org.w3c.dom.Element)
-	 */
-	@Override
-	public void configure(Element element) throws Exception {
-		super.configure(element);
-		
-		try {
-			newPriority = new Long(element.getAttribute("newPriority")).longValue();
-			if (newPriority != priority)
-				hasChanged = true;
-        }
-        catch(Exception e) {
-        	newPriority = getNewOrderValue();
-        	Engine.logBeans.warn("The "+getClass().getName() +" object \"" + getName() + "\" has been updated to version \"4.0.1\"");
-        	hasChanged = true;
-        }
-	}
-
-	/* (non-Javadoc)
-	 * @see com.twinsoft.convertigo.beans.core.DatabaseObject#write(java.lang.String)
-	 */
-	@Override
-	public void write(String databaseObjectQName) throws EngineException {
-		long l = priority;
-		if (hasChanged && !isImporting)
-			priority = newPriority;
-		try {
-			super.write(databaseObjectQName);
-		}
-		catch (EngineException e) {
-			priority = l;
-			throw e;
-		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.twinsoft.convertigo.beans.core.DatabaseObject#toXml(org.w3c.dom.Document)
-	 */
-	@Override
-	public Element toXml(Document document) throws EngineException {
-		Element element =  super.toXml(document);
-		
-        // Storing the object "newPriority" value
-        element.setAttribute("newPriority", new Long(newPriority).toString());
-		
-		return element;
 	}
 
 	@Override

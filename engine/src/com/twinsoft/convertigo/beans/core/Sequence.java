@@ -120,8 +120,6 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	
 	transient protected int currentChildStep = 0;
 	
-	transient public boolean handlePriorities = true;
-	
 	transient private HttpState stepHttpState = null;
 	
 	transient private String transactionSessionId = null;
@@ -180,7 +178,6 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	clonedObject.workerElementMap = null;
     	clonedObject.vSteps = new ArrayList<Step>();
         clonedObject.vAllSteps = null;
-        clonedObject.handlePriorities = handlePriorities;
         clonedObject.currentStep = null;
         clonedObject.currentChildStep = 0;
         clonedObject.stepContextNames = new ArrayList<String>();
@@ -738,8 +735,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     		return;
     	
     	if (after == null) {
-    		after = new Long(0);
-    		if (size>0)
+    		after = 0L;
+    		if (size > 0)
     			after = (Long)ordered.lastElement();
     	}
     	
@@ -758,8 +755,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     		return;
     	
     	if (after == null) {
-    		after = new Long(0);
-    		if (size>0)
+    		after = 0L;
+    		if (size > 0)
     			after = (Long)ordered.lastElement();
     	}
     	
@@ -826,7 +823,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	}
 	
 	public void insertAtOrder(DatabaseObject databaseObject, long priority) throws EngineException {
-		increaseOrder(databaseObject, new Long(priority));
+		increaseOrder(databaseObject, priority);
 	}
 	
     private void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
@@ -1175,7 +1172,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	}
 	
 	public synchronized int setAsyncThreadRunningNumber(long priority, boolean increase) {
-		Step step = ((Step)loadedSteps.get(new Long(priority)));
+		Step step = ((Step)loadedSteps.get(priority));
 		if ((step != null) && (step instanceof StepWithExpressions)) {
 			StepWithExpressions stepWE = (StepWithExpressions)step;
 			if (increase) {
@@ -1853,19 +1850,6 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     public void configure(Element element) throws Exception {
         super.configure(element);
     }
-    
-    /* (non-Javadoc)
-	 * @see com.twinsoft.convertigo.beans.core.DatabaseObject#toXml(org.w3c.dom.Document)
-	 */
-    @Override
-	public Element toXml(Document document) throws EngineException {
-		Element element =  super.toXml(document);
-		
-        // Storing the sequence "handlePriorities" flag
-        element.setAttribute("handlePriorities", new Boolean(handlePriorities).toString());
-		
-		return element;
-	}
     
 	@Override
 	public List<DatabaseObject> getAllChildren() {	

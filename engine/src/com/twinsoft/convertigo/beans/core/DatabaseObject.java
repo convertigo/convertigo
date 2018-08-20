@@ -490,8 +490,6 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		return name;
 	}
 
-	public transient long newPriority = 0;
-
 	public Element toXml(Document document) throws EngineException {
 		Element element = document.createElement(getDatabaseType().toLowerCase());
 
@@ -501,7 +499,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		}
 
 		// Storing the database object priority
-		element.setAttribute("priority", new Long(priority).toString());
+		element.setAttribute("priority", Long.toString(priority));
 
 		int len;
 		PropertyDescriptor[] propertyDescriptors;

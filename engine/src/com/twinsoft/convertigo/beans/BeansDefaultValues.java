@@ -111,11 +111,9 @@ public class BeansDefaultValues {
 			
 			Element dBean = (Element) xpath.selectNode(beans, "*[@classname='" + classname + "']");
 			
-			//TODO: remove save of newPriority
 			for (Node pAttr: xpath.selectList(pBean, "@*")) {
 				String name = pAttr.getNodeName();
-				if (!name.equals("classname") &&
-						!name.equals("newPriority") && (
+				if (!name.equals("classname") && (
 						!dBean.hasAttribute(name) ||
 						!pAttr.getNodeValue().equals(dBean.getAttribute(name))
 				)) {
@@ -216,9 +214,6 @@ public class BeansDefaultValues {
 				}
 			}
 			
-			//TODO: remove newPriority property
-			nBean.setAttribute("newPriority", nBean.getAttribute("priority"));
-			
 			((Element) xpath.selectNode(nBean, "property[@name='name']/*")).setAttribute("value", matcherBeanName.group(1));
 			
 			for (Node pPropNode: xpath.selectList(pBean, "*[not(@yaml_key)]")) {
@@ -283,12 +278,11 @@ public class BeansDefaultValues {
 				if (def.hasAttribute("priority")) {
 					def.setAttribute("priority", "0");
 				}
-				def.removeAttribute("newPriority");
 				beans.appendChild(def);
 			};
 			
 			return document;
-		}		
+		}
 	}
 	
 	private static void updateBeansDefaultValues(File output) throws Exception {

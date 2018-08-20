@@ -27,15 +27,13 @@ import java.util.Map;
 import java.util.Set;
 
 import org.codehaus.jettison.json.JSONObject;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.IEnableAble;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
-import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
@@ -56,7 +54,6 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		super();
 		
 		this.priority = getNewOrderValue();
-		this.newPriority = priority;
 		
 		orderedComponents = new XMLVector<XMLVector<Long>>();
 		orderedComponents.add(new XMLVector<Long>());
@@ -65,7 +62,6 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 	@Override
 	public UIComponent clone() throws CloneNotSupportedException {
 		UIComponent cloned = (UIComponent) super.clone();
-		cloned.newPriority = newPriority;
 		cloned.vUIComponents = new LinkedList<UIComponent>();
 		return cloned;
 	}
@@ -86,8 +82,8 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
     		return;
     	
     	if (after == null) {
-    		after = new Long(0);
-    		if (size>0)
+    		after = 0L;
+    		if (size > 0)
     			after = ordered.get(ordered.size()-1);
     	}
     	
@@ -103,12 +99,12 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
     }
     
 	public void insertAtOrder(DatabaseObject databaseObject, long priority) throws EngineException {
-		increaseOrder(databaseObject, new Long(priority));
+		increaseOrder(databaseObject, priority);
 	}
     
     protected void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
     	List<Long> ordered = null;
-    	Long value = new Long(databaseObject.priority);
+    	Long value = databaseObject.priority;
     	
     	if (databaseObject instanceof UIComponent)
     		ordered = orderedComponents.get(0);
@@ -169,7 +165,7 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
      */
     @Override
     public Object getOrderedValue() {
-    	return new Long(priority);
+    	return priority;
     }
 	
     /**
@@ -292,28 +288,6 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		}
 		super.remove(databaseObject);
     }
-	
-	@Override
-	public void configure(Element element) throws Exception {
-		super.configure(element);
-		
-		try {
-			newPriority = new Long(element.getAttribute("newPriority")).longValue();
-			if (newPriority != priority) newPriority = priority;
-		}
-		catch(Exception e) {
-			throw new Exception("Missing \"newPriority\" attribute");
-		}
-	}
-    
-	@Override
-	public Element toXml(Document document) throws EngineException {
-		Element element =  super.toXml(document);
-		
-        element.setAttribute("newPriority", new Long(newPriority).toString());
-		
-		return element;
-	}
 
 	public IScriptComponent getMainScriptComponent() {
 		DatabaseObject databaseObject = this;

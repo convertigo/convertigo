@@ -517,11 +517,9 @@ public class ClipboardManager {
 							throw new EngineException("You cannot paste a new criterion to the default screen class");								
 						}
 						databaseObject.priority = databaseObject.getNewOrderValue();
-						databaseObject.newPriority = databaseObject.priority;
 						screenClass.add(databaseObject);
 					} else if (databaseObject instanceof ExtractionRule) {
 						databaseObject.priority = databaseObject.getNewOrderValue();
-						databaseObject.newPriority = databaseObject.priority;
 						screenClass.add(databaseObject);
 					} else if (databaseObject instanceof Sheet) {
 						screenClass.add(databaseObject);
@@ -543,12 +541,10 @@ public class ClipboardManager {
 						transaction.add(databaseObject);
 					} else if (databaseObject instanceof Variable) {
 						databaseObject.priority = databaseObject.getNewOrderValue();
-						databaseObject.newPriority = databaseObject.priority;
 						transaction.add(databaseObject);
 					} else if (databaseObject instanceof FunctionStatement) {
 						if (databaseObject instanceof StatementWithExpressions) {
 							databaseObject.priority = 0;
-							databaseObject.newPriority = databaseObject.priority;
 						}
 						transaction.add(databaseObject);
 					} else {
@@ -562,7 +558,6 @@ public class ClipboardManager {
 						transaction.add(databaseObject);
 					} else if (databaseObject instanceof Variable) {
 						databaseObject.priority = databaseObject.getNewOrderValue();
-						databaseObject.newPriority = databaseObject.priority;
 						transaction.add(databaseObject);
 					}
 				} else if (parentDatabaseObject instanceof Sequence) {
@@ -573,11 +568,9 @@ public class ClipboardManager {
 						sequence.add(databaseObject);
 					} else if (databaseObject instanceof Step) {
 						databaseObject.priority = databaseObject.getNewOrderValue();
-						databaseObject.newPriority = databaseObject.priority;
 						sequence.add(databaseObject);
 					} else if (databaseObject instanceof Variable) {
 						databaseObject.priority = databaseObject.getNewOrderValue();
-						databaseObject.newPriority = databaseObject.priority;
 						sequence.add(databaseObject);
 					} else {
 						throw new EngineException("You cannot paste to a Sequence a database object of type " + databaseObject.getClass().getName());
@@ -585,61 +578,51 @@ public class ClipboardManager {
 				} else if (parentDatabaseObject instanceof StatementWithExpressions) {
 					StatementWithExpressions statement = (StatementWithExpressions) parentDatabaseObject;
 					databaseObject.priority = databaseObject.getNewOrderValue();
-					databaseObject.newPriority = databaseObject.priority;
 					statement.add(databaseObject);
 				} else if (parentDatabaseObject instanceof HTTPStatement) {
 					HTTPStatement statement = (HTTPStatement) parentDatabaseObject;
 					if (databaseObject instanceof Variable) {
 						databaseObject.priority = databaseObject.getNewOrderValue();
-						databaseObject.newPriority = databaseObject.priority;
 						statement.add(databaseObject);
 					}
 				} else if (parentDatabaseObject instanceof StepWithExpressions) {
 					StepWithExpressions step = (StepWithExpressions) parentDatabaseObject;
 					databaseObject.priority = databaseObject.getNewOrderValue();
-					databaseObject.newPriority = databaseObject.priority;
 					step.add(databaseObject);
 				} else if (parentDatabaseObject instanceof RequestableStep) {
 					RequestableStep step = (RequestableStep) parentDatabaseObject;
 					if (databaseObject instanceof Variable) {
 						databaseObject.priority = databaseObject.getNewOrderValue();
-						databaseObject.newPriority = databaseObject.priority;
 						step.add(databaseObject);
 					}
 				} else if (parentDatabaseObject instanceof TestCase) {
 					TestCase testCase = (TestCase) parentDatabaseObject;
 					if (databaseObject instanceof Variable) {
 						databaseObject.priority = databaseObject.getNewOrderValue();
-						databaseObject.newPriority = databaseObject.priority;
 						testCase.add(databaseObject);
 					}
 				} else if (parentDatabaseObject instanceof ApplicationComponent) {
 					ApplicationComponent app = (ApplicationComponent) parentDatabaseObject;
 					if (databaseObject instanceof PageComponent) {
 						databaseObject.priority = databaseObject.getNewOrderValue();
-						databaseObject.newPriority = databaseObject.priority;
 						app.add(databaseObject);
 					}
 					else if (databaseObject instanceof RouteComponent) {
 						databaseObject.priority = databaseObject.getNewOrderValue();
-						databaseObject.newPriority = databaseObject.priority;
 						app.add(databaseObject);
 					}
 					else if (databaseObject instanceof UIDynamicMenu) {
 						databaseObject.priority = databaseObject.getNewOrderValue();
-						databaseObject.newPriority = databaseObject.priority;
 						app.add(databaseObject);
 					}
 					else if (databaseObject instanceof UIComponent) {
 						databaseObject.priority = databaseObject.getNewOrderValue();
-						databaseObject.newPriority = databaseObject.priority;
 						app.add(databaseObject);
 					}
 				} else if (parentDatabaseObject instanceof RouteComponent) {
 					RouteComponent route = (RouteComponent)parentDatabaseObject;
 					if (databaseObject instanceof RouteActionComponent) {
 						databaseObject.priority = databaseObject.getNewOrderValue();
-						databaseObject.newPriority = databaseObject.priority;
 						RouteActionComponent rac = (RouteActionComponent)databaseObject;
 						int i = rac.getPage().lastIndexOf(".");
 						if (i != -1) {
@@ -651,27 +634,23 @@ public class ClipboardManager {
 					}
 					else if (databaseObject instanceof RouteEventComponent) {
 						databaseObject.priority = databaseObject.getNewOrderValue();
-						databaseObject.newPriority = databaseObject.priority;
 						route.add(databaseObject);
 					}
 				} else if (parentDatabaseObject instanceof PageComponent) {
 					PageComponent page = (PageComponent) parentDatabaseObject;
 					if (databaseObject instanceof UIComponent) {
 						databaseObject.priority = databaseObject.getNewOrderValue();
-						databaseObject.newPriority = databaseObject.priority;
 						page.add(databaseObject);
 					}
 				} else if (parentDatabaseObject instanceof UIDynamicMenu) {
 					UIDynamicMenu menu = (UIDynamicMenu) parentDatabaseObject;
 					if (databaseObject instanceof UIComponent) {
 						databaseObject.priority = databaseObject.getNewOrderValue();
-						databaseObject.newPriority = databaseObject.priority;
 						menu.add(databaseObject);
 					}
 				} else if (parentDatabaseObject instanceof UIComponent) {
 					UIComponent component = (UIComponent) parentDatabaseObject;
 					databaseObject.priority = databaseObject.getNewOrderValue();
-					databaseObject.newPriority = databaseObject.priority;
 					component.add(databaseObject);
 				} else if (parentDatabaseObject == null) {
 					if (databaseObject instanceof Project) {
@@ -899,24 +878,15 @@ public class ClipboardManager {
 		// Sets new priority so object will be paste at end
 		if ((object instanceof Criteria) || (object instanceof ExtractionRule) || (object instanceof Statement) || (object instanceof Step)) {
 			object.priority = object.getNewOrderValue();
-			object.newPriority = object.priority;
 			object.hasChanged = true;
 		}
 		if ((object instanceof FunctionStatement) && (target instanceof HtmlTransaction)) {
 			object.priority = 0;
-			object.newPriority = object.priority;
 			object.hasChanged = true;
 		}
 		if (object instanceof ScreenClass) {
 			object.priority = target.priority + 1;
 			object.hasChanged = true;
-		}
-
-		// Restriction due to migration to 4.0.1
-		if (((target instanceof ScreenClass) && (!((ScreenClass) target).handlePriorities)) ||
-				((target instanceof HtmlTransaction) && (!((HtmlTransaction) target).handlePriorities)) ||
-				((target instanceof StatementWithExpressions) && (!((StatementWithExpressions) target).handlePriorities))) {
-			object.bNew = true;
 		}
 
 		// Second, add the source to the target and

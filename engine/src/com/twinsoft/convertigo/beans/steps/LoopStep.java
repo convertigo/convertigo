@@ -65,7 +65,7 @@ public abstract class LoopStep extends BlockStep {
 	protected void cleanCopy() {
 		for (int i=0; i<executedLoops.size(); i++) {
 			String timeID = executedLoops.get(i);
-			sequence.removeCopy(timeID, new Long(priority));
+			sequence.removeCopy(timeID, priority);
 		}
 		executedLoops.clear();
 		super.cleanCopy();
