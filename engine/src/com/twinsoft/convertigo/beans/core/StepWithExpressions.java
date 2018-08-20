@@ -53,7 +53,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 	/**
      * The vector of ordered step objects which can be applied on the StepWithExpressions.
      */
-    private XMLVector<XMLVector<Long>> orderedSteps = null;
+    transient private XMLVector<XMLVector<Long>> orderedSteps = null;
 	
     transient private List<Step> vSteps = new ArrayList<Step>();
     
@@ -261,7 +261,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, value);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
 	
     public void removeStep(Step step) {

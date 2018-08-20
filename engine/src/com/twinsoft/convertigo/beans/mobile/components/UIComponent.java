@@ -46,7 +46,7 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 	
 	private static final long serialVersionUID = -1872010547443624681L;
 
-	private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();
 	
 	private boolean isEnabled = true;
 	
@@ -89,7 +89,7 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, component.priority);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
     
     private void removeOrderedComponent(Long value) {

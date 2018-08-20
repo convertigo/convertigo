@@ -36,7 +36,7 @@ public abstract class StatementWithExpressions extends Statement implements ICon
 	/**
      * The vector of ordered statement objects which can be applied on the StatementWithExpressions.
      */
-    private XMLVector<XMLVector<Long>> orderedStatements = null;
+    transient private XMLVector<XMLVector<Long>> orderedStatements = null;
 	
     transient private List<Statement> vStatements = new ArrayList<Statement>();
     
@@ -113,7 +113,7 @@ public abstract class StatementWithExpressions extends Statement implements ICon
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, value);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
 	
     public void removeStatement(Statement statement) {

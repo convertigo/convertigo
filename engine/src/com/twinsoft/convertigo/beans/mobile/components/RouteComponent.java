@@ -83,8 +83,8 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
 		this.isEnabled = isEnabled;
 	}
 	
-	private XMLVector<XMLVector<Long>> orderedActions = new XMLVector<XMLVector<Long>>();
-	private XMLVector<XMLVector<Long>> orderedEvents = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedActions = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedEvents = new XMLVector<XMLVector<Long>>();
 	
 	public XMLVector<XMLVector<Long>> getOrderedActions() {
 		return orderedActions;
@@ -109,7 +109,7 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, component.priority);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
     
     private void removeOrderedAction(Long value) {
@@ -141,7 +141,7 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, component.priority);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
     
     private void removeOrderedEvent(Long value) {

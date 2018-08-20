@@ -156,7 +156,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, value);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
     
     public void removeVariable(RequestableVariable variable) {
@@ -366,7 +366,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 	}
 	
 	/** Holds value of property orderedVariables. */
-	private XMLVector<XMLVector<Long>> orderedVariables = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedVariables = new XMLVector<XMLVector<Long>>();
 	
 	/** Stores value of property orderedVariables. */
 	//private transient XMLVector originalVariablesDefinition = null;

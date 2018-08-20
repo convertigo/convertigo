@@ -59,7 +59,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 
 	private static final long serialVersionUID = 188562781669238824L;
 	
-	private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();
 	
 	public PageComponent() {
 		super();
@@ -162,7 +162,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, component.priority);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
     
     private void removeOrderedComponent(Long value) {

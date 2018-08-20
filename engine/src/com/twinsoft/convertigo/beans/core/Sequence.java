@@ -140,10 +140,10 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	transient private List<TestCase> vTestCases = new ArrayList<TestCase>();
 	
     /** The vector of ordered step objects which can be applied on the Sequence. */
-	private XMLVector<XMLVector<Long>> orderedSteps = null;
+	transient private XMLVector<XMLVector<Long>> orderedSteps = null;
 	
 	/** The vector of ordered variables objects of Sequence. */
-	private XMLVector<XMLVector<Long>> orderedVariables = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedVariables = new XMLVector<XMLVector<Long>>();
 	
 	private boolean includeResponseElement = true;
 	
@@ -742,7 +742,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, value);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
 	
     private void insertOrderedVariable(Variable variable, Long after) {
@@ -762,7 +762,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, value);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
 
     public void removeVariable(RequestableVariable variable) {

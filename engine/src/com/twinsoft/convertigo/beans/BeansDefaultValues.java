@@ -125,12 +125,22 @@ public class BeansDefaultValues {
 				Element pProp = (Element) pPropNode;
 				String name = pProp.getAttribute("name");
 				Element dProp = (Element) xpath.selectNode(dBean, "property[@name='" + name + "']");
-				//TODO: don't save order* properties (make transient ?)
 				if (!"name".equals(name) &&
-						!name.startsWith("order") &&
 						(dProp == null || !checkIsSame(pProp, dProp)
 				)) {
-					Element nProp = (Element) nCopy.appendChild(nCopy.getOwnerDocument().createElement(name));					
+					Element nProp = (Element) nCopy.appendChild(nCopy.getOwnerDocument().createElement(name));
+					
+					for (Node pAttr: xpath.selectList(pProp, "@*")) {
+						String aName = pAttr.getNodeName();
+						if (!aName.equals("name") && 
+								!aName.equals("isNull") && (
+								!dProp.hasAttribute(aName) ||
+								!pAttr.getNodeValue().equals(dProp.getAttribute(aName))
+						)) {
+							nProp.setAttribute(aName, pAttr.getNodeValue());
+						}
+					}
+					
 					Element content = nextElement(pProp.getFirstChild(), true);
 					
 					if (nextElement(content, false) == null && content.getTagName().startsWith("java.lang.")) {
@@ -228,6 +238,14 @@ public class BeansDefaultValues {
 					}
 				}
 				nProp.setAttribute("name", pPropNode.getNodeName());
+				
+				for (Node pAttr: xpath.selectList(pPropNode, "@*")) {
+					String name = pAttr.getNodeName();
+					if (!name.equals("name")) {
+						nProp.setAttribute(name, pAttr.getNodeValue());
+					}
+				}
+				
 				if (xpath.selectNode(pPropNode, "*") == null) {
 					Element nValue = (Element) xpath.selectNode(nProp, "*");
 					if (nValue == null) {

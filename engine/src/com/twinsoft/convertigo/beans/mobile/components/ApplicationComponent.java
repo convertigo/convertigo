@@ -61,10 +61,10 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	
 	private static final long serialVersionUID = 6142350115354549719L;
 
-	private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();
-	private XMLVector<XMLVector<Long>> orderedRoutes = new XMLVector<XMLVector<Long>>();
-	private XMLVector<XMLVector<Long>> orderedPages = new XMLVector<XMLVector<Long>>();
-	private XMLVector<XMLVector<Long>> orderedMenus = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedRoutes = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedPages = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedMenus = new XMLVector<XMLVector<Long>>();
 	
 	private String tplProjectName = "";
 	private String tplProjectVersion = "";
@@ -184,7 +184,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, component.priority);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
     
     private void removeOrderedMenu(Long value) {
@@ -216,7 +216,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, component.priority);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
     
     private void removeOrderedPage(Long value) {
@@ -248,7 +248,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, component.priority);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
     
     private void removeOrderedRoute(Long value) {
@@ -280,7 +280,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, component.priority);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
     
     private void removeOrderedComponent(Long value) {

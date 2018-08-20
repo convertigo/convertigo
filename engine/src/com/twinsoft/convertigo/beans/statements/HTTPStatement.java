@@ -88,7 +88,7 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 	private XMLVector<XMLVector<String>> headers = new XMLVector<XMLVector<String>>();
     
 	/** Holds value of property data. */
-	private XMLVector<XMLVector<Long>> orderedVariables = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedVariables = new XMLVector<XMLVector<Long>>();
 
 	/** Holds the value of property form. */
 	transient private String formName = "";
@@ -268,7 +268,7 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, value);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
     
     public void removeVariable(HttpStatementVariable variable) {
