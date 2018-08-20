@@ -1035,7 +1035,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			if (importFileName != null) {
 				if (importFileName.endsWith(".yaml")) {
 					document = YamlConverter.readYaml(new File(importFileName));
-					BeansDefaultValues.unshrinkProject(document);
+					document = BeansDefaultValues.unshrinkProject(document);
 				} else {
 					document = XMLUtils.loadXml(importFileName);
 				}
