@@ -25,13 +25,14 @@ public class YamlConverter {
 	
 	private final Matcher toQuote = Pattern.compile("(?:^(?:-|\\?|:|,|\\[|\\]|\\{|\\}|#|&|\\*|\\!|\\||>|'|\"|%|@|`|\\\\s))|(?:: )", Pattern.MULTILINE).matcher("");
 	
-	private final Matcher parse = Pattern.compile("( *)(?:- )?(↑)?(→)?(↓)?(.*?): (.*)").matcher("");
+	private final Matcher parse = Pattern.compile("( *)(- )?(↑)?(→)?(↓)?(.*?): (.*)").matcher("");
 	private static final int P_INDENT = 1;
-	private static final int P_ATTR   = 2;
-	private static final int P_TXT    = 3;
-	private static final int P_CHILD  = 4;
-	private static final int P_KEY    = 5;
-	private static final int P_VALUE  = 6;
+	private static final int P_ARRAY  = 2;
+	private static final int P_ATTR   = 3;
+	private static final int P_TXT    = 4;
+	private static final int P_CHILD  = 5;
+	private static final int P_KEY    = 6;
+	private static final int P_VALUE  = 7;
 
 	private StringBuilder sb;
 	private BufferedReader br;
@@ -64,16 +65,20 @@ public class YamlConverter {
 		String nextIndent = indent + inc;
 		String txtIndent = nextIndent;
 		
-		boolean isBean = element.hasAttribute("yaml_key") && element.getTagName().equals("bean");
+		boolean isBean = (element.hasAttribute("yaml_key") || element.hasAttribute("yaml_attr")) && element.getTagName().equals("bean");
 		
-		if (!isBean) {
-			txtIndent += inc;
-		}
-		
-		String key = isBean ? element.getAttribute("yaml_key") : element.getTagName();
+		String key = isBean ?
+				(element.hasAttribute("yaml_key") ?
+				'↓' + element.getAttribute("yaml_key") :
+				'↑' + element.getAttribute("yaml_attr")
+			):element.getTagName();
 		sb.append(indent).append(inArray ? "- " : "").append(key).append(sep);
 		
 		int len = sb.length();
+		
+		if (inArray) {
+			txtIndent += inc;
+		}
 		
 		NamedNodeMap attributes = element.getAttributes();
 		int attributesLength = attributes.getLength();
@@ -101,7 +106,7 @@ public class YamlConverter {
 				CDATASection cdata = (CDATASection) child;
 				String txt = cdata.getData();
 				sb.append('\n').append(nextIndent).append('→').append(sep);
-				writeYamlText(txtIndent, txt);
+				writeYamlText(nextIndent + inc, txt);
 			} else if (child.getNodeType() == Node.TEXT_NODE && child.getNextSibling() == null) {
 				String txt = child.getNodeValue();
 				if (len != sb.length() && inArray) {
@@ -173,7 +178,8 @@ public class YamlConverter {
 			} else {
 				String key = parse.group(P_KEY);
 				String value = parse.group(P_VALUE);
-				value = readYalmText(value, indent);
+				String textIndent = parse.group(P_ARRAY) == null ? indent : (indent + inc);
+				value = readYalmText(value, textIndent);
 				Element nElt = doc.createElement(key);
 				elt.appendChild(nElt);
 				nElt.setTextContent(value);

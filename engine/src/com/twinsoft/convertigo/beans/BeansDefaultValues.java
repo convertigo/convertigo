@@ -26,7 +26,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 public class BeansDefaultValues {
 	
 	private static final String XMLPATH = "/com/twinsoft/convertigo/beans/dabase_objects_default.xml";
-	private static final Pattern patternBeanName = Pattern.compile("(.*) \\[(.*)\\]");
+	private static final Pattern patternBeanName = Pattern.compile("(.*) \\[(.*?)(?:-(.*))?\\]");
 	
 	private static Element nextElement(Node node, boolean checkParameter) {
 		if (node == null || (checkParameter && node instanceof Element)) {
@@ -102,18 +102,22 @@ public class BeansDefaultValues {
 		TwsCachedXPathAPI xpath = TwsCachedXPathAPI.getInstance();
 		for (Node pBeanNode: xpath.selectList(element, "*[@classname]")) {
 			Element pBean = (Element) pBeanNode;
-			String classname = pBean.getAttribute("classname");			
+			String classname = pBean.getAttribute("classname");
 			String pName = xpath.selectNode(pBean, "property[@name='name']/*/@value").getNodeValue();
+			String pPriority = pBean.getAttribute("priority");
+			
+			pPriority = "0".equals(pPriority) ? "" : '-' + pPriority;
 			
 			Element nCopy = copy.getOwnerDocument().createElement("bean");
 			copy.appendChild(nCopy);
-			nCopy.setAttribute("yaml_key", '↓' + pName + " [" + classname.substring(30) + ']');
+			nCopy.setAttribute("yaml_key", pName + " [" + classname.substring(30) + pPriority + ']');
 			
 			Element dBean = (Element) xpath.selectNode(beans, "*[@classname='" + classname + "']");
 			
 			for (Node pAttr: xpath.selectList(pBean, "@*")) {
 				String name = pAttr.getNodeName();
-				if (!name.equals("classname") && (
+				if (!name.equals("classname") &&
+						!name.equals("priority") && (
 						!dBean.hasAttribute(name) ||
 						!pAttr.getNodeValue().equals(dBean.getAttribute(name))
 				)) {
@@ -177,7 +181,7 @@ public class BeansDefaultValues {
 		for (Node attr: xpath.selectList(project.getDocumentElement(), "@*")) {
 			Element eAttr = copy.createElement("bean");
 			root.appendChild(eAttr);
-			eAttr.setAttribute("yaml_key", '↑' + attr.getNodeName());
+			eAttr.setAttribute("yaml_attr", attr.getNodeName());
 			eAttr.setTextContent(attr.getNodeValue());
 		}
 		
@@ -205,8 +209,10 @@ public class BeansDefaultValues {
 			Matcher matcherBeanName = patternBeanName.matcher(pBean.getAttribute("yaml_key"));
 			
 			matcherBeanName.matches();
-			
+
+			String pName = matcherBeanName.group(1);
 			String classname = "com.twinsoft.convertigo.beans." + matcherBeanName.group(2);
+			String pPriority = matcherBeanName.group(3);
 			Element dBean = (Element) xpath.selectNode(beans, "*[@classname='" + classname + "']");
 			
 			Element nBean = null;
@@ -224,7 +230,10 @@ public class BeansDefaultValues {
 				}
 			}
 			
-			((Element) xpath.selectNode(nBean, "property[@name='name']/*")).setAttribute("value", matcherBeanName.group(1));
+			((Element) xpath.selectNode(nBean, "property[@name='name']/*")).setAttribute("value", pName);
+			if (pPriority != null) {
+				nBean.setAttribute("priority", pPriority);
+			}
 			
 			for (Node pPropNode: xpath.selectList(pBean, "*[not(@yaml_key)]")) {
 				Element nProp = (Element) xpath.selectNode(nBean, "property[@name='" + pPropNode.getNodeName() + "']");
