@@ -347,7 +347,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			parent.changed();
 		}
 		
-		changed();
+		//changed();
 	}
 	
 	/**

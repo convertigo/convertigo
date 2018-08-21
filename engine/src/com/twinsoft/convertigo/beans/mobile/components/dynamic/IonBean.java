@@ -127,7 +127,7 @@ public class IonBean {
 				}
 				jsonOb.remove(k.name());
 			}
-			s = jsonOb.toString();
+			s = jsonOb.toString(1);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}

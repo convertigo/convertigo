@@ -191,7 +191,7 @@ public class MobileSmartSourceType implements XMLizable, Serializable, Cloneable
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-		self.setTextContent(jsonObject.toString());
+		self.setTextContent(jsonObject.toString(1));
 		return self;
 	}
 

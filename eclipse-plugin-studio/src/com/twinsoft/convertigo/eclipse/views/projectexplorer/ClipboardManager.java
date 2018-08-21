@@ -871,34 +871,8 @@ public class ClipboardManager {
 	public synchronized void move(DatabaseObject object, DatabaseObject target) throws ConvertigoException {
 		// First, delete the object from its parent
 		object.delete();
-		//ConvertigoPlugin.projectManager.save(parent, false);
 
-		long oldPriority = object.priority;
-
-		// Sets new priority so object will be paste at end
-		if ((object instanceof Criteria) || (object instanceof ExtractionRule) || (object instanceof Statement) || (object instanceof Step)) {
-			object.priority = object.getNewOrderValue();
-			object.hasChanged = true;
-		}
-		if ((object instanceof FunctionStatement) && (target instanceof HtmlTransaction)) {
-			object.priority = 0;
-			object.hasChanged = true;
-		}
-		if (object instanceof ScreenClass) {
-			object.priority = target.priority + 1;
-			object.hasChanged = true;
-		}
-
-		// Second, add the source to the target and
+		// Second, add the source to the target
 		target.add(object);
-		//ConvertigoPlugin.projectManager.save(target, false);
-
-		// Update sources that reference this step
-		if (object instanceof Step) {
-			((Step) object).getSequence().fireStepMoved(new StepEvent(object,String.valueOf(oldPriority)));
-		}
-
-		// save the object and all its children
-		//ConvertigoPlugin.projectManager.save(object, true);
 	}
 }
