@@ -169,25 +169,27 @@ public class BeansDefaultValues {
 	}
 	
 	public static Document shrinkProject(Document project) throws Exception {
-		TwsCachedXPathAPI xpath = TwsCachedXPathAPI.getInstance();
 		Document beans;
 		try (InputStream is = BeansDefaultValues.class.getResourceAsStream(XMLPATH)) {
 			beans = XMLUtils.getDefaultDocumentBuilder().parse(is);
 		}
 		
-		Document copy = XMLUtils.createDom();
-		Element root = (Element) copy.appendChild(copy.createElement("root"));
+		Element eProject = project.getDocumentElement();
 		
-		for (Node attr: xpath.selectList(project.getDocumentElement(), "@*")) {
-			Element eAttr = copy.createElement("bean");
-			root.appendChild(eAttr);
-			eAttr.setAttribute("yaml_attr", attr.getNodeName());
-			eAttr.setTextContent(attr.getNodeValue());
-		}
+		Document nProjectDoc = XMLUtils.createDom();
+		Element nProject = (Element) nProjectDoc.appendChild(nProjectDoc.createElement("root"));
 		
-		shrinkChildren(beans.getDocumentElement(), project.getDocumentElement(), root);
+		Element eAttr = (Element) nProject.appendChild(nProjectDoc.createElement("bean"));
+		eAttr.setAttribute("yaml_attr", "convertigo");
+		eAttr.setTextContent(eProject.getAttribute("version"));
 		
-		return copy;
+		eAttr = (Element) nProject.appendChild(nProjectDoc.createElement("bean"));
+		eAttr.setAttribute("yaml_attr", "beans");
+		eAttr.setTextContent(eProject.getAttribute("beans"));
+		
+		shrinkChildren(beans.getDocumentElement(), project.getDocumentElement(), nProject);
+		
+		return nProjectDoc;
 	}
 	
 	public static Document unshrinkProject(Document project) throws Exception {
@@ -195,10 +197,20 @@ public class BeansDefaultValues {
 		try (InputStream is = BeansDefaultValues.class.getResourceAsStream(XMLPATH)) {
 			beans = XMLUtils.getDefaultDocumentBuilder().parse(is);
 		}
-		Document doc = XMLUtils.createDom();
-		doc.appendChild(doc.importNode(project.getDocumentElement(), false));
-		unshrinkChildren(beans.getDocumentElement(), project.getDocumentElement(), doc.getDocumentElement());
-		return doc;
+		Document nProjectDoc = XMLUtils.createDom();
+		
+		Element nProject = (Element) nProjectDoc.appendChild(nProjectDoc.importNode(project.getDocumentElement(), false));
+		
+		unshrinkChildren(beans.getDocumentElement(), project.getDocumentElement(), nProject);
+		
+		String shortVersion = nProject.getAttribute("beans");
+		shortVersion = shortVersion.substring(0, shortVersion.lastIndexOf("."));
+		nProject.setAttribute("engine", shortVersion);
+		nProject.setAttribute("studio", shortVersion);
+		nProject.setAttribute("version", nProject.getAttribute("convertigo"));
+		nProject.removeAttribute("convertigo");
+		
+		return nProjectDoc;
 	}
 	
 	private static void unshrinkChildren(Element beans, Element element, Element nParent) {
