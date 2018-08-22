@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
@@ -25,20 +26,22 @@ public class YamlConverter {
 	
 	private final Matcher toQuote = Pattern.compile("(?:^(?:-|\\?|:|,|\\[|\\]|\\{|\\}|#|&|\\*|\\!|\\||>|'|\"|%|@|`|\\\\s))|(?:: )", Pattern.MULTILINE).matcher("");
 	
-	private final Matcher parse = Pattern.compile("( *)(- )?(↑)?(→)?(↓)?(.*?): (.*)").matcher("");
+	private final Matcher parse = Pattern.compile("( *)(- )?(↑)?(→)?(↓)?(.*?): (🗏 )?(.*)").matcher("");
 	private static final int P_INDENT = 1;
 	private static final int P_ARRAY  = 2;
 	private static final int P_ATTR   = 3;
 	private static final int P_TXT    = 4;
 	private static final int P_CHILD  = 5;
 	private static final int P_KEY    = 6;
-	private static final int P_VALUE  = 7;
+	private static final int P_FILE   = 7;
+	private static final int P_VALUE  = 8;
 
 	private StringBuilder sb;
 	private BufferedReader br;
 	private Document doc;
 	private String line = "";
 	private String lastLine = null;
+	private File subdir = null;
 	
 	private YamlConverter() {
 		
@@ -61,9 +64,10 @@ public class YamlConverter {
 		}
 	}
 	
-	private void writeYamlElement(String indent, Element element, boolean inArray) {
+	private void writeYamlElement(String indent, Element element, boolean inArray) throws IOException {
 		String nextIndent = indent + inc;
 		String txtIndent = nextIndent;
+		StringBuilder sbSaved = this.sb;
 		
 		boolean isBean = (element.hasAttribute("yaml_key") || element.hasAttribute("yaml_attr")) && element.getTagName().equals("bean");
 		
@@ -73,6 +77,15 @@ public class YamlConverter {
 				'↑' + element.getAttribute("yaml_attr")
 			):element.getTagName();
 		sb.append(indent).append(inArray ? "- " : "").append(key).append(sep);
+
+		String yamlFile = element.getAttribute("yaml_file");
+		File subfile = null;
+		if (subdir != null && StringUtils.isNotBlank(yamlFile)) {
+			subfile = new File(subdir, yamlFile);
+			subfile.getParentFile().mkdirs();
+			this.sb = new StringBuilder();
+			nextIndent = txtIndent = "";
+		}
 		
 		int len = sb.length();
 		
@@ -115,6 +128,12 @@ public class YamlConverter {
 				writeYamlText(txtIndent, txt);
 			}
 			child = child.getNextSibling();
+		}
+		
+		if (subfile != null) {
+			FileUtils.write(subfile, sb.substring(1), "UTF-8");
+			sb = sbSaved;
+			sb.append("🗏 " + yamlFile);
 		}
 	}
 	
@@ -171,7 +190,21 @@ public class YamlConverter {
 					Element nElt = doc.createElement("bean");
 					elt.appendChild(nElt);
 					nElt.setAttribute("yaml_key", parse.group(P_KEY));
-					readYamlElement(nElt, indent + inc, isBean);
+					if (parse.group(P_FILE) != null) {
+						String value = parse.group(P_VALUE);
+						File subfile = new File(subdir, value);
+						BufferedReader brSaved = br;
+						String lineSaved = line;
+						try (BufferedReader brSub = new BufferedReader(new InputStreamReader(new FileInputStream(subfile), "UTF-8"))) {
+							br = brSub;
+							readYamlElement(nElt, "", isBean);
+						} finally {
+							br = brSaved;
+							line = lineSaved;
+						}
+					} else {
+						readYamlElement(nElt, indent + inc, isBean);
+					}
 				} else {
 					readYamlArray(elt, indent, isBean);
 				}
@@ -227,6 +260,7 @@ public class YamlConverter {
 	public static Document readYaml(File yaml) throws Exception {
 		try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(yaml), "UTF-8"))) {
 			YamlConverter y = new YamlConverter();
+			y.subdir = new File(yaml.getParentFile(), "_c8oProject");
 			y.doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
 			y.doc.appendChild(y.doc.createElement("convertigo"));
 			y.br = br;
@@ -244,8 +278,13 @@ public class YamlConverter {
 	}
 	
 	public static void writeYaml(Document document, File yaml) throws IOException {
+		writeYaml(document, yaml, null);
+	}
+	
+	public static void writeYaml(Document document, File yaml, File subdir) throws IOException {
 		YamlConverter y = new YamlConverter();
 		y.sb = new StringBuilder();
+		y.subdir = subdir;
 		Node node = document.getDocumentElement().getFirstChild();
 		while (node != null) {
 			if (node instanceof Element) {

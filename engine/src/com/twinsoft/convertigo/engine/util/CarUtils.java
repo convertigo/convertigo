@@ -160,6 +160,12 @@ public class CarUtils {
 			FileUtils.write(new File(fileName.replaceFirst("\\.xml$", ".shrink2.xml")), XMLUtils.prettyPrintDOMWithEncoding(nCopy, "UTF-8"), "UTF-8");
 			Document full = BeansDefaultValues.unshrinkProject(nCopy);
 			FileUtils.write(new File(fileName.replaceFirst("\\.xml$", ".full.xml")), XMLUtils.prettyPrintDOMWithEncoding(full, "UTF-8"), "UTF-8");
+
+			File projectDir = new File(fileName).getParentFile();
+			YamlConverter.writeYaml(copy, new File(projectDir, "c8oProject.yaml"), new File(projectDir, "_c8oProject"));
+			nCopy = YamlConverter.readYaml(new File(projectDir, "c8oProject.yaml"));
+			full = BeansDefaultValues.unshrinkProject(nCopy);
+			FileUtils.write(new File(fileName.replaceFirst("\\.xml$", ".sub.full.xml")), XMLUtils.prettyPrintDOMWithEncoding(full, "UTF-8"), "UTF-8");
 		} catch (Exception e) {
 			throw new EngineException("(CarUtils) exportProject in YAML failed", e);
 		}

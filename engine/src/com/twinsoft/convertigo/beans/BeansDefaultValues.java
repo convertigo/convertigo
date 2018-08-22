@@ -103,6 +103,7 @@ public class BeansDefaultValues {
 		for (Node pBeanNode: xpath.selectList(element, "*[@classname]")) {
 			Element pBean = (Element) pBeanNode;
 			String classname = pBean.getAttribute("classname");
+			String cls = classname.substring(30);
 			String pName = xpath.selectNode(pBean, "property[@name='name']/*/@value").getNodeValue();
 			String pPriority = pBean.getAttribute("priority");
 			
@@ -110,7 +111,15 @@ public class BeansDefaultValues {
 			
 			Element nCopy = copy.getOwnerDocument().createElement("bean");
 			copy.appendChild(nCopy);
-			nCopy.setAttribute("yaml_key", pName + " [" + classname.substring(30) + pPriority + ']');
+			nCopy.setAttribute("yaml_key", pName + " [" + cls + pPriority + ']');
+			
+			if (cls.startsWith("connectors.")) {
+				nCopy.setAttribute("yaml_file", "connectors/" + pName + ".yaml");
+			} else if (cls.startsWith("sequences.")) {
+				nCopy.setAttribute("yaml_file", "sequences/" + pName + ".yaml");
+			} else if (cls.equals("mobile.components.PageComponent")) {
+				nCopy.setAttribute("yaml_file", "mobilePages/" + pName + ".yaml");
+			}
 			
 			Element dBean = (Element) xpath.selectNode(beans, "*[@classname='" + classname + "']");
 			
