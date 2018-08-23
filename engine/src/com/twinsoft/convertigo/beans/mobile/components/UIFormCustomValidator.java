@@ -89,9 +89,9 @@ public class UIFormCustomValidator extends UIFormValidator {
 			String computed = "";
 			computed += System.lineSeparator();
 			computed += cartridge;
-			computed += "\t\tfunction "+ validatorName +"("+parameter+") {"+ System.lineSeparator();
+			computed += "\t\tlet "+ validatorName +" = ("+parameter+") => {"+ System.lineSeparator();
 			computed += computeValidatorContent();
-			computed += "\t\t}"+ System.lineSeparator();
+			computed += "\t\t};"+ System.lineSeparator();
 			return computed;
 		}
 		return "";
