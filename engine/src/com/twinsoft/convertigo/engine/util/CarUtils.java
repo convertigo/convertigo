@@ -140,42 +140,30 @@ public class CarUtils {
 
 	public static void exportProject(Project project, String fileName) throws EngineException {
 		Document document = exportProject(project, new ArrayList<TestCase>());
-		exportXMLProject(fileName, document);
-		exportYAMLProject(fileName, document);
+		try {
+			exportYAMLProject(fileName, document);
+		} catch (Exception e) {
+			Engine.logEngine.error("Failed to export the project as YAML, export XML instead.", e);
+			exportXMLProject(fileName, document);
+		}
 	}
 	
 	public static void exportProject(Project project, String fileName, 
 			List<TestCase> selectedTestCases) throws EngineException {
 		Document document = exportProject(project, selectedTestCases);
-		exportXMLProject(fileName, document);
-		exportYAMLProject(fileName, document);
+		try {
+			exportYAMLProject(fileName, document);
+		} catch (Exception e) {
+			Engine.logEngine.error("Failed to export the project as YAML, export XML instead.", e);
+			exportXMLProject(fileName, document);
+		}
 	}
 	
 	private static void exportYAMLProject(String fileName, Document document) throws EngineException {
-		try {
-			long tStart = System.currentTimeMillis();
+		try {			
 			Document shrink = BeansDefaultValues.shrinkProject(document);
-			long tShrink = System.currentTimeMillis();
 			File projectDir = new File(fileName).getParentFile();
-			YamlConverter.writeYaml(shrink, new File(projectDir, "c8oProject.yaml"), new File(projectDir, "_c8oProject"));
-			long tYaml = System.currentTimeMillis();
-			Document nCopy = YamlConverter.readYaml(new File(projectDir, "c8oProject.yaml"));
-			long tUnYaml = System.currentTimeMillis();
-			Document full = BeansDefaultValues.unshrinkProject(nCopy);
-			long tUnShrink = System.currentTimeMillis();
-			FileUtils.write(new File(fileName.replaceFirst("\\.xml$", ".sub.full.xml")), XMLUtils.prettyPrintDOMWithEncoding(full, "UTF-8"), "UTF-8");
-//			YamlConverter.writeYaml(shrink, new File(fileName.replaceFirst("\\.xml$", ".yaml")));
-//			Document nCopy = YamlConverter.readYaml(new File(fileName.replaceFirst("\\.xml$", ".yaml")));
-//			FileUtils.write(new File(fileName.replaceFirst("\\.xml$", ".shrink2.xml")), XMLUtils.prettyPrintDOMWithEncoding(nCopy, "UTF-8"), "UTF-8");
-//			Document full = BeansDefaultValues.unshrinkProject(nCopy);
-//			FileUtils.write(new File(fileName.replaceFirst("\\.xml$", ".full.xml")), XMLUtils.prettyPrintDOMWithEncoding(full, "UTF-8"), "UTF-8");
-//			FileUtils.write(new File(fileName.replaceFirst("\\.xml$", ".shrink.xml")), XMLUtils.prettyPrintDOMWithEncoding(shrink, "UTF-8"), "UTF-8");
-			Engine.logEngine.info("Exporting and reader YAML times:\n"
-					+ "shrink  : " + (tShrink - tStart) + "\n"
-					+ "yaml    : " + (tYaml - tShrink) + " [" + (tYaml - tStart) + "]\n"
-					+ "unyaml  : " + (tUnYaml - tYaml) + "\n"
-					+ "unshrink: " + (tUnShrink - tUnYaml) + " [" + (tUnShrink - tYaml) + "]\n"
-			);			
+			YamlConverter.writeYaml(shrink, new File(projectDir, "c8oProject.yaml"), new File(projectDir, "_c8oProject"));			
 		} catch (Exception e) {
 			throw new EngineException("(CarUtils) exportProject in YAML failed", e);
 		}

@@ -1669,7 +1669,7 @@ public class Engine {
 	public static File projectYamlFile(String projectName) {
 		File file = DatabaseObjectsManager.studioProjects.getProject(projectName);
 		if (file == null) {
-			file = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".yaml");
+			file = new File(Engine.PROJECTS_PATH + "/" + projectName + "/c8oProject.yaml");
 		}
 		return file;
 	}
@@ -1720,6 +1720,6 @@ public class Engine {
 	}
 
 	public static boolean isProjectFile(String filePath) {
-		return filePath.endsWith(".xml") || filePath.endsWith(".yaml");
+		return filePath.endsWith(".xml") || new File(filePath).getName().equals("c8oProject.yaml");
 	}
 }

@@ -19,9 +19,12 @@
 
 package com.twinsoft.convertigo.engine;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -105,9 +108,12 @@ import com.twinsoft.convertigo.engine.util.ZipUtils;
  * repository and restoring them from the Convertigo database repository.
  */
 public class DatabaseObjectsManager implements AbstractManager {
-	private static Pattern pValidSymbolName = Pattern.compile("[\\{=}\\r\\n]");
-	private static Pattern pFindSymbol = Pattern.compile("\\$\\{([^\\{\\r\\n]*?)(?:=(.*?(?<!\\\\)))?}");
-	private static Pattern pFindEnv = Pattern.compile("\\%([^\\r\\n]*?)(?:=(.*?(?<!\\\\)))?\\%");
+	private static final Pattern pValidSymbolName = Pattern.compile("[\\{=}\\r\\n]");
+	private static final Pattern pFindSymbol = Pattern.compile("\\$\\{([^\\{\\r\\n]*?)(?:=(.*?(?<!\\\\)))?}");
+	private static final Pattern pFindEnv = Pattern.compile("\\%([^\\r\\n]*?)(?:=(.*?(?<!\\\\)))?\\%");
+	private static final Pattern pYamlProjectVersion = Pattern.compile("↑(?:(beans)|.*?): (.*)");
+	private static final Pattern pYamlProjectName = Pattern.compile("(?:↑.*?:.*)|(?:↓(.*?) \\[core\\.Project\\]: )");
+	private static final Pattern pProjectName = Pattern.compile("(.*)\\.(?:xml|car)");
 	
 	public static interface StudioProjects {
 		default void declareProject(File projectXml) {
@@ -640,7 +646,6 @@ public class DatabaseObjectsManager implements AbstractManager {
 	public Project updateProject(String projectFileName) throws EngineException {
 		try {
 			boolean isArchive = false, needsMigration = false;
-			String projectName = null;
 			Project project = null;
 
 			Engine.logDatabaseObjectManager.trace("DatabaseObjectsManager.updateProject() - projectFileName  :  " + projectFileName);
@@ -648,16 +653,13 @@ public class DatabaseObjectsManager implements AbstractManager {
 			Engine.logDatabaseObjectManager.trace("DatabaseObjectsManager.updateProject() - projectFile.exists()  :  " + projectFile.exists());
 			
 			if (projectFile.exists()) {
-				String fName = projectFile.getName();
-				if (projectFileName.endsWith(".xml")) {
-					projectName = fName.substring(0, fName.indexOf(".xml"));
-				} else if (projectFileName.endsWith(".car")) {
+				String projectName = getProjectName(projectFile);
+				if (projectFileName.endsWith(".car")) {
 					isArchive = true;
-					projectName = fName.substring(0, fName.indexOf(".car"));
 				}
 
 				if (projectName != null) {
-					needsMigration = needsMigration(projectName);
+					needsMigration = needsMigration(projectFile);
 
 					if (isArchive) {
 						// Deploy project (will backup project and perform the
@@ -964,6 +966,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 	public Project importProject(String importFileName) throws EngineException {
 		try {
+			File file = new File(importFileName);
+			if (!file.exists() && importFileName.endsWith(".xml")) {
+				importFileName = new File(file.getParentFile(), "c8oProject.yaml").getAbsolutePath();
+			}
 			Project project = importProject(importFileName, null);
 			CouchDbManager.syncDocument(project);
 			return project;
@@ -980,49 +986,104 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 	}
 	
-	static public String getProjectVersion(File projectXmlFile) throws EngineException {
-		final String[] version = { null };
-		if (projectXmlFile.exists()) {
-			try {
-				XMLUtils.saxParse(projectXmlFile, new DefaultHandler() {
-
-					@Override
-					public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-						if ("convertigo".equals(qName)) {
-							// since 6.0.6 (fix #2804)
-							version[0] = attributes.getValue("beans");
-						} else if ("project".equals(qName)) {
-							String projectVersion = attributes.getValue("version");
-							if (projectVersion != null) {
-								// before 6.0.6
-								version[0] = projectVersion;
-							}
+	static public String getProjectName(File projectFile) throws EngineException {
+		String projectName = null;
+		if (projectFile.exists()) {
+			if (projectFile.getName().equals("c8oProject.yaml")) {
+				try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(projectFile), "UTF-8"))) {
+					String line = br.readLine();
+					Matcher m = pYamlProjectName.matcher("");
+					while (line != null && projectName == null) {
+						m.reset(line);
+						if (m.matches()) {
+							projectName = m.group(1);
+							line = br.readLine();
+						} else {
+							line = null;
 						}
-						throw new SAXException("stop");
 					}
-
-				});
-			} catch (SAXException e) {
-				if (!"stop".equals(e.getMessage())) {
-					throw new EngineException("Unable to find the project version", e);
+				} catch (Exception e) {
+					throw new EngineException("Unable to parse the yaml: " + projectFile.getAbsolutePath(), e);
 				}
-			} catch (IOException e) {
-				throw new EngineException("Unable to parse the xml: " + projectXmlFile.getAbsolutePath(), e);
+			} else if (projectFile.getName().endsWith(".car")) {
+				try {
+					projectName = ZipUtils.getProjectName(projectFile.getAbsolutePath());
+				} catch (IOException e) {
+				}
+			}
+			if (projectName == null) {
+				Matcher m = pProjectName.matcher(projectFile.getName());
+				if (m.matches()) {
+					projectName = m.group(1);
+				}
+			}
+		}
+		return projectName;
+	}
+	
+	static public String getProjectVersion(File projectFile) throws EngineException {
+		final String[] version = { null };
+		if (projectFile.exists()) {
+			if (projectFile.getName().equals("c8oProject.yaml")) {
+				try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(projectFile), "UTF-8"))) {
+					String line = br.readLine();
+					Matcher m = pYamlProjectVersion.matcher("");
+					while (line != null && version[0] == null) {
+						m.reset(line);
+						if (m.matches()) {
+							if (m.group(1) != null) {
+								version[0] = m.group(2);
+							} else {
+								line = br.readLine();							
+							}
+						} else {
+							line = null;
+						}
+					}
+				} catch (Exception e) {
+					throw new EngineException("Unable to parse the yaml: " + projectFile.getAbsolutePath(), e);
+				}
+			} else if (projectFile.getName().endsWith(".xml")) {
+				try {
+					XMLUtils.saxParse(projectFile, new DefaultHandler() {
+	
+						@Override
+						public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
+							if ("convertigo".equals(qName)) {
+								// since 6.0.6 (fix #2804)
+								version[0] = attributes.getValue("beans");
+							} else if ("project".equals(qName)) {
+								String projectVersion = attributes.getValue("version");
+								if (projectVersion != null) {
+									// before 6.0.6
+									version[0] = projectVersion;
+								}
+							}
+							throw new SAXException("stop");
+						}
+	
+					});
+				} catch (SAXException e) {
+					if (!"stop".equals(e.getMessage())) {
+						throw new EngineException("Unable to find the project version", e);
+					}
+				} catch (IOException e) {
+					throw new EngineException("Unable to parse the xml: " + projectFile.getAbsolutePath(), e);
+				}
 			}
 		}
 		return version[0];
 	}
 	
-	private boolean needsMigration(String projectName) throws EngineException {
-		if (projectName != null) {
-			File projectXmlFile = Engine.projectFile(projectName);
-			String version = getProjectVersion(projectXmlFile);
+	private boolean needsMigration(File projectFile) throws EngineException {
+		if (projectFile != null) {
+			String version = getProjectVersion(projectFile);
 			if (version == null) {
-				throw new EngineException("Unable to retrieve project's version from \"" + projectXmlFile + "\".");
+				throw new EngineException("Unable to retrieve project's version from \"" + projectFile + "\".");
 			}
 			String currentVersion = com.twinsoft.convertigo.beans.Version.version;
 			if (VersionUtils.compare(version, currentVersion) < 0) {
-				Engine.logDatabaseObjectManager.warn("Project '" + projectName + "': migration to " + currentVersion + " beans version is required");
+				Engine.logDatabaseObjectManager.warn("Project from '" + projectFile + "': migration to " + currentVersion + " beans version is required");
 				return true;
 			}
 		}
@@ -1033,11 +1094,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 		try {
 			Engine.logDatabaseObjectManager.info("Importing project ...");
 			if (importFileName != null) {
-				if (importFileName.endsWith(".yaml")) {
-					document = YamlConverter.readYaml(new File(importFileName));
+				File importFile = new File(importFileName);
+				if (importFile.getName().equals("c8oProject.yaml")) {
+					document = YamlConverter.readYaml(importFile);
 					document = BeansDefaultValues.unshrinkProject(document);
 				} else {
-					document = XMLUtils.loadXml(importFileName);
+					document = XMLUtils.loadXml(importFile);
 				}
 			}
 
@@ -1406,11 +1468,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 		
 		try {
-			File xmlFile = ProjectUtils.renameProjectFile(file, newName, keepOldReferences);
+			file = new File(newDir, file.getName());
+			File projectFile = ProjectUtils.renameProjectFile(file, newName, keepOldReferences);
 	        FileUtils.deleteQuietly(new File(newDir, ".project"));
 	        
 			clearCache(project);
-			project = importProject(xmlFile);
+			project = importProject(projectFile);
 			
 //			studioProjects.declareProject(xmlFile);
 		} catch (Exception e) {

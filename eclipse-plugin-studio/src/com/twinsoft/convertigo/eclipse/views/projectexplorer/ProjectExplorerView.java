@@ -411,7 +411,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		viewer = new TreeViewer(parent,  SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION) {
 			@Override
 			public void refresh(Object element) {
-				super.refresh(element);
+				viewer.getTree().getDisplay().asyncExec(() -> super.refresh(element));
 				packColumns();
 			}
 
@@ -2059,7 +2059,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				projectTreeObject.closeAllEditors();
 			}
 			invisibleRoot.removeChild(treeObject);
-			viewer.refresh();
+			viewer.getTree().getDisplay().asyncExec(() -> viewer.refresh());
 		}
 	}
 

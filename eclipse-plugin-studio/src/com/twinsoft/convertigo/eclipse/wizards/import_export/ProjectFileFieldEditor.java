@@ -31,7 +31,7 @@ import com.twinsoft.convertigo.engine.Engine;
 
 public class ProjectFileFieldEditor extends StringButtonFieldEditor {
 
-	private String[] filterExtensions = new String[]{"*.car;*.xml;*.yaml"};
+	private String[] filterExtensions = new String[]{"*.car;*.xml;c8oProject.yaml"};
 	private String[] filterNames = new String[]{"Convertigo projects"};
 	
 	/**

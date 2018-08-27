@@ -649,7 +649,7 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 		try {
 			return SchemaUtils.loadSchema(getSchemaFilePath());
 		} catch (Throwable t) {
-			Engine.logBeans.warn("An error ocurred while generating transaction \"\" schema from file", t);
+			Engine.logBeans.warn("An error ocurred while generating transaction \"" + getName() + "\" schema from file", t);
 		}
 		return null;
 	}

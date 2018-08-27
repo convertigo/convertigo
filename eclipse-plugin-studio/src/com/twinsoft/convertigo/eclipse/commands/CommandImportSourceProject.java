@@ -41,7 +41,7 @@ import org.eclipse.ui.handlers.HandlerUtil;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 
-public class CommandImportXmlProject extends AbstractHandler {
+public class CommandImportSourceProject extends AbstractHandler {
 	Pattern reSkipDir = Pattern.compile("^\\.|^\\_");
 	Pattern reKey = Pattern.compile("(.*?)  →.*");
 	
@@ -123,9 +123,18 @@ public class CommandImportXmlProject extends AbstractHandler {
 	
 	private boolean checkFile(File file) {
 		try {
-			if (file.isFile() && file.getName().endsWith(".xml") && DatabaseObjectsManager.getProjectVersion(file) != null) {
-				projects.put(file.getName().replaceAll("\\.xml$", ""), file);
-				return true;
+			if (file.isFile() && DatabaseObjectsManager.getProjectVersion(file) != null) {
+				String projectName = DatabaseObjectsManager.getProjectName(file);
+				if (projectName != null) {
+					if (file.getName().endsWith(".xml")) {
+						File exFile = projects.get(projectName);
+						if (exFile.getName().equals("c8oProject.yaml")) {
+							return false;
+						}
+					}
+					projects.put(projectName, file);
+					return true;
+				}
 			}
 		} catch (Exception e) {
 		}

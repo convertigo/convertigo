@@ -233,10 +233,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	private static Log studioLog;
 
 	private static ILog log;
-	
-	//Get IProjects in memory 
-	private static Map<String, IProject> cacheIProject = new HashMap<String, IProject>();
-	
+		
 	public static void logException(Throwable e, String message) {
 		logException(e, message, true);
 	}
@@ -1050,8 +1047,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		
 		disposeImages();
 		
-		cacheIProject.clear();
-		
 		// Removes listeners
 		try {
 			IWorkbench workbench = PlatformUI.getWorkbench();
@@ -1548,11 +1543,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		return getProjectPluginResource(projectName, null);
 	}
 	
-	public IProject getProjectPluginResource(String projectName, IProgressMonitor monitor) throws CoreException {
-		if (cacheIProject.containsKey(projectName)) {
-			return (IProject) cacheIProject.get(projectName);
-		}
-		
+	public IProject getProjectPluginResource(String projectName, IProgressMonitor monitor) throws CoreException {		
 		IProject resourceProject = createProjectPluginResource(projectName);
 		if (resourceProject.exists()) {
 			resourceProject.refreshLocal(IResource.DEPTH_INFINITE, monitor);			
@@ -1560,13 +1551,10 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 				resourceProject.open(monitor);
 			}
 		}
-		cacheIProject.put(projectName, resourceProject);
-		
 		return resourceProject;
 	}
 	
 	public void moveProjectPluginResource(String projectName, String newName) throws CoreException {
-		cacheIProject.remove(projectName);
 		IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
 		IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
 		IProject resourceProject = myWorkspaceRoot.getProject(projectName);
@@ -1581,7 +1569,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	}
 
 	public void closeProjectPluginResource(String projectName) throws CoreException {
-		cacheIProject.remove(projectName);
 		IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
 		IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
 		IProject resourceProject = myWorkspaceRoot.getProject(projectName);
@@ -1596,7 +1583,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	}
 	
 	public void deleteProjectPluginResource(boolean deleteContent, String projectName) throws CoreException {
-		cacheIProject.remove(projectName);
 		IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
 		IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
 		IProject resourceProject = myWorkspaceRoot.getProject(projectName);
@@ -1780,8 +1766,11 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			IPath iPath = iProject.getLocation();
 			if (iPath != null) {
 				String sPath = iPath.toOSString();
-				file = new File(sPath);
-				file = new File(file, name + ".xml");
+				File folder = file = new File(sPath);
+				file = new File(folder, "c8oProject.yaml");
+				if (!file.exists()) {
+					file = new File(folder, name + ".xml");
+				}
 			}
 		}
 		return file;

@@ -20,13 +20,15 @@
 package com.twinsoft.convertigo.engine.util;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -80,6 +82,7 @@ import com.twinsoft.convertigo.beans.transactions.JsonHttpTransaction;
 import com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction;
 import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
 import com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction;
+import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
@@ -112,45 +115,74 @@ public class ProjectUtils {
     	}
 	}
 
-	public static File renameProjectFile(File oldXml, String newName, boolean keepOldReferences) throws Exception {		
-		if (!oldXml.getName().endsWith(".xml")) {
-			throw new Exception("File \"" + oldXml.getAbsolutePath() + "\" isn't a xml file");
-		}
-		
-		if (!oldXml.exists()) {
+	public static File renameProjectFile(File oldXml, String newName, boolean keepOldReferences) throws Exception {
+		File oldYaml = oldXml.getName().equals("c8oProject.yaml") ? oldXml : new File(oldXml.getParentFile(), "c8oProject.yaml");
+			
+		if (!oldXml.exists() && !oldYaml.exists()) {
 			throw new Exception("File \"" + oldXml.getAbsolutePath() + "\" does not exist");
 		}
 		
-		File newXml = new File(oldXml.getParentFile(), newName + ".xml");
-		
-		if (newXml.exists()) {
-			throw new Exception("File \"" + newXml.getAbsolutePath() + "\" already exists");
-		}
-		
-		if (!oldXml.renameTo(newXml)) {
-			throw new Exception("Unable to rename \"" + oldXml.getAbsolutePath() + "\" to \"" + newXml.getAbsolutePath() + "\"");
-		}
-		
-		String oldName = oldXml.getName();
-		oldName = oldName.substring(0, oldName.length() - 4);
-		
+		String oldName = null;
+		File newFile = null;
 		List<Replacement> replacements = new ArrayList<>(10);
-		if (isPreviousXmlFileFormat(newXml)) {
-			// replace project's bean name
-			replacements.add(new Replacement("value=\"" + oldName + "\"", "value=\"" + newName + "\""));
+		
+		if (!oldYaml.exists()) {
+			newFile = new File(oldXml.getParentFile(), newName + ".xml");
+			
+			if (newFile.exists()) {
+				throw new Exception("File \"" + newFile.getAbsolutePath() + "\" already exists");
+			}
+			
+			if (!oldXml.renameTo(newFile)) {
+				throw new Exception("Unable to rename \"" + oldXml.getAbsolutePath() + "\" to \"" + newFile.getAbsolutePath() + "\"");
+			}
+			
+			oldName = oldXml.getName();
+			oldName = oldName.substring(0, oldName.length() - 4);
+			
+			if (isPreviousXmlFileFormat(newFile)) {
+				// replace project's bean name
+				replacements.add(new Replacement("value=\"" + oldName + "\"", "value=\"" + newName + "\""));
+			} else {
+				// replace project's bean name
+				replacements.add(new Replacement("<!--<Project : " + oldName + ">", "<!--<Project : " + newName + ">"));
+				replacements.add(new Replacement("value=\"" + oldName + "\"", "value=\"" + newName + "\"", "<!--<Project"));
+				replacements.add(new Replacement("<!--</Project : " + oldName + ">", "<!--</Project : " + newName + ">"));
+			}
+			
+			// replace project's name references
+			if (!keepOldReferences) {
+				replacements.add(new Replacement("value=\"" + oldName + "\\.", "value=\"" + newName + "\\."));
+			}
+			
+			makeReplacementsInFile(replacements, newFile);
 		} else {
-			// replace project's bean name
-			replacements.add(new Replacement("<!--<Project : " + oldName + ">", "<!--<Project : " + newName + ">"));
-			replacements.add(new Replacement("value=\"" + oldName + "\"", "value=\"" + newName + "\"", "<!--<Project"));
-			replacements.add(new Replacement("<!--</Project : " + oldName + ">", "<!--</Project : " + newName + ">"));
-		}
-		
-		// replace project's name references
-		if (!keepOldReferences) {
-			replacements.add(new Replacement("value=\"" + oldName + "\\.", "value=\"" + newName + "\\."));
-		}
-		
-		makeReplacementsInFile(replacements, newXml);
+			newFile = oldYaml;
+			oldName = DatabaseObjectsManager.getProjectName(oldYaml);
+			
+			replacements.add(new Replacement("↓" + oldName + " \\[core\\.Project\\]:", "↓" + newName + " [core.Project]:"));
+
+			makeReplacementsInFile(replacements, newFile, "UTF-8");
+			
+			// replace project's name references
+			if (!keepOldReferences) {
+				replacements.clear();
+				replacements.add(new Replacement(": " + oldName + "\\.", ": " + newName + "."));
+				makeReplacementsInFile(replacements, newFile, "UTF-8");
+				File sub = new File(newFile.getParentFile(), "_c8oProject");
+				if (sub.exists()) {
+					List<File> files = new ArrayList<File>(Arrays.asList(sub.listFiles()));
+					while (!files.isEmpty()) {
+						File f = files.remove(0);
+						if (f.isDirectory()) {
+							files.addAll(Arrays.asList(f.listFiles()));
+						} else if (f.getName().endsWith(".yaml")) {
+							makeReplacementsInFile(replacements, f, "UTF-8");
+						}
+					}
+				}
+			}
+		}		
 
 		ArrayList<File> deep = CarUtils.deepListFiles(oldXml.getParent() + "/xsd/internal", ".xsd");
 		File xsd = new File(oldXml.getParentFile(), "xsd/" + oldName + ".xsd");
@@ -162,7 +194,7 @@ public class ProjectUtils {
 			oldXsd.renameTo(xsd = new File(oldXml.getParentFile(), newName + ".xsd"));
 			deep.add(xsd);
 		}
-		
+
 		if (deep != null && !deep.isEmpty()) {
 			// update transaction schema files with new project's name
 			replacements.clear();;
@@ -177,7 +209,7 @@ public class ProjectUtils {
 				}
 			}
 		}
-		
+
 		File wsld = new File(oldXml.getParentFile(), oldName + ".wsdl");
 		if (wsld.exists()) {
 			File oldWsld = wsld;
@@ -194,7 +226,7 @@ public class ProjectUtils {
 			makeReplacementsInFile(replacements, wsld);
 		}
 		
-		return newXml;
+		return newFile;
 	}
 
 	public static void renameProjectFile(String projectsDir, String sourceProjectName, String targetProjectName) throws Exception {
@@ -307,25 +339,27 @@ public class ProjectUtils {
 	}
 	
 	public static void makeReplacementsInFile(List<Replacement> replacements, File file) throws Exception {
+		makeReplacementsInFile(replacements, file, Charset.defaultCharset().name());
+	}
+	
+	public static void makeReplacementsInFile(List<Replacement> replacements, File file, String encoding) throws Exception {
 		if (file.exists()) {
 			String line;
 			StringBuffer sb = new StringBuffer();
 			
-			BufferedReader br = new BufferedReader(new FileReader(file));
-			while ((line = br.readLine()) != null) {
-				for (Replacement replacement: replacements) {
-					String lineBegin = replacement.getStartsWith();
-					if ((lineBegin == null) || (line.trim().startsWith(lineBegin))) {
-						line = line.replaceAll(replacement.getSource(), replacement.getTarget());
+			try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), encoding))) {
+				while ((line = br.readLine()) != null) {
+					for (Replacement replacement: replacements) {
+						String lineBegin = replacement.getStartsWith();
+						if ((lineBegin == null) || (line.trim().startsWith(lineBegin))) {
+							line = line.replaceAll(replacement.getSource(), replacement.getTarget());
+						}
 					}
+					sb.append(line+"\n");
 				}
-				sb.append(line+"\n");
 			}
-			br.close();
 			
-			BufferedWriter out = new BufferedWriter(new FileWriter(file));
-			out.write(sb.toString());
-			out.close();
+			FileUtils.write(file, sb.toString(), encoding);
 		}
 		else {
 			throw new Exception("File \"" + file.getAbsolutePath() + "\" does not exist");

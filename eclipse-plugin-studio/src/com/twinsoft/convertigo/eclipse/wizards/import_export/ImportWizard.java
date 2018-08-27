@@ -30,7 +30,8 @@ import org.eclipse.ui.IWorkbench;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class ImportWizard extends Wizard implements IImportWizard {
@@ -106,24 +107,21 @@ public class ImportWizard extends Wizard implements IImportWizard {
 
 	//Modified by julienda - 13/09/2012
 	private String getDefaultProjectName() {
-		String projectName = null;
 		String filePath = fileChooserPage.getFilePath();
-
-		// Find the filename
-		if (filePath != null) {
-			File file = new File(filePath);
-			String choosenFileName = file.getName();
-			int idx = choosenFileName.lastIndexOf('.');
-			if (idx != -1) {
-				projectName = choosenFileName.substring(0, idx);
-			}
+		File file = new File(filePath);
+		
+		String projectName;
+		try {
+			projectName = DatabaseObjectsManager.getProjectName(file);
+		} catch (EngineException e1) {
+			projectName = "";
 		}
 		
-		// XML file case
-		if (Engine.isProjectFile(filePath.toLowerCase())) {
+		// Find the filename
+		if (projectName != null) {
 			return projectName;
 		}
-
+		
 		// CAR file case - Added by julienda - 08/09/2012
 		try {
 			return ZipUtils.getProjectName(filePath);
