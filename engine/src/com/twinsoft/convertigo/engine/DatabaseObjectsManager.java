@@ -1468,40 +1468,16 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 		
 		try {
-			file = new File(newDir, file.getName());
-			File projectFile = ProjectUtils.renameProjectFile(file, newName, keepOldReferences);
-	        FileUtils.deleteQuietly(new File(newDir, ".project"));
-	        
 			clearCache(project);
-			project = importProject(projectFile);
-			
-//			studioProjects.declareProject(xmlFile);
+			project.setName(newName);
+			project.hasChanged = true;
+			exportProject(project);
+			file = new File(newDir, file.getName());
+			ProjectUtils.renameProjectFile(file, newName, keepOldReferences);
+	        FileUtils.deleteQuietly(new File(newDir, ".project"));
 		} catch (Exception e) {
 			throw new ConvertigoException("Failed to rename to project", e);
 		}
-		
-//		project.setName(newName);
-//		project.hasChanged = true;
-//		//exportProject(project);
-//		
-//		if (xmlFile.exists()) {
-//			replacements = new ArrayList<Replacement>();
-//			try {
-//				// replace project's bean name
-//				replacements.add(new Replacement("<!--<Project : " + oldName + ">", "<!--<Project : " + newName + ">"));
-//				replacements.add(new Replacement("value=\""+oldName+"\"", "value=\""+newName+"\"", "<!--<Project"));
-//				replacements.add(new Replacement("<!--</Project : " + oldName + ">", "<!--</Project : " + newName + ">"));
-//				
-//				// replace project's name references
-//				if (!keepOldReferences) {
-//					replacements.add(new Replacement("value=\""+oldName+"\\.", "value=\""+newName+"\\."));
-//				}
-//				
-//				ProjectUtils.makeReplacementsInFile(replacements, xmlFile);
-//			} catch (Exception e) {
-//			}
-//		}
-		
 	}
 	
 	public String getCompiledValue(String value) throws UndefinedSymbolsException {

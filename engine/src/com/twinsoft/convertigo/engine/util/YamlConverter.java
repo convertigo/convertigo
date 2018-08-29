@@ -304,7 +304,7 @@ public class YamlConverter {
 		YamlConverter y = new YamlConverter();
 		y.sb = new StringBuilder();
 		y.subdir = subdir;
-		if (subdir != null) {
+		if (subdir != null && subdir.exists()) {
 			FileUtils.cleanDirectory(subdir);
 		}
 		Node node = document.getDocumentElement().getFirstChild();
