@@ -96,6 +96,14 @@ public class MobileSmartSource {
 		return "";
 	}
 
+	public void setProjectName(String newName) {
+		try {
+			jsonObject.put(Key.project.name(), newName);
+		} catch (JSONException e) {
+			//e.printStackTrace();
+		}
+	}
+
 	public String getInput() {
 		try {
 			return jsonObject.getString(Key.input.name());
