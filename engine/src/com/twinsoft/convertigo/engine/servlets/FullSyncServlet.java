@@ -456,7 +456,7 @@ public class FullSyncServlet extends HttpServlet {
 
 							JSONObject document = Engine.theApp.couchDbManager.handleDocResponse(method, requestParser.getSpecial(), requestParser.getDocId(), fsAuth, responseStringEntity);
 							if (!isCblBulkGet) {
-								IOUtils.write(responseStringEntity, os, charset);
+								IOUtils.write(document != null ? document.toString(2) : responseStringEntity, os, charset);
 							} else {
 								Engine.theApp.couchDbManager.handleCblBulkGet(response, document);
 							}
