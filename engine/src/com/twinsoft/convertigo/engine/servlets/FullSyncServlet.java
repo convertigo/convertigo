@@ -454,9 +454,28 @@ public class FullSyncServlet extends HttpServlet {
 							debug.append("\n");
 							responseStringEntity = sb.toString();
 
-							JSONObject document = Engine.theApp.couchDbManager.handleDocResponse(method, requestParser.getSpecial(), requestParser.getDocId(), fsAuth, responseStringEntity);
+							JSONObject document = Engine.theApp.couchDbManager.handleDocResponse(method, special, requestParser.getDocId(), fsAuth, responseStringEntity);
 							if (!isCblBulkGet) {
-								IOUtils.write(document != null ? document.toString(2) : responseStringEntity, os, charset);
+								if (document != null) {
+									StringBuilder sDoc = new StringBuilder();
+									if ("_all_docs".equals(special)) {
+										sDoc.append(responseStringEntity.substring(0, responseStringEntity.indexOf(":[") + 3));
+										JSONArray rows = document.getJSONArray("rows");
+										int len = rows.length();
+										for (int i = 0; i < len - 1; i++) {
+											sDoc.append(rows.get(i).toString()).append(",\n");
+										}
+										if (len > 0) {
+											sDoc.append(rows.get(len - 1).toString()).append("\n");
+										}
+										sDoc.append("]}");
+									} else {
+										sDoc.append(document.toString());										
+									}
+									IOUtils.write(sDoc, os, charset);									
+								} else {
+									IOUtils.write(responseStringEntity, os, charset);									
+								}
 							} else {
 								Engine.theApp.couchDbManager.handleCblBulkGet(response, document);
 							}
