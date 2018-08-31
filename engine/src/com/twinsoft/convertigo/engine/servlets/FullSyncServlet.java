@@ -345,7 +345,7 @@ public class FullSyncServlet extends HttpServlet {
 					Engine.theApp.couchDbManager.handleBulkDocsRequest(dbName, bulkDocsRequest, fsAuth);
 					requestStringEntity = bulkDocsRequest.toString();
 				} catch (JSONException e) {
-					debug.append("failed to parse [ " + e.getMessage() + "]: " + requestStringEntity);						
+					debug.append("failed to parse [ " + e.getMessage() + "]: " + requestStringEntity);
 				}
 			} else if (isChanges) {
 				uri = Engine.theApp.couchDbManager.handleChangesUri(dbName, uri, requestStringEntity, fsAuth, c8oSDK);
@@ -445,7 +445,6 @@ public class FullSyncServlet extends HttpServlet {
 									CharBuffer cb = cd.decode(ByteBuffer.wrap(buf, 0, id));
 									id = 0;
 									sb.append(cb);
-									//								debug.append(cb);
 								} catch (Throwable t) {
 									Engine.logCouchDbManager.trace("(FullSyncServlet) Buffer not decoded, retry with more byte. " + t);
 								}
@@ -470,11 +469,11 @@ public class FullSyncServlet extends HttpServlet {
 										}
 										sDoc.append("]}");
 									} else {
-										sDoc.append(document.toString());										
+										sDoc.append(document.toString());
 									}
-									IOUtils.write(sDoc, os, charset);									
+									IOUtils.write(sDoc, os, charset);
 								} else {
-									IOUtils.write(responseStringEntity, os, charset);									
+									IOUtils.write(responseStringEntity, os, charset);
 								}
 							} else {
 								Engine.theApp.couchDbManager.handleCblBulkGet(response, document);
