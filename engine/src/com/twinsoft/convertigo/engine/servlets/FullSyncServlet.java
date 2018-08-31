@@ -112,7 +112,7 @@ public class FullSyncServlet extends HttpServlet {
 			
 			String corsOrigin = HttpUtils.applyCorsHeaders(request, response);
 			if (corsOrigin != null) {
-				debug.append("Add CORS header for: " + corsOrigin + "\n");
+				debug.append("Added CORS header for: " + corsOrigin + "\n");
 			}
 			
 			method = HttpMethodType.valueOf(request.getMethod());
