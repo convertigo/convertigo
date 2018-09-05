@@ -1066,7 +1066,7 @@
       "properties": {
       }
     },
-    
+
     "Image": {
       "tag": "img",
 	  "displayName": "Image",
@@ -1119,7 +1119,7 @@
         }
       }
     },
-	
+
     "FSImage": {
       "tplVersion": "1.0.100",
       "tag": "img",
@@ -4895,7 +4895,7 @@
           "label": "format",
           "description": "Out data format.",
           "category": "@Properties",
-          "value": "'YYYY-MM-DD'",
+          "value": "'YYYY-MM-DD'"
         },
 
         "IonColor" : "primary",
@@ -5837,6 +5837,21 @@
   }
 },
 
+    "CloseModalAction" : {
+    "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+    "displayName" : "CloseModal",
+      "label" : "CloseModal",
+      "description" : "Defines a <i>Close Modal</i> action component. | Use this action to close a modal page opened previously.<br/>Add a <i>CloseModal</i> action under an Event.",
+      "group" : "Actions",
+      "icon16": "closemodalaction_color_16x16.png",
+      "icon32": "closemodalaction_color_32x32.png",
+      "config": {
+        "action_ts_imports": [
+          {"from":"ionic-angular", "components":["ViewController"]}
+        ]
+      }
+    },
+
     "PushPageAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "PushPage",
@@ -6472,7 +6487,7 @@
         "description": "The name of the attachment to put on the document.",
         "category": "@Properties",
         "type": "string",
-        "value": false,
+        "value": false
         
       },
       "content_type": {
@@ -6658,7 +6673,7 @@
         "category": "@Properties",
         "type": "string",
         "value": false
-      },
+      }
    }
 },
 
@@ -6894,7 +6909,7 @@
 	        "category": "@mocking options",
 	        "type": "string",
 	        "value": "https://www.convertigo.com/wp-content/uploads/2015/01/logoStudio.png"
-	      },
+	      }
       },
       "config": {
         "action_ts_imports": [
@@ -7036,7 +7051,7 @@
 	        "category": "@actionsheet options",
 	        "type": "Array",
 	        "mode": "script",
-	        "value": "['']",
+	        "value": "['']"
 	        
 	      },
 	      "androidTheme": {
@@ -7174,7 +7189,7 @@
 	        "description": "Additional classes for custom styles, separated by spaces.",
 	        "category": "@options",
 	        "type": "string",
-	        "value": false,
+	        "value": false
 	        
 	      },
 	      "button1": {
@@ -7182,7 +7197,7 @@
 	        "description": "Text for the button 1.",
 	        "category": "@options button 1",
 	        "type": "string",
-	        "value": false,
+	        "value": false
 	        
 	      },
 	      "button2": {
@@ -7190,7 +7205,7 @@
 	        "description": "Text for the button 2.",
 	        "category": "@options button 2",
 	        "type": "string",
-	        "value": false,
+	        "value": false
 	        
 	      },
 	      "button3": {
@@ -7198,7 +7213,7 @@
 	        "description": "Text for the button 3.",
 	        "category": "@options button 3",
 	        "type": "string",
-	        "value": false,
+	        "value": false
 	        
 	      },
 	      "value1": {
@@ -7206,7 +7221,7 @@
 	        "description": "A value to return for the button 1.",
 	        "category": "@options button 1",
 	        "type": "string",
-	        "value": false,
+	        "value": false
 	        
 	      },
 	      "value2": {
@@ -7214,7 +7229,7 @@
 	        "description": "A value to return for the button 2.",
 	        "category": "@options button 2",
 	        "type": "string",
-	        "value": false,
+	        "value": false
 	        
 	      },
 	      "value3": {
@@ -7222,8 +7237,7 @@
 	        "description": "A value to return for the button 3.",
 	        "category": "@options button 3",
 	        "type": "string",
-	        "value": false,
-	        
+	        "value": false	        
 	      },
 	      "cancel1": {
 	        "label": "Role 1",
@@ -7257,7 +7271,7 @@
 	        "description": "A css class for button 1.",
 	        "category": "@options button 1",
 	        "type": "string",
-	        "value": false,
+	        "value": false
 	        
 	      },
 	      "css2": {
@@ -7265,7 +7279,7 @@
 	        "description": "A css class for button 2.",
 	        "category": "@options button 2",
 	        "type": "string",
-	        "value": false,
+	        "value": false
 	        
 	      },
 	      "css3": {
@@ -7273,7 +7287,7 @@
 	        "description": "A css class for button 3.",
 	        "category": "@options button 3",
 	        "type": "string",
-	        "value": false,
+	        "value": false
 	        
 	      },
 	      
@@ -7288,7 +7302,7 @@
 	        	"false"
 	        ]
 	        
-	      },
+	      }
 	      
       },
       "config": {
@@ -7882,7 +7896,7 @@
 	        "category": "@mocking options",
 	        "type": "boolean",
 	        "value": "true",
-	        "values":["true", "false"];
+	        "values":["true", "false"]
 	      },
      
 	      "packageID": {
