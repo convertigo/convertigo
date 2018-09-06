@@ -50,6 +50,8 @@ public class CompressionFilter implements Filter {
 					String uri = request.getRequestURI();
 					uri = uri.substring(request.getContextPath().length());
 					doGZip = !pKO.matcher(uri).find() && pOK.matcher(uri).find();
+				} else {
+					doGZip = false;
 				}
 			}
 		} catch (Exception e) {

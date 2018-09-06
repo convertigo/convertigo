@@ -112,7 +112,7 @@ public class FullSyncServlet extends HttpServlet {
 			
 			String corsOrigin = HttpUtils.applyCorsHeaders(request, response);
 			if (corsOrigin != null) {
-				debug.append("Add CORS header for: " + corsOrigin + "\n");
+				debug.append("Added CORS header for: " + corsOrigin + "\n");
 			}
 			
 			method = HttpMethodType.valueOf(request.getMethod());
@@ -345,7 +345,7 @@ public class FullSyncServlet extends HttpServlet {
 					Engine.theApp.couchDbManager.handleBulkDocsRequest(dbName, bulkDocsRequest, fsAuth);
 					requestStringEntity = bulkDocsRequest.toString();
 				} catch (JSONException e) {
-					debug.append("failed to parse [ " + e.getMessage() + "]: " + requestStringEntity);						
+					debug.append("failed to parse [ " + e.getMessage() + "]: " + requestStringEntity);
 				}
 			} else if (isChanges) {
 				uri = Engine.theApp.couchDbManager.handleChangesUri(dbName, uri, requestStringEntity, fsAuth, c8oSDK);
@@ -445,7 +445,6 @@ public class FullSyncServlet extends HttpServlet {
 									CharBuffer cb = cd.decode(ByteBuffer.wrap(buf, 0, id));
 									id = 0;
 									sb.append(cb);
-									//								debug.append(cb);
 								} catch (Throwable t) {
 									Engine.logCouchDbManager.trace("(FullSyncServlet) Buffer not decoded, retry with more byte. " + t);
 								}
@@ -454,9 +453,28 @@ public class FullSyncServlet extends HttpServlet {
 							debug.append("\n");
 							responseStringEntity = sb.toString();
 
-							JSONObject document = Engine.theApp.couchDbManager.handleDocResponse(method, requestParser.getSpecial(), requestParser.getDocId(), fsAuth, responseStringEntity);
+							JSONObject document = Engine.theApp.couchDbManager.handleDocResponse(method, special, requestParser.getDocId(), fsAuth, responseStringEntity);
 							if (!isCblBulkGet) {
-								IOUtils.write(responseStringEntity, os, charset);
+								if (document != null) {
+									StringBuilder sDoc = new StringBuilder();
+									if ("_all_docs".equals(special)) {
+										sDoc.append(responseStringEntity.substring(0, responseStringEntity.indexOf(":[") + 3));
+										JSONArray rows = document.getJSONArray("rows");
+										int len = rows.length();
+										for (int i = 0; i < len - 1; i++) {
+											sDoc.append(rows.get(i).toString()).append(",\n");
+										}
+										if (len > 0) {
+											sDoc.append(rows.get(len - 1).toString()).append("\n");
+										}
+										sDoc.append("]}");
+									} else {
+										sDoc.append(document.toString());
+									}
+									IOUtils.write(sDoc, os, charset);
+								} else {
+									IOUtils.write(responseStringEntity, os, charset);
+								}
 							} else {
 								Engine.theApp.couchDbManager.handleCblBulkGet(response, document);
 							}

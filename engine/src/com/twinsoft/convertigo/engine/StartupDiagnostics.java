@@ -195,9 +195,8 @@ public class StartupDiagnostics {
 							for (String line : lines) {
 								if (line.startsWith(userName)) {
 									String[] parts = line.split(":");
-									int len = parts.length;
-									if (len > 2) {
-										etcPasswdUserHome = parts[parts.length - 2];
+									if (parts.length > 5) {
+										etcPasswdUserHome = parts[5];
 										break;
 									}
 								}
