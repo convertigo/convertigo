@@ -194,6 +194,13 @@ publishing {
 			version '2018.04.03'
 			artifact 'resources/jxbrowser-license.jar'
 		}
+		
+		ojdbc (MavenPublication) {
+			groupId 'com.convertigo.lib'
+			artifactId 'ojdbc7'
+			version '12.1.0.2'
+			artifact 'resources/ojdbc7.jar'
+		}
 	}
 	
 	repositories {
@@ -619,6 +626,7 @@ project(':engine') {
 		compile 'com.convertigo.lib:ctgclient:2010.06.14'
 		compile 'com.convertigo.lib:httpclientAuthHelper:2014.12.23'
 		compile 'com.convertigo.lib:mozilla-interfaces:1.9.0.17'
+		runtime 'com.convertigo.lib:ojdbc7:12.1.0.2'
 		runtime 'com.convertigo.lib:qrcode:2011.05.19'
 		compile 'com.convertigo.lib:sapjco:3'
 		compile 'com.convertigo.lib:soapui-xmlbeans:3.5.1'
