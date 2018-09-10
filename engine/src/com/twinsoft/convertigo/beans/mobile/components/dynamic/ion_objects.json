@@ -1119,7 +1119,107 @@
         }
       }
     },
-	
+    
+	"Tooltips" : {
+      "tag": "span",
+        "displayName": "Tooltips",
+        "label": "Tooltips",
+        "description": "ionic-tooltips| Defines a Tooltip component. This component displays a tooltip that can be be positioned around any item giving the position properties. You can set as many as much tooltips in a page. For more information: ionic-tooltips.",
+        "group": "Ionic Tooltips",
+        "icon16": "tooltips_color_16x16.png",
+        "icon32": "tooltips_color_32x32.png",
+      "properties": {
+        "tooltip": {
+          "attr":"tooltip",
+          "label": "Tooltip string",
+          "description": "string: string to be displayed. 'empty string = disabled').",
+          "category": "@Attributes",
+          "value": ""
+        },
+        "navTooltip": {
+          "attr":"navTooltip",
+          "label": "Navbar Tooltip",
+          "description": "boolean: add this attribute or set it's value to true to specify that the tooltip belongs to a nav button. Defaults to false.",
+          "category": "@Attributes",
+          "value": false, // optional value (default is false)
+          "values": [ // possible values (false means do no set)
+          false,
+          true,
+          false
+          ]
+        },
+        "event": {
+          "attr":"event",
+          "label": "Showing event",
+          "description": "string: the event to show the tooltip on. Can be either 'hover', 'click' or 'press'.",
+          "category": "@Attributes",
+          "value": "hover", // optional value (default is false)
+          "values": [ // possible values (false means no set)
+            "hover",
+            "click",
+            "press"
+          ]
+        },
+        "arrow": {
+          "attr":"arrow",
+          "label": "Displays arrow",
+          "description": "boolean: add this attribute or set it's value to true to show an arrow attached to the tooltip. Defaults to false.",
+          "category": "@Attributes",
+          "value": true, // optional value (default is false)
+          "values": [ // possible values (false means no set)
+          "true",
+          "false"
+          ]
+        },
+        "positionH": {
+          "attr":"positionH",
+          "label": "Horizontal Position",
+          "description": "string: specifies the horizontal position of the tooltip. Can be either 'right' or 'left'",
+          "category": "@Attributes",
+          "value": "right", // optional value (default is false)
+          "values": [ // possible values (false means do no set)
+            false,
+            "right",
+            "left"
+          ]
+        },
+        "positionV": {
+          "attr":"positionV",
+          "label": "Vertical Position",
+          "description": "string: specifies the vertical position of the tooltip. Can be either 'top' or 'bottom'.",
+          "category": "@Attributes",
+          "value": false, // optional value (default is false)
+          "values": [ // possible values (false means do no set)
+            false,
+            "top",
+            "bottom"
+          ]
+        },
+        "duration": {
+          "mode": "script",
+          "attr":"[duration]",
+          "label": "Display duration",
+          "description": "number: number of milliseconds to show the tooltip for. Defaults to 3000.",
+          "category": "@Attributes",
+          "value": "3000"
+        }
+      },
+      "config": {
+        "module_ts_imports": [
+          {"from":"ionic-tooltips", "components":["TooltipsModule"]},
+          {"from":"@angular/platform-browser/animations", "components":["BrowserAnimationsModule"]}
+        ],
+        "module_ng_imports": [
+          "TooltipsModule",
+          "BrowserAnimationsModule"
+        ],
+        "package_dependencies": [
+          {"package":"@angular/animations", "version":"5.2.10"},
+          {"package":"ionic-tooltips", "version":"2.0.1"}
+        ]
+      }         
+    },
+    
     "FSImage": {
       "tplVersion": "1.0.100",
       "tag": "img",
