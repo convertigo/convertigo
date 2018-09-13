@@ -1107,8 +1107,11 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	}
 
 	public String getTplProjectVersion() {
-		this.tplProjectVersion = getTplVersion();
-		return this.tplProjectVersion;
+		String tplVersion = getTplVersion();
+		if (tplVersion != null) {
+			tplProjectVersion = tplVersion;
+		}
+		return tplProjectVersion;
 	}
 
 	public void setTplProjectVersion(String tplProjectVersion) {
