@@ -160,7 +160,37 @@ public class CompressionFilter implements Filter {
 		public void setContentLength(int len) {
 			//ignore, since content length of zipped content
 			//does not match content length of unzipped content.
-		}		
+		}
+
+		@Override
+		public void addHeader(String name, String value) {
+			if (!HeaderName.ContentLength.is(name)) {
+				super.addHeader(name, value);
+			}
+		}
+
+		@Override
+		public void addIntHeader(String name, int value) {
+			if (!HeaderName.ContentLength.is(name)) {
+				super.addIntHeader(name, value);
+			}
+		}
+
+		@Override
+		public void setHeader(String name, String value) {
+			if (!HeaderName.ContentLength.is(name)) {
+				super.setHeader(name, value);
+			}
+		}
+
+		@Override
+		public void setIntHeader(String name, int value) {
+			if (!HeaderName.ContentLength.is(name)) {
+				super.setIntHeader(name, value);
+			}
+		}
+		
+		
 	}
 
 	class GZipServletOutputStream extends ServletOutputStream {
