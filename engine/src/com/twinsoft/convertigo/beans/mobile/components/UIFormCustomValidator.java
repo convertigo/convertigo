@@ -42,7 +42,11 @@ public class UIFormCustomValidator extends UIFormValidator {
 	/*
 	 * The validator value (function contents)
 	 */
-	private FormatedContent validatorValue = new FormatedContent("\t\t\treturn null;//means valid"+ System.lineSeparator());
+	private FormatedContent validatorValue = new FormatedContent(
+			"\t\t\t/* return {'valid':false, 'password':wrong};\t// any json if invalid */\n" +
+			"\t\t\t/* return null;\t\t\t\t\t\t\t\t\t// null if valid */\n" +
+			"\t\t\treturn null;"+ System.lineSeparator()
+			);
 	
 	public FormatedContent getValidatorValue() {
 		return validatorValue;
