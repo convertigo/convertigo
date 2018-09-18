@@ -37,7 +37,6 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.SequenceTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TransactionTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
-import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public abstract class AbstractStubAction extends MyAbstractAction {
@@ -63,7 +62,7 @@ public abstract class AbstractStubAction extends MyAbstractAction {
 				if ((treeObject != null) && (treeObject instanceof SequenceTreeObject)) {
 					SequenceTreeObject sequenceTreeObject = (SequenceTreeObject) treeObject;
 					Sequence sequence = sequenceTreeObject.getObject();
-					File stubDir = new File(Engine.PROJECTS_PATH + "/" + sequence.getProject().getName() + "/stubs");
+					File stubDir = new File(sequence.getProject().getDirPath() + "/stubs");
 					stubDir.mkdirs();
 					File stubFile = new File(stubDir, sequence.getName() + ".xml");
 					Document dom = getXML(treeObject);
@@ -71,7 +70,7 @@ public abstract class AbstractStubAction extends MyAbstractAction {
 				} else if ((treeObject != null) && (treeObject instanceof TransactionTreeObject)) {
 					TransactionTreeObject transactionTreeObject = (TransactionTreeObject) treeObject;
 					Transaction transaction = transactionTreeObject.getObject();
-					File stubDir = new File(Engine.PROJECTS_PATH + "/" + transaction.getProject().getName() + "/stubs");
+					File stubDir = new File(transaction.getProject().getDirPath() + "/stubs");
 					stubDir.mkdirs();
 					File stubFile = new File(stubDir, transaction.getParent().getName() + "." + transaction.getName() + ".xml");
 					Document dom = getXML(treeObject);

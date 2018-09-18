@@ -271,7 +271,7 @@ public class DatabaseObjectDeleteAction extends AbstractRunnableAction {
 
 	private void deleteResourcesFolder(String projectName, String resourcesFolder, String dboName) throws IOException {
 		// Delete soap templates for this connector
-		String dirPath = Engine.PROJECTS_PATH + "/"+ projectName + "/" + resourcesFolder + "/" + dboName;
+		String dirPath = Engine.projectDir(projectName) + "/" + resourcesFolder + "/" + dboName;
 		File dir = new File(dirPath);
 		if (dir.exists()) {
 			String[] buttons = { "Yes", "No" };

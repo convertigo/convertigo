@@ -1,23 +1,20 @@
 <!--
- * Copyright (c) 2001-2014 Convertigo SA.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; either version 3
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see<http://www.gnu.org/licenses/>.
- *
- * $URL$
- * $Author$
- * $Revision$
- * $Date$
+Copyright (c) 2001-2018 Convertigo SA.
+
+This program  is free software; you  can redistribute it and/or
+Modify  it  under the  terms of the  GNU  Affero General Public
+License  as published by  the Free Software Foundation;  either
+version  3  of  the  License,  or  (at your option)  any  later
+version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY;  without even the implied warranty of
+MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public
+License along with this program;
+if not, see <http://www.gnu.org/licenses/>.
 -->
 <div class="bgButtonAction">
 	<button  class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" id="cacheClearEntries"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Clear entries</span></button>
@@ -47,7 +44,8 @@
 
 					<option value="sqlserver">SQLServer</option>
 					<option value="mysql">MySQL</option>
-
+					<option value="oracle">Oracle</option>
+					
 				</select>
 			</td>
 		
@@ -67,8 +65,8 @@
 			<td ><input name="Database server port" type="text" size="5" maxlength="5" class="required" value=""  id="cachePort"  onkeypress="chiffres(event)"/></td>
 		</tr>
 		<tr class="main_even">
-			<td class="small">Database name :</td>
-			<td ><input name="Database name" type="text" size="30" class="required" value="" id="cacheDatabaseName"/></td>
+			<td class="small">Database|Service name :</td>
+			<td ><input name="Database name" type="text" size="30" value="" id="cacheDatabaseName"/></td>
 		</tr>
 		<tr class="main_headerTab" >
 
@@ -87,6 +85,14 @@
 			<td class="small">Confirmation :</td>
 			<td ><input id="cachePass2"  type="password" class="cacheUserPassword" size="30" value=""/></td>
 		</tr>
+		<tr class="main_headerTab" >
+
+			<td colspan="2">Cache table : </td>
+		</tr>
+		<tr class="main_even">
+			<td  class="small">Table name :</td>
+			<td ><input name="Table name" type="text" class="required" size="30" value="" id="cacheTableName"></td>
+		</tr>		
 	</table>	
 	<button  class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary"  id="cacheCreateTable"><span class="ui-button-icon-primary ui-icon ui-icon-check"></span><span class="ui-button-text">Create table and apply</span></button>
 </div>

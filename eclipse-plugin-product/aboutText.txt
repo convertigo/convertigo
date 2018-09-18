@@ -1,0 +1,24 @@
+Convertigo Studio
+
+Version @CEMS_VERSION@
+
+Copyright (c) 2001-@CURRENT_YEAR@ Convertigo.  All rights reserved.
+Visit http://www.convertigo.com
+
+Convertigo Community Edition available under Affero GPL V3 License is the core Convertigo Platform which allows to develop end to end applications from Backend enterprise sources to multidevices. 
+
+It includes as well references to third party open source components and to Convertigo Enterprise Edition components such as HTML or Legacy connectors and FullSync which are available under the "Convertigo S.A SOFTWARE LICENSE AGREEMENT" wich is included in this document.
+
+Detail about third party open source or Convertigo Enterprise Edition components licenses is available at 
+
+http://demo.convertigo.net/cems/licenses/index.html
+
+"Convertigo Studio" is for Convertigo project developments purpose and includes a local single user server for project testing purposes.
+
+"Convertigo Server" is for production and deployment purposes and executes Convertigo projects developed and edited within Convertigo Studio. 
+
+Both Convertigo Studio and Server installers are copying Convertigo Community Edition, third party components as well as Convertigo Enterprise Edition components which one are pre activated for a 30 days trial.
+ 
+Detail about Convertigo components architecture is available at : http://www.convertigo.com/#mbaas-and-madp-platform-for-enterprises
+
+Matrix about Convertigo Editions features is available at : http://www.convertigo.com/#select-your-edition

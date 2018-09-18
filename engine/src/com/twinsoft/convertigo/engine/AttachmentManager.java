@@ -114,7 +114,7 @@ public class AttachmentManager {
 
 				String filepath = file.getAbsolutePath();
 				eAttachment.setAttribute("local-url", filepath);
-				String projectPath = Engine.PROJECTS_PATH + File.separator + projectName + File.separator;
+				String projectPath = Engine.projectDir(projectName) + File.separator;
 				if (filepath.startsWith(projectPath)) {
 					eAttachment.setAttribute("relative-url", filepath.substring(projectPath.length()).replaceAll("\\\\", "/"));
 				}

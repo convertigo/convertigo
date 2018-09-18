@@ -891,4 +891,18 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 			});
 		}
 	}
+	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public Object getAdapter(Class adapter) {
+		Object obj = super.getAdapter(adapter);
+		
+		if (obj == null) {
+			obj = getIProject();
+			if (obj != null && !adapter.isAssignableFrom(IProject.class)) {
+				obj = ((IProject) obj).getAdapter(adapter);
+			}
+		}
+		
+		return obj;
+	}
 }

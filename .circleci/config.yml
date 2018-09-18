@@ -57,7 +57,8 @@ jobs:
              export CONVERTIGO_VERSION=$CONVERTIGO_VERSION_NUMBER-$CONVERTIGO_VERSION_TAG
         fi
         export CONVERTIGO_BUILD_NUM=$(printf '%05d' $CIRCLE_BUILD_NUM)
-        export CONVERTIGO_BUILD_NAME=$CONVERTIGO_BUILD_NUM-$CIRCLE_BRANCH-$CONVERTIGO_VERSION
+        export CONVERTIGO_BRANCH=$(echo $CIRCLE_BRANCH | sed "s,/,-,")
+        export CONVERTIGO_BUILD_NAME=$CONVERTIGO_BUILD_NUM-$CONVERTIGO_BRANCH-$CONVERTIGO_VERSION
         export CONVERTIGO_URL=https://convertigo-ci.s3-eu-west-3.amazonaws.com/convertigo-$CONVERTIGO_BUILD_NAME
         mkdir -p ~/s3/convertigo-$CONVERTIGO_BUILD_NAME
         export CONVERTIGO_DIST=$(cd ~/s3/convertigo-$CONVERTIGO_BUILD_NAME; pwd)
@@ -151,16 +152,16 @@ jobs:
         export TYPE=amd64
         export CONVERTIGO_WAR_URL=$CONVERTIGO_URL/convertigo-$CONVERTIGO_VERSION.war
         export FROM=$(eval echo $(sed -n "s/FROM \(.*\)/\1/p" Dockerfile))
-        docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+        echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
         if ! docker pull $FROM ; then
             echo building base $FROM
             docker build --rm=false -f Dockerfile_base -t $FROM .
             docker push $FROM
         fi
-        docker build --rm=false -t convertigo/convertigo-ci:$CIRCLE_BRANCH --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
-        docker tag convertigo/convertigo-ci:$CIRCLE_BRANCH convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME
-        docker tag convertigo/convertigo-ci:$CIRCLE_BRANCH convertigo/convertigo-ci:$CONVERTIGO_VERSION
-        docker push convertigo/convertigo-ci:$CIRCLE_BRANCH
+        docker build --rm=false -t convertigo/convertigo-ci:$CONVERTIGO_BRANCH --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
+        docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME
+        docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH convertigo/convertigo-ci:$CONVERTIGO_VERSION
+        docker push convertigo/convertigo-ci:$CONVERTIGO_BRANCH
         docker push convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME
         docker push convertigo/convertigo-ci:$CONVERTIGO_VERSION
         
@@ -189,16 +190,16 @@ jobs:
         export TYPE=i386
         export CONVERTIGO_WAR_URL=$CONVERTIGO_URL/convertigo-linux32-$CONVERTIGO_VERSION.war
         export FROM=$(eval echo $(sed -n "s/FROM \(.*\)/\1/p" Dockerfile))
-        docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+        echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
         if ! docker pull $FROM ; then
             echo building base $FROM
             docker build --rm=false -f Dockerfile_base -t $FROM .
             docker push $FROM
         fi
-        docker build --rm=false -t convertigo/convertigo-ci:$CIRCLE_BRANCH-$TYPE --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
-        docker tag convertigo/convertigo-ci:$CIRCLE_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE
-        docker tag convertigo/convertigo-ci:$CIRCLE_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
-        docker push convertigo/convertigo-ci:$CIRCLE_BRANCH-$TYPE
+        docker build --rm=false -t convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
+        docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE
+        docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
+        docker push convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE
         docker push convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE
         docker push convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
         
@@ -226,16 +227,16 @@ jobs:
         export TYPE=alpine
         export CONVERTIGO_WAR_URL=$CONVERTIGO_URL/convertigo-$CONVERTIGO_VERSION.war
         export FROM=$(eval echo $(sed -n "s/FROM \(.*\)/\1/p" Dockerfile))
-        docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+        echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
         if ! docker pull $FROM ; then
             echo building base $FROM
             docker build --rm=false -f alpine/Dockerfile_base -t $FROM alpine
             docker push $FROM
         fi
-        docker build --rm=false -t convertigo/convertigo-ci:$CIRCLE_BRANCH-$TYPE --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
-        docker tag convertigo/convertigo-ci:$CIRCLE_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE
-        docker tag convertigo/convertigo-ci:$CIRCLE_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
-        docker push convertigo/convertigo-ci:$CIRCLE_BRANCH-$TYPE
+        docker build --rm=false -t convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
+        docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE
+        docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
+        docker push convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE
         docker push convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE
         docker push convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
         
@@ -271,6 +272,74 @@ jobs:
     - run: |
         source /tmp/build.env
         aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/.. s3://convertigo-ci/
+
+  qualif_jmx_2:
+    <<: *defaults
+    steps:
+    
+    - restore_cache:
+        keys:
+        - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+    
+    - setup_remote_docker
+    
+    - run: |
+        ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
+        git clone --depth 1 git@bitbucket.org:convertigoqualif/convertigo-qualif-jmx-2.git
+    
+    - run: |
+        source /tmp/build.env
+        CONVERTIGO_IMAGE=convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-alpine
+        
+        docker pull $CONVERTIGO_IMAGE
+        docker tag $CONVERTIGO_IMAGE c8o:latest
+        docker pull convertigo/qualif-jmeter:v2
+        
+    - run: |
+        source /tmp/build.env
+        cd convertigo-qualif-jmx-2
+        sh run.sh
+        mkdir -p $CONVERTIGO_DIST
+        mv out $CONVERTIGO_DIST/qualif
+    
+    - run: |
+        source /tmp/build.env
+        aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/.. s3://convertigo-ci/
+
+  download_jre:
+    <<: *defaults
+    
+    docker:
+    - image: circleci/openjdk:8-jdk
+    
+    steps:
+    
+    - restore_cache:
+        keys:
+        - v1-git-{{ .Revision }}
+        - v1-git-
+        
+    - checkout
+    
+    - restore_cache:
+        keys:
+        - v1-jre-{{ checksum "installers/nsis/download-jdk.sh" }}
+    
+    - run: |
+        if [ ! -d /tmp/c8o_jre ] ; then
+            JDK_ARCH=x86 sh installers/nsis/download-jdk.sh
+            JDK_ARCH=x86_64 sh installers/nsis/download-jdk.sh
+            for job in $(jobs -p); do
+                wait $job
+            done
+        fi
+        ls -lh /tmp/c8o_jre 
+        du -sh /tmp/c8o_jre
+    
+    - save_cache:
+        paths:
+        - /tmp/c8o_jre
+        key: v1-jre-{{ checksum "installers/nsis/download-jdk.sh" }}
     
   build_studio:
     <<: *defaults
@@ -301,34 +370,47 @@ jobs:
           - ~/.gradle
           - .gradle
         key: v2-dependencies-studio-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+
+    - restore_cache:
+        keys:
+        - v1-jre-{{ checksum "installers/nsis/download-jdk.sh" }}
         
     - run: |
+        if [ ! -d /tmp/c8o_jre ] ; then
+            JDK_ARCH=x86 sh installers/nsis/download-jdk.sh &
+            JDK_ARCH=x86_64 sh installers/nsis/download-jdk.sh &
+            for job in $(jobs -p); do
+                wait $job
+            done
+        fi
+        du -sh /tmp/c8o_jre/*
+        
+    - save_cache:
+        paths:
+        - /tmp/c8o_jre
+        key: v1-jre-{{ checksum "installers/nsis/download-jdk.sh" }}
+                
+    - run: |
+        source /tmp/build.env
         if [ -d eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86_64 ]; then
-            source /tmp/build.env
-            mv eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86_64 convertigo-studio-$CONVERTIGO_VERSION-win64
-            7z a -mx=2 -bd -bb0 -sfx7zConWin64.sfx $CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-win64.exe convertigo-studio-$CONVERTIGO_VERSION-win64
+            mv /tmp/c8o_jre/x86_64 eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86_64/jre
+            makensis -V1 -DConvertigoVersion=$CONVERTIGO_VERSION_NUMBER -DArch=x86_64 -DOutFile=$CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-win64.exe installers/nsis/studio.nsi &
         fi
-        
-    - run: |
         if [ -d eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86 ]; then
-            source /tmp/build.env
-            mv eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86 convertigo-studio-$CONVERTIGO_VERSION-win32
-            7z a -mx=2 -bd -bb0 -sfx7zConWin32.sfx $CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-win32.exe convertigo-studio-$CONVERTIGO_VERSION-win32
+            mv /tmp/c8o_jre/x86 eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86/jre
+            makensis -V1 -DConvertigoVersion=$CONVERTIGO_VERSION_NUMBER -DArch=x86 -DOutFile=$CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-win32.exe installers/nsis/studio.nsi &
         fi
-        
-    - run: |
         if [ -d eclipse-repository/target/products/com.convertigo.studio/linux/gtk/x86_64 ]; then
-            source /tmp/build.env
             mv eclipse-repository/target/products/com.convertigo.studio/linux/gtk/x86_64 convertigo-studio-$CONVERTIGO_VERSION-linux64
-            tar -I "gzip --fast" -cf $CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-linux64.tar.gz convertigo-studio-$CONVERTIGO_VERSION-linux64
+            tar -I "gzip --fast" -cf $CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-linux64.tar.gz convertigo-studio-$CONVERTIGO_VERSION-linux64 &
         fi
-        
-    - run: |
         if [ -d eclipse-repository/target/products/com.convertigo.studio/macosx/cocoa/x86_64 ]; then
-            source /tmp/build.env
             mv eclipse-repository/target/products/com.convertigo.studio/macosx/cocoa/x86_64 convertigo-studio-$CONVERTIGO_VERSION-macosx
-            tar -I "gzip --fast" -cf $CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-macosx.tar.gz convertigo-studio-$CONVERTIGO_VERSION-macosx
+            tar -I "gzip --fast" -cf $CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-macosx.tar.gz convertigo-studio-$CONVERTIGO_VERSION-macosx &
         fi
+        for job in $(jobs -p); do
+            wait $job
+        done
         
     - run: aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read ~/s3 s3://convertigo-ci/
     
@@ -359,3 +441,6 @@ workflows:
     - qualif_jmx_1:
         requires:
         - build_docker_i386
+    - qualif_jmx_2:
+        requires:
+        - build_docker_alpine

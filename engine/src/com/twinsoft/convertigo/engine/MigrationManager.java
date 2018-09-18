@@ -54,8 +54,8 @@ public class MigrationManager {
 					String targetProjectArchive = "";
 					
 					for (String projectName: Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false)) {
-						MigrationJob job = new MigrationJob(projectName);
 						if (!jobs.containsKey(projectName)) {
+							MigrationJob job = new MigrationJob(projectName);
 							jobs.put(projectName, job);
 							job.start();
 						} 

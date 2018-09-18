@@ -86,6 +86,7 @@ public class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 		this.monitor = monitor;
 		synchronized (unloadedProjectTreeObject) {
 			if (unloadedProjectTreeObject.getParent() == null) {
+				Display.getDefault().asyncExec(() -> viewer.refresh());
 				return Status.OK_STATUS;
 			}
 			try {
@@ -97,16 +98,25 @@ public class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 					return status;
 				}
 	
-				monitor.subTask("Refreshing project ressources...");
-				ConvertigoPlugin.projectManager.getProjectExplorerView().createDir(projectName);
-				ConvertigoPlugin.getDefault().getProjectPluginResource(projectName, monitor);
-	
-				Engine.theApp.databaseObjectsManager.addDatabaseObjectListener(this);
 				Project project;
 				
 				try {
+					monitor.subTask("Importing the project...");
 					Engine.theApp.databaseObjectsManager.clearCacheIfSymbolError(projectName);
-					project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+					project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
+					if (project == null) {
+						unloadedProjectTreeObject.getParent().removeChild(unloadedProjectTreeObject);
+						Status status = new Status(Status.CANCEL, ConvertigoPlugin.PLUGIN_UNIQUE_ID, 0, "Project " + projectName + " doesn't exists", null);
+						return status;
+					}
+
+					monitor.subTask("Refreshing project ressources...");
+					String projectDir = Engine.projectDir(projectName);
+					ConvertigoPlugin.projectManager.getProjectExplorerView().createDir(projectName);
+					ConvertigoPlugin.getDefault().createProjectPluginResource(projectName, projectDir, monitor);
+		
+					Engine.theApp.databaseObjectsManager.addDatabaseObjectListener(this);
+					
 					if (project.undefinedGlobalSymbols) {
 						synchronized (Engine.theApp.databaseObjectsManager) { // parallel projects opening with undefined symbols, check after the first wizard
 							project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);

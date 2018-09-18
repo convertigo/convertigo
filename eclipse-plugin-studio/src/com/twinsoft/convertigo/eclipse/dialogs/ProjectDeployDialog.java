@@ -45,7 +45,6 @@ import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.DeploymentConfiguration;
 import com.twinsoft.convertigo.eclipse.DeploymentConfigurationReadOnly;
-import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.CarUtils;
 import com.twinsoft.convertigo.engine.util.RemoteAdmin;
@@ -65,7 +64,7 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 	boolean trustAllCertificates = false;
 	boolean isHttps = false;
 	boolean bAssembleXsl = false;
-	private List<TestCase> listTestCasesSelected = new ArrayList<TestCase>(); 
+	private List<TestCase> listTestCasesSelected = new ArrayList<>(); 
 	
 	public ProjectDeployDialog(Shell parentShell, Class<? extends Composite> dialogAreaClass, String dialogTitle, List<TestCase> listTestCasesSelected) {
 		super(parentShell, dialogAreaClass, dialogTitle, 460, 500);
@@ -119,7 +118,7 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 					try {
 						boolean doubleFound = false;
 							
-				        Set<String> deploymentConfigurationNames = new HashSet<String>();  
+				        Set<String> deploymentConfigurationNames = new HashSet<>();  
 				        deploymentConfigurationNames = ConvertigoPlugin.deploymentConfigurationManager.getAllDeploymentConfigurationNames();
 				        String currentProjectName = ConvertigoPlugin.projectManager.currentProjectName;
 				        
@@ -158,7 +157,7 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 				            projectDeployDialogComposite.fillList();
 				        }
 			
-				        File projectDir = new File(Engine.PROJECTS_PATH + "/" + ConvertigoPlugin.projectManager.currentProject.getName() + "/_private");
+				        File projectDir = new File(ConvertigoPlugin.projectManager.currentProject.getDirPath() + "/_private");
 				        if (!projectDir.exists()) {
 				        	ConvertigoPlugin.logInfo("Creating \"_private\" project directory");
 				            try {
@@ -296,18 +295,16 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 
 	private void deploy() throws EngineException, RemoteAdminException {
 		try {
-			String projectName = ConvertigoPlugin.projectManager.currentProject.getName();
-
 			setTextLabel("Archive creation");
 			ConvertigoPlugin.logDebug("Creation of the archive...");
+			File file;
 			try {				
-				if (listTestCasesSelected.size() > 0) {
-					CarUtils.makeArchive(ConvertigoPlugin.projectManager.currentProject, listTestCasesSelected);
+				if (!listTestCasesSelected.isEmpty()) {
+					file = CarUtils.makeArchive(ConvertigoPlugin.projectManager.currentProject, listTestCasesSelected);
 				} else {
-					CarUtils.makeArchive(ConvertigoPlugin.projectManager.currentProject);
+					file = CarUtils.makeArchive(ConvertigoPlugin.projectManager.currentProject);
 				}
-			}
-			catch(com.twinsoft.convertigo.engine.EngineException e) {
+			} catch(com.twinsoft.convertigo.engine.EngineException e) {
 				throw new com.twinsoft.convertigo.engine.EngineException("The archive creation has failed: (EngineException) "+ e.getMessage());
 			}
 		
@@ -315,7 +312,9 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
             
 			setTextLabel("Authenticating to the Convertigo server");
 			
-			if (convertigoServer.indexOf('/') == -1) convertigoServer += "/convertigo";
+			if (convertigoServer.indexOf('/') == -1) {
+				convertigoServer += "/convertigo";
+			}
 			
 			RemoteAdmin remoteAdmin = new RemoteAdmin(convertigoServer, isHttps, trustAllCertificates);
 	
@@ -328,10 +327,8 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 			remoteAdmin.login(convertigoUserName, convertigoUserPassword);
 			
 			setTextLabel("Deployment of the archive on the Convertigo server");
-            
-			File file = new File(Engine.PROJECTS_PATH + "/" + projectName + ".car");
 			
-			remoteAdmin.deployArchive(file,bAssembleXsl);
+			remoteAdmin.deployArchive(file, bAssembleXsl);
 
 			bFinished = true;
 

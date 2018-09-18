@@ -291,7 +291,7 @@ public abstract class RemoteFileWizardPage extends WizardPage implements IWsRefe
 		if (path != null && !path.isEmpty()) {
 			try {
 				String canonicalPath = new File(path).getCanonicalPath();
-				String projectPath = (new File(Engine.PROJECTS_PATH +"/"+ getProjectName())).getCanonicalPath();
+				String projectPath = Engine.projectDir(getProjectName());
 				String workspacePath = (new File(Engine.USER_WORKSPACE_PATH)).getCanonicalPath();
 				boolean isLocal = canonicalPath.startsWith(projectPath) || canonicalPath.startsWith(workspacePath);
 				if (isLocal) {

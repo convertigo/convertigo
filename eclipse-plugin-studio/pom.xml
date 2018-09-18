@@ -17,7 +17,7 @@ Contributors:
 	<name>Convertigo Studio plugin</name>
 
 	<parent>
-		<version>7.5.0-SNAPSHOT</version>
+		<version>7.6.0-SNAPSHOT</version>
 		<groupId>com.convertigo.studio</groupId>
 		<artifactId>root</artifactId>
 	</parent>

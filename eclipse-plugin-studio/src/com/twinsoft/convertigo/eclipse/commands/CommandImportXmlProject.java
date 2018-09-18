@@ -1,0 +1,131 @@
+package com.twinsoft.convertigo.eclipse.commands;
+
+import java.io.File;
+import java.util.Map.Entry;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.eclipse.core.commands.AbstractHandler;
+import org.eclipse.core.commands.ExecutionEvent;
+import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.expressions.IEvaluationContext;
+import org.eclipse.egit.ui.internal.repository.tree.RepositoryTreeNode;
+import org.eclipse.egit.ui.internal.selection.SelectionUtils;
+import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.TreeSelection;
+import org.eclipse.ui.dialogs.ListSelectionDialog;
+import org.eclipse.ui.handlers.HandlerUtil;
+
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
+
+public class CommandImportXmlProject extends AbstractHandler {
+	Pattern reSkipDir = Pattern.compile("^\\.|^\\_");
+	Pattern reKey = Pattern.compile("(.*?)  →.*");
+	
+	SortedMap<String, File> projects = new TreeMap<>();
+	long nextCheck = 0;
+	File lastFile;
+
+	@Override
+	public Object execute(ExecutionEvent event) throws ExecutionException {
+		try {
+			File file = getFile((TreeSelection) HandlerUtil.getCurrentSelection(event));
+			projects.clear();
+			nextCheck = 0;
+			if (!checkFile(file)) {
+				checkDir(file, true);
+			}
+			if (!projects.isEmpty()) {
+				if (file.isFile()) {
+					Entry<String, File> project = projects.entrySet().iterator().next();
+					ConvertigoPlugin.getDefault().getProjectExplorerView().importProject(project.getValue().getAbsolutePath(), project.getKey());
+				} else {
+					Object[] elements = new String[projects.size()];
+					int i = 0;
+					int len = file.getAbsolutePath().length() + 1;
+					for (Entry<String, File> project: projects.entrySet()) {
+						elements[i++] = project.getKey() + "  → " + project.getValue().getAbsolutePath().substring(len);
+					}
+					ListSelectionDialog dialog = 
+					   new ListSelectionDialog(ConvertigoPlugin.getMainShell(), elements, ArrayContentProvider.getInstance(),
+					            new LabelProvider(), "Select Convertigo project to import");
+					dialog.setTitle("Import Convertigo projects");
+					dialog.setInitialSelections(elements);
+					dialog.open();
+
+					Object [] result = dialog.getResult();
+					if (result.length > 0) {
+						Matcher matcher = reKey.matcher("");
+						for (Object res: result) {
+							matcher.reset(res.toString());
+							if (matcher.matches()) {
+								String projectName = matcher.group(1);
+								File projectFile = projects.get(projectName);
+								ConvertigoPlugin.getDefault().getProjectExplorerView().importProject(projectFile.getAbsolutePath(), projectName);
+							}
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		return null;
+	}
+
+	@Override
+	public void setEnabled(Object evaluationContext) {
+		try {
+			setBaseEnabled(false);
+			File file = getFile((TreeSelection) SelectionUtils.getSelection((IEvaluationContext) evaluationContext));
+			long now = System.currentTimeMillis();
+			if (file != lastFile || now > nextCheck) {
+				projects.clear();
+				nextCheck = now + 2000;
+				if (!checkFile(file)) {
+					checkDir(file, false);
+				}
+			}
+			setBaseEnabled(!projects.isEmpty());
+		} catch (Exception e) {
+		}
+		super.setEnabled(evaluationContext);
+	}
+	
+	private File getFile(TreeSelection selection) {
+		RepositoryTreeNode<?> node = (RepositoryTreeNode<?>) selection.getFirstElement();
+		Object o = node.getObject();
+		return (o instanceof File) ? (File) o : node.getPath().toFile();
+	}
+	
+	private boolean checkFile(File file) {
+		try {
+			if (file.isFile() && file.getName().endsWith(".xml") && DatabaseObjectsManager.getProjectVersion(file) != null) {
+				projects.put(file.getName().replaceAll("\\.xml$", ""), file);
+				return true;
+			}
+		} catch (Exception e) {
+		}
+		return false;
+	}
+	
+	private boolean checkDir(File file, boolean all) {
+		if (file.isDirectory() && !reSkipDir.matcher(file.getName()).find()) {
+			for (File sFile: file.listFiles()) {
+				if (checkFile(sFile)) {
+					return true;
+				}
+			}
+			for (File sFile: file.listFiles()) {
+				if (checkDir(sFile, all) && !all) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+}

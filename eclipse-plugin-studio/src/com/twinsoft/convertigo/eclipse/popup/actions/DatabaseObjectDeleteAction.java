@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
@@ -109,7 +110,6 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
     					}
     				};
     				
-    				
     				if (treeObjects.size() > 1) {
     					for (DatabaseObjectTreeObject t: new ArrayList<>(treeObjects)) {
     						TreeObject parent = t.getParent();
@@ -124,11 +124,37 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
     					};
     				}
     				
+    				if (treeObjects.size() > 1) {
+    					List<DatabaseObjectTreeObject> list = new ArrayList<>(treeObjects);
+    					Collections.sort(list, new Comparator<DatabaseObjectTreeObject>() {
+
+							@Override
+							public int compare(DatabaseObjectTreeObject o1, DatabaseObjectTreeObject o2) {
+								if (o1 instanceof ProjectTreeObject) {
+									if (o2 instanceof ProjectTreeObject) {
+										return o1.getName().compareTo(o2.getName());
+									}
+									return -1;
+								} else if (o2 instanceof ProjectTreeObject) {
+									return 1;
+								}
+								return o1.getName().compareTo(o2.getName());
+							}
+						});
+    					treeObjects = list;
+    				}
+    				
     				MultipleDeletionDialog dialog = new MultipleDeletionDialog(shell, "Object Deletion", treeObjects.size() != 1);
-    				 
+    				
     				for (DatabaseObjectTreeObject treeObject: treeObjects) {
     		        	String message = java.text.MessageFormat.format("Do you really want to delete the {0} \"{1}\" and all its sub-objects?", treeObject instanceof ProjectTreeObject ? "project" : "object", treeObject.getName());
     					
+    		        	if (treeObject instanceof ProjectTreeObject) {
+        					dialog.setToggle("Delete project content on disk (cannot be undone)", false);
+        				} else {
+        					dialog.removeToggle();
+        				}
+    		        	
     		        	if (!dialog.shouldBeDeleted(message)) {
     		        		continue;
     		        	}
@@ -167,14 +193,14 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 	    					}
 	    					
 	    					if (treeObject instanceof ProjectTreeObject) {
-	    		        		explorerView.removeProjectTreeObject(treeObject);
+	    						explorerView.removeProjectTreeObject(treeObject);
 	    		        		final Project project = (Project) treeObject.getObject();
 	    		        		Job rmProject = new Job("Remove '" + project.getName() + "' project") {
 	
 									@Override
 									protected IStatus run(IProgressMonitor monitor) {
 			    		        		try {
-											delete(project);
+											delete(project, dialog.getToggleState());
 										} catch (Exception e) {
 											ConvertigoPlugin.logException(e, "Unable to delete the '" + project.getName() + "' project.");
 											return new MultiStatus(ConvertigoPlugin.PLUGIN_UNIQUE_ID, IStatus.ERROR, "Failed to remove the '" + project.getName() + "' project.", e);
@@ -240,7 +266,7 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 			parentTreeObject = (DatabaseObjectTreeObject) treeParent;
 		}
 		
-		delete(databaseObject);
+		delete(databaseObject, false);
 		
 		/*if ((parent != null) && (!parent.hasChanged))
 			ConvertigoPlugin.projectManager.save(parent, false);*/
@@ -256,7 +282,7 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 		
 	}
 	
-	private void delete(DatabaseObject databaseObject) throws EngineException, CoreException {
+	private void delete(DatabaseObject databaseObject, boolean deleteProjectOnDisk) throws EngineException, CoreException {
 		
 		if (databaseObject instanceof Connector) {
 			if (((Connector) databaseObject).isDefault) {
@@ -272,7 +298,7 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 			messageBox.setText("Also delete linked resources?");
 			
 			// Delete soap templates for this connector
-			dirPath = Engine.PROJECTS_PATH + "/"+ projectName + "/soap-templates/" + databaseObject.getName();
+			dirPath = Engine.projectDir(projectName) + "/soap-templates/" + databaseObject.getName();
 			dir = new File(dirPath);
 			if (dir.exists()) {
 				messageBox.setMessage("Some resources are linked to the deleted connector.\n\n" +
@@ -287,7 +313,7 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 			}
 			
 			// Delete directory corresponding to connector under Traces directory
-			dirPath = Engine.PROJECTS_PATH + "/"+ projectName + "/Traces/" + databaseObject.getName();
+			dirPath = Engine.projectDir(projectName) + "/Traces/" + databaseObject.getName();
 			dir = new File(dirPath);
 			if (dir.exists()) {
 				messageBox.setMessage("Some resources are linked to the deleted connector.\n\n" +
@@ -348,8 +374,10 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 		if (databaseObject instanceof Project) {
 			// Deleted project will be backup, car will be deleted to avoid its deployment at engine restart
 			//Engine.theApp.databaseObjectsManager.deleteProject(databaseObject.getName());
-			Engine.theApp.databaseObjectsManager.deleteProjectAndCar(databaseObject.getName());
-			ConvertigoPlugin.getDefault().deleteProjectPluginResource(databaseObject.getName());
+			if (deleteProjectOnDisk) {
+				Engine.theApp.databaseObjectsManager.deleteProjectAndCar(databaseObject.getName());
+			}
+			ConvertigoPlugin.getDefault().deleteProjectPluginResource(deleteProjectOnDisk, databaseObject.getName());
 		}
 		else {
 			databaseObject.delete();

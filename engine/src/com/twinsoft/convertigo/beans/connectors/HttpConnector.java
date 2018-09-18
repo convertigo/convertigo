@@ -395,7 +395,7 @@ public class HttpConnector extends Connector {
 			String requestTemplateUrl = httpTransaction.getRequestTemplate();
 			if (!requestTemplateUrl.equals("")) {
 				String projectDirectoryName = context.project.getName();
-				String absoluteRequestTemplateUrl = Engine.PROJECTS_PATH + "/" + projectDirectoryName + "/"
+				String absoluteRequestTemplateUrl = Engine.projectDir(projectDirectoryName) + "/"
 						+ (context.subPath.length() > 0 ? context.subPath + "/" : "") + requestTemplateUrl;
 				Engine.logBeans.debug("(HttpConnector) Request template Url: " + absoluteRequestTemplateUrl);
 				requestTemplateFile = new File(absoluteRequestTemplateUrl);

@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2001-2018 Convertigo SA.
  * 
@@ -23,10 +24,10 @@ package com.twinsoft.convertigo.engine;
 public class ProductVersion {
 
     public static String majorProductVersion = "7";
-    public static String minorProductVersion = "5";
-    public static String servicePack = "3";
-    public static String tag = "beta";		/** release = null */
-    public static String revision = null;	/** release = null */
+    public static String minorProductVersion = "6";
+    public static String servicePack = "0";
+    public static String tag = "beta";
+    public static String revision = null;
     
     public static String productVersion =
     	ProductVersion.majorProductVersion + "." +

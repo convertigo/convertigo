@@ -79,7 +79,7 @@ public class JavelinServletRequester extends ServletRequester {
 
     			// Configure foUserAgent as desired
 	        	FOUserAgent foUserAgent = fopFactory.newFOUserAgent();
-	        	foUserAgent.setBaseURL(Engine.PROJECTS_PATH + "/" + context.projectName);
+	        	foUserAgent.setBaseURL(context.getProjectDirectory());
 	        	foUserAgent.setAuthor("Convertigo EMS");
 	        	
 	        	// Setup output

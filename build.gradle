@@ -13,8 +13,43 @@ buildscript {
 //}
 
 import com.monochromeroad.gradle.plugin.aws.s3.S3Sync
+import org.apache.tools.ant.filters.ReplaceTokens
+import groovy.xml.XmlUtil
 
+apply from: 'headers.gradle'
 apply plugin: 'eclipse'
+apply plugin: 'maven-publish'
+
+def convertigoVersion = '7.6.0'
+def convertigoTag = 'beta'
+def convertigoCodename = 'osmium'
+def convertigoCode = 'Os'
+def convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
+def jxBrowserVersion = '6.19.1'
+
+def convertigoEngineAPI = '7.6.0-SNAPSHOT'
+
+def convertigoVersionFull = "${convertigoVersion}${convertigoTag.isEmpty() ? '' : '-' + convertigoTag}"
+def currentYear = '' + Calendar.getInstance().get(Calendar.YEAR)
+/*
+makeSplash {
+	inputs.properties(
+		'convertigoVersionFull': convertigoVersionFull,
+		'convertigoCodename': convertigoCodename,
+		'convertigoCode': convertigoCode,
+		'currentYear': currentYear
+	)
+}
+
+
+	
+tasks.getByPath('convertigo-splash:run').inputs.files 'convertigo-splash/convertigo_background.png', 'convertigo-splash/eclipse_builton.png'
+tasks.getByPath('convertigo-splash:run').outputs.dir file("$buildDir/generated")
+*/
+task updateVersion(dependsOn: [':engine:updateProductVersion', 'writeManifest']) {
+	group 'convertigo'
+	description 'Run this task after a Convertigo version change.'
+}
 
 eclipse {
 	project {
@@ -22,17 +57,41 @@ eclipse {
 	}
 }
 
-def convertigoVersion = '7.5.0'
-def convertigoTag = ''
-def convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
-
-task updateVersion(dependsOn: [':engine:updateProductVersion', 'writeManifest']) {
-	group 'convertigo'
-	description 'Run this task after a Convertigo version change.'
+project(':convertigo-splash') {
+	apply plugin: 'eclipse'
+	apply plugin: 'java'
+	apply plugin: 'application'
+	
+	sourceSets {
+		main {
+			java {
+				srcDir 'src'
+			}
+			resources {
+				srcDir 'src'
+			}
+		}
+	}
+	
+	mainClassName = "com.convertigo.splash.MakeSplash"
+	
+	run.systemProperties(
+		'c8o_version': "V ${convertigoVersionFull}",
+		'c8o_codename': convertigoCodename,
+		'c8o_code': convertigoCode,
+		'c8o_copyright': "Copyright © 2001-${currentYear} - Convertigo",
+		'c8o_output': '../eclipse-plugin-product/splash.bmp'
+	)
+	
+	run {
+		inputs.files 'convertigo-splash/convertigo_background.png', 'convertigo-splash/eclipse_builton.png'
+		inputs.properties run.systemProperties
+		outputs.file '../eclipse-plugin-product/splash.bmp'
+	}
 }
 
 allprojects {
-	version "${convertigoVersion}${convertigoTag.isEmpty() ? '' : '-' + convertigoTag}"
+	version convertigoVersionFull
 	
 	repositories {
 		mavenLocal()
@@ -52,6 +111,19 @@ allprojects {
 	if (project.name.startsWith('eclipse-plugin')) {
 		apply plugin: 'java'
 		
+		sourceSets {
+			main {
+				java {
+					exclude '.placeholder'
+					srcDir 'src'
+				}
+				resources {
+					exclude '.placeholder'
+					srcDir 'src'
+				}
+			}
+		}
+		
 		eclipse {
 			project {
 				natures 'org.eclipse.jdt.core.javanature',
@@ -70,9 +142,10 @@ allprojects {
 		}
 		
 		task syncLib(type: Sync) {
+			group 'convertigo'
+			
 			into 'lib'
 			from configurations.runtime
-			group 'convertigo'
 		}
 		
 		tasks.removeAll assemble, build, buildDependents, buildNeeded, clean, jar, javadoc, check, test, testClasses, classes
@@ -85,17 +158,76 @@ allprojects {
 	}
 }
 
+publishing {
+	publications {
+		engineApi (MavenPublication) {
+			groupId 'com.convertigo.lib'
+			artifactId 'convertigo-engine-api'
+			version convertigoEngineAPI
+			artifact project('engine').engineApiJar
+			pom.withXml {
+				def dependencies = asNode().appendNode('dependencies')
+				[
+					'com.convertigo.twinsoft:api:2017.12.29',
+					'com.convertigo.twinsoft:tas:2017.12.29',
+					'com.convertigo.twinsoft:util:2017.12.29',
+					'commons-io:commons-io:[2.2,)',
+					'javax.mail:mail:1.4',
+					'javax.servlet:servlet-api:2.5',
+					'log4j:log4j:[1.2,)',
+					'org.apache.commons:commons-lang3:[3,)',
+					'org.apache.httpcomponents:httpclient:[4.5,)',
+					'org.codehaus.jettison:jettison:[1.3,)'
+				].each {
+					def values = it.split(':')
+					def dependency = dependencies.appendNode('dependency')
+					dependency.appendNode('groupId', values[0])
+					dependency.appendNode('artifactId', values[1])
+					dependency.appendNode('version', values[2])
+				}
+			}
+		}
+		
+		jxBrowserLicense (MavenPublication) {
+			groupId 'com.convertigo.lib'
+			artifactId 'jxbrowser-license'
+			version '2018.04.03'
+			artifact 'resources/jxbrowser-license.jar'
+		}
+		
+		ojdbc (MavenPublication) {
+			groupId 'com.convertigo.lib'
+			artifactId 'ojdbc7'
+			version '12.1.0.2'
+			artifact 'resources/ojdbc7.jar'
+		}
+	}
+	
+	repositories {
+		maven {
+			url project.properties['c8o.m2.url']
+			credentials(AwsCredentials) {
+				accessKey project.properties['c8o.m2.ak']
+				secretKey project.properties['c8o.m2.sk']
+			}
+		}
+	}
+}
+
 project(':eclipse-plugin-jxbrowser-linux64') {
 	dependencies {
-		runtime 'com.teamdev.jxbrowser:jxbrowser-linux64:6.18', { exclude module: 'jxbrowser'}
+		runtime 'com.teamdev.jxbrowser:jxbrowser-linux64:' + jxBrowserVersion, { exclude module: 'jxbrowser'}
 	}
 	
 	task writeManifest(dependsOn: syncLib) {
+		group 'convertigo'
+		
 		doLast {
 			def manifest = file 'META-INF/MANIFEST.MF'
 			project.manifest {
 				from sharedManifest
 				attributes(
+					'Automatic-Module-Name': 'com.twinsoft.convertigo.studio.jxbrowser.linux64',
 					'Bundle-Name': 'C-EMS Browser Linux 64',
 					'Bundle-SymbolicName': 'com.twinsoft.convertigo.studio.jxbrowser.linux64;singleton:=true',
 					'Fragment-Host': 'com.twinsoft.convertigo.studio',
@@ -105,21 +237,23 @@ project(':eclipse-plugin-jxbrowser-linux64') {
 			}.writeTo(manifest)
 			manifest.text = manifest.text.replaceAll("Import-Package: .*\\s+", "")
 		}
-		group 'convertigo'
 	}
 }
 
 project(':eclipse-plugin-jxbrowser-mac') {
 	dependencies {
-		runtime 'com.teamdev.jxbrowser:jxbrowser-mac:6.18', { exclude module: 'jxbrowser'}
+		runtime 'com.teamdev.jxbrowser:jxbrowser-mac:' + jxBrowserVersion, { exclude module: 'jxbrowser'}
 	}
 	
 	task writeManifest(dependsOn: syncLib) {
+		group 'convertigo'
+		
 		doLast {
 			def manifest = file 'META-INF/MANIFEST.MF'
 			project.manifest {
 				from sharedManifest
 				attributes(
+					'Automatic-Module-Name': 'com.twinsoft.convertigo.studio.jxbrowser.mac',
 					'Bundle-Name': 'C-EMS Browser MacOS',
 					'Bundle-SymbolicName': 'com.twinsoft.convertigo.studio.jxbrowser.mac;singleton:=true',
 					'Fragment-Host': 'com.twinsoft.convertigo.studio',
@@ -129,21 +263,23 @@ project(':eclipse-plugin-jxbrowser-mac') {
 			}.writeTo(manifest)
 			manifest.text = manifest.text.replaceAll("Import-Package: .*\\s+", "")
 		}
-		group 'convertigo'
 	}
 }
 
 project(':eclipse-plugin-jxbrowser-win') {
 	dependencies {
-		runtime 'com.teamdev.jxbrowser:jxbrowser-win:6.18', { exclude module: 'jxbrowser'}
+		runtime 'com.teamdev.jxbrowser:jxbrowser-win:' + jxBrowserVersion, { exclude module: 'jxbrowser'}
 	}
 	
 	task writeManifest(dependsOn: syncLib) {
+		group 'convertigo'
+		
 		doLast {
 			def manifest = file 'META-INF/MANIFEST.MF'
 			project.manifest {
 				from sharedManifest
 				attributes(
+					'Automatic-Module-Name': 'com.twinsoft.convertigo.studio.jxbrowser.win',
 					'Bundle-Name': 'C-EMS Browser Windows',
 					'Bundle-SymbolicName': 'com.twinsoft.convertigo.studio.jxbrowser.win;singleton:=true',
 					'Fragment-Host': 'com.twinsoft.convertigo.studio',
@@ -153,25 +289,19 @@ project(':eclipse-plugin-jxbrowser-win') {
 			}.writeTo(manifest)
 			manifest.text = manifest.text.replaceAll("Import-Package: .*\\s+", "")
 		}
-		group 'convertigo'
 	}
 }
 
 project(':eclipse-plugin-product') {
-	sourceSets {
-		main {
-			java {
-				srcDir 'src'
-			}
-		}
-	}
-	
 	task writeManifest(dependsOn: syncLib) {
+		group 'convertigo'
+		
 		doLast {
 			def manifest = file 'META-INF/MANIFEST.MF'
 			project.manifest {
 				from sharedManifest
 				attributes(
+					'Automatic-Module-Name': 'com.twinsoft.convertigo.studio.product.linux64',
 					'Bundle-Name': 'C-EMS studio product',
 					'Bundle-SymbolicName': 'com.twinsoft.convertigo.studio.product;singleton:=true',
 					'Bundle-Activator': 'com.twinsoft.convertigo.studio.product.Activator',
@@ -188,25 +318,102 @@ project(':eclipse-plugin-product') {
 			}.writeTo(manifest)
 			manifest.text = manifest.text.replaceAll("Import-Package: .*\\s+", "")
 		}
-		
+	}
+	
+	task writePluginXml(type: Copy) {
 		group 'convertigo'
+		
+		def aboutTextFile = file('aboutText.txt')
+		
+		inputs.properties(
+			'currentYear': currentYear,
+			'convertigoVersionFull': convertigoVersionFull
+		)
+		inputs.files aboutTextFile
+		
+		def aboutText = ''
+		
+		doFirst {
+			def xml = new XmlSlurper().parseText('<elt/>')
+			xml.@value = aboutTextFile.text
+				.replace('@CEMS_VERSION@', convertigoVersionFull)
+				.replace('@CURRENT_YEAR@', currentYear)
+			aboutText = XmlUtil.serialize(xml).replaceFirst('[\\d\\D]*?value="(.*)"/>[\\d\\D]*','$1')
+		}
+		
+		from 'plugin.xml.tpl'
+		filter { it.replace('@aboutText@', aboutText) }
+		into '.'
+		rename '.*', 'plugin.xml'
+	}
+	
+	task writeAboutIni(type: Copy) {
+		group 'convertigo'
+		
+		inputs.properties(
+			'currentYear': currentYear
+		)
+		
+		from 'about.ini.tpl'
+		filter { it.replace('((CURRENT_YEAR))', currentYear) }
+		into '.'
+		rename '.*', 'about.ini'
 	}
 }
 
-project(':eclipse-plugin-studio') {
-	sourceSets.main.java.srcDir 'src'
+project(':eclipse-plugin-studio') {	
+	sourceSets {
+		main {
+			java {
+				exclude 'com/twinsoft/convertigo/engine/plugins/EnvoiSMSBiller.java'
+				exclude 'com/twinsoft/convertigo/engine/plugins/InfogreffeBiller.java'
+				exclude 'com/twinsoft/convertigo/engine/plugins/InseeBiller.java'
+				exclude 'com/twinsoft/convertigo/engine/plugins/LCABiller.java'
+				srcDir 'patch'
+			}
+			resources {
+				exclude 'com/twinsoft/convertigo/engine/plugins/EnvoiSMSBiller.java'
+				exclude 'com/twinsoft/convertigo/engine/plugins/InfogreffeBiller.java'
+				exclude 'com/twinsoft/convertigo/engine/plugins/InseeBiller.java'
+				exclude 'com/twinsoft/convertigo/engine/plugins/LCABiller.java'
+				srcDir 'patch'
+			}
+		}
+	}
+	
+	eclipse {
+		project {
+			linkedResource name: 'patch/com', type: '2', locationUri: '$%7BPARENT-1-PROJECT_LOC%7D/engine/patch/com'
+			linkedResource name: 'patch/org', type: '2', locationUri: '$%7BPARENT-1-PROJECT_LOC%7D/engine/patch/org'
+			linkedResource name: 'src/com/twinsoft/convertigo/engine', type: '2', locationUri: '$%7BPARENT-1-PROJECT_LOC%7D/engine/src/com/twinsoft/convertigo/engine'
+			linkedResource name: 'src/com/twinsoft/convertigo/beans', type: '2', locationUri: '$%7BPARENT-1-PROJECT_LOC%7D/engine/src/com/twinsoft/convertigo/beans'
+			linkedResource name: 'src/com/twinsoft/convertigo/engine/parsers', type: '2', locationUri: '$%7BPARENT-2-PROJECT_LOC%7D/convertigo-provider-xul/src/com/twinsoft/convertigo/engine/parsers'
+			linkedResource name: 'src/com/twinsoft/convertigo/engine/plugins', type: '2', locationUri: '$%7BPARENT-2-PROJECT_LOC%7D/convertigo-provider-plugins/src/com/twinsoft/convertigo/engine/plugins'
+			linkedResource name: 'src/com/twinsoft/convertigo/engine/providers/couchdb', type: '2', locationUri: '$%7BPARENT-2-PROJECT_LOC%7D/convertigo-provider-couchdb/src/com/twinsoft/convertigo/engine/providers/couchdb'
+			linkedResource name: 'src/com/twinsoft/convertigo/engine/providers/sapjco', type: '2', locationUri: '$%7BPARENT-2-PROJECT_LOC%7D/convertigo-provider-sap/src/com/twinsoft/convertigo/engine/providers/sapjco'
+		}
+		
+		classpath.file.withXml {
+			def node = it.asNode()
+			def rp = null
+			if ((rp = node.classpathentry.find { it.@path == 'org.eclipse.pde.core.requiredPlugins' }) == null) {
+				rp = node.appendNode('classpathentry', [kind: 'con', path: 'org.eclipse.pde.core.requiredPlugins'])
+			}
+			rp.appendNode('accessrules').appendNode('accessrule', [kind: 'accessible', pattern: 'org/eclipse/egit/ui/**'])
+		}
+	}
 	
 	dependencies {
 		runtime project(':engine')
-		runtime 'com.convertigo.lib:jxbrowser-license:2017.04.26'
-		runtime 'com.teamdev.jxbrowser:jxbrowser:6.18'
+		runtime 'com.convertigo.lib:jxbrowser-license:2018.04.03'
+		runtime 'com.teamdev.jxbrowser:jxbrowser:' + jxBrowserVersion
 		runtime 'org.apache.tomcat.embed:tomcat-embed-core:7.0.82'
 		runtime 'org.apache.tomcat.embed:tomcat-embed-logging-log4j:7.0.82'
 		runtime 'org.apache.tomcat:tomcat-dbcp:7.0.82'
 		runtime 'org.apache.axis2:axis2-adb:1.6.2@jar'
 	}
 	
-	task writeManifest(dependsOn: [':copyLicense', 'syncLib']) {
+	task writeManifest(dependsOn: ['copyLicense', 'syncLib']) {
 		group 'convertigo'
 		
 		doLast {
@@ -214,26 +421,28 @@ project(':eclipse-plugin-studio') {
 			project.manifest {
 				from sharedManifest
 				attributes(
+					'Automatic-Module-Name': 'com.twinsoft.convertigo.studio',
 					'Bundle-Name': 'C-EMS studio plugin',
 					'Bundle-SymbolicName': 'com.twinsoft.convertigo.studio; singleton:=true',
 					'Eclipse-BundleShape': 'dir',
 					'Bundle-Activator': 'com.twinsoft.convertigo.eclipse.ConvertigoPlugin',
-					//'Export-Package': 'org.mozilla.xpcom',
 					'Bundle-ActivationPolicy': 'lazy',
 					'Bundle-ClassPath': 'bin/,icons/,tomcat/webapps/convertigo/WEB-INF/classes,lib/convertigo-eclipse.jar,' + fileTree(dir: 'lib').collect { 'lib/' + it.name }.join(','),
-					'Require-Bundle': ['org.eclipse.core.resources',
-											 'org.eclipse.core.runtime',
-											 'org.eclipse.jface.text',
-											 'org.eclipse.swt',
-											 'org.eclipse.ui',
-											 'org.eclipse.ui.console',
-											 'org.eclipse.ui.ide',
-											 'org.eclipse.ui.views',
-											 'org.eclipse.wst.jsdt.ui',
-											 'org.eclipse.wst.jsdt.core',
-											 'org.eclipse.wst.sse.core',
-											 'org.eclipse.wst.sse.ui',
-											 'org.eclipse.wst.xml.ui'].join(',')
+					'Require-Bundle': ['org.eclipse.core.expressions',
+						'org.eclipse.core.resources',
+						'org.eclipse.core.runtime',
+						'org.eclipse.egit.ui',
+						'org.eclipse.jface.text',
+						'org.eclipse.swt',
+						'org.eclipse.ui',
+						'org.eclipse.ui.console',
+						'org.eclipse.ui.ide',
+						'org.eclipse.ui.views',
+						'org.eclipse.wst.jsdt.ui',
+						'org.eclipse.wst.jsdt.core',
+						'org.eclipse.wst.sse.core',
+						'org.eclipse.wst.sse.ui',
+						'org.eclipse.wst.xml.ui'].join(',')
 				)
 			}.writeTo(manifest)
 			manifest.text = manifest.text.replaceAll("Import-Package: .*\\s+", "")
@@ -241,6 +450,8 @@ project(':eclipse-plugin-studio') {
 	}
 	
 	task copyLicense(type: Copy) {
+		group 'convertigo'
+		
 		from '../license.txt'
 		into 'src/com/twinsoft/convertigo/eclipse/wizards/setup'
 	}
@@ -255,36 +466,76 @@ project(':eclipse-plugin-xulrunner-win32') {
 		xul 'com.convertigo.packages:xulrunner-win32:1.9.0.17-patched3'
 	}
 	
+	eclipse {	
+		classpath.file.withXml {
+			def node = it.asNode()
+			if (node.classpathentry.find { it.@path == 'xulrunner/MozillaGlue.jar' } == null) {
+				node.appendNode('classpathentry', [kind: 'lib', path: 'xulrunner/MozillaGlue.jar'])
+			}
+		}
+	}
+	
 	task untarXulrunner(type: Copy) {
 		group 'convertigo'
+		
 		from tarTree(resources.gzip(configurations.xul[0]))
 		into 'xulrunner'
 	}
 	
 	task writeManifest(dependsOn: untarXulrunner) {
+		group 'convertigo'
+		
 		doLast {
 			def manifest = file 'META-INF/MANIFEST.MF'
 			project.manifest {
 				from sharedManifest
 				attributes(
+					'Automatic-Module-Name': 'com.twinsoft.convertigo.studio.xulrunner.win32_win32_x86',
 					'Bundle-Name': 'C-EMS Xulrunner',
 					'Bundle-SymbolicName': 'com.twinsoft.convertigo.studio.xulrunner.win32_win32_x86;singleton:=true',
 					'Fragment-Host': 'com.twinsoft.convertigo.studio',
 					'Eclipse-PlatformFilter': '(& (osgi.ws=win32) (osgi.os=win32) (osgi.arch=x86))',
-					'Eclipse-BundleShape': 'dir'
+					'Eclipse-BundleShape': 'dir',
+					'Export-Package': 'org.mozilla.xpcom',
+					'Bundle-ClassPath': 'xulrunner/MozillaGlue.jar, xulrunner/MozillaInterfaces.jar'
 				)
 			}.writeTo(manifest)
 			manifest.text = manifest.text.replaceAll("Import-Package: .*\\s+", "")
 		}
+	}
+}
+
+project(':eclipse-feature') {
+	task updateFeature(type: Copy) {
 		group 'convertigo'
+		
+		def licenseTextFile = file('../license.txt')
+		
+		inputs.properties(
+			'currentYear': currentYear,
+		)
+		inputs.files licenseTextFile
+		
+		def licenseText = ''
+		
+		doFirst {
+			def xml = new XmlSlurper().parseText('<elt/>')			
+			xml.replaceBody licenseTextFile.text
+			licenseText = XmlUtil.serialize(xml).replaceFirst('[\\d\\D]*<elt>([\\d\\D]*)</elt>[\\d\\D]*','$1')
+		}
+		
+		from 'feature.xml.tpl'
+		filter { it.replace('@CURRENT_YEAR@', currentYear).replace('@licenseText@', licenseText) }
+		into '.'
+		rename '.*', 'feature.xml'
 	}
 }
 
 project(':engine') {
+	group 'com.convertigo.webapp'
+	
 	apply plugin: 'war'
 	apply plugin: 'eclipse-wtp'
-	
-	group 'com.convertigo.webapp'
 	
 	webAppDirName = 'convertigo'
 	
@@ -293,6 +544,10 @@ project(':engine') {
 			natures 'org.eclipse.buildship.core.gradleprojectnature'
 			buildCommand 'org.eclipse.buildship.core.gradleprojectbuilder'
 			linkedResource name: 'convertigo', type: '2', locationUri: '$%7BPARENT-1-PROJECT_LOC%7D/eclipse-plugin-studio/tomcat/webapps/convertigo'
+			linkedResource name: 'src/com/twinsoft/convertigo/engine/parsers', type: '2', locationUri: '$%7BPARENT-2-PROJECT_LOC%7D/convertigo-provider-xul/src/com/twinsoft/convertigo/engine/parsers'
+			linkedResource name: 'src/com/twinsoft/convertigo/engine/plugins', type: '2', locationUri: '$%7BPARENT-2-PROJECT_LOC%7D/convertigo-provider-plugins/src/com/twinsoft/convertigo/engine/plugins'
+			linkedResource name: 'src/com/twinsoft/convertigo/engine/providers/couchdb', type: '2', locationUri: '$%7BPARENT-2-PROJECT_LOC%7D/convertigo-provider-couchdb/src/com/twinsoft/convertigo/engine/providers/couchdb'
+			linkedResource name: 'src/com/twinsoft/convertigo/engine/providers/sapjco', type: '2', locationUri: '$%7BPARENT-2-PROJECT_LOC%7D/convertigo-provider-sap/src/com/twinsoft/convertigo/engine/providers/sapjco'
 		}
 	
 		wtp {
@@ -318,7 +573,11 @@ project(':engine') {
 		swtLinux32
 	}
 	
-	jar.baseName 'convertigo-engine'
+	jar {
+		baseName 'convertigo-engine'
+		
+		include 'com/twinsoft/**'
+	}
 	
 	war {
 		baseName 'convertigo'
@@ -336,13 +595,30 @@ project(':engine') {
 	sourceSets {
 		main {
 			java {
+				exclude 'com/twinsoft/convertigo/engine/plugins/EnvoiSMSBiller.java'
+				exclude 'com/twinsoft/convertigo/engine/plugins/InfogreffeBiller.java'
+				exclude 'com/twinsoft/convertigo/engine/plugins/InseeBiller.java'
+				exclude 'com/twinsoft/convertigo/engine/plugins/LCABiller.java'
+				exclude '.placeholder'
 				srcDir 'src'
 				srcDir 'patch'
 			}
 			resources {
+				exclude 'com/twinsoft/convertigo/engine/plugins/EnvoiSMSBiller.java'
+				exclude 'com/twinsoft/convertigo/engine/plugins/InfogreffeBiller.java'
+				exclude 'com/twinsoft/convertigo/engine/plugins/InseeBiller.java'
+				exclude 'com/twinsoft/convertigo/engine/plugins/LCABiller.java'
+				exclude '.placeholder'
 				srcDir 'src'
+				srcDir 'patch'
 			}
 		}
+	}
+	
+	task patchJar(type: Jar, dependsOn: classes) {
+		baseName 'aa-convertigo-patch'
+		from compileJava.destinationDir
+		exclude 'com/twinsoft/**'
 	}
 	
 	dependencies {
@@ -350,13 +626,15 @@ project(':engine') {
 		compile 'com.convertigo.lib:ctgclient:2010.06.14'
 		compile 'com.convertigo.lib:httpclientAuthHelper:2014.12.23'
 		compile 'com.convertigo.lib:mozilla-interfaces:1.9.0.17'
+		runtime 'com.convertigo.lib:ojdbc7:12.1.0.2'
+		runtime 'com.convertigo.lib:qrcode:2011.05.19'
 		compile 'com.convertigo.lib:sapjco:3'
 		compile 'com.convertigo.lib:soapui-xmlbeans:3.5.1'
 		compile 'com.convertigo.lib:soapui:3.5.1'
-		compile 'com.convertigo.provider:convertigo-provider-couchdb:7.5.0'
-		compile 'com.convertigo.provider:convertigo-provider-plugins:7.5.0'
-		compile 'com.convertigo.provider:convertigo-provider-sap:7.5.0'
-		compile 'com.convertigo.provider:convertigo-provider-xul:7.5.0'
+		compile 'com.convertigo.provider:convertigo-provider-couchdb:7.6.0-SNAPSHOT'
+		compile 'com.convertigo.provider:convertigo-provider-plugins:7.6.0-SNAPSHOT'
+		compile 'com.convertigo.provider:convertigo-provider-sap:7.6.0-SNAPSHOT'
+		compile 'com.convertigo.provider:convertigo-provider-xul:7.6.0-SNAPSHOT'
 		compile 'com.convertigo.twinsoft.lib:aviva:2017.09.04'
 		compile 'com.convertigo.twinsoft.lib:comm:1998.11.15'
 		compile 'com.convertigo.twinsoft.lib:ms:2002.01.03'
@@ -371,6 +649,7 @@ project(':engine') {
 		compile 'com.fasterxml.jackson.core:jackson-core:[2.8,2.9['
 		compile 'com.github.fernandospr:javapns-jdk16:[2.2,2.3['
 		compile 'com.google.gcm:gcm-server:1.0.0'
+		compile 'com.opencsv:opencsv:4.1'
 		compile 'com.sun.xml.bind:jaxb-xjc:[2.2,2.3['
 		compile 'commons-collections:commons-collections:[3.2,3.3['
 		compile 'commons-fileupload:commons-fileupload:[1.3,1.4['
@@ -408,6 +687,7 @@ project(':engine') {
 		compileOnly 'org.apache.tomcat:tomcat-dbcp:[7.0,7.1['
 		compileOnly 'com.convertigo.lib:swt:4.4.2-linux32'
 		swtLinux32 'com.convertigo.lib:swt:4.4.2-linux32'
+		runtime files(patchJar.archivePath)
 	}
 	
 	task downloadXulrunnerLinux32(type: Copy) {
@@ -497,7 +777,24 @@ project(':engine') {
 		}
 	}
 	
-	compileJava.dependsOn([':copyLicense', 'updateProductVersion'])
+	task engineApiJar(type: Jar) {
+		baseName 'convertigo-engine-api'
+		from 'bin'
+		include '**/*.class'
+		exclude 'com/twinsoft/convertigo/engine/parsers/**'
+		exclude 'com/twinsoft/convertigo/engine/plugins/**'
+		exclude 'com/twinsoft/convertigo/engine/providers/**'
+	}
+		
+	task copyLicense(type: Copy) {
+		group 'convertigo'
+		
+		from '../license.txt'
+		into '../eclipse-plugin-studio/tomcat/webapps/convertigo/licenses'
+	}
+	
+	compileJava.dependsOn(['copyLicense', 'updateProductVersion'])
+	jar.dependsOn('patchJar')
 }
 
 ext.sharedManifest = project(':engine').manifest {
@@ -509,7 +806,7 @@ ext.sharedManifest = project(':engine').manifest {
 	)
 }
 
-task writeManifest(dependsOn: 'updateEclipseVersion') {
+task writeManifest(dependsOn:  ['updateEclipseVersion', 'makeSplash']) {
 	group 'convertigo'
 	
 	def wm = getTasksByName 'writeManifest', true
@@ -532,7 +829,39 @@ task buildStudio(type: Exec, dependsOn: 'writeManifest') {
 	args 'clean', 'install'
 }
 
-task updateEclipseVersion(type: Exec) {
+task updateEclipseProduct(type: Copy) {
+	group 'convertigo'
+	
+	def aboutTextFile = file('eclipse-plugin-product/aboutText.txt')
+	def licenseTextFile = file('license.txt')
+	
+	inputs.properties(
+		'currentYear': currentYear,
+		'convertigoVersionFull': convertigoVersionFull
+	)
+	inputs.files aboutTextFile, licenseTextFile
+	
+	def aboutText = ''
+	def licenseText = ''
+	
+	doFirst {
+		def xml = new XmlSlurper().parseText('<elt/>')
+		xml.replaceBody aboutTextFile.text
+			.replace('@CEMS_VERSION@', convertigoVersionFull)
+			.replace('@CURRENT_YEAR@', currentYear)
+		aboutText = XmlUtil.serialize(xml).replaceFirst('[\\d\\D]*<elt>([\\d\\D]*)</elt>[\\d\\D]*','$1')
+		
+		xml.replaceBody licenseTextFile.text
+		licenseText = XmlUtil.serialize(xml).replaceFirst('[\\d\\D]*<elt>([\\d\\D]*)</elt>[\\d\\D]*','$1')
+	}
+	
+	from 'eclipse-repository/Convertigo.product.tpl'
+	filter { it.replace('@aboutText@', aboutText).replace('@licenseText@', licenseText) }
+	into 'eclipse-repository'
+	rename '.*', 'Convertigo.product'
+}
+
+task updateEclipseVersion(type: Exec, dependsOn: [':updateEclipseProduct', ':eclipse-plugin-product:writeAboutIni', ':eclipse-plugin-product:writePluginXml', ':eclipse-feature:updateFeature']) {
 	group 'convertigo'
 	
 	def pom = file('pom.xml')
@@ -557,9 +886,15 @@ task buildStudioClean(type: Delete) {
 	
 	delete 'eclipse-repository/target/products'
 }
-	
-task copyLicense(type: Copy) {
-	from 'license.txt'
-	into 'eclipse-plugin-studio/src/com/twinsoft/convertigo/eclipse/wizards/setup'
-	into 'eclipse-plugin-studio/tomcat/webapps/convertigo/licenses'
+
+task generateEclipseConfiguration(dependsOn: [getTasksByName('cleanEclipse', true), getTasksByName('eclipse', true)]) {
+	group 'convertigo'
+}
+
+task generateEclipseConfigurationWithManifest(dependsOn: ['generateEclipseConfiguration', 'writeManifest']) {
+	group 'convertigo'
+}
+
+task makeSplash(dependsOn: 'convertigo-splash:run') {
+	group 'convertigo'
 }

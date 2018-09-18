@@ -449,7 +449,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		TreeViewerColumn treeViewerColumn = new TreeViewerColumn(viewer, SWT.LEFT);
 		
 		ILabelProvider lp = new ViewLabelProvider();
-		ILabelDecorator ld = new ViewLabelDecorator();
+		ILabelDecorator ld = PlatformUI.getWorkbench().getDecoratorManager().getLabelDecorator();
 		
 		treeViewerColumn.setLabelProvider(new DecoratingColumnLabelProvider(lp, ld));
 		
@@ -500,7 +500,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				ProjectExplorerView.this.fillContextMenu(manager);
 			}
 		});
-		
+		menuMgr.setOverrides(new ConvertigoContributionManager());
 		Menu menu = menuMgr.createContextMenu(viewer.getControl());
 		viewer.getControl().setMenu(menu);
 		getSite().registerContextMenu(menuMgr, viewer);
@@ -1414,19 +1414,19 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	protected void createDir(String projectName) {
 		File file = null;
 		
-		file = new File(Engine.PROJECTS_PATH + "/" + projectName + "/_private");
+		file = new File(Engine.projectDir(projectName) + "/_private");
 		if (!file.exists())
 			file.mkdir();
 
-		file = new File(Engine.PROJECTS_PATH + "/" + projectName + "/Traces");
+		file = new File(Engine.projectDir(projectName) + "/Traces");
 		if (!file.exists())
 			file.mkdir();
 		
-		file = new File(Engine.PROJECTS_PATH + "/" + projectName + "/xsd/internal");
+		file = new File(Engine.projectDir(projectName) + "/xsd/internal");
 		if (!file.exists())
 			file.mkdirs();
 		
-		file = new File(Engine.PROJECTS_PATH + "/" + projectName + "/wsdl");
+		file = new File(Engine.projectDir(projectName) + "/wsdl");
 		if (!file.exists())
 			file.mkdir();
 	}
@@ -1783,11 +1783,11 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 								if (MigrationManager.isProjectMigrated(projectName)) {
 									UnloadedProjectTreeObject unloadedProjectTreeObject = new UnloadedProjectTreeObject(databaseObjectTreeObject.viewer, projectName);
 									this.projectLoadingJob = new ProjectLoadingJob(databaseObjectTreeObject.viewer, unloadedProjectTreeObject);
-									this.projectLoadingJob.loadTrace(databaseObjectTreeObject, new File(Engine.PROJECTS_PATH + "/" + projectName + "/Traces/" + connector.getName()));
+									this.projectLoadingJob.loadTrace(databaseObjectTreeObject, new File(Engine.projectDir(projectName) + "/Traces/" + connector.getName()));
 								}
 							}
 							if (projectLoadingJob != null) {
-								projectLoadingJob.loadTrace(databaseObjectTreeObject, new File(Engine.PROJECTS_PATH + "/" + projectName + "/Traces/" + connector.getName()));
+								projectLoadingJob.loadTrace(databaseObjectTreeObject, new File(Engine.projectDir(projectName) + "/Traces/" + connector.getName()));
 							}
 						}
 
@@ -2897,10 +2897,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 	
 	public boolean importProject(String filePath, String targetProjectName) throws EngineException, IOException, CoreException {
-		return importProject(filePath, targetProjectName, false);
-	}
-
-	public boolean importProject(String filePath, String targetProjectName, boolean reload) throws EngineException, IOException, CoreException {
 		TreeObject projectTreeObject = null;
 		if (targetProjectName != null) {
 			projectTreeObject = ((ViewContentProvider) viewer.getContentProvider()).getProjectRootObject(targetProjectName);
@@ -2909,19 +2905,18 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		// if project already exists, backup it and delete it after
 		if (projectTreeObject != null) {
 			if (filePath.endsWith(".xml")) {
-				DatabaseObjectsManager.deleteDir(new File(Engine.PROJECTS_PATH + "/" + targetProjectName + "/_data"));
-				DatabaseObjectsManager.deleteDir(new File(Engine.PROJECTS_PATH + "/" + targetProjectName + "/_private"));
+				DatabaseObjectsManager.deleteDir(new File(Engine.projectDir(targetProjectName) + "/_data"));
+				DatabaseObjectsManager.deleteDir(new File(Engine.projectDir(targetProjectName) + "/_private"));
 			}
-			if (!reload) {
-				// delete project resource (but not content)
-				ConvertigoPlugin.getDefault().deleteProjectPluginResource(false, targetProjectName);
-			}
+			// delete project resource (but not content)
+//			ConvertigoPlugin.getDefault().deleteProjectPluginResource(false, targetProjectName);
 		}
 		
 		ConvertigoPlugin.logInfo("Import project from file \"" + filePath + "\"");
 		
 		Project importedProject = null;
 		if (filePath.endsWith(".xml")) {
+			ConvertigoPlugin.getDefault().createProjectPluginResource(targetProjectName, new File(filePath).getParent());
 			importedProject = Engine.theApp.databaseObjectsManager.importProject(filePath);
 		} else if (filePath.endsWith(".car") && (targetProjectName != null)) {
 			importedProject = Engine.theApp.databaseObjectsManager.deployProject(filePath, targetProjectName, true);

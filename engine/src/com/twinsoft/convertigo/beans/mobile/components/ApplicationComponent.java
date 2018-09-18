@@ -1095,7 +1095,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		if (StringUtils.isBlank(tplProjectName)) {
 			tplProjectName = getProject().getName();
 		}
-		return new File(Engine.PROJECTS_PATH + "/" + tplProjectName + "/ionicTpl");
+		return new File(Engine.projectDir(tplProjectName) + "/ionicTpl");
 	}
 	
 	public String getTplProjectName() {
@@ -1127,7 +1127,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	}
 
 	private boolean isCompatibleTemplate(String project) {
-		File tplDir = new File(Engine.PROJECTS_PATH + "/" + project + "/ionicTpl");
+		File tplDir = new File(Engine.projectDir(project) + "/ionicTpl");
 		if (tplDir.exists()) {
 			if (new File(tplDir,"src/services/actionbeans.service.ts").exists()) {
 				return true;

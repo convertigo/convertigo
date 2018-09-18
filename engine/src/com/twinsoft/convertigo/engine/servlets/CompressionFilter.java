@@ -179,7 +179,7 @@ public class CompressionFilter implements Filter {
 		public void setContentLength(int len) {
 			//ignore, since content length of zipped content
 			//does not match content length of unzipped content.
-		}
+		}		
 
 		@Override
 		public void addHeader(String name, String value) {

@@ -183,7 +183,7 @@ public class RemoteAdministration {
 			}).start();
 		}
 
-		String projectArchiveFileName = Engine.PROJECTS_PATH + "/" + projectName + ".car";
+		String projectArchiveFileName = Engine.projectDir(projectName) + ".car";
 		FileOutputStream fos = null;
 		try {
 			fos = new FileOutputStream(projectArchiveFileName);
@@ -214,7 +214,7 @@ public class RemoteAdministration {
 			throw new EngineException("Not authenticated!");
 		}
 
-		String projectArchiveFileName = Engine.PROJECTS_PATH + "/" + projectName + ".car";
+		String projectArchiveFileName = Engine.projectDir(projectName) + ".car";
 		FileOutputStream fos = null;
 		try {
 			fos = new FileOutputStream(projectArchiveFileName);

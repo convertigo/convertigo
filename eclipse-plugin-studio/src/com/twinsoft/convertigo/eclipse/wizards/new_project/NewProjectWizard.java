@@ -608,9 +608,8 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			return null;
 		}
 
-		String temporaryDir = new File(Engine.USER_WORKSPACE_PATH + "/temp").getCanonicalPath();
-		String tempProjectDir = temporaryDir + "/" + oldProjectName;
-		String newProjectDir = Engine.PROJECTS_PATH + "/" + newProjectName;
+		String temporaryDir = new File(Engine.USER_WORKSPACE_PATH + "/temp/" + oldProjectName).getCanonicalPath();
+		String newProjectDir = Engine.projectDir(newProjectName);
 
 		try {
 			try {
@@ -643,9 +642,9 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				monitor.worked(1);
 
 				// Rename temporary project directory
-				f = new File(tempProjectDir);
+				f = new File(temporaryDir);
 				if (!f.renameTo(new File(newProjectDir))) {
-					throw new ConvertigoException("Unable to rename the directory path \"" + tempProjectDir
+					throw new ConvertigoException("Unable to rename the directory path \"" + temporaryDir
 							+ "\" to \"" + newProjectDir + "\"."
 							+ "\n This directory already exists or is probably locked by another application.");
 				}

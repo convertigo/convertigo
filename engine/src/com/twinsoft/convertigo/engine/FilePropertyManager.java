@@ -58,7 +58,7 @@ public class FilePropertyManager implements AbstractManager {
 			filepath = ".//"+filepath;
 		}
 		if (filepath.startsWith(".//")) {
-			filepath = Engine.PROJECTS_PATH + "/" + projectName + filepath.substring(2);
+			filepath = Engine.resolveProjectPath(Engine.PROJECTS_PATH + "/" + projectName + filepath.substring(2));
 		} else if(filepath.startsWith("./")) {
 			filepath = Engine.USER_WORKSPACE_PATH + filepath.substring(1);
 		}

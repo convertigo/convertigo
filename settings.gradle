@@ -1,3 +1,4 @@
+include 'convertigo-splash'
 include 'eclipse-feature'
 include 'eclipse-plugin-jxbrowser-linux64'
 include 'eclipse-plugin-jxbrowser-mac'

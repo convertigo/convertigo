@@ -19,6 +19,11 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.MultiStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
@@ -57,18 +62,36 @@ public class UnloadedProjectDeleteAction extends MyAbstractAction {
     			else {
     				dialog = new MultipleDeletionDialog(shell, "Project Deletion", true);
     			}
+    			dialog.setToggle("Delete project content on disk (cannot be undone)", false);
     			
-    			if ((treeObjects != null)) {
+    			if (treeObjects != null && treeObjects.length > 0) {
 					for (TreeObject treeObject :treeObjects) {
 						if (treeObject instanceof UnloadedProjectTreeObject) {
-							String projectName = ((UnloadedProjectTreeObject)treeObject).getName();
+							String projectName = ((UnloadedProjectTreeObject) treeObject).getName();
+							
 							if (dialog.shouldBeDeleted("Do you really want to delete the project \"" + projectName + "\" and all its sub-objects?")) {
 			    				// Deleted project will be backup, car will be deleted to avoid its deployment at engine restart
 			    				//Engine.theApp.databaseObjectsManager.deleteProject(projectName);
-				        		Engine.theApp.databaseObjectsManager.deleteProjectAndCar(projectName);
-			    				ConvertigoPlugin.getDefault().deleteProjectPluginResource(projectName);
-			    				explorerView.removeProjectTreeObject(treeObject);
-			    				explorerView.fireTreeObjectRemoved(new TreeObjectEvent(treeObject));
+								Job rmProject = new Job("Remove '" + projectName + "' project") {
+									
+									@Override
+									protected IStatus run(IProgressMonitor monitor) {
+			    		        		try {
+											if (dialog.getToggleState()) {
+												Engine.theApp.databaseObjectsManager.deleteProjectAndCar(projectName);
+											}
+						    				ConvertigoPlugin.getDefault().deleteProjectPluginResource(dialog.getToggleState(), projectName);
+						    				explorerView.removeProjectTreeObject(treeObject);
+						    				explorerView.fireTreeObjectRemoved(new TreeObjectEvent(treeObject));
+										} catch (Exception e) {
+											ConvertigoPlugin.logException(e, "Unable to delete the '" + projectName + "' project.");
+											return new MultiStatus(ConvertigoPlugin.PLUGIN_UNIQUE_ID, IStatus.ERROR, "Failed to remove the '" + projectName + "' project.", e);
+										}
+										return Status.OK_STATUS;
+									}
+	    		        			
+	    		        		};
+	    		        		rmProject.schedule();
 							}
 						}
 					}

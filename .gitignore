@@ -13,9 +13,18 @@ META-INF
 /*/lib
 /*/target
 
-/.gradle/
-/eclipse-plugin-xulrunner-win32/xulrunner
-/resources
-/workspace
+/.gradle
+/build
+/convertigo-splash/splash.bmp
+/eclipse-feature/feature.xml
+/eclipse-plugin-product/about.ini
+/eclipse-plugin-product/plugin.xml
+/eclipse-plugin-product/splash.bmp
 /eclipse-plugin-studio/src/com/twinsoft/convertigo/eclipse/wizards/setup/license.txt
 /eclipse-plugin-studio/tomcat/webapps/convertigo/licenses/license.txt
+/eclipse-plugin-studio/tomcat/webapps/convertigo/templates/project/*
+/eclipse-plugin-studio/tomcat/work
+/eclipse-plugin-xulrunner-win32/xulrunner
+/eclipse-repository/Convertigo.product
+/resources
+/workspace

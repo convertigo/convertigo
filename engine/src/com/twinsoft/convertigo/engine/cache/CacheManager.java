@@ -59,15 +59,13 @@ public abstract class CacheManager extends AbstractRunnableManager {
 		if (context.isStubRequested) {
 			String stubFileName = null;
 			if (context.requestedObject instanceof Transaction) {
-				stubFileName = Engine.PROJECTS_PATH + "/"
-						+ context.requestedObject.getProject().getName()
+				stubFileName = context.requestedObject.getProject().getDirPath()
 						+ "/stubs/"
 						+ context.requestedObject.getParent().getName() + "."
 						+ context.requestedObject.getName() + ".xml";
 
 			} else if (context.requestedObject instanceof Sequence) {
-				stubFileName = Engine.PROJECTS_PATH + "/"
-						+ context.requestedObject.getProject().getName()
+				stubFileName = context.requestedObject.getProject().getDirPath()
 						+ "/stubs/" + context.requestedObject.getName() + ".xml";
 			}
 			try {
