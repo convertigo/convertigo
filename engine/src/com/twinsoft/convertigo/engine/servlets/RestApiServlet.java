@@ -202,6 +202,7 @@ public class RestApiServlet extends GenericServlet {
 		}
 		// Handle REST request
 		else {
+			long t0 = System.currentTimeMillis();
 			try {
 				Collection<UrlMapper> collection = RestApiManager.getInstance().getUrlMappers();
 				
@@ -299,6 +300,9 @@ public class RestApiServlet extends GenericServlet {
 	                processRequestEnd(request, requester);
 	    			onFinally(request);
     			}
+    			
+    			long t1 = System.currentTimeMillis();
+    			Engine.theApp.pluginsManager.fireHttpServletRequestEnd(request, t0, t1);
     		}
 		}
 	}
