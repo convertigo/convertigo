@@ -76,6 +76,7 @@ public class JsonSchemaUtils {
 
 	//https://github.com/OAI/OpenAPI-Specification/issues/1532
 	//https://github.com/swagger-api/swagger-ui/issues/3803
+	//https://github.com/swagger-api/swagger-ui/issues/4643 : Oas3 Form parameters not rendered as expected. Fixed in 3.19.0
 	//swagger-ui issue : model with self recursion
 
 	protected static JSONObject getJsonSchema(XmlSchemaCollection xmlSchemaCollection, XmlSchema xmlSchema, boolean isOas2) {

@@ -286,13 +286,17 @@ public class OpenApiUtils {
 		
 		if (ump.getType() == Type.Form) {
 			MediaType mediaType = requestBody.getContent().get("application/x-www-form-urlencoded");
+			Schema<?> mediaSchema =  mediaType.getSchema();
 			Schema<?> propertiesItem = getSchema(ump);
 			if (propertiesItem != null) {
 				propertiesItem.setDescription(ump.getComment());
-				mediaType.getSchema().addProperties(ump.getName(), propertiesItem);
-				
-				if (ump.isRequired() && !propertiesItem.getRequired().contains(ump.getName())) {
-					propertiesItem.getRequired().add(ump.getName());
+				mediaSchema.addProperties(ump.getName(), propertiesItem);
+
+				if (ump.isRequired()) {
+					List<String> requiredList = mediaSchema.getRequired();
+					if (requiredList == null || !requiredList.contains(ump.getName())) {
+						mediaSchema.addRequiredItem(ump.getName());
+					}
 				}
 			}
 		}
