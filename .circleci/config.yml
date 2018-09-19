@@ -150,7 +150,6 @@ jobs:
     - setup_remote_docker
     
     - run: |
-        apk add --no-cache jq
         source /tmp/build.env
         cd docker
         export TYPE=amd64
@@ -168,11 +167,6 @@ jobs:
         docker push convertigo/convertigo-ci:$CONVERTIGO_BRANCH
         docker push convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME
         docker push convertigo/convertigo-ci:$CONVERTIGO_VERSION
-        TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "'$DOCKER_USERNAME'", "password": "'$DOCKER_PASSWORD'"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
-        TAGS=$(curl 'https://hub.docker.com/v2/repositories/convertigo/convertigo-ci/tags/?page_size=250' -H "Authorization: JWT ${TOKEN}")
-        for tag in $( echo $TAGS | jq -r .results[].name | tail -n +36); do
-            curl "https://hub.docker.com/v2/repositories/convertigo/convertigo-ci/tags/${tag%$'\r'}/" -X DELETE -H "Authorization: JWT ${TOKEN}"
-        done
         
   build_docker_i386:
     <<: *defaults
@@ -231,6 +225,7 @@ jobs:
     - setup_remote_docker
     
     - run: |
+        apk add --no-cache jq curl
         source /tmp/build.env
         cd docker
         export TYPE=alpine
@@ -248,6 +243,11 @@ jobs:
         docker push convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE
         docker push convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE
         docker push convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
+        TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "'$DOCKER_USERNAME'", "password": "'$DOCKER_PASSWORD'"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
+        TAGS=$(curl 'https://hub.docker.com/v2/repositories/convertigo/convertigo-ci/tags/?page_size=250' -H "Authorization: JWT ${TOKEN}")
+        for tag in $( echo $TAGS | jq -r .results[].name | tail -n +36); do
+            curl "https://hub.docker.com/v2/repositories/convertigo/convertigo-ci/tags/${tag%$'\r'}/" -X DELETE -H "Authorization: JWT ${TOKEN}"
+        done
         
   qualif_jmx_1:
     <<: *defaults
