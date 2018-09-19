@@ -127,6 +127,9 @@ jobs:
         source /tmp/build.env
         mv engine/build/libs/*.war $CONVERTIGO_DIST/
         aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read ~/s3 s3://convertigo-ci/
+        for folder in $(aws s3 ls s3://convertigo-ci/ | grep convertigo- | tail -n +36 | sed "s/ *PRE //"); do
+            aws s3 rm s3://convertigo-ci/${folder} --recursive
+        done
         
   build_docker_amd64:
     <<: *defaults
@@ -147,6 +150,7 @@ jobs:
     - setup_remote_docker
     
     - run: |
+        apk add --no-cache jq
         source /tmp/build.env
         cd docker
         export TYPE=amd64
@@ -164,6 +168,11 @@ jobs:
         docker push convertigo/convertigo-ci:$CONVERTIGO_BRANCH
         docker push convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME
         docker push convertigo/convertigo-ci:$CONVERTIGO_VERSION
+        TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "'$DOCKER_USERNAME'", "password": "'$DOCKER_PASSWORD'"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
+        TAGS=$(curl 'https://hub.docker.com/v2/repositories/convertigo/convertigo-ci/tags/?page_size=250' -H "Authorization: JWT ${TOKEN}")
+        for tag in $( echo $TAGS | jq -r .results[].name | tail -n +36); do
+            curl "https://hub.docker.com/v2/repositories/convertigo/convertigo-ci/tags/${tag%$'\r'}/" -X DELETE -H "Authorization: JWT ${TOKEN}"
+        done
         
   build_docker_i386:
     <<: *defaults
