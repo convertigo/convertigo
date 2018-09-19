@@ -127,7 +127,7 @@ jobs:
         source /tmp/build.env
         mv engine/build/libs/*.war $CONVERTIGO_DIST/
         aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read ~/s3 s3://convertigo-ci/
-        for folder in $(aws s3 ls s3://convertigo-ci/ | grep convertigo- | tail -n +36 | sed "s/ *PRE //"); do
+        for folder in $(aws s3 ls s3://convertigo-ci/ | grep convertigo- | head -n -36 | sed "s/ *PRE //"); do
             aws s3 rm s3://convertigo-ci/${folder} --recursive
         done
         
