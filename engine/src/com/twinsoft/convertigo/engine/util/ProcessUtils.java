@@ -93,6 +93,7 @@ public class ProcessUtils {
 		Map<String, String> pbEnv = pb.environment();		
 		// must set "Path" for Windows 8.1 64
 		pbEnv.put(pbEnv.get("PATH") == null ? "Path" : "PATH", paths);
+		pbEnv.put("JAVA_HOME", System.getProperty("java.home"));
 		return pb; 
 	}
 	

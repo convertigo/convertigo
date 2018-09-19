@@ -556,7 +556,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	private transient MobileBuilder mobileBuilder = null;
 	
 	public MobileBuilder getMobileBuilder() {
-		if (mobileBuilder == null) {
+		if (Engine.isStudioMode() && mobileBuilder == null) {
 			mobileBuilder = new MobileBuilder(this);
 		}
 		return mobileBuilder;

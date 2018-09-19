@@ -1093,8 +1093,8 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 				if (!siblingDatabaseObjectTreeObject.isInherited) {
 					DatabaseObject databaseObjectTmp = siblingDatabaseObjectTreeObject.getObject();
 					String databaseObjectName = databaseObjectTmp.getName();
-					if (databaseObjectName.equals(newName)) {
-						throw new ConvertigoException("Another object with the same name already exists.");
+					if (databaseObjectName.equalsIgnoreCase(newName)) {
+						throw new ConvertigoException("Another object with the same name already exists (case insensitive).");
 					}
 				}
 			}
@@ -1108,8 +1108,8 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 					DatabaseObject databaseObjectTmp = siblingDatabaseObjectTreeObject.getObject();
 
 					String databaseObjectName = databaseObjectTmp.getName();
-					if (databaseObjectName.equals(newName)) {
-						throw new ConvertigoException("Another object with the same name already exists.");
+					if (databaseObjectName.equalsIgnoreCase(newName)) {
+						throw new ConvertigoException("Another object with the same name already exists (case insensitive).");
 					}
 				}
 			}
@@ -1134,6 +1134,10 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 				return true;
 			}
 
+			if (newName.equalsIgnoreCase(oldName)) {
+				throw new ConvertigoException("The rename operation is case insensitive.");
+			}
+			
 			rename_(newName, bDialog);
 		}
 		catch(ConvertigoException e) {

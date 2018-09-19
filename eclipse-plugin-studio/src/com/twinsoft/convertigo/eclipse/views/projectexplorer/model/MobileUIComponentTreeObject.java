@@ -52,6 +52,7 @@ import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.IScriptComponent;
+import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
@@ -64,6 +65,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIDynamicTab;
 import com.twinsoft.convertigo.beans.mobile.components.UIElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIFormCustomValidator;
 import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
+import com.twinsoft.convertigo.beans.mobile.components.UIText;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonProperty;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -73,6 +75,7 @@ import com.twinsoft.convertigo.eclipse.property_editors.MobileSmartSourcePropert
 import com.twinsoft.convertigo.eclipse.property_editors.StringComboBoxPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
+import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 
 public class MobileUIComponentTreeObject extends MobileComponentTreeObject implements IEditableTreeObject, IOrderableTreeObject, INamedSourceSelectorTreeObject {
 	
@@ -499,8 +502,9 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			@Override
 			protected List<String> getPropertyNamesForSource(Class<?> c) {
 				List<String> list = new ArrayList<String>();
+				UIComponent object = getObject();
 				
-				if (getObject() instanceof UIDynamicTab) {
+				if (object instanceof UIDynamicTab) {
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
 						MobileApplicationTreeObject.class.isAssignableFrom(c) ||
 						MobileApplicationComponentTreeObject.class.isAssignableFrom(c) ||
@@ -509,7 +513,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 						list.add("tabpage");
 					}
 				}
-				else if (getObject() instanceof UIDynamicMenuItem) {
+				else if (object instanceof UIDynamicMenuItem) {
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
 						MobileApplicationTreeObject.class.isAssignableFrom(c) ||
 						MobileApplicationComponentTreeObject.class.isAssignableFrom(c) ||
@@ -518,7 +522,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 						list.add("itempage");
 					}
 				}
-				else if (getObject() instanceof UIDynamicAnimate) {
+				else if (object instanceof UIDynamicAnimate) {
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
 						MobileApplicationTreeObject.class.isAssignableFrom(c) ||
 						MobileApplicationComponentTreeObject.class.isAssignableFrom(c) ||
@@ -528,7 +532,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 						list.add("identifiable");
 					}
 				}
-				else if (getObject() instanceof UIDynamicElement) {
+				else if (object instanceof UIDynamicElement) {
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
 						SequenceTreeObject.class.isAssignableFrom(c) ||
 						ConnectorTreeObject.class.isAssignableFrom(c))
@@ -557,16 +561,18 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			
 			@Override
 			protected boolean isNamedSource(String propertyName) {
-				if (getObject() instanceof UIDynamicTab) {
+				UIComponent object = getObject();
+				
+				if (object instanceof UIDynamicTab) {
 					return "tabpage".equals(propertyName);
 				}
-				else if (getObject() instanceof UIDynamicMenuItem) {
+				else if (object instanceof UIDynamicMenuItem) {
 					return "itempage".equals(propertyName);
 				}
-				else if (getObject() instanceof UIDynamicAnimate) {
+				else if (object instanceof UIDynamicAnimate) {
 					return "identifiable".equals(propertyName);
 				}
-				else if (getObject() instanceof UIDynamicElement) {
+				else if (object instanceof UIDynamicElement) {
 					return "requestable".equals(propertyName) || 
 								"fsview".equals(propertyName) ||
 									"page".equals(propertyName);
@@ -576,23 +582,25 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			
 			@Override
 			public boolean isSelectable(String propertyName, Object nsObject) {
-				if (getObject() instanceof UIDynamicTab) {
+				UIComponent object = getObject();
+				
+				if (object instanceof UIDynamicTab) {
 					if ("tabpage".equals(propertyName)) {
 						if (nsObject instanceof PageComponent) {
-							return (((PageComponent)nsObject).getProject().equals(getObject().getProject()));
+							return (((PageComponent)nsObject).getProject().equals(object.getProject()));
 						}
 					}
 				}
-				else if (getObject() instanceof UIDynamicMenuItem) {
+				else if (object instanceof UIDynamicMenuItem) {
 					if ("itempage".equals(propertyName)) {
 						if (nsObject instanceof PageComponent) {
-							return (((PageComponent)nsObject).getProject().equals(getObject().getProject()));
+							return (((PageComponent)nsObject).getProject().equals(object.getProject()));
 						}
 					}
 				}
-				else if (getObject() instanceof UIDynamicAnimate) {
+				else if (object instanceof UIDynamicAnimate) {
 					if ("identifiable".equals(propertyName)) {
-						UIDynamicAnimate uda = (UIDynamicAnimate) getObject();
+						UIDynamicAnimate uda = (UIDynamicAnimate) object;
 						if (nsObject instanceof UIElement) {
 							UIElement ue = (UIElement)nsObject;
 							if (uda.getMainScriptComponent().equals(ue.getMainScriptComponent())) {
@@ -601,9 +609,9 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 						}
 					}
 				}
-				else if (getObject() instanceof UIDynamicElement) {
+				else if (object instanceof UIDynamicElement) {
 					if ("requestable".equals(propertyName)) {
-						UIDynamicElement cc = (UIDynamicElement) getObject();
+						UIDynamicElement cc = (UIDynamicElement) object;
 						if (cc.getIonBean().getName().equals("CallSequenceAction")) {
 							return nsObject instanceof Sequence;
 						}
@@ -636,14 +644,14 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 						}
 					}
 					if ("fsview".equals(propertyName)) {
-						UIDynamicElement cc = (UIDynamicElement) getObject();
+						UIDynamicElement cc = (UIDynamicElement) object;
 						if (cc.getIonBean().getName().equals("FullSyncViewAction")) {
 							return nsObject instanceof String;
 						}
 					}
 					if ("page".equals(propertyName)) {
 						if (nsObject instanceof PageComponent) {
-							return (((PageComponent)nsObject).getProject().equals(getObject().getProject()));
+							return (((PageComponent)nsObject).getProject().equals(object.getProject()));
 						}
 					}
 				}
@@ -663,46 +671,55 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 					Object oValue = getPropertyValue(propertyName);
 					
 					String pValue;
-					if (oValue instanceof MobileSmartSourceType)
-						pValue = ((MobileSmartSourceType)oValue).getSmartValue();
-					else
+					if (oValue instanceof MobileSmartSourceType) {
+						MobileSmartSourceType sst = (MobileSmartSourceType) oValue;
+						pValue = sst.getSmartValue();
+					} else {
 						pValue = (String) oValue;
+					}
 					
 					if (pValue != null && pValue.startsWith(oldName)) {
 						String _pValue = newName + pValue.substring(oldName.length());
 						if (!pValue.equals(_pValue)) {
-							if (getObject() instanceof UIDynamicTab) {
+							UIComponent object = getObject();
+							if (object instanceof UIDynamicTab) {
 								if ("tabpage".equals(propertyName)) {
-									((UIDynamicTab)getObject()).setTabPage(_pValue);
+									((UIDynamicTab)object).setTabPage(_pValue);
 									hasBeenRenamed = true;
 								}
 							}
-							else if (getObject() instanceof UIDynamicMenuItem) {
+							else if (object instanceof UIDynamicMenuItem) {
 								if ("itempage".equals(propertyName)) {
-									((UIDynamicMenuItem)getObject()).setItemPage(_pValue);
+									((UIDynamicMenuItem)object).setItemPage(_pValue);
 									hasBeenRenamed = true;
 								}
 							}
-							else if (getObject() instanceof UIDynamicAnimate) {
+							else if (object instanceof UIDynamicAnimate) {
 								if ("identifiable".equals(propertyName)) {
-									((UIDynamicAnimate)getObject()).setIdentifiable(_pValue);
+									((UIDynamicAnimate)object).setIdentifiable(_pValue);
 									hasBeenRenamed = true;
 								}
 							}
-							else if (getObject() instanceof UIDynamicElement) {
+							else if (object instanceof UIDynamicElement) {
 								if ("requestable".equals(propertyName)) {
-									((UIDynamicElement)getObject()).getIonBean().
+									((UIDynamicElement)object).getIonBean().
 										setPropertyValue("requestable", new MobileSmartSourceType(_pValue));
 									hasBeenRenamed = true;
 								}
 								if ("fsview".equals(propertyName)) {
-									((UIDynamicElement)getObject()).getIonBean().
+									((UIDynamicElement)object).getIonBean().
 										setPropertyValue("fsview", new MobileSmartSourceType(_pValue));
 									hasBeenRenamed = true;
 								}
 								if ("page".equals(propertyName)) {
-									((UIDynamicElement)getObject()).getIonBean().
+									((UIDynamicElement)object).getIonBean().
 										setPropertyValue("page", new MobileSmartSourceType(_pValue));
+									hasBeenRenamed = true;
+								}
+							}
+							else if (object instanceof UIText) {
+								if ("textValue".equals(propertyName)) {
+									((UIText) object).setTextSmartType(new MobileSmartSourceType(_pValue));
 									hasBeenRenamed = true;
 								}
 							}
@@ -718,6 +735,39 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		    	        TreeObjectEvent treeObjectEvent = new TreeObjectEvent(MobileUIComponentTreeObject.this, propertyName, "", "");
 		    	        ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);
 					}
+				}
+			}
+			
+			@Override
+			protected void handleSmartSourceRenamed(Class<?> c, String oldName, String newName) {
+				try {
+					if (ProjectTreeObject.class.isAssignableFrom(c)) {
+						UIComponent object = getObject();
+						for (java.beans.PropertyDescriptor pd: CachedIntrospector.getBeanInfo(object).getPropertyDescriptors()) {
+							if (pd.getPropertyType().equals(MobileSmartSourceType.class)) {
+								String propertyName = pd.getName();
+								Object oValue = getPropertyValue(propertyName);
+								MobileSmartSourceType msst = (MobileSmartSourceType) oValue;
+								MobileSmartSource mss = msst.getSmartSource();
+								if (mss != null) {
+									if (oldName.equals(mss.getProjectName())) {
+										mss.setProjectName(newName);
+										msst.setSmartValue(mss.toJsonString());
+									}
+								}
+								
+								hasBeenModified(true);
+								
+								ConvertigoPlugin.projectManager.getProjectExplorerView().updateTreeObject(MobileUIComponentTreeObject.this);
+								getDescriptors();// refresh editors (e.g labels in combobox)
+								
+				    	        TreeObjectEvent treeObjectEvent = new TreeObjectEvent(MobileUIComponentTreeObject.this, propertyName, "", "");
+				    	        ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);
+							}
+						}
+					}
+				} catch (Exception e) {
+					// TODO: handle exception
 				}
 			}
 		};

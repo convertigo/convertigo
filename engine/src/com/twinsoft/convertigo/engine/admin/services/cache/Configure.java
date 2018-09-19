@@ -116,7 +116,6 @@ public class Configure extends XmlService {
 			cacheType=cacheManagerFileType;
 		}
 
-		String create = request.getParameter("create");	
 		dbCachePropFileName = Engine.CONFIGURATION_PATH + DatabaseCacheManager.DB_PROP_FILE_NAME;
 		PropertiesUtils.load(dbCacheProp, dbCachePropFileName);
 
@@ -126,21 +125,28 @@ public class Configure extends XmlService {
 			throw new ServiceException("Unable to save the cache manager properties.",e.getCause());
 		}
 		
-		if(create!=null && cacheType.equals(cacheManagerDatabaseType)) {		
-		
+		String create = request.getParameter("create");	
+		if (create != null && cacheType.equals(cacheManagerDatabaseType)) {
+			boolean dbCreationSupport = true;
+			String databaseDriver = dbCacheProp.getProperty("jdbc.driver.class_name");
+			String sqlCreateTableFileName = "/create_cache_table_";
+			String sqlTest = "select * from CacheTable limit 1";
 			String sqlRequest = "";
-			try {
-				String databaseDriver = dbCacheProp.getProperty("jdbc.driver.class_name");
-				String sqlCreateTableFileName = "/create_cache_table_";
-				if (sqlServerDriver.equals(databaseDriver)) {
-					sqlCreateTableFileName += "sqlserver.sql";
-				} else if (mySQLDriver.equals(databaseDriver)) {
-					sqlCreateTableFileName += "mysql.sql";
-				} else if (oracleDriver.equals(databaseDriver)) {
-					sqlCreateTableFileName += "oracle.sql";
-					throw new Exception("Oracle database creation not supported");
-				}
-				
+			
+			if (sqlServerDriver.equals(databaseDriver)) {
+				sqlCreateTableFileName += "sqlserver.sql";
+				sqlTest = "select top 1 * FROM CacheTable";
+			} else if (mySQLDriver.equals(databaseDriver)) {
+				sqlCreateTableFileName += "mysql.sql";
+				sqlTest = "select * from CacheTable limit 1";
+			} else if (oracleDriver.equals(databaseDriver)) {
+				sqlCreateTableFileName += "oracle.sql";
+				sqlTest = "select * from CacheTable where rownum <= 1";
+				dbCreationSupport = false;
+			}
+			
+			if (dbCreationSupport) {
+				// Create Cache table into Database
 				String fileName = Engine.WEBAPP_PATH + "/WEB-INF/sql" + sqlCreateTableFileName;
 				BufferedReader br = new BufferedReader(new FileReader(fileName.toString()));
 				
@@ -158,8 +164,7 @@ public class Configure extends XmlService {
 							
 							statement = sqlRequester.connection.createStatement();
 							statement.execute(sqlRequest);
-							ServiceUtils.addMessage(document, root, "Request: \"" + sqlRequest
-									+ "\" executed.", "message");
+							ServiceUtils.addMessage(document, root, "Request: \"" + sqlRequest + "\" executed.", "message");
 						} finally {
 							if (statement != null) {
 								statement.close();
@@ -167,14 +172,37 @@ public class Configure extends XmlService {
 							sqlRequester.close();
 						}
 					}
+					ServiceUtils.addMessage(document, root, "Cache table created.", "message");
+				} catch (Exception e) {
+					throw new ServiceException("Unable to create the cache table.",e);
 				} finally {
 					br.close();
 				}
-	
-			} catch(Exception e) {			
-				throw new ServiceException("Unable to create the cache table.",e);
 			}
-	
+			
+			// Test if Cache table exist
+			SqlRequester sqlRequester = null;
+			java.sql.Statement statement = null;
+			try {
+				sqlRequester = new SqlRequester(DatabaseCacheManager.DB_PROP_FILE_NAME);
+				sqlRequester.open();
+
+				String cacheTableName = sqlRequester.getProperty(DatabaseCacheManager.PROPERTIES_SQL_CACHE_TABLE_NAME,"CacheTable");
+				sqlRequest = sqlTest.replaceAll("CacheTable", cacheTableName);						
+				
+				statement = sqlRequester.connection.createStatement();
+				statement.execute(sqlRequest);
+				ServiceUtils.addMessage(document, root, "Request: \"" + sqlRequest + "\" executed.", "message");
+				
+				ServiceUtils.addMessage(document, root, "Cache table tested.", "message");
+			} catch (Exception e) {
+				throw new ServiceException("Unable to test the cache table.",e);
+			} finally {
+				if (statement != null) {
+					statement.close();
+				}
+				sqlRequester.close();
+			}
 		}	
 		restartCacheManager();
 	}

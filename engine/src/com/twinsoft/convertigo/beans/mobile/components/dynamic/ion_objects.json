@@ -1066,7 +1066,7 @@
       "properties": {
       }
     },
-    
+
     "Image": {
       "tag": "img",
 	  "displayName": "Image",
@@ -1119,7 +1119,107 @@
         }
       }
     },
-	
+
+    "Tooltips" : {
+      "tag": "span",
+        "displayName": "Tooltips",
+        "label": "Tooltips",
+        "description": "ionic-tooltips| Defines a Tooltip component. This component displays a tooltip that can be positioned around any item giving the position properties. You can set as many tooltips in a page.<br/> To use it, you have to place the tooltip as a parent of the item. <br/> For more information: ionic-tooltips.",
+        "group": "Ionic Tooltips",
+        "icon16": "tooltips_color_16x16.png",
+        "icon32": "tooltips_color_32x32.png",
+      "properties": {
+        "tooltip": {
+          "attr":"tooltip",
+          "label": "Tooltip string",
+          "description": "string: string to be displayed. 'empty string = disabled').",
+          "category": "@Attributes",
+          "value": ""
+        },
+        "navTooltip": {
+          "attr":"navTooltip",
+          "label": "Navbar Tooltip",
+          "description": "boolean: add this attribute or set it's value to true to specify that the tooltip belongs to a nav button. Defaults to not set.",
+          "category": "@Attributes",
+          "value": false, // optional value (default is not set)
+          "values": [ // possible values (false means do no set)
+          false,
+          true,
+          "false"
+          ]
+        },
+        "event": {
+          "attr":"event",
+          "label": "Showing event",
+          "description": "string: the event to show the tooltip on. Can be either 'hover', 'click' or 'press'. Defaults to hover.",
+          "category": "@Attributes",
+          "value": "hover", // optional value (default is hover)
+          "values": [ // possible values 
+            "hover",
+            "click",
+            "press"
+          ]
+        },
+        "arrow": {
+          "attr":"arrow",
+          "label": "Displays arrow",
+          "description": "boolean: add this attribute or set it's value to true to show an arrow attached to the tooltip. Defaults to true.",
+          "category": "@Attributes",
+          "value": "true", // optional value (default is true)
+          "values": [ // possible values (false means no set)
+          "true",
+          "false"
+          ]
+        },
+        "positionH": {
+          "attr":"positionH",
+          "label": "Horizontal Position",
+          "description": "string: specifies the horizontal position of the tooltip. Can be either 'right' or 'left'",
+          "category": "@Attributes",
+          "value": "right", // optional value (default is right)
+          "values": [ // possible values (false means do no set)
+            false,
+            "right",
+            "left"
+          ]
+        },
+        "positionV": {
+          "attr":"positionV",
+          "label": "Vertical Position",
+          "description": "string: specifies the vertical position of the tooltip. Can be either 'top' or 'bottom'.",
+          "category": "@Attributes",
+          "value": "top", // optional value (default is top)
+          "values": [ // possible values (false means do no set)
+            false,
+            "top",
+            "bottom"
+          ]
+        },
+        "duration": {
+          "mode": "script",
+          "attr":"[duration]",
+          "label": "Display duration",
+          "description": "number: number of milliseconds to show the tooltip for. Defaults to 3000.",
+          "category": "@Attributes",
+          "value": "3000"
+        }
+      },
+      "config": {
+        "module_ts_imports": [
+          {"from":"ionic-tooltips", "components":["TooltipsModule"]},
+          {"from":"@angular/platform-browser/animations", "components":["BrowserAnimationsModule"]}
+        ],
+        "module_ng_imports": [
+          "TooltipsModule",
+          "BrowserAnimationsModule"
+        ],
+        "package_dependencies": [
+          {"package":"@angular/animations", "version":"5.2.10"},
+          {"package":"ionic-tooltips", "version":"2.0.1"}
+        ]
+      }         
+    },
+
     "FSImage": {
       "tplVersion": "1.0.100",
       "tag": "img",
@@ -4895,7 +4995,7 @@
           "label": "format",
           "description": "Out data format.",
           "category": "@Properties",
-          "value": "'YYYY-MM-DD'",
+          "value": "'YYYY-MM-DD'"
         },
 
         "IonColor" : "primary",
@@ -5239,7 +5339,7 @@
       "tag": "c8o-treeview",
       "displayName": "Treeview",
       "label": "Treeview",
-      "description": "c8o-treeview. | Displays a Treeview.",
+      "description": "c8o-treeview. | Displays data in a Tree View. This component is based on the <a href='angular-tree-component' target='_blank' >https://www.npmjs.com/package/angular-tree-component</a> component. <br /><br />JSON data can be sourced from a Sequence or from the local FullSync database. JSON data format is described in the <b>treenodes</b> property",
       "group": "Lists",
       "icon16": "treeviewcomponent_color_16x16.png",
       "icon32": "treeviewcomponent_color_32x32.png",
@@ -5836,6 +5936,21 @@
     }
   }
 },
+
+    "CloseModalAction" : {
+    "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+    "displayName" : "CloseModal",
+      "label" : "CloseModal",
+      "description" : "Defines a <i>Close Modal</i> action component. | Use this action to close a modal page opened previously.<br/>Add a <i>CloseModal</i> action under an Event.",
+      "group" : "Actions",
+      "icon16": "closemodalaction_color_16x16.png",
+      "icon32": "closemodalaction_color_32x32.png",
+      "config": {
+        "action_ts_imports": [
+          {"from":"ionic-angular", "components":["ViewController"]}
+        ]
+      }
+    },
 
     "PushPageAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
@@ -6472,7 +6587,7 @@
         "description": "The name of the attachment to put on the document.",
         "category": "@Properties",
         "type": "string",
-        "value": false,
+        "value": false
         
       },
       "content_type": {
@@ -6658,7 +6773,7 @@
         "category": "@Properties",
         "type": "string",
         "value": false
-      },
+      }
    }
 },
 
@@ -6894,7 +7009,7 @@
 	        "category": "@mocking options",
 	        "type": "string",
 	        "value": "https://www.convertigo.com/wp-content/uploads/2015/01/logoStudio.png"
-	      },
+	      }
       },
       "config": {
         "action_ts_imports": [
@@ -7036,7 +7151,7 @@
 	        "category": "@actionsheet options",
 	        "type": "Array",
 	        "mode": "script",
-	        "value": "['']",
+	        "value": "['']"
 	        
 	      },
 	      "androidTheme": {
@@ -7174,7 +7289,7 @@
 	        "description": "Additional classes for custom styles, separated by spaces.",
 	        "category": "@options",
 	        "type": "string",
-	        "value": false,
+	        "value": false
 	        
 	      },
 	      "button1": {
@@ -7182,7 +7297,7 @@
 	        "description": "Text for the button 1.",
 	        "category": "@options button 1",
 	        "type": "string",
-	        "value": false,
+	        "value": false
 	        
 	      },
 	      "button2": {
@@ -7190,7 +7305,7 @@
 	        "description": "Text for the button 2.",
 	        "category": "@options button 2",
 	        "type": "string",
-	        "value": false,
+	        "value": false
 	        
 	      },
 	      "button3": {
@@ -7198,7 +7313,7 @@
 	        "description": "Text for the button 3.",
 	        "category": "@options button 3",
 	        "type": "string",
-	        "value": false,
+	        "value": false
 	        
 	      },
 	      "value1": {
@@ -7206,7 +7321,7 @@
 	        "description": "A value to return for the button 1.",
 	        "category": "@options button 1",
 	        "type": "string",
-	        "value": false,
+	        "value": false
 	        
 	      },
 	      "value2": {
@@ -7214,7 +7329,7 @@
 	        "description": "A value to return for the button 2.",
 	        "category": "@options button 2",
 	        "type": "string",
-	        "value": false,
+	        "value": false
 	        
 	      },
 	      "value3": {
@@ -7222,8 +7337,7 @@
 	        "description": "A value to return for the button 3.",
 	        "category": "@options button 3",
 	        "type": "string",
-	        "value": false,
-	        
+	        "value": false	        
 	      },
 	      "cancel1": {
 	        "label": "Role 1",
@@ -7257,7 +7371,7 @@
 	        "description": "A css class for button 1.",
 	        "category": "@options button 1",
 	        "type": "string",
-	        "value": false,
+	        "value": false
 	        
 	      },
 	      "css2": {
@@ -7265,7 +7379,7 @@
 	        "description": "A css class for button 2.",
 	        "category": "@options button 2",
 	        "type": "string",
-	        "value": false,
+	        "value": false
 	        
 	      },
 	      "css3": {
@@ -7273,7 +7387,7 @@
 	        "description": "A css class for button 3.",
 	        "category": "@options button 3",
 	        "type": "string",
-	        "value": false,
+	        "value": false
 	        
 	      },
 	      
@@ -7288,7 +7402,7 @@
 	        	"false"
 	        ]
 	        
-	      },
+	      }
 	      
       },
       "config": {
@@ -7882,7 +7996,7 @@
 	        "category": "@mocking options",
 	        "type": "boolean",
 	        "value": "true",
-	        "values":["true", "false"];
+	        "values":["true", "false"]
 	      },
      
 	      "packageID": {
