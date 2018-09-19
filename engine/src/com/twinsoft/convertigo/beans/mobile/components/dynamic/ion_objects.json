@@ -1066,7 +1066,7 @@
       "properties": {
       }
     },
-    
+
     "Image": {
       "tag": "img",
 	  "displayName": "Image",
@@ -1119,8 +1119,8 @@
         }
       }
     },
-    
-	"Tooltips" : {
+
+    "Tooltips" : {
       "tag": "span",
         "displayName": "Tooltips",
         "label": "Tooltips",
@@ -1139,22 +1139,22 @@
         "navTooltip": {
           "attr":"navTooltip",
           "label": "Navbar Tooltip",
-          "description": "boolean: add this attribute or set it's value to true to specify that the tooltip belongs to a nav button. Defaults to false.",
+          "description": "boolean: add this attribute or set it's value to true to specify that the tooltip belongs to a nav button. Defaults to not set.",
           "category": "@Attributes",
-          "value": false, // optional value (default is false)
+          "value": false, // optional value (default is not set)
           "values": [ // possible values (false means do no set)
           false,
           true,
-          false
+          "false"
           ]
         },
         "event": {
           "attr":"event",
           "label": "Showing event",
-          "description": "string: the event to show the tooltip on. Can be either 'hover', 'click' or 'press'.",
+          "description": "string: the event to show the tooltip on. Can be either 'hover', 'click' or 'press'. Defaults to hover.",
           "category": "@Attributes",
-          "value": "hover", // optional value (default is false)
-          "values": [ // possible values (false means no set)
+          "value": "hover", // optional value (default is hover)
+          "values": [ // possible values 
             "hover",
             "click",
             "press"
@@ -1163,11 +1163,10 @@
         "arrow": {
           "attr":"arrow",
           "label": "Displays arrow",
-          "description": "boolean: add this attribute or set it's value to true to show an arrow attached to the tooltip. Defaults to false.",
+          "description": "boolean: add this attribute or set it's value to true to show an arrow attached to the tooltip. Defaults to true.",
           "category": "@Attributes",
-          "value": true, // optional value (default is false)
+          "value": "true", // optional value (default is true)
           "values": [ // possible values (false means no set)
-          false,
           "true",
           "false"
           ]
@@ -1177,7 +1176,7 @@
           "label": "Horizontal Position",
           "description": "string: specifies the horizontal position of the tooltip. Can be either 'right' or 'left'",
           "category": "@Attributes",
-          "value": "right", // optional value (default is false)
+          "value": "right", // optional value (default is right)
           "values": [ // possible values (false means do no set)
             false,
             "right",
@@ -1189,7 +1188,7 @@
           "label": "Vertical Position",
           "description": "string: specifies the vertical position of the tooltip. Can be either 'top' or 'bottom'.",
           "category": "@Attributes",
-          "value": false, // optional value (default is false)
+          "value": "top", // optional value (default is top)
           "values": [ // possible values (false means do no set)
             false,
             "top",
@@ -1220,7 +1219,7 @@
         ]
       }         
     },
-    
+
     "FSImage": {
       "tplVersion": "1.0.100",
       "tag": "img",
@@ -4996,7 +4995,7 @@
           "label": "format",
           "description": "Out data format.",
           "category": "@Properties",
-          "value": "'YYYY-MM-DD'",
+          "value": "'YYYY-MM-DD'"
         },
 
         "IonColor" : "primary",
@@ -5340,7 +5339,7 @@
       "tag": "c8o-treeview",
       "displayName": "Treeview",
       "label": "Treeview",
-      "description": "c8o-treeview. | Displays a Treeview.",
+      "description": "c8o-treeview. | Displays data in a Tree View. This component is based on the <a href='angular-tree-component' target='_blank' >https://www.npmjs.com/package/angular-tree-component</a> component. <br /><br />JSON data can be sourced from a Sequence or from the local FullSync database. JSON data format is described in the <b>treenodes</b> property",
       "group": "Lists",
       "icon16": "treeviewcomponent_color_16x16.png",
       "icon32": "treeviewcomponent_color_32x32.png",
@@ -5952,7 +5951,7 @@
         ]
       }
     },
-    
+
     "PushPageAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "PushPage",
@@ -6588,7 +6587,7 @@
         "description": "The name of the attachment to put on the document.",
         "category": "@Properties",
         "type": "string",
-        "value": false,
+        "value": false
         
       },
       "content_type": {
@@ -6774,7 +6773,7 @@
         "category": "@Properties",
         "type": "string",
         "value": false
-      },
+      }
    }
 },
 
@@ -7010,7 +7009,7 @@
 	        "category": "@mocking options",
 	        "type": "string",
 	        "value": "https://www.convertigo.com/wp-content/uploads/2015/01/logoStudio.png"
-	      },
+	      }
       },
       "config": {
         "action_ts_imports": [
@@ -7152,7 +7151,7 @@
 	        "category": "@actionsheet options",
 	        "type": "Array",
 	        "mode": "script",
-	        "value": "['']",
+	        "value": "['']"
 	        
 	      },
 	      "androidTheme": {
@@ -7290,7 +7289,7 @@
 	        "description": "Additional classes for custom styles, separated by spaces.",
 	        "category": "@options",
 	        "type": "string",
-	        "value": false,
+	        "value": false
 	        
 	      },
 	      "button1": {
@@ -7298,7 +7297,7 @@
 	        "description": "Text for the button 1.",
 	        "category": "@options button 1",
 	        "type": "string",
-	        "value": false,
+	        "value": false
 	        
 	      },
 	      "button2": {
@@ -7306,7 +7305,7 @@
 	        "description": "Text for the button 2.",
 	        "category": "@options button 2",
 	        "type": "string",
-	        "value": false,
+	        "value": false
 	        
 	      },
 	      "button3": {
@@ -7314,7 +7313,7 @@
 	        "description": "Text for the button 3.",
 	        "category": "@options button 3",
 	        "type": "string",
-	        "value": false,
+	        "value": false
 	        
 	      },
 	      "value1": {
@@ -7322,7 +7321,7 @@
 	        "description": "A value to return for the button 1.",
 	        "category": "@options button 1",
 	        "type": "string",
-	        "value": false,
+	        "value": false
 	        
 	      },
 	      "value2": {
@@ -7330,7 +7329,7 @@
 	        "description": "A value to return for the button 2.",
 	        "category": "@options button 2",
 	        "type": "string",
-	        "value": false,
+	        "value": false
 	        
 	      },
 	      "value3": {
@@ -7338,8 +7337,7 @@
 	        "description": "A value to return for the button 3.",
 	        "category": "@options button 3",
 	        "type": "string",
-	        "value": false,
-	        
+	        "value": false	        
 	      },
 	      "cancel1": {
 	        "label": "Role 1",
@@ -7373,7 +7371,7 @@
 	        "description": "A css class for button 1.",
 	        "category": "@options button 1",
 	        "type": "string",
-	        "value": false,
+	        "value": false
 	        
 	      },
 	      "css2": {
@@ -7381,7 +7379,7 @@
 	        "description": "A css class for button 2.",
 	        "category": "@options button 2",
 	        "type": "string",
-	        "value": false,
+	        "value": false
 	        
 	      },
 	      "css3": {
@@ -7389,7 +7387,7 @@
 	        "description": "A css class for button 3.",
 	        "category": "@options button 3",
 	        "type": "string",
-	        "value": false,
+	        "value": false
 	        
 	      },
 	      
@@ -7404,7 +7402,7 @@
 	        	"false"
 	        ]
 	        
-	      },
+	      }
 	      
       },
       "config": {
@@ -7998,7 +7996,7 @@
 	        "category": "@mocking options",
 	        "type": "boolean",
 	        "value": "true",
-	        "values":["true", "false"];
+	        "values":["true", "false"]
 	      },
      
 	      "packageID": {

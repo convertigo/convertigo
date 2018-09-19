@@ -242,7 +242,7 @@ public class MobileBuilder {
 	File projectDir, ionicTplDir, ionicWorkDir;
 	
 	static public void initBuilder(Project project) {
-		if (project != null && project.getMobileApplication() != null && project.getMobileApplication().getApplicationComponent() != null) {
+		if (Engine.isStudioMode() && project != null && project.getMobileApplication() != null && project.getMobileApplication().getApplicationComponent() != null) {
 			try {
 				project.getMobileBuilder().init();
 			} catch (Exception e) {
@@ -257,7 +257,7 @@ public class MobileBuilder {
 	}
 	
 	static public void releaseBuilder(Project project) {
-		if (project != null && project.getMobileApplication() != null && project.getMobileApplication().getApplicationComponent() != null) {
+		if (Engine.isStudioMode() && project != null && project.getMobileApplication() != null && project.getMobileApplication().getApplicationComponent() != null) {
 			try {
 				project.getMobileBuilder().release();
 			} catch (Exception e) {
