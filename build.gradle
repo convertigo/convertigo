@@ -798,7 +798,7 @@ project(':engine') {
 	task unzipSwaggerUI {
 		group 'convertigo'
 		
-		def zip = file "../resources/swagger-v${swaggerUiVersion}.zip"
+		def zip = file "build/tmp/swagger-v${swaggerUiVersion}.zip"
 		
 		inputs.properties(
 			'swaggerUiVersion': swaggerUiVersion
@@ -808,6 +808,7 @@ project(':engine') {
 		outputs.dir dist
 		
 		doLast {
+			file('build/tmp').mkdirs()
 			new URL("https://github.com/swagger-api/swagger-ui/archive/v${swaggerUiVersion}.zip").withInputStream{ i -> zip.withOutputStream{ it << i }}		    
 			dist.delete()
 			copy {
