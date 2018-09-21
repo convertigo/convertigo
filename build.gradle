@@ -26,6 +26,7 @@ def convertigoCodename = 'osmium'
 def convertigoCode = 'Os'
 def convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
 def jxBrowserVersion = '6.19.1'
+def swaggerUiVersion = '3.19.0'
 
 def convertigoEngineAPI = '7.6.0-SNAPSHOT'
 
@@ -571,7 +572,6 @@ project(':engine') {
 	
 	configurations {
 		swtLinux32
-		swaggerUI
 	}
 	
 	jar {
@@ -695,7 +695,6 @@ project(':engine') {
 		compileOnly 'org.apache.tomcat.embed:tomcat-embed-core:[7.0,7.1['
 		compileOnly 'org.apache.tomcat:tomcat-dbcp:[7.0,7.1['
 		compileOnly 'com.convertigo.lib:swt:4.4.2-linux32'
-		swaggerUI 'org.webjars:swagger-ui:3.17.0'
 		swtLinux32 'com.convertigo.lib:swt:4.4.2-linux32'
 		runtime files(patchJar.archivePath)
 	}
@@ -796,18 +795,34 @@ project(':engine') {
 		exclude 'com/twinsoft/convertigo/engine/providers/**'
 	}
 	
-	task unzipSwaggerUI(type: Copy) {
+	task unzipSwaggerUI {
 		group 'convertigo'
 		
-		from zipTree(configurations.swaggerUI[0])
-		include '**/*.png', '**/*.html', '**/*.css', '**/*.js'
-		includeEmptyDirs = false
-		into '../eclipse-plugin-studio/tomcat/webapps/convertigo/swagger/dist'
-		eachFile { f ->
-			f.path = f.path.replaceFirst('.*/', '')
+		def zip = file "../resources/swagger-v${swaggerUiVersion}.zip"
+		
+		inputs.properties(
+			'swaggerUiVersion': swaggerUiVersion
+		)
+		
+		def dist = file '../eclipse-plugin-studio/tomcat/webapps/convertigo/swagger/dist'
+		outputs.dir dist
+		
+		doLast {
+			new URL("https://github.com/swagger-api/swagger-ui/archive/v${swaggerUiVersion}.zip").withInputStream{ i -> zip.withOutputStream{ it << i }}		    
+			dist.delete()
+			copy {
+				from zipTree(zip)
+				include '**/dist/*.png', '**/dist/*.html', '**/dist/*.css', '**/dist/*.js'
+				includeEmptyDirs = false
+				into dist
+				eachFile { f ->
+					f.path = f.path.replaceFirst('.*/', '')
+				}
+			}
+			zip.delete()
 		}
 	}
-		
+	
 	task copyLicense(type: Copy) {
 		group 'convertigo'
 		
