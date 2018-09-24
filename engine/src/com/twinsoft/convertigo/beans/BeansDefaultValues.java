@@ -39,7 +39,9 @@ import org.w3c.dom.Node;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
+import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class BeansDefaultValues {
@@ -82,13 +84,13 @@ public class BeansDefaultValues {
 		}
 		
 		if (dElt.getFirstChild() instanceof CDATASection) {
-			String dData = ((CDATASection) dElt.getFirstChild()).getData();
+			String dData = ((CDATASection) dElt.getFirstChild()).getData().replace('\r', '\n');
 			if (pElt.getFirstChild() instanceof CDATASection) {
 				String pData = ((CDATASection) pElt.getFirstChild()).getData();
 				if (!dData.equals(pData)) {
 					return false;
 				}
-			} else {
+			} else if (pElt.getFirstChild() == null && !dData.isEmpty()) {
 				return false;
 			}
 		} else {
@@ -140,7 +142,7 @@ public class BeansDefaultValues {
 				nCopy.setAttribute("yaml_file", "mobilePages/" + pName + ".yaml");
 			}
 			
-			Element dBean = (Element) xpath.selectNode(beans, "*[@classname='" + classname + "']");
+			Element dBean = getBeanForVersion(xpath, beans, classname, ProductVersion.productVersion);
 			
 			for (Node pAttr: xpath.selectList(pBean, "@*")) {
 				String name = pAttr.getNodeName();
@@ -220,109 +222,138 @@ public class BeansDefaultValues {
 		return nProjectDoc;
 	}
 	
-	public static Document unshrinkProject(Document project) throws Exception {
-		Document beans;
-		try (InputStream is = BeansDefaultValues.class.getResourceAsStream(XMLPATH)) {
-			beans = XMLUtils.getDefaultDocumentBuilder().parse(is);
-		}
-		Document nProjectDoc = XMLUtils.createDom();
-		
-		Element nProject = (Element) nProjectDoc.appendChild(nProjectDoc.importNode(project.getDocumentElement(), false));
-		
-		unshrinkChildren(beans.getDocumentElement(), project.getDocumentElement(), nProject);
-		
-		String shortVersion = nProject.getAttribute("beans");
-		shortVersion = shortVersion.substring(0, shortVersion.lastIndexOf("."));
-		nProject.setAttribute("engine", shortVersion);
-		nProject.setAttribute("studio", shortVersion);
-		nProject.setAttribute("version", nProject.getAttribute("convertigo"));
-		nProject.removeAttribute("convertigo");
-		
-		return nProjectDoc;
-	}
-	
-	private static void unshrinkChildren(Element beans, Element element, Element nParent) {
+	static private class UnshrinkProject {
 		TwsCachedXPathAPI xpath = TwsCachedXPathAPI.getInstance();
-		for (Node pBeanNode: xpath.selectList(element, "bean[@yaml_key]")) {
-			Element pBean = (Element) pBeanNode;
-			
-			Matcher matcherBeanName = patternBeanName.matcher(pBean.getAttribute("yaml_key"));
-			
-			matcherBeanName.matches();
-
-			String pName = matcherBeanName.group(1);
-			String classname = "com.twinsoft.convertigo.beans." + matcherBeanName.group(2);
-			String pPriority = matcherBeanName.group(3);
-			Element dBean = (Element) xpath.selectNode(beans, "*[@classname='" + classname + "']");
-			
-			Element nBean = null;
-			try {
-				nBean = (Element) nParent.getOwnerDocument().importNode(dBean, true);
-			} catch (Exception e) {
-				e.printStackTrace();
+		Element beans;
+		String shortVersion;
+		
+		UnshrinkProject() throws Exception {
+			Document beansDoc;
+			try (InputStream is = BeansDefaultValues.class.getResourceAsStream(XMLPATH)) {
+				beansDoc = XMLUtils.getDefaultDocumentBuilder().parse(is);
 			}
-			nParent.appendChild(nBean);
+			beans = beansDoc.getDocumentElement();
+		}
+		
+		Document unshrinkProject(Document project) throws Exception {
+			Document nProjectDoc = XMLUtils.createDom();
+			Element eProject = project.getDocumentElement();
 			
-			for (Node pAttr: xpath.selectList(pBean, "@*")) {
-				String name = pAttr.getNodeName();
-				if (!name.startsWith("yaml_")) {
-					nBean.setAttribute(name, pAttr.getNodeValue());
-				}
-			}
+			shortVersion = eProject.getAttribute("beans");
+			shortVersion = shortVersion.substring(0, shortVersion.lastIndexOf("."));
 			
-			((Element) xpath.selectNode(nBean, "property[@name='name']/*")).setAttribute("value", pName);
-			if (pPriority != null) {
-				nBean.setAttribute("priority", pPriority);
-			}
+			Element nProject = (Element) nProjectDoc.appendChild(nProjectDoc.importNode(eProject, false));
 			
-			for (Node pPropNode: xpath.selectList(pBean, "*[not(@yaml_key)]")) {
-				Element nProp = (Element) xpath.selectNode(nBean, "property[@name='" + pPropNode.getNodeName() + "']");
-				if (nProp == null) {
-					Element nOther = (Element) xpath.selectNode(nBean, pPropNode.getNodeName());
-					if (nOther != null) {
-						nBean.replaceChild(nBean.getOwnerDocument().importNode(pPropNode, true), nOther);
-						continue;	
-					} else {
-						nProp = (Element) nBean.appendChild(nBean.getOwnerDocument().createElement("property"));
-					}
-				}
-				nProp.setAttribute("name", pPropNode.getNodeName());
+			unshrinkChildren(eProject, nProject);
+			
+			
+			nProject.setAttribute("engine", shortVersion);
+			nProject.setAttribute("studio", shortVersion);
+			nProject.setAttribute("version", nProject.getAttribute("convertigo"));
+			nProject.removeAttribute("convertigo");
+			
+			return nProjectDoc;
+		}
+		
+		void unshrinkChildren(Element element, Element nParent) {
+			for (Node pBeanNode: xpath.selectList(element, "bean[@yaml_key]")) {
+				Element pBean = (Element) pBeanNode;
 				
-				for (Node pAttr: xpath.selectList(pPropNode, "@*")) {
+				Matcher matcherBeanName = patternBeanName.matcher(pBean.getAttribute("yaml_key"));
+				
+				matcherBeanName.matches();
+
+				String pName = matcherBeanName.group(1);
+				String classname = "com.twinsoft.convertigo.beans." + matcherBeanName.group(2);
+				String pPriority = matcherBeanName.group(3);
+				
+				Element dBean = getBeanForVersion(xpath, beans, classname, shortVersion);
+				
+				Element nBean = null;
+				try {
+					nBean = (Element) nParent.getOwnerDocument().importNode(dBean, true);
+					nBean.removeAttribute("version");
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				nParent.appendChild(nBean);
+				
+				for (Node pAttr: xpath.selectList(pBean, "@*")) {
 					String name = pAttr.getNodeName();
-					if (!name.equals("name")) {
-						nProp.setAttribute(name, pAttr.getNodeValue());
+					if (!name.startsWith("yaml_")) {
+						nBean.setAttribute(name, pAttr.getNodeValue());
 					}
 				}
 				
-				if (xpath.selectNode(pPropNode, "*") == null) {
-					Element nValue = (Element) xpath.selectNode(nProp, "*");
-					if (nValue == null) {
-						nValue = (Element) nProp.appendChild(nBean.getOwnerDocument().createElement("java.lang.String"));
+				((Element) xpath.selectNode(nBean, "property[@name='name']/*")).setAttribute("value", pName);
+				if (pPriority != null) {
+					nBean.setAttribute("priority", pPriority);
+				}
+				
+				for (Node pPropNode: xpath.selectList(pBean, "*[not(@yaml_key)]")) {
+					Element nProp = (Element) xpath.selectNode(nBean, "property[@name='" + pPropNode.getNodeName() + "']");
+					if (nProp == null) {
+						Element nOther = (Element) xpath.selectNode(nBean, pPropNode.getNodeName());
+						if (nOther != null) {
+							nBean.replaceChild(nBean.getOwnerDocument().importNode(pPropNode, true), nOther);
+							continue;	
+						} else {
+							nProp = (Element) nBean.appendChild(nBean.getOwnerDocument().createElement("property"));
+						}
 					}
-					String value = ((Element) pPropNode).getTextContent();
-					nValue.setAttribute("value", value);
+					nProp.setAttribute("name", pPropNode.getNodeName());
+					
+					for (Node pAttr: xpath.selectList(pPropNode, "@*")) {
+						String name = pAttr.getNodeName();
+						if (!name.equals("name")) {
+							nProp.setAttribute(name, pAttr.getNodeValue());
+						}
+					}
+					
+					if (xpath.selectNode(pPropNode, "*") == null) {
+						Element nValue = (Element) xpath.selectNode(nProp, "*");
+						if (nValue == null) {
+							nValue = (Element) nProp.appendChild(nBean.getOwnerDocument().createElement("java.lang.String"));
+						}
+						String value = ((Element) pPropNode).getTextContent();
+						nValue.setAttribute("value", value);
 
-					if (nProp.hasAttribute("isNull")) {
-						nProp.setAttribute("isNull", "false");
-					}
-				} else {
-					while (nProp.getFirstChild() != null) {
-						nProp.removeChild(nProp.getFirstChild());
-					}
-					Node pNode = pPropNode.getFirstChild();
-					while (pNode != null) {
-						nProp.appendChild(nProp.getOwnerDocument().importNode(pNode, true));
-						pNode = pNode.getNextSibling();
+						if (nProp.hasAttribute("isNull")) {
+							nProp.setAttribute("isNull", "false");
+						}
+					} else {
+						while (nProp.getFirstChild() != null) {
+							nProp.removeChild(nProp.getFirstChild());
+						}
+						Node pNode = pPropNode.getFirstChild();
+						while (pNode != null) {
+							nProp.appendChild(nProp.getOwnerDocument().importNode(pNode, true));
+							pNode = pNode.getNextSibling();
+						}
 					}
 				}
+				
+				unshrinkChildren(pBean, nBean);
 			}
-			
-			unshrinkChildren(beans, pBean, nBean);
 		}
 	}
 	
-	private static Document updateBeansDefaultValues() throws Exception {
+	public static Document unshrinkProject(Document project) throws Exception {
+		return new UnshrinkProject().unshrinkProject(project);
+	}
+	
+	private static Element getBeanForVersion(TwsCachedXPathAPI xpath, Element beans, String classname, String version) {
+		for (Node n : xpath.selectList(beans, "*[@classname='" + classname + "']")) {
+			Element e = (Element) n;
+			String eVersion = e.getAttribute("version");
+			if (VersionUtils.compare(eVersion, version) <= 0) {
+				return e;
+			}
+		}
+		return null;
+	}
+	
+	private static Document updateBeansDefaultValues(Document document) throws Exception {
 		try (InputStream dbInputstream = BeansDefaultValues.class.getResourceAsStream(
 				"/com/twinsoft/convertigo/beans/database_objects.xml")) {
 			Document documentBeansXmlDatabase = XMLUtils.getDefaultDocumentBuilder().parse(dbInputstream);
@@ -334,18 +365,35 @@ public class BeansDefaultValues {
 			});
 			nodes.addAll(xpath.selectList(documentBeansXmlDatabase, "//bean/@classname"));
 			
-			Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-			Element beans = document.createElement("beans");
-			document.appendChild(beans);
+			Element beans = document.getDocumentElement();
+			if (beans == null) {
+				beans = document.createElement("beans");
+				document.appendChild(beans);
+			}
 			
 			for (Node node: nodes) {
-				String className = node.getNodeValue();
-				DatabaseObject dbo = (DatabaseObject) Class.forName(className).newInstance();
+				String classname = node.getNodeValue();
+				DatabaseObject dbo = (DatabaseObject) Class.forName(classname).newInstance();
 				Element def = dbo.toXml(document);
 				if (def.hasAttribute("priority")) {
 					def.setAttribute("priority", "0");
 				}
-				beans.appendChild(def);
+				Element eBean = getBeanForVersion(xpath, beans, classname, ProductVersion.productVersion);
+				if (eBean != null) {
+					String eVersion = eBean.getAttribute("version");
+					eBean.removeAttribute("version");
+					if (!checkIsSame(def, eBean)) {
+						if (eVersion.equals(ProductVersion.productVersion)) {
+							beans.removeChild(eBean);
+						}
+						def.setAttribute("version", ProductVersion.productVersion);
+						beans.insertBefore(def, beans.getFirstChild());
+					}
+					eBean.setAttribute("version", eVersion);
+				} else {
+					def.setAttribute("version", ProductVersion.productVersion);
+					beans.insertBefore(def, beans.getFirstChild());
+				}
 			};
 			
 			return document;
@@ -353,7 +401,13 @@ public class BeansDefaultValues {
 	}
 	
 	private static void updateBeansDefaultValues(File output) throws Exception {
-		FileUtils.write(output, XMLUtils.prettyPrintDOM(updateBeansDefaultValues()), "UTF-8");
+		Document doc;
+		try {
+			doc = XMLUtils.getDefaultDocumentBuilder().parse(output);
+		} catch (Exception e) {
+			doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+		}
+		FileUtils.write(output, XMLUtils.prettyPrintDOMWithEncoding(updateBeansDefaultValues(doc), "UTF-8"), "UTF-8");
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -378,18 +432,6 @@ public class BeansDefaultValues {
 				}
 			}
 		}
-//		File output = new File("c:/TMP/beans.xml");
-////		updateBeansDefaultValues(output);
-//		File projectOri = new File("C:/TMP/sample_HelloWorld5/sample_HelloWorld5.xml");
-//		File projectShrink = new File("C:/TMP/sample_HelloWorld5/sample_HelloWorld5.shrink.xml");
-//		File projectUnshrink = new File("C:/TMP/sample_HelloWorld5/sample_HelloWorld5.unshrink.xml");
-//		Document project = XMLUtils.loadXml(projectOri);
-//		FileUtils.write(new File("C:/TMP/sample_HelloWorld5/sample_HelloWorld5.pretty.xml"), XMLUtils.prettyPrintDOM(project), "UTF-8");
-//		Document beans = XMLUtils.loadXml(output);
-//		shrinkProject(beans, project);
-//		FileUtils.write(projectShrink, XMLUtils.prettyPrintDOM(project), "UTF-8");
-//		unshrinkProject(beans, project);
-//		FileUtils.write(projectUnshrink, XMLUtils.prettyPrintDOM(project), "UTF-8");
 	}
 
 }
