@@ -96,7 +96,7 @@ public class IonBean {
 	public String toBeanData() {
 		String s = jsonBean.toString();
 		try {
-			JSONObject jsonOb = new JSONObject(toString());
+			JSONObject jsonOb = new JSONObject(s);
 			for (Key k: Key.values()) {
 				if (k.equals(Key.name))
 					continue;
@@ -131,7 +131,7 @@ public class IonBean {
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-		//System.out.println(s);
+		
 		return s;
 	}
 	
