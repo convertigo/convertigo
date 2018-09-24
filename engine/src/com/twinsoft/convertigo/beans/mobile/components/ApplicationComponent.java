@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -1142,8 +1143,8 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	@Override
 	public String[] getTagsForProperty(String propertyName) {
 		if ("tplProjectName".equals(propertyName)) {
-			List<String> projects = new LinkedList<>();
-			//projects.add("");
+			Set<String> projects = new HashSet<>();
+			projects.add(this.tplProjectName);
 			
 			for (String project: Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false)) {
 				if (isCompatibleTemplate(project)) {
