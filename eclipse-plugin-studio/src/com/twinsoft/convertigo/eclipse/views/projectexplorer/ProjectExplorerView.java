@@ -851,7 +851,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		boolean addParent = false;
 		for (TreeObject item: items) {
 			TreeObject parent = item.getParent();
-			if (!newSet.contains(parent)) {
+			if (parent != null && !newSet.contains(parent)) {
 				if (parents.containsKey(parent)) {
 					newSet.add(parent);
 					newSet.remove(parents.get(parent));
