@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -88,17 +89,15 @@ public class ComponentManager {
 	
 	private void loadModels() {
 		clear();
-		InputStream inputstream = null;
-		try {
-			if (Engine.isStarted) {
-				Engine.logEngine.info("(ComponentManager) Start loading Ionic objects");
-			} else {
-				System.out.println("(ComponentManager) Start loading Ionic objects");
-			}
-			
-			inputstream = getClass().getResourceAsStream("ion_objects.json");
+		
+		if (Engine.isStarted) {
+			Engine.logEngine.info("(ComponentManager) Start loading Ionic objects");
+		} else {
+			System.out.println("(ComponentManager) Start loading Ionic objects");
+		}
+		
+		try (InputStream inputstream = getClass().getResourceAsStream("ion_objects.json")) {
 			String json = IOUtils.toString(inputstream, "UTF-8");
-			//System.out.println(json);
 			
 			JSONObject root = new JSONObject(json);
 			readPropertyModels(root);
@@ -117,10 +116,6 @@ public class ComponentManager {
 				System.out.println("(ComponentManager) Could not load Ionic objects:");
 				e.printStackTrace();
 			}
-		}
-		finally {
-			if (inputstream != null)
-				IOUtils.closeQuietly(inputstream);
 		}
 	}
 	
@@ -648,19 +643,13 @@ public class ComponentManager {
 	}
 	
 	public static String getActionTsCode(String name) {
-		InputStream inputstream = null;
-		try {
-			inputstream = instance.getClass().getResourceAsStream("actionbeans/"+ name +".ts");
+		try (InputStream inputstream = instance.getClass().getResourceAsStream("actionbeans/"+ name +".ts")) {
 			return IOUtils.toString(inputstream, "UTF-8");
 		} catch (Exception e) {
 			if (Engine.isStarted) {
 				Engine.logBeans.warn("(ComponentManager) Missing action typescript file for pseudo-bean '"+ name +"' !");
 			} else {
 				System.out.println("(ComponentManager) Missing action typescript file for pseudo-bean '"+ name +"' !");
-			}
-		} finally {
-			if (inputstream != null) {
-				IOUtils.closeQuietly(inputstream);
 			}
 		}
 		return "";
@@ -685,5 +674,9 @@ public class ComponentManager {
 			}
 		}
 		return null;
+	}
+	
+	public static Map<String, IonBean> getIonBeans() {
+		return Collections.unmodifiableMap(instance.bCache);
 	}
 }

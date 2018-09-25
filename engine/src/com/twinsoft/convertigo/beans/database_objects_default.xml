@@ -1,5 +1,134 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.ResetDatabaseTransaction" default="false" priority="0" version="7.6.0">
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIText" priority="0" version="   7   6   0">
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="Text"/>
+        </property>
+        <property name="textValue">
+            <xmlizable classname="com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType">
+                <MobileSmartSourceType>plain:some text</MobileSmartSourceType>
+            </xmlizable>
+        </property>
+    </mobilecomponent>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIControlVariable" priority="0" version="   7   6   0">
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="Variable"/>
+        </property>
+        <property name="varValue">
+            <xmlizable classname="com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType">
+                <MobileSmartSourceType>plain:value</MobileSmartSourceType>
+            </xmlizable>
+        </property>
+    </mobilecomponent>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent" priority="0" version="   7   6   0">
+        <property name="attrName">
+            <java.lang.String value="(tap)"/>
+        </property>
+        <property name="attrValue">
+            <xmlizable classname="com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType">
+                <MobileSmartSourceType>plain:value</MobileSmartSourceType>
+            </xmlizable>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="eventName">
+            <java.lang.String value="onTap"/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="Event"/>
+        </property>
+    </mobilecomponent>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIControlDirective" priority="0" version="   7   6   0">
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="directiveExpression">
+            <java.lang.String value=""/>
+        </property>
+        <property name="directiveName">
+            <java.lang.String value="ForEach"/>
+        </property>
+        <property name="directiveSource">
+            <xmlizable classname="com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType">
+                <MobileSmartSourceType>plain:</MobileSmartSourceType>
+            </xmlizable>
+        </property>
+        <property name="identifier">
+            <java.lang.String value=""/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="Directive"/>
+        </property>
+        <property name="selfClose">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="tagName">
+            <java.lang.String value="ng-container"/>
+        </property>
+    </mobilecomponent>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIAttribute" priority="0" version="   7   6   0">
+        <property name="attrName">
+            <java.lang.String value="attr"/>
+        </property>
+        <property name="attrValue">
+            <xmlizable classname="com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType">
+                <MobileSmartSourceType>plain:value</MobileSmartSourceType>
+            </xmlizable>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="Attr"/>
+        </property>
+    </mobilecomponent>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIAnimation" priority="0" version="   7   6   0">
+        <property name="animationName">
+            <java.lang.String value=""/>
+        </property>
+        <property name="attrName">
+            <java.lang.String value="class"/>
+        </property>
+        <property name="attrValue">
+            <xmlizable classname="com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType">
+                <MobileSmartSourceType>plain:value</MobileSmartSourceType>
+            </xmlizable>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="isInfinite">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="Animation"/>
+        </property>
+    </mobilecomponent>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.ResetDatabaseTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -53,7 +182,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutUpdateTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutUpdateTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -122,7 +251,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutServerConfigTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutServerConfigTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -182,7 +311,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutDocumentAttachmentTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutDocumentAttachmentTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -248,7 +377,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutDatabaseTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutDatabaseTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -302,7 +431,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostUpdateTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostUpdateTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -368,7 +497,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostSessionTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostSessionTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -425,7 +554,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostServerRestartTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostServerRestartTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -476,7 +605,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostReplicateTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostReplicateTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -551,7 +680,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostDocumentTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostDocumentTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -620,7 +749,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostCompactTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostCompactTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -674,7 +803,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostBulkDocumentsTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostBulkDocumentsTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -746,7 +875,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.HeadDocumentTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.HeadDocumentTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -839,7 +968,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.HeadDatabaseTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.HeadDatabaseTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -893,7 +1022,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetViewTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetViewTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -1010,7 +1139,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetSessionTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetSessionTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -1061,7 +1190,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerUuidsTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerUuidsTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -1115,7 +1244,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerUpdatesTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerUpdatesTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -1175,7 +1304,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerTasksTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerTasksTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -1226,7 +1355,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerStatsTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerStatsTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -1283,7 +1412,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerLogTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerLogTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -1340,7 +1469,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerInfoTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerInfoTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -1391,7 +1520,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerDatabasesTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerDatabasesTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -1442,7 +1571,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerConfigTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerConfigTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -1499,7 +1628,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetDocumentTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetDocumentTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -1592,7 +1721,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetDocumentAttachmentTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetDocumentAttachmentTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -1658,7 +1787,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetDatabaseInfoTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetDatabaseInfoTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -1712,7 +1841,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteSessionTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteSessionTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -1763,7 +1892,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteServerConfigTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteServerConfigTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -1820,7 +1949,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteDocumentTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteDocumentTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -1883,7 +2012,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteDocumentAttachmentTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteDocumentAttachmentTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -1949,7 +2078,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteDatabaseTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteDatabaseTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -2003,7 +2132,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.CustomTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.CustomTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -2063,7 +2192,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.CopyDocumentTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.CopyDocumentTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -2132,7 +2261,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -2240,7 +2369,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.SqlTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.SqlTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -2310,7 +2439,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -2359,7 +2488,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.SapJcoTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.SapJcoTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -2408,7 +2537,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.SapJcoLogonTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.SapJcoLogonTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -2457,7 +2586,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.JsonHttpTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.JsonHttpTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -2557,7 +2686,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.JavelinTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.JavelinTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -2636,7 +2765,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.HttpTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.HttpTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -2736,7 +2865,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.HtmlTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.HtmlTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -2857,7 +2986,7 @@
         <wsdltype/>
         <handlers><![CDATA[// handlers are handled by Statements for HTML Transaction.]]></handlers>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.CicsTransaction" default="false" priority="0" version="7.6.0">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.CicsTransaction" default="false" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -2925,7 +3054,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <sequence classname="com.twinsoft.convertigo.beans.sequences.GenericSequence" priority="0" version="7.6.0">
+    <sequence classname="com.twinsoft.convertigo.beans.sequences.GenericSequence" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -3015,7 +3144,7 @@
     
     
     
-    <extractionrule classname="com.twinsoft.convertigo.beans.vdx.Menu" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.vdx.Menu" priority="0" version="   7   6   0">
         <property name="charType">
             <java.lang.Integer value="0"/>
         </property>
@@ -3062,7 +3191,7 @@
             <java.lang.Integer value="1"/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.vdx.EditField" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.vdx.EditField" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -3100,7 +3229,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.vdx.CommandVdx" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.vdx.CommandVdx" priority="0" version="   7   6   0">
         <property name="caseDependency">
             <java.lang.Boolean value="false"/>
         </property>
@@ -3257,7 +3386,7 @@
             <java.lang.Boolean value="true"/>
         </property>
     </extractionrule>
-    <variable classname="com.twinsoft.convertigo.beans.variables.TestCaseVariable" priority="0" version="7.6.0">
+    <variable classname="com.twinsoft.convertigo.beans.variables.TestCaseVariable" priority="0" version="   7   6   0">
         <property name="bSoapArray">
             <java.lang.Boolean value="false"/>
         </property>
@@ -3280,7 +3409,7 @@
             <java.lang.Integer value="0"/>
         </property>
     </variable>
-    <variable classname="com.twinsoft.convertigo.beans.variables.TestCaseMultiValuedVariable" priority="0" version="7.6.0">
+    <variable classname="com.twinsoft.convertigo.beans.variables.TestCaseMultiValuedVariable" priority="0" version="   7   6   0">
         <property name="bSoapArray">
             <java.lang.Boolean value="true"/>
         </property>
@@ -3305,7 +3434,7 @@
             <java.lang.Integer value="0"/>
         </property>
     </variable>
-    <variable classname="com.twinsoft.convertigo.beans.variables.StepVariable" priority="0" version="7.6.0">
+    <variable classname="com.twinsoft.convertigo.beans.variables.StepVariable" priority="0" version="   7   6   0">
         <property name="bSoapArray">
             <java.lang.Boolean value="false"/>
         </property>
@@ -3333,7 +3462,7 @@
             <java.lang.Integer value="0"/>
         </property>
     </variable>
-    <variable classname="com.twinsoft.convertigo.beans.variables.StepMultiValuedVariable" priority="0" version="7.6.0">
+    <variable classname="com.twinsoft.convertigo.beans.variables.StepMultiValuedVariable" priority="0" version="   7   6   0">
         <property name="bSoapArray">
             <java.lang.Boolean value="true"/>
         </property>
@@ -3366,7 +3495,7 @@
             <java.lang.Integer value="0"/>
         </property>
     </variable>
-    <variable classname="com.twinsoft.convertigo.beans.variables.RequestableVariable" priority="0" version="7.6.0">
+    <variable classname="com.twinsoft.convertigo.beans.variables.RequestableVariable" priority="0" version="   7   6   0">
         <property name="bSoapArray">
             <java.lang.Boolean value="false"/>
         </property>
@@ -3409,7 +3538,7 @@
             </xmlizable>
         </property>
     </variable>
-    <variable classname="com.twinsoft.convertigo.beans.variables.RequestableMultiValuedVariable" priority="0" version="7.6.0">
+    <variable classname="com.twinsoft.convertigo.beans.variables.RequestableMultiValuedVariable" priority="0" version="   7   6   0">
         <property name="bSoapArray">
             <java.lang.Boolean value="true"/>
         </property>
@@ -3454,7 +3583,7 @@
             </xmlizable>
         </property>
     </variable>
-    <variable classname="com.twinsoft.convertigo.beans.variables.RequestableHttpVariable" priority="0" version="7.6.0">
+    <variable classname="com.twinsoft.convertigo.beans.variables.RequestableHttpVariable" priority="0" version="   7   6   0">
         <property name="bSoapArray">
             <java.lang.Boolean value="false"/>
         </property>
@@ -3512,7 +3641,7 @@
             </xmlizable>
         </property>
     </variable>
-    <variable classname="com.twinsoft.convertigo.beans.variables.RequestableHttpMultiValuedVariable" priority="0" version="7.6.0">
+    <variable classname="com.twinsoft.convertigo.beans.variables.RequestableHttpMultiValuedVariable" priority="0" version="   7   6   0">
         <property name="bSoapArray">
             <java.lang.Boolean value="true"/>
         </property>
@@ -3572,7 +3701,7 @@
             </xmlizable>
         </property>
     </variable>
-    <variable classname="com.twinsoft.convertigo.beans.variables.HttpStatementVariable" priority="0" version="7.6.0">
+    <variable classname="com.twinsoft.convertigo.beans.variables.HttpStatementVariable" priority="0" version="   7   6   0">
         <property name="bSoapArray">
             <java.lang.Boolean value="false"/>
         </property>
@@ -3601,7 +3730,7 @@
             <java.lang.Integer value="0"/>
         </property>
     </variable>
-    <variable classname="com.twinsoft.convertigo.beans.variables.HttpStatementMultiValuedVariable" priority="0" version="7.6.0">
+    <variable classname="com.twinsoft.convertigo.beans.variables.HttpStatementMultiValuedVariable" priority="0" version="   7   6   0">
         <property name="bSoapArray">
             <java.lang.Boolean value="true"/>
         </property>
@@ -3676,7 +3805,7 @@
     
     
     
-    <step classname="com.twinsoft.convertigo.beans.steps.XMLTransformStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.XMLTransformStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -3724,7 +3853,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.XMLSplitStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.XMLSplitStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -3778,7 +3907,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.XMLSortStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.XMLSortStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -3827,7 +3956,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.XMLGenerateDatesStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.XMLGenerateDatesStep" priority="0" version="   7   6   0">
         <property name="calendarCompatibility">
             <java.lang.Boolean value="false"/>
         </property>
@@ -3895,7 +4024,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.XMLErrorStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.XMLErrorStep" priority="0" version="   7   6   0">
         <property name="code">
             <xmlizable classname="com.twinsoft.convertigo.beans.steps.SmartType">
                 <SmartType mode="PLAIN"/>
@@ -3942,7 +4071,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.XMLElementStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.XMLElementStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -3985,7 +4114,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.XMLDateTimeStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.XMLDateTimeStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -4040,7 +4169,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.XMLCountStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.XMLCountStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -4083,7 +4212,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.XMLCopyStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.XMLCopyStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -4120,7 +4249,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.XMLConcatStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.XMLConcatStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -4163,7 +4292,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -4198,7 +4327,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.XMLAttributeStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.XMLAttributeStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -4247,7 +4376,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.WriteXMLStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.WriteXMLStep" priority="0" version="   7   6   0">
         <property name="appendResult">
             <java.lang.Boolean value="false"/>
         </property>
@@ -4302,7 +4431,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.WriteCSVStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.WriteCSVStep" priority="0" version="   7   6   0">
         <property name="appendResult">
             <java.lang.Boolean value="false"/>
         </property>
@@ -4363,7 +4492,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.WriteBase64Step" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.WriteBase64Step" priority="0" version="   7   6   0">
         <property name="appendResult">
             <java.lang.Boolean value="false"/>
         </property>
@@ -4415,7 +4544,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.WhileStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.WhileStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -4450,7 +4579,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.TransactionStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.TransactionStep" priority="0" version="   7   6   0">
         <property name="bInternalInvoke">
             <java.lang.Boolean value="true"/>
         </property>
@@ -4497,7 +4626,7 @@
         </property>
         <wsdltype/>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.ThenStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.ThenStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -4529,7 +4658,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.SourceStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.SourceStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -4569,7 +4698,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.SmtpStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.SmtpStep" priority="0" version="   7   6   0">
         <property name="attachments">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
                 <com.twinsoft.convertigo.beans.common.XMLVector/>
@@ -4647,7 +4776,7 @@
             <java.lang.String value=""/>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.SleepStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.SleepStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -4682,7 +4811,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.SimpleStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.SimpleStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -4717,7 +4846,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.SimpleSourceStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.SimpleSourceStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -4757,7 +4886,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.SimpleIteratorStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.SimpleIteratorStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -4798,7 +4927,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.SetResponseStatusStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.SetResponseStatusStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -4840,7 +4969,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.SetResponseHeaderStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.SetResponseHeaderStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -4882,7 +5011,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.SetAuthenticatedUserStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.SetAuthenticatedUserStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -4919,7 +5048,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.SessionSetStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.SessionSetStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -4959,7 +5088,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.SessionSetObjectStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.SessionSetObjectStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -4999,7 +5128,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.SessionRemoveStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.SessionRemoveStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -5034,7 +5163,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.SessionGetStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.SessionGetStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -5069,7 +5198,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.SessionGetObjectStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.SessionGetObjectStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -5104,7 +5233,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.SerialStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.SerialStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -5142,7 +5271,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.SequenceStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.SequenceStep" priority="0" version="   7   6   0">
         <property name="bInternalInvoke">
             <java.lang.Boolean value="true"/>
         </property>
@@ -5187,7 +5316,7 @@
         </property>
         <wsdltype/>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.ReturnStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.ReturnStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -5222,7 +5351,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.RenameStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.RenameStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -5263,7 +5392,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.RemoveSessionStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.RemoveSessionStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -5295,7 +5424,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.RemoveContextStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.RemoveContextStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -5330,7 +5459,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.RemoveAuthenticatedUserStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.RemoveAuthenticatedUserStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -5362,7 +5491,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.ReadXMLStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.ReadXMLStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -5397,7 +5526,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.ReadCSVStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.ReadCSVStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -5450,7 +5579,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.PushNotificationStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.PushNotificationStep" priority="0" version="   7   6   0">
         <property name="GCMApiKey">
             <java.lang.String value="&quot;&lt;configure your api key here&gt;&quot;"/>
         </property>
@@ -5510,7 +5639,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.ProcessExecStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.ProcessExecStep" priority="0" version="   7   6   0">
         <property name="commandCharset">
             <java.lang.String value="UTF-8"/>
         </property>
@@ -5559,7 +5688,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.ParallelStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.ParallelStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -5597,7 +5726,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.MoveStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.MoveStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -5638,7 +5767,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.LogStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.LogStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -5679,7 +5808,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.ListDirStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.ListDirStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -5717,7 +5846,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.LDAPAuthenticationStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.LDAPAuthenticationStep" priority="0" version="   7   6   0">
         <property name="adminLogin">
             <xmlizable classname="com.twinsoft.convertigo.beans.steps.SmartType">
                 <SmartType mode="PLAIN"/>
@@ -5787,7 +5916,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.IteratorStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.IteratorStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -5830,7 +5959,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.IsInThenElseStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.IsInThenElseStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -5875,7 +6004,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.IsInStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.IsInStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -5920,7 +6049,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.InputVariablesStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.InputVariablesStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -5955,7 +6084,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.IfThenElseStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.IfThenElseStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -5990,7 +6119,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.IfStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.IfStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -6025,7 +6154,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.IfFileExistThenElseStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.IfFileExistThenElseStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -6060,7 +6189,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.IfFileExistStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.IfFileExistStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -6095,7 +6224,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.IfExistThenElseStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.IfExistThenElseStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -6135,7 +6264,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.IfExistStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.IfExistStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -6175,7 +6304,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.GetRequestHeaderStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.GetRequestHeaderStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -6212,7 +6341,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.GetAuthenticatedUserStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.GetAuthenticatedUserStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -6247,7 +6376,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.GenerateHashCodeStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.GenerateHashCodeStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -6288,7 +6417,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.FunctionStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.FunctionStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -6320,7 +6449,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.ExceptionStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.ExceptionStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -6358,7 +6487,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.ElseStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.ElseStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -6390,7 +6519,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.ElementStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.ElementStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -6431,7 +6560,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.DuplicateStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.DuplicateStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -6472,7 +6601,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.DoWhileStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.DoWhileStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -6507,7 +6636,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.DeleteStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.DeleteStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -6542,7 +6671,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.CreateDirectoryStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.CreateDirectoryStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -6580,7 +6709,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.CopyStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.CopyStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -6621,7 +6750,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.BreakStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.BreakStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -6656,7 +6785,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.AttributeStep" priority="0" version="7.6.0">
+    <step classname="com.twinsoft.convertigo.beans.steps.AttributeStep" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -6703,7 +6832,7 @@
             </xmlizable>
         </property>
     </step>
-    <statement classname="com.twinsoft.convertigo.beans.statements.WhileStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.WhileStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -6717,7 +6846,7 @@
             <java.lang.String value="While"/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.WaitTriggerStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.WaitTriggerStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -6743,7 +6872,7 @@
             </xmlizable>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.ThenStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.ThenStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -6754,7 +6883,7 @@
             <java.lang.String value="Then"/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.TabManagementStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.TabManagementStatement" priority="0" version="   7   6   0">
         <property name="action">
             <java.lang.String value="getIndex"/>
         </property>
@@ -6774,7 +6903,7 @@
             <java.lang.String value="Tab_management"/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.SimpleStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.SimpleStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -6788,7 +6917,7 @@
             <java.lang.String value="Transaction_JS"/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.ScExitHandlerStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.ScExitHandlerStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -6811,7 +6940,7 @@
             <java.lang.String value=""/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.ScExitDefaultHandlerStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.ScExitDefaultHandlerStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -6831,7 +6960,7 @@
             <java.lang.String value="onTransactionDefaultHandlerExit"/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.ScEntryHandlerStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.ScEntryHandlerStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -6854,7 +6983,7 @@
             <java.lang.String value=""/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.ScEntryDefaultHandlerStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.ScEntryDefaultHandlerStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -6874,7 +7003,7 @@
             <java.lang.String value="onTransactionDefaultHandlerEntry"/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.ReturnStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.ReturnStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -6888,7 +7017,7 @@
             <java.lang.String value="Return"/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.RecordForSiteClipperStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.RecordForSiteClipperStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -6905,7 +7034,7 @@
             <java.lang.String value=".*"/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.NavigationBarStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.NavigationBarStatement" priority="0" version="   7   6   0">
         <property name="action">
             <java.lang.String value="goTo"/>
         </property>
@@ -6940,7 +7069,7 @@
             </xmlizable>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.MouseStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.MouseStatement" priority="0" version="   7   6   0">
         <property name="action">
             <java.lang.String value="click"/>
         </property>
@@ -6978,7 +7107,7 @@
             <java.lang.String value=""/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.MouseAdvanceStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.MouseAdvanceStatement" priority="0" version="   7   6   0">
         <property name="action">
             <java.lang.String value="click"/>
         </property>
@@ -7043,7 +7172,7 @@
             <java.lang.String value=""/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.LogStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.LogStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -7063,7 +7192,7 @@
             <java.lang.String value="Log"/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.KeyStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.KeyStatement" priority="0" version="   7   6   0">
         <property name="action">
             <java.lang.String value="keypress"/>
         </property>
@@ -7119,7 +7248,7 @@
             <java.lang.String value=""/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.InvokeBrowserJsStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.InvokeBrowserJsStatement" priority="0" version="   7   6   0">
         <property name="codeJS">
             <java.lang.String value="//todo"/>
         </property>
@@ -7159,7 +7288,7 @@
             <java.lang.String value="'/HTML'"/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.InputHtmlSetValueStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.InputHtmlSetValueStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -7197,7 +7326,7 @@
             <java.lang.String value=""/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.InputHtmlSetSelectedStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.InputHtmlSetSelectedStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -7238,7 +7367,7 @@
             <java.lang.String value=""/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.InputHtmlSetFileStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.InputHtmlSetFileStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -7276,7 +7405,7 @@
             <java.lang.String value=""/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.InputHtmlSetCheckedStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.InputHtmlSetCheckedStatement" priority="0" version="   7   6   0">
         <property name="checked">
             <java.lang.Boolean value="true"/>
         </property>
@@ -7314,7 +7443,7 @@
             <java.lang.String value=""/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.IfXpathExistsThenElseStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.IfXpathExistsThenElseStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -7328,7 +7457,7 @@
             <java.lang.String value="IfXpathExistsThenElse"/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.IfXpathExistsStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.IfXpathExistsStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -7342,7 +7471,7 @@
             <java.lang.String value="IfXpathExists"/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.IfThenElseStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.IfThenElseStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -7356,7 +7485,7 @@
             <java.lang.String value="IfThenElse"/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.IfStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.IfStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -7370,7 +7499,7 @@
             <java.lang.String value="If"/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.HandlerStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.HandlerStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -7390,7 +7519,7 @@
             <java.lang.String value="onTransactionStarted"/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.HTTPUploadStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.HTTPUploadStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -7454,7 +7583,7 @@
             <java.lang.String value=""/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.HTTPStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.HTTPStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -7512,7 +7641,7 @@
             <java.lang.String value=""/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.GetUrlStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.GetUrlStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -7526,7 +7655,7 @@
             <java.lang.String value="//todo"/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.GetTextStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.GetTextStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -7546,7 +7675,7 @@
             <java.lang.String value=""/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.GetNodesStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.GetNodesStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -7566,7 +7695,7 @@
             <java.lang.String value=""/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.GetAttachmentStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.GetAttachmentStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -7589,7 +7718,7 @@
             <java.lang.Long value="60000"/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.FunctionStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.FunctionStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -7600,7 +7729,7 @@
             <java.lang.String value="Function"/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.ExceptionStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.ExceptionStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -7614,7 +7743,7 @@
             <java.lang.String value="Exception"/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.ElseStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.ElseStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -7625,7 +7754,7 @@
             <java.lang.String value="Else"/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.DoWhileStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.DoWhileStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -7639,7 +7768,7 @@
             <java.lang.String value="Do_while"/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.CredentialsStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.CredentialsStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -7659,7 +7788,7 @@
             <java.lang.String value=""/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.CreateEventStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.CreateEventStatement" priority="0" version="   7   6   0">
         <property name="action">
             <java.lang.String value="click"/>
         </property>
@@ -7697,7 +7826,7 @@
             <java.lang.String value=""/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.CookiesGetStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.CookiesGetStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -7714,7 +7843,7 @@
             <java.lang.String value="var"/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.CookiesAddStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.CookiesAddStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -7728,7 +7857,7 @@
             <java.lang.String value="Cookies_Add"/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.ContinueWithSiteClipperStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.ContinueWithSiteClipperStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -7742,7 +7871,7 @@
             <java.lang.String value=""/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.ContextSetStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.ContextSetStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -7759,7 +7888,7 @@
             <java.lang.String value="Context_Set"/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.ContextGetStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.ContextGetStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -7776,7 +7905,7 @@
             <java.lang.String value="varname"/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.ContextAddTextNodeStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.ContextAddTextNodeStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -7796,7 +7925,7 @@
             <java.lang.String value="tag"/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.ContainerStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.ContainerStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -7807,7 +7936,7 @@
             <java.lang.String value="Container"/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.CallFunctionStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.CallFunctionStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -7821,7 +7950,7 @@
             <java.lang.String value="Call_function"/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.BrowserPropertyChangeStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.BrowserPropertyChangeStatement" priority="0" version="   7   6   0">
         <property name="attachmentMode">
             <java.lang.String value="noChange"/>
         </property>
@@ -7883,7 +8012,7 @@
             <java.lang.String value="noChange"/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.BreakStatement" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.BreakStatement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -7897,7 +8026,7 @@
             <java.lang.String value="Break"/>
         </property>
     </statement>
-    <statement classname="com.twinsoft.convertigo.beans.statements.AdoptClientCookies" priority="0" version="7.6.0">
+    <statement classname="com.twinsoft.convertigo.beans.statements.AdoptClientCookies" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -7908,7 +8037,7 @@
             <java.lang.String value="Adopt_client_cookies"/>
         </property>
     </statement>
-    <extractionrule classname="com.twinsoft.convertigo.beans.sna.Subfile" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.sna.Subfile" priority="0" version="   7   6   0">
         <property name="actionLineAttribute">
             <java.lang.Integer value="4"/>
         </property>
@@ -7961,7 +8090,7 @@
             <java.lang.Integer value="7"/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.sna.Nptui" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.sna.Nptui" priority="0" version="   7   6   0">
         <property name="bButton">
             <java.lang.Boolean value="true"/>
         </property>
@@ -8020,7 +8149,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.sna.Menu" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.sna.Menu" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -8061,7 +8190,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.sna.CommandSNA" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.sna.CommandSNA" priority="0" version="   7   6   0">
         <property name="caseDependency">
             <java.lang.Boolean value="false"/>
         </property>
@@ -8529,7 +8658,7 @@
         </property>
     </extractionrule>
     
-    <screenclass classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass" priority="0" version="7.6.0">
+    <screenclass classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -8555,7 +8684,7 @@
             </xmlizable>
         </property>
     </screenclass>
-    <screenclass classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass" priority="0" version="7.6.0">
+    <screenclass classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -8581,7 +8710,7 @@
             </xmlizable>
         </property>
     </screenclass>
-    <screenclass classname="com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass" priority="0" version="7.6.0">
+    <screenclass classname="com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -8607,7 +8736,7 @@
             </xmlizable>
         </property>
     </screenclass>
-    <urlmappingparameter classname="com.twinsoft.convertigo.beans.rest.QueryParameter" priority="0" version="7.6.0">
+    <urlmappingparameter classname="com.twinsoft.convertigo.beans.rest.QueryParameter" priority="0" version="   7   6   0">
         <property name="array">
             <java.lang.Boolean value="false"/>
         </property>
@@ -8633,7 +8762,7 @@
             <java.lang.Boolean value="false"/>
         </property>
     </urlmappingparameter>
-    <urlmappingoperation classname="com.twinsoft.convertigo.beans.rest.PutOperation" priority="0" version="7.6.0">
+    <urlmappingoperation classname="com.twinsoft.convertigo.beans.rest.PutOperation" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -8647,7 +8776,7 @@
             <java.lang.String value=""/>
         </property>
     </urlmappingoperation>
-    <urlmappingoperation classname="com.twinsoft.convertigo.beans.rest.PostOperation" priority="0" version="7.6.0">
+    <urlmappingoperation classname="com.twinsoft.convertigo.beans.rest.PostOperation" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -8661,7 +8790,7 @@
             <java.lang.String value=""/>
         </property>
     </urlmappingoperation>
-    <urlmappingparameter classname="com.twinsoft.convertigo.beans.rest.PathParameter" priority="0" version="7.6.0">
+    <urlmappingparameter classname="com.twinsoft.convertigo.beans.rest.PathParameter" priority="0" version="   7   6   0">
         <property name="array">
             <java.lang.Boolean value="false"/>
         </property>
@@ -8687,7 +8816,7 @@
             <java.lang.Boolean value="true"/>
         </property>
     </urlmappingparameter>
-    <urlmapping classname="com.twinsoft.convertigo.beans.rest.PathMapping" priority="0" version="7.6.0">
+    <urlmapping classname="com.twinsoft.convertigo.beans.rest.PathMapping" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -8698,7 +8827,7 @@
             <java.lang.String value="/"/>
         </property>
     </urlmapping>
-    <urlmappingresponse classname="com.twinsoft.convertigo.beans.rest.OperationResponse" priority="0" version="7.6.0">
+    <urlmappingresponse classname="com.twinsoft.convertigo.beans.rest.OperationResponse" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -8718,7 +8847,7 @@
             <java.lang.String value=""/>
         </property>
     </urlmappingresponse>
-    <urlmappingparameter classname="com.twinsoft.convertigo.beans.rest.HeaderParameter" priority="0" version="7.6.0">
+    <urlmappingparameter classname="com.twinsoft.convertigo.beans.rest.HeaderParameter" priority="0" version="   7   6   0">
         <property name="array">
             <java.lang.Boolean value="false"/>
         </property>
@@ -8744,7 +8873,7 @@
             <java.lang.Boolean value="false"/>
         </property>
     </urlmappingparameter>
-    <urlmappingoperation classname="com.twinsoft.convertigo.beans.rest.HeadOperation" priority="0" version="7.6.0">
+    <urlmappingoperation classname="com.twinsoft.convertigo.beans.rest.HeadOperation" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -8758,7 +8887,7 @@
             <java.lang.String value=""/>
         </property>
     </urlmappingoperation>
-    <urlmappingoperation classname="com.twinsoft.convertigo.beans.rest.GetOperation" priority="0" version="7.6.0">
+    <urlmappingoperation classname="com.twinsoft.convertigo.beans.rest.GetOperation" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -8772,7 +8901,7 @@
             <java.lang.String value=""/>
         </property>
     </urlmappingoperation>
-    <urlmappingparameter classname="com.twinsoft.convertigo.beans.rest.FormParameter" priority="0" version="7.6.0">
+    <urlmappingparameter classname="com.twinsoft.convertigo.beans.rest.FormParameter" priority="0" version="   7   6   0">
         <property name="array">
             <java.lang.Boolean value="false"/>
         </property>
@@ -8798,7 +8927,7 @@
             <java.lang.Boolean value="false"/>
         </property>
     </urlmappingparameter>
-    <urlmappingoperation classname="com.twinsoft.convertigo.beans.rest.DeleteOperation" priority="0" version="7.6.0">
+    <urlmappingoperation classname="com.twinsoft.convertigo.beans.rest.DeleteOperation" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -8812,7 +8941,7 @@
             <java.lang.String value=""/>
         </property>
     </urlmappingoperation>
-    <urlmappingparameter classname="com.twinsoft.convertigo.beans.rest.BodyParameter" priority="0" version="7.6.0">
+    <urlmappingparameter classname="com.twinsoft.convertigo.beans.rest.BodyParameter" priority="0" version="   7   6   0">
         <property name="array">
             <java.lang.Boolean value="false"/>
         </property>
@@ -8841,7 +8970,7 @@
             <java.lang.Boolean value="false"/>
         </property>
     </urlmappingparameter>
-    <reference classname="com.twinsoft.convertigo.beans.references.WebServiceReference" priority="0" version="7.6.0">
+    <reference classname="com.twinsoft.convertigo.beans.references.WebServiceReference" priority="0" version="   7   6   0">
         <property name="authPassword">
             <java.lang.String value=""/>
         </property>
@@ -8864,7 +8993,7 @@
             <java.lang.String value=""/>
         </property>
     </reference>
-    <reference classname="com.twinsoft.convertigo.beans.references.RestServiceReference" priority="0" version="7.6.0">
+    <reference classname="com.twinsoft.convertigo.beans.references.RestServiceReference" priority="0" version="   7   6   0">
         <property name="authPassword">
             <java.lang.String value=""/>
         </property>
@@ -8887,7 +9016,7 @@
             <java.lang.String value=""/>
         </property>
     </reference>
-    <reference classname="com.twinsoft.convertigo.beans.references.ProjectSchemaReference" priority="0" version="7.6.0">
+    <reference classname="com.twinsoft.convertigo.beans.references.ProjectSchemaReference" priority="0" version="   7   6   0">
         <property name="authPassword">
             <java.lang.String value=""/>
         </property>
@@ -8913,7 +9042,7 @@
             <java.lang.String value=""/>
         </property>
     </reference>
-    <reference classname="com.twinsoft.convertigo.beans.references.IncludeXsdSchemaReference" priority="0" version="7.6.0">
+    <reference classname="com.twinsoft.convertigo.beans.references.IncludeXsdSchemaReference" priority="0" version="   7   6   0">
         <property name="authPassword">
             <java.lang.String value=""/>
         </property>
@@ -8936,7 +9065,7 @@
             <java.lang.String value=""/>
         </property>
     </reference>
-    <reference classname="com.twinsoft.convertigo.beans.references.ImportXsdSchemaReference" priority="0" version="7.6.0">
+    <reference classname="com.twinsoft.convertigo.beans.references.ImportXsdSchemaReference" priority="0" version="   7   6   0">
         <property name="authPassword">
             <java.lang.String value=""/>
         </property>
@@ -8959,7 +9088,7 @@
             <java.lang.String value=""/>
         </property>
     </reference>
-    <reference classname="com.twinsoft.convertigo.beans.references.ImportWsdlSchemaReference" priority="0" version="7.6.0">
+    <reference classname="com.twinsoft.convertigo.beans.references.ImportWsdlSchemaReference" priority="0" version="   7   6   0">
         <property name="authPassword">
             <java.lang.String value=""/>
         </property>
@@ -8982,7 +9111,7 @@
             <java.lang.String value=""/>
         </property>
     </reference>
-    <mobileplatform classname="com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhone8" priority="0" version="7.6.0">
+    <mobileplatform classname="com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhone8" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -8996,7 +9125,7 @@
             <java.lang.String value=""/>
         </property>
     </mobileplatform>
-    <mobileplatform classname="com.twinsoft.convertigo.beans.mobileplatforms.Windows" priority="0" version="7.6.0">
+    <mobileplatform classname="com.twinsoft.convertigo.beans.mobileplatforms.Windows" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -9007,7 +9136,7 @@
             <java.lang.String value="Windows"/>
         </property>
     </mobileplatform>
-    <mobileplatform classname="com.twinsoft.convertigo.beans.mobileplatforms.IOs" priority="0" version="7.6.0">
+    <mobileplatform classname="com.twinsoft.convertigo.beans.mobileplatforms.IOs" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -9024,7 +9153,7 @@
             <java.lang.String value="iOS"/>
         </property>
     </mobileplatform>
-    <mobileplatform classname="com.twinsoft.convertigo.beans.mobileplatforms.Android" priority="0" version="7.6.0">
+    <mobileplatform classname="com.twinsoft.convertigo.beans.mobileplatforms.Android" priority="0" version="   7   6   0">
         <property name="androidCertificatePw">
             <java.lang.String value=""/>
         </property>
@@ -9044,7 +9173,7 @@
             <java.lang.String value="Android"/>
         </property>
     </mobileplatform>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UITheme" priority="0" version="7.6.0">
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UITheme" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -9060,26 +9189,8 @@
             </xmlizable>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIText" priority="0" version="7.6.0">
-        <property name="comment">
-            <java.lang.String value=""/>
-        </property>
-        <property name="isEnabled">
-            <java.lang.Boolean value="true"/>
-        </property>
-        <property name="name">
-            <java.lang.String value="Text"/>
-        </property>
-        <property name="textValue">
-            <xmlizable classname="com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType">
-                <MobileSmartSourceType>{
- "mode": "plain",
- "value": "some text"
-}</MobileSmartSourceType>
-            </xmlizable>
-        </property>
-    </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIStyle" priority="0" version="7.6.0">
+    
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIStyle" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -9095,7 +9206,7 @@
             </xmlizable>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIPageEvent" priority="0" version="7.6.0">
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIPageEvent" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -9109,7 +9220,7 @@
             <java.lang.String value="onDidEnter"/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIFormCustomValidator" priority="0" version="7.6.0">
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIFormCustomValidator" priority="0" version="   7   6   0">
         <property name="async">
             <java.lang.Boolean value="false"/>
         </property>
@@ -9132,7 +9243,7 @@
             </xmlizable>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIFormControlValidator" priority="0" version="7.6.0">
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIFormControlValidator" priority="0" version="   7   6   0">
         <property name="async">
             <java.lang.Boolean value="false"/>
         </property>
@@ -9164,7 +9275,7 @@
             <java.lang.String value="not set"/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIForm" priority="0" version="7.6.0">
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIForm" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -9184,7 +9295,7 @@
             <java.lang.String value="form"/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIEventSubscriber" priority="0" version="7.6.0">
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIEventSubscriber" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -9198,7 +9309,7 @@
             <java.lang.String value=""/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIElement" priority="0" version="7.6.0">
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIElement" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -9218,7 +9329,7 @@
             <java.lang.String value="tag"/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicTag" priority="0" version="7.6.0">
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicTag" priority="0" version="   7   6   0">
         <property name="beanData">
             <java.lang.String value=""/>
         </property>
@@ -9241,7 +9352,7 @@
             <java.lang.String value="tag"/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicTab" priority="0" version="7.6.0">
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicTab" priority="0" version="   7   6   0">
         <property name="beanData">
             <java.lang.String value=""/>
         </property>
@@ -9267,7 +9378,7 @@
             <java.lang.String value="tag"/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItems" priority="0" version="7.6.0">
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItems" priority="0" version="   7   6   0">
         <property name="beanData">
             <java.lang.String value=""/>
         </property>
@@ -9302,7 +9413,7 @@
             <java.lang.String value="tag"/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItem" priority="0" version="7.6.0">
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItem" priority="0" version="   7   6   0">
         <property name="beanData">
             <java.lang.String value=""/>
         </property>
@@ -9337,7 +9448,7 @@
             <java.lang.String value="tag"/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu" priority="0" version="7.6.0">
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu" priority="0" version="   7   6   0">
         <property name="beanData">
             <java.lang.String value=""/>
         </property>
@@ -9360,7 +9471,7 @@
             <java.lang.String value="tag"/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement" priority="0" version="7.6.0">
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement" priority="0" version="   7   6   0">
         <property name="beanData">
             <java.lang.String value=""/>
         </property>
@@ -9383,7 +9494,7 @@
             <java.lang.String value="tag"/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicComponent" priority="0" version="7.6.0">
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicComponent" priority="0" version="   7   6   0">
         <property name="beanData">
             <java.lang.String value=""/>
         </property>
@@ -9406,7 +9517,7 @@
             <java.lang.String value="tag"/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicAnimate" priority="0" version="7.6.0">
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicAnimate" priority="0" version="   7   6   0">
         <property name="beanData">
             <java.lang.String value=""/>
         </property>
@@ -9435,7 +9546,7 @@
             <java.lang.String value="tag"/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction" priority="0" version="7.6.0">
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction" priority="0" version="   7   6   0">
         <property name="beanData">
             <java.lang.String value=""/>
         </property>
@@ -9458,7 +9569,7 @@
             <java.lang.String value="tag"/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UICustomAction" priority="0" version="7.6.0">
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UICustomAction" priority="0" version="   7   6   0">
         <property name="actionValue">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
                 <com.twinsoft.convertigo.beans.common.FormatedContent><![CDATA[		page.c8o.log.debug(event ? event.toString():'no event');
@@ -9506,7 +9617,7 @@
             </xmlizable>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UICustom" priority="0" version="7.6.0">
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UICustom" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -9520,135 +9631,12 @@
             <java.lang.String value="Fragment"/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIControlVariable" priority="0" version="7.6.0">
-        <property name="comment">
-            <java.lang.String value=""/>
-        </property>
-        <property name="isEnabled">
-            <java.lang.Boolean value="true"/>
-        </property>
-        <property name="name">
-            <java.lang.String value="Variable"/>
-        </property>
-        <property name="varValue">
-            <xmlizable classname="com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType">
-                <MobileSmartSourceType>{
- "mode": "plain",
- "value": "value"
-}</MobileSmartSourceType>
-            </xmlizable>
-        </property>
-    </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent" priority="0" version="7.6.0">
-        <property name="attrName">
-            <java.lang.String value="(tap)"/>
-        </property>
-        <property name="attrValue">
-            <xmlizable classname="com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType">
-                <MobileSmartSourceType>{
- "mode": "plain",
- "value": "value"
-}</MobileSmartSourceType>
-            </xmlizable>
-        </property>
-        <property name="comment">
-            <java.lang.String value=""/>
-        </property>
-        <property name="eventName">
-            <java.lang.String value="onTap"/>
-        </property>
-        <property name="isEnabled">
-            <java.lang.Boolean value="true"/>
-        </property>
-        <property name="name">
-            <java.lang.String value="Event"/>
-        </property>
-    </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIControlDirective" priority="0" version="7.6.0">
-        <property name="comment">
-            <java.lang.String value=""/>
-        </property>
-        <property name="directiveExpression">
-            <java.lang.String value=""/>
-        </property>
-        <property name="directiveName">
-            <java.lang.String value="ForEach"/>
-        </property>
-        <property name="directiveSource">
-            <xmlizable classname="com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType">
-                <MobileSmartSourceType>{
- "mode": "plain",
- "value": ""
-}</MobileSmartSourceType>
-            </xmlizable>
-        </property>
-        <property name="identifier">
-            <java.lang.String value=""/>
-        </property>
-        <property name="isEnabled">
-            <java.lang.Boolean value="true"/>
-        </property>
-        <property name="name">
-            <java.lang.String value="Directive"/>
-        </property>
-        <property name="selfClose">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="tagName">
-            <java.lang.String value="ng-container"/>
-        </property>
-    </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIAttribute" priority="0" version="7.6.0">
-        <property name="attrName">
-            <java.lang.String value="attr"/>
-        </property>
-        <property name="attrValue">
-            <xmlizable classname="com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType">
-                <MobileSmartSourceType>{
- "mode": "plain",
- "value": "value"
-}</MobileSmartSourceType>
-            </xmlizable>
-        </property>
-        <property name="comment">
-            <java.lang.String value=""/>
-        </property>
-        <property name="isEnabled">
-            <java.lang.Boolean value="true"/>
-        </property>
-        <property name="name">
-            <java.lang.String value="Attr"/>
-        </property>
-    </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIAnimation" priority="0" version="7.6.0">
-        <property name="animationName">
-            <java.lang.String value=""/>
-        </property>
-        <property name="attrName">
-            <java.lang.String value="class"/>
-        </property>
-        <property name="attrValue">
-            <xmlizable classname="com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType">
-                <MobileSmartSourceType>{
- "mode": "plain",
- "value": "value"
-}</MobileSmartSourceType>
-            </xmlizable>
-        </property>
-        <property name="comment">
-            <java.lang.String value=""/>
-        </property>
-        <property name="isEnabled">
-            <java.lang.Boolean value="true"/>
-        </property>
-        <property name="isInfinite">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="name">
-            <java.lang.String value="Animation"/>
-        </property>
-    </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIActionFailureEvent" priority="0" version="7.6.0">
+    
+    
+    
+    
+    
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIActionFailureEvent" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -9659,7 +9647,7 @@
             <java.lang.String value="Failure_Handler"/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIActionErrorEvent" priority="0" version="7.6.0">
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIActionErrorEvent" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -9670,7 +9658,7 @@
             <java.lang.String value="Error_Handler"/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.RouteSequenceEvent" priority="0" version="7.6.0">
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.RouteSequenceEvent" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -9687,7 +9675,7 @@
             <java.lang.String value=""/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.RouteFullsyncEvent" priority="0" version="7.6.0">
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.RouteFullsyncEvent" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -9707,7 +9695,7 @@
             <java.lang.String value="get"/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.RouteExceptionActionComponent" priority="0" version="7.6.0">
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.RouteExceptionActionComponent" priority="0" version="   7   6   0">
         <property name="action">
             <java.lang.String value="toast"/>
         </property>
@@ -9736,7 +9724,7 @@
             <java.lang.String value="bottom"/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent" priority="0" version="7.6.0">
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -9753,7 +9741,7 @@
             <java.lang.String value="*"/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.RouteDataActionComponent" priority="0" version="7.6.0">
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.RouteDataActionComponent" priority="0" version="   7   6   0">
         <property name="action">
             <java.lang.String value=""/>
         </property>
@@ -9782,7 +9770,7 @@
             <java.lang.String value="bottom"/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.RouteComponent" priority="0" version="7.6.0">
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.RouteComponent" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -9793,7 +9781,7 @@
             <java.lang.String value="NavRoute"/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent" isRoot="false" priority="0" version="7.6.0">
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent" isRoot="false" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -9827,7 +9815,7 @@
             <java.lang.String value=""/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent" priority="0" version="7.6.0">
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -9849,7 +9837,7 @@
             <java.lang.String value=""/>
         </property>
     </mobilecomponent>
-    <extractionrule classname="com.twinsoft.convertigo.beans.html.XMLDeleteNodes" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.html.XMLDeleteNodes" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -9863,7 +9851,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.html.XMLAddText" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.html.XMLAddText" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -9880,7 +9868,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.html.XMLAddLink" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.html.XMLAddLink" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -9903,7 +9891,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.html.XMLAddImage" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.html.XMLAddImage" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -9923,7 +9911,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.html.XMLAddButton" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.html.XMLAddButton" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -9949,7 +9937,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.SetHttpPoolPolicy" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.SetHttpPoolPolicy" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -9963,7 +9951,7 @@
             <java.lang.String value="Set_HTTP_Pool_Policy"/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ScriptInjector" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ScriptInjector" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -9983,7 +9971,7 @@
             <java.lang.String value="Script_injector"/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.RewriteLocationHeader" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.RewriteLocationHeader" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -9994,7 +9982,7 @@
             <java.lang.String value="Rewrite_location_header"/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.RewriteAbsoluteUrl" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.RewriteAbsoluteUrl" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -10011,7 +9999,7 @@
             <java.lang.Boolean value="true"/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ResponseJavaScript" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ResponseJavaScript" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -10025,7 +10013,7 @@
             <java.lang.String value="Response_JS"/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.RequestJavaScript" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.RequestJavaScript" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -10039,7 +10027,7 @@
             <java.lang.String value="Request_JS"/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ReplaceString" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ReplaceString" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -10056,7 +10044,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.RemoveHeaderFromResponse" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.RemoveHeaderFromResponse" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -10073,7 +10061,7 @@
             <java.lang.String value="Remove_response_header"/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.RemoveHeaderFromRequest" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.RemoveHeaderFromRequest" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -10090,7 +10078,7 @@
             <java.lang.String value="Remove_request_header"/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.RemoveCacheHeadersFromResponse" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.RemoveCacheHeadersFromResponse" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -10101,7 +10089,7 @@
             <java.lang.String value="Remove_response_cache_headers"/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.RemoveCacheHeadersFromRequest" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.RemoveCacheHeadersFromRequest" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -10112,7 +10100,7 @@
             <java.lang.String value="Remove_request_cache_headers"/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ModifyHeaderOfResponse" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ModifyHeaderOfResponse" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -10129,7 +10117,7 @@
             <java.lang.String value="Modify_response_header"/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ModifyHeaderOfRequest" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ModifyHeaderOfRequest" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -10146,7 +10134,7 @@
             <java.lang.String value="Modify_request_header"/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.CssInjector" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.CssInjector" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -10166,7 +10154,7 @@
             <java.lang.String value="CSS_injector"/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ClientInstructionSetValue" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ClientInstructionSetValue" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -10183,7 +10171,7 @@
             <java.lang.String value="&quot;value&quot;"/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ClientInstructionSetChecked" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ClientInstructionSetChecked" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -10200,7 +10188,7 @@
             <java.lang.String value="true"/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ClientInstructionClick" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ClientInstructionClick" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -10214,7 +10202,7 @@
             <java.lang.String value="&quot;#targetId&quot;"/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.AddHeaderToResponse" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.AddHeaderToResponse" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -10231,7 +10219,7 @@
             <java.lang.String value="Add_response_header"/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.AddHeaderToRequest" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.AddHeaderToRequest" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -10248,7 +10236,7 @@
             <java.lang.String value="Add_request_header"/>
         </property>
     </extractionrule>
-    <criteria classname="com.twinsoft.convertigo.beans.criteria.siteclipper.MatchUrl" priority="0" version="7.6.0">
+    <criteria classname="com.twinsoft.convertigo.beans.criteria.siteclipper.MatchUrl" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -10265,7 +10253,7 @@
             <java.lang.Boolean value="false"/>
         </property>
     </criteria>
-    <criteria classname="com.twinsoft.convertigo.beans.criteria.siteclipper.MatchStatusCode" priority="0" version="7.6.0">
+    <criteria classname="com.twinsoft.convertigo.beans.criteria.siteclipper.MatchStatusCode" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -10279,7 +10267,7 @@
             <java.lang.Boolean value="false"/>
         </property>
     </criteria>
-    <criteria classname="com.twinsoft.convertigo.beans.criteria.siteclipper.MatchRegExp" priority="0" version="7.6.0">
+    <criteria classname="com.twinsoft.convertigo.beans.criteria.siteclipper.MatchRegExp" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -10293,7 +10281,7 @@
             <java.lang.Boolean value="false"/>
         </property>
     </criteria>
-    <criteria classname="com.twinsoft.convertigo.beans.criteria.siteclipper.MatchMimeType" priority="0" version="7.6.0">
+    <criteria classname="com.twinsoft.convertigo.beans.criteria.siteclipper.MatchMimeType" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -10307,7 +10295,7 @@
             <java.lang.Boolean value="false"/>
         </property>
     </criteria>
-    <criteria classname="com.twinsoft.convertigo.beans.criteria.siteclipper.MatchHeaderOfResponse" priority="0" version="7.6.0">
+    <criteria classname="com.twinsoft.convertigo.beans.criteria.siteclipper.MatchHeaderOfResponse" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -10324,7 +10312,7 @@
             <java.lang.Boolean value="false"/>
         </property>
     </criteria>
-    <criteria classname="com.twinsoft.convertigo.beans.criteria.siteclipper.MatchHeaderOfRequest" priority="0" version="7.6.0">
+    <criteria classname="com.twinsoft.convertigo.beans.criteria.siteclipper.MatchHeaderOfRequest" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -10341,7 +10329,7 @@
             <java.lang.Boolean value="false"/>
         </property>
     </criteria>
-    <listener classname="com.twinsoft.convertigo.beans.couchdb.FullSyncListener" priority="0" version="7.6.0">
+    <listener classname="com.twinsoft.convertigo.beans.couchdb.FullSyncListener" priority="0" version="   7   6   0">
         <property name="chunk">
             <java.lang.Integer value="10"/>
         </property>
@@ -10361,7 +10349,7 @@
             <java.lang.String value=""/>
         </property>
     </listener>
-    <listener classname="com.twinsoft.convertigo.beans.couchdb.FullSyncFilterListener" priority="0" version="7.6.0">
+    <listener classname="com.twinsoft.convertigo.beans.couchdb.FullSyncFilterListener" priority="0" version="   7   6   0">
         <property name="chunk">
             <java.lang.Integer value="10"/>
         </property>
@@ -10381,7 +10369,7 @@
             <java.lang.String value=""/>
         </property>
     </listener>
-    <listener classname="com.twinsoft.convertigo.beans.couchdb.FullSyncDeleteViewListener" priority="0" version="7.6.0">
+    <listener classname="com.twinsoft.convertigo.beans.couchdb.FullSyncDeleteViewListener" priority="0" version="   7   6   0">
         <property name="chunk">
             <java.lang.Integer value="10"/>
         </property>
@@ -10401,7 +10389,7 @@
             <java.lang.String value=""/>
         </property>
     </listener>
-    <listener classname="com.twinsoft.convertigo.beans.couchdb.FullSyncDeleteFilterListener" priority="0" version="7.6.0">
+    <listener classname="com.twinsoft.convertigo.beans.couchdb.FullSyncDeleteFilterListener" priority="0" version="   7   6   0">
         <property name="chunk">
             <java.lang.Integer value="10"/>
         </property>
@@ -10421,7 +10409,7 @@
             <java.lang.String value=""/>
         </property>
     </listener>
-    <document classname="com.twinsoft.convertigo.beans.couchdb.DesignDocument" priority="0" version="7.6.0">
+    <document classname="com.twinsoft.convertigo.beans.couchdb.DesignDocument" priority="0" version="   7   6   0">
         <property name="_id">
             <java.lang.String value=""/>
         </property>
@@ -10436,7 +10424,7 @@
         </property>
         <docdata><![CDATA[{}]]></docdata>
     </document>
-    <urlmapper classname="com.twinsoft.convertigo.beans.core.UrlMapper" priority="0" version="7.6.0">
+    <urlmapper classname="com.twinsoft.convertigo.beans.core.UrlMapper" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -10450,7 +10438,7 @@
             <java.lang.String value=""/>
         </property>
     </urlmapper>
-    <testcase classname="com.twinsoft.convertigo.beans.core.TestCase" priority="0" version="7.6.0">
+    <testcase classname="com.twinsoft.convertigo.beans.core.TestCase" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -10458,7 +10446,7 @@
             <java.lang.String value="Test_Case"/>
         </property>
     </testcase>
-    <sheet classname="com.twinsoft.convertigo.beans.core.Sheet" priority="0" version="7.6.0">
+    <sheet classname="com.twinsoft.convertigo.beans.core.Sheet" priority="0" version="   7   6   0">
         <property name="browser">
             <java.lang.String value="*"/>
         </property>
@@ -10472,7 +10460,7 @@
             <java.lang.String value=""/>
         </property>
     </sheet>
-    <project classname="com.twinsoft.convertigo.beans.core.Project" priority="0" version="7.6.0">
+    <project classname="com.twinsoft.convertigo.beans.core.Project" priority="0" version="   7   6   0">
         <property name="bStrictMode">
             <java.lang.Boolean value="true"/>
         </property>
@@ -10521,7 +10509,7 @@
             <java.lang.String value="JXPath"/>
         </property>
     </project>
-    <pool classname="com.twinsoft.convertigo.beans.core.Pool" priority="0" version="7.6.0">
+    <pool classname="com.twinsoft.convertigo.beans.core.Pool" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -10551,7 +10539,7 @@
             </xmlizable>
         </property>
     </pool>
-    <mobileapplication classname="com.twinsoft.convertigo.beans.core.MobileApplication" priority="0" version="7.6.0">
+    <mobileapplication classname="com.twinsoft.convertigo.beans.core.MobileApplication" priority="0" version="   7   6   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -10610,7 +10598,7 @@
             <java.lang.String value="afterUpdate"/>
         </property>
     </mobileapplication>
-    <connector classname="com.twinsoft.convertigo.beans.connectors.SqlConnector" default="false" priority="0" version="7.6.0">
+    <connector classname="com.twinsoft.convertigo.beans.connectors.SqlConnector" default="false" priority="0" version="   7   6   0">
         <property name="billingClassName">
             <java.lang.String value=""/>
         </property>
@@ -10657,7 +10645,7 @@
             <java.lang.Boolean value="false"/>
         </property>
     </connector>
-    <connector classname="com.twinsoft.convertigo.beans.connectors.SiteClipperConnector" default="false" priority="0" version="7.6.0">
+    <connector classname="com.twinsoft.convertigo.beans.connectors.SiteClipperConnector" default="false" priority="0" version="   7   6   0">
         <property name="NTLMAuthenticationDomain">
             <java.lang.String value=""/>
         </property>
@@ -10697,7 +10685,7 @@
             <java.lang.Boolean value="false"/>
         </property>
     </connector>
-    <connector classname="com.twinsoft.convertigo.beans.connectors.SapJcoConnector" default="false" priority="0" version="7.6.0">
+    <connector classname="com.twinsoft.convertigo.beans.connectors.SapJcoConnector" default="false" priority="0" version="   7   6   0">
         <property name="ashost">
             <java.lang.String value=""/>
         </property>
@@ -10744,7 +10732,7 @@
             <java.lang.String value="SAP*"/>
         </property>
     </connector>
-    <connector classname="com.twinsoft.convertigo.beans.connectors.ProxyHttpConnector" default="false" priority="0" version="7.6.0">
+    <connector classname="com.twinsoft.convertigo.beans.connectors.ProxyHttpConnector" default="false" priority="0" version="   7   6   0">
         <property name="NTLMAuthenticationDomain">
             <java.lang.String value=""/>
         </property>
@@ -10809,7 +10797,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
     </connector>
-    <connector classname="com.twinsoft.convertigo.beans.connectors.JavelinConnector" default="false" priority="0" version="7.6.0">
+    <connector classname="com.twinsoft.convertigo.beans.connectors.JavelinConnector" default="false" priority="0" version="   7   6   0">
         <property name="billingClassName">
             <java.lang.String value=""/>
         </property>
@@ -10850,7 +10838,7 @@
             <java.lang.String value=""/>
         </property>
     </connector>
-    <connector classname="com.twinsoft.convertigo.beans.connectors.HttpConnector" default="false" priority="0" version="7.6.0">
+    <connector classname="com.twinsoft.convertigo.beans.connectors.HttpConnector" default="false" priority="0" version="   7   6   0">
         <property name="NTLMAuthenticationDomain">
             <java.lang.String value=""/>
         </property>
@@ -10902,7 +10890,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
     </connector>
-    <connector classname="com.twinsoft.convertigo.beans.connectors.HtmlConnector" default="false" priority="0" version="7.6.0">
+    <connector classname="com.twinsoft.convertigo.beans.connectors.HtmlConnector" default="false" priority="0" version="   7   6   0">
         <property name="NTLMAuthenticationDomain">
             <java.lang.String value=""/>
         </property>
@@ -10960,7 +10948,7 @@
             <java.lang.String value="UTF-8"/>
         </property>
     </connector>
-    <connector classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector" default="false" priority="0" version="7.6.0">
+    <connector classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector" default="false" priority="0" version="   7   6   0">
         <property name="billingClassName">
             <java.lang.String value=""/>
         </property>
@@ -10998,7 +10986,7 @@
             <java.lang.String value="127.0.0.1"/>
         </property>
     </connector>
-    <connector classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector" default="false" priority="0" version="7.6.0">
+    <connector classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector" default="false" priority="0" version="   7   6   0">
         <property name="billingClassName">
             <java.lang.String value=""/>
         </property>
@@ -11036,7 +11024,7 @@
             <java.lang.String value="127.0.0.1"/>
         </property>
     </connector>
-    <connector classname="com.twinsoft.convertigo.beans.connectors.CicsConnector" default="false" priority="0" version="7.6.0">
+    <connector classname="com.twinsoft.convertigo.beans.connectors.CicsConnector" default="false" priority="0" version="   7   6   0">
         <property name="billingClassName">
             <java.lang.String value=""/>
         </property>
@@ -11068,7 +11056,7 @@
             <java.lang.String value="xd8e180806a1c1d83a6255212121ab827"/>
         </property>
     </connector>
-    <criteria classname="com.twinsoft.convertigo.beans.common.XPath" priority="0" version="7.6.0">
+    <criteria classname="com.twinsoft.convertigo.beans.common.XPath" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -11082,7 +11070,7 @@
             <java.lang.String value=""/>
         </property>
     </criteria>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.XMLVariable" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.XMLVariable" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -11096,7 +11084,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.XMLText" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.XMLText" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -11119,7 +11107,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.XMLTable" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.XMLTable" priority="0" version="   7   6   0">
         <property name="accumulateDataInSameTable">
             <java.lang.Boolean value="false"/>
         </property>
@@ -11150,7 +11138,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.XMLRecord" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.XMLRecord" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -11175,7 +11163,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.XMLPrintScreen" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.XMLPrintScreen" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -11216,7 +11204,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.XMLNodeList" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.XMLNodeList" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -11230,7 +11218,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.XMLNode" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.XMLNode" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -11244,7 +11232,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.XMLHttpUrl" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.XMLHttpUrl" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -11261,7 +11249,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.XMLHttpHeaders" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.XMLHttpHeaders" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -11275,7 +11263,7 @@
             <java.lang.String value="/"/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.WebClipper2" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.WebClipper2" priority="0" version="   7   6   0">
         <property name="attributes">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
                 <com.twinsoft.convertigo.beans.common.XMLVector>
@@ -11348,7 +11336,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.WebClipper" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.WebClipper" priority="0" version="   7   6   0">
         <property name="attributes">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
                 <com.twinsoft.convertigo.beans.common.XMLVector>
@@ -11430,7 +11418,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <criteria classname="com.twinsoft.convertigo.beans.common.Url" priority="0" version="7.6.0">
+    <criteria classname="com.twinsoft.convertigo.beans.common.Url" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -11444,7 +11432,7 @@
             <java.lang.Boolean value="false"/>
         </property>
     </criteria>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.TrimBlock" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.TrimBlock" priority="0" version="   7   6   0">
         <property name="bTrimLeft">
             <java.lang.Boolean value="true"/>
         </property>
@@ -11488,7 +11476,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.TranslateText" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.TranslateText" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -11535,7 +11523,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.TagName" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.TagName" priority="0" version="   7   6   0">
         <property name="bSaveHistory">
             <java.lang.Boolean value="false"/>
         </property>
@@ -11585,7 +11573,7 @@
             <java.lang.String value="tagname"/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.Table" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.Table" priority="0" version="   7   6   0">
         <property name="actions">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
                 <com.twinsoft.convertigo.beans.common.XMLVector/>
@@ -11678,7 +11666,7 @@
             <java.lang.String value="table"/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.TabBox" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.TabBox" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -11719,7 +11707,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.Style" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.Style" priority="0" version="   7   6   0">
         <property name="bgColor">
             <java.lang.Integer value="0"/>
         </property>
@@ -11790,7 +11778,7 @@
             <java.lang.Boolean value="false"/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.SplitFields" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.SplitFields" priority="0" version="   7   6   0">
         <property name="columns">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
                 <com.twinsoft.convertigo.beans.common.XMLVector/>
@@ -11857,7 +11845,7 @@
             <java.lang.String value="table"/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.SplitBlock" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.SplitBlock" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -11901,7 +11889,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.Slider" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.Slider" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -11951,7 +11939,7 @@
             <java.lang.String value="A"/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.Separator" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.Separator" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -11998,7 +11986,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.ReplaceText" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.ReplaceText" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -12045,7 +12033,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.RemoveBlocks" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.RemoveBlocks" priority="0" version="   7   6   0">
         <property name="blockTag">
             <java.lang.String value=""/>
         </property>
@@ -12092,7 +12080,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <criteria classname="com.twinsoft.convertigo.beans.common.RegularExpression" priority="0" version="7.6.0">
+    <criteria classname="com.twinsoft.convertigo.beans.common.RegularExpression" priority="0" version="   7   6   0">
         <property name="attribute">
             <java.lang.Integer value="-1"/>
         </property>
@@ -12115,7 +12103,7 @@
             <java.lang.Integer value="0"/>
         </property>
     </criteria>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.Record" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.Record" priority="0" version="   7   6   0">
         <property name="bor">
             <java.lang.String value=""/>
         </property>
@@ -12171,7 +12159,7 @@
             <java.lang.String value="record"/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.Radio" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.Radio" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -12235,7 +12223,7 @@
             <java.lang.String value=". "/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.Panel" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.Panel" priority="0" version="   7   6   0">
         <property name="bottom">
             <java.lang.String value="-."/>
         </property>
@@ -12306,7 +12294,7 @@
             <java.lang.String value="+."/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.MoveBlocks" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.MoveBlocks" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -12365,7 +12353,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.MergeBlocks" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.MergeBlocks" priority="0" version="   7   6   0">
         <property name="bMultilineMerge">
             <java.lang.Boolean value="false"/>
         </property>
@@ -12412,7 +12400,7 @@
             <java.lang.String value=" "/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.Image" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.Image" priority="0" version="   7   6   0">
         <property name="action">
             <java.lang.String value=""/>
         </property>
@@ -12489,7 +12477,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <criteria classname="com.twinsoft.convertigo.beans.common.FindString" priority="0" version="7.6.0">
+    <criteria classname="com.twinsoft.convertigo.beans.common.FindString" priority="0" version="   7   6   0">
         <property name="attribute">
             <java.lang.Integer value="-1"/>
         </property>
@@ -12512,7 +12500,7 @@
             <java.lang.Integer value="0"/>
         </property>
     </criteria>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.FieldsVT" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.FieldsVT" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -12550,7 +12538,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.Field" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.Field" priority="0" version="   7   6   0">
         <property name="Name">
             <java.lang.String value="fieldName"/>
         </property>
@@ -12621,7 +12609,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <criteria classname="com.twinsoft.convertigo.beans.common.EmulatorTechnology" priority="0" version="7.6.0">
+    <criteria classname="com.twinsoft.convertigo.beans.common.EmulatorTechnology" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -12632,7 +12620,7 @@
             <java.lang.Boolean value="false"/>
         </property>
     </criteria>
-    <criteria classname="com.twinsoft.convertigo.beans.common.EmptyScreen" priority="0" version="7.6.0">
+    <criteria classname="com.twinsoft.convertigo.beans.common.EmptyScreen" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -12643,7 +12631,7 @@
             <java.lang.Boolean value="false"/>
         </property>
     </criteria>
-    <blockfactory classname="com.twinsoft.convertigo.beans.common.DefaultBlockFactory" priority="0" version="7.6.0">
+    <blockfactory classname="com.twinsoft.convertigo.beans.common.DefaultBlockFactory" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -12651,7 +12639,7 @@
             <java.lang.String value="Default_block_factory"/>
         </property>
     </blockfactory>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.Date" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.Date" priority="0" version="   7   6   0">
         <property name="bam_pm_marker">
             <java.lang.Boolean value="false"/>
         </property>
@@ -12752,7 +12740,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.Container" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.Container" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -12814,7 +12802,7 @@
             <java.lang.String value="container"/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.Command" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.Command" priority="0" version="   7   6   0">
         <property name="caseDependency">
             <java.lang.Boolean value="false"/>
         </property>
@@ -12863,7 +12851,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.Choice" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.Choice" priority="0" version="   7   6   0">
         <property name="actions">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
                 <com.twinsoft.convertigo.beans.common.XMLVector/>
@@ -12930,7 +12918,7 @@
             <java.lang.String value="choice"/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.CheckBox" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.CheckBox" priority="0" version="   7   6   0">
         <property name="Label">
             <java.lang.String value=""/>
         </property>
@@ -12995,7 +12983,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.ChangeLetterCase" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.ChangeLetterCase" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -13036,7 +13024,7 @@
             <java.lang.String value=""/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.Button" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.Button" priority="0" version="   7   6   0">
         <property name="Action">
             <java.lang.String value=""/>
         </property>
@@ -13110,7 +13098,7 @@
             <java.lang.String value="&lt;"/>
         </property>
     </extractionrule>
-    <extractionrule classname="com.twinsoft.convertigo.beans.common.Attribute" priority="0" version="7.6.0">
+    <extractionrule classname="com.twinsoft.convertigo.beans.common.Attribute" priority="0" version="   7   6   0">
         <property name="attributeName">
             <java.lang.String value=""/>
         </property>

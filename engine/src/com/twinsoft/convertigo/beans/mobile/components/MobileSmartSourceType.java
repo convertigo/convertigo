@@ -21,7 +21,6 @@ package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.io.Serializable;
 
-import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -184,14 +183,8 @@ public class MobileSmartSourceType implements XMLizable, Serializable, Cloneable
 	@Override
 	public Node writeXml(Document document) throws Exception {
 		Element self = document.createElement(getClass().getSimpleName());
-		JSONObject jsonObject = new JSONObject();
-		try {
-			jsonObject.put("mode", mode.name().toLowerCase());
-			jsonObject.put("value", getSmartValue());
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-		self.setTextContent(jsonObject.toString(1));
+		String value = mode.name().toLowerCase() + ":" + getSmartValue();
+		self.setTextContent(value);
 		return self;
 	}
 
@@ -199,9 +192,16 @@ public class MobileSmartSourceType implements XMLizable, Serializable, Cloneable
 	public void readXml(Node node) throws Exception {
 		try {
 			Element self = (Element) node;
-			JSONObject jsonObject = new JSONObject(self.getTextContent());
-			setMode(Mode.valueOf(jsonObject.getString("mode").toUpperCase()));
-			setSmartValue(jsonObject.getString("value"));
+			String value = self.getTextContent();
+			try {
+				JSONObject jsonObject = new JSONObject(value);
+				setMode(Mode.valueOf(jsonObject.getString("mode").toUpperCase()));
+				setSmartValue(jsonObject.getString("value"));
+			} catch (Exception e) {
+				String[] v = value.split(":", 2);
+				setMode(Mode.valueOf(v[0].toUpperCase()));
+				setSmartValue(v[1]);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
