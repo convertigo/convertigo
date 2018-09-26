@@ -966,11 +966,19 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 	public Project importProject(String importFileName) throws EngineException {
 		try {
+			boolean doSave = false;
 			File file = new File(importFileName);
-			if (!file.exists() && importFileName.endsWith(".xml")) {
-				importFileName = new File(file.getParentFile(), "c8oProject.yaml").getAbsolutePath();
+			if (importFileName.endsWith(".xml")) {
+				if (!file.exists()) {
+					importFileName = new File(file.getParentFile(), "c8oProject.yaml").getAbsolutePath();
+				} else {
+					doSave = true;
+				}
 			}
 			Project project = importProject(importFileName, null);
+			if (doSave) {
+				exportProject(project);
+			}
 			CouchDbManager.syncDocument(project);
 			return project;
 		} catch (Exception e) {

@@ -163,7 +163,10 @@ public class CarUtils {
 		try {			
 			Document shrink = BeansDefaultValues.shrinkProject(document);
 			File projectDir = new File(fileName).getParentFile();
-			YamlConverter.writeYaml(shrink, new File(projectDir, "c8oProject.yaml"), new File(projectDir, "_c8oProject"));			
+			YamlConverter.writeYaml(shrink, new File(projectDir, "c8oProject.yaml"), new File(projectDir, "_c8oProject"));
+			if (fileName.endsWith(".xml")) {
+				new File(fileName).delete();
+			}
 		} catch (Exception e) {
 			throw new EngineException("(CarUtils) exportProject in YAML failed", e);
 		}
