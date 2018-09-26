@@ -91,8 +91,10 @@ public class ChangeToHeaderParameterAction extends MyAbstractAction {
 	        				headerParameter.setComment(parameter.getComment());
 	        				headerParameter.setInputType(parameter.getInputType());
 	        				headerParameter.setArray(parameter.isArray());
+	        				headerParameter.setExposed(parameter.isExposed());
 	        				headerParameter.setMultiValued(parameter.isMultiValued());
 	        				headerParameter.setRequired(parameter.isRequired());
+	        				headerParameter.setDefaultValue(parameter.getDefaultValue());
 	        				headerParameter.setMappedVariableName(parameter.getMappedVariableName());
 	        				headerParameter.bNew = true;
 	        				headerParameter.hasChanged = true;

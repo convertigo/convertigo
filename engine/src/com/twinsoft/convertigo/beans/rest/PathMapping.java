@@ -104,7 +104,7 @@ public class PathMapping extends UrlMapping {
 				
 				// Check for required operation parameters
 				for (UrlMappingParameter param :operation.getParameterList()) {
-					if (param.isRequired()) {
+					if (param.isRequired() && param.isExposed()) {
 						if (param.getDataType().equals(DataType.File)) {
 							if (request.getContentType().indexOf("multipart") == -1) {
 								Engine.logBeans.debug("(PathMapping) Invalid content type for file parameter \""+param.getName()+"\"");

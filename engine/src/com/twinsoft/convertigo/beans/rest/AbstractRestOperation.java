@@ -334,6 +334,11 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 						}
 					}
 					
+					// retrieve default value if necessary
+					if (paramValue == null) {
+						paramValue = param.getValueOrNull();
+					}
+					
 					if (paramValue != null) {
 						// map parameter to variable
 						if (!variableName.isEmpty()) {

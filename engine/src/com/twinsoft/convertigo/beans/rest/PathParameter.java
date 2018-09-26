@@ -45,5 +45,10 @@ public class PathParameter extends UrlMappingParameter {
 	public Boolean isRequired() {
 		return true;
 	}
+
+	@Override
+	public Boolean isExposed() {
+		return true;
+	}
 	
 }

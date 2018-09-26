@@ -90,6 +90,7 @@ public class ChangeToBodyParameterAction extends MyAbstractAction {
 	        			if (DatabaseObjectsManager.acceptDatabaseObjects(parameter.getParent(), bodyParameter) ) {
 	        				bodyParameter.setComment(parameter.getComment());
 	        				bodyParameter.setArray(false);
+	        				bodyParameter.setExposed(parameter.isExposed());
 	        				bodyParameter.setMultiValued(false);
 	        				bodyParameter.setRequired(parameter.isRequired());
 	        				bodyParameter.setMappedVariableName(parameter.getMappedVariableName());

@@ -549,19 +549,25 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						}
 						
 						for (RequestableVariable variable: variables) {
+    						String variableName = variable.getName();
+    						Object variableValue = variable.getValueOrNull();
 							UrlMappingParameter parameter = null;
 							try {
-								parameter = operation.getParameterByName(variable.getName());
+								parameter = operation.getParameterByName(variableName);
 							}
 							catch (Exception e) {}
 							if (parameter == null) {
 								boolean acceptForm = operation.getMethod().equalsIgnoreCase(HttpMethodType.POST.name()) ||
 										operation.getMethod().equalsIgnoreCase(HttpMethodType.PUT.name());
 								parameter = acceptForm ? new FormParameter() : new QueryParameter();
-								parameter.setComment(variable.getComment());
-								parameter.setName(variable.getName());
-								parameter.setMappedVariableName(variable.getName());
-								parameter.setMultiValued(variable.isMultiValued());
+    							parameter.setName(variableName);
+    	        				parameter.setComment(variable.getComment());
+    	        				parameter.setArray(false);
+    	        				parameter.setExposed(((RequestableVariable)variable).isWsdl());
+    	        				parameter.setMultiValued(variable.isMultiValued());
+    	        				parameter.setRequired(variable.isRequired());
+    	        				parameter.setDefaultValue(!variable.isMultiValued() ? variableValue:null);
+    	        				parameter.setMappedVariableName(variableName);
 								parameter.bNew = true;
 								operation.add(parameter);
 								operation.hasChanged = true;
@@ -577,18 +583,24 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					RequestableVariable variable = (RequestableVariable)databaseObject;
 					UrlMappingOperation operation = (UrlMappingOperation) parent;
 					UrlMappingParameter parameter = null;
+					String variableName = variable.getName();
+					Object variableValue = variable.getValueOrNull();
 					try {
-						parameter = operation.getParameterByName(variable.getName());
+						parameter = operation.getParameterByName(variableName);
 					}
 					catch (Exception e) {}
 					if (parameter == null) {
 						boolean acceptForm = operation.getMethod().equalsIgnoreCase(HttpMethodType.POST.name()) ||
 								operation.getMethod().equalsIgnoreCase(HttpMethodType.PUT.name());
 						parameter = acceptForm ? new FormParameter() : new QueryParameter();
-						parameter.setComment(variable.getComment());
-						parameter.setName(variable.getName());
-						parameter.setMappedVariableName(variable.getName());
-						parameter.setMultiValued(variable.isMultiValued());
+						parameter.setName(variableName);
+        				parameter.setComment(variable.getComment());
+        				parameter.setArray(false);
+        				parameter.setExposed(((RequestableVariable)variable).isWsdl());
+        				parameter.setMultiValued(variable.isMultiValued());
+        				parameter.setRequired(variable.isRequired());
+        				parameter.setDefaultValue(!variable.isMultiValued() ? variableValue:null);
+        				parameter.setMappedVariableName(variableName);
 						parameter.bNew = true;
 						operation.add(parameter);
 						operation.hasChanged = true;

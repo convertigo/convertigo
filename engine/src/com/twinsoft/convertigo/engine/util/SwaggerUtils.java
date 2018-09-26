@@ -30,6 +30,7 @@ import io.swagger.models.Response;
 import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
 import io.swagger.models.Tag;
+import io.swagger.models.parameters.AbstractSerializableParameter;
 import io.swagger.models.parameters.BodyParameter;
 import io.swagger.models.parameters.FormParameter;
 import io.swagger.models.parameters.HeaderParameter;
@@ -374,19 +375,18 @@ public class SwaggerUtils {
 								((SerializableParameter)s_parameter).setCollectionFormat(_collectionFormat);
 								((SerializableParameter) s_parameter).setItems(_items);
 								
-								/*String value = s_parameter.getValue();
+								Object value = ump.getValueOrNull();
 								if (value != null) {
-									String collection = s_parameter.getCollection();
+									String collection = ((SerializableParameter)s_parameter).getCollectionFormat();
 									if (collection != null && collection.equals("multi")) {
 										Property items = new StringProperty();
-										items.setDefault(value);
+										//items.setDefault(String.valueOf(value));
 										((SerializableParameter) s_parameter).setItems(items);
+										//((SerializableParameter) s_parameter).setEnumValue(Arrays.asList("val1","val2","val3"));
+									} else {
+										((AbstractSerializableParameter<?>)s_parameter).setDefaultValue(String.valueOf(value));
 									}
-									else {
-										((AbstractSerializableParameter<?>)s_parameter).setDefaultValue(value);
-									}
-								}*/
-								
+								}
 							}
 							
 							DataContent dataInput = ump.getInputContent();
@@ -401,7 +401,23 @@ public class SwaggerUtils {
 								}
 							}
 							
-							s_parameters.add(s_parameter);
+							// swagger-ui workaround for invalid request content-type for POST
+							if (ump.getType() == Type.Form) {
+								if (!DataType.File.equals(ump.getDataType())) {
+									if (!consumes.contains(MimeType.WwwForm.value())) {
+										consumes.add(MimeType.WwwForm.value());
+									}
+								} else {
+									if (!consumes.contains("multipart/form-data")) {
+										consumes.add("multipart/form-data");
+									}
+								}
+							}
+							
+							// add parameter
+							if (ump.isExposed()) {
+								s_parameters.add(s_parameter);
+							}
 						}
 					}
 					s_operation.setParameters(s_parameters);

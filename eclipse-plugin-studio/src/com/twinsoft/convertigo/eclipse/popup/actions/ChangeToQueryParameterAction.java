@@ -91,8 +91,10 @@ public class ChangeToQueryParameterAction extends MyAbstractAction {
 	        				queryParameter.setComment(parameter.getComment());
 	        				queryParameter.setInputType(parameter.getInputType());
 	        				queryParameter.setArray(parameter.isArray());
+	        				queryParameter.setExposed(parameter.isExposed());
 	        				queryParameter.setMultiValued(parameter.isMultiValued());
 	        				queryParameter.setRequired(parameter.isRequired());
+	        				queryParameter.setDefaultValue(parameter.getDefaultValue());
 	        				queryParameter.setMappedVariableName(parameter.getMappedVariableName());
 	        				queryParameter.bNew = true;
 	        				queryParameter.hasChanged = true;

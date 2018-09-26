@@ -263,13 +263,25 @@ public class OpenApiUtils {
 	
 	private static Schema<?> getSchema(UrlMappingParameter ump) {
 		Schema<?> schema = null;
+		Object value = ump.getValueOrNull();
 		boolean isArray = ump.isMultiValued() || ump.isArray();
+		
 		if (isArray) {
 			schema = new ArraySchema();
 			((ArraySchema)schema).setItems(getSchema(ump.getDataType()));
+//			((ArraySchema)schema).setEnum(Arrays.asList("val1","val2","val3"));
+//			if (value != null && value instanceof String) {
+//				((ArraySchema)schema).setExample(Arrays.asList(String.valueOf(value).split(";")));
+//			}
 		} else {
 			schema = getSchema(ump.getDataType());
+			if (value != null) {
+				schema.setDefault(value);
+			}
 		}
+		
+		schema.setNullable(ump.isRequired() ? false:true);
+		
 		return schema;
 	}
 	
@@ -290,12 +302,16 @@ public class OpenApiUtils {
 			Schema<?> propertiesItem = getSchema(ump);
 			if (propertiesItem != null) {
 				propertiesItem.setDescription(ump.getComment());
-				mediaSchema.addProperties(ump.getName(), propertiesItem);
-
-				if (ump.isRequired()) {
-					List<String> requiredList = mediaSchema.getRequired();
-					if (requiredList == null || !requiredList.contains(ump.getName())) {
-						mediaSchema.addRequiredItem(ump.getName());
+				
+				// add parameter
+				if (ump.isExposed()) {
+					mediaSchema.addProperties(ump.getName(), propertiesItem);
+	
+					if (ump.isRequired()) {
+						List<String> requiredList = mediaSchema.getRequired();
+						if (requiredList == null || !requiredList.contains(ump.getName())) {
+							mediaSchema.addRequiredItem(ump.getName());
+						}
 					}
 				}
 			}
@@ -422,16 +438,20 @@ public class OpenApiUtils {
 							// ignore : should have been treated before
 						}
 						
-						if (parameter != null) {
+						if (parameter != null) { // Query | Header
 							parameter.setName(ump.getName());
 							parameter.setDescription(ump.getComment());
 							parameter.setRequired(ump.isRequired());
+							//parameter.setAllowEmptyValue(allowEmptyValue);
 							Schema<?> schema = getSchema(ump);
 							if (schema != null) {
 								parameter.setSchema(schema);
 							}
 							
-							operation.addParametersItem(parameter);
+							// add parameter
+							if (ump.isExposed()) {
+								operation.addParametersItem(parameter);
+							}
 						}
 					}
 					

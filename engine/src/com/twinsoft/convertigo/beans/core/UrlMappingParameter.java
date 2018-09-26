@@ -21,9 +21,15 @@ package com.twinsoft.convertigo.beans.core;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
 @DboCategoryInfo(
@@ -31,7 +37,7 @@ import com.twinsoft.convertigo.engine.util.EnumUtils;
 		getCategoryName = "Parameter",
 		getIconClassCSS = "convertigo-action-newUrlMappingParameter"
 	)
-public abstract class UrlMappingParameter extends DatabaseObject implements ITagsProperty{
+public abstract class UrlMappingParameter extends DatabaseObject implements ITagsProperty, INillableProperty{
 
 	private static final long serialVersionUID = -2280875929012349646L;
 
@@ -88,12 +94,15 @@ public abstract class UrlMappingParameter extends DatabaseObject implements ITag
 	
 	public UrlMappingParameter() {
 		super();
+		setValueOrNull(null);
+		
 		databaseType = "UrlMappingParameter";
 	}
 	
 	@Override
 	public UrlMappingParameter clone() throws CloneNotSupportedException {
 		UrlMappingParameter clonedObject = (UrlMappingParameter)super.clone();
+		clonedObject.nullProps = nullProps;
 		return clonedObject;
 	}
 
@@ -129,6 +138,82 @@ public abstract class UrlMappingParameter extends DatabaseObject implements ITag
 		this.array = array;
 	}
 
+	private Boolean exposed = Boolean.TRUE;
+	
+	public Boolean isExposed() {
+		return exposed;
+	}
+
+	public void setExposed(Boolean exposed) {
+		this.exposed = exposed;
+	}
+
+	transient private Set<String> nullProps = new HashSet<String>();
+	private Object value = null;
+	
+	public Object getDefaultValue() {
+		return value;
+	}
+
+	public void setDefaultValue(Object value) {
+		this.value = value;
+	}
+		
+	protected Object getNewValue() {
+		if (isMultiValued())
+			return new XMLVector<Object>();
+		else
+			return "";
+	}
+	
+	@SuppressWarnings("unchecked")
+	protected Object getNewValue(Object value) {
+		if (value == null)
+			return getNewValue();
+		
+		if (isMultiValued()) {
+			if (value instanceof XMLVector)
+				return new XMLVector<Object>((XMLVector<Object>)value);
+			else {
+				XMLVector<Object> xmlv = new XMLVector<Object>();
+				if (value instanceof Collection) {
+					for (Object ob: (Collection<Object>)value) xmlv.add(ob);
+				}
+				else if (value.getClass().isArray()) {
+					for (Object item: (Object[])value) xmlv.add(item);
+				}
+				else {
+					if (!value.equals("")) xmlv.add(value);
+				}
+				return xmlv;
+			}
+		}
+		else
+			return value.toString();
+	}
+	
+	public Object getValueOrNull() {
+		if (!isNullProperty("value"))
+			return getDefaultValue();
+		return null;
+	}
+	
+	public void setValueOrNull(Object value) {
+		setNullProperty("value", (value==null)? Boolean.TRUE:Boolean.FALSE);
+		setDefaultValue(getNewValue(value));
+	}
+	
+	public Boolean isNullProperty(String propertyName) {
+		return nullProps.contains(propertyName);
+	}
+
+	public void setNullProperty(String propertyName, Boolean isNull) {
+		if (isNull)
+			nullProps.add(propertyName);
+		else
+			nullProps.remove(propertyName);
+	}
+	
 	private String mappedVariableName = "";
 
 	public String getMappedVariableName() {
@@ -171,6 +256,24 @@ public abstract class UrlMappingParameter extends DatabaseObject implements ITag
 			return tags;
 		}
 		return new String[0];
+	}
+
+	protected String getLabel() throws EngineException {
+		Object value = getValueOrNull();
+		if (value!=null) {
+			boolean isString = value instanceof String;
+			return " ="+ (isString? "\"":"") + Visibility.Studio.printValue(0,value) + (isString? "\"":"");
+		}
+		return "";
+	}
+	
+	@Override
+	public String toString() {
+		String label = "";
+		try {
+			label = getLabel();
+		} catch (EngineException e) {}
+		return super.toString() + label;
 	}
 	
 }
