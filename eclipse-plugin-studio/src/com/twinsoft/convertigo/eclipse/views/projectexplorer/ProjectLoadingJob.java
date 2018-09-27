@@ -119,8 +119,9 @@ public class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 					
 					if (project.undefinedGlobalSymbols) {
 						synchronized (Engine.theApp.databaseObjectsManager) { // parallel projects opening with undefined symbols, check after the first wizard
-							project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+							project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
 							if (project.undefinedGlobalSymbols) {
+								final boolean[] created = {false};
 								new WalkHelper() {
 									boolean create = false;
 									boolean forAll = false;
@@ -138,6 +139,8 @@ public class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 																undefinedSymbols, true);
 														create = response[0];
 														forAll = response[1];
+														
+														created[0] |= create;
 													}
 													if (create) {
 														Engine.theApp.databaseObjectsManager.symbolsCreateUndefined(undefinedSymbols);
@@ -148,7 +151,9 @@ public class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 										super.walk(databaseObject);
 									}
 								}.init(project);
-								project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+								if (created[0]) {
+									project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
+								}
 							}
 						}
 					}
