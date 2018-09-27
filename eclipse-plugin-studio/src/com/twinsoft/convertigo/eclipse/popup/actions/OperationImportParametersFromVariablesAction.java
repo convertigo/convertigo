@@ -105,7 +105,7 @@ public class OperationImportParametersFromVariablesAction extends MyAbstractActi
 	    	        				parameter.setExposed(((RequestableVariable)variable).isWsdl());
 	    	        				parameter.setMultiValued(variable.isMultiValued());
 	    	        				parameter.setRequired(variable.isRequired());
-	    	        				parameter.setDefaultValue(!variable.isMultiValued() ? variableValue:null);
+	    	        				parameter.setValueOrNull(!variable.isMultiValued() ? variableValue:null);
 	    	        				parameter.setMappedVariableName(variableName);
 	    	        				parameter.bNew = true;
 	    	        				parameter.hasChanged = true;

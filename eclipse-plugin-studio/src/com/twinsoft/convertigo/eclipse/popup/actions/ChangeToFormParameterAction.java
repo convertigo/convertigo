@@ -95,7 +95,7 @@ public class ChangeToFormParameterAction extends MyAbstractAction {
 	        				formParameter.setExposed(parameter.isExposed());
 	        				formParameter.setMultiValued(parameter.isMultiValued());
 	        				formParameter.setRequired(parameter.isRequired());
-	        				formParameter.setDefaultValue(parameter.getDefaultValue());
+	        				formParameter.setValueOrNull(parameter.getValueOrNull());
 	        				formParameter.setMappedVariableName(parameter.getMappedVariableName());
 	        				formParameter.bNew = true;
 	        				formParameter.hasChanged = true;
