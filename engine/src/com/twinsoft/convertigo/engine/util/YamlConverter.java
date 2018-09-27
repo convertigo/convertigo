@@ -41,7 +41,9 @@ public class YamlConverter {
 	private static final String inc = "  ";
 	private static final String sep = ": ";
 	
-	private final Pattern toSplit = Pattern.compile("\\n");
+	private static final String endLine = System.getProperty("line.separator");
+	
+	private final Matcher toSplit = Pattern.compile("\\r?\\n").matcher("");
 	
 	private final Matcher toQuote = Pattern.compile("(?:^(?:-|\\?|:|,|\\[|\\]|\\{|\\}|#|&|\\*|\\!|\\||>|'|\"|%|@|`|\\\\s))|(?:: )", Pattern.MULTILINE).matcher("");
 	
@@ -72,14 +74,21 @@ public class YamlConverter {
 		} else if (toQuote.reset(txt).find()) {
 			txt = '\'' + txt.replace("'", "''") + '\'';
 		}
-		String[] lines = toSplit.split(txt);
-		if (lines.length == 1) {
-			sb.append(txt);
-		} else {
+		
+		toSplit.reset(txt);
+		if (toSplit.find()) {
+			String line;
+			int start = 0;
 			sb.append("|");
-			for (String line: lines) {
-				sb.append('\n').append(indent).append(line);
-			}
+			do {
+				line = txt.substring(start, toSplit.start());
+				sb.append(endLine).append(indent).append(line);
+				start = toSplit.end();
+			} while (toSplit.find());
+			line = txt.substring(start);
+			sb.append(endLine).append(indent).append(line);
+		} else {
+			sb.append(txt);
 		}
 	}
 	
@@ -118,7 +127,7 @@ public class YamlConverter {
 			Attr attr = (Attr) attributes.item(i);
 			String name = attr.getName();
 			if (!name.startsWith("yaml_")) {
-				sb.append('\n').append(nextIndent);
+				sb.append(endLine).append(nextIndent);
 				if (!isBean) {
 					sb.append("- ");
 					inArray = true;
@@ -132,17 +141,17 @@ public class YamlConverter {
 		while (child != null) {
 			if (child instanceof Element) {
 				Element eChild = (Element) child;
-				sb.append('\n');
+				sb.append(endLine);
 				writeYamlElement(nextIndent, eChild, !isBean);
 			} else if (child instanceof CDATASection) {
 				CDATASection cdata = (CDATASection) child;
 				String txt = cdata.getData();
-				sb.append('\n').append(nextIndent).append('→').append(sep);
+				sb.append(endLine).append(nextIndent).append('→').append(sep);
 				writeYamlText(nextIndent + inc, txt);
 			} else if (child.getNodeType() == Node.TEXT_NODE && child.getNextSibling() == null) {
 				String txt = child.getNodeValue();
 				if (len != sb.length() && inArray) {
-					sb.append('\n').append(nextIndent).append("- ").append("→→").append(sep);
+					sb.append(endLine).append(nextIndent).append("- ").append("→→").append(sep);
 				}
 				writeYamlText(txtIndent, txt);
 			}
@@ -150,7 +159,7 @@ public class YamlConverter {
 		}
 		
 		if (subfile != null) {
-			FileUtils.write(subfile, sb.substring(1), "UTF-8");
+			FileUtils.write(subfile, sb.substring(endLine.length()), "UTF-8");
 			sb = sbSaved;
 			sb.append("🗏 " + yamlFile);
 		}
@@ -247,7 +256,7 @@ public class YamlConverter {
 			while (checkLine()) {
 				if (line.startsWith(indent)) {
 					if (sb.length() != 0) {
-						sb.append('\n');
+						sb.append(endLine);
 					}
 					sb.append(line.substring(indent.length()));
 				} else {
@@ -311,7 +320,7 @@ public class YamlConverter {
 		while (node != null) {
 			if (node instanceof Element) {
 				if (node.getPreviousSibling() != null) {
-					y.sb.append('\n');
+					y.sb.append(endLine);
 				}
 				y.writeYamlElement("", (Element) node, false);
 			}
