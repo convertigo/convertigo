@@ -81,6 +81,10 @@ public class ComponentManager {
 	private SortedMap<String, IonBean> bCache = new TreeMap<String, IonBean>();
 	private SortedMap<String, IonTemplate> tCache = new TreeMap<String, IonTemplate>();
 	
+	private List<String> groups;
+	private List<Component> orderedComponents;
+	private List<Component> components;
+	
 	private File compbeansDir;
 	
 	private ComponentManager() {
@@ -123,6 +127,10 @@ public class ComponentManager {
 		pCache.clear();
 		bCache.clear();
 		tCache.clear();
+		
+		groups = null;
+		orderedComponents = null;
+		components = null;
 	}
 	
 	@Override
@@ -251,7 +259,14 @@ public class ComponentManager {
 	}
 	
 	public static List<String> getGroups() {
-		List<String> groups = new ArrayList<String>(10);
+		return instance.makeGroups();
+	}
+	
+	private synchronized List<String> makeGroups() {
+		if (groups != null) {
+			return groups;
+		}
+		groups = new ArrayList<String>(10);
 		groups.add("Customs");
 		for (IonBean bean: instance.bCache.values()) {
 			if (!groups.contains(bean.getGroup())) {
@@ -265,11 +280,18 @@ public class ComponentManager {
 		groups.remove("Actions");
 		groups.add("Actions");
 		
-		return Collections.unmodifiableList(groups);
+		return groups = Collections.unmodifiableList(groups);
 	}
 	
 	public static List<Component> getComponentsByGroup() {
-		List<Component> orderedComponents = new ArrayList<Component>(10);
+		return instance.makeComponentsByGroup();
+	}
+	
+	private synchronized List<Component> makeComponentsByGroup() {
+		if (orderedComponents != null) {
+			return orderedComponents;
+		}
+		orderedComponents = new ArrayList<Component>(10);
 		List<Component> components = getComponents();
 		
 		for (String group : getGroups()) {
@@ -280,11 +302,18 @@ public class ComponentManager {
 			}
 		}
 		
-		return Collections.unmodifiableList(orderedComponents);
+		return orderedComponents = Collections.unmodifiableList(orderedComponents);
 	}
 	
 	public static List<Component> getComponents() {
-		List<Component> components = new ArrayList<Component>(10);
+		return instance.makeComponents();
+	}
+	
+	private synchronized List<Component> makeComponents() {
+		if (components != null) {
+			return components;
+		}
+		components = new ArrayList<Component>(10);
 		
 		try {
 			String group;
@@ -420,7 +449,7 @@ public class ComponentManager {
 			}				
 		} );
 		
-		return Collections.unmodifiableList(components);
+		return components = Collections.unmodifiableList(components);
 	}
 	
 	public static boolean acceptDatabaseObjects(DatabaseObject parentDatabaseObject, DatabaseObject databaseObject) {

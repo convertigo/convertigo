@@ -124,8 +124,6 @@ public class ComponentExplorerComposite extends Composite {
 	protected void findDatabaseObjects(String searchText) {
 		if (objectsMap.isEmpty()) {
 			try {
-				ComponentManager.refresh(); //TODO: to remove when models file is complete
-				
 				List<String> categories = ComponentManager.getGroups();
 				List<Component> components = ComponentManager.getComponentsByGroup();
 				
@@ -401,9 +399,9 @@ public class ComponentExplorerComposite extends Composite {
 		gridData.grabExcessHorizontalSpace = true;
 		helpBrowser.setLayoutData(gridData);
 
+		ComponentManager.refresh();
+		
 		search("");
-       	
-       	//this.setSize(new org.eclipse.swt.graphics.Point(800, 400));
 	}
 	
 	private void search(String text) {
