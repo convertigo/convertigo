@@ -137,21 +137,25 @@ public class YamlConverter {
 			}
 		}
 		
-		Node child = element.getFirstChild();		
+		Node child = element.getFirstChild();
+		boolean asChild = false;
 		while (child != null) {
 			if (child instanceof Element) {
 				Element eChild = (Element) child;
 				sb.append(endLine);
+				asChild = true;
 				writeYamlElement(nextIndent, eChild, !isBean);
 			} else if (child instanceof CDATASection) {
 				CDATASection cdata = (CDATASection) child;
 				String txt = cdata.getData();
 				sb.append(endLine).append(nextIndent).append('→').append(sep);
+				asChild = true;
 				writeYamlText(nextIndent + inc, txt);
 			} else if (child.getNodeType() == Node.TEXT_NODE && child.getNextSibling() == null) {
 				String txt = child.getNodeValue();
 				if (len != sb.length() && inArray) {
 					sb.append(endLine).append(nextIndent).append("- ").append("→→").append(sep);
+					asChild = true;
 				}
 				writeYamlText(txtIndent, txt);
 			}
@@ -159,7 +163,8 @@ public class YamlConverter {
 		}
 		
 		if (subfile != null) {
-			FileUtils.write(subfile, sb.substring(endLine.length()), "UTF-8");
+			String content = asChild ? sb.substring(endLine.length()) : sb.toString();
+			FileUtils.write(subfile, content, "UTF-8");
 			sb = sbSaved;
 			sb.append("🗏 " + yamlFile);
 		}
@@ -292,16 +297,9 @@ public class YamlConverter {
 			y.doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
 			y.doc.appendChild(y.doc.createElement("convertigo"));
 			y.br = br;
-			try {
-				y.readYamlElement(y.doc.getDocumentElement(), "", true);
-			} catch (Exception e) {
-				y.br.close();
-				return y.doc;
-			}
+			y.readYamlElement(y.doc.getDocumentElement(), "", true);
 			y.br.close();
 			return y.doc;
-		} catch (Exception e) {
-			throw e;
 		}
 	}
 	
