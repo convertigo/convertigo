@@ -182,6 +182,13 @@ public class ComponentExplorerComposite extends Composite {
 						updateHelpText(currentSelectedComponent);
 					}
 				}
+				
+				for (ExpandItem expandItem : bar.getItems()) {
+					if (((Composite) expandItem.getControl()).getChildren().length == 0) {
+						expandItem.getControl().dispose();
+						expandItem.dispose();
+					}
+				}
 
 			} catch (Exception e) {
 				ConvertigoPlugin.logException(e, "Unable to load component objects.");
@@ -426,13 +433,7 @@ public class ComponentExplorerComposite extends Composite {
 	    {
 	        @Override
 	        public void run()
-	        {
-				for (ExpandItem expandItem : bar.getItems()) {
-					Point size = expandItem.getControl().getSize();
-					Point size2 = expandItem.getControl().computeSize(size.x,SWT.DEFAULT);
-					expandItem.setHeight(size2.y);
-				}
-	        	
+	        {	        	
 				Rectangle r = scrolledComposite.getClientArea();
 				scrolledComposite.setMinSize(bar.computeSize(r.width, SWT.DEFAULT));
 	        	scrolledComposite.layout(true, true);
@@ -521,37 +522,4 @@ public class ComponentExplorerComposite extends Composite {
 								+ "</p></html>");
 		}
 	}
-	
-	/*private void updateHelpText(BeanInfo bi) {
-		BeanDescriptor beanDescriptor = bi.getBeanDescriptor();
-		boolean isDocumented = documentedDboList.contains(beanDescriptor.getBeanClass().getName());
-		String beanDescription = isDocumented ? beanDescriptor.getShortDescription():"Not yet documented. |";
-		String[] beanDescriptions = beanDescription.split("\\|");
-		String beanDisplayName = beanDescriptor.getDisplayName();
-		String beanShortDescription = beanDescriptions.length >= 1 ? beanDescriptions[0] : "n/a";
-		String beanLongDescription = beanDescriptions.length >= 2 ? beanDescriptions[1] : "n/a";
-
-		beanShortDescription = cleanDescription(beanShortDescription,true);
-		beanLongDescription = cleanDescription(beanLongDescription,true);
-
-		if (helpBrowser != null) {
-			helpBrowser.setText("<html>" +
-									"<head>" +
-									"<script type=\"text/javascript\">"+
-								        "document.oncontextmenu = new Function(\"return false\");"+
-								    "</script>"+
-											"<style type=\"text/css\">"+
-												  "body {"+
-												    "font-family: Courrier new, sans-serif;"+
-												    "font-size: 14px;"+
-												    "padding-left: 0.3em;"+
-												    "background-color: #ECEBEB }"+
-											"</style>"+
-									"</head><p>" 
-								+ "<font size=\"4.5\"><u><b>"+beanDisplayName+"</b></u></font>" + "<br><br>" 
-								+ "<i>"+beanShortDescription+"</i>" + "<br><br>" 
-								+ beanLongDescription + "</p></html>");
-		}
-	}*/
-
-} // @jve:decl-index=0:visual-constraint="10,10"
+}
