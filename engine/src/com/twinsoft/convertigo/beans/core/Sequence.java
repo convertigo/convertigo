@@ -25,14 +25,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.swing.event.EventListenerList;
 import javax.xml.namespace.QName;
@@ -101,8 +99,6 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     transient protected TwsCachedXPathAPI xpathApi = null;
     
 	transient private Map<String, Step> copies = null;
-
-    transient public Map<String, Project> loadedProjects = new HashMap<String, Project>(10);
     
     transient public Map<Long, Step> loadedSteps = new HashMap<Long, Step>(10);
     
@@ -171,7 +167,6 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	clonedObject.stepHttpState = null;
     	clonedObject.transactionSessionId = null;
     	clonedObject.copies = null;
-    	clonedObject.loadedProjects = new HashMap<String, Project>(10);
     	clonedObject.loadedSteps = new HashMap<Long, Step>(10);
     	clonedObject.executedSteps = null;
     	clonedObject.childrenSteps = null;
@@ -485,52 +480,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	vAllSteps = null;
     }
     
-    public Set<String> getLoadedProjectNames() {
-    	synchronized (loadedProjects) {
-        	return new HashSet<String>(loadedProjects.keySet());			
-		}
-    }
-    
 	public Project getLoadedProject(String projectName) throws EngineException {
-		Project project = getProject();
-		
-		synchronized (loadedProjects) {
-			if (Engine.isStudioMode() || (Engine.isEngineMode() && loadedProjects.isEmpty()))
-				loadedProjects.put(project.getName(), project);
-			
-			Project loadedProject = (Project) loadedProjects.get(projectName);
-			if (loadedProject != null) {
-				if (Engine.logBeans.isTraceEnabled())
-					Engine.logBeans.trace("Current project name : " + project + ", requested projectName :" + projectName + " already loaded");
-			}
-			else {
-				if (Engine.logBeans.isTraceEnabled())
-					Engine.logBeans.trace("Current project name : " + project + ", loading requested projectName :" + projectName);
-				loadedProject = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
-				loadedProjects.put(projectName, loadedProject);
-			}
-			return loadedProject;
-		}
-	}
-    
-	public void setLoadedProject(Project project) {
-		if (project != null) {
-			String projectName = project.getName();
-			synchronized (loadedProjects) {
-				Project p = (Project)loadedProjects.get(projectName);
-				if ((p == null) || ((p != null) && (!p.equals(project)))) {
-					loadedProjects.put(projectName, project);
-					if (Engine.logBeans.isTraceEnabled())
-						Engine.logBeans.trace("Updated sequence '"+getName()+"' with project "+ projectName +"("+project.hashCode()+")");
-				}
-			}
-		}
-	}
-	
-	public void removeLoaded(String projectName) {
-		synchronized (loadedProjects) {
-			loadedProjects.remove(projectName);
-		}
+		return Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, true);
 	}
 	
 	public Step getStep(String stepName) {
@@ -1078,13 +1029,6 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	if (workerElementMap != null) {
         	workerElementMap.clear();
         	workerElementMap = null;
-    	}
-    	if (loadedProjects != null) {
-    		if (Engine.isEngineMode()) {
-    			synchronized (loadedProjects) {
-    				loadedProjects.clear();
-    			}
-    		}
     	}
     	if (xpathApi != null) {
     		xpathApi.release();

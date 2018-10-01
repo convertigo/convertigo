@@ -61,6 +61,8 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 	
 	transient private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();
 	
+	transient private Runnable _markPageAsDirty;
+	
 	public PageComponent() {
 		super();
 		
@@ -534,51 +536,57 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 	}
 	
 	public void markPageAsDirty() throws EngineException {
-		if (isImporting) {
-			return;
+		if (_markPageAsDirty == null) {
+			_markPageAsDirty = () -> {
+				if (isImporting) {
+					return;
+				}
+				try {
+					JSONObject oldComputedContent = computedContents == null ? 
+							null :new JSONObject(computedContents.toString());
+					
+					doComputeContents();
+					
+					JSONObject newComputedContent = computedContents == null ? 
+							null :new JSONObject(computedContents.toString());
+					
+					if (oldComputedContent != null && newComputedContent != null) {
+						if (!(newComputedContent.getJSONObject("scripts").toString()
+								.equals(oldComputedContent.getJSONObject("scripts").toString()))) {
+							getProject().getMobileBuilder().pageTsChanged(this, true);
+						}
+					}
+					if (oldComputedContent != null && newComputedContent != null) {
+						if (!(newComputedContent.getString("style")
+								.equals(oldComputedContent.getString("style")))) {
+							getProject().getMobileBuilder().pageStyleChanged(this);
+						}
+					}
+					if (oldComputedContent != null && newComputedContent != null) {
+						if (!(newComputedContent.getString("template")
+								.equals(oldComputedContent.getString("template")))) {
+							getProject().getMobileBuilder().pageTemplateChanged(this);
+						}
+					}
+					
+					String oldContributors = contributors == null ? null: contributors.toString();
+					doGetContributors();
+					String newContributors = contributors == null ? null: contributors.toString();
+					if (oldContributors != null && newContributors != null) {
+						if (!(oldContributors.equals(newContributors))) {
+							getProject().getMobileBuilder().pageContributorsChanged(this);
+						}
+					}
+					
+					
+				} catch (JSONException e) {
+					e.printStackTrace();
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+			};
 		}
-		
-		try {
-			JSONObject oldComputedContent = computedContents == null ? 
-					null :new JSONObject(computedContents.toString());
-			
-			doComputeContents();
-			
-			JSONObject newComputedContent = computedContents == null ? 
-					null :new JSONObject(computedContents.toString());
-			
-			if (oldComputedContent != null && newComputedContent != null) {
-				if (!(newComputedContent.getJSONObject("scripts").toString()
-						.equals(oldComputedContent.getJSONObject("scripts").toString()))) {
-					getProject().getMobileBuilder().pageTsChanged(this, true);
-				}
-			}
-			if (oldComputedContent != null && newComputedContent != null) {
-				if (!(newComputedContent.getString("style")
-						.equals(oldComputedContent.getString("style")))) {
-					getProject().getMobileBuilder().pageStyleChanged(this);
-				}
-			}
-			if (oldComputedContent != null && newComputedContent != null) {
-				if (!(newComputedContent.getString("template")
-						.equals(oldComputedContent.getString("template")))) {
-					getProject().getMobileBuilder().pageTemplateChanged(this);
-				}
-			}
-			
-			String oldContributors = contributors == null ? null: contributors.toString();
-			doGetContributors();
-			String newContributors = contributors == null ? null: contributors.toString();
-			if (oldContributors != null && newContributors != null) {
-				if (!(oldContributors.equals(newContributors))) {
-					getProject().getMobileBuilder().pageContributorsChanged(this);
-				}
-			}
-			
-			
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
+		checkBatchOperation(_markPageAsDirty);
 	}
 	
 	public void markPageTsAsDirty() throws EngineException {

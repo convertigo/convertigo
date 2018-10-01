@@ -65,6 +65,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 import com.twinsoft.convertigo.engine.UndefinedSymbolsException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
+import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
@@ -1323,5 +1324,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		}
 		return false;
 	}
-
+	
+	protected void checkBatchOperation(Runnable runnable) {
+		BatchOperationHelper.check(runnable);
+	}
 }
