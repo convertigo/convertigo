@@ -45,6 +45,7 @@ import org.apache.ws.commons.schema.XmlSchemaAppInfo;
 import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
+import org.apache.ws.commons.schema.XmlSchemaDocumentation;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
 import org.apache.ws.commons.schema.XmlSchemaSequence;
@@ -1962,12 +1963,16 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 					s.getItems().add(element);
 					element.setName(variable.getName());
 					String description = variable.getDescription();
-					if (description != null && description.length() > 0) {
+					String documentation = variable.getComment();
+					if (description != null && description.length() > 0 || documentation != null && documentation.length() > 0) {
 						XmlSchemaAnnotation annotation = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaAnnotation());
 						element.setAnnotation(annotation);
 						XmlSchemaAppInfo appInfo = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaAppInfo());
-						annotation.getItems().add(appInfo);
 						appInfo.setMarkup(XMLUtils.asNodeList(description));
+						annotation.getItems().add(appInfo);
+						XmlSchemaDocumentation doc = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaDocumentation());
+						doc.setMarkup(XMLUtils.asNodeList(documentation));
+						annotation.getItems().add(doc);
 					}
 					if (variable.isMultiValued()) {
 						if (variable.isSoapArray()) {
