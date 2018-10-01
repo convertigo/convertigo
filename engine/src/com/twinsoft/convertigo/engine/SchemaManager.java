@@ -1079,7 +1079,6 @@ public class SchemaManager implements AbstractManager {
 	public void clearCache(String projectName) {
 		synchronized (schemaCache) {
 			schemaCache.remove(projectName);
-			System.gc();
 		}
 	}
 	

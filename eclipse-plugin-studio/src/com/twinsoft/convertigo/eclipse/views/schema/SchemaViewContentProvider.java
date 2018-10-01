@@ -103,7 +103,6 @@ public class SchemaViewContentProvider implements ITreeContentProvider {
 		if (depths != null) {
 			depths.clear();
 		}
-		System.gc();
 	}
 	
 	public void dispose() {
