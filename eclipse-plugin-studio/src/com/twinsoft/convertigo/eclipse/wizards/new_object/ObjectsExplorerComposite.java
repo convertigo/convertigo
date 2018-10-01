@@ -60,6 +60,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboBean;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboBeans;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboCategory;
@@ -123,7 +124,7 @@ public class ObjectsExplorerComposite extends Composite {
 				// Enumeration of the beans
 				ConvertigoPlugin.logDebug2("Exploring Convertigo database objects list...");
 
-				DboExplorerManager manager = new DboExplorerManager();
+				DboExplorerManager manager = Engine.theApp.getDboExplorerManager();
 				List<DboGroup> groups = manager.getGroups();
 				Set<DboBeans> beansCategorySet = new LinkedHashSet<DboBeans>();
 				for (DboGroup group : groups) {

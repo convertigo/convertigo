@@ -84,7 +84,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 
 	public static final String SOURCE_SEPARATOR = ".";
 
-	private XMLVector<XMLVector<Long>> orderedVariables = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedVariables = new XMLVector<XMLVector<Long>>();
 	
 	transient private List<StepVariable> vVariables = new LinkedList<StepVariable>();
 	transient private List<StepVariable> vAllVariables = null;
@@ -416,14 +416,14 @@ public abstract class RequestableStep extends Step implements IVariableContainer
     		return;
     	
     	if (after == null) {
-    		after = new Long(0);
-    		if (size>0)
+    		after = 0L;
+    		if (size > 0)
     			after = ordered.get(ordered.size()-1);
     	}
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, variable.priority);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
     
     public void removeVariable(StepVariable variable) {
@@ -440,7 +440,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
     }
 
 	public void insertAtOrder(DatabaseObject databaseObject, long priority) throws EngineException {
-		increaseOrder(databaseObject, new Long(priority));
+		increaseOrder(databaseObject, priority);
 	}
     
     private void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {

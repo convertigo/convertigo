@@ -30,13 +30,7 @@ public class StepWithExpressionsBeanInfo extends MySimpleBeanInfo {
 
 			resourceBundle = getResourceBundle("res/StepWithExpressions");
 
-			properties = new PropertyDescriptor[1];
-
-            properties[0] = new PropertyDescriptor("orderedSteps", beanClass, "getOrderedSteps", "setOrderedSteps");
-            properties[0].setDisplayName(getExternalizedString("property.orderedSteps.display_name"));
-            properties[0].setShortDescription(getExternalizedString("property.orderedSteps.short_description"));
-            properties[0].setHidden(true);
-			
+			properties = new PropertyDescriptor[0];			
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

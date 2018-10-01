@@ -438,7 +438,6 @@ public class NewObjectWizard extends Wizard {
 				try {
 					if ((newBean instanceof Statement) && (parentObject instanceof Transaction)) {
 						newBean.priority = 0;
-						newBean.newPriority = 0;
 					}
 					
 					if (newBean instanceof ScreenClass)

@@ -45,10 +45,15 @@ public class MigrationJob extends Thread {
 		try {
 			// Migrates project
 			File projectDir = new File(Engine.projectDir(projectName));
-			if (projectDir.exists())
-				Engine.theApp.databaseObjectsManager.updateProject(Engine.projectDir(projectName) + "/" + projectName + ".xml");
-			else
-				Engine.theApp.databaseObjectsManager.updateProject(Engine.projectDir(projectName) + ".car");
+			if (projectDir.exists()) {
+				File toLoad = new File(projectDir, "c8oProject.yaml");
+				if (!toLoad.exists()) {
+					toLoad = new File(projectDir, projectName + ".xml");
+				}
+				Engine.theApp.databaseObjectsManager.updateProject(toLoad);
+			} else {
+				Engine.theApp.databaseObjectsManager.updateProject(new File(Engine.PROJECTS_PATH, projectName + ".car"));
+			}
 			
 			// Migration 3.0.0 specifics
 			Migration3_0_0.projectRenameFilesWithDollarSign(projectDir);

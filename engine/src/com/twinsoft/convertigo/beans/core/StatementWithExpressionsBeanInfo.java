@@ -30,13 +30,7 @@ public class StatementWithExpressionsBeanInfo extends MySimpleBeanInfo {
 
 			resourceBundle = getResourceBundle("res/StatementWithExpressions");
 
-			properties = new PropertyDescriptor[1];
-
-            properties[0] = new PropertyDescriptor("orderedStatements", StatementWithExpressions.class, "getOrderedStatements", "setOrderedStatements");
-            properties[0].setDisplayName(getExternalizedString("property.orderedStatements.display_name"));
-            properties[0].setShortDescription(getExternalizedString("property.orderedStatements.short_description"));
-            properties[0].setHidden(true);
-			
+			properties = new PropertyDescriptor[0];			
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

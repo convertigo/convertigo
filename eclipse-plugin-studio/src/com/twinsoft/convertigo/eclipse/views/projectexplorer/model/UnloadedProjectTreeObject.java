@@ -31,9 +31,12 @@ public class UnloadedProjectTreeObject extends TreeObject implements IActionFilt
 	
 	public UnloadedProjectTreeObject(Viewer viewer, String projectName) {
 		super(viewer, projectName);
-        String fileName = Engine.projectDir(projectName) + "/" + projectName + ".xml";
-		File file = new File(fileName);
-		isLoadable = file.exists();
+		String projectDir = Engine.projectDir(projectName);
+		File toLoad = new File(projectDir + "/c8oProject.yaml");
+		if (!toLoad.exists()) {
+			toLoad = new File(projectDir + "/" + projectName + ".xml");
+		}
+		isLoadable = toLoad.exists();
 	}
 
 	@Override

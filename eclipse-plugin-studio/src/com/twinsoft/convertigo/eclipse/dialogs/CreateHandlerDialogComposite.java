@@ -406,7 +406,6 @@ public class CreateHandlerDialogComposite extends MyAbstractDialogComposite {
 					((Statement)object).hasChanged = true;
 					((Statement)object).bNew = true;
 					((Statement)object).priority = 0;
-					((Statement)object).newPriority = 0;
 				}
 				result.add(object);
 			}

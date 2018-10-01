@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -80,6 +81,10 @@ public class ComponentManager {
 	private SortedMap<String, IonBean> bCache = new TreeMap<String, IonBean>();
 	private SortedMap<String, IonTemplate> tCache = new TreeMap<String, IonTemplate>();
 	
+	private List<String> groups;
+	private List<Component> orderedComponents;
+	private List<Component> components;
+	
 	private File compbeansDir;
 	
 	private ComponentManager() {
@@ -88,17 +93,15 @@ public class ComponentManager {
 	
 	private void loadModels() {
 		clear();
-		InputStream inputstream = null;
-		try {
-			if (Engine.isStarted) {
-				Engine.logEngine.info("(ComponentManager) Start loading Ionic objects");
-			} else {
-				System.out.println("(ComponentManager) Start loading Ionic objects");
-			}
-			
-			inputstream = getClass().getResourceAsStream("ion_objects.json");
+		
+		if (Engine.isStarted) {
+			Engine.logEngine.info("(ComponentManager) Start loading Ionic objects");
+		} else {
+			System.out.println("(ComponentManager) Start loading Ionic objects");
+		}
+		
+		try (InputStream inputstream = getClass().getResourceAsStream("ion_objects.json")) {
 			String json = IOUtils.toString(inputstream, "UTF-8");
-			//System.out.println(json);
 			
 			JSONObject root = new JSONObject(json);
 			readPropertyModels(root);
@@ -118,16 +121,16 @@ public class ComponentManager {
 				e.printStackTrace();
 			}
 		}
-		finally {
-			if (inputstream != null)
-				IOUtils.closeQuietly(inputstream);
-		}
 	}
 	
 	private void clear() {
 		pCache.clear();
 		bCache.clear();
 		tCache.clear();
+		
+		groups = null;
+		orderedComponents = null;
+		components = null;
 	}
 	
 	@Override
@@ -256,7 +259,14 @@ public class ComponentManager {
 	}
 	
 	public static List<String> getGroups() {
-		List<String> groups = new ArrayList<String>(10);
+		return instance.makeGroups();
+	}
+	
+	private synchronized List<String> makeGroups() {
+		if (groups != null) {
+			return groups;
+		}
+		groups = new ArrayList<String>(10);
 		groups.add("Customs");
 		for (IonBean bean: instance.bCache.values()) {
 			if (!groups.contains(bean.getGroup())) {
@@ -270,11 +280,18 @@ public class ComponentManager {
 		groups.remove("Actions");
 		groups.add("Actions");
 		
-		return Collections.unmodifiableList(groups);
+		return groups = Collections.unmodifiableList(groups);
 	}
 	
 	public static List<Component> getComponentsByGroup() {
-		List<Component> orderedComponents = new ArrayList<Component>(10);
+		return instance.makeComponentsByGroup();
+	}
+	
+	private synchronized List<Component> makeComponentsByGroup() {
+		if (orderedComponents != null) {
+			return orderedComponents;
+		}
+		orderedComponents = new ArrayList<Component>(10);
 		List<Component> components = getComponents();
 		
 		for (String group : getGroups()) {
@@ -285,11 +302,18 @@ public class ComponentManager {
 			}
 		}
 		
-		return Collections.unmodifiableList(orderedComponents);
+		return orderedComponents = Collections.unmodifiableList(orderedComponents);
 	}
 	
 	public static List<Component> getComponents() {
-		List<Component> components = new ArrayList<Component>(10);
+		return instance.makeComponents();
+	}
+	
+	private synchronized List<Component> makeComponents() {
+		if (components != null) {
+			return components;
+		}
+		components = new ArrayList<Component>(10);
 		
 		try {
 			String group;
@@ -425,7 +449,7 @@ public class ComponentManager {
 			}				
 		} );
 		
-		return Collections.unmodifiableList(components);
+		return components = Collections.unmodifiableList(components);
 	}
 	
 	public static boolean acceptDatabaseObjects(DatabaseObject parentDatabaseObject, DatabaseObject databaseObject) {
@@ -648,19 +672,13 @@ public class ComponentManager {
 	}
 	
 	public static String getActionTsCode(String name) {
-		InputStream inputstream = null;
-		try {
-			inputstream = instance.getClass().getResourceAsStream("actionbeans/"+ name +".ts");
+		try (InputStream inputstream = instance.getClass().getResourceAsStream("actionbeans/"+ name +".ts")) {
 			return IOUtils.toString(inputstream, "UTF-8");
 		} catch (Exception e) {
 			if (Engine.isStarted) {
 				Engine.logBeans.warn("(ComponentManager) Missing action typescript file for pseudo-bean '"+ name +"' !");
 			} else {
 				System.out.println("(ComponentManager) Missing action typescript file for pseudo-bean '"+ name +"' !");
-			}
-		} finally {
-			if (inputstream != null) {
-				IOUtils.closeQuietly(inputstream);
 			}
 		}
 		return "";
@@ -685,5 +703,9 @@ public class ComponentManager {
 			}
 		}
 		return null;
+	}
+	
+	public static Map<String, IonBean> getIonBeans() {
+		return Collections.unmodifiableMap(instance.bCache);
 	}
 }

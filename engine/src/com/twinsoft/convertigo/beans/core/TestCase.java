@@ -42,7 +42,7 @@ public class TestCase extends DatabaseObject implements IVariableContainer, ICon
 
 	private static final long serialVersionUID = 8119436229667565326L;
 	
-	private XMLVector<XMLVector<Long>> orderedVariables = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedVariables = new XMLVector<XMLVector<Long>>();
 	
 	transient private List<TestCaseVariable> vVariables = new LinkedList<TestCaseVariable>();
 	transient private List<TestCaseVariable> vAllVariables = null;
@@ -180,14 +180,14 @@ public class TestCase extends DatabaseObject implements IVariableContainer, ICon
     		return;
     	
     	if (after == null) {
-    		after = new Long(0);
-    		if (size>0)
+    		after = 0L;
+    		if (size > 0)
     			after = ordered.get(ordered.size()-1);
     	}
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, variable.priority);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
     
     public void removeVariable(TestCaseVariable variable) {
@@ -204,7 +204,7 @@ public class TestCase extends DatabaseObject implements IVariableContainer, ICon
     }
 
 	public void insertAtOrder(DatabaseObject databaseObject, long priority) throws EngineException {
-		increaseOrder(databaseObject, new Long(priority));
+		increaseOrder(databaseObject, priority);
 	}
     
     private void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {

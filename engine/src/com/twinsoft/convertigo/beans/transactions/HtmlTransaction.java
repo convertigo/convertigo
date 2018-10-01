@@ -126,8 +126,6 @@ public class HtmlTransaction extends HttpTransaction {
 
 	transient private boolean alreadyConnected = false;
 
-	transient public boolean handlePriorities = true;
-
 	public HtmlTransaction() {
 		super();
 		handlers = "// handlers are handled by Statements for HTML Transaction.";
@@ -139,7 +137,6 @@ public class HtmlTransaction extends HttpTransaction {
 		HtmlTransaction clonedObject = (HtmlTransaction) super.clone();
 		clonedObject.vStatements = new LinkedList<Statement>();
 		clonedObject.alreadyConnected = false;
-		clonedObject.handlePriorities = handlePriorities;
 		return clonedObject;
 	}
 
@@ -234,13 +231,8 @@ public class HtmlTransaction extends HttpTransaction {
 
 		statement.setParent(this);// do not call super.add otherwise it will generate an exception
 
-		if (!statement.bNew && !handlePriorities) {
-			statement.newPriority = 0;
-			statement.hasChanged = true;
-		}
-		else if (handlePriorities && (statement.priority != 0)) {
+		if (statement.priority != 0) {
 			statement.priority = 0;
-			statement.newPriority = 0;
 			statement.hasChanged = true;
 		}
 	}
@@ -1113,58 +1105,6 @@ public class HtmlTransaction extends HttpTransaction {
 			s2 += line + "\n";
 		}
 		return s2;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.twinsoft.convertigo.beans.core.DatabaseObject#configure(org.w3c.dom.Element)
-	 */
-    @Override
-	public void configure(Element element) throws Exception {
-		super.configure(element);
-
-		try {
-			String attribute = element.getAttribute("handlePriorities");
-			if (attribute.equals("")) throw new Exception("Missing \"handlePriorities\" attribute.");
-			handlePriorities = new Boolean(attribute).booleanValue();
-			if (!handlePriorities)
-				hasChanged = true;
-
-		}
-		catch(Exception e) {
-			handlePriorities = false;
-			Engine.logBeans.warn("The "+getClass().getName() +" object \"" + getName() + "\" has been updated to version \"4.0.1\"");
-			hasChanged = true;
-		}
-	}
-
-	/* (non-Javadoc)
-	 * @see com.twinsoft.convertigo.beans.core.DatabaseObject#write(java.lang.String)
-	 */
-    @Override
-	public void write(String databaseObjectQName) throws EngineException {
-		boolean b = handlePriorities;
-		if (hasChanged && !isImporting)
-			handlePriorities = true;
-		try {
-			super.write(databaseObjectQName);
-		}
-		catch (EngineException e) {
-			handlePriorities = b;
-			throw e;
-		}
-	}
-
-	/* (non-Javadoc)
-	 * @see com.twinsoft.convertigo.beans.core.DatabaseObject#toXml(org.w3c.dom.Document)
-	 */
-    @Override
-	public Element toXml(Document document) throws EngineException {
-		Element element =  super.toXml(document);
-
-		// Storing the transaction "handlePriorities" flag
-		element.setAttribute("handlePriorities", new Boolean(handlePriorities).toString());
-
-		return element;
 	}
 
 	protected String getContentType(){

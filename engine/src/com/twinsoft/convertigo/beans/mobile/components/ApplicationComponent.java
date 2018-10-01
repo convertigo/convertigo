@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -61,10 +62,10 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	
 	private static final long serialVersionUID = 6142350115354549719L;
 
-	private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();
-	private XMLVector<XMLVector<Long>> orderedRoutes = new XMLVector<XMLVector<Long>>();
-	private XMLVector<XMLVector<Long>> orderedPages = new XMLVector<XMLVector<Long>>();
-	private XMLVector<XMLVector<Long>> orderedMenus = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedRoutes = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedPages = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedMenus = new XMLVector<XMLVector<Long>>();
 	
 	private String tplProjectName = "";
 	private String tplProjectVersion = "";
@@ -177,14 +178,14 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
     		return;
     	
     	if (after == null) {
-    		after = new Long(0);
-    		if (size>0)
+    		after = 0L;
+    		if (size > 0)
     			after = ordered.get(ordered.size()-1);
     	}
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, component.priority);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
     
     private void removeOrderedMenu(Long value) {
@@ -209,14 +210,14 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
     		return;
     	
     	if (after == null) {
-    		after = new Long(0);
-    		if (size>0)
+    		after = 0L;
+    		if (size > 0)
     			after = ordered.get(ordered.size()-1);
     	}
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, component.priority);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
     
     private void removeOrderedPage(Long value) {
@@ -241,14 +242,14 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
     		return;
     	
     	if (after == null) {
-    		after = new Long(0);
-    		if (size>0)
+    		after = 0L;
+    		if (size > 0)
     			after = ordered.get(ordered.size()-1);
     	}
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, component.priority);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
     
     private void removeOrderedRoute(Long value) {
@@ -273,14 +274,14 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
     		return;
     	
     	if (after == null) {
-    		after = new Long(0);
-    		if (size>0)
+    		after = 0L;
+    		if (size > 0)
     			after = ordered.get(ordered.size()-1);
     	}
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, component.priority);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
     
     private void removeOrderedComponent(Long value) {
@@ -290,7 +291,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
     }
     
 	public void insertAtOrder(DatabaseObject databaseObject, long priority) throws EngineException {
-		increaseOrder(databaseObject, new Long(priority));
+		increaseOrder(databaseObject, priority);
 	}
     
     private void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
@@ -1107,9 +1108,13 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	}
 
 	public String getTplProjectVersion() {
-		String tplVersion = getTplVersion();
-		if (tplVersion != null) {
-			tplProjectVersion = tplVersion;
+		try {
+			String tplVersion = getTplVersion();
+			if (tplVersion != null) {
+				tplProjectVersion = tplVersion;
+			}
+		} catch (NullPointerException e) {
+			// ignore error for BeansDefaultValues
 		}
 		return tplProjectVersion;
 	}
@@ -1138,8 +1143,8 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	@Override
 	public String[] getTagsForProperty(String propertyName) {
 		if ("tplProjectName".equals(propertyName)) {
-			List<String> projects = new LinkedList<>();
-			//projects.add("");
+			Set<String> projects = new HashSet<>();
+			projects.add(this.tplProjectName);
 			
 			for (String project: Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false)) {
 				if (isCompatibleTemplate(project)) {

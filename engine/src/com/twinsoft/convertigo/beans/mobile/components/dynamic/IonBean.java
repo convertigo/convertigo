@@ -54,6 +54,7 @@ public class IonBean {
 	}
 	
 	private JSONObject jsonBean;
+	private String beanData;
 	
 	public IonBean() {
 		try {
@@ -93,10 +94,13 @@ public class IonBean {
 		}
 	}
 	
-	public String toBeanData() {
-		String s = jsonBean.toString();
+	public synchronized String toBeanData() {
+		if (beanData != null) {
+			return beanData;
+		}
+		beanData = jsonBean.toString();
 		try {
-			JSONObject jsonOb = new JSONObject(toString());
+			JSONObject jsonOb = new JSONObject(beanData);
 			for (Key k: Key.values()) {
 				if (k.equals(Key.name))
 					continue;
@@ -127,12 +131,12 @@ public class IonBean {
 				}
 				jsonOb.remove(k.name());
 			}
-			s = jsonOb.toString();
+			beanData = jsonOb.toString(1);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-		//System.out.println(s);
-		return s;
+		
+		return beanData;
 	}
 	
 	public String toString() {
@@ -321,11 +325,12 @@ public class IonBean {
 		return properties;
 	}
 	
-	protected void putProperty(IonProperty property) {
+	protected synchronized void putProperty(IonProperty property) {
 		try {
 			JSONObject jsonProperties = jsonBean.getJSONObject(Key.properties.name());
 			if (jsonProperties != null) {
 				jsonProperties.put(property.getName(), property.getJSONObject());
+				beanData = null;
 			}
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block

@@ -149,14 +149,14 @@ public abstract class TransactionWithVariables extends Transaction implements IV
     		return;
     	
     	if (after == null) {
-    		after = new Long(0);
-    		if (size>0)
+    		after = 0L;
+    		if (size > 0)
     			after = (Long)ordered.lastElement();
     	}
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, value);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
     
     public void removeVariable(RequestableVariable variable) {
@@ -178,7 +178,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
     }
     
 	public void insertAtOrder(DatabaseObject databaseObject, long priority) throws EngineException {
-		increaseOrder(databaseObject, new Long(priority));
+		increaseOrder(databaseObject, priority);
 	}
     
     private void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
@@ -366,7 +366,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 	}
 	
 	/** Holds value of property orderedVariables. */
-	private XMLVector<XMLVector<Long>> orderedVariables = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedVariables = new XMLVector<XMLVector<Long>>();
 	
 	/** Stores value of property orderedVariables. */
 	//private transient XMLVector originalVariablesDefinition = null;

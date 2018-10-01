@@ -38,12 +38,12 @@ public class PageComponentBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[9];
-			
-			properties[0] = new PropertyDescriptor("orderedComponents", beanClass, "getOrderedComponents", "setOrderedComponents");
-			properties[0].setDisplayName(getExternalizedString("property.orderedComponents.display_name"));
-			properties[0].setShortDescription(getExternalizedString("property.orderedComponents.short_description"));
-			properties[0].setHidden(true);
+			properties = new PropertyDescriptor[8];
+
+			properties[0] = new PropertyDescriptor("iconPosition", beanClass, "getIconPosition", "setIconPosition");
+			properties[0].setDisplayName(getExternalizedString("property.iconPosition.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.iconPosition.short_description"));
+			properties[0].setPropertyEditorClass(getEditorClass("StringComboBoxPropertyDescriptor"));
 
 			properties[1] = new PropertyDescriptor("title", beanClass, "getTitle", "setTitle");
 			properties[1].setDisplayName(getExternalizedString("property.title.display_name"));
@@ -76,11 +76,6 @@ public class PageComponentBeanInfo extends MySimpleBeanInfo {
 			properties[7].setDisplayName(getExternalizedString("property.icon.display_name"));
 			properties[7].setShortDescription(getExternalizedString("property.icon.short_description"));
 			properties[7].setPropertyEditorClass(getEditorClass("StringComboBoxPropertyDescriptor"));
-
-			properties[8] = new PropertyDescriptor("iconPosition", beanClass, "getIconPosition", "setIconPosition");
-			properties[8].setDisplayName(getExternalizedString("property.iconPosition.display_name"));
-			properties[8].setShortDescription(getExternalizedString("property.iconPosition.short_description"));
-			properties[8].setPropertyEditorClass(getEditorClass("StringComboBoxPropertyDescriptor"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

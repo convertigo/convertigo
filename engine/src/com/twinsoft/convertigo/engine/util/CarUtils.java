@@ -39,6 +39,7 @@ import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.twinsoft.convertigo.beans.BeansDefaultValues;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.TestCase;
@@ -146,13 +147,36 @@ public class CarUtils {
 
 	public static void exportProject(Project project, String fileName) throws EngineException {
 		Document document = exportProject(project, new ArrayList<TestCase>());
-		exportXMLProject(fileName, document);
+		try {
+			exportYAMLProject(fileName, document);
+		} catch (Exception e) {
+			Engine.logEngine.error("Failed to export the project as YAML, export XML instead.", e);
+			exportXMLProject(fileName, document);
+		}
 	}
 	
 	public static void exportProject(Project project, String fileName, 
 			List<TestCase> selectedTestCases) throws EngineException {
 		Document document = exportProject(project, selectedTestCases);
-		exportXMLProject(fileName, document);
+		try {
+			exportYAMLProject(fileName, document);
+		} catch (Exception e) {
+			Engine.logEngine.error("Failed to export the project as YAML, export XML instead.", e);
+			exportXMLProject(fileName, document);
+		}
+	}
+	
+	private static void exportYAMLProject(String fileName, Document document) throws EngineException {
+		try {			
+			Document shrink = BeansDefaultValues.shrinkProject(document);
+			File projectDir = new File(fileName).getParentFile();
+			YamlConverter.writeYaml(shrink, new File(projectDir, "c8oProject.yaml"), new File(projectDir, "_c8oProject"));
+			if (fileName.endsWith(".xml")) {
+				new File(fileName).delete();
+			}
+		} catch (Exception e) {
+			throw new EngineException("(CarUtils) exportProject in YAML failed", e);
+		}
 	}
 	
 	private static void exportXMLProject(String fileName, Document document) throws EngineException {

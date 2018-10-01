@@ -252,13 +252,6 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
     }
     
     protected List<PropertyDescriptor> getDynamicPropertyDescriptors() {
-    	/*List<PropertyDescriptor> l = new ArrayList<PropertyDescriptor>();
-    	if (this instanceof IDynamicPropertyProvider) {
-    		IDynamicPropertyProvider provider = (IDynamicPropertyProvider)this;
-           	l.addAll(provider.getDynamicPropertyDescriptorProvider().
-           								getDynamicPropertyDescriptors());
-    	}
-    	return l;*/
     	return new ArrayList<PropertyDescriptor>();
     }
     

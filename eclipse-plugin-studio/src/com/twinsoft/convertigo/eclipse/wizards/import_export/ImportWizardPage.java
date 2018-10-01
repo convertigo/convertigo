@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.eclipse.wizards.import_export;
 
 import java.io.File;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.wizard.IWizardPage;
@@ -31,6 +32,9 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+
+import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
+import com.twinsoft.convertigo.engine.Engine;
 
 
 public class ImportWizardPage extends WizardPage {
@@ -51,7 +55,7 @@ public class ImportWizardPage extends WizardPage {
 		fileSelectionArea.setLayoutData(fileSelectionData);
 
 		GridLayout fileSelectionLayout = new GridLayout();
-		fileSelectionLayout.numColumns = 3;
+		fileSelectionLayout.numColumns = 1;
 		fileSelectionLayout.makeColumnsEqualWidth = false;
 		fileSelectionLayout.marginWidth = 0;
 		fileSelectionLayout.marginHeight = 0;
@@ -72,12 +76,22 @@ public class ImportWizardPage extends WizardPage {
 
 	private void updateStatus() {
 		String message = null;
-		if (filePath.equals(""))
+		if (filePath.equals("")) {
 			message = "Please select a file";
-		else if (!filePath.endsWith(".xml") && !filePath.endsWith(".car"))
+		} else if (!Engine.isProjectFile(filePath) && !filePath.endsWith(".car")) {
 			message = "Please select a compatible file extension";
-		else if (!new File(filePath).exists())
+		} else if (!new File(filePath).exists()) {
 			message = "Please select an existing compatible file";
+		} else {
+			try {
+				String projectName = DatabaseObjectsManager.getProjectName(new File(filePath));
+				if (StringUtils.isNotBlank(projectName)) {
+					setMessage("Current project to import is '" + projectName + "'.");
+				}
+			} catch (Exception e) {
+			}
+		}
+		
 		setErrorMessage(message);
 		setPageComplete(message == null);
 	}
@@ -91,7 +105,7 @@ public class ImportWizardPage extends WizardPage {
 	 */
 	@Override
 	public IWizardPage getNextPage() {
-		if (filePath.endsWith(".xml")) return null;
+		if (Engine.isProjectFile(filePath)) return null;
 		return super.getNextPage();
 	}
 

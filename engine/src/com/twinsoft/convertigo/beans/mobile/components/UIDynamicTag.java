@@ -16,6 +16,7 @@
  * License along with this program;
  * if not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.twinsoft.convertigo.beans.mobile.components;
 
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;

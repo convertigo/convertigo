@@ -23,9 +23,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -54,13 +51,11 @@ public abstract class Variable extends DatabaseObject implements IMultiValued, I
 		
 		// Set priority to creation time since version 4.0.1
 		this.priority = getNewOrderValue();
-		this.newPriority = priority;
 	}
 	
 	@Override
 	public Variable clone() throws CloneNotSupportedException {
-		Variable clonedObject = (Variable)super.clone();
-		clonedObject.newPriority = newPriority;
+		Variable clonedObject = (Variable) super.clone();
 		clonedObject.nullProps = nullProps;
 		return clonedObject;
 	}
@@ -203,35 +198,6 @@ public abstract class Variable extends DatabaseObject implements IMultiValued, I
 			nullProps.add(propertyName);
 		else
 			nullProps.remove(propertyName);
-	}
-	
-	/* (non-Javadoc)
-	* @see com.twinsoft.convertigo.beans.core.DatabaseObject#configure(org.w3c.dom.Element)
-	*/
-	@Override
-	public void configure(Element element) throws Exception {
-		super.configure(element);
-		
-		try {
-			newPriority = new Long(element.getAttribute("newPriority")).longValue();
-			if (newPriority != priority) newPriority = priority;
-		}
-		catch(Exception e) {
-			throw new Exception("Missing \"newPriority\" attribute");
-		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.twinsoft.convertigo.beans.core.DatabaseObject#toXml(org.w3c.dom.Document)
-	 */
-	@Override
-	public Element toXml(Document document) throws EngineException {
-		Element element =  super.toXml(document);
-		
-        // Storing the object "newPriority" value
-        element.setAttribute("newPriority", new Long(newPriority).toString());
-		
-		return element;
 	}
 	
 	protected String getLabel() throws EngineException {

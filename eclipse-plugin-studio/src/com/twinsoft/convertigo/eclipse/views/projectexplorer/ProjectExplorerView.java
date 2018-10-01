@@ -411,7 +411,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		viewer = new TreeViewer(parent,  SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION) {
 			@Override
 			public void refresh(Object element) {
-				super.refresh(element);
+				viewer.getTree().getDisplay().asyncExec(() -> super.refresh(element));
 				packColumns();
 			}
 
@@ -851,7 +851,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		boolean addParent = false;
 		for (TreeObject item: items) {
 			TreeObject parent = item.getParent();
-			if (!newSet.contains(parent)) {
+			if (parent != null && !newSet.contains(parent)) {
 				if (parents.containsKey(parent)) {
 					newSet.add(parent);
 					newSet.remove(parents.get(parent));
@@ -2059,7 +2059,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				projectTreeObject.closeAllEditors();
 			}
 			invisibleRoot.removeChild(treeObject);
-			viewer.refresh();
+			viewer.getTree().getDisplay().asyncExec(() -> viewer.refresh());
 		}
 	}
 
@@ -2904,7 +2904,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		
 		// if project already exists, backup it and delete it after
 		if (projectTreeObject != null) {
-			if (filePath.endsWith(".xml")) {
+			if (Engine.isProjectFile(filePath)) {
 				DatabaseObjectsManager.deleteDir(new File(Engine.projectDir(targetProjectName) + "/_data"));
 				DatabaseObjectsManager.deleteDir(new File(Engine.projectDir(targetProjectName) + "/_private"));
 			}
@@ -2915,7 +2915,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		ConvertigoPlugin.logInfo("Import project from file \"" + filePath + "\"");
 		
 		Project importedProject = null;
-		if (filePath.endsWith(".xml")) {
+		if (Engine.isProjectFile(filePath)) {
 			ConvertigoPlugin.getDefault().createProjectPluginResource(targetProjectName, new File(filePath).getParent());
 			importedProject = Engine.theApp.databaseObjectsManager.importProject(filePath);
 		} else if (filePath.endsWith(".car") && (targetProjectName != null)) {

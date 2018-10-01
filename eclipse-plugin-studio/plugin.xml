@@ -3368,10 +3368,9 @@
 	      </objectContribution>
 	      <objectContribution
 	            id="convertigo.importXmlContribution"
-	            objectClass="org.eclipse.core.resources.IFile"
-	            nameFilter="*.xml">
+	            objectClass="org.eclipse.core.resources.IFile">
                <action
-                     class="com.twinsoft.convertigo.eclipse.commands.CommandImportXmlProject"
+                     class="com.twinsoft.convertigo.eclipse.commands.CommandImportSourceProject"
                      enablesFor="1"
                      id="convertigo.action.importXmlContribution"
                      label="Import as Convertigo project"
@@ -3721,9 +3720,9 @@
 	<extension
 		point="org.eclipse.ui.handlers">
 		<handler
-			commandId="com.twinsoft.convertigo.eclipse.commands.CommandImportXmlProject">
+			commandId="com.twinsoft.convertigo.eclipse.commands.CommandImportSourceProject">
 			<class
-				class="com.twinsoft.convertigo.eclipse.commands.CommandImportXmlProject">
+				class="com.twinsoft.convertigo.eclipse.commands.CommandImportSourceProject">
 			</class>
 		</handler>
 	</extension>
@@ -3733,7 +3732,7 @@
 		<menuContribution
 			locationURI="popup:org.eclipse.egit.ui.RepositoriesView?after=repo-3">
 			<command
-				commandId="com.twinsoft.convertigo.eclipse.commands.CommandImportXmlProject"
+				commandId="com.twinsoft.convertigo.eclipse.commands.CommandImportSourceProject"
 				label="Import as Convertigo project(s)"
 				icon="icons/convertigo_16x16.gif"
 				style="push">
@@ -3745,8 +3744,8 @@
 	<extension
 		point="org.eclipse.ui.commands">
 		<command
-			id="com.twinsoft.convertigo.eclipse.commands.CommandImportXmlProject"
-			name="CommandImportXmlProject">
+			id="com.twinsoft.convertigo.eclipse.commands.CommandImportSourceProject"
+			name="CommandImportSourceProject">
 		</command>
 	</extension>
 	

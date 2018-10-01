@@ -41,7 +41,7 @@ import org.apache.commons.io.IOUtils;
 import com.twinsoft.convertigo.engine.Engine;
 
 public class ZipUtils {
-	private static final Pattern reProjectFromCAR = Pattern.compile("(.*?)/\\1\\.xml");
+	private static final Pattern reProjectFromCAR = Pattern.compile("(.*?)/(?:\\1\\.xml|c8oProject\\.yaml)");
 	
 	public static File makeZip(String archiveFileName, String sDir, String sRelativeDir) throws Exception {
 		File file = new File(archiveFileName);
