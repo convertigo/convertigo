@@ -43,7 +43,7 @@ public class YamlConverter {
 	
 	private static final String endLine = System.getProperty("line.separator");
 	
-	private final Matcher toSplit = Pattern.compile("\\r?\\n").matcher("");
+	private final Matcher toSplit = Pattern.compile("\\n").matcher("");
 	
 	private final Matcher toQuote = Pattern.compile("(?:^(?:-|\\?|:|,|\\[|\\]|\\{|\\}|#|&|\\*|\\!|\\||>|'|\"|%|@|`|\\\\s))|(?:: )", Pattern.MULTILINE).matcher("");
 	
@@ -69,6 +69,7 @@ public class YamlConverter {
 	}
 	
 	private void writeYamlText(String indent, String txt) {
+		txt = txt.replace("\r", "");
 		if (txt.isEmpty()) {
 			txt = "''";
 		} else if (toQuote.reset(txt).find()) {
