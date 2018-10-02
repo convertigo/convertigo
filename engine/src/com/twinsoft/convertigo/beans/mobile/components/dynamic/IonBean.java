@@ -55,6 +55,7 @@ public class IonBean {
 	
 	private JSONObject jsonBean;
 	private String beanData;
+	private IonConfig ionConfig;
 	
 	public IonBean() {
 		try {
@@ -331,6 +332,7 @@ public class IonBean {
 			if (jsonProperties != null) {
 				jsonProperties.put(property.getName(), property.getJSONObject());
 				beanData = null;
+				ionConfig = null;
 			}
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
@@ -366,14 +368,16 @@ public class IonBean {
 	}
 	
 	public IonConfig getConfig() {
-		try {
-			JSONObject jsonConfig = jsonBean.getJSONObject(Key.config.name());
-			IonConfig config = new IonConfig(jsonConfig);
-			return config;
-		} catch (JSONException e) {
-			e.printStackTrace();
-			return new IonConfig();
+		if (ionConfig == null) {
+			try {
+				JSONObject jsonConfig = jsonBean.getJSONObject(Key.config.name());
+				ionConfig = IonConfig.get(jsonConfig);
+			} catch (JSONException e) {
+				e.printStackTrace();
+				ionConfig = IonConfig.get();
+			}
 		}
+		return ionConfig;
 	}
 	
 	protected DatabaseObject createBean() {
