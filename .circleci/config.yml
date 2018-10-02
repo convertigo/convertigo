@@ -162,11 +162,13 @@ jobs:
             docker push $FROM
         fi
         docker build --rm=false -t convertigo/convertigo-ci:$CONVERTIGO_BRANCH --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
-        docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME
-        docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH convertigo/convertigo-ci:$CONVERTIGO_VERSION
         docker push convertigo/convertigo-ci:$CONVERTIGO_BRANCH
+        docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME
         docker push convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME
-        docker push convertigo/convertigo-ci:$CONVERTIGO_VERSION
+        if [ "$CONVERTIGO_VERSION" = "develop" ]; then
+            docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH convertigo/convertigo-ci:$CONVERTIGO_VERSION
+            docker push convertigo/convertigo-ci:$CONVERTIGO_VERSION
+        fi
         
   build_docker_i386:
     <<: *defaults
@@ -200,11 +202,13 @@ jobs:
             docker push $FROM
         fi
         docker build --rm=false -t convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
-        docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE
-        docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
         docker push convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE
-        docker push convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE
-        docker push convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
+        docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE
+        docker push convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE        
+        if [ "$CONVERTIGO_VERSION" = "develop" ]; then
+            docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
+            docker push convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
+        fi
         
   build_docker_alpine:
     <<: *defaults
@@ -238,11 +242,13 @@ jobs:
             docker push $FROM
         fi
         docker build --rm=false -t convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
-        docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE
-        docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
         docker push convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE
+        docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE
         docker push convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE
-        docker push convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
+        if [ "$CONVERTIGO_VERSION" = "develop" ]; then
+            docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
+            docker push convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
+        fi
         TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "'$DOCKER_USERNAME'", "password": "'$DOCKER_PASSWORD'"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
         TAGS=$(curl 'https://hub.docker.com/v2/repositories/convertigo/convertigo-ci/tags/?page_size=250' -H "Authorization: JWT ${TOKEN}")
         for tag in $( echo $TAGS | jq -r .results[].name | tail -n +36); do

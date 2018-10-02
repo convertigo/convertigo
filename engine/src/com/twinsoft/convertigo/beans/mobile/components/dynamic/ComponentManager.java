@@ -73,13 +73,15 @@ import com.twinsoft.convertigo.beans.mobile.components.UITheme;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.URLUtils;
+import com.twinsoft.convertigo.engine.util.WeakValueHashMap;
+import com.twinsoft.convertigo.engine.util.WeakValueTreeMap;
 
 public class ComponentManager {
 	private static ComponentManager instance = new ComponentManager();
 	
-	private SortedMap<String, IonProperty> pCache = new TreeMap<String, IonProperty>();
-	private SortedMap<String, IonBean> bCache = new TreeMap<String, IonBean>();
-	private SortedMap<String, IonTemplate> tCache = new TreeMap<String, IonTemplate>();
+	private SortedMap<String, IonProperty> pCache = new WeakValueTreeMap<>();
+	private SortedMap<String, IonBean> bCache = new TreeMap<>();
+	private Map<String, String> aCache = new WeakValueHashMap<>();
 	
 	private List<String> groups;
 	private List<Component> orderedComponents;
@@ -126,7 +128,7 @@ public class ComponentManager {
 	private void clear() {
 		pCache.clear();
 		bCache.clear();
-		tCache.clear();
+		aCache.clear();
 		
 		groups = null;
 		orderedComponents = null;
@@ -672,16 +674,21 @@ public class ComponentManager {
 	}
 	
 	public static String getActionTsCode(String name) {
-		try (InputStream inputstream = instance.getClass().getResourceAsStream("actionbeans/"+ name +".ts")) {
-			return IOUtils.toString(inputstream, "UTF-8");
-		} catch (Exception e) {
-			if (Engine.isStarted) {
-				Engine.logBeans.warn("(ComponentManager) Missing action typescript file for pseudo-bean '"+ name +"' !");
-			} else {
-				System.out.println("(ComponentManager) Missing action typescript file for pseudo-bean '"+ name +"' !");
+		String code = instance.aCache.get(name);
+		if (code == null) {
+			try (InputStream inputstream = instance.getClass().getResourceAsStream("actionbeans/"+ name +".ts")) {
+				code = IOUtils.toString(inputstream, "UTF-8");
+				instance.aCache.put(name, code);
+			} catch (Exception e) {
+				code = "";
+				if (Engine.isStarted) {
+					Engine.logBeans.warn("(ComponentManager) Missing action typescript file for pseudo-bean '"+ name +"' !");
+				} else {
+					System.out.println("(ComponentManager) Missing action typescript file for pseudo-bean '"+ name +"' !");
+				}
 			}
 		}
-		return "";
+		return code;
 	}
 	
 	public static File getCompBeanDir(String name) {
