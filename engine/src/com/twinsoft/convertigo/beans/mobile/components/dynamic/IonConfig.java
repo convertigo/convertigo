@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.beans.mobile.components.dynamic;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -31,7 +32,8 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 public class IonConfig implements Cloneable {
-	
+	private static final IonConfig emptyConfig = new IonConfig();
+
 	enum Key {
 		action_ts_imports,
 		module_ts_imports,
@@ -43,14 +45,14 @@ public class IonConfig implements Cloneable {
 		cordova_plugins,
 		;
 	}
-	
+
 	private JSONObject jsonConfig;
-	
-	public IonConfig() {
+
+	private IonConfig() {
 		jsonConfig = new JSONObject();
 	}
 
-	public IonConfig(JSONObject jsonOb) {
+	private IonConfig(JSONObject jsonOb) {
 		this();
 		for (Key k: Key.values()) {
 			if (jsonOb.has(k.name())) {
@@ -62,27 +64,27 @@ public class IonConfig implements Cloneable {
 			}
 		}
 	}
-	
+
 	public JSONObject getJSONObject() {
 		return jsonConfig;
 	}
-	
+
 	public Map<String, List<String>> getActionTsImports() {
 		return getTsImports(Key.action_ts_imports);
 	}
-	
+
 	public Map<String, List<String>> getModuleTsImports() {
 		return getTsImports(Key.module_ts_imports);
 	}
-	
+
 	public Set<String> getModuleNgImports() {
 		return getNgSet(Key.module_ng_imports);
 	}
-	
+
 	public Set<String> getModuleNgProviders() {
 		return getNgSet(Key.module_ng_providers);
 	}
-	
+
 	public Set<String> getModuleNgDeclarations() {
 		return getNgSet(Key.module_ng_declarations);
 	}
@@ -94,103 +96,120 @@ public class IonConfig implements Cloneable {
 	public Map<String, String> getPackageDependencies() {
 		return getCfgImports(Key.package_dependencies, "package", "version");
 	}
-	
+
 
 	public Map<String, String> getConfigPlugins() {
 		return getCfgPlugins(Key.cordova_plugins, "plugin");
 	}
-	
+
 	protected Map<String, List<String>> getTsImports(Key key) {
-		try {
-			Map<String, List<String>> map = new HashMap<String, List<String>>();
-			JSONArray ar = jsonConfig.getJSONArray(key.name());
-			for (int i=0; i<ar.length(); i++) {
-				Object ob = ar.get(i);
-				if (ob instanceof JSONObject) {
-					JSONObject jsonImport = (JSONObject)ob;
-					String from = jsonImport.getString("from");
-					if (!from.isEmpty()) {
-						List<String> list = map.get(from);
-						if (list == null) {
-							list = new ArrayList<String>();
-						}
-						
-						JSONArray arc = jsonImport.getJSONArray("components");
-						for (int j=0; j<arc.length(); j++) {
-							String s = arc.getString(j);
-							if (!s.isEmpty()) {
-								list.add(s);
+		if (this != emptyConfig) {
+			try {
+				JSONArray ar = jsonConfig.getJSONArray(key.name());
+				Map<String, List<String>> map = new HashMap<String, List<String>>();
+				for (int i=0; i<ar.length(); i++) {
+					Object ob = ar.get(i);
+					if (ob instanceof JSONObject) {
+						JSONObject jsonImport = (JSONObject)ob;
+						String from = jsonImport.getString("from");
+						if (!from.isEmpty()) {
+							List<String> list = map.get(from);
+							if (list == null) {
+								list = new ArrayList<String>();
 							}
+
+							JSONArray arc = jsonImport.getJSONArray("components");
+							for (int j=0; j<arc.length(); j++) {
+								String s = arc.getString(j);
+								if (!s.isEmpty()) {
+									list.add(s);
+								}
+							}
+
+							map.put(from, list);
 						}
-						
-						map.put(from, list);
 					}
 				}
+				return map;
+			} catch (JSONException e) {
 			}
-			return map;
-		} catch (JSONException e) {
-			return new HashMap<String, List<String>>();
 		}
+		return Collections.emptyMap();
 	}
-	
+
 	protected Set<String> getNgSet(Key key) {
-		try {
-			Set<String> set = new HashSet<String>();
-			JSONArray ar = jsonConfig.getJSONArray(key.name());
-			for (int i=0; i<ar.length(); i++) {
-				String s = ar.getString(i);
-				if (!s.isEmpty()) {
-					set.add(s);
+		if (this != emptyConfig) {
+			try {
+				JSONArray ar = jsonConfig.getJSONArray(key.name());
+				Set<String> set = new HashSet<String>();
+				for (int i=0; i<ar.length(); i++) {
+					String s = ar.getString(i);
+					if (!s.isEmpty()) {
+						set.add(s);
+					}
 				}
+				return set;
+			} catch (JSONException e) {
 			}
-			return set;
-		} catch (JSONException e) {
-			return new HashSet<String>();
 		}
+		return Collections.emptySet();
 	}
-	
+
 	protected Map<String, String> getCfgPlugins(Key key, String keyId) {
-		try {
-			Map<String, String> map = new HashMap<String, String>();
-			JSONArray ar = jsonConfig.getJSONArray(key.name());
-			for (int i=0; i<ar.length(); i++) {
-				Object ob = ar.get(i);
-				if (ob instanceof JSONObject) {
-					JSONObject jsonImport = (JSONObject)ob;
-					String plugin = jsonImport.getString(keyId);
-					if (!plugin.isEmpty() && !jsonImport.toString().isEmpty()) {
-						map.put(plugin, jsonImport.toString());
+		if (this != emptyConfig) {
+			try {
+				JSONArray ar = jsonConfig.getJSONArray(key.name());
+				Map<String, String> map = new HashMap<String, String>();
+				for (int i=0; i<ar.length(); i++) {
+					Object ob = ar.get(i);
+					if (ob instanceof JSONObject) {
+						JSONObject jsonImport = (JSONObject)ob;
+						String plugin = jsonImport.getString(keyId);
+						if (!plugin.isEmpty() && !jsonImport.toString().isEmpty()) {
+							map.put(plugin, jsonImport.toString());
+						}
 					}
 				}
+				return map;
+			} catch (JSONException e) {
 			}
-			return map;
-		} catch (JSONException e) {
-			return new HashMap<String, String>();
 		}
+		return Collections.emptyMap();
 	}
-	
+
 	protected Map<String, String> getCfgImports(Key key, String key1, String key2) {
-		try {
-			Map<String, String> map = new HashMap<String, String>();
-			JSONArray ar = jsonConfig.getJSONArray(key.name());
-			for (int i=0; i<ar.length(); i++) {
-				Object ob = ar.get(i);
-				if (ob instanceof JSONObject) {
-					JSONObject jsonImport = (JSONObject)ob;
-					String val1 = jsonImport.getString(key1);
-					String val2 = jsonImport.getString(key2);
-					if (!val1.isEmpty() && !val2.isEmpty()) {
-						map.put(val1, val2);
+		if (this != emptyConfig) {
+			try {
+				JSONArray ar = jsonConfig.getJSONArray(key.name());
+				Map<String, String> map = new HashMap<String, String>();
+				for (int i=0; i<ar.length(); i++) {
+					Object ob = ar.get(i);
+					if (ob instanceof JSONObject) {
+						JSONObject jsonImport = (JSONObject)ob;
+						String val1 = jsonImport.getString(key1);
+						String val2 = jsonImport.getString(key2);
+						if (!val1.isEmpty() && !val2.isEmpty()) {
+							map.put(val1, val2);
+						}
 					}
 				}
+				return map;
+			} catch (JSONException e) {
 			}
-			return map;
-		} catch (JSONException e) {
-			return new HashMap<String, String>();
 		}
+
+		return new HashMap<String, String>();
 	}
-	
+
 	public String toString() {
 		return jsonConfig.toString();
+	}
+
+	public static IonConfig get() {
+		return emptyConfig;
+	}
+
+	public static IonConfig get(JSONObject jsonOb) {
+		return jsonOb == null || jsonOb.length() == 0 ? emptyConfig : new IonConfig(jsonOb);
 	}
 }
