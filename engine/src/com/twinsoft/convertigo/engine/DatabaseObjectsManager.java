@@ -197,7 +197,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		return getAllProjectNamesList(true);
 	}
 	
-	public List<String> getAllProjectNamesList(boolean checkOpenable) {		
+	public List<String> getAllProjectNamesList(boolean checkOpenable) {
 		Engine.logDatabaseObjectManager.trace("Retrieving all project names from \"" + Engine.PROJECTS_PATH + "\"");
 		
 		File projectsDir = new File(Engine.PROJECTS_PATH);
@@ -207,7 +207,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 		for (File projectDir : projectsDir.listFiles()) {
 			String projectName = projectDir.getName();
 			
-			if (!projectNames.contains(projectName) && projectDir.isDirectory() && new File(projectDir, projectName + ".xml").exists()) {
+			if (!projectNames.contains(projectName) && projectDir.isDirectory() &&
+					(new File(projectDir, projectName + ".xml").exists() || new File(projectDir, "c8oProject.yaml").exists())) {
 				if (!checkOpenable || canOpenProject(projectName)) {
 					projectNames.add(projectName);
 				} else {
