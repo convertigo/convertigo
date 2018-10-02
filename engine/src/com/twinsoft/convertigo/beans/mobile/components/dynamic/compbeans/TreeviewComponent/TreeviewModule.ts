@@ -4,8 +4,8 @@ import { CommonModule } from '@angular/common';
 import { TreeviewComponent } from './TreeviewComponent';
 
 @NgModule({
-  declarations: [ TreeviewComponent ],
-  exports: [ TreeviewComponent ],
+  //declarations: [ TreeviewComponent ],
+  //exports: [ TreeviewComponent ],
   imports: [ CommonModule ],
   schemas: [ CUSTOM_ELEMENTS_SCHEMA ]
 })
