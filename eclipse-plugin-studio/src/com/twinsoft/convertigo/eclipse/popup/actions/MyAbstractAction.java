@@ -45,6 +45,7 @@ import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
 public abstract class MyAbstractAction extends Action implements IObjectActionDelegate {
@@ -100,10 +101,13 @@ public abstract class MyAbstractAction extends Action implements IObjectActionDe
 					mb.setAutoBuild(false);
 				}
 			}
+			BatchOperationHelper.start();
 			
 			run();
 			
+			BatchOperationHelper.stop();
 		} finally {
+			BatchOperationHelper.cancel();
 			Engine.logStudio.info("---------------------- Action ended:   "+ action.getId() + "----------------------");
 			if (mb != null) {
 				if (autoBuild) {
