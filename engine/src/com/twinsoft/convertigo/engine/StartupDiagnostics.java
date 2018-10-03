@@ -206,7 +206,7 @@ public class StartupDiagnostics {
 								Engine.logEngine.warn("Unable to find the user home in /etc/passwd");
 								testsSummary += TEST_WARN;
 							} else {
-								Engine.logEngine.info("User home as defined in /etc/passwd: " + userHome);
+								Engine.logEngine.info("User home as defined in /etc/passwd: " + etcPasswdUserHome);
 								if (!etcPasswdUserHome.equals(userHome)) {
 									Engine.logEngine
 											.error("The user home defined in /etc/passwd differs from the user home!");
