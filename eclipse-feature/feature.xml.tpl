@@ -81,10 +81,20 @@ to create mobile enterprise applications
          fragment="true"/>
 
    <plugin
-         id="com.twinsoft.convertigo.studio.jxbrowser.win"
+         id="com.twinsoft.convertigo.studio.jxbrowser.win32"
          os="win32"
          ws="win32"
-         arch="x86,x86_64"
+         arch="x86"
+         download-size="0"
+         install-size="0"
+         version="7.6.0.qualifier"
+         fragment="true"/>
+
+   <plugin
+         id="com.twinsoft.convertigo.studio.jxbrowser.win64"
+         os="win32"
+         ws="win32"
+         arch="x86_64"
          download-size="0"
          install-size="0"
          version="7.6.0.qualifier"
