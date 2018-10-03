@@ -165,7 +165,7 @@ jobs:
         docker push convertigo/convertigo-ci:$CONVERTIGO_BRANCH
         docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME
         docker push convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME
-        if [ "$CONVERTIGO_VERSION" = "develop" ]; then
+        if [ "$CONVERTIGO_BRANCH" = "develop" ]; then
             docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH convertigo/convertigo-ci:$CONVERTIGO_VERSION
             docker push convertigo/convertigo-ci:$CONVERTIGO_VERSION
         fi
@@ -205,7 +205,7 @@ jobs:
         docker push convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE
         docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE
         docker push convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE        
-        if [ "$CONVERTIGO_VERSION" = "develop" ]; then
+        if [ "$CONVERTIGO_BRANCH" = "develop" ]; then
             docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
             docker push convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
         fi
@@ -245,7 +245,7 @@ jobs:
         docker push convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE
         docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE
         docker push convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE
-        if [ "$CONVERTIGO_VERSION" = "develop" ]; then
+        if [ "$CONVERTIGO_BRANCH" = "develop" ]; then
             docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
             docker push convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
         fi
