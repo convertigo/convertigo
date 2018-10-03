@@ -25,7 +25,7 @@ def convertigoTag = 'beta'
 def convertigoCodename = 'osmium'
 def convertigoCode = 'Os'
 def convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
-def jxBrowserVersion = '6.19.1'
+def jxBrowserVersion = '6.21'
 
 def convertigoEngineAPI = '7.6.0-SNAPSHOT'
 
@@ -266,9 +266,9 @@ project(':eclipse-plugin-jxbrowser-mac') {
 	}
 }
 
-project(':eclipse-plugin-jxbrowser-win') {
+project(':eclipse-plugin-jxbrowser-win32') {
 	dependencies {
-		runtime 'com.teamdev.jxbrowser:jxbrowser-win:' + jxBrowserVersion, { exclude module: 'jxbrowser'}
+		runtime 'com.teamdev.jxbrowser:jxbrowser-win32:' + jxBrowserVersion, { exclude module: 'jxbrowser'}
 	}
 	
 	task writeManifest(dependsOn: syncLib) {
@@ -279,11 +279,37 @@ project(':eclipse-plugin-jxbrowser-win') {
 			project.manifest {
 				from sharedManifest
 				attributes(
-					'Automatic-Module-Name': 'com.twinsoft.convertigo.studio.jxbrowser.win',
+					'Automatic-Module-Name': 'com.twinsoft.convertigo.studio.jxbrowser.win32',
 					'Bundle-Name': 'C-EMS Browser Windows',
-					'Bundle-SymbolicName': 'com.twinsoft.convertigo.studio.jxbrowser.win;singleton:=true',
+					'Bundle-SymbolicName': 'com.twinsoft.convertigo.studio.jxbrowser.win32;singleton:=true',
 					'Fragment-Host': 'com.twinsoft.convertigo.studio',
-					'Eclipse-PlatformFilter': '(& (osgi.ws=win32) (osgi.os=win32) )',
+					'Eclipse-PlatformFilter': '(& (osgi.ws=win32) (osgi.os=win32) (osgi.arch=x86))',
+					'Bundle-ClassPath': fileTree(dir: 'lib').collect { 'lib/' + it.name }.join(',')
+				)
+			}.writeTo(manifest)
+			manifest.text = manifest.text.replaceAll("Import-Package: .*\\s+", "")
+		}
+	}
+}
+
+project(':eclipse-plugin-jxbrowser-win64') {
+	dependencies {
+		runtime 'com.teamdev.jxbrowser:jxbrowser-win64:' + jxBrowserVersion, { exclude module: 'jxbrowser'}
+	}
+	
+	task writeManifest(dependsOn: syncLib) {
+		group 'convertigo'
+		
+		doLast {
+			def manifest = file 'META-INF/MANIFEST.MF'
+			project.manifest {
+				from sharedManifest
+				attributes(
+					'Automatic-Module-Name': 'com.twinsoft.convertigo.studio.jxbrowser.win64',
+					'Bundle-Name': 'C-EMS Browser Windows',
+					'Bundle-SymbolicName': 'com.twinsoft.convertigo.studio.jxbrowser.win64;singleton:=true',
+					'Fragment-Host': 'com.twinsoft.convertigo.studio',
+					'Eclipse-PlatformFilter': '(& (osgi.ws=win32) (osgi.os=win32) (osgi.arch=x86_64))',
 					'Bundle-ClassPath': fileTree(dir: 'lib').collect { 'lib/' + it.name }.join(',')
 				)
 			}.writeTo(manifest)
@@ -301,7 +327,7 @@ project(':eclipse-plugin-product') {
 			project.manifest {
 				from sharedManifest
 				attributes(
-					'Automatic-Module-Name': 'com.twinsoft.convertigo.studio.product.linux64',
+					'Automatic-Module-Name': 'com.twinsoft.convertigo.studio.product',
 					'Bundle-Name': 'C-EMS studio product',
 					'Bundle-SymbolicName': 'com.twinsoft.convertigo.studio.product;singleton:=true',
 					'Bundle-Activator': 'com.twinsoft.convertigo.studio.product.Activator',
@@ -769,6 +795,12 @@ project(':engine') {
 	task updateProductVersion {
 		group 'convertigo'
 		
+		inputs.property("convertigoVersion", convertigoVersion)
+		inputs.property("convertigoTag", convertigoTag)
+		inputs.property("convertigoRevision", convertigoRevision)
+		
+		outputs.file 'src/com/twinsoft/convertigo/engine/ProductVersion.java'
+		
 		doLast {
 			def vers = convertigoVersion.split('\\.')
 			def file = file 'src/com/twinsoft/convertigo/engine/ProductVersion.java'
@@ -799,6 +831,10 @@ project(':engine') {
 	
 	task updateBeansDefaultValues(type: JavaExec) {
 		group 'convertigo'
+		
+		inputs.files fileTree('src/com/twinsoft/convertigo/beans')
+		outputs.file 'src/com/twinsoft/convertigo/beans/database_objects_default.xml'
+		outputs.file 'src/com/twinsoft/convertigo/beans/mobile/components/dynamic/ion_objects_default.json'
 		
 		classpath sourceSets.main.compileClasspath
 		classpath sourceSets.main.runtimeClasspath 
@@ -912,4 +948,8 @@ task generateEclipseConfigurationWithManifest(dependsOn: ['generateEclipseConfig
 
 task makeSplash(dependsOn: 'convertigo-splash:run') {
 	group 'convertigo'
+}
+
+project(':eclipse-plugin-studio').tasks.syncLib {
+	inputs.property("engine-dependency", project(':engine').configurations.runtime.getAllDependencies().toString())
 }
