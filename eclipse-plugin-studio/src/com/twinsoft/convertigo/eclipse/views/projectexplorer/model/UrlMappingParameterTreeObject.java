@@ -24,7 +24,7 @@ import org.eclipse.jface.viewers.Viewer;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 
-public class UrlMappingParameterTreeObject extends DatabaseObjectTreeObject {
+public class UrlMappingParameterTreeObject extends DatabaseObjectTreeObject implements IOrderableTreeObject {
 
 	public UrlMappingParameterTreeObject(Viewer viewer, DatabaseObject object) {
 		this(viewer, object, false);

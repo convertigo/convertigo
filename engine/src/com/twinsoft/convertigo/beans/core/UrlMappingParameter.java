@@ -26,6 +26,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.w3c.dom.Element;
+
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -97,6 +99,8 @@ public abstract class UrlMappingParameter extends DatabaseObject implements ITag
 		setValueOrNull(null);
 		
 		databaseType = "UrlMappingParameter";
+		
+		this.priority = getNewOrderValue();
 	}
 	
 	@Override
@@ -106,6 +110,22 @@ public abstract class UrlMappingParameter extends DatabaseObject implements ITag
 		return clonedObject;
 	}
 
+	@Override
+	public void preconfigure(Element element) throws Exception {
+		super.preconfigure(element);
+		
+		try {
+			long priority = new Long(element.getAttribute("priority")).longValue();
+			if (priority == 0L) {
+				priority = getNewOrderValue();
+				element.setAttribute("priority", ""+priority);
+			}
+		}
+        catch(Exception e) {
+            throw new EngineException("Unable to preconfigure the urlmappingparameter \"" + getName() + "\".", e);
+        }
+	}
+	
 	abstract public Type getType();
 	
 	protected Boolean required = Boolean.FALSE;
@@ -158,6 +178,14 @@ public abstract class UrlMappingParameter extends DatabaseObject implements ITag
 	public void setDefaultValue(Object value) {
 		this.value = value;
 	}
+	
+    /**
+     * Get order for quick sort.
+     */
+    @Override
+    public Object getOrderedValue() {
+    	return priority;
+    }
 		
 	protected Object getNewValue() {
 		if (isMultiValued())

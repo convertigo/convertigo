@@ -1167,6 +1167,7 @@
                   <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteComponentTreeObject"/>
                   <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteActionComponentTreeObject"/>
                   <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteEventComponentTreeObject"/>
+                  <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UrlMappingParameterTreeObject"/>
                </or>
             </and>
          </visibility>
@@ -3586,6 +3587,7 @@
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteComponentTreeObject"/>
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteActionComponentTreeObject"/>
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteEventComponentTreeObject"/>
+            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UrlMappingParameterTreeObject"/>
          </action>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectDecreasePriorityAction"
@@ -3611,6 +3613,7 @@
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteComponentTreeObject"/>
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteActionComponentTreeObject"/>
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteEventComponentTreeObject"/>
+            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UrlMappingParameterTreeObject"/>
          </action>
          <action
                class="com.twinsoft.convertigo.eclipse.actions.ProjectExplorerFindAction"
