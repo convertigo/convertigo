@@ -427,7 +427,11 @@ project(':eclipse-plugin-studio') {
 					'Eclipse-BundleShape': 'dir',
 					'Bundle-Activator': 'com.twinsoft.convertigo.eclipse.ConvertigoPlugin',
 					'Bundle-ActivationPolicy': 'lazy',
-					'Bundle-ClassPath': 'bin/,icons/,tomcat/webapps/convertigo/WEB-INF/classes,lib/convertigo-eclipse.jar,' + fileTree(dir: 'lib').collect { 'lib/' + it.name }.join(','),
+					'Bundle-ClassPath': 'bin/,icons/,tomcat/webapps/convertigo/WEB-INF/classes,lib/convertigo-eclipse.jar,' +
+						fileTree(dir: 'lib')
+						.collect { 'lib/' + it.name }
+						.toSorted {a, b -> a.startsWith('lib/convertigo') ? -1 : b.startsWith('lib/convertigo') ? 1 : a <=> b }
+						.join(','),
 					'Require-Bundle': ['org.eclipse.core.expressions',
 						'org.eclipse.core.resources',
 						'org.eclipse.core.runtime',
