@@ -258,10 +258,6 @@ public class BeansDefaultValues {
 			
 			Element eAttr = (Element) nProject.appendChild(nProjectDoc.createElement("bean"));
 			eAttr.setAttribute("yaml_attr", "convertigo");
-			eAttr.setTextContent(eProject.getAttribute("version"));
-			
-			eAttr = (Element) nProject.appendChild(nProjectDoc.createElement("bean"));
-			eAttr.setAttribute("yaml_attr", "beans");
 			eAttr.setTextContent(eProject.getAttribute("beans"));
 			
 			shrinkChildren(project.getDocumentElement(), nProject);
@@ -297,18 +293,18 @@ public class BeansDefaultValues {
 			Document nProjectDoc = XMLUtils.createDom();
 			Element eProject = project.getDocumentElement();
 			
-			version = eProject.getAttribute("beans");
-			version = version.substring(0, version.lastIndexOf("."));
+			String beansVersion = eProject.getAttribute(eProject.hasAttribute("beans") ? "beans" : "convertigo");
+			version = beansVersion.substring(0, beansVersion.lastIndexOf("."));
 			nVersion = VersionUtils.normalizeVersionString(version);
 			
 			Element nProject = (Element) nProjectDoc.appendChild(nProjectDoc.importNode(eProject, false));
 			
 			unshrinkChildren(eProject, nProject);
 			
-			
+			nProject.setAttribute("beans", beansVersion);
 			nProject.setAttribute("engine", version);
 			nProject.setAttribute("studio", version);
-			nProject.setAttribute("version", nProject.getAttribute("convertigo"));
+			nProject.setAttribute("version", version);
 			nProject.removeAttribute("convertigo");
 			
 			return nProjectDoc;

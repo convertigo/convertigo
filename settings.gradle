@@ -10,3 +10,4 @@ include 'eclipse-plugin-xulrunner-win32'
 include 'engine'
 
 rootProject.name = 'convertigo'
+enableFeaturePreview('STABLE_PUBLISHING')
