@@ -300,11 +300,14 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			// Refresh project resource
 			String projectName = ms.getProject().getName();
 			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
-			project.refreshLocal(IResource.DEPTH_INFINITE, null);
 			
 			// Close editor
 			IFile file = project.getFile(filePath);
 			closeComponentFileEditor(file);
+			
+			if (file.exists()) {
+				file.delete(true, null);
+			}
 			
 			// Write css file
 			try {
