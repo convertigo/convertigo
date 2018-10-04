@@ -1134,8 +1134,9 @@
           "label": "Tooltip string",
           "description": "string: string to be displayed. 'empty string = disabled').",
           "category": "@Attributes",
-          "value": ""
+          "value": "a tooltip to display"
         },
+
         "navTooltip": {
           "attr":"navTooltip",
           "label": "Navbar Tooltip",
@@ -1161,16 +1162,16 @@
           ]
         },
         "arrow": {
-          "attr":"arrow",
           "label": "Displays arrow",
           "description": "boolean: add this attribute or set it's value to true to show an arrow attached to the tooltip. Defaults to true.",
           "category": "@Attributes",
-          "value": "true", // optional value (default is true)
+          "value": "arrow", // optional value (default is true)
           "values": [ // possible values (false means no set)
-          "true",
-          "false"
+	    false,
+            "arrow"
           ]
         },
+
         "positionH": {
           "attr":"positionH",
           "label": "Horizontal Position",
