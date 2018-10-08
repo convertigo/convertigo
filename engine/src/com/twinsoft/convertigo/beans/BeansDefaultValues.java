@@ -407,10 +407,6 @@ public class BeansDefaultValues {
 						}
 						
 						nValue.setAttribute("value", value);
-
-						if (nProp.hasAttribute("isNull")) {
-							nProp.setAttribute("isNull", "false");
-						}
 					} else {
 						while (nProp.getFirstChild() != null) {
 							nProp.removeChild(nProp.getFirstChild());
@@ -420,6 +416,10 @@ public class BeansDefaultValues {
 							nProp.appendChild(nProp.getOwnerDocument().importNode(pNode, true));
 							pNode = pNode.getNextSibling();
 						}
+					}
+					
+					if (nProp.hasAttribute("isNull")) {
+						nProp.setAttribute("isNull", "false");
 					}
 				}
 				
