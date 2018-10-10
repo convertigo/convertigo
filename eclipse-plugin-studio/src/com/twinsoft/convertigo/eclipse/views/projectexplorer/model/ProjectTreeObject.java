@@ -236,7 +236,9 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 						hasBeenModified(false);
 						ConvertigoPlugin.logInfo("Project '" + projectName + "' saved!");
 						
-						getIProject().refreshLocal(IResource.DEPTH_ONE, null);
+						IProject iProject = getIProject();
+						iProject.refreshLocal(IResource.DEPTH_ONE, null);
+						iProject.getFolder("_c8oProject").refreshLocal(IResource.DEPTH_INFINITE, null);
 					}
 				}
 			} catch (Exception e) {
