@@ -832,15 +832,27 @@ project(':engine') {
 		into '../eclipse-plugin-studio/tomcat/webapps/convertigo/licenses'
 	}
 	
-	task updateBeansDefaultValues(type: JavaExec) {
+	task engineDependenciesClasspathJar(type: Jar) {
+		group 'convertigo'
+		
+		appendix = 'updateBeansDefaultValues'
+		manifest {
+			attributes 'Class-Path': files(sourceSets.main.compileClasspath, sourceSets.main.runtimeClasspath)
+				.filter { it.name.endsWith '.jar' }
+				.collect { it.path.startsWith('/') ? it.path : '/' + it.path.replace('\\', '/') }
+				.join(' ')
+		}
+	}
+	
+	task updateBeansDefaultValues(type: JavaExec, dependsOn: engineDependenciesClasspathJar) {
 		group 'convertigo'
 		
 		inputs.files fileTree('src/com/twinsoft/convertigo/beans')
 		outputs.file 'src/com/twinsoft/convertigo/beans/database_objects_default.xml'
 		outputs.file 'src/com/twinsoft/convertigo/beans/mobile/components/dynamic/ion_objects_default.json'
 		
-		classpath sourceSets.main.compileClasspath
-		classpath sourceSets.main.runtimeClasspath 
+		classpath sourceSets.main.output
+		classpath engineDependenciesClasspathJar.archivePath
 		
 		main = 'com.twinsoft.convertigo.beans.BeansDefaultValues'
 		
