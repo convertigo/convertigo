@@ -3242,7 +3242,7 @@
    "tooltip": {
     "name": "tooltip",
     "mode": "plain",
-    "value": ""
+    "value": "a tooltip to display"
    },
    "navTooltip": {
     "name": "navTooltip",
@@ -3257,7 +3257,7 @@
    "arrow": {
     "name": "arrow",
     "mode": "plain",
-    "value": "true"
+    "value": "arrow"
    },
    "positionH": {
     "name": "positionH",
