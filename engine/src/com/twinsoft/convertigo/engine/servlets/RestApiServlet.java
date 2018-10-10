@@ -46,6 +46,7 @@ import com.twinsoft.convertigo.engine.RestApiManager;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpServletRequestTwsWrapper;
@@ -97,10 +98,16 @@ public class RestApiServlet extends GenericServlet {
 		if (request.getCharacterEncoding() == null) {
 			try {
 				request.setCharacterEncoding("UTF-8"); // Set encoding if needed
-    		}
-    		catch(Exception e) {
-    			throw new ServletException(e);
-    		}
+			}
+			catch(Exception e) {
+				throw new ServletException(e);
+			}
+		}
+		
+		try {
+			HttpSessionListener.checkSession(request);
+		} catch (Throwable e) {
+			throw new ServletException(e.getMessage(), e);
 		}
 		
 		if (Engine.isEngineMode() && KeyManager.getCV(Session.EmulIDURLMAPPER) < 1) {
