@@ -621,6 +621,13 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 			try {
 				// Source value
 				Object variableValue = stepVariable.getSourceValue();
+				
+				if (variableValue instanceof NodeList && ((NodeList)variableValue).getLength() == 0) {
+					if (getProject().isStrictMode() && !stepVariable.isMultiValued()) {
+						variableValue = null;// override with null (fix #24)
+					}
+				}
+				
 				if (variableValue != null) {
 					Engine.logBeans.trace("(RequestableStep) found value from source: " + Visibility.Logs.printValue(variableVisibility,variableValue));
 				}
