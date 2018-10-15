@@ -175,6 +175,7 @@ public class ProjectUtils {
 						replacements.add(new Replacement("value=\""+sourceProjectName+"\"", "value=\""+targetProjectName+"\""));
 						// replace project's name references
 						replacements.add(new Replacement("value=\""+sourceProjectName+"\\.", "value=\""+targetProjectName+"\\."));
+						replacements.add(new Replacement("&quot;value&quot;:&quot;"+sourceProjectName+"\\.", "&quot;value&quot;:&quot;"+targetProjectName+"."));
 						makeReplacementsInFile(replacements, newPath);
 					}
 					else {
@@ -184,6 +185,7 @@ public class ProjectUtils {
 						replacements.add(new Replacement("<!--</Project : " + sourceProjectName + ">", "<!--</Project : " + targetProjectName + ">"));
 						// replace project's name references
 						replacements.add(new Replacement("value=\""+sourceProjectName+"\\.", "value=\""+targetProjectName+"\\."));
+						replacements.add(new Replacement("&quot;value&quot;:&quot;"+sourceProjectName+"\\.", "&quot;value&quot;:&quot;"+targetProjectName+"."));
 						makeReplacementsInFile(replacements, newPath);
 					}
 				}
