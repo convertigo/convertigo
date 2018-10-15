@@ -21,6 +21,9 @@ package com.twinsoft.convertigo.engine.servlets;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -249,78 +252,117 @@ public class FullSyncServlet extends HttpServlet {
 				String reqContentType = request.getContentType(); 
 				if (reqContentType != null && reqContentType.startsWith("multipart/related;")) {
 					final MimeMultipart mp = new MimeMultipart(new ByteArrayDataSource(request.getInputStream(), reqContentType));
+					final long[] size = {request.getIntHeader(HeaderName.ContentLength.value())};
+					final boolean chunked = size[0] == -1;
 
 					int count = mp.getCount();
-					final int[] size = {request.getIntHeader(HeaderName.ContentLength.value())};
 					debug.append("handle multipart/related: " + reqContentType + "; " + count + " parts; original size of " + size[0]);
 
-					bulkDocsRequest = new JSONObject();
-					JSONArray bulkDocsArray = new JSONArray();
-					CouchKey.docs.put(bulkDocsRequest, bulkDocsArray);
-					
-					for (int i = 0; i < count; i++) {
-						BodyPart part = mp.getBodyPart(i);
-						ContentTypeDecoder contentType = new ContentTypeDecoder(part.getContentType());
-						
-						if (contentType.mimeType() == MimeType.Json) {
-							String charset = contentType.getCharset("UTF-8");
-							
-							List<javax.mail.Header> headers = Collections.list(GenericUtils.<Enumeration<javax.mail.Header>>cast(part.getAllHeaders()));
-							
-							byte[] buf = IOUtils.toByteArray(part.getInputStream());
-							size[0] -= buf.length;
-							
-							String json = new String(buf, charset);
-							try {
-								JSONObject docRequest = new JSONObject(json);
-								Engine.theApp.couchDbManager.handleDocRequest(dbName, docRequest, fsAuth);
-								bulkDocsArray.put(docRequest);
-								json = docRequest.toString();
-							} catch (JSONException e) {
-								debug.append("failed to parse [ " + e.getMessage() + "]: " + json);
+					final File mpTmp;
+					if (chunked) {
+						mpTmp = File.createTempFile("c8o", "mpTmp");
+						mpTmp.deleteOnExit();
+					} else {
+						mpTmp = null;
+					}
+					try {
+
+						bulkDocsRequest = new JSONObject();
+						JSONArray bulkDocsArray = new JSONArray();
+						CouchKey.docs.put(bulkDocsRequest, bulkDocsArray);
+
+						for (int i = 0; i < count; i++) {
+							BodyPart part = mp.getBodyPart(i);
+							ContentTypeDecoder contentType = new ContentTypeDecoder(part.getContentType());
+
+							if (contentType.mimeType() == MimeType.Json) {
+								String charset = contentType.getCharset("UTF-8");
+
+								List<javax.mail.Header> headers = Collections.list(GenericUtils.<Enumeration<javax.mail.Header>>cast(part.getAllHeaders()));
+
+								byte[] buf = IOUtils.toByteArray(part.getInputStream());
+								if (!chunked) {
+									size[0] -= buf.length;
+								}
+
+								String json = new String(buf, charset);
+								try {
+									JSONObject docRequest = new JSONObject(json);
+									Engine.theApp.couchDbManager.handleDocRequest(dbName, docRequest, fsAuth);
+									bulkDocsArray.put(docRequest);
+									json = docRequest.toString();
+								} catch (JSONException e) {
+									debug.append("failed to parse [ " + e.getMessage() + "]: " + json);
+								}
+
+								part.setContent(buf = json.getBytes(charset), part.getContentType());
+								if (!chunked) {
+									size[0] += buf.length;
+								}
+
+								for (javax.mail.Header header: headers) {
+									String name = header.getName();
+									if (HeaderName.ContentLength.is(name)) {
+										part.setHeader(name, Integer.toString(buf.length));
+									} else {
+										part.setHeader(name, header.getValue());
+									}
+								}
 							}
-							
-							part.setContent(buf = json.getBytes(charset), part.getContentType());
-							size[0] += buf.length;
-							
-							for (javax.mail.Header header: headers) {
-								part.setHeader(header.getName(), header.getValue());
+						}
+
+						if (chunked) {
+							try (FileOutputStream fos = new FileOutputStream(mpTmp)) {
+								mp.writeTo(fos);
 							}
+							size[0] = mpTmp.length();
+						}
+
+						debug.append("; new size of " + size[0] + "\n");
+
+						httpEntity = new AbstractHttpEntity() {
+
+							@Override
+							public void writeTo(OutputStream output) throws IOException {
+								if (chunked) {
+									try (FileInputStream fis = new FileInputStream(mpTmp)) {
+										IOUtils.copyLarge(fis, output);
+									}								
+								} else {
+									try {
+										mp.writeTo(output);
+									} catch (MessagingException e) {
+										new IOException(e);
+									}
+								}
+							}
+
+							@Override
+							public boolean isStreaming() {
+								return false;
+							}
+
+							@Override
+							public boolean isRepeatable() {
+								return true;
+							}
+
+							@Override
+							public long getContentLength() {
+								return size[0];
+							}
+
+							@Override
+							public InputStream getContent() throws IOException, IllegalStateException {
+								return null;
+							}
+						};
+
+					} finally {
+						if (mpTmp != null) {
+							mpTmp.delete();
 						}
 					}
-					debug.append("; new size of " + size[0] + "\n");
-					
-					httpEntity = new AbstractHttpEntity() {
-						
-						@Override
-						public void writeTo(OutputStream arg0) throws IOException {
-							try {
-								mp.writeTo(arg0);
-							} catch (MessagingException e) {
-								new IOException(e);
-							}
-						}
-						
-						@Override
-						public boolean isStreaming() {
-							return false;
-						}
-						
-						@Override
-						public boolean isRepeatable() {
-							return true;
-						}
-						
-						@Override
-						public long getContentLength() {
-							return size[0];
-						}
-						
-						@Override
-						public InputStream getContent() throws IOException, IllegalStateException {
-							return null;
-						}
-					};
 				} else {
 					InputStream is = null;
 					try {
@@ -395,6 +437,7 @@ public class FullSyncServlet extends HttpServlet {
 				for (Header header: newResponse.getAllHeaders()) {
 					if (isCBL && HeaderName.Server.is(header)) {
 						response.addHeader("Server", "Couchbase Sync Gateway/0.81");
+						debug.append("response Header: Server=Couchbase Sync Gateway/0.81\n");
 					} else if (!(HeaderName.TransferEncoding.is(header)
 							|| HeaderName.ContentLength.is(header)
 							|| HeaderName.AccessControlAllowOrigin.is(header)
