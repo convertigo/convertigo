@@ -79,7 +79,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		cloned.pageImports = new HashMap<String, String>();
 		cloned.computedContents = null;
 		cloned.contributors = null;
-		cloned.isRoot = false;
+		cloned.isRoot = isRoot;
 		return cloned;
 	}
 
