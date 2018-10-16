@@ -6201,7 +6201,6 @@
           "value": false
         },
 
-
         "defaultTitle":{
           "label": "Day Title",
           "description": "The default title displayed for Days.",
