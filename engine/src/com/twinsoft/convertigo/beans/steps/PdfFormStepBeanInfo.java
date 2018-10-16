@@ -32,8 +32,8 @@ public class PdfFormStepBeanInfo extends MySimpleBeanInfo {
 			beanClass = PdfFormStep.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.Step.class;
 			
-			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/pdfformstep_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/pdfformstep_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/pdfForm_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/pdfForm_32x32.png";
 			
 			resourceBundle = getResourceBundle("res/PdfFormStep");
 			
@@ -47,9 +47,9 @@ public class PdfFormStepBeanInfo extends MySimpleBeanInfo {
             properties[0].setShortDescription(getExternalizedString("property.filePath.short_description"));
             properties[0].setPropertyEditorClass(getEditorClass("SmartTypeCellEditor"));
             
-            properties[1] = new PropertyDescriptor("fields", beanClass, "getFields", "setFields");
-            properties[1].setDisplayName(getExternalizedString("property.fields.display_name"));
-            properties[1].setShortDescription(getExternalizedString("property.fields.short_description"));
+            properties[1] = new PropertyDescriptor("fieldsList", beanClass, "getFields", "setFields");
+            properties[1].setDisplayName(getExternalizedString("property.fieldsList.display_name"));
+            properties[1].setShortDescription(getExternalizedString("property.fieldsList.short_description"));
             properties[1].setPropertyEditorClass(getEditorClass("SmartTypeCellEditor"));
             
             properties[2] = new PropertyDescriptor("targetFile", beanClass, "getTargetFile", "setTargetFile");

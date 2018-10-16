@@ -6207,7 +6207,8 @@
           "description": "The default title displayed for Days.",
           "category": "@Properties",
           "type": "string",
-          "value": ""
+          "value": "",
+		  "values": [true]
         },
 
         "defaultSubtitle":{	
@@ -6215,7 +6216,8 @@
           "description": "The default  subtitle displayed for Days.",
           "category": "@Properties",
           "type": "string",
-          "value": ""
+          "value": "",
+		  "values": [true]
         },
 
         "disableWeeks":{	
