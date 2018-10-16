@@ -6201,14 +6201,13 @@
           "value": false
         },
 
-
         "defaultTitle":{
           "label": "Day Title",
           "description": "The default title displayed for Days.",
           "category": "@Properties",
           "type": "string",
           "value": "",
-		  "values": [true]
+		  "values": ["",true]
         },
 
         "defaultSubtitle":{	
@@ -6217,7 +6216,7 @@
           "category": "@Properties",
           "type": "string",
           "value": "",
-		  "values": [true]
+		  "values": ["",true]
         },
 
         "disableWeeks":{	
