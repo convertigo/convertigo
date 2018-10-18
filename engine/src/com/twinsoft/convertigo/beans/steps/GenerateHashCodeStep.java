@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.beans.steps;
 
 import java.io.File;
+import java.io.FileInputStream;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.ws.commons.schema.XmlSchema;
@@ -63,6 +64,8 @@ public class GenerateHashCodeStep extends Step implements ISchemaParticleGenerat
 	private transient String sourceFilePath = "";
 	
 	private String nodeName = "hash";
+	
+	private long offset = 0;
 
 		
 	public GenerateHashCodeStep() {
@@ -106,14 +109,24 @@ public class GenerateHashCodeStep extends Step implements ISchemaParticleGenerat
 
 				byte[] path = null;
 				path = FileUtils.readFileToByteArray(sourceFile);
+				FileInputStream fis = new FileInputStream(sourceFilePath);
 				
 				String hash = null;
-				if (hashAlgorithm == HashAlgorithm.MD5) {
-					hash = org.apache.commons.codec.digest.DigestUtils.md5Hex(path);
-				} else if (hashAlgorithm == HashAlgorithm.SHA1) {
-					hash = org.apache.commons.codec.digest.DigestUtils.sha1Hex(path);
+				
+				try {
+					fis.skip(offset);
+					if (hashAlgorithm == HashAlgorithm.MD5) {
+						hash = org.apache.commons.codec.digest.DigestUtils.md5Hex(fis);
+					} else if (hashAlgorithm == HashAlgorithm.SHA1) {
+						hash = org.apache.commons.codec.digest.DigestUtils.sha1Hex(fis);
+					}
+					Engine.logBeans.info("File \"" + sourceFilePath	+ "\" has been hashed.");
+					fis.close();
 				}
-				Engine.logBeans.info("File \"" + sourceFilePath	+ "\" has been hashed.");
+				catch(Exception e) {
+					setErrorStatus(true);
+					throw e;
+				}
 				
 //				Node hashNode = doc.createElement("hash");
 //				hashNode.appendChild(doc.createTextNode(hash));
@@ -137,7 +150,7 @@ public class GenerateHashCodeStep extends Step implements ISchemaParticleGenerat
 
 				Engine.logBeans.info("Hashing file \"" + sourceFilePath + "\"");
 
-				File sourceFile = new File(sourceFilePath);
+				File sourceFile = new File(sourceFilePath); 
 				if (!sourceFile.exists()) {
 					throw new EngineException("Source file does not exist: " + sourceFilePath);
 				}
@@ -198,6 +211,14 @@ public class GenerateHashCodeStep extends Step implements ISchemaParticleGenerat
 	@Override
 	public String getStepNodeName() {
 		return getNodeName();
+	}
+	
+	public long getOffset() {
+		return offset;
+	}
+	
+	public void setOffset(long offset) {
+		this.offset = offset;
 	}
 	
 	@Override
