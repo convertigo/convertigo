@@ -111,7 +111,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	private static final Pattern pValidSymbolName = Pattern.compile("[\\{=}\\r\\n]");
 	private static final Pattern pFindSymbol = Pattern.compile("\\$\\{([^\\{\\r\\n]*?)(?:=(.*?(?<!\\\\)))?}");
 	private static final Pattern pFindEnv = Pattern.compile("\\%([^\\r\\n]*?)(?:=(.*?(?<!\\\\)))?\\%");
-	private static final Pattern pYamlProjectVersion = Pattern.compile("↑(?:(beans)|.*?): (.*)");
+	private static final Pattern pYamlProjectVersion = Pattern.compile("↑(?:(convertigo)|.*?): (.*)");
 	private static final Pattern pYamlProjectName = Pattern.compile("(?:↑.*?:.*)|(?:↓(.*?) \\[core\\.Project\\]: )");
 	private static final Pattern pProjectName = Pattern.compile("(.*)\\.(?:xml|car)");
 	
