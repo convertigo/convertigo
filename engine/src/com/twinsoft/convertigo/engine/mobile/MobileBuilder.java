@@ -428,12 +428,6 @@ public class MobileBuilder {
 		}
 	}
 
-	public synchronized void pageContributorsChanged(final PageComponent page) throws EngineException {
-		if (page != null && page.isEnabled() && initDone) {
-			appContributorsChanged(page.getApplication());
-		}
-	}
-	
 	public synchronized void appContributorsChanged(final ApplicationComponent app) throws EngineException {
 		if (app != null && initDone) {
 			writeAppPackageJson(app);
@@ -1843,7 +1837,11 @@ public class MobileBuilder {
 		if (autoBuild) {
 			StackTraceElement parentMethod = Thread.currentThread().getStackTrace()[3];
 			if (!parentMethod.getClassName().equals("com.twinsoft.convertigo.engine.mobile.MobileBuilder")) {
-				moveFilesForce();
+				moveFilesForce();// // written files in queue are pushed to build dir
+			} else {
+				if (buildMutex != null) {
+					Engine.logEngine.warn("(MobileBuilder) moveFilesForce not called", new Throwable("Invalid stack call"));
+				}
 			}
 		}
 	}

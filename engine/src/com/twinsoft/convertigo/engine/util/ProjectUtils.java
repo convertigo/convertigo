@@ -229,37 +229,6 @@ public class ProjectUtils {
 		return newFile;
 	}
 
-	public static void renameProjectFile(String projectsDir, String sourceProjectName, String targetProjectName) throws Exception {
-		String oldPath = projectsDir + "/" + targetProjectName + "/" + sourceProjectName + ".xml";
-		File oldFile = new File(oldPath);
-		if (oldFile.exists()) {
-			String newPath = projectsDir + "/" + targetProjectName + "/" + targetProjectName + ".xml";
-			File newFile = new File(newPath);
-			if (!newFile.exists()) {
-				if (oldFile.renameTo(newFile)) {
-					List<Replacement> replacements = new ArrayList<Replacement>();
-					if (isPreviousXmlFileFormat(newFile)) {
-						// replace project's bean name
-						replacements.add(new Replacement("value=\"" + sourceProjectName + "\"", "value=\"" + targetProjectName + "\""));
-						makeReplacementsInFile(replacements, newPath);
-					} else {
-						// replace project's bean name
-						replacements.add(new Replacement("<!--<Project : " + sourceProjectName + ">", "<!--<Project : " + targetProjectName + ">"));
-						replacements.add(new Replacement("value=\"" + sourceProjectName + "\"", "value=\"" + targetProjectName + "\"", "<!--<Project"));
-						replacements.add(new Replacement("<!--</Project : " + sourceProjectName + ">", "<!--</Project : " + targetProjectName + ">"));
-						makeReplacementsInFile(replacements, newPath);
-					}
-				} else {
-					throw new Exception("Unable to rename \"" + oldPath + "\" to \"" + newPath + "\"");
-				}
-			} else {
-				throw new Exception("File \"" + newPath + "\" already exists");
-			}
-		} else {
-			throw new Exception("File \"" + oldPath + "\" does not exist");
-		}
-	}
-
 	public static boolean isPreviousXmlFileFormat(File file) throws Exception { 
 		boolean isPreviousFormat = false;
 		String line= null;

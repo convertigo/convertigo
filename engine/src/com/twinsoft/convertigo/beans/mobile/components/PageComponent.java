@@ -79,7 +79,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		cloned.pageImports = new HashMap<String, String>();
 		cloned.computedContents = null;
 		cloned.contributors = null;
-		cloned.isRoot = false;
+		cloned.isRoot = isRoot;
 		return cloned;
 	}
 
@@ -574,7 +574,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 					String newContributors = contributors == null ? null: contributors.toString();
 					if (oldContributors != null && newContributors != null) {
 						if (!(oldContributors.equals(newContributors))) {
-							getProject().getMobileBuilder().pageContributorsChanged(this);
+					getProject().getMobileBuilder().appContributorsChanged(this.getApplication());
 						}
 					}
 					

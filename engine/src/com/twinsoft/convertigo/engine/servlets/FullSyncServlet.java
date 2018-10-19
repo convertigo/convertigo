@@ -21,6 +21,9 @@ package com.twinsoft.convertigo.engine.servlets;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -249,10 +252,20 @@ public class FullSyncServlet extends HttpServlet {
 				String reqContentType = request.getContentType(); 
 				if (reqContentType != null && reqContentType.startsWith("multipart/related;")) {
 					final MimeMultipart mp = new MimeMultipart(new ByteArrayDataSource(request.getInputStream(), reqContentType));
+					final long[] size = {request.getIntHeader(HeaderName.ContentLength.value())};
+					final boolean chunked = size[0] == -1;
 
 					int count = mp.getCount();
-					final int[] size = {request.getIntHeader(HeaderName.ContentLength.value())};
 					debug.append("handle multipart/related: " + reqContentType + "; " + count + " parts; original size of " + size[0]);
+
+					final File mpTmp;
+					if (chunked) {
+						mpTmp = File.createTempFile("c8o", "mpTmp");
+						mpTmp.deleteOnExit();
+					} else {
+						mpTmp = null;
+					}
+					try {
 
 					bulkDocsRequest = new JSONObject();
 					JSONArray bulkDocsArray = new JSONArray();
@@ -268,7 +281,9 @@ public class FullSyncServlet extends HttpServlet {
 							List<javax.mail.Header> headers = Collections.list(GenericUtils.<Enumeration<javax.mail.Header>>cast(part.getAllHeaders()));
 							
 							byte[] buf = IOUtils.toByteArray(part.getInputStream());
+								if (!chunked) {
 							size[0] -= buf.length;
+								}
 							
 							String json = new String(buf, charset);
 							try {
@@ -281,25 +296,46 @@ public class FullSyncServlet extends HttpServlet {
 							}
 							
 							part.setContent(buf = json.getBytes(charset), part.getContentType());
+								if (!chunked) {
 							size[0] += buf.length;
+								}
 							
 							for (javax.mail.Header header: headers) {
-								part.setHeader(header.getName(), header.getValue());
+									String name = header.getName();
+									if (HeaderName.ContentLength.is(name)) {
+										part.setHeader(name, Integer.toString(buf.length));
+									} else {
+										part.setHeader(name, header.getValue());
+									}
+								}
 							}
 						}
+
+						if (chunked) {
+							try (FileOutputStream fos = new FileOutputStream(mpTmp)) {
+								mp.writeTo(fos);
 					}
+							size[0] = mpTmp.length();
+						}
+
 					debug.append("; new size of " + size[0] + "\n");
 					
 					httpEntity = new AbstractHttpEntity() {
 						
 						@Override
-						public void writeTo(OutputStream arg0) throws IOException {
+							public void writeTo(OutputStream output) throws IOException {
+								if (chunked) {
+									try (FileInputStream fis = new FileInputStream(mpTmp)) {
+										IOUtils.copyLarge(fis, output);
+									}								
+								} else {
 							try {
-								mp.writeTo(arg0);
+										mp.writeTo(output);
 							} catch (MessagingException e) {
 								new IOException(e);
 							}
 						}
+							}
 						
 						@Override
 						public boolean isStreaming() {
@@ -321,6 +357,12 @@ public class FullSyncServlet extends HttpServlet {
 							return null;
 						}
 					};
+
+					} finally {
+						if (mpTmp != null) {
+							mpTmp.delete();
+						}
+					}
 				} else {
 					InputStream is = null;
 					try {
@@ -395,6 +437,7 @@ public class FullSyncServlet extends HttpServlet {
 				for (Header header: newResponse.getAllHeaders()) {
 					if (isCBL && HeaderName.Server.is(header)) {
 						response.addHeader("Server", "Couchbase Sync Gateway/0.81");
+						debug.append("response Header: Server=Couchbase Sync Gateway/0.81\n");
 					} else if (!(HeaderName.TransferEncoding.is(header)
 							|| HeaderName.ContentLength.is(header)
 							|| HeaderName.AccessControlAllowOrigin.is(header)

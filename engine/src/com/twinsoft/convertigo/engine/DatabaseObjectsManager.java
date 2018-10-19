@@ -791,47 +791,6 @@ public class DatabaseObjectsManager implements AbstractManager {
 			// Rename project and files if necessary
 			if (!targetProjectName.equals(archiveProjectName)) {
 				xmlFile = ProjectUtils.renameProjectFile(xmlFile, targetProjectName, keepOldReferences);
-//				File dir = new File(projectDirPath);
-//				if (dir.isDirectory()) {
-//					// rename project directory
-//					File newdir = new File(Engine.PROJECTS_PATH + "/" + targetProjectName);
-//					dir.renameTo(newdir);
-//					Engine.logDatabaseObjectManager.debug("Project directory renamed to: " + newdir);
-//					
-//					// rename project in xml file
-//					if (keepOldReferences) {
-//						ProjectUtils.renameProjectFile(Engine.PROJECTS_PATH, archiveProjectName, targetProjectName);
-//					}
-//					else {
-//						ProjectUtils.renameXmlProject(Engine.PROJECTS_PATH, archiveProjectName, targetProjectName);		
-//					}
-//					Engine.logDatabaseObjectManager.debug("Project renamed from \"" + archiveProjectName
-//							+ "\" to \"" + targetProjectName + "\"");
-//					
-//					// rename/modify project wsdl & xsd files (for old car < 7.0.0)
-//					try {
-//						ProjectUtils.renameXsdFile(Engine.PROJECTS_PATH, archiveProjectName, targetProjectName);
-//						ProjectUtils.renameWsdlFile(Engine.PROJECTS_PATH, archiveProjectName, targetProjectName);
-//						Engine.logDatabaseObjectManager.debug("Project wsdl & xsd files modified");
-//					} catch (Exception e) {
-//					}
-//					
-//					// update transaction schema files with new project's name
-//					List<Replacement> replacements = new ArrayList<Replacement>();
-//					replacements.add(new Replacement("/"+archiveProjectName, "/"+targetProjectName));
-//					replacements.add(new Replacement(archiveProjectName+"_ns", targetProjectName+"_ns"));
-//					ArrayList<File> deep = CarUtils.deepListFiles(Engine.PROJECTS_PATH + "/" + targetProjectName + "/xsd/internal", ".xsd");
-//					if (deep != null) {
-//						for (File schema : deep) {
-//							try {
-//								ProjectUtils.makeReplacementsInFile(replacements, schema.getAbsolutePath().toString());
-//								Engine.logDatabaseObjectManager.debug("Successfully updated schema file \""+ schema.getAbsolutePath() +"\"");
-//							} catch (Exception e) {
-//								Engine.logDatabaseObjectManager.warn("Unable to update schema file \""+ schema.getAbsolutePath() +"\"");
-//							}
-//						}
-//					}
-//				}
 			}
 			
 			if (getProjectLoadingData().projectName == null) {
