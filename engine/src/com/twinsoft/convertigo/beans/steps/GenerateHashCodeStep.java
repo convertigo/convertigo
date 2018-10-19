@@ -22,7 +22,6 @@ package com.twinsoft.convertigo.beans.steps;
 import java.io.File;
 import java.io.FileInputStream;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaElement;
@@ -65,7 +64,9 @@ public class GenerateHashCodeStep extends Step implements ISchemaParticleGenerat
 	
 	private String nodeName = "hash";
 	
-	private long offset = 0;
+	private String offset = "0";
+	
+	private transient long currentOffset = 0;
 
 		
 	public GenerateHashCodeStep() {
@@ -106,35 +107,31 @@ public class GenerateHashCodeStep extends Step implements ISchemaParticleGenerat
 				if (!sourceFile.isFile()) {
 					throw new EngineException("Source file is not a file: " + sourceFilePath);
 				}
+				
+				if (currentOffset > sourceFile.length()) {
+					throw new EngineException("The currentOffset of " + currentOffset + "(/" + sourceFile.length() + ") for the file: " + sourceFilePath);
+				}
+				
+				try (FileInputStream fis = new FileInputStream(sourceFile)) {
+					String hash = null;
 
-				byte[] path = null;
-				path = FileUtils.readFileToByteArray(sourceFile);
-				FileInputStream fis = new FileInputStream(sourceFilePath);
-				
-				String hash = null;
-				
-				try {
-					fis.skip(offset);
-					if (hashAlgorithm == HashAlgorithm.MD5) {
-						hash = org.apache.commons.codec.digest.DigestUtils.md5Hex(fis);
-					} else if (hashAlgorithm == HashAlgorithm.SHA1) {
-						hash = org.apache.commons.codec.digest.DigestUtils.sha1Hex(fis);
+					if (currentOffset > 0) {
+						Engine.logBeans.debug("Skipping " + currentOffset + " bytes of the file \"" + sourceFilePath	+ "\" before hash.");
+						fis.skip(currentOffset);
 					}
+					
+					switch (hashAlgorithm) {
+					case MD5:
+						hash = org.apache.commons.codec.digest.DigestUtils.md5Hex(fis); break;
+					case SHA1:
+						hash = org.apache.commons.codec.digest.DigestUtils.sha1Hex(fis); break;
+					}
+					
 					Engine.logBeans.info("File \"" + sourceFilePath	+ "\" has been hashed.");
-					fis.close();
+
+					Node text = doc.createTextNode(hash);
+					stepNode.appendChild(text);
 				}
-				catch(Exception e) {
-					setErrorStatus(true);
-					throw e;
-				}
-				
-//				Node hashNode = doc.createElement("hash");
-//				hashNode.appendChild(doc.createTextNode(hash));
-//				stepNode.appendChild(hashNode);
-				
-				Node text = doc.createTextNode(hash);
-				stepNode.appendChild(text);
-				
 			} catch (Exception e) {
 				setErrorStatus(true);
 				throw new EngineException("Unable to compute hash code", e);
@@ -159,10 +156,13 @@ public class GenerateHashCodeStep extends Step implements ISchemaParticleGenerat
 					throw new EngineException("Source file is not a file: " + sourceFilePath);
 				}
 				
+				currentOffset = Math.max(evaluateToLong(javascriptContext, scope, offset, "offset", false), 0);
+				
 				if (super.stepExecute(javascriptContext, scope)) {
 					return true;
 				}
-				
+			} catch (EngineException e) {
+				throw e;
 			} catch (Exception e) {
 				setErrorStatus(true);
 				throw new EngineException("Unable to compute hash code", e);
@@ -213,11 +213,11 @@ public class GenerateHashCodeStep extends Step implements ISchemaParticleGenerat
 		return getNodeName();
 	}
 	
-	public long getOffset() {
+	public String getOffset() {
 		return offset;
 	}
 	
-	public void setOffset(long offset) {
+	public void setOffset(String offset) {
 		this.offset = offset;
 	}
 	

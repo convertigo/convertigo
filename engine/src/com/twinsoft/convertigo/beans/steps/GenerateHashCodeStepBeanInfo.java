@@ -61,6 +61,7 @@ public class GenerateHashCodeStepBeanInfo extends MySimpleBeanInfo{
             properties[3] = new PropertyDescriptor("offset", beanClass, "getOffset", "setOffset");
             properties[3].setDisplayName(getExternalizedString("property.offset.display_name"));
             properties[3].setShortDescription(getExternalizedString("property.offset.short_description"));
+            properties[3].setValue("scriptable", Boolean.TRUE);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
