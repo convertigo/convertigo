@@ -65,7 +65,7 @@ public class ParallelStep extends BranchStep {
 		// Case this have to wait : this have more children than maxNumberOfThreads
 		if (haveToWait == Boolean.FALSE) {
 			//if (!maxNumberOfThreads.equals("") && (nbAsyncThreadRunning >= Integer.parseInt(maxNumberOfThreads,10))) {
-			if ((maxNumberOfThreadsInteger > 0) && (nbAsyncThreadRunning >= maxNumberOfThreadsInteger)) {
+			if ((maxNumberOfThreadsLong > 0) && (nbAsyncThreadRunning >= maxNumberOfThreadsLong)) {
 				Engine.logBeans.debug("(ParallelStep) Max number of threads exceded for step '"+ getName() +"' ("+executeTimeID+"), waiting for available...");
 				this.shouldWait(true);
 			}
@@ -73,7 +73,7 @@ public class ParallelStep extends BranchStep {
 		// Case parent have to wait : this have less children than maxNumberOfThreads
 		if (haveToWait == Boolean.FALSE) {
 			//if (!maxNumberOfThreads.equals("") && (totalAsyncThreadRunning >= Integer.parseInt(maxNumberOfThreads,10))) {
-			if ((maxNumberOfThreadsInteger > 0) && (totalAsyncThreadRunning >= maxNumberOfThreadsInteger)) {
+			if ((maxNumberOfThreadsLong > 0) && (totalAsyncThreadRunning >= maxNumberOfThreadsLong)) {
 				Engine.logBeans.debug("(ParallelStep) Max number of threads exceded for step '"+ getName() +"' ("+executeTimeID+"), waiting for available...");
 				((StepWithExpressions) parent).shouldWait(true);
 			}
@@ -100,7 +100,7 @@ public class ParallelStep extends BranchStep {
 		// Case this is waiting
 		if (haveToWait == Boolean.TRUE) {
 			//if (!maxNumberOfThreads.equals("") && (nbAsyncThreadRunning < Integer.parseInt(maxNumberOfThreads,10))) {
-			if ((maxNumberOfThreadsInteger > 0) && (nbAsyncThreadRunning < maxNumberOfThreadsInteger)) {
+			if ((maxNumberOfThreadsLong > 0) && (nbAsyncThreadRunning < maxNumberOfThreadsLong)) {
 				Engine.logBeans.debug("(ParallelStep) New thread available for step '" + getName() + "' ("+executeTimeID+")");
 				this.shouldWait(false);
 			}
@@ -108,7 +108,7 @@ public class ParallelStep extends BranchStep {
 		// Case parent is waiting
 		else {
 			//if (!maxNumberOfThreads.equals("") && (totalAsyncThreadRunning < Integer.parseInt(maxNumberOfThreads,10))) {
-			if ((maxNumberOfThreadsInteger > 0) && (totalAsyncThreadRunning < maxNumberOfThreadsInteger)) {
+			if ((maxNumberOfThreadsLong > 0) && (totalAsyncThreadRunning < maxNumberOfThreadsLong)) {
 				Engine.logBeans.debug("(ParallelStep) New thread available for step '" + getName() + "' ("+executeTimeID+")");
 				((StepWithExpressions) parent).shouldWait(false);
 			}

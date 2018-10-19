@@ -41,8 +41,8 @@ public class SimpleIteratorStep extends LoopStep {
 	private String startIndex = "0";
 	
 	private transient Iterator iterator = null;
-	private transient Integer iStart = null;
-	private transient Integer iStop = null;
+	private transient Long iStart = null;
+	private transient Long iStop = null;
 	private transient boolean needToEvaluateStart = true;
 	private transient boolean needToEvaluateStop = true;
 	
@@ -87,7 +87,7 @@ public class SimpleIteratorStep extends LoopStep {
 	public void setStartIndex(String startIndex) {
 		this.startIndex = startIndex;
 		if (isOriginal()) {
-			this.iStart = getValueOfInteger(startIndex);
+			this.iStart = stringToLong(startIndex);
 			this.needToEvaluateStart = this.iStart == null;
 		}
 	}
@@ -101,7 +101,7 @@ public class SimpleIteratorStep extends LoopStep {
 	public void setCondition(String condition) {
 		super.setCondition(condition);
 		if (isOriginal()) {
-			this.iStop = getValueOfInteger(condition);
+			this.iStop = stringToLong(condition);
 			this.needToEvaluateStop = this.iStop == null;
 		}
 	}
@@ -140,7 +140,7 @@ public class SimpleIteratorStep extends LoopStep {
 				return true;
 			}
 
-			int start = getLoopStartIndex(javascriptContext, scope);
+			long start = getLoopStartIndex(javascriptContext, scope);
 			for (int i=0; i < iterator.size(); i++) {
 				if (bContinue && sequence.isRunning()) {
 					int index = iterator.numberOfIterations();
@@ -179,16 +179,16 @@ public class SimpleIteratorStep extends LoopStep {
 		super.stepDone();
 	}
 	
-	private Integer getLoopStartIndex(Context javascriptContext, Scriptable scope) throws EngineException {
+	private Long getLoopStartIndex(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (iStart == null || needToEvaluateStart) {
-			iStart = evaluateToInteger(javascriptContext, scope, getStartIndex(), "startIndex", true);
+			iStart = evaluateToLong(javascriptContext, scope, getStartIndex(), "startIndex", true);
 		}
 		return iStart;
 	}
 	
-	private Integer getLoopStopIndex(Context javascriptContext, Scriptable scope) throws EngineException {
+	private Long getLoopStopIndex(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (iStop == null || needToEvaluateStop) {
-			iStop = evaluateToInteger(javascriptContext, scope, getCondition(), "condition", true);
+			iStop = evaluateToLong(javascriptContext, scope, getCondition(), "condition", true);
 		}
 		return iStop;
 	}
@@ -197,7 +197,7 @@ public class SimpleIteratorStep extends LoopStep {
 	protected void doLoop(Context javascriptContext, Scriptable scope) throws EngineException {
 		super.doLoop(javascriptContext, scope);
 		if (iterator.hasMoreElements()) {
-			int stop = getLoopStopIndex(javascriptContext, scope);
+			long stop = getLoopStopIndex(javascriptContext, scope);
 			if (!((stop == -1) || (iterator.numberOfIterations() < stop))) {
 				bContinue = false;
 			}
