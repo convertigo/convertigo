@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.beans.steps;
 import java.io.File;
 import java.io.FileInputStream;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaElement;
@@ -122,9 +123,9 @@ public class GenerateHashCodeStep extends Step implements ISchemaParticleGenerat
 					
 					switch (hashAlgorithm) {
 					case MD5:
-						hash = org.apache.commons.codec.digest.DigestUtils.md5Hex(fis); break;
+						hash = DigestUtils.md5Hex(fis); break;
 					case SHA1:
-						hash = org.apache.commons.codec.digest.DigestUtils.sha1Hex(fis); break;
+						hash = DigestUtils.sha1Hex(fis); break;
 					}
 					
 					Engine.logBeans.info("File \"" + sourceFilePath	+ "\" has been hashed.");
