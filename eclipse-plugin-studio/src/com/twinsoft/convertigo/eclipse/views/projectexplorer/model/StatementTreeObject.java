@@ -281,4 +281,9 @@ public class StatementTreeObject extends DatabaseObjectTreeObject implements IEd
 		}
 		return super.testAttribute(target, name, value);
 	}
+	
+	@Override
+	public void closeAllEditors(boolean save) {
+		closeAllJsEditors(getObject(), save);
+	}
 }

@@ -307,4 +307,9 @@ public class StepTreeObject extends DatabaseObjectTreeObject implements INamedSo
 		}
 		return super.testAttribute(target, name, value);
 	}
+	
+	@Override
+	public void closeAllEditors(boolean save) {
+		closeAllJsEditors(getObject(), save);
+	}
 }

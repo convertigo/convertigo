@@ -63,4 +63,9 @@ public class TemplateTreeObject extends TreeObject implements IEditableTreeObjec
         	ConvertigoPlugin.logException(pei, "Unexpceted exception");
 		}
 	}
+	
+	@Override
+	public void closeAllEditors(boolean save) {
+		//TODO: closeAllJsEditors(getObject(), save);
+	}
 }

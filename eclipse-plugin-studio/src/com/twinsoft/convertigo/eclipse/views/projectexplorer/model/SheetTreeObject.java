@@ -83,4 +83,9 @@ public class SheetTreeObject extends DatabaseObjectTreeObject implements IEditab
 			}
 		}
 	}
+	
+	@Override
+	public void closeAllEditors(boolean save) {
+		closeAllJsEditors(getObject(), save);
+	}
 }

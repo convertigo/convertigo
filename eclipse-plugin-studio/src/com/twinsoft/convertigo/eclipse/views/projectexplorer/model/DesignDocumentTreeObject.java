@@ -42,7 +42,7 @@ import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
-public class DesignDocumentTreeObject extends DocumentTreeObject implements IDesignTreeObject {
+public class DesignDocumentTreeObject extends DocumentTreeObject implements IDesignTreeObject, IClosableTreeObject {
 	private FolderTreeObject fFilters = null;
 	private FolderTreeObject fUpdates = null;
 	private FolderTreeObject fViews = null;
@@ -667,5 +667,10 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 				return true;
 		}
 		return false;
+	}
+
+	@Override
+	public void closeAllEditors(boolean save) {
+		closeAllJsEditors(getObject(), save);
 	}
 }

@@ -891,4 +891,9 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 			});
 		}
 	}
+
+	@Override
+	public void closeAllEditors(boolean save) {
+		closeAllEditors();
+	}
 }
