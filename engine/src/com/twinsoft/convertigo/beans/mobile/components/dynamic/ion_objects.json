@@ -1134,8 +1134,9 @@
           "label": "Tooltip string",
           "description": "string: string to be displayed. 'empty string = disabled').",
           "category": "@Attributes",
-          "value": ""
+          "value": "a tooltip to display"
         },
+
         "navTooltip": {
           "attr":"navTooltip",
           "label": "Navbar Tooltip",
@@ -1161,16 +1162,16 @@
           ]
         },
         "arrow": {
-          "attr":"arrow",
           "label": "Displays arrow",
           "description": "boolean: add this attribute or set it's value to true to show an arrow attached to the tooltip. Defaults to true.",
           "category": "@Attributes",
-          "value": "true", // optional value (default is true)
+          "value": "arrow", // optional value (default is true)
           "values": [ // possible values (false means no set)
-          "true",
-          "false"
+	    false,
+            "arrow"
           ]
         },
+
         "positionH": {
           "attr":"positionH",
           "label": "Horizontal Position",
@@ -1219,7 +1220,51 @@
         ]
       }         
     },
-
+    
+    "Spinner": {
+      "tag": "ion-spinner",
+	  "displayName": "Spinner",
+      "label": "Spinner",
+      "description": "The ion-spinner component provides a variety of animated SVG spinners. Spinners enables you to give users feedback that the app is actively processing/thinking/waiting/chillin’ out, or whatever you’d like it to indicate.",
+      "group": "Miscellaneous",
+      "properties": {
+        "duration": {
+          "attr": "duration",
+          "value": "",
+          "label": "Duration",
+          "description": "string: How long it takes it to do one loop.",
+          "category": "Attributes",
+        },
+        "name": {
+          "attr": "name",
+          "value": "",
+          "label": "Name",
+          "description": "SVG spinner name.",
+          "category": "Attributes",
+          "value": "ios",
+          "values": [
+          		"ios",
+          		"ios-small",
+          		"bubbles",
+          		"circles",
+          		"crescent",
+          		"dots"
+          ]
+        },
+        "paused": {
+         "attr": "paused",
+         "label": "Paused",
+         "description": "If true, pause the animation.",
+         "category": "Attributes",
+         "value": false,
+         "values": [ false,
+         "true",
+         "false"
+         ]
+        }
+      }
+    },  
+    
     "FSImage": {
       "tplVersion": "1.0.100",
       "tag": "img",
@@ -4320,7 +4365,7 @@
 	  "displayName": "TextFormat",
       "label": "Text Format",
       "description": "div| Defines a <i>Text Format</i> component.<br/>Text formatting such as alignments to left right and center or text transformations.<br/>Will be applied to all underlying <i>Text</i> components.<br/>For more information: <a href='https://ionicframework.com/docs/theming/css-utilities/#text-modification' target='_blank'>Text Modification</a>.",
-      "group": "Formatting",
+      "group": "Miscellaneous",
       "icon16": "textformat_color_16x16.png",
       "icon32": "textformat_color_32x32.png",
       "properties": {
