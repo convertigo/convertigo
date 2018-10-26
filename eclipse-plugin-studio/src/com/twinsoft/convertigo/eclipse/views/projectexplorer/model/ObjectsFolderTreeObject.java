@@ -58,6 +58,7 @@ public class ObjectsFolderTreeObject extends FolderTreeObject implements IAction
 	public static final int FOLDER_TYPE_ATTRIBUTES = 29;
 	public static final int FOLDER_TYPE_VALIDATORS = 30;
 	public static final int FOLDER_TYPE_MENUS = 31;
+	public static final int FOLDER_TYPE_AUTHENTICATIONS = 32;
 	
 	
 	public int folderType;
@@ -164,6 +165,9 @@ public class ObjectsFolderTreeObject extends FolderTreeObject implements IAction
 				break;
 			case FOLDER_TYPE_MENUS:
 				folderName = "Menus";
+				break;
+			case FOLDER_TYPE_AUTHENTICATIONS:
+				folderName = "Authentications";
 				break;
 		}
 

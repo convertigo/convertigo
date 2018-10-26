@@ -132,6 +132,7 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.core.UrlAuthentication;
 import com.twinsoft.convertigo.beans.core.UrlMapper;
 import com.twinsoft.convertigo.beans.core.UrlMapping;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
@@ -231,6 +232,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TraceTreeObje
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TransactionTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UnloadedProjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UrlAuthenticationTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UrlMapperTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UrlMappingOperationTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UrlMappingParameterTreeObject;
@@ -331,6 +333,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public static final int TREE_OBJECT_TYPE_FOLDER_ATTRIBUTES = 0x218;
 	public static final int TREE_OBJECT_TYPE_FOLDER_VALIDATORS = 0x219;
 	public static final int TREE_OBJECT_TYPE_FOLDER_MENUS = 0x21A;
+	public static final int TREE_OBJECT_TYPE_FOLDER_AUTHENTICATIONS = 0x21B;
 
 	public static final int TREE_OBJECT_TYPE_MISC = 0x8000;						// 1000 0000 0000 0000
 
@@ -1575,6 +1578,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 						} else if (databaseObject instanceof UrlMapper) {
 							databaseObjectTreeObject = new UrlMapperTreeObject(viewer, (UrlMapper) databaseObject, false);
 
+						} else if (databaseObject instanceof UrlAuthentication) {
+							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_AUTHENTICATIONS;
+							databaseObjectTreeObject = new UrlAuthenticationTreeObject(viewer, (UrlAuthentication) databaseObject, false);
+
 						} else if (databaseObject instanceof UrlMapping) {
 							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_MAPPINGS;
 							databaseObjectTreeObject = new UrlMappingTreeObject(viewer, (UrlMapping) databaseObject, false);
@@ -2458,6 +2465,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			}
 			else if (folderType == ObjectsFolderTreeObject.FOLDER_TYPE_LISTENERS) {
 				return ProjectExplorerView.TREE_OBJECT_TYPE_FOLDER_LISTENERS;
+			}
+			else if (folderType == ObjectsFolderTreeObject.FOLDER_TYPE_AUTHENTICATIONS) {
+				return ProjectExplorerView.TREE_OBJECT_TYPE_FOLDER_AUTHENTICATIONS;
 			}
 			else if (folderType == ObjectsFolderTreeObject.FOLDER_TYPE_MAPPINGS) {
 				return ProjectExplorerView.TREE_OBJECT_TYPE_FOLDER_MAPPINGS;

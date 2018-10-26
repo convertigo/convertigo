@@ -305,6 +305,11 @@
 			</beans>
 		</category>
 		<category name="REST API">
+			<beans groupname="Authentications">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.rest.BasicAuthentication">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.UrlMapper"/>
+				</bean>
+			</beans>
 			<beans groupname="Mappings">
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.rest.PathMapping">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.UrlMapper"/>

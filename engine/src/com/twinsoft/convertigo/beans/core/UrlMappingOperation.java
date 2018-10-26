@@ -22,12 +22,12 @@ package com.twinsoft.convertigo.beans.core;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
 @DboCategoryInfo(
@@ -72,6 +72,29 @@ public abstract class UrlMappingOperation extends DatabaseObject implements ICon
 
 	public void setTargetRequestable(String targetRequestable) {
 		this.targetRequestable = targetRequestable;
+	}
+	
+	public boolean isTargetAuthenticationContextRequired() {
+		RequestableObject ro = getTargetRequestableObject();
+		if (ro != null) {
+			return ro.getAuthenticatedContextRequired();
+		}
+		return false;
+	}
+	
+	protected RequestableObject getTargetRequestableObject() {
+		String targetRequestableQName = getTargetRequestable();
+		if (!targetRequestableQName.isEmpty()) {
+			try {
+				DatabaseObject dbo = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(targetRequestableQName);
+				if (dbo != null && dbo instanceof RequestableObject) {
+					return (RequestableObject)dbo;
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return null;
 	}
 	
 	@Override

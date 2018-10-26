@@ -41,6 +41,8 @@ public enum HeaderName {
 	AccessControlAllowOrigin("Access-Control-Allow-Origin"),
 	AccessControlRequestHeaders("Access-Control-Request-Headers"),
 	AccessControlRequestMethod("Access-Control-Request-Method"),
+	Authenticate("WWW-Authenticate"),
+	Authorization("Authorization"),
 	CacheControl("Cache-Control"),
 	Connection("Connection"),
 	ContentDisposition("Content-Disposition"),

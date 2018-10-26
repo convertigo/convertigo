@@ -28,8 +28,11 @@ import io.swagger.models.Path;
 import io.swagger.models.RefModel;
 import io.swagger.models.Response;
 import io.swagger.models.Scheme;
+import io.swagger.models.SecurityRequirement;
 import io.swagger.models.Swagger;
 import io.swagger.models.Tag;
+import io.swagger.models.auth.BasicAuthDefinition;
+import io.swagger.models.auth.SecuritySchemeDefinition;
 import io.swagger.models.parameters.AbstractSerializableParameter;
 import io.swagger.models.parameters.BodyParameter;
 import io.swagger.models.parameters.FormParameter;
@@ -48,7 +51,6 @@ import io.swagger.models.utils.PropertyModelConverter;
 import io.swagger.parser.SwaggerParser;
 import io.swagger.util.Json;
 import io.swagger.util.Yaml;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -73,6 +75,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.twinsoft.convertigo.beans.core.IMappingRefModel;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.UrlAuthentication;
 import com.twinsoft.convertigo.beans.core.UrlMapper;
 import com.twinsoft.convertigo.beans.core.UrlMapping;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
@@ -81,6 +84,7 @@ import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataContent;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataType;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter.Type;
 import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
+import com.twinsoft.convertigo.beans.core.UrlAuthentication.AuthenticationType;
 import com.twinsoft.convertigo.beans.rest.AbstractRestOperation;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -261,6 +265,22 @@ public class SwaggerUtils {
 		tags.add(tag);
 		swagger.setTags(tags);
 		
+		// Security
+		Map<String, SecuritySchemeDefinition> securityDefinitions = swagger.getSecurityDefinitions();
+		for (UrlAuthentication authentication: urlMapper.getAuthenticationList()) {
+			if (AuthenticationType.Basic.equals(authentication.getType())) {
+				if (securityDefinitions == null || !securityDefinitions.containsKey("basicAuth")) {
+					BasicAuthDefinition basicAuthDefinition = new BasicAuthDefinition();
+					swagger.addSecurityDefinition("basicAuth", basicAuthDefinition);
+					
+					SecurityRequirement securityRequirement = new SecurityRequirement();
+					securityRequirement.requirement("basicAuth", new ArrayList<String>());
+					swagger.addSecurity(securityRequirement);
+				}
+			}
+		}
+		
+		// Models and Schemas
 		Map<String, Model> swagger_models = new HashMap<String, Model>();		
 		try {
 			String models = getModels(requestUrl, urlMapper);
@@ -278,7 +298,7 @@ public class SwaggerUtils {
 		}
 		swagger.setDefinitions(swagger_models);
 		
-		
+		// Mappings
 		Map<String, Path> swagger_paths = new HashMap<String, Path>();
 		try {
 			for (UrlMapping urlMapping: urlMapper.getMappingList()) {

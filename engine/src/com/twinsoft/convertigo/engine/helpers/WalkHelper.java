@@ -44,6 +44,7 @@ import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
+import com.twinsoft.convertigo.beans.core.UrlAuthentication;
 import com.twinsoft.convertigo.beans.core.UrlMapping;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
@@ -191,6 +192,12 @@ public class WalkHelper {
 		} else if (databaseObject instanceof UrlMapper) {
 			UrlMapper urlMapper = (UrlMapper) databaseObject;
 
+			if (before(databaseObject, UrlAuthentication.class)) {
+				for (UrlAuthentication authentication : urlMapper.getAuthenticationList()) {
+					walk(authentication);
+				}
+			}
+			
 			if (before(databaseObject, UrlMapping.class)) {
 				for (UrlMapping mapping : urlMapper.getMappingList()) {
 					walk(mapping);

@@ -2013,6 +2013,20 @@
             </enablement>
          </action>
          <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateUrlAuthenticationAction"
+               enablesFor="1"
+               icon="icons/studio/menu/urlauthentication_color_16x16.png"
+               id="convertigo.action.newUrlAuthentication"
+               label="Authentication"
+               menubarPath="convertigo.menu.new/content">
+            <enablement>
+               <objectState
+                     name="folderType"
+                     value="32">
+               </objectState>
+            </enablement>
+         </action>
+         <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateUrlMappingAction"
                enablesFor="1"
                icon="icons/studio/menu/urlmapping_color_16x16.png"
@@ -3268,6 +3282,13 @@
 	               icon="icons/studio/menu/urlmapping_color_16x16.png"
 	               id="convertigo.action.newUrlMapping"
 	               label="Mapping"
+	               menubarPath="convertigo.menu.new/content"/>
+	         <action
+	               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateUrlAuthenticationAction"
+	               enablesFor="1"
+	               icon="icons/studio/menu/urlauthentication_color_16x16.png"
+	               id="convertigo.action.newUrlAuthentication"
+	               label="Authentication"
 	               menubarPath="convertigo.menu.new/content"/>
 	      </objectContribution>
 	      <objectContribution

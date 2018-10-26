@@ -40,6 +40,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.twinsoft.convertigo.beans.core.IMappingRefModel;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.UrlAuthentication;
+import com.twinsoft.convertigo.beans.core.UrlAuthentication.AuthenticationType;
 import com.twinsoft.convertigo.beans.core.UrlMapper;
 import com.twinsoft.convertigo.beans.core.UrlMapping;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
@@ -86,6 +88,7 @@ import io.swagger.v3.oas.models.parameters.QueryParameter;
 import io.swagger.v3.oas.models.parameters.RequestBody;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.tags.Tag;
@@ -362,7 +365,28 @@ public class OpenApiUtils {
 		tags.add(tag);
 		openAPI.setTags(tags);
 		
+		if (openAPI.getComponents() == null) {
+			openAPI.components(new Components());
+		}
 		
+		// Security
+		Map<String, SecurityScheme> securitySchemes = openAPI.getComponents().getSecuritySchemes();
+		for (UrlAuthentication authentication: urlMapper.getAuthenticationList()) {
+			if (AuthenticationType.Basic.equals(authentication.getType())) {
+				if (securitySchemes == null || !securitySchemes.containsKey("basicAuth")) {
+					SecurityScheme securitySchemesItem = new SecurityScheme();
+					securitySchemesItem.setType(SecurityScheme.Type.HTTP);
+					securitySchemesItem.setScheme("basic");
+					openAPI.getComponents().addSecuritySchemes("basicAuth", securitySchemesItem);
+					
+					SecurityRequirement securityRequirement = new SecurityRequirement();
+					securityRequirement.addList("basicAuth", new ArrayList<String>());
+					openAPI.addSecurityItem(securityRequirement);
+				}
+			}
+		}
+		
+		// Models and Schemas
 		try {
 			String models = getModels(requestUrl, urlMapper);
 			JSONObject jsonModels = new JSONObject(models);
@@ -379,15 +403,12 @@ public class OpenApiUtils {
 			
 			@SuppressWarnings("rawtypes")
 			Map<String, Schema> map = result.getOpenAPI().getComponents().getSchemas();
-			if (openAPI.getComponents() == null) {
-				openAPI.components(new Components());
-			}
 			openAPI.getComponents().schemas(map);
-			
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
 		
+		// Paths
 		Paths paths = new Paths();
 		try {
 			for (UrlMapping urlMapping: urlMapper.getMappingList()) {

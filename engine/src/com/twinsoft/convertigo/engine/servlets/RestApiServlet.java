@@ -24,7 +24,9 @@ import java.io.Writer;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.servlet.ServletConfig;
@@ -35,6 +37,7 @@ import javax.servlet.http.HttpSession;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.twinsoft.api.Session;
+import com.twinsoft.convertigo.beans.core.UrlAuthentication;
 import com.twinsoft.convertigo.beans.core.UrlMapper;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.engine.Engine;
@@ -46,6 +49,8 @@ import com.twinsoft.convertigo.engine.RestApiManager;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.enums.RequestAttribute;
+import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -238,9 +243,11 @@ public class RestApiServlet extends GenericServlet {
 					
 					// Found a matching operation
 					UrlMappingOperation urlMappingOperation = null;
+					List<UrlAuthentication> urlAuthentications = null;
 					for (UrlMapper urlMapper : collection) {
 						urlMappingOperation = urlMapper.getMatchingOperation(request);
 						if (urlMappingOperation != null) {
+							urlAuthentications = urlMapper.getAuthenticationList();
 							break;
 						}
 					}
@@ -265,8 +272,44 @@ public class RestApiServlet extends GenericServlet {
 													Collections.list(request.getParameterNames()));
 						}
 						
-						// Handle request
-		                String content = urlMappingOperation.handleRequest(request, response);
+						String content = null; // The response content
+						
+						// Check for authentication
+						if (urlMappingOperation.isTargetAuthenticationContextRequired()) {
+							// Case Authentications are defined for mapper
+							if (urlAuthentications != null) {
+								boolean authenticated = false;
+								for (UrlAuthentication urlAuthentication: urlAuthentications) {
+									// Handle Auth request
+									response.reset();
+									RequestAttribute.responseHeader.set(request, new HashMap<String, String>());
+									RequestAttribute.responseStatus.set(request, new HashMap<Integer, String>());
+									urlAuthentication.handleAuthRequest(request, response);
+									
+									// Check user has been authenticated
+						    		authenticated = SessionAttribute.authenticatedUser.string(request.getSession()) != null;
+						    		if (authenticated) {
+						    			break;
+						    		}
+								}
+								
+								// Handle User request
+								if (authenticated) {
+									response.reset();
+									RequestAttribute.responseHeader.set(request, new HashMap<String, String>());
+									RequestAttribute.responseStatus.set(request, new HashMap<Integer, String>());
+					                content = urlMappingOperation.handleRequest(request, response);
+								}
+							}
+							// HTTP authentication required
+							else {
+								response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+							}
+						}
+						// Handle User request
+						else {
+			                content = urlMappingOperation.handleRequest(request, response);
+						}
 		                
 		                // Set response status
 		                ServletUtils.applyCustomStatus(request, response);
