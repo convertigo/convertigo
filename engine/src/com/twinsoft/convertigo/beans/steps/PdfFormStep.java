@@ -11,14 +11,12 @@ import javax.imageio.ImageIO;
 import javax.xml.bind.DatatypeConverter;
 
 import org.apache.pdfbox.cos.COSArray;
-// import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.PDResources;
-// import org.apache.pdfbox.pdmodel.common.COSArrayList;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
@@ -80,7 +78,7 @@ public class PdfFormStep extends Step implements IStepSmartTypeContainer, IStepS
 	public PdfFormStep() {
 		super();
 		setOutput(false);
-		this.xml = true;
+		xml = true;
 	}
 
 	/* Setters and Getters */
@@ -96,8 +94,8 @@ public class PdfFormStep extends Step implements IStepSmartTypeContainer, IStepS
 		return fieldsList;
 	}
 
-	public void setFields(SmartType Fields) {
-		this.fieldsList = Fields;
+	public void setFields(SmartType fieldsList) {
+		this.fieldsList = fieldsList;
 	}
 
 	public Action getAction() {
@@ -156,12 +154,6 @@ public class PdfFormStep extends Step implements IStepSmartTypeContainer, IStepS
 	}
 
 	@Override
-	public PdfFormStep copy() throws CloneNotSupportedException {
-		PdfFormStep copiedObject = (PdfFormStep) super.copy();
-		return copiedObject;
-	}
-
-	@Override
 	public String getStepNodeName() {
 		return "PDFfields";
 	}
@@ -173,23 +165,19 @@ public class PdfFormStep extends Step implements IStepSmartTypeContainer, IStepS
 		return Engine.theApp.filePropertyManager.getFilepathFromProperty(entry, getProject().getName());
 	}
 
-	private void fillForm() {
+	private void fillForm() throws EngineException {
 		try {
 			// Case of JSON usage
 			if (fieldsList.isUseExpression()) {
-				String jSon = null;
+				String json = null;
 				JSONObject job = null;
 				JSONArray keys = null;
 
-				try {
-					jSon = fieldsList.getSingleString(this);
-				} catch (EngineException e1) {
-					e1.printStackTrace();
-				}
-				job = new JSONObject(jSon);
+				json = fieldsList.getSingleString(this);
+				job = new JSONObject(json);
 				keys = job.names();
 
-				Engine.logBeans.debug("Creating a new JSON Object");
+				Engine.logBeans.debug("(PdfFormStep) Creating a new JSON Object");
 
 				for (int i = 0; i < keys.length(); i++) {
 
@@ -197,12 +185,11 @@ public class PdfFormStep extends Step implements IStepSmartTypeContainer, IStepS
 						String key = keys.getString(i);
 						String value = job.getString(key);
 
-						Engine.logBeans.debug("Key : " + key + " Value: " + value);
+						Engine.logBeans.debug("(PdfFormStep) Key : " + key + " Value: " + value);
 
 						replaceField(key, value, pdf);
 					} catch (JSONException e) {
-						Engine.logBeans.error("Keys or values UNKNOWN");
-						e.printStackTrace();
+						Engine.logBeans.error("(PdfFormStep) Keys or values UNKNOWN", e);
 					}
 
 				}
@@ -220,17 +207,17 @@ public class PdfFormStep extends Step implements IStepSmartTypeContainer, IStepS
 							String key = lc.item(j).getNodeName();
 							String value = cElement.getFirstChild().getNodeValue();
 							replaceField(key, value, pdf);
-							Engine.logBeans.debug("Node name = " + key + " , value = " + value);
+							Engine.logBeans.debug("(PdfFormStep) Node name = " + key + " , value = " + value);
 						}
 
 					}
 				} catch (EngineException e) {
-					e.printStackTrace();
+					Engine.logBeans.warn("(PdfFormStep) Failed to retrieve fields from source", e);
 				} // fields
 			}
 		} // try
 		catch (JSONException e) {
-			Engine.logBeans.error("Error creating JSONObject", e);
+			Engine.logBeans.error("(PdfFormStep) Error creating JSONObject", e);
 			setErrorStatus(true);
 		}
 	}
@@ -240,7 +227,6 @@ public class PdfFormStep extends Step implements IStepSmartTypeContainer, IStepS
 		COSDictionary fieldDict = field.getCOSObject();
 		COSArray fieldAreaArray = (COSArray) fieldDict.getDictionaryObject(COSName.RECT);
 		return new PDRectangle(fieldAreaArray);
-
 	}
 
 	/**
@@ -250,36 +236,34 @@ public class PdfFormStep extends Step implements IStepSmartTypeContainer, IStepS
 	 * @param value
 	 * @param doc
 	 */
-	private void handleImages(String name, String value, PDDocument doc) {
+	private void handleImages(String name, String value, PDDocument doc) throws EngineException {
 		PDField field = acroForm.getField(name);
 		PDImageXObject pdImageXObject = null;
 		if (field != null) {
-			Engine.logBeans.debug("handleImage - field not null");
+			Engine.logBeans.debug("(PdfFormStep) handleImage - field not null");
 			List<PDAnnotationWidget> widgets = field.getWidgets();
 			if (widgets != null & widgets.size() > 0) {
 				PDAnnotationWidget annotationWidget = widgets.get(0); // just need one widget
 
 				File image = new File(value);
 				if (image.exists()) {
-					Engine.logBeans.debug("Reading image from file : " + image);
+					Engine.logBeans.debug("(PdfFormStep) Reading image from file : " + image);
 					try {
 						pdImageXObject = PDImageXObject.createFromFile(value, doc);
-						Engine.logBeans.debug("Image created from file");
+						Engine.logBeans.debug("(PdfFormStep) Image created from file");
 					} catch (IOException e) {
-						Engine.logBeans.error("Failed to read image from file " + image);
-						e.printStackTrace();
+						Engine.logBeans.error("(PdfFormStep) Failed to read image from file " + image, e);
 					}
 
 				} else {
 					// As this is not a file, it can be a Base64, so read it as base64
-					Engine.logBeans.debug("Reading image from base64...");
+					Engine.logBeans.debug("(PdfFormStep) Reading image from base64...");
 					if (value != "") {
-						try {
-							ByteArrayInputStream bais = new ByteArrayInputStream(
-									DatatypeConverter.parseBase64Binary(value));
+						try (ByteArrayInputStream bais = new ByteArrayInputStream(
+								DatatypeConverter.parseBase64Binary(value))) {
 							pdImageXObject = LosslessFactory.createFromImage(doc, ImageIO.read(bais));
 						} catch (IOException e) {
-							e.printStackTrace();
+							Engine.logBeans.error("(PdfFormStep) Failed to read image from base64", e);
 						}
 					}
 				}
@@ -294,13 +278,11 @@ public class PdfFormStep extends Step implements IStepSmartTypeContainer, IStepS
 				float x = buttonPosition.getLowerLeftX();
 				float y = buttonPosition.getLowerLeftY();
 
-				Engine.logBeans.debug("Image coords (x, y, w, h) : " + x + "," + y + "," + width + "," + height + ",");
+				Engine.logBeans.debug("(PdfFormStep) Image coords (x, y, w, h) : " + x + "," + y + "," + width + "," + height + ",");
 
 				PDAppearanceStream pdAppearanceStream = new PDAppearanceStream(doc);
 				pdAppearanceStream.setResources(new PDResources());
-				PDPageContentStream pdPageContentStream;
-				try {
-					pdPageContentStream = new PDPageContentStream(doc, pdAppearanceStream);
+				try (PDPageContentStream pdPageContentStream = new PDPageContentStream(doc, pdAppearanceStream)) {
 					pdPageContentStream.drawImage(pdImageXObject, x, y, width, height);
 
 					pdAppearanceStream.setBBox(new PDRectangle(x, y, width, height));
@@ -311,13 +293,12 @@ public class PdfFormStep extends Step implements IStepSmartTypeContainer, IStepS
 						annotationWidget.setAppearance(pdAppearanceDictionary);
 					}
 					pdAppearanceDictionary.setNormalAppearance(pdAppearanceStream);
-					pdPageContentStream.close();
-					Engine.logBeans.debug("Image is inserted");
+					Engine.logBeans.debug("(PdfFormStep) Image is inserted");
 				} catch (IOException e) {
-					e.printStackTrace();
+					Engine.logBeans.warn("(PdfFormStep) Failed to insert the image", e);
 				}
 			} else {
-				Engine.logBeans.debug("Misconfiguration of placeholder '" + name + "' - no widgets(actions) found");
+				Engine.logBeans.debug("(PdfFormStep) Misconfiguration of placeholder '" + name + "' - no widgets(actions) found");
 			}
 		}
 	}
@@ -331,66 +312,60 @@ public class PdfFormStep extends Step implements IStepSmartTypeContainer, IStepS
 	 * @param doc
 	 */
 	private void replaceField(String name, String data, PDDocument doc) {
-
 		acroForm = doc.getDocumentCatalog().getAcroForm();
 		PDField field = acroForm.getField(name);
 		try {
-			Engine.logBeans.debug("replaceField: replacing field - " + field);
+			Engine.logBeans.debug("(PdfFormStep) replaceField: replacing field - " + field);
 			if (field != null) {
-				Engine.logBeans.debug("replaceField: - field is not null");
+				Engine.logBeans.debug("(PdfFormStep) replaceField: - field is not null");
 				if (field.isReadOnly()) {
 					field.setReadOnly(false);
 				}
 
 				String fieldType = field.getClass().getSimpleName(); // return the type of the field
-				Engine.logBeans.debug("Field type = " + fieldType);
+				Engine.logBeans.debug("(PdfFormStep) Field type = " + fieldType);
 
 				switch (fieldType) {
 				case "PDTextField":
 					field.setValue(data);
-					Engine.logBeans.debug("replaceField - PDTextField value set " + data);
+					Engine.logBeans.debug("(PdfFormStep) replaceField - PDTextField value set " + data);
 					break;
 				case "PDCheckBox":
 					if (data == "true") {
 						((PDCheckBox) field).check();
-						Engine.logBeans.debug("replaceField - PDFCheckBox value set " + data);
+						Engine.logBeans.debug("(PdfFormStep) replaceField - PDFCheckBox value set " + data);
 					} else {
 						((PDCheckBox) field).unCheck();
-						Engine.logBeans.debug("replaceField - PDFCheckBox value unset " + data);
+						Engine.logBeans.debug("(PdfFormStep) replaceField - PDFCheckBox value unset " + data);
 					}
 					break;
 				// We handle pushButtons as a placeholder for images
 				case "PDPushButton":
 					try {
-						String imgPath = this.getAbsoluteFilePath(data);
+						String imgPath = getAbsoluteFilePath(data);
 						handleImages(name, imgPath, doc);
 					} catch (EngineException e) {
-						Engine.logBeans.error("Source image file not found");
-						e.printStackTrace();
+						Engine.logBeans.error("(PdfFormStep) Source image file not found", e);
 					}
-					Engine.logBeans.debug("replaceField - PDPushButton value set");
+					Engine.logBeans.debug("(PdfFormStep) replaceField - PDPushButton value set");
 					break;
 				default:
-					Engine.logBeans.error("UNKNOWN field " + field.getClass().getSimpleName());
+					Engine.logBeans.error("(PdfFormStep) UNKNOWN field " + field.getClass().getSimpleName());
 					setErrorStatus(true);
 					break;
 				}
 				field.setReadOnly(true);
 			} else {
-				Engine.logBeans.error("No field found with name:" + name);
+				Engine.logBeans.error("(PdfFormStep) No field found with name:" + name);
 				setErrorStatus(true);
 			}
 		} catch (IOException e) {
-			Engine.logBeans.error("replaceField FAILED", e);
+			Engine.logBeans.error("(PdfFormStep) replaceField FAILED", e);
 		}
 	}
-
-	// private void addFieldInfos(Node node, String name) {
-	//
-	// }
+	
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-
 		if (isEnabled()) {
 			// Load PDF file and Form Catalog;
 			evaluate(javascriptContext, scope, fieldsList);
@@ -398,37 +373,45 @@ public class PdfFormStep extends Step implements IStepSmartTypeContainer, IStepS
 			evaluate(javascriptContext, scope, targetFile);
 
 			try {
-				Engine.logBeans.debug("Opening PDF file : " + filePath.getSingleString(this));
-
-				String sSourcePath = filePath.getSingleString(this);
-				String afp = this.getAbsoluteFilePath(sSourcePath);
-				File file = new File(afp);
-				pdf = PDDocument.load(file);
-				PDDocumentCatalog docCatalog = pdf.getDocumentCatalog();
-				acroForm = docCatalog.getAcroForm();
-			} catch (IOException e) {
-				Engine.logBeans.error("Error opening PDF file", e);
-				setErrorStatus(true);
-			}
-
-			if (action == Action.fillForm) {
-				this.fillForm();
-
-				// save the pdf document to a target file
 				try {
-					String sTargetFile = targetFile.getSingleString(this);
-					String tafp = this.getAbsoluteFilePath(sTargetFile);
-					pdf.save(tafp);
-					pdf.close();
-					Engine.logBeans.debug("PDF SAVED");
+					Engine.logBeans.debug("(PdfFormStep) Opening PDF file : " + filePath.getSingleString(this));
+
+					String sSourcePath = filePath.getSingleString(this);
+					String afp = getAbsoluteFilePath(sSourcePath);
+					File file = new File(afp);
+					pdf = PDDocument.load(file);
+					PDDocumentCatalog docCatalog = pdf.getDocumentCatalog();
+					acroForm = docCatalog.getAcroForm();
 				} catch (IOException e) {
-					Engine.logBeans.error("FAILED TO SAVE PDF");
-					e.printStackTrace();
+					Engine.logBeans.error("(PdfFormStep) Error opening PDF file", e);
+					setErrorStatus(true);
 				}
-			} else if (action == Action.getFields) {
-				if (acroForm != null) {
-					pdfFields = acroForm.getFields();
-					return super.stepExecute(javascriptContext, scope);
+
+				if (action == Action.fillForm) {
+					fillForm();
+
+					// save the pdf document to a target file
+					try {
+						String sTargetFile = targetFile.getSingleString(this);
+						String tafp = getAbsoluteFilePath(sTargetFile);
+						pdf.save(tafp);
+						Engine.logBeans.debug("(PdfFormStep) PDF SAVED");
+					} catch (IOException e) {
+						Engine.logBeans.error("(PdfFormStep) FAILED TO SAVE PDF", e);
+					}
+				} else if (action == Action.getFields) {
+					if (acroForm != null) {
+						pdfFields = acroForm.getFields();
+						return super.stepExecute(javascriptContext, scope);
+					}
+				}
+			} finally {
+				try {
+					if (pdf != null) {
+						pdf.close();
+					}
+				} catch (Exception e) {
+					Engine.logBeans.warn("(PdfFormStep) FAILED TO CLOSE PDF", e);
 				}
 			}
 		}
@@ -438,7 +421,6 @@ public class PdfFormStep extends Step implements IStepSmartTypeContainer, IStepS
 	@Override
 	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
-		// element.setSchemaTypeName(getSimpleTypeAffectation());
 
 		/*
 		 * <PDFfields>
@@ -451,12 +433,14 @@ public class PdfFormStep extends Step implements IStepSmartTypeContainer, IStepS
 
 		XmlSchemaElement elt1 = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
 
-		XmlSchemaAttribute attr = new XmlSchemaAttribute();
+		XmlSchemaAttribute attr = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
 		attr.setName("type");
-		attr.setFixedValue("object");
+		attr.setFixedValue("array");
+		cType0.getAttributes().add(attr);
 
 		elt1.setName("field");
 		elt1.setMinOccurs(0);
+		elt1.setMaxOccurs(Long.MAX_VALUE);
 		sequence0.getItems().add(elt1);
 
 		/*
@@ -464,20 +448,24 @@ public class PdfFormStep extends Step implements IStepSmartTypeContainer, IStepS
 		 * 
 		 */
 		XmlSchemaComplexType cType1 = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+		attr = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
+		attr.setName("type");
+		attr.setFixedValue("object");
+		cType1.getAttributes().add(attr);
 		elt1.setType(cType1);
 
 		XmlSchemaSequence sequence1 = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
 		cType1.setParticle(sequence1);
 
-		XmlSchemaElement eltVal = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
-		eltVal.setName("val");
-		eltVal.setSchemaTypeName(Constants.XSD_STRING);
-		sequence1.getItems().add(eltVal);
-
 		XmlSchemaElement eltType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
 		eltType.setName("type");
 		eltType.setSchemaTypeName(Constants.XSD_STRING);
 		sequence1.getItems().add(eltType);
+
+		XmlSchemaElement eltVal = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+		eltVal.setName("val");
+		eltVal.setSchemaTypeName(Constants.XSD_STRING);
+		sequence1.getItems().add(eltVal);
 
 		XmlSchemaElement eltName = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
 		eltName.setName("name");

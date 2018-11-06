@@ -23,7 +23,6 @@ import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.steps.PdfFormStep.Action;
-import com.twinsoft.convertigo.beans.steps.XMLSortStep.TypeOrder;
 
 public class PdfFormStepBeanInfo extends MySimpleBeanInfo {
 	
