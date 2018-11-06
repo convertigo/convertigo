@@ -893,6 +893,11 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 			});
 		}
 	}
+
+	@Override
+	public void closeAllEditors(boolean save) {
+		closeAllEditors();
+	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Object getAdapter(Class adapter) {

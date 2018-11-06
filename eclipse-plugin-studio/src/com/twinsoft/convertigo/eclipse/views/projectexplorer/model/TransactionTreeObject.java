@@ -512,4 +512,9 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
 		
 		return listVariablesNames;
 	}
+	
+	@Override
+	public void closeAllEditors(boolean save) {
+		closeAllJsEditors(getObject(), save);
+	}
 }

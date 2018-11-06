@@ -33,4 +33,11 @@ public interface IDesignTreeObject {
 	public TreeParent getParent();
 	public void hasBeenModified();
 	public boolean canPaste(Object object);
+	public default DesignDocumentTreeObject getDesignDocumentTreeObject() {
+		IDesignTreeObject dto = this;
+		while (!(dto instanceof DesignDocumentTreeObject)) {
+			dto = dto.getParentDesignTreeObject();
+		}
+		return (DesignDocumentTreeObject) dto;
+	}
 }

@@ -73,4 +73,15 @@ public class JScriptEditorInput extends FileEditorInput {
 	public String getToolTipText() {
 		return jsContainer.getFullName();
 	}
+	
+	public boolean is(DatabaseObject dbo) {
+		DatabaseObject d = this.jsContainer.getDatabaseObject();
+		do {
+			if (d == dbo) {
+				return true;
+			}
+			d = d.getParent();
+		} while (!(d instanceof Project));
+		return false;
+	}
 }

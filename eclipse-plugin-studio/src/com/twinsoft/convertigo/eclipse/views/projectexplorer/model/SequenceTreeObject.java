@@ -150,4 +150,9 @@ public class SequenceTreeObject extends DatabaseObjectTreeObject implements IEdi
 		}
 		return editorPart;
 	}
+	
+	@Override
+	public void closeAllEditors(boolean save) {
+		closeAllJsEditors(getObject(), save);
+	}
 }

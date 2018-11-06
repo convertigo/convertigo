@@ -19,8 +19,6 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
-public interface IEditableTreeObject {
-	
+public interface IEditableTreeObject extends IClosableTreeObject {
 	public void launchEditor(String editorType);
-	
 }

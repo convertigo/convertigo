@@ -39,7 +39,7 @@ public class DesignDocumentUpdateTreeObject extends DesignDocumentFunctionTreeOb
 	}
 	
 	@Override
-	public IDesignTreeObject getParentDesignTreeObject() {
+	public DesignDocumentTreeObject getParentDesignTreeObject() {
 		return (DesignDocumentTreeObject) getParent().getParent();
 	}
 	
