@@ -49,7 +49,7 @@ import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.Replacement;
 
-public class ConnectorTreeObject extends DatabaseObjectTreeObject {
+public class ConnectorTreeObject extends DatabaseObjectTreeObject implements IClosableTreeObject {
 	
 	public ConnectorTreeObject(Viewer viewer, Connector object) {
 		this(viewer, object, false);
@@ -308,5 +308,10 @@ public class ConnectorTreeObject extends DatabaseObjectTreeObject {
 				}
 			}
 		}
+	}
+	
+	@Override
+	public void closeAllEditors(boolean save) {
+		closeAllJsEditors(getObject(), save);
 	}
 }

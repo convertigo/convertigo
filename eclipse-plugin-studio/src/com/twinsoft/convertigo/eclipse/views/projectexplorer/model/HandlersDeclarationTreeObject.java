@@ -118,4 +118,9 @@ public class HandlersDeclarationTreeObject extends TreeObject implements IEditab
 			jsEditor.selectAndReveal(index, handlerName.length());
 		}
 	}
+
+	@Override
+	public void closeAllEditors(boolean save) {
+		closeAllJsEditors((Transaction) getObject(), save);
+	}
 }

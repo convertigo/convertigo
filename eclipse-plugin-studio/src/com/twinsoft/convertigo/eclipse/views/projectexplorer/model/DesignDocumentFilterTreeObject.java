@@ -39,7 +39,7 @@ public class DesignDocumentFilterTreeObject extends DesignDocumentFunctionTreeOb
 	}
 	
 	@Override
-	public IDesignTreeObject getParentDesignTreeObject() {
+	public DesignDocumentTreeObject getParentDesignTreeObject() {
 		return (DesignDocumentTreeObject) getParent().getParent();
 	}
 	
@@ -53,8 +53,8 @@ public class DesignDocumentFilterTreeObject extends DesignDocumentFunctionTreeOb
 		if (getName().equals(newName))
 			return true;
 		
-		IDesignTreeObject dto = getParentDesignTreeObject();
-		if (((DesignDocumentTreeObject)dto).hasFilter(newName)) {
+		DesignDocumentTreeObject dto = getParentDesignTreeObject();
+		if (dto.hasFilter(newName)) {
 			ConvertigoPlugin.logException(new ConvertigoException("The function named \"" + newName + "\" already exists."), "Unable to change the object name.", bDialog);
 			return false;
 		}

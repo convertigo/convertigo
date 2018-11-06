@@ -202,6 +202,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DocumentTreeO
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ExtractionRuleTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FullSyncListenerTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.HandlersDeclarationTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IClosableTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IDesignTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IEditableTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IPropertyTreeObject;
@@ -474,6 +475,15 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 	public void initialize() {
 		if (Engine.objectsProvider != this) {
+			IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+			if (activePage != null) {
+				IEditorReference[] editorRefs = activePage.getEditorReferences();
+				for (int i = 0; i < editorRefs.length; i++) {
+					IEditorReference editorRef = (IEditorReference) editorRefs[i];
+					IEditorPart editor = editorRef.getEditor(false);
+					activePage.closeEditor(editor, false);
+				}
+			}
 
 			// Loads projects
 			if (Engine.isStarted) {
@@ -1087,12 +1097,13 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 								}
 
 								newName = text.getText();
-								if (theTreeObject instanceof DatabaseObjectTreeObject) {
+										
 									// Save and close editors
-									if ((theTreeObject instanceof MobilePageComponentTreeObject)) {
-										((MobilePageComponentTreeObject)theTreeObject).closeAllEditors(true);
+										if (theTreeObject instanceof IClosableTreeObject) {
+											((IClosableTreeObject) theTreeObject).closeAllEditors(true);
 									}
 
+										if (theTreeObject instanceof DatabaseObjectTreeObject) {
 									DatabaseObjectTreeObject dbObjectTreeObject = (DatabaseObjectTreeObject) theTreeObject;
 									if (dbObjectTreeObject.rename(newName, Boolean.TRUE)) {
 										item.setText(newName);
@@ -1119,6 +1130,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 									DesignDocumentFunctionTreeObject ddfto = (DesignDocumentFunctionTreeObject)theTreeObject;
 									if (ddfto.rename(newName, Boolean.TRUE)) {
 										item.setText(newName);
+												needRefresh = true;
 									}
 								}
 								//FALL THROUGH
@@ -1164,6 +1176,12 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 									updateDlg = true;
 								} else if (theTreeObject instanceof DesignDocumentViewTreeObject) {
 									objectType = "view";
+									updateDlg = true;
+								} else if (theTreeObject instanceof DesignDocumentFilterTreeObject) {
+									objectType = "filter";
+									updateDlg = true;
+								} else if (theTreeObject instanceof DesignDocumentUpdateTreeObject) {
+									objectType = "update";
 									updateDlg = true;
 								} else if (theTreeObject instanceof MobilePageComponentTreeObject) {
 									objectType = "page";

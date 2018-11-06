@@ -25,6 +25,8 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.ui.IActionFilter;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
@@ -34,6 +36,7 @@ import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IJScriptContainer;
+import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.JsonData;
@@ -55,7 +58,7 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 	
 	@Override
 	public IDesignTreeObject getParentDesignTreeObject() {
-		return (DesignDocumentViewTreeObject) getParent();
+		return (IDesignTreeObject) getParent();
 	}
 	
 	@Override
@@ -78,7 +81,7 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 	@Override
 	public String getFullName() {
 		DatabaseObject dbo = getDatabaseObject();
-		return dbo != null ? (dbo.getQName() + "." + getName()) : getName();
+		return dbo != null ? (dbo.getQName() + "." + getParent().getName() + "." + getName()) : getName();
 	}
 	
 	@Override
@@ -117,6 +120,28 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 		} 
 		catch (CoreException e) {
 			ConvertigoPlugin.logException(e, "Unable to open project named '" + projectName + "'!");
+		}
+	}
+	
+	public void closeAllEditors(boolean save) {
+		DesignDocument ddoc = getDesignDocumentTreeObject().getObject();
+		
+		IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+		if (activePage != null) {
+			IEditorReference[] editorRefs = activePage.getEditorReferences();
+			for (int i = 0; i < editorRefs.length; i++) {
+				IEditorReference editorRef = (IEditorReference) editorRefs[i];
+				try {
+					IEditorInput editorInput = editorRef.getEditorInput();
+					if (editorInput != null && editorInput instanceof JScriptEditorInput) {
+						if (((JScriptEditorInput)editorInput).is(ddoc)) {
+							activePage.closeEditor(editorRef.getEditor(false), save);
+						}
+					}
+				} catch(Exception e) {
+					
+				}
+			}
 		}
 	}
 	

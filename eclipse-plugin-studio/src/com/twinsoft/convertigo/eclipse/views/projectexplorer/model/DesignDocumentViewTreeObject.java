@@ -39,7 +39,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public class DesignDocumentViewTreeObject extends TreeParent implements IDesignTreeObject, IActionFilter {
+public class DesignDocumentViewTreeObject extends TreeParent implements IClosableTreeObject, IDesignTreeObject, IActionFilter {
 
 	public DesignDocumentViewTreeObject(Viewer viewer, Object object) {
 		super(viewer, object);
@@ -255,4 +255,8 @@ public class DesignDocumentViewTreeObject extends TreeParent implements IDesignT
 		return false;
 	}
 
+	@Override
+	public void closeAllEditors(boolean save) {
+		closeAllJsEditors(getDesignDocumentTreeObject().getObject(), save);
+	}
 }
