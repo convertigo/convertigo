@@ -568,6 +568,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 					
 					StepVariable stepVariable = variable.isMultiValued() ? new StepMultiValuedVariable():new StepVariable();
 					stepVariable.setName(variableName);
+					stepVariable.setComment(variable.getComment());
 					stepVariable.setDescription(variable.getDescription());
 					stepVariable.setSourceDefinition(new XMLVector<String>());
 					stepVariable.setRequired(variable.isRequired());
@@ -592,6 +593,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 				
 	    		RequestableVariable requestableVariable = stepVariable.isMultiValued() ? new RequestableMultiValuedVariable():new RequestableVariable();
 	    		requestableVariable.setName(variableName);
+	    		requestableVariable.setComment(stepVariable.getComment());
 	    		requestableVariable.setDescription(stepVariable.getDescription());
 	    		requestableVariable.setComment(stepVariable.getComment());
 	    		requestableVariable.setRequired(stepVariable.isRequired());
