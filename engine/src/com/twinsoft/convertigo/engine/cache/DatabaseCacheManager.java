@@ -20,10 +20,13 @@
 package com.twinsoft.convertigo.engine.cache;
 
 import java.io.IOException;
+import java.io.Reader;
+import java.io.StringWriter;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.apache.commons.io.IOUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -33,6 +36,9 @@ import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.util.SqlRequester;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.util.StringEx;
+
+import oracle.jdbc.OraclePreparedStatement;
+import oracle.jdbc.OracleResultSet;
 
 public class DatabaseCacheManager extends CacheManager {
 
@@ -233,6 +239,7 @@ public class DatabaseCacheManager extends CacheManager {
 
 			String jdbcURL = sqlRequester.getProperty(SqlRequester.PROPERTIES_JDBC_URL);
 			boolean isSqlServerDatabase = jdbcURL.indexOf(":sqlserver:") != -1;
+			boolean isOracleServerDatabase = jdbcURL.indexOf(":oracle:") != -1;
 			if (!isSqlServerDatabase) {
 				sqlRequest.replace("[Transaction]", "Transaction");
 			}
@@ -253,17 +260,44 @@ public class DatabaseCacheManager extends CacheManager {
 			String sSqlRequest = sqlRequest.toString();
 			Engine.logCacheManager.debug("SQL: " + sSqlRequest);
 
-			Statement statement = null;
-			
-			
-			try {						
-				statement = sqlRequester.connection.createStatement();
-				int nResult = statement.executeUpdate(sSqlRequest);
-				Engine.logCacheManager.debug(nResult + " row(s) inserted.");
+			// Case Oracle DB with XMLTYPE for Xml column : use prepared statement
+			// INSERT INTO CacheTable (Xml, ExpiryDate, RequestString, Project, [Transaction]) VALUES (XMLTYPE(?), {ExpiryDate}, '{RequestString}', '{Project}', '{Transaction}')
+			if (isOracleServerDatabase && sSqlRequest.toUpperCase().indexOf("XMLTYPE(?)") != -1) {
+				OraclePreparedStatement statement = null;
+				java.sql.Clob clb = null;
+				try {
+					xml = escapeString(xml);
+					
+					clb = sqlRequester.connection.createClob();
+					clb.setString(1, xml);
+					
+					statement = (OraclePreparedStatement) sqlRequester.connection.prepareStatement(sSqlRequest);
+					statement.setClob(1, clb);
+					int nResult = statement.executeUpdate();
+					Engine.logCacheManager.debug(nResult + " row(s) inserted (Xml length="+ xml.length() +").");
+				}
+				finally {
+					if (clb != null) {
+						clb.free();
+					}
+					if (statement != null) {
+						statement.close();
+					}
+				}
 			}
-			finally {
-				if (statement != null) {
-					statement.close();
+			// Other cases
+			// INSERT INTO CacheTable (Xml, ExpiryDate, RequestString, Project, [Transaction]) VALUES ('{Xml}', {ExpiryDate}, '{RequestString}', '{Project}', '{Transaction}')
+			else {
+				Statement statement = null;
+				try {						
+					statement = sqlRequester.connection.createStatement();
+					int nResult = statement.executeUpdate(sSqlRequest);
+					Engine.logCacheManager.debug(nResult + " row(s) inserted.");
+				}
+				finally {
+					if (statement != null) {
+						statement.close();
+					}
 				}
 			}
 			
@@ -287,7 +321,10 @@ public class DatabaseCacheManager extends CacheManager {
 
 		try {
 			Engine.logCacheManager.debug("Trying to get from the cache the stored response corresponding to this cache entry.");
-				
+
+			String jdbcURL = sqlRequester.getProperty(SqlRequester.PROPERTIES_JDBC_URL);
+			boolean isOracleServerDatabase = jdbcURL.indexOf(":oracle:") != -1;
+			
 			StringEx sqlRequest = new StringEx(sqlRequester.getProperty(DatabaseCacheManager.PROPERTIES_SQL_REQUEST_GET_STORED_RESPONSE));
 			
 			String cacheTableName = sqlRequester.getProperty(DatabaseCacheManager.PROPERTIES_SQL_CACHE_TABLE_NAME, "CacheTable");
@@ -301,24 +338,61 @@ public class DatabaseCacheManager extends CacheManager {
 			String sSqlRequest = sqlRequest.toString();
 			Engine.logCacheManager.debug("SQL: " + sSqlRequest);
 	
-			Statement statement = null;
-			ResultSet rs = null;
 			Document document = null; 
-			try {
-				statement = sqlRequester.connection.createStatement();
-				rs = statement.executeQuery(sSqlRequest);
-				rs.next();
 
-								
-				String xml =rs.getString("Xml");
+			// Case Oracle DB with XMLTYPE for Xml column : use prepared statement
+			// SELECT x.Xml.getCLOBVal() Xml FROM CacheTable x WHERE Id \= {Id}
+			if (isOracleServerDatabase && sSqlRequest.toUpperCase().indexOf("GETCLOBVAL()") != -1) {
+				OraclePreparedStatement statement = null;
+				OracleResultSet rs = null;
+				java.sql.Clob clb = null;
+				try {
+					statement = (OraclePreparedStatement) sqlRequester.connection.prepareStatement(sSqlRequest);
+					rs = (OracleResultSet) statement.executeQuery(sSqlRequest);
+					rs.next();
 
-				document = requester.parseDOM(xml);
+					clb = rs.getCLOB("Xml");
+					Reader in = clb.getCharacterStream();
+					StringWriter w = new StringWriter();
+					IOUtils.copy(in, w);
+					
+					String xml = w.toString();
+					
+					document = requester.parseDOM(xml);					
+				}
+				finally {
+					if (clb != null) {
+						clb.free();
+					}
+					if (rs != null) {
+						rs.close();
+					}
+					if (statement != null) {
+						statement.close();
+					}
+				}
 			}
-			finally {
-				if (rs != null)
-					rs.close();
-				if (statement != null) {
-					statement.close();
+			// Other cases
+			// SELECT Xml FROM CacheTable WHERE Id \= {Id}
+			else {
+				Statement statement = null;
+				ResultSet rs = null;
+				try {
+					statement = sqlRequester.connection.createStatement();
+					rs = statement.executeQuery(sSqlRequest);
+					rs.next();
+									
+					String xml = rs.getString("Xml");
+	
+					document = requester.parseDOM(xml);
+				}
+				finally {
+					if (rs != null) {
+						rs.close();
+					}
+					if (statement != null) {
+						statement.close();
+					}
 				}
 			}
 			
