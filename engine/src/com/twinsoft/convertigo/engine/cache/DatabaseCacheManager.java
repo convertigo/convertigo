@@ -262,7 +262,7 @@ public class DatabaseCacheManager extends CacheManager {
 
 			// Case Oracle DB with XMLTYPE for Xml column : use prepared statement
 			// INSERT INTO CacheTable (Xml, ExpiryDate, RequestString, Project, [Transaction]) VALUES (XMLTYPE(?), {ExpiryDate}, '{RequestString}', '{Project}', '{Transaction}')
-			if (isOracleServerDatabase && sSqlRequest.toUpperCase().indexOf("XMLTYPE(?)") != 1) {
+			if (isOracleServerDatabase && sSqlRequest.toUpperCase().indexOf("XMLTYPE(?)") != -1) {
 				OraclePreparedStatement statement = null;
 				java.sql.Clob clb = null;
 				try {
@@ -342,7 +342,7 @@ public class DatabaseCacheManager extends CacheManager {
 
 			// Case Oracle DB with XMLTYPE for Xml column : use prepared statement
 			// SELECT x.Xml.getCLOBVal() Xml FROM CacheTable x WHERE Id \= {Id}
-			if (isOracleServerDatabase && sSqlRequest.toUpperCase().indexOf("GETCLOBVAL()") != 1) {
+			if (isOracleServerDatabase && sSqlRequest.toUpperCase().indexOf("GETCLOBVAL()") != -1) {
 				OraclePreparedStatement statement = null;
 				OracleResultSet rs = null;
 				java.sql.Clob clb = null;
