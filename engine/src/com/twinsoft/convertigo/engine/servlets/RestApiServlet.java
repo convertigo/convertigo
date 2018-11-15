@@ -279,26 +279,34 @@ public class RestApiServlet extends GenericServlet {
 							// Case Authentications are defined for mapper
 							if (urlAuthentications != null) {
 								boolean authenticated = false;
-								for (UrlAuthentication urlAuthentication: urlAuthentications) {
-									// Handle Auth request
-									response.reset();
-									RequestAttribute.responseHeader.set(request, new HashMap<String, String>());
-									RequestAttribute.responseStatus.set(request, new HashMap<Integer, String>());
-									urlAuthentication.handleAuthRequest(request, response);
-									
-									// Check user has been authenticated
-						    		authenticated = SessionAttribute.authenticatedUser.string(request.getSession()) != null;
-						    		if (authenticated) {
-						    			break;
-						    		}
-								}
 								
-								// Handle User request
-								if (authenticated) {
-									response.reset();
-									RequestAttribute.responseHeader.set(request, new HashMap<String, String>());
-									RequestAttribute.responseStatus.set(request, new HashMap<Integer, String>());
-					                content = urlMappingOperation.handleRequest(request, response);
+								int len = urlAuthentications.size();
+								if (len > 0) {
+									for (UrlAuthentication urlAuthentication: urlAuthentications) {
+										// Handle Auth request
+										response.reset();
+										RequestAttribute.responseHeader.set(request, new HashMap<String, String>());
+										RequestAttribute.responseStatus.set(request, new HashMap<Integer, String>());
+										urlAuthentication.handleAuthRequest(request, response);
+										
+										// Check user has been authenticated
+							    		authenticated = SessionAttribute.authenticatedUser.string(request.getSession()) != null;
+							    		if (authenticated) {
+							    			break;
+							    		}
+									}
+									
+									// Handle User request
+									if (authenticated) {
+										response.reset();
+										RequestAttribute.responseHeader.set(request, new HashMap<String, String>());
+										RequestAttribute.responseStatus.set(request, new HashMap<Integer, String>());
+						                content = urlMappingOperation.handleRequest(request, response);
+									}
+								}
+								// HTTP authentication required
+								else {
+									response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 								}
 							}
 							// HTTP authentication required
