@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,6 +39,8 @@ import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.codehaus.jettison.json.JSONObject;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.core.IMappingRefModel;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.UrlAuthentication;
@@ -51,10 +54,19 @@ import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataContent;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataType;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter.Type;
 import com.twinsoft.convertigo.beans.rest.AbstractRestOperation;
+import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
+import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
+import com.twinsoft.convertigo.beans.transactions.JsonHttpTransaction;
+import com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction;
+import com.twinsoft.convertigo.beans.variables.RequestableHttpMultiValuedVariable;
+import com.twinsoft.convertigo.beans.variables.RequestableHttpVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.SchemaManager.Option;
+import com.twinsoft.convertigo.engine.enums.AuthenticationMode;
+import com.twinsoft.convertigo.engine.enums.DoFileUploadMode;
+import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import io.swagger.v3.core.util.Json;
@@ -65,6 +77,7 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.Paths;
+import io.swagger.v3.oas.models.PathItem.HttpMethod;
 import io.swagger.v3.oas.models.callbacks.Callback;
 import io.swagger.v3.oas.models.examples.Example;
 import io.swagger.v3.oas.models.headers.Header;
@@ -150,7 +163,7 @@ public class OpenApiUtils {
 		}
 	}
 	
-	private static String getModels(String requestUrl, UrlMapper urlMapper) {
+	private static String getModels(String oasDirUrl, UrlMapper urlMapper) {
 		Project project = urlMapper.getProject();
 		String projectName = project.getName();
 		
@@ -182,7 +195,7 @@ public class OpenApiUtils {
 	
 					String prefix = nsMap.getPrefix(tns);
 					File jsonschemaFile = new File(targetDir, prefix+".jsonschema" );
-					JSONObject jsonObject = JsonSchemaUtils.getJsonSchema(xmlSchemaCollection, xmlSchema, false);
+					JSONObject jsonObject = JsonSchemaUtils.getJsonSchema(xmlSchemaCollection, xmlSchema, oasDirUrl, false);
 					String content = jsonObject.toString(4);
 					FileUtils.write(jsonschemaFile, content, "UTF-8");
 					//toOas3Content(jsonschemaFile);
@@ -205,9 +218,10 @@ public class OpenApiUtils {
 		
 		Info info = new Info();
 		info.setContact(new Contact());
-		info.setTitle("Convertigo REST API");
+		info.setTitle("Convertigo OAS3 REST API");
 		info.setDescription("Find here all deployed projects");
 		if (project != null) {
+			info.setTitle(project.getName() + " OAS3 REST API");
 			info.setDescription(project.getComment());
 			info.setVersion(project.getVersion());			
 		}
@@ -222,12 +236,7 @@ public class OpenApiUtils {
 			basePath = matcher.group(3);
 			serverUrl = scheme+ "://"+ host + basePath;
 		} else {
-			String webAppPath = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
-			int index = webAppPath.indexOf("://") + 3;
-			scheme = webAppPath.substring(0, webAppPath.indexOf("://"));
-			host = webAppPath.substring(index, webAppPath.indexOf('/', index));
-			basePath = webAppPath.substring(index + host.length()) + "/" + servletMappingPath;
-			serverUrl = scheme+ "://"+ host + basePath;
+			serverUrl = getConvertigoServeurUrl();
 		}
 		
 		Server server1 = new Server();		
@@ -388,7 +397,7 @@ public class OpenApiUtils {
 		
 		// Models and Schemas
 		try {
-			String models = getModels(requestUrl, urlMapper);
+			String models = getModels(oasDirUrl, urlMapper);
 			JSONObject jsonModels = new JSONObject(models);
 			
 			OpenAPI oa = new OpenAPI();
@@ -436,7 +445,7 @@ public class OpenApiUtils {
 						} catch (Exception e) {}
 						if (ump != null && ump.getType() == Type.Path) {
 							parameter.setDescription(ump.getComment());
-							Schema<?> schema = getSchema(ump.getDataType());
+							Schema<?> schema = getSchema(ump);
 							if (schema != null) {
 								parameter.setSchema(schema);
 							}
@@ -619,6 +628,319 @@ public class OpenApiUtils {
 		}
 		
 		return openAPI;
+	}
+	
+	private static String getConvertigoServeurUrl() {
+		String webAppPath = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
+		int index = webAppPath.indexOf("://") + 3;
+		String scheme = webAppPath.substring(0, webAppPath.indexOf("://"));
+		String host = webAppPath.substring(index, webAppPath.indexOf('/', index));
+		String basePath = webAppPath.substring(index + host.length()) + "/" + servletMappingPath;
+		String serverUrl = scheme+ "://"+ host + basePath;
+		return serverUrl;
+	}
+	
+	public static HttpConnector createRestConnector(OpenAPI openApi) throws Exception {
+		try {
+			HttpConnector httpConnector = new HttpConnector();
+			httpConnector.bNew = true;
+			
+			Info info = openApi.getInfo();
+			String title = info != null ? info.getTitle():"";
+			title = title == null || title.isEmpty() ? "RestConnector":title;
+			String description = info != null ? info.getDescription():"";
+			description = description == null || description.isEmpty() ? "":description;
+			httpConnector.setName(StringUtils.normalize(title));
+			httpConnector.setComment(description);
+			
+			String httpUrl = "";
+			List<Server> servers = openApi.getServers();
+			if (servers.size() > 0) {
+				httpUrl = servers.get(0).getUrl();
+			}
+			httpUrl = httpUrl.isEmpty() ? getConvertigoServeurUrl(): httpUrl;
+			
+			Matcher matcher = parseRequestUrl.matcher(httpUrl);
+			if (matcher.find()) {
+				String scheme = matcher.group(1) == null ? "http":"https";
+				String host = matcher.group(2);
+				String basePath = matcher.group(3);
+				
+				int index = host.indexOf(":");
+				String server = index == -1 ? host : host.substring(0, index);
+				int port = index == -1 ? 0 : Integer.parseInt(host.substring(index+1),10);
+				
+				httpConnector.setHttps("https".equals(scheme));
+				httpConnector.setServer(server);
+				httpConnector.setPort(port <= 0 ? 80:port);
+				httpConnector.setBaseDir(basePath);
+			}
+			httpConnector.setBaseUrl(httpUrl);
+			
+			List<SecurityRequirement> securityRequirements = openApi.getSecurity();
+			if (securityRequirements != null && securityRequirements.size() > 0) {
+				Map<String, SecurityScheme> securitySchemes = openApi.getComponents().getSecuritySchemes();
+				for (SecurityRequirement sr: securityRequirements) {
+					for (String s_name : sr.keySet()) {
+						SecurityScheme securityScheme = securitySchemes.get(s_name);
+						if (securityScheme != null) {
+							boolean isBasicScheme = securityScheme.getScheme().toLowerCase().equals("basic");
+							boolean isHttpType = securityScheme.getType().equals(SecurityScheme.Type.HTTP);
+							if (isHttpType && isBasicScheme) {
+								httpConnector.setAuthenticationType(AuthenticationMode.Basic);
+								break;
+							}
+						}
+					}
+				}
+			}
+			
+			Paths paths = openApi.getPaths();
+			if (paths != null) {
+				for (Entry<String, PathItem> entry : paths.entrySet()) {
+					HttpMethodType httpMethodType = null;
+					Operation operation = null;
+					
+					String subDir = entry.getKey();
+					PathItem pathItem = entry.getValue();
+					
+					Map<HttpMethod, Operation> operationMap = pathItem.readOperationsMap();
+					for (HttpMethod httpMethod : operationMap.keySet()) {
+						
+						operation = operationMap.get(httpMethod);
+						
+						if (httpMethod.equals(HttpMethod.GET)) {
+							httpMethodType = HttpMethodType.GET;
+						} else if (httpMethod.equals(HttpMethod.POST)) {
+							httpMethodType = HttpMethodType.POST;
+						} else if (httpMethod.equals(HttpMethod.PUT)) {
+							httpMethodType = HttpMethodType.PUT;
+						} else if (httpMethod.equals(HttpMethod.DELETE)) {
+							httpMethodType = HttpMethodType.DELETE;
+						} else if (httpMethod.equals(HttpMethod.HEAD)) {
+							httpMethodType = HttpMethodType.HEAD;
+						} else if (httpMethod.equals(HttpMethod.TRACE)) {
+							httpMethodType = HttpMethodType.TRACE;
+						} else if (httpMethod.equals(HttpMethod.OPTIONS)) {
+							httpMethodType = HttpMethodType.OPTIONS;
+						} else {
+							httpMethodType = null;
+						}
+						
+						if (operation != null && httpMethodType != null) {
+							String operationId = operation.getOperationId();
+							String operationDesc = operation.getDescription();
+							String summary = operation.getSummary();
+							
+							String name = StringUtils.normalize(subDir + ":" + httpMethodType.toString());
+							if (name.isEmpty()) {
+								name = StringUtils.normalize(operationId);
+								if (name.isEmpty()) {
+									name = StringUtils.normalize(summary);
+									if (name.isEmpty()) {
+										name = "operation";
+									}
+								}
+							}
+							
+							String comment = summary;
+							if (comment.isEmpty()) {
+								comment = operationDesc;
+							}
+							
+							XMLVector<XMLVector<String>> httpParameters = new XMLVector<XMLVector<String>>();
+							AbstractHttpTransaction transaction = new HttpTransaction();
+							
+							String h_ContentType = MimeType.WwwForm.value();
+							/*if (consumeList != null) {
+								if (consumeList.contains(MimeType.Json.value())) {
+									h_ContentType = MimeType.Json.value();
+								}
+								else if (consumeList.contains(MimeType.Xml.value())) {
+									h_ContentType = MimeType.Xml.value();
+								}
+								else {
+									h_ContentType = consumeList.size() > 0 ? 
+											consumeList.get(0) : MimeType.WwwForm.value();
+								}
+							}*/
+							
+							String h_Accept = MimeType.Json.value();
+							/*if (produceList != null) {
+								if (produceList.contains(h_ContentType)) {
+									h_Accept = h_ContentType;
+								}
+								else {
+									if (produceList.contains(MimeType.Json.value())) {
+										h_Accept = MimeType.Json.value();
+									}
+									else if (produceList.contains(MimeType.Xml.value())) {
+										h_Accept = MimeType.Xml.value();
+									}
+								}
+								
+								if (consumeList == null && h_Accept != null) {
+									h_ContentType = h_Accept;
+								}
+							}*/
+							
+							if (h_Accept != null) {
+								XMLVector<String> xmlv = new XMLVector<String>();
+								xmlv.add("Accept");
+								xmlv.add(h_Accept);
+					   			httpParameters.add(xmlv);
+					   			
+								if (h_Accept.equals(MimeType.Xml.value())) {
+									transaction = new XmlHttpTransaction();
+									((XmlHttpTransaction)transaction).setXmlEncoding("UTF-8");
+								}
+								else if (h_Accept.equals(MimeType.Json.value())) {
+									transaction = new JsonHttpTransaction();
+									((JsonHttpTransaction)transaction).setIncludeDataType(false);
+								}
+							}
+							
+							// Add variables
+							boolean hasBodyVariable = false;
+							RequestBody body = operation.getRequestBody();
+							if (body != null) {
+								Map<String, MediaType> medias = body.getContent();
+								for (String contentType : medias.keySet()) {
+									MediaType mediaType = medias.get(contentType);
+									Schema<?> mediaSchema =  mediaType.getSchema();
+									List<String> requiredList = mediaSchema.getRequired();
+									if (contentType.equals("application/x-www-form-urlencoded")) {
+										@SuppressWarnings("rawtypes")
+										Map<String, Schema> properties = mediaSchema.getProperties();
+										for (String p_name : properties.keySet()) {
+											Schema<?> schema = properties.get(p_name);
+											String p_description = schema.getDescription();
+											boolean p_required = requiredList == null ? false:requiredList.contains(p_name);
+											
+											boolean isMultiValued = false;
+											if (schema instanceof ArraySchema) {
+												isMultiValued = true;
+											}
+											
+											RequestableHttpVariable httpVariable = isMultiValued ? 
+													new RequestableHttpMultiValuedVariable():
+													new RequestableHttpVariable();
+											httpVariable.bNew = true;
+											httpVariable.setHttpMethod(HttpMethodType.POST.name());
+											httpVariable.setName(p_name);
+											httpVariable.setDescription(p_name);
+											httpVariable.setHttpName(p_name);
+											httpVariable.setRequired(p_required);
+											httpVariable.setComment(p_description == null ? "":p_description);
+											
+											if (schema instanceof FileSchema) {
+												httpVariable.setDoFileUploadMode(DoFileUploadMode.multipartFormData);
+											}
+											
+											Object defaultValue = schema.getDefault();
+											if (defaultValue == null && p_required) {
+												defaultValue = "";
+											}
+											httpVariable.setValueOrNull(defaultValue);
+											
+											transaction.addVariable(httpVariable);
+										}
+									} else if (!hasBodyVariable) {
+										RequestableHttpVariable httpVariable = new RequestableHttpVariable();
+										httpVariable.bNew = true;
+										httpVariable.setHttpMethod(HttpMethodType.POST.name());
+										httpVariable.setRequired(true);
+										
+										// overrides variable's name for internal use
+										httpVariable.setName(com.twinsoft.convertigo.engine.enums.Parameter.HttpBody.getName());
+										
+										Object defaultValue = null;
+										httpVariable.setValueOrNull(defaultValue);
+										
+										transaction.addVariable(httpVariable);
+										
+										h_ContentType = contentType;
+										
+										hasBodyVariable = true;
+									}
+								}
+							}
+							
+							List<Parameter> parameters = operation.getParameters();
+							if (parameters != null) {
+								for (Parameter parameter: parameters) {
+									String p_name = parameter.getName();
+									String p_description = parameter.getDescription();
+									boolean p_required = parameter.getRequired();
+									
+									boolean isMultiValued = false;
+									Schema<?> schema = parameter.getSchema();
+									if (schema instanceof ArraySchema) {
+										isMultiValued = true;
+									}
+									
+									RequestableHttpVariable httpVariable = isMultiValued ? 
+											new RequestableHttpMultiValuedVariable():
+											new RequestableHttpVariable();
+									httpVariable.bNew = true;
+									
+									httpVariable.setName(p_name);
+									httpVariable.setDescription(p_name);
+									httpVariable.setHttpName(p_name);
+									httpVariable.setRequired(p_required);
+									httpVariable.setComment(p_description == null ? "":p_description);
+									
+									if (parameter instanceof QueryParameter || parameter instanceof PathParameter || parameter instanceof HeaderParameter) {
+										httpVariable.setHttpMethod(HttpMethodType.GET.name());
+										if (parameter instanceof HeaderParameter) {
+											// overrides variable's name : will be treated as dynamic header
+											httpVariable.setName(com.twinsoft.convertigo.engine.enums.Parameter.HttpHeader.getName() + p_name);
+											httpVariable.setHttpName(""); // do not post on target server
+										}
+										if (parameter instanceof PathParameter) {
+											httpVariable.setHttpName(""); // do not post on target server
+										}
+									} else {
+										httpVariable.setHttpMethod("");
+									}
+									
+									Object defaultValue = schema.getDefault();
+									if (defaultValue == null && p_required) {
+										defaultValue = "";
+									}
+									httpVariable.setValueOrNull(defaultValue);
+									
+									transaction.addVariable(httpVariable);
+								}
+							}
+							
+							// Set Content-Type
+							if (h_ContentType != null) {
+								XMLVector<String> xmlv = new XMLVector<String>();
+								xmlv.add(HeaderName.ContentType.value());
+								xmlv.add(hasBodyVariable ? h_ContentType:MimeType.WwwForm.value());
+					   			httpParameters.add(xmlv);
+							}
+							
+							transaction.bNew =  true;
+							transaction.setName(name);
+							transaction.setComment(comment);
+							transaction.setSubDir(subDir);
+							transaction.setHttpVerb(httpMethodType);
+							transaction.setHttpParameters(httpParameters);
+							transaction.setHttpInfo(true);
+							
+							httpConnector.add(transaction);
+						}
+					}
+				}
+			}
+			return httpConnector;
+		}
+		catch (Throwable t) {
+			Engine.logEngine.error("Unable to create connector", t);
+			throw new Exception("Unable to create connector", t);
+		}
 	}
 	
 	public static String prettyPrintJson(OpenAPI openAPI) {

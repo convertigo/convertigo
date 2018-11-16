@@ -436,6 +436,7 @@ public class NewObjectWizard extends Wizard {
 				
 				// Now add bean to target
 				try {
+					boolean hasChanged = parentObject.hasChanged;
 					if ((newBean instanceof Statement) && (parentObject instanceof Transaction)) {
 						newBean.priority = 0;
 					}
@@ -564,11 +565,12 @@ public class NewObjectWizard extends Wizard {
 							WebServiceReference webServiceReference = (WebServiceReference)newBean;
 							ImportWsReference wsr = new ImportWsReference(webServiceReference);
 							wsr.importInto(project);
-						} catch (Exception e){
+						} catch (Exception e) {
 							if (newBean != null) {
 								parentObject.remove(newBean);
+								parentObject.hasChanged = hasChanged;
 							}
-							throw new Exception(e.getMessage());
+							throw new Exception(e);
 						}
 					}
 					
@@ -578,11 +580,12 @@ public class NewObjectWizard extends Wizard {
 							RestServiceReference restServiceReference = (RestServiceReference)newBean;
 							ImportWsReference wsr = new ImportWsReference(restServiceReference);
 							wsr.importInto(project);
-						} catch (Exception e){
+						} catch (Exception e) {
 							if (newBean != null) {
 								parentObject.remove(newBean);
+								parentObject.hasChanged = hasChanged;
 							}
-							throw new Exception(e.getMessage());
+							throw new Exception(e);
 						}
 					}
 					

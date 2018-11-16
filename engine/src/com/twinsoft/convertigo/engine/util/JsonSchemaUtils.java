@@ -79,7 +79,7 @@ public class JsonSchemaUtils {
 	//https://github.com/swagger-api/swagger-ui/issues/4643 : Oas3 Form parameters not rendered as expected. Fixed in 3.19.0
 	//swagger-ui issue : model with self recursion
 
-	protected static JSONObject getJsonSchema(XmlSchemaCollection xmlSchemaCollection, XmlSchema xmlSchema, boolean isOas2) {
+	protected static JSONObject getJsonSchema(XmlSchemaCollection xmlSchemaCollection, XmlSchema xmlSchema, String oasDirUrl, boolean isOas2) {
 		final NamespaceMap nsMap = (NamespaceMap) xmlSchemaCollection.getNamespaceContext();
 		final JSONObject jsonSchema = new JSONObject();
 		try {
@@ -110,7 +110,8 @@ public class JsonSchemaUtils {
 					if (rname != null) {
 						String local = rname.getLocalPart();
 						String ns = rname.getNamespaceURI();
-						return nsMap.getPrefix(ns)+ ".jsonschema#/definitions/"+local;
+						// Made a fix for oas2 because swagger-parser v1.0.39 resolver is buggy
+						return (isOas2 ? oasDirUrl:"") + nsMap.getPrefix(ns)+ ".jsonschema#/definitions/"+local;
 					}
 					return null;
 				}
