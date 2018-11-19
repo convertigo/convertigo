@@ -608,6 +608,10 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			return null;
 		}
 
+		if (newProjectName != null) {
+			return Engine.theApp.databaseObjectsManager.deployProject(projectArchivePath, newProjectName, true);
+		}
+		
 		String temporaryDir = new File(Engine.USER_WORKSPACE_PATH + "/temp/" + oldProjectName).getCanonicalPath();
 		String newProjectDir = Engine.projectDir(newProjectName);
 
@@ -656,7 +660,8 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			String xmlFilePath = newProjectDir + "/" + oldProjectName + ".xml";
 			String newXmlFilePath = newProjectDir + "/" + newProjectName + ".xml";
 			File xmlFile = new File(xmlFilePath);
-
+			
+			
 			// load xml content of file in dom
 			Document dom = null;
 			

@@ -1,0 +1,17 @@
+buildscript {
+	repositories {
+		mavenLocal()
+		maven {
+			url "https://m2.convertigo.com"
+		}
+		maven {
+			url "http://maven.teamdev.com/repository/products"
+		}
+		jcenter() 
+	}
+	dependencies {
+		classpath 'com.convertigo:gradle-plugin:((CURRENT_VERSION))'
+	}
+}
+
+apply plugin: 'convertigo'

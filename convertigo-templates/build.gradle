@@ -1,0 +1,27 @@
+def templates = ['template_sequence']
+
+task copyCommons(type: Copy) {
+	group 'convertigo'
+	
+	from 'common'
+	filter { it.replace('((CURRENT_VERSION))', project(':gradle-plugin').version) }
+	
+	templates.each {
+		into it
+	}
+}
+
+task buildAllTemplates {
+	group 'convertigo'
+}
+
+templates.each {
+	def pdir = file(it)
+	buildAllTemplates.dependsOn	task("buildCar${it.capitalize()}", type: GradleBuild, dependsOn: [copyCommons, ':gradle-plugin:publishToMavenLocal']) {
+		group 'build'
+		
+		dir = pdir
+		tasks = ['car']
+		startParameter.projectProperties = ['convertigo.destinationDir': project(':eclipse-plugin-studio').file('tomcat/webapps/convertigo/templates/project').path]
+	}
+}

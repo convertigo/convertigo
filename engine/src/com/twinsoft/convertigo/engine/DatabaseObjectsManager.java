@@ -116,10 +116,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 	private static final Pattern pProjectName = Pattern.compile("(.*)\\.(?:xml|car)");
 	
 	public static interface StudioProjects {
-		default void declareProject(File projectXml) {
+		default public void declareProject(String projectName, File projectFile) {
 		}
 		
-		default boolean canOpen(String projectName) {
+		default public boolean canOpen(String projectName) {
 			return true;
 		}
 		
@@ -127,13 +127,27 @@ public class DatabaseObjectsManager implements AbstractManager {
 			return Collections.emptyMap();
 		}
 		
-		default public File getProject(String projectName) {
-			File file = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml");
-			return file.exists() ? file : null;
-		}
+		public File getProject(String projectName);
 	}
 	
-	public static StudioProjects studioProjects = new StudioProjects() {};
+	public static StudioProjects studioProjects = new StudioProjects() {
+		Map<String, File> projectsDir = new HashMap<String, File>();
+		
+		@Override
+		public void declareProject(String projectName, File projectFile) {
+			if (projectFile != null && projectFile.exists()) {
+				projectsDir.put(projectName, projectFile);
+			}
+		}
+		
+		public File getProject(String projectName) {
+			File file = projectsDir.get(projectName);
+			if (file == null || !file.exists()) {
+				file = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml");
+			}
+			return file.exists() ? file : null;
+		}
+	};
 	
 	private Map<String, Project> projects;
 	
@@ -715,6 +729,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 		Engine.logDatabaseObjectManager.debug("Saving project \"" + projectName + "\" to XML file ...");
 		String exportedProjectFileName = Engine.projectFile(projectName).getAbsolutePath();
 		CarUtils.exportProject(project, exportedProjectFileName);
+		if (exportedProjectFileName.endsWith(".xml")) {
+			studioProjects.declareProject(projectName, new File(new File(exportedProjectFileName).getParentFile(), "c8oProject.yaml"));
+		}
 		RestApiManager.getInstance().putUrlMapper(project);
 		Engine.logDatabaseObjectManager.info("Project \"" + projectName + "\" saved!");
 	}
@@ -939,7 +956,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 			if (doSave) {
 				exportProject(project);
 			}
-			CouchDbManager.syncDocument(project);
+			if (!Engine.isCliMode()) {
+				CouchDbManager.syncDocument(project);
+			}
 			return project;
 		} catch (Exception e) {
 			throw new EngineException("An error occured while importing project", e);
@@ -1060,15 +1079,18 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 	private Project importProject(String importFileName, Document document) throws EngineException {
 		try {
+			File importFile;
 			Engine.logDatabaseObjectManager.info("Importing project ...");
 			if (importFileName != null) {
-				File importFile = new File(importFileName);
+				importFile = new File(importFileName);
 				if (importFile.getName().equals("c8oProject.yaml")) {
 					document = YamlConverter.readYaml(importFile);
 					document = BeansDefaultValues.unshrinkProject(document);
 				} else {
 					document = XMLUtils.loadXml(importFile);
 				}
+			} else {
+				importFile = null;
 			}
 
 			// Performs necessary XML migration
@@ -1085,7 +1107,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 			NodeList properties = projectElement.getElementsByTagName("property");
 			Element pName = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "name");
 			String projectName = (String) XMLUtils.readObjectFromXml((Element) XMLUtils.findChildNode(pName, Node.ELEMENT_NODE));
-
+			
+			studioProjects.declareProject(projectName, importFile);
+			
 			projectLoadingDataThreadLocal.remove();
 			getProjectLoadingData().projectName = projectName;
 			
@@ -1598,6 +1622,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 	
 	private void symbolsInit() {
+		if (Engine.isCliMode()) {
+			return;
+		}
+		
 		globalSymbolsFilePath = System.getProperty(Engine.JVM_PROPERTY_GLOBAL_SYMBOLS_FILE_COMPATIBILITY,  
 				System.getProperty(Engine.JVM_PROPERTY_GLOBAL_SYMBOLS_FILE, 
                         Engine.CONFIGURATION_PATH + "/global_symbols.properties")); 		

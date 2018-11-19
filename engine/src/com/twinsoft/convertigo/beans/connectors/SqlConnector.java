@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.beans.connectors;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.sql.CallableStatement;
@@ -268,7 +269,7 @@ public class SqlConnector extends Connector {
 					connection.close();
 				
 				if (!keepConnectionAliveAfterTransaction) {
-					Engine.theApp.sqlConnectionManager.removeDatabasePool(this);
+					removeDatabasePool();
 				}
 				
 				Engine.logBeans.debug("(SqlConnector) Database connection closed");
@@ -432,8 +433,8 @@ public class SqlConnector extends Connector {
 		if (jdbc.containsKey(jdbcDriverClassName = string))
 			url = jdbc.get(jdbcDriverClassName);
 		if (url.equals("")) {
-			try {
-				Properties properties = PropertiesUtils.load(getClass().getResourceAsStream("/jdbc_drivers.properties"));
+			try (InputStream stream = getClass().getResourceAsStream("/jdbc_drivers.properties")) {
+				Properties properties = PropertiesUtils.load(stream);
 				
 				// Enumeration of the properties
 				for(Map.Entry<String, String> prop : GenericUtils.<Set<Map.Entry<String,String>>>cast(properties.entrySet())){
@@ -465,7 +466,7 @@ public class SqlConnector extends Connector {
 	public void setJdbcURL(String string) {
 		jdbc.put(jdbcDriverClassName, jdbcURL=string);
 		if (connection != null) needReset = true;
-		Engine.theApp.sqlConnectionManager.removeDatabasePool(this);
+		removeDatabasePool();
 	}
 
 	/**
@@ -483,7 +484,8 @@ public class SqlConnector extends Connector {
 	public void setJdbcUserName(String string) {
 		jdbcUserName = string;
 		if (connection != null) needReset = true;
-		Engine.theApp.sqlConnectionManager.removeDatabasePool(this);
+		removeDatabasePool();
+			
 	}
 
 	/**
@@ -501,7 +503,13 @@ public class SqlConnector extends Connector {
 	public void setJdbcUserPassword(String string) {
 		jdbcUserPassword = string;
 		if (connection != null) needReset = true;
-		Engine.theApp.sqlConnectionManager.removeDatabasePool(this);
+		removeDatabasePool();
+	}
+
+	private void removeDatabasePool() {
+		if (Engine.theApp != null && Engine.theApp.sqlConnectionManager != null) {
+			Engine.theApp.sqlConnectionManager.removeDatabasePool(this);
+		}
 	}
 
 	@Override

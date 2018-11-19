@@ -71,7 +71,7 @@ public class CarUtils {
 	}
 	
 	public static File makeArchive(String dir, Project project, String exportName) throws EngineException {
-		List<File> undeployedFiles=getUndeployedFiles(project.getName());	
+		List<File> undeployedFiles = getUndeployedFiles(project.getName());	
 		String projectName = project.getName();
 		try {
 			// Export the project
@@ -114,6 +114,8 @@ public class CarUtils {
 		undeployedFiles.add(dataDir);
 		File carFile = new File(projectDir, projectName + ".car");
 		undeployedFiles.add(carFile);
+		File buildDir = new File(projectDir, "build");
+		undeployedFiles.add(buildDir);
 		
 		for (File file : projectDir.listFiles()) {
 			if (file.getName().startsWith(".")) {

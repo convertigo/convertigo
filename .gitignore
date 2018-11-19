@@ -13,9 +13,11 @@ META-INF
 /*/lib
 /*/target
 
-/.gradle
+**/.gradle
 /build
 /convertigo-splash/splash.bmp
+/convertigo-templates/*/*.gradle
+!/convertigo-templates/common/*.gradle
 /eclipse-feature/feature.xml
 /eclipse-plugin-product/about.ini
 /eclipse-plugin-product/plugin.xml
