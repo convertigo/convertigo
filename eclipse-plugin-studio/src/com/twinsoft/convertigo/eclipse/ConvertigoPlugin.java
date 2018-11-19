@@ -1795,13 +1795,12 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	}
 
 	@Override
-	public void declareProject(File projectXml) {
-		String name = projectXml.getName();
-		if (projectXml.getParentFile().exists() && name.endsWith(".xml")) {
+	public void declareProject(String projectName, File projectFile) {
+		if (projectFile != null && projectFile.exists()) {
 			try {
-				createProjectPluginResource(name.substring(0, name.length() - 4), projectXml.getParentFile().getAbsolutePath());
+				createProjectPluginResource(projectName, projectFile.getParentFile().getAbsolutePath());
 			} catch (CoreException e) {
-				ConvertigoPlugin.logException(e, "Failed to declare the project from " + projectXml.getAbsolutePath());
+				ConvertigoPlugin.logException(e, "Failed to declare the project from " + projectFile.getAbsolutePath());
 			}
 		}
 	}

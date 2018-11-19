@@ -72,7 +72,7 @@ jobs:
         
     - run: |
         source /tmp/build.env
-        gradle --no-daemon -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :engine:jar
+        gradle --no-daemon -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :ciFirstStep
     
     - save_cache:
         paths:

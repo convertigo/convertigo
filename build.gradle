@@ -649,8 +649,6 @@ project(':engine') {
 		
 		exclude '**/keys.txt'
 		rename 'keys_server.txt', 'keys.txt'
-		
-		dependsOn ':convertigo-templates:buildAllTemplates'
 	}
 	
 	sourceSets {
@@ -911,7 +909,7 @@ task writeManifest(dependsOn:  ['updateEclipseVersion', 'makeSplash']) {
 	dependsOn wm
 }
 
-task buildStudio(type: Exec, dependsOn: ['writeManifest', ':convertigo-templates:buildAllTemplates']) {
+task buildStudio(type: Exec, dependsOn: ['writeManifest']) {
 	group 'convertigo'
 	
 	onlyIf { !file('eclipse-repository/target/products').exists() }
@@ -987,11 +985,15 @@ task generateEclipseConfiguration(dependsOn: [getTasksByName('cleanEclipse', tru
 	group 'convertigo'
 }
 
-task generateEclipseConfigurationWithManifest(dependsOn: ['generateEclipseConfiguration', 'writeManifest', ':convertigo-templates:buildAllTemplates']) {
+task generateEclipseConfigurationWithManifest(dependsOn: ['generateEclipseConfiguration', 'writeManifest']) {
 	group 'convertigo'
 }
 
 task makeSplash(dependsOn: 'convertigo-splash:run') {
+	group 'convertigo'
+}
+
+task ciFirstStep(dependsOn: [':convertigo-templates:buildAllTemplates', ':engine:jar']) {
 	group 'convertigo'
 }
 
