@@ -877,7 +877,7 @@ project(':engine') {
 		manifest {
 			attributes 'Class-Path': files(sourceSets.main.compileClasspath, sourceSets.main.runtimeClasspath)
 				.filter { it.name.endsWith '.jar' }
-				.collect { it.path.startsWith('/') ? it.path : '/' + it.path.replace('\\', '/') }
+				.collect {it.toURI().toString().substring(5)}
 				.join(' ')
 		}
 	}
