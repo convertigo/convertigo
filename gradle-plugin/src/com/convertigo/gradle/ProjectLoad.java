@@ -19,17 +19,50 @@
 
 package com.convertigo.gradle;
 
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.CLI;
 
 public class ProjectLoad extends ConvertigoTask {
-	Project convertigoProject;
+	@Internal
+	private Project convertigoProject;
+	
+	private String projectVersion;
+
+	synchronized Project getConvertigoProject() throws Exception {
+		if (convertigoProject == null) {
+			CLI cli = plugin.getCLI();
+			
+			convertigoProject = cli.loadProject(getProject().getProjectDir(), projectVersion);
+		}
+		return convertigoProject;
+	}
+	
+	public String getProjectVersion() {
+		return projectVersion;
+	}
+
+	public void setProjectVersion(String projectVersion) {
+		this.projectVersion = projectVersion;
+	}
+	
+	public ProjectLoad() {
+		try {
+			projectVersion = getProject().getProperties().get("convertigo.projectVersion").toString();
+		} catch (Exception e) {
+		}
 		
+		getProject().afterEvaluate(p -> {
+			getInputs().getProperties().put("convertigo.projectVersion", projectVersion);
+			getInputs().files("c8oProject.yaml", "_c8oProject");
+			getOutputs().files("c8oProject.yaml", "_c8oProject");			
+		});
+	}
+	
 	@TaskAction
-	void load() throws Exception {
-		CLI cli = plugin.getCLI();
-		convertigoProject = cli.loadProject(getProject().getProjectDir());
+	void taskAction() throws Exception {
+		getConvertigoProject();
 	}
 }

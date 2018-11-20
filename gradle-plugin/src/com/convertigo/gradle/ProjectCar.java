@@ -19,8 +19,14 @@
 
 package com.convertigo.gradle;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.gradle.api.Project;
 import org.gradle.api.tasks.TaskAction;
 
 import com.twinsoft.convertigo.engine.CLI;
@@ -36,9 +42,34 @@ public class ProjectCar extends ConvertigoTask {
 		this.destinationDir = destinationDir;
 	}
 	
+	public ProjectCar() {
+		Project project = getProject();
+		try {
+			destinationDir = project.file(project.getProperties().get("convertigo.destinationDir"));
+		} catch (Exception e) {
+			destinationDir = project.getBuildDir();
+		}
+		
+		project.afterEvaluate(p -> {
+			Matcher filter = Pattern.compile("\\.gradle|\\.svn|\\.git|build|_private").matcher("");
+			getInputs().files((Object[]) project.getProjectDir().listFiles((f, s) -> !filter.reset(s).matches()));
+			
+			File yaml = project.file("c8oProject.yaml");
+			try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(yaml), "UTF-8"))) {
+				br.readLine();
+				Matcher m = Pattern.compile("↓(.*) \\[core\\.Project\\]:").matcher(br.readLine());
+				if (m.find()) {
+					String projectName = m.group(1);
+					getOutputs().file(new File(destinationDir, projectName + ".car"));
+				}
+			} catch (Exception e) {
+			}
+		});
+	}
+	
 	@TaskAction
-	void car() throws Exception {
+	void taskAction() throws Exception {
 		CLI cli = plugin.getCLI();
-		cli.exportToCar(plugin.load.convertigoProject, destinationDir);
+		cli.exportToCar(plugin.load.getConvertigoProject(), destinationDir);
 	}
 }

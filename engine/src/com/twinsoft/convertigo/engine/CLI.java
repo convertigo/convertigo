@@ -217,6 +217,10 @@ public class CLI {
 	}
 	
 	public Project loadProject(File projectDir) throws EngineException {
+		return loadProject(projectDir, null);
+	}
+	
+	public Project loadProject(File projectDir, String version) throws EngineException {
 		checkInit();
 		
 		File projectFile = new File(projectDir, "c8oProject.yaml");
@@ -231,7 +235,12 @@ public class CLI {
 		Engine.theApp = new Engine();
 		Engine.theApp.databaseObjectsManager = dbom;
 		dbom.init();
-		return dbom.importProject(projectFile);
+		Project project = dbom.importProject(projectFile);
+		if (version != null) {
+			project.setVersion(version);
+			dbom.exportProject(project);
+		}
+		return project;
 	}
 	
 	public File exportToCar(Project project, File dest) throws Exception {
@@ -242,7 +251,8 @@ public class CLI {
 	public static void main(String[] args) throws Exception {
 		Options opts = new Options()
 			.addOption(Option.builder("p").longOpt("project").optionalArg(false).argName("dir").hasArg().desc("[dir] set the directory to load as project (default current folder)").build())
-			.addOption(new Option("c", "car", false, "export as [projectName].car file"))
+			.addOption(Option.builder("c").longOpt("car").desc("export as [projectName].car file").build())
+			.addOption(Option.builder("v").longOpt("version").optionalArg(false).argName("version").hasArg().desc("change the 'version' property of the loaded [project]").build())
 			.addOption(Option.builder("l").longOpt("log").optionalArg(true).argName("level").hasArg().desc("optional [level] (default debug): error, info, warn, debug, trace").build())
 			.addOption(new Option("h", "help", false, "show this help"));
 		
@@ -252,7 +262,6 @@ public class CLI {
 			help.printHelp("cli", opts);
 		}
 		
-//		File wp = null;
 		try {
 			Level level = Level.OFF;
 			if (cmd.hasOption("log")) {
@@ -265,20 +274,15 @@ public class CLI {
 			CLI cli = new CLI();
 			
 			if (cmd.hasOption("car")) {
-//				wp = File.createTempFile("Convertigo", "cli");
-//				wp.delete();
-//				wp.mkdirs();
 				File out = new File(projectDir, "build");
-				Project project = cli.loadProject(projectDir);
+				String version = cmd.getOptionValue("version", null);
+				Project project = cli.loadProject(projectDir, version);
 				System.out.println("Building  : " + projectDir);
 				File file = cli.exportToCar(project, out);
 				System.out.println("Builded to: " + file);	
 			}
 			
 		} finally {
-//			if (wp != null) {
-//				FileUtils.deleteQuietly(wp);
-//			}
 		}
 	}
 

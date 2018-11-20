@@ -22,6 +22,9 @@ templates.each {
 		
 		dir = pdir
 		tasks = ['car']
-		startParameter.projectProperties = ['convertigo.destinationDir': project(':eclipse-plugin-studio').file('tomcat/webapps/convertigo/templates/project').path]
+		startParameter.projectProperties = [
+			'convertigo.destinationDir': project(':eclipse-plugin-studio').file('tomcat/webapps/convertigo/templates/project'),
+			'convertigo.projectVersion': version
+		]
 	}
 }

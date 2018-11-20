@@ -19,10 +19,6 @@
 
 package com.convertigo.gradle;
 
-import java.io.File;
-import java.io.IOException;
-
-import org.apache.commons.io.FileUtils;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.TaskContainer;
@@ -54,21 +50,6 @@ public class ConvertigoPlugin implements Plugin<Project> {
 			task.plugin = ConvertigoPlugin.this;
 			task.setGroup("build");
 			task.dependsOn(load);
-			System.out.println("declare CAR");
-			
-			String destinationDir = (String) project.getProperties().get("convertigo.destinationDir");
-			System.out.println("destination dir is: " + destinationDir);
-			try {
-				FileUtils.write(new File("c:/TMP/output.txt"), "destination dir is:  " + destinationDir, "UTF-8");
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			if (destinationDir != null) {
-				task.setDestinationDir(new File(destinationDir));
-			} else {
-				task.setDestinationDir(project.getBuildDir());
-			}
 		});
 	}
 }
