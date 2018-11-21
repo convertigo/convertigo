@@ -320,6 +320,7 @@ public class PdfFormStep extends Step implements IStepSmartTypeContainer, IStepS
 				Engine.logBeans.debug("(PdfFormStep) replaceField: - field is not null");
 				if (field.isReadOnly()) {
 					field.setReadOnly(false);
+					Engine.logBeans.debug("(PdfFormStep) replaceField: - field read only is false");
 				}
 
 				String fieldType = field.getClass().getSimpleName(); // return the type of the field
@@ -331,13 +332,13 @@ public class PdfFormStep extends Step implements IStepSmartTypeContainer, IStepS
 					Engine.logBeans.debug("(PdfFormStep) replaceField - PDTextField value set " + data);
 					break;
 				case "PDCheckBox":
-					if (data == "true") {
-						((PDCheckBox) field).check();
-						Engine.logBeans.debug("(PdfFormStep) replaceField - PDFCheckBox value set " + data);
-					} else {
-						((PDCheckBox) field).unCheck();
-						Engine.logBeans.debug("(PdfFormStep) replaceField - PDFCheckBox value unset " + data);
-					}
+						if (data.equals("On") || data.equals("True") || data.equals("Yes")) {
+							((PDCheckBox) field).check();
+							Engine.logBeans.debug("(PdfFormStep) replaceField - PDFCheckBox value set " + data);
+						} else {
+							((PDCheckBox) field).unCheck();
+							Engine.logBeans.debug("(PdfFormStep) replaceField - PDFCheckBox value unset " + data);
+						}
 					break;
 				// We handle pushButtons as a placeholder for images
 				case "PDPushButton":
