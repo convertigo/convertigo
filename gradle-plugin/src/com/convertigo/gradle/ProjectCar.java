@@ -42,10 +42,14 @@ public class ProjectCar extends ConvertigoTask {
 		this.destinationDir = destinationDir;
 	}
 	
+	public void setDestinationDir(String destinationDir) {
+		this.destinationDir = getProject().file(destinationDir);
+	}
+	
 	public ProjectCar() {
 		Project project = getProject();
 		try {
-			destinationDir = project.file(project.getProperties().get("convertigo.destinationDir"));
+			destinationDir = project.file(project.getProperties().get("convertigo.car.destinationDir"));
 		} catch (Exception e) {
 			destinationDir = project.getBuildDir();
 		}

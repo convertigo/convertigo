@@ -50,12 +50,12 @@ public class ProjectLoad extends ConvertigoTask {
 	
 	public ProjectLoad() {
 		try {
-			projectVersion = getProject().getProperties().get("convertigo.projectVersion").toString();
+			projectVersion = getProject().getProperties().get("convertigo.load.projectVersion").toString();
 		} catch (Exception e) {
 		}
 		
 		getProject().afterEvaluate(p -> {
-			getInputs().getProperties().put("convertigo.projectVersion", projectVersion);
+			getInputs().getProperties().put("convertigo.load.projectVersion", projectVersion);
 			getInputs().files("c8oProject.yaml", "_c8oProject");
 			getOutputs().files("c8oProject.yaml", "_c8oProject");			
 		});
