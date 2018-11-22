@@ -48,6 +48,7 @@ import com.twinsoft.convertigo.engine.util.ProcessUtils;
 public class CLI {
 	private static Pattern pRemoveEchap = Pattern.compile("\\x1b\\[\\d+m");
 	private static Pattern pIsServerRunning = Pattern.compile(".*?server running: (http\\S*).*");
+	public static final CLI instance = new CLI();
 	
 	private static void appendOutput(String... txt) {
 		for (String t: txt) {
@@ -55,8 +56,7 @@ public class CLI {
 		}
 	}
 	
-	public CLI() {
-		
+	private CLI() {	
 	}
 	
 	private synchronized void checkInit() throws EngineException {

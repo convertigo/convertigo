@@ -25,17 +25,12 @@ import org.gradle.api.tasks.TaskContainer;
 
 import com.twinsoft.convertigo.engine.CLI;
 
-public class ConvertigoPlugin implements Plugin<Project> {
-	private CLI cli;
-	
+public class ConvertigoPlugin implements Plugin<Project> {	
 	ProjectLoad load;
 	ProjectCar car;
 	
-	synchronized CLI getCLI() throws Exception {
-		if (cli == null) {
-			cli = new CLI();
-		}
-		return cli;
+	CLI getCLI() throws Exception {
+		return CLI.instance;
 	}
 	
 	public void apply(Project project) {
