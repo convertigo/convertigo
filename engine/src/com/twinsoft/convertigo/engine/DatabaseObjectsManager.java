@@ -1622,6 +1622,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 	
 	private void symbolsInit() {
+		symbolsProperties = new Properties();
+		
 		if (Engine.isCliMode()) {
 			return;
 		}
@@ -1655,7 +1657,6 @@ public class DatabaseObjectsManager implements AbstractManager {
 			return;
 		}
 		
-		symbolsProperties = new Properties();
 		symbolsLoad(prop);
 		
 		Engine.logEngine.info("Symbols file \"" + globalSymbolsFilePath + "\" loaded!");

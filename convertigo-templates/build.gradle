@@ -1,30 +1,53 @@
-def templates = ['template_sequence']
+if (!rootProject.name.equals(name)) {
 
-task copyCommons(type: Copy) {
-	group 'convertigo'
-	
-	from 'common'
-	filter { it.replace('((CURRENT_VERSION))', project(':gradle-plugin').version) }
-	
-	templates.each {
-		into it
+	task copyTemplatesCommons {
+		group 'convertigo'
 	}
-}
-
-task buildAllTemplates {
-	group 'convertigo'
-}
-
-templates.each {
-	def pdir = file(it)
-	buildAllTemplates.dependsOn	task("buildCar${it.capitalize()}", type: GradleBuild, dependsOn: [copyCommons, ':gradle-plugin:publishToMavenLocal']) {
-		group 'build'
+	
+	projectDir.eachDir {
+		if (!it.name.startsWith('.') && it.name != 'common') {
+			def pdir = it
+			copyTemplatesCommons.dependsOn task("copyCommonsFor${it.name.capitalize()}", type: Copy) {
+				from 'common'
+				filter { it.replace('((CURRENT_VERSION))', version.replace('beta', 'SNAPSHOT')) }
+				into pdir
+			}
+		}
+	}
+	
+	task('buildTemplates', type: GradleBuild, dependsOn: copyTemplatesCommons) {
+		group 'convertigo'
 		
-		dir = pdir
-		tasks = ['car']
+		tasks = ['buildTemplates']
+		
 		startParameter.projectProperties = [
+			'convertigo.plugin.version': version.replace('beta', 'SNAPSHOT'),
 			'convertigo.car.destinationDir': project(':eclipse-plugin-studio').file('tomcat/webapps/convertigo/templates/project'),
 			'convertigo.load.projectVersion': version
 		]
 	}
+	
+} else {
+
+	buildscript {
+		repositories {
+			mavenLocal()
+			maven {
+				url "https://m2.convertigo.com"
+			}
+			jcenter()
+		}
+		dependencies {
+			classpath "com.convertigo:gradle-plugin:${property 'convertigo.plugin.version'}"
+		}
+	}
+	
+	task buildTemplates {}
+	
+	subprojects {
+		afterEvaluate {
+			buildTemplates.dependsOn tasks['car']
+		}
+	}
+	
 }

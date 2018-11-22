@@ -59,10 +59,11 @@ public class CLI {
 		
 	}
 	
-	private void checkInit() throws EngineException {
-//		System.setProperty(Engine.JVM_PROPERTY_USER_WORKSPACE, path.getAbsolutePath());
+	private synchronized void checkInit() throws EngineException {
+		if (Engine.bCliMode) {
+			return;
+		}
 		Engine.bCliMode = true;
-		//Engine.initPaths(new File(path, "no").getAbsolutePath());
 		EnginePropertiesManager.initProperties();
 		Engine.logConvertigo = Logger.getLogger("cems");
 		Engine.logEngine = Logger.getLogger("cems.Engine");
@@ -91,6 +92,10 @@ public class CLI {
 		Engine.logDevices = Logger.getLogger("cems.Devices");
 		Engine.logCouchDbManager = Logger.getLogger("cems.CouchDbManager");
 		Engine.logSecurityTokenManager = Logger.getLogger("cems.SecurityTokenManager");
+
+		Engine.theApp = new Engine();
+		Engine.theApp.databaseObjectsManager = new DatabaseObjectsManager();
+		Engine.theApp.databaseObjectsManager.init();
 	}
 	
 	public void buildMB(Project project) throws Exception {
@@ -220,9 +225,7 @@ public class CLI {
 		return loadProject(projectDir, null);
 	}
 	
-	public Project loadProject(File projectDir, String version) throws EngineException {
-		checkInit();
-		
+	public Project loadProject(File projectDir, String version) throws EngineException {		
 		File projectFile = new File(projectDir, "c8oProject.yaml");
 		if (!projectFile.exists()) {
 			projectFile = new File(projectDir, projectDir.getName() + ".xml");
@@ -230,15 +233,13 @@ public class CLI {
 		if (!projectFile.exists()) {
 			throw new EngineException("No Convertigo project here: " + projectDir);
 		}
-		//Engine.theApp.databaseObjectsManager
-		DatabaseObjectsManager dbom = new DatabaseObjectsManager();
-		Engine.theApp = new Engine();
-		Engine.theApp.databaseObjectsManager = dbom;
-		dbom.init();
-		Project project = dbom.importProject(projectFile);
+		
+		checkInit();
+		
+		Project project = Engine.theApp.databaseObjectsManager.importProject(projectFile);
 		if (version != null) {
 			project.setVersion(version);
-			dbom.exportProject(project);
+			Engine.theApp.databaseObjectsManager.exportProject(project);
 		}
 		return project;
 	}

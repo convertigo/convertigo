@@ -648,6 +648,7 @@ project(':engine') {
 		}
 		
 		exclude '**/keys.txt'
+		exclude '**/*.car'
 		rename 'keys_server.txt', 'keys.txt'
 	}
 	

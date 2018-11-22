@@ -1,0 +1,6 @@
+https: true
+port: 443
+server: api.linkedin.com
+↓Me [transactions.JsonHttpTransaction]: 
+  ↑default: true
+  subDir: v1/people/~?format=json
