@@ -15,7 +15,7 @@ if (!rootProject.name.equals(name)) {
 		}
 	}
 	
-	task('buildTemplates', type: GradleBuild, dependsOn: copyTemplatesCommons) {
+	task('buildTemplates', type: GradleBuild, dependsOn: [copyTemplatesCommons, ':gradle-plugin:publishToMavenLocal']) {
 		group 'convertigo'
 		
 		tasks = ['buildTemplates']
