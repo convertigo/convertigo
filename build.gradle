@@ -705,6 +705,7 @@ project(':engine') {
 		compile 'org.apache.axis2:axis2-saaj:1.6.2', { exclude module: 'servlet-api'}
 		compile 'org.apache.commons:commons-lang3:[3.4,)'
 		compile 'org.apache.httpcomponents:httpclient:[4.5,)'
+		runtime 'org.apache.odftoolkit:simple-odf:0.8.2-incubating'
 		compile 'org.apache.pdfbox:pdfbox:2.0.11'
 		compile 'org.apache.ws.commons.axiom:axiom-api:1.2.13'
 		compile 'org.apache.ws.commons.axiom:axiom-dom:1.2.13'
