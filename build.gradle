@@ -994,7 +994,7 @@ task makeSplash(dependsOn: 'convertigo-splash:run') {
 	group 'convertigo'
 }
 
-task ciFirstStep(dependsOn: [':convertigo-templates:buildAllTemplates', ':engine:jar']) {
+task ciFirstStep(dependsOn: [':convertigo-templates:buildTemplates', ':engine:jar']) {
 	group 'convertigo'
 }
 
