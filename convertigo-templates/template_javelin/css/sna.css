@@ -1,0 +1,919 @@
+/* CSS Document */
+body {
+	/* background:url("../images/bg_repeaty.jpg") repeat-y scroll 100% 100% #FFFFFF !important; */
+	background: #F8F8F8 ;
+	/* background: #000000 ; Noir */
+}
+.center {
+	text-align: center;
+}
+
+/* Base style of static text outside of tables*/
+span.staticText {
+	font-size: 18px; 
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	/* font-family: 'Ubuntu', sans-serif;*/
+	/*letter-spacing:0.08em;*/
+	font-weight: 250; 
+}
+
+/* Base style of static text outside of tables*/
+span.tableText {
+	font-size: 18px;  
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	/* font-family: 'Ubuntu', sans-serif; */
+}
+
+/* Base style of static text as radio buttons labels */
+span.radioText {
+	font-size: 18px; 
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+}
+
+span hr {
+	color: #8f8f8f;
+	/*background-color: #8f8f8f;*/
+	height: 1px;
+	border:0;
+	border-top: 1px dashed #8f8f8f;
+}
+
+
+/*###################################################################################################*/
+/* Couleur de police pour texte statics (libellé et champ en sortie) */
+/*###################################################################################################*/
+
+span.colorwhite {
+	color:Black;
+}
+
+span.colorblack {
+	color: #000000;
+}
+
+span.colorcyan {
+	color: #00BFFF; /* DeepSkyBlue */
+}
+
+span.colormagenta {
+	color: Fuchsia;
+}
+
+span.coloryellow {
+	color: #D0C000;
+}
+
+span.colorred {
+	color: Red;
+}
+
+span.colorgreen {
+	color: #228B22; /* ForestGreen */
+	/*color: #22B522;*/
+}
+
+span.colorblue {/* intitule */
+	color:#6495ED; /* CornflowBlue */
+}
+
+/*###################################################################################################*/
+/* Inverse vidéo pour texte statics (libellé et champ en sortie) */
+/*###################################################################################################*/
+
+span.bgcolorblue {
+	background-color: #9999ff; /* Blue 80 % */	
+}
+
+span.bgcolorgreen {
+	background-color: #99ff99; /* Green 80 % */
+	/*background-color: #ccff99;*/
+}
+
+span.bgcolormagenta  {
+	background-color: #ff99ff; /* magenta 80% */;
+}
+
+span.bgcolorred {
+	background-color: #ff9999 ; /* Red 80% */
+}
+
+span.bgcolorcyan {
+	background-color: #99ffff ; /* cyan 80% */
+}
+
+span.bgcolorwhite {
+	background-color: #f2f2f2 ; /* Grey 95 % */
+}
+
+span.bgcoloryellow {
+	background-color: #ffff99; /* yellow 80% */
+}
+
+span.bgcolorblack {
+}
+
+/*###################################################################################################*/
+
+/* Other static text decoration styles */
+span.underline {
+	text-decoration: underline;	
+}
+
+span.blink {
+	
+}
+
+/* Used when a 	static text element gets the focus  */
+span.focusedStatic {
+	/*border:2px dashed #000;*/
+}
+
+/* Used when a static text element looses the focus  */
+span.unfocusedStatic {
+   border-style: none;
+}
+
+/*  Used for text in input fields */
+.fieldText {
+	font-size: 18px; 
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+}
+
+/* Used on buttons, like keyword buttons when they are selectable*/
+input.keywordButton {
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px; 
+	color: #000000;
+	background-color: #F1FAF9;
+}
+
+/* Used on disabled buttons, like keyword buttons when they are not selectable*/
+input.disabledKeywordButton {
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px; 
+	color: #000000;
+	background-color: #F1FAF9;
+}
+
+input:invalid:focus {
+  border: 2px solid red;
+}
+
+.footerText	{
+	font-size: 18px; 
+	line-height: 12px;
+	color: #666666;
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	text-decoration: none;
+	font-weight: normal;
+	}
+
+.footerTextBold	{
+	font-size: 18px;  
+	line-height: 12px;
+	color: #666666;
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	text-decoration: none;
+	font-weight: bold;
+	}
+
+a.menuItem {
+	font-weight: normal;
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	border: none;
+	color:#00a4c8;
+	line-height: 17px;
+	font-size: 18px; 
+}
+a.menuItem:active {
+	color: #FCA956;
+}
+a.menuItem:hover {
+	color: #006699;
+}
+a.menuItem:visited {
+	color: #002B82;
+}
+
+/* contextual menu */
+.menuitems:hover {
+	background-color: #ff9900 !important;
+	cursor:pointer;
+}
+
+/* Style for tables title cells */
+.datatitle { 
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px; 
+	/* font-size: 9px; */ 
+	font-weight: bold;
+	color: black;
+	background-color: #CAD8FD;
+	background: transparent url(../images/bg_titletable.jpg) repeat-x scroll 0 0;	
+	border-bottom: 2px solid #888;
+	border-right: 0px solid #000;
+	cursor: pointer;
+	vertical-align: middle;
+	text-align:center;
+}
+span.datatitle {
+	background: none;
+	border:0;
+}
+
+/* Foreground style for active (enabled) panels */
+span.panel{
+	background-color: #f3f2f1;
+    border: 1px solid #ccc;
+	margin-left: -5px;
+    margin-top: -6px;
+    padding-bottom: 6px;
+}
+
+/* Background style for active (enabled) panels */
+span.panelOmbre{
+	background-color: #CFCFCF;
+	border: 1px solid #EFEFEF outset;
+	margin-left: -7px;
+    margin-top: -8px;
+    padding-bottom: 6px;
+    box-shadow: 0px 0px 6px 6px black; /* TB : pour une ombre sous les fenêtres */
+}
+
+
+/* Foreground style for active (disabled) panels */
+span.disabledPanel{
+	background-color:#FEFEFE;
+	border: 1px solid #4c4c4c;
+}
+
+/* Background style for inactive (disabled) panels */
+span.disabledPanelOmbre{
+	background-color: #C1C1C1;
+	border-right: #D7D7D7 2px solid; 
+	border-bottom: #D7D7D7 2px solid;
+	border-top: #D7D7D7 2px solid;
+}
+
+/* Panel top title style  for active (enabled) panels */
+span.panelTopTitle {
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px; 
+	color: black; /*#FF0000;*/
+/* 	background-color: #FFFFFF; */
+}
+
+/* Panel bottom title style  for active (enabled) panels */
+span.panelBottomTitle {
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px;  
+ 	color: black; /* #FF0000; */
+/* 	background-color: #FFFFFF; */
+}
+
+/* Panel top title style  for inactive (disabled) panels */
+span.disabledPanelTopTitle {
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px; 
+	color: #4C4C4C;
+/* 	background-color: #FFFFFF; */
+}
+
+/* Panel bottom title style  for inactive (disabled) panels */
+span.disabledPanelBottomTitle {
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px; 
+	color: #4C4C4C;
+/* 	background-color: #FFFFFF; */
+}
+
+/* background color of an line of a table */
+.datarowodd {
+	background-color: #f5fcfd;
+}
+.dataroweven {
+	background-color: #e2f9fe;
+}
+/* background color of an line of a table over */
+.datarowodd:hover {
+	background-color: #ADBB26;
+	cursor:pointer;
+}
+.dataroweven:hover {
+	background-color: #ADBB26;
+	cursor:pointer;
+	
+}
+/* color table */
+.dataroweven .colorgreen, .datarowodd .colorgreen {
+	color: #B1BE28;
+}
+.dataroweven:hover .tableText, .datarowodd:hover .tableText {
+	color:#fff;
+}
+
+.dataitem {
+	border-left: 1px solid gray;
+}
+
+.actDiv {
+	position: absolute;
+	border: 2px solid #ff9900;
+	background-color: #fff;
+	visibility: hidden;
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+}
+
+/* Table borders */
+table.titletable {
+	border-top: solid 1px black; 
+	border-right: solid 1px black;						
+}
+div.Grid {
+	border-left: solid 1px;
+	border-bottom: solid 1px black;
+	margin-top: 179px;
+}
+
+/* Base style for table cells */
+td.cell {
+	border-right: 1px solid #333333;
+	margin: 10px;
+	text-align: center;
+}
+
+#waitDiv div {
+	-moz-opacity: 0.2;
+	background-color: #B5D3E7;
+	filter: alpha(opacity=20);
+	height: 100%;
+	left: 0;
+	opacity: 0.2;
+	position: absolute;
+	top: 0px;
+	width: 100%;
+	z-index:99998
+}
+#waitDiv img {
+	left: 50%;
+	position: absolute;
+	top: 50%;
+	z-index: 99999;
+}
+
+.tabsheet {
+	border: 1px solid black;
+	background-color : #fff;
+}
+
+/* Style for spaces between tabs */
+td.tabSpacer {
+	border-bottom: solid 1px #000;
+	background-color: #fff;
+}
+
+/* Style for selected tab */
+td.selectedTab  {
+	border-left: 1px solid #000;
+	border-top: 1px solid #000;
+	border-right: 1px solid #000;
+	white-space: nowrap;
+	font-size: 18px; 
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;;
+	background-color: #DFDFDF;
+	color: #000;
+}
+
+/* Style for unselected tabs */
+td.unselectedTab {
+	border: 1px solid #000;
+	white-space: nowrap;
+	cursor: pointer;
+	background-color: #9C9C9C;
+	font-size: 18px; 
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;;
+	color: #000;
+}
+
+/* Style for the whole opened tab zone */
+td.openedTab {
+	border-left: 1px solid #000;
+	border-bottom: 1px solid #000;
+	border-right: 1px solid #000;
+	background-color: #DFDFDF;
+	filter:alpha(opacity=60); /* Tabbox transparency for IE */
+    opacity: 0.6; /* Tabbox transparency for CSS3 (Firefox) */
+}
+
+/* Style for the (optional) commands panel */
+div.commandsButtons {
+	position: absolute;
+	top: 20px;
+	left: 20px;
+	width: 80px;
+	height: 200px;
+}
+
+/* Active/enabled keyword buttons/commands new styles */
+
+table.buttontab {
+	cursor: pointer;
+/* 	position: relative; */
+	top: 127px;
+	left: 8px;
+}
+
+td.buttonl {
+	/*background-color: #fff;*/
+	width: 3px;
+	height: 21px;
+}
+td.buttonr {
+	/*background-color: #fff;*/
+	width: 3px;
+	height: 21px;
+}
+td.buttonc {
+	text-align: center;
+	margin-bottom: 5px;
+	padding: 0; 
+	font-size: 18px; 
+	text-transform: uppercase;
+	/*border: 1px solid ;*/	
+ 	border-radius: 2px; 
+}
+
+input.insidebutton {
+	border: 1px solid grey ;
+	border-radius: 2px;		
+	cursor : pointer;
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px; 
+	margin : 0;
+	outline-style : none;
+	outline-width : 0;
+	padding: 0;
+	-x-system-font : none;
+	color : #000000 ;
+	background : none ;
+	background-color: #e6ffe6 /* Green 90% */;	
+}
+input.insidebutton:hover {
+	background-color: white ;	
+}
+
+/*###################################################################################################*/
+/* Personnalisation : couleurs des touches de fonction */ 
+/*###################################################################################################*/
+
+/*===================================================================================================*/
+/* Couleur noire forcée */
+/*===================================================================================================*/
+
+input.insidebuttonBlue {
+	border: 1px solid grey ; 
+	border-radius: 2px;		
+	cursor : pointer;
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px; 
+	margin : 0;
+	outline-style : none;
+	outline-width : 0;
+	padding: 0;
+	-x-system-font : none;
+	color : #000000 ;
+	background : none ;
+	background-color: #e6ffe6 ; 
+}
+input.insidebuttonBlue:hover {
+	background-color: white ;	
+}
+
+input.insidebuttonGreen {
+	border: 1px solid grey ;
+	border-radius: 2px; 
+	cursor : pointer;
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px; 
+	margin : 0;
+	outline-style : none;
+	outline-width : 0;
+	padding: 0;
+	-x-system-font : none;
+	color : #000000 ;
+	background : none;
+	background-color: #e6ffe6 ;
+}
+input.insidebuttonGreen:hover {
+	background-color: white ;	
+}
+
+/*===================================================================================================*/
+/* Rendu de la couleur d'origine */
+/*===================================================================================================*/
+
+input.insidebuttonCyan {
+	border: 1px solid grey ;
+	border-radius: 2px; 
+	cursor : pointer;
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px; 
+	margin : 0;
+	outline-style : none;
+	outline-width : 0;
+	padding: 0;
+	-x-system-font : none;
+	color : #000000 ;
+	background : none;
+	background-color: #ccffff ; /* Cyan 90 % */
+}
+input.insidebuttonCyan:hover {
+	background-color: white ;
+}
+
+
+input.insidebuttonMagenta {
+	border: 1px solid grey ;
+	border-radius: 2px; 
+	cursor : pointer;
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px; 
+	margin : 0;
+	outline-style : none;
+	outline-width : 0;
+	padding: 0;
+	-x-system-font : none;
+	color : #000000 ;
+	background : none;
+	background-color: #ffccff ; /* Magenta 90 % */	
+}
+input.insidebuttonMagenta:hover {
+	background-color: white ;	
+}
+
+input.insidebuttonRed {
+	border: 1px solid grey ;
+	border-radius: 2px; 
+	cursor : pointer;
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px; 
+	margin : 0;
+	outline-style : none;
+	outline-width : 0;
+	padding: 0;
+	-x-system-font : none;
+	color : #000000 ;
+	background : none;
+	background-color: #ffcccc ;	/* Red 90 %*/
+}
+input.insidebuttonRed:hover {
+	background-color: white ;	
+}
+
+input.insidebuttonYellow {
+	border: 1px solid grey ;
+	border-radius: 2px; 
+	cursor : pointer;
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px; 
+	margin : 0;
+	outline-style : none;
+	outline-width : 0;
+	padding: 0;
+	-x-system-font : none;
+	color : #000000 ;
+	background : none;
+	background-color: #ffffcc ; /* Yellow 90 % */	
+}
+input.insidebuttonYellow:hover {
+	background-color: white ;	
+}
+
+input.insidebuttonWhite {
+	border: 1px solid grey ;
+	border-radius: 2px; 
+	cursor : pointer;
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px; 
+	margin : 0;
+	outline-style : none;
+	outline-width : 0;
+	padding: 0;
+	-x-system-font : none;
+	color : #000000 ;
+	background : none;
+	background-color: white ;	
+}
+input.insidebuttonWhite:hover {
+	background-color: white ;	
+}
+
+/*###################################################################################################*
+/* Inactive/disabled keyword buttons/commands new styles */
+/*###################################################################################################*
+
+table.disabledbuttontab {
+/* 	 width: 80px; */
+}
+
+td.disabledbuttonl {
+	/*background: transparent url(../images/disabledbutton-gfx.png) no-repeat scroll 0 0;*/
+	width: 3px;
+	height: 21px;
+}
+
+td.disabledbuttonr {
+	/*background: transparent url(../images/disabledbutton-gfx.png) no-repeat scroll 0 -21px;*/
+	width: 3px;
+	height: 21px;
+}
+
+td.disabledbuttonc {
+	/*background: transparent url(../images/disabledbutton-gfx.png) repeat-x scroll 0 -42px;*/
+	background-color: #CAD2CA;
+	font-size: 18px; 
+	text-align : center;
+}
+
+input.disabledinsidebutton {
+	background : none;
+/* 	border : 0; */
+	/*font-family : Verdana, Arial, Helvetica, Sans-Serif;*/
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px;  
+	font-size-adjust : none;
+	font-stretch : normal;
+	font-style : normal;
+	font-variant : normal;
+	font-weight : normal;
+	margin : 0;
+	outline-style : none;
+	outline-width : 0;
+	color : #888;
+	padding: 0;
+	/*overflow : visible;*/	
+	-x-system-font : none;
+}
+
+/* extended menus container div*/
+div.extmenu {
+	background: #D0DEF0 url(../images/toolbar_bg.png) repeat-x scroll left top;
+	border-color: #A9BFD3;
+	border-style: solid;
+	border-width: 0 0 1px;
+	display: block;
+	padding: 2px;
+}
+
+em.extmenu {
+	padding-right: 8px;
+	background: transparent url(../images/btn-arrow-02.png) no-repeat scroll left 5px;
+	display: block;
+	white-space: nowrap;
+}
+
+input.extmenu {
+	background-position: 0 2px;
+	background-repeat: no-repeat;
+	padding: 3px 10px 2px 5px;
+	-x-system-font: none;
+	background: transparent none repeat scroll 0 0;
+	border: 0 none;
+	/*border: solid 1px red;*/
+	cursor: pointer;
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px; 
+	font-size-adjust: none;
+	font-stretch: normal;
+	font-style: normal;
+	font-variant: normal;
+	font-weight: normal;
+	line-height: normal;
+	margin: 0;
+	background-image: url(../images/menu-show.gif) !important;
+	width: 100px;
+	text-align: left;
+}
+
+/*###################################################################################################*/
+/* Champs de saisie */
+/*###################################################################################################*/
+
+input.extField {
+	-x-system-font: none;
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px;  
+	vertical-align: middle;
+	margin: 0;
+	background-color: #cccccc ; /* Grey 80 % */  
+	border: 1px solid #B5B8C8;
+	padding: 0px;
+}
+
+input.extFieldBlue {
+	-x-system-font: none;
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px;  
+	vertical-align: middle;
+	margin: 0;
+	background-color: #9999ff ; /* Blue 80 % */  
+	border: 1px solid #B5B8C8;
+	padding: 0px;
+}
+
+input.extFieldGreen {
+	-x-system-font: none;
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px;  
+	vertical-align: middle;
+	margin: 0;
+	background-color: #99ff99 ; /* Green 80 % */  
+	border: 1px solid #B5B8C8;
+	padding: 0px;
+}
+
+input.extFieldMagenta {
+	-x-system-font: none;
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px;  
+	vertical-align: middle;
+	margin: 0;
+	background-color: #ff99ff ; /* magenta 80% */  
+	border: 1px solid #B5B8C8;
+	padding: 0px;
+}
+
+input.extFieldRed {
+	-x-system-font: none;
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px;  
+	background-color: #ff9999 ; /* red 80% */  
+	border: 1px solid #B5B8C8;
+	padding: 0px;
+}
+
+input.extFieldCyan {
+	-x-system-font: none;
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px;  
+	background-color: #99ffff ; /* cyan 80% */  
+	border: 1px solid #B5B8C8;
+	padding: 0px;
+}
+
+input.extFieldWhite {
+	-x-system-font: none;
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px;  
+	background-color: black ;  
+	border: 1px solid #B5B8C8;
+	color: white;
+	padding: 0px;
+}
+
+input.extFieldYellow {
+	-x-system-font: none;
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px;  
+	background-color: #ffff99 ; /* Yellow 80 %*/  
+	border: 1px solid #B5B8C8;
+	padding: 0px;
+}
+
+input.extFieldBlack {
+}
+
+/*###################################################################################################*/
+/* Textearea de saisie */
+/*###################################################################################################*/
+
+textarea.extField {
+	-x-system-font: none;
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px;  
+	background-color: #cccccc ; /* Grey 80 % */  
+	border: 1px solid #B5B8C8;
+	resize: none;
+	padding: 0px;
+}
+
+textarea.extFieldBlue {
+	-x-system-font: none;
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px;  
+	background-color: #9999ff ; /* Blue 80 % */  
+	border: 1px solid #B5B8C8;
+	resize: none;
+	padding: 0px;
+}
+
+textarea.extFieldGreen {
+	-x-system-font: none;
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px;  
+	background-color: #99ff99 ; /* Green 80 % */  
+	border: 1px solid #B5B8C8;
+	resize: none;
+	padding: 0px;
+}
+
+textarea.extFieldMagenta {
+	-x-system-font: none;
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px;  
+	background-color: #ff99ff ; /* magenta 80% */  
+	border: 1px solid #B5B8C8;
+	resize: none;
+	padding: 0px;
+}
+
+textarea.extFieldRed {
+	-x-system-font: none;
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px;  
+	background-color: #ff9999 ; /* red 80% */  
+	border: 1px solid #B5B8C8;
+	resize: none;
+	padding: 0px;
+}
+
+textarea.extFieldCyan {
+	-x-system-font: none;
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px;  
+	background-color: #99ffff ; /* cyan 80% */  
+	border: 1px solid #B5B8C8;
+	resize: none;
+	padding: 0px;
+}
+
+textarea.extFieldWhite {
+	-x-system-font: none;
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px;  
+	background-color: black ;  
+	border: 1px solid #B5B8C8;
+	color: white;
+	resize: none;
+	padding: 0px;
+}
+
+textarea.extFieldYellow {
+	-x-system-font: none;
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px;  
+	background-color: #ffff99 ; /* Yellow 80 %*/  
+	border: 1px solid #B5B8C8;
+	resize: none;
+	padding: 0px;
+}
+
+textarea.extFieldBlack {
+}
+
+/*###################################################################################################*/
+
+input.fieldText {
+	vertical-align: middle;
+	background-color: #cccccc ; /* Grey 80 % */
+	border: 1px solid black;
+	font-family: Consolas, "Lucida console", "Courrier New", monospace;
+	font-size: 18px; 
+	text-align:center;
+	margin: 0;
+}
+span.fieldfocused {
+	/*border: 1px solid Red;*/	
+	background-color: #808080 ; /* Grey 80 % */
+	color: white;
+}
+
+span.fieldfocused input.extField {
+	/*border: 1px solid Red;*/
+	background-color: #808080 ; /* Grey 50 % */
+	color: white;	
+	
+}
+table span.fieldfocused {
+
+}
+
+
+
+
+.header {
+	position: absolute;
+	left: 20px;
+	top: 20px;
+}
+
+.separator {
+	position:relative;
+	top:120px;
+	border-color: #4c770b;
+	border-width: 1px 0;
+	border-style: solid;
+}
+
+/*###################################################################################################*/
+

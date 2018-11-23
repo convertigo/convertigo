@@ -1,0 +1,84 @@
+accessibility: Private
+comment: 'private: clear and fill database from XML data'
+↓Call_Transaction [steps.TransactionStep-1462199457459]: 
+  sourceTransaction: sampleMapperShop.hsqldb._ClearProducts
+↓Read_XML [steps.ReadXMLStep-1462193888455]: 
+  dataFile: '".//xml/shopProducts.xml"'
+↓Iterator [steps.IteratorStep-1462193972419]: 
+  sourceDefinition: 
+    - xmlizable: 
+      - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+      - com.twinsoft.convertigo.beans.common.XMLVector: 
+        - java.lang.String: 
+          - ↑value: 1462193888455
+        - java.lang.String: 
+          - ↑value: ./articles/article
+  ↓Call_Transaction [steps.TransactionStep-1462194610287]: 
+    sourceTransaction: sampleMapperShop.hsqldb._InsertProduct
+    ↓description [variables.StepVariable-1462194610291]: 
+      description: description
+      sourceDefinition: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+          - com.twinsoft.convertigo.beans.common.XMLVector: 
+            - java.lang.String: 
+              - ↑value: 1462193972419
+            - java.lang.String: 
+              - ↑value: ./description/text()
+    ↓code [variables.StepVariable-1462194610293]: 
+      description: code
+      sourceDefinition: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+          - com.twinsoft.convertigo.beans.common.XMLVector: 
+            - java.lang.String: 
+              - ↑value: 1462193972419
+            - java.lang.String: 
+              - ↑value: ./code/text()
+    ↓price [variables.StepVariable-1462194610295]: 
+      description: price
+      sourceDefinition: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+          - com.twinsoft.convertigo.beans.common.XMLVector: 
+            - java.lang.String: 
+              - ↑value: 1462193972419
+            - java.lang.String: 
+              - ↑value: ./price/text()
+    ↓cat_id [variables.StepVariable-1462194610297]: 
+      description: cat_id
+      sourceDefinition: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+          - com.twinsoft.convertigo.beans.common.XMLVector: 
+            - java.lang.String: 
+              - ↑value: 1462193972419
+            - java.lang.String: 
+              - ↑value: ./category/text()
+      value: 1
+↓Call_Transaction1 [steps.TransactionStep-1462200537706]: 
+  sourceTransaction: sampleMapperShop.hsqldb._ClearCategories
+↓Read_XML1 [steps.ReadXMLStep-1462200037125]: 
+  dataFile: '".//xml/shopCategories.xml"'
+↓Iterator1 [steps.IteratorStep-1462200337311]: 
+  sourceDefinition: 
+    - xmlizable: 
+      - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+      - com.twinsoft.convertigo.beans.common.XMLVector: 
+        - java.lang.String: 
+          - ↑value: 1462200037125
+        - java.lang.String: 
+          - ↑value: ./categories/category
+  ↓Call_Transaction [steps.TransactionStep-1462200567497]: 
+    sourceTransaction: sampleMapperShop.hsqldb._InsertCategory
+    ↓name [variables.StepVariable-1462200567499]: 
+      description: name
+      sourceDefinition: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+          - com.twinsoft.convertigo.beans.common.XMLVector: 
+            - java.lang.String: 
+              - ↑value: 1462200337311
+            - java.lang.String: 
+              - ↑value: ./name/text()
+      value: category xx

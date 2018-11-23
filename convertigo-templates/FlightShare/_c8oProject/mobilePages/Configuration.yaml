@@ -1,0 +1,123 @@
+icon: options
+segment: Configuration
+title: Configuration
+↓Header [mobile.components.UIDynamicElement-1509566916842]: 
+  beanData: '{"ionBean":"Header"}'
+  comment: Page header
+  tagName: ion-header
+  ↓NavBar [mobile.components.UIDynamicElement-1509566916866]: 
+    beanData: '{"ionBean":"NavBar","IonColor":"plain:light"}'
+    tagName: ion-navbar
+    ↓BarTitle [mobile.components.UIDynamicElement-1509566916877]: 
+      beanData: '{"ionBean":"BarTitle"}'
+      tagName: ion-title
+      ↓Text [mobile.components.UIText-1509566916887]: 
+        textValue: 
+          - xmlizable: 
+            - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+            - MobileSmartSourceType: plain:Configuration
+    ↓Button [mobile.components.UIDynamicElement-1511717606245]: 
+      beanData: |
+        '{
+         "ionBean": "Button",
+         "ButtonFormType": "plain:false",
+         "MenuMode": "plain:menuToggle"
+        }'
+      comment: A button to toggle the menu
+      tagName: button
+      ↓Icon [mobile.components.UIDynamicElement-1511717606272]: 
+        beanData: '{"ionBean":"Icon","IconName":"plain:menu"}'
+        tagName: ion-icon
+↓Content [mobile.components.UIDynamicElement-1509566947695]: 
+  beanData: '{"ionBean":"Content"}'
+  tagName: ion-content
+  ↓Button [mobile.components.UIDynamicElement-1509567001567]: 
+    beanData: |
+      '{
+       "ionBean": "Button",
+       "ButtonFormType": "plain:false",
+       "IonColor": "plain:danger",
+       "IonShape": "plain:block"
+      }'
+    tagName: button
+    ↓Text [mobile.components.UIText-1509567013041]: 
+      textValue: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+          - MobileSmartSourceType: plain:Réinitialiser la base
+    ↓Event [mobile.components.UIControlEvent-1509567127402]: 
+      attrName: (click)
+      eventName: onClick
+      ↓CallFullSync [mobile.components.UIDynamicAction-1509567144064]: 
+        beanData: |
+          '{
+           "ionBean": "CallFullSyncAction",
+           "requestable": "plain:FlightShare.flightshare_fullsync",
+           "verb": "plain:reset"
+          }'
+        ↓ToastAction [mobile.components.UIDynamicAction-1509567175975]: 
+          beanData: '{"ionBean":"ToastAction","message":"plain:La base a été réinitilaisée... Relancez l''application pour resynchroniser les données. "}'
+  ↓Paragraph [mobile.components.UIDynamicElement-1512659268506]: 
+    beanData: '{"ionBean":"Paragraph"}'
+    tagName: p
+    ↓Text [mobile.components.UIText-1512659280913]: 
+      textValue: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+          - MobileSmartSourceType: plain:Réinitiliser la base aura pour effet d'effacer toutes les données présente pour l'application Flight Share sur votre mobile.  Par contre, comme ces données sont également stockées au niveau du serveur, elles seront automatiquement téléchargées lors de la prochaine demande de synchronisation.
+  ↓Paragraph1 [mobile.components.UIDynamicElement-1512659432030]: 
+    beanData: '{"ionBean":"Paragraph"}'
+    tagName: p
+    ↓Text [mobile.components.UIText-1512659432080]: 
+      textValue: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+          - MobileSmartSourceType: plain:N'utilisez cette option que si vous voulez repartir d'une base vierge sur votre mobile. L'application ne fonctionnera pas tant que vous n'avez pas resynchronisé les données.
+  ↓Button1 [mobile.components.UIDynamicElement-1509977830791]: 
+    beanData: |
+      '{
+       "ionBean": "Button",
+       "ButtonFormType": "plain:false",
+       "IonColor": "plain:secondary",
+       "IonShape": "plain:block"
+      }'
+    tagName: button
+    ↓Text [mobile.components.UIText-1509977830821]: 
+      textValue: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+          - MobileSmartSourceType: plain:Relancer une synchronisation
+    ↓Event [mobile.components.UIControlEvent-1509977830843]: 
+      attrName: (click)
+      eventName: onClick
+      ↓CallSequence [mobile.components.UIDynamicAction-1509978139918]: 
+        beanData: '{"ionBean":"CallSequenceAction","requestable":"plain:FlightShare.Login"}'
+        ↓CallFullSync [mobile.components.UIDynamicAction-1509978139943]: 
+          beanData: |
+            '{
+             "ionBean": "CallFullSyncAction",
+             "requestable": "plain:FlightShare.flightshare_fullsync",
+             "verb": "plain:sync"
+            }'
+          ↓continuous [mobile.components.UIControlVariable-1509978139964]: 
+            varValue: 
+              - xmlizable: 
+                - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+                - MobileSmartSourceType: script:true
+        ↓email [mobile.components.UIControlVariable-1509978139984]: 
+          varValue: 
+            - xmlizable: 
+              - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+              - MobileSmartSourceType: plain:olivierp@convertigo.com
+  ↓Paragraph11 [mobile.components.UIDynamicElement-1512659538449]: 
+    beanData: '{"ionBean":"Paragraph"}'
+    tagName: p
+    ↓Text [mobile.components.UIText-1512659538536]: 
+      textValue: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+          - MobileSmartSourceType: plain:Resynchronisez les données si vous avez réinitialisé la base ou si vous voulez que vos vols partagés et privés soient synchronisés sur le serveur. Normalement, cette opération est automatique, mais il se peut que vous ayez à le faire manuellement en cas de perte de réseau.
+↓Footer [mobile.components.UIDynamicElement-1509566912005]: 
+  beanData: '{"ionBean":"Footer"}'
+  comment: Page footer
+  tagName: ion-footer

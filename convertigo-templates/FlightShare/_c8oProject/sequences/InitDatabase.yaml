@@ -1,0 +1,16 @@
+comment: Use this Sequence to reset the database to inital settings. 
+↓Call_Transaction [steps.TransactionStep-1513264603882]: 
+  sourceTransaction: FlightShare.flightshare_fullsync.ResetDatabase
+↓Call_Sequence [steps.SequenceStep-1510246278744]: 
+  sourceSequence: FlightShare.FillAirports
+↓Call_Sequence1 [steps.SequenceStep-1510246278767]: 
+  sourceSequence: FlightShare.FillPlanes
+↓Call_Transaction1 [steps.TransactionStep-1513788460415]: 
+  comment: Set a version number to database
+  sourceTransaction: FlightShare.flightshare_fullsync.PostDocument
+  ↓_id [variables.StepVariable-1513788460417]: 
+    description: Document id
+    value: Version
+  ↓data [variables.StepVariable-1513788460419]: 
+    description: Document content
+    value: 1.0

@@ -1,0 +1,71 @@
+↓Read_CSV [steps.ReadCSVStep-1508933214469]: 
+  dataFile: '".//data/planes.csv"'
+  titleLine: true
+↓Complex [steps.XMLComplexStep-1508933214473]: 
+  nodeName: planes
+  ↓Iterator [steps.IteratorStep-1508933214478]: 
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1508933214469
+          - java.lang.String: 
+            - ↑value: ./document/line
+    ↓Complex [steps.XMLComplexStep-1508933214482]: 
+      nodeName: plane
+      ↓Element [steps.XMLElementStep-1508933214487]: 
+        nodeName: type
+        nodeText: plane
+      ↓Copy [steps.XMLCopyStep-1508933214491]: 
+        sourceDefinition: 
+          - xmlizable: 
+            - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+            - com.twinsoft.convertigo.beans.common.XMLVector: 
+              - java.lang.String: 
+                - ↑value: 1508933214478
+              - java.lang.String: 
+                - ↑value: ./*
+      ↓Concat [steps.XMLConcatStep-1508933214496]: 
+        nodeName: pid
+        separator: 
+        sourcesDefinition: 
+          - xmlizable: 
+            - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+            - com.twinsoft.convertigo.beans.common.XMLVector: 
+              - xmlizable: 
+                - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+                - com.twinsoft.convertigo.beans.common.XMLVector: 
+                  - java.lang.String: 
+                    - ↑value: description
+                  - xmlizable: 
+                    - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+                    - com.twinsoft.convertigo.beans.common.XMLVector: 
+                      - java.lang.String: 
+                        - ↑value: 1508933214478
+                      - java.lang.String: 
+                        - ↑value: ./TAG/text()
+                  - java.lang.String: 
+                    - ↑value: ''
+↓Call_Transaction [steps.TransactionStep-1508933214501]: 
+  sourceTransaction: FlightShare.flightshare_fullsync.PostBulkDocuments
+  ↓_id [variables.StepMultiValuedVariable-1508933214505]: 
+    description: Document ids
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1508933214473
+          - java.lang.String: 
+            - ↑value: ./plane/pid/text()
+  ↓data [variables.StepMultiValuedVariable-1508933214509]: 
+    description: Documents contents
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1508933214473
+          - java.lang.String: 
+            - ↑value: ./plane

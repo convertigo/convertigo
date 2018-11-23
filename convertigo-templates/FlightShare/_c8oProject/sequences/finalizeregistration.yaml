@@ -1,0 +1,195 @@
+comment: Will be called when user clicks on 'accept' button in the mail notification
+sheetLocation: 1
+↓Input_variables [steps.InputVariablesStep-1511889808182]: 
+↓GetPublishedFlightFromDataBase [steps.TransactionStep-1511890596659]: 
+  comment: Get published flight from database
+  sourceTransaction: FlightShare.flightshare_fullsync.GetDocument
+  ↓_use_docid [variables.StepVariable-1511890596661]: 
+    description: Document ID
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1511889808182
+          - java.lang.String: 
+            - ↑value: ./registerid/text()
+↓GetPublishedFlightFromDataBase1 [steps.TransactionStep-1511890681976]: 
+  comment: Get Plane
+  sourceTransaction: FlightShare.flightshare_fullsync.GetDocument
+  ↓_use_docid [variables.StepVariable-1511890681981]: 
+    description: Document ID
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1511890596659
+          - java.lang.String: 
+            - ↑value: ./document/couchdb_output//plane/text()
+↓jSimpleSource [steps.SimpleSourceStep-1511891354054]: 
+  comment: We need some Javascript Variables to make the business logic computation
+  sourceDefinition: 
+    - xmlizable: 
+      - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+      - com.twinsoft.convertigo.beans.common.XMLVector: 
+        - java.lang.String: 
+          - ↑value: 1511890681976
+        - java.lang.String: 
+          - ↑value: ./document/couchdb_output//SEATS/text()
+  variableName: jSeatsAvailable
+↓jSimpleSource1 [steps.SimpleSourceStep-1511891646236]: 
+  sourceDefinition: 
+    - xmlizable: 
+      - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+      - com.twinsoft.convertigo.beans.common.XMLVector: 
+        - java.lang.String: 
+          - ↑value: 1511890596659
+        - java.lang.String: 
+          - ↑value: ./document/couchdb_output//occupiedSeats/text()
+  variableName: jOccupied
+↓jSource [steps.SourceStep-1511891581134]: 
+  sourceDefinition: 
+    - xmlizable: 
+      - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+      - com.twinsoft.convertigo.beans.common.XMLVector: 
+        - java.lang.String: 
+          - ↑value: 1511890596659
+        - java.lang.String: 
+          - ↑value: ./document/couchdb_output//registeredPilots
+  variableName: registeredPilots
+↓TestIfSeatsAreAvailable [steps.SimpleStep-1511891408417]: 
+  comment: Make the business logic computation
+  expression: |
+    '// as by default all jElements are strings we use the '' * 1 '' trick to turn them to numbers.
+    if (registeredPilots.length + jOccupied * 1 < jSeatsAvailable * 1) {
+    	status ="OK"
+    } else {
+    	status ="KO"
+    }
+    '
+↓Complex [steps.XMLComplexStep-1511890778097]: 
+  nodeName: registered
+  ↓jElement [steps.ElementStep-1511891898666]: 
+    expression: status
+    nodeName: status
+  ↓Element1 [steps.XMLElementStep-1511890816870]: 
+    nodeName: plane
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1511890596659
+          - java.lang.String: 
+            - ↑value: ./document/couchdb_output//plane/text()
+  ↓Element11 [steps.XMLElementStep-1511890826001]: 
+    nodeName: flightid
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1511889808182
+          - java.lang.String: 
+            - ↑value: ./registerid/text()
+  ↓jElement1 [steps.ElementStep-1511892020339]: 
+    expression: jSeatsAvailable
+    nodeName: availableSeats
+  ↓jElement11 [steps.ElementStep-1511892059138]: 
+    expression: registeredPilots.length
+    nodeName: registeredPilots
+  ↓jElement111 [steps.ElementStep-1511892161039]: 
+    expression: jOccupied
+    nodeName: occupiedSeats
+  ↓Element [steps.XMLElementStep-1511893499384]: 
+    nodeName: pilot
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1511889808182
+          - java.lang.String: 
+            - ↑value: ./registrant/text()
+  ↓Element2 [steps.XMLElementStep-1512135560674]: 
+    nodeName: date
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1511890596659
+          - java.lang.String: 
+            - ↑value: ./document/couchdb_output//date/text()
+  ↓Element21 [steps.XMLElementStep-1512135580943]: 
+    nodeName: time
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1511890596659
+          - java.lang.String: 
+            - ↑value: ./document/couchdb_output//time/text()
+↓jIf [steps.IfStep-1511892220092]: 
+  comment: OK there is some space in the plane
+  condition: status == "OK"
+  ↓BuildJSON [steps.SimpleStep-1511892293745]: 
+    comment: Build the new "registeredPilots' key
+    expression: |
+      'var jRegisteredPilots = {
+      		PublishedFlight: {
+      			registeredPilots: {}
+      		}
+      };
+      
+      jRegisteredPilots.PublishedFlight.registeredPilots[registrant] = registrant;
+      
+      
+      '
+  ↓jElement [steps.ElementStep-1511892294343]: 
+    comment: Stringify it, and make the data "sourceable"
+    expression: JSON.stringify(jRegisteredPilots)
+    nodeName: JSONData
+  ↓Call_Transaction2 [steps.TransactionStep-1511892244340]: 
+    comment: Merge the key in the Published Flight
+    sourceTransaction: FlightShare.flightshare_fullsync.PostMergeDocument
+    ↓_id [variables.StepVariable-1511889773157]: 
+      comment: Merge in the published flight
+      description: Document id
+      sourceDefinition: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+          - com.twinsoft.convertigo.beans.common.XMLVector: 
+            - java.lang.String: 
+              - ↑value: 1511889808182
+            - java.lang.String: 
+              - ↑value: ./registerid/text()
+    ↓_use_json_base [variables.StepVariable-1511889773165]: 
+      comment: The data to be merged in 
+      description: (string) – JSON use as a base for the document (js object). Optional
+      sourceDefinition: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+          - com.twinsoft.convertigo.beans.common.XMLVector: 
+            - java.lang.String: 
+              - ↑value: 1511892294343
+            - java.lang.String: 
+              - ↑value: ./text()
+  ↓SMTP_send [steps.SmtpStep-1512135771132]: 
+    comment: Send a notification mail to flight registrant
+    smtpAuthType: startTls
+    smtpPassword: xe7e845af8af652dd4f8a092fbf79c24c8e3d32f35f22851b5e3a3badd407e995
+    smtpPort: 587
+    smtpRecipients: registrant
+    smtpSender: '"${flightshare.sender-email-addr=contact-web@convertigo.com}"'
+    smtpServer: smtp-relay.gmail.com
+    smtpSubject: '"Confirmation d''inscription sur un vol"'
+    smtpUsername: ${flightshare.sender-email-addr=contact-web@convertigo.com}
+    xslFilepath: '".//email_success.xsl"'
+↓Style_sheet [core.Sheet]: 
+  comment: This Style sheet will render the data form the sequence as an HTML page displayed in the user browser
+  url: registration.xsl
+↓registerid [variables.RequestableVariable-1511889704615]: 
+↓registrant [variables.RequestableVariable-1511889716907]: 

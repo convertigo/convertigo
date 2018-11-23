@@ -1,0 +1,43 @@
+↓Call_Transaction [steps.TransactionStep-1514539223583]: 
+  sourceTransaction: sample_HelloWorld.RSSConnector.GetFeed
+↓Iterator [steps.IteratorStep-1514539223596]: 
+  sourceDefinition: 
+    - xmlizable: 
+      - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+      - com.twinsoft.convertigo.beans.common.XMLVector: 
+        - java.lang.String: 
+          - ↑value: 1514539223583
+        - java.lang.String: 
+          - ↑value: ./document/rss/channel/item
+  ↓Complex [steps.XMLComplexStep-1514539223609]: 
+    nodeName: news
+    ↓Element [steps.XMLElementStep-1514539223617]: 
+      nodeName: title
+      sourceDefinition: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+          - com.twinsoft.convertigo.beans.common.XMLVector: 
+            - java.lang.String: 
+              - ↑value: 1514539223596
+            - java.lang.String: 
+              - ↑value: ./title/text()
+    ↓Element1 [steps.XMLElementStep-1514539223622]: 
+      nodeName: description
+      sourceDefinition: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+          - com.twinsoft.convertigo.beans.common.XMLVector: 
+            - java.lang.String: 
+              - ↑value: 1514539223596
+            - java.lang.String: 
+              - ↑value: ./description/text()
+    ↓Element2 [steps.XMLElementStep-1514539223628]: 
+      nodeName: imageUrl
+      sourceDefinition: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+          - com.twinsoft.convertigo.beans.common.XMLVector: 
+            - java.lang.String: 
+              - ↑value: 1514539223596
+            - java.lang.String: 
+              - ↑value: ./group/content[1]/@url

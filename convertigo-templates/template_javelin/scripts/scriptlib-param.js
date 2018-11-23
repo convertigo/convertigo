@@ -1,0 +1,2 @@
+enableBuffering					= false;
+benchTime								= false;

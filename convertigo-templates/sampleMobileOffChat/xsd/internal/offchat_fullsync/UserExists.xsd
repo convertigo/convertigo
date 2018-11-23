@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:OffChat_ns="http://www.convertigo.com/convertigo/projects/OffChat" xmlns:xsd="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="unqualified" targetNamespace="http://www.convertigo.com/convertigo/projects/OffChat">
+  <xsd:element name="offchat_fullsync__UserExists" type="OffChat_ns:offchat_fullsync__UserExistsRequestData">
+    <xsd:annotation>
+      <xsd:documentation/>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="offchat_fullsync__UserExistsResponse">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="response" type="OffChat_ns:offchat_fullsync__UserExistsResponseData"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:complexType name="offchat_fullsync__UserExistsResponseType">
+      <xsd:sequence>
+        <xsd:element name="document" type="OffChat_ns:offchat_fullsync__UserExistsResponseData"/>
+      </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="offchat_fullsync__UserExistsRequestData">
+    <xsd:sequence>
+      <xsd:element maxOccurs="1" minOccurs="1" name="docid" type="xsd:string">
+        <xsd:annotation>
+          <xsd:documentation/>
+          <xsd:appinfo>new variable</xsd:appinfo>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element maxOccurs="1" minOccurs="1" name="type" type="xsd:string">
+        <xsd:annotation>
+          <xsd:documentation/>
+          <xsd:appinfo>new variable</xsd:appinfo>
+        </xsd:annotation>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="offchat_fullsync__UserExistsResponseData" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <xsd:sequence>
+        <xsd:element minOccurs="0" name="error" type="OffChat_ns:ConvertigoError"/>
+        <xsd:element name="couchdb_output" type="ns0:docExistType"/>
+    </xsd:sequence>
+    <xsd:attribute name="connector" type="xsd:string"/>
+    <xsd:attribute name="context" type="xsd:string"/>
+    <xsd:attribute name="contextId" type="xsd:string"/>
+    <xsd:attribute name="fromStub" type="xsd:string"/>
+    <xsd:attribute name="fromcache" type="xsd:string"/>
+    <xsd:attribute name="generated" type="xsd:string"/>
+    <xsd:attribute name="project" type="xsd:string"/>
+    <xsd:attribute name="screenclass" type="xsd:string"/>
+    <xsd:attribute name="sequence" type="xsd:string"/>
+    <xsd:attribute name="signature" type="xsd:string"/>
+    <xsd:attribute name="transaction" type="xsd:string"/>
+    <xsd:attribute name="userReference" type="xsd:string"/>
+    <xsd:attribute name="version" type="xsd:string"/>
+</xsd:complexType>
+</xsd:schema>

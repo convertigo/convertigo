@@ -1,0 +1,12 @@
+comment: 'public: retrieve the shop informations'
+↓Read_XML [steps.ReadXMLStep-1462783168487]: 
+  dataFile: '".//readme.xml"'
+↓Copy [steps.XMLCopyStep-1462783229144]: 
+  sourceDefinition: 
+    - xmlizable: 
+      - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+      - com.twinsoft.convertigo.beans.common.XMLVector: 
+        - java.lang.String: 
+          - ↑value: 1462783168487
+        - java.lang.String: 
+          - ↑value: ./shop

@@ -1,0 +1,6 @@
+↑default: true
+mainframeName: mainframe
+port: 10
+server: server
+↓DefaultCICSTransaction [transactions.CicsTransaction]: 
+  ↑default: true

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:sample_database_HSQLDB_ns="http://www.convertigo.com/convertigo/projects/sample_database_HSQLDB" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://www.convertigo.com/convertigo/projects/sample_database_HSQLDB">
+    <xsd:complexType name="ConvertigoError">
+        <xsd:sequence>
+            <xsd:element name="context" type="sample_database_HSQLDB_ns:ConvertigoErrorContext"/>
+            <xsd:element name="exception" type="xsd:string"/>
+            <xsd:element name="message" type="xsd:string"/>
+            <xsd:element name="stacktrace" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="ConvertigoErrorContextVariable">
+        <xsd:attribute name="name" type="xsd:string"/>
+        <xsd:attribute name="value" type="xsd:string"/>
+    </xsd:complexType>
+    <xsd:complexType name="ConvertigoErrorContext">
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="variable" type="sample_database_HSQLDB_ns:ConvertigoErrorContextVariable"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="databaseConnector__selectAllFromAVariableTableResponseData"/>
+    <xsd:element name="databaseConnector__selectAllFromAVariableTable" type="sample_database_HSQLDB_ns:databaseConnector__selectAllFromAVariableTableRequestData">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[Sample transaction selecting all rows of a table, which table name is passed as a variable to the transaction.
+
+Two test cases are implementing the 2 possible cases, in order to list the rows of the 2 tables of the database.
+]]></xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="databaseConnector__selectAllFromAVariableTableResponse">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="response" type="sample_database_HSQLDB_ns:databaseConnector__selectAllFromAVariableTableResponseData"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:complexType name="databaseConnector__selectAllFromAVariableTableRequestData">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[Sample transaction selecting all rows of a table, which table name is passed as a variable to the transaction.
+
+Two test cases are implementing the 2 possible cases, in order to list the rows of the 2 tables of the database.
+]]></xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="tableName" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:appinfo>tableName</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:schema>

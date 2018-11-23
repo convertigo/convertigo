@@ -1,0 +1,202 @@
+inAutoMenu: false
+segment: SelectPlane
+title: Title for SelectPlane
+↓Header [mobile.components.UIDynamicElement-1509076997047]: 
+  beanData: '{"ionBean":"Header"}'
+  comment: Page header
+  tagName: ion-header
+  ↓NavBar [mobile.components.UIDynamicElement-1509076997057]: 
+    beanData: '{"ionBean":"NavBar","IonColor":"plain:light"}'
+    tagName: ion-navbar
+    ↓BarTitle [mobile.components.UIDynamicElement-1509076997066]: 
+      beanData: '{"ionBean":"BarTitle"}'
+      tagName: ion-title
+      ↓Text [mobile.components.UIText-1509076997079]: 
+        textValue: 
+          - xmlizable: 
+            - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+            - MobileSmartSourceType: plain:Selection Avion
+    ↓ButtonSet [mobile.components.UIDynamicElement-1509076997093]: 
+      beanData: '{"ionBean":"ButtonSet","SetPosition":"plain:right"}'
+      tagName: ion-buttons
+      ↓Button [mobile.components.UIDynamicElement-1509076997104]: 
+        beanData: '{"ionBean":"Button","ButtonFormType":"plain:false"}'
+        tagName: button
+        ↓Icon [mobile.components.UIDynamicElement-1509076997110]: 
+          beanData: '{"ionBean":"Icon","IconName":"plain:more"}'
+          tagName: ion-icon
+↓Content [mobile.components.UIDynamicElement-1509077019078]: 
+  beanData: '{"ionBean":"Content"}'
+  tagName: ion-content
+  ↓Slides [mobile.components.UIDynamicElement-1509077195671]: 
+    beanData: |
+      '{
+       "ionBean": "Slides",
+       "AutoPlay": "script:",
+       "Direction": "script:horizontal",
+       "Pager": "script:true",
+       "PaginationType": "script:bullets",
+       "parallax": "script:false",
+       "SlidesPerView": "script:1",
+       "SpaceBetween": "script:0",
+       "Speed": "script:300",
+       "Zoom": "script:false",
+       "InitialSlide": "script:0",
+       "Effect": "script:slide",
+       "Loop": "script:false"
+      }'
+    tagName: ion-slides
+    ↓Directive [mobile.components.UIControlDirective-1509077739049]: 
+      directiveSource: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+          - MobileSmartSourceType: source:{"filter":"Database","project":"FlightShare","input":"listen(['fs:\/\/flightshare_fullsync.view#PLANES, {ddoc='Design_document', view='PlanesByTag'}'])?.rows"}
+      ↓Slide [mobile.components.UIDynamicElement-1509077203352]: 
+        beanData: '{"ionBean":"Slide"}'
+        tagName: ion-slide
+        ↓TextFormat [mobile.components.UIDynamicElement-1509077912423]: 
+          beanData: '{"ionBean":"TextFormat","TextLeft":"plain:text-left"}'
+          tagName: div
+          ↓Card [mobile.components.UIDynamicElement-1509078819943]: 
+            beanData: '{"ionBean":"Card"}'
+            tagName: ion-card
+            ↓Image1 [mobile.components.UIDynamicElement-1509077309776]: 
+              beanData: |
+                '{
+                 "ionBean": "Image",
+                 "url": "source:{\"filter\":\"Iteration\",\"project\":\"FlightShare\",\"input\":\"''assets\\\/images\\\/'' + item1509077739049?.value?.TAG + ''.jpg''\"}",
+                 "width": "plain:100%"
+                }'
+              selfClose: true
+              tagName: img
+              ↓Style [mobile.components.UIStyle-1509078060688]: 
+                styleContent: 
+                  - xmlizable: 
+                    - ↑classname: com.twinsoft.convertigo.beans.common.FormatedContent
+                    - com.twinsoft.convertigo.beans.common.FormatedContent: 
+                      →: |
+                        '	width: 100%
+                        '
+              ↓Event [mobile.components.UIControlEvent-1509079380381]: 
+                ↓CustomAction1 [mobile.components.UICustomAction-1511795526547]: 
+                  actionValue: 
+                    - xmlizable: 
+                      - ↑classname: com.twinsoft.convertigo.beans.common.FormatedContent
+                      - com.twinsoft.convertigo.beans.common.FormatedContent: 
+                        →: |
+                          '		page.c8o.log.debug(event ? event.toString():''no event'');
+                                    this.routerProvider.sharedObject["selectedPlane"] = {
+                                            plane : vars.plane,
+                                            seats: vars.seats
+                                    }
+                          		resolve();
+                          '
+                  ↓plane [mobile.components.UIControlVariable-1511795545470]: 
+                    varValue: 
+                      - xmlizable: 
+                        - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+                        - MobileSmartSourceType: source:{"filter":"Iteration","project":"FlightShare","input":"item1509077739049?.value?.TAG"}
+                  ↓seats [mobile.components.UIControlVariable-1511795559770]: 
+                    varValue: 
+                      - xmlizable: 
+                        - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+                        - MobileSmartSourceType: source:{"filter":"Iteration","project":"FlightShare","input":"item1509077739049?.value?.SEATS"}
+                  ↓PopPage [mobile.components.UIDynamicAction-1511796305799]: 
+                    beanData: '{"ionBean":"PopPageAction"}'
+            ↓Grid [mobile.components.UIDynamicElement-1509078220498]: 
+              beanData: '{"ionBean":"Grid"}'
+              tagName: ion-grid
+              ↓GridRow [mobile.components.UIDynamicElement-1509078233708]: 
+                beanData: '{"ionBean":"GridRow"}'
+                tagName: ion-row
+                ↓GridCol [mobile.components.UIDynamicElement-1509078239806]: 
+                  beanData: '{"ionBean":"GridCol"}'
+                  tagName: ion-col
+                  ↓Heading1 [mobile.components.UIDynamicElement-1509077815275]: 
+                    beanData: '{"ionBean":"Heading1"}'
+                    tagName: h1
+                    ↓Text [mobile.components.UIText-1509077826420]: 
+                      textValue: 
+                        - xmlizable: 
+                          - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+                          - MobileSmartSourceType: source:{"filter":"Iteration","project":"FlightShare","input":"item1509077739049?.value?.TAG"}
+                ↓GridCol1 [mobile.components.UIDynamicElement-1509078250460]: 
+                  beanData: '{"ionBean":"GridCol"}'
+                  tagName: ion-col
+                  ↓TextFormat [mobile.components.UIDynamicElement-1509078530730]: 
+                    beanData: '{"ionBean":"TextFormat","TextRight":"plain:text-right"}'
+                    tagName: div
+                    ↓Heading1 [mobile.components.UIDynamicElement-1509078509303]: 
+                      beanData: '{"ionBean":"Heading1"}'
+                      tagName: h1
+                      ↓Text1 [mobile.components.UIText-1509078594799]: 
+                        textValue: 
+                          - xmlizable: 
+                            - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+                            - MobileSmartSourceType: plain:Places :
+                      ↓Text [mobile.components.UIText-1509078509309]: 
+                        textValue: 
+                          - xmlizable: 
+                            - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+                            - MobileSmartSourceType: source:{"filter":"Iteration","project":"FlightShare","input":"item1509077739049?.value?.SEATS"}
+              ↓GridRow1 [mobile.components.UIDynamicElement-1509078349269]: 
+                beanData: '{"ionBean":"GridRow"}'
+                tagName: ion-row
+                ↓GridCol [mobile.components.UIDynamicElement-1509078349276]: 
+                  beanData: '{"ionBean":"GridCol"}'
+                  tagName: ion-col
+                  ↓Heading3 [mobile.components.UIDynamicElement-1509078127830]: 
+                    beanData: '{"ionBean":"Heading3"}'
+                    tagName: h3
+                    ↓Text [mobile.components.UIText-1509078136839]: 
+                      textValue: 
+                        - xmlizable: 
+                          - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+                          - MobileSmartSourceType: source:{"filter":"Iteration","project":"FlightShare","input":"item1509077739049?.value?.TYPE"}
+                ↓GridCol1 [mobile.components.UIDynamicElement-1509078349297]: 
+                  beanData: '{"ionBean":"GridCol"}'
+                  tagName: ion-col
+                  ↓TextFormat [mobile.components.UIDynamicElement-1509079078737]: 
+                    beanData: '{"ionBean":"TextFormat","TextRight":"plain:text-right"}'
+                    tagName: div
+                    ↓Heading3 [mobile.components.UIDynamicElement-1509078655630]: 
+                      beanData: '{"ionBean":"Heading3"}'
+                      tagName: h3
+                      ↓Text1 [mobile.components.UIText-1509078685649]: 
+                        textValue: 
+                          - xmlizable: 
+                            - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+                            - MobileSmartSourceType: plain:Vitesse :
+                      ↓Text [mobile.components.UIText-1509078655637]: 
+                        textValue: 
+                          - xmlizable: 
+                            - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+                            - MobileSmartSourceType: source:{"filter":"Iteration","project":"FlightShare","input":"item1509077739049?.value?.SPEED"}
+                      ↓Text2 [mobile.components.UIText-1509078699389]: 
+                        textValue: 
+                          - xmlizable: 
+                            - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+                            - MobileSmartSourceType: 'plain: Kt'
+↓Footer [mobile.components.UIDynamicElement-1509077007584]: 
+  beanData: '{"ionBean":"Footer"}'
+  comment: Page footer
+  tagName: ion-footer
+↓PageEvent [mobile.components.UIPageEvent-1509077047510]: 
+  ↓CallFullSync [mobile.components.UIDynamicAction-1509077047533]: 
+    beanData: |
+      '{
+       "ionBean": "CallFullSyncAction",
+       "requestable": "plain:FlightShare.flightshare_fullsync",
+       "marker": "plain:PLANES",
+       "verb": "plain:view"
+      }'
+    ↓ddoc [mobile.components.UIControlVariable-1509077047560]: 
+      varValue: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+          - MobileSmartSourceType: plain:Design_document
+    ↓view [mobile.components.UIControlVariable-1509077047576]: 
+      varValue: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+          - MobileSmartSourceType: plain:PlanesByTag

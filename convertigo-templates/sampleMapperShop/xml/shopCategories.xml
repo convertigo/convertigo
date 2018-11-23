@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<categories>
+	<category>
+		<cat_id>1</cat_id>
+		<name>Category 1</name>
+	</category>
+	<category>
+		<cat_id>2</cat_id>
+		<name>Category 2</name>
+	</category>
+	<category>
+		<cat_id>3</cat_id>
+		<name>Category 3</name>
+	</category>
+	<category>
+		<cat_id>4</cat_id>
+		<name>Category 4</name>
+	</category>
+	<category>
+		<cat_id>5</cat_id>
+		<name>Category 5</name>
+	</category>
+	<category>
+		<cat_id>6</cat_id>
+		<name>Category 6</name>
+	</category>
+	<category>
+		<cat_id>7</cat_id>
+		<name>Category 7</name>
+	</category>
+	<category>
+		<cat_id>8</cat_id>
+		<name>Category 8</name>
+	</category>
+	<category>
+		<cat_id>9</cat_id>
+		<name>Category 9</name>
+	</category>
+	<category>
+		<cat_id>10</cat_id>
+		<name>Category 10</name>
+	</category>
+</categories>

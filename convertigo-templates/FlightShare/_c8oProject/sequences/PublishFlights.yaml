@@ -1,0 +1,10 @@
+↓Input_variables [steps.InputVariablesStep-1508943207401]: 
+↓jIterator [steps.SimpleIteratorStep-1508943197769]: 
+  expression: docs
+↓docs [variables.RequestableMultiValuedVariable-1508942707297]: 
+  value: 
+    - xmlizable: 
+      - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+      - com.twinsoft.convertigo.beans.common.XMLVector: 
+↓Test_Case [core.TestCase]: 
+  ↓docs [variables.TestCaseMultiValuedVariable-1508943283043]: 

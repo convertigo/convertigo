@@ -1,0 +1,354 @@
+/* CSS Document */
+
+/* Base style of static text outside of tables*/
+span.staticText {
+	font-size:   10px; 
+	font-family: Verdana, Arial, Helvetica, Sans-Serif;
+}
+
+/* Base style of static text outside of tables*/
+span.tableText {
+	font-size:   10px; 
+	font-family: Verdana, Arial, Helvetica, Sans-Serif;
+}
+
+/* Foreground color styles for static text */
+span.colorwhite {
+	color: SteelBlue;
+}
+
+span.colorblack {
+	color: #000000;
+}
+
+span.colorcyan {
+	color: DeepSkyBlue;
+}
+
+span.colormagenta {
+	color: DeepPink;
+}
+
+span.coloryellow {
+	color: gold;
+}
+
+span.colorred {
+	color: red;
+}
+
+span.colorgreen {
+	color: black;
+}
+
+span.colorblue {
+	color: blue;
+}
+
+/* Background color styles for static text */
+span.bgcolorwhite {
+	
+}
+
+span.bgcolorblack {
+	
+}
+
+span.bgcolorcyan {
+	background-color: cyan;
+}
+
+span.bgcolormagenta  {
+	
+}
+span.bgcoloryellow {
+	
+}
+
+span.bgcolorred {
+	
+}
+
+span.bgcolorgreen {
+	
+}
+
+span.bgcolorblue {
+	
+}
+
+/* Other static text decoration styles */
+span.underline {
+	text-decoration: underline;	
+}
+
+span.blink {
+	
+}
+
+/* Used when a static text element gets the focus  */
+span.focusedStatic {
+   border-style: dashed;
+	border-width: 1px;
+   border-color: #000000;
+}
+
+/* Used when a static text element looses the focus  */
+span.unfocusedStatic {
+   border-style: none;
+}
+
+/*  Used for text in input fields */
+.fieldText {
+	font-size: 8pt;
+	font-family: Lucida Console;
+}
+
+/* Used on buttons, like keyword buttons when they are selectable*/
+input.keywordButton {
+	font-family: Arial, Helvetica, Sans-Serif;
+	font-size: 8pt;
+	color: #000000;
+	background-color: #F1FAF9;
+}
+
+/* Used on disabled buttons, like keyword buttons when they are not selectable*/
+input.disabledKeywordButton {
+	font-family: Arial, Helvetica, Sans-Serif;
+	font-size: 8pt;
+	color: #000000;
+	background-color: #F1FAF9;
+}
+
+.footerText	{
+	font-size: 9px;
+	line-height: 12px;
+	color: #666666;
+	font-family: Lucida Console, Arial, Helvetica, Sans-Serif;
+	text-decoration: none;
+	font-weight: normal;
+	}
+
+.footerTextBold	{
+	font-size: 10px;
+	line-height: 12px;
+	color: #666666;
+	font-family: Lucida Console, Arial, Helvetica, Sans-Serif;
+	text-decoration: none;
+	font-weight: bold;
+	}
+
+A.menuItem:hover {
+	line-height: 17px;
+	font-size: 8pt;
+	color: #8EDA8A;
+	font-weight: normal;
+	font-family: Arial, Helvetica, Sans-Serif;
+	border: none;
+}
+A.menuItem:visited {
+	line-height: 17px;
+	font-size: 8pt;
+	color: #002B82;
+	font-weight: normal;
+	font-family: Arial, Helvetica, Sans-Serif;
+	border: none;
+}
+A.menuItem:link {
+	line-height: 17px;
+	font-size: 8pt;
+	color: #002B82;
+	font-weight: normal;
+	font-family: Arial, Helvetica, Sans-Serif;
+	border: none;
+}
+A.menuItem:active {
+	line-height: 17px;
+	font-size: 8pt;
+	color: #FCA956;
+	font-weight: normal;
+	font-family: Arial, Helvetica, Sans-Serif;
+	border: none;
+}
+
+
+/* Style for tables title cells */
+.datatitle {
+	font-size: 10px; 
+	font-weight: bold;
+	color: black;
+	background-color: #CAD8FD;
+	border-bottom: gray solid 1px;
+	border-right-style: solid;
+	border-right-width: 1px;
+	border-right-color: #CAD8FD;	
+}
+
+/* Foreground style for active (enabled) panels */
+span.panel{
+	background-color:#FEFEF2;
+	border-right: salmon 1px solid; 
+	border-top: salmon 1px solid; 
+	border-left: salmon 1px solid;
+	border-bottom: salmon 1px solid;
+}
+
+/* Background style for active (enabled) panels */
+span.panelOmbre{
+	background-color:#C8C989 ;
+	border-right: #DCDCB4 2px solid; 
+	border-bottom: #DCDCB4 2px solid;
+	border-top: #DCDCB4 2px solid;
+}
+
+/* Foreground style for active (disabled) panels */
+span.disabledPanel{
+	background-color:#FEFEFE;
+	border-right: #4C4C4C 1px solid; 
+	border-top: #4C4C4C 1px solid; 
+	border-left: #4C4C4C 1px solid;
+	border-bottom: #4C4C4C 1px solid;
+}
+
+/* Background style for inactive (disabled) panels */
+span.disabledPanelOmbre{
+	background-color: #C1C1C1;
+	border-right: #D7D7D7 2px solid; 
+	border-bottom: #D7D7D7 2px solid;
+	border-top: #D7D7D7 2px solid;
+}
+
+/* Panel top title style  for active (enabled) panels */
+span.panelTopTitle {
+	font-family: Verdana, Arial, Helvetica, Sans-Serif;
+	font-size: 9px;
+	color: #FF0000;
+	background-color: #FFFFFF;
+}
+
+/* Panel bottom title style  for active (enabled) panels */
+span.panelBottomTitle {
+	font-family: Verdana, Arial, Helvetica, Sans-Serif;
+	font-size: 9px;
+	color: #FF0000;
+	background-color: #FFFFFF;
+}
+
+/* Panel top title style  for inactive (disabled) panels */
+span.disabledPanelTopTitle {
+	font-family: Verdana, Arial, Helvetica, Sans-Serif;
+	font-size: 9px;
+	color: #4C4C4C;
+	background-color: #FFFFFF;
+}
+
+/* Panel bottom title style  for inactive (disabled) panels */
+span.disabledPanelBottomTitle {
+	font-family: Verdana, Arial, Helvetica, Sans-Serif;
+	font-size: 9px;
+	color: #4C4C4C;
+	background-color: #FFFFFF;
+}
+
+.dataroweven {
+	background-color: #f1faf9;
+	
+}
+.datarowodd {
+	background-color: #C7E1E0;
+}
+
+.datarowevenover {
+	background-color: #fafffe;
+	
+}
+
+.datarowoddover {
+	background-color: #d2edec;
+}
+
+.dataroweven:hover {
+	background-color: #fafffe;
+	
+}
+
+.datarowodd:hover {
+	background-color: #d2edec;
+}
+.dataitem {
+	BORDER-LEFT: gray solid 1px;
+}
+
+.actDiv {
+	position: absolute;
+	border: solid 2px;
+	background-color: #FFFFFF;
+	visibility: hidden;
+	font-family: Verdana, Arial, Helvetica, Sans-Serif;
+}
+
+/* Base style for table cells */
+td.cell {
+	border-right-style: solid;
+	border-right-width: 1px;
+	border-right-color: #333333;
+	margin: 10px;
+	align: right;
+}
+
+div.waitDiv {
+	position: absolute;
+	top: 5px;
+	left: 10px;
+	visibility:hidden;
+}
+
+span.fieldfocused {
+   border-style: dashed;
+	border-width: 2px;
+   border-color: SteelBlue;
+}
+
+.tabsheet {
+	border: solid 1px black;
+	background-color : #FFFFFF;
+}
+
+/* Style for spaces between tabs */
+td.tabSpacer {
+	border-bottom: solid 1px #000000;
+	background-color: #FFFFFF;
+}
+
+/* Style for selected tab */
+td.selectedTab  {
+	border-left: solid 1px black;
+	border-top: solid 1px black;
+	border-right: solid 1px black;
+	white-space: nowrap;
+	font-size: 10pt;
+	font-family: verdana;
+	background-color: #DFDFDF;
+	color: #000000;
+}
+
+/* Style for unselected tabs */
+td.unselectedTab {
+	border: solid 1px black;
+	white-space: nowrap;
+	cursor: pointer;
+	background-color: #9C9C9C;
+	font-size: 10pt;
+	font-family: verdana;
+	color: #000000;
+}
+
+/* Style for the whole opened tab zone */
+td.openedTab {
+	border-left: solid 1px black;
+	border-bottom: solid 1px black;
+	border-right: solid 1px black;
+	background-color: #DFDFDF;
+	filter:alpha(opacity=60); /* Tabbox transparency for IE */
+   opacity: 0.6; /* Tabbox transparency for CSS3 (Firefox) */
+}
