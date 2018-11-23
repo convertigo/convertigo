@@ -1249,4 +1249,11 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 	public void setGivenAuthMode(String givenAuthMode) {
 		this.givenAuthMode = givenAuthMode;
 	}
+
+	@Override
+	public SiteClipperTransaction getDefaultTransaction() throws EngineException {
+		return (SiteClipperTransaction) super.getDefaultTransaction();
+	}
+	
+	
 }

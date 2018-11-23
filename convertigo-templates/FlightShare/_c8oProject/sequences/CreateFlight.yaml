@@ -1,0 +1,110 @@
+↓Input_variables [steps.InputVariablesStep-1508935392175]: 
+↓Complex [steps.XMLComplexStep-1508935408321]: 
+  nodeName: flight
+  ↓Element [steps.XMLElementStep-1508935420157]: 
+    nodeName: from
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1508935392175
+          - java.lang.String: 
+            - ↑value: ./From/text()
+  ↓Element1 [steps.XMLElementStep-1508935434377]: 
+    nodeName: to
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1508935392175
+          - java.lang.String: 
+            - ↑value: ./To/text()
+  ↓Element2 [steps.XMLElementStep-1508935436070]: 
+    nodeName: plane
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1508935392175
+          - java.lang.String: 
+            - ↑value: ./Plane/text()
+  ↓Element3 [steps.XMLElementStep-1508935449673]: 
+    nodeName: comment
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1508935392175
+          - java.lang.String: 
+            - ↑value: ./Comment/text()
+  ↓Element4 [steps.XMLElementStep-1508935918493]: 
+    nodeName: type
+    nodeText: flight
+  ↓Element5 [steps.XMLElementStep-1508936007582]: 
+    nodeName: date
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1508935392175
+          - java.lang.String: 
+            - ↑value: ./Date/text()
+  ↓Element51 [steps.XMLElementStep-1508936019040]: 
+    nodeName: time
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1508935392175
+          - java.lang.String: 
+            - ↑value: ./Time/text()
+↓Call_Transaction [steps.TransactionStep-1508935548138]: 
+  sourceTransaction: FlightShare.flightshare_fullsync.PostDocument
+  ↓data [variables.StepVariable-1508935548142]: 
+    description: Document content
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1508935408321
+          - java.lang.String: 
+            - ↑value: .
+↓Call_Sequence [steps.SequenceStep-1508943477962]: 
+  isEnabled: false
+  output: true
+  sourceSequence: FlightShare.PublishFlight
+  ↓flight [variables.StepVariable-1508943477964]: 
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1508935408321
+          - java.lang.String: 
+            - ↑value: .
+↓From [variables.RequestableVariable-1508935123725]: 
+↓To [variables.RequestableVariable-1508935131755]: 
+↓Plane [variables.RequestableVariable-1508935139443]: 
+↓Comment [variables.RequestableVariable-1508935308827]: 
+↓Date [variables.RequestableVariable-1508936091122]: 
+↓Time [variables.RequestableVariable-1508936098747]: 
+↓Ok [core.TestCase]: 
+  ↓From [variables.TestCaseVariable-1508935324290]: 
+    value: LFPN
+  ↓To [variables.TestCaseVariable-1508935324292]: 
+    value: LFOZ
+  ↓Plane [variables.TestCaseVariable-1508935324294]: 
+    value: F-GXCF
+  ↓Comment [variables.TestCaseVariable-1508935324296]: 
+    value: Petite reprise en main
+  ↓Date [variables.TestCaseVariable-1508935953524]: 
+    value: 10/11/2017
+  ↓Time [variables.TestCaseVariable-1508935962410]: 
+    value: 10:00

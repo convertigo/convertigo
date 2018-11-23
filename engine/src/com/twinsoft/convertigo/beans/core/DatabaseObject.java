@@ -842,7 +842,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 					Engine.logBeans.trace("  name = '" + propertyName + "'");
 					pd = findPropertyDescriptor(pds, propertyName);
 					if (pd == null) {
-						Engine.logBeans.warn("Unable to find the definition of property \"" + propertyName
+						Engine.logBeans.info("Unable to find the definition of property \"" + propertyName
 								+ "\"; skipping.");
 						continue;
 					}

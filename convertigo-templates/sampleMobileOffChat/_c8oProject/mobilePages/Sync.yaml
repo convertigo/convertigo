@@ -1,0 +1,83 @@
+scriptContent: 
+  - xmlizable: 
+    - ↑classname: com.twinsoft.convertigo.beans.common.FormatedContent
+    - com.twinsoft.convertigo.beans.common.FormatedContent: 
+      →: |
+        '/*Begin_c8o_PageImport*/
+        /*End_c8o_PageImport*/
+        /*Begin_c8o_PageDeclaration*/
+        	public window: any;
+        	/*End_c8o_PageDeclaration*/
+        /*Begin_c8o_PageConstructor*/
+        		this.window = window;
+        		/*End_c8o_PageConstructor*/
+        /*Begin_c8o_PageFunction*/
+        	/*End_c8o_PageFunction*/
+        '
+segment: Sync
+title: Title for Sync
+↓Header [mobile.components.UIDynamicElement-1517841328972]: 
+  beanData: '{"ionBean":"Header"}'
+  tagName: ion-header
+  ↓NavBar [mobile.components.UIDynamicElement-1517841328998]: 
+    beanData: '{"ionBean":"NavBar","IonColor":"plain:primary"}'
+    tagName: ion-navbar
+    ↓BarTitle [mobile.components.UIDynamicElement-1517841329024]: 
+      beanData: '{"ionBean":"BarTitle"}'
+      tagName: ion-title
+      ↓TextFormat [mobile.components.UIDynamicElement-1517841329048]: 
+        beanData: '{"ionBean":"TextFormat","TextCenter":"plain:text-center"}'
+        tagName: div
+        ↓Text [mobile.components.UIText-1517841329074]: 
+          textValue: 
+            - xmlizable: 
+              - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+              - MobileSmartSourceType: plain:OffChat Sync
+↓Content [mobile.components.UIDynamicElement-1517841344920]: 
+  beanData: '{"ionBean":"Content"}'
+  tagName: ion-content
+  ↓Style [mobile.components.UIStyle-1517841643117]: 
+    styleContent: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.FormatedContent
+        - com.twinsoft.convertigo.beans.common.FormatedContent: 
+          →: |
+            '	animation-name: sync;
+            	animation-duration: 1.5s;
+            	animation-direction: alternate;
+            	animation-iteration-count: infinite;
+            	animation-timing-function: ease-in-out;
+            '
+↓Footer [mobile.components.UIDynamicElement-1517841335763]: 
+  beanData: '{"ionBean":"Footer"}'
+  tagName: ion-footer
+  ↓ToolBar [mobile.components.UIDynamicElement-1517841335793]: 
+    beanData: '{"ionBean":"ToolBar","IonColor":"plain:primary"}'
+    tagName: ion-toolbar
+    ↓Style [mobile.components.UIStyle-1517841335823]: 
+      styleContent: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.common.FormatedContent
+          - com.twinsoft.convertigo.beans.common.FormatedContent: 
+            →: |
+              '	text-align: center;
+              	color: color($colors, secondary);
+              '
+    ↓Text [mobile.components.UIText-1517841335854]: 
+      textValue: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+          - MobileSmartSourceType: plain:© Convertigo
+↓PageEvent [mobile.components.UIPageEvent-1517842433048]: 
+  ↓Toast [mobile.components.UIDynamicAction-1517845209579]: 
+    beanData: |
+      '{
+       "ionBean": "ToastAction",
+       "message": "script:''Welcome '' + this.window.sessionStorage.username + '', sync in progress!''",
+       "duration": "plain:10000",
+       "dismissOnPageChange": "plain:true"
+      }'
+  ↓SyncData [mobile.components.UIDynamicAction-1518010028402]: 
+    beanData: '{"ionBean":"FullSyncSyncAction","requestable":"plain:sampleMobileOffChat.offchat_fullsync"}'
+    ↓RootPage [mobile.components.UIDynamicAction-1517842553795]: 
+      beanData: '{"ionBean":"RootPageAction","page":"plain:sampleMobileOffChat.OffChat.OffChat.Lobby"}'

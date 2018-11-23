@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:lib_Twitter_ns="http://www.convertigo.com/convertigo/projects/lib_Twitter" attributeFormDefault="unqualified" elementFormDefault="unqualified" targetNamespace="http://www.convertigo.com/convertigo/projects/lib_Twitter">
+    <xsd:element name="lib_TwitterConnector__GetStatusesUserTimeLine" type="lib_Twitter_ns:lib_TwitterConnector__GetStatusesUserTimeLineRequestData">
+        <xsd:annotation/>
+    </xsd:element>
+    <xsd:element name="lib_TwitterConnector__GetStatusesUserTimeLineResponse">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="response" type="lib_Twitter_ns:lib_TwitterConnector__GetStatusesUserTimeLineResponseData"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:complexType name="lib_TwitterConnector__GetStatusesUserTimeLineResponseType">
+        <xsd:sequence>
+            <xsd:element name="document" type="lib_Twitter_ns:lib_TwitterConnector__GetStatusesUserTimeLineResponseData"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="lib_TwitterConnector__GetStatusesUserTimeLineRequestData">
+        <xsd:annotation/>
+        <xsd:sequence>
+            <xsd:element name="screen_name" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:appinfo>new variable</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="count" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:appinfo>new variable</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="lib_TwitterConnector_GetStatusesUserTimeLine_document_array_object_user_entities_url_urls_object_indicesType">
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="value" type="xsd:byte"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="lib_TwitterConnector_GetStatusesUserTimeLine_document_array_object_user_entities_url_urls_objectType">
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="url" type="xsd:anyURI"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="expanded_url" type="xsd:anyURI"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="display_url" type="xsd:string"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="indices" type="lib_Twitter_ns:lib_TwitterConnector_GetStatusesUserTimeLine_document_array_object_user_entities_url_urls_object_indicesType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="lib_TwitterConnector_GetStatusesUserTimeLine_document_array_object_user_entities_url_urlsType">
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="object" type="lib_Twitter_ns:lib_TwitterConnector_GetStatusesUserTimeLine_document_array_object_user_entities_url_urls_objectType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="lib_TwitterConnector_GetStatusesUserTimeLine_document_array_object_user_entities_urlType">
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="urls" type="lib_Twitter_ns:lib_TwitterConnector_GetStatusesUserTimeLine_document_array_object_user_entities_url_urlsType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="lib_TwitterConnector_GetStatusesUserTimeLine_document_array_object_user_entities_descriptionType">
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="urls" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="lib_TwitterConnector_GetStatusesUserTimeLine_document_array_object_user_entitiesType">
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="url" type="lib_Twitter_ns:lib_TwitterConnector_GetStatusesUserTimeLine_document_array_object_user_entities_urlType"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="description" type="lib_Twitter_ns:lib_TwitterConnector_GetStatusesUserTimeLine_document_array_object_user_entities_descriptionType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="lib_TwitterConnector_GetStatusesUserTimeLine_document_array_object_userType">
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="id" type="xsd:integer"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="id_str" type="xsd:integer"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="name" type="xsd:string"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="screen_name" type="xsd:string"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="location" type="xsd:string"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="description" type="xsd:string"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="url" type="xsd:anyURI"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="entities" type="lib_Twitter_ns:lib_TwitterConnector_GetStatusesUserTimeLine_document_array_object_user_entitiesType"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="protected" type="xsd:boolean"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="followers_count" type="xsd:short"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="friends_count" type="xsd:short"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="listed_count" type="xsd:byte"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="created_at" type="xsd:string"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="favourites_count" type="xsd:byte"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="utc_offset" type="xsd:short"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="time_zone" type="xsd:string"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="geo_enabled" type="xsd:boolean"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="verified" type="xsd:boolean"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="statuses_count" type="xsd:short"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="lang" type="xsd:string"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="contributors_enabled" type="xsd:boolean"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="is_translator" type="xsd:boolean"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="is_translation_enabled" type="xsd:boolean"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="profile_background_color" type="xsd:string"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="profile_background_image_url" type="xsd:anyURI"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="profile_background_image_url_https" type="xsd:anyURI"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="profile_background_tile" type="xsd:boolean"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="profile_image_url" type="xsd:anyURI"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="profile_image_url_https" type="xsd:anyURI"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="profile_link_color" type="xsd:string"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="profile_sidebar_border_color" type="xsd:string"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="profile_sidebar_fill_color" type="xsd:string"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="profile_text_color" type="xsd:integer"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="profile_use_background_image" type="xsd:boolean"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="default_profile" type="xsd:boolean"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="default_profile_image" type="xsd:boolean"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="following" type="xsd:boolean"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="follow_request_sent" type="xsd:boolean"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="notifications" type="xsd:boolean"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="lib_TwitterConnector_GetStatusesUserTimeLine_document_array_object_entities_hashtags_object_indicesType">
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="value" type="xsd:byte"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="lib_TwitterConnector_GetStatusesUserTimeLine_document_array_object_entities_hashtags_objectType">
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="text" type="xsd:string"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="indices" type="lib_Twitter_ns:lib_TwitterConnector_GetStatusesUserTimeLine_document_array_object_entities_hashtags_object_indicesType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="lib_TwitterConnector_GetStatusesUserTimeLine_document_array_object_entities_hashtagsType">
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="object" type="lib_Twitter_ns:lib_TwitterConnector_GetStatusesUserTimeLine_document_array_object_entities_hashtags_objectType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="lib_TwitterConnector_GetStatusesUserTimeLine_document_array_object_entities_urls_object_indicesType">
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="value" type="xsd:byte"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="lib_TwitterConnector_GetStatusesUserTimeLine_document_array_object_entities_urls_objectType">
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="url" type="xsd:anyURI"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="expanded_url" type="xsd:anyURI"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="display_url" type="xsd:string"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="indices" type="lib_Twitter_ns:lib_TwitterConnector_GetStatusesUserTimeLine_document_array_object_entities_urls_object_indicesType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="lib_TwitterConnector_GetStatusesUserTimeLine_document_array_object_entities_urlsType">
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="object" type="lib_Twitter_ns:lib_TwitterConnector_GetStatusesUserTimeLine_document_array_object_entities_urls_objectType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="lib_TwitterConnector_GetStatusesUserTimeLine_document_array_object_entitiesType">
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="hashtags" type="lib_Twitter_ns:lib_TwitterConnector_GetStatusesUserTimeLine_document_array_object_entities_hashtagsType"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="symbols" type="xsd:string"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="urls" type="lib_Twitter_ns:lib_TwitterConnector_GetStatusesUserTimeLine_document_array_object_entities_urlsType"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="user_mentions" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="lib_TwitterConnector_GetStatusesUserTimeLine_document_array_objectType">
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="created_at" type="xsd:string"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="id_str" type="xsd:long"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="text" type="xsd:string"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="source" type="xsd:string"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="truncated" type="xsd:boolean"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="user" type="lib_Twitter_ns:lib_TwitterConnector_GetStatusesUserTimeLine_document_array_object_userType"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="retweet_count" type="xsd:byte"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="favorite_count" type="xsd:byte"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="entities" type="lib_Twitter_ns:lib_TwitterConnector_GetStatusesUserTimeLine_document_array_object_entitiesType"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="favorited" type="xsd:boolean"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="retweeted" type="xsd:boolean"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="possibly_sensitive" type="xsd:boolean"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="lang" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="lib_TwitterConnector_GetStatusesUserTimeLine_document_arrayType">
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="object" type="lib_Twitter_ns:lib_TwitterConnector_GetStatusesUserTimeLine_document_array_objectType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="lib_TwitterConnector__GetStatusesUserTimeLineResponseData">
+        <xsd:sequence>
+            <xsd:element minOccurs="0" name="array" type="lib_Twitter_ns:lib_TwitterConnector_GetStatusesUserTimeLine_document_arrayType"/>
+            <xsd:element minOccurs="0" name="error" type="lib_Twitter_ns:ConvertigoError"/>
+        </xsd:sequence>
+        <xsd:attribute name="connector" type="xsd:string"/>
+        <xsd:attribute name="context" type="xsd:string"/>
+        <xsd:attribute name="contextId" type="xsd:string"/>
+        <xsd:attribute name="fromStub" type="xsd:boolean"/>
+        <xsd:attribute name="fromcache" type="xsd:boolean"/>
+        <xsd:attribute name="generated" type="xsd:string"/>
+        <xsd:attribute name="project" type="xsd:string"/>
+        <xsd:attribute name="sequence" type="xsd:string"/>
+        <xsd:attribute name="signature" type="xsd:long"/>
+        <xsd:attribute name="transaction" type="xsd:string"/>
+        <xsd:attribute name="version" type="xsd:string"/>
+        <xsd:attribute name="screenclass" type="xsd:string"/>
+    </xsd:complexType>
+    <xsd:complexType name="ConvertigoErrorContextVariable">
+        <xsd:attribute name="name" type="xsd:string"/>
+        <xsd:attribute name="value" type="xsd:string"/>
+    </xsd:complexType>
+    <xsd:complexType name="ConvertigoErrorContext">
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="variable" type="lib_Twitter_ns:ConvertigoErrorContextVariable"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="ConvertigoError">
+        <xsd:sequence minOccurs="0">
+            <xsd:element name="code" type="xsd:integer"/>
+            <xsd:element name="message" type="xsd:string"/>
+            <xsd:element name="details" type="xsd:string"/>
+            <xsd:element name="context" type="lib_Twitter_ns:ConvertigoErrorContext"/>
+            <xsd:element name="exception" type="xsd:string"/>
+            <xsd:element name="stacktrace" type="xsd:string"/>
+        </xsd:sequence>
+        <xsd:attribute name="project" type="xsd:string"/>
+        <xsd:attribute name="connector" type="xsd:string"/>
+        <xsd:attribute name="transaction" type="xsd:string"/>
+        <xsd:attribute name="sequence" type="xsd:string"/>
+        <xsd:attribute name="type">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="c8o"/>
+                    <xsd:enumeration value="project"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+        </xsd:attribute>
+    </xsd:complexType>
+</xsd:schema>

@@ -1,0 +1,131 @@
+comment: Publish a flight when triggered by a PublishFlightRequest
+↓Input_variables [steps.InputVariablesStep-1508943371210]: 
+↓Call_Transaction1 [steps.TransactionStep-1509571305341]: 
+  comment: get the flight to be published
+  sourceTransaction: FlightShare.flightshare_fullsync.GetDocument
+  ↓_use_docid [variables.StepVariable-1509571305343]: 
+    description: Document ID
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1508943371210
+          - java.lang.String: 
+            - ↑value: ./doc/item/publish/text()
+  ↓_use_conflicts [variables.StepVariable-1509571305345]: 
+    description: (boolean) – Includes information about conflicts in document. Default is false
+↓IfExist [steps.IfExistStep-1509571636608]: 
+  comment: Only if the flight exists
+  sourceDefinition: 
+    - xmlizable: 
+      - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+      - com.twinsoft.convertigo.beans.common.XMLVector: 
+        - java.lang.String: 
+          - ↑value: 1509571305341
+        - java.lang.String: 
+          - ↑value: .//flight
+  ↓Call_Transaction [steps.TransactionStep-1509571740473]: 
+    comment: This is valid publish request so remove the request
+    sourceTransaction: FlightShare.flightshare_fullsync.DeleteDocument
+    ↓_use_docid [variables.StepVariable-1509571740475]: 
+      description: Document ID
+      sourceDefinition: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+          - com.twinsoft.convertigo.beans.common.XMLVector: 
+            - java.lang.String: 
+              - ↑value: 1508943371210
+            - java.lang.String: 
+              - ↑value: ./doc/item/_id/text()
+  ↓Complex1 [steps.XMLComplexStep-1510470622604]: 
+    nodeName: data
+    ↓Complex [steps.XMLComplexStep-1510470643540]: 
+      comment: Build the published flight
+      nodeName: PublishedFlight
+      ↓Copy [steps.XMLCopyStep-1508943630272]: 
+        comment: From the flight to be published
+        sourceDefinition: 
+          - xmlizable: 
+            - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+            - com.twinsoft.convertigo.beans.common.XMLVector: 
+              - java.lang.String: 
+                - ↑value: 1509571305341
+              - java.lang.String: 
+                - ↑value: ./document/couchdb_output/flight/*
+      ↓Get_authenticated_user [steps.GetAuthenticatedUserStep-1509572659335]: 
+        comment: Get the current user to "sign" the flight
+      ↓Element [steps.XMLElementStep-1509572541542]: 
+        comment: Set by
+        nodeName: by
+        sourceDefinition: 
+          - xmlizable: 
+            - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+            - com.twinsoft.convertigo.beans.common.XMLVector: 
+              - java.lang.String: 
+                - ↑value: 1509572659335
+              - java.lang.String: 
+                - ↑value: ./text()
+      ↓Concat [steps.XMLConcatStep-1510426975984]: 
+        comment: Compute a published flight ID from the original Flight ID
+        nodeName: PubFileID
+        output: false
+        separator: 
+        sourcesDefinition: 
+          - xmlizable: 
+            - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+            - com.twinsoft.convertigo.beans.common.XMLVector: 
+              - xmlizable: 
+                - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+                - com.twinsoft.convertigo.beans.common.XMLVector: 
+                  - java.lang.String: 
+                    - ↑value: description
+                  - xmlizable: 
+                    - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+                    - com.twinsoft.convertigo.beans.common.XMLVector: 
+                  - java.lang.String: 
+                    - ↑value: PUB_
+              - xmlizable: 
+                - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+                - com.twinsoft.convertigo.beans.common.XMLVector: 
+                  - java.lang.String: 
+                    - ↑value: description
+                  - xmlizable: 
+                    - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+                    - com.twinsoft.convertigo.beans.common.XMLVector: 
+                      - java.lang.String: 
+                        - ↑value: 1509571305341
+                      - java.lang.String: 
+                        - ↑value: ./document/couchdb_output/_id/text()
+                  - java.lang.String: 
+                    - ↑value: ''
+    ↓Element1 [steps.XMLElementStep-1510470651898]: 
+      comment: 'the group will always be ATCF TODO: See how we can variate that. As this flight belongs to the ATCF group , all users belonging to ATCF will be able to sync this flight'
+      nodeName: c8oGrp
+      nodeText: ATCF
+  ↓Call_Transaction1 [steps.TransactionStep-1510426591388]: 
+    comment: Post the flight 
+    sourceTransaction: FlightShare.flightshare_fullsync.PostDocument
+    ↓_id [variables.StepVariable-1510426591390]: 
+      comment: Id will be the computed flight id
+      description: Document id
+      sourceDefinition: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+          - com.twinsoft.convertigo.beans.common.XMLVector: 
+            - java.lang.String: 
+              - ↑value: 1510426975984
+            - java.lang.String: 
+              - ↑value: ./text()
+    ↓data [variables.StepVariable-1510426591392]: 
+      comment: The flight itself
+      description: Document content
+      sourceDefinition: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+          - com.twinsoft.convertigo.beans.common.XMLVector: 
+            - java.lang.String: 
+              - ↑value: 1510470622604
+            - java.lang.String: 
+              - ↑value: ./*
+↓doc [variables.RequestableVariable-1508943379239]: 

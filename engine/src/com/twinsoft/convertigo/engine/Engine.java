@@ -144,6 +144,8 @@ public class Engine {
 	 * Defines if that Convertigo is a Studio.
 	 */
 	private static boolean bStudioMode = false;
+	
+	static boolean bCliMode = false;
 
 	private static boolean bXulRunner = false;
 	
@@ -1620,6 +1622,10 @@ public class Engine {
 
 	public static boolean isStudioMode() {
 		return bStudioMode;
+	}
+
+	public static boolean isCliMode() {
+		return bCliMode;
 	}
 
 	public static void setStudioMode() {

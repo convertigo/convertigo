@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?><soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:partner.soap.sforce.com">
+   <soapenv:Header>
+      <urn:CallOptions>
+         <!--type: {http://www.w3.org/2001/XMLSchema}string-->
+         <urn:client>$(HEADER_CALLOPTIONS_CLIENT)</urn:client>
+         <!--type: {http://www.w3.org/2001/XMLSchema}string-->
+         <urn:defaultNamespace>$(HEADER_CALLOPTIONS_DEFAULTNAMESPACE)</urn:defaultNamespace>
+      </urn:CallOptions>
+      <urn:LoginScopeHeader>
+         <!--type: {urn:partner.soap.sforce.com}ID-->
+         <urn:organizationId>$(HEADER_LOGINSCOPEHEADER_ORGANIZATIONID)</urn:organizationId>
+         <!--Optional:-->
+         <!--type: {urn:partner.soap.sforce.com}ID-->
+         <urn:portalId>$(HEADER_LOGINSCOPEHEADER_PORTALID)</urn:portalId>
+      </urn:LoginScopeHeader>
+   </soapenv:Header>
+   <soapenv:Body>
+      <urn:login>
+         <!--type: {http://www.w3.org/2001/XMLSchema}string-->
+         <urn:username>$(BODY_LOGIN_USERNAME)</urn:username>
+         <!--type: {http://www.w3.org/2001/XMLSchema}string-->
+         <urn:password>$(BODY_LOGIN_PASSWORD)</urn:password>
+      </urn:login>
+   </soapenv:Body>
+</soapenv:Envelope>

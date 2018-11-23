@@ -1,0 +1,210 @@
+scriptContent: 
+  - xmlizable: 
+    - ↑classname: com.twinsoft.convertigo.beans.common.FormatedContent
+    - com.twinsoft.convertigo.beans.common.FormatedContent: 
+      →: |
+        '/*Begin_c8o_PageImport*/
+        /*End_c8o_PageImport*/
+        /*Begin_c8o_PageDeclaration*/
+        	public window: any;
+        	/*End_c8o_PageDeclaration*/
+        /*Begin_c8o_PageConstructor*/
+        		this.window = window;
+        		/*End_c8o_PageConstructor*/
+        /*Begin_c8o_PageFunction*/
+        	/*End_c8o_PageFunction*/
+        '
+segment: Lobby
+title: Title for Lobby
+↓Header [mobile.components.UIDynamicElement-1517842625969]: 
+  beanData: '{"ionBean":"Header"}'
+  tagName: ion-header
+  ↓NavBar [mobile.components.UIDynamicElement-1517842626004]: 
+    beanData: '{"ionBean":"NavBar","IonColor":"plain:primary"}'
+    tagName: ion-navbar
+    ↓BarTitle [mobile.components.UIDynamicElement-1517842626044]: 
+      beanData: '{"ionBean":"BarTitle"}'
+      tagName: ion-title
+      ↓TextFormat [mobile.components.UIDynamicElement-1517842626089]: 
+        beanData: '{"ionBean":"TextFormat","TextCenter":"plain:text-center"}'
+        tagName: div
+        ↓Text [mobile.components.UIText-1517842626131]: 
+          textValue: 
+            - xmlizable: 
+              - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+              - MobileSmartSourceType: plain:OffChat Lobby
+    ↓ButtonSet [mobile.components.UIDynamicElement-1518088441378]: 
+      beanData: '{"ionBean":"ButtonSet","SetPosition":"plain:right"}'
+      tagName: ion-buttons
+      ↓Button [mobile.components.UIDynamicElement-1518088441400]: 
+        beanData: '{"ionBean":"Button","ButtonFormType":"plain:false"}'
+        tagName: button
+        ↓Icon [mobile.components.UIDynamicElement-1518088441421]: 
+          beanData: '{"ionBean":"Icon","IconName":"plain:more"}'
+          tagName: ion-icon
+        ↓Event [mobile.components.UIControlEvent-1518088441443]: 
+          ↓CustomAction [mobile.components.UICustomAction-1518088441460]: 
+            actionValue: 
+              - xmlizable: 
+                - ↑classname: com.twinsoft.convertigo.beans.common.FormatedContent
+                - com.twinsoft.convertigo.beans.common.FormatedContent: 
+                  →: |
+                    '		page.c8o.log.debug(event ? event.toString():''no event'');
+                    		
+                    	    let actionSheet = this.getInstance(ActionSheetController).create({
+                    	        title: ''Disconnect and go to login?'',
+                    	        buttons: [
+                    	          {
+                    	            text: ''Logout'',
+                    	            icon: ''log-out'',
+                    	            handler: () => {
+                    	              resolve();
+                    	            }
+                    	          },{
+                    	            text: ''Cancel'',
+                    	            role: ''cancel'',
+                    	            icon: ''close'',
+                    	            handler: () => {
+                    	            }
+                    	          }
+                    	        ]
+                    	      });
+                    	      actionSheet.present();
+                    		
+                    '
+            module_ts_imports: 
+              - xmlizable: 
+                - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+                - com.twinsoft.convertigo.beans.common.XMLVector: 
+                  - xmlizable: 
+                    - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+                    - com.twinsoft.convertigo.beans.common.XMLVector: 
+                      - java.lang.String: 
+                        - ↑value: ActionSheetController 
+                      - java.lang.String: 
+                        - ↑value: ionic-angular
+            ↓CallFullSync [mobile.components.UIDynamicAction-1518088441506]: 
+              beanData: |
+                '{
+                 "ionBean": "CallFullSyncAction",
+                 "requestable": "plain:sampleMobileOffChat.offchat_fullsync",
+                 "verb": "plain:sync"
+                }'
+              ↓cancel [mobile.components.UIControlVariable-1518089024003]: 
+                varValue: 
+                  - xmlizable: 
+                    - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+                    - MobileSmartSourceType: script:true
+              ↓RootPage [mobile.components.UIDynamicAction-1518089070701]: 
+                beanData: '{"ionBean":"RootPageAction","page":"plain:sampleMobileOffChat.OffChat.OffChat.Login"}'
+↓Content [mobile.components.UIDynamicElement-1517842626167]: 
+  beanData: '{"ionBean":"Content"}'
+  tagName: ion-content
+  ↓CardContainer [mobile.components.UIDynamicElement-1517849109999]: 
+    beanData: '{"ionBean":"Card"}'
+    tagName: ion-card
+    ↓CardContent [mobile.components.UIDynamicElement-1517849115628]: 
+      beanData: '{"ionBean":"CardContent"}'
+      tagName: ion-card-content
+      ↓ListContainer [mobile.components.UIDynamicElement-1517842865406]: 
+        beanData: '{"ionBean":"List"}'
+        tagName: ion-list
+        ↓Directive [mobile.components.UIControlDirective-1517843119306]: 
+          directiveSource: 
+            - xmlizable: 
+              - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+              - MobileSmartSourceType: source:{"filter":"Database","project":"sampleMobileOffChat","input":"listen(['fs:\/\/offchat_fullsync.get'])?.users"}
+          ↓Directive [mobile.components.UIControlDirective-1517844943304]: 
+            comment: item1517843119306 != this.router.sharedObject["username"]
+            directiveExpression: item1517843119306 != this.window.sessionStorage.username
+            directiveName: If
+            directiveSource: 
+              - xmlizable: 
+                - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+                - MobileSmartSourceType: source:{}
+            ↓Button [mobile.components.UIDynamicElement-1517849203750]: 
+              beanData: |
+                '{
+                 "ionBean": "Button",
+                 "ButtonFormType": "plain:false",
+                 "ButtonType": "plain:ion-item"
+                }'
+              tagName: button
+              ↓Text [mobile.components.UIText-1517843618972]: 
+                textValue: 
+                  - xmlizable: 
+                    - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+                    - MobileSmartSourceType: source:{"filter":"Iteration","project":"sampleMobileOffChat","input":"item1517843119306"}
+              ↓Icon [mobile.components.UIDynamicElement-1517848669716]: 
+                beanData: |
+                  '{
+                   "ionBean": "Icon",
+                   "IconName": "plain:mail-open",
+                   "ItemPosition": "plain:item-right"
+                  }'
+                tagName: ion-icon
+              ↓Event [mobile.components.UIControlEvent-1517848722634]: 
+                ↓CustomAction [mobile.components.UICustomAction-1517918128977]: 
+                  actionValue: 
+                    - xmlizable: 
+                      - ↑classname: com.twinsoft.convertigo.beans.common.FormatedContent
+                      - com.twinsoft.convertigo.beans.common.FormatedContent: 
+                        →: |
+                          		this.window.sessionStorage.dest = vars.dest;
+                          		resolve();
+                          
+                  ↓PushPage [mobile.components.UIDynamicAction-1517849454387]: 
+                    beanData: |
+                      '{
+                       "ionBean": "PushPageAction",
+                       "page": "plain:sampleMobileOffChat.OffChat.OffChat.Chat",
+                       "data": "plain:"
+                      }'
+                  ↓dest [mobile.components.UIControlVariable-1517921410365]: 
+                    varValue: 
+                      - xmlizable: 
+                        - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+                        - MobileSmartSourceType: source:{"filter":"Iteration","project":"sampleMobileOffChat","input":"item1517843119306"}
+↓Footer [mobile.components.UIDynamicElement-1517842626237]: 
+  beanData: '{"ionBean":"Footer"}'
+  tagName: ion-footer
+  ↓ToolBar [mobile.components.UIDynamicElement-1517842626276]: 
+    beanData: '{"ionBean":"ToolBar","IonColor":"plain:primary"}'
+    tagName: ion-toolbar
+    ↓Style [mobile.components.UIStyle-1517842626309]: 
+      styleContent: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.common.FormatedContent
+          - com.twinsoft.convertigo.beans.common.FormatedContent: 
+            →: |
+              '	text-align: center;
+              	color: color($colors, secondary);
+              '
+    ↓Directive [mobile.components.UIControlDirective-1518096866377]: 
+      directiveExpression: this.window.sessionStorage.offline == 'true'
+      directiveName: If
+      ↓Icon [mobile.components.UIDynamicElement-1518096912075]: 
+        beanData: '{"ionBean":"Icon","IconName":"plain:plane"}'
+        tagName: ion-icon
+      ↓Text [mobile.components.UIText-1518096918824]: 
+        textValue: 
+          - xmlizable: 
+            - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+            - MobileSmartSourceType: plain:Offline Mode
+      ↓Icon1 [mobile.components.UIDynamicElement-1518097036523]: 
+        beanData: '{"ionBean":"Icon","IconName":"plain:plane"}'
+        tagName: ion-icon
+    ↓Text [mobile.components.UIText-1517842626341]: 
+      textValue: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+          - MobileSmartSourceType: plain:© Convertigo
+↓PageEvent [mobile.components.UIPageEvent-1517842890865]: 
+  ↓GetData [mobile.components.UIDynamicAction-1519206701361]: 
+    beanData: |
+      '{
+       "ionBean": "FullSyncGetAction",
+       "requestable": "plain:sampleMobileOffChat.offchat_fullsync",
+       "_id": "plain:userList",
+       "__live": "plain:lobby"
+      }'

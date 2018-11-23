@@ -1,0 +1,61 @@
+↑default: true
+databaseName: flightshare_fullsync
+↓CheckDocument [transactions.couchdb.GetDocumentTransaction]: 
+  ↓_use_docid [variables.RequestableVariable-1514563638162]: 
+    description: Document ID
+    value: LFAG
+↓DeleteDocument [transactions.couchdb.DeleteDocumentTransaction]: 
+  ↓_use_docid [variables.RequestableVariable-1509571721624]: 
+    description: Document ID
+↓GetDocument [transactions.couchdb.GetDocumentTransaction]: 
+  ↓_use_docid [variables.RequestableVariable-1509571287802]: 
+    description: Document ID
+  ↓_use_conflicts [variables.RequestableVariable-1509571287804]: 
+    description: (boolean) – Includes information about conflicts in document. Default is false
+↓GetServerInfo [transactions.couchdb.GetServerInfoTransaction]: 
+  ↑default: true
+↓GetView [transactions.couchdb.GetViewTransaction]: 
+  ↓_use_ddoc [variables.RequestableVariable-1508921220580]: 
+    description: Design document name
+    value: Design_document
+  ↓_use_view [variables.RequestableVariable-1508921220582]: 
+    description: View function name
+    value: ByIACO
+  ↓_use_endkey [variables.RequestableVariable-1508922729200]: 
+    description: (string) – Stop returning records when the specified key is reached. Optional
+    value: LFPNZ
+  ↓_use_startkey [variables.RequestableVariable-1508922732303]: 
+    description: (string) – Stop returning records when the specified key is reached. Optional
+    value: LFPN
+↓PostAnonymousDoc [transactions.couchdb.CustomTransaction]: 
+  httpData: context.requestedObject.getJsonBody(new org.codehaus.jettison.json.JSONObject())
+  httpVerb: POST
+  ↓doc [variables.RequestableVariable-1508943115601]: 
+↓PostBulkDocuments [transactions.couchdb.PostBulkDocumentsTransaction]: 
+  policy: override
+  ↓_id [variables.RequestableMultiValuedVariable-1508872379766]: 
+    description: Document ids
+  ↓data [variables.RequestableMultiValuedVariable-1508872379768]: 
+    description: Documents contents
+↓PostDocument [transactions.couchdb.PostDocumentTransaction]: 
+  policy: override
+  ↓_id [variables.RequestableVariable-1508935527257]: 
+    description: Document id
+  ↓data [variables.RequestableVariable-1508935527259]: 
+    description: Document content
+↓PostMergeDocument [transactions.couchdb.PostDocumentTransaction]: 
+  policy: merge
+  ↓_id [variables.RequestableVariable-1509633996953]: 
+    description: Document id
+  ↓_use_json_base [variables.RequestableVariable-1509633996955]: 
+    description: (string) – JSON use as a base for the document (js object). Optional
+↓ResetDatabase [transactions.couchdb.ResetDatabaseTransaction]: 
+↓Design_document [couchdb.DesignDocument]: 
+  docdata: 
+    →: '{"_id":"_design\/Design_document","filters":{},"updates":{},"views":{"AirportsByIACO":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif (doc.airport)\r\n\t\t\tif (doc.airport.iaco != \"\")\r\n\t\t\t\temit(doc.airport.iaco, doc.airport);\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"},"AirportsByCountry":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif (doc.airport)\r\n\t\t\tif (doc.airport.country != \"\")\r\n\t\t\t\temit(doc.airport.country, doc.airport);\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"},"AirportsByCity":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif (doc.airport)\r\n\t\t\tif (doc.airport.city != \"\")\r\n\t\t\t\temit(doc.airport.city, doc.airport);\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"},"PlanesByTag":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif (doc.plane)\r\n\t\t\tif (doc.plane.tag != \"\")\r\n\t\t\t\temit(doc.plane.TAG, doc.plane);\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"},"Flights":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif (doc.flight) {\r\n\t\t\t\tidx = doc.flight.date + \"-\" + doc.flight.time,\r\n\t\t\t\temit(idx, doc._id);\r\n\t\t\t\temit(idx, {_id: doc.flight.from});\r\n\t\t\t\temit(idx, {_id: doc.flight.to});\r\n\t\t\t\temit(idx, {_id: doc.flight.plane});\r\n\t\t}\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"},"PublishedFlights":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif (doc.PublishedFlight)\r\n\t\t\temit(doc._id, doc.PublishedFlight);\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}\r\n"},"AirportsByIACOOrCity":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif (doc.airport)\r\n\t\t\tif (doc.airport.iaco != \"\") {\r\n\t\t\t\temit(doc.airport.iaco, doc.airport);\r\n\t\t\t}\r\n\t\t\tif (doc.airport.city != \"\") {\r\n\t\t\t\temit(doc.airport.city.toUpperCase(), doc.airport);\r\n\t\t\t}\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"},"PublishRequests":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif (doc.publish) {\r\n\t\t\temit(doc._id, doc);\r\n\t\t}\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"},"PublishedFlightsDetails":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif (doc.PublishedFlight) {\r\n\t\t\temit(doc._id, doc._id);\r\n\t\t\temit(doc._id, {_id: doc.PublishedFlight.from});\r\n\t\t\temit(doc._id, {_id: doc.PublishedFlight.to});\r\n\t\t\temit(doc._id, {_id: doc.PublishedFlight.plane});\r\n\t\t}\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}\r\n\r\n"},"RegisterRequests":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif (doc.register) {\r\n\t\t\temit(doc._id, doc);\r\n\t\t}\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"},"users":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif (doc.userinfo)\r\n\t\t\temit(doc._id, doc);\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"}}}'
+↓PublishRequestsListener [couchdb.FullSyncListener]: 
+  targetSequence: FlightShare.PublishFlight
+  targetView: FlightShare.flightshare_fullsync.Design_document.PublishRequests
+↓RegisterRequestListener [couchdb.FullSyncListener]: 
+  targetSequence: FlightShare.RegisterOnFlight
+  targetView: FlightShare.flightshare_fullsync.Design_document.RegisterRequests

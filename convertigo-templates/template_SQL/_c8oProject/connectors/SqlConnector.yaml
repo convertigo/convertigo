@@ -1,0 +1,6 @@
+↑default: true
+jdbcDriverClassName: org.hsqldb.jdbcDriver
+jdbcURL: jdbc:hsqldb:file:.//hsqldb
+jdbcUserName: SA
+↓DefaultTransaction [transactions.SqlTransaction]: 
+  ↑default: true

@@ -19,15 +19,8 @@
 
 package com.twinsoft.convertigo.eclipse.wizards.new_project;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.io.FileUtils;
 import org.eclipse.core.runtime.CoreException;
@@ -44,30 +37,26 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWizard;
 import org.eclipse.ui.PlatformUI;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 import com.twinsoft.api.Session;
+import com.twinsoft.convertigo.beans.connectors.CicsConnector;
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
+import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
+import com.twinsoft.convertigo.beans.connectors.SapJcoConnector;
+import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector;
 import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.references.RemoteFileReference;
 import com.twinsoft.convertigo.beans.references.RestServiceReference;
 import com.twinsoft.convertigo.beans.references.WebServiceReference;
-import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.util.CarUtils;
 import com.twinsoft.convertigo.engine.util.ImportWsReference;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
-import com.twinsoft.convertigo.engine.util.XMLUtils;
-import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class NewProjectWizard extends Wizard implements INewWizard {
 	// Wizard Pages
@@ -524,7 +513,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	}
 	
 	private Project createFromBlankProject(IProgressMonitor monitor) throws Exception {
-		Project project = null;
 		String projectArchivePath = "";
 		String newProjectName = projectName;
 		String oldProjectName = "";
@@ -607,81 +595,21 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		default:
 			return null;
 		}
-
-		String temporaryDir = new File(Engine.USER_WORKSPACE_PATH + "/temp/" + oldProjectName).getCanonicalPath();
-		String newProjectDir = Engine.projectDir(newProjectName);
+		
+		monitor.setTaskName("Creating new project");
+		monitor.worked(1);
+		
+		if (Engine.theApp.databaseObjectsManager.existsProject(newProjectName)) {
+			throw new EngineException(
+					"Unable to create new project ! A project with the same name (\""
+							+ newProjectName + "\") already exists.");
+		}
+		monitor.setTaskName("Loading the projet");
+		monitor.worked(1);
+		Project newProject = Engine.theApp.databaseObjectsManager.deployProject(projectArchivePath, newProjectName, true);
+		monitor.worked(1);
 
 		try {
-			try {
-				File f = null;
-
-				monitor.setTaskName("Creating new project");
-				monitor.worked(1);
-				try {
-					// Check if project already exists
-					if (Engine.theApp.databaseObjectsManager.existsProject(newProjectName))
-						throw new EngineException(
-								"Unable to create new project ! A project with the same name (\""
-										+ newProjectName + "\") already exists.");
-
-					// Create temporary directory if needed
-					f = new File(temporaryDir);
-					if (f.mkdir()) {
-						monitor.setTaskName("Temporary directory created: " + temporaryDir);
-						monitor.worked(1);
-					}
-				} catch (Exception e) {
-					throw new EngineException("Unable to create the temporary directory \"" + temporaryDir
-							+ "\".", e);
-				}
-
-				// Decompress Convertigo archive to temporary directory
-				ZipUtils.expandZip(projectArchivePath, temporaryDir, oldProjectName);
-
-				monitor.setTaskName("Project archive expanded to temporary directory");
-				monitor.worked(1);
-
-				// Rename temporary project directory
-				f = new File(temporaryDir);
-				if (!f.renameTo(new File(newProjectDir))) {
-					throw new ConvertigoException("Unable to rename the directory path \"" + temporaryDir
-							+ "\" to \"" + newProjectDir + "\"."
-							+ "\n This directory already exists or is probably locked by another application.");
-				}
-			} catch (Exception e) {
-				throw new EngineException("Unable to deploy the project from the file \"" + projectArchivePath
-						+ "\".", e);
-			}
-
-			String xmlFilePath = newProjectDir + "/" + oldProjectName + ".xml";
-			String newXmlFilePath = newProjectDir + "/" + newProjectName + ".xml";
-			File xmlFile = new File(xmlFilePath);
-
-			// load xml content of file in dom
-			Document dom = null;
-			
-			DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
-			docBuilderFactory.setIgnoringElementContentWhitespace(true);
-			docBuilderFactory.setNamespaceAware(true);
-			
-			DocumentBuilder docBuilder;
-			try {
-				docBuilder = docBuilderFactory.newDocumentBuilder();
-			} catch (ParserConfigurationException e) {
-				throw new EngineException("Wrong parser configuration.", e);
-			}
-			
-			try {
-				dom = docBuilder.parse(xmlFile);
-			} catch (SAXException e) {
-				throw new EngineException("Wrong XML file structure.", e);
-			} catch (IOException e) {
-				throw new EngineException("Could not read source file.", e);
-			}
-
-			monitor.setTaskName("Xml file parsed");
-			monitor.worked(1);
-
 			// set values of elements to configure on the new project
 			String newEmulatorTechnology = "";
 			String emulatorTechnologyName = "";
@@ -715,51 +643,32 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			default:
 				break;
 			}
-
-			// rename project in .xml file for all projects
-			Element projectElem = (Element) dom.getDocumentElement().getElementsByTagName("project").item(0);
-			NodeList projectProperties = projectElem.getElementsByTagName("property");
-
-			Element property = (Element) XMLUtils
-					.findNodeByAttributeValue(projectProperties, "name", "name");
-			((Element) property.getElementsByTagName("java.lang.String").item(0)).removeAttribute("value");
-			((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
-					newProjectName);
-			monitor.setTaskName("Project renamed");
-			monitor.worked(1);
-
-			// empty project version
-			property = (Element) XMLUtils.findNodeByAttributeValue(projectProperties, "name", "version");
-			((Element) property.getElementsByTagName("java.lang.String").item(0)).removeAttribute("value");
-			((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value","");
 			
-			// rename connector in .xml file for all projects
+			monitor.setTaskName("Reset project version");
+			monitor.worked(1);
+			newProject.setVersion("");
+			
+			monitor.setTaskName("Change connector name");
+			monitor.worked(1);
 			String oldConnectorName = "unknown";
 			String newConnectorName = "NewConnector";
-			// interactionHub project connector name is by default set to "void"
 			switch (templateId) {
 			case TEMPLATE_MOBILE_BUILDER:
 			case TEMPLATE_SEQUENCE_CONNECTOR:
 				newConnectorName = "void";
 				break;
 			default:
-				newConnectorName = (page2 == null) ? "NewConnector" : page2.getConnectorName();
+				if (page2 != null) {
+					newConnectorName = page2.getConnectorName();
+				}
 				break;
 			}
-			Element connectorElem = (Element) dom.getDocumentElement().getElementsByTagName("connector")
-					.item(0);
-			NodeList connectorProperties = connectorElem.getElementsByTagName("property");
 
-			property = (Element) XMLUtils.findNodeByAttributeValue(
-					connectorProperties, "name", "name");
-			oldConnectorName = ((Element) property.getElementsByTagName("java.lang.String").item(0))
-					.getAttribute("value");
-			((Element) property.getElementsByTagName("java.lang.String").item(0)).removeAttribute("value");
-			((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
-					newConnectorName);
 			monitor.setTaskName("Connector renamed");
 			monitor.worked(1);
-			
+			oldConnectorName = newProject.getDefaultConnector().getName();
+			newProject.getDefaultConnector().setName(newConnectorName);
+						
 			// configure connector properties
 			switch (templateId) {
 			case TEMPLATE_WEB_HTML_BULL_DKU_7107:
@@ -771,263 +680,146 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case TEMPLATE_EAI_UNIX_VT220:
 				// change emulator technology
 				// and change service code
-				property = (Element) XMLUtils.findNodeByAttributeValue(
-						connectorProperties, "name", "serviceCode");
-				((Element) property.getElementsByTagName("java.lang.String").item(0)).removeAttribute("value");
-				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
-						page7.getServiceCode());
-				monitor.setTaskName("Connector service code updated");
+				monitor.setTaskName("Set connector service code");
 				monitor.worked(1);
-
-				property = (Element) XMLUtils.findNodeByAttributeValue(
-						connectorProperties, "name", "emulatorTechnology");
-				((Element) property.getElementsByTagName("java.lang.String").item(0)).removeAttribute("value");
-				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
-						newEmulatorTechnology);
-				monitor.setTaskName("Connector emulator technology updated");
+				JavelinConnector javelinConnector = (JavelinConnector) newProject.getDefaultConnector();
+				javelinConnector.setServiceCode(page7.getServiceCode());
+				
+				monitor.setTaskName("Set connector emulator technology");
 				monitor.worked(1);
-
-				property = (Element) XMLUtils.findNodeByAttributeValue(
-						connectorProperties, "name", "ibmTerminalType");
-				((Element) property.getElementsByTagName("java.lang.String").item(0)).removeAttribute("value");
-				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
-						newIbmTerminalType);
-				monitor.setTaskName("Terminal type updated");
+				javelinConnector.setEmulatorTechnology(newEmulatorTechnology);
+				
+				monitor.setTaskName("Set terminal type");
 				monitor.worked(1);
-
+				javelinConnector.setIbmTerminalType(newIbmTerminalType);
+				
 				// rename emulatorTechnology criteria
-				Element criteriaElem = (Element) dom.getDocumentElement().getElementsByTagName("criteria")
-						.item(0);
-				NodeList criteriaProperties = criteriaElem.getElementsByTagName("property");
-
-				property = (Element) XMLUtils.findNodeByAttributeValue(
-						criteriaProperties, "name", "name");
-				((Element) property.getElementsByTagName("java.lang.String").item(0)).removeAttribute("value");
-				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
-						emulatorTechnologyName);
-				monitor.setTaskName("Emulator technology criteria renamed");
+				monitor.setTaskName("Rename emulator technology criteria");
 				monitor.worked(1);
+				javelinConnector.getDefaultScreenClass().getLocalCriterias().get(0).setName(emulatorTechnologyName);
 				break;
 			case TEMPLATE_WEB_SERVICE_REST_REFERENCE:
 			case TEMPLATE_EAI_HTML_WEB_SITE:
 			case TEMPLATE_EAI_HTTP:
+				monitor.setTaskName("Update connector server");
+				monitor.worked(1);
 				// change connector server and port,
 				// change https mode
 				// and change proxy server and proxy port
-				property = (Element) XMLUtils.findNodeByAttributeValue(
-						connectorProperties, "name", "server");
-				((Element) property.getElementsByTagName("java.lang.String").item(0)).removeAttribute("value");
-				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
-						page6.getHttpServer());
-				monitor.setTaskName("Connector server updated");
+				HttpConnector httpConnector = (HttpConnector) newProject.getDefaultConnector();
+				httpConnector.setServer(page6.getHttpServer());
+				
+				monitor.setTaskName("Update connector port");
+				monitor.worked(1);
+				try {
+					httpConnector.setPort(Integer.parseInt(page6.getHttpPort()));
+				} catch (Exception e) {
+				}
+				
+				monitor.setTaskName("Update connector https mode");
 				monitor.worked(1);
 
-				property = (Element) XMLUtils.findNodeByAttributeValue(
-						connectorProperties, "name", "port");
-				((Element) property.getElementsByTagName("java.lang.Integer").item(0))
-						.removeAttribute("value");
-				((Element) property.getElementsByTagName("java.lang.Integer").item(0)).setAttribute("value",
-						page6.getHttpPort());
-				monitor.setTaskName("Connector port updated");
-				monitor.worked(1);
-
-				property = (Element) XMLUtils.findNodeByAttributeValue(
-						connectorProperties, "name", "https");
-				((Element) property.getElementsByTagName("java.lang.Boolean").item(0))
-						.removeAttribute("value");
-				((Element) property.getElementsByTagName("java.lang.Boolean").item(0)).setAttribute("value", 
-						Boolean.toString(page6.isBSSL()));
-				monitor.setTaskName("Connector https mode updated");
-				monitor.worked(1);
+				httpConnector.setHttps(page6.isBSSL());
 				break;
 
 			case TEMPLATE_EAI_CICS_COMMEAREA:
-				property = (Element) XMLUtils.findNodeByAttributeValue(
-						connectorProperties, "name", "mainframeName");
-				((Element) property.getElementsByTagName("java.lang.String").item(0)).removeAttribute("value");
-				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
-						page5.getCtgName());
-				monitor.setTaskName("Connector mainframe name updated");
+				CicsConnector cicsConnector = (CicsConnector) newProject.getDefaultConnector();
+				monitor.setTaskName("Update connector mainframe name");
 				monitor.worked(1);
-
-				property = (Element) XMLUtils.findNodeByAttributeValue(
-						connectorProperties, "name", "server");
-				((Element) property.getElementsByTagName("java.lang.String").item(0)).removeAttribute("value");
-				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
-						page5.getCtgServer());
-				monitor.setTaskName("Connector server updated");
+				cicsConnector.setMainframeName(page5.getCtgName());
+				
+				monitor.setTaskName("Update connector server");
 				monitor.worked(1);
-
-				property = (Element) XMLUtils.findNodeByAttributeValue(
-						connectorProperties, "name", "port");
-				((Element) property.getElementsByTagName("java.lang.Integer").item(0))
-						.removeAttribute("value");
-				((Element) property.getElementsByTagName("java.lang.Integer").item(0)).setAttribute("value",
-						page5.getCtgPort());
-				monitor.setTaskName("Connector port updated");
+				cicsConnector.setServer(page5.getCtgServer());
+				
+				monitor.setTaskName("Update connector port");
 				monitor.worked(1);
+				try {
+					cicsConnector.setPort(Integer.parseInt(page5.getCtgPort()));
+				} catch (Exception e) {
+				}
 				break;
 				
 			case TEMPLATE_SQL_CONNECTOR:
 				// change emulator technology
 				// and change service code
-				property = (Element) XMLUtils.findNodeByAttributeValue(
-						connectorProperties, "name", "jdbcURL");
-				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
-						configureSQLConnectorPage.getJdbcURL());
-				monitor.setTaskName("JDBC URL updated");
+				SqlConnector sqlConnector = (SqlConnector) newProject.getDefaultConnector();
+				
+				monitor.setTaskName("Update JDBC URL");
 				monitor.worked(1);
-
-				property = (Element) XMLUtils.findNodeByAttributeValue(
-						connectorProperties, "name", "jdbcDriverClassName");
-				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
-						configureSQLConnectorPage.getJdbcDriver());
-				monitor.setTaskName("JDBC driver updated");
+				sqlConnector.setJdbcURL(configureSQLConnectorPage.getJdbcURL());
+				monitor.setTaskName("Update JDBC driver");
 				monitor.worked(1);
-
-				property = (Element) XMLUtils.findNodeByAttributeValue(
-						connectorProperties, "name", "jdbcUserName");
-				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
-						configureSQLConnectorPage.getUsername());
-				monitor.setTaskName("Username updated");
+				sqlConnector.setJdbcDriverClassName(configureSQLConnectorPage.getJdbcDriver());
+				monitor.setTaskName("Update Username");
 				monitor.worked(1);
-
-				property = (Element) XMLUtils.findNodeByAttributeValue(
-						connectorProperties, "name", "jdbcUserPassword");
-				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
-						configureSQLConnectorPage.getPassword());
-				monitor.setTaskName("Password updated");
+				sqlConnector.setJdbcUserName(configureSQLConnectorPage.getUsername());
+				monitor.setTaskName("Update Password");
 				monitor.worked(1);
-							
+				sqlConnector.setJdbcUserPassword(configureSQLConnectorPage.getPassword());
+				
 				break;
 				
 			case TEMPLATE_SAP_CONNECTOR:
 				// change emulator technology
 				// and change service code
 				
+				SapJcoConnector sapConnector = (SapJcoConnector) newProject.getDefaultConnector();
 				// Application Server Host
-				property = (Element) XMLUtils.findNodeByAttributeValue(
-						connectorProperties, "name", "ashost");
-				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
-						configureSAPConnectorPage.getAsHost());
-				monitor.setTaskName("Application Server Host updated");
+				monitor.setTaskName("Update application Server Host");
 				monitor.worked(1);
+				sapConnector.setAsHost(configureSAPConnectorPage.getAsHost());
 				
 				// System Number
-				property = (Element) XMLUtils.findNodeByAttributeValue(
-						connectorProperties, "name", "systemNumber");
-				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
-						configureSAPConnectorPage.getSystemNumber());
-				monitor.setTaskName("System number updated");
+				monitor.setTaskName("Update system number");
 				monitor.worked(1);
+				sapConnector.setSystemNumber(configureSAPConnectorPage.getSystemNumber());
 				
 				// Client
-				property = (Element) XMLUtils.findNodeByAttributeValue(
-						connectorProperties, "name", "client");
-				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
-						configureSAPConnectorPage.getClient());
-				monitor.setTaskName("Client updated");
+				monitor.setTaskName("Update client");
 				monitor.worked(1);
+				sapConnector.setClient(configureSAPConnectorPage.getClient());
 				
 				// User
-				property = (Element) XMLUtils.findNodeByAttributeValue(
-						connectorProperties, "name", "user");
-				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
-						configureSAPConnectorPage.getUser());
-				monitor.setTaskName("User updated");
+				monitor.setTaskName("Update user");
 				monitor.worked(1);
-				
+				sapConnector.setUser(configureSAPConnectorPage.getUser());
 				// Password
-				property = (Element) XMLUtils.findNodeByAttributeValue(
-						connectorProperties, "name", "password");
-				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
-						configureSAPConnectorPage.getPassword());
-				monitor.setTaskName("Password updated");
+				monitor.setTaskName("Update password");
 				monitor.worked(1);
-				
+				sapConnector.setPassword(configureSAPConnectorPage.getPassword());
 				// Language
-				property = (Element) XMLUtils.findNodeByAttributeValue(
-						connectorProperties, "name", "language");
-				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
-						configureSAPConnectorPage.getLanguage());
-				monitor.setTaskName("Language updated");
+				monitor.setTaskName("Update language");
 				monitor.worked(1);
-				
+				sapConnector.setLanguage(configureSAPConnectorPage.getLanguage());
 				break;
 				
 			case TEMPLATE_SITE_CLIPPER:
-				property = (Element) XMLUtils.findNodeByAttributeValue(
-						connectorProperties, "name", "trustAllServerCertificates");
-				((Element) property.getElementsByTagName("java.lang.Boolean").item(0))
-						.removeAttribute("value");
-				((Element) property.getElementsByTagName("java.lang.Boolean").item(0)).setAttribute("value",
-						Boolean.toString(page11.isTrustAllServerCertificates()));
-				monitor.setTaskName("Connector certificates policy updated");
+				SiteClipperConnector scConnector = (SiteClipperConnector) newProject.getDefaultConnector();
+				monitor.setTaskName("Update connector certificates policy");
 				monitor.worked(1);
+				scConnector.setTrustAllServerCertificates(page11.isTrustAllServerCertificates());
+
+				monitor.setTaskName("Update host url");
+				monitor.worked(1);
+				scConnector.getDefaultTransaction().setTargetURL(page11.getTargetURL());
+				
 				break;
 				
 			default:
 				break;
 			}
-
-			// Configure connector's default transaction properties
-			Element transactionElem = (Element) dom.getDocumentElement().getElementsByTagName("transaction")
-					.item(0);
-			NodeList transactionProperties = transactionElem.getElementsByTagName("property");
 			
-			switch (templateId) {
-			case TEMPLATE_SITE_CLIPPER:
-				property = (Element) XMLUtils.findNodeByAttributeValue(
-						transactionProperties, "name", "targetURL");
-				((Element) property.getElementsByTagName("java.lang.String").item(0)).removeAttribute("value");
-				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
-						page11.getTargetURL());
-				monitor.setTaskName("Host url updated");
-				monitor.worked(1);
-				break;
-			case TEMPLATE_SQL_CONNECTOR:
-				property = (Element) XMLUtils.findNodeByAttributeValue(
-						transactionProperties, "name", "sqlQuery");
-				((Element) property.getElementsByTagName("java.lang.String").item(0)).removeAttribute("value");
-				monitor.setTaskName("SQL queries updated");
-				monitor.worked(1);
-				break;
-			default:
-				break;
-			}
-
-			// write the new .xml file
-			// prepare the string source to write
-			String doc = XMLUtils.prettyPrintDOM(dom);
-			// create the output file
-			File newXmlFile = new File(newXmlFilePath);
-			if (!newXmlFile.createNewFile()) {
-				throw new ConvertigoException("Unable to create the .xml file \"" + newProjectName + ".xml\".");
-			}
-			// write the file to the disk
-			byte data[] = doc.getBytes();
-			FileOutputStream fos = new FileOutputStream(newXmlFilePath);
-			BufferedOutputStream dest = new BufferedOutputStream(fos, data.length);
-			try {
-				dest.write(data, 0, data.length);
-			} finally {
-				dest.flush();
-				dest.close();
-			}
-
-			monitor.setTaskName("New xml file created and saved");
+			monitor.setTaskName("Saving updated project");
 			monitor.worked(1);
+			
+			Engine.theApp.databaseObjectsManager.exportProject(newProject);
 
-			// delete the old .xml file
-			if (!xmlFile.delete()) {
-				throw new ConvertigoException("Unable to delete the .xml file \"" + oldProjectName + ".xml\".");
-			}
-
-			monitor.setTaskName("Old xml file deleted");
+			monitor.setTaskName("New project saved");
 			monitor.worked(1);
 			
 			try {
-				String xsdInternalPath = newProjectDir + "/" + Project.XSD_FOLDER_NAME + "/" + Project.XSD_INTERNAL_FOLDER_NAME;
+				String xsdInternalPath = newProject.getDirPath() + "/" + Project.XSD_FOLDER_NAME + "/" + Project.XSD_INTERNAL_FOLDER_NAME;
 				File xsdInternalDir = new File(xsdInternalPath).getCanonicalFile();
 				if (xsdInternalDir.exists()) {
 					boolean needConnectorRename = !oldConnectorName.equals(newConnectorName);
@@ -1064,33 +856,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				Engine.logDatabaseObjectManager.error("An error occured while updating transaction schemas", e);
 			}
 			
-			String projectPath = newProjectDir + "/" + newProjectName;
-
-			// Import the project from the new .xml file
-			project = Engine.theApp.databaseObjectsManager.importProject(projectPath + ".xml");
-			
-			// In the case we want to predefine with the new project wizard a SQL query
-			switch(templateId) {
-				case TEMPLATE_SQL_CONNECTOR :
-					try {																	
-						SqlConnector connector = (SqlConnector) project
-								.getDefaultConnector();
-						SqlTransaction transaction = connector
-								.getDefaultTransaction();
-
-						String sqlQuery = transaction.getSqlQuery();
-						transaction.setSqlQuery(sqlQuery);
-						CarUtils.exportProject(project, projectPath + ".xml");
-					} catch (Exception e) {
-						Engine.logDatabaseObjectManager.error("An error occured while initialize SQL project \""+projectName+"\"",e);
-					}
-				break;
-			}
-			monitor.setTaskName("Project loaded");
-			monitor.worked(1);
-
-			monitor.setTaskName("Resources created");
-			monitor.worked(1);
 		} catch (Exception e) {
 			// Delete everything
 			try {
@@ -1102,15 +867,14 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				// Engine.theApp.databaseObjectsManager.deleteProject(oldProjectName,
 				// false, false);
 				Engine.theApp.databaseObjectsManager.deleteProject(newProjectName, false, false);
-				projectName = null; // avoid load of project in view
-				project = null;
+				projectName = null;
 			} catch (Exception ex) {
 			}
 
 			throw new Exception("Unable to create project from template", e);
 		}
 
-		return project;
+		return newProject;
 	}
 
 	private Project createFromArchiveProject(IProgressMonitor monitor) throws Exception {

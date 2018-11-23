@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shop>
+	<title>A shop sample : v1</title>
+	<infos>
+		<description>This project has a connector to an HSQLDB database which is used to store the shop products.
+			It defines transactions to create/retrieve or update products. Those transactions are called from sequences which are triggered by mapping operations.
+			The shop api defines three mappings through its UrlMapper object.
+		</description>
+		<urlmapper>
+			<prefixe>The shop api urls prefixe is /shop/v1.</prefixe>
+			<models>To help generating your Json schema models, please see : http://jsonschema.net/#/.</models>
+			<mappings>
+				<mapping path="/">This mapping is the root one. It has a HEAD and GET operations to return the current informations.</mapping>
+				<mapping path="/products">This mapping defines a GET operation to retrieve the full products list, a POST and a PUT operation to add a product to the shop database.</mapping>
+				<mapping path="/products/{prod_id}">This mapping has a path variable named 'prod_id' which help to identify a given product. It has a DELETE operation to delete a given product, a POST operation for product update and a GET operation to retrive the product.</mapping>
+			</mappings>
+		</urlmapper>
+	</infos>
+</shop>

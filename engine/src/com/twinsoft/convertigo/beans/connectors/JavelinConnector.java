@@ -125,7 +125,9 @@ public class JavelinConnector extends ConnectorWithScreenClasses {
 	@Override
 	public void configure(Element element) throws Exception {
 		super.configure(element);
-        emulatorID = findEmulatorId();
+		if (!Engine.isCliMode()) {
+			emulatorID = findEmulatorId();
+		}
 	}
 	
 	/* (non-Javadoc)

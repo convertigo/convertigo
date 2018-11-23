@@ -1,0 +1,32 @@
+buildscript {
+	repositories {
+		mavenLocal()
+		maven {
+			url "https://m2.convertigo.com"
+		}
+		jcenter()
+	}
+	dependencies {
+		classpath 'com.convertigo:gradle-plugin:((CURRENT_VERSION))'
+	}
+}
+
+apply plugin: 'convertigo'
+
+/** Convertigo Gradle Plugin DSL **
+
+// the 'load' task load and migrate the project to the current plugin version
+load {
+	// change the 'version' property of the project at loading
+	// can also be configured with a -Pconvertigo.load.projectVersion as Gradle parameter
+	projectVersion 'x.y.z-release'
+}
+
+// the 'car' task allow to build a <projectName>.car inside the <projectdir>/build folder
+car {
+	// configure the destination of the <projectName>.car file
+	// can also be configured with a -Pconvertigo.car.destinationDir as Gradle parameter
+	destinationDir '/deploymentPath/projects'
+}
+
+**/

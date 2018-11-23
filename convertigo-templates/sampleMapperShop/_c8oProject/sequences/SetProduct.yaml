@@ -1,0 +1,68 @@
+accessibility: Hidden
+comment: 'hidden: update a product giving its id'
+↓Call_Transaction [steps.TransactionStep-1462205286720]: 
+  sourceTransaction: sampleMapperShop.hsqldb._UpdateProduct
+  ↓art_id [variables.StepVariable-1462205286722]: 
+    description: art_id
+  ↓code [variables.StepVariable-1462205286724]: 
+    description: code
+  ↓description [variables.StepVariable-1462205286726]: 
+    description: description
+  ↓price [variables.StepVariable-1462205286728]: 
+    description: price
+↓IfIsInThenElse [steps.IsInThenElseStep-1462371739072]: 
+  sourceDefinition: 
+    - xmlizable: 
+      - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+      - com.twinsoft.convertigo.beans.common.XMLVector: 
+        - java.lang.String: 
+          - ↑value: 1462205286720
+        - java.lang.String: 
+          - ↑value: ./document/sql_output/text()
+  testDefinition: 
+    - xmlizable: 
+      - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+      - com.twinsoft.convertigo.beans.common.XMLVector: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+          - com.twinsoft.convertigo.beans.common.XMLVector: 
+            - java.lang.String: 
+              - ↑value: AND
+            - java.lang.String: 
+              - ↑value: 1 row
+  ↓jThen [steps.ThenStep-1462371739083]: 
+    ↓Element [steps.XMLElementStep-1462371739096]: 
+      nodeName: ok
+      nodeText: true
+      ↓Attribute [steps.XMLAttributeStep-1462968847730]: 
+        nodeName: type
+        nodeText: boolean
+  ↓jElse [steps.ElseStep-1462371739107]: 
+    ↓Element [steps.XMLElementStep-1462371739117]: 
+      nodeName: ok
+      nodeText: false
+      ↓Attribute [steps.XMLAttributeStep-1462968862841]: 
+        nodeName: type
+        nodeText: boolean
+↓art_id [variables.RequestableVariable-1462205306424]: 
+  description: art_id
+  required: true
+↓code [variables.RequestableVariable-1462205306426]: 
+  description: code
+↓description [variables.RequestableVariable-1462205306428]: 
+  description: description
+↓price [variables.RequestableVariable-1462205306430]: 
+  description: price
+↓Test_OK [core.TestCase]: 
+  ↓art_id [variables.TestCaseVariable-1462205335007]: 
+    description: art_id
+    value: 12
+  ↓code [variables.TestCaseVariable-1462205335009]: 
+    description: code
+    value: code12
+  ↓description [variables.TestCaseVariable-1462205335011]: 
+    description: description
+    value: description12
+  ↓price [variables.TestCaseVariable-1462205335013]: 
+    description: price
+    value: 2,22

@@ -1,0 +1,68 @@
+accessibility: Hidden
+comment: 'hidden: remove a product giving its id'
+↓jIfThenElse [steps.IfThenElseStep-1462368975039]: 
+  comment: check wether art_id is valid or not
+  condition: isNaN(art_id)
+  ↓jThen [steps.ThenStep-1462368975053]: 
+    comment: 'art_id is invalid : generate an error'
+    ↓Error_structure [steps.XMLErrorStep-1462368975067]: 
+      code: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.steps.SmartType
+          - SmartType: 
+            - ↑mode: PLAIN
+            - →→: 10
+      details: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.steps.SmartType
+          - SmartType: 
+            - ↑mode: PLAIN
+            - →→: identifier must be an integer
+      message: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.steps.SmartType
+          - SmartType: 
+            - ↑mode: PLAIN
+            - →→: invalid product identifier
+  ↓jElse [steps.ElseStep-1462368975079]: 
+    comment: 'art_id is valid : request database'
+    ↓Call_Transaction1 [steps.TransactionStep-1462369089952]: 
+      sourceTransaction: sampleMapperShop.hsqldb._DeleteProduct
+      ↓art_id [variables.StepVariable-1462369089962]: 
+        description: art_id
+    ↓IfIsInThenElse [steps.IsInThenElseStep-1462369721945]: 
+      sourceDefinition: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+          - com.twinsoft.convertigo.beans.common.XMLVector: 
+            - java.lang.String: 
+              - ↑value: 1462369089952
+            - java.lang.String: 
+              - ↑value: ./document/sql_output/text()
+      testDefinition: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+          - com.twinsoft.convertigo.beans.common.XMLVector: 
+            - xmlizable: 
+              - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+              - com.twinsoft.convertigo.beans.common.XMLVector: 
+                - java.lang.String: 
+                  - ↑value: AND
+                - java.lang.String: 
+                  - ↑value: 1 row
+      ↓jThen [steps.ThenStep-1462369723784]: 
+        ↓Element [steps.XMLElementStep-1462369772930]: 
+          nodeName: ok
+          nodeText: true
+          ↓Attribute [steps.XMLAttributeStep-1462968789579]: 
+            nodeName: type
+            nodeText: boolean
+      ↓jElse [steps.ElseStep-1462369723786]: 
+        ↓Element [steps.XMLElementStep-1462369804678]: 
+          nodeName: ok
+          nodeText: false
+          ↓Attribute [steps.XMLAttributeStep-1462968813586]: 
+            nodeName: type
+            nodeText: boolean
+↓art_id [variables.RequestableVariable-1462205109745]: 
+  description: art_id

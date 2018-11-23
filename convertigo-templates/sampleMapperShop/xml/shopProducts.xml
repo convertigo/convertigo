@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<articles>
+	<article>
+		<art_id>1</art_id>
+		<description>Product 1</description>
+		<code>HCH66DCT4TV</code>
+		<price>168,63</price>
+		<category>8</category>
+	</article>
+	<article>
+		<art_id>2</art_id>
+		<description>Product 2</description>
+		<code>AWW05HQN2JN</code>
+		<price>21,02</price>
+		<category>6</category>
+	</article>
+	<article>
+		<art_id>3</art_id>
+		<description>Product 3</description>
+		<code>BQH78JHX1JC</code>
+		<price>36,56</price>
+		<category>1</category>
+	</article>
+	<article>
+		<art_id>4</art_id>
+		<description>Product 4</description>
+		<code>ELG04TXL5DN</code>
+		<price>4,57</price>
+		<category>5</category>
+	</article>
+	<article>
+		<art_id>5</art_id>
+		<description>Product 5</description>
+		<code>PRZ31UMB8PN</code>
+		<price>41,56</price>
+		<category>5</category>
+	</article>
+	<article>
+		<art_id>6</art_id>
+		<description>Product 6</description>
+		<code>HHT10CDJ0OO</code>
+		<price>118,83</price>
+		<category>3</category>
+	</article>
+	<article>
+		<art_id>7</art_id>
+		<description>Product 7</description>
+		<code>VEB10OCD3KN</code>
+		<price>67,83</price>
+		<category>7</category>
+	</article>
+	<article>
+		<art_id>8</art_id>
+		<description>Product 8</description>
+		<code>SHL55FFT7UK</code>
+		<price>175,27</price>
+		<category>2</category>
+	</article>
+	<article>
+		<art_id>9</art_id>
+		<description>Product 9</description>
+		<code>ECW31NMJ5BX</code>
+		<price>11,37</price>
+		<category>7</category>
+	</article>
+	<article>
+		<art_id>10</art_id>
+		<description>Product 10</description>
+		<code>AXH76IYS8ZN</code>
+		<price>7,52</price>
+		<category>1</category>
+	</article>
+	<article>
+		<art_id>11</art_id>
+		<description>Product 11</description>
+		<code>GAQ64CPO6KZ</code>
+		<price>140,16</price>
+		<category>2</category>
+	</article>
+	<article>
+		<art_id>12</art_id>
+		<description>Product 12</description>
+		<code>YTP51ZLP0PE</code>
+		<price>155,00</price>
+		<category>6</category>
+	</article>
+	<article>
+		<art_id>13</art_id>
+		<description>Product 13</description>
+		<code>AMY52MEL3CP</code>
+		<price>36,93</price>
+		<category>3</category>
+	</article>
+	<article>
+		<art_id>14</art_id>
+		<description>Product 14</description>
+		<code>SAA13WXB1TH</code>
+		<price>20,41</price>
+		<category>8</category>
+	</article>
+	<article>
+		<art_id>15</art_id>
+		<description>Product 15</description>
+		<code>RFV16ISB5JN</code>
+		<price>75,24</price>
+		<category>1</category>
+	</article>
+	<article>
+		<art_id>16</art_id>
+		<description>Product 16</description>
+		<code>BEI15PLY4DE</code>
+		<price>87,28</price>
+		<category>10</category>
+	</article>
+	<article>
+		<art_id>17</art_id>
+		<description>Product 17</description>
+		<code>SCJ17NEX6SF</code>
+		<price>14,40</price>
+		<category>10</category>
+	</article>
+	<article>
+		<art_id>18</art_id>
+		<description>Product 18</description>
+		<code>UOW03XCP5PT</code>
+		<price>197,63</price>
+		<category>1</category>
+	</article>
+	<article>
+		<art_id>19</art_id>
+		<description>Product 19</description>
+		<code>ZVD06YWW9EU</code>
+		<price>57,03</price>
+		<category>8</category>
+	</article>
+	<article>
+		<art_id>20</art_id>
+		<description>Product 20</description>
+		<code>CVP79QAZ5RB</code>
+		<price>63,58</price>
+		<category>1</category>
+	</article>
+	<article>
+		<art_id>21</art_id>
+		<description>Product 21</description>
+		<code>BLO06JFS6AT</code>
+		<price>23,66</price>
+		<category>9</category>
+	</article>
+	<article>
+		<art_id>22</art_id>
+		<description>Product 22</description>
+		<code>LSU97OIY1XK</code>
+		<price>65,19</price>
+		<category>1</category>
+	</article>
+	<article>
+		<art_id>23</art_id>
+		<description>Product 23</description>
+		<code>OHQ74KTJ6IU</code>
+		<price>48,45</price>
+		<category>6</category>
+	</article>
+	<article>
+		<art_id>24</art_id>
+		<description>Product 24</description>
+		<code>YHC71PNE8OL</code>
+		<price>124,53</price>
+		<category>6</category>
+	</article>
+	<article>
+		<art_id>25</art_id>
+		<description>Product 25</description>
+		<code>QUW39SHA5HM</code>
+		<price>141,61</price>
+		<category>5</category>
+	</article>
+	<article>
+		<art_id>26</art_id>
+		<description>Product 26</description>
+		<code>LRP76YJA2DT</code>
+		<price>53,35</price>
+		<category>7</category>
+	</article>
+	<article>
+		<art_id>27</art_id>
+		<description>Product 27</description>
+		<code>NIC49WVX6DL</code>
+		<price>36,83</price>
+		<category>8</category>
+	</article>
+	<article>
+		<art_id>28</art_id>
+		<description>Product 28</description>
+		<code>MSE69JLB2UM</code>
+		<price>121,12</price>
+		<category>7</category>
+	</article>
+	<article>
+		<art_id>29</art_id>
+		<description>Product 29</description>
+		<code>ZYU39UZF5SG</code>
+		<price>4,44</price>
+		<category>2</category>
+	</article>
+	<article>
+		<art_id>30</art_id>
+		<description>Product 30</description>
+		<code>JWT83KRF7DF</code>
+		<price>156,90</price>
+		<category>7</category>
+	</article>
+</articles>

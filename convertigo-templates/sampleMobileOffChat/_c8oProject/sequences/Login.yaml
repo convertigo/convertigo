@@ -1,0 +1,134 @@
+↓Input_variables [steps.InputVariablesStep-1433256479163]: 
+↓jIf [steps.IfStep-1433256479172]: 
+  condition: username.length < 4 || password.length < 4
+  ↓Error_structure [steps.XMLErrorStep-1433256479181]: 
+    code: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.steps.SmartType
+        - SmartType: 
+          - ↑mode: PLAIN
+          - →→: 1
+    message: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.steps.SmartType
+        - SmartType: 
+          - ↑mode: PLAIN
+          - →→: Username and password size must by 4 or more.
+  ↓Return [steps.ReturnStep-1433256479190]: 
+↓jElement [steps.ElementStep-1433256479200]: 
+  expression: token = org.apache.commons.codec.digest.DigestUtils.md5Hex(username + password)
+  nodeName: token
+  output: false
+↓Call_Transaction [steps.TransactionStep-1433256479218]: 
+  sourceTransaction: sampleMobileOffChat.offchat_fullsync.UserExists
+  ↓_use_key [variables.StepVariable-1433256479227]: 
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1433256479163
+          - java.lang.String: 
+            - ↑value: ./username/text()
+↓IfExistThenElse [steps.IfExistThenElseStep-1433256479236]: 
+  sourceDefinition: 
+    - xmlizable: 
+      - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+      - com.twinsoft.convertigo.beans.common.XMLVector: 
+        - java.lang.String: 
+          - ↑value: 1433256479218
+        - java.lang.String: 
+          - ↑value: ./document/couchdb_output/rows/item
+  ↓jThen [steps.ThenStep-1433256479244]: 
+    ↓id [steps.SimpleSourceStep-1433256479253]: 
+      sourceDefinition: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+          - com.twinsoft.convertigo.beans.common.XMLVector: 
+            - java.lang.String: 
+              - ↑value: 1433256479218
+            - java.lang.String: 
+              - ↑value: ./document/couchdb_output/rows/item/value
+      variableName: dbToken
+    ↓jIf [steps.IfStep-1433256479261]: 
+      condition: token != dbToken
+      ↓Error_structure [steps.XMLErrorStep-1433256479269]: 
+        code: 
+          - xmlizable: 
+            - ↑classname: com.twinsoft.convertigo.beans.steps.SmartType
+            - SmartType: 
+              - ↑mode: PLAIN
+              - →→: 2
+        message: 
+          - xmlizable: 
+            - ↑classname: com.twinsoft.convertigo.beans.steps.SmartType
+            - SmartType: 
+              - ↑mode: PLAIN
+              - →→: Invalid password
+      ↓Remove_authenticated_user [steps.RemoveAuthenticatedUserStep-1433256479278]: 
+      ↓Return [steps.ReturnStep-1433256479285]: 
+  ↓jElse [steps.ElseStep-1433256479293]: 
+    ↓Call_Transaction [steps.TransactionStep-1433256479302]: 
+      sourceTransaction: sampleMobileOffChat.offchat_fullsync.UserAdd
+      ↓username [variables.StepVariable-1433256479309]: 
+        sourceDefinition: 
+          - xmlizable: 
+            - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+            - com.twinsoft.convertigo.beans.common.XMLVector: 
+              - java.lang.String: 
+                - ↑value: 1433256479163
+              - java.lang.String: 
+                - ↑value: ./username/text()
+      ↓token [variables.StepVariable-1433256479316]: 
+        sourceDefinition: 
+          - xmlizable: 
+            - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+            - com.twinsoft.convertigo.beans.common.XMLVector: 
+              - java.lang.String: 
+                - ↑value: 1433256479200
+              - java.lang.String: 
+                - ↑value: ./text()
+    ↓Call_Transaction1 [steps.TransactionStep-1433258134098]: 
+      sourceTransaction: sampleMobileOffChat.offchat_fullsync.UserExists
+    ↓Call_Transaction11 [steps.TransactionStep-1433258134104]: 
+      sourceTransaction: sampleMobileOffChat.offchat_fullsync.UserListSet
+      ↓_id [variables.StepVariable-1433258134108]: 
+        description: Document id
+        value: userList
+      ↓users [variables.StepMultiValuedVariable-1433258134112]: 
+        description: Document content
+        sourceDefinition: 
+          - xmlizable: 
+            - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+            - com.twinsoft.convertigo.beans.common.XMLVector: 
+              - java.lang.String: 
+                - ↑value: 1433258134098
+              - java.lang.String: 
+                - ↑value: ./document/couchdb_output/rows/item/key/text()
+↓username [steps.SetAuthenticatedUserStep-1433256479330]: 
+  userid: 
+    - xmlizable: 
+      - ↑classname: com.twinsoft.convertigo.beans.steps.SmartType
+      - SmartType: 
+        - ↑mode: JS
+        - →→: username
+↓Element [steps.XMLElementStep-1433256479340]: 
+  nodeName: ok
+  nodeText: true
+  ↓Attribute [steps.XMLAttributeStep-1518023293305]: 
+    nodeName: type
+    nodeText: boolean
+↓jElement1 [steps.ElementStep-1518022450797]: 
+  expression: '"" + new Date().getTime()'
+  nodeName: ts
+  ↓Attribute [steps.XMLAttributeStep-1518023240095]: 
+    nodeName: type
+    nodeText: long
+↓username [variables.RequestableVariable-1433256479347]: 
+  value: 
+↓password [variables.RequestableVariable-1433256479354]: 
+  value: 
+    - ↑ciphered: true
+    - ↑traceable: false
+    - →→: xd8e180806a1c1d83a6255212121ab827
+  visibility: '-1'

@@ -115,6 +115,8 @@ public class CarUtils {
 		undeployedFiles.add(dataDir);
 		File carFile = new File(projectDir, projectName + ".car");
 		undeployedFiles.add(carFile);
+		File buildDir = new File(projectDir, "build");
+		undeployedFiles.add(buildDir);
 
 		// UrlMapper - JsonSchema directories
 		File oas2Dir = new File(projectDir, "oas2");

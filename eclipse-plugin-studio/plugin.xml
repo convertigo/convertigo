@@ -148,23 +148,6 @@
             id="com.twinsoft.convertigo.eclipse.convertigolibraries"
             name="Libraries"
             parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
-<!-- samples and demos categories -->
-      <category
-            id="com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
-            name="Documentation samples"
-            parentCategory="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"/>
-      <category
-            id="com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
-            name="Reference Manual examples"
-            parentCategory="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"/>
-      <category
-            id="com.twinsoft.convertigo.eclipse.convertigorestsamples"
-            name="Rest samples"
-            parentCategory="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"/>
-      <category
-            id="com.twinsoft.convertigo.eclipse.convertigosqlsamples"
-            name="SQL Connector samples"
-            parentCategory="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"/>
 <!-- Mobile projects -->
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo"
@@ -415,108 +398,6 @@
              project="true">
           <description>Imports the Convertigo Salesforce library project.</description>
        </wizard>
-<!-- Tutorials sample projects -->
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDocumentationSampleCLIWizard"
-             icon="icons/studio/javelinconnector_color_32x32.gif"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCLIWizard"
-             name="Legacy integration"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the legacy integration sample project to use with Convertigo Legacy Integrator Quick Guide documentation.</description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDocumentationSampleCLPWizard"
-             icon="icons/studio/javelinconnector_color_32x32.gif"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCLPWizard"
-             name="Legacy publishing"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the legacy publishing sample project to use with Convertigo Legacy Publisher Quick Guide documentation.</description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDocumentationSampleCMCWizard"
-             icon="icons/studio/interaction_hub_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCMCWizard"
-             name="Mashup composition"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the interaction hub sample project to use with Convertigo Mashup Composer Quick Guide documentation.</description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDocumentationSampleCMSWizard"
-             icon="icons/studio/sequence_color_32x32.gif"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCMSWizard"
-             name="Sequencing project"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the mashup sequencer sample project to use with Convertigo Mashup Sequencer Quick Guide documentation.</description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDocumentationSampleCWIWizard"
-             icon="icons/studio/htmlconnector_color_32x32.gif"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCWIWizard"
-             name="Web integration"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the web integration sample project to use with Convertigo Web Integrator Quick Guide documentation.</description>
-       </wizard>
-<!-- Reference Manual sample projects -->
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewRefManualSampleSiteClipperWizard"
-             icon="icons/studio/siteclipperconnector_color_32x32.gif"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleSiteClipperWizard"
-             name="Site Clipper objects examples"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the sample project containing Site Clipper objects examples described in the Reference Manual.</description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewRefManualSampleStatementsWizard"
-             icon="icons/studio/htmlconnector_color_32x32.gif"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleStatementsWizard"
-             name="HTML connector statements examples"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the sample project containing HTML connector statements examples described in the Reference Manual.</description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewRefManualSampleStepsWizard"
-             icon="icons/studio/sequence_color_32x32.gif"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleStepsWizard"
-             name="Sequencer objects examples"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the sample project containing Sequencer objects examples described in the Reference Manual.</description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewRefManualSampleVariablesWizard"
-             icon="icons/studio/variable_color_32x32.gif"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleVariablesWizard"
-             name="Variables examples"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the sample project containing variables examples described in the Reference Manual.</description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewRefManualSampleHTTPWizard"
-             icon="icons/studio/httpconnector_color_32x32.gif"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleHTTPWizard"
-             name="HTTP connector objects examples"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the sample project containing HTTP connector objects examples described in the Reference Manual.</description>
-       </wizard>
 <!-- Mobile sample projects -->
        <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"
@@ -567,38 +448,6 @@
             preferredPerspectives="convertigo"
             project="true">
             <description>Imports a project creating a sampleRetailStore application. This application demonstrates FullSync technology used for a mobile retail store application where the user can browse a catalog of products downloaded on his mobile phone. For this demo, the data come from a static XML file imported in the FullSync server database. When the mobile application is launched, a first step will be done to import the data in the server database, then the data will be “synced” on the mobile device. Be sure to install a CouchDB server on your workstation before running this demo.</description> 
-       </wizard>
-<!-- REST sample projects -->
-       <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigorestsamples"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMapperShopWizard"
-            icon="icons/studio/swagger_16x16.png"
-            id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMapperShopWizard"
-            name="MapperShop sample project"
-            preferredPerspectives="convertigo"
-            project="true">
-            <description>Imports a project being exposed as a REST service through its URL mapper. The project is a very simplistic shop which data are stored into a local HSQLDB database. </description> 
-       </wizard>
-<!-- SQL connector sample projects -->
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigosqlsamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSQLSampleHSQLDBWizard"
-             icon="icons/studio/sqlconnector_color_32x32.gif"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewSQLSampleHSQLDBWizard"
-             name="HSQLDB database sample project"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports an HSQLDB database sample project.</description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigosqlsamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSQLSampleXLSWizard"
-             icon="icons/studio/excel.gif"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewSQLsampleXLSWizard"
-             name="Excel file database sample project"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports an Excel file database sample project.</description>
        </wizard>
    </extension>
    <extension

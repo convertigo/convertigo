@@ -64,8 +64,10 @@ public class PropertiesUtils {
 	}
 	
 	public static void load(Properties properties, InputStream inputStream) throws IOException {
-		try (Reader reader = new InputStreamReader(inputStream, "UTF-8")) {
-			load(properties, reader);
+		if (inputStream != null) {
+			try (Reader reader = new InputStreamReader(inputStream, "UTF-8")) {
+				load(properties, reader);
+			}
 		}
 	}
 	
