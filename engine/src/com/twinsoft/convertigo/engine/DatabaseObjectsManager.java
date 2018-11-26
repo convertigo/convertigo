@@ -674,13 +674,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 				}
 
 				if (projectName != null) {
-					needsMigration = needsMigration(projectFile);
-
 					if (isArchive) {
 						// Deploy project (will backup project and perform the
 						// migration through import if necessary)
 						project = deployProject(projectFileName, needsMigration);
 					} else {
+						needsMigration = needsMigration(projectFile);
 						if (needsMigration) {
 							Engine.logDatabaseObjectManager.debug("Project '" + projectName
 									+ "' needs to be migrated");
