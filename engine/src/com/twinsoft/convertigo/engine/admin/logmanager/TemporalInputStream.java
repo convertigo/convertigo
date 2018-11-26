@@ -313,7 +313,9 @@ public class TemporalInputStream extends InputStream {
 				raf.seek(pos);
 				--pos;
 			} while (raf.read() != 10 && pos > 0); // '\n'
-			
+			if (pos <= 0) {
+				raf.seek(0);
+			}
 			date = parseDate(raf);
 		}
 		
@@ -345,13 +347,12 @@ public class TemporalInputStream extends InputStream {
 	}
 	
 	private String readSubLine(RandomAccessFile raf) throws IOException {
-		raf.read(b);
-		return new String(b, encoding);
+		int r = raf.read(b);
+		return new String(b, 0, r, encoding);
 	}
 	
 	private Date parseDate(RandomAccessFile raf) throws IOException {
-		raf.read(b);
-		return parseDate(new String(b, encoding));
+		return parseDate(readSubLine(raf));
 	}
 	
 	private void renameFiles(File dir) {
