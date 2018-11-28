@@ -1232,14 +1232,13 @@
       "properties": {
         "duration": {
           "attr": "duration",
-          "value": "",
+          "value": false,
           "label": "Duration",
-          "description": "string: How long it takes it to do one loop.",
+          "description": "How long it takes to do one loop. (in ms)",
           "category": "Attributes",
         },
         "name": {
           "attr": "name",
-          "value": "",
           "label": "Name",
           "description": "SVG spinner name.",
           "category": "Attributes",
