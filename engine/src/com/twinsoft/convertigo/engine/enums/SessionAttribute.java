@@ -25,9 +25,12 @@ public enum SessionAttribute {
 	authenticatedUser,
 	authenticatedUserGrp,
 	authenticatedUserGrpCheck,
+	clientIP,
+	exception,
 	isNew,
 	httpClient3("__httpClient3__"),
-	httpClient4("__httpClient4__");
+	httpClient4("__httpClient4__"),
+	sessionListener;
 	
 	String value;
 	
