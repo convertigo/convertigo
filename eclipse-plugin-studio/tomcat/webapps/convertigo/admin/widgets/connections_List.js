@@ -17,8 +17,7 @@
  * if not, see <http://www.gnu.org/licenses/>.
  */
 
-var params="";
-var desc="&desc";
+var connections_List_timeout;
 
 function updateConnectionsList(xml) {
 	var $xml = $(xml);
@@ -36,6 +35,23 @@ function updateConnectionsList(xml) {
 		$("#sessionOverflow").hide();
 	}
 	
+	$("#sessionsList").jqGrid('clearGridData');
+	
+	$xml.find("session").each(function(index) {
+		$("#sessionsList").jqGrid("addRowData", $(this).attr("sessionID"), {
+				btnDelete: '<a title="Delete the session"><img border="0" src="images/convertigo-administration-picto-delete.png" onClick="deleteSession(\'' + $(this).attr("sessionID") + '\')"></a></td>',
+				showlogs: '<a href="javascript: getLogs(\'' + $(this).attr("sessionID") + '\', true)"><img src="images/edit.gif" /></a>',
+				sessionID: '<a href="javascript: filterSession(\'' + $(this).attr("sessionID") + '\')">' + $(this).attr("sessionID") + '</a>',
+				contexts: $(this).attr("contexts"),
+				user: $(this).attr("authenticatedUser"),
+				clientIP: $(this).attr("clientIP"),
+				sessionLastAccessDate: $(this).attr("lastSessionAccessDate"),
+				sessionInactivityTime: $(this).attr("sessionInactivityTime"),
+				clientComputer: $(this).attr("clientComputer")
+			}
+		);
+	});
+	
 	$("#connectionsList").jqGrid('clearGridData');
 
 	$xml.find("connection").each(function(index) {
@@ -43,7 +59,8 @@ function updateConnectionsList(xml) {
 		$("#connectionsList").jqGrid("addRowData", $(this).attr("contextName"), {
 				btnDelete: '<a title="Delete the connection"><img border="0" src="images/convertigo-administration-picto-delete.png" onClick="deleteConnection(\'' + $(this).attr("contextName") + '\')"></a></td>',
 				connected: $(this).attr("connected") == "true" ? '<img border="0" title="Connected" src="images/convertigo-administration-picto-bullet-green.png" />' : '<img border="0" title="Connected" src="images/convertigo-administration-picto-bullet-red.png" />',
-				contextName: '<a href="javascript: getLogs(\'' + $(this).attr("contextName") + '\')">' + $(this).attr("contextName") + '</a>',
+				showlogs: '<a href="javascript: getLogs(\'' + $(this).attr("contextName") + '\')"><img src="images/edit.gif" /></a>',
+				contextName: $(this).attr("contextName"),
 				project: $(this).attr("project"),
 				connector: $(this).attr("connector"),
 				requested: $(this).attr("requested"),
@@ -58,156 +75,237 @@ function updateConnectionsList(xml) {
 	});
 }
 
-function getLogs(contextId) {
-	displayPage("Logs", { filter: "contextid == \"" + contextId + "\"" });
+function filterSession(sessionId) {
+	$("#selectedSession").text(sessionId).parent().show();
+	connections_List_update();
+}
+
+function clearSelectedSession() {
+	$("#selectedSession").text("").parent().hide();
+	connections_List_update();
+}
+
+function toggleSessions() {
+	$("#gbox_sessionsList").toggle();
+	connections_List_update();
+}
+
+function getLogs(contextId, isSession) {
+	if (isSession) {
+		displayPage("Logs", { filter: "contextid.startsWith(\"" + contextId + "\")" });		
+	} else {
+		displayPage("Logs", { filter: "contextid == \"" + contextId + "\"" });		
+	}
 }
 
 function connections_List_update() {
+	clearTimeout(connections_List_timeout);
+	
 	callService("connections.List", function(xml){				
 		if ($("#gview_connectionsList").is(":visible")) {
-			
 			updateConnectionsList(xml);
 
-			setTimeout(function() {
+			connections_List_timeout = setTimeout(function() {
 				connections_List_update();
-			}, 1000);
+			}, 2500);
 					
 		}
+	}, {
+		session: $("#selectedSession").text(),
+		sessions: $("#gbox_sessionsList").is(":visible")
 	});
 }
 
 function connections_List_init() {
-	callService("connections.List",
-	    function(xml){			
-			$("#connectionsContextsInUse").html($(xml).find("contextsInUse").text());
-			$("#connectionsContextsNumber").html($(xml).find("contextsNumber").text());
-			$("#connectionsThreadsInUse").html($(xml).find("threadsInUse").text());
-			$("#connectionsThreadsNumber").html($(xml).find("threadsNumber").text());
-			$("#connectionsHttpTimeout").html($(xml).find("httpTimeout").text());
 			
-			// Update connections list
-			$("#connectionsList").jqGrid({
-				datatype : "local",
-				colNames : [
-				    '',
-				    '<img src="images/convertigo-administration-picto-bullet-gray.png" alt="Connector connection status"/>',
-				    'Context',
-				    'Project',
-				    'Connector',
-				    'Requested',
-				    'Status',
-				    'User',
-				    '<img src="images/convertigo-administration-picto-creation-date.png" alt="Context creation date"/>',
-				    '<img src="images/convertigo-administration-picto-last-date.png" alt="Context last access date"/>',
-				    '<img src="images/convertigo-administration-picto-activity.png" alt="Copntext inactivity"/>',
-				    'Client computer'
-				],
-				colModel : [
-		            {
-						name : 'btnDelete',
-						index : 'btnDelete',
-						sortable : false,
-						width : 20,
-						align : "center"
-					}, {
-						name : 'connected',
-						index : 'connected',						
-						width : 20,
-						align : "center"
-					}, {
-						name : 'contextName',
-						index : 'contextName',
-						width : 120,
-						align : "left"
-					}, {
-						name : 'project',
-						index : 'project',
-						width : 50,
-						align : "left"
-					}, {
-						name : 'connector',
-						index : 'connector',
-						width : 60,
-						align : "left"
-					}, {
-						name : 'requested',
-						index : 'requested',
-						width : 60,
-						align : "left"
-					}, {
-						name : 'status',
-						index : 'status',
-						width : 50,
-						align : "left"
-					}, {
-						name : 'user',
-						index : 'user',
-						width : 60,
-						align : "left"
-					}, {
-						name : 'contextCreationDate',
-						index : 'contextCreationDate',
-						width : 50,
-						align : 'left'
-					}, {
-						name : 'contextLastAccessDate',
-						index : 'contextLastAccessDate',
-						width : 50,
-						align : 'left'
-					}, {
-						name : 'contextInactivityTime',
-						index : 'contextInactivityTime',
-						width : 50,
-						align : 'left'
-					}, {
-						name : 'clientComputer',
-						index : 'clientComputer',
-						width : 100,						
-						align : 'left'
-					} ],
-					ignoreCase : true,
-					autowidth : true,
-					viewrecords : true,
-					height : 'auto',
-					sortable : true,
-					pgbuttons : false,
-					pginput : false,
-					toppager : false,
-					emptyrecords : 'No connections',
-					altRows : true,		
-					rowNum: '1000000'
-					
-				});
+	// Update connections list
+	$("#sessionsList").jqGrid({
+		datatype : "local",
+		colNames : [
+		    '',
+		    '<img src="images/edit.gif" alt="Show logs"/>',
+		    'ID',
+		    'Contexts',
+		    'User',
+		    '<img src="images/convertigo-administration-picto-last-date.png" alt="Session last access date"/>',
+		    '<img src="images/convertigo-administration-picto-activity.png" alt="Session inactivity"/>',
+		    'Client IP'
+		],
+		colModel : [
+	        {
+				name : 'btnDelete',
+				index : 'btnDelete',
+				sortable : false,
+				width : 20,
+				align : "center"
+			}, {
+				name : 'showlogs',
+				index : 'showlogs',						
+				width : 20,
+				align : "center"
+			}, {
+				name : 'sessionID',
+				index : 'sessionID',
+				width : 120,
+				align : "left"
+			}, {
+				name : 'contexts',
+				index : 'contexts',
+				width : 50,
+				align : "left"
+			}, {
+				name : 'user',
+				index : 'user',
+				width : 60,
+				align : "left"
+			}, {
+				name : 'sessionLastAccessDate',
+				index : 'sessionLastAccessDate',
+				width : 50,
+				align : 'left'
+			}, {
+				name : 'sessionInactivityTime',
+				index : 'sessiontInactivityTime',
+				width : 50,
+				align : 'left'
+			}, {
+				name : 'clientIP',
+				index : 'clientIP',
+				width : 60,
+				align : "left"
+			} ],
+			ignoreCase : true,
+			autowidth : true,
+			viewrecords : true,
+			height : 'auto',
+			sortable : true,
+			pgbuttons : false,
+			pginput : false,
+			toppager : false,
+			emptyrecords : 'No sessions',
+			altRows : true,		
+			rowNum: '1000000'
 			
-			$("#connectionsListButtonDeleteAll").button({				
-				icons : {
-					primary : "ui-icon-closethick"
-				}
-			}).click(function(){
-				showConfirm("Are you sure you want to delete all the connections?",function(){
-					$("#connectionsList tr:gt(0)").each(function(){					
-						callService("connections.Delete",function(){},{"contextName":$(this).attr('id')});
-					});
-				});					
-			});
+		});
+	
+	// Update connections list
+	$("#connectionsList").jqGrid({
+		datatype : "local",
+		colNames : [
+		    '',
+		    '<img src="images/convertigo-administration-picto-bullet-gray.png" alt="Connector connection status"/>',
+		    '<img src="images/edit.gif" alt="Show logs"/>',
+		    'Context',
+		    'Project',
+		    'Connector',
+		    'Requested',
+		    'Status',
+		    'User',
+		    '<img src="images/convertigo-administration-picto-creation-date.png" alt="Context creation date"/>',
+		    '<img src="images/convertigo-administration-picto-last-date.png" alt="Context last access date"/>',
+		    '<img src="images/convertigo-administration-picto-activity.png" alt="Context inactivity"/>',
+		    'Client computer'
+		],
+		colModel : [
+	        {
+				name : 'btnDelete',
+				index : 'btnDelete',
+				sortable : false,
+				width : 20,
+				align : "center"
+			}, {
+				name : 'connected',
+				index : 'connected',						
+				width : 20,
+				align : "center"
+			}, {
+				name : 'showlogs',
+				index : 'showlogs',						
+				width : 20,
+				align : "center"
+			}, {
+				name : 'contextName',
+				index : 'contextName',
+				width : 120,
+				align : "left"
+			}, {
+				name : 'project',
+				index : 'project',
+				width : 50,
+				align : "left"
+			}, {
+				name : 'connector',
+				index : 'connector',
+				width : 60,
+				align : "left"
+			}, {
+				name : 'requested',
+				index : 'requested',
+				width : 60,
+				align : "left"
+			}, {
+				name : 'status',
+				index : 'status',
+				width : 50,
+				align : "left"
+			}, {
+				name : 'user',
+				index : 'user',
+				width : 60,
+				align : "left"
+			}, {
+				name : 'contextCreationDate',
+				index : 'contextCreationDate',
+				width : 50,
+				align : 'left'
+			}, {
+				name : 'contextLastAccessDate',
+				index : 'contextLastAccessDate',
+				width : 50,
+				align : 'left'
+			}, {
+				name : 'contextInactivityTime',
+				index : 'contextInactivityTime',
+				width : 50,
+				align : 'left'
+			}, {
+				name : 'clientComputer',
+				index : 'clientComputer',
+				width : 100,						
+				align : 'left'
+			} ],
+			ignoreCase : true,
+			autowidth : true,
+			viewrecords : true,
+			height : 'auto',
+			sortable : true,
+			pgbuttons : false,
+			pginput : false,
+			toppager : false,
+			emptyrecords : 'No connections',
+			altRows : true,		
+			rowNum: '1000000'
 			
-			connections_List_update();
-	    }
-	);
+		});
+	
+	$("#connectionsListButtonDeleteAll").button({				
+		icons : {
+			primary : "ui-icon-closethick"
+		}
+	}).click(function(){
+		showConfirm("Are you sure you want to delete all the sessions?",function(){
+			callService("connections.Delete",function(){},{"removeAll": true});
+		});					
+	});
+	
+	connections_List_update();
 }
 
-function setParams(sortParam){	
-	if(desc.length>0){
-		desc="";
-	}
-	else{
-		desc="&desc";
-	}	
-	params="sortParam="+sortParam+desc;	
-	
+function deleteSession(sessionId){	
+	showConfirm("Do you want to delete the session: " + sessionId,function(){callService("connections.Delete",function(){},{"sessionId":sessionId})});	
 }
 
 function deleteConnection(contextName){	
-	showConfirm("Do you want to delete the connection",function(){callService("connections.Delete",function(){},{"contextName":contextName})});	
+	showConfirm("Do you want to delete the context: " + contextName,function(){callService("connections.Delete",function(){},{"contextName":contextName})});	
 }
 

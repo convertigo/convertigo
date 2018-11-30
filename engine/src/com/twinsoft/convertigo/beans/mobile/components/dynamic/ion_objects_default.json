@@ -3273,5 +3273,25 @@
     "value": false
    }
   }
+ }},
+ "Spinner": {"   7   6   0": {
+  "name": "Spinner",
+  "properties": {
+   "duration": {
+    "name": "duration",
+    "mode": "plain",
+    "value": false
+   },
+   "name": {
+    "name": "name",
+    "mode": "plain",
+    "value": "ios"
+   },
+   "paused": {
+    "name": "paused",
+    "mode": "plain",
+    "value": false
+   }
+  }
  }}
 }

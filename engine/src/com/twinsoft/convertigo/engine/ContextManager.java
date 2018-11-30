@@ -289,36 +289,21 @@ public class ContextManager extends AbstractRunnableManager {
     	return devicePool;
     }
     
-    public boolean isSessionEmtpy(String sessionID) {
-//		Engine.logContextManager.debug("Finding all contexts from the session " + sessionID + "...");
-//		try {
-//			for(String contextID : contexts.keySet()) {
-//				Engine.logContextManager.debug("Analyzing contextID " + contextID);
-//				if (contextID.startsWith(sessionID)) {
-//					return false;
-//				}
-//			}
-//		}
-//		catch(NullPointerException e) {
-//			// Nothing to do: the Engine object has yet been deleted
-//		}
-//		return true;
-    	
-		/* Fix: #1754 - Slower transaction execution with many session */
-		// HTTP session maintain its own context list in order to
-		// improve context removal on session unbound process
+    public List<Context> getContexts(HttpSession httpSession) {
 		try {
-			HttpSession httpSession = HttpSessionListener.getHttpSession(sessionID);
 			synchronized (httpSession) {
-				List<Context> contextList = GenericUtils.cast(httpSession.getAttribute("contexts"));
-				int size = contextList.size();
-				Engine.logContextManager.debug("(ContextManager) Contexts from the session " + sessionID + ": "+ size);
-				return size > 0 ? false:true;
+				return GenericUtils.cast(httpSession.getAttribute("contexts"));
 			}
 		}
 		catch (Exception e) {
 		}
-		return true;
+		return Collections.emptyList();
+    }
+    
+    public boolean isSessionEmtpy(HttpSession httpSession) {
+		int size = getContexts(httpSession).size();
+		Engine.logContextManager.debug("(ContextManager) Contexts from the session " + httpSession.getId() + ": "+ size);
+		return size <= 0;
 	}
     
     @Deprecated

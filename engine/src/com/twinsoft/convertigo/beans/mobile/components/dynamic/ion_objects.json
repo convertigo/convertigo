@@ -1221,6 +1221,52 @@
       }         
     },
 
+
+    "Spinner": {
+      "tag": "ion-spinner",
+	  "displayName": "Spinner",
+      "label": "Spinner",
+      "description": "ion-spinner| The ion-spinner component provides a variety of animated SVG spinners. Spinners enables you to give users feedback that the app is actively processing/thinking/waiting/chillin’ out, or whatever you’d like it to indicate.<br/> For more information: <a href='https://ionicframework.com/docs/api/components/spinner/Spinner/' target='_blank'>Spinner</a>.",
+      "group": "Miscellaneous",
+      "icon16": "spinner_color_16x16.png",
+      "icon32": "spinner_color_32x32.png",
+      "properties": {
+        "duration": {
+          "attr": "duration",
+          "value": false,
+          "label": "Duration",
+          "description": "How long it takes to do one loop. (in ms)",
+          "category": "Attributes",
+        },
+        "name": {
+          "attr": "name",
+          "label": "Name",
+          "description": "SVG spinner name.",
+          "category": "Attributes",
+          "value": "ios",
+          "values": [
+          		"ios",
+          		"ios-small",
+          		"bubbles",
+          		"circles",
+          		"crescent",
+          		"dots"
+          ]
+        },
+        "paused": {
+         "attr": "paused",
+         "label": "Paused",
+         "description": "If true, pause the animation.",
+         "category": "Attributes",
+         "value": false,
+         "values": [ false,
+         "true",
+         "false"
+         ]
+        }
+      }
+    },  
+    
     "FSImage": {
       "tplVersion": "1.0.100",
       "tag": "img",

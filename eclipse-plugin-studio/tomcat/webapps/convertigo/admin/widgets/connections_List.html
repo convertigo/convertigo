@@ -17,7 +17,7 @@ License along with this program;
 if not, see <http://www.gnu.org/licenses/>.
 -->
 <div class="bgButtonAction">
-	<button id="connectionsListButtonDeleteAll">Delete all</button>
+	<button id="connectionsListButtonDeleteAll">Delete all sessions</button>
 </div>
 <br/>
 <table>
@@ -53,15 +53,28 @@ if not, see <http://www.gnu.org/licenses/>.
 	
     <span>
 	    <img src="images/convertigo-administration-picto-creation-date.png" alt="Context creation date"/>
-	    Creation date of the context  
+	    Creation date of the context
     </span>
+    <span>
         <img src="images/convertigo-administration-picto-last-date.png" alt="Last access date"/>
-        Last access date to the context    
+        Last access date to the context
+    </span>
     <span>
         <img src="images/convertigo-administration-picto-activity.png" alt="Context inactivity"/>
         Inactivity duration                                                       
     </span>
+    <span>
+    	<img src="images/edit.gif" alt="Show logs"/>
+        Click to filter logs                                                       
+    </span>
 </div>
-
+<br/>
+<h6>Sessions</h6>
+<div><a href="javascript: toggleSessions()">Show / hide</a> sessions. Click a session to filter its contexts.</div>
+<br/>
+<table id="sessionsList"></table>
+<br/>
+<h6>Connections</h6>
+<div class="main-display-none">View contexts of <span id="selectedSession" />. Click <a href="javascript: clearSelectedSession()">here to view all contexts</a>.</div>
+<br/>
 <table id="connectionsList"></table>
-

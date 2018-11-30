@@ -229,7 +229,7 @@ function updateGlobalSymbolsList(xml) {
 			});
 	});
 	if($("#symbolsList tr:gt(0)").length) {
-		$("#symbolsList_name .ui-jqgrid-sortable").click().click();
+		$("#symbolsList").jqGrid().setGridParam({sortname: 'name', sortorder: 'asc'}).trigger("reloadGrid");
 		if ($("#exportSymbolsButtonAction").css("display") == "none"){
 			$("#symbolsListButtonDeleteAll").button("enable");
 		}

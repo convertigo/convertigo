@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,6 +40,7 @@ import org.apache.commons.io.FileUtils;
 
 import com.twinsoft.api.Session;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.tas.KeyManager;
 import com.twinsoft.tas.TASException;
@@ -78,7 +81,7 @@ public class HttpSessionListener implements HttpSessionBindingListener {
         	}
         	
 			Engine.logEngine.info("No more HTTP session available for this Standard Edition.");
-        	event.getSession().setAttribute("__exception", e);
+			SessionAttribute.exception.set(event.getSession(), e);
         	HttpUtils.terminateSession(event.getSession());
         } catch(Exception e) {
             Engine.logEngine.error("Exception during binding HTTP session listener", e);
@@ -98,6 +101,18 @@ public class HttpSessionListener implements HttpSessionBindingListener {
         } catch(Exception e) {
             Engine.logContext.error("Exception during unbinding HTTP session listener", e);
         }
+    }
+    
+    static public void terminateSession(String httpSessionID) {
+        synchronized (httpSessions) {
+        	HttpSession session;
+            if ((session = httpSessions.remove(httpSessionID)) != null) {
+            	HttpUtils.terminateSession(session);
+            	if (Engine.isEngineMode()) {
+            		KeyManager.stop(com.twinsoft.api.Session.EmulIDSE);
+            	}
+            }
+        }    	
     }
     
     static public void removeSession(String httpSessionID) {
@@ -125,11 +140,12 @@ public class HttpSessionListener implements HttpSessionBindingListener {
     
     static public void checkSession(HttpServletRequest request) throws TASException {
     	HttpSession httpSession = request.getSession();
-		if (httpSession.getAttribute("__sessionListener") == null) {
+    	SessionAttribute.clientIP.set(httpSession, request.getRemoteAddr());
+		if (!SessionAttribute.sessionListener.has(httpSession)) {
 			Engine.logContext.trace("Inserting HTTP session listener into the HTTP session");
-			httpSession.setAttribute("__sessionListener", new HttpSessionListener());
+			SessionAttribute.sessionListener.set(httpSession, new HttpSessionListener());
 			Object t;
-			if ((t = httpSession.getAttribute("__exception")) != null) {
+			if ((t = SessionAttribute.exception.get(httpSession)) != null) {
 				if (t instanceof Throwable) {
 					((Throwable) t).setStackTrace(new StackTraceElement[0]);
 					if (t instanceof TASException) {
@@ -139,5 +155,9 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 				}
 			}
 		}
+    }
+    
+    static public Collection<HttpSession> getSessions() {
+    	return Collections.unmodifiableCollection(httpSessions.values());
     }
 }

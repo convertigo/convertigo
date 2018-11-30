@@ -281,7 +281,7 @@ function updateUsersList(xml) {
 			});
 	});
 	if ($("#usersList tr:gt(0)").length) {
-		$("#usersList_name .ui-jqgrid-sortable").click().click();
+		$("#usersList").jqGrid().setGridParam({sortname: 'name', sortorder: 'asc'}).trigger("reloadGrid");
 		if ($("#exportUsersButtonAction").css("display") == "none"){
 			$("#usersListButtonDeleteAll").button("enable");
 		}

@@ -64,5 +64,6 @@ function environmentVariables_List_update(gridId) {
 					value : $(this).attr("value")
 				});
 		});
+		grid.jqGrid().setGridParam({sortname: 'name', sortorder: 'asc'}).trigger("reloadGrid");
 	});
 }
