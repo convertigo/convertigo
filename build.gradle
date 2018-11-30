@@ -749,7 +749,7 @@ project(':engine') {
 		compile 'ro.isdc.wro4j:wro4j-core:[1.6,1.7['
 		compile 'ro.isdc.wro4j:wro4j-extensions:[1.8,1.9['
 		compile 'wsdl4j:wsdl4j:[1.6,1.7['
-		compile 'xalan:xalan:[2.7,)'
+		compile 'xalan:xalan:2.7.2'
 		compile 'xerces:xercesImpl:[2.11,)'
 		compile 'xml-resolver:xml-resolver:1.2'
 		compileOnly 'org.apache.tomcat.embed:tomcat-embed-core:[7.0,7.1['
