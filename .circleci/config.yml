@@ -1,7 +1,15 @@
-version: 2.1
+version: 2
 jobs:
   build:
     docker:
     - image: circleci/openjdk:8-jdk
     steps:
     - run: echo "nothing to do"
+workflows:
+  version: 2
+  noop:
+    jobs:
+      - build
+          filters:
+            branches:
+              only: master
