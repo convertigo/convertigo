@@ -12,7 +12,7 @@ defaults: &defaults
   - MAVEN_OPTS: -Xmx2800m
   
   docker:
-  - image: convertigo/builder-ci:circleci
+  - image: convertigo/builder-ci:circleci-3
 
 version: 2
 jobs:
@@ -407,13 +407,20 @@ jobs:
                 
     - run: |
         source /tmp/build.env
+        openssl enc -aes-256-cbc -d -in installers/nsis/convertigo.pfx.aes -out /tmp/convertigo.pfx -k $PFX_AES
         if [ -d eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86_64 ]; then
-            mv /tmp/c8o_jre/x86_64 eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86_64/jre
-            makensis -V1 -DConvertigoVersion=$CONVERTIGO_VERSION_NUMBER -DArch=x86_64 -DOutFile=$CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-win64.exe installers/nsis/studio.nsi &
+           (mv /tmp/c8o_jre/x86_64 eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86_64/jre
+            mv eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86_64/ConvertigoStudio.exe /tmp/ConvertigoStudio_x86_64.exe
+            osslsigncode -pkcs12 /tmp/convertigo.pfx -pass $PFX_PWD -t http://timestamp.globalsign.com/scripts/timstamp.dll -in /tmp/ConvertigoStudio_x86_64.exe -out eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86_64/ConvertigoStudio.exe
+            makensis -V1 -DConvertigoVersion=$CONVERTIGO_VERSION_NUMBER -DArch=x86_64 -DOutFile=/tmp/convertigo-studio-$CONVERTIGO_VERSION-win64.exe installers/nsis/studio.nsi
+            osslsigncode -pkcs12 /tmp/convertigo.pfx -pass $PFX_PWD -t http://timestamp.globalsign.com/scripts/timstamp.dll -in /tmp/convertigo-studio-$CONVERTIGO_VERSION-win64.exe -out $CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-win64.exe) &
         fi
         if [ -d eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86 ]; then
-            mv /tmp/c8o_jre/x86 eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86/jre
-            makensis -V1 -DConvertigoVersion=$CONVERTIGO_VERSION_NUMBER -DArch=x86 -DOutFile=$CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-win32.exe installers/nsis/studio.nsi &
+           (mv /tmp/c8o_jre/x86 eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86/jre
+            mv eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86/ConvertigoStudio.exe /tmp/ConvertigoStudio_x86.exe
+            osslsigncode -pkcs12 /tmp/convertigo.pfx -pass $PFX_PWD -t http://timestamp.globalsign.com/scripts/timstamp.dll -in /tmp/ConvertigoStudio_x86.exe -out eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86/ConvertigoStudio.exe
+            makensis -V1 -DConvertigoVersion=$CONVERTIGO_VERSION_NUMBER -DArch=x86 -DOutFile=$CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-win32.exe installers/nsis/studio.nsi
+            osslsigncode -pkcs12 /tmp/convertigo.pfx -pass $PFX_PWD -t http://timestamp.globalsign.com/scripts/timstamp.dll -in /tmp/convertigo-studio-$CONVERTIGO_VERSION-win32.exe -out $CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-win32.exe) &
         fi
         if [ -d eclipse-repository/target/products/com.convertigo.studio/linux/gtk/x86_64 ]; then
             mv eclipse-repository/target/products/com.convertigo.studio/linux/gtk/x86_64 convertigo-studio-$CONVERTIGO_VERSION-linux64
