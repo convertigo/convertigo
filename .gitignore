@@ -20,6 +20,7 @@ META-INF
 !/convertigo-templates/common/*.gradle
 /convertigo-templates/*/.gitignore
 !/convertigo-templates/common/.gitignore
+/convertigo-templates/*/build
 /eclipse-feature/feature.xml
 /eclipse-plugin-product/about.ini
 /eclipse-plugin-product/plugin.xml

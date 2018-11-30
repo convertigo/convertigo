@@ -148,8 +148,6 @@ allprojects {
 			into 'lib'
 			from configurations.runtime
 		}
-		
-		tasks.removeAll assemble, build, buildDependents, buildNeeded, clean, jar, javadoc, check, test, testClasses, classes
 	}
 	
 	plugins.withId('java') {

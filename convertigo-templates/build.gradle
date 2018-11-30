@@ -1,5 +1,7 @@
 if (!rootProject.name.equals(name)) {
 
+	org.apache.tools.ant.DirectoryScanner.removeDefaultExclude("**/.gitignore")
+
 	task copyTemplatesCommons {
 		group 'convertigo'
 	}
@@ -9,6 +11,7 @@ if (!rootProject.name.equals(name)) {
 			def pdir = it
 			copyTemplatesCommons.dependsOn task("copyCommonsFor${it.name.capitalize()}", type: Copy) {
 				from 'common'
+				
 				filter { it.replace('((CURRENT_VERSION))', version.replace('beta', 'SNAPSHOT')) }
 				into pdir
 			}

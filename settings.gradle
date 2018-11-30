@@ -12,4 +12,3 @@ include 'engine'
 include 'gradle-plugin'
 
 rootProject.name = 'convertigo'
-enableFeaturePreview('STABLE_PUBLISHING')
