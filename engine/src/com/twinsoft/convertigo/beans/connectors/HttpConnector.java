@@ -1570,15 +1570,26 @@ public class HttpConnector extends Connector {
 				}
 				// givenUrl is relative to method uri ones
 				else {
+					String methodProtocol;
+					String methodHost;
+					int methodPort;
+					
 					URI uri = method.getURI();
-					String methodProtocol = uri.getScheme();
-					String methodHost = uri.getHost();
-
+					
+					if (hostConfiguration.getProtocol().isSecure()) {
+						methodProtocol = hostConfiguration.getProtocol().getScheme();
+						methodHost = hostConfiguration.getHost();
+						methodPort = hostConfiguration.getPort();
+					} else {
+						methodProtocol = uri.getScheme();
+						methodHost = uri.getHost();
+						methodPort = uri.getPort();						
+					}
+/*
 					if (hostConfiguration.getProtocol().isSecure()) {
 						return givenUrl.startsWith("/") ? givenUrl : ('/' + givenUrl);
 					}
-
-					int methodPort = uri.getPort();
+*/
 					String path = uri.getCurrentHierPath();
 					path = ((path.equals("/") ? "" : path));
 
