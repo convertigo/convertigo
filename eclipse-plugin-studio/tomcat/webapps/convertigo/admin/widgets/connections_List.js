@@ -44,12 +44,17 @@ function updateConnectionsList(xml) {
 				sessionID: '<a href="javascript: filterSession(\'' + $(this).attr("sessionID") + '\')">' + $(this).attr("sessionID") + '</a>',
 				contexts: $(this).attr("contexts"),
 				user: $(this).attr("authenticatedUser"),
+				adminRoles: $(this).attr("adminRoles"),
+				isFullSyncActive: $(this).attr("isFullSyncActive") == "true" ? '<img border="0" title="Connected" src="images/convertigo-administration-picto-bullet-green.png" />' : '<img border="0" title="Connected" src="images/convertigo-administration-picto-bullet-red.png" />',
 				clientIP: $(this).attr("clientIP"),
 				sessionLastAccessDate: $(this).attr("lastSessionAccessDate"),
 				sessionInactivityTime: $(this).attr("sessionInactivityTime"),
 				clientComputer: $(this).attr("clientComputer")
 			}
-		);
+		)
+		if ($(this).attr("isCurrentSession")) {
+			$("#" + $(this).attr("sessionID") + ">td").css("background-color", "lightgreen");
+		};
 	});
 	
 	$("#connectionsList").jqGrid('clearGridData');
@@ -127,6 +132,8 @@ function connections_List_init() {
 		    'ID',
 		    'Contexts',
 		    'User',
+		    'Roles',
+		    '<span title="is FullSync active request">FS</span>',
 		    '<img src="images/convertigo-administration-picto-last-date.png" alt="Session last access date"/>',
 		    '<img src="images/convertigo-administration-picto-activity.png" alt="Session inactivity"/>',
 		    'Client IP'
@@ -158,6 +165,16 @@ function connections_List_init() {
 				index : 'user',
 				width : 60,
 				align : "left"
+			}, {
+				name : 'adminRoles',
+				index : 'adminRoles',
+				width : 30,
+				align : "center"
+			}, {
+				name : 'isFullSyncActive',
+				index : 'isFullSyncActive',
+				width : 20,
+				align : "center"
 			}, {
 				name : 'sessionLastAccessDate',
 				index : 'sessionLastAccessDate',

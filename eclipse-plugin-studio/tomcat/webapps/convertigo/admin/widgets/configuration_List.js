@@ -17,258 +17,312 @@
  * if not, see <http://www.gnu.org/licenses/>.
  */
 
-var propertyMap = {};
+var connections_List_timeout;
 
-function configuration_List_update () {
-	if($("#logLevelCopyFromConfigurationButton").html()!=null){
-		if($("#logLevelCopyFromConfigurationButton").html().length > 0){		
-			var $configTable=$("#logLevelCopyFromConfiguration").find("tbody");	
-			$("#tab-Logs").find("table:first").append($configTable);			
-			var $buttonUpdate=$("#logLevelCopyFromConfigurationButton").find("button");
-			$("#configFirstUpdateButtonLocation").append($buttonUpdate);					
-		}
-	}
-}
-
-function configuration_List_init () {
-	$(".config-update").button({
-		disabled: true,
-		icons : {
-			primary : "ui-icon-disk"
-		}
-	});
-		
-	var $template = $("#config-template");
-	var $ul = $("<ul/>").attr("id","config-category-list");
-	callService("configuration.List", function (xml) {
-		$(xml).find("category").each(function () {
-			var $x_category = $(this);
-			var $category = $template.find(".config-category:first").clone();
-			var $category_main = $category.find(".config-accordion-main-properties:first");
-			var $category_advanced = $category.find(".config-accordion-advanced-properties:first");
-			
-			if ($x_category.find("property[isAdvanced=\"true\"]").length === 0) {
-				$category.find(".config-pane>button").remove();
-			}
-			
-			//Get Url for each widgets
-			var urlHelp = "http://www.convertigo.com/document/latest/operating-guide/using-convertigo-administration-console/configuration/";
-			switch ($x_category.attr("name"))
-			{
-				case "Main":
-					urlHelp += "main-parameters/";
-					break;
-				case "Account":
-					urlHelp += "accounts/";
-					break;
-				case "Logs":
-					urlHelp += "logs/";
-					break;
-				case "Context":
-					urlHelp += "real-time-activity-monitoring/";
-					break;
-				case "XmlGeneration":
-					urlHelp += "xml-generation/";
-					break;
-				case "XulRunner":
-					urlHelp += "html-parser/";
-					break;
-				case "HttpClient":
-					urlHelp += "http-client/";
-					break;
-				case "Network":
-					urlHelp += "network/";
-					break;
-				case "Proxy":
-					urlHelp += "proxy/";
-					break;
-				case "SecurityToken":
-					urlHelp += "security-token/";
-					break;
-				case "Ssl":
-					urlHelp += "ssl/";
-					break;
-				case "Cache":
-					urlHelp += "cache/";
-					break;
-				case "Carioca":
-					urlHelp += "legacy-carioca-portal/";
-					break;
-				case "Analytics":
-					urlHelp += "analytics/";
-					break;
-				case "Notifications":
-					urlHelp += "notifications/";
-					break;
-				case "Minification":
-					urlHelp += "minification/";
-					break;
-				case "MobileBuilder":
-					urlHelp += "mobile-builder/";
-					break;
-				case "FULLSYNC":
-					urlHelp += "full-sync/";
-					break;
-			}
-
-			
-			$category.attr("id","tab-" + $x_category.attr("name"));
-			$category.find(".config-category-title:first").text($x_category.attr("displayName"));
-			$category.find(".config-category-title:first + a").attr("id", $x_category.attr("name")).attr("href",urlHelp);
-			$ul.append(
-					$("<li/>").append(
-							$("<a/>").attr("href","#tab-" + $x_category.attr("name")).text($x_category.attr("displayName"))
-					)
-			);
-			$x_category.find(">property").each(function () {
-				var $x_property = $(this);
-				var id = "config_key_" + $x_property.attr("name");
-				var type = $x_property.attr("type");
-				var $property = $template.find(".config-property" + (type === "Boolean" ? "-boolean" : "") + ":first").clone();
-				$property.find(".config-property-name:first").text($x_property.attr("description")).attr("for", id);
-				$property.find(".config-property-name:first").html($property.find(".config-property-name:first").html().replace(new RegExp("\\n","g"), "<br/>"));
-				
-				var $property_value;
-				var value = $x_property.attr("value");
-				var originalValue = $x_property.attr("originalValue");
-				
-				switch (type) {
-				case "Text":
-					$property_value = $template.find(".config-text:first").clone();
-					break;
-				case "PasswordPlain":
-				case "PasswordHash":
-					$property_value = $template.find(".config-password:first").clone();
-					break;
-				case "Boolean":
-					$property_value = $property.find(".config-checkbox:first");
-					if (originalValue === "true") {
-						$property_value.prop("checked", true);
-					}
-					break;
-				case "Array":
-					$property_value = $template.find(".config-text-area").clone();
-					originalValue = originalValue.replace(/;/g, "\r\n");
-					originalValue = originalValue.replace(/\[\[pv\]\]/g, ";");
-					break;
-				case "Combo":
-					$property_value = $template.find(".config-combo").clone();
-					$x_property.find(">item").each(function () {
-						var $x_item = $(this);
-						var $combo_item = $template.find(".config-combo-item").clone();
-						$combo_item.attr("value", $x_item.attr("value"));
-						$combo_item.text($x_item.text());
-						$property_value.append($combo_item);
-					});
-					break;
-				}
-				
-				if ($property_value) {
-					if (originalValue !== value) {
-						$property_value.attr("title", value);
-					}
-					$property_value.val(originalValue);
-					$property_value.attr("name", $x_property.attr("name")).attr("id", id);
-					$property.find(".config-property-value:first").append($property_value);
-				}
-				
-				if ($x_property.attr("isAdvanced") === "false") {
-					$category_main.append($property);
-				} else {
-					$category_advanced.append($property);
-				}
-			});
-		
-			$("#configAccordion").append($category);
-			$("#configAccordion").append($ul);
-			
-		});
-
-		$( "#configAccordion" ).tabs().addClass( "ui-tabs-vertical ui-helper-clearfix" );
-		$( "#configAccordion ul" ).removeClass( "ui-corner-all ui-widget-header");
-	    $( "#configAccordion li" ).removeClass( "ui-corner-top" ).addClass( "ui-corner-left" );
-		
-		
-		$(".config-toggle-advanced-properties").click(function () {
-			$(this).next().slideToggle("slow");
-		}).first(".config-category");
-
-		$("input.config-text, input.config-password").keyup(function () {
-			$(".config-update").button("enable");			
-		}).change(function() {
-			if ($(this).attr("name")) {
-				propertyMap[$(this).attr("name")] = $(this).val();
-			}
-		});
-		
-		$("select.config-combo").change(function () {
-			changeProperty($(this).attr("name"), $(this).val());
-		});
-
-		$('textarea.config-text-area').keypress(function() {
-			$(".config-update").button("enable");
-		}).change(function(){
-			var value = $(this).val();
-			value = value.replace(/;/g, "[[pv]]");
-			value = value.replace(/\r/g, "");
-			value = value.replace(/\n/g, ";");			
-			propertyMap[$(this).attr("name")] = value;
-		});
-
-		$('input.config-checkbox').change(function () {
-			changeProperty($(this).attr("name"), $(this).prop("checked") ? "true" : "false");
-		});
-
-		$("form.config-update-form").submit(function () {
-			updateConfiguration();
-			return false;
-		});
-
-		$(".config-toggle-advanced-properties").button({
-			icons : {
-				primary : "ui-icon-star"
-			}
-		});
-		
-		//if the init was call by log_Show
-		if(callFromLogShow){	
-			$("#widgetButtonLogs").click();			
-			$("#logToggleLevel").click();			
-		}
-	});
-}
-
-function changeProperty(key, value) {
-	propertyMap[key] = value;
-	$(".config-update").button("enable");
-}
-
-function createDOM(rootElement) {
-	return document.implementation.createDocument("", rootElement, null);
-}
-
-function updateConfiguration () {
-	if (!$.isEmptyObject(propertyMap)) {
-		var xmlDoc = createDOM("configuration");
-		
-		for (var key in propertyMap) {
-			var propertyElement = xmlDoc.createElement("property");
-			propertyElement.setAttribute("key", key);
-			propertyElement.setAttribute("value", propertyMap[key]);
-			xmlDoc.documentElement.appendChild(propertyElement);
-		}
-
-		callService("configuration.Update", function(xml) {
-			showInfo("The configuration has been successfully updated!");
-			propertyMap = {};
-			$(".config-update").button("disable");
-		}, domToString2(xmlDoc), function(xml) {
-			var $xml = $(xml);
-			showError($xml.find("message:first").text(), undefined, function () {
-				window.location.reload();				
-			});
-		}, {contentType : "application/xml"});
+function updateConnectionsList(xml) {
+	var $xml = $(xml);
+	$("#connectionsContextsInUse").text($xml.find("contextsInUse").text());
+	$("#connectionsContextsNumber").text($xml.find("contextsNumber").text());
+	$("#sessionsInUse").text($xml.find("sessionsInUse").text());
+	$("#sessionsNumber").text($xml.find("sessionsNumber").text());
+	$("#connectionsThreadsInUse").text($xml.find("threadsInUse").text());
+	$("#connectionsThreadsNumber").text($xml.find("threadsNumber").text());
+	$("#connectionsHttpTimeout").text($xml.find("httpTimeout").text());
+	
+	if ($xml.find("sessionsIsOverflow").text() == "true") {
+		$("#sessionOverflow").show();
 	} else {
-		$(".config-update").button("disable");
+		$("#sessionOverflow").hide();
+	}
+	
+	$("#sessionsList").jqGrid('clearGridData');
+	
+	$xml.find("session").each(function(index) {
+		$("#sessionsList").jqGrid("addRowData", $(this).attr("sessionID"), {
+				btnDelete: '<a title="Delete the session"><img border="0" src="images/convertigo-administration-picto-delete.png" onClick="deleteSession(\'' + $(this).attr("sessionID") + '\')"></a></td>',
+				showlogs: '<a href="javascript: getLogs(\'' + $(this).attr("sessionID") + '\', true)"><img src="images/edit.gif" /></a>',
+				sessionID: '<a href="javascript: filterSession(\'' + $(this).attr("sessionID") + '\')">' + $(this).attr("sessionID") + '</a>',
+				contexts: $(this).attr("contexts"),
+				user: $(this).attr("authenticatedUser"),
+				adminRoles: $(this).attr("adminRoles"),
+				isFullSyncActive: $(this).attr("isFullSyncActive") == "true" ? '<img border="0" title="Connected" src="images/convertigo-administration-picto-bullet-green.png" />' : '<img border="0" title="Connected" src="images/convertigo-administration-picto-bullet-red.png" />',
+				clientIP: $(this).attr("clientIP"),
+				sessionLastAccessDate: $(this).attr("lastSessionAccessDate"),
+				sessionInactivityTime: $(this).attr("sessionInactivityTime"),
+				clientComputer: $(this).attr("clientComputer")
+			}
+		)
+		if ($(this).attr("isCurrentSession")) {
+			$("#" + $(this).attr("sessionID") + ">td").css("background-color", "lightgreen");
+		};
+	});
+	
+	$("#connectionsList").jqGrid('clearGridData');
+
+	$xml.find("connection").each(function(index) {
+		projectName = $(this).attr("name");
+		$("#connectionsList").jqGrid("addRowData", $(this).attr("contextName"), {
+				btnDelete: '<a title="Delete the connection"><img border="0" src="images/convertigo-administration-picto-delete.png" onClick="deleteConnection(\'' + $(this).attr("contextName") + '\')"></a></td>',
+				connected: $(this).attr("connected") == "true" ? '<img border="0" title="Connected" src="images/convertigo-administration-picto-bullet-green.png" />' : '<img border="0" title="Connected" src="images/convertigo-administration-picto-bullet-red.png" />',
+				showlogs: '<a href="javascript: getLogs(\'' + $(this).attr("contextName") + '\')"><img src="images/edit.gif" /></a>',
+				contextName: $(this).attr("contextName"),
+				project: $(this).attr("project"),
+				connector: $(this).attr("connector"),
+				requested: $(this).attr("requested"),
+				status: $(this).attr("status"),
+				user: $(this).attr("user"),
+				contextCreationDate: $(this).attr("contextCreationDate"),
+				contextLastAccessDate: $(this).attr("lastContextAccessDate"),
+				contextInactivityTime: $(this).attr("contextInactivityTime"),
+				clientComputer: $(this).attr("clientComputer")
+			}
+		);
+	});
+}
+
+function filterSession(sessionId) {
+	$("#selectedSession").text(sessionId).parent().show();
+	connections_List_update();
+}
+
+function clearSelectedSession() {
+	$("#selectedSession").text("").parent().hide();
+	connections_List_update();
+}
+
+function toggleSessions() {
+	$("#gbox_sessionsList").toggle();
+	connections_List_update();
+}
+
+function getLogs(contextId, isSession) {
+	if (isSession) {
+		displayPage("Logs", { filter: "contextid.startsWith(\"" + contextId + "\")" });		
+	} else {
+		displayPage("Logs", { filter: "contextid == \"" + contextId + "\"" });		
 	}
 }
+
+function connections_List_update() {
+	clearTimeout(connections_List_timeout);
+	
+	callService("connections.List", function(xml){				
+		if ($("#gview_connectionsList").is(":visible")) {
+			updateConnectionsList(xml);
+
+			connections_List_timeout = setTimeout(function() {
+				connections_List_update();
+			}, 2500);
+					
+		}
+	}, {
+		session: $("#selectedSession").text(),
+		sessions: $("#gbox_sessionsList").is(":visible")
+	});
+}
+
+function connections_List_init() {
+			
+	// Update connections list
+	$("#sessionsList").jqGrid({
+		datatype : "local",
+		colNames : [
+		    '',
+		    '<img src="images/edit.gif" alt="Show logs"/>',
+		    'ID',
+		    'Contexts',
+		    'User',
+		    'Roles',
+		    '<span title="is FullSync active request">FS</span>',
+		    '<img src="images/convertigo-administration-picto-last-date.png" alt="Session last access date"/>',
+		    '<img src="images/convertigo-administration-picto-activity.png" alt="Session inactivity"/>',
+		    'Client IP'
+		],
+		colModel : [
+	        {
+				name : 'btnDelete',
+				index : 'btnDelete',
+				sortable : false,
+				width : 20,
+				align : "center"
+			}, {
+				name : 'showlogs',
+				index : 'showlogs',						
+				width : 20,
+				align : "center"
+			}, {
+				name : 'sessionID',
+				index : 'sessionID',
+				width : 120,
+				align : "left"
+			}, {
+				name : 'contexts',
+				index : 'contexts',
+				width : 50,
+				align : "left"
+			}, {
+				name : 'user',
+				index : 'user',
+				width : 60,
+				align : "left"
+			}, {
+				name : 'adminRoles',
+				index : 'adminRoles',
+				width : 30,
+				align : "center"
+			}, {
+				name : 'isFullSyncActive',
+				index : 'isFullSyncActive',
+				width : 20,
+				align : "center"
+			}, {
+				name : 'sessionLastAccessDate',
+				index : 'sessionLastAccessDate',
+				width : 50,
+				align : 'left'
+			}, {
+				name : 'sessionInactivityTime',
+				index : 'sessiontInactivityTime',
+				width : 50,
+				align : 'left'
+			}, {
+				name : 'clientIP',
+				index : 'clientIP',
+				width : 60,
+				align : "left"
+			} ],
+			ignoreCase : true,
+			autowidth : true,
+			viewrecords : true,
+			height : 'auto',
+			sortable : true,
+			pgbuttons : false,
+			pginput : false,
+			toppager : false,
+			emptyrecords : 'No sessions',
+			altRows : true,		
+			rowNum: '1000000'
+			
+		});
+	
+	// Update connections list
+	$("#connectionsList").jqGrid({
+		datatype : "local",
+		colNames : [
+		    '',
+		    '<img src="images/convertigo-administration-picto-bullet-gray.png" alt="Connector connection status"/>',
+		    '<img src="images/edit.gif" alt="Show logs"/>',
+		    'Context',
+		    'Project',
+		    'Connector',
+		    'Requested',
+		    'Status',
+		    'User',
+		    '<img src="images/convertigo-administration-picto-creation-date.png" alt="Context creation date"/>',
+		    '<img src="images/convertigo-administration-picto-last-date.png" alt="Context last access date"/>',
+		    '<img src="images/convertigo-administration-picto-activity.png" alt="Context inactivity"/>',
+		    'Client computer'
+		],
+		colModel : [
+	        {
+				name : 'btnDelete',
+				index : 'btnDelete',
+				sortable : false,
+				width : 20,
+				align : "center"
+			}, {
+				name : 'connected',
+				index : 'connected',						
+				width : 20,
+				align : "center"
+			}, {
+				name : 'showlogs',
+				index : 'showlogs',						
+				width : 20,
+				align : "center"
+			}, {
+				name : 'contextName',
+				index : 'contextName',
+				width : 120,
+				align : "left"
+			}, {
+				name : 'project',
+				index : 'project',
+				width : 50,
+				align : "left"
+			}, {
+				name : 'connector',
+				index : 'connector',
+				width : 60,
+				align : "left"
+			}, {
+				name : 'requested',
+				index : 'requested',
+				width : 60,
+				align : "left"
+			}, {
+				name : 'status',
+				index : 'status',
+				width : 50,
+				align : "left"
+			}, {
+				name : 'user',
+				index : 'user',
+				width : 60,
+				align : "left"
+			}, {
+				name : 'contextCreationDate',
+				index : 'contextCreationDate',
+				width : 50,
+				align : 'left'
+			}, {
+				name : 'contextLastAccessDate',
+				index : 'contextLastAccessDate',
+				width : 50,
+				align : 'left'
+			}, {
+				name : 'contextInactivityTime',
+				index : 'contextInactivityTime',
+				width : 50,
+				align : 'left'
+			}, {
+				name : 'clientComputer',
+				index : 'clientComputer',
+				width : 100,						
+				align : 'left'
+			} ],
+			ignoreCase : true,
+			autowidth : true,
+			viewrecords : true,
+			height : 'auto',
+			sortable : true,
+			pgbuttons : false,
+			pginput : false,
+			toppager : false,
+			emptyrecords : 'No connections',
+			altRows : true,		
+			rowNum: '1000000'
+			
+		});
+	
+	$("#connectionsListButtonDeleteAll").button({				
+		icons : {
+			primary : "ui-icon-closethick"
+		}
+	}).click(function(){
+		showConfirm("Are you sure you want to delete all the sessions?",function(){
+			callService("connections.Delete",function(){},{"removeAll": true});
+		});					
+	});
+	
+	connections_List_update();
+}
+
+function deleteSession(sessionId){	
+	showConfirm("Do you want to delete the session: " + sessionId,function(){callService("connections.Delete",function(){},{"sessionId":sessionId})});	
+}
+
+function deleteConnection(contextName){	
+	showConfirm("Do you want to delete the context: " + contextName,function(){callService("connections.Delete",function(){},{"contextName":contextName})});	
+}
+
