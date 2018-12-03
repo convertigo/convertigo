@@ -27,6 +27,7 @@ public enum SessionAttribute {
 	authenticatedUserGrpCheck,
 	clientIP,
 	exception,
+	fullSyncRequests,
 	isNew,
 	httpClient3("__httpClient3__"),
 	httpClient4("__httpClient4__"),

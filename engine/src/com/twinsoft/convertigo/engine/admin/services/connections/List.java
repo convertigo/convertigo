@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.engine.admin.services.connections;
 import java.text.DateFormat;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -33,6 +34,7 @@ import org.w3c.dom.Element;
 import com.twinsoft.api.Session;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.SessionKey;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -72,10 +74,11 @@ public class List extends XmlService{
 		if (hours != 0) s += hours + "h";
 		if (minutes != 0) s += minutes + "min";
 		if (seconds != 0) s += seconds + "s";
-		return s;
+		return s.isEmpty() ? "0" : s;
 	}
 	
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
+		HttpSession currentSession = request.getSession();
 		
 		Element rootElement = document.getDocumentElement();
         
@@ -114,7 +117,7 @@ public class List extends XmlService{
         rootElement.appendChild(threadsNumberElement);
         
         Element httpTimeoutElement = document.createElement("httpTimeout");
-        httpTimeoutElement.setTextContent(formatTime(request.getSession().getMaxInactiveInterval()));
+        httpTimeoutElement.setTextContent(formatTime(currentSession.getMaxInactiveInterval()));
         rootElement.appendChild(httpTimeoutElement);
         
         long now = System.currentTimeMillis();
@@ -165,12 +168,20 @@ public class List extends XmlService{
         if (!"false".equals(request.getParameter("sessions"))) {
 	        for (HttpSession session: HttpSessionListener.getSessions()) {
 	        	Element sessionElement = document.createElement("session");
+	        	java.util.List<Context> ctxs = Engine.theApp.contextManager.getContexts(session);
 	        	sessionElement.setAttribute("sessionID", session.getId());
 	        	sessionElement.setAttribute("authenticatedUser", SessionAttribute.authenticatedUser.string(session));
-	        	sessionElement.setAttribute("contexts", Integer.toString(Engine.theApp.contextManager.getContexts(session).size()));
+	        	sessionElement.setAttribute("contexts", Integer.toString(ctxs == null ? 0 : ctxs.size()));
 	        	sessionElement.setAttribute("clientIP", SessionAttribute.clientIP.string(session));
 	        	sessionElement.setAttribute("lastSessionAccessDate", DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(session.getLastAccessedTime())));
-	        	sessionElement.setAttribute("sessionInactivityTime", formatTime((now - session.getLastAccessedTime()) / 1000)+" / "+formatTime(session.getMaxInactiveInterval()));
+	        	sessionElement.setAttribute("sessionInactivityTime", formatTime((now - session.getLastAccessedTime()) / 1000) + " / " + formatTime(session.getMaxInactiveInterval()));
+	        	Role[] r = (Role[]) session.getAttribute(SessionKey.ADMIN_ROLES.toString());
+	        	sessionElement.setAttribute("adminRoles", Integer.toString(r == null ? 0 : r.length));
+	        	if (session == currentSession) {
+	        		sessionElement.setAttribute("isCurrentSession", "true");
+	        	}
+	        	Set<HttpServletRequest> set = SessionAttribute.fullSyncRequests.get(session);
+	        	sessionElement.setAttribute("isFullSyncActive", Boolean.toString(set != null && !set.isEmpty()));
 	        	sessionsListElement.appendChild(sessionElement);
 	        }
         }

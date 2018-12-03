@@ -38,8 +38,10 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
@@ -84,6 +86,7 @@ import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.MimeType;
+import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager.FullSyncAuthentication;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.util.ContentTypeDecoder;
@@ -131,6 +134,8 @@ public class FullSyncServlet extends HttpServlet {
 		} catch (Throwable e) {
 			throw new ServletException(e);
 		}
+
+		HttpSession httpSession = request.getSession();
 		
 		try {
 			HttpRequestBase newRequest;
@@ -151,7 +156,13 @@ public class FullSyncServlet extends HttpServlet {
 			
 			Engine.theApp.couchDbManager.checkRequest(requestParser.getPath(), requestParser.getSpecial(), requestParser.getDocId());
 			
-			HttpSession httpSession = request.getSession();
+			synchronized (httpSession) {
+				Set<HttpServletRequest> set = SessionAttribute.fullSyncRequests.get(httpSession);
+				if (set == null) {
+					SessionAttribute.fullSyncRequests.set(httpSession, set = new HashSet<HttpServletRequest>());
+				}
+				set.add(request);
+			}
 			
 			LogParameters logParameters = GenericUtils.cast(httpSession.getAttribute(FullSyncServlet.class.getCanonicalName()));
 			
@@ -551,6 +562,10 @@ public class FullSyncServlet extends HttpServlet {
 			}
 		} finally {
 			Log4jHelper.mdcClear();
+			synchronized (httpSession) {
+				Set<HttpServletRequest> set = SessionAttribute.fullSyncRequests.get(httpSession);
+				set.remove(request);
+			}
 		}
 	}
 	
