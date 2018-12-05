@@ -5010,6 +5010,28 @@
 		    true
 		  ]
         },
+        "Width": {
+          "attr":"width",
+          "label": "Chart width",
+          "description": "Chart width.",
+          "category": "@Properties",
+          "value": "100",
+		  "values": [
+		    false,
+		    true
+		  ]
+        },
+        "Height": {
+          "attr":"height",
+          "label": "Chart height",
+          "description": "Chart height.",
+          "category": "@Properties",
+          "value": "100",
+		  "values": [
+		    false,
+		    true
+		  ]
+        },
         "Options": {
           "mode": "script",
           "attr":"[options]",
