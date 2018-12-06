@@ -72,7 +72,7 @@ jobs:
         
     - run: |
         source /tmp/build.env
-        gradle -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :ciFirstStep
+        gradle --stacktrace -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :ciFirstStep
     
     - save_cache:
         paths:
@@ -111,7 +111,7 @@ jobs:
         
     - run: |
         source /tmp/build.env
-        gradle -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :engine:warLinux32
+        gradle --stacktrace -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :engine:warLinux32
     
     - save_cache:
         paths:
@@ -373,7 +373,7 @@ jobs:
         
     - run: |
         source /tmp/build.env
-        gradle -PconvertigoRevision=$CONVERTIGO_BUILD_NAME buildStudio | grep -v -e '^[[:space:]]*$' -e 'Comparing' -e 'Progress'
+        gradle --stacktrace -PconvertigoRevision=$CONVERTIGO_BUILD_NAME buildStudio | grep -v -e '^[[:space:]]*$' -e 'Comparing' -e 'Progress'
     
     - save_cache:
         paths:
