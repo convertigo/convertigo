@@ -4963,7 +4963,7 @@
       "tag": "canvas",
 	  "displayName": "Chart",
       "label": "Chart",
-      "description": "canvas| Defines a <i>Chart</i> component.<br/>Charts can be <code>line, bar, radar, pie, polarArea or doughnut</code> according to the <i>chartType</i> property.<br/>Chart data are bound to properties provided by some TypeScript data or directly from a source.<br/><br/>Please refer to <a target='_blank' href='http://www.chartjs.org/docs/latest/'>chart.js</a> documentation for each property and data formats.",
+      "description": "canvas| Defines a <i>Chart</i> component.<br/>Charts can be <code>line, bar, radar, pie, polarArea or doughnut</code> according to the <i>chartType</i> property.<br/>Chart data are bound to properties provided by some TypeScript data or directly from a source.<br/><br/>Please refer to <a target='_blank' href='https://www.npmjs.com/package/ng2-charts'>chart.js</a> documentation for each property and data formats.<br/>To set width and height properties, use the Grid system.",
       "group": "Components",
       "icon16": "chart_color_16x16.png",
       "icon32": "chart_color_32x32.png",
@@ -4976,28 +4976,6 @@
           "values": [
             "baseChart"
           ]
-        },
-        "Width": {
-          "attr":"width",
-          "label": "Chart width",
-          "description": "Chart width.",
-          "category": "@Properties",
-          "value": "100",
-		  "values": [
-		    false,
-		    true
-		  ]
-        },
-        "Height": {
-          "attr":"height",
-          "label": "Chart height",
-          "description": "Chart height.",
-          "category": "@Properties",
-          "value": "100",
-		  "values": [
-		    false,
-		    true
-		  ]
         },
         "data": {
           "mode": "script",
@@ -5035,13 +5013,35 @@
 		    true
 		  ]
         },
+        "Width": {
+          "attr":"width",
+          "label": "Chart width",
+          "description": "Chart width.",
+          "category": "@Properties",
+          "value": "100",
+		  "values": [
+		    false,
+		    true
+		  ]
+        },
+        "Height": {
+          "attr":"height",
+          "label": "Chart height",
+          "description": "Chart height.",
+          "category": "@Properties",
+          "value": "100",
+		  "values": [
+		    false,
+		    true
+		  ]
+        },
         "Options": {
           "mode": "script",
           "attr":"[options]",
           "label": "Chart options",
           "description": "chart options (as from Chart.js documentation).",
           "category": "@Properties",
-          "value": "{'title':{'display': true,'text': 'My Chart Title'}}",
+          "value": "{'title':{'display': true,'text': 'My Chart Title'}, 'responsive': true, 'maintainAspectRatio': false }",
 		  "values": [
 		    false,
 		    true

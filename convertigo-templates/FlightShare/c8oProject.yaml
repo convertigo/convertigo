@@ -47,7 +47,6 @@
               	/*End_c8o_AppFunction*/
               
       tplProjectName: mobilebuilder_tpl_7_5_2
-      tplProjectVersion: 7.5.2.1
       ↓ShowFlightRoute [mobile.components.RouteComponent-1509555963318]: 
         ↓FullSyncEvent [mobile.components.RouteFullsyncEvent-1509555977898]: 
           marker: SHOWFLIGHT

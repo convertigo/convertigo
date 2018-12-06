@@ -728,16 +728,6 @@
     "mode": "plain",
     "value": "baseChart"
    },
-   "Width": {
-    "name": "Width",
-    "mode": "plain",
-    "value": "100"
-   },
-   "Height": {
-    "name": "Height",
-    "mode": "plain",
-    "value": "100"
-   },
    "data": {
     "name": "data",
     "mode": "script",
@@ -753,10 +743,20 @@
     "mode": "script",
     "value": "['January', 'February', 'March', 'April', 'May', 'June', 'July']"
    },
+   "Width": {
+    "name": "Width",
+    "mode": "plain",
+    "value": "100"
+   },
+   "Height": {
+    "name": "Height",
+    "mode": "plain",
+    "value": "100"
+   },
    "Options": {
     "name": "Options",
     "mode": "script",
-    "value": "{'title':{'display': true,'text': 'My Chart Title'}}"
+    "value": "{'title':{'display': true,'text': 'My Chart Title'}, 'responsive': true, 'maintainAspectRatio': false }"
    },
    "Colors": {
     "name": "Colors",
@@ -857,6 +857,16 @@
     "mode": "plain",
     "value": false
    },
+   "monthShortNames": {
+    "name": "monthShortNames",
+    "mode": "plain",
+    "value": false
+   },
+   "monthValues": {
+    "name": "monthValues",
+    "mode": "plain",
+    "value": false
+   },
    "minuteValues": {
     "name": "minuteValues",
     "mode": "plain",
@@ -864,6 +874,21 @@
    },
    "dayNames": {
     "name": "dayNames",
+    "mode": "plain",
+    "value": false
+   },
+   "dayShortNames": {
+    "name": "dayShortNames",
+    "mode": "plain",
+    "value": false
+   },
+   "dayValues": {
+    "name": "dayValues",
+    "mode": "plain",
+    "value": false
+   },
+   "hourValues": {
+    "name": "hourValues",
     "mode": "plain",
     "value": false
    },
@@ -884,6 +909,26 @@
    },
    "Value": {
     "name": "Value",
+    "mode": "plain",
+    "value": false
+   },
+   "cancelText": {
+    "name": "cancelText",
+    "mode": "plain",
+    "value": "Cancel"
+   },
+   "doneText": {
+    "name": "doneText",
+    "mode": "plain",
+    "value": "Done"
+   },
+   "pickerOptions": {
+    "name": "pickerOptions",
+    "mode": "plain",
+    "value": false
+   },
+   "yearValues": {
+    "name": "yearValues",
     "mode": "plain",
     "value": false
    }
