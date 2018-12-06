@@ -63,6 +63,7 @@ import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Sheet;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.engine.AuthenticationController;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -99,7 +100,14 @@ public abstract class GenericRequester extends Requester {
 	@Override
 	public void checkAuthenticatedContext() throws EngineException {
 		
-		if ( context.getAuthenticatedUser() != null ) {
+		if (context.httpSession != null) {
+			Object controller = context.httpSession.getAttribute("authenticationController");
+			if (controller != null && controller instanceof AuthenticationController) {
+				((AuthenticationController)controller).checkAuthenticatedContext(context);
+			}
+		}
+		
+		if (context.getAuthenticatedUser() != null) {
 			Engine.logContext.debug("The context is authenticated via the HTTP session");
 		} else if (context.requestedObject.getAuthenticatedContextRequired()) {
 			Engine.logContext.debug("Authenticated context required");

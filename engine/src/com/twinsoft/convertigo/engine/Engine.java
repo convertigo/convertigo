@@ -195,6 +195,11 @@ public class Engine {
 	public UsageMonitor usageMonitor;
 
 	/**
+	 * The biller token manager
+	 */
+	public BillerTokenManager billerTokenManager;
+	
+	/**
 	 * The billing manager
 	 */
 	public BillingManager billingManager;
@@ -471,6 +476,13 @@ public class Engine {
 					Engine.logEngine.error("Unable to launch the proxy manager.", e);
 				}
 
+				try {
+					Engine.theApp.billerTokenManager = new BillerTokenManager();
+					Engine.theApp.billerTokenManager.init();
+				} catch (Exception e) {
+					Engine.logEngine.error("Unable to launch the biller token manager.", e);
+				}
+				
 				try {
 					Engine.theApp.billingManager = new BillingManager();
 					Engine.theApp.billingManager.init();

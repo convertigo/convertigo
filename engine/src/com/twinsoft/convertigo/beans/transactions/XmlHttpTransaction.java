@@ -511,6 +511,7 @@ public class XmlHttpTransaction extends AbstractHttpTransaction implements IElem
 			else {
 				xmlSchemaElement.setName("");
 				xmlSchemaElement.setRefName(xmlQName.getQName());
+				xmlSchemaElement.setMinOccurs(0);
 			}
 			
 			if (isErrorOnSoapFault()) {
