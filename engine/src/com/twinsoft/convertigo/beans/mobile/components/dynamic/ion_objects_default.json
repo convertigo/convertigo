@@ -216,11 +216,26 @@
  }},
  "Avatar": {"   7   6   0": {
   "name": "Avatar",
-  "properties": {}
+  "properties": {"ItemPosition": {
+   "name": "ItemPosition",
+   "mode": "plain",
+   "value": "item-left"
+  }}
  }},
  "Badge": {"   7   6   0": {
   "name": "Badge",
-  "properties": {}
+  "properties": {
+   "IonColor": {
+    "name": "IonColor",
+    "mode": "plain",
+    "value": false
+   },
+   "ItemPosition": {
+    "name": "ItemPosition",
+    "mode": "plain",
+    "value": false
+   }
+  }
  }},
  "BarTitle": {"   7   6   0": {
   "name": "BarTitle",
@@ -366,6 +381,11 @@
  "Calendar": {"   7   6   0": {
   "name": "Calendar",
   "properties": {
+   "FormControlName": {
+    "name": "FormControlName",
+    "mode": "plain",
+    "value": false
+   },
    "type": {
     "name": "type",
     "mode": "plain",
@@ -375,6 +395,11 @@
     "name": "format",
     "mode": "plain",
     "value": "'YYYY-MM-DD'"
+   },
+   "IonColor": {
+    "name": "IonColor",
+    "mode": "plain",
+    "value": "primary"
    },
    "pickMode": {
     "name": "pickMode",
@@ -475,6 +500,11 @@
     "name": "to",
     "mode": "plain",
     "value": false
+   },
+   "IonColor": {
+    "name": "IonColor",
+    "mode": "plain",
+    "value": "primary"
    },
    "pickMode": {
     "name": "pickMode",
@@ -742,11 +772,28 @@
  }},
  "CheckBox": {"   7   6   0": {
   "name": "CheckBox",
-  "properties": {"Checked": {
-   "name": "Checked",
-   "mode": "plain",
-   "value": false
-  }}
+  "properties": {
+   "FormControlName": {
+    "name": "FormControlName",
+    "mode": "plain",
+    "value": false
+   },
+   "IonColor": {
+    "name": "IonColor",
+    "mode": "plain",
+    "value": false
+   },
+   "Disabled": {
+    "name": "Disabled",
+    "mode": "plain",
+    "value": false
+   },
+   "Checked": {
+    "name": "Checked",
+    "mode": "plain",
+    "value": false
+   }
+  }
  }},
  "CheckInstallAction": {"   7   6   0": {
   "name": "CheckInstallAction",
@@ -785,6 +832,16 @@
  "DateTime": {"   7   6   0": {
   "name": "DateTime",
   "properties": {
+   "FormControlName": {
+    "name": "FormControlName",
+    "mode": "plain",
+    "value": false
+   },
+   "IonColor": {
+    "name": "IonColor",
+    "mode": "plain",
+    "value": false
+   },
    "displayFormat": {
     "name": "displayFormat",
     "mode": "plain",
@@ -1011,7 +1068,11 @@
  }},
  "FormItem": {"   7   6   0": {
   "name": "FormItem",
-  "properties": {}
+  "properties": {"ItemPosition": {
+   "name": "ItemPosition",
+   "mode": "plain",
+   "value": false
+  }}
  }},
  "FullSyncDeleteAction": {"   7   6   0": {
   "name": "FullSyncDeleteAction",
@@ -1280,7 +1341,11 @@
  }},
  "GenericItem": {"   7   6   0": {
   "name": "GenericItem",
-  "properties": {}
+  "properties": {"ItemPosition": {
+   "name": "ItemPosition",
+   "mode": "plain",
+   "value": false
+  }}
  }},
  "GoogleMap": {"   7   6   0": {
   "name": "GoogleMap",
@@ -1738,6 +1803,16 @@
  "Input": {"   7   6   0": {
   "name": "Input",
   "properties": {
+   "FormControlName": {
+    "name": "FormControlName",
+    "mode": "plain",
+    "value": false
+   },
+   "Disabled": {
+    "name": "Disabled",
+    "mode": "plain",
+    "value": false
+   },
    "ClearInput": {
     "name": "ClearInput",
     "mode": "plain",
@@ -1812,6 +1887,16 @@
     "name": "Stacked",
     "mode": "plain",
     "value": false
+   },
+   "RangeLeft": {
+    "name": "RangeLeft",
+    "mode": "plain",
+    "value": false
+   },
+   "RangeRight": {
+    "name": "RangeRight",
+    "mode": "plain",
+    "value": false
    }
   }
  }},
@@ -1832,11 +1917,19 @@
  }},
  "ListItem": {"   7   6   0": {
   "name": "ListItem",
-  "properties": {}
+  "properties": {"ItemPosition": {
+   "name": "ItemPosition",
+   "mode": "plain",
+   "value": false
+  }}
  }},
  "Listdivider": {"   7   6   0": {
   "name": "Listdivider",
-  "properties": {}
+  "properties": {"IonColor": {
+   "name": "IonColor",
+   "mode": "plain",
+   "value": false
+  }}
  }},
  "Listgroup": {"   7   6   0": {
   "name": "Listgroup",
@@ -2184,6 +2277,11 @@
  "RadioButton": {"   7   6   0": {
   "name": "RadioButton",
   "properties": {
+   "Disabled": {
+    "name": "Disabled",
+    "mode": "plain",
+    "value": false
+   },
    "Value": {
     "name": "Value",
     "mode": "plain",
@@ -2199,6 +2297,11 @@
  "RadioList": {"   7   6   0": {
   "name": "RadioList",
   "properties": {
+   "FormControlName": {
+    "name": "FormControlName",
+    "mode": "plain",
+    "value": false
+   },
    "ListType": {
     "name": "ListType",
     "mode": "plain",
@@ -2214,6 +2317,11 @@
  "Range": {"   7   6   0": {
   "name": "Range",
   "properties": {
+   "FormControlName": {
+    "name": "FormControlName",
+    "mode": "plain",
+    "value": false
+   },
    "DefaultValue": {
     "name": "DefaultValue",
     "mode": "plain",
@@ -2251,6 +2359,11 @@
    },
    "DualKnobs": {
     "name": "DualKnobs",
+    "mode": "plain",
+    "value": false
+   },
+   "IonColor": {
+    "name": "IonColor",
     "mode": "plain",
     "value": false
    }
@@ -2435,23 +2548,47 @@
  }},
  "Segment": {"   7   6   0": {
   "name": "Segment",
-  "properties": {"Name": {
-   "name": "Name",
-   "mode": "plain",
-   "value": false
-  }}
+  "properties": {
+   "FormControlName": {
+    "name": "FormControlName",
+    "mode": "plain",
+    "value": false
+   },
+   "IonColor": {
+    "name": "IonColor",
+    "mode": "plain",
+    "value": false
+   },
+   "Name": {
+    "name": "Name",
+    "mode": "plain",
+    "value": false
+   }
+  }
  }},
  "SegmentButton": {"   7   6   0": {
   "name": "SegmentButton",
-  "properties": {"Name": {
-   "name": "Name",
-   "mode": "plain",
-   "value": ""
-  }}
+  "properties": {
+   "IonColor": {
+    "name": "IonColor",
+    "mode": "plain",
+    "value": false
+   },
+   "Name": {
+    "name": "Name",
+    "mode": "plain",
+    "value": ""
+   }
+  }
  }},
  "Select": {"   7   6   0": {
   "name": "Select",
   "properties": {
+   "FormControlName": {
+    "name": "FormControlName",
+    "mode": "plain",
+    "value": false
+   },
    "DefaultValue": {
     "name": "DefaultValue",
     "mode": "plain",
@@ -2507,6 +2644,11 @@
  "SignatureComponent": {"   7   6   0": {
   "name": "SignatureComponent",
   "properties": {
+   "FormControlName": {
+    "name": "FormControlName",
+    "mode": "plain",
+    "value": false
+   },
    "DotSize": {
     "name": "DotSize",
     "mode": "plain",
@@ -2822,6 +2964,16 @@
  "TextArea": {"   7   6   0": {
   "name": "TextArea",
   "properties": {
+   "FormControlName": {
+    "name": "FormControlName",
+    "mode": "plain",
+    "value": false
+   },
+   "Disabled": {
+    "name": "Disabled",
+    "mode": "plain",
+    "value": false
+   },
    "ClearInput": {
     "name": "ClearInput",
     "mode": "plain",
@@ -2941,7 +3093,11 @@
  }},
  "Thumbnail": {"   7   6   0": {
   "name": "Thumbnail",
-  "properties": {}
+  "properties": {"ItemPosition": {
+   "name": "ItemPosition",
+   "mode": "plain",
+   "value": "item-left"
+  }}
  }},
  "ToastAction": {"   7   6   0": {
   "name": "ToastAction",
@@ -2985,11 +3141,23 @@
  }},
  "Toggle": {"   7   6   0": {
   "name": "Toggle",
-  "properties": {"Checked": {
-   "name": "Checked",
-   "mode": "plain",
-   "value": false
-  }}
+  "properties": {
+   "FormControlName": {
+    "name": "FormControlName",
+    "mode": "plain",
+    "value": false
+   },
+   "Disabled": {
+    "name": "Disabled",
+    "mode": "plain",
+    "value": false
+   },
+   "Checked": {
+    "name": "Checked",
+    "mode": "plain",
+    "value": false
+   }
+  }
  }},
  "ToolBar": {"   7   6   0": {
   "name": "ToolBar",
@@ -3049,6 +3217,11 @@
  "TreeviewComponent": {"   7   6   0": {
   "name": "TreeviewComponent",
   "properties": {
+   "FormControlName": {
+    "name": "FormControlName",
+    "mode": "plain",
+    "value": false
+   },
    "treenodes": {
     "name": "treenodes",
     "mode": "script",
