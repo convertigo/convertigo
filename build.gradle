@@ -853,8 +853,10 @@ project(':engine') {
 	}
 	
 	task engineApiJar(type: Jar) {
+		group 'build'
+		
 		baseName 'convertigo-engine-api'
-		from 'bin'
+		from 'bin/main'
 		include '**/*.class'
 		exclude 'com/twinsoft/convertigo/engine/parsers/**'
 		exclude 'com/twinsoft/convertigo/engine/plugins/**'
