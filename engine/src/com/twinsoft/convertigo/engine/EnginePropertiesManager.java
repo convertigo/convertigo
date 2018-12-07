@@ -310,7 +310,9 @@ public class EnginePropertiesManager {
     public enum PropertyName {
 		/** MAIN */
 		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)
-		APPLICATION_SERVER_CONVERTIGO_URL ("application_server.convertigo.url", "http://localhost:18080/convertigo", "Convertigo Server application URL", PropertyCategory.Main),
+		APPLICATION_SERVER_CONVERTIGO_URL ("application_server.convertigo.url", "http://localhost:18080/convertigo", "Convertigo Server local URL", PropertyCategory.Main),
+		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)
+		APPLICATION_SERVER_CONVERTIGO_ENDPOINT ("application_server.convertigo.endpoint", "", "Convertigo Server endpoint URL", PropertyCategory.Main),
 		@PropertyOptions(visibility = Visibility.HIDDEN)
 		APPLICATION_SERVER_MASHUP_URL ("application_server.mashup.url", "http://localhost:18080/convertigo", "Mashup composer server base URL", PropertyCategory.Main),
 		DOCUMENT_THREADING_MAX_WORKER_THREADS ("document.threading.max_worker_threads", "100", "Maximum number of worker threads", PropertyCategory.Main),

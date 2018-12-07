@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.engine.util;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
@@ -56,28 +57,54 @@ import com.twinsoft.api.Session;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.KeyExpiredException;
 import com.twinsoft.convertigo.engine.MaxCvsExceededException;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpPool;
 import com.twinsoft.tas.KeyManager;
 
 public class HttpUtils {
 	private final static Pattern c8o_request_pattern = Pattern.compile("((.*?)/(?:projects/(.+?)|admin))/.*");
-
+	
+	private static String endpointExUrl = null;
+	private static Matcher endpointMatcher = Pattern.compile("http(s)?://(.*?)(/.*)").matcher("");
+	
+	private static Matcher getEndpointMatcher() {
+		synchronized (endpointMatcher) {
+			String url = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_ENDPOINT);
+			if (!url.equals(endpointExUrl)) {
+				endpointExUrl = url;
+				endpointMatcher.reset(endpointExUrl);
+			}
+			if (endpointMatcher.matches()) {
+				return endpointMatcher;
+			}
+		}
+		return null;
+	}
+	
 	public static String originalRequestURI(HttpServletRequest request) {
-		String uri = HeaderName.XConvertigoRequestURI.getHeader(request);
-		if (uri == null) {
-			uri = request.getRequestURI();
+		String uri;
+		Matcher endpoint = getEndpointMatcher();
+		if (endpoint != null) {
+			String path = request.getContextPath();
+			String rUri = request.getRequestURI();
+			String base = endpoint.group(3);
+			uri = base + rUri.substring(path.length());
 		} else {
-			String frontal = HeaderName.XConvertigoFrontal.getHeader(request);
-			if ("apache".equalsIgnoreCase(frontal)) {
-				try {
-					uri = new URI(null, null, uri, null).toASCIIString();
-				} catch (URISyntaxException e) {
-					// Transformation failed, keep existing uri
-					Engine.logEngine.debug("(HttpUtils) Apache URI escape failed : " + e.getMessage());
+			uri = HeaderName.XConvertigoRequestURI.getHeader(request);
+			if (uri == null) {
+				uri = request.getRequestURI();
+			} else {
+				String frontal = HeaderName.XConvertigoFrontal.getHeader(request);
+				if ("apache".equalsIgnoreCase(frontal)) {
+					try {
+						uri = new URI(null, null, uri, null).toASCIIString();
+					} catch (URISyntaxException e) {
+						// Transformation failed, keep existing uri
+						Engine.logEngine.debug("(HttpUtils) Apache URI escape failed : " + e.getMessage());
+					}
 				}
 			}
 		}
@@ -86,8 +113,9 @@ public class HttpUtils {
 	
 	public static String originalRequestURL(HttpServletRequest request) {
 		String uri = originalRequestURI(request);
-		String host = HeaderName.XConvertigoRequestHost.getHeader(request);
-		String https_state = HeaderName.XConvertigoHttpsState.getHeader(request);
+		Matcher endpoint = getEndpointMatcher();
+		String host = endpoint != null ? endpoint.group(2) : HeaderName.XConvertigoRequestHost.getHeader(request);
+		String https_state = endpoint != null ? (endpoint.group(1) == null ? "off" : "on") : HeaderName.XConvertigoHttpsState.getHeader(request);
 		
 		if (uri != null && host != null && https_state != null) {
 			String url = "http" + (https_state.equalsIgnoreCase("on") ? "s" : "") + "://" + host + uri;
