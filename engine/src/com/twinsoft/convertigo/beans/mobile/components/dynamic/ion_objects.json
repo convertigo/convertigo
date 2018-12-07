@@ -5015,7 +5015,7 @@
           "label": "Chart width",
           "description": "Chart width.",
           "category": "@Properties",
-          "value": "100",
+          "value": false,
 		  "values": [
 		    false,
 		    true
@@ -5026,7 +5026,7 @@
           "label": "Chart height",
           "description": "Chart height.",
           "category": "@Properties",
-          "value": "100",
+          "value": false,
 		  "values": [
 		    false,
 		    true
