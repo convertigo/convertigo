@@ -72,9 +72,8 @@ jobs:
         
     - run: |
         source /tmp/build.env
-        find ~/.gradle/caches -name "*-SNAPSHOT" -exec rm -rv {} \;
+        find ~/.gradle/caches -name "*-SNAPSHOT" -exec rm -rf {} \;
         gradle --info --stacktrace -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :ciFirstStep
-        find ~/.gradle/caches -name "*-SNAPSHOT" -exec rm -rv {} \;
     
     - save_cache:
         paths:
