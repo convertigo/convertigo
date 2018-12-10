@@ -115,5 +115,5 @@ function downloadStoreDialog() {
 }
 
 function getHelpUrl(help_sub_url) {
-	return "http://www.convertigo.com/document/latest/operating-guide/using-convertigo-administration-console/store/" + help_sub_url;
+	return "https://www.convertigo.com/document/latest/operating-guide/using-convertigo-administration-console/store/" + help_sub_url;
 }

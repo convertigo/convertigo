@@ -303,7 +303,7 @@ function loadWidget(widgetId, widgetOptions) {
 				$tmp.find(".widget_content_center").first().append(xml);
 				//Condition added by alexandret
 				//Get Url for each widgets to go to help informations
-				var urlHelp = "http://www.convertigo.com/document/latest/operating-guide/using-convertigo-administration-console/";
+				var urlHelp = "https://www.convertigo.com/document/latest/operating-guide/using-convertigo-administration-console/";
 				switch (widgetId)
 				{
 					//home page

@@ -665,7 +665,7 @@ function parseJSONarray(value) {
 }
 
 function getHelpUrl(help_sub_url) {
-	return "http://www.convertigo.com/document/latest/operating-guide/using-convertigo-administration-console/scheduler/" + help_sub_url;
+	return "https://www.convertigo.com/document/latest/operating-guide/using-convertigo-administration-console/scheduler/" + help_sub_url;
 }
 
 function editAction(xml){
