@@ -746,12 +746,12 @@
    "Width": {
     "name": "Width",
     "mode": "plain",
-    "value": "100"
+    "value": false
    },
    "Height": {
     "name": "Height",
     "mode": "plain",
-    "value": "100"
+    "value": false
    },
    "Options": {
     "name": "Options",
