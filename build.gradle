@@ -187,6 +187,7 @@ publishing {
 					'com.convertigo.twinsoft:api:2017.12.29',
 					'com.convertigo.twinsoft:tas:2017.12.29',
 					'com.convertigo.twinsoft:util:2017.12.29',
+					'com.fasterxml.jackson.core:jackson-core:[2.8,2.9[',
 					'commons-io:commons-io:[2.2,)',
 					'javax.mail:mail:1.4',
 					'javax.servlet:servlet-api:2.5',
