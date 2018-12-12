@@ -31,11 +31,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CodingErrorAction;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -57,6 +52,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -391,12 +387,17 @@ public class FullSyncServlet extends HttpServlet {
 					}
 				}
 			}
+			boolean isNewStringEntity = false;
 			
 			if (method == HttpMethodType.POST && "_bulk_docs".equals(special)) {
 				try {
 					bulkDocsRequest = new JSONObject(requestStringEntity);
 					Engine.theApp.couchDbManager.handleBulkDocsRequest(dbName, bulkDocsRequest, fsAuth);
-					requestStringEntity = bulkDocsRequest.toString();
+					String newEntity = bulkDocsRequest.toString();
+					if (!newEntity.equals(requestStringEntity)) {
+						requestStringEntity = newEntity;
+						isNewStringEntity = true;
+					}
 				} catch (JSONException e) {
 					debug.append("failed to parse [ " + e.getMessage() + "]: " + requestStringEntity);
 				}
@@ -413,7 +414,9 @@ public class FullSyncServlet extends HttpServlet {
 					if (httpEntity != null) {
 						// already exists
 					} else if (requestStringEntity != null) {
-						debug.append("request new Entity:\n" + requestStringEntity + "\n");
+						if (isNewStringEntity) {
+							debug.append("request new Entity:\n" + requestStringEntity + "\n");
+						}
 						httpEntity = new StringEntity(requestStringEntity, "UTF-8");
 					} else {
 						httpEntity = new InputStreamEntity(request.getInputStream());
@@ -476,61 +479,33 @@ public class FullSyncServlet extends HttpServlet {
 				try {
 					is = responseEntity.getContent();
 					
-					if (contentType.mimeType().in(MimeType.Plain, MimeType.Json)) {
+					if (code >= 200 && code < 300 &&
+							contentType.mimeType().in(MimeType.Plain, MimeType.Json) && (
+								isChanges ||
+								"_bulk_get".equals(special) ||
+								"_all_docs".equals(special) ||
+								StringUtils.isNotEmpty(requestParser.getDocId()) ||
+								(bulkDocsRequest != null && listeners != null))) {
 						String charset = contentType.getCharset("UTF-8");
 						
-						if (isChanges && code == 200) {
-							Engine.logCouchDbManager.info("(FullSyncServlet) Entering in continuous loop:\n" + debug);
-							BufferedReader br = new BufferedReader(new InputStreamReader(new BufferedInputStream(is), charset));
-							OutputStreamWriter writer = new OutputStreamWriter(os, charset);
-							Engine.theApp.couchDbManager.filterChanges(httpSession.getId(), dbName, uri, fsAuth, br, writer);
-						} else {
-							int id = 0;
-							byte[] buf = new byte[64];
-							StringBuilder sb = new StringBuilder();
-							CharsetDecoder cd = Charset.forName(charset).newDecoder();
-							cd.onMalformedInput(CodingErrorAction.REPORT);
-							debug.append("response Entity:\n");
-
-							int read = is.read();
-							while (read >= 0) {
-								buf[id++] = (byte) read;
-								try {
-									CharBuffer cb = cd.decode(ByteBuffer.wrap(buf, 0, id));
-									id = 0;
-									sb.append(cb);
-								} catch (Throwable t) {
-									Engine.logCouchDbManager.trace("(FullSyncServlet) Buffer not decoded, retry with more byte. " + t);
+						try (OutputStreamWriter writer = new OutputStreamWriter(os, charset); BufferedInputStream bis = new BufferedInputStream(is)) {
+							if (isChanges) {
+								Engine.logCouchDbManager.info("(FullSyncServlet) Entering in continuous loop:\n" + debug);
+								try (BufferedReader br = new BufferedReader(new InputStreamReader(bis, charset))) {
+									Engine.theApp.couchDbManager.filterChanges(httpSession.getId(), dbName, uri, fsAuth, br, writer);
 								}
-								read = is.read();
-							}
-							debug.append("\n");
-							responseStringEntity = sb.toString();
-
-							JSONObject document = Engine.theApp.couchDbManager.handleDocResponse(method, special, requestParser.getDocId(), fsAuth, responseStringEntity);
-							if (!isCblBulkGet) {
-								if (document != null) {
-									StringBuilder sDoc = new StringBuilder();
-									if ("_all_docs".equals(special)) {
-										sDoc.append(responseStringEntity.substring(0, responseStringEntity.indexOf(":[") + 3));
-										JSONArray rows = document.getJSONArray("rows");
-										int len = rows.length();
-										for (int i = 0; i < len - 1; i++) {
-											sDoc.append(rows.get(i).toString()).append(",\n");
-										}
-										if (len > 0) {
-											sDoc.append(rows.get(len - 1).toString()).append("\n");
-										}
-										sDoc.append("]}");
-									} else {
-										sDoc.append(document.toString());
-									}
-									IOUtils.write(sDoc, os, charset);
-								} else {
-									IOUtils.write(responseStringEntity, os, charset);
-								}
+							} else if (bulkDocsRequest != null) {
+								Engine.logCouchDbManager.info("(FullSyncServlet) Handle bulkDocsRequest:\n" + debug);
+								responseStringEntity = IOUtils.toString(bis, charset);
+								writer.write(responseStringEntity);
+								writer.flush();
+								Engine.theApp.couchDbManager.handleBulkDocsResponse(request, listeners, bulkDocsRequest, responseStringEntity);
+							} else if (isCblBulkGet) {
+								Engine.logCouchDbManager.info("(FullSyncServlet) Checking reponse documents for CBL BulkGet:\n" + debug);
+								Engine.theApp.couchDbManager.checkCblBulkGetResponse(special, fsAuth, bis, charset, response);
 							} else {
-								Engine.theApp.couchDbManager.handleCblBulkGet(response, document);
+								Engine.logCouchDbManager.info("(FullSyncServlet) Checking reponse documents:\n" + debug);
+								Engine.theApp.couchDbManager.checkResponse(special, fsAuth, bis, charset, writer);
 							}
 						}
 					} else {
@@ -539,17 +514,12 @@ public class FullSyncServlet extends HttpServlet {
 							HeaderName.ContentLength.addHeader(response, contentLength);
 							debug.append("response Header: " + HeaderName.ContentLength.value() + "=" + contentLength + "\n");
 						}
+						Engine.logCouchDbManager.info("(FullSyncServlet) Copying reponse stream:\n" + debug);
 						StreamUtils.copyAutoFlush(is, os);
 					}
 				} finally {
 					newResponse.close();
 				}
-			}
-
-			Engine.logCouchDbManager.info("(FullSyncServlet) Success to process request:\n" + debug);
-			
-			if (bulkDocsRequest != null && responseStringEntity != null && listeners != null) {
-				Engine.theApp.couchDbManager.handleBulkDocsResponse(request, listeners, bulkDocsRequest, responseStringEntity);
 			}
 		} catch (SecurityException e) {
 			Engine.logCouchDbManager.error("(FullSyncServlet) Failed to process request due to a security exception:\n" + e.getMessage() + "\n" + debug);
