@@ -873,6 +873,7 @@ project(':engine') {
 			'swaggerUiVersion': swaggerUiVersion
 		)
 		
+		def patch = file '../eclipse-plugin-studio/tomcat/webapps/convertigo/swagger/patch'
 		def dist = file '../eclipse-plugin-studio/tomcat/webapps/convertigo/swagger/dist'
 		outputs.dir dist
 		
@@ -890,6 +891,11 @@ project(':engine') {
 				}
 			}
 			zip.delete()
+			
+			copy {
+				from patch
+				into dist
+			}
 		}
 	}
 	
