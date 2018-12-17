@@ -157,9 +157,11 @@ public class SwaggerUtils {
 		swagger.setConsumes(Arrays.asList("multipart/form-data", MimeType.WwwForm.value(), MimeType.Json.value(), MimeType.Xml.value()));
 		swagger.setProduces(Arrays.asList(MimeType.Json.value(), MimeType.Xml.value()));
 		
-		String oas3Url = requestUrl.substring(0,requestUrl.indexOf("/" + servletMappingPath)) + "/swagger/dist/index.html?" + 
+		String oas3Url = requestUrl.substring(0,requestUrl.indexOf("/" + servletMappingPath)) + "/swagger/dist/index.html?" +
 							URLUtils.encodePart("url",requestUrl.replace(servletMappingPath, OpenApiUtils.servletMappingPath) 
-								+ "?YAML"+ (project != null ? "&__project=" + project.getName():""));
+							+ "?YAML"+ (project != null ? "&__project=" + project.getName():""))
+							+ (Engine.isStudioMode() ? "&showErrors" : "");
+		
 		ExternalDocs externalDocs = new ExternalDocs();
 		externalDocs.setDescription("Switch to Open Api definition (oas3)");
 		externalDocs.setUrl(oas3Url);
