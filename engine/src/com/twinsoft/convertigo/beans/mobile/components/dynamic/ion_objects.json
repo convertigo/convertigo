@@ -3617,7 +3617,7 @@
             "HH:mm:ss",
             "MM/DD/YY",
             "MM/DD/YYYY",
-            "DDDD MMMM D, YYYY",
+            "MMMM DDDD, YYYY",
             true
           ]
         },
@@ -3702,7 +3702,7 @@
           "value": false,
           "values": [
             false,
-            "Dim, Lun, Mar, Mer, Jeu, Ven",
+            "Dim, Lun, Mar, Mer, Jeu, Ven, Sam",
             true
           ]
         },
@@ -3757,7 +3757,7 @@
           "label": "Cancel text",
           "description": "The text to display on the picker's cancel button.",
           "category": "@Properties",
-          "value": "Cancel",
+          "value": false,
           "values": [
             false,
             "Cancel",
@@ -3769,7 +3769,7 @@
           "label": "Done text",
           "description": "The text to display on the picker's 'Done' button. Default: Done.",
           "category": "@Properties",
-          "value": "Done",
+          "value": false,
           "values": [
             false,
             "Done",
