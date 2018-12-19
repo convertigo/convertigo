@@ -1278,10 +1278,12 @@ public class Engine {
 				} else {
 					outputDom = cacheManager.getDocument(requester, context);
 				}
-			}finally {
+			} finally {
 				if (oldResponseExpiryDate!=null) {
 					requestedObject.setResponseExpiryDate(oldResponseExpiryDate);
 				}
+				
+				onDocumentRetrieved(context, outputDom);
 			}
 			
 			Element documentElement = outputDom.getDocumentElement();
@@ -1374,6 +1376,15 @@ public class Engine {
 		XMLUtils.logXml(outputDom, Engine.logContext, "Generated XML");
 
 		return outputDom;
+	}
+
+	private void onDocumentRetrieved(Context context, Document outputDom) {
+		if (context.httpSession != null) {
+			Object controller = context.httpSession.getAttribute("customController");
+			if (controller != null && controller instanceof CustomController) {
+				((CustomController)controller).modifyDocument(context, outputDom);
+			}
+		}
 	}
 
 	public String checkCariocaSessionKey(Context context, String sKey, String sServiceCode, long idUser,
