@@ -1216,7 +1216,7 @@
         ],
         "package_dependencies": [
           {"package":"@angular/animations", "version":"5.2.10"},
-          {"package":"ionic-tooltips", "version":"2.0.1"}
+          {"package":"ionic-tooltips", "version":"2.1.1"}
         ]
       }         
     },
@@ -5286,7 +5286,7 @@
           "CalendarModule"
         ],
         "package_dependencies": [
-            {"package":"ion2-calendar", "version":"2.1.6-beta.2"}
+            {"package":"ion2-calendar", "version":"2.2.0"}
         ]
       }
     },
@@ -5624,7 +5624,7 @@
           "TreeviewComponent"
         ],
         "package_dependencies": [
-            {"package":"angular-tree-component", "version":"7.0.2"}
+            {"package":"angular-tree-component", "version":"8.0.2"}
         ]
       }	        
     },
@@ -6403,7 +6403,7 @@
           "CalendarModule"
         ],
         "package_dependencies": [
-            {"package":"ion2-calendar", "version":"2.1.6-beta.2"}
+            {"package":"ion2-calendar", "version":"2.2.0"}
         ]
     }
   },
