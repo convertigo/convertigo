@@ -1379,7 +1379,7 @@ public class Engine {
 	}
 
 	private void onDocumentRetrieved(Context context, Document outputDom) {
-		if (context.httpSession != null) {
+		if (context.httpSession != null && outputDom != null) {
 			Object controller = context.httpSession.getAttribute("customController");
 			if (controller != null && controller instanceof CustomController) {
 				((CustomController)controller).modifyDocument(context, outputDom);
