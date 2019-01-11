@@ -107,7 +107,6 @@ public class FullSyncServlet extends HttpServlet {
 	@Override
 	protected void service(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		StringBuffer debug = new StringBuffer();
-		String c8oSDK = null;	
 		HttpMethodType method;
 		try {
 			HttpUtils.checkCV(request);
@@ -134,20 +133,6 @@ public class FullSyncServlet extends HttpServlet {
 		HttpSession httpSession = request.getSession();
 		
 		try {
-			HttpRequestBase newRequest;
-			
-			switch (method) {
-//			case DELETE: newRequest = new HttpDelete(); break; //disabled to prevent db delete
-			case GET: newRequest = new HttpGet(); break;
-			case HEAD: newRequest = new HttpHead(); break;
-			case OPTIONS: newRequest = new HttpOptions(); break;
-			case POST: newRequest = new HttpPost(); break;
-			case PUT: newRequest = new HttpPut(); break;
-			case TRACE: newRequest = new HttpTrace(); break;
-			default: throw new ServletException("Invalid HTTP method");
-			}
-			
-			
 			RequestParser requestParser = new RequestParser(request);
 			
 			Engine.theApp.couchDbManager.checkRequest(requestParser.getPath(), requestParser.getSpecial(), requestParser.getDocId());
@@ -200,24 +185,44 @@ public class FullSyncServlet extends HttpServlet {
 				uri = builder.build();
 			}
 			
-			newRequest.setURI(uri);
-			debug.append(method.name() + " URI: " + uri.toString() + "\n");
+			String special = requestParser.getSpecial();
+			
+			boolean isChanges = "_changes".equals(special);
+			
+			String version = Engine.theApp.couchDbManager.getFullSyncClient().getServerVersion();
+			
+			if (isChanges && version.compareTo("2.") >= 0) {
+				method = HttpMethodType.POST;
+			}
 			
 			String dbName = requestParser.getDbName();
+			
+			debug.append("dbName=" + dbName + " special=" + special + "\n");
+			
+			HttpRequestBase newRequest;
+			
+			switch (method) {
+//			case DELETE: newRequest = new HttpDelete(); break; //disabled to prevent db delete
+			case GET: newRequest = new HttpGet(); break;
+			case HEAD: newRequest = new HttpHead(); break;
+			case OPTIONS: newRequest = new HttpOptions(); break;
+			case POST: newRequest = new HttpPost(); break;
+			case PUT: newRequest = new HttpPut(); break;
+			case TRACE: newRequest = new HttpTrace(); break;
+			default: throw new ServletException("Invalid HTTP method");
+			}
+			
+			newRequest.setURI(uri);
+			debug.append(method.name() + " URI: " + uri.toString() + "\n");
 			
 			String requestStringEntity = null;
 			HttpEntity httpEntity = null;
 			JSONObject bulkDocsRequest = null;
-			
-			String special = requestParser.getSpecial();
-			
-			boolean isChanges = "_changes".equals(special);
 			boolean isCBL = false;
 			{
 				String agent = HeaderName.UserAgent.getHeader(request);
 				isCBL = agent != null && agent.startsWith("CouchbaseLite/1.");
 				if (isCBL) {
-					String version = Engine.theApp.couchDbManager.getFullSyncClient().getServerVersion();
 					isCBL = version != null && version.compareTo("1.7") >= 0;
 				}
 			}
@@ -252,8 +257,6 @@ public class FullSyncServlet extends HttpServlet {
 					newRequest.addHeader(authBasicHeader);
 				}
 			}
-			
-			debug.append("dbName=" + dbName + " special=" + special + "\n");
 			
 			if (request.getInputStream() != null) {
 				String reqContentType = request.getContentType(); 
@@ -402,12 +405,15 @@ public class FullSyncServlet extends HttpServlet {
 					debug.append("failed to parse [ " + e.getMessage() + "]: " + requestStringEntity);
 				}
 			} else if (isChanges) {
-				uri = Engine.theApp.couchDbManager.handleChangesUri(dbName, uri, requestStringEntity, fsAuth, c8oSDK);
-				newRequest.setURI(uri);
+				requestStringEntity = Engine.theApp.couchDbManager.handleChangesUri(dbName, newRequest, requestStringEntity, fsAuth);
+				if (requestStringEntity != null) {
+					debug.append("request new Entity:\n" + requestStringEntity + "\n");
+				}
+				uri = newRequest.getURI();
 				debug.append("Changed to " + newRequest.getMethod() + " URI: " + uri + "\n");
 			}
 			
-			if (newRequest instanceof HttpEntityEnclosingRequest) {
+			if (!isChanges && newRequest instanceof HttpEntityEnclosingRequest) {
 				HttpEntityEnclosingRequest entityRequest = ((HttpEntityEnclosingRequest) newRequest);
 				
 				if (entityRequest.getEntity() == null) {
@@ -445,7 +451,7 @@ public class FullSyncServlet extends HttpServlet {
 			
 			response.setStatus(code);
 			
-			boolean isCblBulkGet = isCBL && "_bulk_get".equals(special);
+			boolean isCblBulkGet = isCBL && version.compareTo("2.3.") < 0 &&"_bulk_get".equals(special);
 			
 			if (!isCblBulkGet) {
 				for (Header header: newResponse.getAllHeaders()) {
@@ -475,13 +481,13 @@ public class FullSyncServlet extends HttpServlet {
 			
 			String responseStringEntity = null;
 			if (responseEntity != null) {
-				InputStream is = null;
-				try {
-					is = responseEntity.getContent();
+				//InputStream is = null;
+				try (InputStream is = responseEntity.getContent()) {
+					//is = responseEntity.getContent();
 					
 					if (code >= 200 && code < 300 &&
 							contentType.mimeType().in(MimeType.Plain, MimeType.Json) && (
-								isChanges ||
+								(isChanges && version.compareTo("2.") < 0) ||
 								"_bulk_get".equals(special) ||
 								"_all_docs".equals(special) ||
 								StringUtils.isNotEmpty(requestParser.getDocId()) ||
@@ -501,20 +507,25 @@ public class FullSyncServlet extends HttpServlet {
 								writer.flush();
 								Engine.theApp.couchDbManager.handleBulkDocsResponse(request, listeners, bulkDocsRequest, responseStringEntity);
 							} else if (isCblBulkGet) {
-								Engine.logCouchDbManager.info("(FullSyncServlet) Checking reponse documents for CBL BulkGet:\n" + debug);
+								Engine.logCouchDbManager.info("(FullSyncServlet) Checking text response documents for CBL BulkGet:\n" + debug);
 								Engine.theApp.couchDbManager.checkCblBulkGetResponse(special, fsAuth, bis, charset, response);
 							} else {
-								Engine.logCouchDbManager.info("(FullSyncServlet) Checking reponse documents:\n" + debug);
+								Engine.logCouchDbManager.info("(FullSyncServlet) Checking response documents:\n" + debug);
 								Engine.theApp.couchDbManager.checkResponse(special, fsAuth, bis, charset, writer);
 							}
 						}
+					} else if (code >= 200 && code < 300 &&
+							contentType.mimeType() == MimeType.MultiPartRelated && 
+							"_bulk_get".equals(special)) {
+						Engine.logCouchDbManager.info("(FullSyncServlet) Checking multipart response documents for CBL BulkGet:\n" + debug);
+						Engine.theApp.couchDbManager.checkCblBulkGetResponse(fsAuth, is, response);
 					} else {
 						String contentLength = HeaderName.ContentLength.getHeader(newResponse);
 						if (contentLength != null) {
 							HeaderName.ContentLength.addHeader(response, contentLength);
 							debug.append("response Header: " + HeaderName.ContentLength.value() + "=" + contentLength + "\n");
 						}
-						Engine.logCouchDbManager.info("(FullSyncServlet) Copying reponse stream:\n" + debug);
+						Engine.logCouchDbManager.info("(FullSyncServlet) Copying response stream:\n" + debug);
 						StreamUtils.copyAutoFlush(is, os);
 					}
 				} finally {

@@ -26,16 +26,21 @@ import java.util.regex.Pattern;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 
 public class ContentTypeDecoder {
-	private final static Pattern pattern = Pattern.compile("(?:.*, ?)?(.*?)(?: ?; ?charset=(.*)|$)", Pattern.CASE_INSENSITIVE);
+	private final static Pattern pattern = Pattern.compile("(?:.*, ?)?(.*?)(?: ?; ?(charset=(.*)|.*)|$)", Pattern.CASE_INSENSITIVE);
 	
 	String mimeType;
 	String charset = null;
+	String option = null;
 	
 	public ContentTypeDecoder(String contentType) {
 		Matcher matcher = pattern.matcher(contentType == null ? "" : contentType);
 		if (matcher.matches()) {
 			mimeType = matcher.group(1);
-			charset = matcher.group(2);
+			option = matcher.group(2);
+			if (option != null && option.isEmpty()) {
+				option = null;
+			}
+			charset = matcher.group(3);
 			if (charset != null && charset.isEmpty()) {
 				charset = null;
 			}
@@ -50,6 +55,10 @@ public class ContentTypeDecoder {
 	
 	public MimeType mimeType() {
 		return MimeType.parse(mimeType);
+	}
+	
+	public String getOption() {
+		return option;
 	}
 	
 	public String getCharset() {
