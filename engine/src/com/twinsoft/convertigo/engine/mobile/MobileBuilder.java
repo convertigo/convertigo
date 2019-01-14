@@ -212,6 +212,8 @@ public class MobileBuilder {
 		}
 	}
 	
+	private static Pattern LsPattern = Pattern.compile("\\R");
+	
 	private BlockingQueue<Map<String, CharSequence>> queue = null;
 	private Map<String, CharSequence> pushedFiles = null;
 	private MbWorker worker = null;
@@ -848,6 +850,7 @@ public class MobileBuilder {
 				}
 				
 				// Write file (do not need delay)
+				tsContent = LsPattern.matcher(tsContent).replaceAll(System.lineSeparator());
 				File tempTsFile = new File(tempTsDir, tempTsFileName);
 				FileUtils.write(tempTsFile, tsContent, "UTF-8");
 			}
@@ -900,6 +903,7 @@ public class MobileBuilder {
 				}
 				
 				// Write file (do not need delay)
+				tsContent = LsPattern.matcher(tsContent).replaceAll(System.lineSeparator());
 				File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".temp.ts");
 				FileUtils.write(tempTsFile, tsContent, "UTF-8");
 			}
@@ -1726,7 +1730,7 @@ public class MobileBuilder {
 		while (matcher.find()) {
 			String markerId = matcher.group(1);
 			String marker = getMarker(content, markerId);
-			if (!marker.isEmpty()) {
+			if (!marker.isEmpty() && markers.indexOf(markerId) == -1) {
 				markers += marker + System.lineSeparator();
 			}
 		}
@@ -1740,12 +1744,31 @@ public class MobileBuilder {
 		if (beginIndex != -1) {
 			int endIndex = s.indexOf(endMarker, beginIndex);
 			if (endIndex != -1) {
-				return s.substring(beginIndex, endIndex) + endMarker;
+				//return s.substring(beginIndex, endIndex) + endMarker;
+				String comment = "/*inner marker removed!*/";
+				String content = s.substring(beginIndex + beginMarker.length(), endIndex);
+				content = content.replaceAll("/\\*Begin_c8o_(.+)\\*/", comment).replaceAll("/\\*End_c8o_(.+)\\*/", comment);
+				return beginMarker + content + endMarker;
 			}
 		}
 		return "";
 	}
 	
+	public static String getFormatedContent(String marker, String markerId) {
+		String content = "";
+		if (!marker.isEmpty()) {
+			String line;
+			String[] lines = marker.split("\\R");
+			for (int i=0; i<lines.length; i++) {
+				line = lines[i];
+				if (line.indexOf("/*Begin_c8o_") == -1 && line.indexOf("/*End_c8o_") == -1) {
+					content += line + System.lineSeparator();
+				}
+			}
+		}
+		return content;
+	}
+
 	private static File toTmpFile(File file) {
 		return new File(file.getAbsolutePath().replaceFirst("_private(/|\\\\)ionic", "_private$1ionic_tmp"));
 	}
@@ -1784,6 +1807,9 @@ public class MobileBuilder {
 	}
 	
 	private void writeFile(File file, CharSequence content, String encoding) throws IOException {
+		// Replace eol characters with system line separators
+		content = LsPattern.matcher(content).replaceAll(System.lineSeparator());
+		
 		if (initDone && Engine.isStudioMode()) {
 			synchronized (writtenFiles) {
 				// Checks for content changes
