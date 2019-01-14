@@ -185,11 +185,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 									IDocumentProvider dp = editor.getDocumentProvider();
 									IDocument doc = dp.getDocument(editor.getEditorInput());
 									String marker = MobileBuilder.getMarker(doc.get(), functionMarker);
-									String beginMarker = "/*Begin_c8o_" + functionMarker + "*/";
-									String endMarker = "/*End_c8o_" + functionMarker + "*/";
-									String content = marker.replace(beginMarker+ System.lineSeparator(), "")
-																.replace("\t\t"+endMarker, "") // for validator
-																	.replace("\t"+endMarker, ""); // for action
+									String content = MobileBuilder.getFormatedContent(marker, functionMarker);
 									FormatedContent formated = new FormatedContent(content);
 									MobileUIComponentTreeObject.this.setPropertyValue(propertyName, formated);
 								}
