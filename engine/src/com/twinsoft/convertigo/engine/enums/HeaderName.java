@@ -31,6 +31,7 @@ import org.apache.commons.httpclient.HttpMethod;
 import org.apache.http.Header;
 import org.apache.http.HttpMessage;
 import org.apache.http.HttpRequest;
+import org.apache.http.client.methods.HttpRequestBase;
 
 public enum HeaderName {
 	Accept("Accept"),
@@ -136,6 +137,11 @@ public enum HeaderName {
 	
 	public void setHeader(HttpServletResponse response, String headerValue) {
 		response.setHeader(value, headerValue);
+	}
+	
+	public boolean has(HttpRequestBase request) {
+		Header[] headers = request.getHeaders(value);
+		return headers != null && headers.length > 0;
 	}
 	
 	private static Map<String, HeaderName> cache = new HashMap<String, HeaderName>();
