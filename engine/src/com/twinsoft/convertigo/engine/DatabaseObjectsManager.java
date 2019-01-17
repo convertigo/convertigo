@@ -1113,7 +1113,15 @@ public class DatabaseObjectsManager implements AbstractManager {
 			getProjectLoadingData().projectName = projectName;
 			
 			// Import will perform necessary beans migration (see deserialization)
-			Project project = (Project) importDatabaseObject(projectNode, null);
+			Project project = null;
+			try {
+				project = (Project) importDatabaseObject(projectNode, null);
+			} catch (Exception e) {
+				if (document != null) {
+					Engine.logDatabaseObjectManager.error("Failed to import project \""+projectName+"\":\n"+ XMLUtils.prettyPrintDOM(document));
+				}
+				throw e;
+			}
 			project.undefinedGlobalSymbols = getProjectLoadingData().undefinedGlobalSymbol;
 			
 			synchronized (projects) {
