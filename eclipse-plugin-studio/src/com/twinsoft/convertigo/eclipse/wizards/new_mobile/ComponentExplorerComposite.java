@@ -434,6 +434,12 @@ public class ComponentExplorerComposite extends Composite {
 	        @Override
 	        public void run()
 	        {	        	
+				for (ExpandItem expandItem : bar.getItems()) {
+					Point size = expandItem.getControl().getSize();
+					Point size2 = expandItem.getControl().computeSize(size.x,SWT.DEFAULT);
+					expandItem.setHeight(size2.y);
+				}
+	        	
 				Rectangle r = scrolledComposite.getClientArea();
 				scrolledComposite.setMinSize(bar.computeSize(r.width, SWT.DEFAULT));
 	        	scrolledComposite.layout(true, true);
