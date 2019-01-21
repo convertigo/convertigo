@@ -1,4 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIFormCustomValidator" priority="0" version="   7   6   0">
+        <property name="async">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="CustomValidator"/>
+        </property>
+        <property name="validatorValue">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
+                <com.twinsoft.convertigo.beans.common.FormatedContent><![CDATA[			/* return {'valid':false, 'password':wrong};	// any json if invalid */
+			/* return null;									// null if valid */
+			return null;
+]]></com.twinsoft.convertigo.beans.common.FormatedContent>
+            </xmlizable>
+        </property>
+    </mobilecomponent>
     <urlmappingparameter classname="com.twinsoft.convertigo.beans.rest.QueryParameter" priority="0" version="   7   6   0">
         <property name="array">
             <java.lang.Boolean value="false"/>
@@ -9321,29 +9343,7 @@
             <java.lang.String value="onDidEnter"/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIFormCustomValidator" priority="0" version="   7   6   0">
-        <property name="async">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="comment">
-            <java.lang.String value=""/>
-        </property>
-        <property name="isEnabled">
-            <java.lang.Boolean value="true"/>
-        </property>
-        <property name="name">
-            <java.lang.String value="CustomValidator"/>
-        </property>
-        <property name="validatorValue">
-            <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
-                <com.twinsoft.convertigo.beans.common.FormatedContent><![CDATA[			/* return {'valid':false, 'password':wrong};	// any json if invalid */
-			/* return null;									// null if valid */
-			return null;
-
-]]></com.twinsoft.convertigo.beans.common.FormatedContent>
-            </xmlizable>
-        </property>
-    </mobilecomponent>
+    
     <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIFormControlValidator" priority="0" version="   7   6   0">
         <property name="async">
             <java.lang.Boolean value="false"/>

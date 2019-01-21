@@ -915,12 +915,12 @@
    "cancelText": {
     "name": "cancelText",
     "mode": "plain",
-    "value": "Cancel"
+    "value": false
    },
    "doneText": {
     "name": "doneText",
     "mode": "plain",
-    "value": "Done"
+    "value": false
    },
    "pickerOptions": {
     "name": "pickerOptions",

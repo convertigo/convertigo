@@ -190,9 +190,13 @@ public class SchedulerManager {
 								shouldSave = true;
 							}
 								
-							if (tg != null) {
-								sched.scheduleJob(jd, tg);
-								Engine.logEngine.trace("(Scheduler Manager) "+currentName+" scheduled");
+							if (tg != null && tg.mayFireAgain()) {
+								try {
+									sched.scheduleJob(jd, tg);
+									Engine.logEngine.trace("(Scheduler Manager) " + currentName + " scheduled");
+								} catch (SchedulerException e) {
+									Engine.logEngine.warn("(Scheduler Manager) " + currentName + " failed to be scheduled: " + e.getMessage());
+								}
 							}
 						}
 					}
