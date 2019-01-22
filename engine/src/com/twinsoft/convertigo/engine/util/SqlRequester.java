@@ -106,31 +106,29 @@ public class SqlRequester {
 		Engine.logEngine.debug("[SqlRequester] " + text);
 	}
 	
-	/**
-	 * Determines if the connection is opened.
-	 * 
-	 * @return true if connection is opened, false otherwise.
-	 * 
-	 * @exception SQLException if unable connection is invalid.
-	 */
-	public synchronized boolean isClosed() throws SQLException {
-		if (connection != null) {
-			return connection.isClosed();
+	public synchronized void checkConnection() throws ClassNotFoundException, SQLException {
+		if (connection == null || connection.isClosed() || !connection.isValid(30)) {
+			open();
 		}
-		return true;	
 	}
 	
 	public synchronized void close() {
 		try {
 			if (connection != null) {
 				connection.close();
-				connection = null;
 				Engine.logEngine.debug("[SqlRequester] Database closed");
 			}
 		}
 		catch (Exception e) {
 			Engine.logEngine.error("[SqlRequester] Unable to close the database!", e);
 		}
+		connection = null;
+	}
+	
+	@Override
+	protected void finalize() throws Throwable {
+		close();
+		super.finalize();
 	}
 	
 }
