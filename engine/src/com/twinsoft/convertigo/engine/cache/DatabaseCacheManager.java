@@ -90,6 +90,7 @@ public class DatabaseCacheManager extends CacheManager {
 		
 		try {
 			Engine.logCacheManager.debug("Trying to update cache entry: " + cacheEntry);
+			sqlRequester.checkConnection();
 			
 			StringEx sqlRequest = new StringEx(sqlRequester.getProperty(DatabaseCacheManager.PROPERTIES_SQL_REQUEST_UPDATE_CACHE_ENTRY));
 			
@@ -140,6 +141,7 @@ public class DatabaseCacheManager extends CacheManager {
 	protected void removeExpiredCacheEntries(long time) throws EngineException {
 		try {
 			Engine.logCacheManager.debug("Trying to remove expired cache entries from the cache Database");
+			sqlRequester.checkConnection();
 			
 			StringEx sqlRequest = new StringEx(sqlRequester.getProperty(DatabaseCacheManager.PROPERTIES_SQL_REQUEST_REMOVE_EXPIRED_CACHE_ENTRY));
 			
@@ -176,6 +178,7 @@ public class DatabaseCacheManager extends CacheManager {
 	public CacheEntry getCacheEntry(String requestString) throws EngineException {
 		try {
 			Engine.logCacheManager.debug("Trying to get the cache entry from this request string: "+requestString);
+			sqlRequester.checkConnection();
 			
 			StringEx sqlRequest = new StringEx(sqlRequester.getProperty(DatabaseCacheManager.PROPERTIES_SQL_REQUEST_GET_CACHE_ENTRY));
 			
@@ -231,6 +234,7 @@ public class DatabaseCacheManager extends CacheManager {
 	protected CacheEntry storeResponse(Document response, String requestString, long expiryDate) throws EngineException {
 		try {
 			Engine.logCacheManager.debug("Trying to store the response in the cache Database");
+			sqlRequester.checkConnection();
 			
 			StringEx sqlRequest = new StringEx(sqlRequester.getProperty(DatabaseCacheManager.PROPERTIES_SQL_REQUEST_STORE_RESPONSE));
 			
@@ -321,7 +325,8 @@ public class DatabaseCacheManager extends CacheManager {
 
 		try {
 			Engine.logCacheManager.debug("Trying to get from the cache the stored response corresponding to this cache entry.");
-
+			sqlRequester.checkConnection();
+			
 			String jdbcURL = sqlRequester.getProperty(SqlRequester.PROPERTIES_JDBC_URL);
 			boolean isOracleServerDatabase = jdbcURL.indexOf(":oracle:") != -1;
 			
@@ -413,6 +418,7 @@ public class DatabaseCacheManager extends CacheManager {
 		
 		try {
 			Engine.logCacheManager.debug("Trying to remove stored response from the cache Database");
+			sqlRequester.checkConnection();
 			
 			StringEx sqlRequest = new StringEx(sqlRequester.getProperty(DatabaseCacheManager.PROPERTIES_SQL_REQUEST_REMOVE_RESPONSE));
 			
@@ -447,7 +453,8 @@ public class DatabaseCacheManager extends CacheManager {
 	private long getId (String requestString) throws EngineException {
 		try {
 			Engine.logCacheManager.debug("Trying to get Id.");
-				
+			sqlRequester.checkConnection();
+			
 			StringEx sqlRequest = new StringEx(sqlRequester.getProperty(DatabaseCacheManager.PROPERTIES_SQL_REQUEST_GET_ID));
 			
 			String cacheTableName = sqlRequester.getProperty(DatabaseCacheManager.PROPERTIES_SQL_CACHE_TABLE_NAME, "CacheTable");
