@@ -933,6 +933,28 @@ project(':engine') {
 		args 'src', sourceSets.main.output.resourcesDir
 	}
 	
+	task generateDocumentationMd(type: JavaExec, dependsOn: engineDependenciesClasspathJar) {
+		group 'convertigo'
+		
+		onlyIf {
+			project.hasProperty('documentationPath')
+		}
+		if (project.hasProperty('documentationPath')) {
+			def docPath = file(project.property('documentationPath'))
+			def docMax = project.hasProperty('documentationMax') ? project.property('documentationMax') : -1
+			println docPath
+			inputs.files fileTree('src/com/twinsoft/convertigo/beans')
+			outputs.dir docPath
+			
+			classpath sourceSets.main.output
+			classpath engineDependenciesClasspathJar.archivePath
+			
+			main = 'com.twinsoft.convertigo.beans.BeansDoc'
+			
+			args docPath.absolutePath, docMax
+		}
+	}
+	
 	compileJava.dependsOn(['copyLicense', 'updateProductVersion'])
 	jar.dependsOn(['patchJar', 'updateBeansDefaultValues'])
 }

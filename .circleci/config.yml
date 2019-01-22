@@ -35,8 +35,7 @@ jobs:
         paths:
         - .git
         key: v1-git-{{ .Revision }}
-    
-    # Download and cache dependencies
+        
     - restore_cache:
         keys:
         - v2-dependencies-studio-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
@@ -48,33 +47,62 @@ jobs:
         - v2-build-cache-{{ .Revision }}
         - v2-build-cache-
     
-    - run: |
-        export CONVERTIGO_VERSION_NUMBER=$(sed -n "s/def convertigoVersion = '\(.*\)'/\\1/p" build.gradle)
-        export CONVERTIGO_VERSION_TAG=$(sed -n "s/def convertigoTag = '\(.*\)'/\\1/p" build.gradle)
-        if [ "$CONVERTIGO_VERSION_TAG" = "" ] ; then
-             export CONVERTIGO_VERSION=$CONVERTIGO_VERSION_NUMBER
-        else
-             export CONVERTIGO_VERSION=$CONVERTIGO_VERSION_NUMBER-$CONVERTIGO_VERSION_TAG
-        fi
-        export CONVERTIGO_BUILD_NUM=$(printf '%05d' $CIRCLE_BUILD_NUM)
-        export CONVERTIGO_BRANCH=$(echo $CIRCLE_BRANCH | sed "s,/,-,")
-        export CONVERTIGO_BUILD_NAME=$CONVERTIGO_BUILD_NUM-$CONVERTIGO_BRANCH-$CONVERTIGO_VERSION
-        export CONVERTIGO_URL=https://convertigo-ci.s3-eu-west-3.amazonaws.com/convertigo-$CONVERTIGO_BUILD_NAME
-        mkdir -p ~/s3/convertigo-$CONVERTIGO_BUILD_NAME
-        export CONVERTIGO_DIST=$(cd ~/s3/convertigo-$CONVERTIGO_BUILD_NAME; pwd)
-        env | grep -e "CIRCLE" -e "CONVERTIGO_" | sort > $CONVERTIGO_DIST/env.txt
-        env | grep -e "CONVERTIGO_" > /tmp/build.env
+    - run:
+        name: Prepare build.env
+        command: |
+          export CONVERTIGO_VERSION_NUMBER=$(sed -n "s/def convertigoVersion = '\(.*\)'/\\1/p" build.gradle)
+          export CONVERTIGO_VERSION_TAG=$(sed -n "s/def convertigoTag = '\(.*\)'/\\1/p" build.gradle)
+          if [ "$CONVERTIGO_VERSION_TAG" = "" ] ; then
+               export CONVERTIGO_VERSION=$CONVERTIGO_VERSION_NUMBER
+          else
+               export CONVERTIGO_VERSION=$CONVERTIGO_VERSION_NUMBER-$CONVERTIGO_VERSION_TAG
+          fi
+          export CONVERTIGO_BUILD_NUM=$(printf '%05d' $CIRCLE_BUILD_NUM)
+          export CONVERTIGO_BRANCH=$(echo $CIRCLE_BRANCH | sed "s,/,-,")
+          export CONVERTIGO_BUILD_NAME=$CONVERTIGO_BUILD_NUM-$CONVERTIGO_BRANCH-$CONVERTIGO_VERSION
+          export CONVERTIGO_URL=https://convertigo-ci.s3-eu-west-3.amazonaws.com/convertigo-$CONVERTIGO_BUILD_NAME
+          mkdir -p ~/s3/convertigo-$CONVERTIGO_BUILD_NAME
+          export CONVERTIGO_DIST=$(cd ~/s3/convertigo-$CONVERTIGO_BUILD_NAME; pwd)
+          env | grep -e "CIRCLE" -e "CONVERTIGO_" | sort > $CONVERTIGO_DIST/env.txt
+          env | grep -e "CONVERTIGO_" > /tmp/build.env
     
     - save_cache:
         paths:
         - /tmp/build.env
         key: v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
         
-    - run: |
-        source /tmp/build.env
-        find ~/.gradle/caches -name "*-SNAPSHOT" -exec rm -rf {} +
-        gradle --info --stacktrace -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :ciFirstStep
-    
+    - add_ssh_keys:
+        fingerprints:
+        - "0f:4a:26:54:4c:1d:13:d5:4a:40:08:b8:35:a7:5d:34"
+        
+    - run:
+        name: Clone convertigo-doc
+        command: |
+          source /tmp/build.env
+          git clone --depth 1 -b $CIRCLE_BRANCH --single-branch git@github.com:convertigo/convertigo-doc.git || NOCLONE=true
+          if [ "$NOCLONE" = true ]; then
+            git clone --depth 1 -b develop --single-branch git@github.com:convertigo/convertigo-doc.git
+            (cd convertigo-doc && git checkout -b $CIRCLE_BRANCH --track)
+          fi
+        
+    - run:
+        name: Build engine.jar and documentation's .md
+        command: |
+          source /tmp/build.env
+          test -d ~/.gradle/caches && find ~/.gradle/caches -name "*-SNAPSHOT" -exec rm -rf {} +
+          gradle --info --stacktrace -PconvertigoRevision=$CONVERTIGO_BUILD_NAME -PdocumentationPath=$PWD/convertigo-doc :engine:generateDocumentationMd :ciFirstStep
+        
+    - run:
+        name: Push to convertigo-doc
+        command: |
+          source /tmp/build.env
+          cd convertigo-doc
+          git config --global user.email "info@convertigo.com"
+          git config --global user.name "$CIRCLE_PROJECT_USERNAME"
+          git add .
+          git commit -a -m "Automatic commit from $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME@$CIRCLE_SHA1" || echo "Nothing to commit"
+          git push origin $CIRCLE_BRANCH || echo "Nothing to push"
+          
     - save_cache:
         paths:
           - ~/.gradle
@@ -86,13 +114,15 @@ jobs:
         - ~/.gradle/caches/build-cache-1
         key: v2-build-cache-{{ .Revision }}
     
-    - run: rm -rf .git
+    - run:
+        name: Clean workspace before saving
+        command: rm -rf .git convertigo-doc convertigo-splash convertigo-templates gradle-plugin
     
     - persist_to_workspace:
         root: ..
         paths:
         - .
-        
+          
   build_engine_war:
     <<: *defaults
     
