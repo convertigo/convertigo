@@ -25,6 +25,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -43,7 +46,8 @@ public abstract class Biller extends AbstractBiller {
 	
 	private static final Thread thread;
 	private static final BlockingQueue<Biller> queue;
-	
+	private static Map<String, Properties> costMap = new HashMap<>();
+
 	static {
 		queue = new LinkedBlockingQueue<Biller>();
 		thread = new Thread(new Runnable() {
@@ -63,6 +67,7 @@ public abstract class Biller extends AbstractBiller {
 						Engine.logBillers.warn("(Biller) Something wrong with a billing insertion", t);
 					}
 				}
+				costMap.clear();
 			}
 			
 		});
@@ -95,6 +100,16 @@ public abstract class Biller extends AbstractBiller {
 			billerRequester = new SqlRequester("/biller.properties");
 		}
 		return billerRequester;
+	}
+	
+	protected Properties getCostProperties(String projectName) {
+		return costMap.get(projectName);
+	}
+	
+	protected void setCostProperties(String projectName, Properties p) {
+		if (!projectName.isEmpty() && p != null) {
+			costMap.put(projectName, p);
+		}
 	}
 	
 	public void insertBilling(Context context) throws EngineException {
