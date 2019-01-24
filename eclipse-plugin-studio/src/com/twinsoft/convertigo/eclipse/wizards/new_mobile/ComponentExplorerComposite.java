@@ -56,6 +56,7 @@ import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ExpandBar;
 import org.eclipse.swt.widgets.ExpandItem;
@@ -428,22 +429,30 @@ public class ComponentExplorerComposite extends Composite {
 	}
 	
 	private void refresh() {
-	    //Display.getDefault().timerExec(1, new Runnable()
 		Display.getDefault().asyncExec(new Runnable()
 	    {
 	        @Override
 	        public void run()
 	        {	        	
-				for (ExpandItem expandItem : bar.getItems()) {
-					Point size = expandItem.getControl().getSize();
-					Point size2 = expandItem.getControl().computeSize(size.x,SWT.DEFAULT);
-					expandItem.setHeight(size2.y);
-				}
-	        	
-				Rectangle r = scrolledComposite.getClientArea();
-				scrolledComposite.setMinSize(bar.computeSize(r.width, SWT.DEFAULT));
-	        	scrolledComposite.layout(true, true);
-	        }
+	        	if (!scrolledComposite.isDisposed() && !bar.isDisposed()) {
+	        		for (final ExpandItem expandItem : bar.getItems()) {
+	        			final Control c = expandItem.getControl();
+	        			Point size = c.getSize();
+	        			Point size2 = c.computeSize(size.x,SWT.DEFAULT);
+	        			if (!size2.equals(size)) {
+	        				expandItem.setHeight(size2.y);
+	        				c.requestLayout();
+	        			}
+	        		}
+	        		Rectangle r = scrolledComposite.getClientArea();
+	        		Point size = bar.getSize();
+	        		Point size2 = bar.computeSize(r.width, SWT.DEFAULT);
+	        		if (!size2.equals(size)) {
+	        			scrolledComposite.setMinSize(size2);
+	        			scrolledComposite.requestLayout();
+	        		}
+	        	}
+	        }	        
 	    });
 	}
 	/*
