@@ -312,10 +312,6 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
             
 			setTextLabel("Authenticating to the Convertigo server");
 			
-			if (convertigoServer.indexOf('/') == -1) {
-				convertigoServer += "/convertigo";
-			}
-			
 			RemoteAdmin remoteAdmin = new RemoteAdmin(convertigoServer, isHttps, trustAllCertificates);
 	
 			ConvertigoPlugin.logDebug("Trying to connect to the Convertigo remote server...");

@@ -197,7 +197,7 @@ public class FullSyncServlet extends HttpServlet {
 			
 			String dbName = requestParser.getDbName();
 			
-			debug.append("dbName=" + dbName + " special=" + special + "\n");
+			debug.append("dbName=" + dbName + " special=" + special + " couchdb=" + version + "\n");
 			
 			HttpRequestBase newRequest;
 			
@@ -505,7 +505,9 @@ public class FullSyncServlet extends HttpServlet {
 								responseStringEntity = IOUtils.toString(bis, charset);
 								writer.write(responseStringEntity);
 								writer.flush();
+								if (listeners != null) {
 								Engine.theApp.couchDbManager.handleBulkDocsResponse(request, listeners, bulkDocsRequest, responseStringEntity);
+								}
 							} else if (isCblBulkGet) {
 								Engine.logCouchDbManager.info("(FullSyncServlet) Checking text response documents for CBL BulkGet:\n" + debug);
 								Engine.theApp.couchDbManager.checkCblBulkGetResponse(special, fsAuth, bis, charset, response);
