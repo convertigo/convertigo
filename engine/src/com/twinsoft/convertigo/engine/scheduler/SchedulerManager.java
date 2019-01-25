@@ -190,12 +190,17 @@ public class SchedulerManager {
 								shouldSave = true;
 							}
 								
-							if (tg != null && tg.mayFireAgain()) {
+							if (tg != null) {
 								try {
 									sched.scheduleJob(jd, tg);
 									Engine.logEngine.trace("(Scheduler Manager) " + currentName + " scheduled");
 								} catch (SchedulerException e) {
-									Engine.logEngine.warn("(Scheduler Manager) " + currentName + " failed to be scheduled: " + e.getMessage());
+									String message = "(Scheduler Manager) " + currentName + " failed to be scheduled: " + e.getMessage();
+									if (message != null && message.contains("trigger will never fire")) {
+										Engine.logEngine.debug(message);
+									} else {
+										Engine.logEngine.warn(message);
+									}
 								}
 							}
 						}

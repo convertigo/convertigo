@@ -87,7 +87,7 @@ public class SecurityFilter implements Filter, PropertyChangeEventListener {
     	for (Rule rule: rules) {
     		if (first && Level.INFO.isGreaterOrEqual(level)) {
     			String uri = request.getRequestURI().substring(contextLength);
-    			if (uri.equals("/admin/services/logs.Get")) {
+    			if (uri.endsWith("/services/logs.Get")) {
     				level = Level.OFF;
     			} else {
 	    			sb.append("ip[").append(request.getRemoteAddr()).append("] ");
