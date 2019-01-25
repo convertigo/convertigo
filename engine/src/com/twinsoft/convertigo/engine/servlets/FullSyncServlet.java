@@ -73,12 +73,17 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
+import com.twinsoft.convertigo.beans.core.Connector;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.couchdb.AbstractFullSyncListener;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.LogParameters;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
+import com.twinsoft.convertigo.engine.enums.FullSyncAnonymousReplication;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.MimeType;
@@ -159,11 +164,36 @@ public class FullSyncServlet extends HttpServlet {
 			if (EnginePropertiesManager.getProperty(PropertyName.NET_REVERSE_DNS).equalsIgnoreCase("true")) {
 				Log4jHelper.mdcPut(mdcKeys.ClientHostName, request.getRemoteHost());
 			}
+
+			String dbName = requestParser.getDbName();
 			
 			FullSyncAuthentication fsAuth = Engine.theApp.couchDbManager.getFullSyncAuthentication(request.getSession());
 			if (fsAuth == null) {
 				Log4jHelper.mdcPut(mdcKeys.User, "(anonymous)");
 				debug.append("Anonymous user\n");
+				Boolean allowAnonymous = null;
+				for (String projectName : Engine.theApp.databaseObjectsManager.getAllProjectNamesList()) {
+					try {
+		    			Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+		    			for (Connector connector : project.getConnectorsList()) {
+		    				if (connector instanceof FullSyncConnector) {
+		    					FullSyncConnector fullSyncConnector = (FullSyncConnector)connector;
+		    					if (fullSyncConnector.getDatabaseName().equals(dbName)) {
+		    						allowAnonymous = fullSyncConnector.getAnonymousReplication() == FullSyncAnonymousReplication.allow;
+		    						break;
+		    					}
+		    				}
+		    			}
+		    			if (allowAnonymous != null) {
+		    				break;
+		    			}
+					} catch (Exception e) {
+						// TODO: handle exception
+					}
+				}
+				if (allowAnonymous == Boolean.FALSE) {
+					throw new SecurityException("The '" + dbName + "' database cannot be replicated by an anonymous session");
+				}
 			} else {
 				Log4jHelper.mdcPut(mdcKeys.User, "'" + fsAuth.getAuthenticatedUser() + "'");
 				debug.append("Authenticated user: ").append(fsAuth.getAuthenticatedUser()).append('\n')
@@ -194,8 +224,6 @@ public class FullSyncServlet extends HttpServlet {
 			if (isChanges && version.compareTo("2.") >= 0) {
 				method = HttpMethodType.POST;
 			}
-			
-			String dbName = requestParser.getDbName();
 			
 			debug.append("dbName=" + dbName + " special=" + special + " couchdb=" + version + "\n");
 			
@@ -535,8 +563,15 @@ public class FullSyncServlet extends HttpServlet {
 				}
 			}
 		} catch (SecurityException e) {
-			Engine.logCouchDbManager.error("(FullSyncServlet) Failed to process request due to a security exception:\n" + e.getMessage() + "\n" + debug);
+			Engine.logCouchDbManager.warn("(FullSyncServlet) Failed to process request due to a security exception:\n" + e.getMessage() + "\n" + debug);
 			response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+		} catch (EngineException e) {
+			String message = e.getMessage();
+			if (message != null && message.contains("anonymous user")) {
+				Engine.logCouchDbManager.warn("(FullSyncServlet) Failed to process request: " + message + "\n" + debug);
+			} else {
+				Engine.logCouchDbManager.error("(FullSyncServlet) Failed to process request:\n" + debug, e);
+			}
 		} catch (Exception e) {
 			if ("ClientAbortException".equals(e.getClass().getSimpleName())) {
 				Engine.logCouchDbManager.info("(FullSyncServlet) Client disconnected:\n" + debug);
