@@ -69,6 +69,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	private String tplProjectName = "";
 	private String tplProjectVersion = "";
 	private String splitPaneLayout = "not set";
+	private boolean isPWA = false;
 	
 	public ApplicationComponent() {
 		super();
@@ -921,6 +922,10 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		getProject().getMobileBuilder().appModuleTsChanged(this);
 	}
 	
+	public void markPwaAsDirty() throws EngineException {
+		getProject().getMobileBuilder().appPwaChanged(this);
+	}
+	
     /*
      * The computed template (see app.html)
      */
@@ -1126,6 +1131,14 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		this.splitPaneLayout = splitPaneLayout;
 	}
 
+	public boolean isPWA() {
+		return isPWA;
+	}
+	
+	public void setPWA(boolean isPWA) {
+		this.isPWA = isPWA;
+	}
+	
 	private boolean isCompatibleTemplate(String project) {
 		File tplDir = new File(Engine.PROJECTS_PATH + "/" + project + "/ionicTpl");
 		if (tplDir.exists()) {
@@ -1215,5 +1228,5 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		}
 		return tplVersion;
 	}
-	
+
 }
