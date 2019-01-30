@@ -6011,7 +6011,7 @@
 		},
 		"timeout": {
           "label": "Timeout",
-          "description": "Defines the maximum time to wait for the response. May be used to detect slow network conditions.",
+          "description": "Defines the maximum time to wait for the response (in milliseconds). May be used to detect slow network conditions.",
           "category": "@Properties",
           "type": "number",
           "value": false,
@@ -6022,7 +6022,7 @@
 		},
 		"threshold": {
           "label": "Threshold",
-          "description": "Defines the minimum time to wait for the Loading spinner to show up.",
+          "description": "Defines the minimum time to wait for the Loading spinner to show up (in milliseconds).",
           "category": "@Properties",
           "type": "number",
           "value": false,
